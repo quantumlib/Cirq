@@ -1,0 +1,41 @@
+name: Continuous Integration - Daily
+
+on:
+  schedule:
+    # Checks out master by default.
+    - cron: '0 0 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    name: Pytest Ubuntu
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install requirements
+        run: |
+          pip install --pre cirq
+          pip install \
+          -r dev_tools/requirements/deps/format.txt \
+          -r dev_tools/requirements/deps/pylint.txt \
+          -r dev_tools/requirements/deps/pytest.txt
+      - name: Run Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
+      - name: Pytest check
+        run: check/pytest --ignore=cirq-core/cirq/contrib --rigetti-integration
+      - name: Stop Quil dependencies
+        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down

@@ -211,9 +211,7 @@ def test_middle_multiplexor(angles, num_cnots):
             ]
         )
         == num_cnots
-    ), "expected {} CNOTs got \n {} \n {}".format(
-        num_cnots, circuit_u1u2_mid, circuit_u1u2_mid.unitary()
-    )
+    ), f"expected {num_cnots} CNOTs got \n {circuit_u1u2_mid} \n {circuit_u1u2_mid.unitary()}"
 
 
 @pytest.mark.parametrize("shift_left", [True, False])

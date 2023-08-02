@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import Sequence, Any, Union, Dict
 import numpy as np
 import networkx as nx
@@ -51,16 +52,15 @@ class PasqalDevice(cirq.devices.Device):
         for q in qubits:
             if not isinstance(q, self.supported_qubit_type):
                 raise TypeError(
-                    'Unsupported qubit type: {!r}. This device '
-                    'supports qubit types: {}'.format(q, self.supported_qubit_type)
+                    f'Unsupported qubit type: {q!r}. This device '
+                    f'supports qubit types: {self.supported_qubit_type}'
                 )
             if not type(q) is q_type:
                 raise TypeError("All qubits must be of same type.")
 
         if len(qubits) > self.maximum_qubit_number:
             raise ValueError(
-                'Too many qubits. {} accepts at most {} '
-                'qubits.'.format(type(self), self.maximum_qubit_number)
+                f'Too many qubits. {type(self)} accepts at most {self.maximum_qubit_number} qubits.'
             )
 
         self.gateset = PasqalGateset()
@@ -111,9 +111,9 @@ class PasqalDevice(cirq.devices.Device):
         for qub in operation.qubits:
             if not isinstance(qub, self.supported_qubit_type):
                 raise ValueError(
-                    '{} is not a valid qubit for gate {!r}. This '
-                    'device accepts gates on qubits of type: '
-                    '{}'.format(qub, operation.gate, self.supported_qubit_type)
+                    f'{qub} is not a valid qubit for gate {operation.gate!r}. This '
+                    f'device accepts gates on qubits of type: '
+                    f'{self.supported_qubit_type}'
                 )
             if qub not in self.metadata.qubit_set:
                 raise ValueError(f'{qub} is not part of the device.')
@@ -277,8 +277,10 @@ class PasqalVirtualDevice(PasqalDevice):
         return np.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2 + (p.z - q.z) ** 2)
 
     def __repr__(self):
-        return ('pasqal.PasqalVirtualDevice(control_radius={!r}, qubits={!r})').format(
-            self.control_radius, sorted(self.qubits)
+        return (
+            'pasqal.PasqalVirtualDevice('
+            f'control_radius={self.control_radius!r}, '
+            f'qubits={sorted(self.qubits)!r})'
         )
 
     def _value_equality_values_(self) -> Any:

@@ -42,52 +42,15 @@ class DummySimulationState(cirq.SimulationState):
     ) -> bool:
         return True
 
-
-class AncillaZ(cirq.Gate):
-    def __init__(self, exponent=1):
-        self._exponent = exponent
-
-    def num_qubits(self) -> int:
-        return 1
-
-    def _decompose_(self, qubits):
-        ancilla = cirq.NamedQubit('Ancilla')
-        yield cirq.CX(qubits[0], ancilla)
-        yield cirq.Z(ancilla) ** self._exponent
-        yield cirq.CX(qubits[0], ancilla)
-
-
-class AncillaH(cirq.Gate):
-    def __init__(self, exponent=1):
-        self._exponent = exponent
-
-    def num_qubits(self) -> int:
-        return 1
-
-    def _decompose_(self, qubits):
-        ancilla = cirq.NamedQubit('Ancilla')
-        yield cirq.H(ancilla) ** self._exponent
-        yield cirq.CX(ancilla, qubits[0])
-        yield cirq.H(ancilla) ** self._exponent
-
-
-class AncillaY(cirq.Gate):
-    def __init__(self, exponent=1):
-        self._exponent = exponent
-
-    def num_qubits(self) -> int:
-        return 1
-
-    def _decompose_(self, qubits):
-        ancilla = cirq.NamedQubit('Ancilla')
-        yield cirq.Y(ancilla) ** self._exponent
-        yield cirq.CX(ancilla, qubits[0])
-        yield cirq.Y(ancilla) ** self._exponent
+    def add_qubits(self, qubits):
+        ret = super().add_qubits(qubits)
+        return self if NotImplemented else ret
 
 
 class DelegatingAncillaZ(cirq.Gate):
-    def __init__(self, exponent=1):
+    def __init__(self, exponent=1, measure_ancilla: bool = False):
         self._exponent = exponent
+        self._measure_ancilla = measure_ancilla
 
     def num_qubits(self) -> int:
         return 1
@@ -95,8 +58,10 @@ class DelegatingAncillaZ(cirq.Gate):
     def _decompose_(self, qubits):
         a = cirq.NamedQubit('a')
         yield cirq.CX(qubits[0], a)
-        yield AncillaZ(self._exponent).on(a)
+        yield PhaseUsingCleanAncilla(self._exponent).on(a)
         yield cirq.CX(qubits[0], a)
+        if self._measure_ancilla:
+            yield cirq.measure(a)
 
 
 class Composite(cirq.Gate):
@@ -115,10 +80,21 @@ def test_measurements():
 
 def test_decompose():
     args = DummySimulationState()
-    assert (
-        simulation_state.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
-        is NotImplemented
+    assert simulation_state.strat_act_on_from_apply_decompose(
+        Composite(), args, [cirq.LineQubit(0)]
     )
+
+
+def test_decompose_for_gate_allocating_qubits_raises():
+    class Composite(cirq.testing.SingleQubitGate):
+        def _decompose_(self, qubits):
+            anc = cirq.NamedQubit("anc")
+            yield cirq.CNOT(*qubits, anc)
+
+    args = DummySimulationState()
+
+    with pytest.raises(TypeError, match="add_qubits but not remove_qubits"):
+        simulation_state.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
 
 
 def test_mapping():
@@ -162,43 +138,8 @@ def test_field_getters():
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
 
 
-@pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
-def test_ancilla_z(exp):
-    q = cirq.LineQubit(0)
-    test_circuit = cirq.Circuit(AncillaZ(exp).on(q))
-
-    control_circuit = cirq.Circuit(cirq.ZPowGate(exponent=exp).on(q))
-
-    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
-
-
-@pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
-def test_ancilla_y(exp):
-    q = cirq.LineQubit(0)
-    test_circuit = cirq.Circuit(AncillaY(exp).on(q))
-
-    control_circuit = cirq.Circuit(cirq.Y(q))
-    control_circuit.append(cirq.Y(q))
-    control_circuit.append(cirq.XPowGate(exponent=exp).on(q))
-
-    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
-
-
-@pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
-def test_borrowable_qubit(exp):
-    q = cirq.LineQubit(0)
-    test_circuit = cirq.Circuit()
-    test_circuit.append(cirq.H(q))
-    test_circuit.append(cirq.X(q))
-    test_circuit.append(AncillaH(exp).on(q))
-
-    control_circuit = cirq.Circuit(cirq.H(q))
-
-    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
-
-
-@pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
-def test_delegating_gate_qubit(exp):
+@pytest.mark.parametrize('exp', np.linspace(0, 2 * np.pi, 10))
+def test_delegating_gate_unitary(exp):
     q = cirq.LineQubit(0)
 
     test_circuit = cirq.Circuit()
@@ -208,7 +149,24 @@ def test_delegating_gate_qubit(exp):
     control_circuit = cirq.Circuit(cirq.H(q))
     control_circuit.append(cirq.ZPowGate(exponent=exp).on(q))
 
-    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
+    assert_test_circuit_for_dm_simulator(test_circuit, control_circuit)
+    assert_test_circuit_for_sv_simulator(test_circuit, control_circuit)
+
+
+@pytest.mark.parametrize('exp', np.linspace(0, 2 * np.pi, 10))
+def test_delegating_gate_channel(exp):
+    q = cirq.LineQubit(0)
+
+    test_circuit = cirq.Circuit()
+    test_circuit.append(cirq.H(q))
+    test_circuit.append(DelegatingAncillaZ(exp, True).on(q))
+
+    control_circuit = cirq.Circuit(cirq.H(q))
+    control_circuit.append(cirq.ZPowGate(exponent=exp).on(q))
+
+    with pytest.raises(TypeError, match="DensityMatrixSimulator doesn't support"):
+        # TODO: This test should pass once we extend support to DensityMatrixSimulator.
+        assert_test_circuit_for_dm_simulator(test_circuit, control_circuit)
 
 
 @pytest.mark.parametrize('num_ancilla', [1, 2, 3])
@@ -221,7 +179,8 @@ def test_phase_using_dirty_ancilla(num_ancilla: int):
         u.on(q, *anc), PhaseUsingDirtyAncilla(ancilla_bitsize=num_ancilla).on(q)
     )
     control_circuit = cirq.Circuit(u.on(q, *anc), cirq.Z(q))
-    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
+    assert_test_circuit_for_dm_simulator(test_circuit, control_circuit)
+    assert_test_circuit_for_sv_simulator(test_circuit, control_circuit)
 
 
 @pytest.mark.parametrize('num_ancilla', [1, 2, 3])
@@ -233,25 +192,24 @@ def test_phase_using_clean_ancilla(num_ancilla: int, theta: float):
         u.on(q), PhaseUsingCleanAncilla(theta=theta, ancilla_bitsize=num_ancilla).on(q)
     )
     control_circuit = cirq.Circuit(u.on(q), cirq.ZPowGate(exponent=theta).on(q))
-    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
+    assert_test_circuit_for_dm_simulator(test_circuit, control_circuit)
+    assert_test_circuit_for_sv_simulator(test_circuit, control_circuit)
 
 
-def test_add_qubits_raise_value_error(num_ancilla=1):
-    q = cirq.LineQubit(0)
-    args = cirq.StateVectorSimulationState(qubits=[q])
-
-    with pytest.raises(ValueError, match='should not already be tracked.'):
-        args.add_qubits([q])
-
-
-def test_remove_qubits_not_implemented(num_ancilla=1):
-    args = DummySimulationState()
-
-    assert args.remove_qubits([cirq.LineQubit(0)]) is NotImplemented
+def assert_test_circuit_for_dm_simulator(test_circuit, control_circuit) -> None:
+    # Density Matrix Simulator: For unitary gates, this fallbacks to `cirq.apply_channel`
+    # which recursively calls to `cirq.apply_unitary(decompose=True)`.
+    for split_untangled_states in [True, False]:
+        sim = cirq.DensityMatrixSimulator(split_untangled_states=split_untangled_states)
+        control_sim = sim.simulate(control_circuit).final_density_matrix
+        test_sim = sim.simulate(test_circuit).final_density_matrix
+        assert np.allclose(test_sim, control_sim)
 
 
-def assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit) -> None:
-    for test_simulator in ['cirq.final_state_vector', 'cirq.final_density_matrix']:
-        test_sim = eval(test_simulator)(test_circuit)
-        control_sim = eval(test_simulator)(control_circuit)
+def assert_test_circuit_for_sv_simulator(test_circuit, control_circuit) -> None:
+    # State Vector Simulator.
+    for split_untangled_states in [True, False]:
+        sim = cirq.Simulator(split_untangled_states=split_untangled_states)
+        control_sim = sim.simulate(control_circuit).final_state_vector
+        test_sim = sim.simulate(test_circuit).final_state_vector
         assert np.allclose(test_sim, control_sim)

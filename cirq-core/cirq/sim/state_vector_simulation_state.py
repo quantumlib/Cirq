@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Objects and methods for acting efficiently on a state vector."""
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
 
@@ -393,7 +394,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
-            "SupportsMixture or is a measurement: {!r}".format(action)
+            f"SupportsMixture or is a measurement: {action!r}"
         )
 
     def __repr__(self) -> str:

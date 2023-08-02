@@ -172,8 +172,8 @@ def qasm(
     if method is None:
         raise TypeError(f"object of type '{type(val)}' has no _qasm_ method.")
     raise TypeError(
-        "object of type '{}' does have a _qasm_ method, "
-        "but it returned NotImplemented or None.".format(type(val))
+        f"object of type '{type(val)}' does have a _qasm_ method, "
+        "but it returned NotImplemented or None."
     )
 
 

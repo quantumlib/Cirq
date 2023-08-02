@@ -84,6 +84,22 @@ message SweepFunction {
   repeated Sweep sweeps = 2;
 }
 
+message DeviceParameter {
+
+    // Path to the parameter key
+    repeated string path = 1;
+
+    // If the value is an array, the index of the array to change.
+    int64 idx = 2;
+
+    // String representation of the units, if any.
+    // Examples: "GHz", "ns", etc.
+    string units = 3;
+
+    // Note that the device parameter values will be populated
+    // by the sweep values themselves.
+}
+
 
 // A set of values to loop over for a particular parameter.
 message SingleSweep {
@@ -98,6 +114,10 @@ message SingleSweep {
     // Uniformly-spaced sampling over a range.
     Linspace linspace = 3;
   }
+
+  // Optional arguments for if this is a device parameter.
+  // (as opposed to a circuit symbol)
+  DeviceParameter parameter = 4;
 }
 
 // A list of explicit values.
