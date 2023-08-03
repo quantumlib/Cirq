@@ -1,1 +1,1 @@
-ipython>=8.14.0
+ipython>=7.34.0
