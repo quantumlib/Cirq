@@ -145,4 +145,10 @@ def test_sampler_run_sweep():
     assert len(results) == 5  # Confirm that 5 result objects were created
     assert all([result.repetitions == 4 for result in results])  # Confirm all repetitions were 4
 
-    mock_service.create_job.assert_called_with(circuit=circuit, repetitions=4, target='qpu')
+    # Assert that create_job was called 5 times
+    assert mock_service.create_job.call_count == 5
+    # For each call, assert that it was called with the correct repetitions and target
+    for call in mock_service.create_job.call_args_list:
+        _, kwargs = call
+        assert kwargs["repetitions"] == 4
+        assert kwargs["target"] == 'qpu'
