@@ -62,9 +62,12 @@ class Service:
                 This is actually an EnvironmentError which is equal to an OSError.
         """
         self.remote_host = (
-            remote_host or os.getenv('IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'
+            remote_host
+            or os.getenv('CIRQ_IONQ_REMOTE_HOST')
+            or os.getenv('IONQ_REMOTE_HOST')
+            or f'https://api.ionq.co/{api_version}'
         )
-        self.api_key = api_key or os.getenv('IONQ_API_KEY')
+        self.api_key = api_key or os.getenv('CIRQ_IONQ_API_KEY') or os.getenv('IONQ_API_KEY')
         if not self.api_key:
             raise EnvironmentError(
                 'Parameter api_key was not specified and the environment variable '
