@@ -142,7 +142,7 @@ jobs:
           python-version: '3.9'
           architecture: 'x64'
       - name: Install dependencies
-        run: pip install -r dev_tools/requirements/isolated-base.env.txt
+        run: python3.9 -m pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: List kernels
         run: python -m jupyter kernelspec list
       - name: Test each module in isolation
