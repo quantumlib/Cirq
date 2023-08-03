@@ -37,8 +37,7 @@ class ProgramAlreadyExistsError(Exception):
 
 
 class StreamError(Exception):
-    def __init__(self, message: str):
-        super().__init__(message)
+    pass
 
 
 class ResponseDemux:
@@ -110,12 +109,16 @@ class StreamManager:
 
     def __init__(self, grpc_client: quantum.QuantumEngineServiceAsyncClient):
         self._grpc_client = grpc_client
+        # TODO(#5996) Make this local to the asyncio thread.
         self._request_queue: Optional[asyncio.Queue] = None
         # Used to determine whether the stream coroutine is actively running, and provides a way to
         # cancel it.
         self._manage_stream_loop_future: Optional[duet.AwaitableFuture[None]] = None
         # TODO(#5996) consider making the scope of response futures local to the relevant tasks
         # rather than all of StreamManager.
+        # Currently, this field is being written to from both duet and asyncio threads. While the
+        # ResponseDemux implementation does support this, it does not guarantee thread safety in its
+        # interface.
         self._response_demux = ResponseDemux()
         self._next_available_message_id = 0
 
@@ -151,19 +154,17 @@ class StreamManager:
 
         if self._manage_stream_loop_future is None or self._manage_stream_loop_future.done():
             self._manage_stream_loop_future = self._executor.submit(self._manage_stream)
-            self._manage_stream_loop_future.add_done_callback(self._manage_stream_cancel())
         return self._executor.submit(self._manage_execution, project_name, program, job)
 
     def stop(self) -> None:
         """Closes the open stream and resets all management resources."""
-        try:
-            if (
-                self._manage_stream_loop_future is not None
-                and not self._manage_stream_loop_future.done()
-            ):
-                self._manage_stream_loop_future.cancel()
-        finally:
-            self._reset()
+        if (
+            self._manage_stream_loop_future is not None
+            and not self._manage_stream_loop_future.done()
+        ):
+            self._manage_stream_loop_future.cancel()
+        self._response_demux.publish_exception(asyncio.CancelledError())
+        self._reset()
 
     def _reset(self):
         """Resets the manager state."""
@@ -197,21 +198,11 @@ class StreamManager:
                 async for response in response_iterable:
                     self._response_demux.publish(response)
             except asyncio.CancelledError:
-                # Handled in _manage_stream_cancel() callback.
-                # Handling here does not work because the ResponseDemux may have been reset in the
-                # duet thread.
                 break
             except BaseException as e:
                 # TODO(#5996) Close the request iterator to close the existing stream.
                 # Note: the message ID counter is not reset upon a new stream.
                 self._response_demux.publish_exception(e)  # Raise to all request tasks
-
-    def _manage_stream_cancel(self):
-        def cancel(future) -> None:
-            if future.cancelled():
-                self._response_demux.publish_exception(asyncio.CancelledError())
-
-        return cancel
 
     async def _manage_execution(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
@@ -237,6 +228,8 @@ class StreamManager:
         while self._request_queue is None:
             # Wait for the stream coroutine to start.
             # Ignoring coverage since this is rarely triggered.
+            # TODO(#5996) Consider awaiting for the queue to become available, once it is changed
+            # to be local to the asyncio thread.
             await asyncio.sleep(1)  # coverage: ignore
 
         current_request = create_program_and_job_request
@@ -249,12 +242,13 @@ class StreamManager:
 
             # Broken stream
             except google_exceptions.GoogleAPICallError as e:
-                if _is_retryable_error(e):
-                    # Retry
-                    current_request = _to_get_result_request(create_program_and_job_request)
-                    continue
-                    # TODO(#5996) add exponential backoff
-                raise e
+                if not _is_retryable_error(e):
+                    raise e
+
+                # Retry
+                current_request = _to_get_result_request(create_program_and_job_request)
+                continue
+                # TODO(#5996) add exponential backoff
 
             # Either when this request is canceled or the _manage_stream() loop is canceled.
             except asyncio.CancelledError:
