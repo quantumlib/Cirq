@@ -143,6 +143,8 @@ jobs:
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
+      - name: List kernels
+        run: python -m jupyter kernelspec list
       - name: Create python3 kernel
         run: python -m ipython kernel install --name "python3" --user
       - name: Test each module in isolation
