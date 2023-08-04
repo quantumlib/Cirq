@@ -80,10 +80,7 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
             return self.U.registers
         else:
             return infra.Registers(
-                [
-                    infra.Register("phase_reg", self.precision),
-                    self.eigenvector_register,
-                ]
+                [infra.Register("phase_reg", self.precision), self.eigenvector_register]
             )
 
     @property

@@ -25,29 +25,39 @@ precision = 8
 error_bound = 0.1
 
 
+class KitaevExample(KitaevPhaseEstimation):
+    @cached_property
+    def eigenvector_register(self) -> infra.Register:
+        return infra.Register("eigenvector_register", 1)
+
+
 def test_kitaev_phase_estimation_trivial():
+
     theta = 0
     U = cirq.I
+    eigenvector_register = cirq.q('ev')
     precision_registers = cirq.NamedQubit.range(precision, prefix='c')
-    op = KitaevPhaseEstimation(precision, U).on_registers(
-        bits_of_precision_register=precision_registers, eigenvector_register=[cirq.q('ev')]
+    op = KitaevExample(precision, U).on_registers(
+        phase_reg=precision_registers, eigenvector_register=[eigenvector_register]
     )
-    assert abs(simulate_theta_estimate(op, precision_registers) - theta) < error_bound
+    assert (
+        abs(
+            simulate_theta_estimate(op, precision_registers, cirq.I.on(eigenvector_register))
+            - theta
+        )
+        < error_bound
+    )
 
 
 @pytest.mark.parametrize('theta', [0.234, 0.78, 0.54])
 def test_kitaev_phase_estimation_theta(theta):
-    class KitaevExample(KitaevPhaseEstimation):
-        @cached_property
-        def eigenvector_register(self) -> infra.Register:
-            return infra.Register("eigenvector_register", 1)
 
     U = cirq.Z ** (2 * theta)
     precision_register = cirq.NamedQubit.range(precision, prefix='c')
     eigenvector_register = cirq.q('ev')
     prepare_eigenvector = cirq.X.on(eigenvector_register)
     op = KitaevExample(precision, U).on_registers(
-        phase_reg=precision_register, eigenvector_register=[cirq.q('ev')]
+        phase_reg=precision_register, eigenvector_register=[eigenvector_register]
     )
     assert (
         abs(simulate_theta_estimate(op, precision_register, prepare_eigenvector) - theta)
@@ -55,7 +65,7 @@ def test_kitaev_phase_estimation_theta(theta):
     )
 
 
-def simulate_theta_estimate(op, measurement_register, eig_prep=cirq.I) -> float:
+def simulate_theta_estimate(op, measurement_register, eig_prep) -> float:
 
     cirquit = cirq.Circuit(eig_prep, op)
     cirquit.append(cirq.measure(*measurement_register, key='m'))
