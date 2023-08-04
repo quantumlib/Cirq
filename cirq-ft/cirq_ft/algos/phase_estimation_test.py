@@ -16,6 +16,7 @@ from functools import cached_property
 
 import pytest
 import numpy as np
+from attr import frozen
 
 import cirq
 from cirq_ft import infra
@@ -25,19 +26,21 @@ precision = 8
 error_bound = 0.1
 
 
+@frozen
 class KitaevExample(KitaevPhaseEstimation):
+    bits: int
+
     @cached_property
     def eigenvector_register(self) -> infra.Register:
-        return infra.Register("eigenvector_register", 1)
+        return infra.Register("eigenvector_register", self.bits)
 
 
 def test_kitaev_phase_estimation_trivial():
-
     theta = 0
     U = cirq.I
     eigenvector_register = cirq.q('ev')
     precision_registers = cirq.NamedQubit.range(precision, prefix='c')
-    op = KitaevExample(precision, U).on_registers(
+    op = KitaevExample(precision, U, 1).on_registers(
         phase_reg=precision_registers, eigenvector_register=[eigenvector_register]
     )
     assert (
@@ -51,12 +54,11 @@ def test_kitaev_phase_estimation_trivial():
 
 @pytest.mark.parametrize('theta', [0.234, 0.78, 0.54])
 def test_kitaev_phase_estimation_theta(theta):
-
     U = cirq.Z ** (2 * theta)
     precision_register = cirq.NamedQubit.range(precision, prefix='c')
     eigenvector_register = cirq.q('ev')
     prepare_eigenvector = cirq.X.on(eigenvector_register)
-    op = KitaevExample(precision, U).on_registers(
+    op = KitaevExample(precision, U, 1).on_registers(
         phase_reg=precision_register, eigenvector_register=[eigenvector_register]
     )
     assert (
@@ -65,8 +67,22 @@ def test_kitaev_phase_estimation_theta(theta):
     )
 
 
-def simulate_theta_estimate(op, measurement_register, eig_prep) -> float:
+def test_kitaev_phase_estimation_multi_qubit_eigenvector():
+    theta = 0.5
+    U = cirq.CZ
+    precision_register = cirq.NamedQubit.range(precision, prefix='c')
+    eigenvector_register = cirq.NamedQubit.range(2, prefix='ev')
+    prepare_eigenvector = cirq.X.on_each(eigenvector_register)
+    op = KitaevExample(precision, U, 2).on_registers(
+        phase_reg=precision_register, eigenvector_register=eigenvector_register
+    )
+    assert (
+        abs(simulate_theta_estimate(op, precision_register, prepare_eigenvector) - theta)
+        < error_bound
+    )
 
+
+def simulate_theta_estimate(op, measurement_register, eig_prep) -> float:
     cirquit = cirq.Circuit(eig_prep, op)
     cirquit.append(cirq.measure(*measurement_register, key='m'))
     sim = cirq.Simulator()

@@ -101,9 +101,10 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
             for i, qubit in enumerate(qreg):
                 yield (cirq.CZ ** (-1 / 2 ** (i + 1)))(qubit, q_head)
 
-    def U_to_the_k_power(self, control_bits, eigen_vector_bit) -> List[cirq.Operation]:
+    def U_to_the_k_power(self, control_bits, eigen_vector_bits) -> List[cirq.Operation]:
         return [
-            cirq.ControlledGate(self.U).on(bit, eigen_vector_bit) ** (2 ** (self.precision - i - 1))
+            cirq.ControlledGate(self.U).on(bit, *eigen_vector_bits)
+            ** (2 ** (self.precision - i - 1))
             for i, bit in enumerate(control_bits)
         ]
 
@@ -114,5 +115,5 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
         eigenvector_bits = quregs[self.eigenvector_register.name]
 
         yield cirq.H.on_each(*bits_of_precision)
-        yield [op for op in self.U_to_the_k_power(bits_of_precision, *eigenvector_bits)]
+        yield [op for op in self.U_to_the_k_power(bits_of_precision, eigenvector_bits)]
         yield self.qft_inverse([*bits_of_precision])
