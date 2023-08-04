@@ -11,10 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from abc import ABC
+from functools import cached_property
+
 import pytest
 import numpy as np
 
 import cirq
+from cirq_ft import infra
 from cirq_ft.algos import KitaevPhaseEstimation
 
 precision = 8
@@ -25,7 +29,7 @@ def test_kitaev_phase_estimation_trivial():
     theta = 0
     U = cirq.I
     precision_registers = cirq.NamedQubit.range(precision, prefix='c')
-    op = KitaevPhaseEstimation(precision, U, cirq.X).on_registers(
+    op = KitaevPhaseEstimation(precision, U).on_registers(
         bits_of_precision_register=precision_registers, eigenvector_register=[cirq.q('ev')]
     )
     assert abs(simulate_theta_estimate(op, precision_registers) - theta) < error_bound
@@ -33,14 +37,22 @@ def test_kitaev_phase_estimation_trivial():
 
 @pytest.mark.parametrize('theta', [0.234, 0.78, 0.54])
 def test_kitaev_phase_estimation_theta(theta):
+    class KitaevExample(KitaevPhaseEstimation):
+        @cached_property
+        def eigenvector_register(self) -> infra.Register:
+            return infra.Register("eigenvector_register", 1)
+
     U = cirq.Z ** (2 * theta)
     precision_register = cirq.NamedQubit.range(precision, prefix='c')
     eigenvector_register = cirq.q('ev')
     prepare_eigenvector = cirq.X.on(eigenvector_register)
-    op = KitaevPhaseEstimation(precision, U).on_registers(
-        bits_of_precision_register=precision_register, eigenvector_register=[cirq.q('ev')]
+    op = KitaevExample(precision, U).on_registers(
+        phase_reg=precision_register, eigenvector_register=[cirq.q('ev')]
     )
-    assert abs(simulate_theta_estimate(op, precision_register, prepare_eigenvector) - theta) < error_bound
+    assert (
+        abs(simulate_theta_estimate(op, precision_register, prepare_eigenvector) - theta)
+        < error_bound
+    )
 
 
 def simulate_theta_estimate(op, measurement_register, eig_prep=cirq.I) -> float:

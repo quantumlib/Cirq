@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 from typing import Optional, List
 from attr import frozen
 from cirq._compat import cached_property
@@ -75,9 +76,20 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
 
     @cached_property
     def registers(self) -> infra.Registers:
-        return infra.Registers.build(
-            bits_of_precision_register=self.precision, eigenvector_register=self.eigenvector_bitsize
-        )
+        if isinstance(self.U, infra.GateWithRegisters):
+            return self.U.registers
+        else:
+            return infra.Registers(
+                [
+                    infra.Register("phase_reg", self.precision),
+                    self.eigenvector_register,
+                ]
+            )
+
+    @property
+    @abc.abstractmethod
+    def eigenvector_register(self) -> infra.Register:
+        ...
 
     @cached_property
     def eigenvector_bitsize(self):
@@ -101,8 +113,8 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
     def decompose_from_registers(
         self, context: cirq.DecompositionContext, **quregs
     ) -> cirq.OP_TREE:
-        bits_of_precision = quregs["bits_of_precision_register"]
-        eigenvector_bits = quregs["eigenvector_register"]
+        bits_of_precision = quregs["phase_reg"]
+        eigenvector_bits = quregs[self.eigenvector_register.name]
 
         yield cirq.H.on_each(*bits_of_precision)
         yield [op for op in self.U_to_the_k_power(bits_of_precision, *eigenvector_bits)]
