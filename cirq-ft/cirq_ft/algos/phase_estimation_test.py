@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2023 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,14 +35,17 @@ def test_kitaev_phase_estimation_trivial():
 def test_kitaev_phase_estimation_theta(theta):
     U = cirq.Z ** (2 * theta)
     precision_register = cirq.NamedQubit.range(precision, prefix='c')
-    op = KitaevPhaseEstimation(precision, U, cirq.X).on_registers(
+    eigenvector_register = cirq.q('ev')
+    prepare_eigenvector = cirq.X.on(eigenvector_register)
+    op = KitaevPhaseEstimation(precision, U).on_registers(
         bits_of_precision_register=precision_register, eigenvector_register=[cirq.q('ev')]
     )
-    assert abs(simulate_theta_estimate(op, precision_register) - theta) < error_bound
+    assert abs(simulate_theta_estimate(op, precision_register, prepare_eigenvector) - theta) < error_bound
 
 
-def simulate_theta_estimate(op, measurement_register) -> float:
-    cirquit = cirq.Circuit(op)
+def simulate_theta_estimate(op, measurement_register, eig_prep=cirq.I) -> float:
+
+    cirquit = cirq.Circuit(eig_prep, op)
     cirquit.append(cirq.measure(*measurement_register, key='m'))
     sim = cirq.Simulator()
     result = sim.run(cirquit, repetitions=10)
