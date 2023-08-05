@@ -623,7 +623,6 @@ def test_create_job(client_constructor):
                 'program_description': 'A program',
                 'program_labels': {'hello': 'world'},
                 'priority': 10,
-                'job_description': 'A job',
             },
             [
                 'projects/proj',
@@ -656,8 +655,6 @@ def test_create_job(client_constructor):
                 'run_context': any_pb2.Any(),
                 'program_description': 'A program',
                 'program_labels': {'hello': 'world'},
-                'priority': 10,
-                'job_description': 'A job',
             },
             [
                 'projects/proj',
@@ -680,8 +677,12 @@ def test_create_job(client_constructor):
         ),
     ],
 )
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @mock.patch.object(engine_stream_manager, 'StreamManager', autospec=True)
-def test_run_job_over_stream(manager_constructor, run_job_kwargs, expected_submit_args):
+def test_run_job_over_stream(
+    manager_constructor, client_constructor, run_job_kwargs, expected_submit_args
+):
+    _setup_client_mock(client_constructor)
     stream_manager = _setup_stream_manager_mock(manager_constructor)
 
     result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
@@ -694,6 +695,27 @@ def test_run_job_over_stream(manager_constructor, run_job_kwargs, expected_submi
 
     assert actual_future == expected_future
     stream_manager.submit.assert_called_with(*expected_submit_args)
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+@mock.patch.object(engine_stream_manager, 'StreamManager', autospec=True)
+def test_run_job_over_stream_with_priority_out_of_bound_raises(
+    manager_constructor, client_constructor
+):
+    _setup_client_mock(client_constructor)
+    _setup_stream_manager_mock(manager_constructor)
+    client = EngineClient()
+
+    with pytest.raises(ValueError):
+        client.run_job_over_stream(
+            project_id='proj',
+            program_id='prog',
+            code=any_pb2.Any(),
+            job_id='job0',
+            processor_ids=['processor0'],
+            run_context=any_pb2.Any(),
+            priority=9001,
+        )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)

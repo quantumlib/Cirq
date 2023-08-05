@@ -320,11 +320,11 @@ class Engine(abstract_engine.AbstractEngine):
 
         stream_job_response_future = self.context.client.run_job_over_stream(
             project_id=self.project_id,
-            program_id=program_id,
+            program_id=str(program_id),
             program_description=program_description,
             program_labels=program_labels,
             code=self.context._serialize_program(program),
-            job_id=job_id,
+            job_id=str(job_id),
             processor_ids=processor_ids,
             run_context=run_context,
             job_description=job_description,
@@ -332,8 +332,8 @@ class Engine(abstract_engine.AbstractEngine):
         )
         return engine_job.EngineJob(
             self.project_id,
-            program_id,
-            job_id,
+            str(program_id),
+            str(job_id),
             self.context,
             stream_job_response_future=stream_job_response_future,
         )

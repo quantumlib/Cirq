@@ -734,6 +734,12 @@ class EngineClient:
             priority: Optional priority to run at, 0-1000.
             job_description: Optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+
+        Returns:
+            A future for the job result, or the job if the job has failed.
+
+        Raises:
+            ValueError: If the priority is not between 0 and 1000.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
