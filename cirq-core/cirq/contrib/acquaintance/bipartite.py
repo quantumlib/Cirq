@@ -133,7 +133,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         if self.subgraph == BipartiteGraphType.MATCHING:
             name = 'Matching'
         elif self.subgraph == BipartiteGraphType.COMPLETE:
-            name = 'K_{{{0}, {0}}}'.format(self.part_size)
+            name = f'K_{{{self.part_size}, {self.part_size}}}'
         # NB: self.subgraph not in BipartiteGraphType caught by self.permutation
         arrow = '↦' if args.use_unicode_characters else '->'
 

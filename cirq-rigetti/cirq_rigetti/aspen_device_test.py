@@ -21,7 +21,7 @@ dir_path = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 fixture_path = dir_path / '__fixtures__'
 
 
-@pytest.fixture()
+@pytest.fixture
 def qcs_aspen8_isa() -> InstructionSetArchitecture:
     with open(fixture_path / 'QCS-Aspen-8-ISA.json', 'r') as f:
         return InstructionSetArchitecture.from_dict(json.load(f))

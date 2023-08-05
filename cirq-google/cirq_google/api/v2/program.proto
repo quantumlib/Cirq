@@ -207,6 +207,7 @@ message Operation {
     ISwapPowGate iswappowgate = 14;
     MeasurementGate measurementgate = 15;
     WaitGate waitgate = 16;
+    InternalGate internalgate = 17;
   }
 
   // Map from the argument name to the Argument needed to fully specify
@@ -283,9 +284,24 @@ message ArgValue {
     RepeatedBoolean bool_values = 2;
     string string_value = 3;
     double double_value = 4;
+    RepeatedInt64 int64_values = 5;
+    RepeatedDouble double_values = 6;
+    RepeatedString string_values = 7;
   }
 }
 
+// A repeated int value.
+message RepeatedInt64 {
+  repeated int64 values = 1;
+}
+// A repeated double value.
+message RepeatedDouble {
+  repeated double values = 1;
+}
+// A repeated string value.
+message RepeatedString {
+  repeated string values = 1;
+}
 // A repeated boolean value.
 message RepeatedBoolean {
   repeated bool values = 1;
@@ -401,4 +417,11 @@ message ArgMapping {
 
   // A list of arg mappings to apply.
   repeated ArgEntry entries = 1;
+}
+
+message InternalGate{
+  string name = 1;  // Gate name.
+  string module = 2;  // Gate module. 
+  int32 num_qubits = 3;  // Number of qubits. Required during deserialization.
+  map<string, Arg> gate_args = 4;  // Gate args.
 }

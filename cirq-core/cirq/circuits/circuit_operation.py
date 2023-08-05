@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A structure for encapsulating entire circuits in an operation.
 
 A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
@@ -459,9 +460,7 @@ class CircuitOperation(ops.Operation):
         # TODO: support out-of-line subcircuit definition in string format.
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(line) for line in msg_lines])
-        circuit_msg = '\n'.join(
-            '[ {line:<{width}} ]'.format(line=line, width=msg_width) for line in msg_lines
-        )
+        circuit_msg = '\n'.join(f'[ {line:<{msg_width}} ]' for line in msg_lines)
         args = []
 
         def dict_str(d: Mapping) -> str:

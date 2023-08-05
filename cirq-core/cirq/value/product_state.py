@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import abc
 from dataclasses import dataclass
 from typing import Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
@@ -77,7 +78,7 @@ class ProductState:
         if len(dupe_qubits) != 0:
             raise ValueError(
                 "You tried to tensor two states, "
-                "but both contain factors for these qubits: {}".format(sorted(dupe_qubits))
+                f"but both contain factors for these qubits: {sorted(dupe_qubits)}"
             )
 
         new_states = self.states.copy()
@@ -91,7 +92,7 @@ class ProductState:
         states_dict_repr = ', '.join(
             f'{repr(key)}: {repr(val)}' for key, val in self.states.items()
         )
-        return 'cirq.ProductState({%s})' % states_dict_repr
+        return f'cirq.ProductState({{{states_dict_repr}}})'
 
     def __getitem__(self, qubit: 'cirq.Qid') -> _NamedOneQubitState:
         """Return the _NamedOneQubitState at the given qubit."""

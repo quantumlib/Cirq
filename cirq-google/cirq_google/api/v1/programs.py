@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import json
 from typing import Any, cast, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
 import numpy as np
@@ -331,7 +332,7 @@ def _parameterized_value_from_proto(proto: operations_pb2.ParameterizedFloat) ->
     raise ValueError(
         'No value specified for parameterized float. '
         'Expected "raw" or "parameter_key" to be set. '
-        'proto: {!r}'.format(proto)
+        f'proto: {proto!r}'
     )
 
 

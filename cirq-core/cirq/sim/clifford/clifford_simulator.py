@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """An efficient simulator for Clifford circuits.
 
 Allowed operations include:
@@ -109,7 +110,6 @@ class CliffordSimulator(
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
     ):
-
         return CliffordTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
@@ -259,8 +259,8 @@ class CliffordState:
     ):
         if not isinstance(op.gate, cirq.MeasurementGate):
             raise TypeError(
-                'apply_measurement only supports cirq.MeasurementGate operations. Found %s instead.'
-                % str(op.gate)
+                f'apply_measurement only supports cirq.MeasurementGate operations. '
+                f'Found {op.gate} instead.'
             )
 
         if collapse_state_vector:

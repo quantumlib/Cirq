@@ -21,13 +21,7 @@ import pytest
 from dev_tools import shell_tools
 from dev_tools.modules import list_modules
 
-PACKAGES = [
-    "-r",
-    "dev_tools/requirements/deps/pytest.txt",
-    "-r",
-    # one of the _compat_test.py tests uses flynt for testing metadata
-    "dev_tools/requirements/deps/flynt.txt",
-]
+PACKAGES = ["-r", "dev_tools/requirements/isolated-base.env.txt"]
 
 
 @pytest.mark.slow

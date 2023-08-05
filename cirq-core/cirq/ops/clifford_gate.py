@@ -91,6 +91,7 @@ def _validate_map_input(
             ' of x_to, y_to, and z_to but both were given'
         )
     if len(pauli_map_to) != required_transform_count:
+        # pylint: disable=consider-using-f-string
         raise ValueError(
             'Method takes {} transform{} but {} {} given'.format(
                 required_transform_count,
@@ -434,7 +435,6 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
     def _act_on_(
         self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']
     ) -> Union[NotImplementedType, bool]:
-
         # Note the computation complexity difference between _decompose_ and _act_on_.
         # Suppose this Gate has `m` qubits, args has `n` qubits, and the decomposition of
         # this operation into `k` operations:

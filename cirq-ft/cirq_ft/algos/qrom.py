@@ -89,15 +89,19 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
         if len(self.data[0].shape) == 1:
-            return infra.SelectionRegisters.build(
-                selection=(self.selection_bitsizes[0], self.data[0].shape[0])
+            return infra.SelectionRegisters(
+                [
+                    infra.SelectionRegister(
+                        'selection', self.selection_bitsizes[0], self.data[0].shape[0]
+                    )
+                ]
             )
         else:
-            return infra.SelectionRegisters.build(
-                **{
-                    f'selection{i}': (sb, len)
+            return infra.SelectionRegisters(
+                [
+                    infra.SelectionRegister(f'selection{i}', sb, len)
                     for i, (len, sb) in enumerate(zip(self.data[0].shape, self.selection_bitsizes))
-                }
+                ]
             )
 
     @cached_property
@@ -119,7 +123,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         self,
         selection_idx: Tuple[int, ...],
         gate: Callable[[cirq.Qid], cirq.Operation],
-        **target_regs: Sequence[cirq.Qid],
+        **target_regs: NDArray[cirq.Qid],  # type: ignore[type-var]
     ) -> cirq.OP_TREE:
         for i, d in enumerate(self.data):
             target = target_regs[f'target{i}']
@@ -128,7 +132,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
                     yield gate(q)
 
     def decompose_zero_selection(
-        self, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         controls = self.control_registers.merge_qubits(**quregs)
         target_regs = {k: v for k, v in quregs.items() if k in self.target_registers}
@@ -157,9 +161,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
 
     def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
         wire_symbols = ["@"] * self.num_controls
-        wire_symbols += ["In"] * self.selection_registers.bitsize
+        wire_symbols += ["In"] * self.selection_registers.total_bits()
         for i, target in enumerate(self.target_registers):
-            wire_symbols += [f"QROM_{i}"] * target.bitsize
+            wire_symbols += [f"QROM_{i}"] * target.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def __pow__(self, power: int):
