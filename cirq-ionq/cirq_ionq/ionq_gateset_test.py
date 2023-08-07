@@ -131,3 +131,46 @@ def test_decompose_parameterized_operation():
             atol=1e-6,
         )
     assert ionq_target_gateset.validate(decomposed_circuit)
+
+
+def test_decomposition_all_to_all_connectivity():
+    """This function only accepts 3 qubits as input"""
+    with pytest.raises(ValueError):
+        decompose_result = ionq.decompose_all_to_all_connect_ccz_gate(
+            cirq.CCZ, cirq.LineQubit.range(4)
+        )
+
+    decompose_result = ionq.decompose_all_to_all_connect_ccz_gate(cirq.CCZ, cirq.LineQubit.range(3))
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(decompose_result),
+        """
+0: ──────────────@──────────────────@───@───T──────@───
+                 │                  │   │          │
+1: ───@──────────┼───────@───T──────┼───X───T^-1───X───
+      │          │       │          │
+2: ───X───T^-1───X───T───X───T^-1───X───T──────────────
+""",
+    )
+
+
+def test_decompose_toffoli_gate():
+    """Decompose result should reflect all-to-all connectivity"""
+    circuit = cirq.Circuit(cirq.TOFFOLI(*cirq.LineQubit.range(3)))
+    decomposed_circuit = cirq.optimize_for_target_gateset(
+        circuit, gateset=ionq_target_gateset, ignore_failures=False
+    )
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        circuit, decomposed_circuit, atol=1e-8
+    )
+    assert ionq_target_gateset.validate(decomposed_circuit)
+    cirq.testing.assert_has_diagram(
+        decomposed_circuit,
+        """
+0: ──────────────────@──────────────────@───@───T──────@───
+                     │                  │   │          │
+1: ───────@──────────┼───────@───T──────┼───X───T^-1───X───
+          │          │       │          │
+2: ───H───X───T^-1───X───T───X───T^-1───X───T───H──────────
+""",
+    )
