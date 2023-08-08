@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@value.value_equality
 class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     r"""The X-parity gate, possibly raised to a power.
 
@@ -133,6 +134,7 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )
 
 
+@value.value_equality
 class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     r"""The Y-parity gate, possibly raised to a power.
 
@@ -237,6 +239,7 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )
 
 
+@value.value_equality
 class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     r"""The Z-parity gate, possibly raised to a power.
 
