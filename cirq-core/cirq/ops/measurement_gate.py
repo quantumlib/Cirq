@@ -88,7 +88,7 @@ class MeasurementGate(raw_types.Gate):
         self._mkey = (
             key if isinstance(key, value.MeasurementKey) else value.MeasurementKey(name=key)
         )
-        self._invert_mask = invert_mask or ()
+        self._invert_mask = invert_mask if True in set(invert_mask) else ()
         if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')
         self._confusion_map = confusion_map or {}
