@@ -38,6 +38,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from cirq._compat import cached_property
 from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
+from cirq_google.engine import stream_manager
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -104,6 +105,10 @@ class EngineClient:
                 return quantum.QuantumEngineServiceAsyncClient(**self._service_args)
 
         return self._executor.submit(make_client).result()
+
+    @cached_property
+    def _stream_manager(self) -> stream_manager.StreamManager:
+        return stream_manager.StreamManager(self.grpc_client)
 
     async def _send_request_async(self, func: Callable[[_M], Awaitable[_R]], request: _M) -> _R:
         """Sends a request by invoking an asyncio callable."""
@@ -696,6 +701,79 @@ class EngineClient:
         return await self._send_request_async(self.grpc_client.get_quantum_result, request)
 
     get_job_results = duet.sync(get_job_results_async)
+
+    def run_job_over_stream(
+        self,
+        project_id: str,
+        program_id: str,
+        code: any_pb2.Any,
+        job_id: str,
+        processor_ids: Sequence[str],
+        run_context: any_pb2.Any,
+        program_description: Optional[str] = None,
+        program_labels: Optional[Dict[str, str]] = None,
+        priority: Optional[int] = None,
+        job_description: Optional[str] = None,
+        job_labels: Optional[Dict[str, str]] = None,
+    ) -> duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]:
+        """Runs a job with the given program and job information over a stream.
+
+        Sends the request over the Quantum Engine QuantumRunStream bidirectional stream, and returns
+        a future for the stream response. The future will be completed with a `QuantumResult` if
+        the job is successful; otherwise, it will be completed with a QuantumJob.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            program_id: Unique ID of the program within the parent project.
+            code: Properly serialized program code.
+            job_id: Unique ID of the job within the parent program.
+            run_context: Properly serialized run context.
+            processor_ids: List of processor id for running the program.
+            program_description: An optional description to set on the program.
+            program_labels: Optional set of labels to set on the program.
+            priority: Optional priority to run at, 0-1000.
+            job_description: Optional description to set on the job.
+            job_labels: Optional set of labels to set on the job.
+
+        Returns:
+            A future for the job result, or the job if the job has failed.
+
+        Raises:
+            ValueError: If the priority is not between 0 and 1000.
+        """
+        # Check program to run and program parameters.
+        if priority and not 0 <= priority < 1000:
+            raise ValueError('priority must be between 0 and 1000')
+
+        project_name = _project_name(project_id)
+
+        program_name = _program_name_from_ids(project_id, program_id)
+        program = quantum.QuantumProgram(name=program_name, code=code)
+        if program_description:
+            program.description = program_description
+        if program_labels:
+            program.labels.update(program_labels)
+
+        job = quantum.QuantumJob(
+            name=_job_name_from_ids(project_id, program_id, job_id),
+            scheduling_config=quantum.SchedulingConfig(
+                processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                    processor_names=[
+                        _processor_name_from_ids(project_id, processor_id)
+                        for processor_id in processor_ids
+                    ]
+                )
+            ),
+            run_context=run_context,
+        )
+        if priority:
+            job.scheduling_config.priority = priority
+        if job_description:
+            job.description = job_description
+        if job_labels:
+            job.labels.update(job_labels)
+
+        return self._stream_manager.submit(project_name, program, job)
 
     async def list_processors_async(self, project_id: str) -> List[quantum.QuantumProcessor]:
         """Returns a list of Processors that the user has visibility to in the
