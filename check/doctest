@@ -18,6 +18,6 @@ thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
 topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
-source dev_tools/pypath
+source dev_tools/pypath || exit $?
 
 python dev_tools/docs/run_doctest.py "$@"

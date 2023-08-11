@@ -68,7 +68,7 @@ else
     rev="${base}"
 fi
 
-source dev_tools/pypath
+source dev_tools/pypath || exit $?
 
 # Run tests while producing coverage files.
 check/pytest --cov \
