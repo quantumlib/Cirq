@@ -21,7 +21,7 @@ import pytest
 from dev_tools import shell_tools
 from dev_tools.modules import list_modules
 
-PACKAGES = ["-r", "dev_tools/requirements/deps/pytest.txt"]
+PACKAGES = ["-r", "dev_tools/requirements/isolated-base.env.txt"]
 
 
 @pytest.mark.slow
