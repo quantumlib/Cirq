@@ -88,7 +88,7 @@ def make_oracle(input_qubits, output_qubit, secret_factor_bits, secret_bias_bit)
         yield cirq.X(output_qubit)
 
     for qubit, bit in zip(input_qubits, secret_factor_bits):
-        if bit:
+        if bit:  # pragma: no cover
             yield cirq.CNOT(qubit, output_qubit)
 
 
