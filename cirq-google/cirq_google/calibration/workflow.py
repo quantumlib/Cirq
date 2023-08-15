@@ -828,7 +828,6 @@ def run_calibrations(
         processor = None
 
     if processor is not None:
-
         if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
             engine_sampler = processor.get_sampler()
             return _run_local_calibrations_via_sampler(calibrations, engine_sampler)

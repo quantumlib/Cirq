@@ -92,7 +92,7 @@ document(
     """,
 )
 
-PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
+PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int]
 document(
     PAULI_GATE_LIKE,
     """An object that can be interpreted as a Pauli gate.
