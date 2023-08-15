@@ -22,7 +22,6 @@ from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
-# TODO(juhas) - delete this comment - trigger for Changed files test
 @pytest.mark.parametrize(
     "data", [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
 )
