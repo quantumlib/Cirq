@@ -69,7 +69,7 @@ def _try_tuple(k: Any) -> Any:
     """If we serialize a dictionary that had tuple keys, they get turned to json lists."""
     if isinstance(k, list):
         return tuple(k)
-    return k  # coverage: ignore
+    return k  # pragma: no cover
 
 
 @dataclasses.dataclass
@@ -260,7 +260,7 @@ def execute(
 
     # base_data_dir handling.
     if not base_data_dir:
-        # coverage: ignore
+        # pragma: no cover
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
     sampler = rt_config.processor_record.get_sampler()

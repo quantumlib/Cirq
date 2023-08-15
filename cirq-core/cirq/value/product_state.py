@@ -61,7 +61,7 @@ class ProductState:
 
     def __init__(self, states=None):
         if states is None:
-            # coverage: ignore
+            # pragma: no cover
             states = dict()
 
         object.__setattr__(self, 'states', states)
@@ -200,7 +200,7 @@ class _XEigenState(_PauliEigenState):
             return np.array([1, 1]) / np.sqrt(2)
         elif self.eigenvalue == -1:
             return np.array([1, -1]) / np.sqrt(2)
-        # coverage: ignore
+        # pragma: no cover
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
@@ -218,7 +218,7 @@ class _YEigenState(_PauliEigenState):
             return np.array([1, 1j]) / np.sqrt(2)
         elif self.eigenvalue == -1:
             return np.array([1, -1j]) / np.sqrt(2)
-        # coverage: ignore
+        # pragma: no cover
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
@@ -235,7 +235,7 @@ class _ZEigenState(_PauliEigenState):
             return np.array([1, 0])
         elif self.eigenvalue == -1:
             return np.array([0, 1])
-        # coverage: ignore
+        # pragma: no cover
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:

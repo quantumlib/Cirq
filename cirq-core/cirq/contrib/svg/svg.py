@@ -145,7 +145,7 @@ def _debug_spacing(col_starts, row_starts):
     draws green lines where columns and rows start. This is very useful
     if you're developing this code and are debugging spacing issues.
     """
-    # coverage: ignore
+    # pragma: no cover
     t = ''
     for i, cs in enumerate(col_starts):
         t += (
@@ -198,7 +198,7 @@ def tdd_to_svg(
             # qubits start at far left and their wires shall be blue
             stroke = QBLUE
         else:
-            # coverage: ignore
+            # pragma: no cover
             stroke = 'black'
         t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1" />'
 
@@ -261,11 +261,11 @@ class SVGCircuit:
     """
 
     def __init__(self, circuit: 'cirq.Circuit'):
-        # coverage: ignore
+        # pragma: no cover
         self.circuit = circuit
 
     def _repr_svg_(self) -> str:
-        # coverage: ignore
+        # pragma: no cover
         return circuit_to_svg(self.circuit)
 
 

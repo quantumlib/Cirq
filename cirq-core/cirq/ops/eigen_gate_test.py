@@ -202,7 +202,7 @@ def test_trace_distance_bound():
 
     class E(cirq.EigenGate):
         def _num_qubits_(self):
-            # coverage: ignore
+            # pragma: no cover
             return 1
 
         def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:

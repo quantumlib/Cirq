@@ -275,7 +275,7 @@ class CliffordTableau(StabilizerState):
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
-            # coverage: ignore
+            # pragma: no cover
             return NotImplemented
         return (
             self.n == other.n
@@ -551,7 +551,7 @@ class CliffordTableau(StabilizerState):
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
-            raise ValueError('X exponent must be half integer')  # coverage: ignore
+            raise ValueError('X exponent must be half integer')  # pragma: no cover
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
             self.xs[:, axis] ^= self.zs[:, axis]
@@ -566,7 +566,7 @@ class CliffordTableau(StabilizerState):
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
-            raise ValueError('Y exponent must be half integer')  # coverage: ignore
+            raise ValueError('Y exponent must be half integer')  # pragma: no cover
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
             self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
@@ -587,7 +587,7 @@ class CliffordTableau(StabilizerState):
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
-            raise ValueError('Z exponent must be half integer')  # coverage: ignore
+            raise ValueError('Z exponent must be half integer')  # pragma: no cover
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
             self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
@@ -602,7 +602,7 @@ class CliffordTableau(StabilizerState):
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
-            raise ValueError('H exponent must be integer')  # coverage: ignore
+            raise ValueError('H exponent must be integer')  # pragma: no cover
         self.apply_y(axis, 0.5)
         self.apply_x(axis)
 
@@ -612,7 +612,7 @@ class CliffordTableau(StabilizerState):
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
-            raise ValueError('CZ exponent must be integer')  # coverage: ignore
+            raise ValueError('CZ exponent must be integer')  # pragma: no cover
         (self.xs[:, target_axis], self.zs[:, target_axis]) = (
             self.zs[:, target_axis].copy(),
             self.xs[:, target_axis].copy(),
@@ -637,7 +637,7 @@ class CliffordTableau(StabilizerState):
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
-            raise ValueError('CX exponent must be integer')  # coverage: ignore
+            raise ValueError('CX exponent must be integer')  # pragma: no cover
         self.rs[:] ^= (
             self.xs[:, control_axis]
             & self.zs[:, target_axis]

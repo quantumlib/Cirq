@@ -49,11 +49,11 @@ class EmptyOp(cirq.Operation):
 
     @property
     def qubits(self):
-        # coverage: ignore
+        # pragma: no cover
         return (q,)
 
     def with_qubits(self, *new_qubits):
-        # coverage: ignore
+        # pragma: no cover
         return self
 
 

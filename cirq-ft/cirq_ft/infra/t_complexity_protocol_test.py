@@ -186,7 +186,7 @@ def test_cache_clear():
 
         @property
         def qubits(self):
-            return [cirq.LineQubit(3)]  # coverage: ignore
+            return [cirq.LineQubit(3)]  # pragma: no cover
 
         def with_qubits(self, _):
             ...

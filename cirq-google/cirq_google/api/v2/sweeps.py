@@ -122,7 +122,7 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
 
         raise ValueError(f'single sweep type not set: {msg}')
 
-    # coverage: ignore
+    # pragma: no cover
     raise ValueError(f'sweep type not set: {msg}')
 
 

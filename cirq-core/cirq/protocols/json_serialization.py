@@ -303,7 +303,7 @@ class CirqEncoder(json.JSONEncoder):
         if isinstance(o, datetime.datetime):
             return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
-        return super().default(o)  # coverage: ignore
+        return super().default(o)  # pragma: no cover
 
 
 def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[str, Any]):
@@ -631,7 +631,7 @@ def to_json(
                             return _json_dict_with_cirq_type(candidate.obj)
                         else:
                             return _json_dict_with_cirq_type(_SerializedKey(candidate.key))
-                raise ValueError("Object mutated during serialization.")  # coverage: ignore
+                raise ValueError("Object mutated during serialization.")  # pragma: no cover
 
         cls = ContextualEncoder
 

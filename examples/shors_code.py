@@ -108,7 +108,7 @@ class OneQubitShorsCode:
 
 
 if __name__ == '__main__':
-    # coverage: ignore
+    # pragma: no cover
 
     # create circuit with 9 physical qubits
     code = OneQubitShorsCode()

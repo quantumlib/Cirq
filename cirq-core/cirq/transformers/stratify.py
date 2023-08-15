@@ -224,7 +224,7 @@ def _category_to_classifier(category) -> Classifier:
 
 def _dummy_classifier(op: 'cirq.Operation') -> bool:
     """Dummy classifier, used to "complete" a collection of classifiers and make it exhaustive."""
-    return False  # coverage: ignore
+    return False  # pragma: no cover
 
 
 def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> int:

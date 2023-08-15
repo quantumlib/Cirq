@@ -96,7 +96,7 @@ def get_circuit_connectivity(circuit: 'cirq.Circuit') -> nx.Graph:
     for op in circuit.all_operations():
         n_qubits = len(op.qubits)
         if n_qubits > 2:
-            # coverage: ignore
+            # pragma: no cover
             raise ValueError(
                 f"Cannot build a graph out of a circuit that "
                 f"contains {n_qubits}-qubit operations"

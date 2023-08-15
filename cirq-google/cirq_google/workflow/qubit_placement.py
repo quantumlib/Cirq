@@ -202,7 +202,7 @@ class HardcodedQubitPlacer(QubitPlacer):
 
     def __eq__(self, other):
         if not isinstance(other, HardcodedQubitPlacer):
-            # coverage: ignore
+            # pragma: no cover
             return False
 
         return self._mapping == other._mapping

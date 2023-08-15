@@ -76,9 +76,9 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
 
         for y0, y1, tq in zip(y0_bin, y1_bin, t):
             if y0:
-                yield cirq.X(tq).controlled_by(  # coverage: ignore
-                    *q, control_values=[0] * self.selection_bitsize  # coverage: ignore
-                )  # coverage: ignore
+                yield cirq.X(tq).controlled_by(  # pragma: no cover
+                    *q, control_values=[0] * self.selection_bitsize  # pragma: no cover
+                )  # pragma: no cover
             if y1:
                 yield cirq.X(tq).controlled_by(*q, control_values=[1] * self.selection_bitsize)
 
@@ -185,7 +185,7 @@ class GroverSynthesizer(cirq_ft.PrepareOracle):
     def __pow__(self, power):
         if power in [+1, -1]:
             return self
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
 
 @frozen

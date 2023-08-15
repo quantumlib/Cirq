@@ -448,7 +448,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             sim_state._state = sim_state.tableau.then(padded_tableau)
             return True
 
-        if isinstance(sim_state, sim.clifford.StabilizerChFormSimulationState):  # coverage: ignore
+        if isinstance(sim_state, sim.clifford.StabilizerChFormSimulationState):  # pragma: no cover
             # Do we know how to apply CliffordTableau on StabilizerChFormSimulationState?
             # It should be unlike because CliffordTableau ignores the global phase but CHForm
             # is aimed to fix that.
@@ -846,7 +846,7 @@ class SingleQubitCliffordGate(CliffordGate):
                 ]
 
             return [(pauli_gates.Z, 1 if y_rot[1] else -1), (pauli_gates.X, 1 if z_rot[1] else -1)]
-        # coverage: ignore
+        # pragma: no cover
         assert (
             False
         ), 'Impossible condition where this gate only rotates one Pauli to a different Pauli.'

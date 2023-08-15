@@ -87,7 +87,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
     def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'GoodGate':
         new_exponent = cirq.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
-            # coverage: ignore
+            # pragma: no cover
             return NotImplemented
         return GoodGate(phase_exponent=self.phase_exponent, exponent=new_exponent)
 
@@ -114,7 +114,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
-            # coverage: ignore
+            # pragma: no cover
             return NotImplemented
         return self._identity_tuple() == other._identity_tuple()
 
@@ -132,7 +132,7 @@ class BadGateParameterNames(GoodGate):
 class BadGateApplyUnitaryToTensor(GoodGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         if self.exponent != 1 or cirq.is_parameterized(self):
-            # coverage: ignore
+            # pragma: no cover
             return NotImplemented
 
         zero = cirq.slice_for_qubits_equal_to(args.axes, 0)
@@ -154,7 +154,7 @@ class BadGateDecompose(GoodGate):
         z = cirq.Z(q) ** self.phase_exponent
         x = cirq.X(q) ** (2 * self.exponent)
         if cirq.is_parameterized(z):
-            # coverage: ignore
+            # pragma: no cover
             return NotImplemented
         return z**-1, x, z
 
@@ -176,7 +176,7 @@ class BadGateRepr(GoodGate):
     def __repr__(self):
         args = [f'phase_exponent={2 * self.phase_exponent!r}']
         if self.exponent != 1:
-            # coverage: ignore
+            # pragma: no cover
             args.append(f'exponent={proper_repr(self.exponent)}')
         return f"BadGateRepr({', '.join(args)})"
 

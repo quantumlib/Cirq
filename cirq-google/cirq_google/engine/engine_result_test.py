@@ -95,7 +95,7 @@ class MyResult(cirq.Result):
 
     @property
     def data(self) -> pd.DataFrame:
-        # coverage: ignore
+        # pragma: no cover
         return cirq.Result.dataframe_from_measurements(self.measurements)
 
 

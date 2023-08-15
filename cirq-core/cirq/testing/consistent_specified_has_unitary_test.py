@@ -32,11 +32,11 @@ def test_assert_specifies_has_unitary_if_unitary_from_apply():
     class Bad(cirq.Operation):
         @property
         def qubits(self):
-            # coverage: ignore
+            # pragma: no cover
             return ()
 
         def with_qubits(self, *new_qubits):
-            # coverage: ignore
+            # pragma: no cover
             return self
 
         def _apply_unitary_(self, args):

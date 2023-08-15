@@ -212,10 +212,10 @@ def test_no_circular_imports():
     """
     status = subprocess.call([sys.executable, __file__])
     if status == FAIL_EXIT_CODE:
-        # coverage: ignore
+        # pragma: no cover
         raise Exception('Invalid import. See captured output for details.')
     elif status != 0:
-        # coverage: ignore
+        # pragma: no cover
         raise RuntimeError('Error in subprocess')
 
 

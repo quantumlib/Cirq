@@ -42,7 +42,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if validate_all_measurements(moment) or self.is_virtual_moment(moment):
-            # coverage: ignore
+            # pragma: no cover
             return moment
 
         output = [

@@ -525,7 +525,7 @@ class _QidShapeSet:
                 f'{self.min_qudit_dimensions}.'
             )
         if len(self.explicit_qid_shapes) > 1:
-            # coverage: ignore
+            # pragma: no cover
             raise ValueError(
                 f'Qid shape is ambiguous: Could be any one of {self.explicit_qid_shapes}.'
             )

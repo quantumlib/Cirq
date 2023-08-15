@@ -428,7 +428,7 @@ class QuilOutput:
             # Following code is a safety measure
             # Could not find a gate that doesn't decompose into a gate
             # with a _quil_ implementation
-            # coverage: ignore
+            # pragma: no cover
             if len(op.qubits) == 1:
                 return QuilOneQubitGate(mat).on(*op.qubits)
             return QuilTwoQubitGate(mat).on(*op.qubits)

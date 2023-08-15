@@ -25,15 +25,15 @@ from cirq_google.api import v2
 
 class UnknownSweep(sweeps.SingleSweep):
     def _tuple(self):
-        # coverage: ignore
+        # pragma: no cover
         return self.key, tuple(range(10))
 
     def __len__(self) -> int:
-        # coverage: ignore
+        # pragma: no cover
         return 10
 
     def _values(self) -> Iterator[float]:
-        # coverage: ignore
+        # pragma: no cover
         return iter(range(10))
 
 

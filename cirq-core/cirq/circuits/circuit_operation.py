@@ -61,9 +61,9 @@ def _full_join_string_lists(
     list1: Optional[Sequence[str]], list2: Optional[Sequence[str]]
 ) -> Optional[Sequence[str]]:
     if list1 is None and list2 is None:
-        return None  # coverage: ignore
+        return None  # pragma: no cover
     if list1 is None:
-        return list2  # coverage: ignore
+        return list2  # pragma: no cover
     if list2 is None:
         return list1
     return [f'{first}{REPETITION_ID_SEPARATOR}{second}' for first in list1 for second in list2]

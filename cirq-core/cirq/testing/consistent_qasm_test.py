@@ -55,7 +55,7 @@ def test_assert_qasm_is_consistent_with_unitary():
     try:
         import qiskit as _
     except ImportError:
-        # coverage: ignore
+        # pragma: no cover
         warnings.warn(
             "Skipped test_assert_qasm_is_consistent_with_unitary "
             "because qiskit isn't installed to verify against."

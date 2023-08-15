@@ -28,7 +28,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     try:
         import qiskit
     except ImportError:
-        # coverage: ignore
+        # pragma: no cover
         warnings.warn(
             "Skipped assert_qasm_is_consistent_with_unitary because "
             "qiskit isn't installed to verify against."
@@ -102,7 +102,7 @@ qreg q[{num_qubits}];
 
 
 def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
-    # coverage: ignore
+    # pragma: no cover
     try:
         # We don't want to require qiskit as a dependency but
         # if Qiskit is installed, test QASM output against it.
