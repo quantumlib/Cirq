@@ -678,4 +678,10 @@ _register_resolver(_class_resolver_dictionary)
 
 from cirq import contrib
 
+
+# TODO(juhas): remove this temporary function
+def uncovered_function():
+    print('this is not covered by unit tests')
+
+
 # pylint: enable=wrong-import-position
