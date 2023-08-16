@@ -20,7 +20,10 @@ set -e
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd "$(git rev-parse --show-toplevel)"
 
-reqs=( -r dev_tools/requirements/pytest-minimal.env.txt )
+reqs=(
+    -r dev_tools/requirements/pytest-minimal.env.txt
+    -r dev_tools/requirements/deps/notebook.txt
+)
 
 # Install contrib requirements only if needed.
 changed=$(git diff --name-only origin/master | grep "cirq/contrib" || true)
