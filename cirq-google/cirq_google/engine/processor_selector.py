@@ -18,6 +18,7 @@ from typing import Optional
 from cirq_google.cloud import quantum
 from cirq_google.engine.device_config_key import DeviceConfigKey
 
+
 @attrs.frozen
 class ProcessorSelector:
     """Selects a processor to run jobs.

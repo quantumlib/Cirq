@@ -16,12 +16,13 @@ import pytest
 
 import cirq_google as cg
 
+
 @pytest.mark.parametrize('run_name', ["", "RUN_NAME"])
 @pytest.mark.parametrize('config_alias', ["CONFIG_ALIAS"])
 def test_to_quantum_device_config_key(run_name: str, config_alias: str):
-  config_key = cg.DeviceConfigKey(run_name=run_name, config_alias=config_alias)
+    config_key = cg.DeviceConfigKey(run_name=run_name, config_alias=config_alias)
 
-  quantum_config_key = config_key.to_quantum_device_config_key()
+    quantum_config_key = config_key.to_quantum_device_config_key()
 
-  assert quantum_config_key.run_name == run_name
-  assert quantum_config_key.config_alias == config_alias
+    assert quantum_config_key.run_name == run_name
+    assert quantum_config_key.config_alias == config_alias
