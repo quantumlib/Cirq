@@ -201,8 +201,7 @@ def test_trace_distance_bound():
     assert cirq.approx_eq(cirq.trace_distance_bound(CExpZinGate(2)), 1)
 
     class E(cirq.EigenGate):
-        def _num_qubits_(self):
-            # pragma: no cover
+        def _num_qubits_(self):  # pragma: no cover
             return 1
 
         def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:

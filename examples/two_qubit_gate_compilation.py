@@ -83,8 +83,7 @@ def main(samples: int = 1000, max_infidelity: float = 0.01):
     infidelities_arr = np.array(infidelities)
     failed_infidelities_arr = np.array(failed_infidelities)
 
-    if np.size(failed_infidelities_arr):
-        # pragma: no cover
+    if np.size(failed_infidelities_arr):  # pragma: no cover
         print(f'Number of "failed" compilations: {np.size(failed_infidelities_arr)}.')
         print(f'Maximum infidelity of "failed" compilation: {np.max(failed_infidelities_arr)}')
 

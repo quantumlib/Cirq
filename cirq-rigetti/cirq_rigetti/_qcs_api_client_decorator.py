@@ -37,7 +37,6 @@ def _provide_default_client(function):
             return function(*args, **kwargs)
 
         with build_sync_client() as client:  # pragma: no cover
-            # pragma: no cover
             kwargs['client'] = client
             return function(*args, **kwargs)
 

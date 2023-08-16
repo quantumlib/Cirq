@@ -1387,8 +1387,7 @@ class MutablePauliString(Generic[TKey]):
                     if gate.invert1:
                         self.inplace_after(gate.pauli0(q0))
 
-                else:
-                    # pragma: no cover
+                else:  # pragma: no cover
                     raise NotImplementedError(f"Unrecognized decomposed Clifford: {op!r}")
         return self
 

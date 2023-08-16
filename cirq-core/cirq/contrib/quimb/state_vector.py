@@ -9,7 +9,6 @@ import quimb.tensor as qtn
 import cirq
 
 
-# pragma: no cover
 def _get_quimb_version():
     """Returns the quimb version and parsed (major,minor) numbers if possible.
     Returns:
@@ -18,7 +17,7 @@ def _get_quimb_version():
     version = quimb.__version__
     try:
         return tuple(int(x) for x in version.split('.')), version
-    except:
+    except:  # pragma: no cover
         return (0, 0), version
 
 
@@ -163,8 +162,7 @@ def tensor_expectation_value(
     ]
     tn = qtn.TensorNetwork(tensors + end_bras)
     if QUIMB_VERSION[0] < (1, 3):
-        # pragma: no cover
-        warnings.warn(
+        warnings.warn(  # pragma: no cover
             f'quimb version {QUIMB_VERSION[1]} detected. Please use '
             f'quimb>=1.3 for optimal performance in '
             '`tensor_expectation_value`. '

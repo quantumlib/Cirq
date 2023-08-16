@@ -112,8 +112,7 @@ def benchmark_2q_xeb_fidelities(
             vals = df[k].unique()
             if len(vals) == 1:
                 ret[k] = vals[0]
-            else:
-                # pragma: no cover
+            else:  # pragma: no cover
                 raise AssertionError(
                     f"When computing per-cycle-depth fidelity, multiple "
                     f"values for {k} were grouped together: {vals}"
@@ -575,7 +574,6 @@ def _fit_exponential_decay(
             bounds=((0, 0), (1, 1)),
         )
     except ValueError:  # pragma: no cover
-        # pragma: no cover
         return 0, 0, np.inf, np.inf
 
     a_std, layer_fid_std = np.sqrt(np.diag(pcov))

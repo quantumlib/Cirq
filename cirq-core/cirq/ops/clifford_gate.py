@@ -846,8 +846,7 @@ class SingleQubitCliffordGate(CliffordGate):
                 ]
 
             return [(pauli_gates.Z, 1 if y_rot[1] else -1), (pauli_gates.X, 1 if z_rot[1] else -1)]
-        # pragma: no cover
-        assert (
+        assert (  # pragma: no cover
             False
         ), 'Impossible condition where this gate only rotates one Pauli to a different Pauli.'
 

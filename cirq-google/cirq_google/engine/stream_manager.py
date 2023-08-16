@@ -274,8 +274,7 @@ class StreamManager:
                     _to_create_job_request(create_program_and_job_request),
                 )
                 continue
-            else:
-                # pragma: no cover
+            else:  # pragma: no cover
                 raise ValueError(
                     'The Quantum Engine response type is not recognized by this client. '
                     'This may be due to an outdated version of cirq-google'

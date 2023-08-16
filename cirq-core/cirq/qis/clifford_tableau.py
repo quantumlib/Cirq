@@ -275,8 +275,7 @@ class CliffordTableau(StabilizerState):
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
-            # pragma: no cover
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return (
             self.n == other.n
             and np.array_equal(self.rs, other.rs)

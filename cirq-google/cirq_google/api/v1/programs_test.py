@@ -56,8 +56,7 @@ def make_bytes(s: str) -> bytes:
             pass
         elif c == '1':
             byte |= 1 << idx
-        else:
-            # pragma: no cover
+        else:  # pragma: no cover
             continue
         idx += 1
         if idx == 8:

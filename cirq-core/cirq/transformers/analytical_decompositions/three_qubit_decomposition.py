@@ -57,7 +57,6 @@ def three_qubit_matrix_to_operations(
     try:
         from scipy.linalg import cossin
     except ImportError:  # pragma: no cover
-        # pragma: no cover
         raise ImportError(
             "cirq.three_qubit_unitary_to_operations requires "
             "SciPy 1.5.0+, as it uses the cossin function. Please"

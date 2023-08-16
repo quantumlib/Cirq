@@ -1765,8 +1765,7 @@ def test_mutable_pauli_string_inplace_conjugate_by():
             self._qubits = qubits
 
         @property
-        def qubits(self):
-            # pragma: no cover
+        def qubits(self):  # pragma: no cover
             return self._qubits
 
         def with_qubits(self, *new_qubits):

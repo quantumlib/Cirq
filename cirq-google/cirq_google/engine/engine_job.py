@@ -341,7 +341,6 @@ class EngineJob(abstract_job.AbstractJob):
         return self._calibration_results
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
-        # pragma: no cover
         job_id = self.id()
         job_finished = self.update_time()
 

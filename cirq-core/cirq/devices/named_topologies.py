@@ -295,8 +295,7 @@ def get_placements(
     for big_to_small_map in matcher.subgraph_monomorphisms_iter():
         dedupe[frozenset(big_to_small_map.keys())] = big_to_small_map
         if len(dedupe) > max_placements:
-            # pragma: no cover
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 f"We found more than {max_placements} placements. Please use a "
                 f"more constraining `big_graph` or a more constrained `small_graph`."
             )
@@ -367,27 +366,23 @@ def draw_placements(
             this callback is called. The callback should accept `ax` and `i` keyword arguments
             for the current axis and mapping index, respectively.
     """
-    if len(small_to_big_mappings) > max_plots:
-        # pragma: no cover
+    if len(small_to_big_mappings) > max_plots:  # pragma: no cover
         warnings.warn(f"You've provided a lot of mappings. Only plotting the first {max_plots}")
         small_to_big_mappings = small_to_big_mappings[:max_plots]
 
     call_show = False
     if axes is None:
-        # pragma: no cover
-        call_show = True
+        call_show = True  # pragma: no cover
 
     for i, small_to_big_map in enumerate(small_to_big_mappings):
         if axes is not None:
             ax = axes[i]
-        else:
-            # pragma: no cover
+        else:  # pragma: no cover
             ax = plt.gca()
 
         small_mapped = nx.relabel_nodes(small_graph, small_to_big_map)
         if bad_placement_callback is not None:
-            # pragma: no cover
-            if not _is_valid_placement_helper(
+            if not _is_valid_placement_helper(  # pragma: no cover
                 big_graph=big_graph,
                 small_mapped=small_mapped,
                 small_to_big_mapping=small_to_big_map,
@@ -406,7 +401,6 @@ def draw_placements(
         )
         ax.axis('equal')
         if call_show:
-            # pragma: no cover
             # poor man's multi-axis figure: call plt.show() after each plot
             # and jupyter will put the plots one after another.
-            plt.show()
+            plt.show()  # pragma: no cover

@@ -106,8 +106,7 @@ def circuit_to_density_matrix_tensors(
         ValueError: If an op is encountered that cannot be converted.
     """
     if qubits is None:
-        # pragma: no cover
-        qubits = sorted(circuit.all_qubits())
+        qubits = sorted(circuit.all_qubits())  # pragma: no cover
     qubits = tuple(qubits)
 
     qubit_frontier: Dict[cirq.Qid, int] = {q: 0 for q in qubits}

@@ -303,8 +303,7 @@ def test_unitary_from_apply_unitary():
         def qubits(self):
             return (self.q,)
 
-        def with_qubits(self, *new_qubits):
-            # pragma: no cover
+        def with_qubits(self, *new_qubits):  # pragma: no cover
             return ApplyOp(*new_qubits)
 
         def _apply_unitary_(self, args):

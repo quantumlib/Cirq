@@ -140,8 +140,7 @@ class RigettiQCSService:
             A qcs_api_client.models.GetQuiltCalibrationsResponse containing the
             device calibrations.
         """
-        # pragma: no cover
-        return cast(
+        return cast(  # pragma: no cover
             GetQuiltCalibrationsResponse,
             get_quilt_calibrations(client=client, quantum_processor_id=quantum_processor_id).parsed,
         )
@@ -164,7 +163,6 @@ class RigettiQCSService:
         Returns:
             A qcs_api_client.models.InstructionSetArchitecture containing the device specification.
         """
-        # pragma: no cover
         return cast(
             InstructionSetArchitecture,
             get_instruction_set_architecture(

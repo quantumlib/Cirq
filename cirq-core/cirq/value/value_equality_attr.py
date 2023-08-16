@@ -50,8 +50,7 @@ class _SupportsValueEquality(Protocol):
         Returns:
             Any type supported by `cirq.approx_eq()`.
         """
-        # pragma: no cover
-        return self._value_equality_values_()
+        return self._value_equality_values_()  # pragma: no cover
 
     def _value_equality_values_cls_(self) -> Any:
         """Automatically implemented by the `cirq.value_equality` decorator.

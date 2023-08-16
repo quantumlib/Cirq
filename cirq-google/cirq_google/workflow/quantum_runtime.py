@@ -259,8 +259,7 @@ def execute(
         run_id = rt_config.run_id
 
     # base_data_dir handling.
-    if not base_data_dir:
-        # pragma: no cover
+    if not base_data_dir:  # pragma: no cover
         raise ValueError("Please provide a non-empty `base_data_dir`.")
 
     sampler = rt_config.processor_record.get_sampler()
