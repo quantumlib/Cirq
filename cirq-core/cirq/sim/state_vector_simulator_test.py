@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import numpy as np
 
 import cirq
@@ -207,3 +209,29 @@ def test_pretty_print():
     p = FakePrinter()
     result._repr_pretty_(p, True)
     assert p.text_pretty == 'StateVectorTrialResult(...)'
+
+
+def test_readonlystatevector():
+    q = cirq.NamedQubit('q')
+    final_state_vector = cirq.StateVectorSimulationState(
+        initial_state=np.array([0, 1]), is_read_only=True, qubits=[q]
+    )
+
+    assert not np.may_share_memory(
+        final_state_vector._state._state_vector, final_state_vector._state.copy()._state_vector
+    )
+    assert np.may_share_memory(
+        final_state_vector._state._state_vector,
+        final_state_vector._state.copy(deep_copy_buffers=False)._state_vector,
+    )
+
+    with pytest.raises(TypeError, match='Measurement is not supported by _ReadOnlyStateVector..*'):
+        _ = final_state_vector.measure([q], 0, '', {})
+
+    state = final_state_vector._state
+    assert state.to_mutable_state().measure([0], 0) == [1]
+
+    assert state.apply_unitary(0, []) is NotImplemented
+    assert state.apply_mixture(0, [], 0) is NotImplemented
+    assert state.apply_channel(0, [], 0) is NotImplemented
+    assert final_state_vector.remove_qubits([q]) is NotImplemented

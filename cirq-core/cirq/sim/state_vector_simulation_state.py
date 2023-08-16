@@ -15,6 +15,8 @@
 """Objects and methods for acting efficiently on a state vector."""
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from cirq import linalg, protocols, qis, sim
@@ -306,7 +308,48 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         return True
 
 
-class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
+@dataclass(frozen=True)
+class _ReadOnlyStateVector(qis.QuantumStateRepresentation):
+    """A readonly state vector that represents the final simulation state."""
+
+    _state_vector: np.ndarray
+
+    def copy(self, deep_copy_buffers: bool = True) -> '_ReadOnlyStateVector':
+        """Creates a copy of the object.
+        Args:
+            deep_copy_buffers: If True, buffers will also be deep-copied.
+            Otherwise the copy will share a reference to the original object's
+            buffers.
+        Returns:
+            A copied instance.
+        """
+        return _ReadOnlyStateVector(
+            self._state_vector.copy() if deep_copy_buffers else self._state_vector
+        )
+
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        raise TypeError(
+            'Measurement is not supported by _ReadOnlyStateVector. '
+            'You can call to_mutable_state() and run measurement on the '
+            'resultant state object.'
+        )
+
+    def to_mutable_state(self) -> _BufferedStateVector:
+        return _BufferedStateVector.create(initial_state=self._state_vector.copy())
+
+    def apply_unitary(self, action: Any, axes: Sequence[int]) -> bool:
+        return NotImplemented
+
+    def apply_mixture(self, action: Any, axes: Sequence[int], prng) -> Optional[int]:
+        return NotImplemented
+
+    def apply_channel(self, action: Any, axes: Sequence[int], prng) -> Optional[int]:
+        return NotImplemented
+
+
+class StateVectorSimulationState(SimulationState[_BufferedStateVector | _ReadOnlyStateVector]):
     """State and context for an operation acting on a state vector.
 
     There are two common ways to act on this object:
@@ -326,6 +369,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         dtype: Type[np.complexfloating] = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        is_read_only: bool = False,
     ):
         """Inits StateVectorSimulationState.
 
@@ -347,13 +391,22 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
                 `target_tenson` is None.
             classical_data: The shared classical data container for this
                 simulation.
+            is_read_only: Whether the state vector is immutable (_ReadOnlyStateVector)
+                or mutable (_BufferedStateVector).
         """
-        state = _BufferedStateVector.create(
-            initial_state=initial_state,
-            qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
-            dtype=dtype,
-            buffer=available_buffer,
-        )
+        if is_read_only:
+            initial_state = initial_state.astype(dtype=dtype)
+            if qubits is not None:
+                qid_shape = tuple(q.dimension for q in qubits)
+                initial_state = initial_state.reshape(qid_shape)
+            state = _ReadOnlyStateVector(initial_state)
+        else:
+            state = _BufferedStateVector.create(
+                initial_state=initial_state,
+                qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
+                dtype=dtype,
+                buffer=available_buffer,
+            )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
     def add_qubits(self, qubits: Sequence['cirq.Qid']):
@@ -365,6 +418,8 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         )
 
     def remove_qubits(self, qubits: Sequence['cirq.Qid']):
+        if isinstance(self._state, _ReadOnlyStateVector):
+            return NotImplemented
         ret = super().remove_qubits(qubits)
         if ret is not NotImplemented:
             return ret
