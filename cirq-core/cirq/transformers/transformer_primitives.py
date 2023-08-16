@@ -30,7 +30,6 @@ from typing import (
     Union,
     Tuple,
     TYPE_CHECKING,
-    Type,
 )
 
 from cirq import circuits, ops, protocols
