@@ -14,6 +14,7 @@
 import collections
 import dataclasses
 import importlib.metadata
+import inspect
 import logging
 import multiprocessing
 import os
@@ -275,6 +276,8 @@ async def test_deprecated_parameter_async_function():
     )
     async def f(new_count):
         return new_count
+
+    assert inspect.iscoroutinefunction(f)
 
     # Does not warn on usual use.
     with cirq.testing.assert_logs(count=0):
