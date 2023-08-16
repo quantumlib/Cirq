@@ -84,6 +84,7 @@ __all__ = (
 'DeleteQuantumJobRequest',
 'DeleteQuantumProgramRequest',
 'DeleteQuantumReservationRequest',
+'DeviceConfigKey',
 'ExecutionStatus',
 'GcsLocation',
 'GetQuantumCalibrationRequest',

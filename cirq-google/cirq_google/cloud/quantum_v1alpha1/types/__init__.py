@@ -56,6 +56,7 @@ from .engine import (
     UpdateQuantumReservationRequest,
 )
 from .quantum import (
+    DeviceConfigKey,
     ExecutionStatus,
     GcsLocation,
     InlineData,
@@ -83,6 +84,7 @@ __all__ = (
     'DeleteQuantumJobRequest',
     'DeleteQuantumProgramRequest',
     'DeleteQuantumReservationRequest',
+    'DeviceConfigKey',
     'GetQuantumCalibrationRequest',
     'GetQuantumJobRequest',
     'GetQuantumProcessorRequest',
