@@ -30,6 +30,7 @@ from typing import (
     Union,
     Tuple,
     TYPE_CHECKING,
+    Type,
 )
 
 from cirq import circuits, ops, protocols
@@ -119,20 +120,20 @@ def _map_operations_impl(
         if tags_to_ignore_set.intersection(op.tags):
             return [op]
         if deep and isinstance(op.untagged, circuits.CircuitOperation):
-            op_untagged = cast(circuits.CircuitOperation, op.untagged)
-            mapped_op = op_untagged.replace(
-                circuit=map_operations(
-                    op_untagged.circuit,
+            mapped_op = op.untagged.replace(
+                circuit=_map_operations_impl(
+                    op.untagged.circuit,
                     map_func,
                     deep=deep,
                     raise_if_add_qubits=raise_if_add_qubits,
                     tags_to_ignore=tags_to_ignore,
+                    wrap_in_circuit_op=wrap_in_circuit_op,
                 )
             ).with_tags(*op.tags)
             op = mapped_op
         mapped_ops = [*ops.flatten_to_ops(map_func(op, idx))]
         op_qubits = set(op.qubits)
-        mapped_ops_qubits = set()
+        mapped_ops_qubits: Set['cirq.Qid'] = set()
         has_overlapping_ops = False
         for mapped_op in mapped_ops:
             if raise_if_add_qubits and not op_qubits.issuperset(mapped_op.qubits):
@@ -162,7 +163,8 @@ def _map_operations_impl(
     last_moment_time_index = -1
 
     for idx, moment in enumerate(circuit):
-        new_moments.append([])
+        if wrap_in_circuit_op:
+            new_moments.append([])
         for op in moment:
             mapped_ops = apply_map_func(op, idx)
 
@@ -183,10 +185,7 @@ def _map_operations_impl(
 
         last_moment_time_index = len(new_moments) - 1
 
-    circuit_type = (
-        circuits.Circuit if isinstance(circuit, circuits.Circuit) else circuits.FrozenCircuit
-    )
-    return circuit_type(*[circuits.Moment(moment) for moment in new_moments])
+    return _create_target_circuit_type([circuits.Moment(moment) for moment in new_moments], circuit)
 
 
 def map_operations(
