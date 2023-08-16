@@ -336,7 +336,7 @@ class _ReadOnlyStateVector(qis.QuantumStateRepresentation):
             'resultant state object.'
         )
 
-    def to_mutable_state(self, qid_shape: Tuple[int, ...] | None = None) -> _BufferedStateVector:
+    def to_mutable_state(self, qid_shape: Optional[Tuple[int, ...]] = None) -> _BufferedStateVector:
         return _BufferedStateVector.create(
             initial_state=self._state_vector.copy(), qid_shape=qid_shape
         )
