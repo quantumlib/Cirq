@@ -15,6 +15,8 @@
 import attrs
 from typing import Optional
 
+from cirq_google.cloud import quantum
+
 @attrs.frozen
 class DeviceConfigKey:
     """Uniquely identifies a Device Configuration.
@@ -29,3 +31,7 @@ class DeviceConfigKey:
 
     run_name: Optional[str]
     config_alias: str
+
+    def to_quantum_device_config_key(self) -> quantum.DeviceConfigKey:
+      """Converts the device configuration key into the Quantum Engine device configuration key."""
+      return quantum.DeviceConfigKey(run_name=self.run_name, config_alias=self.config_alias)

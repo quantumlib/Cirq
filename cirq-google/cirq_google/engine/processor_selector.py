@@ -34,11 +34,16 @@ class ProcessorSelector:
     def to_quantum_processor_selector(
         self, project_id: str
     ) -> quantum.SchedulingConfig.ProcessorSelector:
+        """Converts the processor selector into the Quantum Engine processor selector.
+
+        Args:
+        project_id: A project_id of the parent Google Cloud Project.
+        """
         selector = quantum.SchedulingConfig.ProcessorSelector()
-        selector.processor = self._processor_name_from_ids(project_id, self.processor_id)
+        selector.processor = self._processor_name_from_ids(project_id)
         if self.config_key:
-            selector.device_config_key = self.config_key
+            selector.device_config_key = self.config_key.to_quantum_device_config_key()
         return selector
 
-    def _processor_name_from_ids(self, project_id: str, processor_id: str) -> str:
-        return f'projects/{project_id}/processors/{processor_id}'
+    def _processor_name_from_ids(self, project_id: str) -> str:
+        return f'projects/{project_id}/processors/{self.processor_id}'
