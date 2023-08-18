@@ -278,7 +278,7 @@ class Engine(abstract_engine.AbstractEngine):
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
-        """Runs the supplied Circuit via Quantum Engine.
+        """Runs the supplied Circuit via Quantum Engine.Creates
 
         In contrast to run, this runs across multiple parameter sweeps, and
         does not block until a result is returned.
@@ -312,35 +312,20 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        if not program_id:
-            program_id = _make_random_id('prog-')
-        if not job_id:
-            job_id = _make_random_id('job-')
-        run_context = self.context._serialize_run_context(params, repetitions)
-
-        stream_job_response_future = self.context.client.run_job_over_stream(
-            project_id=self.project_id,
-            program_id=str(program_id),
-            program_description=program_description,
-            program_labels=program_labels,
-            code=self.context._serialize_program(program),
-            job_id=str(job_id),
-            processor_ids=processor_ids,
-            run_context=run_context,
-            job_description=job_description,
-            job_labels=job_labels,
+        engine_program = await self.create_program_async(
+            program, program_id, description=program_description, labels=program_labels
         )
-        return engine_job.EngineJob(
-            self.project_id,
-            str(program_id),
-            str(job_id),
-            self.context,
-            stream_job_response_future=stream_job_response_future,
+        return await engine_program.run_sweep_async(
+            job_id=job_id,
+            params=params,
+            repetitions=repetitions,
+            processor_ids=processor_ids,
+            description=job_description,
+            labels=job_labels,
         )
 
     run_sweep = duet.sync(run_sweep_async)
 
-    # TODO(#5996) Migrate to stream client
     async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -421,7 +406,6 @@ class Engine(abstract_engine.AbstractEngine):
 
     run_batch = duet.sync(run_batch_async)
 
-    # TODO(#5996) Migrate to stream client
     async def run_calibration_async(
         self,
         layers: List['cirq_google.CalibrationLayer'],
