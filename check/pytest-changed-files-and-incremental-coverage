@@ -87,7 +87,7 @@ if [ "${#changed_python_tests[@]}" -eq 0 ]; then
     exit 0
 fi
 
-source dev_tools/pypath
+source dev_tools/pypath || exit $?
 
 # Run tests while producing coverage files.
 check/pytest "${changed_python_tests[@]}" \
