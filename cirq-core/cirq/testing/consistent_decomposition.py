@@ -54,7 +54,6 @@ def assert_decompose_is_consistent_with_unitary(val: Any, ignoring_global_phase:
     if ignoring_global_phase:
         lin_alg_utils.assert_allclose_up_to_global_phase(actual, expected, atol=1e-8)
     else:
-        # coverage: ignore
         np.testing.assert_allclose(actual, expected, atol=1e-8)
 
 

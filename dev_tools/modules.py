@@ -319,4 +319,4 @@ def main(argv: List[str]):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])  # coverage: ignore
+    main(sys.argv[1:])  # pragma: no cover

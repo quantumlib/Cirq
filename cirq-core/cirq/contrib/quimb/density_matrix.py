@@ -106,8 +106,7 @@ def circuit_to_density_matrix_tensors(
         ValueError: If an op is encountered that cannot be converted.
     """
     if qubits is None:
-        # coverage: ignore
-        qubits = sorted(circuit.all_qubits())
+        qubits = sorted(circuit.all_qubits())  # pragma: no cover
     qubits = tuple(qubits)
 
     qubit_frontier: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
@@ -190,7 +189,7 @@ def circuit_to_density_matrix_tensors(
                 )
                 kraus_frontier += 1
             else:
-                raise ValueError(repr(op))  # coverage: ignore
+                raise ValueError(repr(op))  # pragma: no cover
 
             _positions(mi + 1, op.qubits)
     return tensors, qubit_frontier, positions

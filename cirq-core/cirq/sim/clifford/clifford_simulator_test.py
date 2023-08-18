@@ -373,19 +373,19 @@ def test_clifford_circuit_2(qubits, split):
         x = np.random.randint(7)
 
         if x == 0:
-            circuit.append(cirq.X(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.X(np.random.choice(qubits)))  # pragma: no cover
         elif x == 1:
-            circuit.append(cirq.Z(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.Z(np.random.choice(qubits)))  # pragma: no cover
         elif x == 2:
-            circuit.append(cirq.Y(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.Y(np.random.choice(qubits)))  # pragma: no cover
         elif x == 3:
-            circuit.append(cirq.S(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.S(np.random.choice(qubits)))  # pragma: no cover
         elif x == 4:
-            circuit.append(cirq.H(np.random.choice(qubits)))  # coverage: ignore
+            circuit.append(cirq.H(np.random.choice(qubits)))  # pragma: no cover
         elif x == 5:
-            circuit.append(cirq.CNOT(qubits[0], qubits[1]))  # coverage: ignore
+            circuit.append(cirq.CNOT(qubits[0], qubits[1]))  # pragma: no cover
         elif x == 6:
-            circuit.append(cirq.CZ(qubits[0], qubits[1]))  # coverage: ignore
+            circuit.append(cirq.CZ(qubits[0], qubits[1]))  # pragma: no cover
 
     circuit.append(cirq.measure(qubits[0]))
     result = cirq.CliffordSimulator(split_untangled_states=split).run(circuit, repetitions=100)

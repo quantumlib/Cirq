@@ -576,10 +576,10 @@ def test_serialize_op_bad_operation():
     class NullOperation(cirq.Operation):
         @property
         def qubits(self):
-            return tuple()  # coverage: ignore
+            return tuple()  # pragma: no cover
 
         def with_qubits(self, *qubits):
-            return self  # coverage: ignore
+            return self  # pragma: no cover
 
     null_op = NullOperation()
     with pytest.raises(ValueError, match='Cannot serialize op'):
