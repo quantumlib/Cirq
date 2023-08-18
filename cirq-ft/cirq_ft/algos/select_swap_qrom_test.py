@@ -101,3 +101,9 @@ def test_qroam_diagram():
 def test_qroam_raises():
     with pytest.raises(ValueError, match="must be of equal length"):
         _ = cirq_ft.SelectSwapQROM([1, 2], [1, 2, 3])
+
+
+def test_qroam_hashable():
+    qrom = cirq_ft.SelectSwapQROM([1, 2, 5, 6, 7, 8])
+    assert hash(qrom) is not None
+    assert cirq_ft.t_complexity(qrom) == cirq_ft.TComplexity(32, 160, 0)

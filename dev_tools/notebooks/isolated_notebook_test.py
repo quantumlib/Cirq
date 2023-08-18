@@ -27,6 +27,7 @@
 import os
 import re
 import subprocess
+import shutil
 import warnings
 from typing import Set, List
 
@@ -188,6 +189,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
     os.remove(rewritten_notebook_path)
+    shutil.rmtree(notebook_env)
 
 
 @pytest.mark.slow
