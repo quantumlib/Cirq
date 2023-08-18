@@ -15,6 +15,7 @@
 """Tests the cloned_env fixture in conftest.py"""
 import json
 import os
+import shutil
 import subprocess
 from unittest import mock
 
@@ -39,3 +40,4 @@ def test_isolated_env_cloning(cloned_env, param):
     packages = json.loads(result.stdout)
     assert {"name": "flynt", "version": "0.64"} in packages
     assert {"astor", "flynt", "pip", "setuptools", "wheel"} == set(p['name'] for p in packages)
+    shutil.rmtree(env)
