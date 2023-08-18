@@ -107,6 +107,8 @@ class StreamManager:
 
     """
 
+    _STOP_SIGNAL = 'stop_signal'
+
     def __init__(self, grpc_client: quantum.QuantumEngineServiceAsyncClient):
         self._grpc_client = grpc_client
         # TODO(#5996) Make this local to the asyncio thread.
@@ -198,10 +200,11 @@ class StreamManager:
                 async for response in response_iterable:
                     self._response_demux.publish(response)
             except asyncio.CancelledError:
+                await self._request_queue.put(StreamManager._STOP_SIGNAL)
                 break
             except BaseException as e:
-                # TODO(#5996) Close the request iterator to close the existing stream.
                 # Note: the message ID counter is not reset upon a new stream.
+                await self._request_queue.put(StreamManager._STOP_SIGNAL)
                 self._response_demux.publish_exception(e)  # Raise to all request tasks
 
     async def _manage_execution(
@@ -325,7 +328,6 @@ def _is_retryable_error(e: google_exceptions.GoogleAPICallError) -> bool:
     return any(isinstance(e, exception_type) for exception_type in RETRYABLE_GOOGLE_API_EXCEPTIONS)
 
 
-# TODO(#5996) Add stop signal to the request iterator.
 async def _request_iterator(
     request_queue: asyncio.Queue,
 ) -> AsyncIterator[quantum.QuantumRunStreamRequest]:
@@ -333,8 +335,8 @@ async def _request_iterator(
 
     Every call to this method generates a new iterator.
     """
-    while True:
-        yield await request_queue.get()
+    while (request := await request_queue.get()) != StreamManager._STOP_SIGNAL:
+        yield request
 
 
 def _to_create_job_request(
