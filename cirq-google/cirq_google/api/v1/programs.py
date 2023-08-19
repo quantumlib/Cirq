@@ -41,40 +41,35 @@ def gate_to_proto(
 
     if isinstance(gate, cirq.XPowGate):
         if len(qubits) != 1:
-            # coverage: ignore
-            raise ValueError('Wrong number of qubits.')
+            raise ValueError('Wrong number of qubits.')  # pragma: no cover
         return operations_pb2.Operation(
             incremental_delay_picoseconds=delay, exp_w=_x_to_proto(gate, qubits[0])
         )
 
     if isinstance(gate, cirq.YPowGate):
         if len(qubits) != 1:
-            # coverage: ignore
-            raise ValueError('Wrong number of qubits.')
+            raise ValueError('Wrong number of qubits.')  # pragma: no cover
         return operations_pb2.Operation(
             incremental_delay_picoseconds=delay, exp_w=_y_to_proto(gate, qubits[0])
         )
 
     if isinstance(gate, cirq.PhasedXPowGate):
         if len(qubits) != 1:
-            # coverage: ignore
-            raise ValueError('Wrong number of qubits.')
+            raise ValueError('Wrong number of qubits.')  # pragma: no cover
         return operations_pb2.Operation(
             incremental_delay_picoseconds=delay, exp_w=_phased_x_to_proto(gate, qubits[0])
         )
 
     if isinstance(gate, cirq.ZPowGate):
         if len(qubits) != 1:
-            # coverage: ignore
-            raise ValueError('Wrong number of qubits.')
+            raise ValueError('Wrong number of qubits.')  # pragma: no cover
         return operations_pb2.Operation(
             incremental_delay_picoseconds=delay, exp_z=_z_to_proto(gate, qubits[0])
         )
 
     if isinstance(gate, cirq.CZPowGate):
         if len(qubits) != 2:
-            # coverage: ignore
-            raise ValueError('Wrong number of qubits.')
+            raise ValueError('Wrong number of qubits.')  # pragma: no cover
         return operations_pb2.Operation(
             incremental_delay_picoseconds=delay, exp_11=_cz_to_proto(gate, *qubits)
         )

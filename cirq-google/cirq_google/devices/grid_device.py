@@ -249,8 +249,7 @@ def _deserialize_gateset_and_gate_durations(
         gate_name = gate_spec.WhichOneof('gate')
 
         gate_rep = next((gr for gr in _GATES if gr.gate_spec_name == gate_name), None)
-        if gate_rep is None:
-            # coverage: ignore
+        if gate_rep is None:  # pragma: no cover
             warnings.warn(
                 f"The DeviceSpecification contains the gate '{gate_name}' which is not recognized"
                 " by Cirq and will be ignored. This may be due to an out-of-date Cirq version.",
@@ -460,9 +459,9 @@ class GridDevice(cirq.Device):
                 all_qubits=all_qubits,
                 compilation_target_gatesets=_build_compilation_target_gatesets(gateset),
             )
-        except ValueError as ve:  # coverage: ignore
+        except ValueError as ve:  # pragma: no cover
             # Spec errors should have been caught in validation above.
-            raise ValueError("DeviceSpecification is invalid.") from ve  # coverage: ignore
+            raise ValueError("DeviceSpecification is invalid.") from ve  # pragma: no cover
 
         return GridDevice(metadata)
 

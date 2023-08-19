@@ -15,7 +15,11 @@
 import cirq
 import numpy as np
 import pytest
-from cirq_ft.infra.decompose_protocol import _fredkin, _try_decompose_from_known_decompositions
+from cirq_ft.infra.decompose_protocol import (
+    _fredkin,
+    _try_decompose_from_known_decompositions,
+    _decompose_once_considering_known_decomposition,
+)
 
 
 def test_fredkin_unitary():
@@ -43,3 +47,12 @@ def test_decompose_fredkin(gate):
         for o in cirq.flatten_op_tree(_fredkin((c, t1, t2), context))
     )
     assert want == _try_decompose_from_known_decompositions(op, context)
+
+
+def test_known_decomposition_empty_unitary():
+    class DecomposeEmptyList(cirq.testing.SingleQubitGate):
+        def _decompose_(self, _):
+            return []
+
+    gate = DecomposeEmptyList()
+    assert _decompose_once_considering_known_decomposition(gate) == []

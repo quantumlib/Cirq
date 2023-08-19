@@ -56,4 +56,4 @@ class ArcTan(cirq.ArithmeticGate):
     def __pow__(self, power) -> 'ArcTan':
         if power in [+1, -1]:
             return self
-        raise NotImplementedError("__pow__ is only implemented for +1/-1.")  # coverage: ignore
+        raise NotImplementedError("__pow__ is only implemented for +1/-1.")  # pragma: no cover

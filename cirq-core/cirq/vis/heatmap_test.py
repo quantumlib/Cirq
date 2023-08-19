@@ -14,6 +14,7 @@
 """Tests for Heatmap."""
 
 import pathlib
+import shutil
 import string
 from tempfile import mkdtemp
 
@@ -309,6 +310,7 @@ def test_colorbar(ax, position, size, pad):
 
     plt.close(fig1)
     plt.close(fig2)
+    shutil.rmtree(tmp_dir)
 
 
 @pytest.mark.usefixtures('closefigures')

@@ -23,8 +23,7 @@ from cirq.ops import control_values as cv
 
 
 class GoodGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        # coverage: ignore
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:  # pragma: no cover
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
 
@@ -41,7 +40,6 @@ class BadGateOperation(cirq.GateOperation):
 
 class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        # coverage: ignore
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def on(self, *qubits: 'cirq.Qid') -> 'cirq.Operation':

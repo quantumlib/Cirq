@@ -230,7 +230,7 @@ class StreamManager:
             # Ignoring coverage since this is rarely triggered.
             # TODO(#5996) Consider awaiting for the queue to become available, once it is changed
             # to be local to the asyncio thread.
-            await asyncio.sleep(1)  # coverage: ignore
+            await asyncio.sleep(1)  # pragma: no cover
 
         current_request = create_program_and_job_request
         while True:
@@ -274,8 +274,7 @@ class StreamManager:
                     _to_create_job_request(create_program_and_job_request),
                 )
                 continue
-            else:
-                # coverage: ignore
+            else:  # pragma: no cover
                 raise ValueError(
                     'The Quantum Engine response type is not recognized by this client. '
                     'This may be due to an outdated version of cirq-google'

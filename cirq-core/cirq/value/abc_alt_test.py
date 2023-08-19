@@ -140,7 +140,7 @@ def test_classcell_in_namespace():
     class _(metaclass=ABCMetaImplementAnyOneOf):
         def other_method(self):
             # Triggers __classcell__ to be added to the class namespace
-            super()  # coverage: ignore
+            super()  # pragma: no cover
 
 
 def test_two_alternatives():
@@ -170,17 +170,17 @@ def test_two_alternatives():
             return 'alt1'
 
         def alt2(self) -> NoReturn:
-            raise RuntimeError  # coverage: ignore
+            raise RuntimeError  # pragma: no cover
 
     class TwoAlternativesOverride(TwoAlternatives):
         def my_method(self, arg, kw=99) -> str:
             return 'override'
 
         def alt1(self) -> NoReturn:
-            raise RuntimeError  # coverage: ignore
+            raise RuntimeError  # pragma: no cover
 
         def alt2(self) -> NoReturn:
-            raise RuntimeError  # coverage: ignore
+            raise RuntimeError  # pragma: no cover
 
     class TwoAlternativesForceSecond(TwoAlternatives):
         def _do_alt1_with_my_method(self):

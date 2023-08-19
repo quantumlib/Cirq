@@ -140,8 +140,8 @@ def map_clean_and_borrowable_qubits(
                 assert st < idx and q in allocated_map
                 # This line is actually covered by
                 # `test_map_clean_and_borrowable_qubits_deallocates_only_once` but pytest-cov seems
-                # to not recognize it and hence the coverage: ignore.
-                continue  # coverage: ignore
+                # to not recognize it and hence the pragma: no cover.
+                continue  # pragma: no cover
 
             # This is the first time we are seeing this temporary qubit and need to find a mapping.
             if isinstance(q, cirq.ops.CleanQubit):

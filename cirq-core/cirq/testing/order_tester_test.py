@@ -89,9 +89,7 @@ def test_add_ordering_group_incorrect():
 
 
 def test_propagates_internal_errors():
-    class UnorderableClass:
-        # coverage: ignore
-
+    class UnorderableClass:  # pragma: no cover
         def __eq__(self, other):
             return NotImplemented
 
