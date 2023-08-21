@@ -234,7 +234,6 @@ class DeviceConfigKey(proto.Message):
             -
         config_alias (str):
             -
-
     """
 
     run_name = proto.Field(
@@ -268,6 +267,7 @@ class SchedulingConfig(proto.Message):
             processor (str):
                 -
             device_config_key ((google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
+                -
         """
 
         processor_names = proto.RepeatedField(
