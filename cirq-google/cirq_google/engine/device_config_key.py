@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import attrs
 from typing import Optional
+import attrs
 
 from cirq_google.cloud import quantum
 
@@ -34,5 +34,6 @@ class DeviceConfigKey:
     config_alias: str
 
     def to_quantum_device_config_key(self) -> quantum.DeviceConfigKey:
-        """Converts the device configuration key into the Quantum Engine device configuration key."""
+        """Converts the device configuration key into the
+        Quantum Engine device configuration key."""
         return quantum.DeviceConfigKey(run_name=self.run_name, config_alias=self.config_alias)

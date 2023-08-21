@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import attrs
 from typing import Optional
+import attrs
 
 from cirq_google.cloud import quantum
 from cirq_google.engine.device_config_key import DeviceConfigKey
