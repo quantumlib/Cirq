@@ -438,8 +438,8 @@ class EngineClient:
             raise ValueError(
                 'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
             )
-        if run_name and not device_config_name:
-            raise ValueError('Must specify `device_config_name` if `run_name` is set')
+        if bool(run_name) ^ bool(device_config_name):
+            raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
         # Create job.
         processor_selector = (

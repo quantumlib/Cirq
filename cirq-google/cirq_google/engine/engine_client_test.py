@@ -495,29 +495,68 @@ def test_create_job_with_run_name_and_device_config_name_and_no_processor_id_thr
         )
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_create_job_with_run_name_and_no_device_config_name_throws(client_constructor):
+def test_create_job_with_processor_id_and_processor_ids_throws(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.create_quantum_job.return_value = result
     run_context = any_pb2.Any()
     client = EngineClient()
 
-    with pytest.raises(ValueError, match="Must specify `device_config_name` if `run_name` is set"):
+    with pytest.raises(ValueError, match="`processor_ids` and `processor_id` cannot both be set"):
         client.create_job(
             project_id='proj',
             program_id='prog',
             job_id=None,
             processor_id='processor0',
-            run_name="RUN_NAME",
+            processor_ids=['processor0'],
+            run_context=run_context,
+        )
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_with_no_processor_id_throws(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+    run_context = any_pb2.Any()
+    client = EngineClient()
+
+    with pytest.raises(ValueError, match="`processor_id` must be set."):
+        client.create_job(
+            project_id='proj', program_id='prog', job_id=None, run_context=run_context
+        )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+@pytest.mark.parametrize('run_name, device_config_name', [('RUN_NAME', ''), ('', 'CONFIG_NAME')])
+def test_create_job_with_incomplete_device_config_throws(
+    client_constructor, run_name, device_config_name
+):
+    grpc_client = setup_mock_(client_constructor)
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+    run_context = any_pb2.Any()
+    client = EngineClient()
+
+    with pytest.raises(
+        ValueError, match="Cannot specify only one of `run_name` and `device_config_name`"
+    ):
+        client.create_job(
+            project_id='proj',
+            program_id='prog',
+            job_id=None,
+            processor_id='processor0',
+            run_name=run_name,
+            device_config_name=device_config_name,
             run_context=run_context,
         )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-@pytest.mark.parametrize(
-    'run_name, device_config_name', [('RUN_NAME', 'CONFIG_NAME'), ('', 'CONFIG_NAME'), ('', '')]
-)
+@pytest.mark.parametrize('run_name, device_config_name', [('RUN_NAME', 'CONFIG_NAME'), ('', '')])
 def test_create_job_with_run_name_and_device_config_name(
     client_constructor, run_name, device_config_name
 ):
