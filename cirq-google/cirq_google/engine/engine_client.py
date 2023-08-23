@@ -389,7 +389,7 @@ class EngineClient:
         priority: Optional[int] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
-        processor_id: Optional[str] = None,
+        processor_id: str = "",
         run_name: str = "",
         device_config_name: str = "",
     ) -> Tuple[str, quantum.QuantumJob]:
