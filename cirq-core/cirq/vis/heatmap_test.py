@@ -105,10 +105,8 @@ def test_cell_colors(ax, colormap_name):
         col = int(round(np.mean([v[0] for v in vertices])))
         value = test_row_col_map[(row, col)]
         color_scale = (value - vmin) / (vmax - vmin)
-        if color_scale < 0.0:
-            color_scale = 0.0
-        if color_scale > 1.0:
-            color_scale = 1.0
+        color_scale = max(color_scale, 0.0)
+        color_scale = min(color_scale, 1.0)
         expected_color = np.array(colormap(color_scale))
         assert np.all(np.isclose(facecolor, expected_color))
 
