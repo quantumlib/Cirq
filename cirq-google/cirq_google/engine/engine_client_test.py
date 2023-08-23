@@ -24,7 +24,6 @@ from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
 
-import cirq
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.cloud import quantum
 

@@ -384,7 +384,7 @@ class EngineClient:
         project_id: str,
         program_id: str,
         job_id: Optional[str],
-        processor_ids: Sequence[str] = [],
+        processor_ids: Optional[Sequence[str]] = None,
         run_context: any_pb2.Any = any_pb2.Any(),
         priority: Optional[int] = None,
         description: Optional[str] = None,
@@ -444,19 +444,20 @@ class EngineClient:
         # Create job.
         processor_selector = (
             quantum.SchedulingConfig.ProcessorSelector(
-                processor=_processor_name_from_ids(project_id, processor_id),
-                device_config_key=quantum.DeviceConfigKey(
-                    run_name=run_name, config_alias=device_config_name
-                ),
-            )
-            if processor_id
-            else quantum.SchedulingConfig.ProcessorSelector(
                 processor_names=[
                     _processor_name_from_ids(project_id, processor_id)
                     for processor_id in processor_ids
                 ]
             )
+            if (processor_ids is not None)
+            else quantum.SchedulingConfig.ProcessorSelector(
+                processor=_processor_name_from_ids(project_id, processor_id),
+                device_config_key=quantum.DeviceConfigKey(
+                    run_name=run_name, config_alias=device_config_name
+                ),
+            )
         )
+
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
             name=job_name,
