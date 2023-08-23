@@ -66,7 +66,7 @@ class And(infra.GateWithRegisters):
             return self
         if power == -1:
             return And(self.cv, adjoint=self.adjoint ^ True)
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
     def __str__(self) -> str:
         suffix = "" if self.cv == (1,) * len(self.cv) else str(self.cv)

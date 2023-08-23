@@ -14,7 +14,7 @@
 """A helper for jobs that have been created on the Quantum Engine."""
 import datetime
 
-from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import duet
 from google.protobuf import any_pb2
@@ -69,9 +69,6 @@ class EngineJob(abstract_job.AbstractJob):
         context: 'engine_base.EngineContext',
         _job: Optional[quantum.QuantumJob] = None,
         result_type: ResultType = ResultType.Program,
-        stream_job_response_future: Optional[
-            duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]
-        ] = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -82,10 +79,7 @@ class EngineJob(abstract_job.AbstractJob):
             context: Engine configuration and context to use.
             _job: The optional current job state.
             result_type: What type of results are expected, such as
-                batched results or the result of a focused calibration.
-            stream_job_response_future: If set, the job is sent over the Quantum Engine
-                QuantumRunStream bidirectional stream, and the future is completed when the Engine
-                responds over the stream.
+               batched results or the result of a focused calibration.
         """
         self.project_id = project_id
         self.program_id = program_id
@@ -96,7 +90,6 @@ class EngineJob(abstract_job.AbstractJob):
         self._calibration_results: Optional[Sequence[CalibrationResult]] = None
         self._batched_results: Optional[Sequence[Sequence[EngineResult]]] = None
         self.result_type = result_type
-        self._stream_job_response_future = stream_job_response_future
 
     def id(self) -> str:
         """Returns the job id."""
@@ -286,15 +279,14 @@ class EngineJob(abstract_job.AbstractJob):
         import cirq_google.engine.engine as engine_base
 
         if self._results is None:
-            result_response = await self._await_result_async()
-            result = result_response.result
+            result = await self._await_result_async()
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if (
                 result_type == 'cirq.google.api.v1.Result'
                 or result_type == 'cirq.api.google.v1.Result'
             ):
                 v1_parsed_result = v1.program_pb2.Result.FromString(result.value)
-                self._results = self._get_job_results_v1(v1_parsed_result)  # coverage: ignore
+                self._results = self._get_job_results_v1(v1_parsed_result)  # pragma: no cover
             elif (
                 result_type == 'cirq.google.api.v2.Result'
                 or result_type == 'cirq.api.google.v2.Result'
@@ -310,17 +302,6 @@ class EngineJob(abstract_job.AbstractJob):
         return self._results
 
     async def _await_result_async(self) -> quantum.QuantumResult:
-        if self._stream_job_response_future is not None:
-            response = await self._stream_job_response_future
-            if isinstance(response, quantum.QuantumResult):
-                return response
-            elif isinstance(response, quantum.QuantumJob):
-                self._job = response
-                _raise_on_failure(response)
-            else:
-                # coverage: ignore
-                raise ValueError('Internal error: The stream response type is not recognized.')
-
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
                 job = await self._refresh_job_async()
@@ -331,7 +312,7 @@ class EngineJob(abstract_job.AbstractJob):
         response = await self.context.client.get_job_results_async(
             self.project_id, self.program_id, self.job_id
         )
-        return response
+        return response.result
 
     async def calibration_results_async(self) -> Sequence[CalibrationResult]:
         """Returns the results of a run_calibration() call.
@@ -342,8 +323,7 @@ class EngineJob(abstract_job.AbstractJob):
         import cirq_google.engine.engine as engine_base
 
         if self._calibration_results is None:
-            result_response = await self._await_result_async()
-            result = result_response.result
+            result = await self._await_result_async()
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
                 raise ValueError(f'Did not find calibration results, instead found: {result_type}')
@@ -361,7 +341,6 @@ class EngineJob(abstract_job.AbstractJob):
         return self._calibration_results
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
-        # coverage: ignore
         job_id = self.id()
         job_finished = self.update_time()
 

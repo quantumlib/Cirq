@@ -169,16 +169,16 @@ def test_fails_when_ne_is_inconsistent():
 
         def __eq__(self, other):
             if not isinstance(other, type(self)):
-                return NotImplemented  # coverage: ignore
+                return NotImplemented  # pragma: no cover
             return self.x == other.x
 
         def __ne__(self, other):
             if not isinstance(other, type(self)):
-                return NotImplemented  # coverage: ignore
+                return NotImplemented  # pragma: no cover
             return self.x == other.x
 
         def __hash__(self):
-            return hash(self.x)  # coverage: ignore
+            return hash(self.x)  # pragma: no cover
 
     with pytest.raises(AssertionError, match='inconsistent'):
         eq.make_equality_group(InconsistentNeImplementation)
@@ -278,7 +278,7 @@ def test_returns_not_implemented_for_other_types():
             if isinstance(other, (FirstClass, SecondClass)):
                 return self.val == other.val
             # Ignore coverage, this is just for illustrative purposes.
-            return NotImplemented  # coverage: ignore
+            return NotImplemented  # pragma: no cover
 
     # But we see that this does not work because it fails commutativity of ==
     assert SecondClass("a") == FirstClass("a")
@@ -306,7 +306,7 @@ def test_returns_not_implemented_for_other_types():
             if isinstance(other, (ThirdClass, FourthClass)):
                 return self.val == other.val
             # Ignore coverage, this is just for illustrative purposes.
-            return NotImplemented  # coverage: ignore
+            return NotImplemented  # pragma: no cover
 
     # We see this is fixed:
     assert ThirdClass("a") == FourthClass("a")

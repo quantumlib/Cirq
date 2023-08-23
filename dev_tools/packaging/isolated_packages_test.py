@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import shutil
 import subprocess
 from unittest import mock
 
@@ -48,3 +49,4 @@ def test_isolated_packages(cloned_env, module):
         check=False,
     )
     assert result.returncode == 0, f"Failed isolated tests for {module.name}:\n{result.stdout}"
+    shutil.rmtree(env)

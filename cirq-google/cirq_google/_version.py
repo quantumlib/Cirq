@@ -17,8 +17,7 @@ and warn users that the latest version of cirq uses python 3.9+"""
 
 import sys
 
-if sys.version_info < (3, 9, 0):
-    # coverage: ignore
+if sys.version_info < (3, 9, 0):  # pragma: no cover
     raise SystemError(
         "You installed the latest version of cirq but aren't on python 3.9+.\n"
         'To fix this error, you need to either:\n'

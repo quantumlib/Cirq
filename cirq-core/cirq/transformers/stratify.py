@@ -130,7 +130,6 @@ def _stratify_circuit(
         ignored_ops = []
         op_time_indices = {}
         for op in moment:
-
             # Identify the earliest moment that can accommodate this op.
             min_time_index_for_op = circuits.circuit.get_earliest_accommodating_moment_index(
                 op, qubit_time_index, measurement_time_index, control_time_index
@@ -224,7 +223,7 @@ def _category_to_classifier(category) -> Classifier:
 
 def _dummy_classifier(op: 'cirq.Operation') -> bool:
     """Dummy classifier, used to "complete" a collection of classifiers and make it exhaustive."""
-    return False  # coverage: ignore
+    return False  # pragma: no cover
 
 
 def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> int:

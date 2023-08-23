@@ -24,16 +24,13 @@ from cirq_google.api import v2
 
 
 class UnknownSweep(sweeps.SingleSweep):
-    def _tuple(self):
-        # coverage: ignore
+    def _tuple(self):  # pragma: no cover
         return self.key, tuple(range(10))
 
     def __len__(self) -> int:
-        # coverage: ignore
         return 10
 
     def _values(self) -> Iterator[float]:
-        # coverage: ignore
         return iter(range(10))
 
 

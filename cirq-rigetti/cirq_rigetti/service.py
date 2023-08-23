@@ -107,7 +107,7 @@ class RigettiQCSService:
     @_provide_default_client
     def list_quantum_processors(
         client: Optional[httpx.Client],
-    ) -> ListQuantumProcessorsResponse:  # coverage: ignore
+    ) -> ListQuantumProcessorsResponse:  # pragma: no cover
         """Retrieve a list of available Rigetti quantum processors.
 
         Args:
@@ -140,8 +140,7 @@ class RigettiQCSService:
             A qcs_api_client.models.GetQuiltCalibrationsResponse containing the
             device calibrations.
         """
-        # coverage: ignore
-        return cast(
+        return cast(  # pragma: no cover
             GetQuiltCalibrationsResponse,
             get_quilt_calibrations(client=client, quantum_processor_id=quantum_processor_id).parsed,
         )
@@ -150,7 +149,7 @@ class RigettiQCSService:
     @_provide_default_client
     def get_instruction_set_architecture(
         quantum_processor_id: str, client: Optional[httpx.Client]
-    ) -> InstructionSetArchitecture:  # coverage: ignore
+    ) -> InstructionSetArchitecture:  # pragma: no cover
         """Retrieve the Instruction Set Architecture of a QuantumProcessor by ID. This
         includes site specific operations and native gate capabilities.
 
@@ -164,7 +163,6 @@ class RigettiQCSService:
         Returns:
             A qcs_api_client.models.InstructionSetArchitecture containing the device specification.
         """
-        # coverage: ignore
         return cast(
             InstructionSetArchitecture,
             get_instruction_set_architecture(

@@ -206,11 +206,13 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         """
         if num_controls == 0:
             return self
+        sub_gate: 'cirq.Gate' = self
+        if self._global_shift == 0:
+            sub_gate = controlled_gate.ControlledGate(
+                common_gates.ZPowGate(exponent=self._exponent), num_controls=2
+            )
         return controlled_gate.ControlledGate(
-            controlled_gate.ControlledGate(
-                common_gates.ZPowGate(exponent=self._exponent, global_shift=self._global_shift),
-                num_controls=2,
-            ),
+            sub_gate,
             num_controls=num_controls,
             control_values=control_values,
             control_qid_shape=control_qid_shape,
@@ -518,11 +520,13 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         """
         if num_controls == 0:
             return self
+        sub_gate: 'cirq.Gate' = self
+        if self._global_shift == 0:
+            sub_gate = controlled_gate.ControlledGate(
+                common_gates.XPowGate(exponent=self._exponent), num_controls=2
+            )
         return controlled_gate.ControlledGate(
-            controlled_gate.ControlledGate(
-                common_gates.XPowGate(exponent=self._exponent, global_shift=self._global_shift),
-                num_controls=2,
-            ),
+            sub_gate,
             num_controls=num_controls,
             control_values=control_values,
             control_qid_shape=control_qid_shape,

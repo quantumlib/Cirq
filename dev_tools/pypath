@@ -29,6 +29,12 @@ else
     _PYPATH_BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fi
 
+if ! python --version | grep -q -F "Python 3."; then
+    echo "python command does not start Python 3" >&2
+    echo "Please use a virtual environment created for Python 3." >&2
+    return 2
+fi
+
 _PYPATH_PREFIX="${_PYPATH_BASE_DIR}$(
     cd "${_PYPATH_BASE_DIR}" &&
         env PYTHONPATH=. python dev_tools/modules.py list --mode folder |

@@ -61,8 +61,7 @@ class ProductState:
 
     def __init__(self, states=None):
         if states is None:
-            # coverage: ignore
-            states = dict()
+            states = dict()  # pragma: no cover
 
         object.__setattr__(self, 'states', states)
 
@@ -200,8 +199,7 @@ class _XEigenState(_PauliEigenState):
             return np.array([1, 1]) / np.sqrt(2)
         elif self.eigenvalue == -1:
             return np.array([1, -1]) / np.sqrt(2)
-        # coverage: ignore
-        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         # Prevent circular import from `value.value_equality`
@@ -218,8 +216,7 @@ class _YEigenState(_PauliEigenState):
             return np.array([1, 1j]) / np.sqrt(2)
         elif self.eigenvalue == -1:
             return np.array([1, -1j]) / np.sqrt(2)
-        # coverage: ignore
-        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops
@@ -235,8 +232,7 @@ class _ZEigenState(_PauliEigenState):
             return np.array([1, 0])
         elif self.eigenvalue == -1:
             return np.array([0, 1])
-        # coverage: ignore
-        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops

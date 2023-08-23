@@ -169,7 +169,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     def __pow__(self, power: int):
         if power in [1, -1]:
             return self
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
     def _value_equality_values_(self):
         return (self.selection_registers, self.target_registers, self.control_registers)
