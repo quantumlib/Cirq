@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Sequence, Tuple
+from typing import Callable, Sequence, Tuple, Set
 
 import attr
 import cirq
@@ -166,18 +166,12 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             context.qubit_manager.qfree(and_ancilla + [and_target])
 
     def _break_early(self, selection_index_prefix: Tuple[int, ...], l: int, r: int):
-        global_unique_element = set()
+        global_unique_element: Set[int] = set()
         for data in self.data:
             unique_element = np.unique(data[selection_index_prefix][l:r])
-            print(
-                f'{selection_index_prefix=}, {l=}, {r=}, {len(unique_element)=}, {global_unique_element=}'
-            )
             if len(unique_element) > 1:
                 return False
-            global_unique_element.update(unique_element)
-            print(
-                f'{selection_index_prefix=}, {l=}, {r=}, {unique_element=}, {global_unique_element=}'
-            )
+            global_unique_element.add(unique_element[0])
             if len(global_unique_element) > 1:
                 return False
         return True
