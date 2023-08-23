@@ -163,7 +163,10 @@ target01: ──────────X───────────
     )
     # When inner loop range is not a power of 2, the inner segment tree cannot be skipped.
     qrom = cirq_ft.QROM.build(
-        np.array([[1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2]])
+        np.array(
+            [[1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2]],
+            dtype=int,
+        )
     )
     _assert_qrom_has_diagram(
         qrom,

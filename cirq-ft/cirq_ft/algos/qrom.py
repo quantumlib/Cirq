@@ -169,10 +169,15 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         global_unique_element = set()
         for data in self.data:
             unique_element = np.unique(data[selection_index_prefix][l:r])
-            print(selection_index_prefix, l, r, data[selection_index_prefix], unique_element)
+            print(
+                f'{selection_index_prefix=}, {l=}, {r=}, {len(unique_element)=}, {global_unique_element=}'
+            )
             if len(unique_element) > 1:
                 return False
             global_unique_element.update(unique_element)
+            print(
+                f'{selection_index_prefix=}, {l=}, {r=}, {unique_element=}, {global_unique_element=}'
+            )
             if len(global_unique_element) > 1:
                 return False
         return True

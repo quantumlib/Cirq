@@ -348,8 +348,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
         When the `UnaryIteration` class is constructed using multiple selection registers, i.e. we
         wish to perform nested coherent for-loops, a unary iteration segment tree is constructed
         corresponding to each nested coherent for-loop. For every such unary iteration segment tree,
-        the `_break_early` condition is checked by passing the `selection_index_prefix` tuple. It is
-        equivalent to the following classical code.
+        the `_break_early` condition is checked by passing the `selection_index_prefix` tuple.
 
         Args:
             selection_index_prefix: To evaluate the early breaking condition for the i'th nested
