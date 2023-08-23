@@ -36,6 +36,7 @@ from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq._compat import cached_property
+from cirq._compat import deprecated_parameter
 from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 
@@ -372,16 +373,25 @@ class EngineClient:
 
     delete_program = duet.sync(delete_program_async)
 
+    @deprecated_parameter(
+        deadline='v1.4',
+        fix='Use `processor_id` instead of `processor_ids`.',
+        parameter_desc='processor_ids',
+        match=lambda args, kwargs: 'processor_ids' in kwargs or len(args) > 3,
+    )
     async def create_job_async(
         self,
         project_id: str,
         program_id: str,
         job_id: Optional[str],
-        processor_ids: Sequence[str],
-        run_context: any_pb2.Any,
+        processor_ids: Sequence[str] = [],
+        run_context: any_pb2.Any = any_pb2.Any(),
         priority: Optional[int] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
+        processor_id: Optional[str] = None,
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> Tuple[str, quantum.QuantumJob]:
         """Creates and runs a job on Quantum Engine.
 
@@ -390,33 +400,67 @@ class EngineClient:
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
             run_context: Properly serialized run context.
-            processor_ids: List of processor id for running the program.
+            processor_ids: Deprecated list of processor ids for running the program.
+                `processor_id` should be used instead.
             priority: Optional priority to run at, 0-1000.
             description: Optional description to set on the job.
             labels: Optional set of labels to set on the job.
+            processor_id: Processor id for running the program. If not set,
+                `processor_ids` will be used.
+            run_name: A unique identifier representing an automation run for the
+                specified processor (given by `processor_id`). An Automation Run contains a
+                collection of device configurations for a processor.
+            device_config_name: Configuration identifier used to identify a processor configuration
+                within the automation run.
 
         Returns:
             Tuple of created job id and job.
 
         Raises:
             ValueError: If the priority is not between 0 and 1000.
+            ValueError: If `processor_ids` and `processor_id` are both set.
+            ValueError: If neither `processor_ids` or `processor_id` are set.
+            ValueError: If either `run_name` and `device_config_name` are set but
+                `processor_id` is empty.
+            ValueError: If `run_name` is set but `device_config_name` is empty.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
+        if processor_id and processor_ids:
+            raise ValueError(
+                '`processor_ids` and `processor_id` cannot both be set.'
+                'Please just use `processor_id` instead.'
+            )
+        if not processor_id and not processor_ids:
+            raise ValueError('`processor_id` must be set.')
+        if not processor_id and (run_name or device_config_name):
+            raise ValueError(
+                'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
+            )
+        if run_name and not device_config_name:
+            raise ValueError('Must specify `device_config_name` if `run_name` is set')
 
         # Create job.
+        processor_selector = (
+            quantum.SchedulingConfig.ProcessorSelector(
+                processor=_processor_name_from_ids(project_id, processor_id),
+                device_config_key=quantum.DeviceConfigKey(
+                    run_name=run_name, config_alias=device_config_name
+                ),
+            )
+            if processor_id
+            else quantum.SchedulingConfig.ProcessorSelector(
+                processor_names=[
+                    _processor_name_from_ids(project_id, processor_id)
+                    for processor_id in processor_ids
+                ]
+            )
+        )
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
             name=job_name,
-            scheduling_config=quantum.SchedulingConfig(
-                processor_selector=quantum.SchedulingConfig.ProcessorSelector(
-                    processor_names=[
-                        _processor_name_from_ids(project_id, processor_id)
-                        for processor_id in processor_ids
-                    ]
-                )
-            ),
+            scheduling_config=quantum.SchedulingConfig(processor_selector=processor_selector),
             run_context=run_context,
         )
         if priority:
@@ -431,7 +475,8 @@ class EngineClient:
         job = await self._send_request_async(self.grpc_client.create_quantum_job, request)
         return _ids_from_job_name(job.name)[2], job
 
-    create_job = duet.sync(create_job_async)
+    # TODO(cxing): Remove type ignore once @deprecated_parameter decorator is removed
+    create_job = duet.sync(create_job_async)  # type: ignore
 
     async def list_jobs_async(
         self,

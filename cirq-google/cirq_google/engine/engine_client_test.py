@@ -14,6 +14,7 @@
 """Tests for EngineClient."""
 import asyncio
 import datetime
+import os
 from unittest import mock
 
 import duet
@@ -23,6 +24,7 @@ from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
 
+import cirq
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.cloud import quantum
 
@@ -341,8 +343,9 @@ def test_delete_program(client_constructor):
     )
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_create_job(client_constructor):
+def test_create_job_with_legacy_processor_ids(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
     result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
@@ -465,6 +468,94 @@ def test_create_job(client_constructor):
             run_context=run_context,
             priority=5000,
         )
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_with_run_name_and_device_config_name_and_no_processor_id_throws(
+    client_constructor,
+):
+    grpc_client = setup_mock_(client_constructor)
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+    run_context = any_pb2.Any()
+    client = EngineClient()
+
+    with pytest.raises(
+        ValueError,
+        match="Cannot specify `run_name` or `device_config_name` if `processor_id` is empty",
+    ):
+        client.create_job(
+            project_id='proj',
+            program_id='prog',
+            job_id=None,
+            processor_ids=['processor0'],
+            run_name="RUN_NAME",
+            device_config_name="device_config_name",
+            run_context=run_context,
+        )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_with_run_name_and_no_device_config_name_throws(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+    run_context = any_pb2.Any()
+    client = EngineClient()
+
+    with pytest.raises(ValueError, match="Must specify `device_config_name` if `run_name` is set"):
+        client.create_job(
+            project_id='proj',
+            program_id='prog',
+            job_id=None,
+            processor_id='processor0',
+            run_name="RUN_NAME",
+            run_context=run_context,
+        )
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+@pytest.mark.parametrize(
+    'run_name, device_config_name', [('RUN_NAME', 'CONFIG_NAME'), ('', 'CONFIG_NAME'), ('', '')]
+)
+def test_create_job_with_run_name_and_device_config_name(
+    client_constructor, run_name, device_config_name
+):
+    grpc_client = setup_mock_(client_constructor)
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+    run_context = any_pb2.Any()
+    client = EngineClient()
+
+    assert client.create_job(
+        project_id='proj',
+        program_id='prog',
+        job_id='job0',
+        processor_id='processor0',
+        run_name=run_name,
+        device_config_name=device_config_name,
+        run_context=run_context,
+        priority=10,
+    ) == ('job0', result)
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                run_context=run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor='projects/proj/processors/processor0',
+                        device_config_key=quantum.DeviceConfigKey(
+                            run_name=run_name, config_alias=device_config_name
+                        ),
+                    ),
+                ),
+            ),
+        )
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
