@@ -29,7 +29,11 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     """Gate to load data[l] in the target register when the selection stores an index l.
 
     In the case of multi-dimensional data[p,q,r,...] we use multiple named
-    selection registers [p, q, r, ...] to index and load the data.
+    selection registers [p, q, r, ...] to index and load the data. Here `p, q, r, ...`
+    correspond to registers named `selection0`, `selection1`, `selection2`, ... etc.
+
+    When the input data elements contain consecutive entries of identical data elements to
+    load, the QROM also implements the "variable-spaced" QROM optimization described in Ref[2].
 
     Args:
         data: List of numpy ndarrays specifying the data to load. If the length
@@ -44,6 +48,15 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             registers. This can be deduced from the maximum element of each of the
             datasets. Should be of length len(data), i.e. the number of datasets.
         num_controls: The number of control registers.
+
+    References:
+        [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]
+        (https://arxiv.org/abs/1805.03662).
+            Babbush et. al. (2018). Figure 1.
+
+        [Compilation of Fault-Tolerant Quantum Heuristics for Combinatorial Optimization]
+        (https://arxiv.org/abs/2007.07391).
+            Babbush et. al. (2020). Figure 3.
     """
 
     data: Sequence[NDArray]
@@ -152,11 +165,23 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             yield cirq.inverse(multi_controlled_and)
             context.qubit_manager.qfree(and_ancilla + [and_target])
 
+    def _break_early(self, selection_index_prefix: Tuple[int, ...], l: int, r: int):
+        global_unique_element = set()
+        for data in self.data:
+            unique_element = np.unique(data[selection_index_prefix][l:r])
+            print(selection_index_prefix, l, r, data[selection_index_prefix], unique_element)
+            if len(unique_element) > 1:
+                return False
+            global_unique_element.update(unique_element)
+            if len(global_unique_element) > 1:
+                return False
+        return True
+
     def nth_operation(
         self, context: cirq.DecompositionContext, control: cirq.Qid, **kwargs
     ) -> cirq.OP_TREE:
         selection_idx = tuple(kwargs[reg.name] for reg in self.selection_registers)
-        target_regs = {k: v for k, v in kwargs.items() if k in self.target_registers}
+        target_regs = {reg.name: kwargs[reg.name] for reg in self.target_registers}
         yield self._load_nth_data(selection_idx, lambda q: cirq.CNOT(control, q), **target_regs)
 
     def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:

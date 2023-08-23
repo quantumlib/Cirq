@@ -116,6 +116,73 @@ def test_t_complexity(data):
     assert cirq_ft.t_complexity(g.gate).t == max(0, 4 * n - 8), n
 
 
+def _assert_qrom_has_diagram(qrom: cirq_ft.QROM, expected_diagram: str):
+    gh = cirq_ft.testing.GateHelper(qrom)
+    op = gh.operation
+    context = cirq.DecompositionContext(qubit_manager=cirq_ft.GreedyQubitManager(prefix="anc"))
+    circuit = cirq.Circuit(cirq.decompose_once(op, context=context))
+    selection = [
+        *itertools.chain.from_iterable(gh.quregs[reg.name] for reg in qrom.selection_registers)
+    ]
+    selection = [q for q in selection if q in circuit.all_qubits()]
+    anc = sorted(set(circuit.all_qubits()) - set(op.qubits))
+    selection_and_anc = (selection[0],) + sum(zip(selection[1:], anc), ())
+    qubit_order = cirq.QubitOrder.explicit(selection_and_anc, fallback=cirq.QubitOrder.DEFAULT)
+    cirq.testing.assert_has_diagram(circuit, expected_diagram, qubit_order=qubit_order)
+
+
+def test_qrom_variable_spacing():
+    # Tests for variable spacing optimization applied from https://arxiv.org/abs/2007.07391
+    data = [1, 2, 3, 4, 5, 5, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8]  # Figure 3a.
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == 6 * 4
+    data = [1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5]  # Figure 3b.
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == 3 * 4
+    # Works as expected when multiple data arrays are to be loaded.
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, data)).t == 3 * 4
+    # Works as expected when multidimensional input data is to be loaded
+    qrom = cirq_ft.QROM.build(
+        np.array(
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1],
+                [2, 2, 2, 2, 2, 2, 2, 2],
+                [2, 2, 2, 2, 2, 2, 2, 2],
+            ]
+        )
+    )
+    # Value to be loaded depends only the on the first bit of outer loop.
+    _assert_qrom_has_diagram(
+        qrom,
+        r'''
+selection00: ───X───@───X───@───
+                    │       │
+target00: ──────────┼───────X───
+                    │
+target01: ──────────X───────────
+    ''',
+    )
+    # When inner loop range is not a power of 2, the inner segment tree cannot be skipped.
+    qrom = cirq_ft.QROM.build(
+        np.array([[1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2]])
+    )
+    _assert_qrom_has_diagram(
+        qrom,
+        r'''
+selection00: ───X───@─────────@───────@──────X───@─────────@───────@──────
+                    │         │       │          │         │       │
+selection10: ───────(0)───────┼───────@──────────(0)───────┼───────@──────
+                    │         │       │          │         │       │
+anc_1: ─────────────And───@───X───@───And†───────And───@───X───@───And†───
+                          │       │                    │       │
+target00: ────────────────┼───────┼────────────────────X───────X──────────
+                          │       │
+target01: ────────────────X───────X───────────────────────────────────────
+        ''',
+    )
+    # No T-gates needed if all elements to load are identical.
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build([3, 3, 3, 3])).t == 0
+
+
 @pytest.mark.parametrize(
     "data",
     [[np.arange(6).reshape(2, 3), 4 * np.arange(6).reshape(2, 3)], [np.arange(8).reshape(2, 2, 2)]],
