@@ -196,4 +196,5 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         return NotImplemented  # pragma: no cover
 
     def _value_equality_values_(self):
-        return (self.selection_registers, self.target_registers, self.control_registers)
+        data_tuple = (tuple(d.flatten()) for d in self.data)
+        return (self.selection_registers, self.target_registers, self.control_registers, data_tuple)

@@ -134,11 +134,15 @@ def _assert_qrom_has_diagram(qrom: cirq_ft.QROM, expected_diagram: str):
 def test_qrom_variable_spacing():
     # Tests for variable spacing optimization applied from https://arxiv.org/abs/2007.07391
     data = [1, 2, 3, 4, 5, 5, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8]  # Figure 3a.
-    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == 6 * 4
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == (8 - 2) * 4
     data = [1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5]  # Figure 3b.
-    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == 3 * 4
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == (5 - 2) * 4
+    data = [1, 2, 3, 4, 4, 4, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7]  # Negative test: t count is not (g-2)*4
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == (8 - 2) * 4
     # Works as expected when multiple data arrays are to be loaded.
-    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, data)).t == 3 * 4
+    data = [1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5]
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, data)).t == (5 - 2) * 4
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, 2 * np.array(data))).t == (16 - 2) * 4
     # Works as expected when multidimensional input data is to be loaded
     qrom = cirq_ft.QROM.build(
         np.array(
