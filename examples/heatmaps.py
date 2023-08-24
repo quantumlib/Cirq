@@ -38,10 +38,9 @@ def two_qubit_interaction_heatmap():
 
 
 def main():
-    # coverage: ignore
     single_qubit_heatmap()
     two_qubit_interaction_heatmap()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

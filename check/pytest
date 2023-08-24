@@ -20,7 +20,7 @@ cd "${topdir}" || exit $?
 # (the last `-n` option wins)
 PYTEST_ARGS=( "-n=auto" "$@" )
 
-source dev_tools/pypath
+source dev_tools/pypath || exit $?
 
 pytest "${PYTEST_ARGS[@]}"
 RESULT=$?

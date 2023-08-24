@@ -47,7 +47,7 @@ class LessThanGate(cirq.ArithmeticGate):
     def __pow__(self, power: int):
         if power in [1, -1]:
             return self
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
     def __repr__(self) -> str:
         return f'cirq_ft.LessThanGate({self.bitsize}, {self.less_than_val})'
@@ -200,7 +200,7 @@ class BiQubitsMixer(infra.GateWithRegisters):
             return self
         if power == -1:
             return BiQubitsMixer(adjoint=not self.adjoint)
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
     def _t_complexity_(self) -> infra.TComplexity:
         if self.adjoint:
@@ -302,7 +302,7 @@ class LessThanEqualGate(cirq.ArithmeticGate):
     def __pow__(self, power: int):
         if power in [1, -1]:
             return self
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
     def __repr__(self) -> str:
         return f'cirq_ft.LessThanEqualGate({self.x_bitsize}, {self.y_bitsize})'
@@ -506,7 +506,7 @@ class ContiguousRegisterGate(cirq.ArithmeticGate):
     def __pow__(self, power: int):
         if power in [1, -1]:
             return self
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
 
 @attr.frozen

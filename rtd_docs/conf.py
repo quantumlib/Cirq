@@ -1,4 +1,4 @@
-# coverage: ignore
+# pragma: no cover
 
 # The content for all documentation lives in ../docs. That folder is
 # following the structure for the Google Quantum site configured for the

@@ -92,7 +92,7 @@ document(
     """,
 )
 
-PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
+PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int]
 document(
     PAULI_GATE_LIKE,
     """An object that can be interpreted as a Pauli gate.
@@ -1387,8 +1387,7 @@ class MutablePauliString(Generic[TKey]):
                     if gate.invert1:
                         self.inplace_after(gate.pauli0(q0))
 
-                else:
-                    # coverage: ignore
+                else:  # pragma: no cover
                     raise NotImplementedError(f"Unrecognized decomposed Clifford: {op!r}")
         return self
 
@@ -1617,7 +1616,7 @@ def _pass_single_clifford_gate_over(
     after_to_before: bool = False,
 ) -> bool:
     if qubit not in pauli_map:
-        return False  # coverage: ignore
+        return False  # pragma: no cover
     if not after_to_before:
         gate **= -1
     pauli, inv = gate.pauli_tuple(pauli_map[qubit])

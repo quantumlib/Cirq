@@ -218,7 +218,7 @@ def _first_differing_moment_index(
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i
-    return None  # coverage: ignore
+    return None  # pragma: no cover
 
 
 def assert_circuits_have_same_unitary_given_final_permutation(
