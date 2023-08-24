@@ -113,13 +113,57 @@ def _map_operations_impl(
     tags_to_ignore: Sequence[Hashable] = (),
     wrap_in_circuit_op: bool = True,
 ) -> CIRCUIT_TYPE:
+    """Applies local transformations, by calling `map_func(op, moment_index)` for each operation.
+
+    This method provides a fast, iterative implementation for the two `map_operations_*` variants
+    exposed as public transformer primitives. The high level idea for the iterative implementation
+    is to
+        1) For each operation `op`, find the corresponding mapped operation(s) `mapped_ops`. The
+            set of mapped operations can be either wrapped in a circuit operation or not, depending
+            on the value of flag `wrap_in_circuit_op` and whether the mapped operations will end up
+            occupying more than one moment or not.
+        2) Use the `get_earliest_accommodating_moment_index` infrastructure built for `cirq.Circuit`
+            construction to determine the index at which the mapped operations should be inserted.
+            This step takes care of the nuances that arise due to (a) preserving moment structure
+            and (b) mapped operations spanning across multiple moments (these both are trivial when
+            `op` is mapped to a single `mapped_op` that acts on the same set of qubits).
+
+    By default, the function assumes `issubset(qubit_set(map_func(op, moment_index)), op.qubits)` is
+    True.
+
+    Args:
+        circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        map_func: Mapping function from (cirq.Operation, moment_index) to a cirq.OP_TREE. If the
+            resulting optree spans more than 1 moment, it's either wrapped in a tagged circuit
+            operation and inserted in-place in the same moment (if  `wrap_in_circuit_op` is True)
+            OR the mapped operations are inserted directly in the circuit, preserving moment
+            strucutre. The effect is equivalent to (but much faster) a two-step approach of first
+            wrapping the operations in a circuit operation and then calling `cirq.unroll_circuit_op`
+            to unroll the corresponding circuit ops.
+        deep: If true, `map_func` will be recursively applied to circuits wrapped inside
+            any circuit operations contained within `circuit`.
+        raise_if_add_qubits: Set to True by default. If True, raises ValueError if
+            `map_func(op, idx)` adds operations on qubits outside of `op.qubits`.
+        tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
+            tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
+            satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
+        wrap_in_circuit_op: If True, the mapped operations will be wrapped in a tagged circuit
+        operation and inserted in-place if they occupy more than one moment.
+
+    Raises:
+          ValueError if `issubset(qubit_set(map_func(op, idx)), op.qubits) is False` and
+            `raise_if_add_qubits is True`.
+
+    Returns:
+        Copy of input circuit with mapped operations.
+    """
     tags_to_ignore_set = set(tags_to_ignore)
 
     def apply_map_func(op: 'cirq.Operation', idx: int) -> List['cirq.Operation']:
         if tags_to_ignore_set.intersection(op.tags):
             return [op]
         if deep and isinstance(op.untagged, circuits.CircuitOperation):
-            mapped_op = op.untagged.replace(
+            op = op.untagged.replace(
                 circuit=_map_operations_impl(
                     op.untagged.circuit,
                     map_func,
@@ -129,7 +173,6 @@ def _map_operations_impl(
                     wrap_in_circuit_op=wrap_in_circuit_op,
                 )
             ).with_tags(*op.tags)
-            op = mapped_op
         mapped_ops = [*ops.flatten_to_ops(map_func(op, idx))]
         op_qubits = set(op.qubits)
         mapped_ops_qubits: Set['cirq.Qid'] = set()
@@ -144,6 +187,8 @@ def _map_operations_impl(
                 has_overlapping_ops = True
             mapped_ops_qubits = mapped_ops_qubits.union(mapped_op.qubits)
         if wrap_in_circuit_op and has_overlapping_ops:
+            # Mapped operations should be wrapped in a `CircuitOperation` only iff they occupy more
+            # than one moment, i.e. there are at least two operations that share a qubit.
             mapped_ops = [
                 circuits.CircuitOperation(circuits.FrozenCircuit(mapped_ops)).with_tags(
                     MAPPED_CIRCUIT_OP_TAG
@@ -173,7 +218,7 @@ def _map_operations_impl(
                     mapped_op, qubit_time_index, measurement_time_index, control_time_index
                 )
                 placement_index = max(placement_index, last_moment_time_index + 1)
-                new_moments += [[] for _ in range(placement_index - len(new_moments) + 1)]
+                new_moments.extend([[] for _ in range(placement_index - len(new_moments) + 1)])
                 new_moments[placement_index].append(mapped_op)
                 for qubit in mapped_op.qubits:
                     qubit_time_index[qubit] = placement_index
