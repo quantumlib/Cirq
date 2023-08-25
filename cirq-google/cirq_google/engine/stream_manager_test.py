@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AsyncIterable, AsyncIterator, Awaitable, List, Tuple, Union
+from typing import AsyncIterable, AsyncIterator, Awaitable, List, Union
 import asyncio
 import concurrent
 from unittest import mock
@@ -91,7 +91,7 @@ class FakeQuantumRunStream:
 
         This is called from the asyncio thread.
         """
-        responses_and_exceptions = asyncio.Queue()
+        responses_and_exceptions: asyncio.Queue = asyncio.Queue()
         self._responses_and_exceptions_future.try_set_result(responses_and_exceptions)
 
         async def read_requests():
@@ -126,7 +126,7 @@ class FakeQuantumRunStream:
         This must be called from the duet thread.
         """
         for _ in range(num_requests):
-            await anext(self._request_ready)
+            await self._request_ready.__anext__()
 
     async def reply(
         self, response_or_exception: Union[quantum.QuantumRunStreamResponse, BaseException]
