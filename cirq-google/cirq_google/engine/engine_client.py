@@ -389,6 +389,7 @@ class EngineClient:
         priority: Optional[int] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
+        *,
         processor_id: str = "",
         run_name: str = "",
         device_config_name: str = "",
@@ -421,7 +422,7 @@ class EngineClient:
             ValueError: If both `processor_id` and `processor_ids` are set or neither is set.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
-            ValueError: If  only one of `run_name` and `device_config_name` are specified.
+            ValueError: If  only one of `run_name` and `device_config_name` are specified._Config
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
