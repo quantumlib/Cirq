@@ -89,13 +89,13 @@ def canonicalize_half_turns(half_turns: float) -> float:
 
 
 @overload
-def canonicalize_half_turns(half_turns: sympy.Basic) -> sympy.Basic:
+def canonicalize_half_turns(half_turns: sympy.Expr) -> sympy.Expr:
     pass
 
 
 def canonicalize_half_turns(half_turns: type_alias.TParamVal) -> type_alias.TParamVal:
     """Wraps the input into the range (-1, +1]."""
-    if isinstance(half_turns, sympy.Basic):
+    if isinstance(half_turns, sympy.Expr):
         if not half_turns.is_constant():
             return half_turns
         half_turns = float(half_turns)

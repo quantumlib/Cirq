@@ -104,6 +104,9 @@ class ValiGate(cirq.Gate):
             return  # Bypass check for some tests
         super().validate_args(qubits)
 
+    def _has_mixture_(self):
+        return True
+
 
 def test_gate():
     a, b, c = cirq.LineQubit.range(3)
@@ -148,6 +151,29 @@ def test_op_validate():
         op2.validate_args([cirq.LineQid(1, 2), cirq.LineQid(1, 2)])
 
 
+def test_disable_op_validation():
+    q0, q1 = cirq.LineQubit.range(2)
+    h_op = cirq.H(q0)
+
+    # Fails normally.
+    with pytest.raises(ValueError, match='Wrong number'):
+        _ = cirq.H(q0, q1)
+    with pytest.raises(ValueError, match='Wrong number'):
+        h_op.validate_args([q0, q1])
+
+    # Passes, skipping validation.
+    with cirq.with_debug(False):
+        op = cirq.H(q0, q1)
+        assert op.qubits == (q0, q1)
+        h_op.validate_args([q0, q1])
+
+    # Fails again when validation is re-enabled.
+    with pytest.raises(ValueError, match='Wrong number'):
+        _ = cirq.H(q0, q1)
+    with pytest.raises(ValueError, match='Wrong number'):
+        h_op.validate_args([q0, q1])
+
+
 def test_default_validation_and_inverse():
     class TestGate(cirq.Gate):
         def _num_qubits_(self):
@@ -175,6 +201,8 @@ def test_default_validation_and_inverse():
     assert i**-1 == t
     assert t**-1 == i
     assert cirq.decompose(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
+    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
+    assert [*i.gate._decompose_([a, b])] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(i), cirq.unitary(t).conj().T, atol=1e-8
     )
@@ -328,7 +356,7 @@ def test_gate_shape_protocol():
 def test_operation_shape():
     class FixedQids(cirq.Operation):
         def with_qubits(self, *new_qids):
-            raise NotImplementedError  # coverage: ignore
+            raise NotImplementedError  # pragma: no cover
 
     class QubitOp(FixedQids):
         @property
@@ -592,6 +620,7 @@ def test_tagged_operation_forwards_protocols():
     np.testing.assert_equal(cirq.unitary(tagged_h), cirq.unitary(h))
     assert cirq.has_unitary(tagged_h)
     assert cirq.decompose(tagged_h) == cirq.decompose(h)
+    assert [*tagged_h._decompose_()] == cirq.decompose(h)
     assert cirq.pauli_expansion(tagged_h) == cirq.pauli_expansion(h)
     assert cirq.equal_up_to_global_phase(h, tagged_h)
     assert np.isclose(cirq.kraus(h), cirq.kraus(tagged_h)).all()
@@ -624,6 +653,10 @@ def test_tagged_operation_forwards_protocols():
     assert controlled_y.qubits == (q2, q1)
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
+    classically_controlled_y = tagged_y.with_classical_controls("a")
+    assert classically_controlled_y == y.with_classical_controls("a")
+    assert isinstance(classically_controlled_y, cirq.Operation)
+    assert not isinstance(classically_controlled_y, cirq.TaggedOperation)
 
     clifford_x = cirq.SingleQubitCliffordGate.X(q1)
     tagged_x = cirq.SingleQubitCliffordGate.X(q1).with_tags(tag)
@@ -735,14 +768,14 @@ def test_tagged_act_on():
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args, qubits):
+        def _act_on_(self, sim_state, qubits):
             return True
 
     class NoActOn(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args, qubits):
+        def _act_on_(self, sim_state, qubits):
             return NotImplemented
 
     class MissingActOn(cirq.Operation):
@@ -754,9 +787,9 @@ def test_tagged_act_on():
             pass
 
     q = cirq.LineQubit(1)
-    from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+    from cirq.protocols.act_on_protocol_test import DummySimulationState
 
-    args = DummyActOnArgs()
+    args = DummySimulationState()
     cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoActOn()(q).with_tags("test"), args)
@@ -780,6 +813,10 @@ def test_single_qubit_gate_validates_on_each():
     test_non_qubits = [str(i) for i in range(3)]
     with pytest.raises(ValueError):
         _ = g.on_each(*test_non_qubits)
+
+    with cirq.with_debug(False):
+        assert g.on_each(*test_non_qubits)[0].qubits == ('0',)
+
     with pytest.raises(ValueError):
         _ = g.on_each(*test_non_qubits)
 
@@ -846,6 +883,10 @@ def test_on_each_two_qubits():
         g.on_each([(a,)])
     with pytest.raises(ValueError, match='Expected 2 qubits'):
         g.on_each([(a, b, a)])
+
+    with cirq.with_debug(False):
+        assert g.on_each([(a, b, a)])[0].qubits == (a, b, a)
+
     with pytest.raises(ValueError, match='Expected 2 qubits'):
         g.on_each(zip([a, a]))
     with pytest.raises(ValueError, match='Expected 2 qubits'):
@@ -929,3 +970,12 @@ def test_on_each_iterable_qid():
             raise NotImplementedError()
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
+
+
+@pytest.mark.parametrize(
+    'op', [cirq.X(cirq.NamedQubit("q")), cirq.X(cirq.NamedQubit("q")).with_tags("tagged_op")]
+)
+def test_with_methods_return_self_on_empty_conditions(op):
+    assert op is op.with_tags(*[])
+    assert op is op.with_classical_controls(*[])
+    assert op is op.controlled_by(*[])

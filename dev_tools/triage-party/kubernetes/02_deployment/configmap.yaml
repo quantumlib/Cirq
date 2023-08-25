@@ -28,13 +28,6 @@ data:
         - tanujkhattar
 
     collections:
-      - id: cirqone
-        name: Cirq 1.0
-        rules:
-          - issue-needs-time
-          - issues-before-one
-          - issues-after-one
-
       - id: daily
         name: Daily Triage
         rules:
@@ -84,28 +77,6 @@ data:
           - issue-needs-discoverability
 
     rules:
-      ## Cirq 1.0 Release.
-      issue-needs-time:
-        name: "Untimed issues"
-        resolution: "Add a time/* label"
-        type: issue
-        filters:
-          - label: "!time/.*"
-
-      issues-before-one:
-        name: "Issues before Cirq 1.0"
-        resolution: "Open a PR to close these issues"
-        type: issue
-        filters:
-          - label: "time/before-1.0"
-
-      issues-after-one:
-        name: "Issues after 1.0"
-        resolution: "Open a PR to close these issues"
-        type: issue
-        filters:
-          - label: "time/after-1.0"
-
       ## Daily triage
       issue-needs-triage:
         name: "Untriaged issues"

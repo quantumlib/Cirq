@@ -18,6 +18,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Optional,
     overload,
     Sequence,
     TYPE_CHECKING,
@@ -30,6 +31,7 @@ import collections
 import itertools
 import sympy
 
+from cirq import protocols
 from cirq._doc import document
 from cirq.study import resolver
 
@@ -126,7 +128,7 @@ class Sweep(metaclass=abc.ABCMeta):
     def __getitem__(self, val: slice) -> 'Sweep':
         pass
 
-    def __getitem__(self, val):
+    def __getitem__(self, val: Union[int, slice]) -> Union[resolver.ParamResolver, 'Sweep']:
         n = len(self)
         if isinstance(val, int):
             if val < -n or val >= n:
@@ -196,6 +198,9 @@ class _Unit(Sweep):
     def __repr__(self) -> str:
         return 'cirq.UnitSweep'
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {}
+
 
 UnitSweep = _Unit()
 document(UnitSweep, """The singleton sweep with no parameters.""")
@@ -261,6 +266,13 @@ class Product(Sweep):
             factor_strs.append(factor_str)
         return ' * '.join(factor_strs)
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['factors'])
+
+    @classmethod
+    def _from_json_dict_(cls, factors, **kwargs):
+        return Product(*factors)
+
 
 class Zip(Sweep):
     """Zip product (direct sum) of one or more sweeps.
@@ -281,7 +293,7 @@ class Zip(Sweep):
         self.sweeps = sweeps
 
     def __eq__(self, other):
-        if not isinstance(other, Zip):
+        if type(other) is not Zip:
             return NotImplemented
         return self.sweeps == other.sweeps
 
@@ -310,6 +322,68 @@ class Zip(Sweep):
         if not self.sweeps:
             return 'Zip()'
         return ' + '.join(str(s) if isinstance(s, Product) else repr(s) for s in self.sweeps)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['sweeps'])
+
+    @classmethod
+    def _from_json_dict_(cls, sweeps, **kwargs):
+        return cls(*sweeps)
+
+
+class ZipLongest(Zip):
+    """Iterate over constituent sweeps in parallel
+
+    Analogous to itertools.zip_longest.
+    Note that we iterate until all sweeps terminate,
+    so if the sweeps are different lengths, the
+    shorter sweeps will be filled by repeating their last value
+    until all sweeps have equal length.
+
+    Note that this is different from itertools.zip_longest,
+    which uses a fixed fill value.
+
+    Raises:
+        ValueError if an input sweep if completely empty.
+    """
+
+    def __init__(self, *sweeps: Sweep) -> None:
+        super().__init__(*sweeps)
+        if any(len(sweep) == 0 for sweep in self.sweeps):
+            raise ValueError('All sweeps must be non-empty for ZipLongest')
+
+    def __eq__(self, other):
+        if not isinstance(other, ZipLongest):
+            return NotImplemented
+        return self.sweeps == other.sweeps
+
+    def __len__(self) -> int:
+        if not self.sweeps:
+            return 0
+        return max(len(sweep) for sweep in self.sweeps)
+
+    def __hash__(self) -> int:
+        return hash((self.__class__.__name__, tuple(self.sweeps)))
+
+    def __repr__(self) -> str:
+        sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
+        return f'cirq_google.ZipLongest({sweeps_repr})'
+
+    def __str__(self) -> str:
+        sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
+        return f'ZipLongest({sweeps_repr})'
+
+    def param_tuples(self) -> Iterator[Params]:
+        def _iter_and_repeat_last(one_iter: Iterator[Params]):
+            last = None
+            for last in one_iter:
+                yield last
+            while True:
+                yield last
+
+        iters = [_iter_and_repeat_last(sweep.param_tuples()) for sweep in self.sweeps]
+        for values in itertools.islice(zip(*iters), len(self)):
+            yield tuple(item for value in values for item in value)
 
 
 class SingleSweep(Sweep):
@@ -348,11 +422,25 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: 'cirq.TParamKey', points: Sequence['cirq.TParamVal']) -> None:
-        super(Points, self).__init__(key)
-        self.points = points
+    def __init__(
+        self, key: 'cirq.TParamKey', points: Sequence[float], metadata: Optional[Any] = None
+    ) -> None:
+        """Creates a sweep on a variable with supplied values.
 
-    def _tuple(self) -> Tuple[Union[str, sympy.Symbol], Sequence[float]]:
+        Args:
+            key: sympy.Symbol or equivalent to sweep across.
+            points: sequence of floating point values that represent
+                the values to sweep across.  The length of the sweep
+                will be equivalent to the length of this sequence.
+            metadata: Optional metadata to attach to the sweep to
+                annotate the sweep or its variable.
+
+        """
+        super().__init__(key)
+        self.points = points
+        self.metadata = metadata
+
+    def _tuple(self) -> Tuple[Union[str, sympy.Expr], Sequence[float]]:
         return self.key, tuple(self.points)
 
     def __len__(self) -> int:
@@ -362,24 +450,46 @@ class Points(SingleSweep):
         return iter(self.points)
 
     def __repr__(self) -> str:
-        return f'cirq.Points({self.key!r}, {self.points!r})'
+        metadata_repr = f', metadata={self.metadata!r}' if self.metadata is not None else ""
+        return f'cirq.Points({self.key!r}, {self.points!r}{metadata_repr})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        if self.metadata is not None:
+            return protocols.obj_to_dict_helper(self, ["key", "points", "metadata"])
+        return protocols.obj_to_dict_helper(self, ["key", "points"])
 
 
 class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
-    def __init__(self, key: 'cirq.TParamKey', start: float, stop: float, length: int) -> None:
+    def __init__(
+        self,
+        key: 'cirq.TParamKey',
+        start: float,
+        stop: float,
+        length: int,
+        metadata: Optional[Any] = None,
+    ) -> None:
         """Creates a linear-spaced sweep for a given key.
 
         For the given args, assigns to the list of values
             start, start + (stop - start) / (length - 1), ..., stop
+
+        Args:
+            key: sympy.Symbol or equivalent to sweep across.
+            start: minimum value of linear sweep.
+            stop: maximum value of linear sweep.
+            length: number of points in the sweep.
+            metadata: Optional metadata to attach to the sweep to
+                annotate the sweep or its variable.
         """
-        super(Linspace, self).__init__(key)
+        super().__init__(key)
         self.start = start
         self.stop = stop
         self.length = length
+        self.metadata = metadata
 
-    def _tuple(self) -> Tuple[Union[str, sympy.Symbol], float, float, int]:
+    def _tuple(self) -> Tuple[Union[str, sympy.Expr], float, float, int]:
         return (self.key, self.start, self.stop, self.length)
 
     def __len__(self) -> int:
@@ -394,10 +504,18 @@ class Linspace(SingleSweep):
                 yield self.start * (1 - p) + self.stop * p
 
     def __repr__(self) -> str:
+        metadata_repr = f', metadata={self.metadata!r}' if self.metadata is not None else ""
         return (
             f'cirq.Linspace({self.key!r}, start={self.start!r}, '
-            f'stop={self.stop!r}, length={self.length!r})'
+            f'stop={self.stop!r}, length={self.length!r}{metadata_repr})'
         )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        if self.metadata is not None:
+            return protocols.obj_to_dict_helper(
+                self, ["key", "start", "stop", "length", "metadata"]
+            )
+        return protocols.obj_to_dict_helper(self, ["key", "start", "stop", "length"])
 
 
 class ListSweep(Sweep):
@@ -444,6 +562,9 @@ class ListSweep(Sweep):
     def __repr__(self) -> str:
         return f'cirq.ListSweep({self.resolver_list!r})'
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ["resolver_list"])
+
 
 def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:
     for sym, val in resolver.param_dict.items():
@@ -466,7 +587,10 @@ def dict_to_product_sweep(factor_dict: ProductOrZipSweepLike) -> Product:
         Cartesian product of the sweeps.
     """
     return Product(
-        *(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items())
+        *(
+            Points(k, v if isinstance(v, Sequence) else [v])  # type: ignore
+            for k, v in factor_dict.items()
+        )
     )
 
 
@@ -483,4 +607,9 @@ def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
     Returns:
         Zip product of the sweeps.
     """
-    return Zip(*(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items()))
+    return Zip(
+        *(
+            Points(k, cast(float, v) if isinstance(v, Sequence) else [v])  # type: ignore
+            for k, v in factor_dict.items()
+        )
+    )

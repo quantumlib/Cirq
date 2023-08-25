@@ -1,0 +1,6 @@
+{
+  "cirq_type": "MSGate",
+  "phi0": 0.1, 
+  "phi1": 0.55,
+  "theta": 0.25
+}

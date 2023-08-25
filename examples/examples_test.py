@@ -1,6 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
 
+import networkx
 import numpy as np
 import pytest
 import matplotlib.pyplot as plt
@@ -11,7 +12,6 @@ import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
-import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover
 import examples.heatmaps
@@ -28,6 +28,7 @@ import examples.shor
 import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
+import examples.two_qubit_gate_compilation
 from examples.shors_code import OneQubitShorsCode
 
 
@@ -69,7 +70,6 @@ def test_example_runs_quantum_fourier_transform():
 
 
 def test_example_runs_bcs_mean_field():
-    pytest.importorskip("cirq_google")
     examples.bcs_mean_field.main()
 
 
@@ -93,7 +93,30 @@ def test_example_heatmaps():
 
 
 def test_example_runs_qaoa():
-    examples.qaoa.main(repetitions=10, maxiter=5)
+    examples.qaoa.main(repetitions=10, maxiter=5, use_boolean_hamiltonian_gate=False)
+    examples.qaoa.main(repetitions=10, maxiter=5, use_boolean_hamiltonian_gate=True)
+
+
+def test_example_qaoa_same_unitary():
+    n = 6
+    p = 2
+
+    qubits = cirq.LineQubit.range(n)
+
+    graph = networkx.random_regular_graph(3, n)
+
+    betas = np.random.uniform(-np.pi, np.pi, size=p)
+    gammas = np.random.uniform(-np.pi, np.pi, size=p)
+    circuits = [
+        examples.qaoa.qaoa_max_cut_circuit(
+            qubits, betas, gammas, graph, use_boolean_hamiltonian_gate
+        )
+        for use_boolean_hamiltonian_gate in [True, False]
+    ]
+
+    assert cirq.allclose_up_to_global_phase(
+        cirq.unitary(circuits[0]), cirq.unitary(circuits[1]), atol=1e-8
+    )
 
 
 def test_example_runs_quantum_teleportation():
@@ -120,59 +143,44 @@ def test_example_swap_networks():
     examples.swap_networks.main()
 
 
-@pytest.mark.usefixtures('closefigures')
-def test_example_cross_entropy_benchmarking():
-    examples.cross_entropy_benchmarking_example.main(
-        repetitions=10, num_circuits=2, cycles=[2, 3, 4]
-    )
-
-
 def test_example_noisy_simulation():
     examples.noisy_simulation_example.main()
 
 
 def test_example_shor_modular_exp_register_size():
     with pytest.raises(ValueError):
-        _ = examples.shor.ModularExp(
-            target=cirq.LineQubit.range(2), exponent=cirq.LineQubit.range(2, 5), base=4, modulus=5
-        )
+        _ = examples.shor.ModularExp(target=[2, 2], exponent=[2, 2, 2], base=4, modulus=5)
 
 
 def test_example_shor_modular_exp_register_type():
-    operation = examples.shor.ModularExp(
-        target=cirq.LineQubit.range(3), exponent=cirq.LineQubit.range(3, 5), base=4, modulus=5
-    )
+    operation = examples.shor.ModularExp(target=[2, 2, 2], exponent=[2, 2], base=4, modulus=5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(cirq.LineQubit.range(3))
+        _ = operation.with_registers([2, 2, 2])
     with pytest.raises(ValueError):
-        _ = operation.with_registers(1, cirq.LineQubit.range(3, 6), 4, 5)
+        _ = operation.with_registers(1, [2, 2, 2], 4, 5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(
-            cirq.LineQubit.range(3), cirq.LineQubit.range(3, 6), cirq.LineQubit.range(6, 9), 5
-        )
+        _ = operation.with_registers([2, 2, 2], [2, 2, 2], [2, 2, 2], 5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(
-            cirq.LineQubit.range(3), cirq.LineQubit.range(3, 6), 4, cirq.LineQubit.range(6, 9)
-        )
+        _ = operation.with_registers([2, 2, 2], [2, 2, 2], 4, [2, 2, 2])
 
 
 def test_example_shor_modular_exp_registers():
-    target = cirq.LineQubit.range(3)
-    exponent = cirq.LineQubit.range(3, 5)
+    target = [2, 2, 2]
+    exponent = [2, 2]
     operation = examples.shor.ModularExp(target, exponent, 4, 5)
     assert operation.registers() == (target, exponent, 4, 5)
 
-    new_target = cirq.LineQubit.range(5, 8)
-    new_exponent = cirq.LineQubit.range(8, 12)
+    new_target = [2, 2, 2]
+    new_exponent = [2, 2, 2, 2]
     new_operation = operation.with_registers(new_target, new_exponent, 6, 7)
     assert new_operation.registers() == (new_target, new_exponent, 6, 7)
 
 
 def test_example_shor_modular_exp_diagram():
-    target = cirq.LineQubit.range(3)
-    exponent = cirq.LineQubit.range(3, 5)
-    operation = examples.shor.ModularExp(target, exponent, 4, 5)
-    circuit = cirq.Circuit(operation)
+    target = [2, 2, 2]
+    exponent = [2, 2]
+    gate = examples.shor.ModularExp(target, exponent, 4, 5)
+    circuit = cirq.Circuit(gate.on(*cirq.LineQubit.range(5)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -188,8 +196,8 @@ def test_example_shor_modular_exp_diagram():
 """,
     )
 
-    operation = operation.with_registers(target, 2, 4, 5)
-    circuit = cirq.Circuit(operation)
+    gate = gate.with_registers(target, 2, 4, 5)
+    circuit = cirq.Circuit(gate.on(*cirq.LineQubit.range(3)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -285,7 +293,7 @@ def test_example_qec_single_qubit():
     my_circuit1 += cirq.measure(mycode1.physical_qubits[0])
     sim1 = cirq.DensityMatrixSimulator()
     result1 = sim1.run(my_circuit1, repetitions=1)
-    assert result1.measurements['0'] == [[0]]
+    assert result1.measurements['q(0)'] == [[0]]
 
     mycode2 = OneQubitShorsCode()
     my_circuit2 = cirq.Circuit(mycode2.apply_gate(cirq.X, 0))
@@ -296,4 +304,10 @@ def test_example_qec_single_qubit():
     my_circuit2 += cirq.measure(mycode2.physical_qubits[0])
     sim2 = cirq.DensityMatrixSimulator()
     result2 = sim2.run(my_circuit2, repetitions=1)
-    assert result2.measurements['0'] == [[1]]
+    assert result2.measurements['q(0)'] == [[1]]
+
+
+@pytest.mark.usefixtures('closefigures')
+def test_two_qubit_gate_compilation_example():
+    plt.switch_backend('agg')
+    examples.two_qubit_gate_compilation.main(samples=10, max_infidelity=0.3)

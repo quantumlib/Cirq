@@ -19,11 +19,11 @@ import pytest
 import numpy as np
 
 import cirq
+from cirq.ops import control_values as cv
 
 
 class GoodGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        # coverage: ignore
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:  # pragma: no cover
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
 
@@ -31,14 +31,15 @@ class BadGateOperation(cirq.GateOperation):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         return cirq.ControlledOperation(control_qubits, self, control_values)
 
 
 class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        # coverage: ignore
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def on(self, *qubits: 'cirq.Qid') -> 'cirq.Operation':
@@ -46,8 +47,10 @@ class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
 
     def controlled(
         self,
-        num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        num_controls: Optional[int] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> 'cirq.Gate':
         ret = super().controlled(num_controls, control_values, control_qid_shape)
@@ -70,4 +73,15 @@ def test_assert_controlled_and_controlled_by_identical():
     with pytest.raises(ValueError, match=r'len\(control_values\[1\]\) != num_controls\[1\]'):
         cirq.testing.assert_controlled_and_controlled_by_identical(
             GoodGate(), num_controls=[1, 2], control_values=[(1,), (1, 1, 1)]
+        )
+
+
+def test_assert_controlled_unitary_consistent():
+    cirq.testing.assert_controlled_and_controlled_by_identical(
+        GoodGate(exponent=0.5, global_shift=1 / 3)
+    )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_controlled_and_controlled_by_identical(
+            BadGate(exponent=0.5, global_shift=1 / 3)
         )

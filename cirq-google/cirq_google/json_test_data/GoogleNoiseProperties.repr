@@ -1,0 +1,59 @@
+cirq_google.GoogleNoiseProperties(
+    gate_times_ns={
+        cirq.ops.common_gates.ZPowGate: 25.0,
+        cirq.ops.measurement_gate.MeasurementGate: 4000.0,
+        cirq.ops.common_channels.ResetChannel: 250.0,
+        cirq.ops.phased_x_z_gate.PhasedXZGate: 25.0,
+        cirq.ops.fsim_gate.FSimGate: 32.0,
+        cirq.ops.swap_gates.ISwapPowGate: 32.0,
+        cirq.ops.common_gates.CZPowGate: 32.0
+    },
+    t1_ns={
+        cirq.GridQubit(0, 0): 10000.0,
+        cirq.GridQubit(0, 1): 20000.0,
+        cirq.GridQubit(1, 0): 30000.0
+    },
+    tphi_ns={
+        cirq.GridQubit(0, 0): 10000000000.0,
+        cirq.GridQubit(0, 1): 10000000000.0,
+        cirq.GridQubit(1, 0): 375000.00000000047
+    },
+    readout_errors={
+        cirq.GridQubit(0, 0): np.array([0.004, 0.007], dtype=np.float64),
+        cirq.GridQubit(0, 1): np.array([0.005, 0.008], dtype=np.float64),
+        cirq.GridQubit(1, 0): np.array([0.006, 0.009], dtype=np.float64)
+    },
+    gate_pauli_errors={
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.ZPowGate, cirq.GridQubit(0, 0)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.measurement_gate.MeasurementGate, cirq.GridQubit(0, 0)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_channels.ResetChannel, cirq.GridQubit(0, 0)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.phased_x_z_gate.PhasedXZGate, cirq.GridQubit(0, 0)): 0.001,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.ZPowGate, cirq.GridQubit(0, 1)): 0.002,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.measurement_gate.MeasurementGate, cirq.GridQubit(0, 1)): 0.002,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_channels.ResetChannel, cirq.GridQubit(0, 1)): 0.002,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.phased_x_z_gate.PhasedXZGate, cirq.GridQubit(0, 1)): 0.002,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.ZPowGate, cirq.GridQubit(1, 0)): 0.003,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.measurement_gate.MeasurementGate, cirq.GridQubit(1, 0)): 0.003,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_channels.ResetChannel, cirq.GridQubit(1, 0)): 0.003,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.phased_x_z_gate.PhasedXZGate, cirq.GridQubit(1, 0)): 0.003,
+        cirq.devices.noise_utils.OpIdentifier(cirq_google.ops.sycamore_gate.SycamoreGate, cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): 0.01,
+        cirq.devices.noise_utils.OpIdentifier(cirq_google.ops.sycamore_gate.SycamoreGate, cirq.GridQubit(0, 1), cirq.GridQubit(0, 0)): 0.01,
+        cirq.devices.noise_utils.OpIdentifier(cirq_google.ops.sycamore_gate.SycamoreGate, cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)): 0.02,
+        cirq.devices.noise_utils.OpIdentifier(cirq_google.ops.sycamore_gate.SycamoreGate, cirq.GridQubit(1, 0), cirq.GridQubit(0, 0)): 0.02,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.swap_gates.ISwapPowGate, cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): 0.03,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.swap_gates.ISwapPowGate, cirq.GridQubit(0, 1), cirq.GridQubit(0, 0)): 0.03,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.swap_gates.ISwapPowGate, cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)): 0.04,
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.swap_gates.ISwapPowGate, cirq.GridQubit(1, 0), cirq.GridQubit(0, 0)): 0.04
+    },
+    fsim_errors={
+        cirq.devices.noise_utils.OpIdentifier(cirq_google.ops.sycamore_gate.SycamoreGate, cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): cirq.PhasedFSimGate(theta=0.011, zeta=0.0, chi=0.0, gamma=0.0, phi=-0.021),
+        cirq.devices.noise_utils.OpIdentifier(cirq_google.ops.sycamore_gate.SycamoreGate, cirq.GridQubit(0, 1), cirq.GridQubit(0, 0)): cirq.PhasedFSimGate(theta=0.011, zeta=0.0, chi=0.0, gamma=0.0, phi=-0.021),
+        cirq.devices.noise_utils.OpIdentifier(cirq_google.ops.sycamore_gate.SycamoreGate, cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)): cirq.PhasedFSimGate(theta=-0.012, zeta=0.0, chi=0.0, gamma=0.0, phi=0.022),
+        cirq.devices.noise_utils.OpIdentifier(cirq_google.ops.sycamore_gate.SycamoreGate, cirq.GridQubit(1, 0), cirq.GridQubit(0, 0)): cirq.PhasedFSimGate(theta=-0.012, zeta=0.0, chi=0.0, gamma=0.0, phi=0.022),
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.swap_gates.ISwapPowGate, cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): cirq.PhasedFSimGate(theta=-0.013, zeta=0.0, chi=0.0, gamma=0.0, phi=0.023),
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.swap_gates.ISwapPowGate, cirq.GridQubit(0, 1), cirq.GridQubit(0, 0)): cirq.PhasedFSimGate(theta=-0.013, zeta=0.0, chi=0.0, gamma=0.0, phi=0.023),
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.swap_gates.ISwapPowGate, cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)): cirq.PhasedFSimGate(theta=0.014, zeta=0.0, chi=0.0, gamma=0.0, phi=-0.024),
+        cirq.devices.noise_utils.OpIdentifier(cirq.ops.swap_gates.ISwapPowGate, cirq.GridQubit(1, 0), cirq.GridQubit(0, 0)): cirq.PhasedFSimGate(theta=0.014, zeta=0.0, chi=0.0, gamma=0.0, phi=-0.024)
+    },
+    validate=True
+)

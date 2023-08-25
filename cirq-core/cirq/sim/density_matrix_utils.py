@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Code to handle density matrices."""
 
 from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
@@ -18,6 +19,7 @@ from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
 import numpy as np
 
 from cirq import linalg, value
+from cirq.sim import simulation_utils
 
 if TYPE_CHECKING:
     import cirq
@@ -68,7 +70,6 @@ def sample_density_matrix(
         qid_shape = (2,) * num_qubits
     else:
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
-        num_qubits = len(qid_shape)
     meas_shape = _indices_shape(qid_shape, indices)
 
     if repetitions == 0 or len(indices) == 0:
@@ -94,7 +95,7 @@ def measure_density_matrix(
     density_matrix: np.ndarray,
     indices: Sequence[int],
     qid_shape: Optional[Tuple[int, ...]] = None,
-    out: np.ndarray = None,
+    out: Optional[np.ndarray] = None,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
@@ -139,16 +140,19 @@ def measure_density_matrix(
         qid_shape = (2,) * num_qubits
     else:
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
-        num_qubits = len(qid_shape)
     meas_shape = _indices_shape(qid_shape, indices)
 
+    arrout: np.ndarray
+    if out is None:
+        arrout = np.copy(density_matrix)
+    elif out is density_matrix:
+        arrout = density_matrix
+    else:
+        np.copyto(dst=out, src=density_matrix)
+        arrout = out
+
     if len(indices) == 0:
-        if out is None:
-            out = np.copy(density_matrix)
-        elif out is not density_matrix:
-            np.copyto(dst=out, src=density_matrix)
-        return ([], out)
-        # Final else: if out is matrix then matrix will be modified in place.
+        return ([], arrout)
 
     prng = value.parse_random_state(seed)
 
@@ -169,21 +173,15 @@ def measure_density_matrix(
     # Remove ellipses from last element of
     mask[result_slice * 2] = False
 
-    if out is None:
-        out = np.copy(density_matrix)
-    elif out is not density_matrix:
-        np.copyto(dst=out, src=density_matrix)
-    # Final else: if out is matrix then matrix will be modified in place.
-
     # Potentially reshape to tensor, and then set masked values to 0.
-    out.shape = qid_shape * 2
-    out[mask] = 0
+    arrout.shape = qid_shape * 2
+    arrout[mask] = 0
 
     # Restore original shape (if necessary) and renormalize.
-    out.shape = initial_shape
-    out /= probs[result]
+    arrout.shape = initial_shape
+    arrout /= probs[result]
 
-    return measurement_bits, out
+    return measurement_bits, arrout
 
 
 def _probs(
@@ -192,33 +190,8 @@ def _probs(
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
     all_probs = np.diagonal(np.reshape(density_matrix, (np.prod(qid_shape, dtype=np.int64),) * 2))
-    # Shape into a tensor
-    tensor = np.reshape(all_probs, qid_shape)
 
-    # Calculate the probabilities for measuring the particular results.
-    if len(indices) == len(qid_shape):
-        # We're measuring every qudit, so no need for fancy indexing
-        probs = np.abs(tensor)
-        probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape, dtype=np.int64))
-    else:
-        # Fancy indexing required
-        meas_shape = tuple(qid_shape[i] for i in indices)
-        probs = np.abs(
-            [
-                tensor[
-                    linalg.slice_for_qubits_equal_to(
-                        indices, big_endian_qureg_value=b, qid_shape=qid_shape
-                    )
-                ]
-                for b in range(np.prod(meas_shape, dtype=np.int64))
-            ]
-        )
-        probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
-
-    # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs)
-    return probs
+    return simulation_utils.state_probabilities_by_indices(all_probs.real, indices, qid_shape)
 
 
 def _validate_density_matrix_qid_shape(
@@ -231,10 +204,8 @@ def _validate_density_matrix_qid_shape(
     if len(shape) == 2:
         if np.prod(qid_shape, dtype=np.int64) ** 2 != np.prod(shape, dtype=np.int64):
             raise ValueError(
-                'Matrix size does not match qid shape {!r}. Got matrix with '
-                'shape {!r}. Expected {!r}.'.format(
-                    qid_shape, shape, np.prod(qid_shape, dtype=np.int64)
-                )
+                f'Matrix size does not match qid shape {qid_shape!r}. Got matrix with '
+                f'shape {shape!r}. Expected {np.prod(qid_shape, dtype=np.int64)!r}.'
             )
         return qid_shape
     if len(shape) % 2 != 0:
@@ -254,19 +225,19 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     """
     shape = density_matrix.shape
     half_index = len(shape) // 2
-    row_size = np.prod(shape[:half_index], dtype=np.int64) if len(shape) != 0 else 0
-    col_size = np.prod(shape[half_index:], dtype=np.int64) if len(shape) != 0 else 0
+    row_size = np.prod(shape[:half_index]).item() if shape else 0
+    col_size = np.prod(shape[half_index:]).item() if shape else 0
     if row_size != col_size:
         raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
-            'not a power of two. Shape was {}'.format(shape)
+            f'that are a power of two. Shape was {shape}'
         )
     if len(shape) > 2 and not np.allclose(shape, 2):
         raise ValueError(
             'Matrix is a tensor of rank greater than 2, but had dimensions '
-            'that are not powers of two. Shape was {}'.format(shape)
+            f'that are not powers of two. Shape was {shape}'
         )
     return int(row_size).bit_length() - 1
 

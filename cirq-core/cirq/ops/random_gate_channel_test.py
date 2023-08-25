@@ -164,9 +164,13 @@ def test_channel():
     assert not cirq.has_kraus(NoDetailsGate().with_probability(0.5))
     assert cirq.kraus(NoDetailsGate().with_probability(0.5), None) is None
     assert cirq.kraus(cirq.X.with_probability(sympy.Symbol('x')), None) is None
-    assert_channel_sums_to_identity(cirq.X.with_probability(0.25))
-    assert_channel_sums_to_identity(cirq.bit_flip(0.75).with_probability(0.25))
-    assert_channel_sums_to_identity(cirq.amplitude_damp(0.75).with_probability(0.25))
+    cirq.testing.assert_consistent_channel(cirq.X.with_probability(0.25))
+    cirq.testing.assert_consistent_channel(cirq.bit_flip(0.75).with_probability(0.25))
+    cirq.testing.assert_consistent_channel(cirq.amplitude_damp(0.75).with_probability(0.25))
+
+    cirq.testing.assert_consistent_mixture(cirq.X.with_probability(0.25))
+    cirq.testing.assert_consistent_mixture(cirq.bit_flip(0.75).with_probability(0.25))
+    assert not cirq.has_mixture(cirq.amplitude_damp(0.75).with_probability(0.25))
 
     m = cirq.kraus(cirq.X.with_probability(0.25))
     assert len(m) == 2
@@ -215,13 +219,13 @@ def test_stabilizer_supports_probability():
 
 
 def test_unsupported_stabilizer_safety():
-    from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+    from cirq.protocols.act_on_protocol_test import DummySimulationState
 
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on(cirq.X.with_probability(0.5), DummyActOnArgs(), qubits=())
+            cirq.act_on(cirq.X.with_probability(0.5), DummySimulationState(), qubits=())
     with pytest.raises(TypeError, match="act_on"):
-        cirq.act_on(cirq.X.with_probability(sympy.Symbol('x')), DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.X.with_probability(sympy.Symbol('x')), DummySimulationState(), qubits=())
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit((cirq.X(q) ** 0.25).with_probability(0.5), cirq.measure(q, key='m'))

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
+import sympy
 
 import cirq
 import cirq_google.experimental.ops.coupler_pulse as coupler_pulse
@@ -80,56 +81,50 @@ def test_equality():
     )
 
 
-def test_coupler_pulse_validation():
-    with pytest.raises(ValueError, match='Total time of coupler pulse'):
-        _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=210), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=10)
-        )
-    with pytest.raises(ValueError, match='hold_time must be greater'):
-        _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=-10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=20)
-        )
-    with pytest.raises(ValueError, match='Total time of coupler pulse'):
-        _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=10),
-            coupling_mhz=25.0,
-            rise_time=cirq.Duration(nanos=20),
-            padding_time=cirq.Duration(nanos=200),
-        )
-    with pytest.raises(ValueError, match='padding_time must be greater'):
-        _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=10),
-            coupling_mhz=25.0,
-            rise_time=cirq.Duration(nanos=20),
-            padding_time=cirq.Duration(nanos=-20),
-        )
-    with pytest.raises(ValueError, match='rise_time must be greater'):
-        _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=-1)
-        )
-    with pytest.raises(ValueError, match='Total time of coupler pulse'):
-        _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=302)
-        )
-
-
 def test_coupler_pulse_str_repr():
     gate = coupler_pulse.CouplerPulse(
         hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=18)
     )
     assert (
-        str(gate)
-        == 'CouplerPulse(hold_time=10 ns, coupling_mhz=25.0, '
-        + 'rise_time=18 ns, padding_time=2500.0 ps)'
+        str(gate) == 'CouplerPulse(hold_time=10 ns, coupling_mhz=25.0, '
+        'rise_time=18 ns, padding_time=2500.0 ps, q0_detune_mhz=0.0, q1_detune_mhz=0.0)'
     )
     assert (
-        repr(gate)
-        == 'cirq_google.experimental.ops.coupler_pulse.CouplerPulse('
-        + 'hold_time=cirq.Duration(nanos=10), '
-        + 'coupling_mhz=25.0, '
-        + 'rise_time=cirq.Duration(nanos=18), '
-        + 'padding_time=cirq.Duration(picos=2500.0))'
+        repr(gate) == 'cirq_google.experimental.ops.coupler_pulse.CouplerPulse('
+        'hold_time=cirq.Duration(nanos=10), '
+        'coupling_mhz=25.0, '
+        'rise_time=cirq.Duration(nanos=18), '
+        'padding_time=cirq.Duration(picos=2500.0), '
+        'q0_detune_mhz=0.0, '
+        'q1_detune_mhz=0.0)'
     )
+
+
+def test_coupler_pulse_json_deserialization_defaults_on_missing_fields():
+    gate = coupler_pulse.CouplerPulse(
+        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=18)
+    )
+    json_text = """{
+       "cirq_type": "CouplerPulse",
+       "hold_time": {
+         "cirq_type": "Duration",
+         "picos": 10000
+       },
+       "coupling_mhz": 25.0,
+       "rise_time": {
+         "cirq_type": "Duration",
+         "picos": 18000
+       },
+       "padding_time": {
+         "cirq_type": "Duration",
+         "picos": 2500.0
+       }
+    }"""
+
+    deserialized = cirq.read_json(json_text=json_text)
+
+    assert deserialized == gate
+    assert deserialized.q0_detune_mhz == 0.0
 
 
 def test_coupler_pulse_circuit_diagram():
@@ -146,3 +141,81 @@ def test_coupler_pulse_circuit_diagram():
 1: ───/‾‾(10 ns@25.0MHz)‾‾\───
 """,
     )
+
+
+@pytest.mark.parametrize(
+    'gate, resolver, expected',
+    [
+        (
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=10
+            ),
+            {'t_ns': 50},
+            coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=50), coupling_mhz=10),
+        ),
+        (
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=50), coupling_mhz=sympy.Symbol('g')
+            ),
+            {'g': 10},
+            coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=50), coupling_mhz=10),
+        ),
+    ],
+)
+def test_coupler_pulse_resolution(gate, resolver, expected):
+    assert cirq.resolve_parameters(gate, resolver) == expected
+
+
+@pytest.mark.parametrize(
+    'gate, param_names',
+    [
+        (
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=10
+            ),
+            {'t_ns'},
+        ),
+        (
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=50), coupling_mhz=sympy.Symbol('g')
+            ),
+            {'g'},
+        ),
+        (
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=sympy.Symbol('g')
+            ),
+            {'g', 't_ns'},
+        ),
+    ],
+)
+def test_coupler_pulse_parameter_names(gate, param_names):
+    assert cirq.parameter_names(gate) == param_names
+
+
+@pytest.mark.parametrize(
+    'gate, is_parameterized',
+    [
+        (coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=50), coupling_mhz=10), False),
+        (
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=10
+            ),
+            True,
+        ),
+        (
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=50), coupling_mhz=sympy.Symbol('g')
+            ),
+            True,
+        ),
+        (
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=sympy.Symbol('g')
+            ),
+            True,
+        ),
+    ],
+)
+def test_coupler_pulse_is_parameterized(gate, is_parameterized):
+    assert cirq.is_parameterized(gate) == is_parameterized

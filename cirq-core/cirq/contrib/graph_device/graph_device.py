@@ -15,9 +15,9 @@
 import abc
 import itertools
 
-from typing import Iterable, Optional, FrozenSet, TYPE_CHECKING, Tuple, cast
+from typing import Iterable, Optional, TYPE_CHECKING, Tuple, cast
 
-from cirq import _compat, devices, ops, value
+from cirq import devices, ops, value
 
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
@@ -155,27 +155,9 @@ class UndirectedGraphDevice(devices.Device):
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
-    @_compat.deprecated(fix='Please use UndirectedGraphDevice.qubits', deadline='v0.15')
-    def qubit_set(self) -> FrozenSet['cirq.Qid']:
-        return frozenset(self.qubits)
-
     @property
     def edges(self):
         return tuple(sorted(self.device_graph.edges))
-
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix='qubit coupling data can now be found in device.metadata.nx_graph if provided.',
-    )
-    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        with _compat.block_overlapping_deprecation('device\\.metadata'):
-            return frozenset(
-                [
-                    devices.SymmetricalQidPair(*edge)  # type: ignore
-                    for edge in self.device_graph.edges
-                    if len(edge) == 2 and all(isinstance(q, ops.Qid) for q in edge)
-                ]
-            )
 
     @property
     def labelled_edges(self):

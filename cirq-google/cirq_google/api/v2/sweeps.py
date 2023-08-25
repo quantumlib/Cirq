@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import cast, Dict, Iterable, List, Optional, Tuple
+
+import sympy
 
 import cirq
 from cirq_google.api.v2 import batch_pb2
 from cirq_google.api.v2 import run_context_pb2
+from cirq_google.study.device_parameter import DeviceParameter
 
 
 def sweep_to_proto(
@@ -47,21 +50,35 @@ def sweep_to_proto(
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for s in sweep.sweeps:
             sweep_to_proto(s, out=out.sweep_function.sweeps.add())
-    elif isinstance(sweep, cirq.Linspace):
+    elif isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
         out.single_sweep.linspace.first_point = sweep.start
         out.single_sweep.linspace.last_point = sweep.stop
         out.single_sweep.linspace.num_points = sweep.length
-    elif isinstance(sweep, cirq.Points):
+        # Use duck-typing to support google-internal Parameter objects
+        if sweep.metadata and getattr(sweep.metadata, 'path', None):
+            out.single_sweep.parameter.path.extend(sweep.metadata.path)
+        if sweep.metadata and getattr(sweep.metadata, 'idx', None):
+            out.single_sweep.parameter.idx = sweep.metadata.idx
+        if sweep.metadata and getattr(sweep.metadata, 'units', None):
+            out.single_sweep.parameter.units = sweep.metadata.units
+    elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
         out.single_sweep.points.points.extend(sweep.points)
+        # Use duck-typing to support google-internal Parameter objects
+        if sweep.metadata and getattr(sweep.metadata, 'path', None):
+            out.single_sweep.parameter.path.extend(sweep.metadata.path)
+        if sweep.metadata and getattr(sweep.metadata, 'idx', None):
+            out.single_sweep.parameter.idx = sweep.metadata.idx
+        if sweep.metadata and getattr(sweep.metadata, 'units', None):
+            out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.ListSweep):
-        sweep_dict: Dict[str, List[cirq.TParamVal]] = {}
+        sweep_dict: Dict[str, List[float]] = {}
         for param_resolver in sweep:
             for key in param_resolver:
                 if key not in sweep_dict:
-                    sweep_dict[key] = []
-                sweep_dict[key].append(param_resolver.value_of(key))
+                    sweep_dict[cast(str, key)] = []
+                sweep_dict[cast(str, key)].append(cast(float, param_resolver.value_of(key)))
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for key in sweep_dict:
             sweep_to_proto(cirq.Points(key, sweep_dict[key]), out=out.sweep_function.sweeps.add())
@@ -86,20 +103,26 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
         raise ValueError(f'invalid sweep function type: {func_type}')
     if which == 'single_sweep':
         key = msg.single_sweep.parameter_key
+        if msg.single_sweep.HasField("parameter"):
+            metadata = DeviceParameter(
+                path=msg.single_sweep.parameter.path, idx=msg.single_sweep.parameter.idx
+            )
+        else:
+            metadata = None
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
             return cirq.Linspace(
                 key=key,
                 start=msg.single_sweep.linspace.first_point,
                 stop=msg.single_sweep.linspace.last_point,
                 length=msg.single_sweep.linspace.num_points,
+                metadata=metadata,
             )
         if msg.single_sweep.WhichOneof('sweep') == 'points':
-            return cirq.Points(key=key, points=msg.single_sweep.points.points)
+            return cirq.Points(key=key, points=msg.single_sweep.points.points, metadata=metadata)
 
         raise ValueError(f'single sweep type not set: {msg}')
 
-    # coverage: ignore
-    raise ValueError(f'sweep type not set: {msg}')
+    raise ValueError(f'sweep type not set: {msg}')  # pragma: no cover
 
 
 def run_context_to_proto(

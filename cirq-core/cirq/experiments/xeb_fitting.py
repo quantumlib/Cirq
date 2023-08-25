@@ -14,7 +14,7 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING, Dict, Iterable
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -108,12 +108,11 @@ def benchmark_2q_xeb_fidelities(
         def _try_keep(k):
             """If all the values for a key `k` are the same in this group, we can keep it."""
             if k not in df.columns:
-                return  # coverage: ignore
+                return  # pragma: no cover
             vals = df[k].unique()
             if len(vals) == 1:
                 ret[k] = vals[0]
-            else:
-                # coverage: ignore
+            else:  # pragma: no cover
                 raise AssertionError(
                     f"When computing per-cycle-depth fidelity, multiple "
                     f"values for {k} were grouped together: {vals}"
@@ -147,10 +146,10 @@ class XEBCharacterizationOptions(ABC):
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
-def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
+def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal']:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
-    defaults = {
+    defaults: Dict[str, 'cirq.TParamVal'] = {
         'theta_default': 0.0,
         'zeta_default': 0.0,
         'chi_default': 0.0,
@@ -241,24 +240,23 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         We also return a list of parameter names so the Cirq `param_resovler`
         can be accurately constructed during optimization.
         """
-        x0 = []
+        x0_list = []
         names = []
 
         for default, symbol in self._iter_angles_for_characterization():
             if default is None:
                 raise ValueError(f'{symbol.name}_default was not set.')
-            x0.append(default)
+            x0_list.append(default)
             names.append(symbol.name)
 
-        x0 = np.asarray(x0)
+        x0 = np.asarray(x0_list)
         n_param = len(x0)
         initial_simplex = [x0]
         for i in range(n_param):
             basis_vec = np.eye(1, n_param, i)[0]
             initial_simplex += [x0 + initial_simplex_step_size * basis_vec]
-        initial_simplex = np.asarray(initial_simplex)
 
-        return initial_simplex, names
+        return np.asarray(initial_simplex), names
 
     def get_parameterized_gate(self):
         theta = THETA_SYMBOL if self.characterize_theta else self.theta_default
@@ -413,13 +411,13 @@ def characterize_phased_fsim_parameters_with_xeb(
         method='nelder-mead',
     )
 
-    final_params = dict(zip(names, optimization_result.x))
+    final_params: 'cirq.ParamDictType' = dict(zip(names, optimization_result.x))
     fidelities_df = benchmark_2q_xeb_fidelities(
         sampled_df, parameterized_circuits, cycle_depths, param_resolver=final_params
     )
     return XEBCharacterizationResult(
         optimization_results={pair: optimization_result},
-        final_params={pair: final_params},
+        final_params={pair: final_params},  # type: ignore[dict-item]
         fidelities_df=fidelities_df,
     )
 
@@ -575,8 +573,7 @@ def _fit_exponential_decay(
             p0=(a_0, layer_fid_0),
             bounds=((0, 0), (1, 1)),
         )
-    except ValueError:  # coverage: ignore
-        # coverage: ignore
+    except ValueError:  # pragma: no cover
         return 0, 0, np.inf, np.inf
 
     a_std, layer_fid_std = np.sqrt(np.diag(pcov))

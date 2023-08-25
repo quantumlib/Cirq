@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, overload, TYPE_CHECKING, TypeVar, Union, Callable
+from typing import Any, Callable, Optional, overload, TypeVar, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     import cirq
@@ -57,6 +57,9 @@ def pow(val: Any, exponent: Any, default: TDefault) -> Any:
     pass
 
 
+# pylint: enable=function-redefined
+
+
 def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns `val**factor` of the given value, if defined.
 
@@ -81,7 +84,7 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
         TypeError: `val` doesn't have a __pow__ method (or that method returned
             NotImplemented) and no `default` value was specified.
     """
-    raiser = cast(Union[None, Callable], getattr(val, '__pow__', None))
+    raiser: Optional[Callable] = getattr(val, '__pow__', None)
     result = NotImplemented if raiser is None else raiser(exponent)
     if result is not NotImplemented:
         return result
@@ -91,9 +94,8 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
     if raiser is None:
         raise TypeError(f"object of type '{type(val)}' has no __pow__ method.")
     raise TypeError(
-        "object of type '{}' does have a __pow__ method, "
-        "but it returned NotImplemented.".format(type(val))
+        f"object of type '{type(val)}' does have a __pow__ method, but it returned NotImplemented."
     )
 
 
-# pylint: enable=function-redefined, redefined-builtin
+# pylint: enable=redefined-builtin

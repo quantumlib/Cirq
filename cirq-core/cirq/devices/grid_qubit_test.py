@@ -19,6 +19,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq import _compat
 
 
 def test_init():
@@ -43,7 +44,9 @@ def test_eq():
 def test_pickled_hash():
     q = cirq.GridQubit(3, 4)
     q_bad = cirq.GridQubit(3, 4)
-    q_bad._hash += 1
+    _ = hash(q_bad)  # compute hash to ensure it is cached.
+    hash_key = _compat._method_cache_name(cirq.GridQubit.__hash__)
+    setattr(q_bad, hash_key, getattr(q_bad, hash_key) + 1)
     assert q_bad == q
     assert hash(q_bad) != hash(q)
     data = pickle.dumps(q_bad)
@@ -53,8 +56,17 @@ def test_pickled_hash():
 
 
 def test_str():
-    assert str(cirq.GridQubit(5, 2)) == '(5, 2)'
-    assert str(cirq.GridQid(5, 2, dimension=3)) == '(5, 2) (d=3)'
+    assert str(cirq.GridQubit(5, 2)) == 'q(5, 2)'
+    assert str(cirq.GridQid(5, 2, dimension=3)) == 'q(5, 2) (d=3)'
+
+
+def test_circuit_info():
+    assert cirq.circuit_diagram_info(cirq.GridQubit(5, 2)) == cirq.CircuitDiagramInfo(
+        wire_symbols=('(5, 2)',)
+    )
+    assert cirq.circuit_diagram_info(cirq.GridQid(5, 2, dimension=3)) == cirq.CircuitDiagramInfo(
+        wire_symbols=('(5, 2) (d=3)',)
+    )
 
 
 def test_repr():
@@ -323,23 +335,39 @@ def test_to_json():
 
 
 def test_immutable():
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    # Match one of two strings. The second one is message returned since python 3.11.
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'col' of 'GridQubit' object has no setter)",
+    ):
         q = cirq.GridQubit(1, 2)
         q.col = 3
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'row' of 'GridQubit' object has no setter)",
+    ):
         q = cirq.GridQubit(1, 2)
         q.row = 3
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'col' of 'GridQid' object has no setter)",
+    ):
         q = cirq.GridQid(1, 2, dimension=3)
         q.col = 3
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'row' of 'GridQid' object has no setter)",
+    ):
         q = cirq.GridQid(1, 2, dimension=3)
         q.row = 3
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'dimension' of 'GridQid' object has no setter)",
+    ):
         q = cirq.GridQid(1, 2, dimension=3)
         q.dimension = 3
 

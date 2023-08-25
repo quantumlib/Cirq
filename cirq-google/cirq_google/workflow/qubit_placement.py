@@ -187,7 +187,7 @@ class HardcodedQubitPlacer(QubitPlacer):
         return d
 
     @classmethod
-    def _from_json_dict_(cls, **kwargs):
+    def _from_json_dict_(cls, **kwargs) -> 'HardcodedQubitPlacer':
         # From nested list(key_value_pair) to dictionary
         mapping: Dict[cirq.NamedTopology, Dict[Any, 'cirq.Qid']] = {}
         for topo, placement_kvs in kwargs['mapping']:
@@ -202,8 +202,7 @@ class HardcodedQubitPlacer(QubitPlacer):
 
     def __eq__(self, other):
         if not isinstance(other, HardcodedQubitPlacer):
-            # coverage: ignore
-            return False
+            return False  # pragma: no cover
 
         return self._mapping == other._mapping
 

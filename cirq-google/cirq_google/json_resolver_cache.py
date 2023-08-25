@@ -12,32 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Module for use in exporting cirq-google objects in JSON."""
+
+import warnings
 import functools
 from typing import Dict
 
 from cirq.protocols.json_serialization import ObjectFactory
+from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
+    TwoQubitGateTabulation,
+)
 
 
 @functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+    def _old_xmon(*args, **kwargs):
+        d_type = kwargs['constant']
+        warnings.warn(
+            f'Attempted to json load a {d_type} Device.'
+            'These devices were removed in Cirq v0.15 and are no '
+            'longer supported. Please update device usage to a '
+            'supported device or downgrade your Cirq installation.'
+        )
+        return str(d_type)
+
     import cirq_google
-    from cirq_google.devices.known_devices import _NamedConstantXmonDevice
 
     return {
-        '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+        '_NamedConstantXmonDevice': _old_xmon,
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CalibrationResult': cirq_google.CalibrationResult,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
+        'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
-        'GateTabulation': cirq_google.GateTabulation,
+        # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
+        'GateTabulation': TwoQubitGateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
         'FSimGateFamily': cirq_google.FSimGateFamily,
         'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
         'FloquetPhasedFSimCalibrationRequest': cirq_google.FloquetPhasedFSimCalibrationRequest,
         'PhasedFSimCalibrationResult': cirq_google.PhasedFSimCalibrationResult,
         'PhasedFSimCharacterization': cirq_google.PhasedFSimCharacterization,
+        'SycamoreTargetGateset': cirq_google.SycamoreTargetGateset,
         'XEBPhasedFSimCalibrationOptions': cirq_google.XEBPhasedFSimCalibrationOptions,
         'XEBPhasedFSimCalibrationRequest': cirq_google.XEBPhasedFSimCalibrationRequest,
         'LocalXEBPhasedFSimCalibrationOptions': cirq_google.LocalXEBPhasedFSimCalibrationOptions,
@@ -63,4 +81,9 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
         'cirq.google.HardcodedQubitPlacer': cirq_google.HardcodedQubitPlacer,
         # pylint: enable=line-too-long
+        'cirq.google.EngineResult': cirq_google.EngineResult,
+        'cirq.google.GridDevice': cirq_google.GridDevice,
+        'cirq.google.GoogleCZTargetGateset': cirq_google.GoogleCZTargetGateset,
+        'cirq.google.DeviceParameter': cirq_google.study.device_parameter.DeviceParameter,
+        'InternalGate': cirq_google.InternalGate,
     }

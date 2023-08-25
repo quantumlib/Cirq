@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+from cirq.protocols.act_on_protocol_test import DummySimulationState
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -62,7 +62,8 @@ def test_asymmetric_depolarizing_channel():
         cirq.kraus(d),
         (np.sqrt(0.4) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.2) * Y, np.sqrt(0.3) * Z),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
+    cirq.testing.assert_consistent_mixture(d)
 
     assert cirq.AsymmetricDepolarizingChannel(p_x=0, p_y=0.1, p_z=0).num_qubits() == 1
 
@@ -140,7 +141,8 @@ def test_depolarizing_channel():
         cirq.kraus(d),
         (np.sqrt(0.7) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.1) * Y, np.sqrt(0.1) * Z),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
+    cirq.testing.assert_consistent_mixture(d)
 
 
 def test_depolarizing_channel_two_qubits():
@@ -166,7 +168,8 @@ def test_depolarizing_channel_two_qubits():
             np.sqrt(0.01) * np.kron(Z, Z),
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
+    cirq.testing.assert_consistent_mixture(d)
 
     assert d.num_qubits() == 2
     cirq.testing.assert_has_diagram(
@@ -327,7 +330,7 @@ def test_generalized_amplitude_damping_channel():
             np.sqrt(0.9) * np.array([[0.0, 0.0], [np.sqrt(0.3), 0.0]]),
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
     assert not cirq.has_mixture(d)
 
 
@@ -391,7 +394,7 @@ def test_amplitude_damping_channel():
             np.array([[0.0, np.sqrt(0.3)], [0.0, 0.0]]),
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
     assert not cirq.has_mixture(d)
 
 
@@ -443,10 +446,10 @@ def test_reset_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(r), (np.array([[1.0, 0.0], [0.0, 0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
     )
+    cirq.testing.assert_consistent_channel(r)
+    assert not cirq.has_mixture(r)
 
     assert cirq.num_qubits(r) == 1
-    assert cirq.has_kraus(r)
-    assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (2,)
 
     r = cirq.reset(cirq.LineQid(0, dimension=3))
@@ -458,7 +461,7 @@ def test_reset_channel():
             np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]]),
         ),
     )  # yapf: disable
-    assert cirq.has_kraus(r)
+    cirq.testing.assert_consistent_channel(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (3,)
 
@@ -489,9 +492,9 @@ def test_reset_channel_text_diagram():
 
 def test_reset_act_on():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.ResetChannel(), DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.ResetChannel(), DummySimulationState(), qubits=())
 
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -526,6 +529,13 @@ def test_reset_each():
             assert op.qubits == (qubits[i],)
 
 
+def test_reset_consistency():
+    two_d_chan = cirq.ResetChannel()
+    cirq.testing.assert_has_consistent_apply_channel(two_d_chan)
+    three_d_chan = cirq.ResetChannel(dimension=3)
+    cirq.testing.assert_has_consistent_apply_channel(three_d_chan)
+
+
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(
@@ -535,7 +545,7 @@ def test_phase_damping_channel():
             np.array([[0.0, 0.0], [0.0, np.sqrt(0.3)]]),
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
     assert not cirq.has_mixture(d)
 
 
@@ -582,12 +592,22 @@ def test_phase_damping_channel_text_diagram():
     )
 
 
+def test_phase_damp_consistency():
+    full_damp = cirq.PhaseDampingChannel(gamma=1)
+    cirq.testing.assert_has_consistent_apply_channel(full_damp)
+    partial_damp = cirq.PhaseDampingChannel(gamma=0.5)
+    cirq.testing.assert_has_consistent_apply_channel(partial_damp)
+    no_damp = cirq.PhaseDampingChannel(gamma=0)
+    cirq.testing.assert_has_consistent_apply_channel(no_damp)
+
+
 def test_phase_flip_channel():
     d = cirq.phase_flip(0.3)
     np.testing.assert_almost_equal(
         cirq.kraus(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * Z)
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
+    cirq.testing.assert_consistent_mixture(d)
 
 
 def test_phase_flip_mixture():
@@ -651,7 +671,8 @@ def test_bit_flip_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * X)
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
+    cirq.testing.assert_consistent_mixture(d)
 
 
 def test_bit_flip_mixture():
@@ -714,7 +735,7 @@ def test_bit_flip_channel_text_diagram():
 def test_stabilizer_supports_depolarize():
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on(cirq.depolarize(3 / 4), DummyActOnArgs(), qubits=())
+            cirq.act_on(cirq.depolarize(3 / 4), DummySimulationState(), qubits=())
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.depolarize(3 / 4).on(q), cirq.measure(q, key='m'))
@@ -757,7 +778,8 @@ def test_multi_asymmetric_depolarizing_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(d), (np.sqrt(0.8) * np.eye(4), np.sqrt(0.2) * np.kron(X, X))
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
+    cirq.testing.assert_consistent_mixture(d)
     np.testing.assert_equal(d._num_qubits_(), 2)
 
     with pytest.raises(ValueError, match="num_qubits should be 1"):
@@ -783,6 +805,38 @@ def test_multi_asymmetric_depolarizing_channel_repr():
     )
 
 
+def test_multi_asymmetric_depolarizing_eq():
+    a = cirq.asymmetric_depolarize(error_probabilities={'I': 0.8, 'X': 0.2})
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
+
+    assert not cirq.approx_eq(a, b)
+
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+
+    assert not cirq.approx_eq(a, b)
+
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'ZZ': 1 / 3})
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+
+    assert not cirq.approx_eq(a, b)
+
+    a = cirq.asymmetric_depolarize(0.1, 0.2)
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+
+    assert not cirq.approx_eq(a, b)
+
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 0.667, 'XX': 0.333})
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+
+    assert cirq.approx_eq(a, b, atol=1e-3)
+
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 0.667, 'XX': 0.333})
+    b = cirq.asymmetric_depolarize(error_probabilities={'XX': 1 / 3, 'II': 2 / 3})
+
+    assert cirq.approx_eq(a, b, atol=1e-3)
+
+
 def test_multi_asymmetric_depolarizing_channel_str():
     assert str(cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})) == (
         "asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})"
@@ -792,16 +846,16 @@ def test_multi_asymmetric_depolarizing_channel_str():
 def test_multi_asymmetric_depolarizing_channel_text_diagram():
     a = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
     assert cirq.circuit_diagram_info(a, args=no_precision) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)',)
+        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)', '(1)')
     )
     assert cirq.circuit_diagram_info(a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A(II:0.666667, XX:0.333333)',)
+        wire_symbols=('A(II:0.666667, XX:0.333333)', '(1)')
     )
     assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A(II:0.67, XX:0.33)',)
+        wire_symbols=('A(II:0.67, XX:0.33)', '(1)')
     )
     assert cirq.circuit_diagram_info(a, args=no_precision) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)',)
+        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)', '(1)')
     )
 
 

@@ -37,9 +37,8 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
 
         self._num_qubits = num_qubits
         name = f'{str(num_qubits) if num_qubits else "Any"}-Qubit UnitaryGateFamily'
-        description = 'Accepts any {}unitary gate'.format(
-            f'{num_qubits}-qubit ' if num_qubits else ''
-        )
+        kind = f'{num_qubits}-qubit ' if num_qubits else ''
+        description = f'Accepts any {kind}unitary gate'
         super().__init__(raw_types.Gate, name=name, description=description)
 
     def _predicate(self, g: raw_types.Gate) -> bool:
@@ -105,22 +104,24 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
 
 
 class ParallelGateFamily(gateset.GateFamily):
-    """GateFamily which accepts instances of `cirq.ParallelGate` and it's sub_gate.
+    """GateFamily which accepts instances of `cirq.ParallelGate` and its sub_gate.
 
     ParallelGateFamily is useful for description and validation of scenarios where multiple
     copies of a unitary gate can act in parallel. `cirq.ParallelGate` is used to express
     such a gate with a corresponding unitary `sub_gate` that acts in parallel.
 
-    ParallelGateFamily supports initialization via
-        a) Gate Instance that can be applied in parallel.
-        b) Gate Type whose instances can be applied in parallel.
+    ParallelGateFamily supports initialization via:
+
+    *    Gate Instances that can be applied in parallel.
+    *    Gate Types whose instances can be applied in parallel.
 
     In both the cases, the users can specify an additional parameter `max_parallel_allowed` which
     is used to verify the maximum number of qubits on which any given gate instance can act on.
 
-    To verify containment of a given `cirq.Gate` instance `g`, the gate family verfies that
-        a) `cirq.num_qubits(g)` <= `max_parallel_allowed` if `max_parallel_allowed` is not None.
-        b) `g` or `g.sub_gate` (if `g` is an instance of `cirq.ParallelGate`) is an accepted gate
+    To verify containment of a given `cirq.Gate` instance `g`, the gate family verfies that:
+
+    *    `cirq.num_qubits(g)` <= `max_parallel_allowed` if `max_parallel_allowed` is not None.
+    *    `g` or `g.sub_gate` (if `g` is an instance of `cirq.ParallelGate`) is an accepted gate
             based on type or instance checks depending on the initialization gate type.
     """
 
@@ -146,7 +147,7 @@ class ParallelGateFamily(gateset.GateFamily):
         if isinstance(gate, parallel_gate.ParallelGate):
             if not max_parallel_allowed:
                 max_parallel_allowed = protocols.num_qubits(gate)
-            gate = cast(parallel_gate.ParallelGate, gate).sub_gate
+            gate = gate.sub_gate
         self._max_parallel_allowed = max_parallel_allowed
         super().__init__(gate, name=name, description=description)
 

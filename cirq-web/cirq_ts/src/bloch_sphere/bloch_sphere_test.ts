@@ -201,7 +201,7 @@ describe('BlochSphere (with valid custom constructor values)', () => {
   describe('handles vectors correctly by', () => {
     it('adding three unique vectors without failing', () => {
       // Adding multiple vectors is supported in the prototype,
-      // but the front end isn't yet formatted to accomodate this.
+      // but the front end isn't yet formatted to accommodate this.
       // The next PR will contain this additional support.
 
       bloch_sphere.addVector(1, 0, 0);

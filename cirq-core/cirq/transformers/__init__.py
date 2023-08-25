@@ -25,15 +25,19 @@ from cirq.transformers.analytical_decompositions import (
     parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
+    quantum_shannon_decomposition,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
     three_qubit_matrix_to_operations,
+    two_qubit_matrix_to_cz_isometry,
     two_qubit_matrix_to_cz_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
+    two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
+    unitary_to_pauli_string,
 )
 
 from cirq.transformers.heuristic_decompositions import (
@@ -42,7 +46,17 @@ from cirq.transformers.heuristic_decompositions import (
     two_qubit_gate_product_tabulation,
 )
 
+from cirq.transformers.routing import (
+    AbstractInitialMapper,
+    HardCodedInitialMapper,
+    LineInitialMapper,
+    MappingManager,
+    RouteCQC,
+    routed_circuit_with_mapping,
+)
+
 from cirq.transformers.target_gatesets import (
+    create_transformer_with_kwargs,
     CompilationTargetGateset,
     CZTargetGateset,
     SqrtIswapTargetGateset,
@@ -65,7 +79,11 @@ from cirq.transformers.drop_negligible_operations import drop_negligible_operati
 
 from cirq.transformers.eject_z import eject_z
 
-from cirq.transformers.measurement_transformers import defer_measurements, dephase_measurements
+from cirq.transformers.measurement_transformers import (
+    defer_measurements,
+    dephase_measurements,
+    drop_terminal_measurements,
+)
 
 from cirq.transformers.merge_k_qubit_gates import merge_k_qubit_unitaries
 

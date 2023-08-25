@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, List, Sequence, Union
+from typing import Callable, Sequence, Union
 from google.protobuf import any_pb2
 
 import cirq
@@ -23,7 +23,7 @@ MAX_MESSAGE_SIZE = 10_000_000
 MAX_MOMENTS = 10000
 MAX_TOTAL_REPETITIONS = 5_000_000
 
-GATE_SET_VALIDATOR_TYPE = Callable[
+PROGRAM_VALIDATOR_TYPE = Callable[
     [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
 ]
 
@@ -39,19 +39,19 @@ def _validate_depth(
 
 def _verify_reps(
     sweeps: Sequence[cirq.Sweepable],
-    repetitions: Union[int, List[int]],
+    repetitions: Union[int, Sequence[int]],
     max_repetitions: int = MAX_TOTAL_REPETITIONS,
 ) -> None:
     """Verify that the total number of repetitions is under the limit."""
     total_reps = 0
     for idx, sweep in enumerate(sweeps):
-        if isinstance(repetitions, List):
+        if not isinstance(repetitions, int):
             total_reps += len(list(cirq.to_resolvers(sweep))) * repetitions[idx]
         else:
             total_reps += len(list(cirq.to_resolvers(sweep))) * repetitions
     if total_reps > max_repetitions:
         raise RuntimeError(
-            f'No requested processors currently support the number of requested total repetitions.'
+            'No requested processors currently support the number of requested total repetitions.'
         )
 
 
@@ -65,14 +65,14 @@ def _verify_measurements(circuits):
             raise RuntimeError('Code must measure at least one qubit.')
 
 
-def validate_gate_set(
+def validate_program(
     circuits: Sequence[cirq.AbstractCircuit],
     sweeps: Sequence[cirq.Sweepable],
     repetitions: int,
-    gate_set: Serializer,
+    serializer: Serializer,
     max_size: int = MAX_MESSAGE_SIZE,
 ) -> None:
-    """Validate that the message size is below the maximum size limit.
+    """Validate that the Program message size is below the maximum size limit.
 
     Args:
         circuits:  A sequence of  `cirq.Circuit` objects to validate.  For
@@ -81,7 +81,7 @@ def validate_gate_set(
         sweeps:  Parameters to run with each circuit.  The length of the
           sweeps sequence should be the same as the circuits argument.
         repetitions:  Number of repetitions to run with each sweep.
-        gate_set:  Serializer to use to serialize the circuits and sweeps.
+        serializer:  Serializer to use to serialize the circuits and sweeps.
         max_size:  proto size limit to check against.
 
     Raises:
@@ -90,19 +90,19 @@ def validate_gate_set(
     batch = v2.batch_pb2.BatchProgram()
     packed = any_pb2.Any()
     for circuit in circuits:
-        gate_set.serialize(circuit, msg=batch.programs.add())
+        serializer.serialize(circuit, msg=batch.programs.add())
     packed.Pack(batch)
     message_size = len(packed.SerializeToString())
     if message_size > max_size:
         raise RuntimeError("INVALID_PROGRAM: Program too long.")
 
 
-def create_gate_set_validator(max_size: int = MAX_MESSAGE_SIZE) -> GATE_SET_VALIDATOR_TYPE:
-    """Creates a Callable gate set validator with a set message size.
+def create_program_validator(max_size: int = MAX_MESSAGE_SIZE) -> PROGRAM_VALIDATOR_TYPE:
+    """Creates a Callable program validator with a set message size.
 
     This validator can be used for a validator in `cg.ValidatingSampler`
     and can also be useful in generating 'engine emulators' by using
-    `cg.SimulatedLocalProcessor` with this callable as a gate_set_validator.
+    `cg.SimulatedLocalProcessor` with this callable as a program_validator.
 
     Args:
         max_size:  proto size limit to check against.
@@ -114,9 +114,9 @@ def create_gate_set_validator(max_size: int = MAX_MESSAGE_SIZE) -> GATE_SET_VALI
         circuits: Sequence[cirq.AbstractCircuit],
         sweeps: Sequence[cirq.Sweepable],
         repetitions: int,
-        gate_set: Serializer,
+        serializer: Serializer,
     ):
-        return validate_gate_set(circuits, sweeps, repetitions, gate_set, max_size)
+        return validate_program(circuits, sweeps, repetitions, serializer, max_size)
 
     return _validator
 
@@ -124,7 +124,7 @@ def create_gate_set_validator(max_size: int = MAX_MESSAGE_SIZE) -> GATE_SET_VALI
 def validate_for_engine(
     circuits: Sequence[cirq.AbstractCircuit],
     sweeps: Sequence[cirq.Sweepable],
-    repetitions: Union[int, List[int]],
+    repetitions: Union[int, Sequence[int]],
     max_moments: int = MAX_MOMENTS,
     max_repetitions: int = MAX_TOTAL_REPETITIONS,
 ) -> None:
@@ -168,7 +168,7 @@ def create_engine_validator(
     def _validator(
         circuits: Sequence[cirq.AbstractCircuit],
         sweeps: Sequence[cirq.Sweepable],
-        repetitions: Union[int, List[int]],
+        repetitions: Union[int, Sequence[int]],
     ):
         return validate_for_engine(circuits, sweeps, repetitions, max_moments, max_repetitions)
 

@@ -33,7 +33,7 @@ from cirq.type_workarounds import NotImplementedType
 # Sequence[np.ndarray] to ensure the method has the correct type signature in
 # that case. It is checked for using `is`, so it won't have a false positive
 # if the user provides a different (np.array([]),) value.
-RaiseTypeErrorIfNotProvided = (np.array([]),)
+RaiseTypeErrorIfNotProvided: Tuple[np.ndarray] = (np.array([]),)
 
 
 TDefault = TypeVar('TDefault')
@@ -164,13 +164,12 @@ def kraus(
 
     if kraus_getter is None and unitary_getter is None and mixture_getter is None:
         raise TypeError(
-            "object of type '{}' has no _kraus_ or _mixture_ or "
-            "_unitary_ method.".format(type(val))
+            f"object of type '{type(val)}' has no _kraus_ or _mixture_ or _unitary_ method."
         )
 
     raise TypeError(
-        "object of type '{}' does have a _kraus_, _mixture_ or "
-        "_unitary_ method, but it returned NotImplemented.".format(type(val))
+        f"object of type '{type(val)}' does have a _kraus_, _mixture_ or "
+        "_unitary_ method, but it returned NotImplemented."
     )
 
 

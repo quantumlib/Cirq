@@ -1,6 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import warnings
-from typing import Sequence, Union, List, Tuple, Dict, Optional
+from typing import cast, Sequence, Union, List, Tuple, Dict, Optional
 
 import numpy as np
 import quimb
@@ -9,7 +9,6 @@ import quimb.tensor as qtn
 import cirq
 
 
-# coverage: ignore
 def _get_quimb_version():
     """Returns the quimb version and parsed (major,minor) numbers if possible.
     Returns:
@@ -18,7 +17,7 @@ def _get_quimb_version():
     version = quimb.__version__
     try:
         return tuple(int(x) for x in version.split('.')), version
-    except:
+    except:  # pragma: no cover
         return (0, 0), version
 
 
@@ -59,7 +58,7 @@ def circuit_to_tensors(
             corresponding to the |0> state.
     """
     if qubits is None:
-        qubits = sorted(circuit.all_qubits())  # coverage: ignore
+        qubits = sorted(circuit.all_qubits())  # pragma: no cover
 
     qubit_frontier = {q: 0 for q in qubits}
     positions = None
@@ -76,7 +75,7 @@ def circuit_to_tensors(
 
     for moment in circuit.moments:
         for op in moment.operations:
-            assert op.gate._has_unitary_()
+            assert cirq.has_unitary(op.gate)
             start_inds = [f'i{qubit_frontier[q]}_q{q}' for q in op.qubits]
             for q in op.qubits:
                 qubit_frontier[q] += 1
@@ -163,8 +162,7 @@ def tensor_expectation_value(
     ]
     tn = qtn.TensorNetwork(tensors + end_bras)
     if QUIMB_VERSION[0] < (1, 3):
-        # coverage: ignore
-        warnings.warn(
+        warnings.warn(  # pragma: no cover
             f'quimb version {QUIMB_VERSION[1]} detected. Please use '
             f'quimb>=1.3 for optimal performance in '
             '`tensor_expectation_value`. '
@@ -177,6 +175,8 @@ def tensor_expectation_value(
     if ram_gb > max_ram_gb:
         raise MemoryError(f"We estimate that this contraction will take too much RAM! {ram_gb} GB")
     e_val = tn.contract(inplace=True)
+    if isinstance(e_val, qtn.TensorNetwork):
+        e_val = e_val.item()
     assert e_val.imag < tol
-    assert pauli_string.coefficient.imag < tol
+    assert cast(complex, pauli_string.coefficient).imag < tol
     return e_val.real * pauli_string.coefficient

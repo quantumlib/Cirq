@@ -41,7 +41,7 @@ and have a discussion with the maintainers. Mention that you are willing to writ
     * Make sure to share your doc with cirq-dev@googlegroups.com for comments.
     * Link the RFC in your issue.
 4. Recruiting a sponsor:
-    * A sponsor must be a maintainer of the project or the product manager (currently Alan Ho).
+    * A sponsor must be a maintainer of the project or the product manager.
     * Write a comment in your Github issue that calls out that you are "Looking for a sponsor". A maintainer will mark the issue with a label: "rfc/needs-sponsor".
     * While it might take some time to get a maintainer to sponsor your RFC, it is essential, as the sponsor will facilitate the process for reviewing your design.
     * Tips to recruit a sponsor: 1) keep commenting on the issue weekly 2) attend Cirq Cynq and push for a sponsor.
@@ -92,7 +92,7 @@ If you are working on new code to implement an RFC:
 *   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) file in the project repo you're contributing to.
 *   Run unit tests before submitting your code.
 *   Work with the RFC sponsor to successfully land the new code. This could include PR / marketing of the new feature as well.
-*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq/_compat.py) as an example.
+*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_compat.py) as an example.
 
 
 ## Keeping the bar high
@@ -105,5 +105,48 @@ While we encourage and celebrate every contributor, the bar for RFC acceptance i
 *   Failure to achieve consensus during the design review.
 *   Concerns raised during implementation (for example: inability to achieve backwards compatibility, concerns about maintenance).
 
-If this process is functioning well, RFCs are expected to fail in the earlier, rather than later stages. 
+If this process is functioning well, RFCs are expected to fail in the earlier, rather than later stages.
 An approved RFC is not a commitment to implementation on any sort of timeline. The prioritization of features depends on user interest and willingness of contributors to implement them.
+
+## New hardware integrations
+
+Several hardware vendors already have integrations with cirq.
+If you are considering integrating with cirq, please engage with us through the
+cirq-maintainer team by attending the weekly cirq cync meeting and submitting
+an RFC to get feedback on your design proposal (as specified above). The goal of the RFC
+review process is to ensure all integrations end up with a well-maintained, user
+friendly interface with a high reliability.
+
+Examples of other integrations can be found on the
+[Hardware page](../hardware).
+
+There are a range of possibilities for integrating with cirq, including:
+
+*    Completely independent repository: requires the least engagement from
+the cirq team, but also lacks the benefits of a tighter integration and
+partnership.
+*    Different repository with links or tutorials hosted on cirq:
+less coordination is needed than a hosted integration, but requires
+continuous integration on the external repository to ensure compatibility
+with new cirq versions.
+*    Integration hosted within cirq repository:  requires the highest
+amount of coordination and effort but allows a tighter integration and for
+cirq-maintainers to modify the integration code to stay in sync with an
+evolving cirq-core code base.  We generally do not accept submissions for
+this type of integration for third-party vendors that function as
+intermediaries for other cloud vendors.
+
+Several things are needed for a successful integration:
+
+*    Plan for including external dependencies (if needed).
+*    Access and authentication.
+*    Tutorials and guides for use of the interface (for instance,
+a Getting Started guide).
+*    `Device` implementation for validating circuits on the hardware
+*     Transformer for compiling circuits to the supported gates on the
+hardware (or use `cirq.optimize_for_target_gateset`)
+*    ` Sampler` interface for running circuits on the hardware service.
+*     Conisder also providing a noise model that users can use to simulate the
+device if direct access is not available.
+
+

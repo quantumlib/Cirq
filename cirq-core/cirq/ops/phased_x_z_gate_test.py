@@ -263,6 +263,14 @@ def test_parameterized(resolve_fn):
     assert cirq.is_parameterized(gt)
     assert resolve_fn(gt, {'t': c}) == g
 
+    resolver = {'t': 0.5j}
+    with pytest.raises(ValueError, match='Complex exponent'):
+        resolve_fn(cirq.PhasedXZGate(x_exponent=t, z_exponent=b, axis_phase_exponent=c), resolver)
+    with pytest.raises(ValueError, match='Complex exponent'):
+        resolve_fn(cirq.PhasedXZGate(x_exponent=a, z_exponent=t, axis_phase_exponent=c), resolver)
+    with pytest.raises(ValueError, match='Complex exponent'):
+        resolve_fn(cirq.PhasedXZGate(x_exponent=a, z_exponent=b, axis_phase_exponent=t), resolver)
+
 
 def test_str_diagram():
     g = cirq.PhasedXZGate(x_exponent=0.5, z_exponent=0.25, axis_phase_exponent=0.125)

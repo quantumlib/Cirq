@@ -30,7 +30,7 @@ class SupportsPhase(Protocol):
     """An effect that can be phased around the Z axis of target qubits."""
 
     @doc_private
-    def _phase_by_(self: Any, phase_turns: float, qubit_index: int):
+    def _phase_by_(self, phase_turns: float, qubit_index: int):
         """Returns a phased version of the effect.
 
         Specifically, returns an object with matrix P U P^-1 (up to global
@@ -88,6 +88,6 @@ def phase_by(
     if getter is None:
         raise TypeError(f"object of type '{type(val)}' has no _phase_by_ method.")
     raise TypeError(
-        "object of type '{}' does have a _phase_by_ method, "
-        "but it returned NotImplemented.".format(type(val))
+        f"object of type '{type(val)}' does have a _phase_by_ method, "
+        "but it returned NotImplemented."
     )

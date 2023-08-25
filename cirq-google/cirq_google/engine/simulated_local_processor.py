@@ -13,12 +13,12 @@
 # limitations under the License.
 import datetime
 
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, Union
 
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration, util, validating_sampler
+from cirq_google.engine import calibration, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.abstract_program import AbstractProgram
@@ -26,17 +26,12 @@ from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
-
-if TYPE_CHECKING:
-    from cirq_google.serialization.serializer import Serializer
+from cirq_google.engine.processor_sampler import ProcessorSampler
+from cirq_google.engine import engine_validator
 
 VALID_LANGUAGES = [
     'type.googleapis.com/cirq.google.api.v2.Program',
     'type.googleapis.com/cirq.google.api.v2.BatchProgram',
-]
-
-GATE_SET_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
 ]
 
 
@@ -87,6 +82,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         schedule:  List of time slots that the scheduling/reservation should
             use.  All time slots must be non-overlapping.
         project_name: A project_name for resource naming.
+        device_specification: a` DeviceSpecification` proto that the processor
+            should return if `get_device_specification()` is queried.
     """
 
     def __init__(
@@ -94,22 +91,24 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         *args,
         sampler: cirq.Sampler = cirq.Simulator(),
         device: cirq.Device = cirq.UNCONSTRAINED_DEVICE,
-        validator: validating_sampler.VALIDATOR_TYPE = None,
-        gate_set_validator: GATE_SET_VALIDATOR_TYPE = None,
+        validator: Optional[validating_sampler.VALIDATOR_TYPE] = None,
+        program_validator: Optional[engine_validator.PROGRAM_VALIDATOR_TYPE] = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
         calibrations: Optional[Dict[int, calibration.Calibration]] = None,
+        device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self._calibrations = calibrations or {}
         self._device = device
         self._simulation_type = simulation_type
-        self._gate_set_validator = gate_set_validator or (lambda a, b, c, d: None)
+        self._program_validator = program_validator or (lambda a, b, c, d: None)
         self._validator = validator
         self._sampler = validating_sampler.ValidatingSampler(
             device=self._device, validator=self._validator, sampler=sampler
         )
         self._programs: Dict[str, AbstractLocalProgram] = {}
+        self._device_specification = device_specification
 
     def remove_program(self, program_id: str):
         """Remove reference to a child program."""
@@ -127,17 +126,17 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     def get_current_calibration(self) -> Optional[calibration.Calibration]:
         return self.get_latest_calibration(int(datetime.datetime.now().timestamp()))
 
-    def get_device(self, gate_sets: Optional[Iterable['Serializer']] = None) -> cirq.Device:
-        """Returns a `Device` created from the processor's device specification.
+    def get_device(self) -> cirq.Device:
+        """Returns a `cirq.Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `SerializableDevice` that will validate
+        which is then use to create a `cirq.Device` that will validate
         that operations are supported and use the correct qubits.
         """
         return self._device
 
     def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
-        raise NotImplementedError
+        return self._device_specification
 
     def health(self):
         return 'OK'
@@ -159,9 +158,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             if earliest_timestamp_seconds <= cal[0] <= latest_timestamp_seconds
         ]
 
-    @util.deprecated_gate_set_parameter
-    def get_sampler(self, gate_set: Optional['Serializer'] = None) -> cirq.Sampler:
-        return self._sampler
+    def get_sampler(self) -> ProcessorSampler:
+        return ProcessorSampler(processor=self)
 
     def supported_languages(self) -> List[str]:
         return VALID_LANGUAGES
@@ -176,18 +174,14 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         after_limit = created_after or datetime.datetime(datetime.MINYEAR, 1, 1)
         labels = has_labels or {}
 
-        def _labels_match(user_labels, program_labels):
-            return all(
-                (key in program_labels and program_labels[key] == labels[key]) for key in labels
-            )
+        def _labels_match(program_labels):
+            return all(program_labels.get(key) == label for key, label in labels.items())
 
-        return list(
-            filter(
-                lambda program: after_limit < program.create_time() < before_limit
-                and _labels_match(labels, program.labels()),
-                self._programs.values(),
-            )
-        )
+        return [
+            p
+            for p in self._programs.values()
+            if after_limit < p.create_time() < before_limit and _labels_match(p.labels())
+        ]
 
     def get_program(self, program_id: str) -> AbstractProgram:
         """Returns an AbstractProgram for an existing Quantum Engine program.
@@ -203,15 +197,13 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """
         return self._programs[program_id]
 
-    @util.deprecated_gate_set_parameter
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: Sequence[cirq.Sweepable] = None,
+        params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -221,9 +213,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
-        if gate_set is None:
-            gate_set = CIRCUIT_SERIALIZER
-        self._gate_set_validator(programs, params_list or [{}], repetitions, gate_set)
+        self._program_validator(programs, params_list or [{}], repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,
@@ -243,66 +233,13 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._programs[program_id].add_job(job_id, job)
         return job
 
-    @util.deprecated_gate_set_parameter
-    def run(
+    async def run_sweep_async(
         self,
-        program: cirq.Circuit,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        param_resolver: Optional[cirq.ParamResolver] = None,
-        repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-    ) -> cirq.Result:
-        """Runs the supplied Circuit on this processor.
-
-        Args:
-            program: The Circuit to execute. If a circuit is
-                provided, a moment by moment schedule will be used.
-            program_id: A user-provided identifier for the program. This must
-                be unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'job-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
-            program_description: An optional description to set on the program.
-            program_labels: Optional set of labels to set on the program.
-            job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.
-        Returns:
-            A single Result for this run.
-        """
-        return self.run_sweep(
-            program=program,
-            program_id=program_id,
-            job_id=job_id,
-            params=[param_resolver or cirq.ParamResolver({})],
-            repetitions=repetitions,
-            program_description=program_description,
-            program_labels=program_labels,
-            job_description=job_description,
-            job_labels=job_labels,
-        ).results()[0]
-
-    @util.deprecated_gate_set_parameter
-    def run_sweep(
-        self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -312,9 +249,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
-        if gate_set is None:
-            gate_set = CIRCUIT_SERIALIZER
-        self._gate_set_validator([program], [params], repetitions, gate_set)
+        self._program_validator([program], [params], repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,
@@ -334,5 +269,5 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._programs[program_id].add_job(job_id, job)
         return job
 
-    def run_calibration(self, *args, **kwargs):
+    async def run_calibration_async(self, *args, **kwargs):
         raise NotImplementedError

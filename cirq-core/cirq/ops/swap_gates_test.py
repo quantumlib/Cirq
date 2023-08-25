@@ -103,6 +103,20 @@ def test_iswap_unitary():
     # yapf: enable
 
 
+def test_iswap_inv_unitary():
+    # yapf: disable
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(cirq.ISWAP_INV),
+        # Reference for the iswap gate's matrix using +i instead of -i:
+        # https://quantumcomputing.stackexchange.com/questions/2594/
+        np.array([[1, 0, 0, 0],
+                  [0, 0, -1j, 0],
+                  [0, -1j, 0, 0],
+                  [0, 0, 0, 1]]),
+        atol=1e-8)
+    # yapf: enable
+
+
 def test_sqrt_iswap_unitary():
     # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -138,6 +152,9 @@ def test_repr():
     assert repr(cirq.ISWAP) == 'cirq.ISWAP'
     assert repr(cirq.ISWAP**0.5) == '(cirq.ISWAP**0.5)'
 
+    assert repr(cirq.ISWAP_INV) == 'cirq.ISWAP_INV'
+    assert repr(cirq.ISWAP_INV**0.5) == '(cirq.ISWAP**-0.5)'
+
 
 def test_str():
     assert str(cirq.SWAP) == 'SWAP'
@@ -145,6 +162,9 @@ def test_str():
 
     assert str(cirq.ISWAP) == 'ISWAP'
     assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
+
+    assert str(cirq.ISWAP_INV) == 'ISWAP_INV'
+    assert str(cirq.ISWAP_INV**0.5) == 'ISWAP**-0.5'
 
 
 def test_iswap_decompose_diagram():
@@ -207,6 +227,4 @@ def test_riswap_hamiltonian(angle_rads):
 
 @pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
 def test_riswap_has_consistent_protocols(angle_rads):
-    cirq.testing.assert_implements_consistent_protocols(
-        cirq.riswap(angle_rads), ignoring_global_phase=False
-    )
+    cirq.testing.assert_implements_consistent_protocols(cirq.riswap(angle_rads))

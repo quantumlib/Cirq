@@ -14,6 +14,7 @@
 import itertools
 import random
 from typing import Type
+
 from unittest import mock
 import numpy as np
 import pytest
@@ -29,7 +30,7 @@ def test_invalid_dtype():
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_no_measurements(dtype: Type[np.number], split: bool):
+def test_run_no_measurements(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
 
@@ -40,7 +41,7 @@ def test_run_no_measurements(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_no_results(dtype: Type[np.number], split: bool):
+def test_run_no_results(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
 
@@ -51,7 +52,7 @@ def test_run_no_results(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_empty_circuit(dtype: Type[np.number], split: bool):
+def test_run_empty_circuit(dtype: Type[np.complexfloating], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     with pytest.raises(ValueError, match="no measurements"):
         simulator.run(cirq.Circuit())
@@ -59,12 +60,12 @@ def test_run_empty_circuit(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_reset(dtype: Type[np.number], split: bool):
+def test_run_reset(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(
         cirq.H(q0),
-        PlusGate(3, 2)(q1),
+        cirq.XPowGate(dimension=3)(q1) ** 2,
         cirq.reset(q0),
         cirq.measure(q0, key='m0'),
         cirq.measure(q1, key='m1a'),
@@ -79,7 +80,7 @@ def test_run_reset(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_bit_flips(dtype: Type[np.number], split: bool):
+def test_run_bit_flips(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -88,12 +89,12 @@ def test_run_bit_flips(dtype: Type[np.number], split: bool):
                 (cirq.X**b0)(q0), (cirq.X**b1)(q1), cirq.measure(q0), cirq.measure(q1)
             )
             result = simulator.run(circuit)
-            np.testing.assert_equal(result.measurements, {'0': [[b0]], '1': [[b1]]})
+            np.testing.assert_equal(result.measurements, {'q(0)': [[b0]], 'q(1)': [[b1]]})
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_measure_at_end_no_repetitions(dtype: Type[np.number], split: bool):
+def test_run_measure_at_end_no_repetitions(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -104,7 +105,7 @@ def test_run_measure_at_end_no_repetitions(dtype: Type[np.number], split: bool):
                 )
                 result = simulator.run(circuit, repetitions=0)
                 np.testing.assert_equal(
-                    result.measurements, {'0': np.empty([0, 1]), '1': np.empty([0, 1])}
+                    result.measurements, {'q(0)': np.empty([0, 1]), 'q(1)': np.empty([0, 1])}
                 )
                 assert result.repetitions == 0
         assert mock_sim.call_count == 0
@@ -119,7 +120,7 @@ def test_run_repetitions_terminal_measurement_stochastic():
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
+def test_run_repetitions_measure_at_end(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -129,7 +130,9 @@ def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
                     (cirq.X**b0)(q0), (cirq.X**b1)(q1), cirq.measure(q0), cirq.measure(q1)
                 )
                 result = simulator.run(circuit, repetitions=3)
-                np.testing.assert_equal(result.measurements, {'0': [[b0]] * 3, '1': [[b1]] * 3})
+                np.testing.assert_equal(
+                    result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3}
+                )
                 assert result.repetitions == 3
         # We expect one call per b0,b1.
         assert mock_sim.call_count == 8
@@ -137,7 +140,7 @@ def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_invert_mask_measure_not_terminal(dtype: Type[np.number], split: bool):
+def test_run_invert_mask_measure_not_terminal(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -158,7 +161,7 @@ def test_run_invert_mask_measure_not_terminal(dtype: Type[np.number], split: boo
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_partial_invert_mask_measure_not_terminal(dtype: Type[np.number], split: bool):
+def test_run_partial_invert_mask_measure_not_terminal(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -179,7 +182,7 @@ def test_run_partial_invert_mask_measure_not_terminal(dtype: Type[np.number], sp
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_measurement_not_terminal_no_repetitions(dtype: Type[np.number], split: bool):
+def test_run_measurement_not_terminal_no_repetitions(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -195,7 +198,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype: Type[np.number], spl
                 )
                 result = simulator.run(circuit, repetitions=0)
                 np.testing.assert_equal(
-                    result.measurements, {'0': np.empty([0, 1]), '1': np.empty([0, 1])}
+                    result.measurements, {'q(0)': np.empty([0, 1]), 'q(1)': np.empty([0, 1])}
                 )
                 assert result.repetitions == 0
         assert mock_sim.call_count == 0
@@ -203,7 +206,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype: Type[np.number], spl
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split: bool):
+def test_run_repetitions_measurement_not_terminal(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -218,7 +221,9 @@ def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split:
                     cirq.H(q1),
                 )
                 result = simulator.run(circuit, repetitions=3)
-                np.testing.assert_equal(result.measurements, {'0': [[b0]] * 3, '1': [[b1]] * 3})
+                np.testing.assert_equal(
+                    result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3}
+                )
                 assert result.repetitions == 3
         # We expect repeated calls per b0,b1 instead of one call.
         assert mock_sim.call_count > 4
@@ -226,7 +231,7 @@ def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split:
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_param_resolver(dtype: Type[np.number], split: bool):
+def test_run_param_resolver(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -239,58 +244,58 @@ def test_run_param_resolver(dtype: Type[np.number], split: bool):
             )
             param_resolver = cirq.ParamResolver({'b0': b0, 'b1': b1})
             result = simulator.run(circuit, param_resolver=param_resolver)
-            np.testing.assert_equal(result.measurements, {'0': [[b0]], '1': [[b1]]})
+            np.testing.assert_equal(result.measurements, {'q(0)': [[b0]], 'q(1)': [[b1]]})
             np.testing.assert_equal(result.params, param_resolver)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_mixture(dtype: Type[np.number], split: bool):
+def test_run_mixture(dtype: Type[np.complexfloating], split: bool):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert 20 < sum(result.measurements['0'])[0] < 80  # type: ignore
+    assert 20 < sum(result.measurements['q(0)'])[0] < 80
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_mixture_with_gates(dtype: Type[np.number], split: bool):
+def test_run_mixture_with_gates(dtype: Type[np.complexfloating], split: bool):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split, seed=23)
     circuit = cirq.Circuit(cirq.H(q0), cirq.phase_flip(0.5)(q0), cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['0'])[0] < 80  # type: ignore
-    assert sum(result.measurements['0'])[0] > 20  # type: ignore
+    assert sum(result.measurements['q(0)'])[0] < 80
+    assert sum(result.measurements['q(0)'])[0] > 20
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_correlations(dtype: Type[np.number], split: bool):
+def test_run_correlations(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.measure(q0, q1))
     for _ in range(10):
         result = simulator.run(circuit)
-        bits = result.measurements['0,1'][0]
+        bits = result.measurements['q(0),q(1)'][0]
         assert bits[0] == bits[1]
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_measure_multiple_qubits(dtype: Type[np.number], split: bool):
+def test_run_measure_multiple_qubits(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
             circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1), cirq.measure(q0, q1))
             result = simulator.run(circuit, repetitions=3)
-            np.testing.assert_equal(result.measurements, {'0,1': [[b0, b1]] * 3})
+            np.testing.assert_equal(result.measurements, {'q(0),q(1)': [[b0, b1]] * 3})
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_sweeps_param_resolvers(dtype: Type[np.number], split: bool):
+def test_run_sweeps_param_resolvers(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -308,15 +313,15 @@ def test_run_sweeps_param_resolvers(dtype: Type[np.number], split: bool):
             results = simulator.run_sweep(circuit, params=params)
 
             assert len(results) == 2
-            np.testing.assert_equal(results[0].measurements, {'0': [[b0]], '1': [[b1]]})
-            np.testing.assert_equal(results[1].measurements, {'0': [[b1]], '1': [[b0]]})
+            np.testing.assert_equal(results[0].measurements, {'q(0)': [[b0]], 'q(1)': [[b1]]})
+            np.testing.assert_equal(results[1].measurements, {'q(0)': [[b1]], 'q(1)': [[b0]]})
             assert results[0].params == params[0]
             assert results[1].params == params[1]
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_random_unitary(dtype: Type[np.number], split: bool):
+def test_simulate_random_unitary(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for _ in range(10):
@@ -326,13 +331,15 @@ def test_simulate_random_unitary(dtype: Type[np.number], split: bool):
             result = simulator.simulate(random_circuit, qubit_order=[q0, q1], initial_state=x)
             circuit_unitary.append(result.final_state_vector)
         np.testing.assert_almost_equal(
-            np.transpose(circuit_unitary), random_circuit.unitary(qubit_order=[q0, q1]), decimal=6
+            np.transpose(np.array(circuit_unitary)),
+            random_circuit.unitary(qubit_order=[q0, q1]),
+            decimal=6,
         )
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_no_circuit(dtype: Type[np.number], split: bool):
+def test_simulate_no_circuit(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit()
@@ -343,31 +350,13 @@ def test_simulate_no_circuit(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate(dtype: Type[np.number], split: bool):
+def test_simulate(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1))
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
     np.testing.assert_almost_equal(result.final_state_vector, np.array([0.5, 0.5, 0.5, 0.5]))
     assert len(result.measurements) == 0
-
-
-class PlusGate(cirq.Gate):
-    """A qudit gate that increments a qudit state mod its dimension."""
-
-    def __init__(self, dimension, increment=1):
-        self.dimension = dimension
-        self.increment = increment % dimension
-
-    def _qid_shape_(self):
-        return (self.dimension,)
-
-    def _unitary_(self):
-        inc = (self.increment - 1) % self.dimension + 1
-        u = np.empty((self.dimension, self.dimension))
-        u[inc:] = np.eye(self.dimension)[:-inc]
-        u[:inc] = np.eye(self.dimension)[-inc:]
-        return u
 
 
 class _TestMixture(cirq.Gate):
@@ -383,10 +372,10 @@ class _TestMixture(cirq.Gate):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_qudits(dtype: Type[np.number], split: bool):
+def test_simulate_qudits(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
-    circuit = cirq.Circuit(PlusGate(3)(q0), PlusGate(4, increment=3)(q1))
+    circuit = cirq.Circuit(cirq.XPowGate(dimension=3)(q0), cirq.XPowGate(dimension=4)(q1) ** 3)
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
     expected = np.zeros(12)
     expected[4 * 1 + 3] = 1
@@ -396,14 +385,14 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_mixtures(dtype: Type[np.number], split: bool):
+def test_simulate_mixtures(dtype: Type[np.complexfloating], split: bool):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     count = 0
     for _ in range(100):
         result = simulator.simulate(circuit, qubit_order=[q0])
-        if result.measurements['0']:
+        if result.measurements['q(0)']:
             np.testing.assert_almost_equal(result.final_state_vector, np.array([0, 1]))
             count += 1
         else:
@@ -414,15 +403,21 @@ def test_simulate_mixtures(dtype: Type[np.number], split: bool):
 @pytest.mark.parametrize(
     'dtype, split', itertools.product([np.complex64, np.complex128], [True, False])
 )
-def test_simulate_qudit_mixtures(dtype: Type[np.number], split: bool):
+def test_simulate_qudit_mixtures(dtype: Type[np.complexfloating], split: bool):
     q0 = cirq.LineQid(0, 3)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
-    mixture = _TestMixture([PlusGate(3, 0), PlusGate(3, 1), PlusGate(3, 2)])
+    mixture = _TestMixture(
+        [
+            cirq.XPowGate(dimension=3) ** 0,
+            cirq.XPowGate(dimension=3),
+            cirq.XPowGate(dimension=3) ** 2,
+        ]
+    )
     circuit = cirq.Circuit(mixture(q0), cirq.measure(q0))
     counts = {0: 0, 1: 0, 2: 0}
     for _ in range(300):
         result = simulator.simulate(circuit, qubit_order=[q0])
-        meas = result.measurements['0 (d=3)'][0]
+        meas = result.measurements['q(0) (d=3)'][0]
         counts[meas] += 1
         np.testing.assert_almost_equal(
             result.final_state_vector, np.array([meas == 0, meas == 1, meas == 2])
@@ -434,7 +429,7 @@ def test_simulate_qudit_mixtures(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_bit_flips(dtype: Type[np.number], split: bool):
+def test_simulate_bit_flips(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -443,7 +438,7 @@ def test_simulate_bit_flips(dtype: Type[np.number], split: bool):
                 (cirq.X**b0)(q0), (cirq.X**b1)(q1), cirq.measure(q0), cirq.measure(q1)
             )
             result = simulator.simulate(circuit)
-            np.testing.assert_equal(result.measurements, {'0': [b0], '1': [b1]})
+            np.testing.assert_equal(result.measurements, {'q(0)': [b0], 'q(1)': [b1]})
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][b1] = 1.0
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
@@ -451,7 +446,7 @@ def test_simulate_bit_flips(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_initial_state(dtype: Type[np.number], split: bool):
+def test_simulate_initial_state(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -465,13 +460,13 @@ def test_simulate_initial_state(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_act_on_args(dtype: Type[np.number], split: bool):
+def test_simulation_state(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
             circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1))
-            args = simulator._create_act_on_args(initial_state=1, qubits=(q0, q1))
+            args = simulator._create_simulation_state(initial_state=1, qubits=(q0, q1))
             result = simulator.simulate(circuit, initial_state=args)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][1 - b1] = 1.0
@@ -480,7 +475,7 @@ def test_simulate_act_on_args(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_qubit_order(dtype: Type[np.number], split: bool):
+def test_simulate_qubit_order(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -494,7 +489,7 @@ def test_simulate_qubit_order(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_param_resolver(dtype: Type[np.number], split: bool):
+def test_simulate_param_resolver(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -513,19 +508,19 @@ def test_simulate_param_resolver(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_measure_multiple_qubits(dtype: Type[np.number], split: bool):
+def test_simulate_measure_multiple_qubits(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
             circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1), cirq.measure(q0, q1))
             result = simulator.simulate(circuit)
-            np.testing.assert_equal(result.measurements, {'0,1': [b0, b1]})
+            np.testing.assert_equal(result.measurements, {'q(0),q(1)': [b0, b1]})
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_sweeps_param_resolver(dtype: Type[np.number], split: bool):
+def test_simulate_sweeps_param_resolver(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -552,32 +547,32 @@ def test_simulate_sweeps_param_resolver(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
-            np.testing.assert_almost_equal(step.state_vector(), np.array([0.5] * 4))
+            np.testing.assert_almost_equal(step.state_vector(copy=True), np.array([0.5] * 4))
         else:
-            np.testing.assert_almost_equal(step.state_vector(), np.array([1, 0, 0, 0]))
+            np.testing.assert_almost_equal(step.state_vector(copy=True), np.array([1, 0, 0, 0]))
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps_empty_circuit(dtype: Type[np.complexfloating], split: bool):
     circuit = cirq.Circuit()
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     step = None
     for step in simulator.simulate_moment_steps(circuit):
         pass
-    assert np.allclose(step.state_vector(), np.array([1]))
+    assert np.allclose(step.state_vector(copy=True), np.array([1]))
     assert not step.qubit_map
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps_sample(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps_sample(dtype: Type[np.complexfloating], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -598,24 +593,26 @@ def test_simulate_moment_steps_sample(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps_intermediate_measurement(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps_intermediate_measurement(
+    dtype: Type[np.complexfloating], split: bool
+):
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0), cirq.H(q0))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 1:
-            result = int(step.measurements['0'][0])
+            result = int(step.measurements['q(0)'][0])
             expected = np.zeros(2)
             expected[result] = 1
-            np.testing.assert_almost_equal(step.state_vector(), expected)
+            np.testing.assert_almost_equal(step.state_vector(copy=True), expected)
         if i == 2:
             expected = np.array([np.sqrt(0.5), np.sqrt(0.5) * (-1) ** result])
-            np.testing.assert_almost_equal(step.state_vector(), expected)
+            np.testing.assert_almost_equal(step.state_vector(copy=True), expected)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_expectation_values(dtype: Type[np.number], split: bool):
+def test_simulate_expectation_values(dtype: Type[np.complexfloating], split: bool):
     # Compare with test_expectation_from_state_vector_two_qubit_states
     # in file: cirq/ops/linear_combinations_test.py
     q0, q1 = cirq.LineQubit.range(2)
@@ -640,7 +637,7 @@ def test_simulate_expectation_values(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_expectation_values_terminal_measure(dtype: Type[np.number], split: bool):
+def test_simulate_expectation_values_terminal_measure(dtype: Type[np.complexfloating], split: bool):
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
     obs = cirq.Z(q0)
@@ -678,7 +675,7 @@ def test_simulate_expectation_values_terminal_measure(dtype: Type[np.number], sp
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_expectation_values_qubit_order(dtype: Type[np.number], split: bool):
+def test_simulate_expectation_values_qubit_order(dtype: Type[np.complexfloating], split: bool):
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.X(q2))
     obs = cirq.X(q0) + cirq.X(q1) - cirq.Z(q2)
@@ -749,7 +746,7 @@ def test_does_not_modify_initial_state():
 
 def test_simulator_step_state_mixin():
     qubits = cirq.LineQubit.range(2)
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
         prng=cirq.value.parse_random_state(0),
         qubits=qubits,
@@ -765,6 +762,25 @@ def test_simulator_step_state_mixin():
     assert result.dirac_notation() == '|01⟩'
 
 
+def test_sparse_simulator_repr():
+    qubits = cirq.LineQubit.range(2)
+    args = cirq.StateVectorSimulationState(
+        available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
+        prng=cirq.value.parse_random_state(0),
+        qubits=qubits,
+        initial_state=np.array([0, 1, 0, 0], dtype=np.complex64).reshape((2, 2)),
+        dtype=np.complex64,
+    )
+    step = cirq.SparseSimulatorStep(sim_state=args, dtype=np.complex64)
+    # No equality so cannot use cirq.testing.assert_equivalent_repr
+    assert (
+        repr(step) == "cirq.SparseSimulatorStep(sim_state=cirq.StateVectorSimulationState("
+        "initial_state=np.array([[0j, (1+0j)], [0j, 0j]], dtype=np.dtype('complex64')), "
+        "qubits=(cirq.LineQubit(0), cirq.LineQubit(1)), "
+        "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.dtype('complex64'))"
+    )
+
+
 class MultiHTestGate(cirq.testing.TwoQubitGate):
     def _decompose_(self, qubits):
         return cirq.H.on_each(*qubits)
@@ -773,7 +789,9 @@ class MultiHTestGate(cirq.testing.TwoQubitGate):
 def test_simulates_composite():
     c = cirq.Circuit(MultiHTestGate().on(*cirq.LineQubit.range(2)))
     expected = np.array([0.5] * 4)
-    np.testing.assert_allclose(c.final_state_vector(), expected)
+    np.testing.assert_allclose(
+        c.final_state_vector(ignore_terminal_measurements=False, dtype=np.complex64), expected
+    )
     np.testing.assert_allclose(cirq.Simulator().simulate(c).state_vector(), expected)
 
 
@@ -834,10 +852,10 @@ def test_measure_at_end_invert_mask_partial():
 def test_qudit_invert_mask():
     q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
     c = cirq.Circuit(
-        PlusGate(2, 1)(q0),
-        PlusGate(3, 1)(q2),
-        PlusGate(3, 2)(q3),
-        PlusGate(4, 3)(q4),
+        cirq.XPowGate(dimension=2)(q0),
+        cirq.XPowGate(dimension=3)(q2),
+        cirq.XPowGate(dimension=3)(q3) ** 2,
+        cirq.XPowGate(dimension=4)(q4) ** 3,
         cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
     )
     assert np.all(cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])
@@ -1296,7 +1314,7 @@ def test_state_vector_copy():
     vectors = []
     copy_of_vectors = []
     for step in sim.simulate_moment_steps(circuit):
-        state_vector = step.state_vector(copy=False)
+        state_vector = step.state_vector()
         vectors.append(state_vector)
         copy_of_vectors.append(state_vector.copy())
     assert any(not np.array_equal(x, y) for x, y in zip(vectors, copy_of_vectors))
@@ -1343,11 +1361,11 @@ def test_nondeterministic_mixture_noise():
     assert result1 != result2
 
 
-def test_act_on_args_pure_state_creation():
+def test_pure_state_creation():
     sim = cirq.Simulator()
     qids = cirq.LineQubit.range(3)
     shape = cirq.qid_shape(qids)
-    args = sim._create_act_on_args(1, qids)
+    args = sim._create_simulation_state(1, qids)
     values = list(args.values())
     arg = (
         values[0]
@@ -1367,7 +1385,7 @@ def test_noise_model():
     simulator = cirq.Simulator(noise=noise_model)
     result = simulator.run(circuit, repetitions=100)
 
-    assert 20 <= sum(result.measurements['0'])[0] < 80
+    assert 20 <= sum(result.measurements['q(0)'])[0] < 80
 
 
 def test_separated_states_str_does_not_merge():
@@ -1379,7 +1397,7 @@ def test_separated_states_str_does_not_merge():
     result = cirq.Simulator().simulate(circuit)
     assert (
         str(result)
-        == """measurements: 0=0 1=0
+        == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0),)
 output vector: 0.707|0⟩ + 0.707|1⟩
@@ -1411,8 +1429,24 @@ def test_unseparated_states_str():
     result = cirq.Simulator(split_untangled_states=False).simulate(circuit)
     assert (
         str(result)
-        == """measurements: 0=0 1=0
+        == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
 output vector: 0.707j|00⟩ + 0.707j|10⟩"""
     )
+
+
+@pytest.mark.parametrize('split', [True, False])
+def test_measurement_preserves_phase(split: bool):
+    c1, c2, t = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.H(t),
+        cirq.measure(t, key='t'),
+        cirq.CZ(c1, c2).with_classical_controls('t'),
+        cirq.reset(t),
+    )
+    simulator = cirq.Simulator(split_untangled_states=split)
+    # Run enough times that both options of |110> - |111> are likely measured.
+    for _ in range(20):
+        result = simulator.simulate(circuit, initial_state=(1, 1, 1), qubit_order=(c1, c2, t))
+        assert result.dirac_notation() == '|110⟩'

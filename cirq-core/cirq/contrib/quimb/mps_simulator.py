@@ -25,9 +25,8 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, protocols, qis, value
-from cirq._compat import deprecated_parameter
 from cirq.sim import simulator_base
-from cirq.sim.act_on_args import ActOnArgs
+from cirq.sim.simulation_state import SimulationState
 
 if TYPE_CHECKING:
     import cirq
@@ -83,7 +82,7 @@ class MPSSimulator(
         self.grouping = grouping
         super().__init__(noise=noise, seed=seed)
 
-    def _create_partial_act_on_args(
+    def _create_partial_simulation_state(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
@@ -115,14 +114,14 @@ class MPSSimulator(
             classical_data=classical_data,
         )
 
-    def _create_step_result(self, sim_state: 'cirq.OperationTarget[MPSState]'):
+    def _create_step_result(self, sim_state: 'cirq.SimulationStateBase[MPSState]'):
         return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'MPSSimulatorStepResult',
+        final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
     ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
@@ -130,13 +129,13 @@ class MPSSimulator(
             params: A ParamResolver for determining values of Symbols.
             measurements: A dictionary from measurement key (e.g. qubit) to the
                 actual measurement array.
-            final_step_result: The final step result of the simulation.
+            final_simulator_state: The final state of the simulation.
 
         Returns:
             A single result.
         """
         return MPSTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
 
@@ -147,10 +146,10 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'MPSSimulatorStepResult',
+        final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     @property
@@ -174,10 +173,10 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
 class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState']):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(self, sim_state: 'cirq.OperationTarget[MPSState]'):
+    def __init__(self, sim_state: 'cirq.SimulationStateBase[MPSState]'):
         """Results of a step of the simulator.
         Attributes:
-            sim_state: The qubit:ActOnArgs lookup for this step.
+            sim_state: The qubit:SimulationState lookup for this step.
         """
         super().__init__(sim_state)
 
@@ -559,31 +558,18 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
 
 @value.value_equality
-class MPSState(ActOnArgs[_MPSHandler]):
+class MPSState(SimulationState[_MPSHandler]):
     """A state of the MPS simulation."""
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Use kwargs instead of positional args',
-        parameter_desc='args',
-        match=lambda args, kwargs: len(args) > 1,
-    )
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Replace log_of_measurement_results with'
-        ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
-    )
     def __init__(
         self,
+        *,
         qubits: Sequence['cirq.Qid'],
         prng: np.random.RandomState,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
-        log_of_measurement_results: Dict[str, Any] = None,
-        classical_data: 'cirq.ClassicalDataStore' = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Creates and MPSState
 
@@ -595,8 +581,6 @@ class MPSState(ActOnArgs[_MPSHandler]):
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
 
@@ -613,16 +597,7 @@ class MPSState(ActOnArgs[_MPSHandler]):
             simulation_options=simulation_options,
             grouping={qubit_map[k]: v for k, v in final_grouping.items()},
         )
-        if log_of_measurement_results is not None:
-            super().__init__(
-                state=state,
-                prng=prng,
-                qubits=qubits,
-                log_of_measurement_results=log_of_measurement_results,
-                classical_data=classical_data,
-            )
-        else:
-            super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
+        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.

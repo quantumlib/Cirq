@@ -16,11 +16,6 @@ import pytest
 import cirq
 
 
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated("Use cirq.transformers.stratify instead", deadline="v0.16"):
-        _ = cirq.optimizers.stratify.stratified_circuit
-
-
 def test_stratified_circuit_classifier_types():
     a, b, c, d = cirq.LineQubit.range(4)
 
@@ -229,17 +224,14 @@ def test_stratify_respects_no_compile_operations():
     )
     expected = cirq.Circuit(
         [
+            cirq.Moment(cirq.Z(cirq.LineQubit(4))),
+            cirq.Moment(cirq.ISWAP(cirq.LineQubit(3), cirq.LineQubit(4))),
             cirq.Moment(
                 cirq.TaggedOperation(cirq.X(cirq.LineQubit(0)), 'nocompile'),
                 cirq.TaggedOperation(cirq.ISWAP(cirq.LineQubit(1), cirq.LineQubit(2)), 'nocompile'),
             ),
-            cirq.Moment(cirq.X(cirq.LineQubit(0))),
-            cirq.Moment(cirq.Z(cirq.LineQubit(4))),
-            cirq.Moment(
-                cirq.ISWAP(cirq.LineQubit(3), cirq.LineQubit(4)),
-                cirq.ISWAP(cirq.LineQubit(0), cirq.LineQubit(1)),
-            ),
-            cirq.Moment(cirq.X(cirq.LineQubit(3))),
+            cirq.Moment(cirq.X(cirq.LineQubit(0)), cirq.X(cirq.LineQubit(3))),
+            cirq.Moment(cirq.ISWAP(cirq.LineQubit(0), cirq.LineQubit(1))),
         ]
     )
     cirq.testing.assert_has_diagram(
@@ -259,15 +251,15 @@ def test_stratify_respects_no_compile_operations():
     cirq.testing.assert_has_diagram(
         expected,
         '''
-0: ───X['nocompile']───────X───────iSwap───────
-                                   │
-1: ───iSwap['nocompile']───────────iSwap───────
-      │
-2: ───iSwap────────────────────────────────────
+0: ───────────────X['nocompile']───────X───iSwap───
+                                           │
+1: ───────────────iSwap['nocompile']───────iSwap───
+                  │
+2: ───────────────iSwap────────────────────────────
 
-3: ────────────────────────────────iSwap───X───
-                                   │
-4: ────────────────────────────Z───iSwap───────
+3: ───────iSwap────────────────────────X───────────
+          │
+4: ───Z───iSwap────────────────────────────────────
 ''',
     )
     cirq.testing.assert_same_circuits(
@@ -414,3 +406,10 @@ def test_surface_code_cycle_stratifies_without_growing():
     # https://github.com/quantumlib/Cirq/pull/2772/ for some discussion on
     # this, as well as a more optimal but much more complex and slow solution.
     assert len(stratified) == 9
+
+
+def test_unclassified_ops():
+    op = cirq.X(cirq.q(0))
+    classifiers = []
+    with pytest.raises(ValueError, match='not identified by any classifier'):
+        cirq.transformers.stratify._get_op_class(op, classifiers)

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Tests for parameter resolvers."""
+
 import fractions
 
 import numpy as np
@@ -25,6 +26,7 @@ import cirq
 @pytest.mark.parametrize(
     'val',
     [
+        None,
         3.2,
         np.float32(3.2),
         int(1),
@@ -156,27 +158,13 @@ def test_param_dict_iter():
 
 
 def test_formulas_in_param_dict():
-    """Test formulas in a `param_dict`.
-
-    Param dicts are allowed to have str or sympy.Symbol as keys and
-    floats or sympy.Symbol as values.  This should not be a common use case,
-    but this tests makes sure something reasonable is returned when
-    mixing these types and using formulas in ParamResolvers.
-
-    Note that sympy orders expressions for deterministic resolution, so
-    depending on the operands sent to sub(), the expression may not fully
-    resolve if it needs to take several iterations of resolution.
-    """
+    """Tests that formula keys are rejected in a `param_dict`."""
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
     e = sympy.Symbol('e')
-    r = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
-    assert sympy.Eq(r.value_of('a'), 3)
-    assert sympy.Eq(r.value_of('b'), 2)
-    assert sympy.Eq(r.value_of(b + c), 101)
-    assert sympy.Eq(r.value_of('c'), c)
-    assert sympy.Eq(r.value_of('d'), 2 * e)
+    with pytest.raises(TypeError, match='formula'):
+        _ = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
 
 
 def test_recursive_evaluation():
@@ -240,25 +228,30 @@ def test_custom_resolved_value():
         def _resolved_value_(self):
             return self
 
-    class Bar:
-        def _resolved_value_(self):
-            return NotImplemented
-
     class Baz:
         def _resolved_value_(self):
             return 'Baz'
 
     foo = Foo()
-    bar = Bar()
     baz = Baz()
 
     a = sympy.Symbol('a')
-    b = sympy.Symbol('b')
-    c = sympy.Symbol('c')
-    r = cirq.ParamResolver({a: foo, b: bar, c: baz})
+    b = sympy.Symbol('c')
+    r = cirq.ParamResolver({a: foo, b: baz})
     assert r.value_of(a) is foo
-    assert r.value_of(b) is b
-    assert r.value_of(c) == 'Baz'
+    assert r.value_of(b) == 'Baz'
+
+
+def test_custom_value_not_implemented():
+    class Bar:
+        def _resolved_value_(self):
+            return NotImplemented
+
+    b = sympy.Symbol('b')
+    bar = Bar()
+    r = cirq.ParamResolver({b: bar})
+    with pytest.raises(sympy.SympifyError):
+        _ = r.value_of(b)
 
 
 def test_compose():

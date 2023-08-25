@@ -171,11 +171,13 @@ def test_mul():
 
     # Mixed types.
     m = cirq.MutableDensePauliString
-    assert m('X') * m('Z') == -1j * f('Y')
-    assert m('X') * f('Z') == -1j * f('Y')
+    assert m('X') * m('Z') == -1j * m('Y')
+    assert m('X') * f('Z') == -1j * m('Y')
+    assert f('X') * m('Z') == -1j * m('Y')
     assert isinstance(f('') * f(''), cirq.DensePauliString)
-    assert isinstance(m('') * m(''), cirq.DensePauliString)
-    assert isinstance(m('') * f(''), cirq.DensePauliString)
+    assert isinstance(m('') * m(''), cirq.MutableDensePauliString)
+    assert isinstance(m('') * f(''), cirq.MutableDensePauliString)
+    assert isinstance(f('') * m(''), cirq.MutableDensePauliString)
 
     # Different lengths.
     assert f('I') * f('III') == f('III')
@@ -399,11 +401,16 @@ def test_protocols():
 def test_parameterizable(resolve_fn):
     t = sympy.Symbol('t')
     x = cirq.DensePauliString('X')
+    xt = x * t
+    x2 = x * 2
+    q = cirq.LineQubit(0)
     assert not cirq.is_parameterized(x)
     assert not cirq.is_parameterized(x * 2)
     assert cirq.is_parameterized(x * t)
-    assert resolve_fn(x * t, {'t': 2}) == x * 2
+    assert resolve_fn(xt, {'t': 2}) == x2
     assert resolve_fn(x * 3, {'t': 2}) == x * 3
+    assert resolve_fn(xt(q), {'t': 2}).gate == x2
+    assert resolve_fn(xt(q).gate, {'t': 2}) == x2
 
 
 def test_item_immutable():
@@ -477,8 +484,9 @@ def test_tensor_product():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
     assert (2 * f('XX')).tensor_product(-f('XI')) == -2 * f('XXXI')
-    assert m('XX', coefficient=2).tensor_product(-f('XI')) == -2 * f('XXXI')
-    assert m('XX', coefficient=2).tensor_product(m('XI', coefficient=-1)) == -2 * f('XXXI')
+    assert m('XX', coefficient=2).tensor_product(-f('XI')) == -2 * m('XXXI')
+    assert f('XX', coefficient=2).tensor_product(-m('XI')) == -2 * f('XXXI')
+    assert m('XX', coefficient=2).tensor_product(m('XI', coefficient=-1)) == -2 * m('XXXI')
 
 
 def test_commutes():
@@ -628,9 +636,15 @@ def test_idiv():
 def test_symbolic():
     t = sympy.Symbol('t')
     r = sympy.Symbol('r')
-    p = cirq.MutableDensePauliString('XYZ', coefficient=t)
-    assert p * r == cirq.DensePauliString('XYZ', coefficient=t * r)
-    p *= r
-    assert p == cirq.MutableDensePauliString('XYZ', coefficient=t * r)
-    p /= r
-    assert p == cirq.MutableDensePauliString('XYZ', coefficient=t)
+    m = cirq.MutableDensePauliString('XYZ', coefficient=t)
+    f = cirq.DensePauliString('XYZ', coefficient=t)
+    assert f * r == cirq.DensePauliString('XYZ', coefficient=t * r)
+    assert m * r == cirq.MutableDensePauliString('XYZ', coefficient=t * r)
+    m *= r
+    f *= r
+    assert m == cirq.MutableDensePauliString('XYZ', coefficient=t * r)
+    assert f == cirq.DensePauliString('XYZ', coefficient=t * r)
+    m /= r
+    f /= r
+    assert m == cirq.MutableDensePauliString('XYZ', coefficient=t)
+    assert f == cirq.DensePauliString('XYZ', coefficient=t)

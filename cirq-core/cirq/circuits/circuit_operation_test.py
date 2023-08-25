@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import unittest.mock as mock
 from typing import Optional
 
 import numpy as np
@@ -18,6 +19,8 @@ import pytest
 import sympy
 
 import cirq
+import cirq.circuits.circuit_operation as circuit_operation
+from cirq import _compat
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
 ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
@@ -88,10 +91,11 @@ def test_is_measurement_memoization():
     a = cirq.LineQubit(0)
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
     c_op = cirq.CircuitOperation(circuit)
-    assert circuit._has_measurements is None
-    # Memoize `_has_measurements` in the circuit.
+    cache_name = _compat._method_cache_name(circuit._is_measurement_)
+    assert not hasattr(circuit, cache_name)
+    # Memoize `_is_measurement_` in the circuit.
     assert cirq.is_measurement(c_op)
-    assert circuit._has_measurements is True
+    assert hasattr(circuit, cache_name)
 
 
 def test_invalid_measurement_keys():
@@ -270,7 +274,7 @@ def test_recursive_params():
 
 @pytest.mark.parametrize('add_measurements', [True, False])
 @pytest.mark.parametrize('use_default_ids_for_initial_rep', [True, False])
-def test_repeat(add_measurements, use_default_ids_for_initial_rep):
+def test_repeat(add_measurements: bool, use_default_ids_for_initial_rep: bool) -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
     if add_measurements:
@@ -323,9 +327,9 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
         _ = op_base.repeat()
 
     with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
-        _ = op_base.repeat(1.3)
-    assert op_base.repeat(3.00000000001).repetitions == 3
-    assert op_base.repeat(2.99999999999).repetitions == 3
+        _ = op_base.repeat(1.3)  # type: ignore[arg-type]
+    assert op_base.repeat(3.00000000001).repetitions == 3  # type: ignore[arg-type]
+    assert op_base.repeat(2.99999999999).repetitions == 3  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize('add_measurements', [True, False])
@@ -344,6 +348,27 @@ def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
     assert np.allclose(result.state_vector(), [0, 1] if initial_reps % 2 else [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op**0))
     assert np.allclose(result.state_vector(), [1, 0])
+
+
+def test_no_repetition_ids():
+    def default_repetition_ids(self):  # pragma: no cover
+        assert False, "Should not call default_repetition_ids"
+
+    with mock.patch.object(circuit_operation, 'default_repetition_ids', new=default_repetition_ids):
+        q = cirq.LineQubit(0)
+        op = cirq.CircuitOperation(
+            cirq.Circuit(cirq.X(q), cirq.measure(q)).freeze(),
+            repetitions=1_000_000,
+            use_repetition_ids=False,
+        )
+        assert op.repetitions == 1_000_000
+        assert op.repetition_ids is None
+        _ = repr(op)
+        _ = str(op)
+
+        op2 = op.repeat(10)
+        assert op2.repetitions == 10_000_000
+        assert op2.repetition_ids is None
 
 
 def test_parameterized_repeat():
@@ -516,7 +541,7 @@ def test_string_format():
 
     fc0 = cirq.FrozenCircuit()
     op0 = cirq.CircuitOperation(fc0)
-    assert str(op0) == f"[  ]"
+    assert str(op0) == "[  ]"
 
     fc0_global_phase_inner = cirq.FrozenCircuit(
         cirq.global_phase_operation(1j), cirq.global_phase_operation(1j)
@@ -528,7 +553,7 @@ def test_string_format():
     op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
     assert (
         str(op0_global_phase_outer)
-        == f"""\
+        == """\
 [                       ]
 [                       ]
 [ global phase:   -0.5π ]"""
@@ -538,7 +563,7 @@ def test_string_format():
     op1 = cirq.CircuitOperation(fc1)
     assert (
         str(op1)
-        == f"""\
+        == """\
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
@@ -574,10 +599,10 @@ cirq.CircuitOperation(
     )
     assert (
         str(op2)
-        == f"""\
+        == """\
 [ 0: ───X───X─── ]
 [           │    ]
-[ 1: ───H───@─── ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
+[ 1: ───H───@─── ](qubit_map={q(1): q(2)}, parent_path=('outer', 'inner'),\
  repetition_ids=['a', 'b', 'c'])"""
     )
     assert (
@@ -610,9 +635,9 @@ cirq.CircuitOperation(
     indented_fc3_repr = repr(fc3).replace('\n', '\n    ')
     assert (
         str(op3)
-        == f"""\
-[ 0: ───X^b───M('m')─── ](qubit_map={{0: 1}}, \
-key_map={{m: p}}, params={{b: 2}})"""
+        == """\
+[ 0: ───X^b───M('m')─── ](qubit_map={q(0): q(1)}, \
+key_map={m: p}, params={b: 2})"""
     )
     assert (
         repr(op3)
@@ -971,8 +996,10 @@ def test_keys_under_parent_path():
     assert cirq.measurement_key_names(op1) == {'A'}
     op2 = op1.with_key_path(('B',))
     assert cirq.measurement_key_names(op2) == {'B:A'}
-    op3 = op2.repeat(2)
-    assert cirq.measurement_key_names(op3) == {'B:0:A', 'B:1:A'}
+    op3 = cirq.with_key_path_prefix(op2, ('C',))
+    assert cirq.measurement_key_names(op3) == {'C:B:A'}
+    op4 = op3.repeat(2)
+    assert cirq.measurement_key_names(op4) == {'C:B:0:A', 'C:B:1:A'}
 
 
 def test_mapped_circuit_preserves_moments():

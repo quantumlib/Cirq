@@ -18,7 +18,9 @@ from cirq_pasqal._version import __version__
 
 from cirq_pasqal.pasqal_qubits import ThreeDQubit, TwoDQubit
 
-from cirq_pasqal.pasqal_device import PasqalDevice, PasqalVirtualDevice, PasqalConverter
+from cirq_pasqal.pasqal_gateset import PasqalGateset
+
+from cirq_pasqal.pasqal_device import PasqalDevice, PasqalVirtualDevice
 
 from cirq_pasqal.pasqal_noise_model import PasqalNoiseModel
 

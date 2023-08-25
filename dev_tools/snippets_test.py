@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for executable snippets in documentation.
 
 This tests runs code snippets that are executable in `.md` and `.rst`
@@ -55,7 +56,7 @@ In addition to checking that the code executes:
 """
 import inspect
 import sys
-from typing import Any, Dict, List, Pattern, Tuple, Iterator
+from typing import Any, Dict, List, Optional, Pattern, Tuple, Iterator
 
 import os
 import pathlib
@@ -462,7 +463,9 @@ def test_canonicalize_printed_line():
     assert canonicalize_printed_line(a) == canonicalize_printed_line(b)
 
 
-def assert_code_snippet_executes_correctly(snippet: str, state: Dict, line_number: int = None):
+def assert_code_snippet_executes_correctly(
+    snippet: str, state: Dict, line_number: Optional[int] = None
+):
     """Executes a snippet and compares output / errors to annotations."""
 
     raises_annotation = re.search(r"# raises\s*(\S*)", snippet)
@@ -484,7 +487,7 @@ def assert_code_snippet_executes_correctly(snippet: str, state: Dict, line_numbe
 
 
 def assert_code_snippet_runs_and_prints_expected(
-    snippet: str, state: Dict, line_number: int = None
+    snippet: str, state: Dict, line_number: Optional[int] = None
 ):
     """Executes a snippet and compares captured output to annotated output."""
     output_lines: List[str] = []
@@ -499,6 +502,7 @@ def assert_code_snippet_runs_and_prints_expected(
 
         assert_expected_lines_present_in_order(expected_outputs, output_lines)
     except AssertionError as ex:
+        # pylint: disable=consider-using-f-string
         new_msg = ex.args[0] + '\n\nIn snippet{}:\n{}'.format(
             "" if line_number is None else " (line {})".format(line_number), _indent([snippet])
         )
@@ -512,6 +516,7 @@ def assert_code_snippet_fails(snippet: str, state: Dict, expected_failure_type: 
     except Exception as ex:
         actual_failure_types = [e.__name__ for e in inspect.getmro(type(ex))]
         if expected_failure_type not in actual_failure_types:
+            # pylint: disable=consider-using-f-string
             raise AssertionError(
                 'Expected snippet to raise a {}, but it raised a {}.'.format(
                     expected_failure_type, ' -> '.join(actual_failure_types)

@@ -14,6 +14,7 @@
 from typing import (
     AbstractSet,
     Any,
+    Mapping,
     Dict,
     FrozenSet,
     List,
@@ -27,7 +28,7 @@ from typing import (
 import sympy
 
 from cirq import protocols, value
-from cirq.ops import raw_types
+from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -104,11 +105,18 @@ class ClassicallyControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
-        result = protocols.decompose_once(self._sub_operation, NotImplemented)
+        return self._decompose_with_context_()
+
+    def _decompose_with_context_(self, context: Optional['cirq.DecompositionContext'] = None):
+        result = protocols.decompose_once(
+            self._sub_operation, NotImplemented, flatten=False, context=context
+        )
         if result is NotImplemented:
             return NotImplemented
 
-        return [ClassicallyControlledOperation(op, self._conditions) for op in result]
+        return op_tree.transform_op_tree(
+            result, lambda op: ClassicallyControlledOperation(op, self._conditions)
+        )
 
     def _value_equality_values_(self):
         return (frozenset(self._conditions), self._sub_operation)
@@ -133,7 +141,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'ClassicallyControlledOperation':
         new_sub_op = protocols.resolve_parameters(self._sub_operation, resolver, recursive)
-        return new_sub_op.with_classical_controls(*self._conditions)
+        return ClassicallyControlledOperation(new_sub_op, self._conditions)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -147,10 +155,14 @@ class ClassicallyControlledOperation(raw_types.Operation):
         )
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
-            return NotImplemented  # coverage: ignore
-        control_count = len({k for c in self._conditions for k in c.keys})
-        wire_symbols = sub_info.wire_symbols + ('^',) * control_count
-        if any(not isinstance(c, value.KeyCondition) for c in self._conditions):
+            return NotImplemented  # pragma: no cover
+        control_label_count = 0
+        if args.label_map is not None:
+            control_label_count = len({k for c in self._conditions for k in c.keys})
+        wire_symbols = sub_info.wire_symbols + ('^',) * control_label_count
+        if control_label_count == 0 or any(
+            not isinstance(c, value.KeyCondition) for c in self._conditions
+        ):
             wire_symbols = (
                 wire_symbols[0]
                 + '(conditions=['
@@ -159,9 +171,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
             ) + wire_symbols[1:]
         exponent_qubit_index = None
         if sub_info.exponent_qubit_index is not None:
-            exponent_qubit_index = sub_info.exponent_qubit_index + control_count
+            exponent_qubit_index = sub_info.exponent_qubit_index + control_label_count
         elif sub_info.exponent is not None:
-            exponent_qubit_index = control_count
+            exponent_qubit_index = control_label_count
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,
@@ -171,13 +183,13 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return {'conditions': self._conditions, 'sub_operation': self._sub_operation}
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
-        if all(c.resolve(args.classical_data) for c in self._conditions):
-            protocols.act_on(self._sub_operation, args)
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
+        if all(c.resolve(sim_state.classical_data) for c in self._conditions):
+            protocols.act_on(self._sub_operation, sim_state)
         return True
 
     def _with_measurement_key_mapping_(
-        self, key_map: Dict[str, str]
+        self, key_map: Mapping[str, str]
     ) -> 'ClassicallyControlledOperation':
         conditions = [protocols.with_measurement_key_mapping(c, key_map) for c in self._conditions]
         sub_operation = protocols.with_measurement_key_mapping(self._sub_operation, key_map)
@@ -205,5 +217,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
         args.validate_version('2.0')
-        all_keys = " && ".join(c.qasm for c in self._conditions)
-        return args.format('if ({0}) {1}', all_keys, protocols.qasm(self._sub_operation, args=args))
+        if len(self._conditions) > 1:
+            raise ValueError('QASM does not support multiple conditions.')
+        subop_qasm = protocols.qasm(self._sub_operation, args=args)
+        if not self._conditions:
+            return subop_qasm
+        return f'if ({self._conditions[0].qasm}) {subop_qasm}'

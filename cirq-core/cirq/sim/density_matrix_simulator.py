@@ -12,24 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, List
+from typing import Any, Dict, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import ops, protocols, study, value
-from cirq._compat import deprecated_parameter, proper_repr
-from cirq.sim import simulator, act_on_density_matrix_args, simulator_base
+from cirq._compat import proper_repr
+from cirq.sim import simulator, density_matrix_simulation_state, simulator_base
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 class DensityMatrixSimulator(
     simulator_base.SimulatorBase[
         'cirq.DensityMatrixStepResult',
         'cirq.DensityMatrixTrialResult',
-        'cirq.ActOnDensityMatrixArgs',
+        'cirq.DensityMatrixSimulationState',
     ],
     simulator.SimulatesExpectationValues,
 ):
@@ -105,9 +104,10 @@ class DensityMatrixSimulator(
         simulate_moment_steps(circuit, param_resolver, qubit_order,
                               initial_state)
 
-    One can iterate over the moments via
+    One can iterate over the moments with the following
+    (replace 'sim' with your `Simulator` object):
 
-        for step_result in simulate_moments(circuit):
+        for step_result in sim.simulate_moment_steps(circuit):
            # do something with the density matrix via
            # step_result.density_matrix()
     """
@@ -115,7 +115,7 @@ class DensityMatrixSimulator(
     def __init__(
         self,
         *,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = True,
@@ -145,13 +145,15 @@ class DensityMatrixSimulator(
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
-    def _create_partial_act_on_args(
+    def _create_partial_simulation_state(
         self,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
+        initial_state: Union[
+            np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.DensityMatrixSimulationState'
+        ],
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
-    ) -> 'cirq.ActOnDensityMatrixArgs':
-        """Creates the ActOnDensityMatrixArgs for a circuit.
+    ) -> 'cirq.DensityMatrixSimulationState':
+        """Creates the DensityMatrixSimulationState for a circuit.
 
         Args:
             initial_state: The initial state for the simulation in the
@@ -163,12 +165,12 @@ class DensityMatrixSimulator(
                 simulation.
 
         Returns:
-            ActOnDensityMatrixArgs for the circuit.
+            DensityMatrixSimulationState for the circuit.
         """
-        if isinstance(initial_state, act_on_density_matrix_args.ActOnDensityMatrixArgs):
+        if isinstance(initial_state, density_matrix_simulation_state.DensityMatrixSimulationState):
             return initial_state
 
-        return act_on_density_matrix_args.ActOnDensityMatrixArgs(
+        return density_matrix_simulation_state.DensityMatrixSimulationState(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,
@@ -179,17 +181,19 @@ class DensityMatrixSimulator(
     def _can_be_in_run_prefix(self, val: Any):
         return not protocols.measurement_keys_touched(val)
 
-    def _create_step_result(self, sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]'):
+    def _create_step_result(
+        self, sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]'
+    ):
         return DensityMatrixStepResult(sim_state=sim_state, dtype=self._dtype)
 
     def _create_simulator_trial_result(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.DensityMatrixStepResult',
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
     ) -> 'cirq.DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     # TODO(#4209): Deduplicate with identical code in sparse_simulator.
@@ -227,7 +231,7 @@ class DensityMatrixSimulator(
         return swept_evs
 
 
-class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMatrixArgs']):
+class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixSimulationState']):
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
@@ -235,23 +239,15 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMa
             results, ordered by the qubits that the measurement operates on.
     """
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Remove parameter `simulator` as it is no longer used.',
-        parameter_desc='simulator',
-        match=lambda args, kwargs: 'simulator' in kwargs or len(args) > 2,
-    )
     def __init__(
         self,
-        sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
-        simulator: 'cirq.DensityMatrixSimulator' = None,
-        dtype: 'DTypeLike' = np.complex64,
+        sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
+        dtype: Type[np.complexfloating] = np.complex64,
     ):
         """DensityMatrixStepResult.
 
         Args:
-            sim_state: The qubit:ActOnArgs lookup for this step.
-            simulator: The simulator used to create this.
+            sim_state: The qubit:SimulationState lookup for this step.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """
@@ -304,50 +300,24 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMa
         return self._density_matrix.copy() if copy else self._density_matrix
 
     def __repr__(self) -> str:
+        # Dtype doesn't have a good repr, so we work around by invoking __name__.
         return (
             f'cirq.DensityMatrixStepResult(sim_state={self._sim_state!r},'
-            f' dtype=np.{self._dtype.__name__})'
-        )
-
-
-@value.value_equality(unhashable=True)
-class DensityMatrixSimulatorState:
-    """The simulator state for DensityMatrixSimulator
-
-    Args:
-        density_matrix: The density matrix of the simulation.
-        qubit_map: A map from qid to index used to define the
-            ordering of the basis in density_matrix.
-    """
-
-    def __init__(self, density_matrix: np.ndarray, qubit_map: Dict['cirq.Qid', int]) -> None:
-        self.density_matrix = density_matrix
-        self.qubit_map = qubit_map
-        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
-
-    def _qid_shape_(self) -> Tuple[int, ...]:
-        return self._qid_shape
-
-    def _value_equality_values_(self) -> Any:
-        return self.density_matrix.tolist(), self.qubit_map
-
-    def __repr__(self) -> str:
-        return (
-            'cirq.DensityMatrixSimulatorState('
-            f'density_matrix=np.array({self.density_matrix.tolist()!r}), '
-            f'qubit_map={self.qubit_map!r})'
+            f' dtype=np.{np.dtype(self._dtype)!r})'
         )
 
 
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
-    simulator_base.SimulationTrialResultBase[act_on_density_matrix_args.ActOnDensityMatrixArgs]
+    simulator_base.SimulationTrialResultBase[
+        density_matrix_simulation_state.DensityMatrixSimulationState
+    ]
 ):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
 
     The density matrix that is stored in this result is returned in the
     computational basis with these basis states defined by the qubit_map.
-    In particular the value in the qubit_map is the index of the qubit,
+    In particular, the value in the qubit_map is the index of the qubit,
     and these are translated into binary vectors where the last qubit is
     the 1s bit of the index, the second-to-last is the 2s bit of the index,
     and so forth (i.e. big endian ordering). The density matrix is a
@@ -384,10 +354,10 @@ class DensityMatrixTrialResult(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.DensityMatrixStepResult',
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
         self._final_density_matrix: Optional[np.ndarray] = None
 
@@ -418,7 +388,7 @@ class DensityMatrixTrialResult(
         return (
             'cirq.DensityMatrixTrialResult('
             f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-            f'final_step_result={self._final_step_result!r})'
+            f'final_simulator_state={self._final_simulator_state!r})'
         )
 
     def _repr_pretty_(self, p: Any, cycle: bool):

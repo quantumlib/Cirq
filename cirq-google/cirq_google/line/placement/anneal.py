@@ -30,19 +30,22 @@ _STATE = Tuple[List[List[cirq.GridQubit]], Set[EDGE]]
 class AnnealSequenceSearch:
     """Simulated annealing search heuristic."""
 
-    def __init__(self, device: 'cirq_google.XmonDevice', seed=None) -> None:
+    def __init__(self, device: 'cirq_google.GridDevice', seed=None) -> None:
         """Greedy sequence search constructor.
 
         Args:
           device: Chip description.
           seed: Optional seed value for random number generator.
         """
-        self._c = device.qubits
+        self._c = device.metadata.qubit_set
         self._c_adj = chip_as_adjacency_list(device)
         self._rand = np.random.RandomState(seed)
 
     def search(
-        self, trace_func: Callable[[List[LineSequence], float, float, float, bool], None] = None
+        self,
+        trace_func: Optional[
+            Callable[[List[LineSequence], float, float, float, bool], None]
+        ] = None,
     ) -> List[LineSequence]:
         """Issues new linear sequence search.
 
@@ -329,8 +332,10 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
     def __init__(
         self,
-        trace_func: Callable[[List[LineSequence], float, float, float, bool], None] = None,
-        seed: int = None,
+        trace_func: Optional[
+            Callable[[List[LineSequence], float, float, float, bool], None]
+        ] = None,
+        seed: Optional[int] = None,
     ) -> None:
         """Linearized sequence search using simulated annealing method.
 
@@ -350,7 +355,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: 'cirq_google.XmonDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: 'cirq_google.GridDevice', length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

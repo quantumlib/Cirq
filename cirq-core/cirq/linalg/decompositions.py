@@ -23,7 +23,6 @@ from typing import (
     Iterable,
     List,
     Optional,
-    Sequence,
     Set,
     Tuple,
     TYPE_CHECKING,
@@ -71,7 +70,14 @@ def _rotation_matrix(angle: float) -> np.ndarray:
 
 
 def deconstruct_single_qubit_matrix_into_angles(mat: np.ndarray) -> Tuple[float, float, float]:
-    """Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
+    r"""Breaks down a 2x2 unitary into ZYZ angle parameters.
+
+    Given a unitary U, this function returns three angles: $\phi_0, \phi_1, \phi_2$,
+    such that:  $U = Z^{\phi_2 / \pi} Y^{\phi_1 / \pi} Z^{\phi_0/ \pi}$
+    for the Pauli matrices Y and Z.  That is, phasing around Z by $\phi_0$ radians,
+    then rotating around Y by $\phi_1$ radians, and then phasing again by
+    $\phi_2$ radians will produce the same effect as the original unitary.
+    (Note that the matrices are applied right to left.)
 
     Args:
         mat: The 2x2 unitary matrix to break down.
@@ -590,6 +596,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             wireframe. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
             figure is created, plotted, and shown.
+
         **kwargs: Arguments forwarded into the call to `scatter` that plots the
             points. Working arguments include color `c='blue'`, scale `s=2`,
             labelling `label="theta=pi/4"`, etc. For reference see the
@@ -629,11 +636,11 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = fig.add_subplot(1, 1, 1, projection='3d')
 
     def coord_transform(
-        pts: Sequence[Tuple[float, float, float]]
+        pts: Union[List[Tuple[int, int, int]], np.ndarray]
     ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
         if len(pts) == 0:
             return [], [], []
-        xs, ys, zs = zip(*pts)
+        xs, ys, zs = np.transpose(pts)
         return xs, zs, ys
 
     if include_frame:
@@ -805,7 +812,9 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
 
 
 def kak_decomposition(
-    unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
+    unitary_object: Union[
+        np.ndarray, 'cirq.SupportsUnitary', 'cirq.Gate', 'cirq.Operation', KakDecomposition
+    ],
     *,
     rtol: float = 1e-5,
     atol: float = 1e-8,
@@ -846,9 +855,7 @@ def kak_decomposition(
     if check_preconditions and (
         mat.shape != (4, 4) or not predicates.is_unitary(mat, rtol=rtol, atol=atol)
     ):
-        raise ValueError(
-            'Input must correspond to a 4x4 unitary matrix. Received matrix:\n' + str(mat)
-        )
+        raise ValueError(f'Input must correspond to a 4x4 unitary matrix. Received matrix:\n{mat}')
 
     # Diagonalize in magic basis.
     left, d, right = diagonalize.bidiagonalize_unitary_with_special_orthogonals(
@@ -858,7 +865,7 @@ def kak_decomposition(
     # Recover pieces.
     a1, a0 = so4_to_magic_su2s(left.T, atol=atol, rtol=rtol, check_preconditions=False)
     b1, b0 = so4_to_magic_su2s(right.T, atol=atol, rtol=rtol, check_preconditions=False)
-    w, x, y, z = (KAK_GAMMA @ np.vstack(np.angle(d))).flatten()
+    w, x, y, z = (KAK_GAMMA @ np.angle(d).reshape(-1, 1)).flatten()
     g = np.exp(1j * w)
 
     # Canonicalize.
@@ -946,7 +953,7 @@ def kak_vector(
 
     if check_preconditions:
         actual = np.einsum('...ba,...bc', unitary.conj(), unitary) - np.eye(4)
-        if not np.allclose(actual, np.zeros_like(actual), rtol, atol):
+        if not np.allclose(actual, np.zeros_like(actual), rtol=rtol, atol=atol):
             raise ValueError(
                 'Input must correspond to a 4x4 unitary matrix or tensor of '
                 f'unitary matrices. Received input:\n{unitary}'

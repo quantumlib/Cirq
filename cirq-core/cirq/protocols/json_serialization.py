@@ -17,7 +17,6 @@ import gzip
 import json
 import numbers
 import pathlib
-import warnings
 from typing import (
     Any,
     Callable,
@@ -40,7 +39,6 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
-from cirq._compat import deprecated, deprecated_parameter
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -148,28 +146,11 @@ class HasJSONNamespace(Protocol):
         pass
 
 
-# TODO: remove once deprecated parameter goes away.
-def _obj_to_dict_helper_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
-    d = {}
-    for attr_name in attribute_names:
-        d[attr_name] = getattr(obj, attr_name)
-    return d
-
-
-@deprecated_parameter(
-    deadline='v0.15',
-    fix='Define obj._json_namespace_ to return namespace instead.',
-    parameter_desc='namespace',
-    match=lambda args, kwargs: 'namespace' in kwargs,
-)
-def obj_to_dict_helper(
-    obj: Any, attribute_names: Iterable[str], namespace: Optional[str] = None
-) -> Dict[str, Any]:
+def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
     """Construct a dictionary containing attributes from obj
 
     This is useful as a helper function in objects implementing the
     `cirq.SupportsJSON` protocol, particularly in the `_json_dict_` method.
-
     In addition to keys and values specified by `attribute_names`, the
     returned dictionary has an additional key `cirq_type` whose value
     is the string name of the type of `obj`.
@@ -183,83 +164,13 @@ def obj_to_dict_helper(
             class name via a dot (.)
     """
     d = {}
-    if namespace is not None:
-        d['cirq_type'] = f'{namespace}.' + obj.__class__.__name__
-    d.update(_obj_to_dict_helper_helper(obj, attribute_names))
+    for attr_name in attribute_names:
+        d[attr_name] = getattr(obj, attr_name)
     return d
 
 
-# Copying the Python API, whose usage of `repr` annoys pylint.
-# pylint: disable=redefined-builtin
-@deprecated(deadline='v0.15', fix='Implement _json_dict_ using cirq.dataclass_json_dict()')
-def json_serializable_dataclass(
-    _cls: Optional[Type] = None,
-    *,
-    namespace: Optional[str] = None,
-    init: bool = True,
-    repr: bool = True,
-    eq: bool = True,
-    order: bool = False,
-    unsafe_hash: bool = False,
-    frozen: bool = False,
-):
-    """Create a dataclass that supports JSON serialization.
-
-    This function defers to the ordinary `dataclass` decorator but appends
-    the `_json_dict_` protocol method which automatically determines
-    the appropriate fields from the dataclass.
-
-    Dataclasses are implemented with somewhat complex metaprogramming, and
-    tooling (PyCharm, mypy) have special cases for dealing with classes
-    decorated with @dataclass. There is very little support (and no plans for
-    support) for decorators that wrap @dataclass like this. Consider explicitly
-    defining `_json_dict_` on your dataclasses which simply
-    `return dataclass_json_dict(self)`.
-
-    Args:
-        _cls: The class to add JSON serializatin to.
-        namespace: An optional prefix to the value associated with the
-            key `cirq_type`. The namespace name will be joined with the
-            class name via a dot (.)
-        init: Forwarded to the `dataclass` constructor.
-        repr: Forwarded to the `dataclass` constructor.
-        eq: Forwarded to the `dataclass` constructor.
-        order: Forwarded to the `dataclass` constructor.
-        unsafe_hash: Forwarded to the `dataclass` constructor.
-        frozen: Forwarded to the `dataclass` constructor.
-    """
-
-    def wrap(cls):
-        cls = dataclasses.dataclass(
-            cls, init=init, repr=repr, eq=eq, order=order, unsafe_hash=unsafe_hash, frozen=frozen
-        )
-
-        cls._json_namespace_ = lambda: namespace
-
-        cls._json_dict_ = lambda obj: obj_to_dict_helper(
-            obj, [f.name for f in dataclasses.fields(cls)]
-        )
-
-        return cls
-
-    # _cls is used to deduce if we're being called as
-    # @json_serializable_dataclass or @json_serializable_dataclass().
-    if _cls is None:
-        # We're called with parens.
-        return wrap
-
-    # We're called as @dataclass without parens.
-    return wrap(_cls)
-
-
 # pylint: enable=redefined-builtin
-@deprecated_parameter(
-    deadline='v0.15',
-    fix='Define obj._json_namespace_ to return namespace instead.',
-    parameter_desc='namespace',
-    match=lambda args, kwargs: 'namespace' in kwargs,
-)
-def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
+def dataclass_json_dict(obj: Any) -> Dict[str, Any]:
     """Return a dictionary suitable for `_json_dict_` from a dataclass.
 
     Dataclasses keep track of their relevant fields, so we can automatically generate these.
@@ -272,23 +183,26 @@ def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     dataclasses which simply `return dataclass_json_dict(self)`.
     """
     attribute_names = [f.name for f in dataclasses.fields(obj)]
-    if namespace is not None:
-        return obj_to_dict_helper(obj, attribute_names, namespace=namespace)
-    else:
-        return _obj_to_dict_helper_helper(obj, attribute_names)
+    return obj_to_dict_helper(obj, attribute_names)
 
 
 def _json_dict_with_cirq_type(obj: Any):
     base_dict = obj._json_dict_()
     if 'cirq_type' in base_dict:
-        # TODO: upgrade to ValueError in v0.15
-        warnings.warn(
-            f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
-            f"Custom values of this field are not permitted, and will produce "
-            "an error starting in Cirq v0.15.",
-            DeprecationWarning,
+        raise ValueError(
+            f"Found 'cirq_type': '{base_dict['cirq_type']}' in user-specified _json_dict_. "
+            "'cirq_type' is now automatically generated from the class's name and its "
+            "_json_namespace_ method as `cirq_type: '[<namespace>.]<class_name>'`."
+            "\n\n"
+            "Starting in v0.15, custom 'cirq_type' values will trigger an error. "
+            "To fix this, remove 'cirq_type' from the class _json_dict_ method and "
+            "define _json_namespace_ for the class."
+            "\n\n"
+            "For backwards compatibility, third-party classes whose old 'cirq_type' value "
+            "does not match the new value must appear under BOTH values in the resolver "
+            "for that package. For details on defining custom resolvers, see the "
+            "DEFAULT_RESOLVER docstring in cirq-core/cirq/protocols/json_serialization.py."
         )
-        return base_dict
     return {'cirq_type': json_cirq_type(type(obj)), **base_dict}
 
 
@@ -389,16 +303,9 @@ class CirqEncoder(json.JSONEncoder):
 
         # datetime
         if isinstance(o, datetime.datetime):
-            if o.tzinfo is None or o.tzinfo.utcoffset(o) is None:
-                # Otherwise, the deserialized object may change depending on local timezone.
-                raise TypeError(
-                    "Can only serialize 'aware' datetime objects with `tzinfo`. "
-                    "Consider using e.g. `datetime.datetime.now(tz=datetime.timezone.utc)`"
-                )
-
             return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
-        return super().default(o)  # coverage: ignore
+        return super().default(o)  # pragma: no cover
 
 
 def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[str, Any]):
@@ -679,8 +586,8 @@ def to_json(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
-    indent: int = 2,
-    separators: Tuple[str, str] = None,
+    indent: Optional[int] = 2,
+    separators: Optional[Tuple[str, str]] = None,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[str]:
     """Write a JSON file containing a representation of obj.
@@ -726,7 +633,7 @@ def to_json(
                             return _json_dict_with_cirq_type(candidate.obj)
                         else:
                             return _json_dict_with_cirq_type(_SerializedKey(candidate.key))
-                raise ValueError("Object mutated during serialization.")  # coverage: ignore
+                raise ValueError("Object mutated during serialization.")  # pragma: no cover
 
         cls = ContextualEncoder
 
@@ -799,13 +706,32 @@ def to_json_gzip(
     indent: int = 2,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[bytes]:
+    """Write a gzipped JSON file containing a representation of obj.
+
+    The object may be a cirq object or have data members that are cirq
+    objects which implement the SupportsJSON protocol.
+
+    Args:
+        obj: An object which can be serialized to a JSON representation.
+        file_or_fn: A filename (if a string or `pathlib.Path`) to write to, or
+            an IO object (such as a file or buffer) to write to, or `None` to
+            indicate that the method should return the JSON text as its result.
+            Defaults to `None`.
+        indent: Pretty-print the resulting file with this indent level.
+            Passed to json.dump.
+        cls: Passed to json.dump; the default value of CirqEncoder
+            enables the serialization of Cirq objects which implement
+            the SupportsJSON protocol. To support serialization of 3rd
+            party classes, prefer adding the _json_dict_ magic method
+            to your classes rather than overriding this default.
+    """
     json_str = to_json(obj, indent=indent, cls=cls)
     if isinstance(file_or_fn, (str, pathlib.Path)):
         with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
             actually_a_file.write(json_str)
             return None
 
-    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))  # type: ignore
+    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))
     if file_or_fn is None:
         return gzip_data
 
@@ -819,6 +745,28 @@ def read_json_gzip(
     gzip_raw: Optional[bytes] = None,
     resolvers: Optional[Sequence[JsonResolver]] = None,
 ):
+    """Read a gzipped JSON file that optionally contains cirq objects.
+
+    Args:
+        file_or_fn: A filename (if a string or `pathlib.Path`) to read from, or
+            an IO object (such as a file or buffer) to read from, or `None` to
+            indicate that `gzip_raw` argument should be used. Defaults to
+            `None`.
+        gzip_raw: Bytes representing the raw gzip input to unzip and parse
+            or else `None` indicating `file_or_fn` should be used. Defaults to
+            `None`.
+        resolvers: A list of functions that are called in order to turn
+            the serialized `cirq_type` string into a constructable class.
+            By default, top-level cirq objects that implement the SupportsJSON
+            protocol are supported. You can extend the list of supported types
+            by pre-pending custom resolvers. Each resolver should return `None`
+            to indicate that it cannot resolve the given cirq_type and that
+            the next resolver should be tried.
+
+    Raises:
+        ValueError: If either none of `file_or_fn` and `gzip_raw` is specified,
+            or both are specified.
+    """
     if (file_or_fn is None) == (gzip_raw is None):
         raise ValueError('Must specify ONE of "file_or_fn" or "gzip_raw".')
 

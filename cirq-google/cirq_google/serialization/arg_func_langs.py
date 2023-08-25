@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import List, Union, Optional, Iterator, Iterable, Dict, FrozenSet
+import numbers
+from typing import cast, Dict, FrozenSet, Iterable, Iterator, List, Optional, Sequence, Union
 
 import numpy as np
 import sympy
 from cirq_google.api import v2
+from cirq_google.ops import InternalGate
 
 SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     '': frozenset(),
@@ -30,12 +32,22 @@ MOST_PERMISSIVE_LANGUAGE = 'exp'
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
-ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.Mul]
-FLOAT_ARG_LIKE = Union[float, sympy.Symbol, sympy.Add, sympy.Mul]
+ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr]
+ARG_RETURN_LIKE = Union[float, int, str, List[bool], List[int], List[float], List[str], sympy.Expr]
+FLOAT_ARG_LIKE = Union[float, sympy.Expr]
 
 # Types for comparing floats
 # Includes sympy types.  Needed for arg parsing.
-FLOAT_TYPES = (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
+FLOAT_TYPES = (
+    float,
+    int,
+    np.integer,
+    np.floating,
+    sympy.Integer,
+    sympy.Float,
+    sympy.Rational,
+    sympy.NumberSymbol,
+)
 
 # Supported function languages in order from least to most flexible.
 # Clients should use the least flexible language they can, to make it easier
@@ -65,8 +77,7 @@ def _function_languages_from_operation(value: v2.program_pb2.Operation) -> Itera
 
 
 def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg) -> Iterator[str]:
-
-    which = arg_proto.WhichOneof('arg')
+    which = arg_proto.WhichOneof('arg')  # pragma: no cover
     if which == 'func':
         if arg_proto.func.type in ['add', 'mul']:
             yield 'linear'
@@ -129,6 +140,9 @@ def arg_to_proto(
     Returns:
         The proto that was written into as well as the `arg_function_language`
         that was used.
+
+    Raises:
+        ValueError: if the object holds unsupported values.
     """
     msg = v2.program_pb2.Arg() if out is None else out
 
@@ -136,11 +150,37 @@ def arg_to_proto(
         msg.arg_value.float_value = float(value)
     elif isinstance(value, str):
         msg.arg_value.string_value = value
-    elif isinstance(value, (list, tuple, np.ndarray)) and all(
-        isinstance(x, (bool, np.bool_)) for x in value
-    ):
-        # Some protobuf / numpy combinations do not support np.bool_, so cast.
-        msg.arg_value.bool_values.values.extend([bool(x) for x in value])
+    elif isinstance(value, (list, tuple, np.ndarray)):
+        if len(value):
+            if isinstance(value[0], str):
+                if not all(isinstance(x, str) for x in value):
+                    raise ValueError('Sequences of mixed object types are not supported')
+                msg.arg_value.string_values.values.extend(str(x) for x in value)
+            else:
+                # This is a numerical field.
+                numerical_fields = [
+                    [msg.arg_value.bool_values.values, (bool, np.bool_)],
+                    [msg.arg_value.int64_values.values, (int, np.integer, bool)],
+                    [msg.arg_value.double_values.values, (float, np.floating, int, bool)],
+                ]
+                cur_index = 0
+                non_numerical = None
+                for v in value:
+                    while cur_index < len(numerical_fields) and not isinstance(
+                        v, numerical_fields[cur_index][1]
+                    ):
+                        cur_index += 1
+                    if cur_index == len(numerical_fields):
+                        non_numerical = v
+                        break
+
+                if non_numerical is not None:
+                    raise ValueError(
+                        'Mixed Sequences with objects of type '
+                        f'{type(non_numerical)} are not supported'
+                    )
+                field, types_tuple = numerical_fields[cur_index]
+                field.extend(types_tuple[0](x) for x in value)
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
 
@@ -179,7 +219,11 @@ def _arg_func_to_proto(
         for arg in value.args:
             arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
     else:
-        raise ValueError(f'Unrecognized arg type: {type(value)}')
+        raise ValueError(
+            f"Unrecognized Sympy expression type: {type(value)}."
+            " Only the following types are recognized: 'sympy.Symbol', 'sympy.Add', 'sympy.Mul',"
+            " 'sympy.Pow'."
+        )
 
 
 def float_arg_from_proto(
@@ -227,7 +271,7 @@ def float_arg_from_proto(
             raise ValueError(
                 f'Arg {arg_proto.func} could not be processed for {required_arg_name}.'
             )
-        return func
+        return cast(FLOAT_ARG_LIKE, func)
     elif which is None:
         if required_arg_name is not None:
             raise ValueError(f'Arg {required_arg_name} is missing.')
@@ -241,7 +285,7 @@ def arg_from_proto(
     *,
     arg_function_language: str,
     required_arg_name: Optional[str] = None,
-) -> Optional[ARG_LIKE]:
+) -> Optional[ARG_RETURN_LIKE]:
     """Extracts a python value from an argument value proto.
 
     Args:
@@ -278,6 +322,12 @@ def arg_from_proto(
             return list(arg_value.bool_values.values)
         if which_val == 'string_value':
             return str(arg_value.string_value)
+        if which_val == 'int64_values':
+            return [int(v) for v in arg_value.int64_values.values]
+        if which_val == 'double_values':
+            return [float(v) for v in arg_value.double_values.values]
+        if which_val == 'string_values':
+            return [str(v) for v in arg_value.string_values.values]
         raise ValueError(f'Unrecognized value type: {which_val!r}')
 
     if which == 'symbol':
@@ -306,7 +356,7 @@ def _arg_func_from_proto(
     *,
     arg_function_language: str,
     required_arg_name: Optional[str] = None,
-) -> Optional[ARG_LIKE]:
+) -> Optional[ARG_RETURN_LIKE]:
     supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE.get(arg_function_language)
     if supported is None:
         raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')
@@ -353,3 +403,55 @@ def _arg_func_from_proto(
             ]
         )
     return None
+
+
+def internal_gate_arg_to_proto(
+    value: InternalGate, *, out: Optional[v2.program_pb2.InternalGate] = None
+):
+    """Writes an InternalGate object into an InternalGate proto.
+
+    Args:
+        value: The gate to encode.
+        arg_function_language: The language to use when encoding functions. If
+            this is set to None, it will be set to the minimal language
+            necessary to support the features that were actually used.
+        out: The proto to write the result into. Defaults to a new instance.
+
+    Returns:
+        The proto that was written into.
+    """
+    msg = v2.program_pb2.InternalGate() if out is None else out
+    msg.name = value.gate_name
+    msg.module = value.gate_module
+    msg.num_qubits = value.num_qubits()
+    for k, v in value.gate_args.items():
+        arg_to_proto(value=v, out=msg.gate_args[k])
+
+    return msg
+
+
+def internal_gate_from_proto(
+    msg: v2.program_pb2.InternalGate, arg_function_language: str
+) -> InternalGate:
+    """Extracts an InternalGate object from an InternalGate proto.
+
+    Args:
+        msg: The proto containing a serialized value.
+        arg_function_language: The `arg_function_language` field from
+            `Program.Language`.
+
+    Returns:
+        The deserialized InternalGate object.
+
+    Raises:
+        ValueError: On failure to parse any of the gate arguments.
+    """
+    gate_args = {}
+    for k, v in msg.gate_args.items():
+        gate_args[k] = arg_from_proto(v, arg_function_language=arg_function_language)
+    return InternalGate(
+        gate_name=str(msg.name),
+        gate_module=str(msg.module),
+        num_qubits=int(msg.num_qubits),
+        **gate_args,
+    )

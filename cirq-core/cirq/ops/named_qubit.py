@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Any, Dict, List, TYPE_CHECKING, TypeVar
+from typing import Any, Dict, List, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -21,10 +21,8 @@ from cirq.ops import raw_types
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='_BaseNamedQid')  # type: ignore
 
-
-@functools.total_ordering  # type: ignore
+@functools.total_ordering
 class _BaseNamedQid(raw_types.Qid):
     """The base class for `NamedQid` and `NamedQubit`."""
 
@@ -129,7 +127,7 @@ class NamedQubit(_BaseNamedQid):
 
     @staticmethod
     def range(*args, prefix: str) -> List['NamedQubit']:
-        """Returns a range of ``NamedQubit``\\s.
+        r"""Returns a range of `cirq.NamedQubit`s.
 
         The range returned starts with the prefix, and followed by a qubit for
         each number in the range, e.g.:

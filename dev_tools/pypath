@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +23,16 @@
 
 
 if [ -n "${ZSH_VERSION}" ]; then
+    # shellcheck disable=2296,2298
     _PYPATH_BASE_DIR="${${(%):-%x}:a:h:h}"
 else
     _PYPATH_BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fi
+
+if ! python --version | grep -q -F "Python 3."; then
+    echo "python command does not start Python 3" >&2
+    echo "Please use a virtual environment created for Python 3." >&2
+    return 2
 fi
 
 _PYPATH_PREFIX="${_PYPATH_BASE_DIR}$(

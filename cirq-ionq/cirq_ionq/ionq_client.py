@@ -17,20 +17,34 @@ import datetime
 import sys
 import time
 import urllib
+import platform
 from typing import Any, Callable, cast, Dict, List, Optional
+import json.decoder as jd
 
 import requests
 
 import cirq_ionq
 from cirq_ionq import ionq_exceptions
+from cirq import __version__ as cirq_version
 
-RETRIABLE_STATUS_CODES = {requests.codes.internal_server_error, requests.codes.service_unavailable}
+# https://support.cloudflare.com/hc/en-us/articles/115003014512-4xx-Client-Error
+# "Cloudflare will generate and serve a 409 response for a Error 1001: DNS Resolution Error."
+# We may want to condition on the body as well, to allow for some GET requests to return 409 in
+# the future.
+RETRIABLE_FOR_GETS = {requests.codes.conflict}
+# Retriable regardless of the source
+# Handle 52x responses from cloudflare.
+# See https://support.cloudflare.com/hc/en-us/articles/115003011431/
+RETRIABLE_STATUS_CODES = {
+    requests.codes.internal_server_error,
+    requests.codes.bad_gateway,
+    requests.codes.service_unavailable,
+    *list(range(520, 530)),
+}
 
 
-def _is_retriable(code):
-    # Handle 52x responses from cloudflare.
-    # See https://support.cloudflare.com/hc/en-us/articles/115003011431/
-    return code in RETRIABLE_STATUS_CODES or (code >= 520 and code <= 530)
+def _is_retriable(code, method):
+    return code in RETRIABLE_STATUS_CODES or (method == "GET" and code in RETRIABLE_FOR_GETS)
 
 
 class _IonQClient:
@@ -84,7 +98,7 @@ class _IonQClient:
         assert max_retry_seconds >= 0, 'Negative retry not possible without time machine.'
 
         self.url = f'{url.scheme}://{url.netloc}/{api_version}'
-        self.headers = {'Authorization': f'apiKey {api_key}', 'Content-Type': 'application/json'}
+        self.headers = self.api_headers(api_key)
         self.default_target = default_target
         self.max_retry_seconds = max_retry_seconds
         self.verbose = verbose
@@ -119,8 +133,8 @@ class _IonQClient:
 
         json: Dict[str, Any] = {
             'target': actual_target,
-            'body': serialized_program.body,
             'lang': 'json',
+            'body': serialized_program.body,
         }
         if name:
             json['name'] = name
@@ -135,7 +149,7 @@ class _IonQClient:
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, json).json()
 
     def get_job(self, job_id: str) -> dict:
         """Get the job from the IonQ API.
@@ -154,7 +168,7 @@ class _IonQClient:
         def request():
             return requests.get(f'{self.url}/jobs/{job_id}', headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def list_jobs(
         self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
@@ -193,7 +207,7 @@ class _IonQClient:
         def request():
             return requests.put(f'{self.url}/jobs/{job_id}/status/cancel', headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def delete_job(self, job_id: str) -> dict:
         """Permanently delete the job on the IonQ API.
@@ -208,7 +222,7 @@ class _IonQClient:
         def request():
             return requests.delete(f'{self.url}/jobs/{job_id}', headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def get_current_calibration(self) -> dict:
         """Returns the current calibration as an `cirq_ionq.Calibration` object.
@@ -219,12 +233,12 @@ class _IonQClient:
         def request():
             return requests.get(f'{self.url}/calibrations/current', headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def list_calibrations(
         self,
-        start: datetime.datetime = None,
-        end: datetime.datetime = None,
+        start: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
         limit: int = 100,
         batch_size: int = 1000,
     ) -> List[dict]:
@@ -251,6 +265,34 @@ class _IonQClient:
             params['end'] = int((end - epoch).total_seconds() * 1000)
         return self._list('calibrations', params, 'calibrations', limit, batch_size)
 
+    def api_headers(self, api_key: str):
+        """API Headers needed to make calls to the REST API.
+
+        Args:
+            api_key: The key used for authenticating against the IonQ API.
+
+        Returns:
+            dict[str, str]: A dict of :class:`requests.Request` headers.
+        """
+        return {
+            'Authorization': f'apiKey {api_key}',
+            'Content-Type': 'application/json',
+            'User-Agent': self._user_agent(),
+        }
+
+    def _user_agent(self):
+        """Generates the user agent string which is helpful in identifying
+        different tools in the internet. Valid user-agent ionq_client header that
+        indicates the request is from cirq_ionq along with the system, os,
+        python,libraries details.
+
+        Returns:
+            str: A string of generated user agent.
+        """
+        cirq_version_string = f'cirq/{cirq_version}'
+        python_version_string = f'python/{platform.python_version()}'
+        return f'{cirq_version_string} ({python_version_string})'
+
     def _target(self, target: Optional[str]) -> str:
         """Returns the target if not None or the default target.
 
@@ -263,11 +305,14 @@ class _IonQClient:
         )
         return cast(str, target or self.default_target)
 
-    def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
+    def _make_request(
+        self, request: Callable[[], requests.Response], json: dict
+    ) -> requests.Response:
         """Make a request to the API, retrying if necessary.
 
         Args:
             request: A function that returns a `requests.Response`.
+            json: POST body to be logged on failures.
 
         Returns:
             The request.Response from the final successful request call.
@@ -296,11 +341,18 @@ class _IonQClient:
                     raise ionq_exceptions.IonQNotFoundException(
                         'IonQ could not find requested resource.'
                     )
-                if not _is_retriable(response.status_code):
+                if not _is_retriable(response.status_code, response.request.method):
+                    error = {}
+                    try:
+                        error = response.json()
+                    except jd.JSONDecodeError:  # pragma: no cover
+                        pass  # pragma: no cover
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
+                        f'Request Body: {json} '
+                        f'Response Body: {error} '
                         f'Status: {response.status_code} '
-                        f'Error :{response.reason}',
+                        f'Error:{response.reason}',
                         response.status_code,
                     )
                 message = response.reason
@@ -336,7 +388,7 @@ class _IonQClient:
         json = {'limit': batch_size}
         token: Optional[str] = None
         results: List[Dict[str, Any]] = []
-        while True and len(results) < limit:
+        while len(results) < limit:
             full_params = params.copy()
             if token:
                 full_params['next'] = token
@@ -349,7 +401,7 @@ class _IonQClient:
                     params=full_params,
                 )
 
-            response = self._make_request(request).json()
+            response = self._make_request(request, json).json()
             results.extend(response[response_key])
             if 'next' not in response:
                 break

@@ -183,6 +183,7 @@ def _parse_module(folder: Path) -> Dict[str, Any]:
 
     orig_setup = setuptools.setup
     cwd = os.getcwd()
+    sys.path.insert(0, cwd)
 
     def setup(**kwargs):
         setup_args.update(kwargs)
@@ -199,6 +200,7 @@ def _parse_module(folder: Path) -> Dict[str, Any]:
         raise
     finally:
         setuptools.setup = orig_setup
+        sys.path.remove(cwd)
         os.chdir(cwd)
 
 
@@ -218,7 +220,7 @@ def _print_version():
 
 def _add_print_version_cmd(subparsers):
     print_version_cmd = subparsers.add_parser(
-        "print_version", help="Check that all module versions are the same, " "and print it."
+        "print_version", help="Check that all module versions are the same, and print it."
     )
     print_version_cmd.set_defaults(func=_print_version)
 
@@ -303,6 +305,9 @@ def parse(args):
 
 
 def main(argv: List[str]):
+    if argv == []:
+        # If no arguments are given, print the help/usage info.
+        argv = ['--help']
     args = parse(argv)
     # args.func is where we store the function to be called for a given subparser
     # e.g. it is list_modules for the `list` subcommand
@@ -314,4 +319,4 @@ def main(argv: List[str]):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])  # coverage: ignore
+    main(sys.argv[1:])  # pragma: no cover

@@ -17,7 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import cast, List, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE]
 document(
-    CIRCUIT_LIKE,  # type: ignore
+    CIRCUIT_LIKE,
     """A `circuits.Circuit` or a value that can be trivially converted into it:
         a gate, an operation, and a list or tree of operations.
     """,
@@ -52,7 +52,7 @@ def sample(
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     param_resolver: Optional['cirq.ParamResolver'] = None,
     repetitions: int = 1,
-    dtype: Type[np.number] = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'cirq.Result':
     """Simulates sampling from the given circuit.
@@ -66,6 +66,9 @@ def sample(
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
         seed: The random seed to use for this simulator.
+
+    Returns:
+        A `cirq.Result` object containing the requested measurement samples.
     """
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
 
@@ -88,7 +91,6 @@ def sample(
 
 
 def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
-    result = None
     if isinstance(program, circuits.Circuit):
         # No change needed.
         result = program
@@ -97,7 +99,7 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
     else:
         # It should be an OP_TREE.
         result = circuits.Circuit(program)
-    return cast('cirq.Circuit', result)
+    return result
 
 
 def final_state_vector(
@@ -106,9 +108,10 @@ def final_state_vector(
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    dtype: Type[np.number] = np.complex64,
+    ignore_terminal_measurements: bool = False,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> 'np.ndarray':
+) -> np.ndarray:
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -117,15 +120,18 @@ def final_state_vector(
     Args:
         program: The circuit, gate, operation, or tree of operations
             to apply to the initial state in order to produce the result.
-        param_resolver: Parameters to run with the program.
-        qubit_order: Determines the canonical ordering of the qubits. This
-            is often used in specifying the initial state, i.e. the
-            ordering of the computational basis states.
         initial_state: If an int, the state is set to the computational
             basis state corresponding to this state. Otherwise  if this
             is a np.ndarray it is the full initial state. In this case it
             must be the correct size, be normalized (an L2 norm of 1), and
             be safely castable to an appropriate dtype for the simulator.
+        param_resolver: Parameters to run with the program.
+        qubit_order: Determines the canonical ordering of the qubits. This
+            is often used in specifying the initial state, i.e. the
+            ordering of the computational basis states.
+        ignore_terminal_measurements: When set, measurements at the end of
+            the circuit are ignored instead of causing the method to
+            fail.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
         seed: The random seed to use for this simulator.
@@ -133,7 +139,7 @@ def final_state_vector(
     Returns:
         The state vector resulting from applying the given unitary operations to
         the desired initial state. Specifically, a numpy array containing the
-        the amplitudes in np.kron order, where the order of arguments to kron
+        amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
         sorting the qubits that are present into an ascending order).
 
@@ -142,6 +148,11 @@ def final_state_vector(
             it has non-unitary gates.
     """
     circuit_like = _to_circuit(program)
+    if not ignore_terminal_measurements:
+        if any(protocols.is_measurement(op) for op in circuit_like.all_operations()):
+            raise ValueError('Circuit contains a measurement.')
+    else:
+        circuit_like = measurement_transformers.drop_terminal_measurements(circuit_like)
 
     if not protocols.has_unitary(protocols.resolve_parameters(circuit_like, param_resolver)):
         raise ValueError(
@@ -149,7 +160,7 @@ def final_state_vector(
             "because it is not unitary. "
             "Maybe you wanted `cirq.final_density_matrix`?\n"
             "\n"
-            "Program: {!r}".format(circuit_like)
+            f"Program: {circuit_like!r}"
         )
 
     result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
@@ -168,7 +179,7 @@ def sample_sweep(
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     repetitions: int = 1,
-    dtype: Type[np.number] = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> Sequence['cirq.Result']:
     """Runs the supplied Circuit, mimicking quantum hardware.
@@ -214,7 +225,7 @@ def final_density_matrix(
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    dtype: Type[np.number] = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: Optional[Union[int, np.random.RandomState]] = None,
     ignore_measurement_results: bool = True,
 ) -> 'np.ndarray':
@@ -261,7 +272,7 @@ def final_density_matrix(
     if not protocols.has_unitary(circuit_like):
         can_do_unitary_simulation = False
     if isinstance(circuit_like, circuits.Circuit):
-        if cast(circuits.Circuit, circuit_like).has_measurements():
+        if circuit_like.has_measurements():
             # Including terminal measurements.
             can_do_unitary_simulation = False
     if noise_model != devices.NO_NOISE:

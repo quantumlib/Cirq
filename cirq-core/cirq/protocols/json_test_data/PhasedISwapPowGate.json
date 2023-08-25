@@ -1,5 +1,6 @@
 {
   "cirq_type": "PhasedISwapPowGate",
   "phase_exponent": 0.1,
-  "exponent": 0.2
+  "exponent": 0.2,
+  "global_shift": 0.3
 }

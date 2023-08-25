@@ -288,10 +288,7 @@ class SwapNetworkGate(PermutationGate):
         op_sort_key = (
             None
             if self.acquaintance_size is None
-            else (
-                lambda op: qubit_to_position[min(op.qubits, key=qubit_to_position.get)]
-                % self.acquaintance_size
-            )
+            else (lambda op: min(qubit_to_position[q] for q in op.qubits) % self.acquaintance_size)
         )
         layers = new_layers()
         for layer_num in range(n_parts):
@@ -350,8 +347,9 @@ class SwapNetworkGate(PermutationGate):
         return {i: j for i, j in enumerate(reversed(range(sum(self.part_lens))))}
 
     def __repr__(self) -> str:
-        return 'cirq.contrib.acquaintance.SwapNetworkGate({!r}, {!r})'.format(
-            self.part_lens, self.acquaintance_size
+        return (
+            'cirq.contrib.acquaintance.SwapNetworkGate('
+            f'{self.part_lens!r}, {self.acquaintance_size!r})'
         )
 
     def _value_equality_values_(self):

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import re
 
+from typing import cast
 from unittest import mock
 import numpy as np
 import pandas as pd
@@ -35,6 +35,7 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
+    to_zphase_data,
     try_convert_gate_to_fsim,
     try_convert_syc_or_sqrt_iswap_to_fsim,
     try_convert_sqrt_iswap_to_fsim,
@@ -221,12 +222,14 @@ def test_floquet_to_calibration_layer_with_measure_qubits():
 
 def test_xeb_to_calibration_layer():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
-    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    gate = cirq.FSimGate(theta=0.75, phi=0.0)
     request = XEBPhasedFSimCalibrationRequest(
         gate=gate,
         pairs=((q_00, q_01), (q_02, q_03)),
         options=XEBPhasedFSimCalibrationOptions(
             n_library_circuits=22,
+            fatol=0.0078125,
+            xatol=0.0078125,
             fsim_options=XEBPhasedFSimCharacterizationOptions(
                 characterize_theta=True,
                 characterize_zeta=True,
@@ -244,8 +247,8 @@ def test_xeb_to_calibration_layer():
             'n_library_circuits': 22,
             'n_combinations': 10,
             'cycle_depths': '5_25_50_100_200_300',
-            'fatol': 5e-3,
-            'xatol': 5e-3,
+            'fatol': 0.0078125,
+            'xatol': 0.0078125,
             'characterize_theta': True,
             'characterize_zeta': True,
             'characterize_chi': False,
@@ -260,13 +263,11 @@ def test_xeb_to_calibration_layer():
     new_layer.calibration_type = layer.calibration_type
     for arg in layer.args:
         arg_to_proto(layer.args[arg], out=new_layer.args[arg])
-    cirq_google.SQRT_ISWAP_GATESET.serialize(layer.program, msg=new_layer.layer)
+    cirq_google.CIRCUIT_SERIALIZER.serialize(layer.program, msg=new_layer.layer)
     with open(os.path.dirname(__file__) + '/test_data/xeb_calibration_layer.textproto') as f:
         desired_textproto = f.read()
 
     layer_str = str(new_layer)
-    # Fix precision issues
-    layer_str = re.sub(r'0.004999\d+', '0.005', layer_str)
     assert layer_str == desired_textproto
 
 
@@ -412,9 +413,8 @@ def _load_xeb_results_textproto() -> cirq_google.CalibrationResult:
         metrics_snapshot = text_format.Parse(
             f.read(), cirq_google.api.v2.metrics_pb2.MetricsSnapshot()
         )
-
     return cirq_google.CalibrationResult(
-        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
+        code=cirq_google.api.v2.calibration_pb2.SUCCESS,  # type: ignore
         error_message=None,
         token=None,
         valid_until=None,
@@ -623,6 +623,64 @@ def test_get_parameters():
     assert result.get_parameters(q_00, q_03) is None
 
 
+def test_to_zphase_data():
+    q0, q1, q2 = cirq.GridQubit.rect(1, 3)
+    result_1 = PhasedFSimCalibrationResult(
+        {
+            (q0, q1): PhasedFSimCharacterization(zeta=0.1, gamma=0.2),
+            (q1, q2): PhasedFSimCharacterization(zeta=0.3, gamma=0.4),
+        },
+        gate=cirq_google.SycamoreGate(),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+    result_2 = PhasedFSimCalibrationResult(
+        {
+            (q0, q1): PhasedFSimCharacterization(zeta=0.5, gamma=0.6),
+            (q1, q2): PhasedFSimCharacterization(zeta=0.7, gamma=0.8),
+        },
+        gate=cirq.ISwapPowGate(),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+    assert to_zphase_data([result_1, result_2]) == {
+        'syc': {'zeta': {(q0, q1): 0.1, (q1, q2): 0.3}, 'gamma': {(q0, q1): 0.2, (q1, q2): 0.4}},
+        'sqrt_iswap': {
+            'zeta': {(q0, q1): 0.5, (q1, q2): 0.7},
+            'gamma': {(q0, q1): 0.6, (q1, q2): 0.8},
+        },
+    }
+    # Test update and override
+    result_3 = PhasedFSimCalibrationResult(
+        {
+            (q0, q1): PhasedFSimCharacterization(theta=0.01),
+            (q1, q2): PhasedFSimCharacterization(zeta=0.02),
+            (q2, q0): PhasedFSimCharacterization(zeta=0.03, gamma=0.04, theta=0.05),
+        },
+        gate=cirq_google.SycamoreGate(),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+    assert to_zphase_data([result_1, result_3]) == {
+        'syc': {
+            'zeta': {(q0, q1): 0.1, (q1, q2): 0.02, (q2, q0): 0.03},
+            'gamma': {(q0, q1): 0.2, (q1, q2): 0.4, (q2, q0): 0.04},
+            'theta': {(q0, q1): 0.01, (q2, q0): 0.05},
+        }
+    }
+
+
+def test_to_zphase_unknown_gate_raises_error():
+    q0, q1, q2 = cirq.GridQubit.rect(1, 3)
+    result_1 = PhasedFSimCalibrationResult(
+        {
+            (q0, q1): PhasedFSimCharacterization(zeta=0.1, gamma=0.2),
+            (q1, q2): PhasedFSimCharacterization(zeta=0.3, gamma=0.4),
+        },
+        gate=cirq.CZPowGate(),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+    with pytest.raises(ValueError, match="Only 'SycamoreGate' and 'ISwapPowGate' are supported"):
+        _ = to_zphase_data([result_1])
+
+
 def test_merge_matching_results():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
@@ -693,11 +751,11 @@ def test_phase_calibrated_fsim_gate_as_characterized_phased_fsim_gate(phase_expo
         theta=ideal_gate.theta, zeta=0.1, chi=0.2, gamma=0.3, phi=ideal_gate.phi
     )
     parameters = PhasedFSimCharacterization(
-        theta=ideal_gate.theta,
-        zeta=characterized_gate.zeta,
-        chi=characterized_gate.chi,
-        gamma=characterized_gate.gamma,
-        phi=ideal_gate.phi,
+        theta=cast(float, ideal_gate.theta),
+        zeta=cast(float, characterized_gate.zeta),
+        chi=cast(float, characterized_gate.chi),
+        gamma=cast(float, characterized_gate.gamma),
+        phi=cast(float, ideal_gate.phi),
     )
 
     calibrated = PhaseCalibratedFSimGate(ideal_gate, phase_exponent=phase_exponent)
@@ -725,11 +783,11 @@ def test_phase_calibrated_fsim_gate_compensated(phase_exponent: float):
         theta=ideal_gate.theta, zeta=0.1, chi=0.2, gamma=0.3, phi=ideal_gate.phi
     )
     parameters = PhasedFSimCharacterization(
-        theta=ideal_gate.theta,
-        zeta=characterized_gate.zeta,
-        chi=characterized_gate.chi,
-        gamma=characterized_gate.gamma,
-        phi=ideal_gate.phi,
+        theta=cast(float, ideal_gate.theta),
+        zeta=cast(float, characterized_gate.zeta),
+        chi=cast(float, characterized_gate.chi),
+        gamma=cast(float, characterized_gate.gamma),
+        phi=cast(float, ideal_gate.phi),
     )
 
     calibrated = PhaseCalibratedFSimGate(ideal_gate, phase_exponent=phase_exponent)
@@ -788,6 +846,13 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
     )
 
     assert try_convert_sqrt_iswap_to_fsim(cirq.CZ) is None
+
+    assert (
+        try_convert_sqrt_iswap_to_fsim(
+            cirq.FSimGate(theta=sympy.Symbol('t'), phi=sympy.Symbol('p'))
+        )
+        is None
+    )
 
 
 def test_result_override():
@@ -961,6 +1026,7 @@ def test_try_convert_gate_to_fsim():
     x = sympy.Symbol('x')
     assert try_convert_gate_to_fsim(cirq.ops.ISwapPowGate(exponent=x)) is None
     assert try_convert_gate_to_fsim(cirq.PhasedFSimGate(theta=x)) is None
+    assert try_convert_gate_to_fsim(cirq.FSimGate(theta=x, phi=x)) is None
     assert try_convert_gate_to_fsim(cirq.PhasedISwapPowGate(exponent=x)) is None
     assert try_convert_gate_to_fsim(cirq.CZPowGate(exponent=x)) is None
 

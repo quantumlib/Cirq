@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Value conversion utilities and classes for time and quantum states."""
-from cirq.value.abc_alt import ABCMetaImplementAnyOneOf, alternative, GenericMetaImplementAnyOneOf
+from cirq.value.abc_alt import ABCMetaImplementAnyOneOf, alternative
 
 from cirq.value.angle import (
     canonicalize_half_turns,
@@ -62,6 +62,6 @@ from cirq.value.random_state import parse_random_state, RANDOM_STATE_OR_SEED_LIK
 
 from cirq.value.timestamp import Timestamp
 
-from cirq.value.type_alias import TParamKey, TParamVal
+from cirq.value.type_alias import TParamKey, TParamVal, TParamValComplex
 
 from cirq.value.value_equality_attr import value_equality

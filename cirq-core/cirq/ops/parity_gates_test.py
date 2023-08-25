@@ -195,6 +195,12 @@ def test_zz_pow():
     assert (cirq.ZZ**-1) ** 0.5 == cirq.ZZ**-0.5
 
 
+def test_zz_phase_by():
+    assert cirq.phase_by(cirq.ZZ, 0.25, 0) == cirq.phase_by(cirq.ZZ, 0.25, 1) == cirq.ZZ
+    assert cirq.phase_by(cirq.ZZ**0.5, 0.25, 0) == cirq.ZZ**0.5
+    assert cirq.phase_by(cirq.ZZ**-0.5, 0.25, 1) == cirq.ZZ**-0.5
+
+
 def test_zz_str():
     assert str(cirq.ZZ) == 'ZZ'
     assert str(cirq.ZZ**0.5) == 'ZZ**0.5'
@@ -247,3 +253,82 @@ def test_trace_distance():
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.XX), 1.0)
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.YY**0), 0)
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ZZ ** (1 / 3)), np.sin(np.pi / 6))
+
+
+def test_ms_arguments():
+    eq_tester = cirq.testing.EqualsTester()
+    eq_tester.add_equality_group(
+        cirq.ms(np.pi / 2), cirq.ops.MSGate(rads=np.pi / 2), cirq.XXPowGate(global_shift=-0.5)
+    )
+    eq_tester.add_equality_group(
+        cirq.ms(np.pi / 4), cirq.XXPowGate(exponent=0.5, global_shift=-0.5)
+    )
+    eq_tester.add_equality_group(cirq.XX)
+    eq_tester.add_equality_group(cirq.XX**0.5)
+
+
+def test_ms_equal_up_to_global_phase():
+    assert cirq.equal_up_to_global_phase(cirq.ms(np.pi / 2), cirq.XX)
+    assert cirq.equal_up_to_global_phase(cirq.ms(np.pi / 4), cirq.XX**0.5)
+    assert not cirq.equal_up_to_global_phase(cirq.ms(np.pi / 4), cirq.XX)
+
+    assert cirq.ms(np.pi / 2) in cirq.GateFamily(cirq.XX)
+    assert cirq.ms(np.pi / 4) in cirq.GateFamily(cirq.XX**0.5)
+    assert cirq.ms(np.pi / 4) not in cirq.GateFamily(cirq.XX)
+
+
+def test_ms_str():
+    ms = cirq.ms(np.pi / 2)
+    assert str(ms) == 'MS(π/2)'
+    assert str(cirq.ms(np.pi)) == 'MS(2.0π/2)'
+    assert str(ms**0.5) == 'MS(0.5π/2)'
+    assert str(ms**2) == 'MS(2.0π/2)'
+    assert str(ms**-1) == 'MS(-1.0π/2)'
+
+
+def test_ms_matrix():
+    s = np.sqrt(0.5)
+    # yapf: disable
+    np.testing.assert_allclose(cirq.unitary(cirq.ms(np.pi/4)),
+                       np.array([[s, 0, 0, -1j*s],
+                                 [0, s, -1j*s, 0],
+                                 [0, -1j*s, s, 0],
+                                 [-1j*s, 0, 0, s]]),
+                                 atol=1e-8)
+    # yapf: enable
+    np.testing.assert_allclose(cirq.unitary(cirq.ms(np.pi)), np.diag([-1, -1, -1, -1]), atol=1e-8)
+
+
+def test_ms_repr():
+    assert repr(cirq.ms(np.pi / 2)) == 'cirq.ms(np.pi/2)'
+    assert repr(cirq.ms(np.pi / 4)) == 'cirq.ms(0.5*np.pi/2)'
+    cirq.testing.assert_equivalent_repr(cirq.ms(np.pi / 4))
+    ms = cirq.ms(np.pi / 2)
+    assert repr(ms**2) == 'cirq.ms(2.0*np.pi/2)'
+    assert repr(ms**-0.5) == 'cirq.ms(-0.5*np.pi/2)'
+
+
+def test_ms_diagrams():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    circuit = cirq.Circuit(cirq.SWAP(a, b), cirq.X(a), cirq.Y(a), cirq.ms(np.pi).on(a, b))
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+a: ───×───X───Y───MS(π)───
+      │           │
+b: ───×───────────MS(π)───
+""",
+    )
+
+
+def test_json_serialization():
+    def custom_resolver(cirq_type: str):
+        if cirq_type == "MSGate":
+            return cirq.ops.MSGate
+        return None
+
+    assert cirq.read_json(
+        json_text=cirq.to_json(cirq.ms(np.pi / 2)), resolvers=[custom_resolver]
+    ) == cirq.ms(np.pi / 2)
+    assert custom_resolver('X') is None

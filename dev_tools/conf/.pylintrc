@@ -15,12 +15,13 @@ enable=
     bad-reversed-sequence,
     bad-super-call,
     consider-merging-isinstance,
+    consider-using-f-string,
     continue-in-finally,
     dangerous-default-value,
     docstyle,
     duplicate-argument-name,
     expression-not-assigned,
-    f-string-without-interpolation
+    f-string-without-interpolation,
     function-redefined,
     inconsistent-mro,
     init-is-generator,
@@ -29,14 +30,12 @@ enable=
     missing-kwoa,
     missing-param-doc,
     missing-raises-doc,
-    mixed-indentation,
     mixed-line-endings,
     no-value-for-parameter,
     nonexistent-operator,
     not-in-loop,
     pointless-statement,
     redefined-builtin,
-    relative-import,
     return-arg-in-generator,
     return-in-init,
     return-outside-function,
@@ -45,8 +44,7 @@ enable=
     syntax-error,
     too-many-function-args,
     trailing-whitespace,
-    # Disabling until https://github.com/PyCQA/pylint/issues/3791 is fixed
-    # undefined-variable,
+    undefined-variable,
     unexpected-keyword-arg,
     unhashable-dict-key,
     unnecessary-pass,
@@ -63,7 +61,7 @@ enable=
     yield-outside-function
 
 # Ignore long lines containing urls or pylint directives.
-ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?<?https?://\S+>?)$
+ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?[<\[\(]?https?://\S+[>\]\)]?)$
 
 [TYPECHECK]
 

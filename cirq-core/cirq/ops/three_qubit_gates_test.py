@@ -22,25 +22,21 @@ import cirq
 
 @pytest.mark.parametrize('eigen_gate_type', [cirq.CCXPowGate, cirq.CCZPowGate])
 def test_eigen_gates_consistent_protocols(eigen_gate_type):
-    cirq.testing.assert_eigengate_implements_consistent_protocols(
-        eigen_gate_type, ignoring_global_phase=True
-    )
+    cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
 @pytest.mark.parametrize(
-    'gate,ignoring_global_phase',
+    'gate',
     (
-        (cirq.CSWAP, False),
-        (cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]), True),
-        (cirq.ThreeQubitDiagonalGate([0, 0, 0, 0, 0, 0, 0, 0]), True),
-        (cirq.CCX, False),
-        (cirq.CCZ, False),
+        (cirq.CSWAP),
+        (cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])),
+        (cirq.ThreeQubitDiagonalGate([0, 0, 0, 0, 0, 0, 0, 0])),
+        (cirq.CCX),
+        (cirq.CCZ),
     ),
 )
-def test_consistent_protocols(gate, ignoring_global_phase):
-    cirq.testing.assert_implements_consistent_protocols(
-        gate, ignoring_global_phase=ignoring_global_phase
-    )
+def test_consistent_protocols(gate):
+    cirq.testing.assert_implements_consistent_protocols(gate)
 
 
 def test_init():
@@ -98,8 +94,9 @@ def test_unitary():
     )
 
     assert cirq.has_unitary(cirq.CSWAP)
+    u = cirq.unitary(cirq.CSWAP)
     np.testing.assert_allclose(
-        cirq.unitary(cirq.CSWAP),
+        u,
         np.array(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -114,6 +111,7 @@ def test_unitary():
         ),
         atol=1e-8,
     )
+    np.testing.assert_allclose(u @ u, np.eye(8))
 
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
     assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(diagonal_angles))
@@ -160,7 +158,7 @@ def test_eq():
     eq.add_equality_group(cirq.TOFFOLI(a, b, c), cirq.CCX(a, b, c))
     eq.add_equality_group(cirq.TOFFOLI(a, c, b), cirq.TOFFOLI(c, a, b))
     eq.add_equality_group(cirq.TOFFOLI(a, b, d))
-    eq.add_equality_group(cirq.CSWAP(a, b, c), cirq.FREDKIN(a, b, c))
+    eq.add_equality_group(cirq.CSWAP(a, b, c), cirq.FREDKIN(a, b, c), cirq.FREDKIN(a, b, c) ** -1)
     eq.add_equality_group(cirq.CSWAP(b, a, c), cirq.CSWAP(b, c, a))
 
 
@@ -204,6 +202,17 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     over_cost = len([e for e in ops if len(e.qubits) > 2])
     assert over_cost == 0
     assert two_cost == max_two_cost
+
+
+def test_parameterized_ccz_decompose_no_global_phase():
+    decomposed_ops = cirq.decompose(cirq.CCZ(*cirq.LineQubit.range(3)) ** sympy.Symbol("theta"))
+    assert not any(isinstance(op.gate, cirq.GlobalPhaseGate) for op in decomposed_ops)
+
+
+def test_diagonal_gate_property():
+    assert cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 0, 0, 0, 1]).diag_angles_radians == (
+        (2, 3, 5, 7, 0, 0, 0, 1)
+    )
 
 
 @pytest.mark.parametrize(

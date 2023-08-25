@@ -16,7 +16,7 @@ import dataclasses
 import functools
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
-import scipy.linalg
+import sympy
 
 from cirq import devices, ops, protocols, qis
 from cirq._import import LazyLoader
@@ -25,6 +25,7 @@ from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 if TYPE_CHECKING:
     import cirq
 
+linalg = LazyLoader("linalg", globals(), "scipy.linalg")
 moment_module = LazyLoader("moment_module", globals(), "cirq.circuits.moment")
 
 
@@ -94,7 +95,7 @@ def _kraus_ops_from_rates(
     # Lindbladian with three Lindblad ops for the three processes
     # Note: 'time' parameter already specified implicitly through rates
     L = _lindbladian(annihilation) + _lindbladian(creation) + 2 * _lindbladian(num_op)
-    superop = scipy.linalg.expm(L.real)
+    superop = linalg.expm(L.real)
     return qis.superoperator_to_kraus(superop)
 
 
@@ -174,6 +175,7 @@ class ThermalNoiseModel(devices.NoiseModel):
         dephase_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
         require_physical_tag: bool = True,
         skip_measurements: bool = True,
+        prepend: bool = False,
     ):
         """Construct a ThermalNoiseModel data object.
 
@@ -186,22 +188,23 @@ class ThermalNoiseModel(devices.NoiseModel):
             heat_rate_GHz: single number (units GHz) specifying heating rate,
                 either per qubit, or global value for all.
                 Given a rate gh, the Lindblad op will be sqrt(gh)*a^dag
-                (where a is annihilation), so that the heating Lindbldian is
+                (where a is annihilation), so that the heating Lindbladian is
                 gh(a^dag • a - 0.5{a*a^dag, •}).
             cool_rate_GHz: single number (units GHz) specifying cooling rate,
                 either per qubit, or global value for all.
                 Given a rate gc, the Lindblad op will be sqrt(gc)*a
-                so that the cooling Lindbldian is gc(a • a^dag - 0.5{n, •})
+                so that the cooling Lindbladian is gc(a • a^dag - 0.5{n, •})
                 This number is equivalent to 1/T1.
             dephase_rate_GHz: single number (units GHz) specifying dephasing
                 rate, either per qubit, or global value for all.
                 Given a rate gd, Lindblad op will be sqrt(2*gd)*n where
-                n = a^dag * a, so that the dephasing Lindbldian is
+                n = a^dag * a, so that the dephasing Lindbladian is
                 2 * gd * (n • n - 0.5{n^2, •}).
                 This number is equivalent to 1/Tphi.
             require_physical_tag: whether to only apply noise to operations
                 tagged with PHYSICAL_GATE_TAG.
             skip_measurements: whether to skip applying noise to measurements.
+            prepend: If True, put noise before affected gates. Default: False.
 
         Returns:
             The ThermalNoiseModel with specified parameters.
@@ -224,6 +227,7 @@ class ThermalNoiseModel(devices.NoiseModel):
         self.rate_matrix_GHz: Dict['cirq.Qid', np.ndarray] = rate_dict
         self.require_physical_tag: bool = require_physical_tag
         self.skip_measurements: bool = skip_measurements
+        self._prepend = prepend
 
     def noisy_moment(
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
@@ -257,7 +261,10 @@ class ThermalNoiseModel(devices.NoiseModel):
                 break
             if op_duration is None and isinstance(op.gate, ops.WaitGate):
                 # special case for wait gates if not predefined
-                op_duration = op.gate.duration.total_nanos()
+                nanos = op.gate.duration.total_nanos()
+                if isinstance(nanos, sympy.Expr):
+                    raise ValueError('Symbolic wait times are not supported')
+                op_duration = nanos
             if op_duration is not None:
                 moment_ns = max(moment_ns, op_duration)
 
@@ -273,4 +280,5 @@ class ThermalNoiseModel(devices.NoiseModel):
             noise_ops.append(ops.KrausChannel(kraus_ops).on(qubit))
         if not noise_ops:
             return [moment]
-        return [moment, moment_module.Moment(noise_ops)]
+        output = [moment, moment_module.Moment(noise_ops)]
+        return output[::-1] if self._prepend else output

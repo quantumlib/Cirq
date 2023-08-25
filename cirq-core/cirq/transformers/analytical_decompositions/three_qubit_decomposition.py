@@ -56,8 +56,7 @@ def three_qubit_matrix_to_operations(
 
     try:
         from scipy.linalg import cossin
-    except ImportError:  # coverage: ignore
-        # coverage: ignore
+    except ImportError:  # pragma: no cover
         raise ImportError(
             "cirq.three_qubit_unitary_to_operations requires "
             "SciPy 1.5.0+, as it uses the cossin function. Please"
@@ -186,6 +185,8 @@ def _two_qubit_multiplexor_to_ops(
     d_v, circuit_u1u2_r = opt.two_qubit_matrix_to_diagonal_and_cz_operations(q1, q2, v, atol=atol)
 
     w = d_v @ w
+
+    d_w: Optional[np.ndarray]
 
     # if it's interesting to extract the diagonal then let's do it
     if shift_left:

@@ -11,17 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import functools
 import operator
-from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Sequence, Union
+from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Union, TYPE_CHECKING
 
 import numpy as np
+import sympy
 from ply import yacc
 
 from cirq import ops, Circuit, NamedQubit, CX
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
+
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Qasm:
@@ -77,16 +83,15 @@ class QasmGateStatement:
     def _validate_args(self, args: List[List[ops.Qid]], lineno: int):
         if len(args) != self.num_args:
             raise QasmException(
-                "{} only takes {} arg(s) (qubits and/or registers), "
-                "got: {}, at line {}".format(self.qasm_gate, self.num_args, len(args), lineno)
+                f"{self.qasm_gate} only takes {self.num_args} arg(s) (qubits and/or registers), "
+                f"got: {len(args)}, at line {lineno}"
             )
 
     def _validate_params(self, params: List[float], lineno: int):
         if len(params) != self.num_params:
             raise QasmException(
-                "{} takes {} parameter(s), got: {}, at line {}".format(
-                    self.qasm_gate, self.num_params, len(params), lineno
-                )
+                f"{self.qasm_gate} takes {self.num_params} parameter(s), "
+                f"got: {len(params)}, at line {lineno}"
             )
 
     def on(
@@ -114,7 +119,10 @@ class QasmGateStatement:
         # used as arguments, we generate reg_size GateOperations via iterating
         # through each qubit of the registers 0 to n-1 and use the same one
         # qubit from the "single-qubit registers" for each operation.
-        op_qubits = cast(Sequence[Sequence[ops.Qid]], functools.reduce(np.broadcast, args))
+        op_qubits = functools.reduce(
+            cast(Callable[[List['cirq.Qid'], List['cirq.Qid']], List['cirq.Qid']], np.broadcast),
+            args,
+        )
         for qubits in op_qubits:
             if isinstance(qubits, ops.Qid):
                 yield final_gate.on(qubits)
@@ -133,7 +141,7 @@ class QasmParser:
         parsedQasm = QasmParser().parse(qasm)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
         self.circuit = Circuit()
         self.qregs: Dict[str, int] = {}
@@ -279,8 +287,7 @@ class QasmParser:
         """format : FORMAT_SPEC"""
         if p[1] != "2.0":
             raise QasmException(
-                "Unsupported OpenQASM version: {}, "
-                "only 2.0 is supported currently by Cirq".format(p[1])
+                f"Unsupported OpenQASM version: {p[1]}, only 2.0 is supported currently by Cirq"
             )
 
     # circuit : new_reg circuit
@@ -337,11 +344,8 @@ class QasmParser:
     ):
         gate_set = self.basic_gates if not self.qelibinc else self.all_gates
         if gate not in gate_set.keys():
-            msg = 'Unknown gate "{}" at line {}{}'.format(
-                gate,
-                p.lineno(1),
-                ", did you forget to include qelib1.inc?" if not self.qelibinc else "",
-            )
+            tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
+            msg = f'Unknown gate "{gate}" at line {p.lineno(1)}{tip}'
             raise QasmException(msg)
         p[0] = gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
@@ -452,9 +456,9 @@ class QasmParser:
         size = self.qregs[reg]
         if idx >= size:
             raise QasmException(
-                'Out of bounds qubit index {} '
-                'on register {} of size {} '
-                'at line {}'.format(idx, reg, size, p.lineno(1))
+                f'Out of bounds qubit index {idx} '
+                f'on register {reg} of size {size} '
+                f'at line {p.lineno(1)}'
             )
         if arg_name not in self.qubits.keys():
             self.qubits[arg_name] = NamedQubit(arg_name)
@@ -471,9 +475,9 @@ class QasmParser:
         size = self.cregs[reg]
         if idx >= size:
             raise QasmException(
-                'Out of bounds bit index {} '
-                'on classical register {} of size {} '
-                'at line {}'.format(idx, reg, size, p.lineno(1))
+                f'Out of bounds bit index {idx} '
+                f'on classical register {reg} of size {size} '
+                f'at line {p.lineno(1)}'
             )
         p[0] = [arg_name]
 
@@ -487,8 +491,8 @@ class QasmParser:
 
         if len(qreg) != len(creg):
             raise QasmException(
-                'mismatched register sizes {} -> {} for measurement '
-                'at line {}'.format(len(qreg), len(creg), p.lineno(1))
+                f'mismatched register sizes {len(qreg)} -> {len(creg)} for measurement '
+                f'at line {p.lineno(1)}'
             )
 
         p[0] = [
@@ -496,11 +500,19 @@ class QasmParser:
         ]
 
     # if operations
-    # if : IF '(' carg NE NATURAL_NUMBER ')' ID qargs
+    # if : IF '(' carg EQ NATURAL_NUMBER ')' ID qargs
 
     def p_if(self, p):
-        """if : IF '(' carg NE NATURAL_NUMBER ')' gate_op"""
-        p[0] = [ops.ClassicallyControlledOperation(conditions=p[3], sub_operation=tuple(p[7])[0])]
+        """if : IF '(' carg EQ NATURAL_NUMBER ')' gate_op"""
+        # We have to split the register into bits (since that's what measurement does above),
+        # and create one condition per bit, checking against that part of the binary value.
+        conditions = []
+        for i, key in enumerate(p[3]):
+            v = (p[5] >> i) & 1
+            conditions.append(sympy.Eq(sympy.Symbol(key), v))
+        p[0] = [
+            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[7])[0])
+        ]
 
     def p_error(self, p):
         if p is None:

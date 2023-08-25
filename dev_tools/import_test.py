@@ -175,7 +175,7 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
     project_dir = os.path.dirname(os.path.dirname(__file__))
     cirq_dir = os.path.join(project_dir, 'cirq')
     sys.path.append(cirq_dir)  # Put cirq/_import.py in the path.
-    from cirq._import import wrap_module_executions  # type: ignore
+    from cirq._import import wrap_module_executions
 
     sys.path[:] = orig_path  # Restore the path.
 
@@ -211,11 +211,9 @@ def test_no_circular_imports():
     before in an earlier test but this test needs to control the import process.
     """
     status = subprocess.call([sys.executable, __file__])
-    if status == FAIL_EXIT_CODE:
-        # coverage: ignore
+    if status == FAIL_EXIT_CODE:  # pragma: no cover
         raise Exception('Invalid import. See captured output for details.')
-    elif status != 0:
-        # coverage: ignore
+    elif status != 0:  # pragma: no cover
         raise RuntimeError('Error in subprocess')
 
 

@@ -1,6 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-import pytest
+import IPython.display
 import numpy as np
+import pytest
 
 import cirq
 from cirq.contrib.svg import circuit_to_svg
@@ -20,6 +21,7 @@ def test_svg():
             cirq.MatrixGate(np.eye(2)).on(a),
         )
     )
+    assert '?' in svg_text
     assert '<svg' in svg_text
     assert '</svg>' in svg_text
 
@@ -57,3 +59,29 @@ def test_empty_moments():
     svg_2 = circuit_to_svg(cirq.Circuit(cirq.Moment()))
     assert '<svg' in svg_2
     assert '</svg>' in svg_2
+
+
+@pytest.mark.parametrize(
+    'symbol,svg_symbol',
+    [
+        ('<a', '&lt;a'),
+        ('<=b', '&lt;=b'),
+        ('>c', '&gt;c'),
+        ('>=d', '&gt;=d'),
+        ('>e<', '&gt;e&lt;'),
+        ('A[<virtual>]B[cirq.VirtualTag()]C>D<E', 'ABC&gt;D&lt;E'),
+    ],
+)
+def test_gate_with_less_greater_str(symbol, svg_symbol):
+    class CustomGate(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
+
+        def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=[symbol])
+
+    circuit = cirq.Circuit(CustomGate().on(cirq.LineQubit(0)))
+    svg = circuit_to_svg(circuit)
+
+    _ = IPython.display.SVG(svg)
+    assert svg_symbol in svg

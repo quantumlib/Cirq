@@ -16,6 +16,7 @@
 This module creates Gate instances for the following gates:
     SWAP: the swap gate.
     ISWAP: a swap gate with a phase on the swapped subspace.
+    ISWAP_INV: the inverse of the ISWAP gate.
     SQRT_ISWAP: square root of the ISWAP gate.
     SQRT_ISWAP_INV: inverse square root of the ISWAP gate.
 
@@ -39,21 +40,31 @@ if TYPE_CHECKING:
 
 
 class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """The SWAP gate, possibly raised to a power. Exchanges qubits.
+    r"""The SWAP gate, possibly raised to a power. Exchanges qubits.
 
     SwapPowGate()**t = SwapPowGate(exponent=t) and acts on two qubits in the
     computational basis as the matrix:
 
-        [[1, 0, 0, 0],
-         [0, g·c, -i·g·s, 0],
-         [0, -i·g·s, g·c, 0],
-         [0, 0, 0, 1]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & g c & -i g s & 0 \\
+        0 & -i g s & g c & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
 
     where:
 
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    $$
+    c = \cos\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    s = \sin\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    g = e^{\frac{i \pi t}{2}}
+    $$
 
     `cirq.SWAP`, the swap gate, is an instance of this gate at exponent=1.
     """
@@ -140,15 +151,6 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
         args.validate_version('2.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if self._exponent == 1:
-            return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format(
-            'PSWAP({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1]
-        )
-
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'SWAP'
@@ -164,7 +166,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
 
 
 class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """Rotates the |01⟩ vs |10⟩ subspace of two qubits around its Bloch X-axis.
+    r"""Rotates the |01⟩ vs |10⟩ subspace of two qubits around its Bloch X-axis.
 
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
     generally, this gate's matrix is defined as follows:
@@ -173,15 +175,23 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
 
     which is given by the matrix:
 
-        [[1, 0, 0, 0],
-         [0, c, i·s, 0],
-         [0, i·s, c, 0],
-         [0, 0, 0, 1]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & c & i s & 0 \\
+        0 & i s & c & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
 
-    where:
+    where
 
-        c = cos(π·t/2)
-        s = sin(π·t/2)
+    $$
+    c = \cos\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    s = \sin\left(\frac{\pi t}{2}\right)
+    $$
 
     `cirq.ISWAP`, the swap gate that applies i to the |01⟩ and |10⟩ states,
     is an instance of this gate at exponent=1.
@@ -266,6 +276,8 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'ISWAP'
+        if self._exponent == -1:
+            return 'ISWAP_INV'
         return f'ISWAP**{self._exponent}'
 
     def __repr__(self) -> str:
@@ -273,13 +285,10 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.ISWAP'
+            if self._exponent == -1:
+                return 'cirq.ISWAP_INV'
             return f'(cirq.ISWAP**{e})'
         return f'cirq.ISwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
-
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
-        if self._exponent == 1:
-            return formatter.format('ISWAP {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format('XY({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1])
 
 
 def riswap(rads: value.TParamVal) -> ISwapPowGate:
@@ -291,60 +300,86 @@ def riswap(rads: value.TParamVal) -> ISwapPowGate:
 SWAP = SwapPowGate()
 document(
     SWAP,
-    """The swap gate.
+    r"""The swap gate.
 
-    Matrix:
+    This gate will swap two qubits (in any basis).
 
-    ```
-        [[1, 0, 0, 0],
-         [0, 0, 1, 0],
-         [0, 1, 0, 0],
-         [0, 0, 0, 1]]
-    ```
+    The unitary matrix of this gate is:
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & 0 & 1 & 0 \\
+            0 & 1 & 0 & 0 \\
+            0 & 0 & 0 & 1
+        \end{bmatrix}
+    $$
     """,
 )
 
 ISWAP = ISwapPowGate()
 document(
     ISWAP,
-    """The iswap gate.
+    r"""The iswap gate.
 
-    Matrix:
-    ```
-        [[1, 0, 0, 0],
-         [0, 0, i, 0],
-         [0, i, 0, 0],
-         [0, 0, 0, 1]]
-    ```
+    The unitary matrix of this gate is:
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 0 & i & 0 \\
+        0 & i & 0 & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
+    """,
+)
+
+ISWAP_INV = ISwapPowGate(exponent=-1)
+document(
+    ISWAP_INV,
+    r"""The inverse of the iswap gate.
+
+    The unitary matrix of this gate is:
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 0 & -i & 0 \\
+        0 & -i & 0 & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
     """,
 )
 
 SQRT_ISWAP = ISwapPowGate(exponent=0.5)
 document(
     SQRT_ISWAP,
-    """The square root of iswap gate.
+    r"""The square root of iswap gate.
 
-    Matrix:
-    ```
-        [[1, 0,    0,    0],
-         [0, 1/√2, i/√2, 0],
-         [0, i/√2, 1/√2, 0],
-         [0, 0,    0,    1]]
-    ```
+    The unitary matrix of this gate is:
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & \frac{1}{\sqrt{2}} & \frac{i}{\sqrt{2}} & 0 \\
+            0 & \frac{i}{\sqrt{2}} & \frac{1}{\sqrt{2}} & 0 \\
+            0 & 0 & 0 & 1
+        \end{bmatrix}
+    $$
     """,
 )
 
 SQRT_ISWAP_INV = ISwapPowGate(exponent=-0.5)
 document(
     SQRT_ISWAP_INV,
-    """The inverse square root of iswap gate.
+    r"""The inverse square root of iswap gate.
 
-    Matrix:
-    ```
-        [[1, 0,     0,     0],
-         [0, 1/√2,  -i/√2, 0],
-         [0, -i/√2, 1/√2,  0],
-         [0, 0,     0,     1]]
-    ```
+    The unitary matrix of this gate is:
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & \frac{1}{\sqrt{2}} & -\frac{i}{\sqrt{2}} & 0 \\
+            0 & -\frac{i}{\sqrt{2}} & \frac{1}{\sqrt{2}} & 0 \\
+            0 & 0 & 0 & 1
+        \end{bmatrix}
+    $$
     """,
 )

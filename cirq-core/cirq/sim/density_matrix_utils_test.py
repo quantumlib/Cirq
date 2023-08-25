@@ -358,7 +358,7 @@ def test_to_valid_density_matrix_on_simulator_output(seed, dtype, split):
 
 
 def test_factor_validation():
-    args = cirq.DensityMatrixSimulator()._create_act_on_args(0, qubits=cirq.LineQubit.range(2))
+    args = cirq.DensityMatrixSimulator()._create_simulation_state(0, qubits=cirq.LineQubit.range(2))
     args.apply_operation(cirq.H(cirq.LineQubit(0)))
     t = args.create_merged_state().target_tensor
     cirq.linalg.transformations.factor_density_matrix(t, [0])

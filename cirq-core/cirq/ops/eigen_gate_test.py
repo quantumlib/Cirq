@@ -201,8 +201,7 @@ def test_trace_distance_bound():
     assert cirq.approx_eq(cirq.trace_distance_bound(CExpZinGate(2)), 1)
 
     class E(cirq.EigenGate):
-        def _num_qubits_(self):
-            # coverage: ignore
+        def _num_qubits_(self):  # pragma: no cover
             return 1
 
         def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
@@ -227,7 +226,6 @@ def test_extrapolate():
 
 
 def test_matrix():
-
     for n in [1, 2, 3, 4, 0.0001, 3.9999]:
         assert cirq.has_unitary(CExpZinGate(n))
 
@@ -291,6 +289,9 @@ def test_resolve_parameters(resolve_fn):
     ) == CExpZinGate(0.5)
 
     assert resolve_fn(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
+
+    with pytest.raises(ValueError, match='Complex exponent'):
+        resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5j}))
 
 
 def test_diagram_period():
@@ -360,6 +361,12 @@ class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         (cirq.X, cirq.Y, False),
         (cirq.rz(np.pi), cirq.Z, True),
         (cirq.X**0.3, cirq.Z**0.3, False),
+        (cirq.Z, cirq.Z ** (1 - 1e-10), True),
+        (cirq.Z, cirq.Z ** (1 + 1e-10), True),
+        (cirq.Z, cirq.Z ** (3 - 1e-10), True),
+        (cirq.Z, cirq.Z ** (3 + 1e-10), True),
+        (cirq.Z**2, cirq.Z ** (4 - 1e-10), True),
+        (cirq.Z**2, cirq.Z ** (4 + 1e-10), True),
     ],
 )
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):

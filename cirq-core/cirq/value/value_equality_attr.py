@@ -13,7 +13,7 @@
 # limitations under the License.
 """Defines `@cirq.value_equality`, for easy __eq__/__hash__ methods."""
 
-from typing import Union, Callable, overload, Any
+from typing import Any, Callable, Optional, overload, Union
 
 from typing_extensions import Protocol
 
@@ -50,8 +50,7 @@ class _SupportsValueEquality(Protocol):
         Returns:
             Any type supported by `cirq.approx_eq()`.
         """
-        # coverage: ignore
-        return self._value_equality_values_()
+        return self._value_equality_values_()  # pragma: no cover
 
     def _value_equality_values_cls_(self) -> Any:
         """Automatically implemented by the `cirq.value_equality` decorator.
@@ -132,7 +131,7 @@ def value_equality(
 
 
 def value_equality(
-    cls: type = None,
+    cls: Optional[type] = None,
     *,
     unhashable: bool = False,
     distinct_child_types: bool = False,

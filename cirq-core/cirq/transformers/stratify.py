@@ -15,10 +15,10 @@
 """Transformer pass to repack circuits avoiding simultaneous operations with different classes."""
 
 import itertools
-from typing import TYPE_CHECKING, Type, Callable, Optional, Union, Iterable, Sequence, List, Tuple
+from typing import TYPE_CHECKING, Type, Callable, Dict, Optional, Union, Iterable, Sequence, List
 
-from cirq import ops, circuits, _import
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq import ops, circuits, protocols, _import
+from cirq.transformers import transformer_api
 
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
 
@@ -61,38 +61,36 @@ def stratified_circuit(
     Returns:
         A copy of the original circuit, but with re-arranged operations.
     """
-
     # Normalize categories into classifier functions.
-    classifiers = [_category_to_classifier(category) for category in categories]
-    # Make the classifiers exhaustive by adding an "everything else" bucket.
-    and_the_rest = lambda op: all(not classifier(op) for classifier in classifiers)
-    classifiers_and_the_rest = [*classifiers, and_the_rest]
+    classifiers = _get_classifiers(circuit, categories)
 
     # Try the algorithm with each permutation of the classifiers.
-    classifiers_permutations = list(itertools.permutations(classifiers_and_the_rest))
+    smallest_depth = protocols.num_qubits(circuit) * len(circuit) + 1
+    shortest_stratified_circuit = circuits.Circuit()
     reversed_circuit = circuit[::-1]
-    solutions = []
-    for c in classifiers_permutations:
-        solutions.append(
-            _stratify_circuit(
-                circuit,
-                classifiers=list(c),
-                context=context or transformer_api.TransformerContext(),
-            )
+    for ordered_classifiers in itertools.permutations(classifiers):
+        solution = _stratify_circuit(
+            circuit,
+            classifiers=ordered_classifiers,
+            context=context or transformer_api.TransformerContext(),
         )
+        if len(solution) < smallest_depth:
+            shortest_stratified_circuit = solution
+            smallest_depth = len(solution)
+
         # Do the same thing, except this time in reverse. This helps for some
         # circuits because it inserts operations at the end instead of at the
         # beginning.
-        solutions.append(
-            _stratify_circuit(
-                reversed_circuit,
-                classifiers=list(c),
-                context=context or transformer_api.TransformerContext(),
-            )[::-1]
-        )
+        solution = _stratify_circuit(
+            reversed_circuit,
+            classifiers=ordered_classifiers,
+            context=context or transformer_api.TransformerContext(),
+        )[::-1]
+        if len(solution) < smallest_depth:
+            shortest_stratified_circuit = solution
+            smallest_depth = len(solution)
 
-    # Return the shortest circuit.
-    return min(solutions, key=lambda c: len(c))
+    return shortest_stratified_circuit
 
 
 def _stratify_circuit(
@@ -116,43 +114,87 @@ def _stratify_circuit(
     Returns:
         The stratified circuit.
     """
-    num_categories = len(classifiers) + 1
+    num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
+    new_moments: List[List['cirq.Operation']] = []
 
-    def map_func(m: 'cirq.Moment', _) -> Sequence['cirq.Moment']:
-        stratified_ops: List[List['cirq.Operation']] = [[] for _ in range(num_categories)]
-        for op in m:
-            if set(op.tags) & set(context.tags_to_ignore):
-                stratified_ops[0].append(op)
-                continue
-            for i, classifier in enumerate(classifiers):
-                if classifier(op):
-                    stratified_ops[i + 1].append(op)
-                    break
-        return [circuits.Moment(op_list) for op_list in stratified_ops]
+    # Keep track of the latest time index for each qubit, measurement key, and control key.
+    qubit_time_index: Dict['cirq.Qid', int] = {}
+    measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
+    control_time_index: Dict['cirq.MeasurementKey', int] = {}
 
-    stratified_circuit = transformer_primitives.map_moments(circuit, map_func).unfreeze(copy=False)
-    assert len(stratified_circuit) == len(circuit) * num_categories
+    # The minimum time index for operations with a tag in context.tags_to_ignore.
+    last_ignored_ops_time_index = 0
 
-    # Try to move operations to the left to reduce circuit depth, preserving stratification.
-    for curr_idx, moment in enumerate(stratified_circuit):
-        curr_category = curr_idx % num_categories
-        if curr_category == 0:
-            # Moment containing tagged operations to be ignored.
-            continue
-        batch_removals: List[Tuple[int, 'cirq.Operation']] = []
-        batch_inserts: List[Tuple[int, 'cirq.Operation']] = []
+    for moment in circuit:
+        # Identify the new time indices that operations should be moved into.
+        ignored_ops = []
+        op_time_indices = {}
         for op in moment:
-            prv_idx = stratified_circuit.earliest_available_moment(op, end_moment_index=curr_idx)
-            prv_category = prv_idx % num_categories
-            should_move_to_next_batch = curr_category < prv_category
-            prv_idx += curr_category - prv_category + num_categories * should_move_to_next_batch
-            assert prv_idx <= curr_idx and prv_idx % num_categories == curr_idx % num_categories
-            if prv_idx < curr_idx:
-                batch_inserts.append((prv_idx, op))
-                batch_removals.append((curr_idx, op))
-        stratified_circuit.batch_remove(batch_removals)
-        stratified_circuit.batch_insert_into(batch_inserts)
-    return drop_empty_moments.drop_empty_moments(stratified_circuit)
+            # Identify the earliest moment that can accommodate this op.
+            min_time_index_for_op = circuits.circuit.get_earliest_accommodating_moment_index(
+                op, qubit_time_index, measurement_time_index, control_time_index
+            )
+
+            # Identify the "class" of this operation (by index).
+            ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
+            if not ignored_op:
+                op_class = _get_op_class(op, classifiers)
+            else:
+                op_class = len(classifiers)
+                ignored_ops.append(op)
+                min_time_index_for_op = max(min_time_index_for_op, last_ignored_ops_time_index + 1)
+
+            # Identify the time index to place this operation into.
+            time_index = (min_time_index_for_op // num_classes) * num_classes + op_class
+            if time_index < min_time_index_for_op:
+                time_index += num_classes
+            op_time_indices[op] = time_index
+
+        # Assign ignored operations to the same moment.
+        if ignored_ops:
+            last_ignored_ops_time_index = max(op_time_indices[op] for op in ignored_ops)
+            for op in ignored_ops:
+                op_time_indices[op] = last_ignored_ops_time_index
+
+        # Move the operations into their assigned moments.
+        for op, time_index in op_time_indices.items():
+            if time_index >= len(new_moments):
+                new_moments += [[] for _ in range(num_classes)]
+            new_moments[time_index].append(op)
+
+            # Update qubit, measurment key, and control key moments.
+            for qubit in op.qubits:
+                qubit_time_index[qubit] = time_index
+            for key in protocols.measurement_key_objs(op):
+                measurement_time_index[key] = time_index
+            for key in protocols.control_keys(op):
+                control_time_index[key] = time_index
+
+    return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
+
+
+def _get_classifiers(
+    circuit: circuits.AbstractCircuit, categories: Iterable[Category]
+) -> List[Classifier]:
+    """Convert a collection of categories into a list of classifiers.
+
+    The returned list of classifiers is:
+    - Exhaustive, meaning every operation in the circuit is classified by at least one classifier.
+    - Minimal, meaning unused classifiers are forgotten.
+    """
+    # Convert all categories into classifiers, and make the list exhaustive by adding a dummy
+    # classifier for otherwise unclassified ops.
+    classifiers = [_category_to_classifier(cat) for cat in categories] + [_dummy_classifier]
+
+    # Figure out which classes are actually used in the circuit.
+    class_is_used = [False for _ in classifiers]
+    for op in circuit.all_operations():
+        class_is_used[_get_op_class(op, classifiers)] = True
+        if all(class_is_used):
+            break
+
+    # Return only the classifiers that are used.
+    return [classifier for classifier, is_used in zip(classifiers, class_is_used) if is_used]
 
 
 # No type for `category` because mypy does not keep the return type when
@@ -177,3 +219,23 @@ def _category_to_classifier(category) -> Classifier:
             f'Type[cirq.Gate], Type[cirq.Operation], '
             f'or Callable[[cirq.Operation], bool].'
         )
+
+
+def _dummy_classifier(op: 'cirq.Operation') -> bool:
+    """Dummy classifier, used to "complete" a collection of classifiers and make it exhaustive."""
+    return False  # pragma: no cover
+
+
+def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> int:
+    """Get the "class" of an operator, by index."""
+    for class_index, classifier in enumerate(classifiers):
+        if classifier is _dummy_classifier:
+            dummy_classifier_index = class_index
+        elif classifier(op):
+            return class_index
+    # If we got this far, the operation did not match any "actual" classifier,
+    # so return the index of the dummy classifer.
+    try:
+        return dummy_classifier_index
+    except NameError:
+        raise ValueError(f"Operation {op} not identified by any classifier")

@@ -18,15 +18,15 @@ from typing import Awaitable, Callable, Dict, Optional, Sequence, Tuple, Union
 
 from google.api_core import gapic_v1
 from google.api_core import grpc_helpers_async
-from google.auth import credentials as ga_credentials   # type: ignore
-from google.auth.transport.grpc import SslCredentials  # type: ignore
+from google.auth import credentials as ga_credentials
+from google.auth.transport.grpc import SslCredentials
 
 import grpc                        # type: ignore
 from grpc.experimental import aio  # type: ignore
 
 from cirq_google.cloud.quantum_v1alpha1.types import engine
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from google.protobuf import empty_pb2  # type: ignore
+from google.protobuf import empty_pb2
 from .base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
 from .grpc import QuantumEngineServiceGrpcTransport
 
@@ -93,11 +93,11 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
             credentials: ga_credentials.Credentials = None,
             credentials_file: Optional[str] = None,
             scopes: Optional[Sequence[str]] = None,
-            channel: aio.Channel = None,
-            api_mtls_endpoint: str = None,
-            client_cert_source: Callable[[], Tuple[bytes, bytes]] = None,
-            ssl_channel_credentials: grpc.ChannelCredentials = None,
-            client_cert_source_for_mtls: Callable[[], Tuple[bytes, bytes]] = None,
+            channel: Optional[aio.Channel] = None,
+            api_mtls_endpoint: Optional[str] = None,
+            client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+            ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
+            client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
             quota_project_id=None,
             client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
             always_use_jwt_access: Optional[bool] = False,

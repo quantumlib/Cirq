@@ -29,12 +29,12 @@ def test_single_qubit_init():
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     x2 = cirq.MatrixGate(m)
     assert cirq.has_unitary(x2)
-    assert np.alltrue(cirq.unitary(x2) == m)
+    assert np.all(cirq.unitary(x2) == m)
     assert cirq.qid_shape(x2) == (2,)
 
     x2 = cirq.MatrixGate(PLUS_ONE, qid_shape=(3,))
     assert cirq.has_unitary(x2)
-    assert np.alltrue(cirq.unitary(x2) == PLUS_ONE)
+    assert np.all(cirq.unitary(x2) == PLUS_ONE)
     assert cirq.qid_shape(x2) == (3,)
 
     with pytest.raises(ValueError, match='Not a .*unitary matrix'):
@@ -97,7 +97,7 @@ def test_single_qubit_extrapolate():
 def test_two_qubit_init():
     x2 = cirq.MatrixGate(QFT2)
     assert cirq.has_unitary(x2)
-    assert np.alltrue(cirq.unitary(x2) == QFT2)
+    assert np.all(cirq.unitary(x2) == QFT2)
 
 
 def test_two_qubit_eq():
@@ -271,6 +271,16 @@ Bar[2]─┼──────Bar[1]
     assert expected_vertical == c.to_text_diagram(transpose=True).strip()
 
 
+def test_with_name():
+    gate = cirq.MatrixGate(cirq.unitary(cirq.Z**0.25))
+    T = gate.with_name('T')
+    S = (T**2).with_name('S')
+    assert T._name == 'T'
+    np.testing.assert_allclose(cirq.unitary(T), cirq.unitary(gate))
+    assert S._name == 'S'
+    np.testing.assert_allclose(cirq.unitary(S), cirq.unitary(T**2))
+
+
 def test_str_executes():
     assert '1' in str(cirq.MatrixGate(np.eye(2)))
     assert '0' in str(cirq.MatrixGate(np.eye(4)))
@@ -378,3 +388,25 @@ def test_matrixgate_unitary_tolerance():
     # very low atol -> the check never converges
     with pytest.raises(ValueError):
         _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_rtol=1e-10)
+
+
+def test_matrixgate_name_serialization():
+    # https://github.com/quantumlib/Cirq/issues/5999
+
+    # Test name serialization
+    gate1 = cirq.MatrixGate(np.eye(2), name='test_name')
+    gate_after_serialization1 = cirq.read_json(json_text=cirq.to_json(gate1))
+    assert gate1._name == 'test_name'
+    assert gate_after_serialization1._name == 'test_name'
+
+    # Test name backwards compatibility
+    gate2 = cirq.MatrixGate(np.eye(2))
+    gate_after_serialization2 = cirq.read_json(json_text=cirq.to_json(gate2))
+    assert gate2._name is None
+    assert gate_after_serialization2._name is None
+
+    # Test empty name
+    gate3 = cirq.MatrixGate(np.eye(2), name='')
+    gate_after_serialization3 = cirq.read_json(json_text=cirq.to_json(gate3))
+    assert gate3._name == ''
+    assert gate_after_serialization3._name == ''

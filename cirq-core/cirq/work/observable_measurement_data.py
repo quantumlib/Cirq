@@ -14,10 +14,12 @@
 
 import dataclasses
 import datetime
-from typing import Dict, List, Tuple, TYPE_CHECKING, Iterable, Any
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
-from cirq import ops, protocols
+import sympy
+from cirq import ops, protocols, value
+
 from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
     InitObsSetting,
@@ -34,8 +36,8 @@ if TYPE_CHECKING:
 def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
     """Assert that a PauliString has a real coefficient and return it."""
     coef = observable.coefficient
-    if not np.isclose(coef.imag, 0, atol=atol):
-        raise ValueError(f"{observable} has a complex coefficient.")
+    if isinstance(coef, sympy.Expr) or not np.isclose(coef.imag, 0, atol=atol):
+        raise ValueError(f"{observable} has a complex or symbolic coefficient.")
     return coef.real
 
 
@@ -105,7 +107,7 @@ class ObservableMeasuredResult:
     mean: float
     variance: float
     repetitions: int
-    circuit_params: Dict[str, float]
+    circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
@@ -210,10 +212,10 @@ class BitstringAccumulator:
         meas_spec: _MeasurementSpec,
         simul_settings: List[InitObsSetting],
         qubit_to_index: Dict['cirq.Qid', int],
-        bitstrings: np.ndarray = None,
-        chunksizes: np.ndarray = None,
-        timestamps: np.ndarray = None,
-        readout_calibration: 'BitstringAccumulator' = None,
+        bitstrings: Optional[np.ndarray] = None,
+        chunksizes: Optional[np.ndarray] = None,
+        timestamps: Optional[np.ndarray] = None,
+        readout_calibration: Optional['BitstringAccumulator'] = None,
     ):
         self._meas_spec = meas_spec
         self._simul_settings = simul_settings

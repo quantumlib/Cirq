@@ -414,6 +414,17 @@ def test_map_operations_can_add_qubits_if_flag_false():
     cirq.testing.assert_same_circuits(c_mapped, cirq.Circuit(cirq.CNOT(q[0], q[1])))
 
 
+def test_map_operations_maps_different_ops_from_same_moment_to_shared_qubits():
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit(cirq.H.on_each(q[:2]))
+    c_mapped = cirq.map_operations(
+        c, lambda op, _: op.controlled_by(q[2]), raise_if_add_qubits=False
+    )
+    cirq.testing.assert_same_circuits(
+        c_mapped, cirq.Circuit(cirq.H(q[0]).controlled_by(q[2]), cirq.H(q[1]).controlled_by(q[2]))
+    )
+
+
 def test_map_operations_can_drop_operations():
     q = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(q[0]), cirq.Y(q[1]), cirq.X(q[1]), cirq.Y(q[0]))
@@ -810,3 +821,38 @@ def test_merge_operations_complexity(op_density):
         _ = cirq.merge_operations(circuit, wrapped_merge_func)
         total_operations = len([*circuit.all_operations()])
         assert wrapped_merge_func.num_function_calls <= 2 * total_operations
+
+
+def test_merge_operations_does_not_merge_ccos_behind_measurements():
+    q = cirq.LineQubit.range(2)
+    cco_op = cirq.X(q[1]).with_classical_controls("a")
+
+    def merge_func(op1, op2):
+        return cirq.I(*op1.qubits) if op1 == cco_op and op2 == cco_op else None
+
+    circuit = cirq.Circuit([cirq.H(q[0]), cirq.measure(q[0], key="a"), cco_op] * 2)
+    cirq.testing.assert_same_circuits(cirq.merge_operations(circuit, merge_func), circuit)
+
+    circuit = cirq.Circuit([cirq.H(q[0]), cirq.measure(q[0], key="a"), cco_op, cco_op] * 2)
+    expected_circuit = cirq.Circuit([cirq.H(q[0]), cirq.measure(q[0], key="a"), cirq.I(q[1])] * 2)
+    cirq.testing.assert_same_circuits(
+        cirq.align_left(cirq.merge_operations(circuit, merge_func)), expected_circuit
+    )
+
+
+def test_merge_operations_does_not_merge_measurements_behind_ccos():
+    q = cirq.LineQubit.range(2)
+    measure_op = cirq.measure(q[0], key="a")
+    cco_op = cirq.X(q[1]).with_classical_controls("a")
+
+    def merge_func(op1, op2):
+        return cirq.I(*op1.qubits) if op1 == measure_op and op2 == measure_op else None
+
+    circuit = cirq.Circuit([cirq.H(q[0]), measure_op, cco_op] * 2)
+    cirq.testing.assert_same_circuits(cirq.merge_operations(circuit, merge_func), circuit)
+
+    circuit = cirq.Circuit([cirq.H(q[0]), measure_op, cco_op, measure_op, measure_op] * 2)
+    expected_circuit = cirq.Circuit([cirq.H(q[0]), measure_op, cco_op, cirq.I(q[0])] * 2)
+    cirq.testing.assert_same_circuits(
+        cirq.align_left(cirq.merge_operations(circuit, merge_func)), expected_circuit
+    )

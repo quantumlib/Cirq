@@ -12,21 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Sequence, Set, Union
 
 import cirq
-from cirq_google.engine import util
 from cirq_google.engine.abstract_job import AbstractJob
 from cirq_google.engine.abstract_program import AbstractProgram
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_engine import AbstractEngine
 from cirq_google.cloud import quantum
-from cirq_google.serialization import Serializer
-
-
-if TYPE_CHECKING:
-    import cirq_google
-    import google.protobuf
 
 
 class AbstractLocalEngine(AbstractEngine):
@@ -44,7 +37,7 @@ class AbstractLocalEngine(AbstractEngine):
         self._processors = {proc.processor_id: proc for proc in processors}
 
     def get_program(self, program_id: str) -> AbstractProgram:
-        """Returns an exsiting AbstractProgram given an identifier.
+        """Returns an existing AbstractProgram given an identifier.
 
         Iteratively checks each processor for the given id.
 
@@ -165,17 +158,12 @@ class AbstractLocalEngine(AbstractEngine):
         """
         return self._processors[processor_id]
 
-    @util.deprecated_gate_set_parameter
-    def get_sampler(
-        self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
-    ) -> cirq.Sampler:
+    def get_sampler(self, processor_id: Union[str, List[str]]) -> cirq.Sampler:
         """Returns a sampler backed by the engine.
 
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
 
         Raises:
             ValueError: if multiple processor ids are given.

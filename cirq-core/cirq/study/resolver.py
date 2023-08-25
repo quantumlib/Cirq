@@ -14,7 +14,7 @@
 
 """Resolves ParameterValues to assigned values."""
 import numbers
-from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+from typing import Any, cast, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -26,13 +26,14 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamVal']
-document(ParamDictType, """Dictionary from symbols to values.""")  # type: ignore
+ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamValComplex']
+ParamMappingType = Mapping['cirq.TParamKey', 'cirq.TParamValComplex']
+document(ParamDictType, """Dictionary from symbols to values.""")
+document(ParamMappingType, """Immutable map from symbols to values.""")
 
-ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
+ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamMappingType, None]
 document(
-    ParamResolverOrSimilarType,  # type: ignore
-    """Something that can be used to turn parameters into values.""",
+    ParamResolverOrSimilarType, """Something that can be used to turn parameters into values."""
 )
 
 # Used to mark values that are being resolved recursively to detect loops.
@@ -55,6 +56,9 @@ class ParamResolver:
     Attributes:
         param_dict: A dictionary from the ParameterValue key (str) to its
             assigned value.
+
+    Raises:
+        TypeError if formulas are passed as keys.
     """
 
     def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
@@ -67,15 +71,22 @@ class ParamResolver:
             return  # Already initialized. Got wrapped as part of the __new__.
 
         self._param_hash: Optional[int] = None
-        self.param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
+        self._param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
+        for key in self.param_dict:
+            if isinstance(key, sympy.Expr) and not isinstance(key, sympy.Symbol):
+                raise TypeError(f'ParamResolver keys cannot be (non-symbol) formulas ({key})')
         self._deep_eval_map: ParamDictType = {}
 
+    @property
+    def param_dict(self) -> ParamMappingType:
+        return self._param_dict
+
     def value_of(
-        self, value: Union['cirq.TParamKey', float], recursive: bool = True
-    ) -> 'cirq.TParamVal':
+        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = True
+    ) -> 'cirq.TParamValComplex':
         """Attempt to resolve a parameter to its assigned value.
 
-        Floats are returned without modification.  Strings are resolved via
+        Scalars are returned without modification.  Strings are resolved via
         the parameter dictionary with exact match only.  Otherwise, strings
         are considered to be sympy.Symbols with the name as the input string.
 
@@ -101,6 +112,7 @@ class ParamResolver:
         Raises:
             RecursionError: If the ParamResolver detects a loop in recursive
                 resolution.
+            sympy.SympifyError: If the resulting value cannot be interpreted.
         """
 
         # Input is a pass through type, no resolution needed: return early
@@ -113,7 +125,9 @@ class ParamResolver:
         # Input is a symbol and maps to a number in the dictionary
         # In both cases, return it directly.
         if value in self.param_dict:
-            param_value = self.param_dict[value]
+            # Note: if the value is in the dictionary, it will be a key type
+            # Add a cast to make mypy happy.
+            param_value = self.param_dict[cast('cirq.TParamKey', value)]
             v = _resolve_value(param_value)
             if v is not NotImplemented:
                 return v
@@ -136,6 +150,8 @@ class ParamResolver:
         # The following resolves common sympy expressions
         # If sympy did its job and wasn't slower than molasses,
         # we wouldn't need the following block.
+        if isinstance(value, sympy.Float):
+            return float(value)
         if isinstance(value, sympy.Add):
             summation = self.value_of(value.args[0], recursive)
             for addend in value.args[1:]:
@@ -149,9 +165,11 @@ class ParamResolver:
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
             base = self.value_of(value.args[0], recursive)
             exponent = self.value_of(value.args[1], recursive)
+            # Casts because numpy can handle expressions (by delegating to __pow__), but does
+            # not have signature that will support this.
             if isinstance(base, numbers.Number):
-                return np.float_power(base, exponent)
-            return np.power(base, exponent)
+                return np.float_power(cast(complex, base), cast(complex, exponent))
+            return np.power(cast(complex, base), cast(complex, exponent))
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
@@ -164,10 +182,17 @@ class ParamResolver:
         if not recursive:
             # Resolves one step at a time. For example:
             # a.subs({a: b, b: c}) == b
+            #
+            # Note that a sympy.SympifyError here likely means
+            # that one of the expressions was not parsable by sympy
+            # (such as a function returning NotImplemented)
             v = value.subs(self.param_dict, simultaneous=True)
+
             if v.free_symbols:
                 return v
             elif sympy.im(v):
+                # Technically, this should not return complex, but changing
+                # type signature to complex would cause many cascading issues
                 return complex(v)
             else:
                 return float(v)
@@ -182,7 +207,7 @@ class ParamResolver:
 
         # There isn't a full evaluation for 'value' yet. Until it's ready,
         # map value to None to identify loops in component evaluation.
-        self._deep_eval_map[value] = _RecursionFlag
+        self._deep_eval_map[value] = _RecursionFlag  # type: ignore
 
         v = self.value_of(value, recursive=False)
         if v == value:
@@ -192,22 +217,28 @@ class ParamResolver:
         return self._deep_eval_map[value]
 
     def _resolve_parameters_(self, resolver: 'ParamResolver', recursive: bool) -> 'ParamResolver':
-        new_dict = {k: k for k in resolver}
-        new_dict.update({k: self.value_of(k, recursive) for k in self})
-        new_dict.update({k: resolver.value_of(v, recursive) for k, v in new_dict.items()})
+        new_dict: Dict['cirq.TParamKey', Union[float, str, sympy.Symbol, sympy.Expr]] = {
+            k: k for k in resolver
+        }
+        new_dict.update({k: self.value_of(k, recursive) for k in self})  # type: ignore[misc]
+        new_dict.update(
+            {k: resolver.value_of(v, recursive) for k, v in new_dict.items()}  # type: ignore[misc]
+        )
         if recursive and self.param_dict:
-            new_resolver = ParamResolver(new_dict)
+            new_resolver = ParamResolver(cast(ParamDictType, new_dict))
             # Resolve down to single-step mappings.
             return ParamResolver()._resolve_parameters_(new_resolver, recursive=True)
-        return ParamResolver(new_dict)
+        return ParamResolver(cast(ParamDictType, new_dict))
 
-    def __iter__(self) -> Iterator[Union[str, sympy.Symbol]]:
+    def __iter__(self) -> Iterator[Union[str, sympy.Expr]]:
         return iter(self.param_dict)
 
     def __bool__(self) -> bool:
         return bool(self.param_dict)
 
-    def __getitem__(self, key: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
+    def __getitem__(
+        self, key: Union['cirq.TParamKey', 'cirq.TParamValComplex']
+    ) -> 'cirq.TParamValComplex':
         return self.value_of(key)
 
     def __hash__(self) -> int:
@@ -243,6 +274,8 @@ class ParamResolver:
 
 
 def _resolve_value(val: Any) -> Any:
+    if val is None:
+        return val
     if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
         return val
     if isinstance(val, sympy_numbers.IntegerConstant):

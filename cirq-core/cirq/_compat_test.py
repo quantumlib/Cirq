@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import collections
 import dataclasses
-import importlib
+import importlib.metadata
+import inspect
 import logging
 import multiprocessing
 import os
@@ -21,11 +23,11 @@ import traceback
 import types
 import warnings
 from types import ModuleType
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 from importlib.machinery import ModuleSpec
 from unittest import mock
 
-
+import duet
 import numpy as np
 import pandas as pd
 import pytest
@@ -35,6 +37,7 @@ from _pytest.outcomes import Failed
 import cirq.testing
 from cirq._compat import (
     block_overlapping_deprecation,
+    cached_method,
     cached_property,
     proper_repr,
     dataclass_repr,
@@ -47,6 +50,16 @@ from cirq._compat import (
     DeprecatedModuleLoader,
     DeprecatedModuleImportError,
 )
+
+
+def test_with_debug():
+    assert cirq.__cirq_debug__.get()
+    with cirq.with_debug(False):
+        assert not cirq.__cirq_debug__.get()
+        with cirq.with_debug(True):
+            assert cirq.__cirq_debug__.get()
+        assert not cirq.__cirq_debug__.get()
+    assert cirq.__cirq_debug__.get()
 
 
 def test_proper_repr():
@@ -86,7 +99,7 @@ def test_proper_repr_data_frame():
     pd.testing.assert_frame_equal(df2, df)
 
 
-def test_dataclass_repr_simple():
+def test_dataclass_repr_simple() -> None:
     @dataclasses.dataclass
     class TestClass1:
         x: int
@@ -99,7 +112,7 @@ def test_dataclass_repr_simple():
     assert repr(TestClass1(5, 'hi')) == "cirq.TestClass1(x=5, y='hi')"
 
 
-def test_dataclass_repr_numpy():
+def test_dataclass_repr_numpy() -> None:
     @dataclasses.dataclass
     class TestClass2:
         x: np.ndarray
@@ -108,7 +121,10 @@ def test_dataclass_repr_numpy():
             return dataclass_repr(self, namespace='cirq.testing')
 
     tc = TestClass2(np.ones(3))
-    assert repr(tc) == "cirq.testing.TestClass2(x=np.array([1.0, 1.0, 1.0], dtype=np.float64))"
+    assert (
+        repr(tc)
+        == "cirq.testing.TestClass2(x=np.array([1.0, 1.0, 1.0], dtype=np.dtype('float64')))"
+    )
 
 
 def test_proper_eq():
@@ -185,9 +201,8 @@ def test_deprecated():
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         # pylint: disable=unused-variable
-        # coverage: ignore
         @deprecated(deadline='invalid', fix='Roll some dice.')
-        def badly_deprecated_func(*args, **kwargs):
+        def badly_deprecated_func(*args, **kwargs):  # pragma: no cover
             return new_func(*args, **kwargs)
 
         # pylint: enable=unused-variable
@@ -243,11 +258,44 @@ def test_deprecated_parameter():
             rewrite=lambda args, kwargs: (args, {'new_count': kwargs['double_count'] * 2}),
         )
         # pylint: disable=unused-variable
-        # coverage: ignore
-        def f_with_badly_deprecated_param(new_count):
+        def f_with_badly_deprecated_param(new_count):  # pragma: no cover
             return new_count
 
         # pylint: enable=unused-variable
+
+
+@duet.sync
+async def test_deprecated_parameter_async_function():
+    @deprecated_parameter(
+        deadline='v1.2',
+        fix='Double it yourself.',
+        func_name='test_func',
+        parameter_desc='double_count',
+        match=lambda args, kwargs: 'double_count' in kwargs,
+        rewrite=lambda args, kwargs: (args, {'new_count': kwargs['double_count'] * 2}),
+    )
+    async def f(new_count):
+        return new_count
+
+    assert inspect.iscoroutinefunction(f)
+
+    # Does not warn on usual use.
+    with cirq.testing.assert_logs(count=0):
+        assert await f(1) == 1
+        assert await f(new_count=1) == 1
+
+    with cirq.testing.assert_deprecated(
+        '_compat_test.py:',
+        'double_count parameter of test_func was used',
+        'will be removed in cirq v1.2',
+        'Double it yourself.',
+        deadline='v1.2',
+    ):
+        # pylint: disable=unexpected-keyword-arg
+        # pylint: disable=no-value-for-parameter
+        assert await f(double_count=1) == 2
+        # pylint: enable=no-value-for-parameter
+        # pylint: enable=unexpected-keyword-arg
 
 
 def test_wrap_module():
@@ -356,16 +404,15 @@ def test_deprecated_class():
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         # pylint: disable=unused-variable
-        # coverage: ignore
         @deprecated_class(deadline='invalid', fix='theFix', name='foo')
-        class BadlyDeprecatedClass(NewClass):
+        class BadlyDeprecatedClass(NewClass):  # pragma: no cover
             ...
 
         # pylint: enable=unused-variable
 
 
 def _from_parent_import_deprecated():
-    from cirq.testing._compat_test_data import fake_a  # type: ignore
+    from cirq.testing._compat_test_data import fake_a
 
     assert fake_a.MODULE_A_ATTRIBUTE == 'module_a'
 
@@ -377,7 +424,7 @@ def _import_deprecated_assert_sub():
 
 
 def _from_deprecated_import_sub():
-    from cirq.testing._compat_test_data.fake_a import module_b  # type: ignore
+    from cirq.testing._compat_test_data.fake_a import module_b
 
     assert module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
@@ -448,7 +495,7 @@ def _import_multiple_deprecated():
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
-    from cirq.testing._compat_test_data.fake_a.module_b import module_c  # type: ignore
+    from cirq.testing._compat_test_data.fake_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
     from cirq.testing._compat_test_data.fake_b import module_c  # type: ignore
@@ -529,7 +576,7 @@ def _repeated_import_path():
 
     # pylint: disable=line-too-long
     from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore
-        child,  # type: ignore
+        child,
     )
 
     assert child.CHILD_ATTRIBUTE == 'child'
@@ -604,8 +651,6 @@ def subprocess_context(test_func):
         "it to this method?"
     )
 
-    import os
-
     ctx = multiprocessing.get_context('spawn' if os.name == 'nt' else 'fork')
 
     exception = ctx.Queue()
@@ -617,8 +662,7 @@ def subprocess_context(test_func):
         p.start()
         p.join()
         result = exception.get()
-        if result:
-            # coverage: ignore
+        if result:  # pragma: no cover
             ex_type, msg, ex_trace = result
             if ex_type == "Skipped":
                 warnings.warn(f"Skipping: {ex_type}: {msg}\n{ex_trace}")
@@ -707,21 +751,12 @@ def test_metadata_search_path():
     subprocess_context(_test_metadata_search_path_inner)()
 
 
-def _test_metadata_search_path_inner():
+def _test_metadata_search_path_inner():  # pragma: no cover
     # initialize the DeprecatedModuleFinders
     # pylint: disable=unused-import
     import cirq.testing._compat_test_data.module_a
 
-    try:
-        # importlib.metadata for python 3.8+
-        # coverage: ignore
-        import importlib.metadata as m
-    except:  # coverage: ignore
-        # coverage: ignore
-        # importlib_metadata for python <3.8
-        m = pytest.importorskip("importlib_metadata")
-
-    assert m.metadata('flynt')
+    assert importlib.metadata.metadata('numpy')
 
 
 def test_metadata_distributions_after_deprecated_submodule():
@@ -781,8 +816,7 @@ def test_deprecated_module_deadline_validation():
 
 def _test_broken_module_1_inner():
     with pytest.raises(
-        DeprecatedModuleImportError,
-        match="missing_module cannot be imported. " "The typical reasons",
+        DeprecatedModuleImportError, match="missing_module cannot be imported. The typical reasons"
     ):
         # pylint: disable=unused-import
         import cirq.testing._compat_test_data.broken_ref as br  # type: ignore
@@ -796,7 +830,7 @@ def _test_broken_module_2_inner():
             match="missing_module cannot be imported. The typical reasons",
         ):
             # note that this passes
-            from cirq.testing._compat_test_data import broken_ref  # type: ignore
+            from cirq.testing._compat_test_data import broken_ref
 
             # but when you try to use it
             broken_ref.something()
@@ -985,3 +1019,33 @@ def test_cached_property():
     bar2 = foo.bar
     assert bar2 is bar
     assert foo.bar_calls == 1
+
+
+class Bar:
+    def __init__(self) -> None:
+        self.foo_calls: Dict[int, int] = collections.Counter()
+        self.bar_calls: Dict[int, int] = collections.Counter()
+
+    @cached_method
+    def foo(self, n: int) -> Tuple[int, int]:
+        self.foo_calls[n] += 1
+        return (id(self), n)
+
+    @cached_method(maxsize=1)
+    def bar(self, n: int) -> Tuple[int, int]:
+        self.bar_calls[n] += 1
+        return (id(self), 2 * n)
+
+
+def test_cached_method():
+    b = Bar()
+    assert b.foo(123) == b.foo(123) == b.foo(123) == (id(b), 123)
+    assert b.foo(234) == b.foo(234) == b.foo(234) == (id(b), 234)
+    assert b.foo_calls == {123: 1, 234: 1}
+
+    assert b.bar(123) == b.bar(123) == (id(b), 123 * 2)
+    assert b.bar_calls == {123: 1}
+    assert b.bar(234) == b.bar(234) == (id(b), 234 * 2)
+    assert b.bar_calls == {123: 1, 234: 1}
+    assert b.bar(123) == b.bar(123) == (id(b), 123 * 2)
+    assert b.bar_calls == {123: 2, 234: 1}

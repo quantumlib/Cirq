@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import re
 from fractions import Fraction
 from typing import (
@@ -73,7 +74,7 @@ class CircuitDiagramInfo:
                 could be mistaken for an identity wire). Defaults to True.
 
         Raises:
-            ValueError: If `wire_symbols` is a string, and not an interable
+            ValueError: If `wire_symbols` is a string, and not an iterable
                 of strings.
         """
         if isinstance(wire_symbols, str):
@@ -118,13 +119,10 @@ class CircuitDiagramInfo:
             else:
                 ks = (0,)
             for k in ks:
-                result[k] += '^' + exponent
+                result[k] += f"^{exponent}"
         return result
 
-    def _formatted_exponent(
-        self: 'cirq.CircuitDiagramInfo', args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Optional[str]:
-
+    def _formatted_exponent(self, args: 'cirq.CircuitDiagramInfoArgs') -> Optional[str]:
         if protocols.is_parameterized(self.exponent):
             name = str(self.exponent)
             return f'({name})' if _is_exposed_formula(name) else name
@@ -192,7 +190,9 @@ class CircuitDiagramInfoArgs:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
         label_map: The map from label entities to diagram positions.
-        include_tags: Whether to print tags from TaggedOperations
+        include_tags: Whether to print tags from TaggedOperations.
+        transpose: Whether the circuit is to be drawn with time from left to
+            right (transpose is False), or from top to bottom.
     """
 
     UNINFORMED_DEFAULT: 'CircuitDiagramInfoArgs'
@@ -205,6 +205,7 @@ class CircuitDiagramInfoArgs:
         precision: Optional[int],
         label_map: Optional[Dict['cirq.LabelEntity', int]],
         include_tags: bool = True,
+        transpose: bool = False,
     ) -> None:
         self.known_qubits = None if known_qubits is None else tuple(known_qubits)
         self.known_qubit_count = known_qubit_count
@@ -212,6 +213,7 @@ class CircuitDiagramInfoArgs:
         self.precision = precision
         self.label_map = label_map
         self.include_tags = include_tags
+        self.transpose = transpose
 
     def _value_equality_values_(self) -> Any:
         return (
@@ -223,6 +225,7 @@ class CircuitDiagramInfoArgs:
             if self.label_map is None
             else tuple(sorted(self.label_map.items(), key=lambda e: e[0])),
             self.include_tags,
+            self.transpose,
         )
 
     def __repr__(self) -> str:
@@ -232,8 +235,9 @@ class CircuitDiagramInfoArgs:
             f'known_qubit_count={self.known_qubit_count!r}, '
             f'use_unicode_characters={self.use_unicode_characters!r}, '
             f'precision={self.precision!r}, '
-            f'label_map={self.label_map!r},'
-            f'include_tags={self.include_tags!r})'
+            f'label_map={self.label_map!r}, '
+            f'include_tags={self.include_tags!r}, '
+            f'transpose={self.transpose!r})'
         )
 
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
@@ -245,7 +249,7 @@ class CircuitDiagramInfoArgs:
             return str(val)
         return f'{float(val):.{self.precision}}'
 
-    def format_complex(self, val: Union[sympy.Basic, int, float, complex]) -> str:
+    def format_complex(self, val: Union[sympy.Basic, int, float, 'cirq.TParamValComplex']) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         c = complex(val)
@@ -267,8 +271,8 @@ class CircuitDiagramInfoArgs:
         if radians == 0:
             return '0'
         if radians == -np.pi:
-            return '-' + unit
-        if self.precision is not None:
+            return f"-{unit}"
+        if self.precision is not None and not isinstance(radians, sympy.Basic):
             quantity = self.format_real(radians / np.pi)
             return quantity + unit
         return repr(radians)
@@ -280,6 +284,7 @@ class CircuitDiagramInfoArgs:
             use_unicode_characters=self.use_unicode_characters,
             precision=self.precision,
             label_map=self.label_map,
+            transpose=self.transpose,
         )
 
     def with_args(self, **kwargs):
@@ -295,6 +300,7 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
     use_unicode_characters=True,
     precision=3,
     label_map=None,
+    transpose=False,
 )
 
 
@@ -425,8 +431,8 @@ def circuit_diagram_info(
     if getter is None:
         raise TypeError(f"object of type '{type(val)}' has no _circuit_diagram_info_ method.")
     raise TypeError(
-        "object of type '{}' does have a _circuit_diagram_info_ "
-        "method, but it returned NotImplemented.".format(type(val))
+        f"object of type '{type(val)}' does have a _circuit_diagram_info_ "
+        "method, but it returned NotImplemented."
     )
 
 

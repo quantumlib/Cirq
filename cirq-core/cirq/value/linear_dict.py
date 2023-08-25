@@ -18,20 +18,21 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
     MutableMapping,
+    Optional,
     overload,
     Tuple,
     TypeVar,
     Union,
     ValuesView,
-    Generic,
-    Optional,
 )
+from typing_extensions import Self
 
 Scalar = Union[complex, float, numbers.Complex]
 TVector = TypeVar('TVector')
@@ -41,8 +42,8 @@ TDefault = TypeVar('TDefault')
 
 def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
     coefficient = complex(coefficient)
-    real_str = '{:{fmt}}'.format(coefficient.real, fmt=format_spec)
-    imag_str = '{:{fmt}}'.format(coefficient.imag, fmt=format_spec)
+    real_str = f'{coefficient.real:{format_spec}}'
+    imag_str = f'{coefficient.imag:{format_spec}}'
     if float(real_str) == 0 and float(imag_str) == 0:
         return ''
     if float(imag_str) == 0:
@@ -70,7 +71,7 @@ def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
     formatted_terms = [_format_term(format_spec, vector, coeff) for vector, coeff in terms]
     s = ''.join(formatted_terms)
     if not s:
-        return '{:{fmt}}'.format(0, fmt=format_spec)
+        return f'{0:{format_spec}}'
     if s[0] == '+':
         return s[1:]
     return s
@@ -94,7 +95,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     def __init__(
         self,
         terms: Optional[Mapping[TVector, Scalar]] = None,
-        validator: Callable[[TVector], bool] = None,
+        validator: Optional[Callable[[TVector], bool]] = None,
     ) -> None:
         """Initializes linear combination from a collection of terms.
 
@@ -113,8 +114,6 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         if terms is not None:
             self.update(terms)
 
-    TSelf = TypeVar('TSelf', bound='LinearDict[TVector]')
-
     @classmethod
     def fromkeys(cls, vectors, coefficient=0):
         return LinearDict(dict.fromkeys(vectors, complex(coefficient)))
@@ -123,14 +122,14 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         if not self._is_valid(vector):
             raise ValueError(f'{vector} is not compatible with linear combination {self}')
 
-    def clean(self: 'TSelf', *, atol: float = 1e-9) -> 'TSelf':
+    def clean(self, *, atol: float = 1e-9) -> Self:
         """Remove terms with coefficients of absolute value atol or less."""
-        negligible = [v for v, c in self._terms.items() if abs(c) <= atol]
+        negligible = [v for v, c in self._terms.items() if abs(c) <= atol]  # type: ignore[operator]
         for v in negligible:
             del self._terms[v]
         return self
 
-    def copy(self: 'TSelf') -> 'TSelf':
+    def copy(self) -> Self:
         factory = type(self)
         return factory(self._terms.copy())
 
@@ -206,19 +205,19 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     def __len__(self) -> int:
         return len([v for v, c in self._terms.items() if c != 0])
 
-    def __iadd__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
+    def __iadd__(self, other: Self) -> Self:
         for vector, other_coefficient in other.items():
             old_coefficient = self._terms.get(vector, 0)
             new_coefficient = old_coefficient + other_coefficient
             self[vector] = new_coefficient
         return self.clean(atol=0)
 
-    def __add__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
+    def __add__(self, other: Self) -> Self:
         result = self.copy()
         result += other
         return result
 
-    def __isub__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
+    def __isub__(self, other: Self) -> Self:
         for vector, other_coefficient in other.items():
             old_coefficient = self._terms.get(vector, 0)
             new_coefficient = old_coefficient - other_coefficient
@@ -226,30 +225,30 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         self.clean(atol=0)
         return self
 
-    def __sub__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
+    def __sub__(self, other: Self) -> Self:
         result = self.copy()
         result -= other
         return result
 
-    def __neg__(self: 'TSelf') -> 'TSelf':
+    def __neg__(self) -> Self:
         factory = type(self)
         return factory({v: -c for v, c in self.items()})
 
-    def __imul__(self: 'TSelf', a: Scalar) -> 'TSelf':
+    def __imul__(self, a: Scalar) -> Self:
         for vector in self:
             self._terms[vector] *= a
         self.clean(atol=0)
         return self
 
-    def __mul__(self: 'TSelf', a: Scalar) -> 'TSelf':
+    def __mul__(self, a: Scalar) -> Self:
         result = self.copy()
         result *= a
         return result
 
-    def __rmul__(self: 'TSelf', a: Scalar) -> 'TSelf':
+    def __rmul__(self, a: Scalar) -> Self:
         return self.__mul__(a)
 
-    def __truediv__(self: 'TSelf', a: Scalar) -> 'TSelf':
+    def __truediv__(self, a: Scalar) -> Self:
         return self.__mul__(1 / a)
 
     def __bool__(self) -> bool:

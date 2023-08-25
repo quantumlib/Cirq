@@ -22,7 +22,7 @@ noise models to produce a single noise model which replicates device noise.
 import abc
 from typing import Iterable, Sequence, TYPE_CHECKING, List
 
-from cirq import _compat, _import, ops, protocols, devices
+from cirq import _import, ops, protocols, devices
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 
 circuits = _import.LazyLoader("circuits", globals(), "cirq.circuits.circuit")
@@ -66,10 +66,6 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         """
         return False
 
-    @_compat.deprecated(deadline='v0.16', fix='Use is_virtual instead.')
-    def virtual_predicate(self, op: 'cirq.Operation') -> bool:
-        return self.is_virtual(op)
-
     def noisy_moments(
         self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
     ) -> Sequence['cirq.OP_TREE']:
@@ -90,7 +86,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             split_measure_moments.append(circuits.Moment(split_measure_ops))
 
         # Append PHYSICAL_GATE_TAG to non-virtual ops in the input circuit,
-        # using `self.virtual_predicate` to determine virtuality.
+        # using `self.is_virtual` to determine virtuality.
         new_moments = []
         for moment in split_measure_moments:
             virtual_ops = {op for op in moment if self.is_virtual(op)}
@@ -101,7 +97,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             # only ops with PHYSICAL_GATE_TAG will receive noise.
             if virtual_ops:
                 # Only subclasses will trigger this case.
-                new_moments.append(circuits.Moment(virtual_ops))  # coverage: ignore
+                new_moments.append(circuits.Moment(virtual_ops))  # pragma: no cover
             if physical_ops:
                 new_moments.append(circuits.Moment(physical_ops))
 

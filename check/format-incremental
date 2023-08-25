@@ -6,8 +6,7 @@
 # Usage:
 #     check/format-incremental [BASE_REVISION] [--apply] [--all]
 #
-# By default, the script runs flynt to convert old string literal formatting to f-strings
-# and analyzes python files that have changed relative to the
+# By default, the script analyzes python files that have changed relative to the
 # base revision and determines whether they need to be formatted. If any changes
 # are needed, it prints the diff and exits with code 1, otherwise it exits with
 # code 0.
@@ -32,8 +31,9 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 
 # Parse arguments.
@@ -46,7 +46,7 @@ for arg in "$@"; do
     elif [[ "${arg}" == "--all" ]]; then
         only_changed=0
     elif [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
+        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi
@@ -72,8 +72,8 @@ if (( only_changed == 1 )); then
             exit 1
         fi
     fi
-    base="$(git merge-base ${rev} HEAD)"
-    if [ "$(git rev-parse ${rev})" == "${base}" ]; then
+    base="$(git merge-base "${rev}" HEAD)"
+    if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
         echo -e "Comparing against revision '${rev}'." >&2
     else
         echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
@@ -82,7 +82,7 @@ if (( only_changed == 1 )); then
 
     # Get the modified, added and moved python files.
     IFS=$'\n' read -r -d '' -a format_files < \
-        <(git diff --name-only --diff-filter=MAR ${rev} -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py')
+        <(git diff --name-only --diff-filter=MAR "${rev}" -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py')
 else
     echo -e "Formatting all python files." >&2
     IFS=$'\n' read -r -d '' -a format_files < \
@@ -94,33 +94,19 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
-flynt_args=("--quiet" "-f")
-if (( only_print == 1 )); then
-    flynt_args+=("--dry-run")
-fi
+BLACKVERSION="$(black --version)"
 
-flynt "${format_files[@]}" "${flynt_args[@]}"
-FLYNTSTATUS=$?
-
-echo "Running the black formatter..."
+echo "Running the black formatter... (version: $BLACKVERSION)"
 
 args=("--color")
 if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
 
-# Warn users about bug in black: https://github.com/psf/black/issues/1629
-# Once that is fixed upstream, we can just do:
-# black "${args[@]}" "${format_files[@]}"
-# exit $?
-LOGS="$(black "${args[@]}" "${format_files[@]}" 2>&1)"
+black "${args[@]}" "${format_files[@]}"
 BLACKSTATUS=$?
-echo "${LOGS}"
-if [[ "$BLACKSTATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced different code on the second pass of the formatter.".*$ ]]; then
-  echo -e "\033[31mWarning, it seems we ran into https://github.com/psf/black/issues/1629. Typically, this can be fixed by adding a trailing comma. If you get stuck, please file a cirq issue on github.\033[0m"
-fi
 
-if [[ "$FLYNTSTATUS" != "0" || "$BLACKSTATUS" != "0"  ]]; then
+if [[ "$BLACKSTATUS" != "0"  ]]; then
   exit 1
 fi
 exit 0

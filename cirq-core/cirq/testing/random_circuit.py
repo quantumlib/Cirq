@@ -125,8 +125,8 @@ def random_circuit(
 
 def random_two_qubit_circuit_with_czs(
     num_czs: int = 3,
-    q0: Qid = None,
-    q1: Qid = None,
+    q0: Optional[Qid] = None,
+    q1: Optional[Qid] = None,
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> circuits.Circuit:
     """Creates a random two qubit circuit with the given number of CNOTs.

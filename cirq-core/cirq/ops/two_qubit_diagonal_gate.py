@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Creates the gate instance for a two qubit diagonal gate.
 
 The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Tuple, Optional, Sequence, TYPE_CHECKING
+from typing import AbstractSet, Any, Dict, Tuple, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 import sympy
 
@@ -31,12 +32,28 @@ if TYPE_CHECKING:
 
 @value.value_equality()
 class TwoQubitDiagonalGate(raw_types.Gate):
-    """A gate given by a diagonal 4\\times 4 matrix."""
+    r"""A two qubit gate whose unitary is a diagonal $4 \times 4$ matrix.
+
+    This gate's off-diagonal elements are zero and its on-diagonal
+    elements are all phases.
+
+    For example, `cirq.TwoQubitDiagonalGate([0, 1, -1, 0])` has the
+    unitary matrix
+
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & e^i & 0 & 0 \\
+        0 & 0 & e^{-i} & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
+    """
 
     def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
         r"""A two qubit gate with only diagonal elements.
 
-        This gate's off-diagonal elements are zero and it's on diagonal
+        This gate's off-diagonal elements are zero and its on-diagonal
         elements are all phases.
 
         Args:
@@ -45,6 +62,10 @@ class TwoQubitDiagonalGate(raw_types.Gate):
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_3})$.
         """
         self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+
+    @property
+    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+        return self._diag_angles_radians
 
     def _num_qubits_(self) -> int:
         return 2
@@ -114,28 +135,8 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def __repr__(self) -> str:
-        return 'cirq.TwoQubitDiagonalGate([{}])'.format(
-            ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-        )
+        angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
+        return f'cirq.TwoQubitDiagonalGate([{angles}])'
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if np.count_nonzero(self._diag_angles_radians) == 1:
-            if self._diag_angles_radians[0] != 0:
-                return formatter.format(
-                    'CPHASE00({0}) {1} {2}\n', self._diag_angles_radians[0], qubits[0], qubits[1]
-                )
-            elif self._diag_angles_radians[1] != 0:
-                return formatter.format(
-                    'CPHASE01({0}) {1} {2}\n', self._diag_angles_radians[1], qubits[0], qubits[1]
-                )
-            elif self._diag_angles_radians[2] != 0:
-                return formatter.format(
-                    'CPHASE10({0}) {1} {2}\n', self._diag_angles_radians[2], qubits[0], qubits[1]
-                )
-            elif self._diag_angles_radians[3] != 0:
-                return formatter.format(
-                    'CPHASE({0}) {1} {2}\n', self._diag_angles_radians[3], qubits[0], qubits[1]
-                )
-        return None
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])

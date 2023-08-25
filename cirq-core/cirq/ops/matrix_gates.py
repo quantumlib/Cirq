@@ -14,13 +14,13 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Any, cast, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import linalg, protocols, _import
 from cirq._compat import proper_repr
-from cirq.ops import raw_types
+from cirq.ops import raw_types, phased_x_z_gate
 
 if TYPE_CHECKING:
     import cirq
@@ -37,14 +37,25 @@ three_qubit_decomposition = _import.LazyLoader(
 
 
 class MatrixGate(raw_types.Gate):
-    """A unitary qubit or qudit gate defined entirely by its matrix."""
+    r"""A unitary qubit or qudit gate defined entirely by its numpy matrix.
+
+    For example `cirq.MatrixGate(np.array([[0, 1j], [1, 0]]))` has the unitary matrix:
+
+    $$
+    \begin{bmatrix}
+        0 & i \\
+        1 & 0
+    \end{bmatrix}
+    $$
+    """
 
     def __init__(
         self,
         matrix: np.ndarray,
         *,
-        name: str = None,
+        name: Optional[str] = None,
         qid_shape: Optional[Iterable[int]] = None,
+        unitary_check: bool = True,
         unitary_check_rtol: float = 1e-5,
         unitary_check_atol: float = 1e-8,
     ) -> None:
@@ -56,6 +67,10 @@ class MatrixGate(raw_types.Gate):
             qid_shape: The shape of state tensor that the matrix applies to.
                 If not specified, this value is inferred by assuming that the
                 matrix is supposed to apply to qubits.
+            unitary_check: If True, check that the supplied matrix is unitary up to the
+                given tolerances. This should only be disabled if the matrix has already been
+                checked for unitarity, in which case we get a slight performance improvement by
+                not checking again.
             unitary_check_rtol: The relative tolerance for checking whether the supplied matrix
                 is unitary. See `cirq.is_unitary`.
             unitary_check_atol: The absolute tolerance for checking whether the supplied matrix
@@ -89,15 +104,25 @@ class MatrixGate(raw_types.Gate):
                 f'qid_shape: {self._qid_shape}\n'
             )
 
-        if not linalg.is_unitary(matrix, rtol=unitary_check_rtol, atol=unitary_check_atol):
-            raise ValueError(f'Not a unitary matrix: {self._matrix}')
+        if unitary_check and not linalg.is_unitary(
+            matrix, rtol=unitary_check_rtol, atol=unitary_check_atol
+        ):
+            raise ValueError(f'Not a unitary matrix: {matrix}')
+
+    def with_name(self, name: str) -> 'MatrixGate':
+        """Creates a new MatrixGate with the same matrix and a new name."""
+        return MatrixGate(self._matrix, name=name, qid_shape=self._qid_shape, unitary_check=False)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'matrix': self._matrix.tolist(), 'qid_shape': self._qid_shape}
+        return {
+            'matrix': self._matrix.tolist(),
+            'qid_shape': self._qid_shape,
+            **({'name': self._name} if self._name is not None else {}),
+        }
 
     @classmethod
-    def _from_json_dict_(cls, matrix, qid_shape, **kwargs):
-        return cls(matrix=np.array(matrix), qid_shape=qid_shape)
+    def _from_json_dict_(cls, matrix, qid_shape, name=None, **kwargs):
+        return cls(matrix=np.array(matrix), qid_shape=qid_shape, name=name)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -105,8 +130,7 @@ class MatrixGate(raw_types.Gate):
     def __pow__(self, exponent: Any) -> 'MatrixGate':
         if not isinstance(exponent, (int, float)):
             return NotImplemented
-        e = cast(float, exponent)
-        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
+        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**exponent)
         return MatrixGate(new_mat, qid_shape=self._qid_shape)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
@@ -149,14 +173,20 @@ class MatrixGate(raw_types.Gate):
         n_qubits = len(self._qid_shape)
         if self._name is not None:
             symbols = (
-                [self._name]
-                if n_qubits == 1
-                else [f'{self._name}[{i+1}]' for i in range(0, n_qubits)]
+                [self._name] if n_qubits == 1 else [f'{self._name}[{i+1}]' for i in range(n_qubits)]
             )
             return protocols.CircuitDiagramInfo(wire_symbols=symbols)
         main = _matrix_to_diagram_symbol(self._matrix, args)
         rest = [f'#{i+1}' for i in range(1, n_qubits)]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
+
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        if self._qid_shape == (2,):
+            return protocols.qasm(
+                phased_x_z_gate.PhasedXZGate.from_matrix(self._matrix), args=args, qubits=qubits
+            )
+        return None
 
     def __hash__(self) -> int:
         vals = tuple(v for _, v in np.ndenumerate(self._matrix))

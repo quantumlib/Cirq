@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TypeVar, TYPE_CHECKING
-
 import abc
+import functools
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing_extensions import Self
 
 from cirq import ops, protocols
 
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='_BaseLineQid')  # type: ignore
 
-
-@functools.total_ordering  # type: ignore
+@functools.total_ordering
 class _BaseLineQid(ops.Qid):
     """The base class for `LineQid` and `LineQubit`."""
 
@@ -44,7 +42,13 @@ class _BaseLineQid(ops.Qid):
         return LineQid(self.x, dimension)
 
     def is_adjacent(self, other: 'cirq.Qid') -> bool:
-        """Determines if two qubits are adjacent line qubits."""
+        """Determines if two qubits are adjacent line qubits.
+
+        Args:
+            other: `cirq.Qid` to test for adjacency.
+
+        Returns: True iff other and self are adjacent.
+        """
         return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
 
     def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseLineQid']:
@@ -60,10 +64,10 @@ class _BaseLineQid(ops.Qid):
         return neighbors
 
     @abc.abstractmethod
-    def _with_x(self: TSelf, x: int) -> TSelf:
+    def _with_x(self, x: int) -> Self:
         """Returns a qubit with the same type but a different value of `x`."""
 
-    def __add__(self: TSelf, other: int) -> TSelf:
+    def __add__(self, other: Union[int, Self]) -> Self:
         if isinstance(other, _BaseLineQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -75,7 +79,7 @@ class _BaseLineQid(ops.Qid):
             raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
         return self._with_x(self.x + other)
 
-    def __sub__(self: TSelf, other: int) -> TSelf:
+    def __sub__(self, other: Union[int, Self]) -> Self:
         if isinstance(other, _BaseLineQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -89,13 +93,13 @@ class _BaseLineQid(ops.Qid):
             )
         return self._with_x(self.x - other)
 
-    def __radd__(self: TSelf, other: int) -> TSelf:
+    def __radd__(self, other: int) -> Self:
         return self + other
 
-    def __rsub__(self: TSelf, other: int) -> TSelf:
+    def __rsub__(self, other: int) -> Self:
         return -self + other
 
-    def __neg__(self: TSelf) -> TSelf:
+    def __neg__(self) -> Self:
         return self._with_x(-self.x)
 
     def __complex__(self) -> complex:
@@ -115,13 +119,14 @@ class LineQid(_BaseLineQid):
     identifies the qids location on the line. `LineQid`s are ordered by
     this integer.
 
-    One can construct new `LineQid`s by adding or subtracting integers:
+    One can construct new `cirq.LineQid`s by adding or subtracting integers:
 
-        >>> cirq.LineQid(1, dimension=2) + 3
-        cirq.LineQid(4, dimension=2)
+    >>> cirq.LineQid(1, dimension=2) + 3
+    cirq.LineQid(4, dimension=2)
 
-        >>> cirq.LineQid(2, dimension=3) - 1
-        cirq.LineQid(1, dimension=3)
+    >>> cirq.LineQid(2, dimension=3) - 1
+    cirq.LineQid(1, dimension=3)
+
     """
 
     def __init__(self, x: int, dimension: int) -> None:
@@ -190,7 +195,12 @@ class LineQid(_BaseLineQid):
         return f"cirq.LineQid({self.x}, dimension={self.dimension})"
 
     def __str__(self) -> str:
-        return f"{self.x} (d={self.dimension})"
+        return f"q({self.x}) (d={self.dimension})"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"{self.x} (d={self.dimension})",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
@@ -203,13 +213,14 @@ class LineQubit(_BaseLineQid):
     identifies the qubits location on the line. LineQubits are ordered by
     this integer.
 
-    One can construct new LineQubits by adding or subtracting integers:
+    One can construct new `cirq.LineQubit`s by adding or subtracting integers:
 
-        >>> cirq.LineQubit(1) + 3
-        cirq.LineQubit(4)
+    >>> cirq.LineQubit(1) + 3
+    cirq.LineQubit(4)
 
-        >>> cirq.LineQubit(2) - 1
-        cirq.LineQubit(1)
+    >>> cirq.LineQubit(2) - 1
+    cirq.LineQubit(1)
+
     """
 
     @property
@@ -241,7 +252,12 @@ class LineQubit(_BaseLineQid):
         return f"cirq.LineQubit({self.x})"
 
     def __str__(self) -> str:
-        return f"{self.x}"
+        return f"q({self.x})"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"{self.x}",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x'])

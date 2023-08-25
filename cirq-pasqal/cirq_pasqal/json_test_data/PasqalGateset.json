@@ -1,0 +1,4 @@
+{
+    "cirq_type": "PasqalGateset",
+    "include_additional_controlled_ops": false
+}

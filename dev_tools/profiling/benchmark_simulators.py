@@ -54,7 +54,9 @@ def simulate(sim_type: str, num_qubits: int, num_gates: int, run_repetitions: in
             circuit.append(cirq.measure(cirq.GridQubit(0, i), key=f"meas{i}."))
 
     if sim_type == _UNITARY:
-        circuit.final_state_vector(initial_state=0)
+        circuit.final_state_vector(
+            initial_state=0, ignore_terminal_measurements=True, dtype=np.complex64
+        )
     elif sim_type == _DENSITY:
         cirq.DensityMatrixSimulator().run(circuit, repetitions=run_repetitions)
 
@@ -70,9 +72,7 @@ def main(
 ):
     print('num_qubits,seconds per gate')
     for num_qubits in range(min_num_qubits, max_num_qubits + 1):
-        command = 'simulate(\'{}\', {}, {}, {})'.format(
-            sim_type, num_qubits, num_gates, run_repetitions
-        )
+        command = f"simulate('{sim_type}', {num_qubits}, {num_gates}, {run_repetitions})"
         time = timeit.timeit(command, setup, number=num_repetitions)
         print(f'{num_qubits},{time / (num_repetitions * num_gates)}')
 

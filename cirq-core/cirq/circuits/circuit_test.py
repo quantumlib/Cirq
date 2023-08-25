@@ -13,6 +13,7 @@
 # limitations under the License.
 import itertools
 import os
+import time
 from collections import defaultdict
 from random import randint, random, sample, randrange
 from typing import Iterator, Optional, Tuple, TYPE_CHECKING
@@ -29,17 +30,7 @@ from cirq.testing.devices import ValidatingTestDevice
 
 
 class _Foxy(ValidatingTestDevice):
-    def can_add_operation_into_moment(
-        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
-    ) -> bool:
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        # a fake rule for ensuring that no two CZs are executed at the same moment.
-        # this will ensure that CZs are always in separate moments in this device
-        return not (
-            isinstance(operation.gate, ops.CZPowGate)
-            and any(isinstance(op.gate, ops.CZPowGate) for op in moment.operations)
-        )
+    pass
 
 
 FOXY = _Foxy(
@@ -77,6 +68,23 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
+
+
+def test_from_moments():
+    a, b, c, d = cirq.LineQubit.range(4)
+    assert cirq.Circuit.from_moments(
+        [cirq.X(a), cirq.Y(b)],
+        [cirq.X(c)],
+        [],
+        cirq.Z(d),
+        [cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')],
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.X(c)),
+        cirq.Moment(),
+        cirq.Moment(cirq.Z(d)),
+        cirq.Moment(cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')),
+    )
 
 
 def test_alignment():
@@ -179,6 +187,12 @@ def test_append_single():
     c.append([cirq.X(a)])
     assert c == cirq.Circuit([cirq.Moment([cirq.X(a)])])
 
+    c = cirq.Circuit(cirq.H(a))
+    c.append(c)
+    assert c == cirq.Circuit(
+        [cirq.Moment(cirq.H(cirq.NamedQubit('a'))), cirq.Moment(cirq.H(cirq.NamedQubit('a')))]
+    )
+
 
 def test_append_control_key():
     q0, q1, q2 = cirq.LineQubit.range(3)
@@ -276,6 +290,16 @@ def test_append_control_key_subcircuit():
         ).with_measurement_key_mapping({'b': 'a'})
     )
     assert len(c) == 1
+
+
+def test_measurement_key_paths():
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.measure(a, key='A'))
+    assert cirq.measurement_key_names(circuit1) == {'A'}
+    circuit2 = cirq.with_key_path(circuit1, ('B',))
+    assert cirq.measurement_key_names(circuit2) == {'B:A'}
+    circuit3 = cirq.with_key_path_prefix(circuit2, ('C',))
+    assert cirq.measurement_key_names(circuit3) == {'C:B:A'}
 
 
 def test_append_moments():
@@ -808,6 +832,17 @@ def test_insert_moment():
     for given_index, actual_index, operation, qubit, strat in moment_list:
         c.insert(given_index, cirq.Moment(operation), strat)
         assert c.operation_at(qubit, actual_index) == operation[0]
+
+
+def test_circuit_length_inference():
+    # tests that `get_earliest_accommodating_moment_index` properly computes circuit length
+    circuit = cirq.Circuit(cirq.X(cirq.q(0)))
+    qubit_indices = {cirq.q(0): 0}
+    mkey_indices = {}
+    ckey_indices = {}
+    assert circuits.circuit.get_earliest_accommodating_moment_index(
+        cirq.Moment(), qubit_indices, mkey_indices, ckey_indices
+    ) == len(circuit)
 
 
 def test_insert_inline_near_start():
@@ -1359,7 +1394,7 @@ def test_findall_operations_until_blocked(circuit_cls):
     )
 
     # Test if all operations are blocked
-    for idx in range(0, 15):
+    for idx in range(15):
         for q in (a, b, c, d):
             assert_findall_operations_until_blocked_as_expected(
                 circuit=circuit, start_frontier={q: idx}, is_blocker=stop_if_op, expected_ops=[]
@@ -2671,7 +2706,7 @@ def test_compare_circuits_superoperator_to_simulation(circuit, initial_state):
     """Compares action of circuit superoperator and circuit simulation."""
     assert circuit._has_superoperator_()
     superoperator = circuit._superoperator_()
-    vectorized_initial_state = np.reshape(initial_state, np.prod(initial_state.shape))
+    vectorized_initial_state = initial_state.reshape(-1)
     vectorized_final_state = superoperator @ vectorized_initial_state
     actual_state = np.reshape(vectorized_final_state, initial_state.shape)
 
@@ -2749,6 +2784,30 @@ def test_transposed_diagram_exponent_order(circuit_cls):
     )
 
 
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_transposed_diagram_can_depend_on_transpose(circuit_cls):
+    class TestGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _circuit_diagram_info_(self, args):
+            return cirq.CircuitDiagramInfo(wire_symbols=("t" if args.transpose else "r",))
+
+    c = cirq.Circuit(TestGate()(cirq.NamedQubit("a")))
+
+    cirq.testing.assert_has_diagram(c, "a: ───r───")
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+a
+│
+t
+│
+""",
+        transpose=True,
+    )
+
+
 def test_insert_moments():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit()
@@ -2773,23 +2832,29 @@ def test_insert_moments():
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_apply_unitary_effect_to_state(circuit_cls):
+def test_final_state_vector(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     # State ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(),
+        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
+            ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(initial_state=0),
+        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
+            initial_state=0, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(initial_state=1),
+        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
+            initial_state=1, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([1, 1j]) * np.sqrt(0.5),
         atol=1e-8,
     )
@@ -2797,7 +2862,9 @@ def test_apply_unitary_effect_to_state(circuit_cls):
     # Vector state.
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
-            initial_state=np.array([1j, 1]) * np.sqrt(0.5)
+            initial_state=np.array([1j, 1]) * np.sqrt(0.5),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([0, 1]),
         atol=1e-8,
@@ -2805,22 +2872,30 @@ def test_apply_unitary_effect_to_state(circuit_cls):
 
     # Qubit ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.CNOT(a, b)).final_state_vector(initial_state=0),
+        circuit_cls(cirq.CNOT(a, b)).final_state_vector(
+            initial_state=0, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([1, 0, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.CNOT(a, b)).final_state_vector(initial_state=1),
+        circuit_cls(cirq.CNOT(a, b)).final_state_vector(
+            initial_state=1, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 1, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.CNOT(a, b)).final_state_vector(initial_state=2),
+        circuit_cls(cirq.CNOT(a, b)).final_state_vector(
+            initial_state=2, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 0, 0, 1]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.CNOT(a, b)).final_state_vector(initial_state=3),
+        circuit_cls(cirq.CNOT(a, b)).final_state_vector(
+            initial_state=3, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 0, 1, 0]),
         atol=1e-8,
     )
@@ -2828,28 +2903,36 @@ def test_apply_unitary_effect_to_state(circuit_cls):
     # Product state
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.CNOT(a, b)).final_state_vector(
-            initial_state=cirq.KET_ZERO(a) * cirq.KET_ZERO(b)
+            initial_state=cirq.KET_ZERO(a) * cirq.KET_ZERO(b),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([1, 0, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.CNOT(a, b)).final_state_vector(
-            initial_state=cirq.KET_ZERO(a) * cirq.KET_ONE(b)
+            initial_state=cirq.KET_ZERO(a) * cirq.KET_ONE(b),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([0, 1, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.CNOT(a, b)).final_state_vector(
-            initial_state=cirq.KET_ONE(a) * cirq.KET_ZERO(b)
+            initial_state=cirq.KET_ONE(a) * cirq.KET_ZERO(b),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([0, 0, 0, 1]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.CNOT(a, b)).final_state_vector(
-            initial_state=cirq.KET_ONE(a) * cirq.KET_ONE(b)
+            initial_state=cirq.KET_ONE(a) * cirq.KET_ONE(b),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([0, 0, 1, 0]),
         atol=1e-8,
@@ -2857,47 +2940,48 @@ def test_apply_unitary_effect_to_state(circuit_cls):
 
     # Measurements.
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.measure(a)).final_state_vector(), np.array([1, 0]), atol=1e-8
-    )
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(), np.array([0, 1]), atol=1e-8
-    )
-    with pytest.raises(ValueError):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.measure(a), cirq.X(a)).final_state_vector(),
-            np.array([1, 0]),
-            atol=1e-8,
-        )
-    with pytest.raises(ValueError):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.measure(a)).final_state_vector(ignore_terminal_measurements=False),
-            np.array([1, 0]),
-            atol=1e-8,
-        )
-
-    # Extra qubits.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls().final_state_vector(), np.array([1]), atol=1e-8
-    )
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls().final_state_vector(qubits_that_should_be_present=[a]),
+        circuit_cls(cirq.measure(a)).final_state_vector(
+            ignore_terminal_measurements=True, dtype=np.complex64
+        ),
         np.array([1, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(b)).final_state_vector(qubits_that_should_be_present=[a]),
-        np.array([0, 1, 0, 0]),
+        circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(
+            ignore_terminal_measurements=True, dtype=np.complex64
+        ),
+        np.array([0, 1]),
         atol=1e-8,
     )
+    with pytest.raises(ValueError):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls(cirq.measure(a), cirq.X(a)).final_state_vector(
+                ignore_terminal_measurements=True, dtype=np.complex64
+            ),
+            np.array([1, 0]),
+            atol=1e-8,
+        )
+    with pytest.raises(ValueError):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls(cirq.measure(a)).final_state_vector(
+                ignore_terminal_measurements=False, dtype=np.complex64
+            ),
+            np.array([1, 0]),
+            atol=1e-8,
+        )
 
     # Qubit order.
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[a, b]),
+        circuit_cls(cirq.Z(a), cirq.X(b)).final_state_vector(
+            qubit_order=[a, b], ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 1, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[b, a]),
+        circuit_cls(cirq.Z(a), cirq.X(b)).final_state_vector(
+            qubit_order=[b, a], ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 0, 1, 0]),
         atol=1e-8,
     )
@@ -2909,7 +2993,9 @@ def test_apply_unitary_effect_to_state(circuit_cls):
     for dt in dtypes:
         cirq.testing.assert_allclose_up_to_global_phase(
             circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
-                initial_state=np.array([1j, 1]) * np.sqrt(0.5), dtype=dt
+                initial_state=np.array([1j, 1]) * np.sqrt(0.5),
+                ignore_terminal_measurements=False,
+                dtype=dt,
             ),
             np.array([0, 1]),
             atol=1e-8,
@@ -2962,6 +3048,23 @@ def test_resolve_parameters(circuit_cls, resolve_fn):
     resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({'x': 0.2}))
     expected_circuit = circuit_cls([cirq.Moment(), cirq.Moment([cirq.X(q) ** 0.2])])
     cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_no_change(circuit_cls, resolve_fn):
+    a, b = cirq.LineQubit.range(2)
+    circuit = circuit_cls(cirq.CZ(a, b), cirq.X(a), cirq.Y(b))
+    resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
+    assert resolved_circuit is circuit
+
+    circuit = circuit_cls(
+        cirq.CZ(a, b) ** sympy.Symbol('u'),
+        cirq.X(a) ** sympy.Symbol('v'),
+        cirq.Y(b) ** sympy.Symbol('w'),
+    )
+    resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({}))
+    assert resolved_circuit is circuit
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -4220,33 +4323,33 @@ def test_repr_html_escaping(circuit_cls):
     assert '|c&gt;' in circuit._repr_html_()
 
 
-def test_tetris_concat():
+def test_concat_ragged():
     a, b = cirq.LineQubit.range(2)
     empty = cirq.Circuit()
 
-    assert cirq.Circuit.tetris_concat(empty, empty) == empty
-    assert cirq.Circuit.tetris_concat() == empty
-    assert empty.tetris_concat(empty) == empty
-    assert empty.tetris_concat(empty, empty) == empty
+    assert cirq.Circuit.concat_ragged(empty, empty) == empty
+    assert cirq.Circuit.concat_ragged() == empty
+    assert empty.concat_ragged(empty) == empty
+    assert empty.concat_ragged(empty, empty) == empty
 
     ha = cirq.Circuit(cirq.H(a))
     hb = cirq.Circuit(cirq.H(b))
-    assert ha.tetris_concat(hb) == ha.zip(hb)
+    assert ha.concat_ragged(hb) == ha.zip(hb)
 
-    assert ha.tetris_concat(empty) == ha
-    assert empty.tetris_concat(ha) == ha
+    assert ha.concat_ragged(empty) == ha
+    assert empty.concat_ragged(ha) == ha
 
     hac = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
-    assert hac.tetris_concat(hb) == hac + hb
-    assert hb.tetris_concat(hac) == hb.zip(hac)
+    assert hac.concat_ragged(hb) == hac + hb
+    assert hb.concat_ragged(hac) == hb.zip(hac)
 
     zig = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.H(b))
-    assert zig.tetris_concat(zig) == cirq.Circuit(
+    assert zig.concat_ragged(zig) == cirq.Circuit(
         cirq.H(a), cirq.CNOT(a, b), cirq.Moment(cirq.H(a), cirq.H(b)), cirq.CNOT(a, b), cirq.H(b)
     )
 
     zag = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CNOT(a, b), cirq.H(b), cirq.H(b))
-    assert zag.tetris_concat(zag) == cirq.Circuit(
+    assert zag.concat_ragged(zag) == cirq.Circuit(
         cirq.H(a),
         cirq.H(a),
         cirq.CNOT(a, b),
@@ -4258,7 +4361,7 @@ def test_tetris_concat():
     )
 
     space = cirq.Circuit(cirq.Moment()) * 10
-    f = cirq.Circuit.tetris_concat
+    f = cirq.Circuit.concat_ragged
     assert len(f(space, ha)) == 10
     assert len(f(space, ha, ha, ha)) == 10
     assert len(f(space, f(ha, ha, ha))) == 10
@@ -4367,22 +4470,22 @@ def test_tetris_concat():
         )
 
     # Types.
-    v = ha.freeze().tetris_concat(empty)
+    v = ha.freeze().concat_ragged(empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-    v = ha.tetris_concat(empty.freeze())
+    v = ha.concat_ragged(empty.freeze())
     assert type(v) is cirq.Circuit and v == ha
-    v = ha.freeze().tetris_concat(empty)
+    v = ha.freeze().concat_ragged(empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-    v = cirq.Circuit.tetris_concat(ha, empty)
+    v = cirq.Circuit.concat_ragged(ha, empty)
     assert type(v) is cirq.Circuit and v == ha
-    v = cirq.FrozenCircuit.tetris_concat(ha, empty)
+    v = cirq.FrozenCircuit.concat_ragged(ha, empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
 
 
-def test_tetris_concat_alignment():
+def test_concat_ragged_alignment():
     a, b = cirq.LineQubit.range(2)
 
-    assert cirq.Circuit.tetris_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='first'
     ) == cirq.Circuit(
         cirq.Moment(cirq.X(a), cirq.Y(b)),
@@ -4391,7 +4494,7 @@ def test_tetris_concat_alignment():
         cirq.Moment(cirq.Z(a), cirq.Y(b)),
     )
 
-    assert cirq.Circuit.tetris_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='left'
     ) == cirq.Circuit(
         cirq.Moment(cirq.X(a), cirq.Y(b)),
@@ -4400,7 +4503,7 @@ def test_tetris_concat_alignment():
         cirq.Moment(cirq.Y(b)),
     )
 
-    assert cirq.Circuit.tetris_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='right'
     ) == cirq.Circuit(
         cirq.Moment(cirq.Y(b)),
@@ -4409,6 +4512,13 @@ def test_tetris_concat_alignment():
         cirq.Moment(cirq.X(a), cirq.Y(b)),
         cirq.Moment(cirq.Z(a)),
     )
+
+
+def test_freeze_not_relocate_moments():
+    q = cirq.q(0)
+    c = cirq.Circuit(cirq.X(q), cirq.measure(q))
+    f = c.freeze()
+    assert [mc is fc for mc, fc in zip(c, f)] == [True, True]
 
 
 def test_factorize_one_factor():
@@ -4603,3 +4713,23 @@ global phase:   0.5π
                 └────────┘
     """,
     )
+
+
+def test_create_speed():
+    # Added in https://github.com/quantumlib/Cirq/pull/5332
+    # Previously this took ~30s to run. Now it should take ~150ms. However the coverage test can
+    # run this slowly, so allowing 2 sec to account for things like that. Feel free to increase the
+    # buffer time or delete the test entirely if it ends up causing flakes.
+    #
+    # Updated in https://github.com/quantumlib/Cirq/pull/5756
+    # After several tiny overtime failures of the GitHub CI Pytest MacOS (3.7)
+    # the timeout was increased to 4 sec.  A more thorough investigation or test
+    # removal should be considered if this continues to time out.
+    qs = 100
+    moments = 500
+    xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
+    opa = [xs[i] for i in range(qs) for _ in range(moments)]
+    t = time.perf_counter()
+    c = cirq.Circuit(opa)
+    assert len(c) == moments
+    assert time.perf_counter() - t < 4

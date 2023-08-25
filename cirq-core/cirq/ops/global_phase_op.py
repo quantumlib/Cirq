@@ -12,76 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A no-qubit global phase operation."""
-from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+
+from typing import AbstractSet, Any, cast, Dict, Sequence, Tuple, Union, Optional, Collection
 
 import numpy as np
+import sympy
 
+import cirq
 from cirq import value, protocols
-from cirq._compat import deprecated_class
-from cirq.ops import gate_operation, raw_types
-
-if TYPE_CHECKING:
-    import cirq
-
-
-@value.value_equality(approximate=True)
-@deprecated_class(deadline='v0.16', fix='Use cirq.global_phase_operation')
-class GlobalPhaseOperation(gate_operation.GateOperation):
-    def __init__(self, coefficient: value.Scalar, atol: float = 1e-8) -> None:
-        gate = GlobalPhaseGate(coefficient, atol)
-        super().__init__(gate, [])
-
-    def with_qubits(self, *new_qubits) -> 'GlobalPhaseOperation':
-        if new_qubits:
-            raise ValueError(f'{self!r} applies to 0 qubits but new_qubits={new_qubits!r}.')
-        return self
-
-    @property
-    def coefficient(self) -> value.Scalar:
-        return self.gate.coefficient  # type: ignore
-
-    @coefficient.setter
-    def coefficient(self, coefficient: value.Scalar):
-        # coverage: ignore
-        self.gate._coefficient = coefficient  # type: ignore
-
-    def __str__(self) -> str:
-        return str(self.coefficient)
-
-    def __repr__(self) -> str:
-        return f'cirq.GlobalPhaseOperation({self.coefficient!r})'
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['coefficient'])
+from cirq.ops import raw_types, controlled_gate, control_values as cv
+from cirq.type_workarounds import NotImplementedType
 
 
 @value.value_equality(approximate=True)
 class GlobalPhaseGate(raw_types.Gate):
-    def __init__(self, coefficient: value.Scalar, atol: float = 1e-8) -> None:
-        if abs(1 - abs(coefficient)) > atol:
-            raise ValueError(f'Coefficient is not unitary: {coefficient!r}')
+    def __init__(self, coefficient: 'cirq.TParamValComplex', atol: float = 1e-8) -> None:
+        if not isinstance(coefficient, sympy.Basic):
+            if abs(1 - abs(coefficient)) > atol:  # type: ignore[operator]
+                raise ValueError(f'Coefficient is not unitary: {coefficient!r}')
         self._coefficient = coefficient
 
     @property
-    def coefficient(self) -> value.Scalar:
+    def coefficient(self) -> 'cirq.TParamValComplex':
         return self._coefficient
 
     def _value_equality_values_(self) -> Any:
         return self.coefficient
 
     def _has_unitary_(self) -> bool:
-        return True
+        return not self._is_parameterized_()
 
     def __pow__(self, power) -> 'cirq.GlobalPhaseGate':
         if isinstance(power, (int, float)):
             return GlobalPhaseGate(self.coefficient**power)
         return NotImplemented
 
-    def _unitary_(self) -> np.ndarray:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        if not self._has_unitary_():
+            return NotImplemented
         return np.array([[self.coefficient]])
 
-    def _apply_unitary_(self, args) -> np.ndarray:
-        args.target_tensor *= self.coefficient
+    def _apply_unitary_(
+        self, args: 'cirq.ApplyUnitaryArgs'
+    ) -> Union[np.ndarray, NotImplementedType]:
+        if not self._has_unitary_():
+            return NotImplemented
+        assert not cirq.is_parameterized(self)
+        args.target_tensor *= cast(np.generic, self.coefficient)
         return args.target_tensor
 
     def _has_stabilizer_effect_(self) -> bool:
@@ -102,6 +79,47 @@ class GlobalPhaseGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple()
 
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self.coefficient)
 
-def global_phase_operation(coefficient: value.Scalar, atol: float = 1e-8) -> 'cirq.GateOperation':
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.coefficient)
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'cirq.GlobalPhaseGate':
+        coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
+        return GlobalPhaseGate(coefficient=coefficient)
+
+    def controlled(
+        self,
+        num_controls: Optional[int] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
+        control_qid_shape: Optional[Tuple[int, ...]] = None,
+    ) -> raw_types.Gate:
+        result = super().controlled(num_controls, control_values, control_qid_shape)
+        if (
+            not self._is_parameterized_()
+            and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
+            and result.control_values[-1] == (1,)
+            and result.control_qid_shape[-1] == 2
+        ):
+            # A `GlobalPhaseGate` controlled on a qubit in state `|1>` is equivalent
+            # to applying a `ZPowGate`. This override ensures that `global_phase_gate.controlled()`
+            # returns a `ZPowGate` instead of a `ControlledGate(sub_gate=global_phase_gate)`.
+            coefficient = complex(self.coefficient)
+            exponent = float(np.angle(coefficient) / np.pi)
+            return cirq.ZPowGate(exponent=exponent).controlled(
+                result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
+            )
+        return result
+
+
+def global_phase_operation(
+    coefficient: 'cirq.TParamValComplex', atol: float = 1e-8
+) -> 'cirq.GateOperation':
+    """Creates an operation that represents a global phase on the state."""
     return GlobalPhaseGate(coefficient, atol)()

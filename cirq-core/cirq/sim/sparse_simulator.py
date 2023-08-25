@@ -14,17 +14,15 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
-from typing import Any, Iterator, List, Type, TYPE_CHECKING, Union, Sequence, Optional
+from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Type, Optional
 
 import numpy as np
 
 from cirq import ops
-from cirq._compat import deprecated_parameter
-from cirq.sim import simulator, state_vector, state_vector_simulator, act_on_state_vector_args
+from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 class Simulator(
@@ -40,17 +38,15 @@ class Simulator(
     conditions. That is to say, the operations should follow the
     `cirq.SupportsConsistentApplyUnitary` protocol, the `cirq.SupportsUnitary`
     protocol, the `cirq.SupportsMixture` protocol, or the
-    `cirq.CompositeOperation` protocol. It is also permitted for the circuit
+    `cirq.SupportsDecompose` protocol. It is also permitted for the circuit
     to contain measurements which are operations that support
     `cirq.SupportsKraus` and `cirq.SupportsMeasurementKey`
 
-    This simulator supports four types of simulation.
-
-    Run simulations which mimic running on actual quantum hardware. These
-    simulations do not give access to the state vector (like actual hardware).
-    There are two variations of run methods, one which takes in a single
-    (optional) way to resolve parameterized circuits, and a second which
-    takes in a list or sweep of parameter resolver:
+    This can run simulations which mimic use of actual quantum hardware.
+    These simulations do not give access to the state vector (like actual
+    hardware).  There are two variations of run methods, one which takes in a
+    single (optional) way to resolve parameterized circuits, and a second which
+    takes in a list or sweep of parameter resolvers:
 
         run(circuit, param_resolver, repetitions)
 
@@ -63,12 +59,12 @@ class Simulator(
     circuit operations. The initial state of a run is always the all 0s state
     in the computational basis.
 
-    By contrast the simulate methods of the simulator give access to the
+    By contrast, the simulate methods of the simulator give access to the
     state vector of the simulation at the end of the simulation of the circuit.
     These methods take in two parameters that the run methods do not: a
     qubit order and an initial state. The qubit order is necessary because an
     ordering must be chosen for the kronecker product (see
-    `SparseSimulationTrialResult` for details of this ordering). The initial
+    `DensityMatrixTrialResult` for details of this ordering). The initial
     state can be either the full state vector, or an integer which represents
     the initial state of being in a computational basis state for the binary
     representation of that integer. Similar to run methods, there are two
@@ -79,25 +75,26 @@ class Simulator(
 
         simulate_sweep(circuit, params, qubit_order, initial_state)
 
-    The simulate methods in contrast to the run methods do not perform
+    The simulate methods, in contrast to the run methods, do not perform
     repetitions. The result of these simulations is a
-    `SparseSimulationTrialResult` which contains, in addition to measurement
-    results and information about the parameters that were used in the
-    simulation,access to the state via the `state` method and `StateVectorMixin`
-    methods.
+    `SimulationTrialResult` which contains measurement
+    results, information about parameters used in the simulation, and
+    access to the state via the `state` method and
+    `cirq.sim.state_vector.StateVectorMixin` methods.
 
     If one wishes to perform simulations that have access to the
-    state vector as one steps through running the circuit there is a generator
-    which can be iterated over and each step is an object that gives access
+    state vector as one steps through running the circuit, there is a generator
+    which can be iterated over.  Each step is an object that gives access
     to the state vector.  This stepping through a `Circuit` is done on a
     `Moment` by `Moment` manner.
 
         simulate_moment_steps(circuit, param_resolver, qubit_order,
                               initial_state)
 
-    One can iterate over the moments via
+    One can iterate over the moments with the following (replace 'sim'
+    with your `Simulator` object):
 
-        for step_result in simulate_moments(circuit):
+        for step_result in sim.simulate_moment_steps(circuit):
            # do something with the state vector via step_result.state_vector
 
     Note also that simulations can be stochastic, i.e. return different results
@@ -128,7 +125,7 @@ class Simulator(
     def __init__(
         self,
         *,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = True,
@@ -153,13 +150,13 @@ class Simulator(
             dtype=dtype, noise=noise, seed=seed, split_untangled_states=split_untangled_states
         )
 
-    def _create_partial_act_on_args(
+    def _create_partial_simulation_state(
         self,
-        initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
+        initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.StateVectorSimulationState'],
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ):
-        """Creates the ActOnStateVectorArgs for a circuit.
+        """Creates the StateVectorSimulationState for a circuit.
 
         Args:
             initial_state: The initial state for the simulation in the
@@ -171,12 +168,12 @@ class Simulator(
                 simulation.
 
         Returns:
-            ActOnStateVectorArgs for the circuit.
+            StateVectorSimulationState for the circuit.
         """
-        if isinstance(initial_state, act_on_state_vector_args.ActOnStateVectorArgs):
+        if isinstance(initial_state, state_vector_simulation_state.StateVectorSimulationState):
             return initial_state
 
-        return act_on_state_vector_args.ActOnStateVectorArgs(
+        return state_vector_simulation_state.StateVectorSimulationState(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,
@@ -184,7 +181,9 @@ class Simulator(
             dtype=self._dtype,
         )
 
-    def _create_step_result(self, sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]'):
+    def _create_step_result(
+        self, sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]'
+    ):
         return SparseSimulatorStep(sim_state=sim_state, dtype=self._dtype)
 
     def simulate_expectation_values_sweep_iter(
@@ -220,23 +219,15 @@ class SparseSimulatorStep(
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Remove parameter `simulator` as it is no longer used.',
-        parameter_desc='simulator',
-        match=lambda args, kwargs: 'simulator' in kwargs or len(args) > 2,
-    )
     def __init__(
         self,
-        sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
-        simulator: 'cirq.Simulator' = None,
-        dtype: 'DTypeLike' = np.complex64,
+        sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        dtype: Type[np.complexfloating] = np.complex64,
     ):
         """Results of a step of the simulator.
 
         Args:
-            sim_state: The qubit:ActOnArgs lookup for this step.
-            simulator: The simulator used to create this.
+            sim_state: The qubit:SimulationState lookup for this step.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """
@@ -245,7 +236,7 @@ class SparseSimulatorStep(
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
 
-    def state_vector(self, copy: bool = True):
+    def state_vector(self, copy: bool = False):
         """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis
@@ -288,7 +279,8 @@ class SparseSimulatorStep(
         return self._state_vector.copy() if copy else self._state_vector
 
     def __repr__(self) -> str:
+        # Dtype doesn't have a good repr, so we work around by invoking __name__.
         return (
             f'cirq.SparseSimulatorStep(sim_state={self._sim_state!r},'
-            f' dtype=np.{self._dtype.__name__})'
+            f' dtype=np.{np.dtype(self._dtype)!r})'
         )

@@ -13,7 +13,20 @@
 # limitations under the License.
 
 import dataclasses
-from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
+import numbers
+from typing import (
+    AbstractSet,
+    Mapping,
+    Union,
+    Iterable,
+    Dict,
+    Optional,
+    TYPE_CHECKING,
+    Tuple,
+    FrozenSet,
+)
+
+import sympy
 
 from cirq import ops, value, protocols
 
@@ -42,7 +55,7 @@ class InitObsSetting:
             raise ValueError(
                 "`observable`'s qubits should be a subset of those "
                 "found in `init_state`. "
-                "observable qubits: {}. init_state qubits: {}".format(obs_qs, init_qs)
+                f"observable qubits: {obs_qs}. init_state qubits: {init_qs}"
             )
 
     def __str__(self):
@@ -59,7 +72,7 @@ class InitObsSetting:
         return protocols.dataclass_json_dict(self)
 
 
-def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None, ops.PauliString]:
+def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Optional[ops.PauliString]:
     """Create a new observable that is compatible with all input observables
     and has the maximum non-identity elements.
 
@@ -86,7 +99,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None
     return ops.PauliString(qubit_pauli_map)
 
 
-def _max_weight_state(states: Iterable[value.ProductState]) -> Union[None, value.ProductState]:
+def _max_weight_state(states: Iterable[value.ProductState]) -> Optional[value.ProductState]:
     """Create a new state that is compatible with all input states
     and has the maximum weight.
 
@@ -125,24 +138,32 @@ def observables_to_settings(
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
-def _fix_precision(val: float, precision) -> int:
-    """Convert floating point numbers to (implicitly) fixed point integers.
+def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int, Tuple[int, int]]:
+    """Convert floating point or complex numbers to (implicitly) fixed point
+    integers. Complex numbers will return fixed-point (real, imag) tuples.
 
-    Circuit parameters can be floats but we also need to use them as
+    Circuit parameters can be complex but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
+    if isinstance(val, sympy.Expr):
+        raise ValueError(f'Cannot convert {val} to fixed precision in observable settings')
+    if isinstance(val, (complex, numbers.Complex)):
+        return int(val.real * precision), int(val.imag * precision)
     return int(val * precision)
 
 
 def _hashable_param(
-    param_tuples: ItemsView[str, float], precision=1e7
-) -> FrozenSet[Tuple[str, float]]:
+    param_tuples: AbstractSet[Tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
+    precision=1e7,
+) -> FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]]:
     """Hash circuit parameters using fixed precision.
 
-    Circuit parameters can be floats but we also need to use them as
+    Circuit parameters can be complex but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
-    return frozenset((k, _fix_precision(v, precision)) for k, v in param_tuples)
+    return frozenset(
+        (k, _fix_precision(v, precision)) for k, v in param_tuples if isinstance(k, str)
+    )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -156,7 +177,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Dict[str, float]
+    circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

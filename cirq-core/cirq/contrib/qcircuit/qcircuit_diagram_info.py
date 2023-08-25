@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Optional, Tuple
+from typing import Optional, Tuple
 
 from cirq import ops, protocols
 
@@ -59,7 +59,7 @@ def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> Optional[protocols.Cir
         if isinstance(op.gate, ops.MeasurementGate)
         else ()
     )
-    return protocols.CircuitDiagramInfo(cast(Tuple[str, ...], symbols)) if symbols else None
+    return protocols.CircuitDiagramInfo(symbols) if symbols else None
 
 
 def convert_text_diagram_info_to_qcircuit_diagram_info(

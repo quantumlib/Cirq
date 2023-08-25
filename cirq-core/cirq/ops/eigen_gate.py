@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 import fractions
+import math
+import numbers
 from typing import (
     AbstractSet,
     Any,
@@ -23,24 +26,19 @@ from typing import (
     Optional,
     Tuple,
     TYPE_CHECKING,
-    TypeVar,
     Union,
 )
 
-import abc
-
-import math
 import numpy as np
 import sympy
 
 from cirq import value, protocols
+from cirq.linalg import tolerance
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
-
-TSelf = TypeVar('TSelf', bound='EigenGate')
 
 
 EigenComponent = NamedTuple(
@@ -71,6 +69,26 @@ class EigenGate(raw_types.Gate):
     eigenvalue i and a part with eigenvalue -i, then EigenGate allows this
     functionality to be unambiguously specified via the _eigen_components
     method.
+
+    The eigenvalue of each eigenspace of a gate is computed by:
+
+    1. Starting with an angle in half turns as returned by the gate's
+        ``_eigen_components`` method:
+
+                θ
+
+    2. Shifting the angle by `global_shift`:
+
+                θ + s
+
+    3. Scaling the angle by `exponent`:
+
+                (θ + s) * e
+
+    4. Converting from half turns to a complex number on the unit circle:
+
+                exp(i * pi * (θ + s) * e)
+
     """
 
     def __init__(
@@ -78,28 +96,9 @@ class EigenGate(raw_types.Gate):
     ) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
-        The eigenvalue of each eigenspace of a gate is computed by
-
-        1. Starting with an angle in half turns as returned by the gate's
-        ``_eigen_components`` method:
-
-                θ
-
-        2. Shifting the angle by `global_shift`:
-
-                θ + s
-
-        3. Scaling the angle by `exponent`:
-
-                (θ + s) * e
-
-        4. Converting from half turns to a complex number on the unit circle:
-
-                exp(i * pi * (θ + s) * e)
-
         Args:
             exponent: The t in gate**t. Determines how much the eigenvalues of
-                the gate are scaled by. For example, eigenvectors phased by -1
+                the gate are phased by. For example, eigenvectors phased by -1
                 when `gate**1` is applied will gain a relative phase of
                 e^{i pi exponent} when `gate**exponent` is applied (relative to
                 eigenvectors unaffected by `gate**1`).
@@ -134,7 +133,7 @@ class EigenGate(raw_types.Gate):
         return self._global_shift
 
     # virtual method
-    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> 'EigenGate':
+    def _with_exponent(self, exponent: value.TParamVal) -> 'EigenGate':
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -300,7 +299,7 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
+    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -355,7 +354,13 @@ class EigenGate(raw_types.Gate):
         return protocols.parameter_names(self._exponent)
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
-        return self._with_exponent(exponent=resolver.value_of(self._exponent, recursive))
+        exponent = resolver.value_of(self._exponent, recursive)
+        if isinstance(exponent, (complex, numbers.Complex)):
+            if isinstance(exponent, numbers.Real):
+                exponent = float(exponent)
+            else:
+                raise ValueError(f'Complex exponent {exponent} not supported for EigenGate')
+        return self._with_exponent(exponent=exponent)
 
     def _equal_up_to_global_phase_(self, other, atol):
         if not isinstance(other, EigenGate):
@@ -381,11 +386,14 @@ class EigenGate(raw_types.Gate):
             return False
 
         period = self_without_phase._period()
-        canonical_diff = (exponents[0] - exponents[1]) % period
-        return np.isclose(canonical_diff, 0, atol=atol)
+        exponents_diff = exponents[0] - exponents[1]
+        return tolerance.near_zero_mod(exponents_diff, period, atol=atol)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
+
+    def _measurement_key_objs_(self):
+        return frozenset()
 
 
 def _lcm(vals: Iterable[int]) -> int:

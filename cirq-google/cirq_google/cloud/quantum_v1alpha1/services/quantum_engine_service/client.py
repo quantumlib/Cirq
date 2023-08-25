@@ -23,10 +23,10 @@ from google.api_core import client_options as client_options_lib
 from google.api_core import exceptions as core_exceptions
 from google.api_core import gapic_v1
 from google.api_core import retry as retries
-from google.auth import credentials as ga_credentials             # type: ignore
-from google.auth.transport import mtls                            # type: ignore
-from google.auth.transport.grpc import SslCredentials             # type: ignore
-from google.auth.exceptions import MutualTLSChannelError          # type: ignore
+from google.auth import credentials as ga_credentials
+from google.auth.transport import mtls
+from google.auth.transport.grpc import SslCredentials
+from google.auth.exceptions import MutualTLSChannelError
 from google.oauth2 import service_account                         # type: ignore
 
 try:
@@ -37,9 +37,9 @@ except AttributeError:  # pragma: NO COVER
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
 from cirq_google.cloud.quantum_v1alpha1.types import engine
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from google.protobuf import any_pb2  # type: ignore
-from google.protobuf import duration_pb2  # type: ignore
-from google.protobuf import timestamp_pb2  # type: ignore
+from google.protobuf import any_pb2
+from google.protobuf import duration_pb2
+from google.protobuf import timestamp_pb2
 from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
 from .transports.grpc import QuantumEngineServiceGrpcTransport
 from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
@@ -57,7 +57,7 @@ class QuantumEngineServiceClientMeta(type):
     _transport_registry["grpc_asyncio"] = QuantumEngineServiceGrpcAsyncIOTransport
 
     def get_transport_class(cls,
-            label: str = None,
+            label: Optional[str] = None,
         ) -> Type[QuantumEngineServiceTransport]:
         """Returns an appropriate transport class.
 
@@ -166,7 +166,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def quantum_job_path(project: str,program: str,job: str,) -> str:
         """Returns a fully-qualified quantum_job string."""
-        return "projects/{project}/programs/{program}/jobs/{job}".format(project=project, program=program, job=job, )
+        return f"projects/{project}/programs/{program}/jobs/{job}"
 
     @staticmethod
     def parse_quantum_job_path(path: str) -> Dict[str,str]:
@@ -177,7 +177,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def quantum_processor_path(project_id: str,processor_id: str,) -> str:
         """Returns a fully-qualified quantum_processor string."""
-        return "projects/{project_id}/processors/{processor_id}".format(project_id=project_id, processor_id=processor_id, )
+        return f"projects/{project_id}/processors/{processor_id}"
 
     @staticmethod
     def parse_quantum_processor_path(path: str) -> Dict[str,str]:
@@ -188,7 +188,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def quantum_program_path(project: str,program: str,) -> str:
         """Returns a fully-qualified quantum_program string."""
-        return "projects/{project}/programs/{program}".format(project=project, program=program, )
+        return f"projects/{project}/programs/{program}"
 
     @staticmethod
     def parse_quantum_program_path(path: str) -> Dict[str,str]:
@@ -199,7 +199,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def quantum_reservation_path(project_id: str,processor_id: str,reservation_id: str,) -> str:
         """Returns a fully-qualified quantum_reservation string."""
-        return "projects/{project_id}/processors/{processor_id}/reservations/{reservation_id}".format(project_id=project_id, processor_id=processor_id, reservation_id=reservation_id, )
+        return f"projects/{project_id}/processors/{processor_id}/reservations/{reservation_id}"
 
     @staticmethod
     def parse_quantum_reservation_path(path: str) -> Dict[str,str]:
@@ -210,7 +210,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_billing_account_path(billing_account: str, ) -> str:
         """Returns a fully-qualified billing_account string."""
-        return "billingAccounts/{billing_account}".format(billing_account=billing_account, )
+        return f"billingAccounts/{billing_account}"
 
     @staticmethod
     def parse_common_billing_account_path(path: str) -> Dict[str,str]:
@@ -221,7 +221,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_folder_path(folder: str, ) -> str:
         """Returns a fully-qualified folder string."""
-        return "folders/{folder}".format(folder=folder, )
+        return f"folders/{folder}"
 
     @staticmethod
     def parse_common_folder_path(path: str) -> Dict[str,str]:
@@ -232,7 +232,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_organization_path(organization: str, ) -> str:
         """Returns a fully-qualified organization string."""
-        return "organizations/{organization}".format(organization=organization, )
+        return f"organizations/{organization}"
 
     @staticmethod
     def parse_common_organization_path(path: str) -> Dict[str,str]:
@@ -243,7 +243,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_project_path(project: str, ) -> str:
         """Returns a fully-qualified project string."""
-        return "projects/{project}".format(project=project, )
+        return f"projects/{project}"
 
     @staticmethod
     def parse_common_project_path(path: str) -> Dict[str,str]:
@@ -254,7 +254,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_location_path(project: str, location: str, ) -> str:
         """Returns a fully-qualified location string."""
-        return "projects/{project}/locations/{location}".format(project=project, location=location, )
+        return f"projects/{project}/locations/{location}"
 
     @staticmethod
     def parse_common_location_path(path: str) -> Dict[str,str]:
@@ -390,7 +390,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 )
             self._transport = transport
         else:
-            import google.auth._default  # type: ignore
+            import google.auth._default
 
             if api_key_value and hasattr(google.auth._default, "get_api_key_credentials"):
                 credentials = google.auth._default.get_api_key_credentials(api_key_value)
@@ -408,10 +408,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
             )
 
     def create_quantum_program(self,
-            request: Union[engine.CreateQuantumProgramRequest, dict] = None,
+            request: Union[engine.CreateQuantumProgramRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumProgram:
         r"""-
@@ -479,10 +479,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def get_quantum_program(self,
-            request: Union[engine.GetQuantumProgramRequest, dict] = None,
+            request: Union[engine.GetQuantumProgramRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumProgram:
         r"""-
@@ -550,10 +550,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def list_quantum_programs(self,
-            request: Union[engine.ListQuantumProgramsRequest, dict] = None,
+            request: Union[engine.ListQuantumProgramsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumProgramsPager:
         r"""-
@@ -635,10 +635,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def delete_quantum_program(self,
-            request: Union[engine.DeleteQuantumProgramRequest, dict] = None,
+            request: Union[engine.DeleteQuantumProgramRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> None:
         r"""-
@@ -696,10 +696,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
     def update_quantum_program(self,
-            request: Union[engine.UpdateQuantumProgramRequest, dict] = None,
+            request: Union[engine.UpdateQuantumProgramRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumProgram:
         r"""-
@@ -767,10 +767,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def create_quantum_job(self,
-            request: Union[engine.CreateQuantumJobRequest, dict] = None,
+            request: Union[engine.CreateQuantumJobRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumJob:
         r"""-
@@ -838,10 +838,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def get_quantum_job(self,
-            request: Union[engine.GetQuantumJobRequest, dict] = None,
+            request: Union[engine.GetQuantumJobRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumJob:
         r"""-
@@ -909,10 +909,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def list_quantum_jobs(self,
-            request: Union[engine.ListQuantumJobsRequest, dict] = None,
+            request: Union[engine.ListQuantumJobsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumJobsPager:
         r"""-
@@ -994,10 +994,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def delete_quantum_job(self,
-            request: Union[engine.DeleteQuantumJobRequest, dict] = None,
+            request: Union[engine.DeleteQuantumJobRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> None:
         r"""-
@@ -1055,10 +1055,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
     def update_quantum_job(self,
-            request: Union[engine.UpdateQuantumJobRequest, dict] = None,
+            request: Union[engine.UpdateQuantumJobRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumJob:
         r"""-
@@ -1126,10 +1126,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def cancel_quantum_job(self,
-            request: Union[engine.CancelQuantumJobRequest, dict] = None,
+            request: Union[engine.CancelQuantumJobRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> None:
         r"""-
@@ -1187,10 +1187,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
     def list_quantum_job_events(self,
-            request: Union[engine.ListQuantumJobEventsRequest, dict] = None,
+            request: Union[engine.ListQuantumJobEventsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumJobEventsPager:
         r"""-
@@ -1272,10 +1272,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def get_quantum_result(self,
-            request: Union[engine.GetQuantumResultRequest, dict] = None,
+            request: Union[engine.GetQuantumResultRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumResult:
         r"""-
@@ -1343,10 +1343,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def list_quantum_processors(self,
-            request: Union[engine.ListQuantumProcessorsRequest, dict] = None,
+            request: Union[engine.ListQuantumProcessorsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumProcessorsPager:
         r"""-
@@ -1428,10 +1428,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def get_quantum_processor(self,
-            request: Union[engine.GetQuantumProcessorRequest, dict] = None,
+            request: Union[engine.GetQuantumProcessorRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumProcessor:
         r"""-
@@ -1499,10 +1499,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def list_quantum_calibrations(self,
-            request: Union[engine.ListQuantumCalibrationsRequest, dict] = None,
+            request: Union[engine.ListQuantumCalibrationsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumCalibrationsPager:
         r"""-
@@ -1584,10 +1584,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def get_quantum_calibration(self,
-            request: Union[engine.GetQuantumCalibrationRequest, dict] = None,
+            request: Union[engine.GetQuantumCalibrationRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumCalibration:
         r"""-
@@ -1655,10 +1655,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def create_quantum_reservation(self,
-            request: Union[engine.CreateQuantumReservationRequest, dict] = None,
+            request: Union[engine.CreateQuantumReservationRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumReservation:
         r"""-
@@ -1726,10 +1726,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def cancel_quantum_reservation(self,
-            request: Union[engine.CancelQuantumReservationRequest, dict] = None,
+            request: Union[engine.CancelQuantumReservationRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumReservation:
         r"""-
@@ -1797,10 +1797,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def delete_quantum_reservation(self,
-            request: Union[engine.DeleteQuantumReservationRequest, dict] = None,
+            request: Union[engine.DeleteQuantumReservationRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> None:
         r"""-
@@ -1858,10 +1858,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
     def get_quantum_reservation(self,
-            request: Union[engine.GetQuantumReservationRequest, dict] = None,
+            request: Union[engine.GetQuantumReservationRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumReservation:
         r"""-
@@ -1929,10 +1929,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def list_quantum_reservations(self,
-            request: Union[engine.ListQuantumReservationsRequest, dict] = None,
+            request: Union[engine.ListQuantumReservationsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumReservationsPager:
         r"""-
@@ -2014,10 +2014,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def update_quantum_reservation(self,
-            request: Union[engine.UpdateQuantumReservationRequest, dict] = None,
+            request: Union[engine.UpdateQuantumReservationRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumReservation:
         r"""-
@@ -2085,10 +2085,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def quantum_run_stream(self,
-            requests: Iterator[engine.QuantumRunStreamRequest] = None,
+            requests: Optional[Iterator[engine.QuantumRunStreamRequest]] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> Iterable[engine.QuantumRunStreamResponse]:
         r"""-
@@ -2152,10 +2152,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def list_quantum_reservation_grants(self,
-            request: Union[engine.ListQuantumReservationGrantsRequest, dict] = None,
+            request: Union[engine.ListQuantumReservationGrantsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumReservationGrantsPager:
         r"""-
@@ -2237,10 +2237,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def reallocate_quantum_reservation_grant(self,
-            request: Union[engine.ReallocateQuantumReservationGrantRequest, dict] = None,
+            request: Union[engine.ReallocateQuantumReservationGrantRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> quantum.QuantumReservationGrant:
         r"""-
@@ -2308,10 +2308,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def list_quantum_reservation_budgets(self,
-            request: Union[engine.ListQuantumReservationBudgetsRequest, dict] = None,
+            request: Union[engine.ListQuantumReservationBudgetsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumReservationBudgetsPager:
         r"""-
@@ -2393,10 +2393,10 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         return response
 
     def list_quantum_time_slots(self,
-            request: Union[engine.ListQuantumTimeSlotsRequest, dict] = None,
+            request: Union[engine.ListQuantumTimeSlotsRequest, dict, None] = None,
             *,
             retry: OptionalRetry = gapic_v1.method.DEFAULT,
-            timeout: float = None,
+            timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, str]] = (),
             ) -> pagers.ListQuantumTimeSlotsPager:
         r"""-

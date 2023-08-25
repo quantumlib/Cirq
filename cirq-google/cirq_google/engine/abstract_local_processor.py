@@ -100,6 +100,11 @@ class AbstractLocalProcessor(AbstractProcessor):
                 raise ValueError('Time slots cannot overlap!')
 
     @property
+    def project_id(self) -> str:
+        """Project name of the processor."""
+        return self._project_name
+
+    @property
     def processor_id(self) -> str:
         """Unique string id of the processor."""
         return self._processor_id

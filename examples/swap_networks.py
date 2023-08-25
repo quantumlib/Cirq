@@ -1,4 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
 """Demonstrates swap networks.
 
 Swap networks are used to get around limited connectivity in a hardware device.
@@ -20,7 +21,7 @@ implied graph is not a subgraph of the hardware adjacency graph.
 
 import itertools
 import random
-from typing import cast, Dict, List, Sequence, Tuple, TypeVar, Union
+from typing import Dict, List, Sequence, Tuple, TypeVar, Union
 
 import cirq
 import cirq.contrib.acquaintance as cca
@@ -34,9 +35,7 @@ LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 def get_random_graph(n_vertices: int, edge_prob: float = 0.5) -> List[Tuple[int, int]]:
     return [
-        cast(Tuple[int, int], ij)
-        for ij in itertools.combinations(range(n_vertices), 2)
-        if random.random() <= edge_prob
+        ij for ij in itertools.combinations(range(n_vertices), 2) if random.random() <= edge_prob
     ]
 
 
@@ -151,9 +150,9 @@ def main():
             vertices, edges, beta, gamma, use_logical_qubits, verbose
         )
         print(
-            '1-round QAOA circuit (using {}s as logical indices):'.format(
-                'qubit' if use_logical_qubits else 'integer'
-            )
+            '1-round QAOA circuit (using '
+            f"{'qubits' if use_logical_qubits else 'integers'} "
+            'as logical indices):'
         )
         print(circuit)
 

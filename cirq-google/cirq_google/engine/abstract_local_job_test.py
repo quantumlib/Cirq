@@ -19,6 +19,7 @@ import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
+from cirq_google.engine.engine_result import EngineResult
 
 
 class NothingJob(AbstractLocalJob):
@@ -32,7 +33,7 @@ class NothingJob(AbstractLocalJob):
         return self._status
 
     def failure(self) -> Optional[Tuple[str, str]]:
-        return ('failed', 'failure code')  # coverage: ignore
+        return ('failed', 'failure code')  # pragma: no cover
 
     def cancel(self) -> None:
         pass
@@ -40,14 +41,14 @@ class NothingJob(AbstractLocalJob):
     def delete(self) -> None:
         pass
 
-    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
-        return []  # coverage: ignore
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        return []  # pragma: no cover
 
-    def results(self) -> Sequence[cirq.Result]:
-        return []  # coverage: ignore
+    async def results_async(self) -> Sequence[EngineResult]:
+        return []  # pragma: no cover
 
-    def calibration_results(self) -> Sequence[CalibrationResult]:
-        return []  # coverage: ignore
+    async def calibration_results_async(self) -> Sequence[CalibrationResult]:
+        return []  # pragma: no cover
 
 
 def test_description_and_labels():

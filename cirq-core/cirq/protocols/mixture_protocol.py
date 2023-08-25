@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 from typing import Any, Sequence, Tuple, Union
 
@@ -103,8 +104,8 @@ def mixture(
         raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
 
     raise TypeError(
-        "object of type '{}' does have a _mixture_ or _unitary_ "
-        "method, but it returned NotImplemented.".format(type(val))
+        f"object of type '{type(val)}' does have a _mixture_ or _unitary_ "
+        "method, but it returned NotImplemented."
     )
 
 

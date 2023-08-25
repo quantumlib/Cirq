@@ -12,5 +12,7 @@
   "padding_time": {
     "cirq_type": "Duration",
     "picos": 2500.0
-  }
+  },
+  "q0_detune_mhz": 0.0,
+  "q1_detune_mhz": 0.0
 }

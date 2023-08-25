@@ -1,0 +1,20 @@
+[
+    {
+      "cirq_type": "Linspace",
+      "key": "a",
+      "start": 0,
+      "stop": 1,
+      "length": 4
+    },
+    {
+      "cirq_type": "Linspace",
+      "key": "b",
+      "start": 1,
+      "stop": 2,
+      "length": 3,
+      "metadata": {
+              "cirq_type": "NamedQubit",
+              "name": "b"
+      }
+    }
+]

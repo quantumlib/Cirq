@@ -17,27 +17,60 @@
 from typing import Optional, List, Hashable, TYPE_CHECKING
 import abc
 
-from cirq import circuits, ops, protocols, _import
+from cirq import circuits, ops, protocols, transformers
 from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
 
-drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
-drop_negligible = _import.LazyLoader('drop_negligible_operations', globals(), 'cirq.transformers')
-expand_composite = _import.LazyLoader('expand_composite', globals(), 'cirq.transformers')
 
 if TYPE_CHECKING:
     import cirq
 
 
-def _create_transformer_with_kwargs(func: 'cirq.TRANSFORMER', **kwargs) -> 'cirq.TRANSFORMER':
-    """Hack to capture additional keyword arguments to transformers while preserving mypy type."""
+def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) -> 'cirq.TRANSFORMER':
+    """Method to capture additional keyword arguments to transformers while preserving mypy type.
 
-    def transformer(
+    Returns a `cirq.TRANSFORMER` which, when called with a circuit and transformer context, is
+    equivalent to calling `transformer(circuit, context=context, **kwargs)`. It is often useful to
+    capture keyword arguments of a transformer before passing them as an argument to an API that
+    expects `cirq.TRANSFORMER`. For example:
+
+    >>> def run_transformers(transformers: 'List[cirq.TRANSFORMER]'):
+    ...     circuit = cirq.Circuit(cirq.X(cirq.q(0)))
+    ...     context = cirq.TransformerContext()
+    ...     for transformer in transformers:
+    ...         transformer(circuit, context=context)
+    ...
+    >>> transformers: 'List[cirq.TRANSFORMER]' = []
+    >>> transformers.append(
+    ...     cirq.create_transformer_with_kwargs(
+    ...         cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 2
+    ...     )
+    ... )
+    >>> transformers.append(cirq.create_transformer_with_kwargs(cirq.merge_k_qubit_unitaries, k=2))
+    >>> run_transformers(transformers)
+
+
+    Args:
+         transformer: A `cirq.TRANSFORMER` for which additional kwargs should be captured.
+         **kwargs: The keyword arguments which should be captured and passed to `transformer`.
+
+    Returns:
+        A `cirq.TRANSFORMER` method `transformer_with_kwargs`, s.t. executing
+        `transformer_with_kwargs(circuit, context=context)` is equivalent to executing
+        `transformer(circuit, context=context, **kwargs)`.
+
+    Raises:
+        SyntaxError: if **kwargs contain a 'context'.
+    """
+    if 'context' in kwargs:
+        raise SyntaxError('**kwargs to be captured must not contain `context`.')
+
+    def transformer_with_kwargs(
         circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
     ) -> 'cirq.AbstractCircuit':
-        return func(circuit, context=context, **kwargs)  # type: ignore
+        return transformer(circuit, context=context, **kwargs)
 
-    return transformer
+    return transformer_with_kwargs
 
 
 class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
@@ -93,11 +126,11 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations."""
         return [
-            _create_transformer_with_kwargs(
-                expand_composite.expand_composite,
+            create_transformer_with_kwargs(
+                transformers.expand_composite,
                 no_decomp=lambda op: protocols.num_qubits(op) <= self.num_qubits,
             ),
-            _create_transformer_with_kwargs(
+            create_transformer_with_kwargs(
                 merge_k_qubit_gates.merge_k_qubit_unitaries,
                 k=self.num_qubits,
                 rewriter=lambda op: op.with_tags(self._intermediate_result_tag),
@@ -109,8 +142,8 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         """List of transformers which should be run after decomposing individual operations."""
         return [
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
-            drop_negligible.drop_negligible_operations,
-            drop_empty_moments.drop_empty_moments,
+            transformers.drop_negligible_operations,
+            transformers.drop_empty_moments,
         ]
 
 
@@ -170,10 +203,24 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         old_2q_gate_count = sum(1 for o in ops.flatten_to_ops(old_optree) if len(o.qubits) == 2)
         new_2q_gate_count = sum(1 for o in ops.flatten_to_ops(new_optree) if len(o.qubits) == 2)
         switch_to_new = (
-            any(op not in self for op in ops.flatten_to_ops(old_optree))
+            any(
+                protocols.num_qubits(op) == 2 and op not in self
+                for op in ops.flatten_to_ops(old_optree)
+            )
             or new_2q_gate_count < old_2q_gate_count
         )
-        return new_optree if switch_to_new else old_optree
+        if switch_to_new:
+            return new_optree
+        mapped_old_optree: List['cirq.OP_TREE'] = []
+        for old_op in ops.flatten_to_ops(old_optree):
+            if old_op in self:
+                mapped_old_optree.append(old_op)
+            else:
+                decomposed_op = self._decompose_single_qubit_operation(old_op, moment_idx)
+                if decomposed_op is None or decomposed_op is NotImplemented:
+                    return NotImplemented
+                mapped_old_optree.append(decomposed_op)
+        return mapped_old_optree
 
     def _decompose_single_qubit_operation(
         self, op: 'cirq.Operation', moment_idx: int

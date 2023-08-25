@@ -40,12 +40,20 @@ def assert_decompose_is_consistent_with_unitary(val: Any, ignoring_global_phase:
         # If there's no decomposition, it's vacuously consistent.
         return
 
-    actual = circuits.Circuit(dec).unitary(qubit_order=qubits)
-
+    c = circuits.Circuit(dec)
+    if len(c.all_qubits().difference(qubits)):
+        # The decomposition contains ancilla qubits.
+        ancilla = tuple(c.all_qubits().difference(qubits))
+        qubit_order = ancilla + qubits
+        actual = c.unitary(qubit_order=qubit_order)
+        qid_shape = protocols.qid_shape(qubits)
+        vol = np.prod(qid_shape, dtype=np.int64)
+        actual = actual[:vol, :vol]
+    else:
+        actual = c.unitary(qubit_order=qubits)
     if ignoring_global_phase:
         lin_alg_utils.assert_allclose_up_to_global_phase(actual, expected, atol=1e-8)
     else:
-        # coverage: ignore
         np.testing.assert_allclose(actual, expected, atol=1e-8)
 
 
@@ -61,6 +69,8 @@ def _known_gate_with_no_decomposition(val: Any):
         if isinstance(val.sub_gate, ops.MatrixGate) and protocols.num_qubits(val.sub_gate) > 1:
             return True
         if val.control_qid_shape != (2,) * val.num_controls():
+            return True
+        if isinstance(val.control_values, ops.SumOfProducts):
             return True
         return _known_gate_with_no_decomposition(val.sub_gate)
     return False

@@ -11,28 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A more flexible abstract base class metaclass ABCMetaImplementAnyOneOf."""
 
 import abc
 import functools
 from typing import cast, Callable, Set, TypeVar
 
-# Required due to PEP 560
-try:
-    # python 3.6 class for generic metaclasses
-    from typing import GenericMeta  # type: ignore
-except ImportError:
-    # In python 3.7, GenericMeta doesn't exist but we don't need it
-    class GenericMeta(type):  # type: ignore
-        pass
-
 
 T = TypeVar('T')
 
 
 def alternative(*, requires: str, implementation: T) -> Callable[[T], T]:
-    """A decorator indicating an abstract method with an alternative default
-    implementation.
+    """A decorator indicating an abstract method with an alternative default implementation.
 
     This decorator may be used multiple times on the same function to specify
     multiple alternatives.  If multiple alternatives are available, the
@@ -79,8 +70,10 @@ def alternative(*, requires: str, implementation: T) -> Callable[[T], T]:
 
 
 class ABCMetaImplementAnyOneOf(abc.ABCMeta):
-    """A metaclass extending `abc.ABCMeta` for defining abstract base classes
-    (ABCs) with more flexibility in which methods must be overridden.
+    """A metaclass extending `abc.ABCMeta` for defining flexible abstract base classes
+
+    This metadata allows the declaration of an abstract base classe (ABC)
+    with more flexibility in which methods must be overridden.
 
     Use this metaclass in the same way as `abc.ABCMeta` to create an ABC.
 
@@ -99,9 +92,9 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                 value = getattr(cls, name)
             except AttributeError:
                 raise TypeError(
-                    'A method named \'{}\' was listed as a possible '
+                    f"A method named '{name}' was listed as a possible "
                     'implementation alternative but it does not exist in the '
-                    'definition of {!r}.'.format(name, cls)
+                    f'definition of {cls!r}.'
                 )
             if getattr(value, '__isabstractmethod__', False):
                 return False
@@ -154,14 +147,3 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
         cls.__abstractmethods__ |= abstracts  # Add to the set made by ABCMeta
         cls._implemented_by_ = implemented_by
         return cls
-
-
-class GenericMetaImplementAnyOneOf(GenericMeta, ABCMetaImplementAnyOneOf):
-    """Generic version of ABCMetaImplementAnyOneOf.
-
-    Classes which inherit from Generic[T] must use this type instead of
-    ABCMetaImplementAnyOneOf due to https://github.com/python/typing/issues/449.
-
-    This issue is specific to python3.6; this class can be removed when Cirq
-    python3.6 support is turned down.
-    """

@@ -51,8 +51,7 @@ import argparse
 import fractions
 import math
 import random
-
-from typing import Callable, List, Optional, Sequence, Union
+from typing import Callable, Optional, Sequence, Union
 
 import sympy
 
@@ -101,7 +100,7 @@ def naive_order_finder(x: int, n: int) -> Optional[int]:
     return r
 
 
-class ModularExp(cirq.ArithmeticOperation):
+class ModularExp(cirq.ArithmeticGate):
     """Quantum modular exponentiation.
 
     This class represents the unitary which multiplies base raised to exponent
@@ -129,11 +128,7 @@ class ModularExp(cirq.ArithmeticOperation):
     """
 
     def __init__(
-        self,
-        target: Sequence[cirq.Qid],
-        exponent: Union[int, Sequence[cirq.Qid]],
-        base: int,
-        modulus: int,
+        self, target: Sequence[int], exponent: Union[int, Sequence[int]], base: int, modulus: int
     ) -> None:
         if len(target) < modulus.bit_length():
             raise ValueError(
@@ -144,10 +139,10 @@ class ModularExp(cirq.ArithmeticOperation):
         self.base = base
         self.modulus = modulus
 
-    def registers(self) -> Sequence[Union[int, Sequence[cirq.Qid]]]:
+    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
         return self.target, self.exponent, self.base, self.modulus
 
-    def with_registers(self, *new_registers: Union[int, Sequence['cirq.Qid']]) -> 'ModularExp':
+    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> 'ModularExp':
         if len(new_registers) != 4:
             raise ValueError(
                 f'Expected 4 registers (target, exponent, base, '
@@ -171,22 +166,12 @@ class ModularExp(cirq.ArithmeticOperation):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         assert args.known_qubits is not None
-        wire_symbols: List[str] = []
-        t, e = 0, 0
-        for qubit in args.known_qubits:
-            if qubit in self.target:
-                if t == 0:
-                    if isinstance(self.exponent, Sequence):
-                        e_str = 'e'
-                    else:
-                        e_str = str(self.exponent)
-                    wire_symbols.append(f'ModularExp(t*{self.base}**{e_str} % {self.modulus})')
-                else:
-                    wire_symbols.append('t' + str(t))
-                t += 1
-            if isinstance(self.exponent, Sequence) and qubit in self.exponent:
-                wire_symbols.append('e' + str(e))
-                e += 1
+        wire_symbols = [f't{i}' for i in range(len(self.target))]
+        e_str = str(self.exponent)
+        if isinstance(self.exponent, Sequence):
+            e_str = 'e'
+            wire_symbols += [f'e{i}' for i in range(len(self.exponent))]
+        wire_symbols[0] = f'ModularExp(t*{self.base}**{e_str} % {self.modulus})'
         return cirq.CircuitDiagramInfo(wire_symbols=tuple(wire_symbols))
 
 
@@ -224,7 +209,7 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
     return cirq.Circuit(
         cirq.X(target[L - 1]),
         cirq.H.on_each(*exponent),
-        ModularExp(target, exponent, x, n),
+        ModularExp([2] * len(target), [2] * len(exponent), x, n).on(*target + exponent),
         cirq.qft(*exponent, inverse=True),
         cirq.measure(*exponent, key='exponent'),
     )
@@ -279,10 +264,10 @@ def quantum_order_finder(x: int, n: int) -> Optional[int]:
     eigenphase = read_eigenphase(result)
     f = fractions.Fraction.from_float(eigenphase).limit_denominator(n)
     if f.numerator == 0:
-        return None  # coverage: ignore
+        return None  # pragma: no cover
     r = f.denominator
     if x**r % n != 1:
-        return None  # coverage: ignore
+        return None  # pragma: no cover
     return r
 
 
@@ -326,18 +311,18 @@ def find_factor(
         x = random.randint(2, n - 1)
         c = math.gcd(x, n)
         if 1 < c < n:
-            return c  # coverage: ignore
+            return c  # pragma: no cover
         r = order_finder(x, n)
         if r is None:
-            continue  # coverage: ignore
+            continue  # pragma: no cover
         if r % 2 != 0:
-            continue  # coverage: ignore
+            continue  # pragma: no cover
         y = x ** (r // 2) % n
         assert 1 < y < n
         c = math.gcd(y - 1, n)
         if 1 < c < n:
             return c
-    return None  # coverage: ignore
+    return None  # pragma: no cover
 
 
 def main(n: int, order_finder: Callable[[int, int], Optional[int]] = naive_order_finder):
@@ -355,8 +340,7 @@ def main(n: int, order_finder: Callable[[int, int], Optional[int]] = naive_order
         assert n % d == 0
 
 
-if __name__ == '__main__':
-    # coverage: ignore
+if __name__ == '__main__':  # pragma: no cover
     ORDER_FINDERS = {'naive': naive_order_finder, 'quantum': quantum_order_finder}
     args = parser.parse_args()
     main(n=args.n, order_finder=ORDER_FINDERS[args.order_finder])

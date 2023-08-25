@@ -1,0 +1,19 @@
+{
+  "cirq_type": "Zip",
+  "sweeps": [
+    {
+      "cirq_type": "Linspace",
+      "key": "a",
+      "start": 0,
+      "stop": 1,
+      "length": 2
+    },
+    {
+      "cirq_type": "Linspace",
+      "key": "b",
+      "start": 0,
+      "stop": 2,
+      "length": 4
+    }
+  ]
+}

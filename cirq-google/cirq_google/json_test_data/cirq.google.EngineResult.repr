@@ -1,0 +1,1 @@
+cirq_google.EngineResult(params=cirq.ParamResolver({sympy.Symbol('a'): 0.5}), records={'m': np.array([[[True, True, False, True, False]], [[False, True, True, False, False]], [[True, False, True, False, True]]], dtype=np.dtype('bool'))}, job_id='my_job_id', job_finished_time=datetime.datetime(2022, 4, 1, 8, 23, 45, tzinfo=datetime.timezone.utc))

@@ -1,0 +1,36 @@
+name: Continuous Integration - Weekly
+
+on:
+  schedule:
+    # Checks out master by default.
+    - cron: '0 0 * * 0'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  notebooks-stable:
+    name: All Notebooks Isolated Test against Cirq stable
+    env:
+      NOTEBOOK_PARTITIONS: 4
+    strategy:
+      matrix:
+        # partitions should be named partition-0 to partition-(NOTEBOOK_PARTITIONS-1)
+        partition: [partition-0, partition-1, partition-2, partition-3]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          architecture: 'x64'
+      - name: Install requirements
+        run: pip install -r dev_tools/requirements/isolated-base.env.txt
+      - name: Notebook tests
+        run: check/pytest -n auto -m weekly dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: notebook-outputs
+          path: out

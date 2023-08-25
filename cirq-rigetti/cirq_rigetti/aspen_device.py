@@ -126,8 +126,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         if isinstance(valid_qubit, (OctagonalQubit, AspenQubit)):
             return valid_qubit.index
 
-        else:
-            # coverage: ignore
+        else:  # pragma: no cover
             raise UnsupportedQubit(f'unsupported Qid type {type(valid_qubit)}')
 
     def validate_qubit(self, qubit: 'cirq.Qid') -> None:
@@ -182,8 +181,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
                 )
             return
 
-        else:
-            # coverage: ignore
+        else:  # pragma: no cover
             raise UnsupportedQubit(f'unsupported Qid type {type(qubit)}')
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
@@ -233,7 +231,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         return cls(isa=InstructionSetArchitecture.from_dict(isa))
 
 
-@_provide_default_client
+@_provide_default_client  # pragma: no cover
 def get_rigetti_qcs_aspen_device(
     quantum_processor_id: str, client: Optional[httpx.Client]
 ) -> RigettiQCSAspenDevice:
@@ -252,7 +250,6 @@ def get_rigetti_qcs_aspen_device(
         set and architecture.
 
     """
-    # coverage: ignore
     isa = cast(
         InstructionSetArchitecture,
         get_instruction_set_architecture(
@@ -315,7 +312,6 @@ class OctagonalQubit(cirq.ops.Qid):
         """
         if type(other) != OctagonalQubit:
             raise TypeError("can only measure distance from other Octagonal qubits")
-        other = cast(OctagonalQubit, other)
         return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     @property
@@ -427,7 +423,6 @@ class AspenQubit(OctagonalQubit):
         """
         if type(other) != AspenQubit:
             raise TypeError("can only measure distance from other Aspen qubits")
-        other = cast(AspenQubit, other)
         return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     def to_grid_qubit(self) -> cirq.GridQubit:

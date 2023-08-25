@@ -1,0 +1,12 @@
+{
+  "cirq_type": "ProductOfSums",
+  "data": [
+    [
+      1
+    ],
+    [
+      1,
+      2
+    ]
+  ]
+}

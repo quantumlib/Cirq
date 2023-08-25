@@ -15,110 +15,110 @@
 
 import abc
 import itertools
-from typing import Union, Iterable, List, Sequence, cast, TypeVar, TYPE_CHECKING
+from typing import Union, Iterable, List, Sequence, cast, Tuple, TYPE_CHECKING
+from typing_extensions import Self
 
 import numpy as np
 
-from cirq.ops.raw_types import Operation
+from cirq.ops.raw_types import Gate
 
 if TYPE_CHECKING:
     import cirq
 
 
-TSelf = TypeVar('TSelf', bound='ArithmeticOperation')
-
-
-class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
-    """A helper class for implementing reversible classical arithmetic.
+class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
+    r"""A helper gate for implementing reversible classical arithmetic.
 
     Child classes must override the `registers`, `with_registers`, and `apply`
     methods.
 
     This class handles the details of ensuring that the scaling of implementing
-    the operation is O(2^n) instead of O(4^n) where n is the number of qubits
+    the gate is O(2^n) instead of O(4^n) where n is the number of qubits
     being acted on, by implementing an `_apply_unitary_` function in terms of
-    the registers and the apply function of the child class. It also handles the
-    boilerplate of implementing the `qubits` and `with_qubits` methods.
+    the registers and the apply function of the child class.
 
     Examples:
 
-        >>> class Add(cirq.ArithmeticOperation):
-        ...     def __init__(self, target_register, input_register):
-        ...         self.target_register = target_register
-        ...         self.input_register = input_register
-        ...
-        ...     def registers(self):
-        ...         return self.target_register, self.input_register
-        ...
-        ...     def with_registers(self, *new_registers):
-        ...         return Add(*new_registers)
-        ...
-        ...     def apply(self, target_value, input_value):
-        ...         return target_value + input_value
-
-        >>> cirq.unitary(
-        ...     Add(target_register=cirq.LineQubit.range(2), input_register=1)
-        ... ).astype(np.int32)
-        array([[0, 0, 0, 1],
-               [1, 0, 0, 0],
-               [0, 1, 0, 0],
-               [0, 0, 1, 0]], dtype=int32)
-
-        >>> c = cirq.Circuit(
-        ...     cirq.X(cirq.LineQubit(3)),
-        ...     cirq.X(cirq.LineQubit(2)),
-        ...     cirq.X(cirq.LineQubit(6)),
-        ...     cirq.measure(*cirq.LineQubit.range(4, 8), key='before:in'),
-        ...     cirq.measure(*cirq.LineQubit.range(4), key='before:out'),
-        ...
-        ...     Add(target_register=cirq.LineQubit.range(4),
-        ...         input_register=cirq.LineQubit.range(4, 8)),
-        ...
-        ...     cirq.measure(*cirq.LineQubit.range(4, 8), key='after:in'),
-        ...     cirq.measure(*cirq.LineQubit.range(4), key='after:out'),
-        ... )
-
-        >>> cirq.sample(c).data
-           before:in  before:out  after:in  after:out
-        0          2           3         2          5
+    >>> class Add(cirq.ArithmeticGate):
+    ...     def __init__(
+    ...         self,
+    ...         target_register: '[int, Sequence[int]]',
+    ...         input_register: 'Union[int, Sequence[int]]',
+    ...     ):
+    ...         self.target_register = target_register
+    ...         self.input_register = input_register
+    ...
+    ...     def registers(self) -> 'Sequence[Union[int, Sequence[int]]]':
+    ...         return self.target_register, self.input_register
+    ...
+    ...     def with_registers(
+    ...         self, *new_registers: 'Union[int, Sequence[int]]'
+    ...     ) -> 'Add':
+    ...         return Add(*new_registers)
+    ...
+    ...     def apply(self, *register_values: int) -> 'Union[int, Iterable[int]]':
+    ...         return sum(register_values)
+    >>> cirq.unitary(
+    ...     Add(target_register=[2, 2],
+    ...         input_register=1).on(*cirq.LineQubit.range(2))
+    ... ).astype(np.int32)
+    array([[0, 0, 0, 1],
+           [1, 0, 0, 0],
+           [0, 1, 0, 0],
+           [0, 0, 1, 0]], dtype=int32)
+    >>> c = cirq.Circuit(
+    ...    cirq.X(cirq.LineQubit(3)),
+    ...    cirq.X(cirq.LineQubit(2)),
+    ...    cirq.X(cirq.LineQubit(6)),
+    ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='before_in'),
+    ...    cirq.measure(*cirq.LineQubit.range(4), key='before_out'),
+    ...
+    ...    Add(target_register=[2] * 4,
+    ...        input_register=[2] * 4).on(*cirq.LineQubit.range(8)),
+    ...
+    ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='after_in'),
+    ...    cirq.measure(*cirq.LineQubit.range(4), key='after_out'),
+    ... )
+    >>> cirq.sample(c).data
+       before_in  before_out  after_in  after_out
+    0          2           3         2          5
 
     """
 
     @abc.abstractmethod
-    def registers(self) -> Sequence[Union[int, Sequence['cirq.Qid']]]:
-        """The data acted upon by the arithmetic operation.
+    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
+        """The data acted upon by the arithmetic gate.
 
         Each register in the list can either be a classical constant (an `int`),
-        or else a list of qubits/qudits (a `List[cirq.Qid]`). Registers that
-        are set to a classical constant must not be mutated by the arithmetic
-        operation (their value must remain fixed when passed to `apply`).
+        or else a list of qubit/qudit dimensions. Registers that are set to a
+        classical constant must not be mutated by the arithmetic gate
+        (their value must remain fixed when passed to `apply`).
 
         Registers are big endian. The first qubit is the most significant, the
         last qubit is the 1s qubit, the before last qubit is the 2s qubit, etc.
 
         Returns:
-            A list of constants and qubit groups that the operation will act
-            upon.
+            A list of constants and qubit groups that the gate will act upon.
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def with_registers(self: TSelf, *new_registers: Union[int, Sequence['cirq.Qid']]) -> TSelf:
-        """Returns the same operation targeting different registers.
+    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> Self:
+        """Returns the same fate targeting different registers.
 
         Args:
             *new_registers: The new values that should be returned by the
                 `registers` method.
 
         Returns:
-            An instance of the same kind of operation, but acting on different
+            An instance of the same kind of gate, but acting on different
             registers.
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def apply(self, *register_values: int) -> Union[int, Iterable[int]]:
-        """Returns the result of the operation operating on classical values.
+        """Returns the result of the gate operating on classical values.
 
         For example, an addition takes two values (the target and the source),
         adds the source into the target, then returns the target and source
@@ -133,14 +133,14 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
             values are also permitted. For example, for a 3 qubit register the
             value -2 becomes -2 % 2**3 = 6.
         2. When the value of the last `k` registers is not changed by the
-            operation, the `apply` method is permitted to omit these values
+            gate, the `apply` method is permitted to omit these values
             from the result. That is to say, when the length of the output is
             less than the length of the input, it is padded up to the intended
             length by copying from the same position in the input.
         3. When only the first register's value changes, the `apply` method is
             permitted to return an `int` instead of a sequence of ints.
 
-        The `apply` method *must* be reversible. Otherwise the operation will
+        The `apply` method *must* be reversible. Otherwise the gate will
         not be unitary, and incorrect behavior will result.
 
         Examples:
@@ -153,7 +153,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
             ```
 
             The same adder, with less boilerplate due to the details being
-            handled by the `ArithmeticOperation` class:
+            handled by the `ArithmeticGate` class:
 
             ```
             def apply(self, target, offset):
@@ -162,37 +162,26 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    @property
-    def qubits(self):
-        return tuple(
-            qubit
-            for register in self.registers()
-            if not isinstance(register, int)
-            for qubit in register
-        )
-
-    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
-        new_registers: List[Union[int, Sequence['cirq.Qid']]] = []
-        qs = iter(new_qubits)
-        for register in self.registers():
-            if isinstance(register, int):
-                new_registers.append(register)
-            else:
-                new_registers.append([next(qs) for _ in register])
-        return self.with_registers(*new_registers)
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        shape = []
+        for r in self.registers():
+            if isinstance(r, Sequence):
+                for i in r:
+                    shape.append(i)
+        return tuple(shape)
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         registers = self.registers()
         input_ranges: List[Sequence[int]] = []
-        shape = []
-        overflow_sizes = []
+        shape: List[int] = []
+        overflow_sizes: List[int] = []
         for register in registers:
             if isinstance(register, int):
                 input_ranges.append([register])
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = int(np.prod([q.dimension for q in register], dtype=np.int64).item())
+                size = int(np.prod([dim for dim in register], dtype=np.int64).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)
@@ -242,7 +231,9 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
 
 
 def _describe_bad_arithmetic_changed_const(
-    registers: Sequence[Union[int, Sequence['cirq.Qid']]], inputs: List[int], outputs: List[int]
+    registers: Sequence[Union[int, Sequence[Union['cirq.Qid', int]]]],
+    inputs: List[int],
+    outputs: List[int],
 ) -> str:
     from cirq.circuits import TextDiagramDrawer
 
@@ -258,7 +249,7 @@ def _describe_bad_arithmetic_changed_const(
         drawer.write(3, i + 1, str(outputs[i]))
     return (
         "A register cannot be set to an int (a classical constant) unless its "
-        "value is not affected by the operation.\n"
+        "value is not affected by the gate.\n"
         "\nExample case where a constant changed:\n"
         + drawer.render(horizontal_spacing=1, vertical_spacing=0)
     )

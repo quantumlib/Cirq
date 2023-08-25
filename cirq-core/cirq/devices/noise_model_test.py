@@ -124,6 +124,25 @@ def test_constant_qubit_noise():
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
 
 
+def test_constant_qubit_noise_prepend():
+    a, b, c = cirq.LineQubit.range(3)
+    damp = cirq.amplitude_damp(0.5)
+    damp_all = cirq.ConstantQubitNoiseModel(damp, prepend=True)
+    actual = damp_all.noisy_moments([cirq.Moment([cirq.X(a)]), cirq.Moment()], [a, b, c])
+    expected = [
+        [
+            cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.Moment([cirq.X(a)]),
+        ],
+        [
+            cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.Moment(),
+        ],
+    ]
+    assert actual == expected
+    cirq.testing.assert_equivalent_repr(damp_all)
+
+
 def test_noise_composition():
     # Verify that noise models can be composed without regard to ordering, as
     # long as the noise operators commute with one another.

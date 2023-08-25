@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Qubit Gates, Operations, and Tags useful for Google devices. """
+
 from cirq_google.ops.calibration_tag import CalibrationTag
 
 from cirq_google.ops.fsim_gate_family import FSimGateFamily
@@ -19,3 +21,5 @@ from cirq_google.ops.fsim_gate_family import FSimGateFamily
 from cirq_google.ops.physical_z_tag import PhysicalZTag
 
 from cirq_google.ops.sycamore_gate import SycamoreGate, SYC
+
+from cirq_google.ops.internal_gate import InternalGate

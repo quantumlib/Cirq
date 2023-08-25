@@ -1,1 +1,1 @@
-(cirq.X**0.123)
+[(cirq.X**0.123), cirq.XPowGate(exponent=0.123, dimension=3)]

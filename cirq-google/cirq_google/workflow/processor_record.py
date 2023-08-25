@@ -34,7 +34,7 @@ class ProcessorRecord(metaclass=abc.ABCMeta):
         This is the primary method that descendants must implement.
         """
 
-    def get_sampler(self) -> 'cirq.Sampler':
+    def get_sampler(self) -> 'cg.ProcessorSampler':
         """Return a `cirq.Sampler` for the processor specified by this class.
 
         The default implementation delegates to `self.get_processor()`.
@@ -106,7 +106,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
         )
 
     def _get_input_device(self) -> 'cirq.Device':
-        """Return a `cg.SerializableDevice` for the specified processor_id.
+        """Return a `cirq.Device` for the specified processor_id.
 
         This method presumes the GOOGLE_CLOUD_PROJECT environment
         variable is set to establish a connection to the cloud service.
@@ -168,13 +168,12 @@ class SimulatedProcessorWithLocalDeviceRecord(SimulatedProcessorRecord):
     """
 
     def _get_input_device(self) -> 'cirq.Device':
-        """Return a `cg.SerializableDevice` for the specified processor_id.
+        """Return a `cg.GridDevice` for the specified processor_id.
 
         Only 'rainbow' and 'weber' are recognized processor_ids and the device information
         may not be up-to-date, as it is completely local.
         """
 
-        gate_sets = [cg.FSIM_GATESET]
         device_spec = _create_device_spec_from_template(MOST_RECENT_TEMPLATES[self.processor_id])
-        device = cg.SerializableDevice.from_proto(device_spec, gate_sets)
+        device = cg.GridDevice.from_proto(device_spec)
         return device

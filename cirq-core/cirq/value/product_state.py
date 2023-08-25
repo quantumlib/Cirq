@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import abc
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Sequence, Tuple, Iterator
+from typing import Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -60,8 +61,7 @@ class ProductState:
 
     def __init__(self, states=None):
         if states is None:
-            # coverage: ignore
-            states = dict()
+            states = dict()  # pragma: no cover
 
         object.__setattr__(self, 'states', states)
 
@@ -77,7 +77,7 @@ class ProductState:
         if len(dupe_qubits) != 0:
             raise ValueError(
                 "You tried to tensor two states, "
-                "but both contain factors for these qubits: {}".format(sorted(dupe_qubits))
+                f"but both contain factors for these qubits: {sorted(dupe_qubits)}"
             )
 
         new_states = self.states.copy()
@@ -91,7 +91,7 @@ class ProductState:
         states_dict_repr = ', '.join(
             f'{repr(key)}: {repr(val)}' for key, val in self.states.items()
         )
-        return 'cirq.ProductState({%s})' % states_dict_repr
+        return f'cirq.ProductState({{{states_dict_repr}}})'
 
     def __getitem__(self, qubit: 'cirq.Qid') -> _NamedOneQubitState:
         """Return the _NamedOneQubitState at the given qubit."""
@@ -119,7 +119,7 @@ class ProductState:
     def _from_json_dict_(cls, states, **kwargs):
         return cls(states=dict(states))
 
-    def state_vector(self, qubit_order: 'cirq.QubitOrder' = None) -> np.ndarray:
+    def state_vector(self, qubit_order: Optional['cirq.QubitOrder'] = None) -> np.ndarray:
         """The state-vector representation of this state."""
         from cirq import ops
 
@@ -136,7 +136,7 @@ class ProductState:
 
         return mat
 
-    def projector(self, qubit_order: 'cirq.QubitOrder' = None) -> np.ndarray:
+    def projector(self, qubit_order: Optional['cirq.QubitOrder'] = None) -> np.ndarray:
         """The projector associated with this state expressed as a matrix.
 
         This is |s⟩⟨s| where |s⟩ is this state.
@@ -199,8 +199,7 @@ class _XEigenState(_PauliEigenState):
             return np.array([1, 1]) / np.sqrt(2)
         elif self.eigenvalue == -1:
             return np.array([1, -1]) / np.sqrt(2)
-        # coverage: ignore
-        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         # Prevent circular import from `value.value_equality`
@@ -217,8 +216,7 @@ class _YEigenState(_PauliEigenState):
             return np.array([1, 1j]) / np.sqrt(2)
         elif self.eigenvalue == -1:
             return np.array([1, -1j]) / np.sqrt(2)
-        # coverage: ignore
-        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops
@@ -234,8 +232,7 @@ class _ZEigenState(_PauliEigenState):
             return np.array([1, 0])
         elif self.eigenvalue == -1:
             return np.array([0, 1])
-        # coverage: ignore
-        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops
@@ -322,4 +319,4 @@ document(
 )
 
 PAULI_STATES = [KET_PLUS, KET_MINUS, KET_IMAG, KET_MINUS_IMAG, KET_ZERO, KET_ONE]
-document(PAULI_STATES, """All one-qubit states stabalized by the pauli operators.""")
+document(PAULI_STATES, """All one-qubit states stabilized by the pauli operators.""")

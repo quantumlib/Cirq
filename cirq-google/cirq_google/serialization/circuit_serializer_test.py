@@ -14,12 +14,15 @@
 
 from typing import Dict, List
 import pytest
+
+import numpy as np
 import sympy
 from google.protobuf import json_format
 
 import cirq
 import cirq_google as cg
 from cirq_google.api import v2
+from cirq_google.serialization.circuit_serializer import _SERIALIZER_NAME
 
 
 class FakeDevice(cirq.Device):
@@ -36,7 +39,7 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
 def circuit_proto(json: Dict, qubits: List[str]):
     constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id=q)) for q in qubits]
     return v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment(operations=[op_proto(json)])],
@@ -51,9 +54,18 @@ Q1 = cirq.GridQubit(2, 5)
 
 X_PROTO = op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]})
 
-
+# TODO(#5758): Add support for numpy types to `TParamVal`.
 OPERATIONS = [
     (cirq.X(Q0), X_PROTO),
+    (
+        cg.InternalGate(gate_name='g', gate_module='test', num_qubits=1)(Q0),
+        op_proto(
+            {
+                'internalgate': {'name': 'g', 'module': 'test', 'num_qubits': 1},
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
     (
         cirq.Y(Q0),
         op_proto({'ypowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
@@ -65,6 +77,14 @@ OPERATIONS = [
     (
         cirq.XPowGate(exponent=0.125)(Q1),
         op_proto({'xpowgate': {'exponent': {'float_value': 0.125}}, 'qubit_constant_index': [0]}),
+    ),
+    (
+        cirq.XPowGate(exponent=np.double(0.125))(Q1),  # type: ignore
+        op_proto({'xpowgate': {'exponent': {'float_value': 0.125}}, 'qubit_constant_index': [0]}),
+    ),
+    (
+        cirq.XPowGate(exponent=np.short(1))(Q1),  # type: ignore
+        op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
     (
         cirq.XPowGate(exponent=sympy.Symbol('a'))(Q1),
@@ -241,7 +261,7 @@ OPERATIONS = [
 
 @pytest.mark.parametrize(('op', 'op_proto'), OPERATIONS)
 def test_serialize_deserialize_ops(op, op_proto):
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
 
     constants = []
 
@@ -250,7 +270,7 @@ def test_serialize_deserialize_ops(op, op_proto):
     # Serialize / Deserializer circuit with single operation
     circuit = cirq.Circuit(op)
     circuit_proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment(operations=[op_proto])],
@@ -262,13 +282,13 @@ def test_serialize_deserialize_ops(op, op_proto):
 
 
 def test_serialize_deserialize_circuit():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -310,7 +330,7 @@ def test_serialize_deserialize_circuit():
 
 
 def test_serialize_deserialize_circuit_with_tokens():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     tag1 = cg.CalibrationTag('abc123')
     tag2 = cg.CalibrationTag('def456')
     circuit = cirq.Circuit(
@@ -337,7 +357,7 @@ def test_serialize_deserialize_circuit_with_tokens():
     op_q0_tag2.token_constant_index = 3
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -359,9 +379,9 @@ def test_serialize_deserialize_circuit_with_tokens():
 
 def test_deserialize_circuit_with_token_strings():
     """Supporting token strings for backwards compatibility."""
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -386,7 +406,7 @@ def test_deserialize_circuit_with_token_strings():
 
 
 def test_serialize_deserialize_circuit_with_subcircuit():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     tag1 = cg.CalibrationTag('abc123')
     fcircuit = cirq.FrozenCircuit(cirq.XPowGate(exponent=2 * sympy.Symbol('t'))(Q0))
     circuit = cirq.Circuit(
@@ -423,7 +443,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     qmap.value.id = '2_5'
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -448,11 +468,11 @@ def test_serialize_deserialize_circuit_with_subcircuit():
 
 
 def test_serialize_deserialize_empty_circuit():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     circuit = cirq.Circuit()
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
         ),
@@ -462,11 +482,11 @@ def test_serialize_deserialize_empty_circuit():
 
 
 def test_deserialize_empty_moment():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     circuit = cirq.Circuit([cirq.Moment()])
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment()],
@@ -476,15 +496,13 @@ def test_deserialize_empty_moment():
 
 
 def test_circuit_serializer_name():
-    serializer = cg.CircuitSerializer('my_gate_set')
-    assert serializer.name == 'my_gate_set'
-    serializer = cg.CircuitSerializer('serial_box')
-    assert serializer.name == 'serial_box'
+    serializer = cg.CircuitSerializer()
+    assert serializer.name == _SERIALIZER_NAME
     assert cg.serialization.circuit_serializer.CIRCUIT_SERIALIZER.name == 'v2_5'
 
 
 def test_serialize_unrecognized():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     with pytest.raises(NotImplementedError, match='program type'):
         serializer.serialize("not quite right")
 
@@ -509,7 +527,7 @@ def default_circuit():
 
 
 def test_serialize_circuit_op_errors():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     constants = [default_circuit_proto()]
     raw_constants = {default_circuit(): 0}
 
@@ -525,7 +543,7 @@ def test_serialize_circuit_op_errors():
 
 
 def test_deserialize_unsupported_gate_type():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     operation_proto = op_proto(
         {
             'gate': {'id': 'no_pow'},
@@ -534,7 +552,7 @@ def test_deserialize_unsupported_gate_type():
         }
     )
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment(operations=[operation_proto])],
@@ -545,7 +563,7 @@ def test_deserialize_unsupported_gate_type():
 
 
 def test_serialize_op_unsupported_type():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='CNOT'):
@@ -553,15 +571,15 @@ def test_serialize_op_unsupported_type():
 
 
 def test_serialize_op_bad_operation():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
 
     class NullOperation(cirq.Operation):
         @property
         def qubits(self):
-            return tuple()  # coverage: ignore
+            return tuple()  # pragma: no cover
 
         def with_qubits(self, *qubits):
-            return self  # coverage: ignore
+            return self  # pragma: no cover
 
     null_op = NullOperation()
     with pytest.raises(ValueError, match='Cannot serialize op'):
@@ -569,7 +587,7 @@ def test_serialize_op_bad_operation():
 
 
 def test_deserialize_invalid_gate_set():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(gate_set='not_my_gate_set'),
         circuit=v2.program_pb2.Circuit(
@@ -593,9 +611,9 @@ def test_deserialize_invalid_gate_set():
 
 
 def test_deserialize_schedule_not_supported():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(gate_set=_SERIALIZER_NAME),
         schedule=v2.program_pb2.Schedule(
             scheduled_operations=[v2.program_pb2.ScheduledOperation(start_time_picos=0)]
         ),
@@ -605,7 +623,7 @@ def test_deserialize_schedule_not_supported():
 
 
 def test_deserialize_fsim_missing_parameters():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     proto = circuit_proto(
         {'fsimgate': {'theta': {'float_value': 3.0}}, 'qubit_constant_index': [0, 1]},
         ['1_1', '1_2'],
@@ -615,7 +633,7 @@ def test_deserialize_fsim_missing_parameters():
 
 
 def test_deserialize_wrong_types():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     proto = circuit_proto(
         {
             'measurementgate': {
@@ -631,7 +649,7 @@ def test_deserialize_wrong_types():
 
 
 def test_no_constants_table():
-    serializer = cg.CircuitSerializer('my_gate_set')
+    serializer = cg.CircuitSerializer()
     op = op_proto(
         {
             'xpowgate': {'exponent': {'float_value': 1.0}},
@@ -642,3 +660,11 @@ def test_no_constants_table():
 
     with pytest.raises(ValueError, match='Proto has references to constants table'):
         serializer._deserialize_gate_op(op)
+
+
+def test_measurement_gate_deserialize() -> None:
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.X(q) ** 0.5, cirq.measure(q))
+    msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
+
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit

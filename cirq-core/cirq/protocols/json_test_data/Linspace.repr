@@ -1,0 +1,4 @@
+[
+    cirq.Linspace("a", start=0, stop=1, length=4),
+    cirq.Linspace("b", start=1, stop=2, length=3, metadata=cirq.NamedQubit("b"))
+]

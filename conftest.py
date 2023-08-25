@@ -12,32 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import random
-
 import pytest
-
-# allow CI execution of isolated_packages_test.py without numpy
-try:
-    import numpy
-except ImportError:
-    # coverage: ignore
-    numpy = None
-
-
-def pytest_configure(config):
-    # Ignore deprecation warnings in python code generated from our protobuf definitions.
-    # Eventually, the warnings will be removed by upgrading protoc compiler. See issues
-    # #4161 and #4737.
-    for f in (
-        "FieldDescriptor",
-        "Descriptor",
-        "EnumDescriptor",
-        "EnumValueDescriptor",
-        "FileDescriptor",
-        "OneofDescriptor",
-    ):
-        config.addinivalue_line("filterwarnings", f"ignore:Call to deprecated create function {f}")
 
 
 def pytest_addoption(parser):
@@ -47,18 +22,3 @@ def pytest_addoption(parser):
         default=False,
         help="run Rigetti integration tests",
     )
-
-
-@pytest.fixture
-def closefigures():
-    import matplotlib.pyplot as plt
-
-    yield
-    plt.close('all')
-
-
-# skip seeding for unset or empty CIRQ_TESTING_RANDOM_SEED
-if numpy is not None and os.environ.get('CIRQ_TESTING_RANDOM_SEED'):
-    rngseed = int(os.environ['CIRQ_TESTING_RANDOM_SEED'])
-    random.seed(rngseed)
-    numpy.random.seed(rngseed)

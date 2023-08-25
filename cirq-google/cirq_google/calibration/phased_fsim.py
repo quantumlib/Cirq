@@ -26,6 +26,7 @@ from typing import (
     MutableMapping,
     Optional,
     Tuple,
+    Type,
     TypeVar,
     TYPE_CHECKING,
     Generic,
@@ -36,11 +37,19 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+
 import cirq
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq_google.api import v2
-from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
-from cirq_google.ops import FSimGateFamily
+from cirq_google.engine import (
+    Calibration,
+    CalibrationLayer,
+    CalibrationResult,
+    Engine,
+    EngineJob,
+    util,
+)
+from cirq_google.ops import FSimGateFamily, SycamoreGate
 
 if TYPE_CHECKING:
     import cirq_google
@@ -49,6 +58,11 @@ if TYPE_CHECKING:
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 _XEB_PHASED_FSIM_HANDLER_NAME = 'xeb_phased_fsim_characterization'
 _DEFAULT_XEB_CYCLE_DEPTHS = (5, 25, 50, 100, 200, 300)
+# Copied from cirq-google/cirq_google/engine/calibration_to_noise_properties.py
+GATE_ZPHASE_CODE_PAIRS: Dict[Type['cirq.Gate'], str] = {
+    SycamoreGate: 'syc',
+    cirq.ISwapPowGate: 'sqrt_iswap',
+}
 
 T = TypeVar('T')
 
@@ -257,7 +271,7 @@ class PhasedFSimCalibrationResult:
                 which are not None will be used to replace current parameters for every pair stored.
 
         Returns:
-            New instance of PhasedFSimCalibrationResult with certain parameters overriden.
+            New instance of PhasedFSimCalibrationResult with certain parameters overridden.
         """
         return PhasedFSimCalibrationResult(
             parameters={
@@ -330,6 +344,38 @@ class PhasedFSimCalibrationResult:
         }
 
 
+def to_zphase_data(results: Iterable[PhasedFSimCalibrationResult]) -> util.ZPhaseDataType:
+    """Packages a collection of results into ZPhaseDataType.
+
+    Args:
+        results: List of results to pack into ZPhaseDataType. If multiple results provide a value
+            for a given (gate, angle, qubits) tuple, only the last one will be kept.
+
+    Returns:
+        A ZPhaseDataType-formatted result representation. This can be used with the
+            calibration-to-noise pipeline for generating noise models.
+
+    Raises:
+        ValueError: if results for a gate other than Sycamore or ISwapPowGate are given.
+    """
+    zphase_data: util.ZPhaseDataType = {}
+    for result in results:
+        gate_type = GATE_ZPHASE_CODE_PAIRS.get(type(result.gate))
+        if gate_type is None:
+            raise ValueError(
+                f"Only 'SycamoreGate' and 'ISwapPowGate' are supported, got {result.gate}"
+            )
+        gate_dict = zphase_data.setdefault(gate_type, {})
+        for qubits, data in result.parameters.items():
+            for angle, value in data.asdict().items():
+                if value is None:
+                    continue
+                angle_dict = gate_dict.setdefault(angle, {})
+                angle_dict[qubits] = value
+
+    return zphase_data
+
+
 def merge_matching_results(
     results: Iterable[PhasedFSimCalibrationResult],
 ) -> Optional[PhasedFSimCalibrationResult]:
@@ -382,8 +428,7 @@ class PhasedFSimCalibrationError(Exception):
     """Error that indicates the calibration failure."""
 
 
-# We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
-@dataclasses.dataclass(frozen=True)  # type: ignore
+@dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationRequest(abc.ABC):
     """Description of the request to characterize PhasedFSimGate.
 
@@ -399,8 +444,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     gate: cirq.Gate  # Any gate which can be described by cirq.PhasedFSim
     options: PhasedFSimCalibrationOptions
 
-    # Workaround for: https://github.com/python/mypy/issues/1362
-    @property  # type: ignore
+    @property
     @lru_cache_typesafe
     def qubit_to_pair(self) -> MutableMapping[cirq.Qid, Tuple[cirq.Qid, cirq.Qid]]:
         """Returns mapping from qubit to a qubit pair that it belongs to."""
@@ -498,7 +542,7 @@ class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
     These "Local" options (corresponding to `LocalXEBPhasedFSimCalibrationRequest`) instruct
     `cirq_google.run_calibrations` to execute XEB analysis locally (not via the quantum
     engine). As such, `run_calibrations` can work with any `cirq.Sampler`, not just
-    `QuantumEngineSampler`.
+    `ProcessorSampler`.
 
     Args:
         n_library_circuits: The number of distinct, two-qubit random circuits to use in our
@@ -818,7 +862,7 @@ class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     A "Local" request (corresponding to `LocalXEBPhasedFSimCalibrationOptions`) instructs
     `cirq_google.run_calibrations` to execute XEB analysis locally (not via the quantum
     engine). As such, `run_calibrations` can work with any `cirq.Sampler`, not just
-    `QuantumEngineSampler`.
+    `ProcessorSampler`.
 
     Attributes:
         options: local-XEB-specific characterization options.
@@ -958,12 +1002,13 @@ class PhaseCalibratedFSimGate:
             Instance of PhasedFSimGate that executes a gate according to the characterized
             parameters of the engine_gate.
         """
+        assert parameters.chi is not None
         return cirq.PhasedFSimGate(
-            theta=parameters.theta,
-            zeta=parameters.zeta,
+            theta=parameters.theta or 0.0,
+            zeta=parameters.zeta or 0.0,
             chi=parameters.chi - 2 * np.pi * self.phase_exponent,
-            gamma=parameters.gamma,
-            phi=parameters.phi,
+            gamma=parameters.gamma or 0.0,
+            phi=parameters.phi or 0.0,
         )
 
     def with_zeta_chi_gamma_compensated(
@@ -1003,7 +1048,7 @@ class PhaseCalibratedFSimGate:
             engine_gate = self.engine_gate
         else:
             if cirq.num_qubits(engine_gate) != 2:
-                raise ValueError('Engine gate must be a two-qubit gate')  # coverage: ignore
+                raise ValueError('Engine gate must be a two-qubit gate')  # pragma: no cover
 
         a, b = qubits
 
@@ -1039,7 +1084,9 @@ def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedF
     if result is None:
         return None
     engine_gate = result.engine_gate
-    if math.isclose(engine_gate.theta, np.pi / 4) and math.isclose(engine_gate.phi, 0.0):
+    if math.isclose(cast(float, engine_gate.theta), np.pi / 4) and math.isclose(
+        cast(float, engine_gate.phi), 0.0
+    ):
         return result
     return None
 
@@ -1055,7 +1102,10 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         Otherwise returns None.
     """
     cgate = FSimGateFamily().convert(gate, cirq.PhasedFSimGate)
-    if (cgate is None) or not (np.isclose(cgate.zeta, 0.0) and np.isclose(cgate.gamma, 0.0)):
+    if cgate is None or cirq.is_parameterized(cgate):
+        return None
+    assert isinstance(cgate.zeta, float) and isinstance(cgate.gamma, float)
+    if not (np.isclose(cgate.zeta, 0.0) and np.isclose(cgate.gamma, 0.0)):
         return None
     # On comparing the unitary matrices of `PhasedFSimGate` and `PhaseCalibratedFSimGate`, we get:
     theta = cgate.theta

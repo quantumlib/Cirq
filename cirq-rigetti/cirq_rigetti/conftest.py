@@ -16,16 +16,10 @@ from typing import Tuple, Optional, List, Union, Generic, TypeVar, Dict
 
 from unittest.mock import create_autospec, Mock
 import pytest
-from pyquil import Program  # type: ignore
-from pyquil.quantum_processor import AbstractQuantumProcessor, NxQuantumProcessor  # type: ignore
-from pyquil.api import (
-    QAM,
-    QuantumComputer,
-    QuantumExecutable,
-    QAMExecutionResult,
-    EncryptedProgram,
-)  # type: ignore
-from pyquil.api._abstract_compiler import AbstractCompiler  # type: ignore
+from pyquil import Program
+from pyquil.quantum_processor import AbstractQuantumProcessor, NxQuantumProcessor
+from pyquil.api import QAM, QuantumComputer, QuantumExecutable, QAMExecutionResult, EncryptedProgram
+from pyquil.api._abstract_compiler import AbstractCompiler
 from qcs_api_client.client._configuration.settings import QCSClientConfigurationSettings
 from qcs_api_client.client._configuration import (
     QCSClientConfiguration,
@@ -37,8 +31,7 @@ import sympy
 import numpy as np
 
 
-def pytest_collection_modifyitems(config, items):
-    # coverage: ignore
+def pytest_collection_modifyitems(config, items):  # pragma: no cover
     # do not skip integration tests if --rigetti-integration option passed
     if config.getoption('--rigetti-integration'):
         return
@@ -69,7 +62,7 @@ class MockQAM(QAM, Generic[T]):
         self._run_count = 0
         self._mock_results: Dict[str, np.ndarray] = {}
 
-    def execute(self, executable: QuantumExecutable) -> T:
+    def execute(self, executable: QuantumExecutable) -> T:  # type: ignore[empty-body]
         pass
 
     def run(self, program: QuantumExecutable) -> QAMExecutionResult:
@@ -196,9 +189,7 @@ class MockQPUImplementer:
                 executable=program, readout_data=qam._mock_results  # type: ignore
             )
 
-        quantum_computer.qam.run = Mock(  # type: ignore
-            quantum_computer.qam.run, side_effect=run  # type: ignore
-        )
+        quantum_computer.qam.run = Mock(quantum_computer.qam.run, side_effect=run)  # type: ignore
         return quantum_computer
 
 

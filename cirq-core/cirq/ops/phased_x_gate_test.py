@@ -22,7 +22,7 @@ import cirq
 
 
 @pytest.mark.parametrize(
-    'phase_exponent', [-0.5, 0, 0.1, 0.25, 0.5, 1, sympy.Symbol('p'), sympy.Symbol('p') + 1]
+    'phase_exponent', [-0.5, 0, 0.5, 1, sympy.Symbol('p'), sympy.Symbol('p') + 1]
 )
 def test_phased_x_consistent_protocols(phase_exponent):
     cirq.testing.assert_implements_consistent_protocols(
@@ -185,6 +185,22 @@ def test_parameterize(resolve_fn, global_shift):
     assert not cirq.is_parameterized(unparameterized_gate)
     assert cirq.is_parameterized(unparameterized_gate ** sympy.Symbol('a'))
     assert cirq.is_parameterized(unparameterized_gate ** (sympy.Symbol('a') + 1))
+
+    resolver = {'a': 0.5j}
+    with pytest.raises(ValueError, match='complex value'):
+        resolve_fn(
+            cirq.PhasedXPowGate(
+                exponent=sympy.Symbol('a'), phase_exponent=0.2, global_shift=global_shift
+            ),
+            resolver,
+        )
+    with pytest.raises(ValueError, match='complex value'):
+        resolve_fn(
+            cirq.PhasedXPowGate(
+                exponent=0.1, phase_exponent=sympy.Symbol('a'), global_shift=global_shift
+            ),
+            resolver,
+        )
 
 
 def test_trace_bound():

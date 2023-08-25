@@ -14,7 +14,8 @@
 
 from typing import Sequence, Optional, Union, Collection
 
-from cirq import protocols, devices, ops
+from cirq import devices, ops, protocols
+import numpy as np
 
 
 def assert_controlled_and_controlled_by_identical(
@@ -34,15 +35,24 @@ def assert_controlled_and_controlled_by_identical(
         _assert_gate_consistent(gate, num_control, control_value)
 
 
+def assert_controlled_unitary_consistent(gate: ops.Gate):
+    """Checks that unitary of ControlledGate(gate) is consistent with gate.controlled()."""
+
+    u_orig = protocols.unitary(ops.ControlledGate(gate))
+    u_controlled = protocols.unitary(gate.controlled())
+    np.testing.assert_allclose(
+        u_orig,
+        u_controlled,
+        atol=1e-6,
+        err_msg=f"Unitary for gate.controlled() is inconsistent for {gate=}",
+    )
+
+
 def _assert_gate_consistent(
     gate: ops.Gate,
     num_controls: int,
     control_values: Optional[Sequence[Union[int, Collection[int]]]],
 ) -> None:
-    if isinstance(gate, ops.DensePauliString) and protocols.is_parameterized(gate):
-        # Parameterized `DensePauliString`s cannot be applied to qubits to produce valid operations.
-        # TODO: This behavior should be fixed (https://github.com/quantumlib/Cirq/issues/4508)
-        return None
     gate_controlled = gate.controlled(num_controls, control_values)
     qubits = devices.LineQid.for_gate(gate_controlled)
     control_qubits = qubits[:num_controls]

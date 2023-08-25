@@ -14,11 +14,11 @@
 
 import pytest
 
+import numpy as np
 import pandas as pd
+import sympy
 
 import cirq
-
-import numpy as np
 
 
 def test_init_result():
@@ -253,6 +253,16 @@ def test_bad_args():
             repetitions=10,
             max_delay=cirq.Duration(micros=1),
             min_delay=cirq.Duration(micros=-1),
+        )
+
+    with pytest.raises(ValueError, match='sympy expressions'):
+        _ = cirq.experiments.t1_decay(
+            sampler=cirq.Simulator(),
+            qubit=cirq.GridQubit(0, 0),
+            num_points=4,
+            repetitions=10,
+            max_delay=cirq.Duration(micros=sympy.Symbol('t')),
+            min_delay=cirq.Duration(micros=sympy.Symbol('t')),
         )
 
 

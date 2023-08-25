@@ -42,7 +42,7 @@ T = TypeVar(
 
 def _exp(theta: Union[complex, sympy.Basic]):
     """Utility method to return exp(theta) using numpy or sympy, depending on the type of theta."""
-    return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(theta)
+    return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(cast(complex, theta))
 
 
 def _gates_to_str(gates: Iterable[Any], gettr: Callable[[Any], str] = _gate_str) -> str:
@@ -82,7 +82,7 @@ class FSimGateFamily(cirq.GateFamily):
     >>> assert gf.convert(cirq.FSimGate(-np.pi/2, sympy.Symbol("t")), cirq.ISwapPowGate) is None
 
     2. To convert to/from any of the parameterized `POSSIBLE_FSIM_GATES` types (assuming correct
-        value of the parameter would be filled in during paramter resolution):
+        value of the parameter would be filled in during parameter resolution):
     >>> gf = cirq_google.FSimGateFamily(allow_symbols = True)
     >>> theta, phi = sympy.Symbol("theta"), sympy.Symbol("phi")
     >>> assert gf.convert(cirq.FSimGate(-np.pi/4, phi), cirq.ISwapPowGate) == cirq.SQRT_ISWAP
@@ -93,17 +93,17 @@ class FSimGateFamily(cirq.GateFamily):
     gates in `gates_to_accept`, possibly accepting parameterized instances (assuming correct
     parameter value would be filled in during parameter resolution) based on `allow_symbols`:
     >>> gf = cirq_google.FSimGateFamily(
-    >>>     gates_to_accept=[cirq.SQRT_ISWAP, cirq.CZPowGate, cirq_google.SYC],
-    >>>     gate_types_to_check=[cirq.FSimGate],
-    >>>     allow_symbols=True,
-    >>> )
+    ...     gates_to_accept=[cirq.SQRT_ISWAP, cirq.CZPowGate, cirq_google.SYC],
+    ...     gate_types_to_check=[cirq.FSimGate],
+    ...     allow_symbols=True,
+    ... )
     >>> theta, phi = sympy.Symbol("theta"), sympy.Symbol("phi")
     >>> assert cirq.FSimGate(theta, phi) in gf # Assumes correct theta/phi will be substituted.
     >>> assert cirq_google.SYC in gf # SYC
     >>> assert cirq.FSimGate(0, np.pi / 2) in gf # CZPowGate
     >>> assert cirq.FSimGate(-np.pi / 4, phi) in gf # SQRT_ISWAP
     >>> assert cirq.FSimGate(-np.pi / 8, phi) not in gf # No value of `phi` would make it equal to
-    >>>                                                 # any gate/gate type in `gates_to_accept`.
+    ...                                                 # any gate/gate type in `gates_to_accept`.
     >>> assert cirq.CZ ** 0.25 not in gf # CZPowGate not in gate_types_to_check
     >>> assert cirq.SQRT_ISWAP not in gf # ISwapPowGate not in gate_types_to_check
     """
@@ -245,7 +245,7 @@ class FSimGateFamily(cirq.GateFamily):
     def _get_value_equality_values(self, g: POSSIBLE_FSIM_GATES) -> Any:
         # TODO: Remove condition once https://github.com/quantumlib/Cirq/issues/4585 is fixed.
         if type(g) == cirq.PhasedISwapPowGate:
-            return (g.phase_exponent, *g._iswap._value_equality_values_())  # type: ignore
+            return (g.phase_exponent, *g._iswap._value_equality_values_())
         return g._value_equality_values_()
 
     def _get_value_equality_values_cls(self, g: POSSIBLE_FSIM_GATES) -> Any:
@@ -311,7 +311,7 @@ class FSimGateFamily(cirq.GateFamily):
 
         The method can also be used for converting parameterized gate instances, by setting
         `allow_symbols=True` in the gate family constructor. Note that, conversion of
-        paramaterized gate instances tries to be lenient and assumes that the correct
+        parameterized gate instances tries to be lenient and assumes that the correct
         parameters would eventually be filled during parameter resolution. This can also result
         in dropping extra parameters during type conversion, assuming the dropped parameters
         would be supplied the correct values. For example:
@@ -326,7 +326,7 @@ class FSimGateFamily(cirq.GateFamily):
             target_gate_type: One of `POSSIBLE_FSIM_GATES` types to which the given gate should be
                               converted to.
         Returns:
-            The converted gate instances if the converion is possible, else None.
+            The converted gate instances if the conversion is possible, else None.
         Raises:
             ValueError: If `target_gate_type` is not one of `POSSIBLE_FSIM_GATES`.
         """
@@ -360,7 +360,7 @@ class FSimGateFamily(cirq.GateFamily):
     def _convert_to_phased_fsim(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.PhasedFSimGate]:
         if isinstance(g, cirq.PhasedFSimGate):
             return g
-        chi = 0
+        chi = 0.0
         if isinstance(g, cirq.PhasedISwapPowGate):
             chi = g.phase_exponent * 2 * np.pi
             g = g._iswap
@@ -376,7 +376,7 @@ class FSimGateFamily(cirq.GateFamily):
         return (
             None
             if (fsim is None or not self._approx_eq_or_symbol(fsim.phi, 0))
-            else cirq.ISWAP ** (-2 * fsim.theta / np.pi)
+            else cirq.ISwapPowGate(exponent=-2 * fsim.theta / np.pi)
         )
 
     def _convert_to_phased_iswap(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.PhasedISwapPowGate]:
@@ -400,7 +400,7 @@ class FSimGateFamily(cirq.GateFamily):
         return (
             None
             if (cg is None or not self._approx_eq_or_symbol(cg.theta, 0))
-            else cirq.CZ ** (-cg.phi / np.pi)
+            else cirq.CZPowGate(exponent=-cg.phi / np.pi)
         )
 
     def _convert_to_identity(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.IdentityGate]:

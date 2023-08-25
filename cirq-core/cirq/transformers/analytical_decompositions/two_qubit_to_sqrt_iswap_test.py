@@ -19,16 +19,6 @@ import pytest
 import cirq
 import sympy
 
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap instead",
-        deadline="v0.16",
-    ):
-        _ = cirq.optimizers.two_qubit_to_sqrt_iswap.two_qubit_matrix_to_sqrt_iswap_operations
-
 
 def random_unitary(seed):
     return cirq.testing.random_unitary(4, random_state=seed)
@@ -273,7 +263,7 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate):
         )  # type: ignore
     )
     # Check if unitaries are the same
-    for val in np.linspace(0, 2 * np.pi, 12):
+    for val in np.linspace(0, 2 * np.pi, 6):
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.unitary(cirq.resolve_parameters(op, {'t': val})),
             cirq.unitary(cirq.resolve_parameters(c_new_sqrt_iswap, {'t': val})),

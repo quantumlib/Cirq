@@ -14,21 +14,10 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 import cirq.testing
-
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated("Use cirq.circuits.moment instead", deadline="v0.16"):
-        _ = cirq.ops.moment.Moment
-
-
-def test_deprecated_attribute_in_cirq_ops():
-    with cirq.testing.assert_deprecated("Use cirq.circuits.Moment instead", deadline="v0.16"):
-        _ = cirq.ops.Moment
 
 
 def test_validation():
@@ -181,6 +170,13 @@ def test_operation_at():
     assert cirq.Moment([cirq.CZ(a, b), cirq.X(c)]).operation_at(a) == cirq.CZ(a, b)
 
 
+def test_from_ops():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert cirq.Moment.from_ops(cirq.X(a), cirq.Y(b)) == cirq.Moment(cirq.X(a), cirq.Y(b))
+
+
 def test_with_operation():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -286,6 +282,38 @@ def test_without_operations_touching():
     )
 
 
+def test_is_parameterized():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
+    assert cirq.is_parameterized(moment)
+    assert not cirq.is_parameterized(cirq.Moment(cirq.X(a), cirq.Y(b)))
+
+
+def test_resolve_parameters():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
+    resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
+    assert resolved_moment == cirq.Moment(cirq.X(a) ** 0.1, cirq.Y(b) ** 0.2)
+
+
+def test_resolve_parameters_no_change():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment(cirq.X(a), cirq.Y(b))
+    resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
+    assert resolved_moment is moment
+
+    moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
+    resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({}))
+    assert resolved_moment is moment
+
+
+def test_parameter_names():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
+    assert cirq.parameter_names(moment) == {'v', 'w'}
+    assert cirq.parameter_names(cirq.Moment(cirq.X(a), cirq.Y(b))) == set()
+
+
 def test_with_measurement_keys():
     a, b = cirq.LineQubit.range(2)
     m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
@@ -371,6 +399,51 @@ def test_measurement_keys():
     assert cirq.is_measurement(m2)
 
 
+def test_measurement_key_objs_caching():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    m = cirq.Moment(cirq.measure(q0, key='foo'))
+    assert m._measurement_key_objs is None
+    key_objs = cirq.measurement_key_objs(m)
+    assert m._measurement_key_objs == key_objs
+
+    # Make sure it gets updated when adding an operation.
+    m = m.with_operation(cirq.measure(q1, key='bar'))
+    assert m._measurement_key_objs == {
+        cirq.MeasurementKey(name='bar'),
+        cirq.MeasurementKey(name='foo'),
+    }
+    # Or multiple operations.
+    m = m.with_operations(cirq.measure(q2, key='doh'), cirq.measure(q3, key='baz'))
+    assert m._measurement_key_objs == {
+        cirq.MeasurementKey(name='bar'),
+        cirq.MeasurementKey(name='foo'),
+        cirq.MeasurementKey(name='doh'),
+        cirq.MeasurementKey(name='baz'),
+    }
+
+
+def test_control_keys_caching():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    m = cirq.Moment(cirq.X(q0).with_classical_controls('foo'))
+    assert m._control_keys is None
+    keys = cirq.control_keys(m)
+    assert m._control_keys == keys
+
+    # Make sure it gets updated when adding an operation.
+    m = m.with_operation(cirq.X(q1).with_classical_controls('bar'))
+    assert m._control_keys == {cirq.MeasurementKey(name='bar'), cirq.MeasurementKey(name='foo')}
+    # Or multiple operations.
+    m = m.with_operations(
+        cirq.X(q2).with_classical_controls('doh'), cirq.X(q3).with_classical_controls('baz')
+    )
+    assert m._control_keys == {
+        cirq.MeasurementKey(name='bar'),
+        cirq.MeasurementKey(name='foo'),
+        cirq.MeasurementKey(name='doh'),
+        cirq.MeasurementKey(name='baz'),
+    }
+
+
 def test_bool():
     assert not cirq.Moment()
     a = cirq.NamedQubit('a')
@@ -434,6 +507,7 @@ def test_add():
 
     assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
     assert m1 + [] == m1
+    assert m1 + [] is m1
 
 
 def test_sub():
@@ -590,6 +664,14 @@ aa │
     )
 
 
+def test_text_diagram_does_not_depend_on_insertion_order():
+    q = cirq.LineQubit.range(4)
+    ops = [cirq.CNOT(q[0], q[3]), cirq.CNOT(q[1], q[2])]
+    m1, m2 = cirq.Moment(ops), cirq.Moment(ops[::-1])
+    assert m1 == m2
+    assert str(m1) == str(m2)
+
+
 def test_commutes():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -662,7 +744,6 @@ def test_kraus():
     m = cirq.Moment(cirq.CNOT(a, b))
     assert cirq.has_kraus(m)
     k = cirq.kraus(m)
-    print(k[0])
     assert len(k) == 1
     assert np.allclose(k[0], np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]))
 

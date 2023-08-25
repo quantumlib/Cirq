@@ -198,25 +198,66 @@ a: ═══@═══╩══════════════════�
 
 def test_qasm():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(sympy.Eq(sympy.Symbol('a'), 0)),
+    )
     qasm = cirq.qasm(circuit)
     assert (
         qasm
-        == """// Generated from Cirq v0.15.0.dev
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
 
 
-// Qubits: [0, 1]
+// Qubits: [q(0), q(1)]
 qreg q[2];
 creg m_a[1];
 
 
 measure q[0] -> m_a[0];
-if (m_a!=0) x q[1];
+if (m_a==0) x q[1];
 """
     )
+
+
+def test_qasm_no_conditions():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'), cirq.ClassicallyControlledOperation(cirq.X(q1), [])
+    )
+    qasm = cirq.qasm(circuit)
+    assert (
+        qasm
+        == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0), q(1)]
+qreg q[2];
+creg m_a[1];
+
+
+measure q[0] -> m_a[0];
+x q[1];
+"""
+    )
+
+
+def test_qasm_multiple_conditions():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.measure(q0, key='b'),
+        cirq.X(q1).with_classical_controls(
+            sympy.Eq(sympy.Symbol('a'), 0), sympy.Eq(sympy.Symbol('b'), 0)
+        ),
+    )
+    with pytest.raises(ValueError, match='QASM does not support multiple conditions'):
+        _ = cirq.qasm(circuit)
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
@@ -328,11 +369,9 @@ def test_subcircuit_key_set(sim):
 
 def test_key_unset_in_subcircuit_outer_scope():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.measure(q0, key='a'))
-    # TODO (daxfohl): This will not need an InsertStrategy after scope PR.
-    circuit.append(
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1).with_classical_controls('a'))),
-        strategy=cirq.InsertStrategy.NEW,
     )
     circuit.append(cirq.measure(q1, key='b'))
     result = cirq.Simulator().run(circuit)
@@ -342,11 +381,10 @@ def test_key_unset_in_subcircuit_outer_scope():
 
 def test_key_set_in_subcircuit_outer_scope():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, key='a'))
-    # TODO (daxfohl): This will not need an InsertStrategy after scope PR.
-    circuit.append(
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1).with_classical_controls('a'))),
-        strategy=cirq.InsertStrategy.NEW,
     )
     circuit.append(cirq.measure(q1, key='b'))
     result = cirq.Simulator().run(circuit)
@@ -388,7 +426,7 @@ def test_condition_removal():
     op = op.without_classical_controls()
     assert not cirq.control_keys(op)
     assert not op.classical_controls
-    assert set(map(str, op.tags)) == {'t1'}
+    assert not op.tags
 
 
 def test_qubit_mapping():
@@ -419,7 +457,7 @@ def test_decompose():
 def test_str():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a')
-    assert str(op) == 'X(0).with_classical_controls(a)'
+    assert str(op) == 'X(q(0)).with_classical_controls(a)'
 
 
 def test_scope_local():
@@ -978,4 +1016,20 @@ def test_commutes():
     assert not cirq.commutes(cirq.X(q1).with_classical_controls('a'), cirq.measure(q0, key='a'))
     assert not cirq.commutes(
         cirq.X(q0).with_classical_controls('a'), cirq.H(q0).with_classical_controls('a')
+    )
+
+
+def test_moment_diagram():
+    a, _, c, d = cirq.GridQubit.rect(2, 2)
+    m = cirq.Moment(cirq.CZ(a, d), cirq.X(c).with_classical_controls('m'))
+    assert (
+        str(m).strip()
+        == """
+  ╷ 0                 1
+╶─┼─────────────────────
+0 │ @─────────────────┐
+  │                   │
+1 │ X(conditions=[m]) @
+  │
+    """.strip()
     )

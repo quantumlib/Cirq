@@ -35,7 +35,7 @@ def test_input_cell():
     )
 
     # Overlaps with effect.
-    with pytest.raises(ValueError, match='Overlapping registers'):
+    with pytest.raises(ValueError, match='Duplicate qids'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[["+=A3","inputA3"]]}'
         )
@@ -53,7 +53,7 @@ def test_reversed_input_cell():
     )
 
     # Overlaps with effect.
-    with pytest.raises(ValueError, match='Overlapping registers'):
+    with pytest.raises(ValueError, match='Duplicate qids'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[["+=A3","revinputA3"]]}'
         )

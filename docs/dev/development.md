@@ -28,12 +28,12 @@ Note that if you are using PyCharm, you might have to Restart & Invalidate Cache
 
 ```bash
     docker build -t cirq --target cirq_stable .
-    docker run -it cirq python -c "import cirq_google; print(cirq_google.Foxtail)"
+    docker run -it cirq python -c "import cirq_google; print(cirq_google.Sycamore23)"
 ```
 
 ```bash
     docker build -t cirq_pre --target cirq_pre_release .
-    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Foxtail)"
+    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Sycamore23)"
 ```
 
 If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
@@ -85,13 +85,16 @@ At this point your local git master should be synced with the master from the ma
 
 ## Setting up an environment
 
+These instructions are primarily for linux-based environments that use the apt
+package manager. 
+
 0. First clone the repository, if you have not already done so.
 See the previous section for instructions.
 
 
 1. Install system dependencies.
 
-    Make sure you have python 3.5 or greater.
+    Make sure you have python 3.9 or greater.
     You can install most other dependencies via `apt-get`:
 
     ```bash
@@ -122,13 +125,13 @@ See the previous section for instructions.
 3. Check that the tests pass.
 
     ```bash
-    pytest .
+    ./check/pytest .
     ```
 
 4. (**OPTIONAL**) include your development copy of cirq and its subpackages in your python path.
 
     ```bash
-    ./dev_tools/pypath
+    source dev_tools/pypath
     ```
     
     or add it to the python path, but only in the virtualenv by first listing the modules
@@ -156,7 +159,7 @@ get picked up!
 ## Protocol buffers
 
 [Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
-Cirq's protobufs live at [cirq/api/google](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google) and may need to be changed or extended from time to time.
+Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/master/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
 If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/master/dev_tools).
 This script uses grpcio-tools and protobuf version 3.8.0 to generate the python proto api.
@@ -284,7 +287,7 @@ def some_method(a: int, b: str) -> float:
     Notice that this docstring is an r-string, since the latex has backslashes.
     We can also include example code:
 
-        print(cirq_google.Foxtail)
+        print(cirq_google.Sycamore) 
 
     You can also do inline latex like $y = x^2$ and inline code like
     `cirq.unitary(cirq.X)`.
@@ -340,7 +343,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
     ./dev_tools/packaging/publish-dev-package.sh EXPECTED_VERSION --test
     ```
 
-    You must specify the EXPECTED_VERSION argument to match the version in `cirq/_version.py`, and it must contain the string `dev`.
+    You must specify the EXPECTED_VERSION argument to match the version in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_version.py), and it must contain the string `dev`.
     This is to prevent accidentally uploading the wrong version.
 
     The script will append the current date and time to the expected version number before uploading to test pypi.
@@ -373,7 +376,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     If everything goes smoothly, the script will finish by printing `VERIFIED`.
 
-3. Set the version number in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/master/cirq/_version.py).
+3. Set the version number in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_version.py).
 
     Development versions end with `.dev` or `.dev#`.
     For example, `0.0.4.dev500` is a development version of the release version `0.0.4`.
@@ -382,7 +385,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/master/dev_tools/packaging/produce-package.sh) to produce pypi artifacts.
 
     ```bash
-    dev_tools/packaging/produce-package.sh dist
+    ./dev_tools/packaging/produce-package.sh dist
     ```
 
     The output files will be placed in the directory `dist/`.
@@ -412,6 +415,6 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     ```bash
     python -m pip install cirq
-    python -c "import cirq; print(cirq_google.Foxtail)"
+    python -c "import cirq; print(cirq_google.Sycamore)"
     python -c "import cirq; print(cirq.__version__)"
     ```

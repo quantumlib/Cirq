@@ -15,13 +15,10 @@
 """Target gateset used for compiling circuits to Sycamore + 1-q rotations + measurement gates."""
 
 import itertools
-from typing import cast, List, Optional, Sequence
+from typing import cast, Any, Dict, List, Optional, Sequence
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
-from cirq.transformers.target_gatesets.compilation_target_gateset import (
-    _create_transformer_with_kwargs,
-)
 from cirq_google import ops
 from cirq_google.transformers.analytical_decompositions import two_qubit_to_sycamore
 
@@ -137,10 +134,10 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     @property
     def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         return [
-            _create_transformer_with_kwargs(
+            cirq.create_transformer_with_kwargs(
                 cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits
             ),
-            _create_transformer_with_kwargs(
+            cirq.create_transformer_with_kwargs(
                 merge_swap_rzz_and_2q_unitaries,
                 intermediate_result_tag=self._intermediate_result_tag,
             ),
@@ -165,6 +162,12 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         return (
             f'cirq_google.SycamoreTargetGateset('
             f'atol={self.atol}, '
-            f'tabulation={self.tabulation}, '
-            f')'
+            f'tabulation={self.tabulation})'
         )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {'atol': self.atol, 'tabulation': self.tabulation}
+
+    @classmethod
+    def _from_json_dict_(cls, atol, tabulation, **kwargs):
+        return cls(atol=atol, tabulation=tabulation)

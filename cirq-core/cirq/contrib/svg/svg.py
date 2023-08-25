@@ -16,13 +16,10 @@ def fixup_text(text: str):
         # https://github.com/quantumlib/Cirq/issues/4499
         # TODO: Visualize Custom MatrixGate
         return '?'
-    if '[<virtual>]' in text:
-        # https://github.com/quantumlib/Cirq/issues/2905
-        # TODO: escape angle brackets when you actually want to display tags
-        return text.replace('[<virtual>]', '')  # coverage: ignore
-    if '[cirq.VirtualTag()]' in text:
-        # https://github.com/quantumlib/Cirq/issues/2905
-        return text.replace('[cirq.VirtualTag()]', '')
+    # https://github.com/quantumlib/Cirq/issues/2905
+    text = text.replace('[<virtual>]', '')
+    text = text.replace('[cirq.VirtualTag()]', '')
+    text = text.replace('<', '&lt;').replace('>', '&gt;')
     return text
 
 
@@ -143,12 +140,11 @@ def _fit_vertical(
     return row_starts, row_heights, yi_map
 
 
-def _debug_spacing(col_starts, row_starts):
+def _debug_spacing(col_starts, row_starts):  # pragma: no cover
     """Return a string suitable for inserting inside an <svg> tag that
     draws green lines where columns and rows start. This is very useful
     if you're developing this code and are debugging spacing issues.
     """
-    # coverage: ignore
     t = ''
     for i, cs in enumerate(col_starts):
         t += (
@@ -201,7 +197,6 @@ def tdd_to_svg(
             # qubits start at far left and their wires shall be blue
             stroke = QBLUE
         else:
-            # coverage: ignore
             stroke = 'black'
         t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1" />'
 
@@ -216,7 +211,6 @@ def tdd_to_svg(
         t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" stroke="black" stroke-width="3" />'
 
     for (xi, yi), v in tdd.entries.items():
-        xi = cast(int, xi)
         yi = yi_map[yi]
 
         x = col_starts[xi] + col_widths[xi] / 2
@@ -265,11 +259,9 @@ class SVGCircuit:
     """
 
     def __init__(self, circuit: 'cirq.Circuit'):
-        # coverage: ignore
         self.circuit = circuit
 
     def _repr_svg_(self) -> str:
-        # coverage: ignore
         return circuit_to_svg(self.circuit)
 
 

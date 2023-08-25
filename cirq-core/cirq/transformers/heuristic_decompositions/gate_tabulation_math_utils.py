@@ -3,6 +3,7 @@ import itertools
 from typing import Union, Sequence, Optional
 
 import numpy as np
+from cirq.value import random_state
 
 _RealArraylike = Union[np.ndarray, float]
 
@@ -58,17 +59,17 @@ def random_qubit_unitary(
         rng: Random number generator to be used in sampling. Default is
             numpy.random.
     """
-    rng = np.random if rng is None else rng
+    real_rng = random_state.parse_random_state(rng)
 
-    theta = np.arcsin(np.sqrt(rng.rand(*shape)))
-    phi_d = rng.rand(*shape) * np.pi * 2
-    phi_o = rng.rand(*shape) * np.pi * 2
+    theta = np.arcsin(np.sqrt(real_rng.rand(*shape)))
+    phi_d = real_rng.rand(*shape) * np.pi * 2
+    phi_o = real_rng.rand(*shape) * np.pi * 2
 
     out = _single_qubit_unitary(theta, phi_d, phi_o)
 
     if randomize_global_phase:
         out = np.moveaxis(out, (-2, -1), (0, 1))
-        out *= np.exp(1j * np.pi * 2 * rng.rand(*shape))
+        out *= np.exp(1j * np.pi * 2 * real_rng.rand(*shape))
         out = np.moveaxis(out, (0, 1), (-2, -1))
     return out
 
@@ -163,8 +164,8 @@ def kak_vector_infidelity(
 
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
-        out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-        out -= np.product(np.sin(k_diff), axis=-1) ** 2
+        out = 1 - np.prod(np.cos(k_diff), axis=-1) ** 2
+        out -= np.prod(np.sin(k_diff), axis=-1) ** 2
         return out
 
     # We must take the minimum infidelity over all possible locally equivalent
@@ -173,15 +174,15 @@ def kak_vector_infidelity(
 
     # Ensure we consider equivalent vectors for only the smallest input.
     if k_vec_a.size < k_vec_b.size:
-        k_vec_a, k_vec_b = k_vec_b, k_vec_a  # coverage: ignore
+        k_vec_a, k_vec_b = k_vec_b, k_vec_a  # pragma: no cover
 
     k_vec_a = k_vec_a[..., np.newaxis, :]  # (...,1,3)
     k_vec_b = _kak_equivalent_vectors(k_vec_b)  # (...,192,3)
 
     k_diff = k_vec_a - k_vec_b
 
-    out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,192)
+    out = 1 - np.prod(np.cos(k_diff), axis=-1) ** 2
+    out -= np.prod(np.sin(k_diff), axis=-1) ** 2  # (...,192)
 
     return out.min(axis=-1)
 

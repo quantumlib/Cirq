@@ -35,7 +35,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import deprecated, proper_repr, _warn_or_error
+from cirq._compat import proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -84,15 +84,6 @@ def _key_to_str(key: TMeasurementKey) -> str:
 
 class Result(abc.ABC):
     """The results of multiple executions of a circuit with fixed parameters."""
-
-    def __new__(cls, *args, **kwargs):
-        if cls is Result:
-            _warn_or_error(
-                "Result constructor is deprecated and will be removed in cirq v0.15. "
-                "Use the ResultDict constructor instead, or another concrete subclass."
-            )
-            return ResultDict(*args, **kwargs)
-        return super().__new__(cls)
 
     @property
     @abc.abstractmethod
@@ -149,32 +140,9 @@ class Result(abc.ABC):
             basis = 2 ** np.arange(n, dtype=dtype)[::-1]
             converted_dict[key] = np.sum(basis * bitstrings, axis=1)
 
-        # Use objects to accomodate more than 64 qubits if needed.
+        # Use objects to accommodate more than 64 qubits if needed.
         dtype = object if any(bs.shape[1] > 63 for _, bs in measurements.items()) else np.int64
         return pd.DataFrame(converted_dict, dtype=dtype)
-
-    @staticmethod
-    @deprecated(
-        deadline="v0.15",
-        fix="The static method from_single_parameter_set is deprecated. "
-        "Use the ResultDict constructor instead.",
-    )
-    def from_single_parameter_set(
-        *,  # Forces keyword args.
-        params: resolver.ParamResolver,
-        measurements: Mapping[str, np.ndarray],
-    ) -> 'cirq.Result':
-        """Packages runs of a single parameterized circuit into a Result.
-
-        Args:
-            params: A ParamResolver of settings used for this result.
-            measurements: A dictionary from measurement gate key to measurement
-                results. The value for each key is a 2-D array of booleans,
-                with the first index running over the repetitions, and the
-                second index running over the qubits for the corresponding
-                measurements.
-        """
-        return ResultDict(params=params, measurements=measurements)
 
     @property
     def repetitions(self) -> int:
@@ -183,8 +151,7 @@ class Result(abc.ABC):
         # Get the length quickly from one of the keyed results.
         return len(next(iter(self.records.values())))
 
-    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def multi_measurement_histogram(  # type: ignore
+    def multi_measurement_histogram(
         self,
         *,  # Forces keyword args.
         keys: Iterable[TMeasurementKey],
@@ -243,8 +210,7 @@ class Result(abc.ABC):
             c[fold_func(sample)] += 1
         return c
 
-    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def histogram(  # type: ignore
+    def histogram(
         self,
         *,  # Forces keyword args.
         key: TMeasurementKey,
@@ -406,11 +372,12 @@ class ResultDict(Result):
             self._data = self.dataframe_from_measurements(self.measurements)
         return self._data
 
+    def _record_dict_repr(self):
+        """Helper function for use in __repr__ to display the records field."""
+        return '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.records.items()) + '}'
+
     def __repr__(self) -> str:
-        record_dict_repr = (
-            '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.records.items()) + '}'
-        )
-        return f'cirq.ResultDict(params={self.params!r}, records={record_dict_repr})'
+        return f'cirq.ResultDict(params={self.params!r}, records={self._record_dict_repr()})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -436,6 +403,11 @@ class ResultDict(Result):
         return {'params': self.params, 'records': packed_records}
 
     @classmethod
+    def _from_packed_records(cls, records, **kwargs):
+        """Helper function for `_from_json_dict_` to construct from packed records."""
+        return cls(records={key: _unpack_digits(**val) for key, val in records.items()}, **kwargs)
+
+    @classmethod
     def _from_json_dict_(cls, params, **kwargs):
         if 'measurements' in kwargs:
             measurements = kwargs['measurements']
@@ -443,10 +415,7 @@ class ResultDict(Result):
                 params=params,
                 measurements={key: _unpack_digits(**val) for key, val in measurements.items()},
             )
-        records = kwargs['records']
-        return cls(
-            params=params, records={key: _unpack_digits(**val) for key, val in records.items()}
-        )
+        return cls._from_packed_records(params=params, records=kwargs['records'])
 
 
 def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:

@@ -14,29 +14,122 @@
 
 """Workarounds for compatibility issues between versions and libraries."""
 import contextlib
+import contextvars
 import dataclasses
 import functools
 import importlib
+import inspect
 import os
 import re
 import sys
 import traceback
 import warnings
 from types import ModuleType
-from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
+from typing import Any, Callable, Dict, Iterator, Optional, overload, Set, Tuple, Type, TypeVar
 
 import numpy as np
 import pandas as pd
 import sympy
 import sympy.printing.repr
 
+from cirq._doc import document
+
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+__cirq_debug__ = contextvars.ContextVar('__cirq_debug__', default=__debug__)
+document(
+    __cirq_debug__,
+    "A cirq specific flag which can be used to conditionally turn off all validations across Cirq "
+    "to boost performance in production mode. Defaults to python's built-in constant __debug__. "
+    "The flag is implemented as a `ContextVar` and is thread safe.",
+)
+
+
+@contextlib.contextmanager
+def with_debug(value: bool) -> Iterator[None]:
+    """Sets the value of global constant `cirq.__cirq_debug__` within the context.
+
+    If `__cirq_debug__` is set to False, all validations in Cirq are disabled to optimize
+    performance. Users should use the `cirq.with_debug` context manager instead of manually
+    mutating the value of `__cirq_debug__` flag. On exit, the context manager resets the
+    value of `__cirq_debug__` flag to what it was before entering the context manager.
+    """
+    token = __cirq_debug__.set(value)
+    try:
+        yield
+    finally:
+        __cirq_debug__.reset(token)
 
 
 try:
     from functools import cached_property  # pylint: disable=unused-import
 except ImportError:
     from backports.cached_property import cached_property  # type: ignore[no-redef]
+
+
+TFunc = TypeVar('TFunc', bound=Callable)
+
+
+@overload
+def cached_method(__func: TFunc) -> TFunc:
+    ...
+
+
+@overload
+def cached_method(*, maxsize: int = 128) -> Callable[[TFunc], TFunc]:
+    ...
+
+
+def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
+    """Decorator that adds a per-instance LRU cache for a method.
+
+    Can be applied with or without parameters to customize the underlying cache:
+
+        @cached_method
+        def foo(self, name: str) -> int:
+            ...
+
+        @cached_method(maxsize=1000)
+        def bar(self, name: str) -> int:
+            ...
+    """
+
+    def decorator(func):
+        cache_name = _method_cache_name(func)
+        signature = inspect.signature(func)
+
+        if len(signature.parameters) == 1:
+            # Optimization in the case where the method takes no arguments other than `self`.
+
+            @functools.wraps(func)
+            def wrapped_no_args(self):
+                if not hasattr(self, cache_name):
+                    object.__setattr__(self, cache_name, func(self))
+                return getattr(self, cache_name)
+
+            return wrapped_no_args
+
+        @functools.wraps(func)
+        def wrapped(self, *args, **kwargs):
+            cached = getattr(self, cache_name, None)
+            if cached is None:
+
+                @functools.lru_cache(maxsize=maxsize)
+                def cached_func(*args, **kwargs):
+                    return func(self, *args, **kwargs)
+
+                object.__setattr__(self, cache_name, cached_func)
+                cached = cached_func
+            return cached(*args, **kwargs)
+
+        return wrapped
+
+    return decorator if method is None else decorator(method)
+
+
+def _method_cache_name(func: Callable) -> str:
+    # Use single-underscore prefix to avoid name mangling (for tests).
+    return f'_method_cache_{func.__name__}'
 
 
 def proper_repr(value: Any) -> str:
@@ -72,9 +165,7 @@ def proper_repr(value: Any) -> str:
         return Printer().doprint(value)
 
     if isinstance(value, np.ndarray):
-        if np.issubdtype(value.dtype, np.datetime64):
-            return f'np.array({value.tolist()!r}, dtype=np.{value.dtype!r})'
-        return f'np.array({value.tolist()!r}, dtype=np.{value.dtype})'
+        return f'np.array({value.tolist()!r}, dtype=np.{value.dtype!r})'
 
     if isinstance(value, pd.MultiIndex):
         return f'pd.MultiIndex.from_tuples({repr(list(value))}, names={repr(list(value.names))})'
@@ -309,23 +400,36 @@ def deprecated_parameter(
     _validate_deadline(deadline)
 
     def decorator(func: Callable) -> Callable:
+        def deprecation_warning():
+            qualname = func.__qualname__ if func_name is None else func_name
+            _warn_or_error(
+                f'The {parameter_desc} parameter of {qualname} was '
+                f'used but is deprecated.\n'
+                f'It will be removed in cirq {deadline}.\n'
+                f'{fix}\n'
+            )
+
         @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
             if match(args, kwargs):
                 if rewrite is not None:
                     args, kwargs = rewrite(args, kwargs)
-
-                qualname = func.__qualname__ if func_name is None else func_name
-                _warn_or_error(
-                    f'The {parameter_desc} parameter of {qualname} was '
-                    f'used but is deprecated.\n'
-                    f'It will be removed in cirq {deadline}.\n'
-                    f'{fix}\n'
-                )
-
+                deprecation_warning()
             return func(*args, **kwargs)
 
-        return decorated_func
+        @functools.wraps(func)
+        async def async_decorated_func(*args, **kwargs) -> Any:
+            if match(args, kwargs):
+                if rewrite is not None:
+                    args, kwargs = rewrite(args, kwargs)
+                deprecation_warning()
+
+            return await func(*args, **kwargs)
+
+        if inspect.iscoroutinefunction(func):
+            return async_decorated_func
+        else:
+            return decorated_func
 
     return decorator
 
@@ -345,13 +449,12 @@ def deprecate_attributes(module_name: str, deprecated_attributes: Dict[str, Tupl
         will cause a warning for these deprecated attributes.
     """
 
-    for (deadline, _) in deprecated_attributes.values():
+    for deadline, _ in deprecated_attributes.values():
         _validate_deadline(deadline)
 
     module = sys.modules[module_name]
 
     class Wrapped(ModuleType):
-
         __dict__ = module.__dict__
 
         # Workaround for: https://github.com/python/mypy/issues/8083

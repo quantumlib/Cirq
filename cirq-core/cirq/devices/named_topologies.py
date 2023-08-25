@@ -93,7 +93,7 @@ def draw_gridlike(
         to NetworkX plotting functionality.
     """
     if ax is None:
-        ax = plt.gca()  # coverage: ignore
+        ax = plt.gca()  # pragma: no cover
 
     if tilted:
         pos = {node: (y, -x) for node, (x, y) in _node_and_coordinates(graph.nodes)}
@@ -141,6 +141,14 @@ class LineTopology(NamedTopology):
         """
         g2 = nx.relabel_nodes(self.graph, {n: (n, 1) for n in self.graph.nodes})
         return draw_gridlike(g2, ax=ax, tilted=tilted, **kwargs)
+
+    def nodes_to_linequbits(self, offset: int = 0) -> Dict[int, 'cirq.LineQubit']:
+        """Return a mapping from graph nodes to `cirq.LineQubit`
+
+        Args:
+            offset: Offset integer positions of the resultant LineQubits by this amount.
+        """
+        return dict(enumerate(LineQubit.range(offset, offset + self.n_nodes)))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self)
@@ -240,8 +248,8 @@ class TiltedSquareLattice(NamedTopology):
         """Return a mapping from graph nodes to `cirq.GridQubit`
 
         Args:
-            offset: Offest row and column indices of the resultant GridQubits by this amount.
-                The offest positions the top-left node in the `draw(tilted=False)` frame.
+            offset: Offset row and column indices of the resultant GridQubits by this amount.
+                The offset positions the top-left node in the `draw(tilted=False)` frame.
         """
         return {(r, c): GridQubit(r, c) + offset for r, c in self.graph.nodes}
 
@@ -287,8 +295,7 @@ def get_placements(
     for big_to_small_map in matcher.subgraph_monomorphisms_iter():
         dedupe[frozenset(big_to_small_map.keys())] = big_to_small_map
         if len(dedupe) > max_placements:
-            # coverage: ignore
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 f"We found more than {max_placements} placements. Please use a "
                 f"more constraining `big_graph` or a more constrained `small_graph`."
             )
@@ -337,7 +344,7 @@ def draw_placements(
     small_graph: nx.Graph,
     small_to_big_mappings: Sequence[Dict],
     max_plots: int = 20,
-    axes: Sequence[plt.Axes] = None,
+    axes: Optional[Sequence[plt.Axes]] = None,
     tilted: bool = True,
     bad_placement_callback: Optional[Callable[[plt.Axes, int], None]] = None,
 ):
@@ -359,27 +366,23 @@ def draw_placements(
             this callback is called. The callback should accept `ax` and `i` keyword arguments
             for the current axis and mapping index, respectively.
     """
-    if len(small_to_big_mappings) > max_plots:
-        # coverage: ignore
+    if len(small_to_big_mappings) > max_plots:  # pragma: no cover
         warnings.warn(f"You've provided a lot of mappings. Only plotting the first {max_plots}")
         small_to_big_mappings = small_to_big_mappings[:max_plots]
 
     call_show = False
     if axes is None:
-        # coverage: ignore
-        call_show = True
+        call_show = True  # pragma: no cover
 
     for i, small_to_big_map in enumerate(small_to_big_mappings):
         if axes is not None:
             ax = axes[i]
-        else:
-            # coverage: ignore
+        else:  # pragma: no cover
             ax = plt.gca()
 
         small_mapped = nx.relabel_nodes(small_graph, small_to_big_map)
         if bad_placement_callback is not None:
-            # coverage: ignore
-            if not _is_valid_placement_helper(
+            if not _is_valid_placement_helper(  # pragma: no cover
                 big_graph=big_graph,
                 small_mapped=small_mapped,
                 small_to_big_mapping=small_to_big_map,
@@ -398,7 +401,6 @@ def draw_placements(
         )
         ax.axis('equal')
         if call_show:
-            # coverage: ignore
             # poor man's multi-axis figure: call plt.show() after each plot
             # and jupyter will put the plots one after another.
-            plt.show()
+            plt.show()  # pragma: no cover

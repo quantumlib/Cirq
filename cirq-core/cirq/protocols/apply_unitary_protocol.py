@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A protocol for implementing high performance unitary left-multiplies."""
 
+import warnings
 from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
@@ -58,10 +60,20 @@ class ApplyUnitaryArgs:
             dtype as the target tensor.
         axes: Which axes the unitary effect is being applied to (e.g. the
             qubits that the gate is operating on).
+        subspaces: Which subspace (in the computational basis) the unitary
+            effect is being applied to, on each axis. By default it applies
+            to subspace 0..d-1 on each axis, where d is the dimension of the
+            unitary effect on that axis. Subspaces on each axis must be
+            representable as a slice, so the dimensions specified here need to
+            have a consistent step size.
     """
 
     def __init__(
-        self, target_tensor: np.ndarray, available_buffer: np.ndarray, axes: Iterable[int]
+        self,
+        target_tensor: np.ndarray,
+        available_buffer: np.ndarray,
+        axes: Iterable[int],
+        subspaces: Optional[Sequence[Tuple[int, ...]]] = None,
     ):
         """Inits ApplyUnitaryArgs.
 
@@ -75,11 +87,27 @@ class ApplyUnitaryArgs:
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
                 qubits that the gate is operating on).
-
+            subspaces: Which subspace (in the computational basis) the unitary
+                effect is being applied to, on each axis. By default it applies
+                to subspace 0..d-1 on each axis, where d is the dimension of
+                the unitary effect on that axis. Subspaces on each axis must be
+                representable as a slice, so the dimensions specified here need
+                to have a consistent step size.
+        Raises:
+            ValueError: If the subspace count does not equal the axis count, if
+                any subspace has zero dimensions, or if any subspace has
+                dimensions specified without a consistent step size.
         """
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.axes = tuple(axes)
+        if subspaces is not None:
+            if len(self.axes) != len(subspaces):
+                raise ValueError('Subspace count does not match axis count.')
+            for subspace, axis in zip(subspaces, self.axes):
+                if any(s >= target_tensor.shape[axis] for s in subspace):
+                    raise ValueError('Subspace specified does not exist in axis.')
+        self.slices = None if subspaces is None else tuple(map(_to_slice, subspaces))
 
     @staticmethod
     def default(
@@ -107,6 +135,33 @@ class ApplyUnitaryArgs:
         state = qis.one_hot(index=(0,) * num_qubits, shape=qid_shape, dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
+    @classmethod
+    def for_unitary(
+        cls, num_qubits: Optional[int] = None, *, qid_shape: Optional[Tuple[int, ...]] = None
+    ) -> 'ApplyUnitaryArgs':
+        """A default instance corresponding to an identity matrix.
+
+        Specify exactly one argument.
+
+        Args:
+            num_qubits: The number of qubits to make space for in the state.
+            qid_shape: A tuple representing the number of quantum levels of each
+                qubit the identity matrix applies to. `qid_shape` is (2, 2, 2) for
+                a three-qubit identity operation tensor.
+
+        Raises:
+            TypeError: If exactly neither `num_qubits` or `qid_shape` is provided or
+                both are provided.
+        """
+        if (num_qubits is None) == (qid_shape is None):
+            raise TypeError('Specify exactly one of num_qubits or qid_shape.')
+        if num_qubits is not None:
+            qid_shape = (2,) * num_qubits
+        qid_shape = cast(Tuple[int, ...], qid_shape)  # Satisfy mypy
+        num_qubits = len(qid_shape)
+        state = qis.eye_tensor(qid_shape, dtype=np.complex128)
+        return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
+
     def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':
         """Returns a transposed view of the same arguments.
 
@@ -125,7 +180,7 @@ class ApplyUnitaryArgs:
         return ApplyUnitaryArgs(target_tensor, available_buffer, range(len(self.axes)))
 
     def _for_operation_with_qid_shape(
-        self, indices: Iterable[int], qid_shape: Tuple[int, ...]
+        self, indices: Iterable[int], slices: Tuple[Union[int, slice], ...]
     ) -> 'ApplyUnitaryArgs':
         """Creates a sliced and transposed view of `self` appropriate for an
         operation with shape `qid_shape` on qubits with the given indices.
@@ -138,14 +193,14 @@ class ApplyUnitaryArgs:
         Args:
             indices: Integer indices into `self.axes` specifying which qubits
                 the operation applies to.
-            qid_shape: The qid shape of the operation, the expected number of
-                quantum levels in each qubit the operation applies to.
+            slices: The slices of the operation, the subdimension in each qubit
+                the operation applies to.
 
         Returns: A new `ApplyUnitaryArgs` where `sub_args.target_tensor` and
             `sub_args.available_buffer` are sliced and transposed views of
             `self.target_tensor` and `self.available_buffer` respectively.
         """
-        slices = [slice(0, size) for size in qid_shape]
+        slices = tuple(size if isinstance(size, slice) else slice(0, size) for size in slices)
         sub_axes = [self.axes[i] for i in indices]
         axis_set = set(sub_axes)
         other_axes = [axis for axis in range(len(self.target_tensor.shape)) if axis not in axis_set]
@@ -251,7 +306,7 @@ class SupportsConsistentApplyUnitary(Protocol):
 def apply_unitary(
     unitary_value: Any,
     args: ApplyUnitaryArgs,
-    default: TDefault = RaiseTypeErrorIfNotProvided,
+    default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided,
     *,
     allow_decompose: bool = True,
 ) -> Union[np.ndarray, TDefault]:
@@ -316,7 +371,6 @@ def apply_unitary(
         TypeError: `unitary_value` doesn't have a unitary effect and `default`
             wasn't specified.
     """
-
     # Decide on order to attempt application strategies.
     if len(args.axes) <= 4:
         strats = [
@@ -334,12 +388,15 @@ def apply_unitary(
         strats.remove(_strat_apply_unitary_from_decompose)
 
     # Try each strategy, stopping if one works.
-    for strat in strats:
-        result = strat(unitary_value, args)
-        if result is None:
-            break
-        if result is not NotImplemented:
-            return result
+    # Also catch downcasting warnings and throw an error: #2041
+    with warnings.catch_warnings():
+        warnings.filterwarnings(action="error", category=np.ComplexWarning)
+        for strat in strats:
+            result = strat(unitary_value, args)
+            if result is None:
+                break
+            if result is not NotImplemented:
+                return result
 
     # Don't know how to apply. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:
@@ -348,8 +405,8 @@ def apply_unitary(
         "cirq.apply_unitary failed. "
         "Value doesn't have a (non-parameterized) unitary effect.\n"
         "\n"
-        "type: {}\n"
-        "value: {!r}\n"
+        f"type: {type(unitary_value)}\n"
+        f"value: {unitary_value!r}\n"
         "\n"
         "The value failed to satisfy any of the following criteria:\n"
         "- An `_apply_unitary_(self, args) method that returned a value "
@@ -358,7 +415,6 @@ def apply_unitary(
         "besides None or NotImplemented.\n"
         "- A `_decompose_(self)` method that returned a "
         "list of unitary operations.\n"
-        "".format(type(unitary_value), unitary_value)
     )
 
 
@@ -369,29 +425,28 @@ def _strat_apply_unitary_from_apply_unitary(
     func = getattr(unitary_value, '_apply_unitary_', None)
     if func is None:
         return NotImplemented
-    op_qid_shape = qid_shape_protocol.qid_shape(unitary_value, (2,) * len(args.axes))
-    sub_args = args._for_operation_with_qid_shape(range(len(op_qid_shape)), op_qid_shape)
+    if args.slices is None:
+        op_qid_shape = qid_shape_protocol.qid_shape(unitary_value, (2,) * len(args.axes))
+        slices = tuple(slice(0, size) for size in op_qid_shape)
+    else:
+        slices = args.slices
+    sub_args = args._for_operation_with_qid_shape(range(len(slices)), slices)
     sub_result = func(sub_args)
     if sub_result is NotImplemented or sub_result is None:
         return sub_result
     return _incorporate_result_into_target(args, sub_args, sub_result)
 
 
-def _strat_apply_unitary_from_unitary(
-    unitary_value: Any, args: ApplyUnitaryArgs
-) -> Optional[np.ndarray]:
-    # Check for magic method.
-    method = getattr(unitary_value, '_unitary_', None)
-    if method is None:
-        return NotImplemented
-
-    # Attempt to get the unitary matrix.
-    matrix = method()
-    if matrix is NotImplemented or matrix is None:
-        return matrix
-
-    val_qid_shape = qid_shape_protocol.qid_shape(unitary_value, default=(2,) * len(args.axes))
-    sub_args = args._for_operation_with_qid_shape(range(len(val_qid_shape)), val_qid_shape)
+def _apply_unitary_from_matrix(matrix: np.ndarray, unitary_value: Any, args: ApplyUnitaryArgs):
+    if args.slices is None:
+        val_qid_shape = qid_shape_protocol.qid_shape(unitary_value, default=(2,) * len(args.axes))
+        slices = tuple(slice(0, size) for size in val_qid_shape)
+    else:
+        slices = args.slices
+        val_qid_shape = tuple(
+            ((s.step if s.stop is None else s.stop) - s.start) // (s.step or 1) for s in slices
+        )
+    sub_args = args._for_operation_with_qid_shape(range(len(slices)), slices)
     matrix = matrix.astype(sub_args.target_tensor.dtype)
     if len(val_qid_shape) == 1 and val_qid_shape[0] <= 2:
         # Special case for single-qubit, 2x2 or 1x1 operations.
@@ -411,11 +466,42 @@ def _strat_apply_unitary_from_unitary(
     return _incorporate_result_into_target(args, sub_args, sub_result)
 
 
+def _strat_apply_unitary_from_unitary(
+    unitary_value: Any, args: ApplyUnitaryArgs
+) -> Optional[np.ndarray]:
+    # Check for magic method.
+    method = getattr(unitary_value, '_unitary_', None)
+    if method is None:
+        return NotImplemented
+
+    # Attempt to get the unitary matrix.
+    matrix = method()
+    if matrix is NotImplemented or matrix is None:
+        return matrix
+
+    return _apply_unitary_from_matrix(matrix, unitary_value, args)
+
+
 def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Optional[np.ndarray]:
     operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
-    return apply_unitaries(operations, qubits, args, None)
+    all_qubits = frozenset([q for op in operations for q in op.qubits])
+    ancilla = tuple(sorted(all_qubits.difference(qubits)))
+    if not len(ancilla):
+        return apply_unitaries(operations, qubits, args, None)
+    ordered_qubits = ancilla + tuple(qubits)
+    all_qid_shapes = qid_shape_protocol.qid_shape(ordered_qubits)
+    result = apply_unitaries(
+        operations, ordered_qubits, ApplyUnitaryArgs.for_unitary(qid_shape=all_qid_shapes), None
+    )
+    if result is None or result is NotImplemented:
+        return result
+    result = result.reshape((np.prod(all_qid_shapes, dtype=np.int64), -1))
+    val_qid_shape = qid_shape_protocol.qid_shape(qubits)
+    state_vec_length = np.prod(val_qid_shape, dtype=np.int64)
+    result = result[:state_vec_length, :state_vec_length]
+    return _apply_unitary_from_matrix(result, val, args)
 
 
 def apply_unitaries(
@@ -489,8 +575,8 @@ def apply_unitaries(
                     "There was a non-unitary value in the `unitary_values` "
                     "list.\n"
                     "\n"
-                    "non-unitary value type: {}\n"
-                    "non-unitary value: {!r}".format(type(op), op)
+                    f"non-unitary value type: {type(op)}\n"
+                    f"non-unitary value: {op!r}"
                 )
             return default
 
@@ -557,3 +643,18 @@ def _incorporate_result_into_target(
         return args.available_buffer
     sub_args.target_tensor[...] = sub_result
     return args.target_tensor
+
+
+def _to_slice(subspace_def: Tuple[int, ...]):
+    if len(subspace_def) < 1:
+        raise ValueError(f'Subspace {subspace_def} has zero dimensions.')
+
+    if len(subspace_def) == 1:
+        return slice(subspace_def[0], subspace_def[0] + 1, 1)
+
+    step = subspace_def[1] - subspace_def[0]
+    for i in range(len(subspace_def) - 1):
+        if subspace_def[i + 1] - subspace_def[i] != step:
+            raise ValueError(f'Subspace {subspace_def} does not have consistent step size.')
+    stop = subspace_def[-1] + step
+    return slice(subspace_def[0], stop if stop >= 0 else None, step)

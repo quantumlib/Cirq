@@ -14,19 +14,20 @@
 
 # ========================== ISOLATED NOTEBOOK TESTS ============================================
 #
-# In these tests are only changed notebooks are tested. It is assumed that notebooks install cirq
-# conditionally if they can't import cirq. This installation path is the main focus and it is
-# exercised in an isolated virtual environment for each notebook. This is also the path that is
-# tested in the devsite workflows, these tests meant to provide earlier feedback.
+# It is assumed that notebooks install cirq conditionally if they can't import cirq. This
+# installation path is the main focus and it is exercised in an isolated virtual environment for
+# each notebook. This is also the path that is tested in the devsite workflows, these tests meant
+# to provide earlier feedback.
 #
 # In case the dev environment changes or this particular file changes, all notebooks are executed!
 # This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
+
 import os
 import re
 import subprocess
-import sys
+import shutil
 import warnings
 from typing import Set, List
 
@@ -41,28 +42,38 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    # Hardcoded qubit placement
+    'docs/google/qubit-placement.ipynb',
     # get_qcs_objects_for_notebook
-    'docs/tutorials/google/calibration_api.ipynb',
+    'docs/noise/calibration_api.ipynb',
     'docs/tutorials/google/colab.ipynb',
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
-    'docs/tutorials/google/floquet_calibration_example.ipynb',
+    'docs/noise/floquet_calibration_example.ipynb',
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/start.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    'docs/tutorials/google/xeb_calibration_example.ipynb',
+    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     'docs/named_topologies.ipynb',
+    'docs/start/intro.ipynb',
+    # Circuit routing
+    'docs/transform/routing_transformer.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
+    # TODO(#6088) - enable notebooks below
+    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
+    # End of TODO(#6088)
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
     "**/azure-quantum/*.ipynb",
     "**/google/*.ipynb",
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",
+    # skipp cirq-ft notebooks since they are included in individual tests
+    'cirq-ft/**',
     # Rigetti uses local simulation with docker, so should work
     # if you run into issues locally, run
     # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
@@ -70,16 +81,14 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # skipping quantum utility simulation (too large)
+    'examples/advanced/*quantum_utility*',
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
-    # Until openfermion is upgraded, this version of Cirq throws an error
-    "docs/tutorials/educators/chemistry.ipynb",
+    # An intentionally empty/template code notebook.
+    "docs/simulate/qvm_builder_code.ipynb",
     *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
 ]
-
-# The Rigetti integration requires Python >= 3.7.
-if sys.version_info < (3, 7):
-    SKIP_NOTEBOOKS.append("**/rigetti/*.ipynb")
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
@@ -91,14 +100,6 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.11.1",
-    # https://github.com/nteract/papermill/issues/519
-    'ipykernel==5.3.4',
-    # https://github.com/ipython/ipython/issues/12941
-    'ipython==7.22',
-    # to ensure networkx works nicely
-    # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
-    # however, jupyter brings in 5.0.6
-    'decorator<5',
 ]
 
 
@@ -148,13 +149,56 @@ def _partitioned_test_cases(notebooks):
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
+def _rewrite_and_run_notebook(notebook_path, cloned_env):
+    notebook_file = os.path.basename(notebook_path)
+    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
+    out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
+    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
+
+    notebook_file = os.path.basename(notebook_path)
+
+    rewritten_notebook_path = rewrite_notebook(notebook_path)
+
+    cmd = f"""
+mkdir -p out/{notebook_rel_dir}
+cd {notebook_env}
+. ./bin/activate
+pip list
+papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
+    result = shell_tools.run(
+        cmd,
+        log_run_to_stderr=False,
+        shell=True,
+        check=False,
+        capture_output=True,
+        # important to get rid of PYTHONPATH specifically, which contains
+        # the Cirq repo path due to check/pytest
+        env={},
+    )
+
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
+        pytest.fail(
+            f"Notebook failure: {notebook_file}, please see {out_path} for the output "
+            f"notebook (in Github Actions, you can download it from the workflow artifact"
+            f" 'notebook-outputs'). \n"
+            f"If this is a new failure in this notebook due to a new change, "
+            f"that is only available in master for now, consider adding `pip install --pre cirq` "
+            f"instead of `pip install cirq` to this notebook, and exclude it from "
+            f"dev_tools/notebooks/isolated_notebook_test.py."
+        )
+    os.remove(rewritten_notebook_path)
+    shutil.rmtree(notebook_env)
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
-    """Tests the notebooks in isolated virtual environments.
+def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+    """Tests changed notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
     performs substitutions on the notebook to make it faster.
@@ -165,47 +209,21 @@ def test_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
     regular expression, it is considered best practice to not use complicated regular expressions.
     Lines in this file that do not have `->` are ignored.
     """
-    notebook_file = os.path.basename(notebook_path)
-    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
-    out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
-    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
+    _rewrite_and_run_notebook(notebook_path, cloned_env)
 
-    notebook_file = os.path.basename(notebook_path)
 
-    rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
+@pytest.mark.weekly
+@pytest.mark.parametrize(
+    "partition, notebook_path",
+    _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
+)
+def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+    """Tests all notebooks in isolated virtual environments.
 
-    cmd = f"""
-mkdir -p out/{notebook_rel_dir}
-cd {notebook_env}
-. ./bin/activate
-pip list 
-papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
-    stdout, stderr, status = shell_tools.run_shell(
-        cmd=cmd,
-        log_run_to_stderr=False,
-        raise_on_fail=False,
-        out=shell_tools.TeeCapture(),
-        err=shell_tools.TeeCapture(),
-        # important to get rid of PYTHONPATH specifically, which contains
-        # the Cirq repo path due to check/pytest
-        env={},
-    )
-
-    if status != 0:
-        print(stdout)
-        print(stderr)
-        pytest.fail(
-            f"Notebook failure: {notebook_file}, please see {out_path} for the output "
-            f"notebook (in Github Actions, you can download it from the workflow artifact"
-            f" 'notebook-outputs'). \n"
-            f"If this is a new failure in this notebook due to a new change, "
-            f"that is only available in master for now, consider adding `pip install --pre cirq` "
-            f"instead of `pip install cirq` to this notebook, and exclude it from "
-            f"dev_tools/notebooks/isolated_notebook_test.py."
-        )
-
-    if rewritten_notebook_descriptor:
-        os.close(rewritten_notebook_descriptor)
+    See `test_changed_notebooks_against_released_cirq` for more details on
+    notebooks execution.
+    """
+    _rewrite_and_run_notebook(notebook_path, cloned_env)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)

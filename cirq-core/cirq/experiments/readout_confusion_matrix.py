@@ -76,7 +76,8 @@ class TensoredConfusionMatrices:
                             the corresponding confusion matrix.
             repetitions:    The number of repetitions that were used to estimate the confusion
                             matrices.
-            timestamp:      The time the data was taken, in seconds since the epoch.
+            timestamp:      The time the data was taken, in seconds since the epoch. This will be
+                            zero for fake data (i.e. data not generated from an experiment).
 
         Raises:
             ValueError: If length of `confusion_matrices` and `measure_qubits` is different or if
@@ -84,7 +85,7 @@ class TensoredConfusionMatrices:
                         pattern.
         """
         if len(measure_qubits) == 0:
-            raise ValueError(f"measure_qubits cannot be empty.")
+            raise ValueError("measure_qubits cannot be empty.")
         if isinstance(confusion_matrices, np.ndarray):
             confusion_matrices = [confusion_matrices]
         measure_qubits = cast(
@@ -112,6 +113,34 @@ class TensoredConfusionMatrices:
         self._cache: Dict[Tuple['cirq.Qid', ...], np.ndarray] = {}
         if sum(len(q) for q in self._measure_qubits) != len(self._qubits):
             raise ValueError(f"Repeated qubits not allowed in measure_qubits: {measure_qubits}.")
+
+    @classmethod
+    def from_measurement(
+        cls, gate: ops.MeasurementGate, qubits: Sequence['cirq.Qid']
+    ) -> 'TensoredConfusionMatrices':
+        """Generates TCM for the confusion map in a MeasurementGate.
+
+        This ignores any invert_mask defined for the gate - it only replicates the confusion map.
+
+        Args:
+            gate: the MeasurementGate to match.
+            qubits: qubits the gate is applied to.
+
+        Returns:
+            TensoredConfusionMatrices matching the confusion map of the given gate.
+
+        Raises:
+            ValueError: if the gate has no confusion map.
+        """
+        if not gate.confusion_map:
+            raise ValueError(f"Measurement has no confusion matrices: {gate}")
+        confusion_matrices = []
+        ordered_qubits = []
+        for indices, cm in gate.confusion_map.items():
+            confusion_matrices.append(cm)
+            ordered_qubits.append(tuple(qubits[idx] for idx in indices))
+        # Use zero for reps/timestamp to mark fake data.
+        return cls(confusion_matrices, ordered_qubits, repetitions=0, timestamp=0)
 
     @property
     def repetitions(self) -> int:
@@ -146,9 +175,11 @@ class TensoredConfusionMatrices:
     def _confusion_matrix(self, qubits: Sequence['cirq.Qid']) -> np.ndarray:
         ein_input = []
         for qs, cm in zip(self.measure_qubits, self.confusion_matrices):
-            ein_input += [cm.reshape((2, 2) * len(qs)), self._get_vars(qs)]
+            ein_input.extend([cm.reshape((2, 2) * len(qs)), self._get_vars(qs)])
         ein_out = self._get_vars(qubits)
-        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)
+
+        # TODO(#5757): remove type ignore when numpy has proper override signature.
+        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)  # type: ignore
         return ret / ret.sum(axis=1)
 
     def confusion_matrix(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> np.ndarray:
@@ -247,7 +278,7 @@ class TensoredConfusionMatrices:
             raise ValueError(f"method: {method} should be 'pseudo_inverse' or 'least_squares'.")
 
         if method == 'pseudo_inverse':
-            return result @ self.correction_matrix(qubits)  # coverage: ignore
+            return result @ self.correction_matrix(qubits)  # pragma: no cover
 
         # Least squares minimization.
         cm = self.confusion_matrix(qubits)
@@ -260,11 +291,11 @@ class TensoredConfusionMatrices:
         res = scipy.optimize.minimize(
             func, result, method='SLSQP', constraints=constraints, bounds=bounds
         )
-        if res.success is False:  # coverage: ignore
-            raise ValueError(  # coverage: ignore
-                f"SLSQP optimization for constrained minimization "  # coverage: ignore
-                f"did not converge. Result:\n{res}"  # coverage: ignore
-            )  # coverage: ignore
+        if res.success is False:  # pragma: no cover
+            raise ValueError(  # pragma: no cover
+                f"SLSQP optimization for constrained minimization "  # pragma: no cover
+                f"did not converge. Result:\n{res}"  # pragma: no cover
+            )  # pragma: no cover
         return res.x
 
     def __repr__(self) -> str:

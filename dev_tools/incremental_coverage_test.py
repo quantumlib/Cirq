@@ -18,12 +18,12 @@ from dev_tools import incremental_coverage
 def test_determine_ignored_lines():
     f = incremental_coverage.determine_ignored_lines
 
-    assert f("a = 0  # coverage: ignore") == {1}
+    assert f("a = 0  # pragma: no cover") == {1}
 
     assert (
         f(
             """
-        a = 0  # coverage: ignore
+        a = 0  # pragma: no cover
         b = 0
     """
         )
@@ -34,7 +34,7 @@ def test_determine_ignored_lines():
         f(
             """
         a = 0
-        b = 0  # coverage: ignore
+        b = 0  # pragma: no cover
     """
         )
         == {3}
@@ -43,8 +43,8 @@ def test_determine_ignored_lines():
     assert (
         f(
             """
-        a = 0  # coverage: ignore
-        b = 0  # coverage: ignore
+        a = 0  # pragma: no cover
+        b = 0  # pragma: no cover
     """
         )
         == {2, 3}
@@ -54,7 +54,7 @@ def test_determine_ignored_lines():
         f(
             """
         if True:
-            a = 0  # coverage: ignore
+            a = 0  # pragma: no cover
 
             b = 0
     """
@@ -66,7 +66,7 @@ def test_determine_ignored_lines():
         f(
             """
         if True:
-            # coverage: ignore
+            # pragma: no cover
             a = 0
 
             b = 0
@@ -79,7 +79,7 @@ def test_determine_ignored_lines():
         f(
             """
         if True:
-            # coverage: ignore
+            # pragma: no cover
             a = 0
 
             b = 0
@@ -93,7 +93,7 @@ def test_determine_ignored_lines():
         f(
             """
         if True:
-            # coverage: ignore
+            # pragma: no cover
             a = 0
 
             b = 0
@@ -109,12 +109,12 @@ def test_determine_ignored_lines():
             """
         if True:
             while False:
-                # coverage: ignore
+                # pragma: no cover
                 a = 0
 
             b = 0
         else:
-            c = 0  # coverage: ignore
+            c = 0  # pragma: no cover
     """
         )
         == {4, 5, 6, 9}
@@ -123,20 +123,20 @@ def test_determine_ignored_lines():
     assert (
         f(
             """
-        a = 2#coverage:ignore
-        a = 3 #coverage:ignore
-        a = 4# coverage:ignore
-        a = 5#coverage :ignore
-        a = 6#coverage: ignore
-        a = 7#coverage: ignore\t
-        a = 8#coverage:\tignore\t
+        a = 2#pragma:no cover
+        a = 3 #pragma:no cover
+        a = 4# pragma:no cover
+        a = 5#pragma :no cover
+        a = 6#pragma: no cover
+        a = 7#pragma: no cover\t
+        a = 8#pragma:\tno cover\t
 
         b = 1 # no cover
         b = 2 # coverage: definitely
         b = 3 # lint: ignore
     """
         )
-        == {2, 3, 4, 5, 6, 7, 8}
+        == {2, 3, 4, 6, 7, 8}
     )
 
     assert (

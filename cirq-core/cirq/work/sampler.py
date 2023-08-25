@@ -13,13 +13,13 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-import abc
 import collections
 from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
+import duet
 import pandas as pd
 
-from cirq import ops, protocols, study
+from cirq import ops, protocols, study, value
 from cirq.work.observable_measurement import (
     measure_observables,
     RepetitionsStoppingCriteria,
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class Sampler(metaclass=abc.ABCMeta):
+class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
 
     def run(
@@ -40,7 +40,17 @@ class Sampler(metaclass=abc.ABCMeta):
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         repetitions: int = 1,
     ) -> 'cirq.Result':
-        """Samples from the given Circuit.
+        """Samples from the given `Circuit`.
+
+        This mode of operation for a sampler will provide results
+        in the form of measurement outcomes.  It will not provide
+        access to state vectors (even if the underlying
+        sampling mechanism is a simulator).  This method will substitute
+        parameters in the `param_resolver` attributes for `sympy.Symbols`
+        used within the Circuit.  This circuit will be executed a number
+        of times specified in the `repetitions` attribute, though some
+        simulated implementations may instead sample from the final
+        distribution rather than execute the circuit each time.
 
         Args:
             program: The circuit to sample from.
@@ -48,7 +58,7 @@ class Sampler(metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            Result for a run.
+            `cirq.Result` that contains all the measurements for a run.
         """
         return self.run_sweep(program, param_resolver, repetitions)[0]
 
@@ -59,6 +69,10 @@ class Sampler(metaclass=abc.ABCMeta):
         repetitions: int = 1,
     ) -> 'cirq.Result':
         """Asynchronously samples from the given Circuit.
+
+        Provides measurement outcomes as a `cirq.Result` object.  This
+        interface will operate in a similar way to the `run` method
+        except for executing asynchronously.
 
         Args:
             program: The circuit to sample from.
@@ -79,6 +93,10 @@ class Sampler(metaclass=abc.ABCMeta):
         params: 'cirq.Sweepable' = None,
     ) -> 'pd.DataFrame':
         """Samples the given Circuit, producing a pandas data frame.
+
+        This interface will operate in a similar way to the `run` method
+        except that it returns a pandas data frame rather than a `cirq.Result`
+        object.
 
         Args:
             program: The circuit to sample from.
@@ -159,14 +177,31 @@ class Sampler(metaclass=abc.ABCMeta):
 
         return pd.concat(results)
 
-    @abc.abstractmethod
+    def _run_sweep_impl(
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
+    ) -> Sequence['cirq.Result']:
+        """Implements run_sweep using run_sweep_async"""
+        return duet.run(self.run_sweep_async, program, params, repetitions)
+
+    async def _run_sweep_async_impl(
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
+    ) -> Sequence['cirq.Result']:
+        """Implements run_sweep_async using run_sweep"""
+        return self.run_sweep(program, params=params, repetitions=repetitions)
+
+    @value.alternative(requires='run_sweep_async', implementation=_run_sweep_impl)
     def run_sweep(
         self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
         """Samples from the given Circuit.
 
         This allows for sweeping over different parameter values,
-        unlike the `run` method.
+        unlike the `run` method.  The `params` argument will provide a
+        mapping from `sympy.Symbol`s used within the circuit to a set of
+        values.  Unlike the `run` method, which specifies a single
+        mapping from symbol to value, this method allows a "sweep" of
+        values.  This allows a user to specify execution of a family of
+        related circuits efficiently.
 
         Args:
             program: The circuit to sample from.
@@ -176,7 +211,9 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             Result list for this run; one for each possible parameter resolver.
         """
+        raise NotImplementedError
 
+    @value.alternative(requires='run_sweep', implementation=_run_sweep_async_impl)
     async def run_sweep_async(
         self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
@@ -194,13 +231,13 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             Result list for this run; one for each possible parameter resolver.
         """
-        return self.run_sweep(program, params=params, repetitions=repetitions)
+        raise NotImplementedError
 
     def run_batch(
         self,
         programs: Sequence['cirq.AbstractCircuit'],
-        params_list: Optional[List['cirq.Sweepable']] = None,
-        repetitions: Union[int, List[int]] = 1,
+        params_list: Optional[Sequence['cirq.Sweepable']] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence['cirq.Result']]:
         """Runs the supplied circuits.
 
@@ -240,6 +277,34 @@ class Sampler(metaclass=abc.ABCMeta):
             ValueError: If length of `programs` is not equal to the length
                 of `params_list` or the length of `repetitions`.
         """
+        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
+        return [
+            self.run_sweep(circuit, params=params, repetitions=repetitions)
+            for circuit, params, repetitions in zip(programs, params_list, repetitions)
+        ]
+
+    async def run_batch_async(
+        self,
+        programs: Sequence['cirq.AbstractCircuit'],
+        params_list: Optional[Sequence['cirq.Sweepable']] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
+    ) -> Sequence[Sequence['cirq.Result']]:
+        """Runs the supplied circuits asynchronously.
+
+        See docs for `cirq.Sampler.run_batch`.
+        """
+        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
+        return [
+            await self.run_sweep_async(circuit, params=params, repetitions=repetitions)
+            for circuit, params, repetitions in zip(programs, params_list, repetitions)
+        ]
+
+    def _normalize_batch_args(
+        self,
+        programs: Sequence['cirq.AbstractCircuit'],
+        params_list: Optional[Sequence['cirq.Sweepable']] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
+    ) -> Tuple[Sequence['cirq.Sweepable'], Sequence[int]]:
         if params_list is None:
             params_list = [None] * len(programs)
         if len(programs) != len(params_list):
@@ -254,10 +319,7 @@ class Sampler(metaclass=abc.ABCMeta):
                 'len(programs) and len(repetitions) must match. '
                 f'Got {len(programs)} and {len(repetitions)}.'
             )
-        return [
-            self.run_sweep(circuit, params=params, repetitions=repetitions)
-            for circuit, params, repetitions in zip(programs, params_list, repetitions)
-        ]
+        return params_list, repetitions
 
     def sample_expectation_values(
         self,
@@ -270,8 +332,8 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> Sequence[Sequence[float]]:
         """Calculates estimated expectation values from samples of a circuit.
 
-        Please see also `cirq.work.measure_observables` for more control over how to measure
-        a suite of observables.
+        Please see also `cirq.work.observable_measurement.measure_observables`
+        for more control over how to measure a suite of observables.
 
         This method can be run on any device or simulator that supports circuit sampling. Compare
         with `simulate_expectation_values` in simulator.py, which is limited to simulators
@@ -329,8 +391,10 @@ class Sampler(metaclass=abc.ABCMeta):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        flat_params: List[Dict[str, float]] = [pr.param_dict for pr in study.to_resolvers(params)]
-        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, float]], int] = {
+        flat_params: List['cirq.ParamMappingType'] = [
+            pr.param_dict for pr in study.to_resolvers(params)
+        ]
+        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
 

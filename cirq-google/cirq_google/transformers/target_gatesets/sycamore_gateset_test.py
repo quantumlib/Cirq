@@ -244,8 +244,7 @@ def test_unsupported_gate_ignoring_failures():
             return self._qubits
 
         def with_qubits(self, *new_qubits):
-            # coverage: ignore
-            return UnknownOperation(self._qubits)
+            return UnknownOperation(self._qubits)  # pragma: no cover
 
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(UnknownOperation([q0]))
@@ -387,3 +386,19 @@ def test_supported_operation(op):
     )
     multi_qubit_ops = [e for e in converted_circuit.all_operations() if len(e.qubits) > 1]
     assert all(isinstance(e.gate, cirq_google.SycamoreGate) for e in multi_qubit_ops)
+
+
+@pytest.mark.parametrize(
+    'gateset',
+    [
+        cirq_google.SycamoreTargetGateset(),
+        cirq_google.SycamoreTargetGateset(
+            tabulation=cirq.two_qubit_gate_product_tabulation(
+                cirq.unitary(cirq_google.SYC), 0.1, random_state=cirq.value.parse_random_state(11)
+            )
+        ),
+    ],
+)
+def test_repr_json(gateset):
+    assert eval(repr(gateset)) == gateset
+    assert cirq.read_json(json_text=cirq.to_json(gateset)) == gateset

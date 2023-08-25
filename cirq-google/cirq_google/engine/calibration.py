@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Calibration wrapper for calibrations returned from the Quantum Engine."""
 
 from collections import abc, defaultdict
@@ -83,7 +84,7 @@ class Calibration(abc.Mapping):
             else:
                 assert len(results[name]) == 0, (
                     'Only one metric of a given name can have no targets. '
-                    'Found multiple for key {}'.format(name)
+                    f'Found multiple for key {name}'
                 )
                 results[name][()] = flat_values
         return results

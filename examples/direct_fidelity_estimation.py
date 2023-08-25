@@ -248,9 +248,7 @@ def _estimate_pauli_traces_general(
 
     dense_simulator = cirq.DensityMatrixSimulator()
     # rho in https://arxiv.org/abs/1104.3835
-    clean_density_matrix = cast(
-        cirq.DensityMatrixTrialResult, dense_simulator.simulate(circuit)
-    ).final_density_matrix
+    clean_density_matrix = dense_simulator.simulate(circuit).final_density_matrix
 
     all_operators = itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z], repeat=n_qubits)
     if n_measured_operators is not None:
@@ -369,7 +367,7 @@ def direct_fidelity_estimation(
     clifford_tableau = cirq.CliffordTableau(n_qubits)
     try:
         for gate in circuit.all_operations():
-            tableau_args = clifford.ActOnCliffordTableauArgs(
+            tableau_args = clifford.CliffordTableauSimulationState(
                 tableau=clifford_tableau, qubits=qubits
             )
             cirq.act_on(gate, tableau_args)
@@ -407,10 +405,7 @@ def direct_fidelity_estimation(
             raise TypeError(
                 'sampler is not a cirq.DensityMatrixSimulator but samples_per_term is zero.'
             )
-        noisy_simulator = cast(cirq.DensityMatrixSimulator, sampler)
-        noisy_density_matrix = cast(
-            cirq.DensityMatrixTrialResult, noisy_simulator.simulate(circuit)
-        ).final_density_matrix
+        noisy_density_matrix = sampler.simulate(circuit).final_density_matrix
 
     if clifford_circuit and n_measured_operators is None:
         # In case the circuit is Clifford and we compute an exhaustive list of
@@ -419,7 +414,9 @@ def direct_fidelity_estimation(
         measured_pauli_traces = pauli_traces
     else:
         # Otherwise, randomly sample as per probability.
-        measured_pauli_traces = np.random.choice(pauli_traces, size=len(pauli_traces), p=p)
+        measured_pauli_traces = np.random.choice(
+            pauli_traces, size=len(pauli_traces), p=p  # type: ignore[arg-type]
+        ).tolist()
 
     trial_results: List[Result] = []
     for pauli_trace in measured_pauli_traces:

@@ -126,7 +126,7 @@ def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> Optional[cirq.OP_T
 
     gate = op.gate
     if isinstance(gate, cirq.PhasedISwapPowGate):
-        if math.isclose(gate.exponent, 1):
+        if math.isclose(gate.exponent, 1) and isinstance(gate.phase_exponent, float):
             return _decompose_phased_iswap_into_syc(gate.phase_exponent, q0, q1)
         if math.isclose(gate.phase_exponent, 0.25):
             return _decompose_phased_iswap_into_syc_precomputed(gate.exponent * np.pi / 2, q0, q1)
@@ -380,12 +380,15 @@ def _create_corrected_circuit(
         q1: Second qubit to operate on.
 
     Yields:
-        Operations in `program` with pre and post rotations added s.t. the resulting `cirq.OP_TREE`
+        Operations in `program` with pre- and post- rotations added s.t. the resulting
+        `cirq.OP_TREE`
         implements `target_unitary`.
     """
     # Get the local equivalents
+    # We use higher precision than normal to avoid numerical instabilities.
     b_0, b_1, a_0, a_1 = _find_local_equivalents(
-        target_unitary, program.unitary(qubit_order=cirq.QubitOrder.explicit([q0, q1]))
+        target_unitary,
+        program.unitary(qubit_order=cirq.QubitOrder.explicit([q0, q1]), dtype=np.complex128),
     )
 
     # Apply initial corrections

@@ -1,4 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
 """Demonstrates the Bernstein-Vazirani algorithm.
 
 The (non-recursive) Bernstein-Vazirani algorithm takes a black-box oracle
@@ -56,9 +57,9 @@ def main(qubit_count=8):
     secret_factor_bits = [random.randint(0, 1) for _ in range(qubit_count)]
     oracle = make_oracle(input_qubits, output_qubit, secret_factor_bits, secret_bias_bit)
     print(
-        'Secret function:\nf(a) = a·<{}> + {} (mod 2)'.format(
-            ', '.join(str(e) for e in secret_factor_bits), secret_bias_bit
-        )
+        'Secret function:\nf(a) = '
+        f"a·<{', '.join(str(e) for e in secret_factor_bits)}> + "
+        f"{secret_bias_bit} (mod 2)"
     )
 
     # Embed the oracle into a special quantum circuit querying it exactly once.
@@ -75,9 +76,8 @@ def main(qubit_count=8):
     # Check if we actually found the secret value.
     most_common_bitstring = frequencies.most_common(1)[0][0]
     print(
-        'Most common matches secret factors:\n{}'.format(
-            most_common_bitstring == bitstring(secret_factor_bits)
-        )
+        'Most common matches secret factors:\n'
+        f'{most_common_bitstring == bitstring(secret_factor_bits)}'
     )
 
 
@@ -88,7 +88,7 @@ def make_oracle(input_qubits, output_qubit, secret_factor_bits, secret_bias_bit)
         yield cirq.X(output_qubit)
 
     for qubit, bit in zip(input_qubits, secret_factor_bits):
-        if bit:
+        if bit:  # pragma: no cover
             yield cirq.CNOT(qubit, output_qubit)
 
 

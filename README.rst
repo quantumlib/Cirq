@@ -6,9 +6,12 @@
 Cirq is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
 
-.. image:: https://github.com/quantumlib/Cirq/actions/workflows/ci.yml/badge.svg?event=push
+.. image:: https://github.com/quantumlib/Cirq/actions/workflows/ci.yml/badge.svg?event=schedule
   :target: https://github.com/quantumlib/Cirq
   :alt: Build Status
+
+.. image:: https://codecov.io/gh/quantumlib/Cirq/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/quantumlib/Cirq
 
 .. image:: https://badge.fury.io/py/cirq.svg
   :target: https://badge.fury.io/py/cirq
@@ -23,14 +26,14 @@ Installation and Documentation
 
 Cirq documentation is available at `quantumai.google/cirq <https://quantumai.google/cirq>`_.
 
-Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
+Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
 
-Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `here <https://quantumai.google/reference/python/cirq/all_symbols>`__.
+Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available `here <https://quantumai.google/reference/python/cirq/all_symbols>`__.
 
 
-- `Installation <https://quantumai.google/cirq/install>`_
+- `Installation <https://quantumai.google/cirq/start/install>`_
 - `Documentation <https://quantumai.google/cirq>`_
-- `Tutorials <https://quantumai.google/cirq/tutorials>`_
+- `Tutorials <https://quantumai.google/cirq/build>`_
 
 For a comprehensive list all of the interactive Jupyter Notebooks in our repo (including the ones not yet published to the site) open our repo in `Colab <https://colab.research.google.com/github/quantumlib/Cirq>`_.
 
@@ -100,7 +103,7 @@ We welcome contributions! Before opening your first PR, a good place to start is
 We are dedicated to cultivating an open and inclusive community to build software for near term quantum computers.
 Please read our `code of conduct <https://github.com/quantumlib/cirq/blob/master/CODE_OF_CONDUCT.md>`__ for the rules of engagement within our community.
 
-For real time informal discussions about Cirq, join our `cirqdev <https://gitter.im/cirqdev>`__ Gitter channel, come hangout with us!
+For real time informal discussions about Cirq, join our `cirqdev <https://gitter.im/cirqdev/community>`__ Gitter channel, come hangout with us!
 
 **Cirq Cynque** is our weekly meeting for contributors to discuss upcoming features, designs, issues, community and status of different efforts.
 To get an invitation please join the `cirq-dev email list <https://groups.google.com/forum/#!forum/cirq-dev>`__ which also serves as yet another platform to discuss contributions and design ideas.
@@ -120,15 +123,5 @@ For machine learning enthusiasts, `Tensorflow Quantum <https://github.com/tensor
 For a powerful quantum circuit simulator that integrates well with Cirq, we recommend looking at `qsim <https://github.com/quantumlib/qsim>`__.
 
 Finally, `ReCirq <https://github.com/quantumlib/ReCirq>`__ contains real world experiments using Cirq.
-
-
-Alpha Disclaimer
-----------------
-
-**Cirq is currently in alpha.**
-We may change or remove parts of Cirq's API when making new releases.
-To be informed of deprecations and breaking changes, subscribe to the
-`cirq-announce google group mailing list <https://groups.google.com/forum/#!forum/cirq-announce>`__.
-
 
 Cirq is not an official Google product. Copyright 2019 The Cirq Developers

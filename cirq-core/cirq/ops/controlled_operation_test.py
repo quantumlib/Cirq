@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Union, Tuple, cast
+
 import itertools
+import re
+from typing import cast, Tuple, Union
 
 import numpy as np
 import pytest
@@ -71,16 +73,20 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
 
 
 def test_controlled_operation_init():
+    class G(cirq.testing.SingleQubitGate):
+        def _has_mixture_(self):
+            return True
+
+    g = G()
     cb = cirq.NamedQubit('ctr')
     q = cirq.NamedQubit('q')
-    g = cirq.testing.SingleQubitGate()
     v = cirq.GateOperation(g, (q,))
     c = cirq.ControlledOperation([cb], v)
     assert c.sub_operation == v
     assert c.controls == (cb,)
     assert c.qubits == (cb, q)
     assert c == c.with_qubits(cb, q)
-    assert c.control_values == ((1,),)
+    assert c.control_values == cirq.SumOfProducts(((1,),))
     assert cirq.qid_shape(c) == (2, 2)
 
     c = cirq.ControlledOperation([cb], v, control_values=[0])
@@ -88,7 +94,7 @@ def test_controlled_operation_init():
     assert c.controls == (cb,)
     assert c.qubits == (cb, q)
     assert c == c.with_qubits(cb, q)
-    assert c.control_values == ((0,),)
+    assert c.control_values == cirq.SumOfProducts(((0,),))
     assert cirq.qid_shape(c) == (2, 2)
 
     c = cirq.ControlledOperation([cb.with_dimension(3)], v)
@@ -96,15 +102,23 @@ def test_controlled_operation_init():
     assert c.controls == (cb.with_dimension(3),)
     assert c.qubits == (cb.with_dimension(3), q)
     assert c == c.with_qubits(cb.with_dimension(3), q)
-    assert c.control_values == ((1,),)
+    assert c.control_values == cirq.SumOfProducts(((1,),))
     assert cirq.qid_shape(c) == (3, 2)
 
-    with pytest.raises(ValueError, match=r'len\(control_values\) != len\(controls\)'):
+    with pytest.raises(ValueError, match=r'cirq\.num_qubits\(control_values\) != len\(controls\)'):
         _ = cirq.ControlledOperation([cb], v, control_values=[1, 1])
     with pytest.raises(ValueError, match='Control values .*outside of range'):
         _ = cirq.ControlledOperation([cb], v, control_values=[2])
     with pytest.raises(ValueError, match='Control values .*outside of range'):
         _ = cirq.ControlledOperation([cb], v, control_values=[(1, -1)])
+    with pytest.raises(ValueError, match=re.escape("Duplicate control qubits ['ctr'].")):
+        _ = cirq.ControlledOperation([cb, cirq.LineQubit(0), cb], cirq.X(q))
+    with pytest.raises(ValueError, match=re.escape("Sub-op and controls share qubits ['ctr']")):
+        _ = cirq.ControlledOperation([cb, cirq.LineQubit(0)], cirq.CX(cb, q))
+    with pytest.raises(ValueError, match='Cannot control measurement'):
+        _ = cirq.ControlledOperation([cb], cirq.measure(q))
+    with pytest.raises(ValueError, match='Cannot control channel'):
+        _ = cirq.ControlledOperation([cb], cirq.PhaseDampingChannel(1)(q))
 
 
 def test_controlled_operation_eq():
@@ -140,14 +154,18 @@ def test_str():
     assert str(cirq.ControlledOperation([c1], cirq.CZ(c2, q2))) == "CCZ(c1, c2, q2)"
 
     class SingleQubitOp(cirq.Operation):
+        @property
         def qubits(self) -> Tuple[cirq.Qid, ...]:
-            pass
+            return ()
 
         def with_qubits(self, *new_qubits: cirq.Qid):
             pass
 
         def __str__(self):
             return "Op(q2)"
+
+        def _has_mixture_(self):
+            return True
 
     assert str(cirq.ControlledOperation([c1, c2], SingleQubitOp())) == "CC(c1, c2, Op(q2))"
 
@@ -203,6 +221,9 @@ class MultiH(cirq.Gate):
             wire_symbols=tuple(f'H({q})' for q in args.known_qubits), connected=True
         )
 
+    def _has_mixture_(self):
+        return True
+
 
 def test_circuit_diagram():
     qubits = cirq.LineQubit.range(3)
@@ -212,11 +233,11 @@ def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ───@──────
+0: ───@─────────
       │
-1: ───H(1)───
+1: ───H(q(1))───
       │
-2: ───H(2)───
+2: ───H(q(2))───
 """,
     )
 
@@ -226,11 +247,11 @@ def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
         c,
         """
-0: ───@──────
+0: ───@─────────
       │
-1: ───@──────
+1: ───@─────────
       │
-2: ───H(2)───
+2: ───H(q(2))───
 """,
     )
 
@@ -245,13 +266,13 @@ def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
         c,
         """
-0 (d=3): ───@────────────
+0 (d=3): ───@───────────────
             │
-1 (d=3): ───(0,1)────────
+1 (d=3): ───(0,1)───────────
             │
-2 (d=3): ───(0,2)────────
+2 (d=3): ───(0,2)───────────
             │
-3 (d=2): ───H(3 (d=2))───
+3 (d=2): ───H(q(3) (d=2))───
 """,
     )
 
@@ -270,6 +291,9 @@ class MockGate(cirq.testing.TwoQubitGate):
             exponent_qubit_index=self._exponent_qubit_index,
             connected=True,
         )
+
+    def _has_mixture_(self):
+        return True
 
 
 def test_controlled_diagram_exponent():
@@ -297,7 +321,8 @@ def test_non_diagrammable_subop():
     qbits = cirq.LineQubit.range(2)
 
     class UndiagrammableGate(cirq.testing.SingleQubitGate):
-        pass
+        def _has_mixture_(self):
+            return True
 
     undiagrammable_op = UndiagrammableGate()(qbits[1])
 
@@ -395,6 +420,13 @@ def test_parameterizable(resolve_fn):
     assert not cirq.is_parameterized(cz)
     assert resolve_fn(cza, cirq.ParamResolver({'a': 1})) == cz
 
+    cchan = cirq.ControlledOperation(
+        [qubits[0]],
+        cirq.RandomGateChannel(sub_gate=cirq.PhaseDampingChannel(0.1), probability=a)(qubits[1]),
+    )
+    with pytest.raises(ValueError, match='Cannot control channel'):
+        resolve_fn(cchan, cirq.ParamResolver({'a': 0.1}))
+
 
 def test_bounded_effect():
     qubits = cirq.LineQubit.range(3)
@@ -404,8 +436,6 @@ def test_bounded_effect():
     scy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1]) ** foo)
     assert cirq.trace_distance_bound(scy) == 1.0
     assert cirq.approx_eq(cirq.trace_distance_bound(cy), 1.0)
-    mock = cirq.ControlledOperation(qubits[:1], MockGate().on(*qubits[1:]))
-    assert cirq.approx_eq(cirq.trace_distance_bound(mock), 1)
 
 
 def test_controlled_operation_gate():
@@ -416,10 +446,13 @@ def test_controlled_operation_gate():
     class Gateless(cirq.Operation):
         @property
         def qubits(self):
-            return ()  # coverage: ignore
+            return ()  # pragma: no cover
 
         def with_qubits(self, *new_qubits):
-            return self  # coverage: ignore
+            return self  # pragma: no cover
+
+        def _has_mixture_(self):
+            return True
 
     op = Gateless().controlled_by(cirq.LineQubit(0))
     assert op.gate is None
@@ -427,19 +460,6 @@ def test_controlled_operation_gate():
 
 def test_controlled_mixture():
     a, b = cirq.LineQubit.range(2)
-
-    class NoDetails(cirq.Operation):
-        @property
-        def qubits(self):
-            return (a,)
-
-        def with_qubits(self, *new_qubits):
-            raise NotImplementedError()
-
-    c_no = cirq.ControlledOperation(controls=[b], sub_operation=NoDetails())
-    assert not cirq.has_mixture(c_no)
-    assert cirq.mixture(c_no, None) is None
-
     c_yes = cirq.ControlledOperation(controls=[b], sub_operation=cirq.phase_flip(0.25).on(a))
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])

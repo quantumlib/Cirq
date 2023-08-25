@@ -33,17 +33,13 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
         "Circuit's qcircuit diagram differs from the desired diagram.\n"
         '\n'
         'Diagram of actual circuit:\n'
-        '{}\n'
+        f'{actual_diagram}\n'
         '\n'
         'Desired qcircuit diagram:\n'
-        '{}\n'
+        f'{desired_diagram}\n'
         '\n'
         'Highlighted differences:\n'
-        '{}\n'.format(
-            actual_diagram,
-            desired_diagram,
-            ct.highlight_text_differences(actual_diagram, desired_diagram),
-        )
+        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
 
 
@@ -118,9 +114,9 @@ def test_other_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{0}}& \qw&\targ           \qw&\qw\\
- &\lstick{\text{1}}& \qw&\gate{\text{Y}} \qw&\qw\\
- &\lstick{\text{2}}& \qw&\gate{\text{Z}} \qw&\qw\\
+ &\lstick{\text{q(0)}}& \qw&\targ           \qw&\qw\\
+ &\lstick{\text{q(1)}}& \qw&\gate{\text{Y}} \qw&\qw\\
+ &\lstick{\text{q(2)}}& \qw&\gate{\text{Z}} \qw&\qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
@@ -148,10 +144,10 @@ def test_two_cx_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{0}}& \qw&\control \qw    &         \qw    &\control \qw    &         \qw    &\qw\\
- &\lstick{\text{1}}& \qw&         \qw\qwx&\control \qw    &         \qw\qwx&\control \qw    &\qw\\
- &\lstick{\text{2}}& \qw&\targ    \qw\qwx&         \qw\qwx&\targ    \qw\qwx&         \qw\qwx&\qw\\
- &\lstick{\text{3}}& \qw&         \qw    &\targ    \qw\qwx&         \qw    &\targ    \qw\qwx&\qw\\
+ &\lstick{\text{q(0)}}& \qw&\control \qw    &         \qw    &\control \qw    &         \qw    &\qw\\
+ &\lstick{\text{q(1)}}& \qw&         \qw\qwx&\control \qw    &         \qw\qwx&\control \qw    &\qw\\
+ &\lstick{\text{q(2)}}& \qw&\targ    \qw\qwx&         \qw\qwx&\targ    \qw\qwx&         \qw\qwx&\qw\\
+ &\lstick{\text{q(3)}}& \qw&         \qw    &\targ    \qw\qwx&         \qw    &\targ    \qw\qwx&\qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
@@ -164,8 +160,8 @@ def test_sqrt_iswap_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{0}}& \qw&\multigate{1}{\text{ISWAP}^{0.5}} \qw&\qw\\
- &\lstick{\text{1}}& \qw&\ghost{\text{ISWAP}^{0.5}}        \qw&\qw\\
+ &\lstick{\text{q(0)}}& \qw&\multigate{1}{\text{ISWAP}^{0.5}} \qw&\qw\\
+ &\lstick{\text{q(1)}}& \qw&\ghost{\text{ISWAP}^{0.5}}        \qw&\qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)

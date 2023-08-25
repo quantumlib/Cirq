@@ -4,6 +4,7 @@ import pytest
 import cirq
 from pyquil import Program
 import numpy as np
+import sympy
 from cirq_rigetti import circuit_sweep_executors as executors, circuit_transformers
 
 
@@ -59,7 +60,7 @@ def test_with_quilc_parametric_compilation(
 
     param_resolvers: List[Union[cirq.ParamResolver, cirq.ParamDictType]]
     if pass_dict:
-        param_resolvers = [params.param_dict for params in sweepable]
+        param_resolvers = [dict(params.param_dict) for params in sweepable]
     else:
         param_resolvers = [r for r in cirq.to_resolvers(sweepable)]
     expected_results = [
@@ -85,6 +86,24 @@ def test_with_quilc_parametric_compilation(
         assert np.allclose(
             result.measurements["m"], expected_results[i]
         ), "should return an ordered list of results with correct set of measurements"
+
+
+def test_parametric_with_symbols(
+    mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
+):
+    parametric_circuit, _ = parametric_circuit_with_params
+    repetitions = 2
+    expected_results = [np.ones((repetitions,))]
+    quantum_computer = mock_qpu_implementer.implement_passive_quantum_computer_with_results(
+        expected_results
+    )
+    with pytest.raises(ValueError, match='Symbols not valid'):
+        _ = executors.with_quilc_parametric_compilation(
+            quantum_computer=quantum_computer,
+            circuit=parametric_circuit,
+            resolvers=[{sympy.Symbol('a') + sympy.Symbol('b'): sympy.Symbol('c')}],
+            repetitions=repetitions,
+        )
 
 
 def test_without_quilc_compilation(
@@ -148,9 +167,7 @@ def test_invalid_pyquil_region_measurement(
     ) -> Tuple[Program, Dict[str, str]]:
         return program, {cirq_key: f'{cirq_key}-doesnt-exist' for cirq_key in measurement_id_map}
 
-    transformer = circuit_transformers.build(
-        post_transformation_hooks=[broken_hook]  # type: ignore
-    )
+    transformer = circuit_transformers.build(post_transformation_hooks=[broken_hook])
 
     with pytest.raises(ValueError):
         _ = executors.with_quilc_compilation_and_cirq_parameter_resolution(

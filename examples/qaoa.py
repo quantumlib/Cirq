@@ -58,7 +58,7 @@ import scipy.optimize
 import cirq
 
 
-def main(repetitions=1000, maxiter=50):
+def main(repetitions=10, maxiter=50, use_boolean_hamiltonian_gate=False):
     # Set problem parameters
     n = 6
     p = 2
@@ -72,7 +72,7 @@ def main(repetitions=1000, maxiter=50):
     # Print an example circuit
     betas = np.random.uniform(-np.pi, np.pi, size=p)
     gammas = np.random.uniform(-np.pi, np.pi, size=p)
-    circuit = qaoa_max_cut_circuit(qubits, betas, gammas, graph)
+    circuit = qaoa_max_cut_circuit(qubits, betas, gammas, graph, use_boolean_hamiltonian_gate)
     print('Example QAOA circuit:')
     print(circuit.to_text_diagram(transpose=True))
 
@@ -89,7 +89,7 @@ def main(repetitions=1000, maxiter=50):
         # Create circuit
         betas = x[:p]
         gammas = x[p:]
-        circuit = qaoa_max_cut_circuit(qubits, betas, gammas, graph)
+        circuit = qaoa_max_cut_circuit(qubits, betas, gammas, graph, use_boolean_hamiltonian_gate)
         # Sample bitstrings from circuit
         result = simulator.run(circuit, repetitions=repetitions)
         bitstrings = result.measurements['m']
@@ -128,18 +128,29 @@ def rzz(rads):
     return cirq.ZZPowGate(exponent=2 * rads / np.pi, global_shift=-0.5)
 
 
-def qaoa_max_cut_unitary(qubits, betas, gammas, graph):  # Nodes should be integers
-    for beta, gamma in zip(betas, gammas):
-        yield (rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
-        yield cirq.rx(2 * beta).on_each(*qubits)
+def qaoa_max_cut_unitary(
+    qubits, betas, gammas, graph, use_boolean_hamiltonian_gate
+):  # Nodes should be integers
+    if use_boolean_hamiltonian_gate:
+        booleans = [f"x{i} ^ x{j}" for i, j in sorted(graph.edges)]
+        param_names = [f"x{i}" for i in range(len(qubits))]
+        for beta, gamma in zip(betas, gammas):
+            yield cirq.BooleanHamiltonianGate(param_names, booleans, 2.0 * gamma).on(*qubits)
+            yield cirq.rx(2 * beta).on_each(*qubits)
+    else:
+        for beta, gamma in zip(betas, gammas):
+            yield (rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
+            yield cirq.rx(2 * beta).on_each(*qubits)
 
 
-def qaoa_max_cut_circuit(qubits, betas, gammas, graph):  # Nodes should be integers
+def qaoa_max_cut_circuit(
+    qubits, betas, gammas, graph, use_boolean_hamiltonian_gate
+):  # Nodes should be integers
     return cirq.Circuit(
         # Prepare uniform superposition
         cirq.H.on_each(*qubits),
         # Apply QAOA unitary
-        qaoa_max_cut_unitary(qubits, betas, gammas, graph),
+        qaoa_max_cut_unitary(qubits, betas, gammas, graph, use_boolean_hamiltonian_gate),
         # Measure
         cirq.measure(*qubits, key='m'),
     )

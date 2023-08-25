@@ -1,0 +1,33 @@
+[
+    {
+        "cirq_type": "cirq.google.GoogleCZTargetGateset",
+        "atol": 1e-08,
+        "eject_paulis": false,
+        "additional_gates": []
+    },
+    {
+        "cirq_type": "cirq.google.GoogleCZTargetGateset",
+        "atol": 1e-06,
+        "eject_paulis": true,
+        "additional_gates": [
+            {
+                "cirq_type": "GateFamily",
+                "gate": {
+                    "cirq_type": "ISwapPowGate",
+                    "exponent": 0.5,
+                    "global_shift": 0.0
+                },
+                "name": "Instance GateFamily: ISWAP**0.5",
+                "description": "Accepts `cirq.Gate` instances `g` s.t. `g == ISWAP**0.5`",
+                "ignore_global_phase": true
+            },
+            {
+                "cirq_type": "GateFamily",
+                "gate": "XPowGate",
+                "name": "Type GateFamily: cirq.ops.common_gates.XPowGate",
+                "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.XPowGate)`",
+                "ignore_global_phase": true
+            }
+        ]
+    }
+]
