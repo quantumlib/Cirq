@@ -426,7 +426,9 @@ class EngineClient:
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
-        _validate_create_job_processor_and_config_selection(processor_ids, processor_id, run_name, device_config_name)
+        _validate_create_job_processor_and_config_selection(
+            processor_ids, processor_id, run_name, device_config_name
+        )
 
         # Create job.
         processor_selector = (
@@ -1124,26 +1126,25 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
         f"datetime.date"
     )
 
+
 def _validate_create_job_processor_and_config_selection(
-        processor_ids: Optional[Sequence[str]],
-        processor_id: str,
-        run_name: str,
-        device_config_name: str,
-      ):
-      """ Validates create job arguments that select the processor and device configuration
-      Raises:
-            ValueError: If exactly one of `processor_ids` and `processor_id` is not set.
-            ValueError: If either `run_name` and `device_config_name` are set but
-                `processor_id` is empty.
-            ValueError: If `run_name` is set but `device_config_name` is empty.
-      """
-      if not (bool(processor_id) ^ bool(processor_ids)):
-            raise ValueError(
-                'Exactly one of `processor_ids` and `processor_id` must be set'
-            )
-      if not processor_id and (run_name or device_config_name):
-          raise ValueError(
-              'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
-          )
-      if bool(run_name) ^ bool(device_config_name):
-          raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
+    processor_ids: Optional[Sequence[str]],
+    processor_id: str,
+    run_name: str,
+    device_config_name: str,
+):
+    """Validates create job arguments that select the processor and device configuration
+    Raises:
+          ValueError: If exactly one of `processor_ids` and `processor_id` is not set.
+          ValueError: If either `run_name` and `device_config_name` are set but
+              `processor_id` is empty.
+          ValueError: If `run_name` is set but `device_config_name` is empty.
+    """
+    if not (bool(processor_id) ^ bool(processor_ids)):
+        raise ValueError('Exactly one of `processor_ids` and `processor_id` must be set')
+    if not processor_id and (run_name or device_config_name):
+        raise ValueError(
+            'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
+        )
+    if bool(run_name) ^ bool(device_config_name):
+        raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')

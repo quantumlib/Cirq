@@ -468,17 +468,43 @@ def test_create_job_with_legacy_processor_ids(client_constructor):
             priority=5000,
         )
 
+
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
-  'processor_ids, processor_id, run_name, device_config_name, error_message',
-  [
-    (['processor0'], '', 'RUN_NAME', 'CONFIG_ALIAS', 'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty'),
-    (['processor0'], 'processor0', '', '', 'Exactly one of `processor_ids` and `processor_id` must be set'),
-    (None, '', '', '', 'Exactly one of `processor_ids` and `processor_id` must be set'),
-    (None, 'processor0', 'RUN_NAME', '', 'Cannot specify only one of `run_name` and `device_config_name`'),
-    (None, 'processor0', '', 'CONFIG_ALIAS', 'Cannot specify only one of `run_name` and `device_config_name`')
-  ])
+    'processor_ids, processor_id, run_name, device_config_name, error_message',
+    [
+        (
+            ['processor0'],
+            '',
+            'RUN_NAME',
+            'CONFIG_ALIAS',
+            'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty',
+        ),
+        (
+            ['processor0'],
+            'processor0',
+            '',
+            '',
+            'Exactly one of `processor_ids` and `processor_id` must be set',
+        ),
+        (None, '', '', '', 'Exactly one of `processor_ids` and `processor_id` must be set'),
+        (
+            None,
+            'processor0',
+            'RUN_NAME',
+            '',
+            'Cannot specify only one of `run_name` and `device_config_name`',
+        ),
+        (
+            None,
+            'processor0',
+            '',
+            'CONFIG_ALIAS',
+            'Cannot specify only one of `run_name` and `device_config_name`',
+        ),
+    ],
+)
 def test_create_job_with_invalid_processor_and_device_config_arguments_throw(
     client_constructor, processor_ids, processor_id, run_name, device_config_name, error_message
 ):
@@ -487,10 +513,7 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throw(
     grpc_client.create_quantum_job.return_value = result
     client = EngineClient()
 
-    with pytest.raises(
-        ValueError,
-        match=error_message,
-    ):
+    with pytest.raises(ValueError, match=error_message):
         client.create_job(
             project_id='proj',
             program_id='prog',
