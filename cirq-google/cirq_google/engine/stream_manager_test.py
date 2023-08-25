@@ -54,9 +54,14 @@ REQUEST_JOB0 = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
 REQUEST_JOB1 = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job1')
 
 
-def setup(client_constructor) -> Tuple['FakeQuantumRunStream', StreamManager]:
+def setup_client(client_constructor):
     fake_client = FakeQuantumRunStream()
     client_constructor.return_value = fake_client
+    return fake_client
+
+
+def setup(client_constructor):
+    fake_client = setup_client(client_constructor)
     return fake_client, StreamManager(fake_client)
 
 
@@ -66,9 +71,11 @@ class FakeQuantumRunStream:
     def __init__(self):
         self.stream_requests: List[quantum.QuantumRunStreamRequest] = []
         self.cancel_requests: List[quantum.CancelQuantumJobRequest] = []
-        self._responses_and_exceptions = asyncio.Queue()
         self._executor = AsyncioExecutor.instance()
-        self._request_ready = duet.AwaitableFuture()
+        self._request_ready = duet.AsyncCollector[None]()
+        # asyncio.Queue needs to be initialized inside the asyncio thread because all callers need
+        # to use the same event loop.
+        self._responses_and_exceptions_future = duet.AwaitableFuture[asyncio.Queue]()
 
     async def quantum_run_stream(
         self, requests: AsyncIterator[quantum.QuantumRunStreamRequest], **kwargs
@@ -81,34 +88,45 @@ class FakeQuantumRunStream:
         The response is sent when a test calls `reply()` with a `QuantumRunStreamResponse`. If a
         test calls `reply()` with an exception, it is raised here to the `quantum_run_stream()`
         caller.
+
+        This is called from the asyncio thread.
         """
+        responses_and_exceptions = asyncio.Queue()
+        self._responses_and_exceptions_future.try_set_result(responses_and_exceptions)
 
         async def read_requests():
             async for request in requests:
                 self.stream_requests.append(request)
-                self._request_ready.try_set_result(None)
+                self._request_ready.add(None)
 
         async def response_iterator():
             asyncio.create_task(read_requests())
             while True:
-                response_or_exception = await self._responses_and_exceptions.get()
+                response_or_exception = await responses_and_exceptions.get()
                 if isinstance(response_or_exception, quantum.QuantumRunStreamResponse):
                     yield response_or_exception
                 else:  # isinstance(response_or_exception, BaseException)
+                    self._responses_and_exceptions_future = duet.AwaitableFuture[asyncio.Queue]()
                     raise response_or_exception
 
         await asyncio.sleep(0)
         return response_iterator()
 
     async def cancel_quantum_job(self, request: quantum.CancelQuantumJobRequest) -> None:
-        """Records the cancellation in `cancel_requests`."""
+        """Records the cancellation in `cancel_requests`.
+
+        This is called from the asyncio thread.
+        """
         self.cancel_requests.append(request)
         await asyncio.sleep(0)
 
-    async def wait_for_request(self):
-        """Wait til a request is received via `quantum_run_stream()`."""
-        await self._request_ready
-        self._request_ready = duet.AwaitableFuture()
+    async def wait_for_requests(self, num_requests=1):
+        """Wait til `num_requests` number of requests are received via `quantum_run_stream()`.
+
+        This must be called from the duet thread.
+        """
+        for _ in range(num_requests):
+            await anext(self._request_ready)
 
     async def reply(
         self, response_or_exception: Union[quantum.QuantumRunStreamResponse, BaseException]
@@ -118,7 +136,12 @@ class FakeQuantumRunStream:
         If input response is missing `message_id`, it is defaulted to the `message_id` of the most
         recent request. This is to support the most common use case of responding immediately after
         a request.
+
+        Assumes that at least one request must have been submitted to the StreamManager.
+
+        This must be called from the duet thread.
         """
+        responses_and_exceptions = await self._responses_and_exceptions_future
         if (
             isinstance(response_or_exception, quantum.QuantumRunStreamResponse)
             and not response_or_exception.message_id
@@ -126,7 +149,7 @@ class FakeQuantumRunStream:
             response_or_exception.message_id = self.stream_requests[-1].message_id
 
         async def send():
-            await self._responses_and_exceptions.put(response_or_exception)
+            await responses_and_exceptions.put(response_or_exception)
 
         await self._executor.submit(send)
 
@@ -241,7 +264,7 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(quantum.QuantumRunStreamResponse(result=expected_result))
                 actual_result = await actual_result_future
                 manager.stop()
@@ -298,11 +321,11 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(google_exceptions.ServiceUnavailable('unavailable'))
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(google_exceptions.ServiceUnavailable('unavailable'))
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(quantum.QuantumRunStreamResponse(result=expected_result))
                 actual_result = await actual_result_future
                 manager.stop()
@@ -334,9 +357,9 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(error)
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(quantum.QuantumRunStreamResponse(result=expected_result))
                 await actual_result_future
                 manager.stop()
@@ -373,7 +396,7 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(error)
                 with pytest.raises(type(error)):
                     await actual_result_future
@@ -394,7 +417,7 @@ class TestStreamManager:
                 actual_job_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(quantum.QuantumRunStreamResponse(job=expected_job))
                 actual_job = await actual_job_future
                 manager.stop()
@@ -415,15 +438,15 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(google_exceptions.ServiceUnavailable('unavailable'))
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
                         error=quantum.StreamError(code=quantum.StreamError.Code.JOB_DOES_NOT_EXIST)
                     )
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(quantum.QuantumRunStreamResponse(result=expected_result))
                 actual_result = await actual_result_future
                 manager.stop()
@@ -448,15 +471,15 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(google_exceptions.ServiceUnavailable('unavailable'))
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
                         error=quantum.StreamError(code=quantum.StreamError.Code.JOB_DOES_NOT_EXIST)
                     )
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
                         error=quantum.StreamError(
@@ -464,7 +487,7 @@ class TestStreamManager:
                         )
                     )
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(quantum.QuantumRunStreamResponse(result=expected_result))
                 actual_result = await actual_result_future
                 manager.stop()
@@ -489,7 +512,7 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
                         error=quantum.StreamError(
@@ -514,11 +537,10 @@ class TestStreamManager:
                 actual_result0_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
                 actual_result1_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB1
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests(num_requests=2)
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
                         message_id=fake_client.stream_requests[0].message_id,
@@ -554,12 +576,12 @@ class TestStreamManager:
                 actual_result0_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
                 actual_result1_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB1
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests(num_requests=2)
                 await fake_client.reply(google_exceptions.ServiceUnavailable('unavailable'))
+                await fake_client.wait_for_requests(num_requests=2)
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
                         message_id=next(
@@ -605,7 +627,7 @@ class TestStreamManager:
                 )
                 # Wait for the manager to submit a request. If request submission runs after stop(),
                 # it will start the manager again and the test will block waiting for a response.
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 manager.stop()
 
                 with pytest.raises(concurrent.futures.CancelledError):
@@ -625,7 +647,7 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
                 )
-                await fake_client.wait_for_request()
+                await fake_client.wait_for_requests()
                 await fake_client.reply(quantum.QuantumRunStreamResponse(result=expected_result))
                 actual_result = await actual_result_future
                 manager.stop()
