@@ -408,18 +408,17 @@ class EngineClient:
             processor_id: Processor id for running the program. If not set,
                 `processor_ids` will be used.
             run_name: A unique identifier representing an automation run for the
-                specified processor (given by `processor_id`). An Automation Run contains a
-                collection of device configurations for a processor.
+                specified processor. An Automation Run contains a collection of
+                device configurations for a processor. If specified, `processor_id`
+                is required to be set.
             device_config_name: Configuration identifier used to identify a processor configuration
-                within the automation run.
-
+                within the automation run. If specified, `processor_id` is required to be set.
         Returns:
             Tuple of created job id and job.
 
         Raises:
             ValueError: If the priority is not between 0 and 1000.
-            ValueError: If `processor_ids` and `processor_id` are both set.
-            ValueError: If neither `processor_ids` or `processor_id` are set.
+            ValueError: If exactly one of `processor_ids` and `processor_id` is not set.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
             ValueError: If `run_name` is set but `device_config_name` is empty.
@@ -427,19 +426,7 @@ class EngineClient:
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
-        if processor_id and processor_ids:
-            raise ValueError(
-                '`processor_ids` and `processor_id` cannot both be set.'
-                'Please just use `processor_id` instead.'
-            )
-        if not processor_id and not processor_ids:
-            raise ValueError('`processor_id` must be set.')
-        if not processor_id and (run_name or device_config_name):
-            raise ValueError(
-                'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
-            )
-        if bool(run_name) ^ bool(device_config_name):
-            raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
+        _validate_create_job_processor_and_config_selection(processor_ids, processor_id, run_name, device_config_name)
 
         # Create job.
         processor_selector = (
@@ -1136,3 +1123,27 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
         f"type {type(param)}. Supported types: datetime.datetime and"
         f"datetime.date"
     )
+
+def _validate_create_job_processor_and_config_selection(
+        processor_ids: Optional[Sequence[str]],
+        processor_id: str,
+        run_name: str,
+        device_config_name: str,
+      ):
+      """ Validates create job arguments that select the processor and device configuration
+      Raises:
+            ValueError: If exactly one of `processor_ids` and `processor_id` is not set.
+            ValueError: If either `run_name` and `device_config_name` are set but
+                `processor_id` is empty.
+            ValueError: If `run_name` is set but `device_config_name` is empty.
+      """
+      if not (bool(processor_id) ^ bool(processor_ids)):
+            raise ValueError(
+                'Exactly one of `processor_ids` and `processor_id` must be set'
+            )
+      if not processor_id and (run_name or device_config_name):
+          raise ValueError(
+              'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
+          )
+      if bool(run_name) ^ bool(device_config_name):
+          raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
