@@ -418,10 +418,10 @@ class EngineClient:
 
         Raises:
             ValueError: If the priority is not between 0 and 1000.
-            ValueError: If exactly one of `processor_ids` and `processor_id` is not set.
+            ValueError: If both `processor_id` and `processor_ids` are set or neither is set.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
-            ValueError: If `run_name` is set but `device_config_name` is empty.
+            ValueError: If  only one of `run_name` and `device_config_name` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
@@ -1135,10 +1135,10 @@ def _validate_create_job_processor_and_config_selection(
 ):
     """Validates create job arguments that select the processor and device configuration
     Raises:
-          ValueError: If exactly one of `processor_ids` and `processor_id` is not set.
+          ValueError: If both `processor_id` and `processor_ids` are set or neither is set.
           ValueError: If either `run_name` and `device_config_name` are set but
               `processor_id` is empty.
-          ValueError: If `run_name` is set but `device_config_name` is empty.
+          ValueError: If  only one of `run_name` and `device_config_name` are specified.
     """
     if not (bool(processor_id) ^ bool(processor_ids)):
         raise ValueError('Exactly one of `processor_ids` and `processor_id` must be set')
