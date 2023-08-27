@@ -297,10 +297,10 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         ret = super().remove_qubits(qubits)
         if ret is not NotImplemented:
             return ret
-        extracted, remainder = self.factor(qubits)
+        extracted, remainder = self.factor(qubits, inplace=True)
         remainder._state._density_matrix *= extracted._state._density_matrix.reshape(-1)[0]
         return remainder
-    
+
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
