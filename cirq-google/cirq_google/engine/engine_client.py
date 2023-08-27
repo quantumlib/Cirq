@@ -377,7 +377,8 @@ class EngineClient:
         deadline='v1.4',
         fix='Use `processor_id` instead of `processor_ids`.',
         parameter_desc='processor_ids',
-        match=lambda args, kwargs: 'processor_ids' in kwargs or len(args) > 3,
+        match=lambda args, kwargs: _match_deprecated_processor_ids(args, kwargs),
+        rewrite=lambda args, kwargs: _fix_create_job_processor_id_args_and_kwargs(args, kwargs),
     )
     async def create_job_async(
         self,
@@ -402,7 +403,10 @@ class EngineClient:
             job_id: Unique ID of the job within the parent program.
             run_context: Properly serialized run context.
             processor_ids: Deprecated list of processor ids for running the program.
-                `processor_id` should be used instead.
+                Only allowed to contain one processor_id. If the argument `processor_id`
+                is non-empty, `processor_ids` will be ignored. Otherwise the deprecated decorator will
+                fix the arguments and call create_job_async using `processor_id` instead
+                of `processor_ids`.
             priority: Optional priority to run at, 0-1000.
             description: Optional description to set on the job.
             labels: Optional set of labels to set on the job.
@@ -419,33 +423,26 @@ class EngineClient:
 
         Raises:
             ValueError: If the priority is not between 0 and 1000.
-            ValueError: If both `processor_id` and `processor_ids` are set or neither is set.
+            ValueError: If neither `processor_id` or `processor_ids` are set.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
+            ValueError: If `processor_ids` has more than one processor id.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
-        _validate_create_job_processor_and_config_selection(
-            processor_ids, processor_id, run_name, device_config_name
-        )
+        if not processor_id:
+            raise ValueError('Must specify a processor id when creating a job.')
+        if bool(run_name) ^ bool(device_config_name):
+            raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
         # Create job.
-        processor_selector = (
-            quantum.SchedulingConfig.ProcessorSelector(
-                processor_names=[
-                    _processor_name_from_ids(project_id, processor_id)
-                    for processor_id in processor_ids
-                ]
-            )
-            if (processor_ids is not None)
-            else quantum.SchedulingConfig.ProcessorSelector(
-                processor=_processor_name_from_ids(project_id, processor_id),
-                device_config_key=quantum.DeviceConfigKey(
-                    run_name=run_name, config_alias=device_config_name
-                ),
-            )
+        processor_selector = quantum.SchedulingConfig.ProcessorSelector(
+            processor=_processor_name_from_ids(project_id, processor_id),
+            device_config_key=quantum.DeviceConfigKey(
+                run_name=run_name, config_alias=device_config_name
+            ),
         )
 
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
@@ -1128,24 +1125,38 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
     )
 
 
-def _validate_create_job_processor_and_config_selection(
-    processor_ids: Optional[Sequence[str]],
-    processor_id: str,
-    run_name: str,
-    device_config_name: str,
-):
-    """Validates create job arguments that select the processor and device configuration
-    Raises:
-          ValueError: If both `processor_id` and `processor_ids` are set or neither is set.
-          ValueError: If either `run_name` and `device_config_name` are set but
-              `processor_id` is empty.
-          ValueError: If  only one of `run_name` and `device_config_name` are specified.
+def _fix_create_job_processor_id_args_and_kwargs(args, kwargs):
+    """Rewrites the create_job parameters so that `processor_id` is used instead of the deprecated
+    `processor_ids`.
+
+        Raises:
+            ValueError: If `processor_ids` has more than one processor id.
+            ValueError: If `run_name` or `device_config_name` are set but `processor_id` is not.
     """
-    if not (bool(processor_id) ^ bool(processor_ids)):
-        raise ValueError('Exactly one of `processor_ids` and `processor_id` must be set')
-    if not processor_id and (run_name or device_config_name):
-        raise ValueError(
-            'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
-        )
-    if bool(run_name) ^ bool(device_config_name):
-        raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
+
+    # Use `processor_id` keyword argument instead of `processor_ids`
+    processor_ids = args[4] if len(args) > 4 else kwargs['processor_ids']
+    if len(processor_ids) > 1:
+        raise ValueError("The use of multiple processors is no longer supported.")
+    if 'processor_id' not in kwargs or not kwargs['processor_id']:
+        if ('run_name' in kwargs and kwargs['run_name']) or (
+            'device_config_name' in kwargs and kwargs['device_config_name']
+        ):
+            raise ValueError(
+                'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
+            )
+        kwargs['processor_id'] = processor_ids[0]
+
+    # Erase `processor_ids` from args and kwargs
+    if len(args) > 4:
+        args_list = list(args)
+        args_list[4] = None
+        args = tuple(args_list)
+    else:
+        kwargs.pop('processor_ids')
+
+    return args, kwargs
+
+
+def _match_deprecated_processor_ids(args, kwargs):
+    return ('processor_ids' in kwargs and kwargs['processor_ids']) or len(args) > 4
