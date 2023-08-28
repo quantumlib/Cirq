@@ -64,7 +64,7 @@ class ReturnsMatrix(cirq.Gate):
         return m1
 
     def num_qubits(self):
-        return 1  # pragma: no cover
+        return 1  # coverage: ignore
 
 
 class FullyImplemented(cirq.Gate):
@@ -305,7 +305,8 @@ def test_unitary_from_apply_unitary():
         def qubits(self):
             return (self.q,)
 
-        def with_qubits(self, *new_qubits):  # pragma: no cover
+        def with_qubits(self, *new_qubits):
+            # coverage: ignore
             return ApplyOp(*new_qubits)
 
         def _apply_unitary_(self, args):
