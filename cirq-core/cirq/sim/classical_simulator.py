@@ -68,7 +68,9 @@ class ClassicalStateSimulator(SimulatesSamples):
                     values_dict[op.qubits[1]] = values_dict[op.qubits[0]]
                     values_dict[op.qubits[0]] = hold_qubit
 
-                elif isinstance(gate, ops.CCNotPow) and gate.exponent == 1 and gate.global_shift == 0:
+                elif (
+                    isinstance(gate, ops.CCNotPow) and gate.exponent == 1 and gate.global_shift == 0
+                ):
                     if (values_dict[op.qubits[0]] == 1) and (values_dict[op.qubits[1]] == 1):
                         values_dict[op.qubits[2]] = 1 - values_dict[op.qubits[2]]
 

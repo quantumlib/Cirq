@@ -170,9 +170,7 @@ class TestSimulator:
             circuit=circuit, param_resolver=resolver, repetitions=1
         )
         resolver = cirq.ParamResolver({'t': 1})
-        results_with_paramter_one = sim.run(
-            circuit=circuit, param_resolver=resolver, repetitions=1
-        )
+        results_with_paramter_one = sim.run(circuit=circuit, param_resolver=resolver, repetitions=1)
         np.testing.assert_equal(
             results_with_paramter_zero, {'key': np.array([[[0]]], dtype=np.uint8)}
         )
