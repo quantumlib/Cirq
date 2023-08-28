@@ -404,9 +404,9 @@ class EngineClient:
             run_context: Properly serialized run context.
             processor_ids: Deprecated list of processor ids for running the program.
                 Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored. Otherwise the deprecated decorator will
-                fix the arguments and call create_job_async using `processor_id` instead
-                of `processor_ids`.
+                is non-empty, `processor_ids` will be ignored. Otherwise the deprecated
+                decorator will fix the arguments and call create_job_async using
+                `processor_id` instead of `processor_ids`.
             priority: Optional priority to run at, 0-1000.
             description: Optional description to set on the job.
             labels: Optional set of labels to set on the job.
@@ -424,10 +424,10 @@ class EngineClient:
         Raises:
             ValueError: If the priority is not between 0 and 1000.
             ValueError: If neither `processor_id` or `processor_ids` are set.
-            ValueError: If either `run_name` and `device_config_name` are set but
-                `processor_id` is empty.
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
             ValueError: If `processor_ids` has more than one processor id.
+            ValueError: If either `run_name` and `device_config_name` are set but
+                `processor_id` is empty.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
@@ -438,17 +438,17 @@ class EngineClient:
             raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
         # Create job.
-        processor_selector = quantum.SchedulingConfig.ProcessorSelector(
-            processor=_processor_name_from_ids(project_id, processor_id),
-            device_config_key=quantum.DeviceConfigKey(
-                run_name=run_name, config_alias=device_config_name
-            ),
-        )
-
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
             name=job_name,
-            scheduling_config=quantum.SchedulingConfig(processor_selector=processor_selector),
+            scheduling_config=quantum.SchedulingConfig(
+                processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                    processor=_processor_name_from_ids(project_id, processor_id),
+                    device_config_key=quantum.DeviceConfigKey(
+                        run_name=run_name, config_alias=device_config_name
+                    ),
+                )
+            ),
             run_context=run_context,
         )
         if priority:
