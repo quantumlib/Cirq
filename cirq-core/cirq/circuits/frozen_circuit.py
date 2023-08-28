@@ -84,7 +84,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         """Returns a tuple of the Circuit's tags."""
         return self._tags
 
-    @property
+    @_compat.cached_property
     def untagged(self) -> 'cirq.FrozenCircuit':
         """Returns the underlying FrozenCircuit without any tags."""
         return self._from_moments(self._moments) if self.tags else self
@@ -93,7 +93,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         """Creates a new tagged `FrozenCircuit` with `self.tags` and `new_tags` combined."""
         if not new_tags:
             return self
-        new_circuit = FrozenCircuit(tags=self.tags + tuple(new_tags))
+        new_circuit = FrozenCircuit(tags=self.tags + new_tags)
         new_circuit._moments = self._moments
         return new_circuit
 
