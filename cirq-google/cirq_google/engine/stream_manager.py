@@ -238,6 +238,13 @@ class StreamManager:
             project_name: The full project ID resource path associated with the job.
             program: The Quantum Engine program representing the circuit to be executed.
             job: The Quantum Engine job to be executed.
+
+        Raises:
+            concurrent.futures.CancelledError: if either the request is cancelled or the stream
+                coroutine is cancelled.
+            google.api_core.exceptions.GoogleAPICallError: if the stream breaks with a non-retryable
+                error.
+            ValueError: if the response is of a type which is not recognized by this client.
         """
         create_program_and_job_request = quantum.QuantumRunStreamRequest(
             parent=project_name,
