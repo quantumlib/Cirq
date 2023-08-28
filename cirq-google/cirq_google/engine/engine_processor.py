@@ -102,15 +102,25 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    def get_sampler(self) -> 'cg.engine.ProcessorSampler':
+    def get_sampler(
+        self, run_name: str = "", device_config_name=""
+    ) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
-
+        Args:
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.1
         """
-        return processor_sampler.ProcessorSampler(processor=self)
+        return processor_sampler.ProcessorSampler(
+            processor=self, run_name=run_name, device_config_name=device_config_name
+        )
 
     async def run_batch_async(
         self,
@@ -123,6 +133,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuits on this processor.
 
@@ -154,16 +166,27 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
         Returns:
             An `abstract_job.AbstractJob`. If this is iterated over it returns
             a list of `cirq.Result`. All Results for the first circuit are listed
             first, then the Results for the second, etc. The Results
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
+        Raises:
+            ValueError: If neither `processor_id` or `processor_ids` are set.
+            ValueError: If  only one of `run_name` and `device_config_name` are specified.
+            ValueError: If `processor_ids` has more than one processor id.
+            ValueError: If either `run_name` and `device_config_name` are set but
+                `processor_id` is empty.
         """
         return await self.engine().run_batch_async(
             programs=programs,
-            processor_ids=[self.processor_id],
             program_id=program_id,
             params_list=list(params_list) if params_list is not None else None,
             repetitions=repetitions,
@@ -171,6 +194,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             program_labels=program_labels,
             job_description=job_description,
             job_labels=job_labels,
+            processor_id=self.processor_id,
+            run_name=run_name,
+            device_config_name=device_config_name,
         )
 
     async def run_calibration_async(
@@ -237,6 +263,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
@@ -261,12 +289,23 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.
+        Raises:
+            ValueError: If neither `processor_id` or `processor_ids` are set.
+            ValueError: If  only one of `run_name` and `device_config_name` are specified.
+            ValueError: If `processor_ids` has more than one processor id.
+            ValueError: If either `run_name` and `device_config_name` are set but
+                `processor_id` is empty.
         """
         return await self.engine().run_sweep_async(
-            processor_ids=[self.processor_id],
             program=program,
             program_id=program_id,
             job_id=job_id,
@@ -276,6 +315,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             program_labels=program_labels,
             job_description=job_description,
             job_labels=job_labels,
+            processor_id=self.processor_id,
+            run_name=run_name,
+            device_config_name=device_config_name,
         )
 
     def _inner_processor(self) -> quantum.QuantumProcessor:

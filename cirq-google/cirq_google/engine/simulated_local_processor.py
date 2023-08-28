@@ -158,8 +158,10 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             if earliest_timestamp_seconds <= cal[0] <= latest_timestamp_seconds
         ]
 
-    def get_sampler(self) -> ProcessorSampler:
-        return ProcessorSampler(processor=self)
+    def get_sampler(self, run_name: str = "", device_config_name="") -> ProcessorSampler:
+        return ProcessorSampler(
+            processor=self, run_name=run_name, device_config_name=device_config_name
+        )
 
     def supported_languages(self) -> List[str]:
         return VALID_LANGUAGES
@@ -208,6 +210,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> SimulatedLocalJob:
         if program_id is None:
             program_id = self._create_id(id_type='program')
@@ -244,6 +248,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> SimulatedLocalJob:
         if program_id is None:
             program_id = self._create_id(id_type='program')
