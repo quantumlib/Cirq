@@ -105,7 +105,13 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
         key = msg.single_sweep.parameter_key
         if msg.single_sweep.HasField("parameter"):
             metadata = DeviceParameter(
-                path=msg.single_sweep.parameter.path, idx=msg.single_sweep.parameter.idx
+                path=msg.single_sweep.parameter.path,
+                idx=msg.single_sweep.parameter.idx
+                if msg.single_sweep.parameter.HasField("idx")
+                else None,
+                units=msg.single_sweep.parameter.units
+                if msg.single_sweep.parameter.HasField("units")
+                else None,
             )
         else:
             metadata = None
