@@ -272,12 +272,15 @@ class AbstractCircuit(abc.ABC):
     def __str__(self) -> str:
         return self.to_text_diagram()
 
-    def __repr__(self) -> str:
-        cls_name = self.__class__.__name__
+    def _repr_args(self) -> str:
         args = []
         if self.moments:
             args.append(_list_repr_with_indented_item_lines(self.moments))
-        return f'cirq.{cls_name}({", ".join(args)})'
+        return f'{", ".join(args)}'
+
+    def __repr__(self) -> str:
+        cls_name = self.__class__.__name__
+        return f'cirq.{cls_name}({self._repr_args()})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Print ASCII diagram in Jupyter."""
@@ -1791,7 +1794,6 @@ class Circuit(AbstractCircuit):
 
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
-
             # Identify the index of the moment to place this `mop` into.
             placement_index = get_earliest_accommodating_moment_index(
                 mop, qubit_indices, mkey_indices, ckey_indices, length
@@ -2450,7 +2452,6 @@ def _draw_moment_annotations(
     first_annotation_row: int,
     transpose: bool,
 ):
-
     for k, annotation in enumerate(_get_moment_annotations(moment)):
         args = protocols.CircuitDiagramInfoArgs(
             known_qubits=(),
