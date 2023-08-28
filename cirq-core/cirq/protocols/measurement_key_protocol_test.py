@@ -146,7 +146,7 @@ def test_non_measurement_with_key():
             assert False
 
         def num_qubits(self) -> int:
-            return 2  # coverage: ignore
+            return 2  # pragma: no cover
 
     assert not cirq.is_measurement(NonMeasurementGate())
 

@@ -220,7 +220,7 @@ def _print_version():
 
 def _add_print_version_cmd(subparsers):
     print_version_cmd = subparsers.add_parser(
-        "print_version", help="Check that all module versions are the same, " "and print it."
+        "print_version", help="Check that all module versions are the same, and print it."
     )
     print_version_cmd.set_defaults(func=_print_version)
 
@@ -319,4 +319,4 @@ def main(argv: List[str]):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])  # coverage: ignore
+    main(sys.argv[1:])  # pragma: no cover

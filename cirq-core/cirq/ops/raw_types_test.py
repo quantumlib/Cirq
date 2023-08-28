@@ -356,7 +356,7 @@ def test_gate_shape_protocol():
 def test_operation_shape():
     class FixedQids(cirq.Operation):
         def with_qubits(self, *new_qids):
-            raise NotImplementedError  # coverage: ignore
+            raise NotImplementedError  # pragma: no cover
 
     class QubitOp(FixedQids):
         @property

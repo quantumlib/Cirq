@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Objects and methods for acting efficiently on a density matrix."""
 
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
@@ -46,8 +47,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         if buffer is None:
             buffer = [np.empty_like(density_matrix) for _ in range(3)]
         self._buffer = buffer
-        if len(density_matrix.shape) % 2 != 0:
-            # coverage: ignore
+        if len(density_matrix.shape) % 2 != 0:  # pragma: no cover
             raise ValueError('The dimension of target_tensor is not divisible by 2.')
         self._qid_shape = density_matrix.shape[: len(density_matrix.shape) // 2]
 
@@ -85,7 +85,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
                     initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
                 ).reshape(qid_shape * 2)
             else:
-                density_matrix = initial_state  # coverage: ignore
+                density_matrix = initial_state  # pragma: no cover
             if np.may_share_memory(density_matrix, initial_state):
                 density_matrix = density_matrix.copy()
         density_matrix = density_matrix.astype(dtype, copy=False)
@@ -285,6 +285,22 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
+    def add_qubits(self, qubits: Sequence['cirq.Qid']):
+        ret = super().add_qubits(qubits)
+        return (
+            self.kronecker_product(type(self)(qubits=qubits), inplace=True)
+            if ret is NotImplemented
+            else ret
+        )
+
+    def remove_qubits(self, qubits: Sequence['cirq.Qid']):
+        ret = super().remove_qubits(qubits)
+        if ret is not NotImplemented:
+            return ret
+        extracted, remainder = self.factor(qubits, inplace=True)
+        remainder._state._density_matrix *= extracted._state._density_matrix.reshape(-1)[0]
+        return remainder
+
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
@@ -298,14 +314,14 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         for strat in strats:
             result = strat(action, self, qubits)
             if result is False:
-                break  # coverage: ignore
+                break  # pragma: no cover
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
         raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
-            "SupportsMixture or SupportsKraus or is a measurement: {!r}".format(action)
+            f"SupportsMixture or SupportsKraus or is a measurement: {action!r}"
         )
 
     def __repr__(self) -> str:

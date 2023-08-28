@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A protocol for implementing high performance mixture evolutions."""
 
 from typing import Any, cast, Iterable, Optional, Tuple, TypeVar, Union
@@ -245,9 +246,9 @@ def apply_mixture(
 
             def err_str(buf_num_str):
                 return (
-                    "Object of type '{}' returned a result object equal to "
-                    "auxiliary_buffer{}. This type violates the contract "
-                    "that appears in apply_mixture's documentation.".format(type(val), buf_num_str)
+                    f"Object of type '{type(val)}' returned a result object equal to "
+                    f"auxiliary_buffer{buf_num_str}. This type violates the contract "
+                    "that appears in apply_mixture's documentation."
                 )
 
             assert result is not args.auxiliary_buffer0, err_str('0')
@@ -269,9 +270,8 @@ def apply_mixture(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
-        "object of type '{}' has no _apply_mixture_, _apply_unitary_, "
-        "_unitary_, or _mixture_ methods (or they returned None or "
-        "NotImplemented).".format(type(val))
+        f"object of type '{type(val)}' has no _apply_mixture_, _apply_unitary_, "
+        "_unitary_, or _mixture_ methods (or they returned None or NotImplemented)."
     )
 
 
@@ -287,7 +287,7 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixt
         raise ValueError(
             'Invalid mixture qid shape is not equal to the '
             'selected left and right shape of target_tensor. '
-            'Got {!r} but expected {!r}.'.format(val_qid_shape, left_shape)
+            f'Got {val_qid_shape!r} but expected {left_shape!r}.'
         )
 
     if args.right_axes is not None:
@@ -298,7 +298,7 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixt
             raise ValueError(
                 'Invalid target_tensor shape or selected axes. '
                 'The selected left and right shape of '
-                'target_tensor are not equal. Got {!r} and {!r}.'.format(left_shape, right_shape)
+                f'target_tensor are not equal. Got {left_shape!r} and {right_shape!r}.'
             )
 
     return val, args, is_density_matrix

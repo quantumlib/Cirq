@@ -484,7 +484,7 @@ def test_assert_has_consistent_qid_shape():
 
     class ConsistentOp(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # coverage: ignore
+            raise NotImplementedError  # pragma: no cover
 
         @property
         def qubits(self):
@@ -496,47 +496,47 @@ def test_assert_has_consistent_qid_shape():
         def _qid_shape_(self):
             return (1, 2, 3, 4)
 
-    # The 'coverage: ignore' comments in the InconsistentOp classes is needed
+    # The 'pragma: no cover' comments in the InconsistentOp classes is needed
     # because test_assert_has_consistent_qid_shape may only need to check two of
     # the three methods before finding an inconsistency and throwing an error.
     class InconsistentOp1(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # coverage: ignore
+            raise NotImplementedError  # pragma: no cover
 
         @property
         def qubits(self):
             return cirq.LineQubit.range(2)
 
         def _num_qubits_(self):
-            return 4  # coverage: ignore
+            return 4  # pragma: no cover
 
         def _qid_shape_(self):
-            return (1, 2, 3, 4)  # coverage: ignore
+            return (1, 2, 3, 4)  # pragma: no cover
 
     class InconsistentOp2(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # coverage: ignore
+            raise NotImplementedError  # pragma: no cover
 
         @property
         def qubits(self):
-            return cirq.LineQubit.range(4)  # coverage: ignore
+            return cirq.LineQubit.range(4)  # pragma: no cover
 
         def _num_qubits_(self):
             return 2
 
         def _qid_shape_(self):
-            return (1, 2, 3, 4)  # coverage: ignore
+            return (1, 2, 3, 4)  # pragma: no cover
 
     class InconsistentOp3(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # coverage: ignore
+            raise NotImplementedError  # pragma: no cover
 
         @property
         def qubits(self):
-            return cirq.LineQubit.range(4)  # coverage: ignore
+            return cirq.LineQubit.range(4)  # pragma: no cover
 
         def _num_qubits_(self):
-            return 4  # coverage: ignore
+            return 4  # pragma: no cover
 
         def _qid_shape_(self):
             return 1, 2

@@ -33,7 +33,7 @@ class BernoulliSynthesizer(cirq_ft.PrepareOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(q=(self.nqubits, 2))
+        return cirq_ft.SelectionRegisters([cirq_ft.SelectionRegister('q', self.nqubits, 2)])
 
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid]
@@ -60,7 +60,9 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(q=(self.selection_bitsize, 2))
+        return cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('q', self.selection_bitsize, 2)]
+        )
 
     @cached_property
     def target_registers(self) -> cirq_ft.Registers:
@@ -74,9 +76,9 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
 
         for y0, y1, tq in zip(y0_bin, y1_bin, t):
             if y0:
-                yield cirq.X(tq).controlled_by(  # coverage: ignore
-                    *q, control_values=[0] * self.selection_bitsize  # coverage: ignore
-                )  # coverage: ignore
+                yield cirq.X(tq).controlled_by(  # pragma: no cover
+                    *q, control_values=[0] * self.selection_bitsize  # pragma: no cover
+                )  # pragma: no cover
             if y1:
                 yield cirq.X(tq).controlled_by(*q, control_values=[1] * self.selection_bitsize)
 
@@ -126,7 +128,7 @@ def satisfies_theorem_321(
 
     overlap_sum = 0.0
     eigvals, eigvects = cirq.linalg.unitary_eig(u)
-    for (eig_val, eig_vect) in zip(eigvals, eigvects.T):
+    for eig_val, eig_vect in zip(eigvals, eigvects.T):
         theta = np.abs(np.angle(eig_val))
         hav_theta = np.sin(theta / 2)
         overlap_prob = overlap(prep_state, eig_vect)
@@ -173,7 +175,7 @@ class GroverSynthesizer(cirq_ft.PrepareOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(selection=(self.n, 2**self.n))
+        return cirq_ft.SelectionRegisters.build(selection=self.n)
 
     def decompose_from_registers(  # type:ignore[override]
         self, *, context, selection: Sequence[cirq.Qid]
@@ -183,7 +185,7 @@ class GroverSynthesizer(cirq_ft.PrepareOracle):
     def __pow__(self, power):
         if power in [+1, -1]:
             return self
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
 
 @frozen
@@ -200,7 +202,7 @@ class GroverEncoder(cirq_ft.SelectOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(selection=(self.n, 2**self.n))
+        return cirq_ft.SelectionRegisters.build(selection=self.n)
 
     @cached_property
     def target_registers(self) -> cirq_ft.Registers:
@@ -209,8 +211,10 @@ class GroverEncoder(cirq_ft.SelectOracle):
     def decompose_from_registers(  # type:ignore[override]
         self, context, *, selection: Sequence[cirq.Qid], target: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
-        selection_cv = [*bit_tools.iter_bits(self.marked_item, self.selection_registers.bitsize)]
-        yval_bin = [*bit_tools.iter_bits(self.marked_val, self.target_registers.bitsize)]
+        selection_cv = [
+            *bit_tools.iter_bits(self.marked_item, self.selection_registers.total_bits())
+        ]
+        yval_bin = [*bit_tools.iter_bits(self.marked_val, self.target_registers.total_bits())]
 
         for b, q in zip(yval_bin, target):
             if b:

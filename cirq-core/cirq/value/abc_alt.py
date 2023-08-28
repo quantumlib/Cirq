@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A more flexible abstract base class metaclass ABCMetaImplementAnyOneOf."""
 
 import abc
@@ -91,9 +92,9 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                 value = getattr(cls, name)
             except AttributeError:
                 raise TypeError(
-                    'A method named \'{}\' was listed as a possible '
+                    f"A method named '{name}' was listed as a possible "
                     'implementation alternative but it does not exist in the '
-                    'definition of {!r}.'.format(name, cls)
+                    f'definition of {cls!r}.'
                 )
             if getattr(value, '__isabstractmethod__', False):
                 return False

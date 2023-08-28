@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A protocol for implementing high performance channel evolutions."""
 
 from typing import Any, Iterable, Optional, Sequence, TypeVar, Tuple, Union
@@ -224,13 +225,13 @@ def apply_channel(
         raise ValueError(
             'Invalid target_tensor shape or selected axes. '
             'The selected left and right shape of target_tensor '
-            'are not equal. Got {!r} and {!r}.'.format(left_shape, right_shape)
+            f'are not equal. Got {left_shape!r} and {right_shape!r}.'
         )
     if val_qid_shape != left_shape:
         raise ValueError(
             'Invalid channel qid shape is not equal to the '
             'selected left and right shape of target_tensor. '
-            'Got {!r} but expected {!r}.'.format(val_qid_shape, left_shape)
+            f'Got {val_qid_shape!r} but expected {left_shape!r}.'
         )
 
     # Check if the specialized method is present.
@@ -240,9 +241,9 @@ def apply_channel(
 
             def err_str(buf_num_str):
                 return (
-                    "Object of type '{}' returned a result object equal to "
-                    "auxiliary_buffer{}. This type violates the contract "
-                    "that appears in apply_channel's documentation.".format(type(val), buf_num_str)
+                    f"Object of type '{type(val)}' returned a result object equal to "
+                    f"auxiliary_buffer{buf_num_str}. This type violates the contract "
+                    "that appears in apply_channel's documentation."
                 )
 
             assert result is not args.auxiliary_buffer0, err_str('0')
@@ -263,9 +264,9 @@ def apply_channel(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
-        "object of type '{}' has no _apply_channel_, _apply_unitary_, "
+        f"object of type '{type(val)}' has no _apply_channel_, _apply_unitary_, "
         "_unitary_, or _kraus_ methods (or they returned None or "
-        "NotImplemented).".format(type(val))
+        "NotImplemented)."
     )
 
 

@@ -13,13 +13,13 @@
 # limitations under the License.
 
 from typing import List, Optional, Sequence, Tuple
+from numpy.typing import NDArray
 
 import cirq
 import numpy as np
 from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import qrom, swap_network
-from numpy.typing import NDArray
 
 
 def find_optimal_log_block_size(iteration_length: int, target_bitsize: int) -> int:
@@ -124,7 +124,7 @@ class SelectSwapQROM(infra.GateWithRegisters):
         assert len(target_bitsizes) == len(data)
         assert all(t >= max(d).bit_length() for t, d in zip(target_bitsizes, data))
         self._num_sequences = len(data)
-        self._target_bitsizes = target_bitsizes
+        self._target_bitsizes = tuple(target_bitsizes)
         self._iteration_length = len(data[0])
         if block_size is None:
             # Figure out optimal value of block_size
@@ -139,8 +139,12 @@ class SelectSwapQROM(infra.GateWithRegisters):
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            selection=(self.selection_q + self.selection_r, self._iteration_length)
+        return infra.SelectionRegisters(
+            [
+                infra.SelectionRegister(
+                    'selection', self.selection_q + self.selection_r, self._iteration_length
+                )
+            ]
         )
 
     @cached_property
@@ -177,7 +181,10 @@ class SelectSwapQROM(infra.GateWithRegisters):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         # Divide each data sequence and corresponding target registers into
         # `self.num_blocks` batches of size `self.block_size`.
@@ -208,7 +215,7 @@ class SelectSwapQROM(infra.GateWithRegisters):
             selection=q, **qrom_gate.target_registers.split_qubits(ordered_target_qubits)
         )
         swap_with_zero_gate = swap_network.SwapWithZeroGate(
-            k, self.target_registers.bitsize, self.block_size
+            k, self.target_registers.total_bits(), self.block_size
         )
         swap_with_zero_op = swap_with_zero_gate.on_registers(
             selection=r, **swap_with_zero_gate.target_registers.split_qubits(ordered_target_qubits)
@@ -231,7 +238,7 @@ class SelectSwapQROM(infra.GateWithRegisters):
         wire_symbols = ["In_q"] * self.selection_q
         wire_symbols += ["In_r"] * self.selection_r
         for i, target in enumerate(self.target_registers):
-            wire_symbols += [f"QROAM_{i}"] * target.bitsize
+            wire_symbols += [f"QROAM_{i}"] * target.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def _value_equality_values_(self):

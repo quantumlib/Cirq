@@ -160,7 +160,7 @@ def final_state_vector(
             "because it is not unitary. "
             "Maybe you wanted `cirq.final_density_matrix`?\n"
             "\n"
-            "Program: {!r}".format(circuit_like)
+            f"Program: {circuit_like!r}"
         )
 
     result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(

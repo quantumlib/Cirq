@@ -164,13 +164,12 @@ def kraus(
 
     if kraus_getter is None and unitary_getter is None and mixture_getter is None:
         raise TypeError(
-            "object of type '{}' has no _kraus_ or _mixture_ or "
-            "_unitary_ method.".format(type(val))
+            f"object of type '{type(val)}' has no _kraus_ or _mixture_ or _unitary_ method."
         )
 
     raise TypeError(
-        "object of type '{}' does have a _kraus_, _mixture_ or "
-        "_unitary_ method, but it returned NotImplemented.".format(type(val))
+        f"object of type '{type(val)}' does have a _kraus_, _mixture_ or "
+        "_unitary_ method, but it returned NotImplemented."
     )
 
 

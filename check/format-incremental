@@ -6,8 +6,7 @@
 # Usage:
 #     check/format-incremental [BASE_REVISION] [--apply] [--all]
 #
-# By default, the script runs flynt to convert old string literal formatting to f-strings
-# and analyzes python files that have changed relative to the
+# By default, the script analyzes python files that have changed relative to the
 # base revision and determines whether they need to be formatted. If any changes
 # are needed, it prints the diff and exits with code 1, otherwise it exits with
 # code 0.
@@ -73,8 +72,8 @@ if (( only_changed == 1 )); then
             exit 1
         fi
     fi
-    base="$(git merge-base ${rev} HEAD)"
-    if [ "$(git rev-parse ${rev})" == "${base}" ]; then
+    base="$(git merge-base "${rev}" HEAD)"
+    if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
         echo -e "Comparing against revision '${rev}'." >&2
     else
         echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
@@ -95,14 +94,6 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
-flynt_args=("--quiet" "-f")
-if (( only_print == 1 )); then
-    flynt_args+=("--dry-run")
-fi
-
-flynt "${format_files[@]}" "${flynt_args[@]}"
-FLYNTSTATUS=$?
-
 BLACKVERSION="$(black --version)"
 
 echo "Running the black formatter... (version: $BLACKVERSION)"
@@ -115,7 +106,7 @@ fi
 black "${args[@]}" "${format_files[@]}"
 BLACKSTATUS=$?
 
-if [[ "$FLYNTSTATUS" != "0" || "$BLACKSTATUS" != "0"  ]]; then
+if [[ "$BLACKSTATUS" != "0"  ]]; then
   exit 1
 fi
 exit 0

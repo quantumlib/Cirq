@@ -291,7 +291,7 @@ class _IonQClient:
         """
         cirq_version_string = f'cirq/{cirq_version}'
         python_version_string = f'python/{platform.python_version()}'
-        return f'User-Agent: {cirq_version_string} ({python_version_string})'
+        return f'{cirq_version_string} ({python_version_string})'
 
     def _target(self, target: Optional[str]) -> str:
         """Returns the target if not None or the default target.
@@ -345,8 +345,8 @@ class _IonQClient:
                     error = {}
                     try:
                         error = response.json()
-                    except jd.JSONDecodeError:  # coverage: ignore
-                        pass  # coverage: ignore
+                    except jd.JSONDecodeError:  # pragma: no cover
+                        pass  # pragma: no cover
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
                         f'Request Body: {json} '

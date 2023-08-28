@@ -10,6 +10,9 @@ circuits and running them against quantum computers and simulators.
   :target: https://github.com/quantumlib/Cirq
   :alt: Build Status
 
+.. image:: https://codecov.io/gh/quantumlib/Cirq/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/quantumlib/Cirq
+
 .. image:: https://badge.fury.io/py/cirq.svg
   :target: https://badge.fury.io/py/cirq
 

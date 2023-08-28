@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2023 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,4 +14,4 @@
 
 """Define version number here, read it from setup.py automatically"""
 
-__version__ = "1.2.0.dev"
+__version__ = "1.3.0.dev"

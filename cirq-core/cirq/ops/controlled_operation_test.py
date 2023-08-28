@@ -446,10 +446,10 @@ def test_controlled_operation_gate():
     class Gateless(cirq.Operation):
         @property
         def qubits(self):
-            return ()  # coverage: ignore
+            return ()  # pragma: no cover
 
         def with_qubits(self, *new_qubits):
-            return self  # coverage: ignore
+            return self  # pragma: no cover
 
         def _has_mixture_(self):
             return True

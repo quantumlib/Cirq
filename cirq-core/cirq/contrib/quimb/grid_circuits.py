@@ -54,12 +54,12 @@ def get_grid_moments(
             for col in range(col_start + col_start_offset, col_end + col_end_offset, col_step):
                 node1 = (row, col)
                 if node1 not in problem_graph.nodes:
-                    continue  # coverage: ignore
+                    continue  # pragma: no cover
                 node2 = get_neighbor(row, col)
                 if node2 not in problem_graph.nodes:
-                    continue  # coverage: ignore
+                    continue  # pragma: no cover
                 if (node1, node2) not in problem_graph.edges:
-                    continue  # coverage: ignore
+                    continue  # pragma: no cover
 
                 weight = problem_graph.edges[node1, node2].get('weight', 1)
                 yield two_qubit_gate(exponent=weight, global_shift=-0.5).on(
