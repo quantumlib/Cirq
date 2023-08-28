@@ -378,7 +378,7 @@ class EngineClient:
         fix='Use `processor_id` instead of `processor_ids`.',
         parameter_desc='processor_ids',
         match=lambda args, kwargs: _match_deprecated_processor_ids(args, kwargs),
-        rewrite=lambda args, kwargs: _fix_create_job_processor_id_args_and_kwargs(args, kwargs),
+        rewrite=lambda args, kwargs: rewrite_processor_ids_to_processor_id(args, kwargs),
     )
     async def create_job_async(
         self,
@@ -416,8 +416,10 @@ class EngineClient:
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
                 is required to be set.
-            device_config_name: Configuration identifier used to identify a processor configuration
-                within the automation run. If specified, `processor_id` is required to be set.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+                If specified, `processor_id` is required to be set.
         Returns:
             Tuple of created job id and job.
 
@@ -1125,7 +1127,7 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
     )
 
 
-def _fix_create_job_processor_id_args_and_kwargs(args, kwargs):
+def rewrite_processor_ids_to_processor_id(args, kwargs):
     """Rewrites the create_job parameters so that `processor_id` is used instead of the deprecated
     `processor_ids`.
 
