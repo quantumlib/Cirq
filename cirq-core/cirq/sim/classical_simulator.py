@@ -56,19 +56,19 @@ class ClassicalStateSimulator(SimulatesSamples):
         for moment in resolved_circuit:
             for op in moment:
                 gate = op.gate
-                if isinstance(gate, ops.XPowGate) and gate.exponent == 1 and gate.global_shift == 0:
+                if isinstance(gate, ops.X) and gate.exponent == 1 and gate.global_shift == 0:
                     values_dict[op.qubits[0]] = 1 - values_dict[op.qubits[0]]
 
-                elif isinstance(gate, ops.CNotPowGate) and gate.exponent == 1 and gate.global_shift == 0:
+                elif isinstance(gate, ops.CX) and gate.exponent == 1 and gate.global_shift == 0:
                     if values_dict[op.qubits[0]] == 1:
                         values_dict[op.qubits[1]] = 1 - values_dict[op.qubits[1]]
 
-                elif isinstance(gate, ops.SwapPowGate) and gate.exponent == 1 and gate.global_shift == 0:
+                elif isinstance(gate, ops.Swap) and gate.exponent == 1 and gate.global_shift == 0:
                     hold_qubit = values_dict[op.qubits[1]]
                     values_dict[op.qubits[1]] = values_dict[op.qubits[0]]
                     values_dict[op.qubits[0]] = hold_qubit
 
-                elif isinstance(gate, ops.CCXPowGate) and gate.exponent == 1 and gate.global_shift == 0:
+                elif isinstance(gate, ops.CCNotPow) and gate.exponent == 1 and gate.global_shift == 0:
                     if (values_dict[op.qubits[0]] == 1) and (values_dict[op.qubits[1]] == 1):
                         values_dict[op.qubits[2]] = 1 - values_dict[op.qubits[2]]
 
