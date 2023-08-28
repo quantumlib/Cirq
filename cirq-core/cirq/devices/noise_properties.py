@@ -97,7 +97,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             # only ops with PHYSICAL_GATE_TAG will receive noise.
             if virtual_ops:
                 # Only subclasses will trigger this case.
-                new_moments.append(circuits.Moment(virtual_ops))  # coverage: ignore
+                new_moments.append(circuits.Moment(virtual_ops))  # pragma: no cover
             if physical_ops:
                 new_moments.append(circuits.Moment(physical_ops))
 

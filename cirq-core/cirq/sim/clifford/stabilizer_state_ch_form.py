@@ -54,7 +54,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         self.omega: complex = 1
 
         # Apply X for every non-zero element of initial_state
-        for (i, val) in enumerate(
+        for i, val in enumerate(
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
             if val:
@@ -295,7 +295,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 != 0:
             if exponent % 0.5 != 0.0:
-                raise ValueError('X exponent must be half integer')  # coverage: ignore
+                raise ValueError('X exponent must be half integer')  # pragma: no cover
             self.apply_h(axis)
             self.apply_z(axis, exponent)
             self.apply_h(axis)
@@ -303,7 +303,7 @@ class StabilizerStateChForm(qis.StabilizerState):
 
     def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 0.5 != 0.0:
-            raise ValueError('Y exponent must be half integer')  # coverage: ignore
+            raise ValueError('Y exponent must be half integer')  # pragma: no cover
         shift = _phase(exponent, global_shift)
         if exponent % 2 == 0:
             self.omega *= shift
@@ -325,7 +325,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 != 0:
             if exponent % 0.5 != 0.0:
-                raise ValueError('Z exponent must be half integer')  # coverage: ignore
+                raise ValueError('Z exponent must be half integer')  # pragma: no cover
             effective_exponent = exponent % 2
             for _ in range(int(effective_exponent * 2)):
                 # Prescription for S left multiplication.
@@ -337,7 +337,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 != 0:
             if exponent % 1 != 0:
-                raise ValueError('H exponent must be integer')  # coverage: ignore
+                raise ValueError('H exponent must be integer')  # pragma: no cover
             # Prescription for H left multiplication
             # Reference: https://arxiv.org/abs/1808.00128
             # Equations 48, 49 and Proposition 4
@@ -357,7 +357,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     ):
         if exponent % 2 != 0:
             if exponent % 1 != 0:
-                raise ValueError('CZ exponent must be integer')  # coverage: ignore
+                raise ValueError('CZ exponent must be integer')  # pragma: no cover
             # Prescription for CZ left multiplication.
             # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
             self.M[control_axis, :] ^= self.G[target_axis, :]
@@ -369,7 +369,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     ):
         if exponent % 2 != 0:
             if exponent % 1 != 0:
-                raise ValueError('CX exponent must be integer')  # coverage: ignore
+                raise ValueError('CX exponent must be integer')  # pragma: no cover
             # Prescription for CX left multiplication.
             # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
             self.gamma[control_axis] = (

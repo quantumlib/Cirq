@@ -88,8 +88,3 @@ def test_validate_circuit_valid():
             gate_domain={gate: gate.num_qubits() for gate in VALID_GATES},
         )
         device.validate_circuit(circuit)
-
-
-def test_decompose_operation_deprecated():
-    with cirq.testing.assert_deprecated('Use cirq.optimize_for_target_gateset', deadline='v0.16'):
-        _ = ionq.decompose_to_device(cirq.CZ(*cirq.LineQubit.range(2)))

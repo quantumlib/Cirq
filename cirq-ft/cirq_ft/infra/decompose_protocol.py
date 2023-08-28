@@ -98,4 +98,4 @@ def _decompose_once_considering_known_decomposition(val: Any) -> DecomposeResult
     else:
         decomposed = cirq.decompose_once(val, context=context, flatten=False, default=None)
 
-    return [*cirq.flatten_to_ops(decomposed)] if decomposed else None
+    return [*cirq.flatten_to_ops(decomposed)] if decomposed is not None else None

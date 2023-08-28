@@ -264,10 +264,10 @@ def quantum_order_finder(x: int, n: int) -> Optional[int]:
     eigenphase = read_eigenphase(result)
     f = fractions.Fraction.from_float(eigenphase).limit_denominator(n)
     if f.numerator == 0:
-        return None  # coverage: ignore
+        return None  # pragma: no cover
     r = f.denominator
     if x**r % n != 1:
-        return None  # coverage: ignore
+        return None  # pragma: no cover
     return r
 
 
@@ -311,18 +311,18 @@ def find_factor(
         x = random.randint(2, n - 1)
         c = math.gcd(x, n)
         if 1 < c < n:
-            return c  # coverage: ignore
+            return c  # pragma: no cover
         r = order_finder(x, n)
         if r is None:
-            continue  # coverage: ignore
+            continue  # pragma: no cover
         if r % 2 != 0:
-            continue  # coverage: ignore
+            continue  # pragma: no cover
         y = x ** (r // 2) % n
         assert 1 < y < n
         c = math.gcd(y - 1, n)
         if 1 < c < n:
             return c
-    return None  # coverage: ignore
+    return None  # pragma: no cover
 
 
 def main(n: int, order_finder: Callable[[int, int], Optional[int]] = naive_order_finder):
@@ -340,8 +340,7 @@ def main(n: int, order_finder: Callable[[int, int], Optional[int]] = naive_order
         assert n % d == 0
 
 
-if __name__ == '__main__':
-    # coverage: ignore
+if __name__ == '__main__':  # pragma: no cover
     ORDER_FINDERS = {'naive': naive_order_finder, 'quantum': quantum_order_finder}
     args = parser.parse_args()
     main(n=args.n, order_finder=ORDER_FINDERS[args.order_finder])
