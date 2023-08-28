@@ -86,8 +86,8 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     @property
     def untagged(self) -> 'cirq.FrozenCircuit':
-        """Returns the underlying operation without any tags."""
-        return self._from_moments(self._moments)
+        """Returns the underlying FrozenCircuit without any tags."""
+        return self._from_moments(self._moments) if self.tags else self
 
     def with_tags(self, *new_tags: Hashable) -> 'cirq.FrozenCircuit':
         """Creates a new tagged `FrozenCircuit` with `self.tags` and `new_tags` combined."""
@@ -100,11 +100,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     @_compat.cached_method
     def __hash__(self) -> int:
         # Explicitly cached for performance
-        return hash((self.moments, self.tags)) if self.tags else hash((self.moments,))
+        return hash((self.moments, self.tags))
 
     def __eq__(self, other):
+        super_eq = super().__eq__(other)
+        if super_eq is not True:
+            return super_eq
         other_tags = other.tags if isinstance(other, FrozenCircuit) else ()
-        return super().__eq__(other) and self.tags == other_tags
+        return self.tags == other_tags
 
     def __getstate__(self):
         # Don't save hash when pickling; see #3777.
@@ -183,10 +186,10 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.FrozenCircuit':
         resolved_circuit = super()._resolve_parameters_(resolver, recursive)
-        resolved_tags = (
+        resolved_tags = [
             protocols.resolve_parameters(tag, resolver, recursive) for tag in self.tags
-        )
-        return resolved_circuit.with_tags(resolved_tags)
+        ]
+        return resolved_circuit.with_tags(*resolved_tags)
 
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
@@ -219,7 +222,8 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return f'{moments_repr}, tags=[{tag_repr}]' if self.tags else moments_repr
 
     def _json_dict_(self):
-        ret = protocols.obj_to_dict_helper(self, ['moments', 'tags'])
+        attribute_names = ['moments', 'tags'] if self.tags else ['moments']
+        ret = protocols.obj_to_dict_helper(self, attribute_names)
         return ret
 
     @classmethod

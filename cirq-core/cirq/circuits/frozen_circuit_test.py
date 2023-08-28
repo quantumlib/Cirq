@@ -93,13 +93,13 @@ def test_tagged_circuits():
     assert hash(frozen_circuit) != hash(tagged_circuit)
     # Test _repr_ and _json_ round trips.
     cirq.testing.assert_equivalent_repr(tagged_circuit)
-    print(cirq.read_json(json_text=cirq.to_json(tagged_circuit)))
     cirq.testing.assert_json_roundtrip_works(tagged_circuit)
     # Test utility methods and constructors
     assert frozen_circuit.with_tags() is frozen_circuit
     assert frozen_circuit.with_tags(*tags) == tagged_circuit
     assert tagged_circuit.with_tags("c") == cirq.FrozenCircuit(ops, tags=[*tags, "c"])
     assert tagged_circuit.untagged == frozen_circuit
+    assert frozen_circuit.untagged is frozen_circuit
     # Test parameterized protocols
     assert cirq.is_parameterized(frozen_circuit) is False
     assert cirq.is_parameterized(tagged_circuit) is True
