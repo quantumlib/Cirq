@@ -56,26 +56,26 @@ class ClassicalStateSimulator(SimulatesSamples):
         for moment in resolved_circuit:
             for op in moment:
                 gate = op.gate
-                if isinstance(gate, ops.XPowGate) and gate.exponent == 1:
+                if isinstance(gate, ops.XPowGate) and gate.exponent == 1 and gate.global_shift == 0:
                     values_dict[op.qubits[0]] = 1 - values_dict[op.qubits[0]]
 
-                elif isinstance(gate, ops.CNotPowGate) and gate.exponent == 1:
+                elif isinstance(gate, ops.CNotPowGate) and gate.exponent == 1 and gate.global_shift == 0:
                     if values_dict[op.qubits[0]] == 1:
                         values_dict[op.qubits[1]] = 1 - values_dict[op.qubits[1]]
 
-                elif isinstance(gate, ops.SwapPowGate) and gate.exponent == 1:
+                elif isinstance(gate, ops.SwapPowGate) and gate.exponent == 1 and gate.global_shift == 0:
                     hold_qubit = values_dict[op.qubits[1]]
                     values_dict[op.qubits[1]] = values_dict[op.qubits[0]]
                     values_dict[op.qubits[0]] = hold_qubit
 
-                elif isinstance(gate, ops.CCXPowGate) and gate.exponent == 1:
+                elif isinstance(gate, ops.CCXPowGate) and gate.exponent == 1 and gate.global_shift == 0:
                     if (values_dict[op.qubits[0]] == 1) and (values_dict[op.qubits[1]] == 1):
                         values_dict[op.qubits[2]] = 1 - values_dict[op.qubits[2]]
 
                 elif isinstance(gate, ops.MeasurementGate):
                     qubits_in_order = op.qubits
-                    ##add the new instance of a key to the numpy array in results dictionary
-                    if (gate.key) in results_dict.keys():
+                    # add the new instance of a key to the numpy array in results dictionary
+                    if gate.key in results_dict:
                         shape = len(qubits_in_order)
                         current_array = results_dict[gate.key]
                         new_instance = np.zeros(shape, dtype=np.uint8)
@@ -85,11 +85,11 @@ class ClassicalStateSimulator(SimulatesSamples):
                                 current_array, len(current_array[0]), new_instance, axis=1
                             )
                     else:
-                        ##create the array for the results dictionary
+                        # create the array for the results dictionary
                         new_array_shape = (repetitions, 1, len(qubits_in_order))
                         new_array = np.zeros(new_array_shape, dtype=np.uint8)
                         for reps in range(0, repetitions):
-                            for instances in range(0, 1):
+                            for instances in range(1):
                                 for bits in range(0, len(qubits_in_order)):
                                     new_array[reps][instances][bits] = values_dict[
                                         qubits_in_order[bits]
