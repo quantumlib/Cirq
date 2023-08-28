@@ -164,9 +164,8 @@ def test_delegating_gate_channel(exp):
     control_circuit = cirq.Circuit(cirq.H(q))
     control_circuit.append(cirq.ZPowGate(exponent=exp).on(q))
 
-    with pytest.raises(TypeError, match="DensityMatrixSimulator doesn't support"):
-        # TODO: This test should pass once we extend support to DensityMatrixSimulator.
-        assert_test_circuit_for_dm_simulator(test_circuit, control_circuit)
+    assert_test_circuit_for_sv_simulator(test_circuit, control_circuit)
+    assert_test_circuit_for_dm_simulator(test_circuit, control_circuit)
 
 
 @pytest.mark.parametrize('num_ancilla', [1, 2, 3])

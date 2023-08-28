@@ -291,7 +291,7 @@ class _IonQClient:
         """
         cirq_version_string = f'cirq/{cirq_version}'
         python_version_string = f'python/{platform.python_version()}'
-        return f'User-Agent: {cirq_version_string} ({python_version_string})'
+        return f'{cirq_version_string} ({python_version_string})'
 
     def _target(self, target: Optional[str]) -> str:
         """Returns the target if not None or the default target.

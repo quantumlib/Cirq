@@ -52,6 +52,11 @@ class UnknownSweep(sweeps.SingleSweep):
             [1, 1.5, 2, 2.5, 3],
             metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=2, units='GHz'),
         ),
+        cirq.Points(
+            'b',
+            [1, 1.5, 2, 2.5, 3],
+            metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=None),
+        ),
         cirq.Linspace('a', 0, 1, 5) * cirq.Linspace('b', 0, 1, 5),
         cirq.Points('a', [1, 2, 3]) + cirq.Linspace('b', 0, 1, 3),
         (
@@ -69,6 +74,8 @@ def test_sweep_to_proto_roundtrip(sweep):
     msg = v2.sweep_to_proto(sweep)
     deserialized = v2.sweep_from_proto(msg)
     assert deserialized == sweep
+    # Check that metadata is the same, if it exists.
+    assert getattr(deserialized, 'metadata', None) == getattr(sweep, 'metadata', None)
 
 
 def test_sweep_to_proto_linspace():
