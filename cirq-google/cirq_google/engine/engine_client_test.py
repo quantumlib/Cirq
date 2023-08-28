@@ -354,7 +354,7 @@ def test_create_job_with_legacy_processor_ids(client_constructor):
     labels = {'hello': 'world'}
     client = EngineClient()
     assert client.create_job(
-        'proj', 'prog', 'job0', ['processor0'], run_context, 10, 'A job', labels,
+        'proj', 'prog', 'job0', ['processor0'], run_context, 10, 'A job', labels
     ) == ('job0', result)
     grpc_client.create_quantum_job.assert_called_with(
         quantum.CreateQuantumJobRequest(
