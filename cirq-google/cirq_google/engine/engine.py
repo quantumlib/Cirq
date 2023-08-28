@@ -219,6 +219,10 @@ class Engine(abstract_engine.AbstractEngine):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        *,
+        processor_id: str = "",
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
@@ -236,19 +240,34 @@ class Engine(abstract_engine.AbstractEngine):
                 and day.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            processor_ids: The engine processors that should be candidates
-                to run the program. Only one of these will be scheduled for
-                execution.
+            processor_ids: Deprecated list of candidate processor ids to run the program.
+                Only allowed to contain one processor_id. If the argument `processor_id`
+                is non-empty, `processor_ids` will be ignored.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+            processor_id: Processor id for running the program. If not set,
+                `processor_ids` will be used.
+            run_name: A unique identifier representing an automation run for the
+                specified processor. An Automation Run contains a collection of
+                device configurations for a processor. If specified, `processor_id`
+                is required to be set.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+                If specified, `processor_id` is required to be set.
 
         Returns:
             A single Result for this run.
 
         Raises:
             ValueError: If no gate set is provided.
+            ValueError: If neither `processor_id` or `processor_ids` are set.
+            ValueError: If  only one of `run_name` and `device_config_name` are specified.
+            ValueError: If `processor_ids` has more than one processor id.
+            ValueError: If either `run_name` and `device_config_name` are set but
+                `processor_id` is empty.
         """
         return list(
             self.run_sweep(
@@ -262,6 +281,9 @@ class Engine(abstract_engine.AbstractEngine):
                 program_labels=program_labels,
                 job_description=job_description,
                 job_labels=job_labels,
+                processor_id=processor_id,
+                run_name=run_name,
+                device_config_name=device_config_name,
             )
         )[0]
 
@@ -277,6 +299,10 @@ class Engine(abstract_engine.AbstractEngine):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        *,
+        processor_id: str = "",
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuit via Quantum Engine.Creates
 
@@ -297,13 +323,23 @@ class Engine(abstract_engine.AbstractEngine):
                 and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            processor_ids: The engine processors that should be candidates
-                to run the program. Only one of these will be scheduled for
-                execution.
+            processor_ids: Deprecated list of candidate processor ids to run the program.
+                Only allowed to contain one processor_id. If the argument `processor_id`
+                is non-empty, `processor_ids` will be ignored.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+            processor_id: Processor id for running the program. If not set,
+                `processor_ids` will be used.
+            run_name: A unique identifier representing an automation run for the
+                specified processor. An Automation Run contains a collection of
+                device configurations for a processor. If specified, `processor_id`
+                is required to be set.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+                If specified, `processor_id` is required to be set.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -311,6 +347,11 @@ class Engine(abstract_engine.AbstractEngine):
 
         Raises:
             ValueError: If no gate set is provided.
+            ValueError: If neither `processor_id` or `processor_ids` are set.
+            ValueError: If  only one of `run_name` and `device_config_name` are specified.
+            ValueError: If `processor_ids` has more than one processor id.
+            ValueError: If either `run_name` and `device_config_name` are set but
+                `processor_id` is empty.
         """
         engine_program = await self.create_program_async(
             program, program_id, description=program_description, labels=program_labels
@@ -322,6 +363,9 @@ class Engine(abstract_engine.AbstractEngine):
             processor_ids=processor_ids,
             description=job_description,
             labels=job_labels,
+            processor_id=processor_id,
+            run_name=run_name,
+            device_config_name=device_config_name,
         )
 
     run_sweep = duet.sync(run_sweep_async)
@@ -338,6 +382,10 @@ class Engine(abstract_engine.AbstractEngine):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        *,
+        processor_id: str = "",
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuits via Quantum Engine.Creates
 
@@ -367,13 +415,23 @@ class Engine(abstract_engine.AbstractEngine):
                 require sweeps.
             repetitions: Number of circuit repetitions to run.  Each sweep value
                 of each circuit in the batch will run with the same repetitions.
-            processor_ids: The engine processors that should be candidates
-                to run the program. Only one of these will be scheduled for
-                execution.
+            processor_ids: Deprecated list of candidate processor ids to run the program.
+                Only allowed to contain one processor_id. If the argument `processor_id`
+                is non-empty, `processor_ids` will be ignored.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+            processor_id: Processor id for running the program. If not set,
+                `processor_ids` will be used.
+            run_name: A unique identifier representing an automation run for the
+                specified processor. An Automation Run contains a collection of
+                device configurations for a processor. If specified, `processor_id`
+                is required to be set.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+                If specified, `processor_id` is required to be set.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -385,12 +443,17 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If the length of programs mismatches that of params_list, or
                 `processor_ids` is not supplied.
+            ValueError: If neither `processor_id` or `processor_ids` are set.
+            ValueError: If  only one of `run_name` and `device_config_name` are specified.
+            ValueError: If `processor_ids` has more than one processor id.
+            ValueError: If either `run_name` and `device_config_name` are set but
+                `processor_id` is empty.
         """
         if params_list is None:
             params_list = [None] * len(programs)
         elif len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
-        if not processor_ids:
+        if not processor_ids and not processor_id:
             raise ValueError('Processor id must be specified.')
         engine_program = await self.create_batch_program_async(
             programs, program_id, description=program_description, labels=program_labels
@@ -402,6 +465,9 @@ class Engine(abstract_engine.AbstractEngine):
             processor_ids=processor_ids,
             description=job_description,
             labels=job_labels,
+            processor_id=processor_id,
+            run_name=run_name,
+            device_config_name=device_config_name,
         )
 
     run_batch = duet.sync(run_batch_async)
@@ -778,7 +844,9 @@ class Engine(abstract_engine.AbstractEngine):
         """
         return self.get_sampler(processor_id)
 
-    def get_sampler(self, processor_id: Union[str, List[str]]) -> 'cirq_google.ProcessorSampler':
+    def get_sampler(
+        self, processor_id: Union[str, List[str]], run_name: str = "", device_config_name: str = ""
+    ) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
@@ -798,7 +866,9 @@ class Engine(abstract_engine.AbstractEngine):
                 'to get_sampler() no longer supported. Use Engine.run() instead if '
                 'you need to specify a list.'
             )
-        return self.get_processor(processor_id).get_sampler()
+        return self.get_processor(processor_id).get_sampler(
+            run_name=run_name, device_config_name=device_config_name
+        )
 
 
 def get_engine(project_id: Optional[str] = None) -> Engine:
