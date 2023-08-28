@@ -226,6 +226,25 @@ class QuantumJob(proto.Message):
     )
 
 
+class DeviceConfigKey(proto.Message):
+    r"""-
+    Attributes:
+        run_name (str):
+            -
+        config_alias (str):
+            -
+    """
+
+    run_name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    config_alias = proto.Field(
+        proto.STRING,
+        number=2,
+    )
+
+
 class SchedulingConfig(proto.Message):
     r"""-
 
@@ -244,11 +263,24 @@ class SchedulingConfig(proto.Message):
         Attributes:
             processor_names (Sequence[str]):
                 -
+            processor (str):
+                -
+            device_config_key ((google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
+                -
         """
 
         processor_names = proto.RepeatedField(
             proto.STRING,
             number=1,
+        )
+        processor = proto.Field(
+            proto.STRING,
+            number=2,
+        )
+        device_config_key = proto.Field(
+            proto.MESSAGE,
+            number=3,
+            message=DeviceConfigKey
         )
 
     target_route = proto.Field(
