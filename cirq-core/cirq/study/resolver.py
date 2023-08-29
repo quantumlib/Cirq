@@ -116,6 +116,7 @@ class ParamResolver:
         """
 
         # Input is a pass through type, no resolution needed: return early
+        # print(value, type(value), recursive)
         v = _resolve_value(value)
         if v is not NotImplemented:
             return v
