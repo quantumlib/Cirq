@@ -145,3 +145,16 @@ def test_with_local_processor():
     assert isinstance(r, cg.EngineResult)
     assert r.job_id == 'projects/fake_project/processors/my-fancy-processor/job/2'
     assert r.measurements['z'] == [[0]]
+
+
+@pytest.mark.parametrize(
+    'run_name, device_config_name', [('run_name', ''), ('', 'device_config_name')]
+)
+def test_processor_sampler_with_invalid_configuration_throws(run_name, device_config_name):
+    processor = mock.create_autospec(AbstractProcessor)
+    with pytest.raises(
+        ValueError, match='Cannot specify only one of `run_name` and `device_config_name`'
+    ):
+        cg.ProcessorSampler(
+            processor=processor, run_name=run_name, device_config_name=device_config_name
+        )
