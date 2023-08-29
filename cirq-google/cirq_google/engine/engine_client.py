@@ -395,14 +395,16 @@ class EngineClient:
         run_name: str = "",
         device_config_name: str = "",
     ) -> Tuple[str, quantum.QuantumJob]:
-        """Creates and runs a job on Quantum Engine.
+        """Creates and runs a job on Quantum Engine. Either both `run_name` and
+        `device_config_name` must be set, or neither of them must be set.
+        If none of them are set, a default internal device configuration will be used.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
             run_context: Properly serialized run context.
-            processor_ids: Deprecated list of processor ids for running the program.
+            processor_ids: Deprecated list of candidate processor ids to run the program.
                 Only allowed to contain one processor_id. If the argument `processor_id`
                 is non-empty, `processor_ids` will be ignored. Otherwise the deprecated
                 decorator will fix the arguments and call create_job_async using
