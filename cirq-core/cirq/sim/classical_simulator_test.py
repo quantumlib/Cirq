@@ -27,7 +27,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
     def test_CNOT(self):
@@ -166,18 +166,16 @@ class TestSimulator:
         circuit.append(cirq.measure((q1), key='key'))
         resolver = cirq.ParamResolver({'t': 0})
         sim = cirq.ClassicalStateSimulator()
-        results_with_paramter_zero = sim._run(
+        results_with_parameter_zero = sim._run(
             circuit=circuit, param_resolver=resolver, repetitions=1
         )
         resolver = cirq.ParamResolver({'t': 1})
-        results_with_paramter_one = sim._run(
-            circuit=circuit, param_resolver=resolver, repetitions=1
+        results_with_parameter_one = sim._run(circuit=circuit, param_resolver=resolver, repetitions=1)
+        np.testing.assert_equal(
+            results_with_parameter_zero, {'key': np.array([[[0]]], dtype=np.uint8)}
         )
         np.testing.assert_equal(
-            results_with_paramter_zero, {'key': np.array([[[0]]], dtype=np.uint8)}
-        )
-        np.testing.assert_equal(
-            results_with_paramter_one, {'key': np.array([[[1]]], dtype=np.uint8)}
+            results_with_parameter_one, {'key': np.array([[[1]]], dtype=np.uint8)}
         )
 
     def test_unknown_gates(self):
