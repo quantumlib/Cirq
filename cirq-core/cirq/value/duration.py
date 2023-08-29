@@ -79,7 +79,7 @@ class Duration:
             >>> print(cirq.Duration(micros=1.5 * sympy.Symbol('t')))
             (1500.0*t) ns
         """
-        self._time_vals = [0, 0, 0, 0]
+        self._time_vals: List[_NUMERIC_INPUT_TYPE] = [0, 0, 0, 0]
         self._multipliers = [1, 1000, 1000_000, 1000_000_000]
         if value is not None and value != 0:
             if isinstance(value, datetime.timedelta):
@@ -272,8 +272,10 @@ def _attempt_duration_like_to_duration(value: Any) -> Optional[Duration]:
     return None
 
 
-def _add_time_vals(val1: List[_NUMERIC_INPUT_TYPE], val2: List[_NUMERIC_INPUT_TYPE]):
-    ret = []
+def _add_time_vals(
+    val1: List[_NUMERIC_INPUT_TYPE], val2: List[_NUMERIC_INPUT_TYPE]
+) -> List[_NUMERIC_INPUT_TYPE]:
+    ret: List[_NUMERIC_INPUT_TYPE] = []
     for i in range(4):
         if val1[i] and val2[i]:
             ret.append(val1[i] + val2[i])
