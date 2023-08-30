@@ -221,23 +221,21 @@ def value_equality(
             )
     else:
         setattr(cls, '_value_equality_values_cls_', lambda self: cls)
-    setattr(cls, '_value_equality_values_', _compat.cached_method(values_getter))
+    cached_values_getter = values_getter if unhashable else _compat.cached_method(values_getter)
+    setattr(cls, '_value_equality_values_', cached_values_getter)
     setattr(cls, '__hash__', None if unhashable else _compat.cached_method(_value_equality_hash))
     setattr(cls, '__eq__', _value_equality_eq)
     setattr(cls, '__ne__', _value_equality_ne)
 
     if approximate:
         if not hasattr(cls, '_value_equality_approximate_values_'):
-            setattr(
-                cls, '_value_equality_approximate_values_', _compat.cached_method(values_getter)
-            )
+            setattr(cls, '_value_equality_approximate_values_', cached_values_getter)
         else:
             approx_values_getter = getattr(cls, '_value_equality_approximate_values_')
-            setattr(
-                cls,
-                '_value_equality_approximate_values_',
-                _compat.cached_method(approx_values_getter),
+            cached_approx_values_getter = (
+                approx_values_getter if unhashable else _compat.cached_method(approx_values_getter)
             )
+            setattr(cls, '_value_equality_approximate_values_', cached_approx_values_getter)
         setattr(cls, '_approx_eq_', _value_equality_approx_eq)
 
     return cls
