@@ -15,7 +15,7 @@
 
 import time
 import warnings
-from typing import Dict, Sequence, Union, TYPE_CHECKING
+from typing import Dict, Sequence, Union, Optional, TYPE_CHECKING
 
 from cirq_ionq import ionq_exceptions, results
 from cirq._doc import document
@@ -171,13 +171,20 @@ class Job:
         return measurement_dict
 
     def results(
-        self, timeout_seconds: int = 7200, polling_seconds: int = 1
+        self,
+        timeout_seconds: int = 7200,
+        polling_seconds: int = 1,
+        sharpen: Optional[bool] = None,
+        extra_query_params: Optional[dict] = None,
     ) -> Union[results.QPUResult, results.SimulatorResult]:
         """Polls the IonQ api for results.
 
         Args:
             timeout_seconds: The total number of seconds to poll for.
             polling_seconds: The interval with which to poll.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation.
+            extra_query_params: Specify any parameters to include in the request.
 
         Returns:
             Either a `cirq_ionq.QPUResults` or `cirq_ionq.SimulatorResults` depending on whether
@@ -210,12 +217,16 @@ class Job:
             raise RuntimeError(
                 f'Job was not completed successfully. Instead had status: {self.status()}'
             )
+
+        histogram = self._client.get_results(
+            job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
+        )
         # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
         if self.target().startswith('qpu'):
             repetitions = self.repetitions()
             counts = {
                 _little_endian_to_big(int(k), self.num_qubits()): round(repetitions * float(v))
-                for k, v in self._job['data']['histogram'].items()
+                for k, v in histogram.items()
             }
             return results.QPUResult(
                 counts=counts,
@@ -225,7 +236,7 @@ class Job:
         else:
             probabilities = {
                 _little_endian_to_big(int(k), self.num_qubits()): float(v)
-                for k, v in self._job['data']['histogram'].items()
+                for k, v in histogram.items()
             }
             return results.SimulatorResult(
                 probabilities=probabilities,

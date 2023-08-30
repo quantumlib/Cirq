@@ -39,9 +39,9 @@ def test_service_run(target, expected_results):
         'target': target,
         'metadata': {'shots': '4', 'measurement0': f'a{chr(31)}0'},
         'qubits': '1',
-        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
         'status': 'completed',
     }
+    mock_client.get_results.return_value = {'0': '0.25', '1': '0.75'}
     service._client = mock_client
 
     a = sympy.Symbol('a')
@@ -72,10 +72,10 @@ def test_sampler():
         'qubits': '1',
         'target': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
-        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
     }
     mock_client.create_job.return_value = job_dict
     mock_client.get_job.return_value = job_dict
+    mock_client.get_results.return_value = {'0': '0.25', '1': '0.75'}
 
     sampler = service.sampler(target='qpu', seed=10)
 
@@ -226,8 +226,8 @@ def test_service_remote_host_from_env_var_ionq():
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_service_remote_host_default():
-    service = ionq.Service(api_key='tomyheart', api_version='v0.1')
-    assert service.remote_host == 'https://api.ionq.co/v0.1'
+    service = ionq.Service(api_key='tomyheart', api_version='v0.3')
+    assert service.remote_host == 'https://api.ionq.co/v0.3'
 
 
 @mock.patch.dict(
