@@ -376,6 +376,9 @@ def test_run_circuit(client):
         ),
         description=None,
         labels=None,
+        processor_id='',
+        run_name='',
+        device_config_name='',
     )
     client().get_job_async.assert_called_once_with('proj', 'prog', 'job-id', False)
     client().get_job_results_async.assert_called_once_with('proj', 'prog', 'job-id')
