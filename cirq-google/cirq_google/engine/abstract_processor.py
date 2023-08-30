@@ -106,6 +106,8 @@ class AbstractProcessor(abc.ABC):
             program_labels=program_labels,
             job_description=job_description,
             job_labels=job_labels,
+            run_name=run_name,
+            device_config_name=device_config_name,
         )
         return job.results()[0]
 
