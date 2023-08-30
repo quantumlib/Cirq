@@ -31,9 +31,11 @@ class ProcessorSampler(cirq.Sampler):
         run_name: str = "",
         device_config_name: str = "",
     ):
-        """Inits ProcessorSampler. Either both `run_name` and `device_config_name`
-        must be set, or neither of them must be set. If none of them are set, a
-        default internal device configuration will be used.
+        """Inits ProcessorSampler.
+
+        Either both `run_name` and `device_config_name` must be set, or neither of
+        them must be set. If none of them are set, a default internal device configuration
+        will be used.
 
         Args:
             processor: AbstractProcessor instance to use.

@@ -395,9 +395,11 @@ class EngineClient:
         run_name: str = "",
         device_config_name: str = "",
     ) -> Tuple[str, quantum.QuantumJob]:
-        """Creates and runs a job on Quantum Engine. Either both `run_name` and
-        `device_config_name` must be set, or neither of them must be set.
-        If none of them are set, a default internal device configuration will be used.
+        """Creates and runs a job on Quantum Engine.
+
+        Either both `run_name` and `device_config_name` must be set, or neither
+        of them must be set. If none of them are set, a default internal device
+        configuration will be used.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.

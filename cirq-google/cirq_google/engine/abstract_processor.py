@@ -272,6 +272,7 @@ class AbstractProcessor(abc.ABC):
         self, run_name: str = "", device_config_name: str = ""
     ) -> 'cg.ProcessorSampler':
         """Returns a sampler backed by the processor.
+
         Args:
             run_name: A unique identifier representing an automation run for the
                 processor. An Automation Run contains a collection of device

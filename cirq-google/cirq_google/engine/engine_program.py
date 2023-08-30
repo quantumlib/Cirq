@@ -64,6 +64,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         self._program = _program
         self.result_type = result_type
 
+    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_sweep_async(
         self,
         job_id: Optional[str] = None,
@@ -143,6 +144,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     run_sweep = duet.sync(run_sweep_async)
 
+    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_batch_async(
         self,
         job_id: Optional[str] = None,
@@ -312,6 +314,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     run_calibration = duet.sync(run_calibration_async)
 
+    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_async(
         self,
         job_id: Optional[str] = None,

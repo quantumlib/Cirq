@@ -22,10 +22,11 @@ from cirq_google.engine.abstract_processor import AbstractProcessor
 
 
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
-def test_run_circuit(circuit):
+@pytest.mark.parametrize(
+    'run_name, device_config_name', [('run_name', 'device_config_alias'), ('', '')]
+)
+def test_run_circuit(circuit, run_name, device_config_name):
     processor = mock.create_autospec(AbstractProcessor)
-    run_name = "RUN_NAME"
-    device_config_name = "DEVICE_CONFIG_NAME"
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
     )
@@ -40,10 +41,11 @@ def test_run_circuit(circuit):
     )
 
 
-def test_run_batch():
+@pytest.mark.parametrize(
+    'run_name, device_config_name', [('run_name', 'device_config_alias'), ('', '')]
+)
+def test_run_batch(run_name, device_config_name):
     processor = mock.create_autospec(AbstractProcessor)
-    run_name = "RUN_NAME"
-    device_config_name = "DEVICE_CONFIG_NAME"
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
     )
@@ -64,10 +66,11 @@ def test_run_batch():
     )
 
 
-def test_run_batch_identical_repetitions():
+@pytest.mark.parametrize(
+    'run_name, device_config_name', [('run_name', 'device_config_alias'), ('', '')]
+)
+def test_run_batch_identical_repetitions(run_name, device_config_name):
     processor = mock.create_autospec(AbstractProcessor)
-    run_name = "RUN_NAME"
-    device_config_name = "DEVICE_CONFIG_NAME"
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
     )

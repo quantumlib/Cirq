@@ -207,6 +207,7 @@ class Engine(abstract_engine.AbstractEngine):
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
+    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     def run(
         self,
         program: cirq.AbstractCircuit,
@@ -264,7 +265,7 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
             ValueError: If neither `processor_id` or `processor_ids` are set.
-            ValueError: If  only one of `run_name` and `device_config_name` are specified.
+            ValueError: If only one of `run_name` and `device_config_name` are specified.
             ValueError: If `processor_ids` has more than one processor id.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
@@ -287,6 +288,7 @@ class Engine(abstract_engine.AbstractEngine):
             )
         )[0]
 
+    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
@@ -370,6 +372,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     run_sweep = duet.sync(run_sweep_async)
 
+    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
