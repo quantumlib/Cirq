@@ -3,3 +3,6 @@ coverage:
     project:
       default:
         threshold: 0.1%
+
+ignore:
+  - "**/*_pb2.py"
