@@ -231,8 +231,7 @@ def test_not_decompose_partial_czs():
 
 
 def test_avoids_decompose_when_matrix_available():
-    class OtherXX(cirq.testing.TwoQubitGate):
-        # coverage: ignore
+    class OtherXX(cirq.testing.TwoQubitGate):  # pragma: no cover
         def _has_unitary_(self) -> bool:
             return True
 
@@ -243,8 +242,7 @@ def test_avoids_decompose_when_matrix_available():
         def _decompose_(self, qubits):
             assert False
 
-    class OtherOtherXX(cirq.testing.TwoQubitGate):
-        # coverage: ignore
+    class OtherOtherXX(cirq.testing.TwoQubitGate):  # pragma: no cover
         def _has_unitary_(self) -> bool:
             return True
 

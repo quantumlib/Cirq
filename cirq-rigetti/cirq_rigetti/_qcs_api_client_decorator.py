@@ -36,8 +36,7 @@ def _provide_default_client(function):
         if 'client' in kwargs:
             return function(*args, **kwargs)
 
-        with build_sync_client() as client:  # coverage: ignore
-            # coverage: ignore
+        with build_sync_client() as client:  # pragma: no cover
             kwargs['client'] = client
             return function(*args, **kwargs)
 

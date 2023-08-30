@@ -19,8 +19,8 @@ import cirq_rigetti
 from cirq.protocols.json_serialization import ObjectFactory
 
 
-@functools.lru_cache()  # coverage: ignore
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # coverage: ignore
+@functools.lru_cache()  # pragma: no cover
+def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # pragma: no cover
     return {
         'RigettiQCSAspenDevice': cirq_rigetti.RigettiQCSAspenDevice,
         'AspenQubit': cirq_rigetti.AspenQubit,

@@ -68,7 +68,7 @@ class _UnconstrainedAcquaintanceDevice(AcquaintanceDevice):
     """An acquaintance device with no constraints other than of the gate types."""
 
     def __repr__(self) -> str:
-        return 'UnconstrainedAcquaintanceDevice'  # coverage: ignore
+        return 'UnconstrainedAcquaintanceDevice'  # pragma: no cover
 
 
 UnconstrainedAcquaintanceDevice = _UnconstrainedAcquaintanceDevice()

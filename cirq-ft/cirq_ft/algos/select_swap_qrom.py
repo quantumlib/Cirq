@@ -124,7 +124,7 @@ class SelectSwapQROM(infra.GateWithRegisters):
         assert len(target_bitsizes) == len(data)
         assert all(t >= max(d).bit_length() for t, d in zip(target_bitsizes, data))
         self._num_sequences = len(data)
-        self._target_bitsizes = target_bitsizes
+        self._target_bitsizes = tuple(target_bitsizes)
         self._iteration_length = len(data[0])
         if block_size is None:
             # Figure out optimal value of block_size

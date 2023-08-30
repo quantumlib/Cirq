@@ -14,7 +14,8 @@
 
 from typing import Sequence, Optional, Union, Collection
 
-from cirq import devices, ops
+from cirq import devices, ops, protocols
+import numpy as np
 
 
 def assert_controlled_and_controlled_by_identical(
@@ -32,6 +33,19 @@ def assert_controlled_and_controlled_by_identical(
         if control_value is not None and len(control_value) != num_control:
             raise ValueError(f"len(control_values[{i}]) != num_controls[{i}]")
         _assert_gate_consistent(gate, num_control, control_value)
+
+
+def assert_controlled_unitary_consistent(gate: ops.Gate):
+    """Checks that unitary of ControlledGate(gate) is consistent with gate.controlled()."""
+
+    u_orig = protocols.unitary(ops.ControlledGate(gate))
+    u_controlled = protocols.unitary(gate.controlled())
+    np.testing.assert_allclose(
+        u_orig,
+        u_controlled,
+        atol=1e-6,
+        err_msg=f"Unitary for gate.controlled() is inconsistent for {gate=}",
+    )
 
 
 def _assert_gate_consistent(

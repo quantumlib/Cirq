@@ -407,8 +407,7 @@ def two_qubit_gate_product_tabulation(
     # If all KAK vectors in the mesh have been tabulated, return.
     missing_vec_inds = np.logical_not(tabulated_kak_inds).nonzero()[0]
 
-    if not np.any(missing_vec_inds):
-        # coverage: ignore
+    if not np.any(missing_vec_inds):  # pragma: no cover
         return TwoQubitGateTabulation(
             base_gate, np.array(kak_vecs), sq_cycles, max_infidelity, summary, ()
         )

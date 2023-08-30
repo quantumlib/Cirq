@@ -108,12 +108,11 @@ def benchmark_2q_xeb_fidelities(
         def _try_keep(k):
             """If all the values for a key `k` are the same in this group, we can keep it."""
             if k not in df.columns:
-                return  # coverage: ignore
+                return  # pragma: no cover
             vals = df[k].unique()
             if len(vals) == 1:
                 ret[k] = vals[0]
-            else:
-                # coverage: ignore
+            else:  # pragma: no cover
                 raise AssertionError(
                     f"When computing per-cycle-depth fidelity, multiple "
                     f"values for {k} were grouped together: {vals}"
@@ -574,8 +573,7 @@ def _fit_exponential_decay(
             p0=(a_0, layer_fid_0),
             bounds=((0, 0), (1, 1)),
         )
-    except ValueError:  # coverage: ignore
-        # coverage: ignore
+    except ValueError:  # pragma: no cover
         return 0, 0, np.inf, np.inf
 
     a_std, layer_fid_std = np.sqrt(np.diag(pcov))

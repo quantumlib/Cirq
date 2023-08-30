@@ -33,7 +33,7 @@ class NothingJob(AbstractLocalJob):
         return self._status
 
     def failure(self) -> Optional[Tuple[str, str]]:
-        return ('failed', 'failure code')  # coverage: ignore
+        return ('failed', 'failure code')  # pragma: no cover
 
     def cancel(self) -> None:
         pass
@@ -42,13 +42,13 @@ class NothingJob(AbstractLocalJob):
         pass
 
     async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
-        return []  # coverage: ignore
+        return []  # pragma: no cover
 
     async def results_async(self) -> Sequence[EngineResult]:
-        return []  # coverage: ignore
+        return []  # pragma: no cover
 
     async def calibration_results_async(self) -> Sequence[CalibrationResult]:
-        return []  # coverage: ignore
+        return []  # pragma: no cover
 
 
 def test_description_and_labels():

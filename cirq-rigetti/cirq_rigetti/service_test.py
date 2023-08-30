@@ -20,7 +20,7 @@ def test_rigetti_qcs_service_api_call():
 
     class Response(httpx.Response):
         def iter_bytes(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
-            yield b"{\"quantumProcessors\": [{\"id\": \"Aspen-8\"}]}"  # pragma: nocover
+            yield b"{\"quantumProcessors\": [{\"id\": \"Aspen-8\"}]}"  # pragma: no cover
 
     class Transport(httpx.BaseTransport):
         def handle_request(self, request: httpx.Request) -> httpx.Response:

@@ -84,6 +84,7 @@ def test_ionq_client_attributes():
         'Content-Type': 'application/json',
         'User-Agent': client._user_agent(),
     }
+    assert client.headers['User-Agent'].startswith('cirq/')
     assert client.default_target == 'qpu'
     assert client.max_retry_seconds == 10
     assert client.verbose is True
