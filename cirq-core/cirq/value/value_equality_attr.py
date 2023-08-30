@@ -228,10 +228,16 @@ def value_equality(
 
     if approximate:
         if not hasattr(cls, '_value_equality_approximate_values_'):
-            setattr(cls, '_value_equality_approximate_values_', _compat.cached_method(values_getter))
+            setattr(
+                cls, '_value_equality_approximate_values_', _compat.cached_method(values_getter)
+            )
         else:
             approx_values_getter = getattr(cls, '_value_equality_approximate_values_')
-            setattr(cls, '_value_equality_approximate_values_', _compat.cached_method(approx_values_getter))
+            setattr(
+                cls,
+                '_value_equality_approximate_values_',
+                _compat.cached_method(approx_values_getter),
+            )
         setattr(cls, '_approx_eq_', _value_equality_approx_eq)
 
     return cls
