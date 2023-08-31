@@ -107,7 +107,7 @@ class StreamManager:
 
     """
 
-    _STOP_SIGNAL = 'stop_signal'
+    _STOP_SIGNAL = None
 
     def __init__(self, grpc_client: quantum.QuantumEngineServiceAsyncClient):
         self._grpc_client = grpc_client
@@ -121,11 +121,14 @@ class StreamManager:
         # interface.
         self._response_demux = ResponseDemux()
         self._next_available_message_id = 0
-        self._executor.submit(self._init_request_queue).result()
+        # Construct queue in AsyncioExecutor to ensure it binds to the correct event loop, since it
+        # is used by asyncio coroutines.
+        self._request_queue: asyncio.Queue[
+            Optional[quantum.QuantumRunStreamRequest]
+        ] = self._executor.submit(self._make_request_queue).result()
 
-    async def _init_request_queue(self) -> None:
-        await asyncio.sleep(0)
-        self._request_queue: asyncio.Queue = asyncio.Queue()
+    async def _make_request_queue(self) -> asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]]:
+        return asyncio.Queue()
 
     def submit(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
@@ -179,7 +182,7 @@ class StreamManager:
         """Resets the manager state."""
         self._manage_stream_loop_future = None
         self._response_demux = ResponseDemux()
-        self._executor.submit(self._init_request_queue).result()
+        self._request_queue = self._executor.submit(self._make_request_queue).result()
 
     @property
     def _executor(self) -> AsyncioExecutor:
@@ -187,7 +190,9 @@ class StreamManager:
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
-    async def _manage_stream(self, request_queue: asyncio.Queue) -> None:
+    async def _manage_stream(
+        self, request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]]
+    ) -> None:
         """The stream coroutine, an asyncio coroutine to manage QuantumRunStream.
 
         This coroutine reads responses from the stream and forwards them to the ResponseDemux, where
@@ -218,7 +223,7 @@ class StreamManager:
 
     async def _manage_execution(
         self,
-        request_queue: asyncio.Queue,
+        request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]],
         project_name: str,
         program: quantum.QuantumProgram,
         job: quantum.QuantumJob,
@@ -347,13 +352,13 @@ def _is_retryable_error(e: google_exceptions.GoogleAPICallError) -> bool:
 
 
 async def _request_iterator(
-    request_queue: asyncio.Queue,
+    request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]],
 ) -> AsyncIterator[quantum.QuantumRunStreamRequest]:
     """The request iterator for Quantum Engine client RPC quantum_run_stream().
 
     Every call to this method generates a new iterator.
     """
-    while (request := await request_queue.get()) != StreamManager._STOP_SIGNAL:
+    while request := await request_queue.get():
         yield request
 
 

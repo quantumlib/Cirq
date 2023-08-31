@@ -78,7 +78,9 @@ class FakeQuantumRunStream:
         self._request_iterator_stopped = duet.AwaitableFuture()
         # asyncio.Queue needs to be initialized inside the asyncio thread because all callers need
         # to use the same event loop.
-        self._responses_and_exceptions_future = duet.AwaitableFuture[asyncio.Queue]()
+        self._responses_and_exceptions_future: duet.AwaitableFuture[
+            asyncio.Queue[Union[quantum.QuantumRunStreamResponse, BaseException]]
+        ] = duet.AwaitableFuture()
 
     async def quantum_run_stream(
         self, requests: AsyncIterator[quantum.QuantumRunStreamRequest], **kwargs
@@ -94,7 +96,9 @@ class FakeQuantumRunStream:
 
         This is called from the asyncio thread.
         """
-        responses_and_exceptions: asyncio.Queue = asyncio.Queue()
+        responses_and_exceptions: asyncio.Queue[
+            Union[quantum.QuantumRunStreamResponse, BaseException]
+        ] = asyncio.Queue()
         self._responses_and_exceptions_future.try_set_result(responses_and_exceptions)
 
         async def read_requests():
@@ -112,10 +116,9 @@ class FakeQuantumRunStream:
                 if isinstance(message, quantum.QuantumRunStreamResponse):
                     yield message
                 else:  # isinstance(message, BaseException)
-                    self._responses_and_exceptions_future = duet.AwaitableFuture[asyncio.Queue]()
+                    self._responses_and_exceptions_future = duet.AwaitableFuture()
                     raise message
 
-        await asyncio.sleep(0)
         return response_iterator()
 
     async def cancel_quantum_job(self, request: quantum.CancelQuantumJobRequest) -> None:
