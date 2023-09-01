@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AsyncIterable, AsyncIterator, Awaitable, List, Union
+from typing import AsyncIterable, AsyncIterator, Awaitable, List, Sequence, Union
 import asyncio
 import concurrent
 from unittest import mock
@@ -69,10 +69,10 @@ class FakeQuantumRunStream:
     """A fake Quantum Engine client which supports QuantumRunStream and CancelQuantumJob."""
 
     def __init__(self):
-        self.stream_requests: List[quantum.QuantumRunStreamRequest] = []
-        self.cancel_requests: List[quantum.CancelQuantumJobRequest] = []
+        self.all_stream_requests: List[quantum.QuantumRunStreamRequest] = []
+        self.all_cancel_requests: List[quantum.CancelQuantumJobRequest] = []
         self._executor = AsyncioExecutor.instance()
-        self._request_ready = duet.AsyncCollector[None]()
+        self._request_buffer = duet.AsyncCollector[quantum.QuantumRunStreamRequest]()
         # asyncio.Queue needs to be initialized inside the asyncio thread because all callers need
         # to use the same event loop.
         self._responses_and_exceptions_future = duet.AwaitableFuture[asyncio.Queue]()
@@ -83,7 +83,7 @@ class FakeQuantumRunStream:
         """Fakes the QuantumRunStream RPC.
 
         Once a request is received, it is appended to `stream_requests`, and the test calling
-        `wait_for_request()` is notified.
+        `wait_for_requests()` is notified.
 
         The response is sent when a test calls `reply()` with a `QuantumRunStreamResponse`. If a
         test calls `reply()` with an exception, it is raised here to the `quantum_run_stream()`
@@ -96,8 +96,8 @@ class FakeQuantumRunStream:
 
         async def read_requests():
             async for request in requests:
-                self.stream_requests.append(request)
-                self._request_ready.add(None)
+                self.all_stream_requests.append(request)
+                self._request_buffer.add(request)
 
         async def response_iterator():
             asyncio.create_task(read_requests())
@@ -117,16 +117,21 @@ class FakeQuantumRunStream:
 
         This is called from the asyncio thread.
         """
-        self.cancel_requests.append(request)
+        self.all_cancel_requests.append(request)
         await asyncio.sleep(0)
 
-    async def wait_for_requests(self, num_requests=1):
+    async def wait_for_requests(self, num_requests=1) -> Sequence[quantum.QuantumRunStreamRequest]:
         """Wait til `num_requests` number of requests are received via `quantum_run_stream()`.
 
         This must be called from the duet thread.
+
+        Returns:
+            The received requests.
         """
+        requests = []
         for _ in range(num_requests):
-            await self._request_ready.__anext__()
+            requests.append(await self._request_buffer.__anext__())
+        return requests
 
     async def reply(
         self, response_or_exception: Union[quantum.QuantumRunStreamResponse, BaseException]
@@ -146,7 +151,7 @@ class FakeQuantumRunStream:
             isinstance(response_or_exception, quantum.QuantumRunStreamResponse)
             and not response_or_exception.message_id
         ):
-            response_or_exception.message_id = self.stream_requests[-1].message_id
+            response_or_exception.message_id = self.all_stream_requests[-1].message_id
 
         async def send():
             await responses_and_exceptions.put(response_or_exception)
@@ -271,9 +276,9 @@ class TestStreamManager:
 
                 # Assert
                 assert actual_result == expected_result
-                assert len(fake_client.stream_requests) == 1
+                assert len(fake_client.all_stream_requests) == 1
                 # assert that the first request is a CreateQuantumProgramAndJobRequest.
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
 
         duet.run(test)
 
@@ -302,8 +307,8 @@ class TestStreamManager:
                 await duet.sleep(1)  # Let cancellation complete asynchronously
                 manager.stop()
 
-                assert len(fake_client.cancel_requests) == 1
-                assert fake_client.cancel_requests[0] == quantum.CancelQuantumJobRequest(
+                assert len(fake_client.all_cancel_requests) == 1
+                assert fake_client.all_cancel_requests[0] == quantum.CancelQuantumJobRequest(
                     name='projects/proj/programs/prog/jobs/job0'
                 )
 
@@ -331,10 +336,10 @@ class TestStreamManager:
                 manager.stop()
 
                 assert actual_result == expected_result
-                assert len(fake_client.stream_requests) == 3
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
-                assert 'get_quantum_result' in fake_client.stream_requests[1]
-                assert 'get_quantum_result' in fake_client.stream_requests[2]
+                assert len(fake_client.all_stream_requests) == 3
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
+                assert 'get_quantum_result' in fake_client.all_stream_requests[1]
+                assert 'get_quantum_result' in fake_client.all_stream_requests[2]
 
         duet.run(test)
 
@@ -364,9 +369,9 @@ class TestStreamManager:
                 await actual_result_future
                 manager.stop()
 
-                assert len(fake_client.stream_requests) == 2
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
-                assert 'get_quantum_result' in fake_client.stream_requests[1]
+                assert len(fake_client.all_stream_requests) == 2
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
+                assert 'get_quantum_result' in fake_client.all_stream_requests[1]
 
         duet.run(test)
 
@@ -402,8 +407,8 @@ class TestStreamManager:
                     await actual_result_future
                 manager.stop()
 
-                assert len(fake_client.stream_requests) == 1
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
+                assert len(fake_client.all_stream_requests) == 1
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
 
         duet.run(test)
 
@@ -423,8 +428,8 @@ class TestStreamManager:
                 manager.stop()
 
                 assert actual_job == expected_job
-                assert len(fake_client.stream_requests) == 1
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
+                assert len(fake_client.all_stream_requests) == 1
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
 
         duet.run(test)
 
@@ -452,10 +457,10 @@ class TestStreamManager:
                 manager.stop()
 
                 assert actual_result == expected_result
-                assert len(fake_client.stream_requests) == 3
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
-                assert 'get_quantum_result' in fake_client.stream_requests[1]
-                assert 'create_quantum_job' in fake_client.stream_requests[2]
+                assert len(fake_client.all_stream_requests) == 3
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
+                assert 'get_quantum_result' in fake_client.all_stream_requests[1]
+                assert 'create_quantum_job' in fake_client.all_stream_requests[2]
 
         duet.run(test)
 
@@ -493,11 +498,11 @@ class TestStreamManager:
                 manager.stop()
 
                 assert actual_result == expected_result
-                assert len(fake_client.stream_requests) == 4
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
-                assert 'get_quantum_result' in fake_client.stream_requests[1]
-                assert 'create_quantum_job' in fake_client.stream_requests[2]
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[3]
+                assert len(fake_client.all_stream_requests) == 4
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
+                assert 'get_quantum_result' in fake_client.all_stream_requests[1]
+                assert 'create_quantum_job' in fake_client.all_stream_requests[2]
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[3]
 
         duet.run(test)
 
@@ -543,13 +548,13 @@ class TestStreamManager:
                 await fake_client.wait_for_requests(num_requests=2)
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
-                        message_id=fake_client.stream_requests[0].message_id,
+                        message_id=fake_client.all_stream_requests[0].message_id,
                         result=expected_result0,
                     )
                 )
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
-                        message_id=fake_client.stream_requests[1].message_id,
+                        message_id=fake_client.all_stream_requests[1].message_id,
                         result=expected_result1,
                     )
                 )
@@ -559,9 +564,9 @@ class TestStreamManager:
 
                 assert actual_result0 == expected_result0
                 assert actual_result1 == expected_result1
-                assert len(fake_client.stream_requests) == 2
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[1]
+                assert len(fake_client.all_stream_requests) == 2
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[1]
 
         duet.run(test)
 
@@ -586,7 +591,7 @@ class TestStreamManager:
                     quantum.QuantumRunStreamResponse(
                         message_id=next(
                             req.message_id
-                            for req in fake_client.stream_requests[2:]
+                            for req in fake_client.all_stream_requests[2:]
                             if req.get_quantum_result.parent == expected_result0.parent
                         ),
                         result=expected_result0,
@@ -596,7 +601,7 @@ class TestStreamManager:
                     quantum.QuantumRunStreamResponse(
                         message_id=next(
                             req.message_id
-                            for req in fake_client.stream_requests[2:]
+                            for req in fake_client.all_stream_requests[2:]
                             if req.get_quantum_result.parent == expected_result1.parent
                         ),
                         result=expected_result1,
@@ -608,11 +613,11 @@ class TestStreamManager:
 
                 assert actual_result0 == expected_result0
                 assert actual_result1 == expected_result1
-                assert len(fake_client.stream_requests) == 4
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[1]
-                assert 'get_quantum_result' in fake_client.stream_requests[2]
-                assert 'get_quantum_result' in fake_client.stream_requests[3]
+                assert len(fake_client.all_stream_requests) == 4
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[1]
+                assert 'get_quantum_result' in fake_client.all_stream_requests[2]
+                assert 'get_quantum_result' in fake_client.all_stream_requests[3]
 
         duet.run(test)
 
@@ -653,9 +658,9 @@ class TestStreamManager:
                 manager.stop()
 
                 assert actual_result == expected_result
-                assert len(fake_client.stream_requests) == 1
+                assert len(fake_client.all_stream_requests) == 1
                 # assert that the first request is a CreateQuantumProgramAndJobRequest.
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
 
         duet.run(test)
 
