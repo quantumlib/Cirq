@@ -268,17 +268,17 @@ class UnaryIterationGate(infra.GateWithRegisters):
 
     @cached_property
     @abc.abstractmethod
-    def control_registers(self) -> infra.Registers:
+    def control_registers(self) -> Tuple[infra.Register, ...]:
         pass
 
     @cached_property
     @abc.abstractmethod
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         pass
 
     @cached_property
     @abc.abstractmethod
-    def target_registers(self) -> infra.Registers:
+    def target_registers(self) -> Tuple[infra.Register, ...]:
         pass
 
     @cached_property
@@ -288,8 +288,8 @@ class UnaryIterationGate(infra.GateWithRegisters):
         )
 
     @cached_property
-    def extra_registers(self) -> infra.Registers:
-        return infra.Registers([])
+    def extra_registers(self) -> Tuple[infra.Register, ...]:
+        return ()
 
     @abc.abstractmethod
     def nth_operation(
@@ -325,7 +325,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
         By default, if the selection register is empty, the decomposition will raise a
         `NotImplementedError`. The derived classes can override this method and specify
         a custom decomposition that should be used if the selection register is empty,
-        i.e. `self.selection_registers.total_bits() == 0`.
+        i.e. `infra.total_bits(self.selection_registers) == 0`.
 
         The derived classes should specify the following arguments as `**kwargs`:
             1) Register names in `self.control_registers`: Each argument corresponds to a
@@ -366,14 +366,14 @@ class UnaryIterationGate(infra.GateWithRegisters):
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
-        if self.selection_registers.total_bits() == 0 or self._break_early(
+        if infra.total_bits(self.selection_registers) == 0 or self._break_early(
             (), 0, self.selection_registers[0].iteration_length
         ):
             return self.decompose_zero_selection(context=context, **quregs)
 
         num_loops = len(self.selection_registers)
-        target_regs = {k: v for k, v in quregs.items() if k in self.target_registers}
-        extra_regs = {k: v for k, v in quregs.items() if k in self.extra_registers}
+        target_regs = {reg.name: quregs[reg.name] for reg in self.target_registers}
+        extra_regs = {reg.name: quregs[reg.name] for reg in self.extra_registers}
 
         def unary_iteration_loops(
             nested_depth: int,
@@ -430,7 +430,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
                 selection_reg_name_to_val.pop(self.selection_registers[nested_depth].name)
             yield ops
 
-        return unary_iteration_loops(0, {}, self.control_registers.merge_qubits(**quregs))
+        return unary_iteration_loops(0, {}, infra.merge_qubits(self.control_registers, **quregs))
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """Basic circuit diagram.
@@ -438,7 +438,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
         Descendants are encouraged to override this with more descriptive
         circuit diagram information.
         """
-        wire_symbols = ["@"] * self.control_registers.total_bits()
-        wire_symbols += ["In"] * self.selection_registers.total_bits()
-        wire_symbols += [self.__class__.__name__] * self.target_registers.total_bits()
+        wire_symbols = ["@"] * infra.total_bits(self.control_registers)
+        wire_symbols += ["In"] * infra.total_bits(self.selection_registers)
+        wire_symbols += [self.__class__.__name__] * infra.total_bits(self.target_registers)
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

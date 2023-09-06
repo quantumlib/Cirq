@@ -16,6 +16,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.algos.generic_select_test import get_1d_Ising_hamiltonian
 from cirq_ft.algos.reflection_using_prepare_test import greedily_allocate_ancilla, keep
 from cirq_ft.infra.jupyter_tools import execute_notebook
@@ -31,7 +32,9 @@ def walk_operator_for_pauli_hamiltonian(
         ham_coeff, probability_epsilon=eps
     )
     select = cirq_ft.GenericSelect(
-        prepare.selection_registers.total_bits(), select_unitaries=ham_dps, target_bitsize=len(q)
+        infra.total_bits(prepare.selection_registers),
+        select_unitaries=ham_dps,
+        target_bitsize=len(q),
     )
     return cirq_ft.QubitizationWalkOperator(select=select, prepare=prepare)
 
@@ -96,7 +99,7 @@ def test_qubitization_walk_operator_diagrams():
     num_sites, eps = 4, 1e-1
     walk = get_walk_operator_for_1d_Ising_model(num_sites, eps)
     # 1. Diagram for $W = SELECT.R_{L}$
-    qu_regs = walk.registers.get_named_qubits()
+    qu_regs = infra.get_named_qubits(walk.registers)
     walk_op = walk.on_registers(**qu_regs)
     circuit = cirq.Circuit(cirq.decompose_once(walk_op))
     cirq.testing.assert_has_diagram(
@@ -214,7 +217,7 @@ target3: ──────GenericSelect─────────────�
 
 def test_qubitization_walk_operator_consistent_protocols_and_controlled():
     gate = get_walk_operator_for_1d_Ising_model(4, 1e-1)
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
     # Test consistent repr
     cirq.testing.assert_equivalent_repr(
         gate, setup_code='import cirq\nimport cirq_ft\nimport numpy as np'

@@ -61,15 +61,15 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         assert self.select.control_registers == self.reflect.control_registers
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
+    def control_registers(self) -> Tuple[infra.Register, ...]:
         return self.select.control_registers
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.prepare.selection_registers
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
+    def target_registers(self) -> Tuple[infra.Register, ...]:
         return self.select.target_registers
 
     @cached_property
@@ -99,8 +99,12 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
             yield reflect_op
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.total_bits()
-        wire_symbols += ['W'] * (self.registers.total_bits() - self.control_registers.total_bits())
+        wire_symbols = ['@' if self.control_val else '@(0)'] * infra.total_bits(
+            self.control_registers
+        )
+        wire_symbols += ['W'] * (
+            infra.total_bits(self.registers) - infra.total_bits(self.control_registers)
+        )
         wire_symbols[-1] = f'W^{self.power}' if self.power != 1 else 'W'
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 

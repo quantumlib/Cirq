@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 import cirq
 import cirq_ft
@@ -32,17 +32,16 @@ class DummySelect(cirq_ft.SelectOracle):
     control_val: Optional[int] = None
 
     @cached_property
-    def control_registers(self) -> cirq_ft.Registers:
-        registers = [] if self.control_val is None else [cirq_ft.Register('control', 1)]
-        return cirq_ft.Registers(registers)
+    def control_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return () if self.control_val is None else (cirq_ft.Register('control', 1),)
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(selection=self.bitsize)
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return (cirq_ft.SelectionRegister('selection', self.bitsize),)
 
     @cached_property
-    def target_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(target=self.bitsize)
+    def target_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return (cirq_ft.Register('target', self.bitsize),)
 
     def decompose_from_registers(self, context, selection, target):
         yield [cirq.CNOT(s, t) for s, t in zip(selection, target)]
