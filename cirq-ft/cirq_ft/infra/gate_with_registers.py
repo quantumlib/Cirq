@@ -57,7 +57,7 @@ def total_bits(registers: Iterable[Register]) -> int:
 
 def split_qubits(
     registers: Iterable[Register], qubits: Sequence[cirq.Qid]
-) -> Dict[str, NDArray[cirq.Qid]]:
+) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
     qubit_regs = {}
     base = 0
     for reg in registers:
