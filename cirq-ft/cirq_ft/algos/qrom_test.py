@@ -18,6 +18,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
@@ -34,7 +35,8 @@ def test_qrom_1d(data, num_controls):
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
 
     assert (
-        len(inverse.all_qubits()) <= g.r.total_bits() + g.r['selection'].total_bits() + num_controls
+        len(inverse.all_qubits())
+        <= infra.total_bits(g.r) + g.r['selection'].total_bits() + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 
@@ -73,7 +75,7 @@ def test_qrom_diagram():
     d1 = np.array([4, 5, 6])
     qrom = cirq_ft.QROM.build(d0, d1)
     q = cirq.LineQubit.range(cirq.num_qubits(qrom))
-    circuit = cirq.Circuit(qrom.on_registers(**qrom.registers.split_qubits(q)))
+    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.registers, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -211,7 +213,7 @@ def test_qrom_multi_dim(data, num_controls):
 
     assert (
         len(inverse.all_qubits())
-        <= g.r.total_bits() + qrom.selection_registers.total_bits() + num_controls
+        <= infra.total_bits(g.r) + infra.total_bits(qrom.selection_registers) + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 

@@ -20,6 +20,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 random.seed(12345)
@@ -46,12 +47,12 @@ def test_multi_controlled_and_gate(cv: List[int]):
     gate = cirq_ft.And(cv)
     r = gate.registers
     assert r['ancilla'].total_bits() == r['control'].total_bits() - 2
-    quregs = r.get_named_qubits()
+    quregs = infra.get_named_qubits(r)
     and_op = gate.on_registers(**quregs)
     circuit = cirq.Circuit(and_op)
 
     input_controls = [cv] + [random_cv(len(cv)) for _ in range(10)]
-    qubit_order = gate.registers.merge_qubits(**quregs)
+    qubit_order = infra.merge_qubits(gate.registers, **quregs)
 
     for input_control in input_controls:
         initial_state = input_control + [0] * (r['ancilla'].total_bits() + 1)
@@ -77,7 +78,7 @@ def test_multi_controlled_and_gate(cv: List[int]):
 
 def test_and_gate_diagram():
     gate = cirq_ft.And((1, 0, 1, 0, 1, 0))
-    qubit_regs = gate.registers.get_named_qubits()
+    qubit_regs = infra.get_named_qubits(gate.registers)
     op = gate.on_registers(**qubit_regs)
     # Qubit order should be alternating (control, ancilla) pairs.
     c_and_a = sum(zip(qubit_regs["control"][1:], qubit_regs["ancilla"]), ()) + (

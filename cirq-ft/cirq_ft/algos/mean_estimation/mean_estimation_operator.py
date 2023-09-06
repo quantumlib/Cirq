@@ -99,11 +99,11 @@ class MeanEstimationOperator(infra.GateWithRegisters):
         return complex_phase_oracle.ComplexPhaseOracle(self.code.encoder, self.arctan_bitsize)
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
+    def control_registers(self) -> Tuple[infra.Register, ...]:
         return self.code.encoder.control_registers
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.code.encoder.selection_registers
 
     @cached_property
@@ -130,7 +130,7 @@ class MeanEstimationOperator(infra.GateWithRegisters):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = [] if self.cv == () else [["@(0)", "@"][self.cv[0]]]
         wire_symbols += ['U_ko'] * (
-            self.registers.total_bits() - self.control_registers.total_bits()
+            infra.total_bits(self.registers) - infra.total_bits(self.control_registers)
         )
         if self.power != 1:
             wire_symbols[-1] = f'U_ko^{self.power}'

@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Tuple
 from numpy.typing import NDArray
 
 import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq._compat import cached_property
 from cirq_ft.infra.bit_tools import iter_bits
 
@@ -33,8 +35,8 @@ class CustomProgrammableRotationGateArray(cirq_ft.ProgrammableRotationGateArrayB
         return two_qubit_ops_factory[index % 2]
 
     @cached_property
-    def interleaved_unitary_target(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(unrelated_target=1)
+    def interleaved_unitary_target(self) -> Tuple[cirq_ft.Register, ...]:
+        return tuple(cirq_ft.Registers.build(unrelated_target=1))
 
 
 def construct_custom_prga(*args, **kwargs) -> cirq_ft.ProgrammableRotationGateArrayBase:
@@ -78,7 +80,7 @@ def test_programmable_rotation_gate_array(angles, kappa, constructor):
             *programmable_rotation_gate.interleaved_unitary_target,
         ]
     )
-    rotations_and_unitary_qubits = rotations_and_unitary_registers.merge_qubits(**g.quregs)
+    rotations_and_unitary_qubits = infra.merge_qubits(rotations_and_unitary_registers, **g.quregs)
 
     # Build circuit.
     simulator = cirq.Simulator(dtype=np.complex128)

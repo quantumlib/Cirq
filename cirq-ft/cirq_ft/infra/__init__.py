@@ -17,7 +17,10 @@ from cirq_ft.infra.gate_with_registers import (
     Register,
     Registers,
     SelectionRegister,
-    SelectionRegisters,
+    total_bits,
+    split_qubits,
+    merge_qubits,
+    get_named_qubits,
 )
 from cirq_ft.infra.qubit_management_transformers import map_clean_and_borrowable_qubits
 from cirq_ft.infra.qubit_manager import GreedyQubitManager

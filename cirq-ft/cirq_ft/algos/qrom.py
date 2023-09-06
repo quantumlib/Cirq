@@ -92,36 +92,26 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         assert isinstance(self.target_bitsizes, tuple)
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
-        return (
-            infra.Registers.build(control=self.num_controls)
-            if self.num_controls
-            else infra.Registers([])
-        )
+    def control_registers(self) -> Tuple[infra.Register, ...]:
+        return () if not self.num_controls else (infra.Register('control', self.num_controls),)
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         if len(self.data[0].shape) == 1:
-            return infra.SelectionRegisters(
-                [
-                    infra.SelectionRegister(
-                        'selection', self.selection_bitsizes[0], self.data[0].shape[0]
-                    )
-                ]
+            return (
+                infra.SelectionRegister(
+                    'selection', self.selection_bitsizes[0], self.data[0].shape[0]
+                ),
             )
         else:
-            return infra.SelectionRegisters(
-                [
-                    infra.SelectionRegister(f'selection{i}', sb, len)
-                    for i, (len, sb) in enumerate(zip(self.data[0].shape, self.selection_bitsizes))
-                ]
+            return tuple(
+                infra.SelectionRegister(f'selection{i}', sb, l)
+                for i, (l, sb) in enumerate(zip(self.data[0].shape, self.selection_bitsizes))
             )
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        return infra.Registers.build(
-            **{f'target{i}': len for i, len in enumerate(self.target_bitsizes)}
-        )
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        return tuple(infra.Register(f'target{i}', l) for i, l in enumerate(self.target_bitsizes))
 
     def __repr__(self) -> str:
         data_repr = f"({','.join(cirq._compat.proper_repr(d) for d in self.data)})"
@@ -147,8 +137,8 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     def decompose_zero_selection(
         self, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
-        controls = self.control_registers.merge_qubits(**quregs)
-        target_regs = {k: v for k, v in quregs.items() if k in self.target_registers}
+        controls = infra.merge_qubits(self.control_registers, **quregs)
+        target_regs = {reg.name: quregs[reg.name] for reg in self.target_registers}
         zero_indx = (0,) * len(self.data[0].shape)
         if self.num_controls == 0:
             yield self._load_nth_data(zero_indx, cirq.X, **target_regs)
@@ -185,7 +175,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
 
     def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
         wire_symbols = ["@"] * self.num_controls
-        wire_symbols += ["In"] * self.selection_registers.total_bits()
+        wire_symbols += ["In"] * infra.total_bits(self.selection_registers)
         for i, target in enumerate(self.target_registers):
             wire_symbols += [f"QROM_{i}"] * target.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

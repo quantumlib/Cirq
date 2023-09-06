@@ -18,7 +18,7 @@ from numpy.typing import NDArray
 import cirq
 import numpy as np
 from cirq._compat import cached_property
-from cirq_ft.infra import gate_with_registers, t_complexity_protocol
+from cirq_ft.infra import gate_with_registers, t_complexity_protocol, merge_qubits, get_named_qubits
 from cirq_ft.infra.decompose_protocol import _decompose_once_considering_known_decomposition
 
 
@@ -44,12 +44,12 @@ class GateHelper:
     @cached_property
     def quregs(self) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
         """A dictionary of named qubits appropriate for the registers for the gate."""
-        return self.r.get_named_qubits()
+        return get_named_qubits(self.r)
 
     @cached_property
     def all_qubits(self) -> List[cirq.Qid]:
         """All qubits in Register order."""
-        merged_qubits = self.r.merge_qubits(**self.quregs)
+        merged_qubits = merge_qubits(self.r, **self.quregs)
         decomposed_qubits = self.decomposed_circuit.all_qubits()
         return merged_qubits + sorted(decomposed_qubits - frozenset(merged_qubits))
 
