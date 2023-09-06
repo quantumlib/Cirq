@@ -80,7 +80,9 @@ class MeanEstimationOperator(infra.GateWithRegisters):
     """
 
     code: CodeForRandomVariable
-    cv: Tuple[int, ...] = attr.field(converter=infra.to_tuple, default=())
+    cv: Tuple[int, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
+    )
     power: int = 1
     arctan_bitsize: int = 32
 

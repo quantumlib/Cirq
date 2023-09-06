@@ -49,7 +49,9 @@ class And(infra.GateWithRegisters):
         ValueError: If number of control values (i.e. `len(self.cv)`) is less than 2.
     """
 
-    cv: Tuple[int, ...] = attr.field(default=(1, 1), converter=infra.to_tuple)
+    cv: Tuple[int, ...] = attr.field(
+        default=(1, 1), converter=lambda v: (v,) if isinstance(v, int) else tuple(v)
+    )
     adjoint: bool = False
 
     @cv.validator

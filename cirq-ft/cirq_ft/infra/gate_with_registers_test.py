@@ -57,6 +57,13 @@ def test_registers():
     assert qregs["r3"].tolist() == [cirq.LineQubit(7)]
 
     qubits = qubits[::-1]
+
+    with pytest.raises(ValueError, match="qubit registers must be present"):
+        _ = merge_qubits(regs, r1=qubits[:5], r2=qubits[5:7], r4=qubits[-1])
+
+    with pytest.raises(ValueError, match="register must of shape"):
+        _ = merge_qubits(regs, r1=qubits[:4], r2=qubits[5:7], r3=qubits[-1])
+
     merged_qregs = merge_qubits(regs, r1=qubits[:5], r2=qubits[5:7], r3=qubits[-1])
     assert merged_qregs == qubits
 

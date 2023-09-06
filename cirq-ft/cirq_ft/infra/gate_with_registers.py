@@ -43,7 +43,7 @@ class Register:
     def total_bits(self) -> int:
         """The total number of bits in this register.
 
-        This is the product of bitsize and each of the dimensions in `shape`.
+        This is the product of each of the dimensions in `shape`.
         """
         return int(np.product(self.shape))
 
@@ -52,12 +52,16 @@ class Register:
 
 
 def total_bits(registers: Iterable[Register]) -> int:
+    """Sum of `reg.total_bits()` for each register `reg` in input `registers`."""
+
     return sum(reg.total_bits() for reg in registers)
 
 
 def split_qubits(
     registers: Iterable[Register], qubits: Sequence[cirq.Qid]
 ) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
+    """Splits the flat list of qubits into a dictionary of appropriately shaped qubit arrays."""
+
     qubit_regs = {}
     base = 0
     for reg in registers:
@@ -70,21 +74,25 @@ def merge_qubits(
     registers: Iterable[Register],
     **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]],
 ) -> List[cirq.Qid]:
+    """Merges the dictionary of appropriately shaped qubit arrays into a flat list of qubits."""
+
     ret: List[cirq.Qid] = []
     for reg in registers:
-        assert (
-            reg.name in qubit_regs
-        ), f"All qubit registers must be present. {reg.name} not in qubit_regs"
+        if reg.name not in qubit_regs:
+            raise ValueError(f"All qubit registers must be present. {reg.name} not in qubit_regs")
         qubits = qubit_regs[reg.name]
         qubits = np.array([qubits] if isinstance(qubits, cirq.Qid) else qubits)
-        assert (
-            qubits.shape == reg.shape
-        ), f'{reg.name} register must of shape {reg.shape} but is of shape {qubits.shape}'
+        if qubits.shape != reg.shape:
+            raise ValueError(
+                f'{reg.name} register must of shape {reg.shape} but is of shape {qubits.shape}'
+            )
         ret += qubits.flatten().tolist()
     return ret
 
 
 def get_named_qubits(registers: Iterable[Register]) -> Dict[str, NDArray[cirq.Qid]]:
+    """Returns a dictionary of appropriately shaped named qubit registers for input `registers`."""
+
     def _qubit_array(reg: Register):
         qubits = np.empty(reg.shape, dtype=object)
         for ii in reg.all_idxs():
@@ -169,6 +177,43 @@ class SelectionRegister(Register):
 
     `SelectionRegister` extends the `Register` class to store the iteration length
     corresponding to that register along with its size.
+
+    LCU methods often make use of coherent for-loops via UnaryIteration, iterating over a range
+    of values stored as a superposition over the `SELECT` register. Such (nested) coherent
+    for-loops can be represented using a `Tuple[SelectionRegister, ...]` where the i'th entry
+    stores the bitsize and iteration length of i'th nested for-loop.
+
+    One useful feature when processing such nested for-loops is to flatten out a composite index,
+    represented by a tuple of indices (i, j, ...), one for each selection register into a single
+    integer that can be used to index a flat target register. An example of such a mapping
+    function is described in Eq.45 of https://arxiv.org/abs/1805.03662. A general version of this
+    mapping function can be implemented using `numpy.ravel_multi_index` and `numpy.unravel_index`.
+
+    For example:
+        1) We can flatten a 2D for-loop as follows
+        >>> import numpy as np
+        >>> N, M = 10, 20
+        >>> flat_indices = set()
+        >>> for x in range(N):
+        ...     for y in range(M):
+        ...         flat_idx = x * M + y
+        ...         assert np.ravel_multi_index((x, y), (N, M)) == flat_idx
+        ...         assert np.unravel_index(flat_idx, (N, M)) == (x, y)
+        ...         flat_indices.add(flat_idx)
+        >>> assert len(flat_indices) == N * M
+
+        2) Similarly, we can flatten a 3D for-loop as follows
+        >>> import numpy as np
+        >>> N, M, L = 10, 20, 30
+        >>> flat_indices = set()
+        >>> for x in range(N):
+        ...     for y in range(M):
+        ...         for z in range(L):
+        ...             flat_idx = x * M * L + y * L + z
+        ...             assert np.ravel_multi_index((x, y, z), (N, M, L)) == flat_idx
+        ...             assert np.unravel_index(flat_idx, (N, M, L)) == (x, y, z)
+        ...             flat_indices.add(flat_idx)
+        >>> assert len(flat_indices) == N * M * L
     """
 
     iteration_length: int = attr.field()
