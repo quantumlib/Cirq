@@ -141,8 +141,10 @@ def test_qrom_variable_spacing():
     assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == (8 - 2) * 4
     # Works as expected when multiple data arrays are to be loaded.
     data = [1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5]
+    # (a) Both data sequences are identical
     assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, data)).t == (5 - 2) * 4
-    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, 2 * np.array(data))).t == (16 - 2) * 4
+    # (b) Both data sequences have identical structure, even though the elements are not same.
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, 2 * np.array(data))).t == (5 - 2) * 4
     # Works as expected when multidimensional input data is to be loaded
     qrom = cirq_ft.QROM.build(
         np.array(
