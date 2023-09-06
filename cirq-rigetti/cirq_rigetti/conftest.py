@@ -18,7 +18,7 @@ from unittest.mock import create_autospec, Mock
 import pytest
 from pyquil import Program
 from pyquil.quantum_processor import AbstractQuantumProcessor, NxQuantumProcessor
-from pyquil.api import QAM, QuantumComputer, QuantumExecutable, QAMExecutionResult, EncryptedProgram
+from pyquil.api import QAM, QuantumComputer, QuantumExecutable, QAMExecutionResult, EncryptedProgram, MemoryMap
 from pyquil.api._abstract_compiler import AbstractCompiler
 from qcs_sdk import QCSClient, ExecutionData, ResultData, RegisterData
 from qcs_sdk.qvm import QVMResultData
@@ -153,7 +153,7 @@ class MockQPUImplementer:
             side_effect=native_quil_to_executable,
         )
 
-        def run(program: Union[Program, EncryptedProgram]) -> QAMExecutionResult:
+        def run(program: Union[Program, EncryptedProgram], memory_map: MemoryMap) -> QAMExecutionResult:
             qam = quantum_computer.qam
             qam._mock_results = qam._mock_results or {}  # type: ignore
             qam._mock_results["m0"] = results[qam._run_count]  # type: ignore
