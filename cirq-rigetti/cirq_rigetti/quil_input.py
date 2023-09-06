@@ -255,7 +255,7 @@ def circuit_from_quil(quil: str) -> Circuit:
         elif isinstance(inst, PyQuilGate):
             quil_gate_name = inst.name
             quil_gate_params = inst.params
-            line_qubits = list(LineQubit(q.index) for q in inst.qubits)
+            line_qubits = list(LineQubit(q) for q in inst.get_qubit_indices())
             if quil_gate_name not in defined_gates:
                 raise UndefinedQuilGate(f"Quil gate {quil_gate_name} not supported in Cirq.")
             cirq_gate_fn = defined_gates[quil_gate_name]
