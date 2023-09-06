@@ -57,6 +57,10 @@ def _execute_and_read_result(
     Raises:
         ValueError: measurement_id_map references an undefined pyQuil readout region.
     """
+    memory_map = memory_map or {}
+    for region_name in memory_map.keys():
+        if not isinstance(region_name, str):
+            raise ValueError(f'Symbols not valid for region name {region_name}')
     qam_execution_result = quantum_computer.qam.run(executable, memory_map)
 
     measurements = {}
