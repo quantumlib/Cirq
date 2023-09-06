@@ -15,7 +15,7 @@
 from typing import Callable, cast, Dict, Union
 
 import numpy as np
-from pyquil.parser import parse
+from pyquil import Program
 from pyquil.quilbase import (
     Declare,
     DefGate,
@@ -236,7 +236,7 @@ def circuit_from_quil(quil: str) -> Circuit:
     """
     circuit = Circuit()
     defined_gates = SUPPORTED_GATES.copy()
-    instructions = parse(quil)
+    instructions = Program(quil)
 
     for inst in instructions:
         # Add DEFGATE-defined gates to defgates dict using MatrixGate.

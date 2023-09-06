@@ -20,11 +20,8 @@ from pyquil import Program
 from pyquil.quantum_processor import AbstractQuantumProcessor, NxQuantumProcessor
 from pyquil.api import QAM, QuantumComputer, QuantumExecutable, QAMExecutionResult, EncryptedProgram
 from pyquil.api._abstract_compiler import AbstractCompiler
-from qcs_api_client.client._configuration.settings import QCSClientConfigurationSettings
-from qcs_api_client.client._configuration import (
-    QCSClientConfiguration,
-    QCSClientConfigurationSecrets,
-)
+from qcs_sdk import QCSClient, ExecutionData, ResultData, RegisterData
+from qcs_sdk.qvm import QVMResultData
 import networkx as nx
 import cirq
 import sympy
@@ -71,16 +68,14 @@ def quantum_processor() -> AbstractQuantumProcessor:
 
 
 @pytest.fixture
-def qcs_client_configuration() -> QCSClientConfiguration:
-    settings = QCSClientConfigurationSettings()
-    secrets = QCSClientConfigurationSecrets()
-    return QCSClientConfiguration(profile_name="default", settings=settings, secrets=secrets)
+def qcs_client() -> QCSClient:
+    return QCSClient()
 
 
 @pytest.fixture
-def compiler(quantum_processor, qcs_client_configuration) -> AbstractCompiler:
+def compiler(quantum_processor, qcs_client) -> AbstractCompiler:
     return MockCompiler(
-        client_configuration=qcs_client_configuration,
+        client_configuration=qcs_client,
         timeout=0,
         quantum_processor=quantum_processor,
     )
@@ -165,7 +160,14 @@ class MockQPUImplementer:
 
             quantum_computer.qam._run_count += 1  # type: ignore
             return QAMExecutionResult(
-                executable=program, readout_data=qam._mock_results  # type: ignore
+                executable=program,
+                data=ExecutionData(
+                    result_data=ResultData.from_qvm(
+                        QVMResultData.from_memory_map(
+                            {k: RegisterData.from_f64([v]) for k, v in qam._mock_results.items()}  # type: ignore
+                        ),
+                    ),
+                ),
             )
 
         quantum_computer.qam.run = Mock(quantum_computer.qam.run, side_effect=run)  # type: ignore
