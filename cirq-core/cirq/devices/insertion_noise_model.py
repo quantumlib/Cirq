@@ -75,6 +75,13 @@ class InsertionNoiseModel(devices.NoiseModel):
             return [*noise_steps.moments, moment]
         return [moment, *noise_steps.moments]
 
+    def __repr__(self) -> str:
+        return (
+            f'cirq.devices.InsertionNoiseModel(ops_added={self.ops_added},'
+            + f' prepend={self.prepend},'
+            + f' require_physical_tag={self.require_physical_tag})'
+        )
+
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'ops_added': list(self.ops_added.items()),
