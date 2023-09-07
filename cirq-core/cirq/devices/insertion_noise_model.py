@@ -83,7 +83,7 @@ class InsertionNoiseModel(devices.NoiseModel):
         }
 
     @classmethod
-    def _from_json_dict_(cls, ops_added, prepend,require_physical_tag, **kwargs):
+    def _from_json_dict_(cls, ops_added, prepend, require_physical_tag, **kwargs):
         return cls(
             ops_added=dict(ops_added), prepend=prepend, require_physical_tag=require_physical_tag
         )
