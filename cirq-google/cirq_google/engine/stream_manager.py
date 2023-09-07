@@ -107,8 +107,6 @@ class StreamManager:
 
     """
 
-    _STOP_SIGNAL = None
-
     def __init__(self, grpc_client: quantum.QuantumEngineServiceAsyncClient):
         self._grpc_client = grpc_client
         # Used to determine whether the stream coroutine is actively running, and provides a way to
@@ -123,11 +121,13 @@ class StreamManager:
         self._next_available_message_id = 0
         # Construct queue in AsyncioExecutor to ensure it binds to the correct event loop, since it
         # is used by asyncio coroutines.
-        self._request_queue: asyncio.Queue[
-            Optional[quantum.QuantumRunStreamRequest]
-        ] = self._executor.submit(self._make_request_queue).result()
+        self._request_queue = self._executor.submit(self._make_request_queue).result()
 
     async def _make_request_queue(self) -> asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]]:
+        """Returns a queue used to back the request iterator passed to the stream.
+
+        If `None` is put into the queue, the request iterator will stop.
+        """
         return asyncio.Queue()
 
     def submit(
@@ -214,11 +214,11 @@ class StreamManager:
                 async for response in response_iterable:
                     self._response_demux.publish(response)
             except asyncio.CancelledError:
-                await request_queue.put(StreamManager._STOP_SIGNAL)
+                await request_queue.put(None)
                 break
             except BaseException as e:
                 # Note: the message ID counter is not reset upon a new stream.
-                await request_queue.put(StreamManager._STOP_SIGNAL)
+                await request_queue.put(None)
                 self._response_demux.publish_exception(e)  # Raise to all request tasks
 
     async def _manage_execution(
