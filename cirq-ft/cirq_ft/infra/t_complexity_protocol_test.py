@@ -15,6 +15,7 @@
 import cirq
 import cirq_ft
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
@@ -108,11 +109,11 @@ def test_operations():
     assert cirq_ft.t_complexity(cirq.T(q)) == cirq_ft.TComplexity(t=1)
 
     gate = cirq_ft.And()
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
     assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(t=4, clifford=9)
 
     gate = cirq_ft.And() ** -1
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
     assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(clifford=4)
 
 

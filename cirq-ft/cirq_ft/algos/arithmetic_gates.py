@@ -611,7 +611,9 @@ class AddMod(cirq.ArithmeticGate):
     bitsize: int
     mod: int = attr.field()
     add_val: int = 1
-    cv: Tuple[int, ...] = attr.field(converter=infra.to_tuple, default=())
+    cv: Tuple[int, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
+    )
 
     @mod.validator
     def _validate_mod(self, attribute, value):

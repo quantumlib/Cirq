@@ -113,7 +113,7 @@ def _register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> 
 class SupportsJSON(Protocol):
     """An object that can be turned into JSON dictionaries.
 
-    The magic method _json_dict_ must return a trivially json-serializable
+    The magic method `_json_dict_` must return a trivially json-serializable
     type or other objects that support the SupportsJSON protocol.
 
     During deserialization, a class must be able to be resolved (see
@@ -150,7 +150,7 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, An
     """Construct a dictionary containing attributes from obj
 
     This is useful as a helper function in objects implementing the
-    SupportsJSON protocol, particularly in the _json_dict_ method.
+    SupportsJSON protocol, particularly in the `_json_dict_` method.
 
     In addition to keys and values specified by `attribute_names`, the
     returned dictionary has an additional key "cirq_type" whose value
@@ -169,7 +169,7 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, An
 
 # pylint: enable=redefined-builtin
 def dataclass_json_dict(obj: Any) -> Dict[str, Any]:
-    """Return a dictionary suitable for _json_dict_ from a dataclass.
+    """Return a dictionary suitable for `_json_dict_` from a dataclass.
 
     Dataclasses keep track of their relevant fields, so we can automatically generate these.
 
@@ -607,7 +607,7 @@ def to_json(
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
-            party classes, prefer adding the _json_dict_ magic method
+            party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
     """
     if has_serializable_by_keys(obj):

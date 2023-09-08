@@ -43,12 +43,74 @@ class Register:
     def total_bits(self) -> int:
         """The total number of bits in this register.
 
-        This is the product of bitsize and each of the dimensions in `shape`.
+        This is the product of each of the dimensions in `shape`.
         """
         return int(np.product(self.shape))
 
     def __repr__(self):
         return f'cirq_ft.Register(name="{self.name}", shape={self.shape})'
+
+
+def total_bits(registers: Iterable[Register]) -> int:
+    """Sum of `reg.total_bits()` for each register `reg` in input `registers`."""
+
+    return sum(reg.total_bits() for reg in registers)
+
+
+def split_qubits(
+    registers: Iterable[Register], qubits: Sequence[cirq.Qid]
+) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
+    """Splits the flat list of qubits into a dictionary of appropriately shaped qubit arrays."""
+
+    qubit_regs = {}
+    base = 0
+    for reg in registers:
+        qubit_regs[reg.name] = np.array(qubits[base : base + reg.total_bits()]).reshape(reg.shape)
+        base += reg.total_bits()
+    return qubit_regs
+
+
+def merge_qubits(
+    registers: Iterable[Register],
+    **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]],
+) -> List[cirq.Qid]:
+    """Merges the dictionary of appropriately shaped qubit arrays into a flat list of qubits."""
+
+    ret: List[cirq.Qid] = []
+    for reg in registers:
+        if reg.name not in qubit_regs:
+            raise ValueError(f"All qubit registers must be present. {reg.name} not in qubit_regs")
+        qubits = qubit_regs[reg.name]
+        qubits = np.array([qubits] if isinstance(qubits, cirq.Qid) else qubits)
+        if qubits.shape != reg.shape:
+            raise ValueError(
+                f'{reg.name} register must of shape {reg.shape} but is of shape {qubits.shape}'
+            )
+        ret += qubits.flatten().tolist()
+    return ret
+
+
+def get_named_qubits(registers: Iterable[Register]) -> Dict[str, NDArray[cirq.Qid]]:
+    """Returns a dictionary of appropriately shaped named qubit registers for input `registers`."""
+
+    def _qubit_array(reg: Register):
+        qubits = np.empty(reg.shape, dtype=object)
+        for ii in reg.all_idxs():
+            qubits[ii] = cirq.NamedQubit(f'{reg.name}[{", ".join(str(i) for i in ii)}]')
+        return qubits
+
+    def _qubits_for_reg(reg: Register):
+        if len(reg.shape) > 1:
+            return _qubit_array(reg)
+
+        return np.array(
+            [cirq.NamedQubit(f"{reg.name}")]
+            if reg.total_bits() == 1
+            else cirq.NamedQubit.range(reg.total_bits(), prefix=reg.name),
+            dtype=object,
+        )
+
+    return {reg.name: _qubits_for_reg(reg) for reg in registers}
 
 
 class Registers:
@@ -66,9 +128,6 @@ class Registers:
 
     def __repr__(self):
         return f'cirq_ft.Registers({self._registers})'
-
-    def total_bits(self) -> int:
-        return sum(reg.total_bits() for reg in self)
 
     @classmethod
     def build(cls, **registers: Union[int, Tuple[int, ...]]) -> 'Registers':
@@ -105,54 +164,6 @@ class Registers:
     def __len__(self) -> int:
         return len(self._registers)
 
-    def split_qubits(
-        self, qubits: Sequence[cirq.Qid]
-    ) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
-        qubit_regs = {}
-        base = 0
-        for reg in self:
-            qubit_regs[reg.name] = np.array(qubits[base : base + reg.total_bits()]).reshape(
-                reg.shape
-            )
-            base += reg.total_bits()
-        return qubit_regs
-
-    def merge_qubits(
-        self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]]
-    ) -> List[cirq.Qid]:
-        ret: List[cirq.Qid] = []
-        for reg in self:
-            assert (
-                reg.name in qubit_regs
-            ), f"All qubit registers must be present. {reg.name} not in qubit_regs"
-            qubits = qubit_regs[reg.name]
-            qubits = np.array([qubits] if isinstance(qubits, cirq.Qid) else qubits)
-            assert (
-                qubits.shape == reg.shape
-            ), f'{reg.name} register must of shape {reg.shape} but is of shape {qubits.shape}'
-            ret += qubits.flatten().tolist()
-        return ret
-
-    def get_named_qubits(self) -> Dict[str, NDArray[cirq.Qid]]:
-        def _qubit_array(reg: Register):
-            qubits = np.empty(reg.shape, dtype=object)
-            for ii in reg.all_idxs():
-                qubits[ii] = cirq.NamedQubit(f'{reg.name}[{", ".join(str(i) for i in ii)}]')
-            return qubits
-
-        def _qubits_for_reg(reg: Register):
-            if len(reg.shape) > 1:
-                return _qubit_array(reg)
-
-            return np.array(
-                [cirq.NamedQubit(f"{reg.name}")]
-                if reg.total_bits() == 1
-                else cirq.NamedQubit.range(reg.total_bits(), prefix=reg.name),
-                dtype=object,
-            )
-
-        return {reg.name: _qubits_for_reg(reg) for reg in self._registers}
-
     def __eq__(self, other) -> bool:
         return self._registers == other._registers
 
@@ -166,6 +177,43 @@ class SelectionRegister(Register):
 
     `SelectionRegister` extends the `Register` class to store the iteration length
     corresponding to that register along with its size.
+
+    LCU methods often make use of coherent for-loops via UnaryIteration, iterating over a range
+    of values stored as a superposition over the `SELECT` register. Such (nested) coherent
+    for-loops can be represented using a `Tuple[SelectionRegister, ...]` where the i'th entry
+    stores the bitsize and iteration length of i'th nested for-loop.
+
+    One useful feature when processing such nested for-loops is to flatten out a composite index,
+    represented by a tuple of indices (i, j, ...), one for each selection register into a single
+    integer that can be used to index a flat target register. An example of such a mapping
+    function is described in Eq.45 of https://arxiv.org/abs/1805.03662. A general version of this
+    mapping function can be implemented using `numpy.ravel_multi_index` and `numpy.unravel_index`.
+
+    For example:
+        1) We can flatten a 2D for-loop as follows
+        >>> import numpy as np
+        >>> N, M = 10, 20
+        >>> flat_indices = set()
+        >>> for x in range(N):
+        ...     for y in range(M):
+        ...         flat_idx = x * M + y
+        ...         assert np.ravel_multi_index((x, y), (N, M)) == flat_idx
+        ...         assert np.unravel_index(flat_idx, (N, M)) == (x, y)
+        ...         flat_indices.add(flat_idx)
+        >>> assert len(flat_indices) == N * M
+
+        2) Similarly, we can flatten a 3D for-loop as follows
+        >>> import numpy as np
+        >>> N, M, L = 10, 20, 30
+        >>> flat_indices = set()
+        >>> for x in range(N):
+        ...     for y in range(M):
+        ...         for z in range(L):
+        ...             flat_idx = x * M * L + y * L + z
+        ...             assert np.ravel_multi_index((x, y, z), (N, M, L)) == flat_idx
+        ...             assert np.unravel_index(flat_idx, (N, M, L)) == (x, y, z)
+        ...             flat_indices.add(flat_idx)
+        >>> assert len(flat_indices) == N * M * L
     """
 
     iteration_length: int = attr.field()
@@ -188,91 +236,6 @@ class SelectionRegister(Register):
             f'shape={self.shape}, '
             f'iteration_length={self.iteration_length})'
         )
-
-
-class SelectionRegisters(Registers):
-    """Registers used to represent SELECT registers for various LCU methods.
-
-    LCU methods often make use of coherent for-loops via UnaryIteration, iterating over a range
-    of values stored as a superposition over the `SELECT` register. The `SelectionRegisters` class
-    is used to represent such SELECT registers. In particular, it provides two additional features
-    on top of the regular `Registers` class:
-
-    - For each selection register, we store the iteration length corresponding to that register
-        along with its size.
-    - We provide a default way of "flattening out" a composite index represented by a tuple of
-        values stored in multiple input selection registers to a single integer that can be used
-        to index a flat target register.
-    """
-
-    def __init__(self, registers: Iterable[SelectionRegister]):
-        super().__init__(registers)
-        self.iteration_lengths = tuple([reg.iteration_length for reg in registers])
-        self._suffix_prod = np.multiply.accumulate(self.iteration_lengths[::-1])[::-1]
-        self._suffix_prod = np.append(self._suffix_prod, [1])
-
-    def to_flat_idx(self, *selection_vals: int) -> int:
-        """Flattens a composite index represented by a Tuple[int, ...] to a single output integer.
-
-        For example:
-
-        1) We can flatten a 2D for-loop as follows
-        >>> N, M = 10, 20
-        >>> flat_indices = set()
-        >>> for x in range(N):
-        ...     for y in range(M):
-        ...         flat_idx = x * M + y
-        ...         flat_indices.add(flat_idx)
-        >>> assert len(flat_indices) == N * M
-
-        2) Similarly, we can flatten a 3D for-loop as follows
-        >>> N, M, L = 10, 20, 30
-        >>> flat_indices = set()
-        >>> for x in range(N):
-        ...     for y in range(M):
-        ...         for z in range(L):
-        ...             flat_idx = x * M * L + y * L + z
-        ...             flat_indices.add(flat_idx)
-        >>> assert len(flat_indices) == N * M * L
-
-        This is a general version of the mapping function described in Eq.45 of
-        https://arxiv.org/abs/1805.03662
-        """
-        assert len(selection_vals) == len(self)
-        return sum(v * self._suffix_prod[i + 1] for i, v in enumerate(selection_vals))
-
-    @property
-    def total_iteration_size(self) -> int:
-        return int(np.product(self.iteration_lengths))
-
-    @classmethod
-    def build(cls, **registers: Union[int, Tuple[int, ...]]) -> 'SelectionRegisters':
-        return cls(SelectionRegister(name=k, shape=v) for k, v in registers.items())
-
-    @overload
-    def __getitem__(self, key: int) -> SelectionRegister:
-        pass
-
-    @overload
-    def __getitem__(self, key: str) -> SelectionRegister:
-        pass
-
-    @overload
-    def __getitem__(self, key: slice) -> 'SelectionRegisters':
-        pass
-
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            return SelectionRegisters(self._registers[key])
-        elif isinstance(key, int):
-            return self._registers[key]
-        elif isinstance(key, str):
-            return self._register_dict[key]
-        else:
-            raise IndexError(f"key {key} must be of the type str/int/slice.")
-
-    def __repr__(self) -> str:
-        return f'cirq_ft.SelectionRegisters({self._registers})'
 
 
 class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
@@ -329,7 +292,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
         ...
 
     def _num_qubits_(self) -> int:
-        return self.registers.total_bits()
+        return total_bits(self.registers)
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
@@ -339,7 +302,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
     def _decompose_with_context_(
         self, qubits: Sequence[cirq.Qid], context: Optional[cirq.DecompositionContext] = None
     ) -> cirq.OP_TREE:
-        qubit_regs = self.registers.split_qubits(qubits)
+        qubit_regs = split_qubits(self.registers, qubits)
         if context is None:
             context = cirq.DecompositionContext(cirq.ops.SimpleQubitManager())
         return self.decompose_from_registers(context=context, **qubit_regs)
@@ -350,7 +313,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
     def on_registers(
         self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]]
     ) -> cirq.Operation:
-        return self.on(*self.registers.merge_qubits(**qubit_regs))
+        return self.on(*merge_qubits(self.registers, **qubit_regs))
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """Default diagram info that uses register names to name the boxes in multi-qubit gates.

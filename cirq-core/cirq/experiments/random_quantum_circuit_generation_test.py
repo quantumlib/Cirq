@@ -260,6 +260,30 @@ class FakeSycamoreGate(cirq.FSimGate):
     'two_qubit_layers_slice',
     (
         (
+            (cirq.q(0, 0), cirq.q(0, 1), cirq.q(0, 2)),
+            4,
+            lambda a, b, _: cirq.CZ(a, b),
+            [[(cirq.q(0, 0), cirq.q(0, 1))], [(cirq.q(0, 1), cirq.q(0, 2))]],
+            (cirq.X**0.5,),
+            True,
+            1234,
+            9,
+            slice(None, None, 2),
+            slice(1, None, 2),
+        ),
+        (
+            (cirq.q(0, 0), cirq.q(0, 1), cirq.q(0, 2)),
+            4,
+            lambda a, b, _: cirq.CZ(a, b),
+            [[(cirq.q(0, 1), cirq.q(0, 0))], [(cirq.q(0, 1), cirq.q(0, 2))]],
+            (cirq.X**0.5,),
+            True,
+            1234,
+            9,
+            slice(None, None, 2),
+            slice(1, None, 2),
+        ),
+        (
             cirq.GridQubit.rect(4, 3),
             20,
             lambda a, b, _: cirq.CZ(a, b),
@@ -406,7 +430,10 @@ def _validate_two_qubit_layers(
             # Operation is two-qubit
             assert cirq.num_qubits(op) == 2
             # Operation fits pattern
-            assert op.qubits in pattern[i % len(pattern)]
+            assert (
+                op.qubits in pattern[i % len(pattern)]
+                or op.qubits[::-1] in pattern[i % len(pattern)]
+            )
             active_pairs.add(op.qubits)
         # All interactions that should be in this layer are present
         assert all(

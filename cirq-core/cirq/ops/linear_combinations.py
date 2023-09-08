@@ -357,7 +357,7 @@ def _pauli_string_from_unit(unit: UnitPauliStringT, coefficient: Union[int, floa
     return PauliString(qubit_pauli_map=dict(unit), coefficient=coefficient)
 
 
-@value.value_equality(approximate=True)
+@value.value_equality(approximate=True, unhashable=True)
 class PauliSum:
     """Represents operator defined by linear combination of PauliStrings.
 
