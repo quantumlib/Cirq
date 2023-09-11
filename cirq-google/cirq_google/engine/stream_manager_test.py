@@ -735,7 +735,8 @@ class TestStreamManager:
                 await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
-                        message_id=fake_client.all_stream_requests[0].message_id, result=expected_result
+                        message_id=fake_client.all_stream_requests[0].message_id,
+                        result=expected_result,
                     )
                 )
                 await actual_result_future
@@ -758,7 +759,8 @@ class TestStreamManager:
                 await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
-                        message_id=fake_client.all_stream_requests[0].message_id, result=expected_result
+                        message_id=fake_client.all_stream_requests[0].message_id,
+                        result=expected_result,
                     )
                 )
                 await actual_result_future
