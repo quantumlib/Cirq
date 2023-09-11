@@ -105,12 +105,15 @@ class Moment:
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
-        for op in self.operations:
-            for q in op.qubits:
-                # Check that operations don't overlap.
-                if q in self._qubit_to_op:
-                    raise ValueError(f'Overlapping operations: {self.operations}')
-                self._qubit_to_op[q] = op
+        if _compat.__cirq_debug__.get():
+            for op in self.operations:
+                for q in op.qubits:
+                    # Check that operations don't overlap.
+                    if q in self._qubit_to_op:
+                        raise ValueError(f'Overlapping operations: {self.operations}')
+                    self._qubit_to_op[q] = op
+        else:
+            self._qubit_to_op = {q: op for op in self.operations for q in op.qubits}
 
         self._qubits = frozenset(self._qubit_to_op.keys())
         self._measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = None
@@ -184,7 +187,7 @@ class Moment:
         Raises:
             ValueError: If the operation given overlaps a current operation in the moment.
         """
-        if any(q in self._qubits for q in operation.qubits):
+        if _compat.__cirq_debug__.get() and any(q in self._qubits for q in operation.qubits):
             raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
@@ -223,7 +226,7 @@ class Moment:
         m._qubit_to_op = self._qubit_to_op.copy()
         qubits = set(self._qubits)
         for op in flattened_contents:
-            if any(q in qubits for q in op.qubits):
+            if _compat.__cirq_debug__.get() and any(q in qubits for q in op.qubits):
                 raise ValueError(f'Overlapping operations: {op}')
             qubits.update(op.qubits)
             for q in op.qubits:
@@ -422,7 +425,7 @@ class Moment:
         Raises:
             ValueError: if this moments' qubits are not a subset of `qubits`.
         """
-        if not self.qubits.issubset(qubits):
+        if _compat.__cirq_debug__.get() and not self.qubits.issubset(qubits):
             raise ValueError(f'{qubits} is not a superset of {self.qubits}')
 
         operations = list(self.operations)

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Dict
 import abc
 
 from cirq import value
+from cirq._compat import __cirq_debug__
 
 if TYPE_CHECKING:
     import cirq
@@ -67,7 +68,7 @@ class HardCodedInitialMapper(AbstractInitialMapper):
         Raises:
             ValueError: if the qubits in circuit are not a subset of the qubit keys in the mapping.
         """
-        if not circuit.all_qubits().issubset(set(self._map.keys())):
+        if __cirq_debug__ and not circuit.all_qubits().issubset(set(self._map.keys())):
             raise ValueError("The qubits in circuit must be a subset of the keys in the mapping")
         return self._map
 
