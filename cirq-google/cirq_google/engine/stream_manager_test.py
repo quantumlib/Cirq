@@ -87,7 +87,7 @@ class FakeQuantumRunStream:
     ) -> Awaitable[AsyncIterable[quantum.QuantumRunStreamResponse]]:
         """Fakes the QuantumRunStream RPC.
 
-        Once a request is received, it is appended to `stream_requests`, and the test calling
+        Once a request is received, it is appended to `all_stream_requests`, and the test calling
         `wait_for_requests()` is notified.
 
         The response is sent when a test calls `reply()` with a `QuantumRunStreamResponse`. If a
@@ -735,7 +735,7 @@ class TestStreamManager:
                 await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
-                        message_id=fake_client.stream_requests[0].message_id, result=expected_result
+                        message_id=fake_client.all_stream_requests[0].message_id, result=expected_result
                     )
                 )
                 await actual_result_future
@@ -758,7 +758,7 @@ class TestStreamManager:
                 await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
-                        message_id=fake_client.stream_requests[0].message_id, result=expected_result
+                        message_id=fake_client.all_stream_requests[0].message_id, result=expected_result
                     )
                 )
                 await actual_result_future
@@ -781,7 +781,7 @@ class TestStreamManager:
                 await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
-                        message_id=fake_client.stream_requests[0].message_id,
+                        message_id=fake_client.all_stream_requests[0].message_id,
                         result=expected_result0,
                     )
                 )
@@ -793,16 +793,16 @@ class TestStreamManager:
                 await fake_client.wait_for_requests()
                 await fake_client.reply(
                     quantum.QuantumRunStreamResponse(
-                        message_id=fake_client.stream_requests[1].message_id,
+                        message_id=fake_client.all_stream_requests[1].message_id,
                         result=expected_result1,
                     )
                 )
                 actual_result1 = await actual_result1_future
                 manager.stop()
 
-                assert len(fake_client.stream_requests) == 2
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[0]
-                assert 'create_quantum_program_and_job' in fake_client.stream_requests[1]
+                assert len(fake_client.all_stream_requests) == 2
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[1]
                 assert actual_result0 == expected_result0
                 assert actual_result1 == expected_result1
 
