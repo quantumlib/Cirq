@@ -152,7 +152,9 @@ class SwapWithZeroGate(infra.GateWithRegisters):
 
     @cached_property
     def target_registers(self) -> Tuple[infra.Register, ...]:
-        return (infra.Register('target', (self.n_target_registers, self.target_bitsize)),)
+        return (
+            infra.Register('target', bitsize=self.target_bitsize, shape=self.n_target_registers),
+        )
 
     @cached_property
     def registers(self) -> infra.Registers:
