@@ -20,7 +20,7 @@ database) with a number of T gates scaling as 4L + O(log(1/eps)) where eps is th
 largest absolute error that one can tolerate in the prepared amplitudes.
 """
 
-from typing import List
+from typing import List, Tuple
 from numpy.typing import NDArray
 
 import attr
@@ -83,7 +83,9 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         (https://arxiv.org/abs/1805.03662).
         Babbush et. al. (2018). Section III.D. and Figure 11.
     """
-    selection_registers: infra.SelectionRegisters
+    selection_registers: Tuple[infra.SelectionRegister, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, infra.SelectionRegister) else tuple(v)
+    )
     alt: NDArray[np.int_]
     keep: NDArray[np.int_]
     mu: int
@@ -106,9 +108,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         )
         N = len(lcu_probabilities)
         return StatePreparationAliasSampling(
-            selection_registers=infra.SelectionRegisters(
-                [infra.SelectionRegister('selection', (N - 1).bit_length(), N)]
-            ),
+            selection_registers=infra.SelectionRegister('selection', (N - 1).bit_length(), N),
             alt=np.array(alt),
             keep=np.array(keep),
             mu=mu,
@@ -120,7 +120,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
 
     @cached_property
     def alternates_bitsize(self) -> int:
-        return self.selection_registers.total_bits()
+        return infra.total_bits(self.selection_registers)
 
     @cached_property
     def keep_bitsize(self) -> int:
@@ -128,15 +128,17 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
 
     @cached_property
     def selection_bitsize(self) -> int:
-        return self.selection_registers.total_bits()
+        return infra.total_bits(self.selection_registers)
 
     @cached_property
-    def junk_registers(self) -> infra.Registers:
-        return infra.Registers.build(
-            sigma_mu=self.sigma_mu_bitsize,
-            alt=self.alternates_bitsize,
-            keep=self.keep_bitsize,
-            less_than_equal=1,
+    def junk_registers(self) -> Tuple[infra.Register, ...]:
+        return tuple(
+            infra.Registers.build(
+                sigma_mu=self.sigma_mu_bitsize,
+                alt=self.alternates_bitsize,
+                keep=self.keep_bitsize,
+                less_than_equal=1,
+            )
         )
 
     def _value_equality_values_(self):

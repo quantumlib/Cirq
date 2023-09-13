@@ -17,6 +17,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
@@ -255,7 +256,7 @@ def test_generic_select_consistent_protocols_and_controlled():
 
     # Build GenericSelect gate.
     gate = cirq_ft.GenericSelect(select_bitsize, num_sites, dps_hamiltonian)
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
     cirq.testing.assert_equivalent_repr(gate, setup_code='import cirq\nimport cirq_ft')
 
     # Build controlled gate
