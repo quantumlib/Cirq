@@ -1,0 +1,4 @@
+[
+cirq.devices.InsertionNoiseModel(ops_added={cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.XPowGate, cirq.LineQubit(0)): cirq.bit_flip(p=0.2).on(cirq.LineQubit(0))}, prepend=False, require_physical_tag=False),
+cirq.devices.InsertionNoiseModel(ops_added={cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.XPowGate, cirq.LineQubit(0)): cirq.bit_flip(p=0.2).on(cirq.LineQubit(0)), cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.HPowGate, cirq.LineQubit(1)): cirq.bit_flip(p=0.1).on(cirq.LineQubit(1))}, prepend=False, require_physical_tag=False)
+]
