@@ -68,21 +68,26 @@ def setup(client_constructor):
 class FakeQuantumRunStream:
     """A fake Quantum Engine client which supports QuantumRunStream and CancelQuantumJob."""
 
+    _REQUEST_STOPPED = 'REQUEST_STOPPED'
+
     def __init__(self):
         self.all_stream_requests: List[quantum.QuantumRunStreamRequest] = []
         self.all_cancel_requests: List[quantum.CancelQuantumJobRequest] = []
         self._executor = AsyncioExecutor.instance()
         self._request_buffer = duet.AsyncCollector[quantum.QuantumRunStreamRequest]()
+        self._request_iterator_stopped = duet.AwaitableFuture()
         # asyncio.Queue needs to be initialized inside the asyncio thread because all callers need
         # to use the same event loop.
-        self._responses_and_exceptions_future = duet.AwaitableFuture[asyncio.Queue]()
+        self._responses_and_exceptions_future: duet.AwaitableFuture[
+            asyncio.Queue[Union[quantum.QuantumRunStreamResponse, BaseException]]
+        ] = duet.AwaitableFuture()
 
     async def quantum_run_stream(
         self, requests: AsyncIterator[quantum.QuantumRunStreamRequest], **kwargs
     ) -> Awaitable[AsyncIterable[quantum.QuantumRunStreamResponse]]:
         """Fakes the QuantumRunStream RPC.
 
-        Once a request is received, it is appended to `stream_requests`, and the test calling
+        Once a request is received, it is appended to `all_stream_requests`, and the test calling
         `wait_for_requests()` is notified.
 
         The response is sent when a test calls `reply()` with a `QuantumRunStreamResponse`. If a
@@ -91,25 +96,29 @@ class FakeQuantumRunStream:
 
         This is called from the asyncio thread.
         """
-        responses_and_exceptions: asyncio.Queue = asyncio.Queue()
+        responses_and_exceptions: asyncio.Queue[
+            Union[quantum.QuantumRunStreamResponse, BaseException]
+        ] = asyncio.Queue()
         self._responses_and_exceptions_future.try_set_result(responses_and_exceptions)
 
         async def read_requests():
             async for request in requests:
                 self.all_stream_requests.append(request)
                 self._request_buffer.add(request)
+            await responses_and_exceptions.put(FakeQuantumRunStream._REQUEST_STOPPED)
+            self._request_iterator_stopped.try_set_result(None)
 
         async def response_iterator():
             asyncio.create_task(read_requests())
-            while True:
-                response_or_exception = await responses_and_exceptions.get()
-                if isinstance(response_or_exception, quantum.QuantumRunStreamResponse):
-                    yield response_or_exception
-                else:  # isinstance(response_or_exception, BaseException)
-                    self._responses_and_exceptions_future = duet.AwaitableFuture[asyncio.Queue]()
-                    raise response_or_exception
+            while (
+                message := await responses_and_exceptions.get()
+            ) != FakeQuantumRunStream._REQUEST_STOPPED:
+                if isinstance(message, quantum.QuantumRunStreamResponse):
+                    yield message
+                else:  # isinstance(message, BaseException)
+                    self._responses_and_exceptions_future = duet.AwaitableFuture()
+                    raise message
 
-        await asyncio.sleep(0)
         return response_iterator()
 
     async def cancel_quantum_job(self, request: quantum.CancelQuantumJobRequest) -> None:
@@ -157,6 +166,14 @@ class FakeQuantumRunStream:
             await responses_and_exceptions.put(response_or_exception)
 
         await self._executor.submit(send)
+
+    async def wait_for_request_iterator_stop(self):
+        """Wait for the request iterator to stop.
+
+        This must be called from a duet thread.
+        """
+        await self._request_iterator_stopped
+        self._request_iterator_stopped = duet.AwaitableFuture()
 
 
 class TestResponseDemux:
@@ -704,3 +721,91 @@ class TestStreamManager:
                 create_quantum_program_and_job_request,
                 create_quantum_job_request,
             )
+
+    @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+    def test_broken_stream_stops_request_iterator(self, client_constructor):
+        expected_result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
+        fake_client, manager = setup(client_constructor)
+
+        async def test():
+            async with duet.timeout_scope(5):
+                actual_result_future = manager.submit(
+                    REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
+                )
+                await fake_client.wait_for_requests()
+                await fake_client.reply(
+                    quantum.QuantumRunStreamResponse(
+                        message_id=fake_client.all_stream_requests[0].message_id,
+                        result=expected_result,
+                    )
+                )
+                await actual_result_future
+                await fake_client.reply(google_exceptions.ServiceUnavailable('service unavailable'))
+                await fake_client.wait_for_request_iterator_stop()
+                manager.stop()
+
+        duet.run(test)
+
+    @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+    def test_stop_stops_request_iterator(self, client_constructor):
+        expected_result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
+        fake_client, manager = setup(client_constructor)
+
+        async def test():
+            async with duet.timeout_scope(5):
+                actual_result_future = manager.submit(
+                    REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
+                )
+                await fake_client.wait_for_requests()
+                await fake_client.reply(
+                    quantum.QuantumRunStreamResponse(
+                        message_id=fake_client.all_stream_requests[0].message_id,
+                        result=expected_result,
+                    )
+                )
+                await actual_result_future
+                manager.stop()
+                await fake_client.wait_for_request_iterator_stop()
+
+        duet.run(test)
+
+    @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+    def test_submit_after_stream_breakage(self, client_constructor):
+        expected_result0 = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
+        expected_result1 = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job1')
+        fake_client, manager = setup(client_constructor)
+
+        async def test():
+            async with duet.timeout_scope(5):
+                actual_result0_future = manager.submit(
+                    REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
+                )
+                await fake_client.wait_for_requests()
+                await fake_client.reply(
+                    quantum.QuantumRunStreamResponse(
+                        message_id=fake_client.all_stream_requests[0].message_id,
+                        result=expected_result0,
+                    )
+                )
+                actual_result0 = await actual_result0_future
+                await fake_client.reply(google_exceptions.ServiceUnavailable('service unavailable'))
+                actual_result1_future = manager.submit(
+                    REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB0
+                )
+                await fake_client.wait_for_requests()
+                await fake_client.reply(
+                    quantum.QuantumRunStreamResponse(
+                        message_id=fake_client.all_stream_requests[1].message_id,
+                        result=expected_result1,
+                    )
+                )
+                actual_result1 = await actual_result1_future
+                manager.stop()
+
+                assert len(fake_client.all_stream_requests) == 2
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[0]
+                assert 'create_quantum_program_and_job' in fake_client.all_stream_requests[1]
+                assert actual_result0 == expected_result0
+                assert actual_result1 == expected_result1
+
+        duet.run(test)
