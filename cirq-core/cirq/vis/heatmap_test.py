@@ -33,10 +33,14 @@ def ax():
     figure = mpl.figure.Figure()
     return figure.add_subplot(111)
 
+
 def test_default_ax():
     row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
-    test_value_map = {grid_qubit.GridQubit(row, col):np.random.random() for (row, col) in row_col_list}
+    test_value_map = {
+        grid_qubit.GridQubit(row, col): np.random.random() for (row, col) in row_col_list
+    }
     _, _ = heatmap.Heatmap(test_value_map).plot()
+
 
 @pytest.mark.parametrize('tuple_keys', [True, False])
 def test_cells_positions(ax, tuple_keys):

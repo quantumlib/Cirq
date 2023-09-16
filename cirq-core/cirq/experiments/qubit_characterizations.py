@@ -89,9 +89,9 @@ class RandomizedBenchMarkResult:
         """
         show_plot = not ax
         if not ax:
-            fig, ax = plt.subplots(1, 1, figsize=(8, 8)) # pragma: no cover
-            ax = cast(plt.Axes, ax) # pragma: no cover
-        ax.set_ylim((0.0, 1.0)) # pragma: no cover
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))  # pragma: no cover
+            ax = cast(plt.Axes, ax)  # pragma: no cover
+        ax.set_ylim((0.0, 1.0))  # pragma: no cover
         ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-', **plot_kwargs)
         ax.set_xlabel(r"Number of Cliffords")
         ax.set_ylabel('Ground State Probability')
