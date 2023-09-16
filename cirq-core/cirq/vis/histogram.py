@@ -100,9 +100,9 @@ def integrated_histogram(
     plot_options.update(kwargs)
 
     if cdf_on_x:
-        ax.step(bin_values, parameter_values, **plot_options)
+        ax.step(bin_values, parameter_values, **plot_options)  # type: ignore
     else:
-        ax.step(parameter_values, bin_values, **plot_options)
+        ax.step(parameter_values, bin_values, **plot_options)  # type: ignore
 
     set_semilog = ax.semilogy if cdf_on_x else ax.semilogx
     set_lim = ax.set_xlim if cdf_on_x else ax.set_ylim
@@ -128,7 +128,7 @@ def integrated_histogram(
 
     if median_line:
         set_line(
-            np.median(float_data),
+            float(np.median(float_data)),
             linestyle='--',
             color=plot_options['color'],
             alpha=0.5,
@@ -136,7 +136,7 @@ def integrated_histogram(
         )
     if mean_line:
         set_line(
-            np.mean(float_data),
+            float(np.mean(float_data)),
             linestyle='-.',
             color=plot_options['color'],
             alpha=0.5,
