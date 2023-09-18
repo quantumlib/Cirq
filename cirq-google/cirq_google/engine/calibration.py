@@ -17,7 +17,7 @@
 from collections import abc, defaultdict
 import datetime
 from itertools import cycle
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union, Sequence
+from typing import Any, cast, Dict, Iterator, List, Optional, Tuple, Union, Sequence
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -277,6 +277,7 @@ class Calibration(abc.Mapping):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1)
+            ax = cast(plt.Axes, ax)
 
         if isinstance(keys, str):
             keys = [keys]
@@ -322,7 +323,7 @@ class Calibration(abc.Mapping):
         show_plot = not fig
         if not fig:
             fig = plt.figure()
-        axs = fig.subplots(1, 2)
+        axs = cast(List[plt.Axes], fig.subplots(1, 2))
         self.heatmap(key).plot(axs[0])
         self.plot_histograms(key, axs[1])
         if show_plot:
