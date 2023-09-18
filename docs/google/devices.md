@@ -80,7 +80,7 @@ in order to find optimal values or explore the parameter space.
 These parameter names are generally not public, so you will need to
 work with a Google sponsor or resident in order to access the proper
 key names.  These parameters are specified as lists of strings representing
-a path from the device config's folder (or the "sample folder").`
+a path from the device config's folder (or the "sample folder").
 
 These keys can be swept like any other symbol using the
 `cirq_google.study.DeviceParameter` variable.  For instance, the
