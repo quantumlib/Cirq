@@ -14,7 +14,7 @@
 
 """Tool to visualize the results of a study."""
 
-from typing import Union, Optional, Sequence, SupportsFloat
+from typing import cast, Optional, Sequence, SupportsFloat, Union
 import collections
 import numpy as np
 import matplotlib.pyplot as plt
@@ -51,13 +51,13 @@ def get_state_histogram(result: 'result.Result') -> np.ndarray:
 
 def plot_state_histogram(
     data: Union['result.Result', collections.Counter, Sequence[SupportsFloat]],
-    ax: Optional['plt.Axis'] = None,
+    ax: Optional[plt.Axes] = None,
     *,
     tick_label: Optional[Sequence[str]] = None,
     xlabel: Optional[str] = 'qubit state',
     ylabel: Optional[str] = 'result count',
     title: Optional[str] = 'Result State Histogram',
-) -> 'plt.Axis':
+) -> plt.Axes:
     """Plot the state histogram from either a single result with repetitions or
        a histogram computed using `result.histogram()` or a flattened histogram
        of measurement results computed using `get_state_histogram`.
@@ -87,6 +87,7 @@ def plot_state_histogram(
     show_fig = not ax
     if not ax:
         fig, ax = plt.subplots(1, 1)
+        ax = cast(plt.Axes, ax)
     if isinstance(data, result.Result):
         values = get_state_histogram(data)
     elif isinstance(data, collections.Counter):
@@ -96,9 +97,12 @@ def plot_state_histogram(
     if tick_label is None:
         tick_label = [str(i) for i in range(len(values))]
     ax.bar(np.arange(len(values)), values, tick_label=tick_label)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)
+    if xlabel:
+        ax.set_xlabel(xlabel)
+    if ylabel:
+        ax.set_ylabel(ylabel)
+    if title:
+        ax.set_title(title)
     if show_fig:
         fig.show()
     return ax
