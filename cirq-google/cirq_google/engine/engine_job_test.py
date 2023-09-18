@@ -556,8 +556,7 @@ def test_receives_results_via_stream_returns_correct_results():
         execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
         update_time=UPDATE_TIME,
     )
-    response_future = duet.AwaitableFuture()
-    response_future.try_set_result(RESULTS)
+    response_future = duet.completed_future(RESULTS)
 
     job = cg.EngineJob(
         'a', 'b', 'steve', EngineContext(), _job=qjob, stream_job_response_future=response_future
@@ -581,13 +580,12 @@ def test_receives_job_via_stream_raises_and_updates_underlying_job():
         ),
         update_time=UPDATE_TIME,
     )
-    response_future = duet.AwaitableFuture()
+    response_future = duet.completed_future(qjob)
 
     job = cg.EngineJob(
         'a', 'b', 'steve', EngineContext(), _job=qjob, stream_job_response_future=response_future
     )
     qjob.execution_status.state = quantum.ExecutionStatus.State.FAILURE
-    response_future.try_set_result(qjob)
 
     with pytest.raises(RuntimeError):
         job.results()

@@ -59,11 +59,6 @@ TYPE_PREFIX = 'type.googleapis.com/'
 _R = TypeVar('_R')
 
 
-# Feature gate for making Quantum Engine requests using the stream RPC.
-# TODO(#5996) Remove the flag once the feature is stable.
-_STREAM_FEATURE_FLAG = True
-
-
 class ProtoVersion(enum.Enum):
     """Protocol buffer version to use for requests to the quantum engine."""
 
@@ -93,6 +88,8 @@ class EngineContext:
         client: 'Optional[engine_client.EngineClient]' = None,
         timeout: Optional[int] = None,
         serializer: Serializer = CIRCUIT_SERIALIZER,
+        # TODO(#5996) Remove enable_streaming once the feature is stable.
+        enable_streaming: bool = True,
     ) -> None:
         """Context and client for using Quantum Engine.
 
@@ -108,6 +105,9 @@ class EngineContext:
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
             serializer: Used to serialize circuits when running jobs.
+            enable_streaming: Feature gate for making Quantum Engine requests using the stream RPC.
+                If True, the Quantum Engine streaming RPC is used for creating jobs
+                and getting results. Otherwise, unary RPCs are used.
 
         Raises:
             ValueError: If either `service_args` and `verbose` were supplied
@@ -120,6 +120,7 @@ class EngineContext:
         if self.proto_version == ProtoVersion.V1:
             raise ValueError('ProtoVersion V1 no longer supported')
         self.serializer = serializer
+        self.enable_streaming = enable_streaming
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args, verbose=verbose)
@@ -361,10 +362,11 @@ class Engine(abstract_engine.AbstractEngine):
                 `processor_id` is empty.
         """
 
-        if _STREAM_FEATURE_FLAG:
+        if self.context.enable_streaming:
             print(
                 '\nRunning using the Quantum Engine stream RPC. To revert to unary RPCs, '
-                'please set `cirq_google.engine.engine._STREAMING_FEATURE_FLAG` to `False`.\n'
+                'please set `context.enable_streaming in your Engine instance` to `False`, e.g. '
+                '`engine.context.enable_streaming = False`.\n'
             )
 
             # This logic is temporary prior to deprecating the processor_ids parameter.
