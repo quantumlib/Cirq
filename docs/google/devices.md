@@ -70,6 +70,35 @@ of the time.  To minimize the duration of the circuit, it is best to align
 gates of the same duration together when possible.  See the
 [best practices](./best_practices.ipynb) for more details.
 
+## Device Parameter Sweeps
+
+Certain device parameters can be changed for the duration of
+a circuit in order to support hardware parameter sweeps.  For instance,
+frequencies, amplitudes, and various other parameters can be modified
+in order to find optimal values or explore the parameter space.
+
+These parameter names are generally not public, so you will need to
+work with a Google sponsor or resident in order to access the proper
+key names.  These parameters are specified as lists of strings representing
+a path from the device config's folder (or the "sample folder").`
+
+These keys can be swept like any other symbol using the
+`cirq_google.study.DeviceParameter` variable.  For instance, the
+following code will sweep qubit (4,8)'s pi amplitude from 0.0 to 1.0
+in 0.02 increments.
+
+
+```
+descriptor = cirq_google.study.DeviceParameter( ["q4_8", "piAmp"])
+sweep = cirq.Linspace("q4_8.piAmp", 0,1,51, metadata = descriptor)
+```
+
+Any `DeviceParameter` keys that are set to a single value using a `cirq.Points`
+object will change that value for all circuits run.
+
+If units are required, they should be specified as a string (such as 'MHz')
+using the `units` argument of the `DeviceParameter`.
+
 ## Gates supported
 
 The following lists the gates supported by Google devices.
