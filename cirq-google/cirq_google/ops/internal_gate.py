@@ -72,9 +72,15 @@ class InternalGate(ops.Gate):
         )
 
     def _value_equality_values_(self):
+        hashable = True
+        for arg in self.gate_args.values():
+            try:
+                hash(arg)
+            except TypeError:
+                hashable = False
         return (
             self.gate_module,
             self.gate_name,
             self._num_qubits,
-            frozenset(self.gate_args.items()),
+            frozenset(self.gate_args.items()) if hashable else self.gate_args,
         )
