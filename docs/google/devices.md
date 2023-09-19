@@ -90,7 +90,7 @@ in 0.02 increments.
 
 ```
 descriptor = cirq_google.study.DeviceParameter( ["q4_8", "piAmp"])
-sweep = cirq.Linspace("q4_8.piAmp", 0,1,51, metadata = descriptor)
+sweep = cirq.Linspace("q4_8.piAmp", 0, 1, 51, metadata=descriptor)
 ```
 
 Any `DeviceParameter` keys that are set to a single value using a `cirq.Points`
