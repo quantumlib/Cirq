@@ -56,7 +56,7 @@ class ClassicalStateSimulator(SimulatesSamples):
         for moment in resolved_circuit:
             for op in moment:
                 gate = op.gate
-                if isinstance(gate, ops.XPowGate) and gate.exponent == 1 and gate.global_shift == 0:
+                if gate == ops.X:
                     values_dict[op.qubits[0]] = 1 - values_dict[op.qubits[0]]
 
                 elif (
