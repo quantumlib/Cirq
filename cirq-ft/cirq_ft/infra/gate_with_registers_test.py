@@ -21,8 +21,9 @@ from cirq_ft.infra import split_qubits, merge_qubits, get_named_qubits
 
 
 def test_register():
-    r = cirq_ft.Register("my_reg", 5)
-    assert r.shape == (5,)
+    r = cirq_ft.Register("my_reg", 5, (1, 2))
+    assert r.bitsize == 5
+    assert r.shape == (1, 2)
 
 
 def test_registers():
@@ -103,12 +104,12 @@ def test_selection_registers_consistent():
         _ = cirq_ft.SelectionRegister('a', 3, 10)
 
     with pytest.raises(ValueError, match="should be flat"):
-        _ = cirq_ft.SelectionRegister('a', (3, 5), 5)
+        _ = cirq_ft.SelectionRegister('a', bitsize=1, shape=(3, 5), iteration_length=5)
 
     selection_reg = cirq_ft.Registers(
         [
-            cirq_ft.SelectionRegister('n', shape=3, iteration_length=5),
-            cirq_ft.SelectionRegister('m', shape=4, iteration_length=12),
+            cirq_ft.SelectionRegister('n', bitsize=3, iteration_length=5),
+            cirq_ft.SelectionRegister('m', bitsize=4, iteration_length=12),
         ]
     )
     assert selection_reg[0] == cirq_ft.SelectionRegister('n', 3, 5)
@@ -122,7 +123,9 @@ def test_registers_getitem_raises():
     with pytest.raises(IndexError, match="must be of the type"):
         _ = g[2.5]
 
-    selection_reg = cirq_ft.Registers([cirq_ft.SelectionRegister('n', shape=3, iteration_length=5)])
+    selection_reg = cirq_ft.Registers(
+        [cirq_ft.SelectionRegister('n', bitsize=3, iteration_length=5)]
+    )
     with pytest.raises(IndexError, match='must be of the type'):
         _ = selection_reg[2.5]
 
