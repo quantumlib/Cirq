@@ -73,7 +73,7 @@ class MultiControlPauli(infra.GateWithRegisters):
         (https://algassert.com/circuits/2015/06/05/Constructing-Large-Controlled-Nots.html)
     """
 
-    cvs: Tuple[int, ...] = attr.field(converter=infra.to_tuple)
+    cvs: Tuple[int, ...] = attr.field(converter=lambda v: (v,) if isinstance(v, int) else tuple(v))
     target_gate: cirq.Pauli = cirq.X
 
     @cached_property

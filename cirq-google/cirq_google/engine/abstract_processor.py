@@ -64,6 +64,8 @@ class AbstractProcessor(abc.ABC):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> cirq.Result:
         """Runs the supplied Circuit on this processor.
 
@@ -85,6 +87,12 @@ class AbstractProcessor(abc.ABC):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
         Returns:
             A single Result for this run.
         """
@@ -98,6 +106,8 @@ class AbstractProcessor(abc.ABC):
             program_labels=program_labels,
             job_description=job_description,
             job_labels=job_labels,
+            run_name=run_name,
+            device_config_name=device_config_name,
         )
         return job.results()[0]
 
@@ -115,6 +125,8 @@ class AbstractProcessor(abc.ABC):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
@@ -138,6 +150,12 @@ class AbstractProcessor(abc.ABC):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.
@@ -157,6 +175,8 @@ class AbstractProcessor(abc.ABC):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
+        run_name: str = "",
+        device_config_name: str = "",
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuits on this processor.
 
@@ -188,6 +208,12 @@ class AbstractProcessor(abc.ABC):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`. All Results for the first circuit are listed
@@ -244,8 +270,19 @@ class AbstractProcessor(abc.ABC):
     run_calibration = duet.sync(run_calibration_async)
 
     @abc.abstractmethod
-    def get_sampler(self) -> 'cg.ProcessorSampler':
-        """Returns a sampler backed by the processor."""
+    def get_sampler(
+        self, run_name: str = "", device_config_name: str = ""
+    ) -> 'cg.ProcessorSampler':
+        """Returns a sampler backed by the processor.
+
+        Args:
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+        """
 
     @abc.abstractmethod
     def engine(self) -> Optional['abstract_engine.AbstractEngine']:

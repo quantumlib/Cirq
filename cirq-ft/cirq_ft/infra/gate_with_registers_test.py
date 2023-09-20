@@ -17,6 +17,7 @@ import cirq_ft
 import numpy as np
 import pytest
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.infra import split_qubits, merge_qubits, get_named_qubits
 
 
 def test_register():
@@ -50,13 +51,20 @@ def test_registers():
     assert list(regs) == [r1, r2, r3]
 
     qubits = cirq.LineQubit.range(8)
-    qregs = regs.split_qubits(qubits)
+    qregs = split_qubits(regs, qubits)
     assert qregs["r1"].tolist() == cirq.LineQubit.range(5)
     assert qregs["r2"].tolist() == cirq.LineQubit.range(5, 5 + 2)
     assert qregs["r3"].tolist() == [cirq.LineQubit(7)]
 
     qubits = qubits[::-1]
-    merged_qregs = regs.merge_qubits(r1=qubits[:5], r2=qubits[5:7], r3=qubits[-1])
+
+    with pytest.raises(ValueError, match="qubit registers must be present"):
+        _ = merge_qubits(regs, r1=qubits[:5], r2=qubits[5:7], r4=qubits[-1])
+
+    with pytest.raises(ValueError, match="register must of shape"):
+        _ = merge_qubits(regs, r1=qubits[:4], r2=qubits[5:7], r3=qubits[-1])
+
+    merged_qregs = merge_qubits(regs, r1=qubits[:5], r2=qubits[5:7], r3=qubits[-1])
     assert merged_qregs == qubits
 
     expected_named_qubits = {
@@ -65,7 +73,7 @@ def test_registers():
         "r3": [cirq.NamedQubit("r3")],
     }
 
-    named_qregs = regs.get_named_qubits()
+    named_qregs = get_named_qubits(regs)
     for reg_name in expected_named_qubits:
         assert np.array_equal(named_qregs[reg_name], expected_named_qubits[reg_name])
 
@@ -73,7 +81,7 @@ def test_registers():
     # initial registers.
     for reg_order in [[r1, r2, r3], [r2, r3, r1]]:
         flat_named_qubits = [
-            q for v in cirq_ft.Registers(reg_order).get_named_qubits().values() for q in v
+            q for v in get_named_qubits(cirq_ft.Registers(reg_order)).values() for q in v
         ]
         expected_qubits = [q for r in reg_order for q in expected_named_qubits[r.name]]
         assert flat_named_qubits == expected_qubits
@@ -81,15 +89,13 @@ def test_registers():
 
 @pytest.mark.parametrize('n, N, m, M', [(4, 10, 5, 19), (4, 16, 5, 32)])
 def test_selection_registers_indexing(n, N, m, M):
-    reg = cirq_ft.SelectionRegisters(
-        [cirq_ft.SelectionRegister('x', n, N), cirq_ft.SelectionRegister('y', m, M)]
-    )
-    assert reg.iteration_lengths == (N, M)
-    for x in range(N):
-        for y in range(M):
-            assert reg.to_flat_idx(x, y) == x * M + y
+    regs = [cirq_ft.SelectionRegister('x', n, N), cirq_ft.SelectionRegister('y', m, M)]
+    for x in range(regs[0].iteration_length):
+        for y in range(regs[1].iteration_length):
+            assert np.ravel_multi_index((x, y), (N, M)) == x * M + y
+            assert np.unravel_index(x * M + y, (N, M)) == (x, y)
 
-    assert reg.total_iteration_size == N * M
+    assert np.product(tuple(reg.iteration_length for reg in regs)) == N * M
 
 
 def test_selection_registers_consistent():
@@ -99,7 +105,7 @@ def test_selection_registers_consistent():
     with pytest.raises(ValueError, match="should be flat"):
         _ = cirq_ft.SelectionRegister('a', (3, 5), 5)
 
-    selection_reg = cirq_ft.SelectionRegisters(
+    selection_reg = cirq_ft.Registers(
         [
             cirq_ft.SelectionRegister('n', shape=3, iteration_length=5),
             cirq_ft.SelectionRegister('m', shape=4, iteration_length=12),
@@ -108,7 +114,7 @@ def test_selection_registers_consistent():
     assert selection_reg[0] == cirq_ft.SelectionRegister('n', 3, 5)
     assert selection_reg['n'] == cirq_ft.SelectionRegister('n', 3, 5)
     assert selection_reg[1] == cirq_ft.SelectionRegister('m', 4, 12)
-    assert selection_reg[:1] == cirq_ft.SelectionRegisters([cirq_ft.SelectionRegister('n', 3, 5)])
+    assert selection_reg[:1] == cirq_ft.Registers([cirq_ft.SelectionRegister('n', 3, 5)])
 
 
 def test_registers_getitem_raises():
@@ -116,9 +122,7 @@ def test_registers_getitem_raises():
     with pytest.raises(IndexError, match="must be of the type"):
         _ = g[2.5]
 
-    selection_reg = cirq_ft.SelectionRegisters(
-        [cirq_ft.SelectionRegister('n', shape=3, iteration_length=5)]
-    )
+    selection_reg = cirq_ft.Registers([cirq_ft.SelectionRegister('n', shape=3, iteration_length=5)])
     with pytest.raises(IndexError, match='must be of the type'):
         _ = selection_reg[2.5]
 

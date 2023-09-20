@@ -138,21 +138,19 @@ class SelectSwapQROM(infra.GateWithRegisters):
         self._data = tuple(tuple(d) for d in data)
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters(
-            [
-                infra.SelectionRegister(
-                    'selection', self.selection_q + self.selection_r, self._iteration_length
-                )
-            ]
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
+        return (
+            infra.SelectionRegister(
+                'selection', self.selection_q + self.selection_r, self._iteration_length
+            ),
         )
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        clean_output = {}
-        for sequence_id in range(self._num_sequences):
-            clean_output[f'target{sequence_id}'] = self._target_bitsizes[sequence_id]
-        return infra.Registers.build(**clean_output)
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        return tuple(
+            infra.Register(f'target{sequence_id}', self._target_bitsizes[sequence_id])
+            for sequence_id in range(self._num_sequences)
+        )
 
     @cached_property
     def registers(self) -> infra.Registers:
@@ -212,15 +210,16 @@ class SelectSwapQROM(infra.GateWithRegisters):
             target_bitsizes=tuple(qrom_target_bitsizes),
         )
         qrom_op = qrom_gate.on_registers(
-            selection=q, **qrom_gate.target_registers.split_qubits(ordered_target_qubits)
+            selection=q, **infra.split_qubits(qrom_gate.target_registers, ordered_target_qubits)
         )
         swap_with_zero_gate = swap_network.SwapWithZeroGate(
-            k, self.target_registers.total_bits(), self.block_size
+            k, infra.total_bits(self.target_registers), self.block_size
         )
         swap_with_zero_op = swap_with_zero_gate.on_registers(
-            selection=r, **swap_with_zero_gate.target_registers.split_qubits(ordered_target_qubits)
+            selection=r,
+            **infra.split_qubits(swap_with_zero_gate.target_registers, ordered_target_qubits),
         )
-        clean_targets = self.target_registers.merge_qubits(**targets)
+        clean_targets = infra.merge_qubits(self.target_registers, **targets)
         cnot_op = cirq.Moment(cirq.CNOT(s, t) for s, t in zip(ordered_target_qubits, clean_targets))
         # Yield the operations in correct order.
         yield qrom_op

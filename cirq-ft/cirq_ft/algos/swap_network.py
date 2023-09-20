@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
+from typing import Sequence, Union, Tuple
 from numpy.typing import NDArray
 
 import attr
@@ -145,14 +145,14 @@ class SwapWithZeroGate(infra.GateWithRegisters):
         assert self.n_target_registers <= 2**self.selection_bitsize
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters(
-            [infra.SelectionRegister('selection', self.selection_bitsize, self.n_target_registers)]
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
+        return (
+            infra.SelectionRegister('selection', self.selection_bitsize, self.n_target_registers),
         )
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        return infra.Registers.build(target=(self.n_target_registers, self.target_bitsize))
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        return (infra.Register('target', (self.n_target_registers, self.target_bitsize)),)
 
     @cached_property
     def registers(self) -> infra.Registers:

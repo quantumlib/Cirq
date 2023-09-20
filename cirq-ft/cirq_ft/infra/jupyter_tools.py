@@ -21,7 +21,7 @@ import cirq_ft.infra.testing as cq_testing
 import IPython.display
 import ipywidgets
 import nbformat
-from cirq_ft.infra import gate_with_registers, t_complexity_protocol
+from cirq_ft.infra import gate_with_registers, t_complexity_protocol, get_named_qubits, merge_qubits
 from nbconvert.preprocessors import ExecutePreprocessor
 
 
@@ -83,7 +83,7 @@ def svg_circuit(
 
     if registers is not None:
         qubit_order = cirq.QubitOrder.explicit(
-            registers.merge_qubits(**registers.get_named_qubits()), fallback=cirq.QubitOrder.DEFAULT
+            merge_qubits(registers, **get_named_qubits(registers)), fallback=cirq.QubitOrder.DEFAULT
         )
     else:
         qubit_order = cirq.QubitOrder.DEFAULT
