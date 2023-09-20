@@ -1465,14 +1465,14 @@ class AbstractCircuit(abc.ABC):
 
         Beware that this method is *not* associative. For example:
 
-            >>> a, b = cirq.LineQubit.range(2)
-            >>> A = cirq.Circuit(cirq.H(a))
-            >>> B = cirq.Circuit(cirq.H(b))
-            >>> f = cirq.Circuit.concat_ragged
-            >>> f(f(A, B), A) == f(A, f(B, A))
-            False
-            >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
-            False
+        >>> a, b = cirq.LineQubit.range(2)
+        >>> A = cirq.Circuit(cirq.H(a))
+        >>> B = cirq.Circuit(cirq.H(b))
+        >>> f = cirq.Circuit.concat_ragged
+        >>> f(f(A, B), A) == f(A, f(B, A))
+        False
+        >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
+        False
 
         Args:
             *circuits: The circuits to concatenate.

@@ -81,7 +81,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     $$
 
     $$
-    c = e^{i \phi}
+    c = e^{-i \phi}
     $$
 
     Note the difference in sign conventions between FSimGate and the

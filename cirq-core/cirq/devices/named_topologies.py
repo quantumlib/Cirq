@@ -74,7 +74,7 @@ def _node_and_coordinates(
 
 
 def draw_gridlike(
-    graph: nx.Graph, ax: plt.Axes = None, tilted: bool = True, **kwargs
+    graph: nx.Graph, ax: Optional[plt.Axes] = None, tilted: bool = True, **kwargs
 ) -> Dict[Any, Tuple[int, int]]:
     """Draw a grid-like graph using Matplotlib.
 
