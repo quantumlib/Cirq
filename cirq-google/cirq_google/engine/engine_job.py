@@ -83,9 +83,11 @@ class EngineJob(abstract_job.AbstractJob):
             _job: The optional current job state.
             result_type: What type of results are expected, such as
                 batched results or the result of a focused calibration.
-            stream_job_response_future: If set, the job is sent over the Quantum Engine
-                QuantumRunStream bidirectional stream, and the future is completed when the Engine
-                responds over the stream.
+            stream_job_response_future: If set, the job is assumed to be sent over the Quantum
+                Engine QuantumRunStream bidirectional stream, with the future getting completed
+                when the Engine responds over the stream. When a caller asks for the job result,
+                EngineJob will await this future to wait for the result to be available from the
+                Engine.
         """
         self.project_id = project_id
         self.program_id = program_id
