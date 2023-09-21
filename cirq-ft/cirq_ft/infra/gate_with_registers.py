@@ -32,8 +32,9 @@ class Register:
     """
 
     name: str
+    bitsize: int
     shape: Tuple[int, ...] = attr.field(
-        converter=lambda v: (v,) if isinstance(v, int) else tuple(v)
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
     )
 
     def all_idxs(self) -> Iterable[Tuple[int, ...]]:
@@ -45,15 +46,14 @@ class Register:
 
         This is the product of each of the dimensions in `shape`.
         """
-        return int(np.product(self.shape))
+        return self.bitsize * int(np.product(self.shape))
 
     def __repr__(self):
-        return f'cirq_ft.Register(name="{self.name}", shape={self.shape})'
+        return f'cirq_ft.Register(name="{self.name}", bitsize={self.bitsize}, shape={self.shape})'
 
 
 def total_bits(registers: Iterable[Register]) -> int:
     """Sum of `reg.total_bits()` for each register `reg` in input `registers`."""
-
     return sum(reg.total_bits() for reg in registers)
 
 
@@ -65,7 +65,9 @@ def split_qubits(
     qubit_regs = {}
     base = 0
     for reg in registers:
-        qubit_regs[reg.name] = np.array(qubits[base : base + reg.total_bits()]).reshape(reg.shape)
+        qubit_regs[reg.name] = np.array(qubits[base : base + reg.total_bits()]).reshape(
+            reg.shape + (reg.bitsize,)
+        )
         base += reg.total_bits()
     return qubit_regs
 
@@ -82,9 +84,10 @@ def merge_qubits(
             raise ValueError(f"All qubit registers must be present. {reg.name} not in qubit_regs")
         qubits = qubit_regs[reg.name]
         qubits = np.array([qubits] if isinstance(qubits, cirq.Qid) else qubits)
-        if qubits.shape != reg.shape:
+        full_shape = reg.shape + (reg.bitsize,)
+        if qubits.shape != full_shape:
             raise ValueError(
-                f'{reg.name} register must of shape {reg.shape} but is of shape {qubits.shape}'
+                f'{reg.name} register must of shape {full_shape} but is of shape {qubits.shape}'
             )
         ret += qubits.flatten().tolist()
     return ret
@@ -94,13 +97,16 @@ def get_named_qubits(registers: Iterable[Register]) -> Dict[str, NDArray[cirq.Qi
     """Returns a dictionary of appropriately shaped named qubit registers for input `registers`."""
 
     def _qubit_array(reg: Register):
-        qubits = np.empty(reg.shape, dtype=object)
+        qubits = np.empty(reg.shape + (reg.bitsize,), dtype=object)
         for ii in reg.all_idxs():
-            qubits[ii] = cirq.NamedQubit(f'{reg.name}[{", ".join(str(i) for i in ii)}]')
+            for j in range(reg.bitsize):
+                prefix = "" if not ii else f'[{", ".join(str(i) for i in ii)}]'
+                suffix = "" if reg.bitsize == 1 else f"[{j}]"
+                qubits[ii + (j,)] = cirq.NamedQubit(reg.name + prefix + suffix)
         return qubits
 
     def _qubits_for_reg(reg: Register):
-        if len(reg.shape) > 1:
+        if len(reg.shape) > 0:
             return _qubit_array(reg)
 
         return np.array(
@@ -130,8 +136,8 @@ class Registers:
         return f'cirq_ft.Registers({self._registers})'
 
     @classmethod
-    def build(cls, **registers: Union[int, Tuple[int, ...]]) -> 'Registers':
-        return cls(Register(name=k, shape=v) for k, v in registers.items())
+    def build(cls, **registers: int) -> 'Registers':
+        return cls(Register(name=k, bitsize=v) for k, v in registers.items())
 
     @overload
     def __getitem__(self, key: int) -> Register:
@@ -216,23 +222,29 @@ class SelectionRegister(Register):
         >>> assert len(flat_indices) == N * M * L
     """
 
+    name: str
+    bitsize: int
     iteration_length: int = attr.field()
+    shape: Tuple[int, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
+    )
 
     @iteration_length.default
     def _default_iteration_length(self):
-        return 2 ** self.shape[0]
+        return 2**self.bitsize
 
     @iteration_length.validator
     def validate_iteration_length(self, attribute, value):
-        if len(self.shape) != 1:
+        if len(self.shape) != 0:
             raise ValueError(f'Selection register {self.name} should be flat. Found {self.shape=}')
-        if not (0 <= value <= 2 ** self.shape[0]):
-            raise ValueError(f'iteration length must be in range [0, 2^{self.shape[0]}]')
+        if not (0 <= value <= 2**self.bitsize):
+            raise ValueError(f'iteration length must be in range [0, 2^{self.bitsize}]')
 
     def __repr__(self) -> str:
         return (
             f'cirq_ft.SelectionRegister('
             f'name="{self.name}", '
+            f'bitsize={self.bitsize}, '
             f'shape={self.shape}, '
             f'iteration_length={self.iteration_length})'
         )
