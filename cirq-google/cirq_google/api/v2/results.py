@@ -22,6 +22,7 @@ from cirq_google.api.v2 import result_pb2
 
 GridQid = Union[cirq.GridQubit, cirq.GridQid]
 
+
 @dataclasses.dataclass
 class MeasureInfo:
     """Extra info about a single measurement within a circuit.
