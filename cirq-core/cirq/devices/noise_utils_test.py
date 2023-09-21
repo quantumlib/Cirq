@@ -66,12 +66,7 @@ def test_op_id_instance():
     q0 = cirq.LineQubit.range(1)[0]
     gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, False), (cirq.Z, False))
     op_id = OpIdentifier(gate, q0)
-    assert repr(op_id) == (
-        "cirq.devices.noise_utils.OpIdentifier(cirq.CliffordGate.from_clifford_tableau("
-        "cirq.CliffordTableau(1,rs=np.array([False, False], dtype=np.dtype('bool')), xs=np.array("
-        "[[True], [False]], dtype=np.dtype('bool')),zs=np.array([[False], [True]], dtype=np.dtype"
-        "('bool')), initial_state=0)), cirq.LineQubit(0))"
-    )
+    cirq.testing.assert_equivalent_repr(op_id)
 
 
 @pytest.mark.parametrize(
