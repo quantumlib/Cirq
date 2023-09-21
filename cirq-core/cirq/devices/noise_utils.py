@@ -90,10 +90,8 @@ class OpIdentifier:
 
     def _json_dict_(self) -> Dict[str, Any]:
         if hasattr(self.gate_type, '__name__'):
-            gate_json = protocols.json_cirq_type(self._gate_type)
-        else:
-            gate_json = self._gate_type
-        return {'gate_type': gate_json, 'qubits': self._qubits}
+            return {'gate_type': protocols.json_cirq_type(self.gate_type), 'qubits': self._qubits}
+        return {'gate_type': self._gate_type, 'qubits': self._qubits}
 
     @classmethod
     def _from_json_dict_(cls, gate_type, qubits, **kwargs) -> 'OpIdentifier':
