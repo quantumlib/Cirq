@@ -25,6 +25,9 @@ def test_register():
     assert r.bitsize == 5
     assert r.shape == (1, 2)
 
+    with pytest.raises(ValueError, match="must be a positive integer"):
+        _ = cirq_ft.Register("zero bitsize register", bitsize=0)
+
 
 def test_registers():
     r1 = cirq_ft.Register("r1", 5)

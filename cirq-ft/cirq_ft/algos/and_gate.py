@@ -141,7 +141,7 @@ class And(infra.GateWithRegisters):
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
-        control, ancilla, target = quregs['control'], quregs['ancilla'], quregs['target']
+        control, ancilla, target = quregs['control'], quregs.get('ancilla', ()), quregs['target']
         if len(self.cv) == 2:
             yield self._decompose_single_and(
                 self.cv[0], self.cv[1], control[0], control[1], *target

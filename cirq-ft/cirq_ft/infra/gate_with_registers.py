@@ -32,10 +32,15 @@ class Register:
     """
 
     name: str
-    bitsize: int
+    bitsize: int = attr.field()
     shape: Tuple[int, ...] = attr.field(
         converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
     )
+
+    @bitsize.validator
+    def bitsize_validator(self, attribute, value):
+        if value <= 0:
+            raise ValueError(f"Bitsize for {self=} must be a positive integer. Found {value}.")
 
     def all_idxs(self) -> Iterable[Tuple[int, ...]]:
         """Iterate over all possible indices of a multidimensional register."""
@@ -137,7 +142,7 @@ class Registers:
 
     @classmethod
     def build(cls, **registers: int) -> 'Registers':
-        return cls(Register(name=k, bitsize=v) for k, v in registers.items())
+        return cls(Register(name=k, bitsize=v) for k, v in registers.items() if v > 0)
 
     @overload
     def __getitem__(self, key: int) -> Register:
