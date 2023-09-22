@@ -191,6 +191,9 @@ def proper_repr(value: Any) -> str:
     if isinstance(value, Dict):
         return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
 
+    if hasattr(value, "__qualname__"):
+        return f"{value.__module__}.{value.__qualname__}"
+
     return repr(value)
 
 

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Dict, Tuple, Type, Union
 import numpy as np
 
 from cirq import ops, protocols, value
+from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
@@ -79,11 +80,7 @@ class OpIdentifier:
 
     def __repr__(self) -> str:
         qubits = ', '.join(map(repr, self.qubits))
-        if hasattr(self.gate_type, '__qualname__'):
-            gate = f'{self.gate_type.__module__}.{self.gate_type.__qualname__}'
-        else:
-            gate = repr(self.gate_type)
-        return f'cirq.devices.noise_utils.OpIdentifier({gate}, {qubits})'
+        return f'cirq.devices.noise_utils.OpIdentifier({proper_repr(self.gate_type)}, {qubits})'
 
     def _value_equality_values_(self) -> Any:
         return (self.gate_type, self.qubits)
