@@ -261,7 +261,7 @@ PARAMETRIC_TRANSFORMERS: Dict[str, Callable] = {
 }
 
 
-def circuit_from_quil(quil Union[str, Program]) -> Circuit:
+def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
     """Convert a Quil program to a Cirq Circuit.
 
     Args:
@@ -345,7 +345,7 @@ def circuit_from_quil(quil Union[str, Program]) -> Circuit:
 
         # READOUT-POVM provides a confusion matrix
         elif inst.command == "READOUT-POVM":
-            qubit = int(inst.args[0])
+            qubit = int(inst.args[0].index)
             entries = np.fromstring(
                 inst.freeform_string.strip("()").replace("i", "j"), dtype=np.float_, sep=" "
             )
@@ -361,6 +361,9 @@ def circuit_from_quil(quil Union[str, Program]) -> Circuit:
         if isinstance(inst, Declare):
             pass
 
+        elif isinstance(inst, DefGate):
+            pass
+
         # Convert pyQuil gates to Cirq operations.
         elif isinstance(inst, PyQuilGate):
             quil_gate_name = inst.name
@@ -372,6 +375,7 @@ def circuit_from_quil(quil Union[str, Program]) -> Circuit:
             if quil_gate_params:
                 params = [quil_expression_to_sympy(p) for p in quil_gate_params]
                 transformer = parameter_transformers[quil_gate_name]
+                print(transformer(*params))
                 circuit += cast(Callable[..., Gate], cirq_gate_fn)(**transformer(*params))(
                     *line_qubits
                 )
@@ -453,6 +457,9 @@ def remove_gate_from_kraus(kraus_ops, gate_matrix):
 def quil_expression_to_sympy(expression: ParameterDesignator):
     """Convert a quil expression to a numpy function."""
     if type(expression) in {np.int_, np.float_, np.complex_, int, float, complex}:
+        if isinstance(expression, (np.complex128, complex)):
+            assert expression.imag < 1e-6, "Parameters should be real."
+            return np.real(expression)
         return expression  # type: ignore
     elif isinstance(expression, Parameter):
         return sympy.Symbol(expression.name)

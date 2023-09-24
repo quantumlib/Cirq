@@ -187,15 +187,6 @@ DEFGATE MYPHASE(%phi):
     0,EXP(i*%phi)
 
 X 0
-MYPHASE 0
-"""
-
-QUIL_PROGRAM_WITH_PARAMETERIZED_DEFGATE = """
-DEFGATE MYPHASE(%phi):
-    1,0
-    0,EXP(i*%phi)
-
-X 0
 MYPHASE(pi/2) 0
 """
 
@@ -251,6 +242,6 @@ def test_readout_noise():
     """Convert a program with readout noise."""
     program = Program(QUIL_PROGRAM_WITH_READOUT_NOISE)
     circuit = circuit_from_quil(program)
-
+    print(circuit)
     result = Simulator(seed=0).run(circuit, repetitions=2000)
     assert result.histogram(key="ro[0]")[1] < 2000
