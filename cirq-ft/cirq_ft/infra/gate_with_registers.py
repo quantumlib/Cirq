@@ -51,7 +51,7 @@ class Register:
 
         This is the product of each of the dimensions in `shape`.
         """
-        return self.bitsize * int(np.product(self.shape))
+        return self.bitsize * int(np.prod(self.shape))
 
     def __repr__(self):
         return f'cirq_ft.Register(name="{self.name}", bitsize={self.bitsize}, shape={self.shape})'

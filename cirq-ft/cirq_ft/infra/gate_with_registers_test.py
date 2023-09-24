@@ -99,7 +99,7 @@ def test_selection_registers_indexing(n, N, m, M):
             assert np.ravel_multi_index((x, y), (N, M)) == x * M + y
             assert np.unravel_index(x * M + y, (N, M)) == (x, y)
 
-    assert np.product(tuple(reg.iteration_length for reg in regs)) == N * M
+    assert np.prod(tuple(reg.iteration_length for reg in regs)) == N * M
 
 
 def test_selection_registers_consistent():
