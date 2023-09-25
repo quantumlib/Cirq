@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from inspect import signature
+
 import numpy as np
 import pytest
-from inspect import signature
+
 from pyquil.quil import Program
 from pyquil.simulation import matrices
 from pyquil.simulation.tools import program_unitary
@@ -47,9 +49,6 @@ from cirq.ops.three_qubit_gates import CCNOT, CSWAP
 def test_gate_conversion():
     """Check that the gates all convert with matching unitaries."""
     for quil_gate, cirq_gate in SUPPORTED_GATES.items():
-        # pyquil has an error in the RYY defintion
-        if quil_gate == "RYY":
-            continue
         if quil_gate in PARAMETRIC_TRANSFORMERS:
             pyquil_def = getattr(matrices, quil_gate)
             sig = signature(pyquil_def)
@@ -93,6 +92,7 @@ SWAP 0 1
 XY(pi/2) 1 2
 RZZ(pi/2) 0 1
 RXX(pi/2) 1 2
+RYY(pi/2) 0 2
 FSIM(pi/4, pi/8) 1 2
 PHASEDFSIM(pi/4, -pi/6, pi/2, pi/3, pi/8) 0 1
 CCNOT 0 1 2
@@ -135,6 +135,7 @@ def test_circuit_from_quil():
             ISwapPowGate(exponent=1 / 2, global_shift=0.0)(q1, q2),
             ZZPowGate(exponent=1 / 2, global_shift=-0.5)(q0, q1),
             XXPowGate(exponent=1 / 2, global_shift=-0.5)(q1, q2),
+            YYPowGate(exponent=1 / 2, global_shift=-0.5)(q0, q2),
             FSimGate(theta=-np.pi / 8, phi=-np.pi / 8)(q1, q2),
             PhasedFSimGate(
                 theta=-np.pi / 8, zeta=-np.pi / 6, chi=np.pi / 2, gamma=np.pi / 3, phi=-np.pi / 8
@@ -149,8 +150,6 @@ def test_circuit_from_quil():
     # build the same Circuit, using Quil
     quil_circuit = circuit_from_quil(Program(QUIL_PROGRAM))
     # test Circuit equivalence
-    print(cirq_circuit)
-    print(quil_circuit)
     assert cirq_circuit == quil_circuit
 
     pyquil_circuit = Program(QUIL_PROGRAM)
