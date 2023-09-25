@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-import cirq
-import numpy as np
-import sympy
+from typing import Callable, cast, Dict, Union, List, Tuple, Optional
 
-from typing import Callable, cast, Dict, Union, List
+import sympy
+import numpy as np
 from numpy.typing import NDArray
 
 from pyquil.quil import Program
@@ -45,8 +43,6 @@ from pyquil.quilatom import (
     Parameter,
     substitute_array,
 )
-from pyquil.paulis import PauliSum as PyQuilPauliSum
-from pyquil.noise import pauli_kraus_map
 from pyquil.simulation import matrices
 
 from cirq.circuits.circuit import Circuit
@@ -65,23 +61,16 @@ from cirq.ops.matrix_gates import MatrixGate
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
 from cirq.ops.three_qubit_gates import CCNOT, CSWAP
-from cirq.ops.linear_combinations import PauliSum
-from cirq.ops.pauli_string import PauliString
 from cirq.ops.raw_types import Gate
-from cirq.ops.common_channels import AsymmetricDepolarizingChannel
 from cirq.ops.kraus_channel import KrausChannel
 
 
 class UndefinedQuilGate(Exception):
     """Error for a undefined Quil Gate."""
 
-    pass
-
 
 class UnsupportedQuilInstruction(Exception):
     """Error for a unsupported instruction."""
-
-    pass
 
 
 #
@@ -207,6 +196,7 @@ Please remove RESETs from your Quil program.
 RESET directives have special meaning on QCS, to enable active reset.
 """
 
+
 # Parameterized gates map to functions that produce Gate constructors.
 SUPPORTED_GATES: Dict[str, Union[Gate, Callable[..., Gate]]] = {
     "CCNOT": CCNOT,
@@ -315,7 +305,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
             elif gate_name in defined_gates:
                 u = quil_defined_gates[gate_name]
             else:
-                raise ValueError(f"{gate_name} is not known.")
+                raise UndefinedQuilGate(f"{gate_name} is not known.")
 
             entries = np.fromstring(
                 inst.freeform_string.strip("()").replace("i", "j"), dtype=np.complex_, sep=" "
@@ -426,9 +416,20 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
 
 def kraus_noise_model_to_cirq(
-    kraus_noise_model, defined_gates=SUPPORTED_GATES
+    kraus_noise_model: Dict[Tuple[str, ...], List[NDArray[np.complex_]]],
+    defined_gates: Optional[Dict[str, Gate]] = None,
 ) -> InsertionNoiseModel:
-    """Construct a Cirq noise model from the provided Kraus operators."""
+    """Construct a Cirq noise model from the provided Kraus operators.
+
+    Args:
+        kraus_noise_model: A dictionary where the keys are tuples of Quil gate names and qubit
+        indices and the values are the Kraus representation of the noise channel.
+        defined_gates: A dictionary mapping Quil gates to Cirq gates.
+    Returns:
+        A Cirq InsertionNoiseModel which applies the Kraus operators to the specified gates.
+    """
+    if defined_gates is None:
+        defined_gates = SUPPORTED_GATES
     ops_added = {}
     for key, kraus_ops in kraus_noise_model.items():
         gate_name = key[0]
@@ -443,19 +444,36 @@ def kraus_noise_model_to_cirq(
     return noise_model
 
 
-def remove_gate_from_kraus(kraus_ops, gate_matrix):
-    """
-    Recover the kraus operators from a kraus composed with a gate. This function is the reverse of append_kraus_to_gate.
+def remove_gate_from_kraus(
+    kraus_ops: List[NDArray[np.complex_]], gate_matrix: NDArray[np.complex_]
+) -> List[NDArray[np.complex_]]:
+    """Recover the kraus operators from a kraus composed with a gate.
 
-    :param kraus_ops:
-    :param gate_matrix:
-    :return:
+    This function is the reverse of append_kraus_to_gate.
+
+    Args:
+        kraus_ops: A list of Kraus operators.
+        gate_matrix: The target unitary of the gate.
+
+    Returns:
+        The Kraus operators of the error channel.
     """
     return [kju @ gate_matrix.conj().T for kju in kraus_ops]
 
 
 def quil_expression_to_sympy(expression: ParameterDesignator):
-    """Convert a quil expression to a numpy function."""
+    """Convert a quil expression to a Sympy expression.
+
+    Args:
+        expression: A quil expression.
+
+    Returns:
+        The sympy form of the expression.
+
+    Raises:
+        ValueError: Connect convert unknown BinaryExp.
+        ValueError: Unrecognized expression.
+    """
     if type(expression) in {np.int_, np.float_, np.complex_, int, float, complex}:
         if isinstance(expression, (np.complex128, complex)):
             assert expression.imag < 1e-6, "Parameters should be real."
@@ -505,12 +523,21 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
 
     else:
         raise ValueError(
-            f"quil_expression_to_sympy encountered unrecognized expression {expression} of type {type(expression)}"
+            f"Unrecognized expression {expression} of type {type(expression)}"
         )
 
 
 def defgate_to_cirq(defgate: DefGate):
-    """Convert a Quil DefGate to a Cirq Gate class."""
+    """Convert a Quil DefGate to a Cirq Gate class.
+
+    For non-parametric gates, it's recommended to create `MatrixGate` object. This function is
+    intended for the case of parametric gates.
+
+    Args:
+        defgate: A quil gate defintion.
+    Returns:
+        A subclass of `Gate` corresponding to the DefGate.
+    """
     name = defgate.name
     matrix = defgate.matrix
     parameters = defgate.parameters
