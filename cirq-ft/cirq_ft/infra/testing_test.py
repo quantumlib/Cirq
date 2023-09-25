@@ -47,8 +47,6 @@ def test_gate_helper():
         'target': [cirq.NamedQubit('target')],
     }
     for key in expected_quregs:
-        print(g.quregs[key])
-        print(expected_quregs[key])
         assert np.array_equal(g.quregs[key], expected_quregs[key])
     assert g.operation.qubits == tuple(g.all_qubits)
     assert len(g.circuit) == 1
