@@ -77,7 +77,7 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
 
     @cached_property
     def target_registers(self) -> Tuple[infra.Register, ...]:
-        total_iteration_size = np.product(
+        total_iteration_size = np.prod(
             tuple(reg.iteration_length for reg in self.selection_registers)
         )
         return (infra.Register('target', int(total_iteration_size)),)

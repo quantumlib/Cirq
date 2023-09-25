@@ -25,6 +25,9 @@ def test_register():
     assert r.bitsize == 5
     assert r.shape == (1, 2)
 
+    with pytest.raises(ValueError, match="must be a positive integer"):
+        _ = cirq_ft.Register("zero bitsize register", bitsize=0)
+
 
 def test_registers():
     r1 = cirq_ft.Register("r1", 5)
@@ -96,7 +99,7 @@ def test_selection_registers_indexing(n, N, m, M):
             assert np.ravel_multi_index((x, y), (N, M)) == x * M + y
             assert np.unravel_index(x * M + y, (N, M)) == (x, y)
 
-    assert np.product(tuple(reg.iteration_length for reg in regs)) == N * M
+    assert np.prod(tuple(reg.iteration_length for reg in regs)) == N * M
 
 
 def test_selection_registers_consistent():

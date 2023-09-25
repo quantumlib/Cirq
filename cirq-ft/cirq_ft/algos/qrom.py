@@ -111,7 +111,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
 
     @cached_property
     def target_registers(self) -> Tuple[infra.Register, ...]:
-        return tuple(infra.Register(f'target{i}', l) for i, l in enumerate(self.target_bitsizes))
+        return tuple(
+            infra.Register(f'target{i}', l) for i, l in enumerate(self.target_bitsizes) if l
+        )
 
     def __repr__(self) -> str:
         data_repr = f"({','.join(cirq._compat.proper_repr(d) for d in self.data)})"
@@ -129,7 +131,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         **target_regs: NDArray[cirq.Qid],  # type: ignore[type-var]
     ) -> cirq.OP_TREE:
         for i, d in enumerate(self.data):
-            target = target_regs[f'target{i}']
+            target = target_regs.get(f'target{i}', ())
             for q, bit in zip(target, f'{int(d[selection_idx]):0{len(target)}b}'):
                 if int(bit):
                     yield gate(q)
