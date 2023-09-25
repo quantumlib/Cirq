@@ -51,15 +51,15 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
     )
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(controls=len(self.cv), target=(self.n - 1).bit_length())
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(controls=len(self.cv), target=(self.n - 1).bit_length())
 
     def __repr__(self) -> str:
         return f"cirq_ft.PrepareUniformSuperposition({self.n}, cv={self.cv})"
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         control_symbols = ["@" if cv else "@(0)" for cv in self.cv]
-        target_symbols = ['target'] * self.registers['target'].total_bits()
+        target_symbols = ['target'] * self.signature.get_left('target').total_bits()
         target_symbols[0] = f"UNIFORM({self.n})"
         return cirq.CircuitDiagramInfo(wire_symbols=control_symbols + target_symbols)
 
@@ -75,7 +75,7 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
         while n > 1 and n % 2 == 0:
             k += 1
             n = n // 2
-        l, logL = int(n), self.registers['target'].total_bits() - k
+        l, logL = int(n), self.signature.get_left('target').total_bits() - k
         logL_qubits = target[:logL]
 
         yield [

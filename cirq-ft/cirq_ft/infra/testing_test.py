@@ -34,7 +34,7 @@ def test_assert_circuit_inp_out_cirqsim():
 def test_gate_helper():
     g = cirq_ft.testing.GateHelper(cirq_ft.And(cv=(1, 0, 1, 0)))
     assert g.gate == cirq_ft.And(cv=(1, 0, 1, 0))
-    assert g.r == cirq_ft.Registers.build(control=4, ancilla=2, target=1)
+    assert g.r == cirq_ft.Signature.build(control=4, ancilla=2, target=1)
     expected_quregs = {
         'control': cirq.NamedQubit.range(4, prefix='control'),
         'ancilla': cirq.NamedQubit.range(2, prefix='ancilla'),

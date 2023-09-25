@@ -119,8 +119,8 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         pass
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [
                 *self.selection_registers,
                 *self.kappa_load_target,

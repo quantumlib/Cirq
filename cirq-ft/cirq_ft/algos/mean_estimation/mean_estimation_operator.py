@@ -109,8 +109,8 @@ class MeanEstimationOperator(infra.GateWithRegisters):
         return self.code.encoder.selection_registers
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.control_registers, *self.selection_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
         self,
@@ -118,8 +118,8 @@ class MeanEstimationOperator(infra.GateWithRegisters):
         context: cirq.DecompositionContext,
         **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
-        select_reg = {reg.name: quregs[reg.name] for reg in self.select.registers}
-        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.registers}
+        select_reg = {reg.name: quregs[reg.name] for reg in self.select.signature}
+        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.signature}
         select_op = self.select.on_registers(**select_reg)
         reflect_op = self.reflect.on_registers(**reflect_reg)
         for _ in range(self.power):
@@ -132,7 +132,7 @@ class MeanEstimationOperator(infra.GateWithRegisters):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = [] if self.cv == () else [["@(0)", "@"][self.cv[0]]]
         wire_symbols += ['U_ko'] * (
-            infra.total_bits(self.registers) - infra.total_bits(self.control_registers)
+            infra.total_bits(self.signature) - infra.total_bits(self.control_registers)
         )
         if self.power != 1:
             wire_symbols[-1] = f'U_ko^{self.power}'

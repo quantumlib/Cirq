@@ -35,8 +35,8 @@ class MultiTargetCNOT(infra.GateWithRegisters):
         self._num_targets = num_targets
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(control=1, targets=self._num_targets)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(control=1, targets=self._num_targets)
 
     def decompose_from_registers(
         self,
@@ -77,8 +77,8 @@ class MultiControlPauli(infra.GateWithRegisters):
     target_gate: cirq.Pauli = cirq.X
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(controls=len(self.cvs), target=1)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(controls=len(self.cvs), target=1)
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray['cirq.Qid']

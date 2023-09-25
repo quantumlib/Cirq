@@ -37,10 +37,10 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
     `selection`-th qubit of `target` all controlled by the `control` register.
 
     Args:
-        selection_regs: Indexing `select` registers of type Tuple[`SelectionRegisters`, ...].
+        selection_regs: Indexing `select` signature of type Tuple[`SelectionRegisters`, ...].
             It also contains information about the iteration length of each selection register.
         nth_gate: A function mapping the composite selection index to a single-qubit gate.
-        control_regs: Control registers for constructing a controlled version of the gate.
+        control_regs: Control signature for constructing a controlled version of the gate.
 
     References:
             [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]

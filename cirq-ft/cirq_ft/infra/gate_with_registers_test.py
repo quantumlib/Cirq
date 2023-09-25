@@ -30,27 +30,31 @@ def test_register():
 
 
 def test_registers():
-    r1 = cirq_ft.Register("r1", 5)
-    r2 = cirq_ft.Register("r2", 2)
+    r1 = cirq_ft.Register("r1", 5, side=cirq_ft.infra.Side.LEFT)
+    r2 = cirq_ft.Register("r2", 2, side=cirq_ft.infra.Side.RIGHT)
     r3 = cirq_ft.Register("r3", 1)
-    regs = cirq_ft.Registers([r1, r2, r3])
+    regs = cirq_ft.Signature([r1, r2, r3])
     assert len(regs) == 3
     cirq.testing.assert_equivalent_repr(regs, setup_code='import cirq_ft')
 
     with pytest.raises(ValueError, match="unique"):
-        _ = cirq_ft.Registers([r1, r1])
+        _ = cirq_ft.Signature([r1, r1])
 
     assert regs[0] == r1
     assert regs[1] == r2
     assert regs[2] == r3
 
-    assert regs[0:1] == cirq_ft.Registers([r1])
-    assert regs[0:2] == cirq_ft.Registers([r1, r2])
-    assert regs[1:3] == cirq_ft.Registers([r2, r3])
+    assert regs[0:1] == tuple([r1])
+    assert regs[0:2] == tuple([r1, r2])
+    assert regs[1:3] == tuple([r2, r3])
 
-    assert regs["r1"] == r1
-    assert regs["r2"] == r2
-    assert regs["r3"] == r3
+    assert regs.get_left("r1") == r1
+    assert regs.get_right("r2") == r2
+    assert regs.get_left("r3") == r3
+
+    assert r1 in regs
+    assert r2 in regs
+    assert r3 in regs
 
     assert list(regs) == [r1, r2, r3]
 
@@ -85,7 +89,7 @@ def test_registers():
     # initial registers.
     for reg_order in [[r1, r2, r3], [r2, r3, r1]]:
         flat_named_qubits = [
-            q for v in get_named_qubits(cirq_ft.Registers(reg_order)).values() for q in v
+            q for v in get_named_qubits(cirq_ft.Signature(reg_order)).values() for q in v
         ]
         expected_qubits = [q for r in reg_order for q in expected_named_qubits[r.name]]
         assert flat_named_qubits == expected_qubits
@@ -109,43 +113,42 @@ def test_selection_registers_consistent():
     with pytest.raises(ValueError, match="should be flat"):
         _ = cirq_ft.SelectionRegister('a', bitsize=1, shape=(3, 5), iteration_length=5)
 
-    selection_reg = cirq_ft.Registers(
+    selection_reg = cirq_ft.Signature(
         [
             cirq_ft.SelectionRegister('n', bitsize=3, iteration_length=5),
             cirq_ft.SelectionRegister('m', bitsize=4, iteration_length=12),
         ]
     )
     assert selection_reg[0] == cirq_ft.SelectionRegister('n', 3, 5)
-    assert selection_reg['n'] == cirq_ft.SelectionRegister('n', 3, 5)
     assert selection_reg[1] == cirq_ft.SelectionRegister('m', 4, 12)
-    assert selection_reg[:1] == cirq_ft.Registers([cirq_ft.SelectionRegister('n', 3, 5)])
+    assert selection_reg[:1] == tuple([cirq_ft.SelectionRegister('n', 3, 5)])
 
 
 def test_registers_getitem_raises():
-    g = cirq_ft.Registers.build(a=4, b=3, c=2)
-    with pytest.raises(IndexError, match="must be of the type"):
+    g = cirq_ft.Signature.build(a=4, b=3, c=2)
+    with pytest.raises(TypeError, match="indices must be integers or slices"):
         _ = g[2.5]
 
-    selection_reg = cirq_ft.Registers(
+    selection_reg = cirq_ft.Signature(
         [cirq_ft.SelectionRegister('n', bitsize=3, iteration_length=5)]
     )
-    with pytest.raises(IndexError, match='must be of the type'):
+    with pytest.raises(TypeError, match='indices must be integers or slices'):
         _ = selection_reg[2.5]
 
 
 def test_registers_build():
-    regs1 = cirq_ft.Registers([cirq_ft.Register("r1", 5), cirq_ft.Register("r2", 2)])
-    regs2 = cirq_ft.Registers.build(r1=5, r2=2)
+    regs1 = cirq_ft.Signature([cirq_ft.Register("r1", 5), cirq_ft.Register("r2", 2)])
+    regs2 = cirq_ft.Signature.build(r1=5, r2=2)
     assert regs1 == regs2
 
 
 class _TestGate(cirq_ft.GateWithRegisters):
     @property
-    def registers(self) -> cirq_ft.Registers:
+    def signature(self) -> cirq_ft.Signature:
         r1 = cirq_ft.Register("r1", 5)
         r2 = cirq_ft.Register("r2", 2)
         r3 = cirq_ft.Register("r3", 1)
-        regs = cirq_ft.Registers([r1, r2, r3])
+        regs = cirq_ft.Signature([r1, r2, r3])
         return regs
 
     def decompose_from_registers(self, *, context, **quregs) -> cirq.OP_TREE:

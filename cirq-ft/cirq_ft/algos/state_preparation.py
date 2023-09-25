@@ -57,10 +57,10 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
     selecting `l` uniformly at random and then returning it with probability `keep[l] / 2**mu`;
     otherwise returning `alt[l]`.
 
-    Registers:
+    Signature:
         selection: The input/output register $|\ell\rangle$ of size lg(L) where the desired
             coefficient state is prepared.
-        temp: Work space comprised of sub registers:
+        temp: Work space comprised of sub signature:
             - sigma: A mu-sized register containing uniform probabilities for comparison against
                 `keep`.
             - alt: A lg(L)-sized register of alternate indices
@@ -70,8 +70,8 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
     This gate corresponds to the following operations:
      - UNIFORM_L on the selection register
      - H^mu on the sigma register
-     - QROM addressed by the selection register into the alt and keep registers.
-     - LessThanEqualGate comparing the keep and sigma registers.
+     - QROM addressed by the selection register into the alt and keep signature.
+     - LessThanEqualGate comparing the keep and sigma signature.
      - Coherent swap between the selection register and alt register if the comparison
        returns True.
 
@@ -133,7 +133,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
     @cached_property
     def junk_registers(self) -> Tuple[infra.Register, ...]:
         return tuple(
-            infra.Registers.build(
+            infra.Signature.build(
                 sigma_mu=self.sigma_mu_bitsize,
                 alt=self.alternates_bitsize,
                 keep=self.keep_bitsize,

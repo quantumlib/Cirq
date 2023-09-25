@@ -45,17 +45,17 @@ def random_cv(n: int) -> List[int]:
 @pytest.mark.parametrize("cv", [[1] * 3, random_cv(5), random_cv(6), random_cv(7)])
 def test_multi_controlled_and_gate(cv: List[int]):
     gate = cirq_ft.And(cv)
-    r = gate.registers
-    assert r['ancilla'].total_bits() == r['control'].total_bits() - 2
+    r = gate.signature
+    assert r.get_left('ancilla').total_bits() == r.get_left('control').total_bits() - 2
     quregs = infra.get_named_qubits(r)
     and_op = gate.on_registers(**quregs)
     circuit = cirq.Circuit(and_op)
 
     input_controls = [cv] + [random_cv(len(cv)) for _ in range(10)]
-    qubit_order = infra.merge_qubits(gate.registers, **quregs)
+    qubit_order = infra.merge_qubits(gate.signature, **quregs)
 
     for input_control in input_controls:
-        initial_state = input_control + [0] * (r['ancilla'].total_bits() + 1)
+        initial_state = input_control + [0] * (r.get_left('ancilla').total_bits() + 1)
         result = cirq.Simulator(dtype=np.complex128).simulate(
             circuit, initial_state=initial_state, qubit_order=qubit_order
         )
@@ -78,7 +78,7 @@ def test_multi_controlled_and_gate(cv: List[int]):
 
 def test_and_gate_diagram():
     gate = cirq_ft.And((1, 0, 1, 0, 1, 0))
-    qubit_regs = infra.get_named_qubits(gate.registers)
+    qubit_regs = infra.get_named_qubits(gate.signature)
     op = gate.on_registers(**qubit_regs)
     # Qubit order should be alternating (control, ancilla) pairs.
     c_and_a = sum(zip(qubit_regs["control"][1:], qubit_regs["ancilla"]), ()) + (
