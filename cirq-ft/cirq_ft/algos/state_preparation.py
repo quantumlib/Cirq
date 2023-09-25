@@ -167,7 +167,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         selection, less_than_equal = quregs['selection'], quregs['less_than_equal']
-        sigma_mu, alt, keep = quregs['sigma_mu'], quregs['alt'], quregs['keep']
+        sigma_mu, alt, keep = quregs.get('sigma_mu', ()), quregs['alt'], quregs.get('keep', ())
         N = self.selection_registers[0].iteration_length
         yield prepare_uniform_superposition.PrepareUniformSuperposition(N).on(*selection)
         yield cirq.H.on_each(*sigma_mu)

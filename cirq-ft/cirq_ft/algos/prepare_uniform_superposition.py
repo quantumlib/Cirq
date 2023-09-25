@@ -69,7 +69,7 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
         context: cirq.DecompositionContext,
         **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
-        controls, target = quregs['controls'], quregs['target']
+        controls, target = quregs.get('controls', ()), quregs['target']
         # Find K and L as per https://arxiv.org/abs/1805.03662 Fig 12.
         n, k = self.n, 0
         while n > 1 and n % 2 == 0:
