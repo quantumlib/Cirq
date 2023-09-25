@@ -150,7 +150,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             and_ancilla = context.qubit_manager.qalloc(len(controls) - 2)
             and_target = context.qubit_manager.qalloc(1)[0]
             multi_controlled_and = and_gate.And((1,) * len(controls)).on_registers(
-                control=controls, ancilla=and_ancilla, target=and_target
+                ctrl=np.array(controls)[:, np.newaxis],
+                junk=np.array(and_ancilla)[:, np.newaxis],
+                target=and_target,
             )
             yield multi_controlled_and
             yield self._load_nth_data(zero_indx, lambda q: cirq.CNOT(and_target, q), **target_regs)

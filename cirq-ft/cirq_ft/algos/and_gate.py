@@ -61,7 +61,16 @@ class And(infra.GateWithRegisters):
 
     @cached_property
     def signature(self) -> infra.Signature:
-        return infra.Signature.build(control=len(self.cv), ancilla=len(self.cv) - 2, target=1)
+        one_side = infra.Side.RIGHT if not self.adjoint else infra.Side.LEFT
+        n_cv = len(self.cv)
+        junk_reg = [infra.Register('junk', 1, shape=n_cv - 2, side=one_side)] if n_cv > 2 else []
+        return infra.Signature(
+            [
+                infra.Register('ctrl', 1, shape=n_cv),
+                *junk_reg,
+                infra.Register('target', 1, side=one_side),
+            ]
+        )
 
     def __pow__(self, power: int) -> "And":
         if power == 1:
@@ -142,9 +151,9 @@ class And(infra.GateWithRegisters):
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         control, ancilla, target = (
-            quregs['control'],
-            quregs.get('ancilla', np.array([])),
-            quregs['target'],
+            quregs['ctrl'].flatten(),
+            quregs.get('junk', np.array([])).flatten(),
+            quregs['target'].flatten(),
         )
         if len(self.cv) == 2:
             yield self._decompose_single_and(
