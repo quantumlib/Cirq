@@ -60,8 +60,8 @@ class And(infra.GateWithRegisters):
             raise ValueError(f"And gate needs at-least 2 control values, supplied {value} instead.")
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(control=len(self.cv), ancilla=len(self.cv) - 2, target=1)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(control=len(self.cv), ancilla=len(self.cv) - 2, target=1)
 
     def __pow__(self, power: int) -> "And":
         if power == 1:

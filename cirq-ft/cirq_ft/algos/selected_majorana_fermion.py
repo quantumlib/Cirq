@@ -34,9 +34,9 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
 
 
     Args:
-        selection_regs: Indexing `select` registers of type `SelectionRegister`. It also contains
+        selection_regs: Indexing `select` signature of type `SelectionRegister`. It also contains
             information about the iteration length of each selection register.
-        control_regs: Control registers for constructing a controlled version of the gate.
+        control_regs: Control signature for constructing a controlled version of the gate.
         target_gate: Single qubit gate to be applied to the target qubits.
 
     References:

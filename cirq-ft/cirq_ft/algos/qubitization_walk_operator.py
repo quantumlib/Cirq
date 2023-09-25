@@ -73,8 +73,8 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         return self.select.target_registers
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [*self.control_registers, *self.selection_registers, *self.target_registers]
         )
 
@@ -89,10 +89,10 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         context: cirq.DecompositionContext,
         **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
-        select_reg = {reg.name: quregs[reg.name] for reg in self.select.registers}
+        select_reg = {reg.name: quregs[reg.name] for reg in self.select.signature}
         select_op = self.select.on_registers(**select_reg)
 
-        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.registers}
+        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.signature}
         reflect_op = self.reflect.on_registers(**reflect_reg)
         for _ in range(self.power):
             yield select_op
@@ -103,7 +103,7 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
             self.control_registers
         )
         wire_symbols += ['W'] * (
-            infra.total_bits(self.registers) - infra.total_bits(self.control_registers)
+            infra.total_bits(self.signature) - infra.total_bits(self.control_registers)
         )
         wire_symbols[-1] = f'W^{self.power}' if self.power != 1 else 'W'
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

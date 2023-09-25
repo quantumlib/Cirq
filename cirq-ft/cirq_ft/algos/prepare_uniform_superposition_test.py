@@ -52,7 +52,7 @@ def test_prepare_uniform_superposition_t_complexity(n: int):
     result = cirq_ft.t_complexity(gate)
     # TODO(#233): Controlled-H is currently counted as a separate rotation, but it can be
     # implemented using 2 T-gates.
-    assert result.rotations <= 2 + 2 * infra.total_bits(gate.registers)
+    assert result.rotations <= 2 + 2 * infra.total_bits(gate.signature)
     assert result.t <= 12 * (n - 1).bit_length()
 
 

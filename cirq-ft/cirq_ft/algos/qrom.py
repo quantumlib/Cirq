@@ -29,8 +29,8 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     """Gate to load data[l] in the target register when the selection stores an index l.
 
     In the case of multi-dimensional data[p,q,r,...] we use multiple named
-    selection registers [p, q, r, ...] to index and load the data. Here `p, q, r, ...`
-    correspond to registers named `selection0`, `selection1`, `selection2`, ... etc.
+    selection signature [p, q, r, ...] to index and load the data. Here `p, q, r, ...`
+    correspond to signature named `selection0`, `selection1`, `selection2`, ... etc.
 
     When the input data elements contain consecutive entries of identical data elements to
     load, the QROM also implements the "variable-spaced" QROM optimization described in Ref[2].
@@ -45,9 +45,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             corresponding to the size of each dimension of the array. Should be
             the same length as the shape of each of the datasets.
         target_bitsizes: The number of bits used to represent the data
-            registers. This can be deduced from the maximum element of each of the
+            signature. This can be deduced from the maximum element of each of the
             datasets. Should be of length len(data), i.e. the number of datasets.
-        num_controls: The number of control registers.
+        num_controls: The number of control signature.
 
     References:
         [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]

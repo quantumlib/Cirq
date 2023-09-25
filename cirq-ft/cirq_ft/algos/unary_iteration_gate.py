@@ -282,8 +282,8 @@ class UnaryIterationGate(infra.GateWithRegisters):
         pass
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [*self.control_registers, *self.selection_registers, *self.target_registers]
         )
 
@@ -295,14 +295,14 @@ class UnaryIterationGate(infra.GateWithRegisters):
     def nth_operation(
         self, context: cirq.DecompositionContext, control: cirq.Qid, **kwargs
     ) -> cirq.OP_TREE:
-        """Apply nth operation on the target registers when selection registers store `n`.
+        """Apply nth operation on the target signature when selection signature store `n`.
 
         The `UnaryIterationGate` class is a mixin that represents a coherent for-loop over
-        different indices (i.e. selection registers). This method denotes the "body" of the
+        different indices (i.e. selection signature). This method denotes the "body" of the
         for-loop, which is executed `self.selection_registers.total_iteration_size` times and each
-        iteration represents a unique combination of values stored in selection registers. For each
+        iteration represents a unique combination of values stored in selection signature. For each
         call, the method should return the operations that should be applied to the target
-        registers, given the values stored in selection registers.
+        signature, given the values stored in selection signature.
 
         The derived classes should specify the following arguments as `**kwargs`:
             1) `control: cirq.Qid`: A qubit which can be used as a control to selectively
@@ -345,7 +345,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
         representing range `[l, r)`. If True, the internal node is considered equivalent to a leaf
         node and thus, `self.nth_operation` will be called for only integer `l` in the range [l, r).
 
-        When the `UnaryIteration` class is constructed using multiple selection registers, i.e. we
+        When the `UnaryIteration` class is constructed using multiple selection signature, i.e. we
         wish to perform nested coherent for-loops, a unary iteration segment tree is constructed
         corresponding to each nested coherent for-loop. For every such unary iteration segment tree,
         the `_break_early` condition is checked by passing the `selection_index_prefix` tuple.
@@ -398,7 +398,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
             Returns:
                 `cirq.OP_TREE` implementing `num_loops` nested coherent for-loops, with operations
                 returned by `self.nth_operation` applied conditionally to the target register based
-                on values of selection registers.
+                on values of selection signature.
             """
             if nested_depth == num_loops:
                 yield self.nth_operation(
