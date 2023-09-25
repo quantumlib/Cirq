@@ -30,8 +30,8 @@ def test_register():
 
 
 def test_registers():
-    r1 = cirq_ft.Register("r1", 5)
-    r2 = cirq_ft.Register("r2", 2)
+    r1 = cirq_ft.Register("r1", 5, side=cirq_ft.infra.Side.LEFT)
+    r2 = cirq_ft.Register("r2", 2, side=cirq_ft.infra.Side.RIGHT)
     r3 = cirq_ft.Register("r3", 1)
     regs = cirq_ft.Signature([r1, r2, r3])
     assert len(regs) == 3
@@ -51,6 +51,10 @@ def test_registers():
     assert regs.get_left("r1") == r1
     assert regs.get_right("r2") == r2
     assert regs.get_left("r3") == r3
+
+    assert r1 in regs
+    assert r2 in regs
+    assert r3 in regs
 
     assert list(regs) == [r1, r2, r3]
 
