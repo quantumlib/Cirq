@@ -94,7 +94,9 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
 
         and_ancilla = context.qubit_manager.qalloc(len(self.cv) + logL - 2)
         and_op = and_gate.And((0,) * logL + self.cv).on_registers(
-            control=[*logL_qubits, *controls], ancilla=and_ancilla, target=ancilla
+            ctrl=np.asarray([*logL_qubits, *controls])[:, np.newaxis],
+            junk=np.asarray(and_ancilla)[:, np.newaxis],
+            target=ancilla,
         )
         yield and_op
         yield cirq.Rz(rads=theta)(*ancilla)

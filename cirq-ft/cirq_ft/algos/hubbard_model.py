@@ -335,13 +335,13 @@ class PrepareHubbard(select_and_prepare.PrepareOracle):
         and_target = context.qubit_manager.qalloc(1)
         and_anc = context.qubit_manager.qalloc(1)
         yield and_gate.And(cv=(0, 0, 1)).on_registers(
-            control=[*U, *V, temp[-1]], ancilla=and_anc, target=and_target
+            ctrl=np.array([U, V, temp[-1:]]), junk=np.array([and_anc]), target=and_target
         )
         yield swap_network.MultiTargetCSwap.make_on(
             control=and_target, target_x=[*p_x, *p_y, *alpha], target_y=[*q_x, *q_y, *beta]
         )
         yield and_gate.And(cv=(0, 0, 1), adjoint=True).on_registers(
-            control=[*U, *V, temp[-1]], ancilla=and_anc, target=and_target
+            ctrl=np.array([U, V, temp[-1:]]), junk=np.array([and_anc]), target=and_target
         )
         context.qubit_manager.qfree([*and_anc, *and_target])
 

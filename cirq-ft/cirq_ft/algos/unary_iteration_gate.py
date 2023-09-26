@@ -153,7 +153,9 @@ def _unary_iteration_multi_controls(
     and_ancilla = ancilla[: num_controls - 2]
     and_target = ancilla[num_controls - 2]
     multi_controlled_and = and_gate.And((1,) * len(controls)).on_registers(
-        control=np.array(controls), ancilla=np.array(and_ancilla), target=and_target
+        ctrl=np.array(controls).reshape(len(controls), 1),
+        junk=np.array(and_ancilla).reshape(len(and_ancilla), 1),
+        target=and_target,
     )
     ops.append(multi_controlled_and)
     yield from _unary_iteration_single_control(

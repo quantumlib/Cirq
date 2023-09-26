@@ -85,15 +85,15 @@ class MultiControlPauli(infra.GateWithRegisters):
     ) -> cirq.OP_TREE:
         controls, target = quregs['controls'], quregs['target']
         qm = context.qubit_manager
-        and_ancilla, and_target = qm.qalloc(len(self.cvs) - 2), qm.qalloc(1)
+        and_ancilla, and_target = np.array(qm.qalloc(len(self.cvs) - 2)), qm.qalloc(1)
         yield and_gate.And(self.cvs).on_registers(
-            control=controls, ancilla=and_ancilla, target=and_target
+            ctrl=controls[:, np.newaxis], junk=and_ancilla[:, np.newaxis], target=and_target
         )
         yield self.target_gate.on(*target).controlled_by(*and_target)
         yield and_gate.And(self.cvs, adjoint=True).on_registers(
-            control=controls, ancilla=and_ancilla, target=and_target
+            ctrl=controls[:, np.newaxis], junk=and_ancilla[:, np.newaxis], target=and_target
         )
-        qm.qfree(and_ancilla + and_target)
+        qm.qfree([*and_ancilla, *and_target])
 
     def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
         wire_symbols = ["@" if b else "@(0)" for b in self.cvs]
