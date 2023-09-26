@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Dict, Tuple, Type, Union
 import numpy as np
 
 from cirq import ops, protocols, value
+from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
@@ -78,20 +79,21 @@ class OpIdentifier:
         return f'{self.gate_type}{self.qubits}'
 
     def __repr__(self) -> str:
-        fullname = f'{self.gate_type.__module__}.{self.gate_type.__qualname__}'
         qubits = ', '.join(map(repr, self.qubits))
-        return f'cirq.devices.noise_utils.OpIdentifier({fullname}, {qubits})'
+        return f'cirq.devices.noise_utils.OpIdentifier({proper_repr(self.gate_type)}, {qubits})'
 
     def _value_equality_values_(self) -> Any:
         return (self.gate_type, self.qubits)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        gate_json = protocols.json_cirq_type(self._gate_type)
-        return {'gate_type': gate_json, 'qubits': self._qubits}
+        if hasattr(self.gate_type, '__name__'):
+            return {'gate_type': protocols.json_cirq_type(self._gate_type), 'qubits': self._qubits}
+        return {'gate_type': self._gate_type, 'qubits': self._qubits}
 
     @classmethod
     def _from_json_dict_(cls, gate_type, qubits, **kwargs) -> 'OpIdentifier':
-        gate_type = protocols.cirq_type_from_json(gate_type)
+        if isinstance(gate_type, str):
+            gate_type = protocols.cirq_type_from_json(gate_type)
         return cls(gate_type, *qubits)
 
 
