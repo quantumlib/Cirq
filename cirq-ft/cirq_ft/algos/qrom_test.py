@@ -36,7 +36,7 @@ def test_qrom_1d(data, num_controls):
 
     assert (
         len(inverse.all_qubits())
-        <= infra.total_bits(g.r) + g.r['selection'].total_bits() + num_controls
+        <= infra.total_bits(g.r) + g.r.get_left('selection').total_bits() + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 
@@ -46,7 +46,7 @@ def test_qrom_1d(data, num_controls):
             qubit_vals.update(
                 zip(
                     g.quregs['selection'],
-                    iter_bits(selection_integer, g.r['selection'].total_bits()),
+                    iter_bits(selection_integer, g.r.get_left('selection').total_bits()),
                 )
             )
             if num_controls:
@@ -75,7 +75,7 @@ def test_qrom_diagram():
     d1 = np.array([4, 5, 6])
     qrom = cirq_ft.QROM.build(d0, d1)
     q = cirq.LineQubit.range(cirq.num_qubits(qrom))
-    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.registers, q)))
+    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """

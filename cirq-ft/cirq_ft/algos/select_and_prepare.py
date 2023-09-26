@@ -53,8 +53,8 @@ class SelectOracle(infra.GateWithRegisters):
         ...
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [*self.control_registers, *self.selection_registers, *self.target_registers]
         )
 
@@ -84,5 +84,5 @@ class PrepareOracle(infra.GateWithRegisters):
         return ()
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.selection_registers, *self.junk_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.selection_registers, *self.junk_registers])

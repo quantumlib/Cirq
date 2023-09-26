@@ -99,7 +99,7 @@ def test_qubitization_walk_operator_diagrams():
     num_sites, eps = 4, 1e-1
     walk = get_walk_operator_for_1d_Ising_model(num_sites, eps)
     # 1. Diagram for $W = SELECT.R_{L}$
-    qu_regs = infra.get_named_qubits(walk.registers)
+    qu_regs = infra.get_named_qubits(walk.signature)
     walk_op = walk.on_registers(**qu_regs)
     circuit = cirq.Circuit(cirq.decompose_once(walk_op))
     cirq.testing.assert_has_diagram(
@@ -217,7 +217,7 @@ target3: ──────GenericSelect─────────────�
 
 def test_qubitization_walk_operator_consistent_protocols_and_controlled():
     gate = get_walk_operator_for_1d_Ising_model(4, 1e-1)
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     # Test consistent repr
     cirq.testing.assert_equivalent_repr(
         gate, setup_code='import cirq\nimport cirq_ft\nimport numpy as np'

@@ -26,7 +26,7 @@ from cirq_ft.algos import multi_control_multi_target_pauli as mcmtp
 class MultiTargetCSwap(infra.GateWithRegisters):
     """Implements a multi-target controlled swap unitary $CSWAP_n = |0><0| I + |1><1| SWAP_n$.
 
-    This decomposes into a qubitwise SWAP on the two target registers, and takes 14*n T-gates.
+    This decomposes into a qubitwise SWAP on the two target signature, and takes 14*n T-gates.
 
     References:
         [Trading T-gates for dirty qubits in state preparation and unitary synthesis]
@@ -44,8 +44,8 @@ class MultiTargetCSwap(infra.GateWithRegisters):
         return cls(bitsize=len(quregs['target_x'])).on_registers(**quregs)
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(control=1, target_x=self.bitsize, target_y=self.bitsize)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(control=1, target_x=self.bitsize, target_y=self.bitsize)
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
@@ -157,8 +157,8 @@ class SwapWithZeroGate(infra.GateWithRegisters):
         )
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.selection_registers, *self.target_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.selection_registers, *self.target_registers])
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
