@@ -70,7 +70,7 @@ class Service:
             or os.getenv('IONQ_REMOTE_HOST')
             or f'https://api.ionq.co/{api_version}'
         )
-        
+
         self.job_settings = job_settings or {}
         self.api_key = api_key or os.getenv('CIRQ_IONQ_API_KEY') or os.getenv('IONQ_API_KEY')
 

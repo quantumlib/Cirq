@@ -97,7 +97,10 @@ def test_ionq_client_create_job(mock_post):
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
     program = ionq.SerializedProgram(
-        body={'job': 'mine'}, metadata={'a': '0,1'}, settings={'aaa': 'bb'}, error_mitigation={'debias': True}
+        body={'job': 'mine'},
+        metadata={'a': '0,1'},
+        settings={'aaa': 'bb'},
+        error_mitigation={'debias': True},
     )
     response = client.create_job(
         serialized_program=program, repetitions=200, target='qpu', name='bacon'
