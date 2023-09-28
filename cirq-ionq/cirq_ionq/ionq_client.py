@@ -142,6 +142,8 @@ class _IonQClient:
             json['name'] = name
         # We have to pass measurement keys through the metadata.
         json['metadata'] = serialized_program.metadata
+        if serialized_program.settings:
+            json['settings'] = serialized_program.settings
 
         # Shots are ignored by simulator, but pass them anyway.
         json['shots'] = str(repetitions)
