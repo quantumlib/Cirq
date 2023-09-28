@@ -74,9 +74,9 @@ class GreedyQubitManager(cirq.QubitManager):
         return ret_qubits
 
     def qfree(self, qubits: Iterable[cirq.Qid]) -> None:
-        qs = set(qubits)
+        qs = list(dict(zip(qubits, qubits)).keys())
         assert self._used_qubits.issuperset(qs), "Only managed qubits currently in-use can be freed"
-        self._used_qubits -= qs
+        self._used_qubits = self._used_qubits.difference(qs)
         self._free_qubits.extend(qs)
 
     def qborrow(self, n: int, dim: int = 2) -> List[cirq.Qid]:

@@ -73,7 +73,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
 
         raise TypeError(
             'Expected a NOISE_MODEL_LIKE (None, a cirq.NoiseModel, '
-            'or a single qubit gate). Got {!r}'.format(noise)
+            f'or a single qubit gate). Got {noise!r}'
         )
 
     def is_virtual_moment(self, moment: 'cirq.Moment') -> bool:

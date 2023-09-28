@@ -19,6 +19,7 @@ import sympy
 import cirq
 from cirq_google.api.v2 import batch_pb2
 from cirq_google.api.v2 import run_context_pb2
+from cirq_google.study.device_parameter import DeviceParameter
 
 
 def sweep_to_proto(
@@ -54,9 +55,23 @@ def sweep_to_proto(
         out.single_sweep.linspace.first_point = sweep.start
         out.single_sweep.linspace.last_point = sweep.stop
         out.single_sweep.linspace.num_points = sweep.length
+        # Use duck-typing to support google-internal Parameter objects
+        if sweep.metadata and getattr(sweep.metadata, 'path', None):
+            out.single_sweep.parameter.path.extend(sweep.metadata.path)
+        if sweep.metadata and getattr(sweep.metadata, 'idx', None):
+            out.single_sweep.parameter.idx = sweep.metadata.idx
+        if sweep.metadata and getattr(sweep.metadata, 'units', None):
+            out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
         out.single_sweep.points.points.extend(sweep.points)
+        # Use duck-typing to support google-internal Parameter objects
+        if sweep.metadata and getattr(sweep.metadata, 'path', None):
+            out.single_sweep.parameter.path.extend(sweep.metadata.path)
+        if sweep.metadata and getattr(sweep.metadata, 'idx', None):
+            out.single_sweep.parameter.idx = sweep.metadata.idx
+        if sweep.metadata and getattr(sweep.metadata, 'units', None):
+            out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.ListSweep):
         sweep_dict: Dict[str, List[float]] = {}
         for param_resolver in sweep:
@@ -88,20 +103,32 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
         raise ValueError(f'invalid sweep function type: {func_type}')
     if which == 'single_sweep':
         key = msg.single_sweep.parameter_key
+        if msg.single_sweep.HasField("parameter"):
+            metadata = DeviceParameter(
+                path=msg.single_sweep.parameter.path,
+                idx=msg.single_sweep.parameter.idx
+                if msg.single_sweep.parameter.HasField("idx")
+                else None,
+                units=msg.single_sweep.parameter.units
+                if msg.single_sweep.parameter.HasField("units")
+                else None,
+            )
+        else:
+            metadata = None
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
             return cirq.Linspace(
                 key=key,
                 start=msg.single_sweep.linspace.first_point,
                 stop=msg.single_sweep.linspace.last_point,
                 length=msg.single_sweep.linspace.num_points,
+                metadata=metadata,
             )
         if msg.single_sweep.WhichOneof('sweep') == 'points':
-            return cirq.Points(key=key, points=msg.single_sweep.points.points)
+            return cirq.Points(key=key, points=msg.single_sweep.points.points, metadata=metadata)
 
         raise ValueError(f'single sweep type not set: {msg}')
 
-    # coverage: ignore
-    raise ValueError(f'sweep type not set: {msg}')
+    raise ValueError(f'sweep type not set: {msg}')  # pragma: no cover
 
 
 def run_context_to_proto(

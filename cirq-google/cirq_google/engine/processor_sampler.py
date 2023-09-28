@@ -24,19 +24,47 @@ if TYPE_CHECKING:
 class ProcessorSampler(cirq.Sampler):
     """A wrapper around AbstractProcessor to implement the cirq.Sampler interface."""
 
-    def __init__(self, *, processor: 'cg.engine.AbstractProcessor'):
+    def __init__(
+        self,
+        *,
+        processor: 'cg.engine.AbstractProcessor',
+        run_name: str = "",
+        device_config_name: str = "",
+    ):
         """Inits ProcessorSampler.
+
+        Either both `run_name` and `device_config_name` must be set, or neither of
+        them must be set. If none of them are set, a default internal device configuration
+        will be used.
 
         Args:
             processor: AbstractProcessor instance to use.
+            run_name: A unique identifier representing an automation run for the
+                specified processor. An Automation Run contains a collection of
+                device configurations for a processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+
+        Raises:
+            ValueError: If  only one of `run_name` and `device_config_name` are specified.
         """
+        if bool(run_name) ^ bool(device_config_name):
+            raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
+
         self._processor = processor
+        self._run_name = run_name
+        self._device_config_name = device_config_name
 
     async def run_sweep_async(
         self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence['cg.EngineResult']:
         job = await self._processor.run_sweep_async(
-            program=program, params=params, repetitions=repetitions
+            program=program,
+            params=params,
+            repetitions=repetitions,
+            run_name=self._run_name,
+            device_config_name=self._device_config_name,
         )
         return await job.results_async()
 
@@ -61,7 +89,11 @@ class ProcessorSampler(cirq.Sampler):
         if len(set(repetitions)) == 1:
             # All repetitions are the same so batching can be done efficiently
             job = await self._processor.run_batch_async(
-                programs=programs, params_list=params_list, repetitions=repetitions[0]
+                programs=programs,
+                params_list=params_list,
+                repetitions=repetitions[0],
+                run_name=self._run_name,
+                device_config_name=self._device_config_name,
             )
             return await job.batched_results_async()
         # Varying number of repetitions so no speedup

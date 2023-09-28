@@ -139,8 +139,7 @@ def test_run_not_channel_op(dtype: Type[np.complexfloating], split: bool):
         def qubits(self):
             return self._qubits
 
-        def with_qubits(self, *new_qubits):
-            # coverage: ignore
+        def with_qubits(self, *new_qubits):  # pragma: no cover
             return BadOp(self._qubits)
 
     q0 = cirq.LineQubit(0)
@@ -1050,39 +1049,32 @@ def test_density_matrix_trial_result_repr():
 
 class XAsOp(cirq.Operation):
     def __init__(self, q):
-        # coverage: ignore
-        self.q = q
+        self.q = q  # pragma: no cover
 
     @property
     def qubits(self):
-        # coverage: ignore
-        return (self.q,)
+        return (self.q,)  # pragma: no cover
 
     def with_qubits(self, *new_qubits):
-        # coverage: ignore
-        return XAsOp(new_qubits[0])
+        return XAsOp(new_qubits[0])  # pragma: no cover
 
     def _kraus_(self):
-        # coverage: ignore
-        return cirq.kraus(cirq.X)
+        return cirq.kraus(cirq.X)  # pragma: no cover
 
 
 def test_works_on_operation():
     class XAsOp(cirq.Operation):
         def __init__(self, q):
-            # coverage: ignore
             self.q = q
 
         @property
         def qubits(self):
-            # coverage: ignore
             return (self.q,)
 
         def with_qubits(self, *new_qubits):
             raise NotImplementedError()
 
         def _kraus_(self):
-            # coverage: ignore
             return cirq.kraus(cirq.X)
 
     s = cirq.DensityMatrixSimulator()

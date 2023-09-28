@@ -36,7 +36,11 @@ from cirq.testing.consistent_pauli_expansion import (
 from cirq.testing.consistent_resolve_parameters import assert_consistent_resolve_parameters
 from cirq.testing.consistent_specified_has_unitary import assert_specifies_has_unitary_if_unitary
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
-from cirq.testing.consistent_controlled_gate_op import assert_controlled_and_controlled_by_identical
+from cirq.testing.consistent_controlled_gate_op import (
+    assert_controlled_and_controlled_by_identical,
+    assert_controlled_unitary_consistent,
+)
+from cirq.testing.consistent_unitary import assert_unitary_is_consistent
 
 
 def assert_implements_consistent_protocols(
@@ -153,6 +157,7 @@ def _assert_meets_standards_helper(
     assert_qasm_is_consistent_with_unitary(val)
     assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
+    assert_unitary_is_consistent(val, ignoring_global_phase=ignoring_global_phase)
     if not ignore_decompose_to_default_gateset:
         assert_decompose_ends_at_default_gateset(val)
     assert_phase_by_is_consistent_with_unitary(val)
@@ -165,6 +170,8 @@ def _assert_meets_standards_helper(
         assert_eigen_shifts_is_consistent_with_eigen_components(val)
     if isinstance(val, ops.Gate) and protocols.has_mixture(val):
         assert_controlled_and_controlled_by_identical(val)
+        if protocols.has_unitary(val):
+            assert_controlled_unitary_consistent(val)
 
 
 def assert_commutes_magic_method_consistent_with_unitaries(

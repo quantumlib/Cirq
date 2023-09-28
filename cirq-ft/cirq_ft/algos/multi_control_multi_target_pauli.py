@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Tuple
+from typing import Tuple
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -34,15 +35,18 @@ class MultiTargetCNOT(infra.GateWithRegisters):
         self._num_targets = num_targets
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(control=1, targets=self._num_targets)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(control=1, targets=self._num_targets)
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ):
         control, targets = quregs['control'], quregs['targets']
 
-        def cnots_for_depth_i(i: int, q: Sequence[cirq.Qid]) -> cirq.OP_TREE:
+        def cnots_for_depth_i(i: int, q: NDArray[cirq.Qid]) -> cirq.OP_TREE:
             for c, t in zip(q[: 2**i], q[2**i : min(len(q), 2 ** (i + 1))]):
                 yield cirq.CNOT(c, t)
 
@@ -69,27 +73,27 @@ class MultiControlPauli(infra.GateWithRegisters):
         (https://algassert.com/circuits/2015/06/05/Constructing-Large-Controlled-Nots.html)
     """
 
-    cvs: Tuple[int, ...] = attr.field(converter=infra.to_tuple)
+    cvs: Tuple[int, ...] = attr.field(converter=lambda v: (v,) if isinstance(v, int) else tuple(v))
     target_gate: cirq.Pauli = cirq.X
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(controls=len(self.cvs), target=1)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(controls=len(self.cvs), target=1)
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence['cirq.Qid']
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray['cirq.Qid']
     ) -> cirq.OP_TREE:
         controls, target = quregs['controls'], quregs['target']
         qm = context.qubit_manager
-        and_ancilla, and_target = qm.qalloc(len(self.cvs) - 2), qm.qalloc(1)
+        and_ancilla, and_target = np.array(qm.qalloc(len(self.cvs) - 2)), qm.qalloc(1)
         yield and_gate.And(self.cvs).on_registers(
-            control=controls, ancilla=and_ancilla, target=and_target
+            ctrl=controls[:, np.newaxis], junk=and_ancilla[:, np.newaxis], target=and_target
         )
         yield self.target_gate.on(*target).controlled_by(*and_target)
         yield and_gate.And(self.cvs, adjoint=True).on_registers(
-            control=controls, ancilla=and_ancilla, target=and_target
+            ctrl=controls[:, np.newaxis], junk=and_ancilla[:, np.newaxis], target=and_target
         )
-        qm.qfree(and_ancilla + and_target)
+        qm.qfree([*and_ancilla, *and_target])
 
     def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
         wire_symbols = ["@" if b else "@(0)" for b in self.cvs]

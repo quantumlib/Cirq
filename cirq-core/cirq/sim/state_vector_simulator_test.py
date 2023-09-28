@@ -159,6 +159,28 @@ def test_str_big():
     assert 'output vector: [0.03125+0.j 0.03125+0.j 0.03125+0.j ..' in str(result)
 
 
+def test_str_qudit():
+    qutrit = cirq.LineQid(0, dimension=3)
+    final_simulator_state = cirq.StateVectorSimulationState(
+        prng=np.random.RandomState(0),
+        qubits=[qutrit],
+        initial_state=np.array([0, 0, 1]),
+        dtype=np.complex64,
+    )
+    result = cirq.StateVectorTrialResult(cirq.ParamResolver(), {}, final_simulator_state)
+    assert "|2⟩" in str(result)
+
+    ququart = cirq.LineQid(0, dimension=4)
+    final_simulator_state = cirq.StateVectorSimulationState(
+        prng=np.random.RandomState(0),
+        qubits=[ququart],
+        initial_state=np.array([0, 1, 0, 0]),
+        dtype=np.complex64,
+    )
+    result = cirq.StateVectorTrialResult(cirq.ParamResolver(), {}, final_simulator_state)
+    assert "|1⟩" in str(result)
+
+
 def test_pretty_print():
     final_simulator_state = cirq.StateVectorSimulationState(
         available_buffer=np.array([1]),

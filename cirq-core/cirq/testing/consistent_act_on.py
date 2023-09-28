@@ -95,7 +95,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
                 "Could not assert if any act_on methods were "
                 "implemented. Operating on qudits or with a "
                 "non-unitary or parameterized operation is "
-                "unsupported.\n\nval: {!r}".format(val)
+                f"unsupported.\n\nval: {val!r}"
             )
         return None
 
@@ -124,7 +124,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
             state_vector_has_stabilizer(state_vector, stab) for stab in tableau.stabilizers()
         ), (
             "act_on clifford tableau is not consistent with "
-            "final_state_vector simulation.\n\nval: {!r}".format(val)
+            f"final_state_vector simulation.\n\nval: {val!r}"
         )
 
     stabilizer_ch_form = _final_stabilizer_state_ch_form(circuit, qubit_map)
@@ -133,7 +133,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
             "Failed to generate final "
             "stabilizer state CH form "
             "for the test circuit."
-            "\n\nval: {!r}".format(val)
+            f"\n\nval: {val!r}"
         )
     else:
         np.testing.assert_allclose(

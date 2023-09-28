@@ -81,4 +81,6 @@ from cirq.linalg.transformations import (
     targeted_conjugate_about,
     targeted_left_multiply,
     to_special,
+    transpose_flattened_array,
+    can_numpy_support_shape,
 )

@@ -36,8 +36,8 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
             isinstance(operation, ops.GateOperation) and isinstance(operation.gate, self.gate_types)
         ):
             raise ValueError(
-                'not (isinstance({0!r}, {1!r}) and '
-                'ininstance({0!r}.gate, {2!r})'.format(operation, ops.Operation, self.gate_types)
+                f'not (isinstance({operation!r}, {ops.Operation!r}) and '
+                f'ininstance({operation!r}.gate, {self.gate_types!r})'
             )
 
 
@@ -68,7 +68,7 @@ class _UnconstrainedAcquaintanceDevice(AcquaintanceDevice):
     """An acquaintance device with no constraints other than of the gate types."""
 
     def __repr__(self) -> str:
-        return 'UnconstrainedAcquaintanceDevice'  # coverage: ignore
+        return 'UnconstrainedAcquaintanceDevice'  # pragma: no cover
 
 
 UnconstrainedAcquaintanceDevice = _UnconstrainedAcquaintanceDevice()

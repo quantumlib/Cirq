@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Code to handle density matrices."""
 
 from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
@@ -18,6 +19,7 @@ from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
 import numpy as np
 
 from cirq import linalg, value
+from cirq.sim import simulation_utils
 
 if TYPE_CHECKING:
     import cirq
@@ -188,33 +190,8 @@ def _probs(
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
     all_probs = np.diagonal(np.reshape(density_matrix, (np.prod(qid_shape, dtype=np.int64),) * 2))
-    # Shape into a tensor
-    tensor = np.reshape(all_probs, qid_shape)
 
-    # Calculate the probabilities for measuring the particular results.
-    if len(indices) == len(qid_shape):
-        # We're measuring every qudit, so no need for fancy indexing
-        probs = np.abs(tensor)
-        probs = np.transpose(probs, indices)
-        probs = probs.reshape(-1)
-    else:
-        # Fancy indexing required
-        meas_shape = tuple(qid_shape[i] for i in indices)
-        probs = np.abs(
-            [
-                tensor[
-                    linalg.slice_for_qubits_equal_to(
-                        indices, big_endian_qureg_value=b, qid_shape=qid_shape
-                    )
-                ]
-                for b in range(np.prod(meas_shape, dtype=np.int64))
-            ]
-        )
-        probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
-
-    # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs)
-    return probs
+    return simulation_utils.state_probabilities_by_indices(all_probs.real, indices, qid_shape)
 
 
 def _validate_density_matrix_qid_shape(
@@ -227,10 +204,8 @@ def _validate_density_matrix_qid_shape(
     if len(shape) == 2:
         if np.prod(qid_shape, dtype=np.int64) ** 2 != np.prod(shape, dtype=np.int64):
             raise ValueError(
-                'Matrix size does not match qid shape {!r}. Got matrix with '
-                'shape {!r}. Expected {!r}.'.format(
-                    qid_shape, shape, np.prod(qid_shape, dtype=np.int64)
-                )
+                f'Matrix size does not match qid shape {qid_shape!r}. Got matrix with '
+                f'shape {shape!r}. Expected {np.prod(qid_shape, dtype=np.int64)!r}.'
             )
         return qid_shape
     if len(shape) % 2 != 0:
@@ -257,12 +232,12 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
-            'that are a power of two. Shape was {}'.format(shape)
+            f'that are a power of two. Shape was {shape}'
         )
     if len(shape) > 2 and not np.allclose(shape, 2):
         raise ValueError(
             'Matrix is a tensor of rank greater than 2, but had dimensions '
-            'that are not powers of two. Shape was {}'.format(shape)
+            f'that are not powers of two. Shape was {shape}'
         )
     return int(row_size).bit_length() - 1
 

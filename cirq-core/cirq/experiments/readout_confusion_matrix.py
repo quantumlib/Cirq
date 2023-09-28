@@ -278,7 +278,7 @@ class TensoredConfusionMatrices:
             raise ValueError(f"method: {method} should be 'pseudo_inverse' or 'least_squares'.")
 
         if method == 'pseudo_inverse':
-            return result @ self.correction_matrix(qubits)  # coverage: ignore
+            return result @ self.correction_matrix(qubits)  # pragma: no cover
 
         # Least squares minimization.
         cm = self.confusion_matrix(qubits)
@@ -291,11 +291,11 @@ class TensoredConfusionMatrices:
         res = scipy.optimize.minimize(
             func, result, method='SLSQP', constraints=constraints, bounds=bounds
         )
-        if res.success is False:  # coverage: ignore
-            raise ValueError(  # coverage: ignore
-                f"SLSQP optimization for constrained minimization "  # coverage: ignore
-                f"did not converge. Result:\n{res}"  # coverage: ignore
-            )  # coverage: ignore
+        if res.success is False:  # pragma: no cover
+            raise ValueError(  # pragma: no cover
+                f"SLSQP optimization for constrained minimization "  # pragma: no cover
+                f"did not converge. Result:\n{res}"  # pragma: no cover
+            )  # pragma: no cover
         return res.x
 
     def __repr__(self) -> str:

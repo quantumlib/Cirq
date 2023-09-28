@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Classes and methods for quantum states."""
 
 from typing import Any, cast, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Union
@@ -313,7 +314,7 @@ def density_matrix(
         ValueError: Invalid density matrix.
     """
     if state.ndim != 2 or state.shape[0] != state.shape[1]:
-        raise ValueError('A density matrix must be a square matrix. ' f'Got shape {state.shape}.')
+        raise ValueError(f'A density matrix must be a square matrix. Got shape {state.shape}.')
     dim, _ = state.shape
     if qid_shape is None:
         qid_shape = _infer_qid_shape_from_dimension(dim)
@@ -523,8 +524,7 @@ class _QidShapeSet:
                 'with the corresponding qudit dimensions being at least '
                 f'{self.min_qudit_dimensions}.'
             )
-        if len(self.explicit_qid_shapes) > 1:
-            # coverage: ignore
+        if len(self.explicit_qid_shapes) > 1:  # pragma: no cover
             raise ValueError(
                 f'Qid shape is ambiguous: Could be any one of {self.explicit_qid_shapes}.'
             )
@@ -714,9 +714,20 @@ def dirac_notation(
     Returns:
         A pretty string consisting of a sum of computational basis kets
         and non-zero floats of the specified accuracy.
+
+    Raises:
+        ValueError: If there is a shape mismatch between state_vector and qid_shape.
+            Otherwise, when qid_shape is not mentioned and length of state_vector
+            is not a power of 2.
     """
     if qid_shape is None:
         qid_shape = (2,) * (len(state_vector).bit_length() - 1)
+
+    if len(state_vector) != np.prod(qid_shape, dtype=np.int64):
+        raise ValueError(
+            'state_vector has incorrect size. '
+            f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {len(state_vector)}.'
+        )
 
     digit_separator = '' if max(qid_shape, default=0) < 10 else ','
     perm_list = [
@@ -808,8 +819,8 @@ def to_valid_state_vector(
         num_qubits = len(qid_shape)
     if num_qubits != len(qid_shape):
         raise ValueError(
-            'num_qubits != len(qid_shape). num_qubits is <{!r}>. '
-            'qid_shape is <{!r}>.'.format(num_qubits, qid_shape)
+            f'num_qubits != len(qid_shape). num_qubits is <{num_qubits!r}>. '
+            f'qid_shape is <{qid_shape!r}>.'
         )
 
     if isinstance(state_rep, np.ndarray):
@@ -821,7 +832,6 @@ def to_valid_state_vector(
 def _qudit_values_to_state_tensor(
     *, state_vector: np.ndarray, qid_shape: Tuple[int, ...], dtype: Optional['DTypeLike']
 ) -> np.ndarray:
-
     for i in range(len(qid_shape)):
         s = state_vector[i]
         q = qid_shape[i]
@@ -871,15 +881,12 @@ def validate_normalized_state_vector(
     """
     if dtype and state_vector.dtype != dtype:
         raise ValueError(
-            'state_vector has invalid dtype. Expected {} but was {}'.format(
-                dtype, state_vector.dtype
-            )
+            f'state_vector has invalid dtype. Expected {dtype} but was {state_vector.dtype}'
         )
     if state_vector.size != np.prod(qid_shape, dtype=np.int64):
         raise ValueError(
-            'state_vector has incorrect size. Expected {} but was {}.'.format(
-                np.prod(qid_shape, dtype=np.int64), state_vector.size
-            )
+            'state_vector has incorrect size. '
+            f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {state_vector.size}.'
         )
     norm = np.sum(np.abs(state_vector) ** 2)
     if not np.isclose(norm, 1, atol=atol):
@@ -904,8 +911,8 @@ def validate_qid_shape(
         qid_shape = (2,) * (size.bit_length() - 1)
     if size != np.prod(qid_shape, dtype=np.int64):
         raise ValueError(
-            'state_vector.size ({}) is not a power of two or is not a product '
-            'of the qid shape {!r}.'.format(size, qid_shape)
+            f'state_vector.size ({size}) is not a power of two or is not a product '
+            f'of the qid shape {qid_shape!r}.'
         )
     return qid_shape
 
@@ -1031,8 +1038,8 @@ def _qid_shape_from_args(
         return (2,) * num_qubits
     if len(qid_shape) != num_qubits:
         raise ValueError(
-            'num_qubits != len(qid_shape). num_qubits was {!r}. '
-            'qid_shape was {!r}.'.format(num_qubits, qid_shape)
+            f'num_qubits != len(qid_shape). num_qubits was {num_qubits!r}. '
+            f'qid_shape was {qid_shape!r}.'
         )
     return qid_shape
 

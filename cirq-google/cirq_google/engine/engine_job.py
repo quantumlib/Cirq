@@ -286,7 +286,7 @@ class EngineJob(abstract_job.AbstractJob):
                 or result_type == 'cirq.api.google.v1.Result'
             ):
                 v1_parsed_result = v1.program_pb2.Result.FromString(result.value)
-                self._results = self._get_job_results_v1(v1_parsed_result)  # coverage: ignore
+                self._results = self._get_job_results_v1(v1_parsed_result)  # pragma: no cover
             elif (
                 result_type == 'cirq.google.api.v2.Result'
                 or result_type == 'cirq.api.google.v2.Result'
@@ -341,7 +341,6 @@ class EngineJob(abstract_job.AbstractJob):
         return self._calibration_results
 
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
-        # coverage: ignore
         job_id = self.id()
         job_finished = self.update_time()
 

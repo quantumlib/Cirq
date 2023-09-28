@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -79,7 +80,9 @@ class MeanEstimationOperator(infra.GateWithRegisters):
     """
 
     code: CodeForRandomVariable
-    cv: Tuple[int, ...] = attr.field(converter=infra.to_tuple, default=())
+    cv: Tuple[int, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
+    )
     power: int = 1
     arctan_bitsize: int = 32
 
@@ -98,22 +101,25 @@ class MeanEstimationOperator(infra.GateWithRegisters):
         return complex_phase_oracle.ComplexPhaseOracle(self.code.encoder, self.arctan_bitsize)
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
+    def control_registers(self) -> Tuple[infra.Register, ...]:
         return self.code.encoder.control_registers
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.code.encoder.selection_registers
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.control_registers, *self.selection_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
-        select_reg = {reg.name: quregs[reg.name] for reg in self.select.registers}
-        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.registers}
+        select_reg = {reg.name: quregs[reg.name] for reg in self.select.signature}
+        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.signature}
         select_op = self.select.on_registers(**select_reg)
         reflect_op = self.reflect.on_registers(**reflect_reg)
         for _ in range(self.power):
@@ -125,7 +131,9 @@ class MeanEstimationOperator(infra.GateWithRegisters):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = [] if self.cv == () else [["@(0)", "@"][self.cv[0]]]
-        wire_symbols += ['U_ko'] * (self.registers.bitsize - self.control_registers.bitsize)
+        wire_symbols += ['U_ko'] * (
+            infra.total_bits(self.signature) - infra.total_bits(self.control_registers)
+        )
         if self.power != 1:
             wire_symbols[-1] = f'U_ko^{self.power}'
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

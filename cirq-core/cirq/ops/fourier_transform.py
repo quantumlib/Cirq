@@ -146,8 +146,7 @@ class PhaseGradientGate(raw_types.Gate):
 
     def __pow__(self, power):
         new_exponent = cirq.mul(self.exponent, power, NotImplemented)
-        if new_exponent is NotImplemented:
-            # coverage: ignore
+        if new_exponent is NotImplemented:  # pragma: no cover
             return NotImplemented
         return PhaseGradientGate(num_qubits=self._num_qubits, exponent=new_exponent)
 

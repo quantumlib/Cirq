@@ -57,8 +57,8 @@ TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
 
 
 # pyQuil 3.0, necessary for cirq_rigetti module requires
-# python >= 3.7
-if sys.version_info < (3, 7):  # pragma: no cover
+# python >= 3.9
+if sys.version_info < (3, 9):  # pragma: no cover
     del TESTED_MODULES['cirq_rigetti']
 
 
@@ -489,8 +489,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
     json_path2 = test_data_path / f'{cirq_obj_name}.json_inward'
     deprecation_deadline = mod_spec.deprecated.get(cirq_obj_name)
 
-    if not json_path.exists() and not json_path2.exists():
-        # coverage: ignore
+    if not json_path.exists() and not json_path2.exists():  # pragma: no cover
         pytest.fail(
             f"Hello intrepid developer. There is a new public or "
             f"serializable object named '{cirq_obj_name}' in the module '{mod_spec.name}' "
@@ -634,10 +633,9 @@ def test_to_from_json_gzip():
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
     content = path.read_text()
     ctx_managers: List[contextlib.AbstractContextManager] = [contextlib.suppress()]
-    if deprecation_deadline:
+    if deprecation_deadline:  # pragma: no cover
         # we ignore coverage here, because sometimes there are no deprecations at all in any of the
         # modules
-        # coverage: ignore
         ctx_managers = [cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)]
 
     for deprecation in TESTED_MODULES.values():
@@ -681,12 +679,10 @@ def assert_repr_and_json_test_data_agree(
         )
         with ctx_manager:
             json_obj = cirq.read_json(json_text=json_from_file)
-    except ValueError as ex:  # coverage: ignore
-        # coverage: ignore
+    except ValueError as ex:  # pragma: no cover
         if "Could not resolve type" in str(ex):
             mod_path = mod_spec.name.replace(".", "/")
             rel_resolver_cache_path = f"{mod_path}/json_resolver_cache.py"
-            # coverage: ignore
             pytest.fail(
                 f"{rel_json_path} can't be parsed to JSON.\n"
                 f"Maybe an entry is missing from the "
@@ -694,17 +690,14 @@ def assert_repr_and_json_test_data_agree(
             )
         else:
             raise ValueError(f"deprecation: {deprecation_deadline} - got error: {ex}")
-    except AssertionError as ex:  # coverage: ignore
-        # coverage: ignore
+    except AssertionError as ex:  # pragma: no cover
         raise ex
-    except Exception as ex:  # coverage: ignore
-        # coverage: ignore
+    except Exception as ex:  # pragma: no cover
         raise IOError(f'Failed to parse test json data from {rel_json_path}.') from ex
 
     try:
         repr_obj = _eval_repr_data_file(repr_path, deprecation_deadline)
-    except Exception as ex:  # coverage: ignore
-        # coverage: ignore
+    except Exception as ex:  # pragma: no cover
         raise IOError(f'Failed to parse test repr data from {rel_repr_path}.') from ex
 
     assert proper_eq(json_obj, repr_obj), (

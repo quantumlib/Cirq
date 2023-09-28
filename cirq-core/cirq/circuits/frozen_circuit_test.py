@@ -17,6 +17,7 @@ Behavior shared with Circuit is tested with parameters in circuit_test.py.
 """
 
 import pytest
+import sympy
 
 import cirq
 
@@ -68,5 +69,40 @@ def test_immutable():
     q = cirq.LineQubit(0)
     c = cirq.FrozenCircuit(cirq.X(q), cirq.H(q))
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    # Match one of two strings. The second one is message returned since python 3.11.
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'moments' of 'FrozenCircuit' object has no setter)",
+    ):
         c.moments = (cirq.Moment(cirq.H(q)), cirq.Moment(cirq.X(q)))
+
+
+def test_tagged_circuits():
+    q = cirq.LineQubit(0)
+    ops = [cirq.X(q), cirq.H(q)]
+    tags = [sympy.Symbol("a"), "b"]
+    circuit = cirq.Circuit(ops)
+    frozen_circuit = cirq.FrozenCircuit(ops)
+    tagged_circuit = cirq.FrozenCircuit(ops, tags=tags)
+    # Test equality
+    assert tagged_circuit.tags == tuple(tags)
+    assert circuit == frozen_circuit != tagged_circuit
+    assert cirq.approx_eq(circuit, frozen_circuit)
+    assert cirq.approx_eq(frozen_circuit, tagged_circuit)
+    # Test hash
+    assert hash(frozen_circuit) != hash(tagged_circuit)
+    # Test _repr_ and _json_ round trips.
+    cirq.testing.assert_equivalent_repr(tagged_circuit)
+    cirq.testing.assert_json_roundtrip_works(tagged_circuit)
+    # Test utility methods and constructors
+    assert frozen_circuit.with_tags() is frozen_circuit
+    assert frozen_circuit.with_tags(*tags) == tagged_circuit
+    assert tagged_circuit.with_tags("c") == cirq.FrozenCircuit(ops, tags=[*tags, "c"])
+    assert tagged_circuit.untagged == frozen_circuit
+    assert frozen_circuit.untagged is frozen_circuit
+    # Test parameterized protocols
+    assert cirq.is_parameterized(frozen_circuit) is False
+    assert cirq.is_parameterized(tagged_circuit) is True
+    assert cirq.parameter_names(tagged_circuit) == {"a"}
+    # Tags are not propagated to diagrams yet.
+    assert str(frozen_circuit) == str(tagged_circuit)

@@ -18,6 +18,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 random.seed(12345)
@@ -33,12 +34,9 @@ def test_swap_with_zero_gate(selection_bitsize, target_bitsize, n_target_registe
     # Allocate selection and target qubits.
     all_qubits = cirq.LineQubit.range(cirq.num_qubits(gate))
     selection = all_qubits[:selection_bitsize]
-    targets = {
-        f'target{i}': all_qubits[st : st + target_bitsize]
-        for i, st in enumerate(range(selection_bitsize, len(all_qubits), target_bitsize))
-    }
+    target = np.array(all_qubits[selection_bitsize:]).reshape((n_target_registers, target_bitsize))
     # Create a circuit.
-    circuit = cirq.Circuit(gate.on_registers(selection=selection, **targets))
+    circuit = cirq.Circuit(gate.on_registers(selection=selection, target=target))
 
     # Load data[i] in i'th target register; where each register is of size target_bitsize
     data = [random.randint(0, 2**target_bitsize - 1) for _ in range(n_target_registers)]
@@ -68,7 +66,7 @@ def test_swap_with_zero_gate(selection_bitsize, target_bitsize, n_target_registe
 def test_swap_with_zero_gate_diagram():
     gate = cirq_ft.SwapWithZeroGate(3, 2, 4)
     q = cirq.LineQubit.range(cirq.num_qubits(gate))
-    circuit = cirq.Circuit(gate.on_registers(**gate.registers.split_qubits(q)))
+    circuit = cirq.Circuit(gate.on_registers(**infra.split_qubits(gate.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """

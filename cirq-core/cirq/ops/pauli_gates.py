@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         _XEigenState,
         _YEigenState,
         _ZEigenState,
-    )  # coverage: ignore
+    )  # pragma: no cover
 
 
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):

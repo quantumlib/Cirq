@@ -43,7 +43,7 @@ def test_eq_and_hash():
             self.some_str = some_str
 
         def __str__(self):
-            return self.some_str  # coverage: ignore
+            return self.some_str  # pragma: no cover
 
     mkey = cirq.MeasurementKey('key')
     assert mkey == 'key'

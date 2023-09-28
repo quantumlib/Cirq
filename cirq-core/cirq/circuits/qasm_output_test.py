@@ -257,7 +257,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
 
         def _decompose_(self):
             # Only used by test_output_unitary_same_as_qiskit
-            return ()  # coverage: ignore
+            return ()  # pragma: no cover
 
     class DummyCompositeOperation(cirq.Operation):
         qubits = (q0,)

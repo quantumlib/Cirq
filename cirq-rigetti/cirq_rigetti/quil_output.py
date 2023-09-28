@@ -428,10 +428,9 @@ class QuilOutput:
             # Following code is a safety measure
             # Could not find a gate that doesn't decompose into a gate
             # with a _quil_ implementation
-            # coverage: ignore
-            if len(op.qubits) == 1:
+            if len(op.qubits) == 1:  # pragma: no cover
                 return QuilOneQubitGate(mat).on(*op.qubits)
-            return QuilTwoQubitGate(mat).on(*op.qubits)
+            return QuilTwoQubitGate(mat).on(*op.qubits)  # pragma: no cover
 
         def on_stuck(bad_op):
             return ValueError(f'Cannot output operation as QUIL: {bad_op!r}')

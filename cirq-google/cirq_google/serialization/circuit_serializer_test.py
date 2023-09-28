@@ -58,6 +58,15 @@ X_PROTO = op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_const
 OPERATIONS = [
     (cirq.X(Q0), X_PROTO),
     (
+        cg.InternalGate(gate_name='g', gate_module='test', num_qubits=1)(Q0),
+        op_proto(
+            {
+                'internalgate': {'name': 'g', 'module': 'test', 'num_qubits': 1},
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
         cirq.Y(Q0),
         op_proto({'ypowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
@@ -567,10 +576,10 @@ def test_serialize_op_bad_operation():
     class NullOperation(cirq.Operation):
         @property
         def qubits(self):
-            return tuple()  # coverage: ignore
+            return tuple()  # pragma: no cover
 
         def with_qubits(self, *qubits):
-            return self  # coverage: ignore
+            return self  # pragma: no cover
 
     null_op = NullOperation()
     with pytest.raises(ValueError, match='Cannot serialize op'):
@@ -651,3 +660,11 @@ def test_no_constants_table():
 
     with pytest.raises(ValueError, match='Proto has references to constants table'):
         serializer._deserialize_gate_op(op)
+
+
+def test_measurement_gate_deserialize() -> None:
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.X(q) ** 0.5, cirq.measure(q))
+    msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
+
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit

@@ -16,6 +16,7 @@ import itertools
 
 import cirq
 import cirq_ft
+from cirq_ft import infra
 import numpy as np
 import pytest
 
@@ -108,7 +109,7 @@ def test_reflection_using_prepare_diagram():
     )
     # No control
     gate = cirq_ft.ReflectionUsingPrepare(prepare_gate, control_val=None)
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     circuit = greedily_allocate_ancilla(cirq.Circuit(cirq.decompose_once(op)))
     cirq.testing.assert_has_diagram(
         circuit,
@@ -138,7 +139,7 @@ selection2: ────selection^-1──────────────�
 
     # Control on `|1>` state
     gate = cirq_ft.ReflectionUsingPrepare(prepare_gate, control_val=1)
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     circuit = greedily_allocate_ancilla(cirq.Circuit(cirq.decompose_once(op)))
     cirq.testing.assert_has_diagram(
         circuit,
@@ -167,7 +168,7 @@ selection2: ───selection^-1───────────────�
 
     # Control on `|0>` state
     gate = cirq_ft.ReflectionUsingPrepare(prepare_gate, control_val=0)
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     circuit = greedily_allocate_ancilla(cirq.Circuit(cirq.decompose_once(op)))
     cirq.testing.assert_has_diagram(
         circuit,
@@ -203,7 +204,7 @@ def test_reflection_using_prepare_consistent_protocols_and_controlled():
     )
     # No control
     gate = cirq_ft.ReflectionUsingPrepare(prepare_gate, control_val=None)
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     # Test consistent repr
     cirq.testing.assert_equivalent_repr(
         gate, setup_code='import cirq\nimport cirq_ft\nimport numpy as np'

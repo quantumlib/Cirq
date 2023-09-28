@@ -64,7 +64,7 @@ class ReturnsMatrix(cirq.Gate):
         return m1
 
     def num_qubits(self):
-        return 1  # coverage: ignore
+        return 1  # pragma: no cover
 
 
 class FullyImplemented(cirq.Gate):
@@ -209,7 +209,6 @@ def _test_gate_that_allocates_qubits(gate):
 def test_decompose_gate_that_allocates_clean_qubits(
     theta: float, phase_state: int, target_bitsize: int, ancilla_bitsize: int
 ):
-
     gate = testing.PhaseUsingCleanAncilla(theta, phase_state, target_bitsize, ancilla_bitsize)
     _test_gate_that_allocates_qubits(gate)
 
@@ -220,7 +219,6 @@ def test_decompose_gate_that_allocates_clean_qubits(
 def test_decompose_gate_that_allocates_dirty_qubits(
     phase_state: int, target_bitsize: int, ancilla_bitsize: int
 ):
-
     gate = testing.PhaseUsingDirtyAncilla(phase_state, target_bitsize, ancilla_bitsize)
     _test_gate_that_allocates_qubits(gate)
 
@@ -305,8 +303,7 @@ def test_unitary_from_apply_unitary():
         def qubits(self):
             return (self.q,)
 
-        def with_qubits(self, *new_qubits):
-            # coverage: ignore
+        def with_qubits(self, *new_qubits):  # pragma: no cover
             return ApplyOp(*new_qubits)
 
         def _apply_unitary_(self, args):

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -56,35 +57,36 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
     control_val: Optional[int] = None
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
-        registers = [] if self.control_val is None else [infra.Register('control', 1)]
-        return infra.Registers(registers)
+    def control_registers(self) -> Tuple[infra.Register, ...]:
+        return () if self.control_val is None else (infra.Register('control', 1),)
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.prepare_gate.selection_registers
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.control_registers, *self.selection_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
-        self, context: cirq.DecompositionContext, **qubit_regs: Sequence[cirq.Qid]
+        self,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         qm = context.qubit_manager
         # 0. Allocate new ancillas, if needed.
-        phase_target = qm.qalloc(1)[0] if self.control_val is None else qubit_regs.pop('control')[0]
+        phase_target = qm.qalloc(1)[0] if self.control_val is None else quregs.pop('control')[0]
         state_prep_ancilla = {
-            reg.name: qm.qalloc(reg.bitsize) for reg in self.prepare_gate.junk_registers
+            reg.name: qm.qalloc(reg.total_bits()) for reg in self.prepare_gate.junk_registers
         }
-        state_prep_selection_regs = qubit_regs
+        state_prep_selection_regs = quregs
         prepare_op = self.prepare_gate.on_registers(
             **state_prep_selection_regs, **state_prep_ancilla
         )
         # 1. PREPARE†
         yield cirq.inverse(prepare_op)
         # 2. MultiControlled Z, controlled on |000..00> state.
-        phase_control = self.selection_registers.merge_qubits(**state_prep_selection_regs)
+        phase_control = infra.merge_qubits(self.selection_registers, **state_prep_selection_regs)
         yield cirq.X(phase_target) if not self.control_val else []
         yield mcmt.MultiControlPauli([0] * len(phase_control), target_gate=cirq.Z).on_registers(
             controls=phase_control, target=phase_target
@@ -99,8 +101,10 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
             qm.qfree([phase_target])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.bitsize
-        wire_symbols += ['R_L'] * self.selection_registers.bitsize
+        wire_symbols = ['@' if self.control_val else '@(0)'] * infra.total_bits(
+            self.control_registers
+        )
+        wire_symbols += ['R_L'] * infra.total_bits(self.selection_registers)
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def __repr__(self):

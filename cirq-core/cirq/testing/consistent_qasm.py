@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import warnings
 from typing import Any, List, Sequence, Optional
 
@@ -26,8 +27,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     # Only test if qiskit is installed.
     try:
         import qiskit
-    except ImportError:
-        # coverage: ignore
+    except ImportError:  # pragma: no cover
         warnings.warn(
             "Skipped assert_qasm_is_consistent_with_unitary because "
             "qiskit isn't installed to verify against."
@@ -90,26 +90,17 @@ qreg q[{num_qubits}];
             p_qasm_unitary = None
         raise AssertionError(
             'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
-            'op:\n{}\n\n'
-            'cirq.unitary(op):\n{}\n\n'
-            'Generated QASM:\n\n{}\n\n'
-            'Unitary of generated QASM:\n{}\n\n'
-            'Phased matched cirq.unitary(op):\n{}\n\n'
-            'Phased matched unitary of generated QASM:\n{}\n\n'
-            'Underlying error:\n{}'.format(
-                _indent(repr(op)),
-                _indent(repr(unitary)),
-                _indent(qasm),
-                _indent(repr(qasm_unitary)),
-                _indent(repr(p_unitary)),
-                _indent(repr(p_qasm_unitary)),
-                _indent(str(ex)),
-            )
+            f'op:\n{_indent(repr(op))}\n\n'
+            f'cirq.unitary(op):\n{_indent(repr(unitary))}\n\n'
+            f'Generated QASM:\n\n{_indent(qasm)}\n\n'
+            f'Unitary of generated QASM:\n{_indent(repr(qasm_unitary))}\n\n'
+            f'Phased matched cirq.unitary(op):\n{_indent(repr(p_unitary))}\n\n'
+            f'Phased matched unitary of generated QASM:\n{_indent(repr(p_qasm_unitary))}\n\n'
+            f'Underlying error:\n{_indent(str(ex))}'
         )
 
 
-def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
-    # coverage: ignore
+def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):  # pragma: no cover
     try:
         # We don't want to require qiskit as a dependency but
         # if Qiskit is installed, test QASM output against it.

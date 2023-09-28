@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Tuple
+from typing import Tuple
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -45,37 +46,42 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
     """
 
     n: int
-    cv: Tuple[int, ...] = attr.field(converter=infra.to_tuple, default=())
+    cv: Tuple[int, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
+    )
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(controls=len(self.cv), target=(self.n - 1).bit_length())
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(controls=len(self.cv), target=(self.n - 1).bit_length())
 
     def __repr__(self) -> str:
         return f"cirq_ft.PrepareUniformSuperposition({self.n}, cv={self.cv})"
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         control_symbols = ["@" if cv else "@(0)" for cv in self.cv]
-        target_symbols = ['target'] * self.registers['target'].bitsize
+        target_symbols = ['target'] * self.signature.get_left('target').total_bits()
         target_symbols[0] = f"UNIFORM({self.n})"
         return cirq.CircuitDiagramInfo(wire_symbols=control_symbols + target_symbols)
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
-        controls, target = quregs['controls'], quregs['target']
+        controls, target = quregs.get('controls', ()), quregs['target']
         # Find K and L as per https://arxiv.org/abs/1805.03662 Fig 12.
         n, k = self.n, 0
         while n > 1 and n % 2 == 0:
             k += 1
             n = n // 2
-        l, logL = int(n), self.registers['target'].bitsize - k
+        l, logL = int(n), self.signature.get_left('target').total_bits() - k
         logL_qubits = target[:logL]
 
         yield [
             op.controlled_by(*controls, control_values=self.cv) for op in cirq.H.on_each(*target)
         ]
-        if not logL_qubits:
+        if not len(logL_qubits):
             return
 
         ancilla = context.qubit_manager.qalloc(1)
@@ -88,7 +94,9 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
 
         and_ancilla = context.qubit_manager.qalloc(len(self.cv) + logL - 2)
         and_op = and_gate.And((0,) * logL + self.cv).on_registers(
-            control=[*logL_qubits, *controls], ancilla=and_ancilla, target=ancilla
+            ctrl=np.asarray([*logL_qubits, *controls])[:, np.newaxis],
+            junk=np.asarray(and_ancilla)[:, np.newaxis],
+            target=ancilla,
         )
         yield and_op
         yield cirq.Rz(rads=theta)(*ancilla)

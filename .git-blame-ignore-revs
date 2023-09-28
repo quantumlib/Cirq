@@ -15,3 +15,6 @@ cb6940a40141dba95cba84f5acc27acbeb65b17c
 
 # Format according to new black rules (#5259)
 27152c63cc74d526e3adca721ac12e8842ac6fa5
+
+# Rewrite strings to satisfy pylint consider-using-f-string (#6198)
+084e273aba66bb31ed4fc524ffbbedadbf840a59

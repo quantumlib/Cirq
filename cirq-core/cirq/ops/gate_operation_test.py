@@ -41,10 +41,19 @@ def test_immutable():
     a, b = cirq.LineQubit.range(2)
     op = cirq.X(a)
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    # Match one of two strings. The second one is message returned since python 3.11.
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|"
+        "(property 'gate' of 'SingleQubitPauliStringGateOperation' object has no setter)",
+    ):
         op.gate = cirq.Y
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|"
+        "(property 'qubits' of 'SingleQubitPauliStringGateOperation' object has no setter)",
+    ):
         op.qubits = [b]
 
 
@@ -514,8 +523,7 @@ def test_gate_to_operation_to_gate_round_trips():
             if gate_cls in skip_classes:
                 skipped.add(gate_cls)
                 continue
-            # coverage:ignore
-            raise AssertionError(
+            raise AssertionError(  # pragma: no cover
                 f"{gate_cls} has no json file, please add a json file or add to the list of "
                 "classes to be skipped if there is a reason this gate should not round trip "
                 "to a gate via creating an operation."
