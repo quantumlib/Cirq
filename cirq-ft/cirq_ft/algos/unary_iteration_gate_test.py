@@ -19,6 +19,7 @@ import cirq
 import cirq_ft
 import pytest
 from cirq._compat import cached_property
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
@@ -30,18 +31,18 @@ class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
         self._control_bitsize = control_bitsize
 
     @cached_property
-    def control_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(control=self._control_bitsize)
+    def control_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return (cirq_ft.Register('control', self._control_bitsize),)
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters(
-            [cirq_ft.SelectionRegister('selection', self._selection_bitsize, self._target_bitsize)]
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return (
+            cirq_ft.SelectionRegister('selection', self._selection_bitsize, self._target_bitsize),
         )
 
     @cached_property
-    def target_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(target=self._target_bitsize)
+    def target_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return (cirq_ft.Register('target', self._target_bitsize),)
 
     def nth_operation(  # type: ignore[override]
         self,
@@ -83,24 +84,24 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
         self._target_shape = target_shape
 
     @cached_property
-    def control_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers([])
+    def control_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return ()
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters(
-            [
-                cirq_ft.SelectionRegister(
-                    'ijk'[i], (self._target_shape[i] - 1).bit_length(), self._target_shape[i]
-                )
-                for i in range(3)
-            ]
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return tuple(
+            cirq_ft.SelectionRegister(
+                'ijk'[i], (self._target_shape[i] - 1).bit_length(), self._target_shape[i]
+            )
+            for i in range(3)
         )
 
     @cached_property
-    def target_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(
-            t1=self._target_shape[0], t2=self._target_shape[1], t3=self._target_shape[2]
+    def target_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return tuple(
+            cirq_ft.Signature.build(
+                t1=self._target_shape[0], t2=self._target_shape[1], t3=self._target_shape[2]
+            )
         )
 
     def nth_operation(  # type: ignore[override]
@@ -123,7 +124,8 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
     gate = ApplyXToIJKthQubit(target_shape)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
     assert (
-        len(g.all_qubits) <= gate.registers.total_bits() + gate.selection_registers.total_bits() - 1
+        len(g.all_qubits)
+        <= infra.total_bits(gate.signature) + infra.total_bits(gate.selection_registers) - 1
     )
 
     max_i, max_j, max_k = target_shape
@@ -147,10 +149,11 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
 
 def test_unary_iteration_loop():
     n_range, m_range = (3, 5), (6, 8)
-    selection_registers = cirq_ft.SelectionRegisters(
-        [cirq_ft.SelectionRegister('n', 3, 5), cirq_ft.SelectionRegister('m', 3, 8)]
-    )
-    selection = selection_registers.get_named_qubits()
+    selection_registers = [
+        cirq_ft.SelectionRegister('n', 3, 5),
+        cirq_ft.SelectionRegister('m', 3, 8),
+    ]
+    selection = infra.get_named_qubits(selection_registers)
     target = {(n, m): cirq.q(f't({n}, {m})') for n in range(*n_range) for m in range(*m_range)}
     qm = cirq_ft.GreedyQubitManager("ancilla", maximize_reuse=True)
     circuit = cirq.Circuit()

@@ -43,7 +43,7 @@ class InternalGate(ops.Gate):
         self.gate_module = gate_module
         self.gate_name = gate_name
         self._num_qubits = num_qubits
-        self.gate_args = {arg: val for arg, val in kwargs.items()}
+        self.gate_args = kwargs
 
     def _num_qubits_(self) -> int:
         return self._num_qubits
@@ -72,4 +72,15 @@ class InternalGate(ops.Gate):
         )
 
     def _value_equality_values_(self):
-        return (self.gate_module, self.gate_name, self._num_qubits, self.gate_args)
+        hashable = True
+        for arg in self.gate_args.values():
+            try:
+                hash(arg)
+            except TypeError:
+                hashable = False
+        return (
+            self.gate_module,
+            self.gate_name,
+            self._num_qubits,
+            frozenset(self.gate_args.items()) if hashable else self.gate_args,
+        )

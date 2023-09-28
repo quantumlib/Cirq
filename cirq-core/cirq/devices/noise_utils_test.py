@@ -62,6 +62,13 @@ def test_op_id_swap():
     assert cirq.CZ(q1, q0) in swap_id
 
 
+def test_op_id_instance():
+    q0 = cirq.LineQubit.range(1)[0]
+    gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, False), (cirq.Z, False))
+    op_id = OpIdentifier(gate, q0)
+    cirq.testing.assert_equivalent_repr(op_id)
+
+
 @pytest.mark.parametrize(
     'decay_constant,num_qubits,expected_output',
     [(0.01, 1, 1 - (0.99 * 1 / 2)), (0.05, 2, 1 - (0.95 * 3 / 4))],

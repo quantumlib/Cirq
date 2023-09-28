@@ -18,6 +18,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
@@ -34,7 +35,8 @@ def test_qrom_1d(data, num_controls):
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
 
     assert (
-        len(inverse.all_qubits()) <= g.r.total_bits() + g.r['selection'].total_bits() + num_controls
+        len(inverse.all_qubits())
+        <= infra.total_bits(g.r) + g.r.get_left('selection').total_bits() + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 
@@ -44,7 +46,7 @@ def test_qrom_1d(data, num_controls):
             qubit_vals.update(
                 zip(
                     g.quregs['selection'],
-                    iter_bits(selection_integer, g.r['selection'].total_bits()),
+                    iter_bits(selection_integer, g.r.get_left('selection').total_bits()),
                 )
             )
             if num_controls:
@@ -73,7 +75,7 @@ def test_qrom_diagram():
     d1 = np.array([4, 5, 6])
     qrom = cirq_ft.QROM.build(d0, d1)
     q = cirq.LineQubit.range(cirq.num_qubits(qrom))
-    circuit = cirq.Circuit(qrom.on_registers(**qrom.registers.split_qubits(q)))
+    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -141,8 +143,10 @@ def test_qrom_variable_spacing():
     assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == (8 - 2) * 4
     # Works as expected when multiple data arrays are to be loaded.
     data = [1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5]
+    # (a) Both data sequences are identical
     assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, data)).t == (5 - 2) * 4
-    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, 2 * np.array(data))).t == (16 - 2) * 4
+    # (b) Both data sequences have identical structure, even though the elements are not same.
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, 2 * np.array(data))).t == (5 - 2) * 4
     # Works as expected when multidimensional input data is to be loaded
     qrom = cirq_ft.QROM.build(
         np.array(
@@ -211,7 +215,7 @@ def test_qrom_multi_dim(data, num_controls):
 
     assert (
         len(inverse.all_qubits())
-        <= g.r.total_bits() + qrom.selection_registers.total_bits() + num_controls
+        <= infra.total_bits(g.r) + infra.total_bits(qrom.selection_registers) + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 

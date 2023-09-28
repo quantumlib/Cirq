@@ -16,6 +16,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 
 
@@ -23,7 +24,7 @@ from cirq_ft.infra.bit_tools import iter_bits
 @pytest.mark.parametrize("block_size", [None, 1, 2, 3])
 def test_select_swap_qrom(data, block_size):
     qrom = cirq_ft.SelectSwapQROM(*data, block_size=block_size)
-    qubit_regs = qrom.registers.get_named_qubits()
+    qubit_regs = infra.get_named_qubits(qrom.signature)
     selection = qubit_regs["selection"]
     selection_q, selection_r = selection[: qrom.selection_q], selection[qrom.selection_q :]
     targets = [qubit_regs[f"target{i}"] for i in range(len(data))]
@@ -47,7 +48,7 @@ def test_select_swap_qrom(data, block_size):
         cirq.H.on_each(*dirty_target_ancilla),
     )
     all_qubits = sorted(circuit.all_qubits())
-    for selection_integer in range(qrom.selection_registers.iteration_lengths[0]):
+    for selection_integer in range(qrom.selection_registers[0].iteration_length):
         svals_q = list(iter_bits(selection_integer // qrom.block_size, len(selection_q)))
         svals_r = list(iter_bits(selection_integer % qrom.block_size, len(selection_r)))
         qubit_vals = {x: 0 for x in all_qubits}
@@ -77,7 +78,7 @@ def test_qroam_diagram():
     blocksize = 2
     qrom = cirq_ft.SelectSwapQROM(*data, block_size=blocksize)
     q = cirq.LineQubit.range(cirq.num_qubits(qrom))
-    circuit = cirq.Circuit(qrom.on_registers(**qrom.registers.split_qubits(q)))
+    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """

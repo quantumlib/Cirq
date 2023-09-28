@@ -18,6 +18,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 random.seed(12345)
@@ -65,7 +66,7 @@ def test_swap_with_zero_gate(selection_bitsize, target_bitsize, n_target_registe
 def test_swap_with_zero_gate_diagram():
     gate = cirq_ft.SwapWithZeroGate(3, 2, 4)
     q = cirq.LineQubit.range(cirq.num_qubits(gate))
-    circuit = cirq.Circuit(gate.on_registers(**gate.registers.split_qubits(q)))
+    circuit = cirq.Circuit(gate.on_registers(**infra.split_qubits(gate.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
