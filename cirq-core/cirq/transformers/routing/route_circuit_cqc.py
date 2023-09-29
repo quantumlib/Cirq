@@ -215,7 +215,7 @@ class RouteCQC:
         
         # 3. Get two_qubit_ops and single-qubit operations.
         two_qubit_ops, single_qubit_ops = self._get_one_and_two_qubit_ops_as_timesteps(circuit)
-        print(mm,two_qubit_ops, single_qubit_ops)
+        
         # 4. Do the routing and save the routed circuit as a list of moments.
         routed_ops = self._route(
             mm,
