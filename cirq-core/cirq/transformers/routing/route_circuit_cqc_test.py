@@ -95,37 +95,18 @@ def test_multi_qubit_gate_inputs():
     c_routed = router(valid_circuit, context=cirq.TransformerContext(deep=True))
     device.validate_circuit(c_routed)
 
-
-def test_circuit_with_measurement_gates_issue6293():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1),
-        cirq.CZ(q1, q2),
-        cirq.CZ(q0, q2),
-        cirq.measure(q0, q1, q2, key="key"),
-        cirq.H.on_each(q0, q1, q2),
-        cirq.measure_each(q0, q1, q2),
-    )
-    graph = nx.Graph([[q0, q1], [q1, q2]])
-    router = cirq.RouteCQC(graph)
-    rcirc, initial_map, swap_map = router.route_circuit(circuit)
-    print(circuit)
-    print(router.route_circuit(circuit)[0])
-
-
-def test_circuit_with_mid_circuit_measurement_gates_sample_issue6293():
+def test_circuit_with_measurement_gates():
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(cirq.CZ(q[0], q[1]), cirq.CZ(q[1], q[2]), cirq.CZ(q[0], q[2]),cirq.MeasurementGate(3).on(*q),cirq.H.on_each(*q), cirq.measure_each(*q))
+    circuit = cirq.Circuit(cirq.MeasurementGate(2).on(q[0], q[2]), cirq.MeasurementGate(3).on(*q))
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
     router = cirq.RouteCQC(device_graph)
     routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
-    print(circuit)
-    print(routed_circuit)
+    cirq.testing.assert_same_circuits(routed_circuit, circuit)
 
 
-def test_circuit_with_measurement_gates():
+def test_circuit_with_mid_circuit_measurement_gates_sample_issue6293():
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     q = cirq.LineQubit.range(3)

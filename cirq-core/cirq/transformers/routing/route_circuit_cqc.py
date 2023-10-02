@@ -215,7 +215,7 @@ class RouteCQC:
         
         # 3. Get two_qubit_ops and single-qubit operations.
         two_qubit_ops, single_qubit_ops = self._get_one_and_two_qubit_ops_as_timesteps(circuit)
-        print(mm,two_qubit_ops, single_qubit_ops)
+
         # 4. Do the routing and save the routed circuit as a list of moments.
         routed_ops = self._route(
             mm,
@@ -225,6 +225,8 @@ class RouteCQC:
             tag_inserted_swaps=tag_inserted_swaps,
         )
 
+        #print(circuits.Circuit(circuits.Circuit(m) for m in routed_ops))
+        
         # 5. Return the routed circuit by packing each inner list of ops as densely as possible and
         # preserving outer moment structure. Also return initial map and swap permutation map.
         return (
@@ -255,7 +257,7 @@ class RouteCQC:
                 two_qubit_circuit.append(
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
-                if protocols.num_qubits(op) == 2 and not protocols.is_measurement(op):
+                if protocols.num_qubits(op) >= 2:# and not protocols.is_measurement(op):
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
                     single_qubit_ops[timestep].append(op)
