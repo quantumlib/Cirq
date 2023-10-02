@@ -225,8 +225,6 @@ class RouteCQC:
             tag_inserted_swaps=tag_inserted_swaps,
         )
 
-        #print(circuits.Circuit(circuits.Circuit(m) for m in routed_ops))
-        
         # 5. Return the routed circuit by packing each inner list of ops as densely as possible and
         # preserving outer moment structure. Also return initial map and swap permutation map.
         return (
