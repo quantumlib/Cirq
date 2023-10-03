@@ -363,12 +363,6 @@ class Engine(abstract_engine.AbstractEngine):
         """
 
         if self.context.enable_streaming:
-            print(
-                '\nRunning using the Quantum Engine stream RPC. To revert to unary RPCs, '
-                'please set `context.enable_streaming in your Engine instance` to `False`, e.g. '
-                '`engine.context.enable_streaming = False`.\n'
-            )
-
             # This logic is temporary prior to deprecating the processor_ids parameter.
             # TODO(#6271) Remove after deprecating processor_ids elsewhere prior to v1.4.
             if processor_ids:
@@ -402,7 +396,7 @@ class Engine(abstract_engine.AbstractEngine):
                 str(program_id),
                 str(job_id),
                 self.context,
-                stream_job_response_future=stream_job_response_future,
+                job_response_future=stream_job_response_future,
             )
 
         engine_program = await self.create_program_async(

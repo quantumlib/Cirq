@@ -559,7 +559,7 @@ def test_receives_results_via_stream_returns_correct_results():
     response_future = duet.completed_future(RESULTS)
 
     job = cg.EngineJob(
-        'a', 'b', 'steve', EngineContext(), _job=qjob, stream_job_response_future=response_future
+        'a', 'b', 'steve', EngineContext(), _job=qjob, job_response_future=response_future
     )
     data = job.results()
 
@@ -583,7 +583,7 @@ def test_receives_job_via_stream_raises_and_updates_underlying_job():
     response_future = duet.completed_future(qjob)
 
     job = cg.EngineJob(
-        'a', 'b', 'steve', EngineContext(), _job=qjob, stream_job_response_future=response_future
+        'a', 'b', 'steve', EngineContext(), _job=qjob, job_response_future=response_future
     )
     qjob.execution_status.state = quantum.ExecutionStatus.State.FAILURE
 

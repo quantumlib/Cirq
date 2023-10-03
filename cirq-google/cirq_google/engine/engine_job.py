@@ -69,7 +69,7 @@ class EngineJob(abstract_job.AbstractJob):
         context: 'engine_base.EngineContext',
         _job: Optional[quantum.QuantumJob] = None,
         result_type: ResultType = ResultType.Program,
-        stream_job_response_future: Optional[
+        job_response_future: Optional[
             duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]
         ] = None,
     ) -> None:
@@ -83,11 +83,9 @@ class EngineJob(abstract_job.AbstractJob):
             _job: The optional current job state.
             result_type: What type of results are expected, such as
                 batched results or the result of a focused calibration.
-            stream_job_response_future: If set, the job is assumed to be sent over the Quantum
-                Engine QuantumRunStream bidirectional stream, with the future getting completed
-                when the Engine responds over the stream. When a caller asks for the job result,
-                EngineJob will await this future to wait for the result to be available from the
-                Engine.
+            job_response_future: A future to be completed when the job result is available.
+                If set, EngineJob will await this future when a caller asks for the job result. If
+                the future is completed with a `QuantumJob`, it is assumed that the job has failed.
         """
         self.project_id = project_id
         self.program_id = program_id
@@ -98,7 +96,7 @@ class EngineJob(abstract_job.AbstractJob):
         self._calibration_results: Optional[Sequence[CalibrationResult]] = None
         self._batched_results: Optional[Sequence[Sequence[EngineResult]]] = None
         self.result_type = result_type
-        self._stream_job_response_future = stream_job_response_future
+        self._job_response_future = job_response_future
 
     def id(self) -> str:
         """Returns the job id."""
@@ -312,8 +310,8 @@ class EngineJob(abstract_job.AbstractJob):
         return self._results
 
     async def _await_result_async(self) -> quantum.QuantumResult:
-        if self._stream_job_response_future is not None:
-            response = await self._stream_job_response_future
+        if self._job_response_future is not None:
+            response = await self._job_response_future
             if isinstance(response, quantum.QuantumResult):
                 return response
             elif isinstance(response, quantum.QuantumJob):
@@ -321,7 +319,7 @@ class EngineJob(abstract_job.AbstractJob):
                 _raise_on_failure(response)
             else:
                 # coverage: ignore
-                raise ValueError('Internal error: The stream response type is not recognized.')
+                raise ValueError('Internal error: The job response type is not recognized.')
 
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
