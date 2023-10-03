@@ -377,7 +377,7 @@ class Engine(abstract_engine.AbstractEngine):
                 job_id = _make_random_id('job-')
             run_context = self.context._serialize_run_context(params, repetitions)
 
-            stream_job_response_future = self.context.client.run_job_over_stream(
+            job_result_future = self.context.client.run_job_over_stream(
                 project_id=self.project_id,
                 program_id=str(program_id),
                 program_description=program_description,
@@ -396,7 +396,7 @@ class Engine(abstract_engine.AbstractEngine):
                 str(program_id),
                 str(job_id),
                 self.context,
-                job_response_future=stream_job_response_future,
+                job_result_future=job_result_future,
             )
 
         engine_program = await self.create_program_async(
