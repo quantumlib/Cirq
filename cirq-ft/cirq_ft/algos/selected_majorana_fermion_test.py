@@ -100,7 +100,7 @@ def test_selected_majorana_fermion_gate_decomposed_diagram():
         cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize),
         target_gate=cirq.X,
     )
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     g = cirq_ft.testing.GateHelper(gate)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(g.operation, context=context))

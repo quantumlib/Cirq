@@ -14,7 +14,24 @@
 
 import cirq
 import cirq_ft
-from cirq_ft.infra.qubit_manager_test import GateAllocInDecompose
+
+
+class GateAllocInDecompose(cirq.Gate):
+    def __init__(self, num_alloc: int = 1):
+        self.num_alloc = num_alloc
+
+    def _num_qubits_(self) -> int:
+        return 1
+
+    def _decompose_with_context_(self, qubits, context):
+        assert context is not None
+        qm = context.qubit_manager
+        for q in qm.qalloc(self.num_alloc):
+            yield cirq.CNOT(qubits[0], q)
+            qm.qfree([q])
+
+    def __str__(self):
+        return 'TestGateAlloc'
 
 
 class GateAllocAndBorrowInDecompose(cirq.Gate):
@@ -82,7 +99,7 @@ _c(1): ────┼X────
     )
 
     # Maximize parallelism by maximizing qubit width and minimizing qubit reuse.
-    qubit_manager = cirq_ft.GreedyQubitManager(prefix='ancilla', size=2, maximize_reuse=False)
+    qubit_manager = cirq.GreedyQubitManager(prefix='ancilla', size=2, maximize_reuse=False)
     allocated_circuit = cirq_ft.map_clean_and_borrowable_qubits(unrolled_circuit, qm=qubit_manager)
     cirq.testing.assert_has_diagram(
         allocated_circuit,
@@ -100,7 +117,7 @@ ancilla_1: ─────X────
     )
 
     # Minimize parallelism by minimizing qubit width and maximizing qubit reuse.
-    qubit_manager = cirq_ft.GreedyQubitManager(prefix='ancilla', size=2, maximize_reuse=True)
+    qubit_manager = cirq.GreedyQubitManager(prefix='ancilla', size=2, maximize_reuse=True)
     allocated_circuit = cirq_ft.map_clean_and_borrowable_qubits(unrolled_circuit, qm=qubit_manager)
     cirq.testing.assert_has_diagram(
         allocated_circuit,
@@ -220,7 +237,7 @@ original: ────@───@───@───@─────@───@�
 def test_map_clean_and_borrowable_qubits_deallocates_only_once():
     q = [cirq.ops.BorrowableQubit(i) for i in range(2)] + [cirq.q('q')]
     circuit = cirq.Circuit(cirq.X.on_each(*q), cirq.Y(q[1]), cirq.Z(q[1]))
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="a", size=2)
+    greedy_mm = cirq.GreedyQubitManager(prefix="a", size=2)
     mapped_circuit = cirq_ft.map_clean_and_borrowable_qubits(circuit, qm=greedy_mm)
     cirq.testing.assert_has_diagram(
         mapped_circuit,

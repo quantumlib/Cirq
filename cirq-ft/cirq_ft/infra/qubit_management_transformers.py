@@ -15,7 +15,6 @@
 from typing import Dict, Optional, Set, Tuple
 
 import cirq
-from cirq_ft.infra import qubit_manager
 
 
 def _get_qubit_mapping_first_and_last_moment(
@@ -87,7 +86,7 @@ def map_clean_and_borrowable_qubits(
         system qubits or new ancilla qubits allocated using the `qm` qubit manager.
     """
     if qm is None:
-        qm = qubit_manager.GreedyQubitManager(prefix="ancilla")
+        qm = cirq.GreedyQubitManager(prefix="ancilla")
 
     allocated_qubits = {q for q in circuit.all_qubits() if _is_temp(q)}
     qubits_lifespan = _get_qubit_mapping_first_and_last_moment(circuit)

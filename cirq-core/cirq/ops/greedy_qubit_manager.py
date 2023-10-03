@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, List, Set
+from typing import Iterable, List, Set, TYPE_CHECKING
 
-import cirq
+from cirq.ops import named_qubit, qid_util, qubit_manager
+
+if TYPE_CHECKING:
+    import cirq
 
 
-class GreedyQubitManager(cirq.QubitManager):
+class GreedyQubitManager(qubit_manager.QubitManager):
     """Greedy allocator that maximizes/minimizes qubit reuse based on a configurable parameter.
 
     GreedyQubitManager can be configured, using `maximize_reuse` flag, to work in one of two modes:
@@ -46,25 +49,25 @@ class GreedyQubitManager(cirq.QubitManager):
             maximize_reuse: Flag to control a FIFO vs LIFO strategy, defaults to False (FIFO).
         """
         self._prefix = prefix
-        self._used_qubits: Set[cirq.Qid] = set()
-        self._free_qubits: List[cirq.Qid] = []
+        self._used_qubits: Set['cirq.Qid'] = set()
+        self._free_qubits: List['cirq.Qid'] = []
         self._size = 0
         self.maximize_reuse = maximize_reuse
         self.resize(size)
 
-    def _allocate_qid(self, name: str, dim: int) -> cirq.Qid:
-        return cirq.q(name) if dim == 2 else cirq.NamedQid(name, dimension=dim)
+    def _allocate_qid(self, name: str, dim: int) -> 'cirq.Qid':
+        return qid_util.q(name) if dim == 2 else named_qubit.NamedQid(name, dimension=dim)
 
     def resize(self, new_size: int, dim: int = 2) -> None:
         if new_size <= self._size:
             return
-        new_qubits: List[cirq.Qid] = [
+        new_qubits: List['cirq.Qid'] = [
             self._allocate_qid(f'{self._prefix}_{s}', dim) for s in range(self._size, new_size)
         ]
         self._free_qubits = new_qubits + self._free_qubits
         self._size = new_size
 
-    def qalloc(self, n: int, dim: int = 2) -> List[cirq.Qid]:
+    def qalloc(self, n: int, dim: int = 2) -> List['cirq.Qid']:
         if not n:
             return []
         self.resize(self._size + n - len(self._free_qubits), dim=dim)
@@ -73,11 +76,11 @@ class GreedyQubitManager(cirq.QubitManager):
         self._used_qubits.update(ret_qubits)
         return ret_qubits
 
-    def qfree(self, qubits: Iterable[cirq.Qid]) -> None:
+    def qfree(self, qubits: Iterable['cirq.Qid']) -> None:
         qs = list(dict(zip(qubits, qubits)).keys())
         assert self._used_qubits.issuperset(qs), "Only managed qubits currently in-use can be freed"
         self._used_qubits = self._used_qubits.difference(qs)
         self._free_qubits.extend(qs)
 
-    def qborrow(self, n: int, dim: int = 2) -> List[cirq.Qid]:
+    def qborrow(self, n: int, dim: int = 2) -> List['cirq.Qid']:
         return self.qalloc(n, dim)

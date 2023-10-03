@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import cirq
-import cirq_ft
 
 
 class GateAllocInDecompose(cirq.Gate):
@@ -45,7 +44,7 @@ def test_greedy_qubit_manager():
         )
         return circuit
 
-    qm = cirq_ft.GreedyQubitManager(prefix="ancilla", size=1)
+    qm = cirq.GreedyQubitManager(prefix="ancilla", size=1)
     # Qubit manager with only 1 managed qubit. Will always repeat the same qubit.
     circuit = make_circuit(qm)
     cirq.testing.assert_has_diagram(
@@ -59,7 +58,7 @@ ancilla_0: ───X───X───
         """,
     )
 
-    qm = cirq_ft.GreedyQubitManager(prefix="ancilla", size=2)
+    qm = cirq.GreedyQubitManager(prefix="ancilla", size=2)
     # Qubit manager with 2 managed qubits and maximize_reuse=False, tries to minimize adding
     # additional data dependencies by minimizing qubit reuse.
     circuit = make_circuit(qm)
@@ -78,7 +77,7 @@ ancilla_1: ─────X────
         """,
     )
 
-    qm = cirq_ft.GreedyQubitManager(prefix="ancilla", size=2, maximize_reuse=True)
+    qm = cirq.GreedyQubitManager(prefix="ancilla", size=2, maximize_reuse=True)
     # Qubit manager with 2 managed qubits and maximize_reuse=True, tries to maximize reuse by
     # potentially adding new data dependencies.
     circuit = make_circuit(qm)
@@ -95,7 +94,7 @@ ancilla_1: ───X───X───
 
 
 def test_greedy_qubit_manager_preserves_order():
-    qm = cirq_ft.GreedyQubitManager(prefix="anc")
+    qm = cirq.GreedyQubitManager(prefix="anc")
     ancillae = [cirq.q(f"anc_{i}") for i in range(100)]
     assert qm.qalloc(100) == ancillae
     qm.qfree(ancillae)
