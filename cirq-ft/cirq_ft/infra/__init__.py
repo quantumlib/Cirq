@@ -15,7 +15,8 @@
 from cirq_ft.infra.gate_with_registers import (
     GateWithRegisters,
     Register,
-    Registers,
+    Signature,
+    Side,
     SelectionRegister,
     total_bits,
     split_qubits,

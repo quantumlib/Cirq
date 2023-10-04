@@ -30,8 +30,8 @@ class DoesNotSupportTComplexity:
 
 class SupportsTComplexityGateWithRegisters(cirq_ft.GateWithRegisters):
     @property
-    def registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(s=1, t=2)
+    def signature(self) -> cirq_ft.Signature:
+        return cirq_ft.Signature.build(s=1, t=2)
 
     def _t_complexity_(self) -> cirq_ft.TComplexity:
         return cirq_ft.TComplexity(t=1, clifford=2)
@@ -109,11 +109,11 @@ def test_operations():
     assert cirq_ft.t_complexity(cirq.T(q)) == cirq_ft.TComplexity(t=1)
 
     gate = cirq_ft.And()
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(t=4, clifford=9)
 
     gate = cirq_ft.And() ** -1
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(clifford=4)
 
 

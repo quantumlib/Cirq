@@ -99,7 +99,7 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
     @cached_property
     def target_registers(self) -> Tuple[cirq_ft.Register, ...]:
         return tuple(
-            cirq_ft.Registers.build(
+            cirq_ft.Signature.build(
                 t1=self._target_shape[0], t2=self._target_shape[1], t3=self._target_shape[2]
             )
         )
@@ -125,7 +125,7 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
     assert (
         len(g.all_qubits)
-        <= infra.total_bits(gate.registers) + infra.total_bits(gate.selection_registers) - 1
+        <= infra.total_bits(gate.signature) + infra.total_bits(gate.selection_registers) - 1
     )
 
     max_i, max_j, max_k = target_shape
