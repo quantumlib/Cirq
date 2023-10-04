@@ -27,7 +27,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit, param_resolver=None, repetitions=1)
         results_dict = {}
         for key, measurements in results.measurements.items():
             measurements_list = [inst.tolist() for inst in measurements]
