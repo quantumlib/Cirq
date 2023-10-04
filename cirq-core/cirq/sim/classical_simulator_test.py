@@ -27,9 +27,13 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim.run(circuit, param_resolver=None, repetitions=1).measurements
-        measurements_array = np.array([results[key] for key in sorted(results.keys())])
-        np.testing.assert_equal(measurements_array, expected_results)
+        results = sim.run(circuit, param_resolver=None, repetitions=1)
+        results_dict = {}
+        for key, measurements in results.measurements.items():
+            measurements_list = [inst.astype(np.uint8).tolist() for inst in results]
+            results_dict[key] = measurements_list
+
+        np.testing.assert_equal(results_dict, expected_results)
 
     def test_CNOT(self):
         q0, q1 = cirq.LineQubit.range(2)
