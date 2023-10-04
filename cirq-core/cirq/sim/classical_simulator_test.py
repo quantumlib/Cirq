@@ -27,7 +27,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim.run(circuit, param_resolver=None, repetitions=1).records()
+        results = sim.run(circuit, param_resolver=None, repetitions=1).measurements
         np.testing.assert_equal(results, expected_results)
 
     def test_CNOT(self):
