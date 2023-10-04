@@ -27,13 +27,8 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim.run(circuit, param_resolver=None, repetitions=1)
-        results_dict = {}
-        for key in results.keys():
-            measurements = results[key]
-            measurements_list = [inst.astype(np.uint8).tolist() for inst in measurements]
-            results_dict[key] = measurements_list
-        np.testing.assert_equal(results_dict, expected_results)
+        results = sim.run(circuit, param_resolver=None, repetitions=1).records
+        np.testing.assert_equal(results, expected_results)
 
     def test_CNOT(self):
         q0, q1 = cirq.LineQubit.range(2)
@@ -43,7 +38,7 @@ class TestSimulator:
         circuit.append(cirq.measure(q1, key='key'))
         expected_results = {'key': np.array([[[1]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_Swap(self):
@@ -54,7 +49,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[0, 1]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_CCNOT(self):
@@ -76,7 +71,7 @@ class TestSimulator:
             'key': np.array([[[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 1]]], dtype=np.uint8)
         }
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_measurement_gate(self):
@@ -85,7 +80,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[0, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_qubit_order(self):
@@ -96,7 +91,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_same_key_instances(self):
@@ -107,7 +102,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[0, 0], [1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_same_key_instances_order(self):
@@ -119,7 +114,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q1, q0), key='key'))
         expected_results = {'key': np.array([[[1, 0], [0, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_repetitions(self):
@@ -133,7 +128,7 @@ class TestSimulator:
             )
         }
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=10)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=10).records
         np.testing.assert_equal(results, expected_results)
 
     def test_multiple_gates(self):
@@ -147,7 +142,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_multiple_gates_order(self):
@@ -159,7 +154,7 @@ class TestSimulator:
         circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[0, 1]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
-        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        results = sim.run(circuit=circuit, param_resolver=None, repetitions=1).records
         np.testing.assert_equal(results, expected_results)
 
     def test_param_resolver(self):
@@ -171,13 +166,13 @@ class TestSimulator:
         circuit.append(cirq.measure((q1), key='key'))
         resolver = cirq.ParamResolver({'t': 0})
         sim = cirq.ClassicalStateSimulator()
-        results_with_parameter_zero = sim._run(
+        results_with_parameter_zero = sim.run(
             circuit=circuit, param_resolver=resolver, repetitions=1
-        )
+        ).records
         resolver = cirq.ParamResolver({'t': 1})
-        results_with_parameter_one = sim._run(
+        results_with_parameter_one = sim.run(
             circuit=circuit, param_resolver=resolver, repetitions=1
-        )
+        ).records
         np.testing.assert_equal(
             results_with_parameter_zero, {'key': np.array([[[0]]], dtype=np.uint8)}
         )
@@ -198,4 +193,4 @@ class TestSimulator:
             match="Can not simulate gates other than "
             + "cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT",
         ):
-            sim._run(circuit=circuit, param_resolver=resolver, repetitions=1)
+            sim.run(circuit=circuit, param_resolver=resolver, repetitions=1).records
