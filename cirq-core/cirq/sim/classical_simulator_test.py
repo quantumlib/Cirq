@@ -29,8 +29,8 @@ class TestSimulator:
         sim = cirq.ClassicalStateSimulator()
         results = sim.run(circuit, param_resolver=None, repetitions=1)
         results_dict = {}
-        for key, measurements in results.measurements.items():
-            measurements_list = [inst.astype(np.uint8).tolist() for inst in results]
+        for key, measurements in results.items():
+            measurements_list = [inst.astype(np.uint8).tolist() for inst in measurements]
             results_dict[key] = measurements_list
 
         np.testing.assert_equal(results_dict, expected_results)
