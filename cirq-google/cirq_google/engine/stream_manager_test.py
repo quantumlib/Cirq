@@ -70,12 +70,12 @@ class FakeQuantumRunStream:
 
     _REQUEST_STOPPED = 'REQUEST_STOPPED'
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.all_stream_requests: List[quantum.QuantumRunStreamRequest] = []
         self.all_cancel_requests: List[quantum.CancelQuantumJobRequest] = []
         self._executor = AsyncioExecutor.instance()
         self._request_buffer = duet.AsyncCollector[quantum.QuantumRunStreamRequest]()
-        self._request_iterator_stopped = duet.AwaitableFuture()
+        self._request_iterator_stopped: duet.AwaitableFuture[None] = duet.AwaitableFuture()
         # asyncio.Queue needs to be initialized inside the asyncio thread because all callers need
         # to use the same event loop.
         self._responses_and_exceptions_future: duet.AwaitableFuture[

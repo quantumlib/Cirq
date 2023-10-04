@@ -65,8 +65,8 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
         return self.prepare_gate.selection_registers
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.control_registers, *self.selection_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
         self,

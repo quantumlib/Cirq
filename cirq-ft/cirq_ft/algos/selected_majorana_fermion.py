@@ -34,9 +34,9 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
 
 
     Args:
-        selection_regs: Indexing `select` registers of type `SelectionRegister`. It also contains
+        selection_regs: Indexing `select` signature of type `SelectionRegister`. It also contains
             information about the iteration length of each selection register.
-        control_regs: Control registers for constructing a controlled version of the gate.
+        control_regs: Control signature for constructing a controlled version of the gate.
         target_gate: Single qubit gate to be applied to the target qubits.
 
     References:
@@ -77,7 +77,7 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
 
     @cached_property
     def target_registers(self) -> Tuple[infra.Register, ...]:
-        total_iteration_size = np.product(
+        total_iteration_size = np.prod(
             tuple(reg.iteration_length for reg in self.selection_registers)
         )
         return (infra.Register('target', int(total_iteration_size)),)

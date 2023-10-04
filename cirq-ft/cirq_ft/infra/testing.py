@@ -37,13 +37,13 @@ class GateHelper:
     context: cirq.DecompositionContext = cirq.DecompositionContext(cirq.ops.SimpleQubitManager())
 
     @cached_property
-    def r(self) -> gate_with_registers.Registers:
-        """The Registers system for the gate."""
-        return self.gate.registers
+    def r(self) -> gate_with_registers.Signature:
+        """The Signature system for the gate."""
+        return self.gate.signature
 
     @cached_property
     def quregs(self) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
-        """A dictionary of named qubits appropriate for the registers for the gate."""
+        """A dictionary of named qubits appropriate for the signature for the gate."""
         return get_named_qubits(self.r)
 
     @cached_property

@@ -36,7 +36,7 @@ class CustomProgrammableRotationGateArray(cirq_ft.ProgrammableRotationGateArrayB
 
     @cached_property
     def interleaved_unitary_target(self) -> Tuple[cirq_ft.Register, ...]:
-        return tuple(cirq_ft.Registers.build(unrelated_target=1))
+        return tuple(cirq_ft.Signature.build(unrelated_target=1))
 
 
 def construct_custom_prga(*args, **kwargs) -> cirq_ft.ProgrammableRotationGateArrayBase:
@@ -74,7 +74,7 @@ def test_programmable_rotation_gate_array(angles, kappa, constructor):
         for i in range(len(angles) - 1)
     ]
     # Get qubits on which rotations + unitaries act.
-    rotations_and_unitary_registers = cirq_ft.Registers(
+    rotations_and_unitary_registers = cirq_ft.Signature(
         [
             *programmable_rotation_gate.rotations_target,
             *programmable_rotation_gate.interleaved_unitary_target,
@@ -95,7 +95,10 @@ def test_programmable_rotation_gate_array(angles, kappa, constructor):
         # Set bits in initial_state s.t. selection register stores `selection_integer`.
         qubit_vals = {x: 0 for x in g.all_qubits}
         qubit_vals.update(
-            zip(g.quregs['selection'], iter_bits(selection_integer, g.r['selection'].total_bits()))
+            zip(
+                g.quregs['selection'],
+                iter_bits(selection_integer, g.r.get_left('selection').total_bits()),
+            )
         )
         initial_state = [qubit_vals[x] for x in g.all_qubits]
         # Actual circuit simulation.
