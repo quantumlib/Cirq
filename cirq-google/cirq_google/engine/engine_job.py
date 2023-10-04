@@ -318,8 +318,9 @@ class EngineJob(abstract_job.AbstractJob):
                 self._job = response
                 _raise_on_failure(response)
             else:
-                # coverage: ignore
-                raise ValueError('Internal error: The job response type is not recognized.')
+                raise ValueError(
+                    'Internal error: The job response type is not recognized.'
+                )  # pragma: no cover
 
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
