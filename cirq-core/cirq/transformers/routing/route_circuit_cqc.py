@@ -156,7 +156,7 @@ class RouteCQC:
     ) -> Tuple['cirq.AbstractCircuit', Dict['cirq.Qid', 'cirq.Qid'], Dict['cirq.Qid', 'cirq.Qid']]:
         """Transforms the given circuit to make it executable on the device.
 
-        This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
+        This transformer assumes that all two-qubit operations have been decomposed into 2-qubit
         operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
         `circuit` contains `cirq.CircuitOperation`s and `context.deep` is True then they are first
         unrolled before proceeding. If `context.deep` is False or `context` is None then any
@@ -247,19 +247,50 @@ class RouteCQC:
         output routed circuit, single-qubit operations are inserted before two-qubit operations.
         """
         two_qubit_circuit = circuits.Circuit()
+
+        #TODO: add list variable for intermediate circuits 
+        two_qubit_circuits: List[cirq.AbstractCircuit] = []
+        prev_two_qubit_moments: int = 0
+
         single_qubit_ops: List[List[cirq.Operation]] = []
         for moment in circuit:
             for op in moment:
-                timestep = two_qubit_circuit.earliest_available_moment(op)
-                single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
+
+                two_qubit_timestep = two_qubit_circuit.earliest_available_moment(op) 
+                single_qubit_timestep = two_qubit_timestep + prev_two_qubit_moments
+
+
+                single_qubit_ops.extend([] for _ in range(single_qubit_timestep + 1 - len(single_qubit_ops)))
                 two_qubit_circuit.append(
-                    circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
-                )
-                if protocols.num_qubits(op) >= 2:# and not protocols.is_measurement(op):
-                    two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
+                    circuits.Moment() for _ in range(two_qubit_timestep + 1 - len(two_qubit_circuit))
+                ) 
+
+                if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
+                    """ TODO: 
+                        add intermediate measurment op,  
+                        and store circuit,
+                        update the timestep length for single qubits correctly,
+                        reset single  two_qubit_circuit
+                    """
+                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[two_qubit_timestep].with_operation(op)
+                    two_qubit_circuits.append(two_qubit_circuit)
+                    prev_two_qubit_moments += len(two_qubit_circuit.moments)
+                    two_qubit_circuit = circuits.Circuit()
+                if protocols.num_qubits(op) > 2 and not protocols.is_measurement(op):       
+                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[two_qubit_timestep].with_operation(op)
+                elif protocols.num_qubits(op) == 2:
+                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[two_qubit_timestep].with_operation(op)
                 else:
-                    single_qubit_ops[timestep].append(op)
+                    single_qubit_ops[single_qubit_timestep].append(op)
+
+
+        while two_qubit_circuits and len(two_qubit_circuit.moments):
+            #TODO: connect end of one circuit to start of another
+            prev_circuit = two_qubit_circuits.pop()
+            two_qubit_circuit = prev_circuit + two_qubit_circuit
+
         two_qubit_ops = [list(m) for m in two_qubit_circuit]
+        print(two_qubit_ops)
         return two_qubit_ops, single_qubit_ops
 
     @classmethod
