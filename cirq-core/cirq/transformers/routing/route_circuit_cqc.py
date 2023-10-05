@@ -264,7 +264,6 @@ class RouteCQC:
                 two_qubit_circuit.append(
                     circuits.Moment() for _ in range(two_qubit_timestep + 1 - len(two_qubit_circuit))
                 ) 
-
                 if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
                     """ TODO: 
                         add intermediate measurment op,  
@@ -276,7 +275,7 @@ class RouteCQC:
                     two_qubit_circuits.append(two_qubit_circuit)
                     prev_two_qubit_moments += len(two_qubit_circuit.moments)
                     two_qubit_circuit = circuits.Circuit()
-                if protocols.num_qubits(op) > 2 and not protocols.is_measurement(op):       
+                elif protocols.num_qubits(op) > 2 and not protocols.is_measurement(op):       
                     two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[two_qubit_timestep].with_operation(op)
                 elif protocols.num_qubits(op) == 2:
                     two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[two_qubit_timestep].with_operation(op)
@@ -290,7 +289,6 @@ class RouteCQC:
             two_qubit_circuit = prev_circuit + two_qubit_circuit
 
         two_qubit_ops = [list(m) for m in two_qubit_circuit]
-        print(two_qubit_ops)
         return two_qubit_ops, single_qubit_ops
 
     @classmethod
