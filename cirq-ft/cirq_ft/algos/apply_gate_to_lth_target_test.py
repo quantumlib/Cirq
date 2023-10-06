@@ -22,7 +22,7 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
 
 @pytest.mark.parametrize("selection_bitsize,target_bitsize", [[3, 5], [3, 7], [4, 5]])
 def test_apply_gate_to_lth_qubit(selection_bitsize, target_bitsize):
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = cirq_ft.ApplyGateToLthQubit(
         cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize), lambda _: cirq.X
     )

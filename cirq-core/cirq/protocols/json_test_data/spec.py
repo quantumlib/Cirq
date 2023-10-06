@@ -89,6 +89,9 @@ TestSpec = ModuleJsonTestSpec(
         'LineInitialMapper',
         'MappingManager',
         'RouteCQC',
+        # Qubit Managers,
+        'SimpleQubitManager',
+        'GreedyQubitManager',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
