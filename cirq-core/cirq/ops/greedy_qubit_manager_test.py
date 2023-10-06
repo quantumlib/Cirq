@@ -29,9 +29,6 @@ class GateAllocInDecompose(cirq.Gate):
             yield cirq.CNOT(qubits[0], q)
             qm.qfree([q])
 
-    def __str__(self):
-        return 'TestGateAlloc'
-
 
 def test_greedy_qubit_manager():
     def make_circuit(qm: cirq.QubitManager):
