@@ -222,7 +222,15 @@ class SingleQubitCompare(infra.GateWithRegisters):
 
     @cached_property
     def signature(self) -> infra.Signature:
-        return infra.Signature.build(a=1, b=1, less_than=1, greater_than=1)
+        one_side = infra.Side.RIGHT if not self.adjoint else infra.Side.LEFT
+        return infra.Signature(
+            [
+                infra.Register('a', 1),
+                infra.Register('b', 1),
+                infra.Register('less_than', 1, side=one_side),
+                infra.Register('greater_than', 1, side=one_side),
+            ]
+        )
 
     def __repr__(self) -> str:
         return f'cirq_ft.algos.SingleQubitCompare({self.adjoint})'
