@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Optional, Sequence, Tuple, Union, List, Iterator
-from numpy.typing import NDArray
+from typing import Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
-from cirq._compat import cached_property
 import attr
 import cirq
+from cirq._compat import cached_property
+from numpy.typing import NDArray
+
 from cirq_ft import infra
 from cirq_ft.algos import and_gate
 
@@ -148,7 +149,14 @@ class BiQubitsMixer(infra.GateWithRegisters):
 
     @cached_property
     def signature(self) -> infra.Signature:
-        return infra.Signature.build(x=2, y=2, ancilla=3)
+        one_side = infra.Side.RIGHT if not self.adjoint else infra.Side.LEFT
+        return infra.Signature(
+            [
+                infra.Register('x', 2),
+                infra.Register('y', 2),
+                infra.Register('ancilla', 3, side=one_side),
+            ]
+        )
 
     def __repr__(self) -> str:
         return f'cirq_ft.algos.BiQubitsMixer({self.adjoint})'
