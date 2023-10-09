@@ -212,7 +212,7 @@ class RouteCQC:
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
         # convinience methods over the image of the map on the device graph.
         mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
-        
+
         # 3. Get two_qubit_ops and single-qubit operations.
         two_qubit_ops, single_qubit_ops = self._get_one_and_two_qubit_ops_as_timesteps(circuit)
 
@@ -248,43 +248,49 @@ class RouteCQC:
         """
         two_qubit_circuit = circuits.Circuit()
 
-        #TODO: add list variable for intermediate circuits 
+        # TODO: add list variable for intermediate circuits
         two_qubit_circuits: List[cirq.AbstractCircuit] = []
         prev_two_qubit_moments: int = 0
 
         single_qubit_ops: List[List[cirq.Operation]] = []
         for moment in circuit:
             for op in moment:
-
-                two_qubit_timestep = two_qubit_circuit.earliest_available_moment(op) 
+                two_qubit_timestep = two_qubit_circuit.earliest_available_moment(op)
                 single_qubit_timestep = two_qubit_timestep + prev_two_qubit_moments
 
-
-                single_qubit_ops.extend([] for _ in range(single_qubit_timestep + 1 - len(single_qubit_ops)))
+                single_qubit_ops.extend(
+                    [] for _ in range(single_qubit_timestep + 1 - len(single_qubit_ops))
+                )
                 two_qubit_circuit.append(
-                    circuits.Moment() for _ in range(two_qubit_timestep + 1 - len(two_qubit_circuit))
-                ) 
+                    circuits.Moment()
+                    for _ in range(two_qubit_timestep + 1 - len(two_qubit_circuit))
+                )
                 if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
-                    """ TODO: 
-                        add intermediate measurment op,  
-                        and store circuit,
-                        update the timestep length for single qubits correctly,
-                        reset single  two_qubit_circuit
+                    """TODO:
+                    add intermediate measurment op,
+                    and store circuit,
+                    update the timestep length for single qubits correctly,
+                    reset single  two_qubit_circuit
                     """
-                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[two_qubit_timestep].with_operation(op)
+                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[
+                        two_qubit_timestep
+                    ].with_operation(op)
                     two_qubit_circuits.append(two_qubit_circuit)
                     prev_two_qubit_moments += len(two_qubit_circuit.moments)
                     two_qubit_circuit = circuits.Circuit()
-                elif protocols.num_qubits(op) > 2 and not protocols.is_measurement(op):       
-                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[two_qubit_timestep].with_operation(op)
+                elif protocols.num_qubits(op) > 2 and not protocols.is_measurement(op):
+                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[
+                        two_qubit_timestep
+                    ].with_operation(op)
                 elif protocols.num_qubits(op) == 2:
-                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[two_qubit_timestep].with_operation(op)
+                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[
+                        two_qubit_timestep
+                    ].with_operation(op)
                 else:
                     single_qubit_ops[single_qubit_timestep].append(op)
 
-
-        while two_qubit_circuits and len(two_qubit_circuit.moments):
-            #TODO: connect end of one circuit to start of another
+        while two_qubit_circuits:
+            # TODO: connect end of one circuit to start of another
             prev_circuit = two_qubit_circuits.pop()
             two_qubit_circuit = prev_circuit + two_qubit_circuit
 
