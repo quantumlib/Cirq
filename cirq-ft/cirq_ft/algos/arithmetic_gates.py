@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Optional, Sequence, Tuple, Union, List, Iterator
-from numpy.typing import NDArray
+from typing import Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
-from cirq._compat import cached_property
 import attr
 import cirq
+from cirq._compat import cached_property
+from numpy.typing import NDArray
+
 from cirq_ft import infra
 from cirq_ft.algos import and_gate
 
@@ -142,13 +143,25 @@ class BiQubitsMixer(infra.GateWithRegisters):
         y = 2*y_msb + y_lsb
     The Gate mixes the 4 qubits so that sign(x - y) = sign(x_lsb' - y_lsb') where x_lsb' and y_lsb'
     are the final values of x_lsb' and y_lsb'.
+
+    Note that the ancilla qubits are used to reduce the T-count and the user
+    should clean the qubits at a later point in time with the adjoint gate.
+    See: https://github.com/quantumlib/Cirq/pull/6313 and
+    https://github.com/quantumlib/Qualtran/issues/389
     """  # pylint: disable=line-too-long
 
     adjoint: bool = False
 
     @cached_property
     def signature(self) -> infra.Signature:
-        return infra.Signature.build(x=2, y=2, ancilla=3)
+        one_side = infra.Side.RIGHT if not self.adjoint else infra.Side.LEFT
+        return infra.Signature(
+            [
+                infra.Register('x', 2),
+                infra.Register('y', 2),
+                infra.Register('ancilla', 3, side=one_side),
+            ]
+        )
 
     def __repr__(self) -> str:
         return f'cirq_ft.algos.BiQubitsMixer({self.adjoint})'
