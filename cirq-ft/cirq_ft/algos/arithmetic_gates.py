@@ -143,6 +143,11 @@ class BiQubitsMixer(infra.GateWithRegisters):
         y = 2*y_msb + y_lsb
     The Gate mixes the 4 qubits so that sign(x - y) = sign(x_lsb' - y_lsb') where x_lsb' and y_lsb'
     are the final values of x_lsb' and y_lsb'.
+
+    Note that the ancilla qubits are used to reduce the T-count and the user
+    should clean the qubits at a later point in time with the adjoint gate.
+    See: https://github.com/quantumlib/Cirq/pull/6313 and
+    https://github.com/quantumlib/Qualtran/issues/389
     """  # pylint: disable=line-too-long
 
     adjoint: bool = False
