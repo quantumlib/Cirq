@@ -372,6 +372,7 @@ from cirq.transformers import (
     optimize_for_target_gateset,
     parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz,
+    prepare_two_qubit_state_using_iswap,
     prepare_two_qubit_state_using_sqrt_iswap,
     quantum_shannon_decomposition,
     RouteCQC,

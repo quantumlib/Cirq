@@ -109,7 +109,7 @@ def prepare_two_qubit_state_using_cz(
 
 
 def prepare_two_qubit_state_using_iswap(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', state: 'cirq.STATE_VECTOR_LIKE'
+    q0: 'cirq.Qid', q1: 'cirq.Qid', state: 'cirq.STATE_VECTOR_LIKE', use_iswap_inv: bool
 ) -> List['cirq.Operation']:
     """Prepares the given 2q state from |00> using at-most 1 ISWAP gate + single qubit rotations.
 
@@ -131,7 +131,11 @@ def prepare_two_qubit_state_using_iswap(
         # Product state can be prepare with just single qubit unitaries.
         return _1q_matrices_to_ops(u, vh.T, q0, q1, True)
     alpha = np.arccos(np.clip(s[0], 0, 1))
-    op_list = [ops.ry(2 * alpha).on(q0), ops.H.on(q1), ops.ISWAP.on(q0, q1)]
+    op_list = [
+        ops.ry(2 * alpha).on(q0),
+        ops.H.on(q1),
+        ops.ISWAP_INV if use_iswap_inv else ops.ISWAP.on(q0, q1),
+    ]
     intermediate_state = circuits.Circuit(op_list).final_state_vector(
         ignore_terminal_measurements=False, dtype=np.complex64
     )
@@ -139,4 +143,3 @@ def prepare_two_qubit_state_using_iswap(
     return op_list + _1q_matrices_to_ops(
         np.dot(u, np.linalg.inv(u_CZ)), np.dot(vh.T, np.linalg.inv(vh_CZ.T)), q0, q1
     )
-
