@@ -28,6 +28,10 @@ if TYPE_CHECKING:
         _ZEigenState,
     )  # pragma: no cover
 
+from cirq._import import LazyLoader
+
+pauli_string = LazyLoader("pauli_string", globals(), "cirq.ops.pauli_string")
+
 
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     """Represents the Pauli gates.
@@ -97,9 +101,8 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         """
         if len(qubits) != 1:
             raise ValueError(f'Expected a single qubit, got <{qubits!r}>.')
-        from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
 
-        return SingleQubitPauliStringGateOperation(self, qubits[0])
+        return pauli_string.SingleQubitPauliStringGateOperation(self, qubits[0])
 
     @property
     def _canonical_exponent(self):
