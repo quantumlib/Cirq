@@ -15,6 +15,7 @@ import abc
 from typing import Any, cast, Tuple, TYPE_CHECKING, Union, Dict
 
 from cirq._doc import document
+from cirq._import import LazyLoader
 from cirq.ops import common_gates, raw_types, identity
 from cirq.type_workarounds import NotImplementedType
 
@@ -28,7 +29,6 @@ if TYPE_CHECKING:
         _ZEigenState,
     )  # pragma: no cover
 
-from cirq._import import LazyLoader
 
 pauli_string = LazyLoader("pauli_string", globals(), "cirq.ops.pauli_string")
 
