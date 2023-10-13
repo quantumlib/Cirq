@@ -109,7 +109,7 @@ def prepare_two_qubit_state_using_cz(
 
 
 def prepare_two_qubit_state_using_iswap(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', state: 'cirq.STATE_VECTOR_LIKE', use_iswap_inv: bool
+    q0: 'cirq.Qid', q1: 'cirq.Qid', state: 'cirq.STATE_VECTOR_LIKE', use_iswap_inv: bool = False
 ) -> List['cirq.Operation']:
     """Prepares the given 2q state from |00> using at-most 1 ISWAP gate + single qubit rotations.
 
@@ -134,7 +134,7 @@ def prepare_two_qubit_state_using_iswap(
     op_list = [
         ops.ry(2 * alpha).on(q0),
         ops.H.on(q1),
-        ops.ISWAP_INV if use_iswap_inv else ops.ISWAP.on(q0, q1),
+        ops.ISWAP_INV.on(q0, q1) if use_iswap_inv else ops.ISWAP.on(q0, q1),
     ]
     intermediate_state = circuits.Circuit(op_list).final_state_vector(
         ignore_terminal_measurements=False, dtype=np.complex64
