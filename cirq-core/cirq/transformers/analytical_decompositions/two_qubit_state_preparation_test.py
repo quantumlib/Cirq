@@ -77,9 +77,7 @@ def test_prepare_two_qubit_state_using_iswap(state, use_iswap_inv):
     state = cirq.to_valid_state_vector(state, num_qubits=2)
     q = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.prepare_two_qubit_state_using_iswap(
-            *q, state, use_iswap_inv=use_iswap_inv
-        )
+        cirq.prepare_two_qubit_state_using_iswap(*q, state, use_iswap_inv=use_iswap_inv)
     )
     iswap_gate = cirq.ISWAP_INV if use_iswap_inv else cirq.ISWAP
     ops_iswap = [*circuit.findall_operations(lambda op: op.gate == iswap_gate)]
