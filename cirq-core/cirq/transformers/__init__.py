@@ -94,6 +94,8 @@ from cirq.transformers.merge_single_qubit_gates import (
     merge_single_qubit_moments_to_phxz,
 )
 
+from cirq.transformers.qubit_management_transformers import map_clean_and_borrowable_qubits
+
 from cirq.transformers.synchronize_terminal_measurements import synchronize_terminal_measurements
 
 from cirq.transformers.transformer_api import (
