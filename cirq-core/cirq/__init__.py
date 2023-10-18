@@ -358,6 +358,7 @@ from cirq.transformers import (
     is_negligible_turn,
     LineInitialMapper,
     MappingManager,
+    map_clean_and_borrowable_qubits,
     map_moments,
     map_operations,
     map_operations_and_unroll,
