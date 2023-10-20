@@ -4533,6 +4533,26 @@ def test_freeze_not_relocate_moments():
     assert [mc is fc for mc, fc in zip(c, f)] == [True, True]
 
 
+def test_freeze_returns_same_instance_if_not_mutated():
+    q = cirq.q(0)
+    c = cirq.Circuit(cirq.X(q), cirq.measure(q))
+    f0 = c.freeze()
+    f1 = c.freeze()
+    assert f1 is f0
+
+    c.append(cirq.Y(q))
+    f2 = c.freeze()
+    f3 = c.freeze()
+    assert f2 is not f1
+    assert f3 is f2
+
+    c[-1] = cirq.Moment(cirq.Y(q))
+    f4 = c.freeze()
+    f5 = c.freeze()
+    assert f4 is not f3
+    assert f5 is f4
+
+
 def test_factorize_one_factor():
     circuit = cirq.Circuit()
     q0, q1, q2 = cirq.LineQubit.range(3)

@@ -79,6 +79,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
 
+    def freeze(self) -> 'cirq.FrozenCircuit':
+        return self
+
+    def unfreeze(self, copy: bool = True) -> 'cirq.Circuit':
+        return Circuit.from_moments(*self)
+
     @property
     def tags(self) -> Tuple[Hashable, ...]:
         """Returns a tuple of the Circuit's tags."""
