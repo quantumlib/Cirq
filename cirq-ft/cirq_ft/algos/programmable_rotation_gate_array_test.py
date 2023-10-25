@@ -63,7 +63,7 @@ def construct_prga_with_identity(*args, **kwargs) -> cirq_ft.ProgrammableRotatio
 def test_programmable_rotation_gate_array(angles, kappa, constructor):
     rotation_gate = cirq.X
     programmable_rotation_gate = constructor(*angles, kappa=kappa, rotation_gate=rotation_gate)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a")
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a")
     g = cirq_ft.testing.GateHelper(
         programmable_rotation_gate, context=cirq.DecompositionContext(greedy_mm)
     )

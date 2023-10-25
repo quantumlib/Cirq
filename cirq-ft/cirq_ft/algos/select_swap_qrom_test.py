@@ -29,7 +29,7 @@ def test_select_swap_qrom(data, block_size):
     selection_q, selection_r = selection[: qrom.selection_q], selection[qrom.selection_q :]
     targets = [qubit_regs[f"target{i}"] for i in range(len(data))]
 
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     qrom_circuit = cirq.Circuit(cirq.decompose(qrom.on_registers(**qubit_regs), context=context))
 

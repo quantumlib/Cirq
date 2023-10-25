@@ -29,7 +29,7 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
 @pytest.mark.parametrize("num_controls", [0, 1, 2])
 def test_qrom_1d(data, num_controls):
     qrom = cirq_ft.QROM.build(*data, num_controls=num_controls)
-    greedy_mm = cirq_ft.GreedyQubitManager('a', maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager('a', maximize_reuse=True)
     g = cirq_ft.testing.GateHelper(qrom, context=cirq.DecompositionContext(greedy_mm))
     decomposed_circuit = cirq.Circuit(cirq.decompose(g.operation, context=g.context))
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
@@ -121,7 +121,7 @@ def test_t_complexity(data):
 def _assert_qrom_has_diagram(qrom: cirq_ft.QROM, expected_diagram: str):
     gh = cirq_ft.testing.GateHelper(qrom)
     op = gh.operation
-    context = cirq.DecompositionContext(qubit_manager=cirq_ft.GreedyQubitManager(prefix="anc"))
+    context = cirq.DecompositionContext(qubit_manager=cirq.GreedyQubitManager(prefix="anc"))
     circuit = cirq.Circuit(cirq.decompose_once(op, context=context))
     selection = [
         *itertools.chain.from_iterable(gh.quregs[reg.name] for reg in qrom.selection_registers)
@@ -208,7 +208,7 @@ def test_qrom_multi_dim(data, num_controls):
         target_bitsizes=target_bitsizes,
         num_controls=num_controls,
     )
-    greedy_mm = cirq_ft.GreedyQubitManager('a', maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager('a', maximize_reuse=True)
     g = cirq_ft.testing.GateHelper(qrom, context=cirq.DecompositionContext(greedy_mm))
     decomposed_circuit = cirq.Circuit(cirq.decompose(g.operation, context=g.context))
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))

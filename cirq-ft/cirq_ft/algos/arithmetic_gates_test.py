@@ -18,7 +18,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
-from cirq_ft.infra import bit_tools, GreedyQubitManager
+from cirq_ft.infra import bit_tools
 
 
 def identity_map(n: int):
@@ -174,7 +174,7 @@ def test_add(a: int, b: int, num_bits: int):
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
     ancillas = sorted(circuit.all_qubits())[-num_anc:]
@@ -258,7 +258,7 @@ def test_add_truncated():
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
     ancillas = sorted(circuit.all_qubits() - frozenset(qubits))
@@ -272,7 +272,7 @@ def test_add_truncated():
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
     ancillas = sorted(circuit.all_qubits() - frozenset(qubits))
@@ -290,7 +290,7 @@ def test_subtract(a, b, num_bits):
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
     ancillas = sorted(circuit.all_qubits())[-num_anc:]
@@ -340,7 +340,7 @@ def test_decompose_less_than_equal_gate(P: int, n: int, Q: int, m: int):
     circuit = cirq.Circuit(
         cirq.decompose_once(
             cirq_ft.LessThanEqualGate(n, m).on(*cirq.LineQubit.range(n + m + 1)),
-            context=cirq.DecompositionContext(GreedyQubitManager(prefix='_c')),
+            context=cirq.DecompositionContext(cirq.GreedyQubitManager(prefix='_c')),
         )
     )
     qubit_order = tuple(sorted(circuit.all_qubits()))
@@ -357,6 +357,9 @@ def test_single_qubit_compare_protocols(adjoint: bool):
     g = cirq_ft.algos.SingleQubitCompare(adjoint=adjoint)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
     cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
+    expected_side = cirq_ft.infra.Side.LEFT if adjoint else cirq_ft.infra.Side.RIGHT
+    assert g.signature[2] == cirq_ft.Register('less_than', 1, side=expected_side)
+    assert g.signature[3] == cirq_ft.Register('greater_than', 1, side=expected_side)
 
     with pytest.raises(ValueError):
         _ = g**0.5  # type: ignore
