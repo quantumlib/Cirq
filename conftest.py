@@ -22,3 +22,9 @@ def pytest_addoption(parser):
         default=False,
         help="run Rigetti integration tests",
     )
+    parser.addoption(
+        "--enable-slow-tests",
+        action="store_true",
+        default=False,
+        help="Enable slow tests",
+    )

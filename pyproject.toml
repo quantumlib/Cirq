@@ -4,6 +4,9 @@ target_version = ['py39', 'py310', 'py311']
 skip-string-normalization = true
 skip-magic-trailing-comma = true
 
+[tool.pytest]
+markers = ["rigetti_integration: tests that connect to Quil compiler or QVM.", "slow: mark tests as slow", "weekly: mark tests as run only by weekly automation"]
+
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
