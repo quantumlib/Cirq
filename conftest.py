@@ -36,13 +36,13 @@ def pytest_collection_modifyitems(config, items):
         "slow": pytest.mark.skip(reason="need --enable-slow-tests option to run"),
         "weekly": pytest.mark.skip(reason='only run by weekly automation'),
     }
-    # adjust custom marks that should be skipped
+    # drop skip_marks for tests enabled by command line options
     if config.option.rigetti_integration:
         del skip_marks["rigetti_integration"]
     if config.option.enable_slow_tests:
         del skip_marks["slow"]
+    skip_keywords = frozenset(skip_marks.keys())
 
     for item in items:
-        for k in item.keywords:
-            if k in skip_marks:
-                item.add_marker(skip_marks[k])
+        for k in skip_keywords.intersection(item.keywords):
+            item.add_marker(skip_marks[k])
