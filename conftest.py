@@ -28,14 +28,19 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(config, items):
-    if config.option.markexpr:
-        return  # let pytest handle this
+    # Let pytest handle markexpr if present.  Make an exception for
+    # `pytest --co -m skip` so we can check test skipping rules below.
+    markexpr_words = frozenset(config.option.markexpr.split())
+    if not markexpr_words.issubset(["not", "skip"]):
+        return
 
+    # our marks for tests to be skipped by default
     skip_marks = {
         "rigetti_integration": pytest.mark.skip(reason="need --rigetti-integration option to run"),
         "slow": pytest.mark.skip(reason="need --enable-slow-tests option to run"),
         "weekly": pytest.mark.skip(reason='only run by weekly automation'),
     }
+
     # drop skip_marks for tests enabled by command line options
     if config.option.rigetti_integration:
         del skip_marks["rigetti_integration"]
