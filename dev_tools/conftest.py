@@ -26,12 +26,6 @@ from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
 
 
-def pytest_configure(config):
-    config.addinivalue_line("markers", "slow: mark tests as slow")
-    config.addinivalue_line("markers", "weekly: mark tests as run only by weekly automation")
-    config.addinivalue_line("markers", "rigetti_integration: tests that connect to Quil compiler or QVM.")
-
-
 def pytest_collection_modifyitems(config, items):
     markexpr = config.option.markexpr
     if markexpr:
@@ -39,7 +33,9 @@ def pytest_collection_modifyitems(config, items):
 
     # do not skip slow tests if --enable-slow-tests is passed
     if not config.getoption("--enable-slow-tests"):
-        skip_slow_tests = pytest.mark.skip(reason="slow tests are disabled (use --enable-slow-tests to enable)")
+        skip_slow_tests = pytest.mark.skip(
+            reason="slow tests are disabled (use --enable-slow-tests to enable)"
+        )
         for item in items:
             if "slow" in item.keywords:
                 item.add_marker(skip_slow_tests)
@@ -59,6 +55,7 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if 'weekly' in item.keywords:
             item.add_marker(skip_weekly_marker)
+
 
 @pytest.fixture(scope="session")
 def cloned_env(testrun_uid, worker_id):
