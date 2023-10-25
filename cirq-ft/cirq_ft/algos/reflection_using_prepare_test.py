@@ -44,10 +44,10 @@ def keep(op: cirq.Operation):
 
 
 def greedily_allocate_ancilla(circuit: cirq.AbstractCircuit) -> cirq.Circuit:
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="ancilla", maximize_reuse=True)
-    circuit = cirq_ft.map_clean_and_borrowable_qubits(circuit, qm=greedy_mm)
+    greedy_mm = cirq.GreedyQubitManager(prefix="ancilla", maximize_reuse=True)
+    circuit = cirq.map_clean_and_borrowable_qubits(circuit, qm=greedy_mm)
     assert len(circuit.all_qubits()) < 30
-    return circuit
+    return circuit.unfreeze()
 
 
 def construct_gate_helper_and_qubit_order(gate):
@@ -109,7 +109,7 @@ def test_reflection_using_prepare_diagram():
     )
     # No control
     gate = cirq_ft.ReflectionUsingPrepare(prepare_gate, control_val=None)
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     circuit = greedily_allocate_ancilla(cirq.Circuit(cirq.decompose_once(op)))
     cirq.testing.assert_has_diagram(
         circuit,
@@ -139,7 +139,7 @@ selection2: ────selection^-1──────────────�
 
     # Control on `|1>` state
     gate = cirq_ft.ReflectionUsingPrepare(prepare_gate, control_val=1)
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     circuit = greedily_allocate_ancilla(cirq.Circuit(cirq.decompose_once(op)))
     cirq.testing.assert_has_diagram(
         circuit,
@@ -168,7 +168,7 @@ selection2: ───selection^-1───────────────�
 
     # Control on `|0>` state
     gate = cirq_ft.ReflectionUsingPrepare(prepare_gate, control_val=0)
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     circuit = greedily_allocate_ancilla(cirq.Circuit(cirq.decompose_once(op)))
     cirq.testing.assert_has_diagram(
         circuit,
@@ -204,7 +204,7 @@ def test_reflection_using_prepare_consistent_protocols_and_controlled():
     )
     # No control
     gate = cirq_ft.ReflectionUsingPrepare(prepare_gate, control_val=None)
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     # Test consistent repr
     cirq.testing.assert_equivalent_repr(
         gate, setup_code='import cirq\nimport cirq_ft\nimport numpy as np'

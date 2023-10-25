@@ -35,8 +35,8 @@ class MultiTargetCNOT(infra.GateWithRegisters):
         self._num_targets = num_targets
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(control=1, targets=self._num_targets)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(control=1, targets=self._num_targets)
 
     def decompose_from_registers(
         self,
@@ -77,23 +77,23 @@ class MultiControlPauli(infra.GateWithRegisters):
     target_gate: cirq.Pauli = cirq.X
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(controls=len(self.cvs), target=1)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(controls=len(self.cvs), target=1)
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray['cirq.Qid']
     ) -> cirq.OP_TREE:
         controls, target = quregs['controls'], quregs['target']
         qm = context.qubit_manager
-        and_ancilla, and_target = qm.qalloc(len(self.cvs) - 2), qm.qalloc(1)
+        and_ancilla, and_target = np.array(qm.qalloc(len(self.cvs) - 2)), qm.qalloc(1)
         yield and_gate.And(self.cvs).on_registers(
-            control=controls, ancilla=and_ancilla, target=and_target
+            ctrl=controls[:, np.newaxis], junk=and_ancilla[:, np.newaxis], target=and_target
         )
         yield self.target_gate.on(*target).controlled_by(*and_target)
         yield and_gate.And(self.cvs, adjoint=True).on_registers(
-            control=controls, ancilla=and_ancilla, target=and_target
+            ctrl=controls[:, np.newaxis], junk=and_ancilla[:, np.newaxis], target=and_target
         )
-        qm.qfree(and_ancilla + and_target)
+        qm.qfree([*and_ancilla, *and_target])
 
     def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
         wire_symbols = ["@" if b else "@(0)" for b in self.cvs]

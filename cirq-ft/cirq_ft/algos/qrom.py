@@ -29,8 +29,8 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     """Gate to load data[l] in the target register when the selection stores an index l.
 
     In the case of multi-dimensional data[p,q,r,...] we use multiple named
-    selection registers [p, q, r, ...] to index and load the data. Here `p, q, r, ...`
-    correspond to registers named `selection0`, `selection1`, `selection2`, ... etc.
+    selection signature [p, q, r, ...] to index and load the data. Here `p, q, r, ...`
+    correspond to signature named `selection0`, `selection1`, `selection2`, ... etc.
 
     When the input data elements contain consecutive entries of identical data elements to
     load, the QROM also implements the "variable-spaced" QROM optimization described in Ref[2].
@@ -45,9 +45,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             corresponding to the size of each dimension of the array. Should be
             the same length as the shape of each of the datasets.
         target_bitsizes: The number of bits used to represent the data
-            registers. This can be deduced from the maximum element of each of the
+            signature. This can be deduced from the maximum element of each of the
             datasets. Should be of length len(data), i.e. the number of datasets.
-        num_controls: The number of control registers.
+        num_controls: The number of control signature.
 
     References:
         [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]
@@ -150,7 +150,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             and_ancilla = context.qubit_manager.qalloc(len(controls) - 2)
             and_target = context.qubit_manager.qalloc(1)[0]
             multi_controlled_and = and_gate.And((1,) * len(controls)).on_registers(
-                control=controls, ancilla=and_ancilla, target=and_target
+                ctrl=np.array(controls)[:, np.newaxis],
+                junk=np.array(and_ancilla)[:, np.newaxis],
+                target=and_target,
             )
             yield multi_controlled_and
             yield self._load_nth_data(zero_indx, lambda q: cirq.CNOT(and_target, q), **target_regs)

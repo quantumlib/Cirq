@@ -149,11 +149,26 @@ class AbstractCircuit(abc.ABC):
         """Create a circuit from moment op trees.
 
         Args:
-            *moments: Op tree for each moment.
+            *moments: Op tree for each moment. If an op tree is a moment, it
+                will be included directly in the new circuit. If an op tree is
+                a circuit, it will be frozen, wrapped in a CircuitOperation, and
+                included in its own moment in the new circuit. Otherwise, the
+                op tree will be passed to `cirq.Moment` to create a new moment
+                which is then included in the new circuit. Note that in the
+                latter case we have the normal restriction that operations in a
+                moment must be applied to disjoint sets of qubits.
         """
-        return cls._from_moments(
-            moment if isinstance(moment, Moment) else Moment(moment) for moment in moments
-        )
+        return cls._from_moments(cls._make_moments(moments))
+
+    @staticmethod
+    def _make_moments(moments: Iterable['cirq.OP_TREE']) -> Iterator['cirq.Moment']:
+        for m in moments:
+            if isinstance(m, Moment):
+                yield m
+            elif isinstance(m, AbstractCircuit):
+                yield Moment(m.freeze().to_op())
+            else:
+                yield Moment(m)
 
     @classmethod
     @abc.abstractmethod

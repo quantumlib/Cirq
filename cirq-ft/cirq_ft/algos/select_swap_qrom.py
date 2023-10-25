@@ -62,7 +62,7 @@ class SelectSwapQROM(infra.GateWithRegisters):
     target register as follows:
 
         * Divide the `N` data elements into batches of size `B` (a variable) and
-        load each batch simultaneously into `B` distinct target registers using the conventional
+        load each batch simultaneously into `B` distinct target signature using the conventional
         QROM. This has T-complexity `O(N / B)`.
         * Use `SwapWithZeroGate` to swap the `i % B`'th target register in batch number `i / B`
         to load `data[i]` in the 0'th target register. This has T-complexity `O(B * b)`.
@@ -96,12 +96,12 @@ class SelectSwapQROM(infra.GateWithRegisters):
         SelectSwapQROM requires:
             - Selection register & ancilla of size `logN` for QROM data load.
             - 1 clean target register of size `b`.
-            - `B` dirty target registers, each of size `b`.
+            - `B` dirty target signature, each of size `b`.
 
         Similarly, to load `M` such data sequences, `SelectSwapQROM` requires:
             - Selection register & ancilla of size `logN` for QROM data load.
             - 1 clean target register of size `sum(target_bitsizes)`.
-            - `B` dirty target registers, each of size `sum(target_bitsizes)`.
+            - `B` dirty target signature, each of size `sum(target_bitsizes)`.
 
         Args:
             data: Sequence of integers to load in the target register. If more than one sequence
@@ -153,8 +153,8 @@ class SelectSwapQROM(infra.GateWithRegisters):
         )
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.selection_registers, *self.target_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.selection_registers, *self.target_registers])
 
     @property
     def data(self) -> Tuple[Tuple[int, ...], ...]:

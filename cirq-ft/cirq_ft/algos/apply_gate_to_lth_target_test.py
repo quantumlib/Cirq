@@ -22,7 +22,7 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
 
 @pytest.mark.parametrize("selection_bitsize,target_bitsize", [[3, 5], [3, 7], [4, 5]])
 def test_apply_gate_to_lth_qubit(selection_bitsize, target_bitsize):
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = cirq_ft.ApplyGateToLthQubit(
         cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize), lambda _: cirq.X
     )
@@ -54,10 +54,10 @@ def test_apply_gate_to_lth_qubit_diagram():
     gate = cirq_ft.ApplyGateToLthQubit(
         cirq_ft.SelectionRegister('selection', 3, 5),
         lambda n: cirq.Z if n & 1 else cirq.I,
-        control_regs=cirq_ft.Registers.build(control=2),
+        control_regs=cirq_ft.Signature.build(control=2),
     )
-    circuit = cirq.Circuit(gate.on_registers(**infra.get_named_qubits(gate.registers)))
-    qubits = list(q for v in infra.get_named_qubits(gate.registers).values() for q in v)
+    circuit = cirq.Circuit(gate.on_registers(**infra.get_named_qubits(gate.signature)))
+    qubits = list(q for v in infra.get_named_qubits(gate.signature).values() for q in v)
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -89,11 +89,11 @@ def test_apply_gate_to_lth_qubit_make_on():
     gate = cirq_ft.ApplyGateToLthQubit(
         cirq_ft.SelectionRegister('selection', 3, 5),
         lambda n: cirq.Z if n & 1 else cirq.I,
-        control_regs=cirq_ft.Registers.build(control=2),
+        control_regs=cirq_ft.Signature.build(control=2),
     )
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     op2 = cirq_ft.ApplyGateToLthQubit.make_on(
-        nth_gate=lambda n: cirq.Z if n & 1 else cirq.I, **infra.get_named_qubits(gate.registers)
+        nth_gate=lambda n: cirq.Z if n & 1 else cirq.I, **infra.get_named_qubits(gate.signature)
     )
     # Note: ApplyGateToLthQubit doesn't support value equality.
     assert op.qubits == op2.qubits

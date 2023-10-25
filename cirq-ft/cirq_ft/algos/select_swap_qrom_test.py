@@ -24,12 +24,12 @@ from cirq_ft.infra.bit_tools import iter_bits
 @pytest.mark.parametrize("block_size", [None, 1, 2, 3])
 def test_select_swap_qrom(data, block_size):
     qrom = cirq_ft.SelectSwapQROM(*data, block_size=block_size)
-    qubit_regs = infra.get_named_qubits(qrom.registers)
+    qubit_regs = infra.get_named_qubits(qrom.signature)
     selection = qubit_regs["selection"]
     selection_q, selection_r = selection[: qrom.selection_q], selection[qrom.selection_q :]
     targets = [qubit_regs[f"target{i}"] for i in range(len(data))]
 
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     qrom_circuit = cirq.Circuit(cirq.decompose(qrom.on_registers(**qubit_regs), context=context))
 
@@ -78,7 +78,7 @@ def test_qroam_diagram():
     blocksize = 2
     qrom = cirq_ft.SelectSwapQROM(*data, block_size=blocksize)
     q = cirq.LineQubit.range(cirq.num_qubits(qrom))
-    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.registers, q)))
+    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """

@@ -117,7 +117,7 @@ def satisfies_theorem_321(
     assert cirq.is_unitary(u)
 
     # Compute the final state vector obtained using the synthesizer `Prep |0>`
-    prep_op = synthesizer.on_registers(**infra.get_named_qubits(synthesizer.registers))
+    prep_op = synthesizer.on_registers(**infra.get_named_qubits(synthesizer.signature))
     prep_state = cirq.Circuit(prep_op).final_state_vector()
 
     expected_hav = abs(mu) * np.sqrt(1 / (1 + s**2))
@@ -252,7 +252,7 @@ def test_mean_estimation_operator_consistent_protocols():
     encoder = BernoulliEncoder(p, (0, y_1), selection_bitsize, target_bitsize)
     code = CodeForRandomVariable(synthesizer=synthesizer, encoder=encoder)
     mean_gate = MeanEstimationOperator(code, arctan_bitsize=arctan_bitsize)
-    op = mean_gate.on_registers(**infra.get_named_qubits(mean_gate.registers))
+    op = mean_gate.on_registers(**infra.get_named_qubits(mean_gate.signature))
 
     # Test controlled gate.
     equals_tester = cirq.testing.EqualsTester()

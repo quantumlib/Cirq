@@ -153,7 +153,9 @@ def _unary_iteration_multi_controls(
     and_ancilla = ancilla[: num_controls - 2]
     and_target = ancilla[num_controls - 2]
     multi_controlled_and = and_gate.And((1,) * len(controls)).on_registers(
-        control=np.array(controls), ancilla=np.array(and_ancilla), target=and_target
+        ctrl=np.array(controls).reshape(len(controls), 1),
+        junk=np.array(and_ancilla).reshape(len(and_ancilla), 1),
+        target=and_target,
     )
     ops.append(multi_controlled_and)
     yield from _unary_iteration_single_control(
@@ -180,13 +182,13 @@ def unary_iteration(
     Users can write multi-dimensional coherent for loops as follows:
 
     >>> import cirq
-    >>> from cirq_ft import unary_iteration, GreedyQubitManager
+    >>> from cirq_ft import unary_iteration
     >>> N, M = 5, 7
     >>> target = [[cirq.q(f't({i}, {j})') for j in range(M)] for i in range(N)]
     >>> selection = [[cirq.q(f's({i}, {j})') for j in range(3)] for i in range(3)]
     >>> circuit = cirq.Circuit()
     >>> i_ops = []
-    >>> qm = GreedyQubitManager("ancilla", maximize_reuse=True)
+    >>> qm = cirq.GreedyQubitManager("ancilla", maximize_reuse=True)
     >>> for i_optree, i_ctrl, i in unary_iteration(0, N, i_ops, [], selection[0], qm):
     ...     circuit.append(i_optree)
     ...     j_ops = []
@@ -282,8 +284,8 @@ class UnaryIterationGate(infra.GateWithRegisters):
         pass
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [*self.control_registers, *self.selection_registers, *self.target_registers]
         )
 
@@ -295,14 +297,14 @@ class UnaryIterationGate(infra.GateWithRegisters):
     def nth_operation(
         self, context: cirq.DecompositionContext, control: cirq.Qid, **kwargs
     ) -> cirq.OP_TREE:
-        """Apply nth operation on the target registers when selection registers store `n`.
+        """Apply nth operation on the target signature when selection signature store `n`.
 
         The `UnaryIterationGate` class is a mixin that represents a coherent for-loop over
-        different indices (i.e. selection registers). This method denotes the "body" of the
+        different indices (i.e. selection signature). This method denotes the "body" of the
         for-loop, which is executed `self.selection_registers.total_iteration_size` times and each
-        iteration represents a unique combination of values stored in selection registers. For each
+        iteration represents a unique combination of values stored in selection signature. For each
         call, the method should return the operations that should be applied to the target
-        registers, given the values stored in selection registers.
+        signature, given the values stored in selection signature.
 
         The derived classes should specify the following arguments as `**kwargs`:
             1) `control: cirq.Qid`: A qubit which can be used as a control to selectively
@@ -345,7 +347,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
         representing range `[l, r)`. If True, the internal node is considered equivalent to a leaf
         node and thus, `self.nth_operation` will be called for only integer `l` in the range [l, r).
 
-        When the `UnaryIteration` class is constructed using multiple selection registers, i.e. we
+        When the `UnaryIteration` class is constructed using multiple selection signature, i.e. we
         wish to perform nested coherent for-loops, a unary iteration segment tree is constructed
         corresponding to each nested coherent for-loop. For every such unary iteration segment tree,
         the `_break_early` condition is checked by passing the `selection_index_prefix` tuple.
@@ -398,7 +400,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
             Returns:
                 `cirq.OP_TREE` implementing `num_loops` nested coherent for-loops, with operations
                 returned by `self.nth_operation` applied conditionally to the target register based
-                on values of selection registers.
+                on values of selection signature.
             """
             if nested_depth == num_loops:
                 yield self.nth_operation(

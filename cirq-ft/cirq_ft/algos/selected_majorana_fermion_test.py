@@ -28,7 +28,7 @@ def test_selected_majorana_fermion_gate(selection_bitsize, target_bitsize, targe
         target_gate=target_gate,
     )
     g = cirq_ft.testing.GateHelper(gate)
-    assert len(g.all_qubits) <= infra.total_bits(gate.registers) + selection_bitsize + 1
+    assert len(g.all_qubits) <= infra.total_bits(gate.signature) + selection_bitsize + 1
 
     sim = cirq.Simulator(dtype=np.complex128)
     for n in range(target_bitsize):
@@ -67,8 +67,8 @@ def test_selected_majorana_fermion_gate_diagram():
         cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize),
         target_gate=cirq.X,
     )
-    circuit = cirq.Circuit(gate.on_registers(**infra.get_named_qubits(gate.registers)))
-    qubits = list(q for v in infra.get_named_qubits(gate.registers).values() for q in v)
+    circuit = cirq.Circuit(gate.on_registers(**infra.get_named_qubits(gate.signature)))
+    qubits = list(q for v in infra.get_named_qubits(gate.signature).values() for q in v)
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -100,7 +100,7 @@ def test_selected_majorana_fermion_gate_decomposed_diagram():
         cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize),
         target_gate=cirq.X,
     )
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     g = cirq_ft.testing.GateHelper(gate)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(g.operation, context=context))
@@ -143,8 +143,8 @@ def test_selected_majorana_fermion_gate_make_on():
         cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize),
         target_gate=cirq.X,
     )
-    op = gate.on_registers(**infra.get_named_qubits(gate.registers))
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     op2 = cirq_ft.SelectedMajoranaFermionGate.make_on(
-        target_gate=cirq.X, **infra.get_named_qubits(gate.registers)
+        target_gate=cirq.X, **infra.get_named_qubits(gate.signature)
     )
     assert op == op2

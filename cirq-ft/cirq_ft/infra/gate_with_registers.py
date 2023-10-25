@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import enum
 import abc
 import itertools
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union, overload
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union, overload, Iterator
 from numpy.typing import NDArray
 
 import attr
@@ -22,13 +23,33 @@ import cirq
 import numpy as np
 
 
+class Side(enum.Flag):
+    """Denote LEFT, RIGHT, or THRU signature.
+
+    LEFT signature serve as input lines (only) to the Gate. RIGHT signature are output
+    lines (only) from the Gate. THRU signature are both input and output.
+
+    Traditional unitary operations will have THRU signature that operate on a collection of
+    qubits which are then made available to following operations. RIGHT and LEFT signature
+    imply allocation, deallocation, or reshaping of the signature.
+    """
+
+    LEFT = enum.auto()
+    RIGHT = enum.auto()
+    THRU = LEFT | RIGHT
+
+
 @attr.frozen
 class Register:
     """A quantum register used to define the input/output API of a `cirq_ft.GateWithRegister`
 
-    Args:
+    Attributes:
         name: The string name of the register
-        shape: Shape of the multi-dimensional qubit register.
+        bitsize: The number of (qu)bits in the register.
+        shape: A tuple of integer dimensions to declare a multidimensional register. The
+            total number of bits is the product of entries in this tuple times `bitsize`.
+        side: Whether this is a left, right, or thru register. See the documentation for `Side`
+            for more information.
     """
 
     name: str
@@ -36,6 +57,7 @@ class Register:
     shape: Tuple[int, ...] = attr.field(
         converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
     )
+    side: Side = Side.THRU
 
     @bitsize.validator
     def bitsize_validator(self, attribute, value):
@@ -54,11 +76,17 @@ class Register:
         return self.bitsize * int(np.prod(self.shape))
 
     def __repr__(self):
-        return f'cirq_ft.Register(name="{self.name}", bitsize={self.bitsize}, shape={self.shape})'
+        return (
+            f'cirq_ft.Register('
+            f'name="{self.name}", '
+            f'bitsize={self.bitsize}, '
+            f'shape={self.shape}, '
+            f'side=cirq_ft.infra.{self.side})'
+        )
 
 
 def total_bits(registers: Iterable[Register]) -> int:
-    """Sum of `reg.total_bits()` for each register `reg` in input `registers`."""
+    """Sum of `reg.total_bits()` for each register `reg` in input `signature`."""
     return sum(reg.total_bits() for reg in registers)
 
 
@@ -99,7 +127,7 @@ def merge_qubits(
 
 
 def get_named_qubits(registers: Iterable[Register]) -> Dict[str, NDArray[cirq.Qid]]:
-    """Returns a dictionary of appropriately shaped named qubit registers for input `registers`."""
+    """Returns a dictionary of appropriately shaped named qubit signature for input `signature`."""
 
     def _qubit_array(reg: Register):
         qubits = np.empty(reg.shape + (reg.bitsize,), dtype=object)
@@ -124,7 +152,7 @@ def get_named_qubits(registers: Iterable[Register]) -> Dict[str, NDArray[cirq.Qi
     return {reg.name: _qubits_for_reg(reg) for reg in registers}
 
 
-class Registers:
+class Signature:
     """An ordered collection of `cirq_ft.Register`.
 
     Args:
@@ -133,15 +161,16 @@ class Registers:
 
     def __init__(self, registers: Iterable[Register]):
         self._registers = tuple(registers)
-        self._register_dict = {r.name: r for r in self._registers}
-        if len(self._registers) != len(self._register_dict):
+        self._lefts = {r.name: r for r in self._registers if r.side & Side.LEFT}
+        self._rights = {r.name: r for r in self._registers if r.side & Side.RIGHT}
+        if len(set(self._lefts) | set(self._rights)) != len(self._registers):
             raise ValueError("Please provide unique register names.")
 
     def __repr__(self):
-        return f'cirq_ft.Registers({self._registers})'
+        return f'cirq_ft.Signature({self._registers})'
 
     @classmethod
-    def build(cls, **registers: int) -> 'Registers':
+    def build(cls, **registers: int) -> 'Signature':
         return cls(Register(name=k, bitsize=v) for k, v in registers.items() if v > 0)
 
     @overload
@@ -149,27 +178,24 @@ class Registers:
         pass
 
     @overload
-    def __getitem__(self, key: str) -> Register:
-        pass
-
-    @overload
-    def __getitem__(self, key: slice) -> 'Registers':
+    def __getitem__(self, key: slice) -> Tuple[Register, ...]:
         pass
 
     def __getitem__(self, key):
-        if isinstance(key, slice):
-            return Registers(self._registers[key])
-        elif isinstance(key, int):
-            return self._registers[key]
-        elif isinstance(key, str):
-            return self._register_dict[key]
-        else:
-            raise IndexError(f"key {key} must be of the type str/int/slice.")
+        return self._registers[key]
 
-    def __contains__(self, item: str) -> bool:
-        return item in self._register_dict
+    def get_left(self, name: str) -> Register:
+        """Get a left register by name."""
+        return self._lefts[name]
 
-    def __iter__(self):
+    def get_right(self, name: str) -> Register:
+        """Get a right register by name."""
+        return self._rights[name]
+
+    def __contains__(self, item: Register) -> bool:
+        return item in self._registers
+
+    def __iter__(self) -> Iterator[Register]:
         yield from self._registers
 
     def __len__(self) -> int:
@@ -233,6 +259,7 @@ class SelectionRegister(Register):
     shape: Tuple[int, ...] = attr.field(
         converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
     )
+    side: Side = Side.THRU
 
     @iteration_length.default
     def _default_iteration_length(self):
@@ -281,8 +308,8 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
     ...     bitsize: int
     ...
     ...     @property
-    ...     def registers(self) -> cirq_ft.Registers:
-    ...         return cirq_ft.Registers.build(ctrl=1, x=self.bitsize, y=self.bitsize)
+    ...     def signature(self) -> cirq_ft.Signature:
+    ...         return cirq_ft.Signature.build(ctrl=1, x=self.bitsize, y=self.bitsize)
     ...
     ...     def decompose_from_registers(self, context, ctrl, x, y) -> cirq.OP_TREE:
     ...         yield [cirq.CSWAP(*ctrl, qx, qy) for qx, qy in zip(x, y)]
@@ -305,11 +332,11 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def registers(self) -> Registers:
+    def signature(self) -> Signature:
         ...
 
     def _num_qubits_(self) -> int:
-        return total_bits(self.registers)
+        return total_bits(self.signature)
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
@@ -319,7 +346,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
     def _decompose_with_context_(
         self, qubits: Sequence[cirq.Qid], context: Optional[cirq.DecompositionContext] = None
     ) -> cirq.OP_TREE:
-        qubit_regs = split_qubits(self.registers, qubits)
+        qubit_regs = split_qubits(self.signature, qubits)
         if context is None:
             context = cirq.DecompositionContext(cirq.ops.SimpleQubitManager())
         return self.decompose_from_registers(context=context, **qubit_regs)
@@ -330,7 +357,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
     def on_registers(
         self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]]
     ) -> cirq.Operation:
-        return self.on(*merge_qubits(self.registers, **qubit_regs))
+        return self.on(*merge_qubits(self.signature, **qubit_regs))
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """Default diagram info that uses register names to name the boxes in multi-qubit gates.
@@ -338,7 +365,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
         Descendants can override this method with more meaningful circuit diagram information.
         """
         wire_symbols = []
-        for reg in self.registers:
+        for reg in self.signature:
             wire_symbols += [reg.name] * reg.total_bits()
 
         wire_symbols[0] = self.__class__.__name__

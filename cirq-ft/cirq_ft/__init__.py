@@ -45,9 +45,8 @@ from cirq_ft.algos import (
 )
 from cirq_ft.infra import (
     GateWithRegisters,
-    GreedyQubitManager,
     Register,
-    Registers,
+    Signature,
     SelectionRegister,
     TComplexity,
     map_clean_and_borrowable_qubits,
