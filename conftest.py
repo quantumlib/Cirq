@@ -23,39 +23,26 @@ def pytest_addoption(parser):
         help="run Rigetti integration tests",
     )
     parser.addoption(
-        "--enable-slow-tests",
-        action="store_true",
-        default=False,
-        help="Enable slow tests",
+        "--enable-slow-tests", action="store_true", default=False, help="run slow tests"
     )
 
 
 def pytest_collection_modifyitems(config, items):
-    markexpr = config.option.markexpr
-    if markexpr:
+    if config.option.markexpr:
         return  # let pytest handle this
 
-    # do not skip slow tests if --enable-slow-tests is passed
-    if not config.getoption("--enable-slow-tests"):
-        skip_slow_tests = pytest.mark.skip(
-            reason="slow tests are disabled (use --enable-slow-tests to enable)"
-        )
-        for item in items:
-            if "slow" in item.keywords:
-                item.add_marker(skip_slow_tests)
-    # do not skip integration tests if --rigetti-integration option passed
-    if config.getoption('--rigetti-integration'):
-        return
-    # do not skip integration tests rigetti_integration marker explicitly passed.
-    if 'rigetti_integration' in config.getoption('-m'):
-        return
-    # otherwise skip all tests marked "rigetti_integration".
-    skip_rigetti_integration = pytest.mark.skip(reason="need --rigetti-integration option to run")
-    for item in items:
-        if "rigetti_integration" in item.keywords:
-            item.add_marker(skip_rigetti_integration)
+    skip_marks = {
+        "rigetti_integration": pytest.mark.skip(reason="need --rigetti-integration option to run"),
+        "slow": pytest.mark.skip(reason="need --enable-slow-tests option to run"),
+        "weekly": pytest.mark.skip(reason='only run by weekly automation'),
+    }
+    # adjust custom marks that should be skipped
+    if config.option.rigetti_integration:
+        del skip_marks["rigetti_integration"]
+    if config.option.enable_slow_tests:
+        del skip_marks["slow"]
 
-    skip_weekly_marker = pytest.mark.skip(reason='only run by weekly automation')
     for item in items:
-        if 'weekly' in item.keywords:
-            item.add_marker(skip_weekly_marker)
+        for k in item.keywords:
+            if k in skip_marks:
+                item.add_marker(skip_marks[k])
