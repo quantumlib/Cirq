@@ -24,9 +24,20 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
 @pytest.mark.parametrize(
-    "data", [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
+    "data,num_controls",
+    [
+        pytest.param(
+            data,
+            num_controls,
+            id=f"{num_controls}-data{idx}",
+            marks=pytest.mark.slow if num_controls == 2 and idx == 2 else (),
+        )
+        for idx, data in enumerate(
+            [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
+        )
+        for num_controls in [0, 1, 2]
+    ],
 )
-@pytest.mark.parametrize("num_controls", [0, 1, 2])
 def test_qrom_1d(data, num_controls):
     qrom = cirq_ft.QROM.build(*data, num_controls=num_controls)
     greedy_mm = cirq.GreedyQubitManager('a', maximize_reuse=True)
