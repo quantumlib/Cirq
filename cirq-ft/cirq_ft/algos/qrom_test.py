@@ -24,9 +24,20 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
 @pytest.mark.parametrize(
-    "data", [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
+    "data,num_controls",
+    [
+        pytest.param(
+            data,
+            num_controls,
+            id=f"{num_controls}-data{idx}",
+            marks=pytest.mark.slow if num_controls == 2 and idx == 2 else (),
+        )
+        for idx, data in enumerate(
+            [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
+        )
+        for num_controls in [0, 1, 2]
+    ],
 )
-@pytest.mark.parametrize("num_controls", [0, 1, 2])
 def test_qrom_1d(data, num_controls):
     qrom = cirq_ft.QROM.build(*data, num_controls=num_controls)
     greedy_mm = cirq.GreedyQubitManager('a', maximize_reuse=True)
@@ -195,10 +206,23 @@ target01: ────────────────X───────
 
 
 @pytest.mark.parametrize(
-    "data",
-    [[np.arange(6).reshape(2, 3), 4 * np.arange(6).reshape(2, 3)], [np.arange(8).reshape(2, 2, 2)]],
+    "data,num_controls",
+    [
+        pytest.param(
+            data,
+            num_controls,
+            id=f"{num_controls}-data{idx}",
+            marks=pytest.mark.slow if num_controls == 2 and idx == 0 else (),
+        )
+        for idx, data in enumerate(
+            [
+                [np.arange(6).reshape(2, 3), 4 * np.arange(6).reshape(2, 3)],
+                [np.arange(8).reshape(2, 2, 2)],
+            ]
+        )
+        for num_controls in [0, 1, 2]
+    ],
 )
-@pytest.mark.parametrize("num_controls", [0, 1, 2])
 def test_qrom_multi_dim(data, num_controls):
     selection_bitsizes = tuple((s - 1).bit_length() for s in data[0].shape)
     target_bitsizes = tuple(int(np.max(d)).bit_length() for d in data)
