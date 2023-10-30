@@ -75,7 +75,12 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     # Do not try this strategy if there is no unitary or if the number of
     # qubits is greater than 3 since that would be expensive.
     qid_shape = qid_shape_protocol.qid_shape(val, default=None)
-    if qid_shape is None or len(qid_shape) > 3 or not has_unitary_protocol.has_unitary(val):
+    if (
+        qid_shape is None
+        or len(qid_shape) > 3
+        or qid_shape != (2,) * len(qid_shape)
+        or not has_unitary_protocol.has_unitary(val)
+    ):
         return None
     unitary = unitary_protocol.unitary(val)
     if len(qid_shape) == 1:
@@ -96,7 +101,7 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     return True
 
 
-def _strat_has_stabilizer_effect_from_decompose(val: Any) -> Optional[None]:
+def _strat_has_stabilizer_effect_from_decompose(val: Any) -> Optional[bool]:
     qid_shape = qid_shape_protocol.qid_shape(val, default=None)
     if qid_shape is None or len(qid_shape) <= 3:
         return None
@@ -108,4 +113,4 @@ def _strat_has_stabilizer_effect_from_decompose(val: Any) -> Optional[None]:
         res = has_stabilizer_effect(op)
         if not res:
             return res
-    return res
+    return True
