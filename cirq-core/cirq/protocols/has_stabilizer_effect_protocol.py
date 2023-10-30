@@ -96,7 +96,7 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     return True
 
 
-def _strat_has_stabilizer_effect_from_decompose(val: Any) -> bool | None:
+def _strat_has_stabilizer_effect_from_decompose(val: Any) -> Optional[None]:
     qid_shape = qid_shape_protocol.qid_shape(val, default=None)
     if qid_shape is None or len(qid_shape) <= 3:
         return None
