@@ -23,10 +23,10 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
 @pytest.mark.parametrize(
     "num_sites, epsilon",
     [
-        pytest.param(2, 3e-3, marks=pytest.mark.slow),
-        (3, 3.0e-3),
+        (2, 3e-3),
+        pytest.param(3, 3.0e-3, marks=pytest.mark.slow),
         pytest.param(4, 5.0e-3, marks=pytest.mark.slow),
-        (7, 8.0e-3),
+        pytest.param(7, 8.0e-3, marks=pytest.mark.slow),
     ],
 )
 def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
