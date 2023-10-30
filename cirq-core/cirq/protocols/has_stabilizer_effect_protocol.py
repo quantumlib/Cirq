@@ -80,6 +80,9 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     unitary = unitary_protocol.unitary(val)
     if len(qid_shape) == 1:
         return SingleQubitCliffordGate.from_unitary(unitary) is not None
+
+    # Check if the action of the unitary on each single qubit pauli string leads to a pauli product.
+    # Source: https://quantumcomputing.stackexchange.com/a/13158
     for q_idx in range(len(qid_shape)):
         for g in 'XZ':
             pauli_string = ['I'] * len(qid_shape)
