@@ -20,16 +20,16 @@ import pytest
 def test_internal_gate():
     g = cirq_google.InternalGate(
         gate_name="CouplerDelayZ",
-        gate_module='pyle.cirqtools.pyle_gates',
+        gate_module='internal_module',
         num_qubits=2,
         delay=1,
         zpa=0.0,
         zpl=None,
     )
-    assert str(g) == 'pyle.cirqtools.pyle_gates.CouplerDelayZ(delay=1, zpa=0.0, zpl=None)'
+    assert str(g) == 'internal_module.CouplerDelayZ(delay=1, zpa=0.0, zpl=None)'
     want_repr = (
         "cirq_google.InternalGate(gate_name='CouplerDelayZ', "
-        "gate_module='pyle.cirqtools.pyle_gates', num_qubits=2, "
+        "gate_module='internal_module', num_qubits=2, "
         "delay=1, zpa=0.0, zpl=None)"
     )
     assert repr(g) == want_repr

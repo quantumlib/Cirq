@@ -15,6 +15,7 @@
 from unittest import mock
 import datetime
 
+import duet
 import pytest
 import freezegun
 import numpy as np
@@ -797,7 +798,7 @@ def test_list_reservations_time_filter_behavior(list_reservations):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_run_sweep_params(client):
+def test_run_sweep_params_with_unary_rpcs(client):
     client().create_program_async.return_value = (
         'prog',
         quantum.QuantumProgram(name='projects/proj/programs/prog'),
@@ -815,7 +816,7 @@ def test_run_sweep_params(client):
         result=util.pack_any(_RESULTS_V2)
     )
 
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=False))
     job = processor.run_sweep(
         program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
@@ -842,6 +843,42 @@ def test_run_sweep_params(client):
         assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
     client().get_job_async.assert_called_once()
     client().get_job_results_async.assert_called_once()
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_run_sweep_params_with_stream_rpcs(client):
+    client().get_job_async.return_value = quantum.QuantumJob(
+        execution_status={'state': 'SUCCESS'}, update_time=_to_timestamp('2019-07-09T23:39:59Z')
+    )
+    expected_result = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
+    stream_future = duet.AwaitableFuture()
+    stream_future.try_set_result(expected_result)
+    client().run_job_over_stream.return_value = stream_future
+
+    processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=True))
+    job = processor.run_sweep(
+        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+    )
+    results = job.results()
+    assert len(results) == 2
+    for i, v in enumerate([1, 2]):
+        assert results[i].repetitions == 1
+        assert results[i].params.param_dict == {'a': v}
+        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    for result in results:
+        assert result.job_id == job.id()
+        assert result.job_finished_time is not None
+    assert results == cirq.read_json(json_text=cirq.to_json(results))
+
+    client().run_job_over_stream.assert_called_once()
+
+    run_context = v2.run_context_pb2.RunContext()
+    client().run_job_over_stream.call_args[1]['run_context'].Unpack(run_context)
+    sweeps = run_context.parameter_sweeps
+    assert len(sweeps) == 2
+    for i, v in enumerate([1.0, 2.0]):
+        assert sweeps[i].repetitions == 1
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -941,7 +978,7 @@ def test_run_calibration(client):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_sampler(client):
+def test_sampler_with_unary_rpcs(client):
     client().create_program_async.return_value = (
         'prog',
         quantum.QuantumProgram(name='projects/proj/programs/prog'),
@@ -958,7 +995,7 @@ def test_sampler(client):
     client().get_job_results_async.return_value = quantum.QuantumResult(
         result=util.pack_any(_RESULTS_V2)
     )
-    processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
+    processor = cg.EngineProcessor('proj', 'mysim', EngineContext(enable_streaming=False))
     sampler = processor.get_sampler()
     results = sampler.run_sweep(
         program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
@@ -969,6 +1006,29 @@ def test_sampler(client):
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().create_program_async.call_args[0][0] == 'proj'
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_sampler_with_stream_rpcs(client):
+    client().get_job_async.return_value = quantum.QuantumJob(
+        execution_status={'state': 'SUCCESS'}, update_time=_to_timestamp('2019-07-09T23:39:59Z')
+    )
+    expected_result = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
+    stream_future = duet.AwaitableFuture()
+    stream_future.try_set_result(expected_result)
+    client().run_job_over_stream.return_value = stream_future
+
+    processor = cg.EngineProcessor('proj', 'mysim', EngineContext(enable_streaming=True))
+    sampler = processor.get_sampler()
+    results = sampler.run_sweep(
+        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+    )
+    assert len(results) == 2
+    for i, v in enumerate([1, 2]):
+        assert results[i].repetitions == 1
+        assert results[i].params.param_dict == {'a': v}
+        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    assert client().run_job_over_stream.call_args[1]['project_id'] == 'proj'
 
 
 def test_str():

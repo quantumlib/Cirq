@@ -25,18 +25,12 @@ class InternalGate(ops.Gate):
     constructor stored in `self.gate_args`.
     """
 
-    def __init__(
-        self,
-        gate_name: str,
-        gate_module: str = 'pyle.cirqtools.pyle_gates',
-        num_qubits: int = 1,
-        **kwargs,
-    ):
+    def __init__(self, gate_name: str, gate_module: str, num_qubits: int = 1, **kwargs):
         """Instatiates an InternalGate.
 
         Arguments:
             gate_name: Gate class name.
-            gate_module: The module of the gate (defualt: pyle.cirqtools.pyle_gates).
+            gate_module: The module of the gate.
             num_qubits: Number of qubits that the gate acts on.
             **kwargs: The named arguments to be passed to the gate constructor.
         """
