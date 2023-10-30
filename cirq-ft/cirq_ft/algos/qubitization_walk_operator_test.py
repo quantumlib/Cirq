@@ -46,6 +46,7 @@ def get_walk_operator_for_1d_Ising_model(
     return walk_operator_for_pauli_hamiltonian(ham, eps)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('num_sites,eps', [(4, 2e-1), (3, 1e-1)])
 def test_qubitization_walk_operator(num_sites: int, eps: float):
     ham = get_1d_Ising_hamiltonian(cirq.LineQubit.range(num_sites))

@@ -78,6 +78,7 @@ def get_3q_uniform_dirac_notation(signs):
     return ret
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('num_ones', [*range(5, 9)])
 @pytest.mark.parametrize('eps', [0.01])
 def test_reflection_using_prepare(num_ones, eps):
