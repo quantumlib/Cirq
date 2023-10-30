@@ -144,5 +144,5 @@ def test_via_decompose():
     assert cirq.has_stabilizer_effect(cirq.Circuit(cirq.H.on_each(cirq.LineQubit.range(4))))
     assert not cirq.has_stabilizer_effect(cirq.Circuit(cirq.T.on_each(cirq.LineQubit.range(4))))
     assert not cirq.has_stabilizer_effect(
-        OpWithUnitary(cirq.unitary(cirq.Circuit(cirq.H.on_each(cirq.LineQubit.range(4)))))
+        OpWithUnitary(cirq.unitary(cirq.Circuit(cirq.T.on_each(cirq.LineQubit.range(4)))))
     )
