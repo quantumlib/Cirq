@@ -23,7 +23,6 @@ import pytest
 import sympy
 
 import cirq
-import cirq.testing
 from cirq import circuits
 from cirq import ops
 from cirq.testing.devices import ValidatingTestDevice
@@ -72,19 +71,32 @@ moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 def test_from_moments():
     a, b, c, d = cirq.LineQubit.range(4)
-    assert cirq.Circuit.from_moments(
+    moment = cirq.Moment(cirq.Z(a), cirq.Z(b))
+    subcircuit = cirq.FrozenCircuit.from_moments(cirq.X(c), cirq.Y(d))
+    circuit = cirq.Circuit.from_moments(
+        moment,
+        subcircuit,
         [cirq.X(a), cirq.Y(b)],
         [cirq.X(c)],
         [],
         cirq.Z(d),
         [cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')],
-    ) == cirq.Circuit(
+    )
+    assert circuit == cirq.Circuit(
+        cirq.Moment(cirq.Z(a), cirq.Z(b)),
+        cirq.Moment(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(cirq.Moment(cirq.X(c)), cirq.Moment(cirq.Y(d)))
+            )
+        ),
         cirq.Moment(cirq.X(a), cirq.Y(b)),
         cirq.Moment(cirq.X(c)),
         cirq.Moment(),
         cirq.Moment(cirq.Z(d)),
         cirq.Moment(cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')),
     )
+    assert circuit[0] is moment
+    assert circuit[1].operations[0].circuit is subcircuit
 
 
 def test_alignment():

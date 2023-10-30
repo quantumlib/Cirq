@@ -88,6 +88,8 @@ class EngineContext:
         client: 'Optional[engine_client.EngineClient]' = None,
         timeout: Optional[int] = None,
         serializer: Serializer = CIRCUIT_SERIALIZER,
+        # TODO(#5996) Remove enable_streaming once the feature is stable.
+        enable_streaming: bool = True,
     ) -> None:
         """Context and client for using Quantum Engine.
 
@@ -103,6 +105,9 @@ class EngineContext:
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
             serializer: Used to serialize circuits when running jobs.
+            enable_streaming: Feature gate for making Quantum Engine requests using the stream RPC.
+                If True, the Quantum Engine streaming RPC is used for creating jobs
+                and getting results. Otherwise, unary RPCs are used.
 
         Raises:
             ValueError: If either `service_args` and `verbose` were supplied
@@ -115,6 +120,7 @@ class EngineContext:
         if self.proto_version == ProtoVersion.V1:
             raise ValueError('ProtoVersion V1 no longer supported')
         self.serializer = serializer
+        self.enable_streaming = enable_streaming
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args, verbose=verbose)
@@ -306,7 +312,7 @@ class Engine(abstract_engine.AbstractEngine):
         run_name: str = "",
         device_config_name: str = "",
     ) -> engine_job.EngineJob:
-        """Runs the supplied Circuit via Quantum Engine.Creates
+        """Runs the supplied Circuit via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
         does not block until a result is returned.
@@ -355,6 +361,44 @@ class Engine(abstract_engine.AbstractEngine):
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
+
+        if self.context.enable_streaming:
+            # This logic is temporary prior to deprecating the processor_ids parameter.
+            # TODO(#6271) Remove after deprecating processor_ids elsewhere prior to v1.4.
+            if processor_ids:
+                if len(processor_ids) > 1:
+                    raise ValueError("The use of multiple processors is no longer supported.")
+                if len(processor_ids) == 1 and not processor_id:
+                    processor_id = processor_ids[0]
+
+            if not program_id:
+                program_id = _make_random_id('prog-')
+            if not job_id:
+                job_id = _make_random_id('job-')
+            run_context = self.context._serialize_run_context(params, repetitions)
+
+            job_result_future = self.context.client.run_job_over_stream(
+                project_id=self.project_id,
+                program_id=str(program_id),
+                program_description=program_description,
+                program_labels=program_labels,
+                code=self.context._serialize_program(program),
+                job_id=str(job_id),
+                run_context=run_context,
+                job_description=job_description,
+                job_labels=job_labels,
+                processor_id=processor_id,
+                run_name=run_name,
+                device_config_name=device_config_name,
+            )
+            return engine_job.EngineJob(
+                self.project_id,
+                str(program_id),
+                str(job_id),
+                self.context,
+                job_result_future=job_result_future,
+            )
+
         engine_program = await self.create_program_async(
             program, program_id, description=program_description, labels=program_labels
         )
@@ -372,6 +416,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     run_sweep = duet.sync(run_sweep_async)
 
+    # TODO(#5996) Migrate to stream client
     # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_batch_async(
         self,
@@ -475,6 +520,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     run_batch = duet.sync(run_batch_async)
 
+    # TODO(#5996) Migrate to stream client
     async def run_calibration_async(
         self,
         layers: List['cirq_google.CalibrationLayer'],

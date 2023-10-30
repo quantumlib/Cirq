@@ -63,8 +63,8 @@ def test_qubitization_walk_operator(num_sites: int, eps: float):
     L_state = np.zeros(2 ** len(g.quregs['selection']))
     L_state[: len(ham_coeff)] = np.sqrt(ham_coeff / qubitization_lambda)
 
-    greedy_mm = cirq_ft.GreedyQubitManager('ancilla', maximize_reuse=True)
-    walk_circuit = cirq_ft.map_clean_and_borrowable_qubits(walk_circuit, qm=greedy_mm)
+    greedy_mm = cirq.GreedyQubitManager('ancilla', maximize_reuse=True)
+    walk_circuit = cirq.map_clean_and_borrowable_qubits(walk_circuit, qm=greedy_mm)
     assert len(walk_circuit.all_qubits()) < 23
     qubit_order = cirq.QubitOrder.explicit(
         [*g.quregs['selection'], *g.quregs['target']], fallback=cirq.QubitOrder.DEFAULT
