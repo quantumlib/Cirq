@@ -4,6 +4,10 @@ on:
   schedule:
     # Checks out master by default.
     - cron: '0 0 * * *'
+  # FIXME - remove this before submitting #6335
+  pull_request:
+    branches:
+      - master
 
 concurrency:
   group: ${{ github.workflow }}
