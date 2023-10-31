@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+import sys
 
 import cirq
 import cirq_ft
@@ -114,6 +115,7 @@ def test_qrom_repr():
     cirq.testing.assert_equivalent_repr(qrom, setup_code="import cirq_ft\nimport numpy as np")
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('qrom')
 

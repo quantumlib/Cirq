@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import random
+import sys
 
 import cirq
 import cirq_ft
@@ -146,6 +147,7 @@ def test_multi_target_cswap_make_on():
     assert cswap1 == cswap2
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('swap_network')
 

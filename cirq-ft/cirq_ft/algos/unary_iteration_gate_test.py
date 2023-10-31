@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+import sys
 from typing import Sequence, Tuple
 
 import cirq
@@ -198,5 +199,6 @@ def test_unary_iteration_loop_empty_range():
     assert list(cirq_ft.unary_iteration(4, 3, [], [], [cirq.q('s')], qm)) == []
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('unary_iteration')
