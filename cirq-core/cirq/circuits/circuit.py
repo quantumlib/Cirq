@@ -1777,7 +1777,9 @@ class Circuit(AbstractCircuit):
         """Clear cached properties in response to this circuit being mutated."""
         self._all_qubits = None
         self._frozen = None
+        self._is_measurement = None
         self._is_parameterized = None
+        self._parameter_names = None
 
     @classmethod
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':

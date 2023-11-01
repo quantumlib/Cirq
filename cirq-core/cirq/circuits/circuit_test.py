@@ -4533,7 +4533,7 @@ def test_freeze_not_relocate_moments():
     assert [mc is fc for mc, fc in zip(c, f)] == [True, True]
 
 
-def test_freeze_returns_same_instance_if_not_mutated():
+def test_freeze_is_cached():
     q = cirq.q(0)
     c = cirq.Circuit(cirq.X(q), cirq.measure(q))
     f0 = c.freeze()
