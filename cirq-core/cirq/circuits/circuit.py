@@ -1849,7 +1849,7 @@ class Circuit(AbstractCircuit):
         Repeated calls to `.freeze()` will return the same FrozenCircuit
         instance as long as this circuit is not mutated.
         """
-        from cirq.circuits import FrozenCircuit
+        from cirq.circuits.frozen_circuit import FrozenCircuit
 
         if self._frozen is None:
             self._frozen = FrozenCircuit.from_moments(*self._moments)
