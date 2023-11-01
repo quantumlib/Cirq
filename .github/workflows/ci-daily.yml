@@ -58,10 +58,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install --pre cirq &&
-          pip install \
-            -r dev_tools/requirements/deps/format.txt \
-            -r dev_tools/requirements/deps/pylint.txt \
-            -r dev_tools/requirements/deps/pytest.txt
+            pip install -r dev_tools/requirements/deps/format.txt &&
+            pip install -r dev_tools/requirements/deps/pylint.txt &&
+            pip install -r dev_tools/requirements/deps/pytest.txt
       - name: Pytest Windows
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
         shell: bash

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import cirq
 import cirq_ft
 import pytest
@@ -207,5 +209,6 @@ def test_cache_clear():
     cirq_ft.t_complexity.cache_clear()
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('t_complexity')
