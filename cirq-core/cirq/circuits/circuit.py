@@ -1839,7 +1839,6 @@ class Circuit(AbstractCircuit):
                 self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
             else:
                 self._moments.append(Moment(op_lists_by_index[i]))
-        self._mutated()
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
