@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from pathlib import Path
+from unittest import mock
+
 import cirq_web
 
 
@@ -50,6 +53,7 @@ def test_repr_html(tmpdir):
     assert remove_whitespace(expected) == remove_whitespace(actual)
 
 
+@mock.patch.dict(os.environ, {"BROWSER": "true"})
 def test_generate_html_file_with_browser(tmpdir):
     # # Reset the path so the files are accessible
     cirq_web.widget._DIST_PATH = Path(tmpdir) / "dir"
