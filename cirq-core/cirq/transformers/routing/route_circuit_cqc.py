@@ -15,7 +15,7 @@
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
 from typing import Any, Dict, List, Optional, Set, Sequence, Tuple, TYPE_CHECKING
-from itertools import combinations, chain
+import itertools
 import networkx as nx
 
 from cirq import circuits, ops, protocols
@@ -48,7 +48,9 @@ def _disjoint_nc2_combinations(
     Returns:
         All 2-combinations between qubit pairs that are disjoint.
     """
-    return [pair for pair in combinations(qubit_pairs, 2) if set(pair[0]).isdisjoint(pair[1])]
+    return [
+        pair for pair in itertools.combinations(qubit_pairs, 2) if set(pair[0]).isdisjoint(pair[1])
+    ]
 
 
 @transformer_api.transformer
@@ -254,12 +256,10 @@ class RouteCQC:
 
         if any(
             protocols.num_qubits(op) > 2 and protocols.is_measurement(op)
-            for op in chain(*circuit.moments[:-1])
+            for op in itertools.chain(*circuit.moments[:-1])
         ):
             # There is at least one non-terminal measurement on 3+ qubits
-            raise ValueError(
-                "Input circuit must only have intermediate measurement ops that act on 1 or 2 qubits."
-            )
+            raise ValueError('Non-terminal measurements on three or more qubits are not supported')
 
         for moment in circuit:
             for op in moment:
@@ -268,7 +268,7 @@ class RouteCQC:
                 two_qubit_circuit.append(
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
-                if protocols.num_qubits(op) >= 2:
+                if protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
                     single_qubit_ops[timestep].append(op)
