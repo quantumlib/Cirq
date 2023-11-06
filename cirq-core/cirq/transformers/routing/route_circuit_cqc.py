@@ -15,7 +15,7 @@
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
 from typing import Any, Dict, List, Optional, Set, Sequence, Tuple, TYPE_CHECKING
-from itertools import combinations
+from itertools import combinations, chain
 import networkx as nx
 
 from cirq import circuits, ops, protocols
@@ -245,55 +245,33 @@ class RouteCQC:
         The i'th entry in the nested two-qubit and single-qubit ops correspond to the two-qubit
         gates and single-qubit gates of the i'th timesteps respectively. When constructing the
         output routed circuit, single-qubit operations are inserted before two-qubit operations.
+
+        Raises:
+            ValueError: if circuit has intermediate measurement operations that act on 3 or more qubits.
         """
         two_qubit_circuit = circuits.Circuit()
-
-        # TODO: add list variable for intermediate circuits
-        two_qubit_circuits: List[cirq.AbstractCircuit] = []
-        prev_two_qubit_moments: int = 0
-
         single_qubit_ops: List[List[cirq.Operation]] = []
+
+        if any(
+            protocols.num_qubits(op) > 2 and protocols.is_measurement(op)
+            for op in chain(*circuit.moments[:-1])
+        ):
+            # There is at least one non-terminal measurement on 3+ qubits
+            raise ValueError(
+                "Input circuit must only have intermediate measurement ops that act on 1 or 2 qubits."
+            )
+
         for moment in circuit:
             for op in moment:
-                two_qubit_timestep = two_qubit_circuit.earliest_available_moment(op)
-                single_qubit_timestep = two_qubit_timestep + prev_two_qubit_moments
-
-                single_qubit_ops.extend(
-                    [] for _ in range(single_qubit_timestep + 1 - len(single_qubit_ops))
-                )
+                timestep = two_qubit_circuit.earliest_available_moment(op)
+                single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
                 two_qubit_circuit.append(
-                    circuits.Moment()
-                    for _ in range(two_qubit_timestep + 1 - len(two_qubit_circuit))
+                    circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
-                if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
-                    """TODO:
-                    add intermediate measurment op,
-                    and store circuit,
-                    update the timestep length for single qubits correctly,
-                    reset single  two_qubit_circuit
-                    """
-                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[
-                        two_qubit_timestep
-                    ].with_operation(op)
-                    two_qubit_circuits.append(two_qubit_circuit)
-                    prev_two_qubit_moments += len(two_qubit_circuit.moments)
-                    two_qubit_circuit = circuits.Circuit()
-                elif protocols.num_qubits(op) > 2 and not protocols.is_measurement(op):
-                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[
-                        two_qubit_timestep
-                    ].with_operation(op)
-                elif protocols.num_qubits(op) == 2:
-                    two_qubit_circuit[two_qubit_timestep] = two_qubit_circuit[
-                        two_qubit_timestep
-                    ].with_operation(op)
+                if protocols.num_qubits(op) >= 2:
+                    two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
-                    single_qubit_ops[single_qubit_timestep].append(op)
-
-        while two_qubit_circuits:
-            # TODO: connect end of one circuit to start of another
-            prev_circuit = two_qubit_circuits.pop()
-            two_qubit_circuit = prev_circuit + two_qubit_circuit
-
+                    single_qubit_ops[timestep].append(op)
         two_qubit_ops = [list(m) for m in two_qubit_circuit]
         return two_qubit_ops, single_qubit_ops
 

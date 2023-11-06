@@ -110,19 +110,36 @@ def test_circuit_with_measurement_gates():
 def test_circuit_with_intermediate_multi_qubit_measurement_gates():
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
+    router = cirq.RouteCQC(device_graph)
     q = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(
-        cirq.CZ(q[0], q[1]),
-        cirq.CZ(q[1], q[2]),
-        cirq.CZ(q[0], q[2]),
+    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+
+    subcircuit_op = cirq.CircuitOperation(
+        cirq.Circuit(cirq.CZ(q[0], q[1]), cirq.CZ(q[1], q[2]), cirq.CZ(q[0], q[2])).freeze()
+    ).with_tags('<mapped_circuit_op>')
+
+    valid_circuit = cirq.Circuit(subcircuit_op, cirq.measure_each(*q))
+    invalid_circuit = cirq.Circuit(
+        subcircuit_op,
         cirq.MeasurementGate(3).on(*q),
         cirq.H.on_each(*q),
-        cirq.measure_each(*q),
+        cirq.MeasurementGate(3).on(*q),
     )
-    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
-    router = cirq.RouteCQC(device_graph)
-    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
-    cirq.testing.assert_same_circuits(routed_circuit, circuit)
+
+    with pytest.raises(
+        ValueError,
+        match="Input circuit must only have intermediate measurement ops that act on 1 or 2 qubits.",
+    ):
+        router(
+            invalid_circuit,
+            initial_mapper=hard_coded_mapper,
+            context=cirq.TransformerContext(deep=True),
+        )
+
+    c_routed = router(
+        valid_circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)
+    )
+    device.validate_circuit(c_routed)
 
 
 def test_circuit_with_non_unitary_and_global_phase():
