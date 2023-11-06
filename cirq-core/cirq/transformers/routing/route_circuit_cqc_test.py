@@ -129,14 +129,9 @@ def test_circuit_with_invalid_intermediate_multi_qubit_measurement_gates():
     q = cirq.LineQubit.range(3)
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
 
-    invalid_circuit = cirq.Circuit(
-        cirq.MeasurementGate(3).on(*q),
-        cirq.H.on_each(*q)
-    )
+    invalid_circuit = cirq.Circuit(cirq.MeasurementGate(3).on(*q), cirq.H.on_each(*q))
 
-    with pytest.raises(
-        ValueError
-    ):
+    with pytest.raises(ValueError):
         _ = router(
             invalid_circuit,
             initial_mapper=hard_coded_mapper,
