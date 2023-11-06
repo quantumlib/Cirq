@@ -158,7 +158,7 @@ class RouteCQC:
     ) -> Tuple['cirq.AbstractCircuit', Dict['cirq.Qid', 'cirq.Qid'], Dict['cirq.Qid', 'cirq.Qid']]:
         """Transforms the given circuit to make it executable on the device.
 
-        This transformer assumes that all two-qubit operations have been decomposed into 2-qubit
+        This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
         operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
         `circuit` contains `cirq.CircuitOperation`s and `context.deep` is True then they are first
         unrolled before proceeding. If `context.deep` is False or `context` is None then any
