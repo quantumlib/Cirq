@@ -111,7 +111,7 @@ def test_circuit_with_valid_intermediate_multi_qubit_measurement_gates():
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
-    qs = cirq.LineQubit.range(2)
+    q = cirq.LineQubit.range(2)
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
 
     valid_circuit = cirq.Circuit(cirq.measure_each(*q), cirq.H.on_each(q))
