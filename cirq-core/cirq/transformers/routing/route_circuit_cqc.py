@@ -249,7 +249,7 @@ class RouteCQC:
         output routed circuit, single-qubit operations are inserted before two-qubit operations.
 
         Raises:
-            ValueError: if circuit has intermediate measurement operations that act on 3 or more qubits.
+            ValueError: if circuit has intermediate measurement op's that act on 3 or more qubits.
         """
         two_qubit_circuit = circuits.Circuit()
         single_qubit_ops: List[List[cirq.Operation]] = []

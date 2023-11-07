@@ -117,9 +117,7 @@ def test_circuit_with_valid_intermediate_multi_qubit_measurement_gates():
     valid_circuit = cirq.Circuit(cirq.measure_each(*q), cirq.H.on_each(q))
 
     c_routed = router(
-        valid_circuit, 
-        initial_mapper=hard_coded_mapper, 
-        context=cirq.TransformerContext(deep=True)
+        valid_circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)
     )
     device.validate_circuit(c_routed)
 
