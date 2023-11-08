@@ -44,10 +44,10 @@ def keep(op: cirq.Operation):
 
 
 def greedily_allocate_ancilla(circuit: cirq.AbstractCircuit) -> cirq.Circuit:
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="ancilla", maximize_reuse=True)
-    circuit = cirq_ft.map_clean_and_borrowable_qubits(circuit, qm=greedy_mm)
+    greedy_mm = cirq.GreedyQubitManager(prefix="ancilla", maximize_reuse=True)
+    circuit = cirq.map_clean_and_borrowable_qubits(circuit, qm=greedy_mm)
     assert len(circuit.all_qubits()) < 30
-    return circuit
+    return circuit.unfreeze()
 
 
 def construct_gate_helper_and_qubit_order(gate):
@@ -78,6 +78,7 @@ def get_3q_uniform_dirac_notation(signs):
     return ret
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('num_ones', [*range(5, 9)])
 @pytest.mark.parametrize('eps', [0.01])
 def test_reflection_using_prepare(num_ones, eps):
