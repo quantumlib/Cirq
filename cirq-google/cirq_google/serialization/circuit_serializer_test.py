@@ -250,7 +250,7 @@ OPERATIONS = [
             {
                 'measurementgate': {
                     'key': {'arg_value': {'string_value': 'iron'}},
-                    'invert_mask': {'arg_value': {'bool_values': {'values': [True,]}}},
+                    'invert_mask': {'arg_value': {'bool_values': {'values': [True]}}},
                 },
                 'qubit_constant_index': [0, 1],
             }
@@ -638,7 +638,7 @@ def test_deserialize_wrong_types():
         {
             'measurementgate': {
                 'key': {'arg_value': {'float_value': 3.0}},
-                'invert_mask': {'arg_value': {'bool_values': {'values': [True,]}}},
+                'invert_mask': {'arg_value': {'bool_values': {'values': [True]}}},
             },
             'qubit_constant_index': [0],
         },
