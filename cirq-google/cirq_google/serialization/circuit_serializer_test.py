@@ -245,12 +245,12 @@ OPERATIONS = [
         ),
     ),
     (
-        cirq.MeasurementGate(num_qubits=2, key='iron', invert_mask=(True, False))(Q0, Q1),
+        cirq.MeasurementGate(num_qubits=2, key='iron', invert_mask=(True,))(Q0, Q1),
         op_proto(
             {
                 'measurementgate': {
                     'key': {'arg_value': {'string_value': 'iron'}},
-                    'invert_mask': {'arg_value': {'bool_values': {'values': [True, False]}}},
+                    'invert_mask': {'arg_value': {'bool_values': {'values': [True,]}}},
                 },
                 'qubit_constant_index': [0, 1],
             }
@@ -638,7 +638,7 @@ def test_deserialize_wrong_types():
         {
             'measurementgate': {
                 'key': {'arg_value': {'float_value': 3.0}},
-                'invert_mask': {'arg_value': {'bool_values': {'values': [True, False]}}},
+                'invert_mask': {'arg_value': {'bool_values': {'values': [True,]}}},
             },
             'qubit_constant_index': [0],
         },

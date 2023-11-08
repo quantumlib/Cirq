@@ -78,7 +78,6 @@ def test_measurement_eq():
         lambda: cirq.MeasurementGate(1, 'a', confusion_map={}),
     )
     eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(True,)))
-    eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(False,)))
     eq.add_equality_group(
         cirq.MeasurementGate(1, 'a', confusion_map={(0,): np.array([[0, 1], [1, 0]])})
     )
@@ -88,6 +87,14 @@ def test_measurement_eq():
         cirq.MeasurementGate(3, 'a'), cirq.MeasurementGate(3, 'a', qid_shape=(2, 2, 2))
     )
     eq.add_equality_group(cirq.MeasurementGate(3, 'a', qid_shape=(1, 2, 3)))
+
+
+def test_measurement_invert_mask():
+    assert cirq.MeasurementGate(2, 'a', invert_mask=(False,)).invert_mask == ()
+    assert cirq.MeasurementGate(2, 'a', invert_mask=(False, True)).invert_mask == (False, True)
+    assert cirq.MeasurementGate(2, 'a', invert_mask=(True, False)).invert_mask == (True,)
+    assert cirq.MeasurementGate(1) == cirq.MeasurementGate(1, invert_mask=())
+    assert cirq.MeasurementGate(1) == cirq.MeasurementGate(1, invert_mask=(False,))
 
 
 def test_measurement_full_invert_mask():
@@ -336,7 +343,7 @@ def test_repr():
         {(2,): np.array([[0, 1], [1, 0]], dtype=np.dtype('int64'))},
     )
     assert repr(gate) == (
-        "cirq.MeasurementGate(3, cirq.MeasurementKey(name='a'), (True, False), "
+        "cirq.MeasurementGate(3, cirq.MeasurementKey(name='a'), (True,), "
         "qid_shape=(1, 2, 3), "
         "confusion_map={(2,): np.array([[0, 1], [1, 0]], dtype=np.dtype('int64'))})"
     )

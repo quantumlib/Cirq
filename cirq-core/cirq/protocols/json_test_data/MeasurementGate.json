@@ -20,8 +20,7 @@
     "num_qubits": 3,
     "key": "a:b:z",
     "invert_mask": [
-      true,
-      false
+      true
     ],
     "qid_shape": [
       1,
@@ -34,8 +33,7 @@
     "num_qubits": 3,
     "key": "a",
     "invert_mask": [
-      true,
-      false
+      true
     ],
     "confusion_map": [
       [
