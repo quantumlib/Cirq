@@ -255,9 +255,7 @@ class ParamResolver:
     def __repr__(self) -> str:
         param_dict_repr = (
             '{'
-            + ', '.join(
-                [f'{proper_repr(k)}: {proper_repr(v)}' for k, v in self._param_dict.items()]
-            )
+            + ', '.join(f'{proper_repr(k)}: {proper_repr(v)}' for k, v in self._param_dict.items())
             + '}'
         )
         return f'cirq.ParamResolver({param_dict_repr})'
