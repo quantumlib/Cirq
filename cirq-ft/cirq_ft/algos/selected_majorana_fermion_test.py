@@ -20,7 +20,14 @@ from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 
 
-@pytest.mark.parametrize("selection_bitsize, target_bitsize", [(2, 4), (3, 8), (4, 9)])
+@pytest.mark.parametrize(
+    "selection_bitsize, target_bitsize",
+    [
+        (2, 4),
+        pytest.param(3, 8, marks=pytest.mark.slow),
+        pytest.param(4, 9, marks=pytest.mark.slow),
+    ],
+)
 @pytest.mark.parametrize("target_gate", [cirq.X, cirq.Y])
 def test_selected_majorana_fermion_gate(selection_bitsize, target_bitsize, target_gate):
     gate = cirq_ft.SelectedMajoranaFermionGate(
