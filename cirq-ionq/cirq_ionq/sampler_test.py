@@ -119,7 +119,6 @@ def test_sampler_multiple_jobs():
         ]
     )
     assert mock_service.create_job.call_count == 2
-    raise ValueError()
 
 
 def test_sampler_run_sweep():
