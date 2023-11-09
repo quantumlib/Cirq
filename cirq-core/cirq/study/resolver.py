@@ -131,16 +131,16 @@ class ParamResolver:
             if param_value is _NotFound:
                 param_value = self._param_dict.get(symbol, _NotFound)
             if param_value is _NotFound:
-                # Symbol or string that is not in the param_dict cannot be resolved futher; return as symbol.
+                # Symbol or string cannot be resolved if not in param dict; return as symbol.
                 return symbol
             v = _resolve_value(param_value)
             if v is not NotImplemented:
                 return v
             if not isinstance(param_value, sympy.Basic):
-                return value
+                return value  # type: ignore[return-value]
             if recursive:
                 param_value = self._value_of_recursive(value)
-            return param_value
+            return param_value  # type: ignore[return-value]
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
@@ -194,9 +194,7 @@ class ParamResolver:
 
         return self._value_of_recursive(value)
 
-    def _value_of_recursive(
-        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex']
-    ) -> 'cirq.TParamValComplex':
+    def _value_of_recursive(self, value: 'cirq.TParamKey') -> 'cirq.TParamValComplex':
         # Recursive parameter resolution. We can safely assume that value is a
         # single symbol, since combinations are handled earlier in the method.
         if value in self._deep_eval_map:
