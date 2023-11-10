@@ -17,6 +17,7 @@ import pytest
 
 import cirq
 import cirq.testing
+from cirq import linalg
 
 
 def test_reflection_matrix_pow_consistent_results():
@@ -352,20 +353,20 @@ def test_sub_state_vector():
     a = np.arange(4) / np.linalg.norm(np.arange(4))
     b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
     c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
-    state = np.kron(np.kron(a, b), c).reshape(2, 2, 2, 2, 2, 2, 2, 2, 2)
+    state = np.kron(np.kron(a, b), c).reshape((2, 2, 2, 2, 2, 2, 2, 2, 2))
 
     assert cirq.equal_up_to_global_phase(cirq.sub_state_vector(a, [0, 1], atol=1e-8), a)
     assert cirq.equal_up_to_global_phase(cirq.sub_state_vector(b, [0, 1, 2], atol=1e-8), b)
     assert cirq.equal_up_to_global_phase(cirq.sub_state_vector(c, [0, 1, 2, 3], atol=1e-8), c)
 
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(state, [0, 1], atol=1e-15), a.reshape(2, 2)
+        cirq.sub_state_vector(state, [0, 1], atol=1e-15), a.reshape((2, 2))
     )
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(state, [2, 3, 4], atol=1e-15), b.reshape(2, 2, 2)
+        cirq.sub_state_vector(state, [2, 3, 4], atol=1e-15), b.reshape((2, 2, 2))
     )
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(state, [5, 6, 7, 8], atol=1e-15), c.reshape(2, 2, 2, 2)
+        cirq.sub_state_vector(state, [5, 6, 7, 8], atol=1e-15), c.reshape((2, 2, 2, 2))
     )
 
     # Output state vector conforms to the shape of the input state vector.
@@ -485,15 +486,15 @@ def test_partial_trace_of_state_vector_as_mixture_pure_result():
 
     assert mixtures_equal(
         cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1], atol=1e-8),
-        ((1.0, a.reshape(2, 2)),),
+        ((1.0, a.reshape((2, 2))),),
     )
     assert mixtures_equal(
         cirq.partial_trace_of_state_vector_as_mixture(state, [2, 3, 4], atol=1e-8),
-        ((1.0, b.reshape(2, 2, 2)),),
+        ((1.0, b.reshape((2, 2, 2))),),
     )
     assert mixtures_equal(
         cirq.partial_trace_of_state_vector_as_mixture(state, [5, 6, 7, 8], atol=1e-8),
-        ((1.0, c.reshape(2, 2, 2, 2)),),
+        ((1.0, c.reshape((2, 2, 2, 2))),),
     )
     assert mixtures_equal(
         cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 2, 3, 4], atol=1e-8),
@@ -632,3 +633,18 @@ def test_factor_state_vector(state_1: int, state_2: int):
         # All phase goes into a1, and b1 is just the dephased state vector
         assert np.allclose(a1, a * phase)
         assert np.allclose(b1, b)
+
+
+@pytest.mark.parametrize('num_dimensions', [*range(1, 7)])
+def test_transpose_flattened_array(num_dimensions):
+    np.random.seed(0)
+    for _ in range(10):
+        shape = np.random.randint(1, 5, (num_dimensions,)).tolist()
+        axes = np.random.permutation(num_dimensions).tolist()
+        volume = np.prod(shape)
+        A = np.random.permutation(volume)
+        want = np.transpose(A.reshape(shape), axes)
+        got = linalg.transpose_flattened_array(A, shape, axes).reshape(want.shape)
+        assert np.array_equal(want, got)
+        got = linalg.transpose_flattened_array(A.reshape(shape), shape, axes).reshape(want.shape)
+        assert np.array_equal(want, got)

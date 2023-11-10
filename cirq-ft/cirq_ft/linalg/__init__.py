@@ -1,4 +1,4 @@
-# Copyright 2022 The Cirq Developers
+# Copyright 2023 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
-import pytest
-
-# Annotation for tests that use unittest.mock.AsyncMock, added in python 3.8.
-# Tests using AsyncMock are expected to fail in earlier versions of python.
-# See: https://docs.python.org/3/library/unittest.mock.html#unittest.mock.AsyncMock
-uses_async_mock = pytest.mark.xfail(
-    sys.version_info < (3, 8, 0), reason='unittest.mock.AsyncMock is only available in python 3.8+'
-)
+from cirq_ft.linalg.lcu_util import preprocess_lcu_coefficients_for_reversible_sampling

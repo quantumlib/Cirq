@@ -20,10 +20,10 @@ jobs:
         partition: [partition-0, partition-1, partition-2, partition-3]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-base.env.txt

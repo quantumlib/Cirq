@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: delete this file after adding some actual tests to cirq-ft
-
-
-def test_to_satisfy_ci():
-    assert True
+from cirq_ft.algos.mean_estimation.arctan import ArcTan
+from cirq_ft.algos.mean_estimation.complex_phase_oracle import ComplexPhaseOracle
+from cirq_ft.algos.mean_estimation.mean_estimation_operator import (
+    CodeForRandomVariable,
+    MeanEstimationOperator,
+)
