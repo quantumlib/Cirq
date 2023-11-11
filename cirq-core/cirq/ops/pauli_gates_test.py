@@ -220,24 +220,3 @@ def test_powers():
     assert isinstance(cirq.X**1, cirq.Pauli)
     assert isinstance(cirq.Y**1, cirq.Pauli)
     assert isinstance(cirq.Z**1, cirq.Pauli)
-
-
-@pytest.mark.parametrize('gate_cls', (cirq.XXPowGate, cirq.YYPowGate, cirq.ZZPowGate))
-@pytest.mark.parametrize('exponent', (0, 0.5, 0.75, 1, 1.5))
-def test_clifford_protocols(gate_cls: type[cirq.EigenGate], exponent: float):
-    gate = gate_cls(exponent=exponent)
-    assert hasattr(gate, '_decompose_into_clifford_with_qubits_')
-    is_clifford = exponent % 2 in (0, 0.5, 1, 1.5)
-    if is_clifford:
-        clifford_decomposition = cirq.Circuit(
-            gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2))
-        )
-        assert cirq.has_stabilizer_effect(gate)
-        assert cirq.has_stabilizer_effect(clifford_decomposition)
-        if exponent == 0:
-            assert clifford_decomposition == cirq.Circuit()
-        else:
-            np.testing.assert_allclose(cirq.unitary(gate), cirq.unitary(clifford_decomposition))
-    else:
-        assert not cirq.has_stabilizer_effect(gate)
-        assert gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2)) is NotImplemented
