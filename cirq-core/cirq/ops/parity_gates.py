@@ -283,7 +283,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def _decompose_into_clifford_with_qubits_(
         self, qubits: Sequence['cirq.Qid']
-    ) -> Sequence['cirq.Operation' | Sequence['cirq.Operation']]:
+    ) -> Sequence[Union['cirq.Operation', Sequence['cirq.Operation']]]:
         if not self._has_stabilizer_effect_():
             return NotImplemented
         if self.exponent % 2 == 0:
