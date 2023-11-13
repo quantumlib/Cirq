@@ -193,4 +193,6 @@ class TestSimulator:
             match="Can not simulate gates other than "
             + "cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT",
         ):
-            sim.run(circuit, param_resolver=resolver, repetitions=1).records
+           _ = sim.run(circuit, param_resolver=resolver, repetitions=1).records
+        
+    

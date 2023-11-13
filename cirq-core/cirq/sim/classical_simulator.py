@@ -23,26 +23,31 @@ import numpy as np
 
 
 class ClassicalStateSimulator(SimulatesSamples):
-    """basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates
+    """A simulator that only accepts only gates with classical counterparts.
 
-    Run a simulation, mimicking quantum hardware.
+    This simulator evolves a single state, using only gates that output a single state for each
+    input state. The simulator runs in linear time, at the cost of not supporting superposition.
+    It can be used to estimate costs and simulate circuits for simple non-quantum algorithms using
+    many more qubits than fully capable quantum simulators.
 
-      Args:
-          circuit: The circuit to simulate.
-          param_resolver: Parameters to run with the program.
-          repetitions: Number of times to repeat the run. It is expected that
-              this is validated greater than zero before calling this method.
+    The supported gates are:
+        - cirq.X
+        - cirq.CNOT
+        - cirq.SWAP
+        - cirq.TOFFOLI
+        - cirq.measure
 
-      Returns:
-          A dictionary from measurement gate key to measurement
-          results. Measurement results are stored in a 3-dimensional
-          numpy array, the first dimension corresponding to the repetition.
-          the second to the instance of that key in the circuit, and the
-          third to the actual boolean measurement results (ordered by the
-          qubits being measured.)
+    Args:
+        circuit: The circuit to simulate.
+        param_resolver: Parameters to run with the program.
+        repetitions: Number of times to repeat the run. It is expected that
+            this is validated greater than zero before calling this method.
 
-     Raises:
-      ValuesError: gate is not a cirq.XGate or cirq.Cnot
+    Returns:
+        A dictionary mapping measurement keys to measurement results.
+
+    Raises:
+        ValueError: If one of the gates is not an X, CNOT, SWAP, TOFFOLI or a measurement.
     """
 
     def _run(
