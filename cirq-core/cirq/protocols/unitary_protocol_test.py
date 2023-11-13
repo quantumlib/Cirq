@@ -209,6 +209,7 @@ def _test_gate_that_allocates_qubits(gate):
 def test_decompose_gate_that_allocates_clean_qubits(
     theta: float, phase_state: int, target_bitsize: int, ancilla_bitsize: int
 ):
+
     gate = testing.PhaseUsingCleanAncilla(theta, phase_state, target_bitsize, ancilla_bitsize)
     _test_gate_that_allocates_qubits(gate)
 
@@ -219,6 +220,7 @@ def test_decompose_gate_that_allocates_clean_qubits(
 def test_decompose_gate_that_allocates_dirty_qubits(
     phase_state: int, target_bitsize: int, ancilla_bitsize: int
 ):
+
     gate = testing.PhaseUsingDirtyAncilla(phase_state, target_bitsize, ancilla_bitsize)
     _test_gate_that_allocates_qubits(gate)
 
