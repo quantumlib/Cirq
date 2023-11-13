@@ -182,13 +182,13 @@ def unary_iteration(
     Users can write multi-dimensional coherent for loops as follows:
 
     >>> import cirq
-    >>> from cirq_ft import unary_iteration, GreedyQubitManager
+    >>> from cirq_ft import unary_iteration
     >>> N, M = 5, 7
     >>> target = [[cirq.q(f't({i}, {j})') for j in range(M)] for i in range(N)]
     >>> selection = [[cirq.q(f's({i}, {j})') for j in range(3)] for i in range(3)]
     >>> circuit = cirq.Circuit()
     >>> i_ops = []
-    >>> qm = GreedyQubitManager("ancilla", maximize_reuse=True)
+    >>> qm = cirq.GreedyQubitManager("ancilla", maximize_reuse=True)
     >>> for i_optree, i_ctrl, i in unary_iteration(0, N, i_ops, [], selection[0], qm):
     ...     circuit.append(i_optree)
     ...     j_ops = []

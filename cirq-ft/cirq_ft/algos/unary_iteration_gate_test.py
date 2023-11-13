@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+import sys
 from typing import Sequence, Tuple
 
 import cirq
@@ -58,7 +59,7 @@ class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
     "selection_bitsize, target_bitsize, control_bitsize", [(3, 5, 1), (2, 4, 2), (1, 2, 3)]
 )
 def test_unary_iteration_gate(selection_bitsize, target_bitsize, control_bitsize):
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToLthQubit(selection_bitsize, target_bitsize, control_bitsize)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
     assert len(g.all_qubits) <= 2 * (selection_bitsize + control_bitsize) + target_bitsize - 1
@@ -118,9 +119,11 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
         yield [cirq.CNOT(control, t1[i]), cirq.CNOT(control, t2[j]), cirq.CNOT(control, t3[k])]
 
 
-@pytest.mark.parametrize("target_shape", [(2, 3, 2), (2, 2, 2)])
+@pytest.mark.parametrize(
+    "target_shape", [pytest.param((2, 3, 2), marks=pytest.mark.slow), (2, 2, 2)]
+)
 def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, int]):
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToIJKthQubit(target_shape)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
     assert (
@@ -155,7 +158,7 @@ def test_unary_iteration_loop():
     ]
     selection = infra.get_named_qubits(selection_registers)
     target = {(n, m): cirq.q(f't({n}, {m})') for n in range(*n_range) for m in range(*m_range)}
-    qm = cirq_ft.GreedyQubitManager("ancilla", maximize_reuse=True)
+    qm = cirq.GreedyQubitManager("ancilla", maximize_reuse=True)
     circuit = cirq.Circuit()
     i_ops = []
     # Build the unary iteration circuit
@@ -196,5 +199,6 @@ def test_unary_iteration_loop_empty_range():
     assert list(cirq_ft.unary_iteration(4, 3, [], [], [cirq.q('s')], qm)) == []
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('unary_iteration')

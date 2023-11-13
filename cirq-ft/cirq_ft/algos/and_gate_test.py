@@ -14,6 +14,7 @@
 
 import itertools
 import random
+import sys
 from typing import List, Tuple
 
 import cirq
@@ -203,6 +204,7 @@ def test_and_gate_adjoint(cv: Tuple[int, int]):
         cirq_ft.testing.assert_circuit_inp_out_cirqsim(circuit, [c1, c2, t], inp, out)
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('and_gate')
 

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import cirq
 import cirq_ft
 import pytest
@@ -22,7 +24,7 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
 
 @pytest.mark.parametrize("selection_bitsize,target_bitsize", [[3, 5], [3, 7], [4, 5]])
 def test_apply_gate_to_lth_qubit(selection_bitsize, target_bitsize):
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = cirq_ft.ApplyGateToLthQubit(
         cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize), lambda _: cirq.X
     )
@@ -101,5 +103,6 @@ def test_apply_gate_to_lth_qubit_make_on():
     assert op.gate.control_regs == op2.gate.control_regs
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('apply_gate_to_lth_target')

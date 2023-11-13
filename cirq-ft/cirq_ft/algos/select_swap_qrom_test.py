@@ -20,8 +20,19 @@ from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 
 
-@pytest.mark.parametrize("data", [[[1, 2, 3, 4, 5]], [[1, 2, 3], [3, 2, 1]]])
-@pytest.mark.parametrize("block_size", [None, 1, 2, 3])
+@pytest.mark.parametrize(
+    "data,block_size",
+    [
+        pytest.param(
+            data,
+            block_size,
+            id=f"{block_size}-data{didx}",
+            marks=pytest.mark.slow if block_size == 3 and didx == 1 else (),
+        )
+        for didx, data in enumerate([[[1, 2, 3, 4, 5]], [[1, 2, 3], [3, 2, 1]]])
+        for block_size in [None, 1, 2, 3]
+    ],
+)
 def test_select_swap_qrom(data, block_size):
     qrom = cirq_ft.SelectSwapQROM(*data, block_size=block_size)
     qubit_regs = infra.get_named_qubits(qrom.signature)
@@ -29,7 +40,7 @@ def test_select_swap_qrom(data, block_size):
     selection_q, selection_r = selection[: qrom.selection_q], selection[qrom.selection_q :]
     targets = [qubit_regs[f"target{i}"] for i in range(len(data))]
 
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     qrom_circuit = cirq.Circuit(cirq.decompose(qrom.on_registers(**qubit_regs), context=context))
 

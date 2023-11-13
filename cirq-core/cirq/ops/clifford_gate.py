@@ -683,25 +683,26 @@ class SingleQubitCliffordGate(CliffordGate):
         flip_index = int(z_to_flip) * 2 + x_to_flip
         a, x, z = 0.0, 0.0, 0.0
 
-        if np.array_equal(self.clifford_tableau.matrix(), [[1, 0], [0, 1]]):
+        matrix = self.clifford_tableau.matrix()
+        if np.array_equal(matrix, [[1, 0], [0, 1]]):
             # I, Z, X, Y cases
             to_phased_xz = [(0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (0.0, 1.0, 0.0), (0.5, 1.0, 0.0)]
             a, x, z = to_phased_xz[flip_index]
-        elif np.array_equal(self.clifford_tableau.matrix(), [[1, 0], [1, 1]]):
+        elif np.array_equal(matrix, [[1, 0], [1, 1]]):
             # +/- X_sqrt, 2 Hadamard-like gates acting on the YZ plane
             a = 0.0
             x = 0.5 if x_to_flip ^ z_to_flip else -0.5
             z = 1.0 if x_to_flip else 0.0
-        elif np.array_equal(self.clifford_tableau.matrix(), [[0, 1], [1, 0]]):
+        elif np.array_equal(matrix, [[0, 1], [1, 0]]):
             # +/- Y_sqrt, 2 Hadamard-like gates acting on the XZ plane
             a = 0.5
             x = 0.5 if x_to_flip else -0.5
             z = 0.0 if x_to_flip ^ z_to_flip else 1.0
-        elif np.array_equal(self.clifford_tableau.matrix(), [[1, 1], [0, 1]]):
+        elif np.array_equal(matrix, [[1, 1], [0, 1]]):
             # +/- Z_sqrt, 2 Hadamard-like gates acting on the XY plane
             to_phased_xz = [(0.0, 0.0, 0.5), (0.0, 0.0, -0.5), (0.25, 1.0, 0.0), (-0.25, 1.0, 0.0)]
             a, x, z = to_phased_xz[flip_index]
-        elif np.array_equal(self.clifford_tableau.matrix(), [[0, 1], [1, 1]]):
+        elif np.array_equal(matrix, [[0, 1], [1, 1]]):
             # axis swapping rotation -- (312) permutation
             a = 0.5
             x = 0.5 if x_to_flip else -0.5
@@ -709,7 +710,7 @@ class SingleQubitCliffordGate(CliffordGate):
         else:
             # axis swapping rotation -- (231) permutation.
             # This should be the only cases left.
-            assert np.array_equal(self.clifford_tableau.matrix(), [[1, 1], [1, 0]])
+            assert np.array_equal(matrix, [[1, 1], [1, 0]])
             a = 0.0
             x = -0.5 if x_to_flip ^ z_to_flip else 0.5
             z = -0.5 if x_to_flip else 0.5
