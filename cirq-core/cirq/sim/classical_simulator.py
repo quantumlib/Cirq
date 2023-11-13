@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, TYPE_CHECKING
+from typing import Dict
 from collections import defaultdict
 from cirq.sim.simulator import SimulatesSamples
 from cirq import ops, protocols
@@ -21,11 +21,8 @@ from cirq.circuits.circuit import AbstractCircuit
 from cirq.ops.raw_types import Qid
 import numpy as np
 
-if TYPE_CHECKING:
-    import cirq
 
-
-def _is_identity(op: 'cirq.Operation') -> bool:
+def _is_identity(op: ops.Operation) -> bool:
     if isinstance(op.gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
         return op.gate.exponent % 2 == 0
     return False
