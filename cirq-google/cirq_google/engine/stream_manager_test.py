@@ -24,7 +24,6 @@ import google.api_core.exceptions as google_exceptions
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine.stream_manager import (
     _get_retry_request_or_raise,
-    ProgramAlreadyExistsError,
     ResponseDemux,
     StreamError,
     StreamManager,
