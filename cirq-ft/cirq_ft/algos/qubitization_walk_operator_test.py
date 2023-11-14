@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import cirq
 import cirq_ft
 import numpy as np
@@ -46,6 +48,7 @@ def get_walk_operator_for_1d_Ising_model(
     return walk_operator_for_pauli_hamiltonian(ham, eps)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('num_sites,eps', [(4, 2e-1), (3, 1e-1)])
 def test_qubitization_walk_operator(num_sites: int, eps: float):
     ham = get_1d_Ising_hamiltonian(cirq.LineQubit.range(num_sites))
@@ -64,7 +67,7 @@ def test_qubitization_walk_operator(num_sites: int, eps: float):
     L_state[: len(ham_coeff)] = np.sqrt(ham_coeff / qubitization_lambda)
 
     greedy_mm = cirq.GreedyQubitManager('ancilla', maximize_reuse=True)
-    walk_circuit = cirq_ft.map_clean_and_borrowable_qubits(walk_circuit, qm=greedy_mm)
+    walk_circuit = cirq.map_clean_and_borrowable_qubits(walk_circuit, qm=greedy_mm)
     assert len(walk_circuit.all_qubits()) < 23
     qubit_order = cirq.QubitOrder.explicit(
         [*g.quregs['selection'], *g.quregs['target']], fallback=cirq.QubitOrder.DEFAULT
@@ -239,6 +242,7 @@ def test_qubitization_walk_operator_consistent_protocols_and_controlled():
         _ = gate.controlled(num_controls=2)
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('qubitization_walk_operator')
     execute_notebook('phase_estimation_of_quantum_walk')
