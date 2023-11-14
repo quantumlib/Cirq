@@ -21,6 +21,7 @@
 
 import importlib.metadata
 import os
+import sys
 import tempfile
 
 import pytest
@@ -68,7 +69,7 @@ def require_packages_not_changed():
     assert packages_after == packages_before
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def env_with_temporary_pip_target():
     """Setup system environment that tells pip to install packages to a temporary directory."""
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
@@ -86,6 +87,7 @@ def env_with_temporary_pip_target():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
 def test_notebooks_against_cirq_head(
     notebook_path, require_packages_not_changed, env_with_temporary_pip_target

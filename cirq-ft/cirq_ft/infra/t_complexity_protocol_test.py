@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import cirq
 import cirq_ft
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
@@ -29,8 +32,8 @@ class DoesNotSupportTComplexity:
 
 class SupportsTComplexityGateWithRegisters(cirq_ft.GateWithRegisters):
     @property
-    def registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(s=1, t=2)
+    def signature(self) -> cirq_ft.Signature:
+        return cirq_ft.Signature.build(s=1, t=2)
 
     def _t_complexity_(self) -> cirq_ft.TComplexity:
         return cirq_ft.TComplexity(t=1, clifford=2)
@@ -108,11 +111,11 @@ def test_operations():
     assert cirq_ft.t_complexity(cirq.T(q)) == cirq_ft.TComplexity(t=1)
 
     gate = cirq_ft.And()
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(t=4, clifford=9)
 
     gate = cirq_ft.And() ** -1
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(clifford=4)
 
 
@@ -186,7 +189,7 @@ def test_cache_clear():
 
         @property
         def qubits(self):
-            return [cirq.LineQubit(3)]  # coverage: ignore
+            return [cirq.LineQubit(3)]  # pragma: no cover
 
         def with_qubits(self, _):
             ...
@@ -206,5 +209,6 @@ def test_cache_clear():
     cirq_ft.t_complexity.cache_clear()
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('t_complexity')

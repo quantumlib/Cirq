@@ -28,5 +28,5 @@ def assert_specifies_has_unitary_if_unitary(val: Any) -> None:
         "Value is unitary but doesn't specify a _has_unitary_ method that "
         "can be used to cheaply verify this fact.\n"
         "\n"
-        "val: {!r}".format(val)
+        f"val: {val!r}"
     )

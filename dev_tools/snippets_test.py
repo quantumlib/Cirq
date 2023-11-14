@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for executable snippets in documentation.
 
 This tests runs code snippets that are executable in `.md` and `.rst`
@@ -501,6 +502,7 @@ def assert_code_snippet_runs_and_prints_expected(
 
         assert_expected_lines_present_in_order(expected_outputs, output_lines)
     except AssertionError as ex:
+        # pylint: disable=consider-using-f-string
         new_msg = ex.args[0] + '\n\nIn snippet{}:\n{}'.format(
             "" if line_number is None else " (line {})".format(line_number), _indent([snippet])
         )
@@ -514,6 +516,7 @@ def assert_code_snippet_fails(snippet: str, state: Dict, expected_failure_type: 
     except Exception as ex:
         actual_failure_types = [e.__name__ for e in inspect.getmro(type(ex))]
         if expected_failure_type not in actual_failure_types:
+            # pylint: disable=consider-using-f-string
             raise AssertionError(
                 'Expected snippet to raise a {}, but it raised a {}.'.format(
                     expected_failure_type, ' -> '.join(actual_failure_types)

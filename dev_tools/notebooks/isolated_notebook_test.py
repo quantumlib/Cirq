@@ -27,6 +27,7 @@
 import os
 import re
 import subprocess
+import shutil
 import warnings
 from typing import Set, List
 
@@ -99,16 +100,6 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.11.1",
-    # https://github.com/nteract/papermill/issues/519
-    'ipykernel==5.3.4',
-    # https://github.com/ipython/ipython/issues/12941
-    'ipython==7.22',
-    # to ensure networkx works nicely
-    # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
-    # however, jupyter brings in 5.0.6
-    'decorator<5',
-    # TODO(#5967): allow numpy-1.24 when it is supported in Cirq and numba
-    'numpy>=1.16,<1.24',
 ]
 
 
@@ -198,6 +189,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
     os.remove(rewritten_notebook_path)
+    shutil.rmtree(notebook_env)
 
 
 @pytest.mark.slow

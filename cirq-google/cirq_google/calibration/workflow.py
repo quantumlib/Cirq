@@ -820,7 +820,7 @@ def run_calibrations(
 
     if isinstance(sampler, AbstractEngine):
         if processor_id is None:
-            raise ValueError('processor_id must be provided.')  # coverage: ignore
+            raise ValueError('processor_id must be provided.')  # pragma: no cover
         processor: Optional[AbstractProcessor] = sampler.get_processor(processor_id=processor_id)
     elif isinstance(sampler, ProcessorSampler):
         processor = sampler.processor
@@ -828,7 +828,6 @@ def run_calibrations(
         processor = None
 
     if processor is not None:
-
         if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
             engine_sampler = processor.get_sampler()
             return _run_local_calibrations_via_sampler(calibrations, engine_sampler)

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import shutil
 import subprocess
 from unittest import mock
 
@@ -20,16 +21,12 @@ import pytest
 
 from dev_tools import shell_tools
 from dev_tools.modules import list_modules
+from dev_tools.test_utils import only_on_posix
 
-PACKAGES = [
-    "-r",
-    "dev_tools/requirements/deps/pytest.txt",
-    "-r",
-    # one of the _compat_test.py tests uses flynt for testing metadata
-    "dev_tools/requirements/deps/flynt.txt",
-]
+PACKAGES = ["-r", "dev_tools/requirements/isolated-base.env.txt"]
 
 
+@only_on_posix
 @pytest.mark.slow
 # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
 # the "isolation" fails and for example cirq-core would be on the PATH
@@ -54,3 +51,4 @@ def test_isolated_packages(cloned_env, module):
         check=False,
     )
     assert result.returncode == 0, f"Failed isolated tests for {module.name}:\n{result.stdout}"
+    shutil.rmtree(env)

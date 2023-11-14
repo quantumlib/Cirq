@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A protocol for implementing high performance unitary left-multiplies."""
+
 import warnings
 from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
 
@@ -403,8 +405,8 @@ def apply_unitary(
         "cirq.apply_unitary failed. "
         "Value doesn't have a (non-parameterized) unitary effect.\n"
         "\n"
-        "type: {}\n"
-        "value: {!r}\n"
+        f"type: {type(unitary_value)}\n"
+        f"value: {unitary_value!r}\n"
         "\n"
         "The value failed to satisfy any of the following criteria:\n"
         "- An `_apply_unitary_(self, args) method that returned a value "
@@ -413,7 +415,6 @@ def apply_unitary(
         "besides None or NotImplemented.\n"
         "- A `_decompose_(self)` method that returned a "
         "list of unitary operations.\n"
-        "".format(type(unitary_value), unitary_value)
     )
 
 
@@ -574,8 +575,8 @@ def apply_unitaries(
                     "There was a non-unitary value in the `unitary_values` "
                     "list.\n"
                     "\n"
-                    "non-unitary value type: {}\n"
-                    "non-unitary value: {!r}".format(type(op), op)
+                    f"non-unitary value type: {type(op)}\n"
+                    f"non-unitary value: {op!r}"
                 )
             return default
 

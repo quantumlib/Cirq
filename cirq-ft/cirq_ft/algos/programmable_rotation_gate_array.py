@@ -14,6 +14,7 @@
 
 import abc
 from typing import Sequence, Tuple
+from numpy.typing import NDArray
 
 import cirq
 import numpy as np
@@ -95,31 +96,31 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         return cirq.pow(self._rotation_gate, power)
 
     @abc.abstractmethod
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(
+        self, index: int, **qubit_regs: NDArray[cirq.Qid]  # type:ignore[type-var]
+    ) -> cirq.Operation:
         pass
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            selection=(self._selection_bitsize, len(self.angles[0]))
-        )
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
+        return (infra.SelectionRegister('selection', self._selection_bitsize, len(self.angles[0])),)
 
     @cached_property
-    def kappa_load_target(self) -> infra.Registers:
-        return infra.Registers.build(kappa_load_target=self.kappa)
+    def kappa_load_target(self) -> Tuple[infra.Register, ...]:
+        return (infra.Register('kappa_load_target', self.kappa),)
 
     @cached_property
-    def rotations_target(self) -> infra.Registers:
-        return infra.Registers.build(rotations_target=self._target_bitsize)
+    def rotations_target(self) -> Tuple[infra.Register, ...]:
+        return (infra.Register('rotations_target', self._target_bitsize),)
 
     @property
     @abc.abstractmethod
-    def interleaved_unitary_target(self) -> infra.Registers:
+    def interleaved_unitary_target(self) -> Tuple[infra.Register, ...]:
         pass
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [
                 *self.selection_registers,
                 *self.kappa_load_target,
@@ -129,7 +130,7 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         selection, kappa_load_target = quregs.pop('selection'), quregs.pop('kappa_load_target')
         rotations_target = quregs.pop('rotations_target')
@@ -138,7 +139,7 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         # 1. Find a convenient way to process batches of size kappa.
         num_bits = sum(max(thetas).bit_length() for thetas in self.angles)
         iteration_length = self.selection_registers[0].iteration_length
-        selection_bitsizes = [s.bitsize for s in self.selection_registers]
+        selection_bitsizes = [s.total_bits() for s in self.selection_registers]
         angles_bits = np.zeros(shape=(iteration_length, num_bits), dtype=int)
         angles_bit_pow = np.zeros(shape=(num_bits,), dtype=int)
         angles_idx = np.zeros(shape=(num_bits,), dtype=int)
@@ -192,15 +193,15 @@ class ProgrammableRotationGateArray(ProgrammableRotationGateArrayBase):
     ):
         super().__init__(*angles, kappa=kappa, rotation_gate=rotation_gate)
         if not interleaved_unitaries:
-            identity_gate = cirq.IdentityGate(self.rotations_target.bitsize)
+            identity_gate = cirq.IdentityGate(infra.total_bits(self.rotations_target))
             interleaved_unitaries = (identity_gate,) * (len(angles) - 1)
         assert len(interleaved_unitaries) == len(angles) - 1
         assert all(cirq.num_qubits(u) == self._target_bitsize for u in interleaved_unitaries)
         self._interleaved_unitaries = tuple(interleaved_unitaries)
 
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(self, index: int, **qubit_regs: NDArray[cirq.Qid]) -> cirq.Operation:
         return self._interleaved_unitaries[index].on(*qubit_regs['rotations_target'])
 
     @cached_property
-    def interleaved_unitary_target(self) -> infra.Registers:
-        return infra.Registers.build()
+    def interleaved_unitary_target(self) -> Tuple[infra.Register, ...]:
+        return ()

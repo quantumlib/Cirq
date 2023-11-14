@@ -30,28 +30,6 @@ import cirq
 import sympy
 import numpy as np
 
-
-def pytest_collection_modifyitems(config, items):
-    # coverage: ignore
-    # do not skip integration tests if --rigetti-integration option passed
-    if config.getoption('--rigetti-integration'):
-        return
-    # do not skip integration tests rigetti_integration marker explicitly passed.
-    if 'rigetti_integration' in config.getoption('-m'):
-        return
-    # otherwise skip all tests marked "rigetti_integration".
-    skip_rigetti_integration = pytest.mark.skip(reason="need --rigetti-integration option to run")
-    for item in items:
-        if "rigetti_integration" in item.keywords:
-            item.add_marker(skip_rigetti_integration)
-
-
-def pytest_configure(config):
-    config.addinivalue_line(
-        "markers", "rigetti_integration: tests that connect to Quil compiler or QVM."
-    )
-
-
 T = TypeVar("T")
 
 

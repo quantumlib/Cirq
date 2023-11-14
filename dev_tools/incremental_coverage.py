@@ -54,7 +54,7 @@ IGNORED_LINE_PATTERNS = [
     # Body of mypy Protocol methods.
     r'\.\.\.',
 ]
-EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
+EXPLICIT_OPT_OUT_PATTERN = r'#\s*pragma:\s*no cover\s*$'
 
 
 def diff_to_new_interesting_lines(unified_diff_lines: List[str]) -> Dict[int, str]:
@@ -194,23 +194,21 @@ def determine_ignored_lines(content: str) -> Set[int]:
     lines = content.split('\n')
     result: List[int] = []
 
+    explicit_opt_out_regexp = re.compile(EXPLICIT_OPT_OUT_PATTERN)
     i = 0
     while i < len(lines):
         line = lines[i]
-
-        # Drop spacing, including internal spacing within the comment.
-        joined_line = re.sub(r'\s+', '', line)
 
         if any(re.match(pat, line) for pat in IGNORED_BLOCK_PATTERNS):
             end = naive_find_end_of_scope(lines, i + 1)
             result.extend(range(i, end))
             i = end
-        elif joined_line == EXPLICIT_OPT_OUT_COMMENT:
+        elif explicit_opt_out_regexp.match(line.strip()):
             # Ignore the rest of a block.
             end = naive_find_end_of_scope(lines, i)
             result.extend(range(i, end))
             i = end
-        elif joined_line.endswith(EXPLICIT_OPT_OUT_COMMENT):
+        elif explicit_opt_out_regexp.search(line):
             # Ignore a single line.
             result.append(i)
             i += 1
@@ -307,6 +305,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
                 )
             )
         for index, line, reason in uncovered_lines:
+            # pylint: disable=consider-using-f-string
             print(
                 'Line {} {} but not covered: {}'.format(
                     shell_tools.highlight(str(index).rjust(4), color_code=shell_tools.BOLD),

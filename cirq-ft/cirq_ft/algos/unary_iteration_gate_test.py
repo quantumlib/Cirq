@@ -13,12 +13,14 @@
 # limitations under the License.
 
 import itertools
+import sys
 from typing import Sequence, Tuple
 
 import cirq
 import cirq_ft
 import pytest
 from cirq._compat import cached_property
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
@@ -30,18 +32,18 @@ class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
         self._control_bitsize = control_bitsize
 
     @cached_property
-    def control_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(control=self._control_bitsize)
+    def control_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return (cirq_ft.Register('control', self._control_bitsize),)
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(
-            selection=(self._selection_bitsize, self._target_bitsize)
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return (
+            cirq_ft.SelectionRegister('selection', self._selection_bitsize, self._target_bitsize),
         )
 
     @cached_property
-    def target_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(target=self._target_bitsize)
+    def target_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return (cirq_ft.Register('target', self._target_bitsize),)
 
     def nth_operation(  # type: ignore[override]
         self,
@@ -57,13 +59,12 @@ class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
     "selection_bitsize, target_bitsize, control_bitsize", [(3, 5, 1), (2, 4, 2), (1, 2, 3)]
 )
 def test_unary_iteration_gate(selection_bitsize, target_bitsize, control_bitsize):
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToLthQubit(selection_bitsize, target_bitsize, control_bitsize)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
     assert len(g.all_qubits) <= 2 * (selection_bitsize + control_bitsize) + target_bitsize - 1
 
     for n in range(target_bitsize):
-
         # Initial qubit values
         qubit_vals = {q: 0 for q in g.operation.qubits}
         # All controls 'on' to activate circuit
@@ -84,21 +85,24 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
         self._target_shape = target_shape
 
     @cached_property
-    def control_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers([])
+    def control_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return ()
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(
-            i=((self._target_shape[0] - 1).bit_length(), self._target_shape[0]),
-            j=((self._target_shape[1] - 1).bit_length(), self._target_shape[1]),
-            k=((self._target_shape[2] - 1).bit_length(), self._target_shape[2]),
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return tuple(
+            cirq_ft.SelectionRegister(
+                'ijk'[i], (self._target_shape[i] - 1).bit_length(), self._target_shape[i]
+            )
+            for i in range(3)
         )
 
     @cached_property
-    def target_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(
-            t1=self._target_shape[0], t2=self._target_shape[1], t3=self._target_shape[2]
+    def target_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return tuple(
+            cirq_ft.Signature.build(
+                t1=self._target_shape[0], t2=self._target_shape[1], t3=self._target_shape[2]
+            )
         )
 
     def nth_operation(  # type: ignore[override]
@@ -115,15 +119,20 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
         yield [cirq.CNOT(control, t1[i]), cirq.CNOT(control, t2[j]), cirq.CNOT(control, t3[k])]
 
 
-@pytest.mark.parametrize("target_shape", [(2, 3, 2), (2, 2, 2)])
+@pytest.mark.parametrize(
+    "target_shape", [pytest.param((2, 3, 2), marks=pytest.mark.slow), (2, 2, 2)]
+)
 def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, int]):
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToIJKthQubit(target_shape)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
-    assert len(g.all_qubits) <= gate.registers.bitsize + gate.selection_registers.bitsize - 1
+    assert (
+        len(g.all_qubits)
+        <= infra.total_bits(gate.signature) + infra.total_bits(gate.selection_registers) - 1
+    )
 
     max_i, max_j, max_k = target_shape
-    i_len, j_len, k_len = tuple(reg.bitsize for reg in gate.selection_registers)
+    i_len, j_len, k_len = tuple(reg.total_bits() for reg in gate.selection_registers)
     for i, j, k in itertools.product(range(max_i), range(max_j), range(max_k)):
         qubit_vals = {x: 0 for x in g.operation.qubits}
         # Initialize selection bits appropriately:
@@ -143,10 +152,13 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
 
 def test_unary_iteration_loop():
     n_range, m_range = (3, 5), (6, 8)
-    selection_registers = cirq_ft.SelectionRegisters.build(n=(3, 5), m=(3, 8))
-    selection = selection_registers.get_named_qubits()
+    selection_registers = [
+        cirq_ft.SelectionRegister('n', 3, 5),
+        cirq_ft.SelectionRegister('m', 3, 8),
+    ]
+    selection = infra.get_named_qubits(selection_registers)
     target = {(n, m): cirq.q(f't({n}, {m})') for n in range(*n_range) for m in range(*m_range)}
-    qm = cirq_ft.GreedyQubitManager("ancilla", maximize_reuse=True)
+    qm = cirq.GreedyQubitManager("ancilla", maximize_reuse=True)
     circuit = cirq.Circuit()
     i_ops = []
     # Build the unary iteration circuit
@@ -187,5 +199,6 @@ def test_unary_iteration_loop_empty_range():
     assert list(cirq_ft.unary_iteration(4, 3, [], [], [cirq.q('s')], qm)) == []
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('unary_iteration')

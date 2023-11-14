@@ -29,13 +29,11 @@ def assert_permutation_decomposition_equivalence(gate: PermutationGate, n_qubits
     update_mapping(mapping, operations)
     expected_mapping = {qubits[j]: i for i, j in gate.permutation().items()}
     assert mapping == expected_mapping, (
-        "{!r}.permutation({}) doesn't match decomposition.\n"
+        f"{gate!r}.permutation({n_qubits}) doesn't match decomposition.\n"
         '\n'
         'Actual mapping:\n'
-        '{}\n'
+        f'{[mapping[q] for q in qubits]}\n'
         '\n'
         'Expected mapping:\n'
-        '{}\n'.format(
-            gate, n_qubits, [mapping[q] for q in qubits], [expected_mapping[q] for q in qubits]
-        )
+        f'{[expected_mapping[q] for q in qubits]}\n'
     )

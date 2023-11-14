@@ -37,8 +37,10 @@ class CustomXPowGate(cirq.EigenGate):
             if self._exponent == 1:
                 return 'cirq.ops.gateset_test.CustomX'
             return f'(cirq.ops.gateset_test.CustomX**{proper_repr(self._exponent)})'
-        return 'cirq.ops.gateset_test.CustomXPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
+        return (
+            'cirq.ops.gateset_test.CustomXPowGate('
+            f'exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
     def _num_qubits_(self) -> int:
@@ -115,11 +117,21 @@ def test_invalid_gate_family():
 
 def test_gate_family_immutable():
     g = cirq.GateFamily(CustomX)
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    # Match one of two strings. The second one is message returned since python 3.11.
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'gate' of 'GateFamily' object has no setter)",
+    ):
         g.gate = CustomXPowGate
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'name' of 'GateFamily' object has no setter)",
+    ):
         g.name = 'new name'
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'description' of 'GateFamily' object has no setter)",
+    ):
         g.description = 'new description'
 
 

@@ -1,4 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
 """Code to interact with GitHub API to label and auto-merge pull requests."""
 
 import datetime
@@ -68,17 +69,13 @@ class PullRequestDetails:
         Raises:
             RuntimeError: If the request does not return status 200 (success).
         """
-        url = "https://api.github.com/repos/{}/{}/pulls/{}".format(
-            repo.organization, repo.name, pull_id
-        )
+        url = f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls/{pull_id}"
 
         response = repo.get(url)
 
         if response.status_code != 200:
             raise RuntimeError(
-                'Pull check failed. Code: {}. Content: {!r}.'.format(
-                    response.status_code, response.content
-                )
+                f'Pull check failed. Code: {response.status_code}. Content: {response.content!r}.'
             )
 
         payload = json.JSONDecoder().decode(response.content.decode())
@@ -173,17 +170,17 @@ def check_collaborator_has_write(
     Raises:
         RuntimeError: If the request does not return status 200 (success).
     """
-    url = "https://api.github.com/repos/{}/{}/collaborators/{}/permission" "".format(
-        repo.organization, repo.name, username
+    url = (
+        f"https://api.github.com/repos/{repo.organization}/"
+        f"{repo.name}/collaborators/{username}/permission"
     )
 
     response = repo.get(url)
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Collaborator check failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Collaborator check failed. Code: {response.status_code}. '
+            f'Content: {response.content!r}.'
         )
 
     payload = json.JSONDecoder().decode(response.content.decode())
@@ -244,8 +241,8 @@ def check_auto_merge_labeler(
     events = get_all(
         repo,
         lambda page: (
-            "https://api.github.com/repos/{}/{}/issues/{}/events"
-            "?per_page=100&page={}".format(repo.organization, repo.name, pull_id, page)
+            f"https://api.github.com/repos/{repo.organization}/"
+            f"{repo.name}/issues/{pull_id}/events?per_page=100&page={page}"
         ),
     )
 
@@ -274,17 +271,16 @@ def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
     Raises:
         RuntimeError: If the request does not return status 201 (created).
     """
-    url = "https://api.github.com/repos/{}/{}/issues/{}/comments".format(
-        repo.organization, repo.name, pull_id
+    url = (
+        f"https://api.github.com/repos/{repo.organization}/"
+        f"{repo.name}/issues/{pull_id}/comments"
     )
     data = {'body': text}
     response = repo.post(url, json=data)
 
     if response.status_code != 201:
         raise RuntimeError(
-            'Add comment failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Add comment failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
 
@@ -302,17 +298,16 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
     Raises:
             RuntimeError: If the request does not return status 200 (success).
     """
-    url = "https://api.github.com/repos/{}/{}/issues/comments/{}".format(
-        repo.organization, repo.name, comment_id
+    url = (
+        f"https://api.github.com/repos/{repo.organization}/"
+        f"{repo.name}/issues/comments/{comment_id}"
     )
     data = {'body': text}
     response = repo.patch(url, json=data)
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Edit comment failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Edit comment failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
 
@@ -332,16 +327,13 @@ def get_branch_details(repo: GithubRepository, branch: str) -> Any:
     Raises:
         RuntimeError: If the request does not return status 200 (success).
     """
-    url = "https://api.github.com/repos/{}/{}/branches/{}".format(
-        repo.organization, repo.name, branch
-    )
+    url = f"https://api.github.com/repos/{repo.organization}/{repo.name}/branches/{branch}"
     response = repo.get(url)
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Failed to get branch details. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Failed to get branch details. Code: {response.status_code}. '
+            f'Content: {response.content!r}.'
         )
 
     return json.JSONDecoder().decode(response.content.decode())
@@ -363,16 +355,15 @@ def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
         RuntimeError: If the request does not return status 200 (success).
     """
 
-    url = "https://api.github.com/repos/{}/{}/commits/{}/statuses".format(
-        pr.repo.organization, pr.repo.name, pr.branch_sha
+    url = (
+        f"https://api.github.com/repos/{pr.repo.organization}/"
+        f"{pr.repo.name}/commits/{pr.branch_sha}/statuses"
     )
     response = pr.repo.get(url)
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Get statuses failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Get statuses failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
     return json.JSONDecoder().decode(response.content.decode())
@@ -394,16 +385,15 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
         RuntimeError: If the request does not return status 200 (success).
     """
 
-    url = "https://api.github.com/repos/{}/{}/commits/{}/status".format(
-        pr.repo.organization, pr.repo.name, pr.branch_sha
+    url = (
+        f"https://api.github.com/repos/{pr.repo.organization}/"
+        f"{pr.repo.name}/commits/{pr.branch_sha}/status"
     )
     response = pr.repo.get(url)
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Get status failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Get status failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
     return json.JSONDecoder().decode(response.content.decode())
@@ -491,9 +481,7 @@ def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Get review failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Get review failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
     return json.JSONDecoder().decode(response.content.decode())
@@ -522,9 +510,7 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Get check-runs failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Get check-runs failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
     return json.JSONDecoder().decode(response.content.decode())
@@ -589,9 +575,7 @@ def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
     response = repo.get(url)
     if response.status_code != 200:
         raise RuntimeError(
-            'Refs get failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Refs get failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
     payload = json.JSONDecoder().decode(response.content.decode())
     return payload
@@ -619,15 +603,14 @@ def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any
     Raises:
         RuntimeError: If the request does not return status 200 (success).
     """
-    url = "https://api.github.com/repos/{}/{}/issues/{}/comments".format(
-        repo.organization, repo.name, pull_id
+    url = (
+        f"https://api.github.com/repos/{repo.organization}/"
+        f"{repo.name}/issues/{pull_id}/comments"
     )
     response = repo.get(url)
     if response.status_code != 200:
         raise RuntimeError(
-            'Comments get failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Comments get failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
     payload = json.JSONDecoder().decode(response.content.decode())
     return payload
@@ -646,15 +629,14 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
     Raises:
         RuntimeError: If the request does not return status 204 (no content).
     """
-    url = "https://api.github.com/repos/{}/{}/issues/comments/{}".format(
-        repo.organization, repo.name, comment_id
+    url = (
+        f"https://api.github.com/repos/{repo.organization}/"
+        f"{repo.name}/issues/comments/{comment_id}"
     )
     response = repo.delete(url)
     if response.status_code != 204:
         raise RuntimeError(
-            'Comment delete failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Comment delete failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
 
@@ -747,7 +729,7 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutome
 
     raise RuntimeError(
         'Sync with master failed for unknown reason. '
-        'Code: {}. Content: {!r}.'.format(response.status_code, response.content)
+        f'Code: {response.status_code}. Content: {response.content!r}.'
     )
 
 
@@ -767,8 +749,9 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
     Raises:
         RuntimeError: If the request to merge returned a failed merge response.
     """
-    url = "https://api.github.com/repos/{}/{}/pulls/{}/merge".format(
-        pr.repo.organization, pr.repo.name, pr.pull_id
+    url = (
+        f"https://api.github.com/repos/{pr.repo.organization}/"
+        f"{pr.repo.name}/pulls/{pr.pull_id}/merge"
     )
     data = {
         'commit_title': f'{pr.title} (#{pr.pull_id})',
@@ -819,14 +802,14 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
     remote = pr.remote_repo
     if pr.is_on_fork():
         log(
-            'Not deleting branch {!r}. It belongs to a fork ({}/{}).'.format(
-                pr.branch_name, pr.remote_repo.organization, pr.remote_repo.name
-            )
+            f'Not deleting branch {pr.branch_name!r}. It belongs to a fork '
+            f'({pr.remote_repo.organization}/{pr.remote_repo.name}).'
         )
         return False
 
-    url = "https://api.github.com/repos/{}/{}/git/refs/heads/{}".format(
-        remote.organization, remote.name, pr.branch_name
+    url = (
+        f"https://api.github.com/repos/{remote.organization}/"
+        f"{remote.name}/git/refs/heads/{pr.branch_name}"
     )
     response = pr.repo.delete(url)
 
@@ -861,16 +844,12 @@ def add_labels_to_pr(repo: GithubRepository, pull_id: int, *labels: str) -> None
     Raises:
         RuntimeError: If the request to add labels returned anything other than success.
     """
-    url = "https://api.github.com/repos/{}/{}/issues/{}/labels".format(
-        repo.organization, repo.name, pull_id
-    )
+    url = f"https://api.github.com/repos/{repo.organization}/{repo.name}/issues/{pull_id}/labels"
     response = repo.post(url, json=list(labels))
 
     if response.status_code != 200:
         raise RuntimeError(
-            'Add labels failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'Add labels failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
 
@@ -891,8 +870,9 @@ def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bo
     Returns:
         True if the label existed and was deleted. False if the label did not exist.
     """
-    url = "https://api.github.com/repos/{}/{}/issues/{}/labels/{}".format(
-        repo.organization, repo.name, pull_id, label
+    url = (
+        f"https://api.github.com/repos/{repo.organization}/"
+        f"{repo.name}/issues/{pull_id}/labels/{label}"
     )
     response = repo.delete(url)
 
@@ -906,9 +886,7 @@ def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bo
         return True
 
     raise RuntimeError(
-        'Label remove failed. Code: {}. Content: {!r}.'.format(
-            response.status_code, response.content
-        )
+        f'Label remove failed. Code: {response.status_code}. Content: {response.content!r}.'
     )
 
 
@@ -939,9 +917,7 @@ def list_open_pull_requests(
 
     if response.status_code != 200:
         raise RuntimeError(
-            'List pulls failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
+            f'List pulls failed. Code: {response.status_code}. Content: {response.content!r}.'
         )
 
     pulls = json.JSONDecoder().decode(response.content.decode())
@@ -1000,7 +976,7 @@ def find_problem_with_automergeability_of_pr(
         if missing_statuses:
             return CannotAutomergeError(
                 'A required status check is not present.\n\n'
-                'Missing statuses: {!r}'.format(sorted(missing_statuses))
+                f'Missing statuses: {sorted(missing_statuses)!r}'
             )
 
         # Can't figure out how to make it merge.

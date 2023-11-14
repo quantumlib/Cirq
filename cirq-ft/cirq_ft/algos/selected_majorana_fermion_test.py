@@ -16,38 +16,45 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 
 
-@pytest.mark.parametrize("selection_bitsize, target_bitsize", [(2, 4), (3, 8), (4, 9)])
+@pytest.mark.parametrize(
+    "selection_bitsize, target_bitsize",
+    [
+        (2, 4),
+        pytest.param(3, 8, marks=pytest.mark.slow),
+        pytest.param(4, 9, marks=pytest.mark.slow),
+    ],
+)
 @pytest.mark.parametrize("target_gate", [cirq.X, cirq.Y])
 def test_selected_majorana_fermion_gate(selection_bitsize, target_bitsize, target_gate):
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = cirq_ft.SelectedMajoranaFermionGate(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize),
         target_gate=target_gate,
     )
-    g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
-    assert len(g.all_qubits) <= gate.registers.bitsize + selection_bitsize + 1
+    g = cirq_ft.testing.GateHelper(gate)
+    assert len(g.all_qubits) <= infra.total_bits(gate.signature) + selection_bitsize + 1
 
     sim = cirq.Simulator(dtype=np.complex128)
     for n in range(target_bitsize):
         # Initial qubit values
-        qubit_vals = {q: 0 for q in g.all_qubits}
+        qubit_vals = {q: 0 for q in g.operation.qubits}
         # All controls 'on' to activate circuit
         qubit_vals.update({c: 1 for c in g.quregs['control']})
         # Set selection according to `n`
         qubit_vals.update(zip(g.quregs['selection'], iter_bits(n, selection_bitsize)))
 
-        initial_state = [qubit_vals[x] for x in g.all_qubits]
+        initial_state = [qubit_vals[x] for x in g.operation.qubits]
 
         result = sim.simulate(
-            g.decomposed_circuit, initial_state=initial_state, qubit_order=g.all_qubits
+            g.circuit, initial_state=initial_state, qubit_order=g.operation.qubits
         )
 
         final_target_state = cirq.sub_state_vector(
             result.final_state_vector,
-            keep_indices=[g.all_qubits.index(q) for q in g.quregs['target']],
+            keep_indices=[g.operation.qubits.index(q) for q in g.quregs['target']],
         )
 
         expected_target_state = cirq.Circuit(
@@ -64,11 +71,11 @@ def test_selected_majorana_fermion_gate(selection_bitsize, target_bitsize, targe
 def test_selected_majorana_fermion_gate_diagram():
     selection_bitsize, target_bitsize = 3, 5
     gate = cirq_ft.SelectedMajoranaFermionGate(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize),
         target_gate=cirq.X,
     )
-    circuit = cirq.Circuit(gate.on_registers(**gate.registers.get_named_qubits()))
-    qubits = list(q for v in gate.registers.get_named_qubits().values() for q in v)
+    circuit = cirq.Circuit(gate.on_registers(**infra.get_named_qubits(gate.signature)))
+    qubits = list(q for v in infra.get_named_qubits(gate.signature).values() for q in v)
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -97,19 +104,21 @@ target4: ──────ZX───
 def test_selected_majorana_fermion_gate_decomposed_diagram():
     selection_bitsize, target_bitsize = 2, 3
     gate = cirq_ft.SelectedMajoranaFermionGate(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize),
         target_gate=cirq.X,
     )
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     g = cirq_ft.testing.GateHelper(gate)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(g.operation, context=context))
     ancillas = sorted(set(circuit.all_qubits()) - set(g.operation.qubits))
-    qubits = (
-        g.quregs['control']
-        + [q for qs in zip(g.quregs['selection'], ancillas[1:]) for q in qs]
-        + ancillas[0:1]
-        + g.quregs['target']
+    qubits = np.concatenate(
+        [
+            g.quregs['control'],
+            [q for qs in zip(g.quregs['selection'], ancillas[1:]) for q in qs],
+            ancillas[0:1],
+            g.quregs['target'],
+        ]
     )
     cirq.testing.assert_has_diagram(
         circuit,
@@ -138,11 +147,11 @@ target2: ───────────────────────�
 def test_selected_majorana_fermion_gate_make_on():
     selection_bitsize, target_bitsize = 3, 5
     gate = cirq_ft.SelectedMajoranaFermionGate(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize),
         target_gate=cirq.X,
     )
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     op2 = cirq_ft.SelectedMajoranaFermionGate.make_on(
-        target_gate=cirq.X, **gate.registers.get_named_qubits()
+        target_gate=cirq.X, **infra.get_named_qubits(gate.signature)
     )
     assert op == op2

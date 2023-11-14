@@ -94,8 +94,7 @@ class MyResult(cirq.Result):
         return {k: v[:, np.newaxis, :] for k, v in self.measurements.items()}
 
     @property
-    def data(self) -> pd.DataFrame:
-        # coverage: ignore
+    def data(self) -> pd.DataFrame:  # pragma: no cover
         return cirq.Result.dataframe_from_measurements(self.measurements)
 
 

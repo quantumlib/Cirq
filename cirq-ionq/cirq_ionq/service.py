@@ -35,8 +35,9 @@ class Service:
         remote_host: Optional[str] = None,
         api_key: Optional[str] = None,
         default_target: Optional[str] = None,
-        api_version='v0.1',
+        api_version='v0.3',
         max_retry_seconds: int = 3600,
+        job_settings: Optional[dict] = None,
         verbose=False,
     ):
         """Creates the Service to access IonQ's API.
@@ -53,8 +54,10 @@ class Service:
                 and target must always be specified in calls. If set, then this default is used,
                 unless a target is specified for a given call. Supports either 'qpu' or
                 'simulator'.
-            api_version: Version of the api. Defaults to 'v0.1'.
+            api_version: Version of the api. Defaults to 'v0.3'.
             max_retry_seconds: The number of seconds to retry calls for. Defaults to one hour.
+            job_settings: A dictionary of settings which can override behavior for circuits when
+                run on IonQ hardware.
             verbose: Whether to print to stdio and stderr on retriable errors.
 
         Raises:
@@ -62,9 +65,15 @@ class Service:
                 This is actually an EnvironmentError which is equal to an OSError.
         """
         self.remote_host = (
-            remote_host or os.getenv('IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'
+            remote_host
+            or os.getenv('CIRQ_IONQ_REMOTE_HOST')
+            or os.getenv('IONQ_REMOTE_HOST')
+            or f'https://api.ionq.co/{api_version}'
         )
-        self.api_key = api_key or os.getenv('IONQ_API_KEY')
+
+        self.job_settings = job_settings or {}
+        self.api_key = api_key or os.getenv('CIRQ_IONQ_API_KEY') or os.getenv('IONQ_API_KEY')
+
         if not self.api_key:
             raise EnvironmentError(
                 'Parameter api_key was not specified and the environment variable '
@@ -88,6 +97,9 @@ class Service:
         target: Optional[str] = None,
         param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        error_mitigation: Optional[dict] = None,
+        sharpen: Optional[bool] = None,
+        extra_query_params: Optional[dict] = None,
     ) -> cirq.Result:
         """Run the given circuit on the IonQ API.
 
@@ -100,12 +112,26 @@ class Service:
             seed: If the target is `simulation` the seed for generating results. If None, this
                 will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
                 must be a modulate similar to `np.random`.
+            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
+                - 'debias': A boolean indicating whether to use the debiasing technique for
+                  aggregating results. This technique is used to reduce the bias in the results
+                  caused by measurement error and can improve the accuracy of the output.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation.
+            extra_query_params: Specify any parameters to include in the request.
 
         Returns:
             A `cirq.Result` for running the circuit.
         """
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
-        result = self.create_job(resolved_circuit, repetitions, name, target).results()
+        result = self.create_job(
+            circuit=resolved_circuit,
+            repetitions=repetitions,
+            name=name,
+            target=target,
+            error_mitigation=error_mitigation,
+            extra_query_params=extra_query_params,
+        ).results(sharpen=sharpen)
         if isinstance(result, results.QPUResult):
             return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
         # pylint: disable=unexpected-keyword-arg
@@ -133,6 +159,8 @@ class Service:
         repetitions: int = 100,
         name: Optional[str] = None,
         target: Optional[str] = None,
+        error_mitigation: Optional[dict] = None,
+        extra_query_params: Optional[dict] = None,
     ) -> job.Job:
         """Create a new job to run the given circuit.
 
@@ -141,6 +169,11 @@ class Service:
             repetitions: The number of times to repeat the circuit. Defaults to 100.
             name: An optional name for the created job. Different from the `job_id`.
             target: Where to run the job. Can be 'qpu' or 'simulator'.
+            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
+                - 'debias': A boolean indicating whether to use the debiasing technique for
+                  aggregating results. This technique is used to reduce the bias in the results
+                  caused by measurement error and can improve the accuracy of the output.
+            extra_query_params: Specify any parameters to include in the request.
 
         Returns:
             A `cirq_ionq.IonQJob` which can be queried for status or results.
@@ -148,9 +181,15 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        serialized_program = serializer.Serializer().serialize(circuit)
+        serialized_program = serializer.Serializer().serialize(
+            circuit, job_settings=self.job_settings, error_mitigation=error_mitigation
+        )
         result = self._client.create_job(
-            serialized_program=serialized_program, repetitions=repetitions, target=target, name=name
+            serialized_program=serialized_program,
+            repetitions=repetitions,
+            target=target,
+            name=name,
+            extra_query_params=extra_query_params,
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.

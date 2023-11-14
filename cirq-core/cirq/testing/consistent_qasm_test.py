@@ -54,8 +54,7 @@ class QuditGate(cirq.Gate):
 def test_assert_qasm_is_consistent_with_unitary():
     try:
         import qiskit as _
-    except ImportError:
-        # coverage: ignore
+    except ImportError:  # pragma: no cover
         warnings.warn(
             "Skipped test_assert_qasm_is_consistent_with_unitary "
             "because qiskit isn't installed to verify against."
@@ -84,7 +83,7 @@ def test_assert_qasm_is_consistent_with_unitary():
     )
 
     # Checks that code is valid.
-    with pytest.raises(AssertionError, match='Check your OPENQASM'):
+    with pytest.raises(AssertionError, match='QASM not consistent'):
         cirq.testing.assert_qasm_is_consistent_with_unitary(
             Fixed(np.array([[1, 0], [0, -1]]), 'JUNK$&*@($#::=[];')
         )

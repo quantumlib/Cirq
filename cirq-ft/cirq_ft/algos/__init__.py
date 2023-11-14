@@ -20,6 +20,8 @@ from cirq_ft.algos.arithmetic_gates import (
     ContiguousRegisterGate,
     LessThanEqualGate,
     LessThanGate,
+    SingleQubitCompare,
+    BiQubitsMixer,
 )
 from cirq_ft.algos.generic_select import GenericSelect
 from cirq_ft.algos.hubbard_model import PrepareHubbard, SelectHubbard

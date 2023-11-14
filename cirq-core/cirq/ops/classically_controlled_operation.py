@@ -155,7 +155,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         )
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
-            return NotImplemented  # coverage: ignore
+            return NotImplemented  # pragma: no cover
         control_label_count = 0
         if args.label_map is not None:
             control_label_count = len({k for c in self._conditions for k in c.keys})

@@ -14,6 +14,9 @@
 
 from typing import Sequence, Tuple
 
+import numpy as np
+from numpy.typing import NDArray
+
 import attr
 import cirq
 from cirq._compat import cached_property
@@ -46,7 +49,9 @@ class And(infra.GateWithRegisters):
         ValueError: If number of control values (i.e. `len(self.cv)`) is less than 2.
     """
 
-    cv: Tuple[int, ...] = attr.field(default=(1, 1), converter=infra.to_tuple)
+    cv: Tuple[int, ...] = attr.field(
+        default=(1, 1), converter=lambda v: (v,) if isinstance(v, int) else tuple(v)
+    )
     adjoint: bool = False
 
     @cv.validator
@@ -55,15 +60,24 @@ class And(infra.GateWithRegisters):
             raise ValueError(f"And gate needs at-least 2 control values, supplied {value} instead.")
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(control=len(self.cv), ancilla=len(self.cv) - 2, target=1)
+    def signature(self) -> infra.Signature:
+        one_side = infra.Side.RIGHT if not self.adjoint else infra.Side.LEFT
+        n_cv = len(self.cv)
+        junk_reg = [infra.Register('junk', 1, shape=n_cv - 2, side=one_side)] if n_cv > 2 else []
+        return infra.Signature(
+            [
+                infra.Register('ctrl', 1, shape=n_cv),
+                *junk_reg,
+                infra.Register('target', 1, side=one_side),
+            ]
+        )
 
     def __pow__(self, power: int) -> "And":
         if power == 1:
             return self
         if power == -1:
             return And(self.cv, adjoint=self.adjoint ^ True)
-        return NotImplemented  # coverage: ignore
+        return NotImplemented  # pragma: no cover
 
     def __str__(self) -> str:
         suffix = "" if self.cv == (1,) * len(self.cv) else str(self.cv)
@@ -110,16 +124,16 @@ class And(infra.GateWithRegisters):
 
     def _decompose_via_tree(
         self,
-        controls: Sequence[cirq.Qid],
+        controls: NDArray[cirq.Qid],  # type:ignore[type-var]
         control_values: Sequence[int],
-        ancillas: Sequence[cirq.Qid],
+        ancillas: NDArray[cirq.Qid],
         target: cirq.Qid,
     ) -> cirq.ops.op_tree.OpTree:
         """Decomposes multi-controlled `And` in-terms of an `And` ladder of size #controls- 2."""
         if len(controls) == 2:
             yield And(control_values, adjoint=self.adjoint).on(*controls, target)
             return
-        new_controls = (ancillas[0], *controls[2:])
+        new_controls = np.concatenate([ancillas[0:1], controls[2:]])
         new_control_values = (1, *control_values[2:])
         and_op = And(control_values[:2], adjoint=self.adjoint).on(*controls[:2], ancillas[0])
         if self.adjoint:
@@ -134,9 +148,13 @@ class And(infra.GateWithRegisters):
             )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
-        control, ancilla, target = quregs['control'], quregs['ancilla'], quregs['target']
+        control, ancilla, target = (
+            quregs['ctrl'].flatten(),
+            quregs.get('junk', np.array([])).flatten(),
+            quregs['target'].flatten(),
+        )
         if len(self.cv) == 2:
             yield self._decompose_single_and(
                 self.cv[0], self.cv[1], control[0], control[1], *target

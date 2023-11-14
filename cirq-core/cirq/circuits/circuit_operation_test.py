@@ -351,7 +351,7 @@ def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
 
 
 def test_no_repetition_ids():
-    def default_repetition_ids(self):
+    def default_repetition_ids(self):  # pragma: no cover
         assert False, "Should not call default_repetition_ids"
 
     with mock.patch.object(circuit_operation, 'default_repetition_ids', new=default_repetition_ids):

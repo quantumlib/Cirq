@@ -58,6 +58,7 @@ TestSpec = ModuleJsonTestSpec(
         'ZerosSampler',
     ],
     should_not_be_serialized=[
+        'ClassicalStateSimulator',
         # Heatmaps
         'Heatmap',
         'TwoQubitInteractionHeatmap',
@@ -89,6 +90,9 @@ TestSpec = ModuleJsonTestSpec(
         'LineInitialMapper',
         'MappingManager',
         'RouteCQC',
+        # Qubit Managers,
+        'SimpleQubitManager',
+        'GreedyQubitManager',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',

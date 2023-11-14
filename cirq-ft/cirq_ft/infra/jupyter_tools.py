@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from pathlib import Path
-from typing import Optional
+from typing import Iterable
 
 import cirq
 import cirq.contrib.svg.svg as ccsvg
@@ -21,7 +21,7 @@ import cirq_ft.infra.testing as cq_testing
 import IPython.display
 import ipywidgets
 import nbformat
-from cirq_ft.infra import gate_with_registers, t_complexity_protocol
+from cirq_ft.infra import gate_with_registers, t_complexity_protocol, get_named_qubits, merge_qubits
 from nbconvert.preprocessors import ExecutePreprocessor
 
 
@@ -65,14 +65,14 @@ def circuit_with_costs(circuit: 'cirq.AbstractCircuit') -> 'cirq.AbstractCircuit
 
 def svg_circuit(
     circuit: 'cirq.AbstractCircuit',
-    registers: Optional[gate_with_registers.Registers] = None,
+    registers: Iterable[gate_with_registers.Register] = (),
     include_costs: bool = False,
 ):
     """Return an SVG object representing a circuit.
 
     Args:
         circuit: The circuit to draw.
-        registers: Optional `Registers` object to order the qubits.
+        registers: Optional `Signature` object to order the qubits.
         include_costs: If true, each operation is annotated with it's T-complexity cost.
 
     Raises:
@@ -81,9 +81,9 @@ def svg_circuit(
     if len(circuit) == 0:
         raise ValueError("Circuit is empty.")
 
-    if registers is not None:
+    if registers:
         qubit_order = cirq.QubitOrder.explicit(
-            registers.merge_qubits(**registers.get_named_qubits()), fallback=cirq.QubitOrder.DEFAULT
+            merge_qubits(registers, **get_named_qubits(registers)), fallback=cirq.QubitOrder.DEFAULT
         )
     else:
         qubit_order = cirq.QubitOrder.DEFAULT

@@ -191,6 +191,9 @@ def proper_repr(value: Any) -> str:
     if isinstance(value, Dict):
         return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
 
+    if hasattr(value, "__qualname__"):
+        return f"{value.__module__}.{value.__qualname__}"
+
     return repr(value)
 
 
@@ -400,23 +403,36 @@ def deprecated_parameter(
     _validate_deadline(deadline)
 
     def decorator(func: Callable) -> Callable:
+        def deprecation_warning():
+            qualname = func.__qualname__ if func_name is None else func_name
+            _warn_or_error(
+                f'The {parameter_desc} parameter of {qualname} was '
+                f'used but is deprecated.\n'
+                f'It will be removed in cirq {deadline}.\n'
+                f'{fix}\n'
+            )
+
         @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
             if match(args, kwargs):
                 if rewrite is not None:
                     args, kwargs = rewrite(args, kwargs)
-
-                qualname = func.__qualname__ if func_name is None else func_name
-                _warn_or_error(
-                    f'The {parameter_desc} parameter of {qualname} was '
-                    f'used but is deprecated.\n'
-                    f'It will be removed in cirq {deadline}.\n'
-                    f'{fix}\n'
-                )
-
+                deprecation_warning()
             return func(*args, **kwargs)
 
-        return decorated_func
+        @functools.wraps(func)
+        async def async_decorated_func(*args, **kwargs) -> Any:
+            if match(args, kwargs):
+                if rewrite is not None:
+                    args, kwargs = rewrite(args, kwargs)
+                deprecation_warning()
+
+            return await func(*args, **kwargs)
+
+        if inspect.iscoroutinefunction(func):
+            return async_decorated_func
+        else:
+            return decorated_func
 
     return decorator
 
@@ -436,13 +452,12 @@ def deprecate_attributes(module_name: str, deprecated_attributes: Dict[str, Tupl
         will cause a warning for these deprecated attributes.
     """
 
-    for (deadline, _) in deprecated_attributes.values():
+    for deadline, _ in deprecated_attributes.values():
         _validate_deadline(deadline)
 
     module = sys.modules[module_name]
 
     class Wrapped(ModuleType):
-
         __dict__ = module.__dict__
 
         # Workaround for: https://github.com/python/mypy/issues/8083

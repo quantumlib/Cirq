@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Quantum gates that are commonly used in the literature.
 
 This module creates Gate instances for the following gates:
@@ -512,8 +513,10 @@ class YPowGate(eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.Y'
             return f'(cirq.Y**{proper_repr(self._exponent)})'
-        return 'cirq.YPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
+        return (
+            'cirq.YPowGate('
+            f'exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
 
@@ -1221,8 +1224,10 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.CZ'
             return f'(cirq.CZ**{proper_repr(self._exponent)})'
-        return 'cirq.CZPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
+        return (
+            'cirq.CZPowGate('
+            f'exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
 

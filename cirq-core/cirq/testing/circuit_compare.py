@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
 
 from collections import defaultdict
@@ -175,10 +176,10 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
             "Circuit's effect differs from the reference circuit.\n"
             '\n'
             'Diagram of actual circuit:\n'
-            '{}\n'
+            f'{actual}\n'
             '\n'
             'Diagram of reference circuit with desired function:\n'
-            '{}\n'.format(actual, reference)
+            f'{reference}\n'
         )
 
 
@@ -195,20 +196,20 @@ def assert_same_circuits(
         "Actual circuit differs from expected circuit.\n"
         "\n"
         "Diagram of actual circuit:\n"
-        "{}\n"
+        f"{actual}\n"
         "\n"
         "Diagram of expected circuit:\n"
-        "{}\n"
+        f"{expected}\n"
         "\n"
         "Index of first differing moment:\n"
-        "{}\n"
+        f"{_first_differing_moment_index(actual, expected)}\n"
         "\n"
         "Full repr of actual circuit:\n"
-        "{!r}\n"
+        f"{actual!r}\n"
         "\n"
         "Full repr of expected circuit:\n"
-        "{!r}\n"
-    ).format(actual, expected, _first_differing_moment_index(actual, expected), actual, expected)
+        f"{expected!r}\n"
+    )
 
 
 def _first_differing_moment_index(
@@ -217,7 +218,7 @@ def _first_differing_moment_index(
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i
-    return None  # coverage: ignore
+    return None  # pragma: no cover
 
 
 def assert_circuits_have_same_unitary_given_final_permutation(
@@ -275,17 +276,13 @@ def assert_has_diagram(
         "Circuit's text diagram differs from the desired diagram.\n"
         '\n'
         'Diagram of actual circuit:\n'
-        '{}\n'
+        f'{actual_diagram}\n'
         '\n'
         'Desired text diagram:\n'
-        '{}\n'
+        f'{desired_diagram}\n'
         '\n'
         'Highlighted differences:\n'
-        '{}\n'.format(
-            actual_diagram,
-            desired_diagram,
-            highlight_text_differences(actual_diagram, desired_diagram),
-        )
+        f'{highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
 
 

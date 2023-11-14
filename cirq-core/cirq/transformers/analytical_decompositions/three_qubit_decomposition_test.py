@@ -30,15 +30,13 @@ from cirq.transformers.analytical_decompositions.three_qubit_decomposition impor
 
 
 def _skip_if_scipy(*, version_is_greater_than_1_5_0: bool) -> Callable[[Callable], Callable]:
-    def decorator(func):
+    def decorator(func):  # pragma: no cover
         try:
             # pylint: disable=unused-import
             from scipy.linalg import cossin
 
-            # coverage: ignore
             return None if version_is_greater_than_1_5_0 else func
         except ImportError:
-            # coverage: ignore
             return func if version_is_greater_than_1_5_0 else None
 
     return decorator
@@ -84,8 +82,7 @@ def test_three_qubit_matrix_to_operations_errors():
 # environment like that, we'll need to ignore the coverage somehow conditionally on
 # the scipy version.
 @_skip_if_scipy(version_is_greater_than_1_5_0=True)
-# coverage: ignore
-def test_three_qubit_matrix_to_operations_scipy_error():
+def test_three_qubit_matrix_to_operations_scipy_error():  # pragma: no cover
     a, b, c = cirq.LineQubit.range(3)
     with pytest.raises(ImportError, match="three_qubit.*1.5.0+"):
         cirq.three_qubit_matrix_to_operations(a, b, c, np.eye(8))
@@ -211,9 +208,7 @@ def test_middle_multiplexor(angles, num_cnots):
             ]
         )
         == num_cnots
-    ), "expected {} CNOTs got \n {} \n {}".format(
-        num_cnots, circuit_u1u2_mid, circuit_u1u2_mid.unitary()
-    )
+    ), f"expected {num_cnots} CNOTs got \n {circuit_u1u2_mid} \n {circuit_u1u2_mid.unitary()}"
 
 
 @pytest.mark.parametrize("shift_left", [True, False])

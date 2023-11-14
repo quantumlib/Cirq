@@ -1,10 +1,45 @@
-{
-  "cirq_type": "OpIdentifier",
-  "gate_type": "XPowGate",
-  "qubits": [
-    {
-      "cirq_type": "LineQubit",
-      "x": 1
-    }
-  ]
-}
+[
+  {
+    "cirq_type": "OpIdentifier",
+    "gate_type": "XPowGate",
+    "qubits": [
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      }
+    ]
+  },
+  {
+    "cirq_type": "OpIdentifier",
+    "gate_type": {
+      "cirq_type": "CliffordGate",
+      "n": 1,
+      "rs": [
+        false,
+        false
+      ],
+      "xs": [
+        [
+          true
+        ],
+        [
+          false
+        ]
+      ],
+      "zs": [
+        [
+          false
+        ],
+        [
+          true
+        ]
+      ]
+    },
+    "qubits": [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      }
+    ]
+  }
+]

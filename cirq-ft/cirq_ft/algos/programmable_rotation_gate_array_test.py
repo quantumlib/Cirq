@@ -12,18 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Tuple
+from numpy.typing import NDArray
 
 import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq._compat import cached_property
 from cirq_ft.infra.bit_tools import iter_bits
 
 
 class CustomProgrammableRotationGateArray(cirq_ft.ProgrammableRotationGateArrayBase):
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(
+        self, index: int, **qubit_regs: NDArray[cirq.Qid]  # type:ignore[type-var]
+    ) -> cirq.Operation:
         two_qubit_ops_factory = [
             cirq.X(*qubit_regs['unrelated_target']).controlled_by(*qubit_regs['rotations_target']),
             cirq.Z(*qubit_regs['unrelated_target']).controlled_by(*qubit_regs['rotations_target']),
@@ -31,8 +35,8 @@ class CustomProgrammableRotationGateArray(cirq_ft.ProgrammableRotationGateArrayB
         return two_qubit_ops_factory[index % 2]
 
     @cached_property
-    def interleaved_unitary_target(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(unrelated_target=1)
+    def interleaved_unitary_target(self) -> Tuple[cirq_ft.Register, ...]:
+        return tuple(cirq_ft.Signature.build(unrelated_target=1))
 
 
 def construct_custom_prga(*args, **kwargs) -> cirq_ft.ProgrammableRotationGateArrayBase:
@@ -59,7 +63,7 @@ def construct_prga_with_identity(*args, **kwargs) -> cirq_ft.ProgrammableRotatio
 def test_programmable_rotation_gate_array(angles, kappa, constructor):
     rotation_gate = cirq.X
     programmable_rotation_gate = constructor(*angles, kappa=kappa, rotation_gate=rotation_gate)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a")
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a")
     g = cirq_ft.testing.GateHelper(
         programmable_rotation_gate, context=cirq.DecompositionContext(greedy_mm)
     )
@@ -70,13 +74,13 @@ def test_programmable_rotation_gate_array(angles, kappa, constructor):
         for i in range(len(angles) - 1)
     ]
     # Get qubits on which rotations + unitaries act.
-    rotations_and_unitary_registers = cirq_ft.Registers(
+    rotations_and_unitary_registers = cirq_ft.Signature(
         [
             *programmable_rotation_gate.rotations_target,
             *programmable_rotation_gate.interleaved_unitary_target,
         ]
     )
-    rotations_and_unitary_qubits = rotations_and_unitary_registers.merge_qubits(**g.quregs)
+    rotations_and_unitary_qubits = infra.merge_qubits(rotations_and_unitary_registers, **g.quregs)
 
     # Build circuit.
     simulator = cirq.Simulator(dtype=np.complex128)
@@ -91,7 +95,10 @@ def test_programmable_rotation_gate_array(angles, kappa, constructor):
         # Set bits in initial_state s.t. selection register stores `selection_integer`.
         qubit_vals = {x: 0 for x in g.all_qubits}
         qubit_vals.update(
-            zip(g.quregs['selection'], iter_bits(selection_integer, g.r['selection'].bitsize))
+            zip(
+                g.quregs['selection'],
+                iter_bits(selection_integer, g.r.get_left('selection').total_bits()),
+            )
         )
         initial_state = [qubit_vals[x] for x in g.all_qubits]
         # Actual circuit simulation.

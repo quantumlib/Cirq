@@ -15,7 +15,5 @@
 import cirq_ft
 
 
-def test_to_tuple():
-    assert cirq_ft.infra.to_tuple([1, 2]) == (1, 2)
-    assert cirq_ft.infra.to_tuple((1, 2)) == (1, 2)
-    assert cirq_ft.infra.to_tuple(1) == (1,)
+def test_version():
+    assert cirq_ft.__version__ == "1.3.0.dev"

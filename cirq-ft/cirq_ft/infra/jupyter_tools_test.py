@@ -27,7 +27,7 @@ def test_svg_circuit():
     svg_str = svg.data
 
     # check that the order is respected in the svg data.
-    assert svg_str.find('control') < svg_str.find('ancilla') < svg_str.find('target')
+    assert svg_str.find('ctrl') < svg_str.find('junk') < svg_str.find('target')
 
     # Check svg_circuit raises.
     with pytest.raises(ValueError):

@@ -149,7 +149,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: [ '3.9', '3.10' ]
+        python-version: [ '3.9', '3.10', '3.11' ]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -168,7 +168,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --rigetti-integration
+        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   pip-compile:
@@ -238,13 +238,15 @@ jobs:
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
         run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: [ '3.9', '3.10' ]
+        python-version: [ '3.9', '3.10', '3.11' ]
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v3
@@ -263,13 +265,13 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest -n auto --ignore=cirq-core/cirq/contrib
+          check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.9', '3.10' ]
+        python-version: [ '3.9', '3.10', '3.11' ]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -286,7 +288,7 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from collections import defaultdict
 from typing import (
     AbstractSet,
@@ -356,7 +357,7 @@ def _pauli_string_from_unit(unit: UnitPauliStringT, coefficient: Union[int, floa
     return PauliString(qubit_pauli_map=dict(unit), coefficient=coefficient)
 
 
-@value.value_equality(approximate=True)
+@value.value_equality(approximate=True, unhashable=True)
 class PauliSum:
     """Represents operator defined by linear combination of PauliStrings.
 
@@ -651,7 +652,7 @@ class PauliSum:
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self)
+                f"PauliString <{self}>. Coefficient must be real."
             )
 
         # TODO: Avoid enforce specific complex type. This is necessary to
@@ -713,7 +714,7 @@ class PauliSum:
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self)
+                f"PauliString <{self}>. Coefficient must be real."
             )
 
         # FIXME: Avoid enforce specific complex type. This is necessary to

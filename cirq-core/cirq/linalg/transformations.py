@@ -401,13 +401,13 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     ndim = tensor.ndim // 2
     if not all(tensor.shape[i] == tensor.shape[i + ndim] for i in range(ndim)):
         raise ValueError(
-            'Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
-            'd_{{k-1}}) but had shape ({}).'.format(tensor.shape)
+            f'Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
+            f'd_{{k-1}}) but had shape ({tensor.shape}).'
         )
     if not all(i < ndim for i in keep_indices):
         raise ValueError(
-            'keep_indices were {} but must be in first half, '
-            'i.e. have index less that {}.'.format(keep_indices, ndim)
+            f'keep_indices were {keep_indices} but must be in first half, '
+            f'i.e. have index less that {ndim}.'
         )
     keep_set = set(keep_indices)
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
@@ -532,8 +532,8 @@ def sub_state_vector(
 
     if not np.log2(state_vector.size).is_integer():
         raise ValueError(
-            "Input state_vector of size {} does not represent a "
-            "state over qubits.".format(state_vector.size)
+            f"Input state_vector of size {state_vector.size} does not represent a "
+            "state over qubits."
         )
 
     n_qubits = int(np.log2(state_vector.size))
@@ -574,8 +574,7 @@ def sub_state_vector(
         return default
 
     raise EntangledStateError(
-        "Input state vector could not be factored into pure state over "
-        "indices {}".format(keep_indices)
+        f"Input state vector could not be factored into pure state over indices {keep_indices}"
     )
 
 

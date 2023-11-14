@@ -15,7 +15,7 @@
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
 from typing import Any, Dict, List, Optional, Set, Sequence, Tuple, TYPE_CHECKING
-from itertools import combinations
+import itertools
 import networkx as nx
 
 from cirq import circuits, ops, protocols
@@ -48,7 +48,9 @@ def _disjoint_nc2_combinations(
     Returns:
         All 2-combinations between qubit pairs that are disjoint.
     """
-    return [pair for pair in combinations(qubit_pairs, 2) if set(pair[0]).isdisjoint(pair[1])]
+    return [
+        pair for pair in itertools.combinations(qubit_pairs, 2) if set(pair[0]).isdisjoint(pair[1])
+    ]
 
 
 @transformer_api.transformer
@@ -245,9 +247,20 @@ class RouteCQC:
         The i'th entry in the nested two-qubit and single-qubit ops correspond to the two-qubit
         gates and single-qubit gates of the i'th timesteps respectively. When constructing the
         output routed circuit, single-qubit operations are inserted before two-qubit operations.
+
+        Raises:
+            ValueError: if circuit has intermediate measurement op's that act on 3 or more qubits.
         """
         two_qubit_circuit = circuits.Circuit()
         single_qubit_ops: List[List[cirq.Operation]] = []
+
+        if any(
+            protocols.num_qubits(op) > 2 and protocols.is_measurement(op)
+            for op in itertools.chain(*circuit.moments[:-1])
+        ):
+            # There is at least one non-terminal measurement on 3+ qubits
+            raise ValueError('Non-terminal measurements on three or more qubits are not supported')
+
         for moment in circuit:
             for op in moment:
                 timestep = two_qubit_circuit.earliest_available_moment(op)
@@ -255,7 +268,7 @@ class RouteCQC:
                 two_qubit_circuit.append(
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
-                if protocols.num_qubits(op) == 2 and not protocols.is_measurement(op):
+                if protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
                     single_qubit_ops[timestep].append(op)

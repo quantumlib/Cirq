@@ -24,6 +24,7 @@ from cirq.transformers.analytical_decompositions import (
     is_negligible_turn,
     parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz,
+    prepare_two_qubit_state_using_iswap,
     prepare_two_qubit_state_using_sqrt_iswap,
     quantum_shannon_decomposition,
     single_qubit_matrix_to_gates,
@@ -37,6 +38,7 @@ from cirq.transformers.analytical_decompositions import (
     two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
+    unitary_to_pauli_string,
 )
 
 from cirq.transformers.heuristic_decompositions import (
@@ -91,6 +93,8 @@ from cirq.transformers.merge_single_qubit_gates import (
     merge_single_qubit_gates_to_phxz,
     merge_single_qubit_moments_to_phxz,
 )
+
+from cirq.transformers.qubit_management_transformers import map_clean_and_borrowable_qubits
 
 from cirq.transformers.synchronize_terminal_measurements import synchronize_terminal_measurements
 

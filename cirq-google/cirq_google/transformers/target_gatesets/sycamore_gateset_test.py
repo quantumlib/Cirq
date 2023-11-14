@@ -244,8 +244,7 @@ def test_unsupported_gate_ignoring_failures():
             return self._qubits
 
         def with_qubits(self, *new_qubits):
-            # coverage: ignore
-            return UnknownOperation(self._qubits)
+            return UnknownOperation(self._qubits)  # pragma: no cover
 
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(UnknownOperation([q0]))

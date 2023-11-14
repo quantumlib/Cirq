@@ -107,6 +107,38 @@ def test_circuit_with_measurement_gates():
     cirq.testing.assert_same_circuits(routed_circuit, circuit)
 
 
+def test_circuit_with_valid_intermediate_multi_qubit_measurement_gates():
+    device = cirq.testing.construct_ring_device(3)
+    device_graph = device.metadata.nx_graph
+    router = cirq.RouteCQC(device_graph)
+    q = cirq.LineQubit.range(2)
+    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(2)})
+
+    valid_circuit = cirq.Circuit(cirq.measure_each(*q), cirq.H.on_each(q))
+
+    c_routed = router(
+        valid_circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)
+    )
+    device.validate_circuit(c_routed)
+
+
+def test_circuit_with_invalid_intermediate_multi_qubit_measurement_gates():
+    device = cirq.testing.construct_ring_device(3)
+    device_graph = device.metadata.nx_graph
+    router = cirq.RouteCQC(device_graph)
+    q = cirq.LineQubit.range(3)
+    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+
+    invalid_circuit = cirq.Circuit(cirq.MeasurementGate(3).on(*q), cirq.H.on_each(*q))
+
+    with pytest.raises(ValueError):
+        _ = router(
+            invalid_circuit,
+            initial_mapper=hard_coded_mapper,
+            context=cirq.TransformerContext(deep=True),
+        )
+
+
 def test_circuit_with_non_unitary_and_global_phase():
     device = cirq.testing.construct_ring_device(4)
     device_graph = device.metadata.nx_graph
