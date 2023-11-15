@@ -327,8 +327,9 @@ def _get_retry_request_or_raise(
         if 'create_quantum_program_and_job' in current_request:
             # If the program already exists and is created as part of the stream client, the job
             # should also exist because they are created at the same time.
-            # If the job is missing, a `CreateQuantumJobRequest` will be issued after a
-            # `GetQuantumResultRequest` is attempted.
+            # If the job is missing, the program is created outside StreamManager.
+            # A `CreateQuantumJobRequest` will be issued after a `GetQuantumResultRequest` is
+            # attempted.
             return get_result_request
     elif error.code == Code.JOB_DOES_NOT_EXIST:
         if 'get_quantum_result' in current_request:
