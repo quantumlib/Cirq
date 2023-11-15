@@ -134,8 +134,7 @@ def test_intermediate_simulator():
 
     simulator.simulate_moment_steps.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
-    param_resolver = mock.Mock(cirq.ParamResolver)
-    param_resolver.param_dict = {}
+    param_resolver = cirq.ParamResolver({})
     qubit_order = mock.Mock(cirq.QubitOrder)
     result = simulator.simulate(
         program=circuit, param_resolver=param_resolver, qubit_order=qubit_order, initial_state=2
@@ -163,9 +162,7 @@ def test_intermediate_sweeps():
 
     simulator.simulate_moment_steps.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
-    param_resolvers = [mock.Mock(cirq.ParamResolver), mock.Mock(cirq.ParamResolver)]
-    for resolver in param_resolvers:
-        resolver.param_dict = {}
+    param_resolvers = [cirq.ParamResolver({}), cirq.ParamResolver({})]
     qubit_order = mock.Mock(cirq.QubitOrder)
     results = simulator.simulate_sweep(
         program=circuit, params=param_resolvers, qubit_order=qubit_order, initial_state=2
