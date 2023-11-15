@@ -37,10 +37,10 @@ document(
 )
 
 # Used to mark values that are not found in a dict.
-_NotFound = object()
+_NOT_FOUND = object()
 
 # Used to mark values that are being resolved recursively to detect loops.
-_RecursionFlag = object()
+_RECURSION_FLAG = object()
 
 
 def _is_param_resolver_or_similar_type(obj: Any):
@@ -127,10 +127,10 @@ class ParamResolver:
         if isinstance(value, (str, sympy.Symbol)):
             string = value if isinstance(value, str) else value.name
             symbol = value if isinstance(value, sympy.Symbol) else sympy.Symbol(value)
-            param_value = self._param_dict.get(string, _NotFound)
-            if param_value is _NotFound:
-                param_value = self._param_dict.get(symbol, _NotFound)
-            if param_value is _NotFound:
+            param_value = self._param_dict.get(string, _NOT_FOUND)
+            if param_value is _NOT_FOUND:
+                param_value = self._param_dict.get(symbol, _NOT_FOUND)
+            if param_value is _NOT_FOUND:
                 # Symbol or string cannot be resolved if not in param dict; return as symbol.
                 return symbol
             v = _resolve_value(param_value)
@@ -201,13 +201,13 @@ class ParamResolver:
         # single symbol, since combinations are handled earlier in the method.
         if value in self._deep_eval_map:
             v = self._deep_eval_map[value]
-            if v is _RecursionFlag:
+            if v is _RECURSION_FLAG:
                 raise RecursionError('Evaluation of {value} indirectly contains itself.')
             return v
 
         # There isn't a full evaluation for 'value' yet. Until it's ready,
         # map value to None to identify loops in component evaluation.
-        self._deep_eval_map[value] = _RecursionFlag  # type: ignore
+        self._deep_eval_map[value] = _RECURSION_FLAG  # type: ignore
 
         v = self.value_of(value, recursive=False)
         if v == value:
