@@ -136,7 +136,9 @@ class ParamResolver:
             v = _resolve_value(param_value)
             if v is not NotImplemented:
                 return v
-            if not isinstance(param_value, sympy.Basic):
+            if isinstance(param_value, str):
+                param_value = sympy.Symbol(param_value)
+            elif not isinstance(param_value, sympy.Basic):
                 return value  # type: ignore[return-value]
             if recursive:
                 param_value = self._value_of_recursive(value)
