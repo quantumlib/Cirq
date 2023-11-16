@@ -34,12 +34,7 @@ from tensorflow_docs.api_generator import generate_lib
 from tensorflow_docs.api_generator import public_api
 
 import cirq
-import cirq_aqt
 import cirq_google
-import cirq_ionq
-import cirq_pasqal
-import cirq_rigetti
-import cirq_web
 
 from cirq import _doc
 
@@ -86,11 +81,6 @@ def filter_type_checking(path, parent, children):
 def main(unused_argv):
     generate_cirq()
     generate_cirq_google()
-    generate_cirq_aqt()
-    generate_cirq_ionq()
-    generate_cirq_pasqal()
-    generate_cirq_rigetti()
-    generate_cirq_web()
 
 
 def generate_cirq():
@@ -137,94 +127,6 @@ def generate_cirq():
     doc_generator.build(output_dir=FLAGS.output_dir)
 
 
-def generate_cirq_aqt():
-    doc_generator = generate_lib.DocGenerator(
-        root_title="Cirq-aqt",
-        py_modules=[("cirq_aqt", cirq_aqt)],
-        base_dir=os.path.dirname(cirq_aqt.__file__),
-        code_url_prefix=FLAGS.code_url_prefix + "/cirq-aqt/cirq_aqt",
-        search_hints=FLAGS.search_hints,
-        site_path=FLAGS.site_path,
-        callbacks=[
-            public_api.local_definitions_filter,
-            filter_unwanted_inherited_methods,
-            filter_type_checking,
-        ],
-        extra_docs=_doc.RECORDED_CONST_DOCS,
-    )
-    doc_controls.decorate_all_class_attributes(
-        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
-    )
-
-    doc_generator.build(output_dir=FLAGS.output_dir)
-
-
-def generate_cirq_ionq():
-    doc_generator = generate_lib.DocGenerator(
-        root_title="Cirq_ionq",
-        py_modules=[("cirq_ionq", cirq_ionq)],
-        base_dir=os.path.dirname(cirq_ionq.__file__),
-        code_url_prefix=FLAGS.code_url_prefix + "/cirq-ionq/cirq_ionq",
-        search_hints=FLAGS.search_hints,
-        site_path=FLAGS.site_path,
-        callbacks=[
-            public_api.local_definitions_filter,
-            filter_unwanted_inherited_methods,
-            filter_type_checking,
-        ],
-        extra_docs=_doc.RECORDED_CONST_DOCS,
-    )
-    doc_controls.decorate_all_class_attributes(
-        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
-    )
-
-    doc_generator.build(output_dir=FLAGS.output_dir)
-
-
-def generate_cirq_pasqal():
-    doc_generator = generate_lib.DocGenerator(
-        root_title="Cirq-pasqal",
-        py_modules=[("cirq_pasqal", cirq_pasqal)],
-        base_dir=os.path.dirname(cirq_pasqal.__file__),
-        code_url_prefix=FLAGS.code_url_prefix + "/cirq-pasqal/cirq_pasqal",
-        search_hints=FLAGS.search_hints,
-        site_path=FLAGS.site_path,
-        callbacks=[
-            public_api.local_definitions_filter,
-            filter_unwanted_inherited_methods,
-            filter_type_checking,
-        ],
-        extra_docs=_doc.RECORDED_CONST_DOCS,
-    )
-    doc_controls.decorate_all_class_attributes(
-        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
-    )
-
-    doc_generator.build(output_dir=FLAGS.output_dir)
-
-
-def generate_cirq_rigetti():
-    doc_generator = generate_lib.DocGenerator(
-        root_title="Cirq_rigetti",
-        py_modules=[("cirq_rigetti", cirq_rigetti)],
-        base_dir=os.path.dirname(cirq_rigetti.__file__),
-        code_url_prefix=FLAGS.code_url_prefix + "/cirq-rigetti/cirq_rigetti",
-        search_hints=FLAGS.search_hints,
-        site_path=FLAGS.site_path,
-        callbacks=[
-            public_api.local_definitions_filter,
-            filter_unwanted_inherited_methods,
-            filter_type_checking,
-        ],
-        extra_docs=_doc.RECORDED_CONST_DOCS,
-    )
-    doc_controls.decorate_all_class_attributes(
-        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
-    )
-
-    doc_generator.build(output_dir=FLAGS.output_dir)
-
-
 def generate_cirq_google():
     doc_generator = generate_lib.DocGenerator(
         root_title="Cirq-google",
@@ -246,28 +148,6 @@ def generate_cirq_google():
         },
         extra_docs=_doc.RECORDED_CONST_DOCS,
     )
-    doc_generator.build(output_dir=FLAGS.output_dir)
-
-
-def generate_cirq_web():
-    doc_generator = generate_lib.DocGenerator(
-        root_title="Cirq_web",
-        py_modules=[("cirq_web", cirq_web)],
-        base_dir=os.path.dirname(cirq_web.__file__),
-        code_url_prefix=FLAGS.code_url_prefix + "/cirq-web/cirq_web",
-        search_hints=FLAGS.search_hints,
-        site_path=FLAGS.site_path,
-        callbacks=[
-            public_api.local_definitions_filter,
-            filter_unwanted_inherited_methods,
-            filter_type_checking,
-        ],
-        extra_docs=_doc.RECORDED_CONST_DOCS,
-    )
-    doc_controls.decorate_all_class_attributes(
-        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
-    )
-
     doc_generator.build(output_dir=FLAGS.output_dir)
 
 
