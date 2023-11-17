@@ -260,9 +260,11 @@ class RouteCQC:
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
                 if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
+                    key = op.gate.key  # type: ignore
+                    default_key = ops.measure(op.qubits).gate.key  # type: ignore
                     if len(circuit.moments) == i + 1:
                         single_qubit_ops[timestep].append(op)
-                    elif op.gate.key in ('', ops.measure(op.qubits).gate.key):
+                    elif key in ('', default_key):
                         single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
                     else:
                         raise ValueError(
