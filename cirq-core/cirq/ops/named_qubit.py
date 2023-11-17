@@ -50,19 +50,13 @@ class _BaseNamedQid(raw_types.Qid):
     def __eq__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseNamedQid):
-            return (
-                    self._name == other._name
-                    and self._dimension == other._dimension
-            )
+            return self._name == other._name and self._dimension == other._dimension
         return NotImplemented
 
     def __ne__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseNamedQid):
-            return (
-                    self._name != other._name
-                    or self._dimension != other._dimension
-            )
+            return self._name != other._name or self._dimension != other._dimension
         return NotImplemented
 
     def _comparison_key(self):
