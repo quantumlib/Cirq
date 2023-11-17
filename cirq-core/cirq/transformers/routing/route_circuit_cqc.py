@@ -212,10 +212,10 @@ class RouteCQC:
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
         # convinience methods over the image of the map on the device graph.
         mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
-        
+
         # 3. Get two_qubit_ops and single-qubit operations.
         two_qubit_ops, single_qubit_ops = self._get_one_and_two_qubit_ops_as_timesteps(circuit)
-        
+
         # 4. Do the routing and save the routed circuit as a list of moments.
         routed_ops = self._route(
             mm,
@@ -245,17 +245,32 @@ class RouteCQC:
         The i'th entry in the nested two-qubit and single-qubit ops correspond to the two-qubit
         gates and single-qubit gates of the i'th timesteps respectively. When constructing the
         output routed circuit, single-qubit operations are inserted before two-qubit operations.
+
+        Raises:
+            ValueError: if circuit has intermediate measurement op's that act on three or more qubits and result is stored.
         """
         two_qubit_circuit = circuits.Circuit()
         single_qubit_ops: List[List[cirq.Operation]] = []
+        current_moment = 0
+
         for moment in circuit:
+            current_moment += 1
             for op in moment:
                 timestep = two_qubit_circuit.earliest_available_moment(op)
                 single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
                 two_qubit_circuit.append(
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
-                if protocols.num_qubits(op) == 2 and not protocols.is_measurement(op):
+                if protocols.num_qubits(op) > 2 and isinstance(op.gate, ops.MeasurementGate):
+                    if len(circuit.moments) == current_moment:
+                        single_qubit_ops[timestep].append(op)
+                    elif op.gate.key == "":
+                        single_qubit_ops[timestep] += [ops.measure(qubit) for qubit in op.qubits]
+                    else:
+                        raise ValueError(
+                            'Non-terminal measurements on three or more qubits when result is stored are not supported'
+                        )
+                elif protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
                     single_qubit_ops[timestep].append(op)
