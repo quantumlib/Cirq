@@ -127,7 +127,10 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_result_not_s
     q = cirq.LineQubit.range(3)
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
     circuit = cirq.Circuit(
-        [cirq.Moment(cirq.MeasurementGate(3).on(*q)), cirq.Moment(cirq.H.on_each(q))]
+        [
+            cirq.Moment(cirq.measure(q[0]), cirq.measure(q[1]), cirq.measure(q[2])),
+            cirq.Moment(cirq.H.on_each(q)),
+        ]
     )
     routed_circuit = router(
         circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)

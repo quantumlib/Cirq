@@ -253,7 +253,7 @@ class RouteCQC:
         single_qubit_ops: List[List[cirq.Operation]] = []
         current_moment = 0
 
-        for moment in circuit:
+        for i, moment in enumerate(circuit):
             current_moment += 1
             for op in moment:
                 timestep = two_qubit_circuit.earliest_available_moment(op)
@@ -261,11 +261,11 @@ class RouteCQC:
                 two_qubit_circuit.append(
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
-                if protocols.num_qubits(op) > 2 and isinstance(op.gate, ops.MeasurementGate):
+                if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
                     if len(circuit.moments) == current_moment:
                         single_qubit_ops[timestep].append(op)
-                    elif op.gate.key == "":
-                        single_qubit_ops[timestep] += [ops.measure(qubit) for qubit in op.qubits]
+                    elif op.gate.key in ('', ops.measure(op.qubits).gate.key):
+                        single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
                     else:
                         raise ValueError(
                             'Non-terminal measurements on three or more qubits when result is stored are not supported'
