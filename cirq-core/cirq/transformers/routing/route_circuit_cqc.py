@@ -251,10 +251,8 @@ class RouteCQC:
         """
         two_qubit_circuit = circuits.Circuit()
         single_qubit_ops: List[List[cirq.Operation]] = []
-        current_moment = 0
 
         for i, moment in enumerate(circuit):
-            current_moment += 1
             for op in moment:
                 timestep = two_qubit_circuit.earliest_available_moment(op)
                 single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
@@ -262,7 +260,7 @@ class RouteCQC:
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
                 if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
-                    if len(circuit.moments) == current_moment:
+                    if len(circuit.moments) == i + 1:
                         single_qubit_ops[timestep].append(op)
                     elif op.gate.key in ('', ops.measure(op.qubits).gate.key):
                         single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
