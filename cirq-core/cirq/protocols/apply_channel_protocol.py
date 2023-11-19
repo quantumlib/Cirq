@@ -41,13 +41,16 @@ class ApplyChannelArgs:
     r"""Arguments for efficiently performing a channel.
 
     A channel performs the mapping
-        $$
-        X \rightarrow \sum_i A_i X A_i^\dagger
-        $$
+
+    $$
+    X \rightarrow \sum_i A_i X A_i^\dagger
+    $$
+
     for operators $A_i$ that satisfy the normalization condition
-        $$
-        \sum_i A_i^\dagger A_i = I.
-        $$
+
+    $$
+    \sum_i A_i^\dagger A_i = I.
+    $$
 
     The receiving object is expected to mutate `target_tensor` so that it
     contains the density matrix after multiplication, and then return

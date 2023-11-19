@@ -8,3 +8,8 @@ skip-magic-trailing-comma = true
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
 ]
+markers = [
+    "rigetti_integration: tests that connect to Quil compiler or QVM.",
+    "slow: slow tests that should be skipped by default.",
+    "weekly: tests to be run only by weekly CI automation.",
+]

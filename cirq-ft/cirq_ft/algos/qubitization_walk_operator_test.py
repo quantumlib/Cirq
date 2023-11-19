@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.algos.generic_select_test import get_1d_Ising_hamiltonian
 from cirq_ft.algos.reflection_using_prepare_test import greedily_allocate_ancilla, keep
 from cirq_ft.infra.jupyter_tools import execute_notebook
@@ -31,7 +34,9 @@ def walk_operator_for_pauli_hamiltonian(
         ham_coeff, probability_epsilon=eps
     )
     select = cirq_ft.GenericSelect(
-        prepare.selection_registers.total_bits(), select_unitaries=ham_dps, target_bitsize=len(q)
+        infra.total_bits(prepare.selection_registers),
+        select_unitaries=ham_dps,
+        target_bitsize=len(q),
     )
     return cirq_ft.QubitizationWalkOperator(select=select, prepare=prepare)
 
@@ -43,6 +48,7 @@ def get_walk_operator_for_1d_Ising_model(
     return walk_operator_for_pauli_hamiltonian(ham, eps)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('num_sites,eps', [(4, 2e-1), (3, 1e-1)])
 def test_qubitization_walk_operator(num_sites: int, eps: float):
     ham = get_1d_Ising_hamiltonian(cirq.LineQubit.range(num_sites))
@@ -60,8 +66,8 @@ def test_qubitization_walk_operator(num_sites: int, eps: float):
     L_state = np.zeros(2 ** len(g.quregs['selection']))
     L_state[: len(ham_coeff)] = np.sqrt(ham_coeff / qubitization_lambda)
 
-    greedy_mm = cirq_ft.GreedyQubitManager('ancilla', maximize_reuse=True)
-    walk_circuit = cirq_ft.map_clean_and_borrowable_qubits(walk_circuit, qm=greedy_mm)
+    greedy_mm = cirq.GreedyQubitManager('ancilla', maximize_reuse=True)
+    walk_circuit = cirq.map_clean_and_borrowable_qubits(walk_circuit, qm=greedy_mm)
     assert len(walk_circuit.all_qubits()) < 23
     qubit_order = cirq.QubitOrder.explicit(
         [*g.quregs['selection'], *g.quregs['target']], fallback=cirq.QubitOrder.DEFAULT
@@ -96,7 +102,7 @@ def test_qubitization_walk_operator_diagrams():
     num_sites, eps = 4, 1e-1
     walk = get_walk_operator_for_1d_Ising_model(num_sites, eps)
     # 1. Diagram for $W = SELECT.R_{L}$
-    qu_regs = walk.registers.get_named_qubits()
+    qu_regs = infra.get_named_qubits(walk.signature)
     walk_op = walk.on_registers(**qu_regs)
     circuit = cirq.Circuit(cirq.decompose_once(walk_op))
     cirq.testing.assert_has_diagram(
@@ -214,7 +220,7 @@ target3: ──────GenericSelect─────────────�
 
 def test_qubitization_walk_operator_consistent_protocols_and_controlled():
     gate = get_walk_operator_for_1d_Ising_model(4, 1e-1)
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     # Test consistent repr
     cirq.testing.assert_equivalent_repr(
         gate, setup_code='import cirq\nimport cirq_ft\nimport numpy as np'
@@ -236,6 +242,7 @@ def test_qubitization_walk_operator_consistent_protocols_and_controlled():
         _ = gate.controlled(num_controls=2)
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('qubitization_walk_operator')
     execute_notebook('phase_estimation_of_quantum_walk')

@@ -15,11 +15,13 @@
 from cirq_ft.infra.gate_with_registers import (
     GateWithRegisters,
     Register,
-    Registers,
+    Signature,
+    Side,
     SelectionRegister,
-    SelectionRegisters,
+    total_bits,
+    split_qubits,
+    merge_qubits,
+    get_named_qubits,
 )
 from cirq_ft.infra.qubit_management_transformers import map_clean_and_borrowable_qubits
-from cirq_ft.infra.qubit_manager import GreedyQubitManager
 from cirq_ft.infra.t_complexity_protocol import TComplexity, t_complexity
-from cirq_ft.infra.type_convertors import to_tuple

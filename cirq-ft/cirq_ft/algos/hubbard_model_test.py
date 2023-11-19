@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import cirq
 import cirq_ft
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
@@ -48,7 +51,7 @@ def test_hubbard_model_consistent_protocols():
     cirq.testing.assert_equivalent_repr(prepare_gate, setup_code='import cirq_ft')
 
     # Build controlled SELECT gate
-    select_op = select_gate.on_registers(**select_gate.registers.get_named_qubits())
+    select_op = select_gate.on_registers(**infra.get_named_qubits(select_gate.signature))
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.add_equality_group(
         select_gate.controlled(),
@@ -71,5 +74,6 @@ def test_hubbard_model_consistent_protocols():
     assert cirq.circuit_diagram_info(select_gate).wire_symbols == tuple(expected_symbols)
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('hubbard_model')

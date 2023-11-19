@@ -60,8 +60,7 @@ def _cases_for_random_circuit():
             # number of qubits greater that the number of qubits for the
             # circuit. In this case, try again.
             if all(n > n_qubits for n in gate_domain.values()):
-                # coverage: ignore
-                continue
+                continue  # pragma: no cover
         else:
             gate_domain = None
         pass_qubits = random.choice((True, False))
@@ -107,7 +106,6 @@ def test_random_circuit_reproducible_with_seed(seed):
 
 
 def test_random_circuit_not_expected_number_of_qubits():
-
     circuit = cirq.testing.random_circuit(
         qubits=3, n_moments=1, op_density=1.0, gate_domain={cirq.CNOT: 2}
     )

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -26,16 +26,51 @@ if TYPE_CHECKING:
 class _BaseNamedQid(raw_types.Qid):
     """The base class for `NamedQid` and `NamedQubit`."""
 
-    def __init__(self, name: str) -> None:
-        self._name = name
-        self._comp_key = _pad_digits(name)
+    _name: str
+    _dimension: int
+    _comp_key: Optional[str] = None
+    _hash: Optional[int] = None
+
+    def __getstate__(self):
+        # Don't save hash when pickling; see #3777.
+        state = self.__dict__
+        if "_hash" in state or "_comp_key" in state:
+            state = state.copy()
+            if "_hash" in state:
+                del state["_hash"]
+            if "_comp_key" in state:
+                del state["_comp_key"]
+        return state
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash((self._name, self._dimension))
+        return self._hash
+
+    def __eq__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            return self._name == other._name and self._dimension == other._dimension
+        return NotImplemented
+
+    def __ne__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            return self._name != other._name or self._dimension != other._dimension
+        return NotImplemented
 
     def _comparison_key(self):
+        if self._comp_key is None:
+            self._comp_key = _pad_digits(self._name)
         return self._comp_key
 
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension
 
     def with_dimension(self, dimension: int) -> 'NamedQid':
         return NamedQid(self._name, dimension=dimension)
@@ -59,19 +94,15 @@ class NamedQid(_BaseNamedQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        super().__init__(name)
-        self._dimension = dimension
         self.validate_dimension(dimension)
-
-    @property
-    def dimension(self) -> int:
-        return self._dimension
+        self._name = name
+        self._dimension = dimension
 
     def __repr__(self) -> str:
-        return f'cirq.NamedQid({self.name!r}, dimension={self.dimension})'
+        return f'cirq.NamedQid({self._name!r}, dimension={self._dimension})'
 
     def __str__(self) -> str:
-        return f'{self.name} (d={self.dimension})'
+        return f'{self._name} (d={self._dimension})'
 
     @staticmethod
     def range(*args, prefix: str, dimension: int) -> List['NamedQid']:
@@ -95,7 +126,7 @@ class NamedQid(_BaseNamedQid):
         Returns:
             A list of ``NamedQid``\\s.
         """
-        return [NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)]
+        return [NamedQid(f"{prefix}{i}", dimension=dimension) for i in range(*args)]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name', 'dimension'])
@@ -110,14 +141,20 @@ class NamedQubit(_BaseNamedQid):
     wire for 'qubit3' will correctly come before 'qubit22'.
     """
 
-    @property
-    def dimension(self) -> int:
-        return 2
+    _dimension = 2
+
+    def __init__(self, name: str) -> None:
+        """Initializes a `NamedQubit` with a given name.
+
+        Args:
+            name: The name.
+        """
+        self._name = name
 
     def _cmp_tuple(self):
         cls = NamedQid if type(self) is NamedQubit else type(self)
         # Must be same as Qid._cmp_tuple but with cls in place of type(self).
-        return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
+        return (cls.__name__, repr(cls), self._comparison_key(), self._dimension)
 
     def __str__(self) -> str:
         return self._name
@@ -146,7 +183,7 @@ class NamedQubit(_BaseNamedQid):
         Returns:
             A list of ``NamedQubit``\\s.
         """
-        return [NamedQubit(prefix + str(i)) for i in range(*args)]
+        return [NamedQubit(f"{prefix}{i}") for i in range(*args)]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name'])

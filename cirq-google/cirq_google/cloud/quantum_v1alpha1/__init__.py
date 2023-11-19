@@ -57,6 +57,7 @@ from .types.engine import StreamError
 from .types.engine import UpdateQuantumJobRequest
 from .types.engine import UpdateQuantumProgramRequest
 from .types.engine import UpdateQuantumReservationRequest
+from .types.quantum import DeviceConfigKey
 from .types.quantum import ExecutionStatus
 from .types.quantum import GcsLocation
 from .types.quantum import InlineData
@@ -84,6 +85,7 @@ __all__ = (
 'DeleteQuantumJobRequest',
 'DeleteQuantumProgramRequest',
 'DeleteQuantumReservationRequest',
+'DeviceConfigKey',
 'ExecutionStatus',
 'GcsLocation',
 'GetQuantumCalibrationRequest',

@@ -387,7 +387,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         for strat in strats:
             result = strat(action, self, qubits)
             if result is False:
-                break  # coverage: ignore
+                break  # pragma: no cover
             if result is True:
                 return True
             assert result is NotImplemented, str(result)

@@ -30,9 +30,7 @@ def test_external():
 
 
 def test_custom_class_repr():
-    class CustomRepr:
-        # coverage: ignore
-
+    class CustomRepr:  # pragma: no cover
         setup_code = """class CustomRepr:
             def __init__(self, eq_val):
                 self.eq_val = eq_val

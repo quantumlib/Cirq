@@ -25,25 +25,19 @@ class InternalGate(ops.Gate):
     constructor stored in `self.gate_args`.
     """
 
-    def __init__(
-        self,
-        gate_name: str,
-        gate_module: str = 'pyle.cirqtools.pyle_gates',
-        num_qubits: int = 1,
-        **kwargs,
-    ):
+    def __init__(self, gate_name: str, gate_module: str, num_qubits: int = 1, **kwargs):
         """Instatiates an InternalGate.
 
         Arguments:
             gate_name: Gate class name.
-            gate_module: The module of the gate (defualt: pyle.cirqtools.pyle_gates).
+            gate_module: The module of the gate.
             num_qubits: Number of qubits that the gate acts on.
             **kwargs: The named arguments to be passed to the gate constructor.
         """
         self.gate_module = gate_module
         self.gate_name = gate_name
         self._num_qubits = num_qubits
-        self.gate_args = {arg: val for arg, val in kwargs.items()}
+        self.gate_args = kwargs
 
     def _num_qubits_(self) -> int:
         return self._num_qubits
@@ -72,4 +66,15 @@ class InternalGate(ops.Gate):
         )
 
     def _value_equality_values_(self):
-        return (self.gate_module, self.gate_name, self._num_qubits, self.gate_args)
+        hashable = True
+        for arg in self.gate_args.values():
+            try:
+                hash(arg)
+            except TypeError:
+                hashable = False
+        return (
+            self.gate_module,
+            self.gate_name,
+            self._num_qubits,
+            frozenset(self.gate_args.items()) if hashable else self.gate_args,
+        )

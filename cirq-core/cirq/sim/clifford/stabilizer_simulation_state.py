@@ -84,7 +84,7 @@ class StabilizerSimulationState(
     ):
         """Apply a SWAP gate"""
         if exponent % 1 != 0:
-            raise ValueError('Swap exponent must be integer')  # coverage: ignore
+            raise ValueError('Swap exponent must be integer')  # pragma: no cover
         self._state.apply_cx(control_axis, target_axis)
         self._state.apply_cx(target_axis, control_axis, exponent, global_shift)
         self._state.apply_cx(control_axis, target_axis)
@@ -122,7 +122,7 @@ class StabilizerSimulationState(
         if mixture is None:
             return NotImplemented
         if not all(linalg.is_unitary(m) for _, m in mixture):
-            return NotImplemented  # coverage: ignore
+            return NotImplemented  # pragma: no cover
         probabilities, unitaries = zip(*mixture)
         index = self.prng.choice(len(unitaries), p=probabilities)
         return self._strat_act_from_single_qubit_decompose(

@@ -570,6 +570,9 @@ class MutableDensePauliString(BaseDensePauliString):
     def __str__(self) -> str:
         return super().__str__() + ' (mutable)'
 
+    def _value_equality_values_(self):
+        return self.coefficient, tuple(PAULI_CHARS[p] for p in self.pauli_mask)
+
     @classmethod
     def inline_gaussian_elimination(cls, rows: 'List[MutableDensePauliString]') -> None:
         if not rows:

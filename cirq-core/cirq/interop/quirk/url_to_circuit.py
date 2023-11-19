@@ -77,39 +77,40 @@ def quirk_url_to_circuit(
             a billion laughs attack in the form of nested custom gates.
 
     Examples:
-        >>> print(cirq.quirk_url_to_circuit(
-        ...     'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}'
-        ... ))
-        0: ───H───@───
+
+    >>> print(cirq.quirk_url_to_circuit(
+    ...     'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}'
+    ... ))
+    0: ───H───@───
+              │
+    1: ───────X───
+
+    >>> print(cirq.quirk_url_to_circuit(
+    ...     'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
+    ...     qubits=[cirq.NamedQubit('Alice'), cirq.NamedQubit('Bob')]
+    ... ))
+    Alice: ───H───@───
                   │
-        1: ───────X───
+    Bob: ─────────X───
 
-        >>> print(cirq.quirk_url_to_circuit(
-        ...     'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
-        ...     qubits=[cirq.NamedQubit('Alice'), cirq.NamedQubit('Bob')]
-        ... ))
-        Alice: ───H───@───
-                      │
-        Bob: ─────────X───
+    >>> print(cirq.quirk_url_to_circuit(
+    ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+    ...     extra_cell_makers={'iswap': cirq.ISWAP}))
+    0: ───iSwap───
+          │
+    1: ───iSwap───
 
-        >>> print(cirq.quirk_url_to_circuit(
-        ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
-        ...     extra_cell_makers={'iswap': cirq.ISWAP}))
-        0: ───iSwap───
-              │
-        1: ───iSwap───
-
-        >>> print(cirq.quirk_url_to_circuit(
-        ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
-        ...     extra_cell_makers=[
-        ...         cirq.interop.quirk.cells.CellMaker(
-        ...             identifier='iswap',
-        ...             size=2,
-        ...             maker=lambda args: cirq.ISWAP(*args.qubits))
-        ...     ]))
-        0: ───iSwap───
-              │
-        1: ───iSwap───
+    >>> print(cirq.quirk_url_to_circuit(
+    ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+    ...     extra_cell_makers=[
+    ...         cirq.interop.quirk.cells.CellMaker(
+    ...             identifier='iswap',
+    ...             size=2,
+    ...             maker=lambda args: cirq.ISWAP(*args.qubits))
+    ...     ]))
+    0: ───iSwap───
+          │
+    1: ───iSwap───
 
     Returns:
         The parsed circuit.
@@ -172,12 +173,13 @@ def quirk_json_to_circuit(
             a billion laughs attack in the form of nested custom gates.
 
     Examples:
-        >>> print(cirq.quirk_json_to_circuit(
-        ...     {"cols":[["H"], ["•", "X"]]}
-        ... ))
-        0: ───H───@───
-                  │
-        1: ───────X───
+
+    >>> print(cirq.quirk_json_to_circuit(
+    ...     {"cols":[["H"], ["•", "X"]]}
+    ... ))
+    0: ───H───@───
+              │
+    1: ───────X───
 
     Returns:
         The parsed circuit.

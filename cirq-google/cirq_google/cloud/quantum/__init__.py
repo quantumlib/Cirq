@@ -57,6 +57,7 @@ from cirq_google.cloud.quantum_v1alpha1.types.engine import StreamError
 from cirq_google.cloud.quantum_v1alpha1.types.engine import UpdateQuantumJobRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import UpdateQuantumProgramRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import UpdateQuantumReservationRequest
+from cirq_google.cloud.quantum_v1alpha1.types.quantum import DeviceConfigKey
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import ExecutionStatus
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import GcsLocation
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import InlineData
@@ -115,6 +116,7 @@ __all__ = ('QuantumEngineServiceClient',
     'UpdateQuantumJobRequest',
     'UpdateQuantumProgramRequest',
     'UpdateQuantumReservationRequest',
+    'DeviceConfigKey',
     'ExecutionStatus',
     'GcsLocation',
     'InlineData',

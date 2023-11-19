@@ -19,7 +19,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import _compat
 
 
 def test_init():
@@ -45,8 +44,7 @@ def test_pickled_hash():
     q = cirq.GridQubit(3, 4)
     q_bad = cirq.GridQubit(3, 4)
     _ = hash(q_bad)  # compute hash to ensure it is cached.
-    hash_key = _compat._method_cache_name(cirq.GridQubit.__hash__)
-    setattr(q_bad, hash_key, getattr(q_bad, hash_key) + 1)
+    q_bad._hash = q_bad._hash + 1
     assert q_bad == q
     assert hash(q_bad) != hash(q)
     data = pickle.dumps(q_bad)

@@ -15,13 +15,13 @@
 import dataclasses
 import itertools
 
-from typing import Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, cast, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
 
 from matplotlib import pyplot as plt
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
-from mpl_toolkits import mplot3d  # pylint: disable=unused-import
+from mpl_toolkits import mplot3d
 from cirq import circuits, ops, protocols
 
 if TYPE_CHECKING:
@@ -89,8 +89,9 @@ class RandomizedBenchMarkResult:
         """
         show_plot = not ax
         if not ax:
-            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        ax.set_ylim([0, 1])
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))  # pragma: no cover
+            ax = cast(plt.Axes, ax)  # pragma: no cover
+        ax.set_ylim((0.0, 1.0))  # pragma: no cover
         ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-', **plot_kwargs)
         ax.set_xlabel(r"Number of Cliffords")
         ax.set_ylabel('Ground State Probability')
@@ -541,7 +542,7 @@ def _find_inv_matrix(mat: np.ndarray, mat_sequence: np.ndarray) -> int:
 def _matrix_bar_plot(
     mat: np.ndarray,
     z_label: str,
-    ax: plt.Axes,
+    ax: mplot3d.axes3d.Axes3D,
     kets: Optional[Sequence[str]] = None,
     title: Optional[str] = None,
     ylim: Tuple[int, int] = (-1, 1),
