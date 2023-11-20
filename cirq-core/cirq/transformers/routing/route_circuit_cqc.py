@@ -249,11 +249,12 @@ class RouteCQC:
         output routed circuit, single-qubit operations are inserted before two-qubit operations.
 
         Raises:
-            ValueError: if circuit has intermediate measurements that act on three or more qubits with a custom key.
+            ValueError: if circuit has intermediate measurements that act on three or more
+                        qubits with a custom key.
         """
         two_qubit_circuit = circuits.Circuit()
         single_qubit_ops: List[List[cirq.Operation]] = []
-
+        error_operation = 'Intermediate measurements on three or more qubits with a custom key'
         for i, moment in enumerate(circuit):
             for op in moment:
                 timestep = two_qubit_circuit.earliest_available_moment(op)
@@ -269,9 +270,7 @@ class RouteCQC:
                     elif key in ('', default_key):
                         single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
                     else:
-                        raise ValueError(
-                            'Intermediate measurements on three or more qubits with a custom key are not supported'
-                        )
+                        raise ValueError(f'Unsupported operation: {error_operation}')
                 elif protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
