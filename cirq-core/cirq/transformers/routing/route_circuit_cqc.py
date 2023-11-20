@@ -15,7 +15,7 @@
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
 from typing import Any, Dict, List, Optional, Set, Sequence, Tuple, TYPE_CHECKING
-from itertools import combinations
+import itertools
 import networkx as nx
 
 from cirq import circuits, ops, protocols
@@ -48,7 +48,9 @@ def _disjoint_nc2_combinations(
     Returns:
         All 2-combinations between qubit pairs that are disjoint.
     """
-    return [pair for pair in combinations(qubit_pairs, 2) if set(pair[0]).isdisjoint(pair[1])]
+    return [
+        pair for pair in itertools.combinations(qubit_pairs, 2) if set(pair[0]).isdisjoint(pair[1])
+    ]
 
 
 @transformer_api.transformer

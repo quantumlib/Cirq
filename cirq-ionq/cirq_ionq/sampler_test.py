@@ -100,7 +100,7 @@ def test_sampler_multiple_jobs():
     results = sampler.sample(
         program=circuit,
         repetitions=4,
-        params=[cirq.ParamResolver({x: '0.5'}), cirq.ParamResolver({x: '0.6'})],
+        params=[cirq.ParamResolver({x: 0.5}), cirq.ParamResolver({x: 0.6})],
     )
     pd.testing.assert_frame_equal(
         results,
