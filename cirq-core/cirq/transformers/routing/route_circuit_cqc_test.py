@@ -141,7 +141,7 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_result_store
     qs = cirq.LineQubit.range(3)
     hard_coded_mapper = cirq.HardCodedInitialMapper({qs[i]: qs[i] for i in range(3)})
     circuit = cirq.Circuit(
-        [cirq.Moment(cirq.measure(qs, key="key_name")), cirq.Moment(cirq.H.on_each(qs))]
+        [cirq.Moment(cirq.measure(qs, key="test")), cirq.Moment(cirq.H.on_each(qs))]
     )
     with pytest.raises(ValueError):
         _ = router(
