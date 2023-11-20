@@ -120,7 +120,7 @@ def test_circuit_with_two_qubit_intermediate_measurement_gate():
     device.validate_circuit(routed_circuit)
 
 
-def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_result_not_stored():
+def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_with_default_key():
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -134,7 +134,7 @@ def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_result_not_s
     cirq.testing.assert_same_circuits(routed_circuit, expected)
 
 
-def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_result_stored():
+def test_circuit_with_multi_qubit_intermediate_measurement_gate_with_custom_key():
     device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
