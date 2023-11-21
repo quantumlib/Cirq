@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+import sys
 from typing import Sequence, Tuple
 
 import cirq
@@ -118,7 +119,9 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
         yield [cirq.CNOT(control, t1[i]), cirq.CNOT(control, t2[j]), cirq.CNOT(control, t3[k])]
 
 
-@pytest.mark.parametrize("target_shape", [(2, 3, 2), (2, 2, 2)])
+@pytest.mark.parametrize(
+    "target_shape", [pytest.param((2, 3, 2), marks=pytest.mark.slow), (2, 2, 2)]
+)
 def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, int]):
     greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToIJKthQubit(target_shape)
@@ -196,5 +199,6 @@ def test_unary_iteration_loop_empty_range():
     assert list(cirq_ft.unary_iteration(4, 3, [], [], [cirq.q('s')], qm)) == []
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('unary_iteration')

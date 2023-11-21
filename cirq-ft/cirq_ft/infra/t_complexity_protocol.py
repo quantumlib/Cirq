@@ -81,7 +81,7 @@ def _is_clifford_or_t(stc: Any, fail_quietly: bool) -> Optional[TComplexity]:
     if isinstance(stc, cirq.ClassicallyControlledOperation):
         stc = stc.without_classical_controls()
 
-    if cirq.has_stabilizer_effect(stc):
+    if cirq.num_qubits(stc) <= 2 and cirq.has_stabilizer_effect(stc):
         # Clifford operation.
         return TComplexity(clifford=1)
 
