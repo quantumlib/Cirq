@@ -254,7 +254,7 @@ class RouteCQC:
         """
         two_qubit_circuit = circuits.Circuit()
         single_qubit_ops: List[List[cirq.Operation]] = []
-        
+
         for i, moment in enumerate(circuit):
             for op in moment:
                 timestep = two_qubit_circuit.earliest_available_moment(op)
