@@ -222,7 +222,7 @@ def _category_to_classifier(category) -> Classifier:
 
 
 def _mock_classifier(op: 'cirq.Operation') -> bool:
-    """Dummy classifier, used to "complete" a collection of classifiers and make it exhaustive."""
+    """Mock classifier, used to "complete" a collection of classifiers and make it exhaustive."""
     return False  # pragma: no cover
 
 
