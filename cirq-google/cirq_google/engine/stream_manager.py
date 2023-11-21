@@ -311,9 +311,9 @@ class StreamManager:
 
 def _get_retry_request_or_raise(
     error: quantum.StreamError,
-    current_request,
-    create_program_and_job_request,
-    create_job_request,
+    current_request: quantum.QuantumRunStreamRequest,
+    create_program_and_job_request: quantum.QuantumRunStreamRequest,
+    create_job_request: quantum.QuantumRunStreamRequest,
     get_result_request: quantum.QuantumRunStreamRequest,
 ):
     """Decide whether the given stream error is retryable.
