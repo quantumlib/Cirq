@@ -16,7 +16,7 @@ import pytest
 import cirq
 import sympy
 
-
+#TODO: reforctor test to mach test typle for custom simulators
 class TestSimulator:
     def test_x_gate(self):
         q0, q1 = cirq.LineQubit.range(2)
