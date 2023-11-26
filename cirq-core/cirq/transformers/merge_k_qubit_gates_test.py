@@ -74,10 +74,10 @@ def test_ignores_2qubit_target():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.testing.SingleQubitGate):
+    class UnsupportedExample(cirq.testing.SingleQubitGate):
         pass
 
-    c = cirq.Circuit(UnsupportedDummy()(cirq.LineQubit(0)))
+    c = cirq.Circuit(UnsupportedExample()(cirq.LineQubit(0)))
     assert_optimizes(optimized=cirq.merge_k_qubit_unitaries(c, k=1), expected=c)
 
 
