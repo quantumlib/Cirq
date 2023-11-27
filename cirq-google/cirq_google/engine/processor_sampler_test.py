@@ -54,16 +54,28 @@ def test_run_batch(run_name, device_config_name):
     circuit2 = cirq.Circuit(cirq.Y(a))
     params1 = [cirq.ParamResolver({'t': 1})]
     params2 = [cirq.ParamResolver({'t': 2})]
-    circuits = [circuit1, circuit2]
-    params_list = [params1, params2]
-    sampler.run_batch(circuits, params_list, 5)
-    processor.run_batch_async.assert_called_with(
-        params_list=params_list,
-        programs=circuits,
-        repetitions=5,
-        run_name=run_name,
-        device_config_name=device_config_name,
-    )
+
+    sampler.run_batch([circuit1, circuit2], [params1, params2], 5)
+
+    expected_calls = [
+        mock.call(
+            program=circuit1,
+            params=params1,
+            repetitions=5,
+            run_name=run_name,
+            device_config_name=device_config_name,
+        ),
+        mock.call().results_async(),
+        mock.call(
+            program=circuit2,
+            params=params2,
+            repetitions=5,
+            run_name=run_name,
+            device_config_name=device_config_name,
+        ),
+        mock.call().results_async(),
+    ]
+    processor.run_sweep_async.assert_has_calls(expected_calls)
 
 
 @pytest.mark.parametrize(
@@ -79,16 +91,28 @@ def test_run_batch_identical_repetitions(run_name, device_config_name):
     circuit2 = cirq.Circuit(cirq.Y(a))
     params1 = [cirq.ParamResolver({'t': 1})]
     params2 = [cirq.ParamResolver({'t': 2})]
-    circuits = [circuit1, circuit2]
-    params_list = [params1, params2]
-    sampler.run_batch(circuits, params_list, [5, 5])
-    processor.run_batch_async.assert_called_with(
-        params_list=params_list,
-        programs=circuits,
-        repetitions=5,
-        run_name=run_name,
-        device_config_name=device_config_name,
-    )
+
+    sampler.run_batch([circuit1, circuit2], [params1, params2], [5, 5])
+
+    expected_calls = [
+        mock.call(
+            program=circuit1,
+            params=params1,
+            repetitions=5,
+            run_name=run_name,
+            device_config_name=device_config_name,
+        ),
+        mock.call().results_async(),
+        mock.call(
+            program=circuit2,
+            params=params2,
+            repetitions=5,
+            run_name=run_name,
+            device_config_name=device_config_name,
+        ),
+        mock.call().results_async(),
+    ]
+    processor.run_sweep_async.assert_has_calls(expected_calls)
 
 
 def test_run_batch_bad_number_of_repetitions():

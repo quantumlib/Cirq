@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 import cirq
 import cirq_ft
 import pytest
@@ -101,5 +103,6 @@ def test_apply_gate_to_lth_qubit_make_on():
     assert op.gate.control_regs == op2.gate.control_regs
 
 
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 def test_notebook():
     execute_notebook('apply_gate_to_lth_target')

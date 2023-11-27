@@ -17,7 +17,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummySimulationState
+from cirq.protocols.act_on_protocol_test import ExampleSimulationState
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
@@ -310,7 +310,7 @@ def test_h_str():
 
 def test_x_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.X, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.X, ExampleSimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
@@ -359,7 +359,7 @@ class MinusOnePhaseGate(cirq.testing.SingleQubitGate):
 
 def test_y_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.Y, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.Y, ExampleSimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
@@ -397,9 +397,9 @@ def test_y_act_on_tableau():
 
 def test_z_h_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.Z, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.Z, ExampleSimulationState(), qubits=())
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.H, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.H, ExampleSimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
@@ -450,7 +450,7 @@ def test_z_h_act_on_tableau():
 
 def test_cx_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CX, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.CX, ExampleSimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
 
     state = cirq.CliffordTableauSimulationState(
@@ -494,7 +494,7 @@ def test_cx_act_on_tableau():
 
 def test_cz_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CZ, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.CZ, ExampleSimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
 
     state = cirq.CliffordTableauSimulationState(

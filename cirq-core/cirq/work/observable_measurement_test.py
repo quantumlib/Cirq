@@ -432,7 +432,7 @@ def _get_some_grouped_settings():
 
 
 def test_measure_grouped_settings_calibration_validation():
-    dummy_ro_calib = _MockBitstringAccumulator()
+    mock_ro_calib = _MockBitstringAccumulator()
     grouped_settings, qubits = _get_some_grouped_settings()
 
     with pytest.raises(
@@ -443,7 +443,7 @@ def test_measure_grouped_settings_calibration_validation():
             grouped_settings=grouped_settings,
             sampler=cirq.Simulator(),
             stopping_criteria=cw.RepetitionsStoppingCriteria(10_000),
-            readout_calibrations=dummy_ro_calib,
+            readout_calibrations=mock_ro_calib,
             readout_symmetrization=False,  # no-no!
         )
 
