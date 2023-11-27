@@ -27,19 +27,48 @@ if TYPE_CHECKING:
 class _BaseLineQid(ops.Qid):
     """The base class for `LineQid` and `LineQubit`."""
 
-    def __init__(self, x: int) -> None:
-        """Initializes a line qubit at the given x coordinate."""
-        self._x = x
+    _x: int
+    _dimension: int
+    _hash: Optional[int] = None
+
+    def __getstate__(self):
+        # Don't save hash when pickling; see #3777.
+        state = self.__dict__
+        if "_hash" in state:
+            state = state.copy()
+            del state["_hash"]
+        return state
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash((self._x, self._dimension))
+        return self._hash
+
+    def __eq__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseLineQid):
+            return self._x == other._x and self._dimension == other._dimension
+        return NotImplemented
+
+    def __ne__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseLineQid):
+            return self._x != other._x or self._dimension != other._dimension
+        return NotImplemented
 
     def _comparison_key(self):
-        return self.x
+        return self._x
 
     @property
     def x(self) -> int:
         return self._x
 
+    @property
+    def dimension(self) -> int:
+        return self._dimension
+
     def with_dimension(self, dimension: int) -> 'LineQid':
-        return LineQid(self.x, dimension)
+        return LineQid(self._x, dimension)
 
     def is_adjacent(self, other: 'cirq.Qid') -> bool:
         """Determines if two qubits are adjacent line qubits.
@@ -49,7 +78,7 @@ class _BaseLineQid(ops.Qid):
 
         Returns: True iff other and self are adjacent.
         """
-        return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
+        return isinstance(other, _BaseLineQid) and abs(self._x - other._x) == 1
 
     def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseLineQid']:
         """Returns qubits that are potential neighbors to this LineQubit
@@ -57,11 +86,7 @@ class _BaseLineQid(ops.Qid):
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
         """
-        neighbors = set()
-        for q in [self - 1, self + 1]:
-            if qids is None or q in qids:
-                neighbors.add(q)
-        return neighbors
+        return {q for q in [self - 1, self + 1] if qids is None or q in qids}
 
     @abc.abstractmethod
     def _with_x(self, x: int) -> Self:
@@ -69,29 +94,29 @@ class _BaseLineQid(ops.Qid):
 
     def __add__(self, other: Union[int, Self]) -> Self:
         if isinstance(other, _BaseLineQid):
-            if self.dimension != other.dimension:
+            if self._dimension != other._dimension:
                 raise TypeError(
                     "Can only add LineQids with identical dimension. "
-                    f"Got {self.dimension} and {other.dimension}"
+                    f"Got {self._dimension} and {other._dimension}"
                 )
-            return self._with_x(x=self.x + other.x)
+            return self._with_x(x=self._x + other._x)
         if not isinstance(other, int):
             raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
-        return self._with_x(self.x + other)
+        return self._with_x(self._x + other)
 
     def __sub__(self, other: Union[int, Self]) -> Self:
         if isinstance(other, _BaseLineQid):
-            if self.dimension != other.dimension:
+            if self._dimension != other._dimension:
                 raise TypeError(
                     "Can only subtract LineQids with identical dimension. "
-                    f"Got {self.dimension} and {other.dimension}"
+                    f"Got {self._dimension} and {other._dimension}"
                 )
-            return self._with_x(x=self.x - other.x)
+            return self._with_x(x=self._x - other._x)
         if not isinstance(other, int):
             raise TypeError(
                 f"Can only subtract ints and {type(self).__name__}. Instead was {other}"
             )
-        return self._with_x(self.x - other)
+        return self._with_x(self._x - other)
 
     def __radd__(self, other: int) -> Self:
         return self + other
@@ -100,16 +125,16 @@ class _BaseLineQid(ops.Qid):
         return -self + other
 
     def __neg__(self) -> Self:
-        return self._with_x(-self.x)
+        return self._with_x(-self._x)
 
     def __complex__(self) -> complex:
-        return complex(self.x)
+        return complex(self._x)
 
     def __float__(self) -> float:
-        return float(self.x)
+        return float(self._x)
 
     def __int__(self) -> int:
-        return int(self.x)
+        return int(self._x)
 
 
 class LineQid(_BaseLineQid):
@@ -137,16 +162,12 @@ class LineQid(_BaseLineQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        super().__init__(x)
-        self._dimension = dimension
         self.validate_dimension(dimension)
-
-    @property
-    def dimension(self):
-        return self._dimension
+        self._x = x
+        self._dimension = dimension
 
     def _with_x(self, x: int) -> 'LineQid':
-        return LineQid(x, dimension=self.dimension)
+        return LineQid(x, dimension=self._dimension)
 
     @staticmethod
     def range(*range_args, dimension: int) -> List['LineQid']:
@@ -192,15 +213,15 @@ class LineQid(_BaseLineQid):
         return LineQid.for_qid_shape(qid_shape(val), start=start, step=step)
 
     def __repr__(self) -> str:
-        return f"cirq.LineQid({self.x}, dimension={self.dimension})"
+        return f"cirq.LineQid({self._x}, dimension={self._dimension})"
 
     def __str__(self) -> str:
-        return f"q({self.x}) (d={self.dimension})"
+        return f"q({self._x}) (d={self._dimension})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        return protocols.CircuitDiagramInfo(wire_symbols=(f"{self.x} (d={self.dimension})",))
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"{self._x} (d={self._dimension})",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
@@ -223,9 +244,15 @@ class LineQubit(_BaseLineQid):
 
     """
 
-    @property
-    def dimension(self) -> int:
-        return 2
+    _dimension = 2
+
+    def __init__(self, x: int) -> None:
+        """Initializes a line qubit at the given x coordinate.
+
+        Args:
+            x: The x coordinate.
+        """
+        self._x = x
 
     def _with_x(self, x: int) -> 'LineQubit':
         return LineQubit(x)
@@ -234,7 +261,7 @@ class LineQubit(_BaseLineQid):
         cls = LineQid if type(self) is LineQubit else type(self)
         # Must be the same as Qid._cmp_tuple but with cls in place of
         # type(self).
-        return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
+        return (cls.__name__, repr(cls), self._comparison_key(), self._dimension)
 
     @staticmethod
     def range(*range_args) -> List['LineQubit']:
@@ -249,15 +276,15 @@ class LineQubit(_BaseLineQid):
         return [LineQubit(i) for i in range(*range_args)]
 
     def __repr__(self) -> str:
-        return f"cirq.LineQubit({self.x})"
+        return f"cirq.LineQubit({self._x})"
 
     def __str__(self) -> str:
-        return f"q({self.x})"
+        return f"q({self._x})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        return protocols.CircuitDiagramInfo(wire_symbols=(f"{self.x}",))
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"{self._x}",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x'])

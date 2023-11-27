@@ -19,7 +19,7 @@ from typing_extensions import Self
 
 import numpy as np
 
-from cirq import _compat, ops, protocols
+from cirq import ops, protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -29,9 +29,43 @@ if TYPE_CHECKING:
 class _BaseGridQid(ops.Qid):
     """The Base class for `GridQid` and `GridQubit`."""
 
-    def __init__(self, row: int, col: int):
-        self._row = row
-        self._col = col
+    _row: int
+    _col: int
+    _dimension: int
+    _hash: Optional[int] = None
+
+    def __getstate__(self):
+        # Don't save hash when pickling; see #3777.
+        state = self.__dict__
+        if "_hash" in state:
+            state = state.copy()
+            del state["_hash"]
+        return state
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash((self._row, self._col, self._dimension))
+        return self._hash
+
+    def __eq__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseGridQid):
+            return (
+                self._row == other._row
+                and self._col == other._col
+                and self._dimension == other._dimension
+            )
+        return NotImplemented
+
+    def __ne__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseGridQid):
+            return (
+                self._row != other._row
+                or self._col != other._col
+                or self._dimension != other._dimension
+            )
+        return NotImplemented
 
     def _comparison_key(self):
         return self._row, self._col
@@ -43,6 +77,10 @@ class _BaseGridQid(ops.Qid):
     @property
     def col(self) -> int:
         return self._col
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension
 
     def with_dimension(self, dimension: int) -> 'GridQid':
         return GridQid(self._row, self._col, dimension=dimension)
@@ -149,13 +187,10 @@ class GridQid(_BaseGridQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        super().__init__(row, col)
-        self._dimension = dimension
         self.validate_dimension(dimension)
-
-    @property
-    def dimension(self):
-        return self._dimension
+        self._row = row
+        self._col = col
+        self._dimension = dimension
 
     def _with_row_col(self, row: int, col: int) -> 'GridQid':
         return GridQid(row, col, dimension=self.dimension)
@@ -288,35 +323,11 @@ class GridQubit(_BaseGridQid):
     cirq.GridQubit(5, 4)
     """
 
-    def __getstate__(self):
-        # Don't save hash when pickling; see #3777.
-        state = self.__dict__
-        hash_key = _compat._method_cache_name(self.__hash__)
-        if hash_key in state:
-            state = state.copy()
-            del state[hash_key]
-        return state
+    _dimension = 2
 
-    @_compat.cached_method
-    def __hash__(self) -> int:
-        # Explicitly cached for performance (vs delegating to Qid).
-        return super().__hash__()
-
-    def __eq__(self, other):
-        # Explicitly implemented for performance (vs delegating to Qid).
-        if isinstance(other, GridQubit):
-            return self._row == other._row and self._col == other._col
-        return NotImplemented
-
-    def __ne__(self, other):
-        # Explicitly implemented for performance (vs delegating to Qid).
-        if isinstance(other, GridQubit):
-            return self._row != other._row or self._col != other._col
-        return NotImplemented
-
-    @property
-    def dimension(self) -> int:
-        return 2
+    def __init__(self, row: int, col: int) -> None:
+        self._row = row
+        self._col = col
 
     def _with_row_col(self, row: int, col: int):
         return GridQubit(row, col)
