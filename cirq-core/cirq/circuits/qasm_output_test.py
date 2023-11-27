@@ -248,18 +248,18 @@ def test_unsupported_operation():
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
-    class DummyOperation(cirq.Operation):
+    class ExampleOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
         def _qasm_(self, args: cirq.QasmArgs) -> str:
-            return '// Dummy operation\n'
+            return '// Example operation\n'
 
         def _decompose_(self):
             # Only used by test_output_unitary_same_as_qiskit
             return ()  # pragma: no cover
 
-    class DummyCompositeOperation(cirq.Operation):
+    class ExampleCompositeOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
@@ -267,7 +267,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
             return cirq.X(self.qubits[0])
 
         def __repr__(self):
-            return 'DummyCompositeOperation()'
+            return 'ExampleCompositeOperation()'
 
     return (
         cirq.I(q0),
@@ -328,8 +328,8 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         )
         if include_measurements
         else (),
-        DummyOperation(),
-        DummyCompositeOperation(),
+        ExampleOperation(),
+        ExampleCompositeOperation(),
     )
 
 
@@ -539,9 +539,9 @@ measure q[2] -> m_multi[1];
 x q[2];  // Undo the inversion
 measure q[3] -> m_multi[2];
 
-// Dummy operation
+// Example operation
 
-// Operation: DummyCompositeOperation()
+// Operation: ExampleCompositeOperation()
 x q[0];
 """
     )

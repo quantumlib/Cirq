@@ -131,7 +131,7 @@ class DecomposableNoUnitary(cirq.Operation):
             yield ReturnsNotImplemented()(q)
 
 
-class DummyOperation(cirq.Operation):
+class ExampleOperation(cirq.Operation):
     qubits = ()
     with_qubits = NotImplemented
 
@@ -142,7 +142,7 @@ class DummyOperation(cirq.Operation):
         return ()
 
 
-class DummyComposite:
+class ExampleComposite:
     def _decompose_(self):
         return ()
 
@@ -231,9 +231,9 @@ def test_decompose_and_get_unitary():
         _strat_unitary_from_decompose(DecomposableOperation((a, b), True)), m2
     )
     np.testing.assert_allclose(_strat_unitary_from_decompose(DecomposableOrder((a, b, c))), m3)
-    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyOperation((a,))), np.eye(2))
-    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyOperation((a, b))), np.eye(4))
-    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyComposite()), np.eye(1))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(ExampleOperation((a,))), np.eye(2))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(ExampleOperation((a, b))), np.eye(4))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(ExampleComposite()), np.eye(1))
     np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()), m2)
 
 
@@ -248,11 +248,11 @@ def test_decomposed_has_unitary():
 
     # Operations
     assert cirq.has_unitary(DecomposableOperation((a, b), True))
-    assert cirq.has_unitary(DummyOperation((a,)))
-    assert cirq.has_unitary(DummyOperation((a, b)))
+    assert cirq.has_unitary(ExampleOperation((a,)))
+    assert cirq.has_unitary(ExampleOperation((a, b)))
 
     # No qid shape
-    assert cirq.has_unitary(DummyComposite())
+    assert cirq.has_unitary(ExampleComposite())
     assert cirq.has_unitary(OtherComposite())
 
 
@@ -267,12 +267,12 @@ def test_decomposed_unitary():
     np.testing.assert_allclose(cirq.unitary(DecomposableOperation((a,), True)), m1)
     np.testing.assert_allclose(cirq.unitary(DecomposableOperation((a, b), True)), m2)
     np.testing.assert_allclose(cirq.unitary(DecomposableOrder((a, b, c))), m3)
-    np.testing.assert_allclose(cirq.unitary(DummyOperation((a,))), np.eye(2))
-    np.testing.assert_allclose(cirq.unitary(DummyOperation((a, b))), np.eye(4))
+    np.testing.assert_allclose(cirq.unitary(ExampleOperation((a,))), np.eye(2))
+    np.testing.assert_allclose(cirq.unitary(ExampleOperation((a, b))), np.eye(4))
     assert cirq.unitary(DecomposableNoUnitary((a,)), None) is None
 
     # No qid shape
-    np.testing.assert_allclose(cirq.unitary(DummyComposite()), np.eye(1))
+    np.testing.assert_allclose(cirq.unitary(ExampleComposite()), np.eye(1))
     np.testing.assert_allclose(cirq.unitary(OtherComposite()), m2)
 
 
