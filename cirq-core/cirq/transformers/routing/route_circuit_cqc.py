@@ -249,26 +249,32 @@ class RouteCQC:
         output routed circuit, single-qubit operations are inserted before two-qubit operations.
 
         Raises:
-            ValueError: if circuit has intermediate measurement op's that act on 3 or more qubits.
+            ValueError: if circuit has intermediate measurements that act on three or more
+                        qubits with a custom key.
         """
         two_qubit_circuit = circuits.Circuit()
         single_qubit_ops: List[List[cirq.Operation]] = []
 
-        if any(
-            protocols.num_qubits(op) > 2 and protocols.is_measurement(op)
-            for op in itertools.chain(*circuit.moments[:-1])
-        ):
-            # There is at least one non-terminal measurement on 3+ qubits
-            raise ValueError('Non-terminal measurements on three or more qubits are not supported')
-
-        for moment in circuit:
+        for i, moment in enumerate(circuit):
             for op in moment:
                 timestep = two_qubit_circuit.earliest_available_moment(op)
                 single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
                 two_qubit_circuit.append(
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
-                if protocols.num_qubits(op) == 2:
+                if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
+                    key = op.gate.key  # type: ignore
+                    default_key = ops.measure(op.qubits).gate.key  # type: ignore
+                    if len(circuit.moments) == i + 1:
+                        single_qubit_ops[timestep].append(op)
+                    elif key in ('', default_key):
+                        single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
+                    else:
+                        raise ValueError(
+                            'Intermediate measurements on three or more qubits '
+                            'with a custom key are not supported'
+                        )
+                elif protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
                     single_qubit_ops[timestep].append(op)
