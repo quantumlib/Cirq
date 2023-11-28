@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 from typing import List, Sequence
 
 import cirq
@@ -284,6 +283,6 @@ def test_generic_select_consistent_protocols_and_controlled():
         _ = gate.controlled(num_controls=2)
 
 
-@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('generic_select')

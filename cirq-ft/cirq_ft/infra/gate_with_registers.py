@@ -21,7 +21,7 @@ from numpy.typing import NDArray
 import attr
 import cirq
 import numpy as np
-from cirq_ft.deprecation import deprecated_cirq_ft_class, deprecated_cirq_ft_function
+from cirq_ft.deprecation import deprecated_cirq_ft_class
 
 
 class Side(enum.Flag):

@@ -330,7 +330,6 @@ def test_addition_gate_t_complexity(n: int):
 
 
 @pytest.mark.parametrize('a,b', itertools.product(range(2**3), repeat=2))
-@allow_deprecated_cirq_ft_use_in_tests
 def test_add_no_decompose(a, b):
     num_bits = 5
     qubits = cirq.LineQubit.range(2 * num_bits)

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import random
-import sys
 
 import cirq
 import cirq_ft
@@ -152,7 +151,7 @@ def test_multi_target_cswap_make_on():
     assert cswap1 == cswap2
 
 
-@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('swap_network')
 

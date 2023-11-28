@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 import cirq
 import cirq_ft
 import numpy as np
@@ -246,7 +244,7 @@ def test_qubitization_walk_operator_consistent_protocols_and_controlled():
         _ = gate.controlled(num_controls=2)
 
 
-@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('qubitization_walk_operator')
     execute_notebook('phase_estimation_of_quantum_walk')

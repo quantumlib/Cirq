@@ -11,29 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import functools
 from typing import Callable, Type
 from cirq._compat import deprecated, deprecated_class
-from cirq.testing.deprecation import assert_deprecated
-import functools
 
-DEPRECATION_DEADLINE = 'v1.4'
+_DEPRECATION_DEADLINE = 'v1.4'
 _DEPRECATION_FIX_MSG = "Cirq-FT is deprecated in favour of Qualtran. pip install qualtran instead."
 
 
-def deprecated_cirq_ft_class() -> Callable[[Type], Type]:
-    return deprecated_class(deadline=DEPRECATION_DEADLINE, fix=_DEPRECATION_FIX_MSG)
+def deprecated_cirq_ft_class() -> Callable[[Type], Type]:  # coverage: ignore
+    """Decorator to mark a class in Cirq-FT deprecated."""
+    return deprecated_class(deadline=_DEPRECATION_DEADLINE, fix=_DEPRECATION_FIX_MSG)
 
 
-def deprecated_cirq_ft_function() -> Callable[[Callable], Callable]:
-    return deprecated(deadline=DEPRECATION_DEADLINE, fix=_DEPRECATION_FIX_MSG)
+def deprecated_cirq_ft_function() -> Callable[[Callable], Callable]:  # coverage: ignore
+    """Decorator to mark a function in Cirq-FT deprecated."""
+    return deprecated(deadline=_DEPRECATION_DEADLINE, fix=_DEPRECATION_FIX_MSG)
 
 
-def call_with_assert_deprecated(obj, *args, **kwargs):
-    with assert_deprecated(deadline=DEPRECATION_DEADLINE, count=None):
-        return obj(*args, **kwargs)
+def allow_deprecated_cirq_ft_use_in_tests(func):  # coverage: ignore
+    """Decorator to allow using deprecated classes and functions in Tests and suppress warnings."""
 
-
-def allow_deprecated_cirq_ft_use_in_tests(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         import os
@@ -55,7 +53,7 @@ def allow_deprecated_cirq_ft_use_in_tests(func):
             for log in logs:
                 msg = log.getMessage()
                 if _DEPRECATION_FIX_MSG in msg:
-                    assert DEPRECATION_DEADLINE in msg
+                    assert _DEPRECATION_DEADLINE in msg
             return ret_val
         finally:
             if orig_exist:
