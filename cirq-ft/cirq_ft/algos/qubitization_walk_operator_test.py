@@ -22,6 +22,7 @@ from cirq_ft import infra
 from cirq_ft.algos.generic_select_test import get_1d_Ising_hamiltonian
 from cirq_ft.algos.reflection_using_prepare_test import greedily_allocate_ancilla, keep
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 def walk_operator_for_pauli_hamiltonian(
@@ -50,6 +51,7 @@ def get_walk_operator_for_1d_Ising_model(
 
 @pytest.mark.slow
 @pytest.mark.parametrize('num_sites,eps', [(4, 2e-1), (3, 1e-1)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qubitization_walk_operator(num_sites: int, eps: float):
     ham = get_1d_Ising_hamiltonian(cirq.LineQubit.range(num_sites))
     ham_coeff = [abs(ps.coefficient.real) for ps in ham]
@@ -98,6 +100,7 @@ def test_qubitization_walk_operator(num_sites: int, eps: float):
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qubitization_walk_operator_diagrams():
     num_sites, eps = 4, 1e-1
     walk = get_walk_operator_for_1d_Ising_model(num_sites, eps)
@@ -218,6 +221,7 @@ target3: ──────GenericSelect─────────────�
     # pylint: enable=line-too-long
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qubitization_walk_operator_consistent_protocols_and_controlled():
     gate = get_walk_operator_for_1d_Ising_model(4, 1e-1)
     op = gate.on_registers(**infra.get_named_qubits(gate.signature))

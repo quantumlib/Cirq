@@ -20,6 +20,7 @@ import numpy as np
 import pytest
 from cirq_ft.algos.generic_select_test import get_1d_Ising_lcu_coeffs
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @pytest.mark.parametrize(
@@ -31,6 +32,7 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
         pytest.param(7, 8.0e-3, marks=pytest.mark.slow),
     ],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
     lcu_coefficients = get_1d_Ising_lcu_coeffs(num_sites)
     gate = cirq_ft.StatePreparationAliasSampling.from_lcu_probs(
@@ -57,6 +59,7 @@ def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
     np.testing.assert_allclose(lcu_coefficients, abs(prepared_state) ** 2, atol=epsilon)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_state_preparation_via_coherent_alias_sampling_diagram():
     data = np.asarray(range(1, 5)) / np.sum(range(1, 5))
     gate = cirq_ft.StatePreparationAliasSampling.from_lcu_probs(

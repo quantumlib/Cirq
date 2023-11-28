@@ -20,9 +20,11 @@ import pytest
 from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @pytest.mark.parametrize("selection_bitsize,target_bitsize", [[3, 5], [3, 7], [4, 5]])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_apply_gate_to_lth_qubit(selection_bitsize, target_bitsize):
     greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = cirq_ft.ApplyGateToLthQubit(
@@ -51,6 +53,7 @@ def test_apply_gate_to_lth_qubit(selection_bitsize, target_bitsize):
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_apply_gate_to_lth_qubit_diagram():
     # Apply Z gate to all odd targets and Identity to even targets.
     gate = cirq_ft.ApplyGateToLthQubit(
@@ -87,6 +90,7 @@ target4: ──────I────
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_apply_gate_to_lth_qubit_make_on():
     gate = cirq_ft.ApplyGateToLthQubit(
         cirq_ft.SelectionRegister('selection', 3, 5),
