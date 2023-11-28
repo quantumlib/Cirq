@@ -21,6 +21,7 @@ from numpy.typing import NDArray
 import attr
 import cirq
 import numpy as np
+from cirq_ft.deprecation import deprecated_cirq_ft_class
 
 
 class Side(enum.Flag):
@@ -39,6 +40,7 @@ class Side(enum.Flag):
     THRU = LEFT | RIGHT
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class Register:
     """A quantum register used to define the input/output API of a `cirq_ft.GateWithRegister`
@@ -152,6 +154,7 @@ def get_named_qubits(registers: Iterable[Register]) -> Dict[str, NDArray[cirq.Qi
     return {reg.name: _qubits_for_reg(reg) for reg in registers}
 
 
+@deprecated_cirq_ft_class()
 class Signature:
     """An ordered collection of `cirq_ft.Register`.
 
@@ -282,6 +285,7 @@ class SelectionRegister(Register):
         )
 
 
+@deprecated_cirq_ft_class()
 class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
     """`cirq.Gate`s extension with support for composite gates acting on multiple qubit registers.
 

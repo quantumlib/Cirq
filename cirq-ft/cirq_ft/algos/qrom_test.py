@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import itertools
-import sys
 
 import cirq
 import cirq_ft
@@ -22,6 +21,7 @@ import pytest
 from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @pytest.mark.parametrize(
@@ -39,6 +39,7 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
         for num_controls in [0, 1, 2]
     ],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_1d(data, num_controls):
     qrom = cirq_ft.QROM.build(*data, num_controls=num_controls)
     greedy_mm = cirq.GreedyQubitManager('a', maximize_reuse=True)
@@ -82,6 +83,7 @@ def test_qrom_1d(data, num_controls):
             )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_diagram():
     d0 = np.array([1, 2, 3])
     d1 = np.array([4, 5, 6])
@@ -107,6 +109,7 @@ def test_qrom_diagram():
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_repr():
     data = [np.array([1, 2]), np.array([3, 5])]
     selection_bitsizes = tuple((s - 1).bit_length() for s in data[0].shape)
@@ -115,7 +118,7 @@ def test_qrom_repr():
     cirq.testing.assert_equivalent_repr(qrom, setup_code="import cirq_ft\nimport numpy as np")
 
 
-@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('qrom')
 
@@ -123,6 +126,7 @@ def test_notebook():
 @pytest.mark.parametrize(
     "data", [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_t_complexity(data):
     qrom = cirq_ft.QROM.build(*data)
     g = cirq_ft.testing.GateHelper(qrom)
@@ -146,6 +150,7 @@ def _assert_qrom_has_diagram(qrom: cirq_ft.QROM, expected_diagram: str):
     cirq.testing.assert_has_diagram(circuit, expected_diagram, qubit_order=qubit_order)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_variable_spacing():
     # Tests for variable spacing optimization applied from https://arxiv.org/abs/2007.07391
     data = [1, 2, 3, 4, 5, 5, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8]  # Figure 3a.
@@ -225,6 +230,7 @@ target01: ────────────────X───────
         for num_controls in [0, 1, 2]
     ],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_multi_dim(data, num_controls):
     selection_bitsizes = tuple((s - 1).bit_length() for s in data[0].shape)
     target_bitsizes = tuple(int(np.max(d)).bit_length() for d in data)
@@ -275,6 +281,7 @@ def test_qrom_multi_dim(data, num_controls):
     ],
 )
 @pytest.mark.parametrize("num_controls", [0, 1, 2])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_ndim_t_complexity(data, num_controls):
     selection_bitsizes = tuple((s - 1).bit_length() for s in data[0].shape)
     target_bitsizes = tuple(int(np.max(d)).bit_length() for d in data)
