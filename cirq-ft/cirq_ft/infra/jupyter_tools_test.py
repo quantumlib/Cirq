@@ -39,10 +39,10 @@ def test_svg_circuit():
 def test_display_gate_and_compilation(monkeypatch):
     call_args = []
 
-    def _dummy_display(stuff):
+    def _mock_display(stuff):
         call_args.append(stuff)
 
-    monkeypatch.setattr(IPython.display, "display", _dummy_display)
+    monkeypatch.setattr(IPython.display, "display", _mock_display)
     g = cq_testing.GateHelper(cirq_ft.And(cv=(1, 1, 1)))
     display_gate_and_compilation(g)
 
