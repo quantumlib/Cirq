@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
+import unittest.mock
+import os
 from typing import Callable, Type
 from cirq._compat import deprecated, deprecated_class
 
@@ -33,34 +35,17 @@ def allow_deprecated_cirq_ft_use_in_tests(func):  # coverage: ignore
     """Decorator to allow using deprecated classes and functions in Tests and suppress warnings."""
 
     @functools.wraps(func)
+    @unittest.mock.patch.dict(os.environ, ALLOW_DEPRECATION_IN_TEST="True")
     def wrapper(*args, **kwargs):
-        import os
-        from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
         from cirq.testing import assert_logs
         import logging
 
-        orig_exist, orig_value = (
-            ALLOW_DEPRECATION_IN_TEST in os.environ,
-            os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
-        )
-
-        os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
-        try:
-            with assert_logs(
-                min_level=logging.WARNING, max_level=logging.WARNING, count=None
-            ) as logs:
-                ret_val = func(*args, **kwargs)
-            for log in logs:
-                msg = log.getMessage()
-                if _DEPRECATION_FIX_MSG in msg:
-                    assert _DEPRECATION_DEADLINE in msg
-            return ret_val
-        finally:
-            if orig_exist:
-                # mypy can't resolve that orig_exist ensures that orig_value
-                # of type Optional[str] can't be None
-                os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value  # pragma: no cover
-            else:
-                del os.environ[ALLOW_DEPRECATION_IN_TEST]
+        with assert_logs(min_level=logging.WARNING, max_level=logging.WARNING, count=None) as logs:
+            ret_val = func(*args, **kwargs)
+        for log in logs:
+            msg = log.getMessage()
+            if _DEPRECATION_FIX_MSG in msg:
+                assert _DEPRECATION_DEADLINE in msg
+        return ret_val
 
     return wrapper

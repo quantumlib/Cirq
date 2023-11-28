@@ -23,6 +23,7 @@ from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 @pytest.mark.parametrize('selection_bitsize', [3, 4])
 @pytest.mark.parametrize('target_bitsize', [3, 5, 6])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_arctan(selection_bitsize, target_bitsize):
     gate = ArcTan(selection_bitsize, target_bitsize)
     maps = {}
