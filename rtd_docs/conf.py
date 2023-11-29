@@ -6,7 +6,7 @@
 # the content using sphinx to readthedocs.io until we go live with the devsite.
 #
 # This is the configuration file for the Sphinx documentation builder.
-# See http://www.sphinx-doc.org/en/main/config for help
+# See http://www.sphinx-doc.org/en/master/config for help
 
 # -- Path setup --------------------------------------------------------------
 
