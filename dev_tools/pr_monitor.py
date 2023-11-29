@@ -699,11 +699,7 @@ def attempt_sync_with_main(pr: PullRequestDetails) -> Union[bool, CannotAutomerg
     main_sha = get_main_sha(pr.repo)
     remote = pr.remote_repo
     url = f"https://api.github.com/repos/{remote.organization}/{remote.name}/merges"
-    data = {
-        'base': pr.branch_name,
-        'head': main_sha,
-        'commit_message': 'Update branch (automerge)',
-    }
+    data = {'base': pr.branch_name, 'head': main_sha, 'commit_message': 'Update branch (automerge)'}
     response = pr.remote_repo.post(url, json=data)
 
     if response.status_code == 201:

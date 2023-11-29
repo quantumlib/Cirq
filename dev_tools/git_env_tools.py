@@ -100,10 +100,7 @@ def fetch_github_pull_request(
     optional_quiet = [] if verbose else ['--quiet']
     shell_tools.run(['git', 'init', *optional_quiet], stdout=sys.stderr)
     result = _git_fetch_for_comparison(
-        remote=repository.as_remote(),
-        actual_branch=branch,
-        compare_branch='main',
-        verbose=verbose,
+        remote=repository.as_remote(), actual_branch=branch, compare_branch='main', verbose=verbose
     )
     optional_actual_commit_id = [] if result.actual_commit_id is None else [result.actual_commit_id]
     shell_tools.run(
