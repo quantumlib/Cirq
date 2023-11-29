@@ -591,7 +591,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         'git add -A\n'
         'git commit -q -m test --no-gpg-sign\n'
         'git branch alt\n'
-        'touch main.py\n'
+        'touch main2.py\n'
         'git add -A\n'
         'git commit -q -m test2 --no-gpg-sign\n'
         'git checkout -q alt\n'
