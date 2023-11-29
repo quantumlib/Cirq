@@ -5,7 +5,7 @@ See the [triaging process](../../docs/dev/triage.md)
 # Configuration 
 
 For the dashboard you will have to edit the embedded YAML config in [configmap.yaml](kubernetes/02_deployment/configmap.yaml).
-Please refer to the [triage party docs](https://github.com/google/triage-party/blob/master/docs/config.md) for configuration details.
+Please refer to the [triage party docs](https://github.com/google/triage-party/blob/main/docs/config.md) for configuration details.
 
 ## Secret 
 
@@ -19,7 +19,7 @@ Where `$HOME/.github-token` is a file containing the token.
 
 # Cloud Build based deployment 
 
-On every push to master Triage Party is redeployed as defined by [cloudbuild-deploy.yaml](cloudbuild-deploy.yaml). 
+On every push to main Triage Party is redeployed as defined by [cloudbuild-deploy.yaml](cloudbuild-deploy.yaml). 
 
 # Deploying Triage Party manually
 
