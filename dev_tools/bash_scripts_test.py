@@ -489,7 +489,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
         'git add -A\n'
         'git commit -q -m test --no-gpg-sign\n'
         'git branch alt\n'
-        'touch main\n'
+        'touch main2\n'
         'git add -A\n'
         'git commit -q -m test2 --no-gpg-sign\n'
         'git checkout -q alt\n',
