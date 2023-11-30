@@ -9,15 +9,15 @@
 # You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a line is considered to have "changed"). To make
 # the tool more consistent, it actually diffs against the most recent common
-# ancestor of the specified id and HEAD. So if you choose 'origin/master' you're
-# actually diffing against the output of 'git merge-base origin/master HEAD'.
+# ancestor of the specified id and HEAD. So if you choose 'origin/main' you're
+# actually diffing against the output of 'git merge-base origin/main HEAD'.
 #
 # If you don't specify a base revision, the following defaults will be tried,
 # in order, until one exists:
 #
-#     1. upstream/master
-#     2. origin/master
-#     3. master
+#     1. upstream/main
+#     2. origin/main
+#     3. main
 #
 # If none exists, the script fails.
 #
@@ -36,14 +36,14 @@ if [ -n "$1" ] && [[ $1 != -* ]]; then
         exit 1
     fi
     rev=$1
-elif [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
-    rev=upstream/master
-elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
-    rev=origin/master
-elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
-    rev=master
+elif [ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]; then
+    rev=upstream/main
+elif [ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]; then
+    rev=origin/main
+elif [ "$(git cat-file -t main 2> /dev/null)" == "commit" ]; then
+    rev=main
 else
-    echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\033[0m" >&2
+    echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
     exit 1
 fi
 base="$(git merge-base "${rev}" HEAD)"

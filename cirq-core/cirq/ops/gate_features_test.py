@@ -53,7 +53,7 @@ def test_qasm_output_args_format():
 
 
 def test_multi_qubit_gate_validate():
-    class Dummy(cirq.Gate):
+    class Example(cirq.Gate):
         def _num_qubits_(self) -> int:
             return self._num_qubits
 
@@ -62,7 +62,7 @@ def test_multi_qubit_gate_validate():
 
     a, b, c, d = cirq.LineQubit.range(4)
 
-    g = Dummy(3)
+    g = Example(3)
 
     assert g.num_qubits() == 3
     g.validate_args([a, b, c])

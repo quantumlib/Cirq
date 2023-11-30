@@ -52,9 +52,12 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
     )
     nth_gate: Callable[..., cirq.Gate]
     control_regs: Tuple[infra.Register, ...] = attr.field(
-        converter=lambda v: (v,) if isinstance(v, infra.Register) else tuple(v),
-        default=(infra.Register('control', 1),),
+        converter=lambda v: (v,) if isinstance(v, infra.Register) else tuple(v)
     )
+
+    @control_regs.default
+    def control_regs_default(self):
+        return (infra.Register('control', 1),)
 
     @classmethod
     def make_on(

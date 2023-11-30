@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import itertools
-import sys
 from typing import Sequence, Tuple
 
 import cirq
@@ -23,6 +22,7 @@ from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
@@ -58,6 +58,7 @@ class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
 @pytest.mark.parametrize(
     "selection_bitsize, target_bitsize, control_bitsize", [(3, 5, 1), (2, 4, 2), (1, 2, 3)]
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_unary_iteration_gate(selection_bitsize, target_bitsize, control_bitsize):
     greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToLthQubit(selection_bitsize, target_bitsize, control_bitsize)
@@ -122,6 +123,7 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
 @pytest.mark.parametrize(
     "target_shape", [pytest.param((2, 3, 2), marks=pytest.mark.slow), (2, 2, 2)]
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, int]):
     greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToIJKthQubit(target_shape)
@@ -150,6 +152,7 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_unary_iteration_loop():
     n_range, m_range = (3, 5), (6, 8)
     selection_registers = [
@@ -193,12 +196,13 @@ def test_unary_iteration_loop():
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_unary_iteration_loop_empty_range():
     qm = cirq.ops.SimpleQubitManager()
     assert list(cirq_ft.unary_iteration(4, 4, [], [], [cirq.q('s')], qm)) == []
     assert list(cirq_ft.unary_iteration(4, 3, [], [], [cirq.q('s')], qm)) == []
 
 
-@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('unary_iteration')

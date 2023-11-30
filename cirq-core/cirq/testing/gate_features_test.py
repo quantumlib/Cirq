@@ -26,11 +26,11 @@ def test_two_qubit_gate_is_abstract_can_implement():
 
 
 def test_two_qubit_gate_validate_pass():
-    class Dummy(cirq.testing.TwoQubitGate):
+    class Example(cirq.testing.TwoQubitGate):
         def matrix(self):
             pass
 
-    g = Dummy()
+    g = Example()
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -42,11 +42,11 @@ def test_two_qubit_gate_validate_pass():
 
 
 def test_two_qubit_gate_validate_wrong_number():
-    class Dummy(cirq.testing.TwoQubitGate):
+    class Example(cirq.testing.TwoQubitGate):
         def matrix(self):
             pass
 
-    g = Dummy()
+    g = Example()
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -60,11 +60,11 @@ def test_two_qubit_gate_validate_wrong_number():
 
 
 def test_three_qubit_gate_validate():
-    class Dummy(cirq.testing.ThreeQubitGate):
+    class Example(cirq.testing.ThreeQubitGate):
         def matrix(self):
             pass
 
-    g = Dummy()
+    g = Example()
     a, b, c, d = cirq.LineQubit.range(4)
 
     assert g.num_qubits() == 3
