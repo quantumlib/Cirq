@@ -18,14 +18,14 @@
 #
 # You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a file is considered to have "changed"). For
-# example, you can compare against 'origin/master' or 'HEAD~1'.
+# example, you can compare against 'origin/main' or 'HEAD~1'.
 #
 # If you don't specify a base revision, the following defaults will be tried, in
 # order, until one exists:
 #
-#     1. upstream/master
-#     2. origin/master
-#     3. master
+#     1. upstream/main
+#     2. origin/main
+#     3. main
 #
 # If none exists, the script fails.
 ################################################################################
@@ -61,14 +61,14 @@ typeset -a format_files
 if (( only_changed == 1 )); then
     # Figure out which branch to compare against.
     if [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
-            rev=upstream/master
-        elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
-            rev=origin/master
-        elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
-            rev=master
+        if [ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]; then
+            rev=upstream/main
+        elif [ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]; then
+            rev=origin/main
+        elif [ "$(git cat-file -t main 2> /dev/null)" == "commit" ]; then
+            rev=main
         else
-            echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\033[0m" >&2
+            echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
             exit 1
         fi
     fi
