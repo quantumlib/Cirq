@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/images/Cirq_logo_color.png
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/main/docs/images/Cirq_logo_color.png
   :target: https://github.com/quantumlib/cirq
   :alt: cirq-ft
   :width: 500px
