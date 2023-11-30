@@ -41,8 +41,10 @@ def test_eq():
 
 
 def test_pickled_hash():
-    q = cirq.GridQubit(3, 4)
     q_bad = cirq.GridQubit(3, 4)
+    cirq.GridQubit._cache.clear()
+    q = cirq.GridQubit(3, 4)
+    assert q_bad is not q
     _ = hash(q_bad)  # compute hash to ensure it is cached.
     q_bad._hash = q_bad._hash + 1
     assert q_bad == q
