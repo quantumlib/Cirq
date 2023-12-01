@@ -237,7 +237,7 @@ def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
-def test_mutually_exclusive_blacklist(mod_spec: ModuleJsonTestSpec):
+def test_mutually_exclusive_lists(mod_spec: ModuleJsonTestSpec):
     common = set(mod_spec.should_not_be_serialized) & set(mod_spec.not_yet_serializable)
     assert len(common) == 0, (
         f"Defined in both {mod_spec.name} 'Not yet serializable' "

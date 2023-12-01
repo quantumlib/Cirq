@@ -540,9 +540,9 @@ def wait_for_polling_period():
     time.sleep(POLLING_PERIOD.total_seconds())
 
 
-def absent_status_checks(pr: PullRequestDetails, master_data: Optional[Any] = None) -> Set[str]:
-    if pr.base_branch_name == 'master' and master_data is not None:
-        branch_data = master_data
+def absent_status_checks(pr: PullRequestDetails, main_data: Optional[Any] = None) -> Set[str]:
+    if pr.base_branch_name == 'main' and main_data is not None:
+        branch_data = main_data
     else:
         branch_data = get_branch_details(pr.repo, pr.base_branch_name)
     status_data = get_pr_statuses(pr)
@@ -581,9 +581,9 @@ def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
     return payload
 
 
-def get_master_sha(repo: GithubRepository) -> str:
+def get_main_sha(repo: GithubRepository) -> str:
     """Get the sha hash for the given repo."""
-    ref = get_repo_ref(repo, 'heads/master')
+    ref = get_repo_ref(repo, 'heads/main')
     return ref['object']['sha']
 
 
@@ -644,7 +644,7 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     """Equivalent to hitting the 'update branch' button on a PR.
 
     As of Feb 2020 this API feature is still in beta. Note that currently, if
-    you attempt to update branch when already synced to master, a vacuous merge
+    you attempt to update branch when already synced to main, a vacuous merge
     commit will be created.
 
     References:
@@ -681,8 +681,8 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     return True
 
 
-def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
-    """Sync a pull request with the master branch.
+def attempt_sync_with_main(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
+    """Sync a pull request with the main branch.
 
     References:
         https://developer.github.com/v3/repos/merging/#perform-a-merge
@@ -696,19 +696,15 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutome
     Raises:
         RuntimeError: If the merge request returned a failed response.
     """
-    master_sha = get_master_sha(pr.repo)
+    main_sha = get_main_sha(pr.repo)
     remote = pr.remote_repo
     url = f"https://api.github.com/repos/{remote.organization}/{remote.name}/merges"
-    data = {
-        'base': pr.branch_name,
-        'head': master_sha,
-        'commit_message': 'Update branch (automerge)',
-    }
+    data = {'base': pr.branch_name, 'head': main_sha, 'commit_message': 'Update branch (automerge)'}
     response = pr.remote_repo.post(url, json=data)
 
     if response.status_code == 201:
         # Merge succeeded.
-        log(f'Synced #{pr.pull_id} ({pr.title!r}) with master.')
+        log(f'Synced #{pr.pull_id} ({pr.title!r}) with main.')
         return True
 
     if response.status_code == 204:
@@ -723,12 +719,12 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutome
         # Permission denied.
         return CannotAutomergeError(
             "Spurious failure. Github API requires me to be an admin on the "
-            "fork repository to merge master into the PR branch. Hit "
+            "fork repository to merge main into the PR branch. Hit "
             "'Update Branch' for me before trying again."
         )
 
     raise RuntimeError(
-        'Sync with master failed for unknown reason. '
+        'Sync with main failed for unknown reason. '
         f'Code: {response.status_code}. Content: {response.content!r}.'
     )
 
@@ -936,13 +932,13 @@ def find_auto_mergeable_prs(repo: GithubRepository) -> List[int]:
 
 
 def find_problem_with_automergeability_of_pr(
-    pr: PullRequestDetails, master_branch_data: Any
+    pr: PullRequestDetails, main_branch_data: Any
 ) -> Optional[CannotAutomergeError]:
     # Sanity.
     if pr.payload['state'] != 'open':
         return CannotAutomergeError('Not an open pull request.')
-    if pr.base_branch_name != 'master':
-        return CannotAutomergeError('Can only automerge into master.')
+    if pr.base_branch_name != 'main':
+        return CannotAutomergeError('Can only automerge into main.')
     if pr.payload['mergeable_state'] == 'dirty':
         return CannotAutomergeError('There are merge conflicts.')
 
@@ -972,7 +968,7 @@ def find_problem_with_automergeability_of_pr(
     # Some issues can only be detected after waiting a bit.
     if not pr.modified_recently:
         # Nothing is setting a required status check.
-        missing_statuses = absent_status_checks(pr, master_branch_data)
+        missing_statuses = absent_status_checks(pr, main_branch_data)
         if missing_statuses:
             return CannotAutomergeError(
                 'A required status check is not present.\n\n'
@@ -1025,8 +1021,8 @@ def gather_auto_mergeable_prs(
 ) -> List[PullRequestDetails]:
     result = []
     raw_prs = list_open_pull_requests(repo)
-    master_branch_data = get_branch_details(repo, 'master')
-    if branch_data_modified_recently(master_branch_data):
+    main_branch_data = get_branch_details(repo, 'main')
+    if branch_data_modified_recently(main_branch_data):
         return []
 
     prev_seen_times = dict(problem_seen_times)
@@ -1037,7 +1033,7 @@ def gather_auto_mergeable_prs(
 
         # Looking up a single PR gives more data, e.g. the 'mergeable' entry.
         pr = PullRequestDetails.from_github(repo, raw_pr.pull_id)
-        problem = find_problem_with_automergeability_of_pr(pr, master_branch_data)
+        problem = find_problem_with_automergeability_of_pr(pr, main_branch_data)
         if problem is None:
             result.append(pr)
 
