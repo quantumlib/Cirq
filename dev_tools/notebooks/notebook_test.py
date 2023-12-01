@@ -86,6 +86,7 @@ def env_with_temporary_pip_target():
         yield env
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(sys.platform not in ["linux", "darwin"], reason="Linux/Mac-only test")
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
 def test_notebooks_against_cirq_head(
