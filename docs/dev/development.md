@@ -72,15 +72,15 @@ This remote can be used to merge changes from Cirq's main repository into your l
    
     You can check the branches that are on the ```upstream``` remote by
     running ```git remote -va``` or ```git branch -r```.
-Most importantly you should see ```upstream/master``` listed.
-1. Merge the upstream master into your local master so that it is up to date.
+Most importantly you should see ```upstream/main``` listed.
+1. Merge the upstream main into your local main so that it is up to date.
     
    ```shell
-    git checkout master
-    git merge upstream/master
+    git checkout main
+    git merge upstream/main
    ```
     
-At this point your local git master should be synced with the master from the main cirq repo.
+At this point your local git main should be synced with the main from the main cirq repo.
 
 
 ## Setting up an environment
