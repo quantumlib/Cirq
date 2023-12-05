@@ -636,6 +636,7 @@ _repeated_child_deprecation_msg = [
 
 
 def _trace_unhandled_exceptions(*args, queue: 'multiprocessing.Queue', func: Callable, **kwargs):
+    logging.basicConfig(level=logging.DEBUG)
     try:
         func(*args, **kwargs)
         queue.put(None)
