@@ -62,7 +62,7 @@ def _test_qid_pickled_hash(q: 'cirq.Qid', q_bad: 'cirq.Qid') -> None:
     """Test that hashes are not pickled with Qid instances."""
     assert q_bad is not q
     _ = hash(q_bad)  # compute hash to ensure it is cached.
-    q_bad._hash = q_bad._hash + 1
+    q_bad._hash = q_bad._hash + 1  # type: ignore[attr-defined]
     assert q_bad == q
     assert hash(q_bad) != hash(q)
     data = pickle.dumps(q_bad)

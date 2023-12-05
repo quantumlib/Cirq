@@ -60,7 +60,6 @@ def test_named_qid_pickled_hash():
     _test_qid_pickled_hash(q, q_bad)
 
 
-
 def test_named_qubit_order():
     order = cirq.testing.OrderTester()
     order.add_ascending(
