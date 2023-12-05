@@ -659,6 +659,8 @@ def run_in_subprocess(test_func, *args):
         "it to this method?"
     )
 
+    # Use spawn to ensure subprocesses are isolated.
+    # See https://github.com/quantumlib/Cirq/issues/6373
     ctx = multiprocessing.get_context('spawn')
 
     queue = ctx.Queue()
