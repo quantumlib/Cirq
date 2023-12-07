@@ -14,9 +14,9 @@
 
 import abc
 import functools
+import weakref
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 from typing_extensions import Self
-from weakref import WeakValueDictionary
 
 from cirq import ops, protocols
 
@@ -149,7 +149,7 @@ class LineQid(_BaseLineQid):
 
     """
 
-    _cache: WeakValueDictionary[Tuple[int, int], 'cirq.LineQid'] = WeakValueDictionary()
+    _cache = weakref.WeakValueDictionary[Tuple[int, int], 'cirq.LineQid']()
 
     def __new__(cls, x: int, dimension: int) -> 'cirq.LineQid':
         """Initializes a line qid at the given x coordinate.
@@ -251,7 +251,7 @@ class LineQubit(_BaseLineQid):
     """
 
     _dimension = 2
-    _cache: WeakValueDictionary[int, 'cirq.LineQubit'] = WeakValueDictionary()
+    _cache = weakref.WeakValueDictionary[int, 'cirq.LineQubit']()
 
     def __new__(cls, x: int) -> 'cirq.LineQubit':
         """Initializes a line qid at the given x coordinate.
