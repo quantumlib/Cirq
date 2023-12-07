@@ -16,6 +16,7 @@ import abc
 import functools
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TYPE_CHECKING, Union
 from typing_extensions import Self
+from weakref import WeakValueDictionary
 
 import numpy as np
 
@@ -170,7 +171,7 @@ class GridQid(_BaseGridQid):
     cirq.GridQid(5, 4, dimension=2)
     """
 
-    _cache: Dict[Tuple[int, int, int], 'cirq.GridQid'] = {}
+    _cache: WeakValueDictionary[Tuple[int, int, int], 'cirq.GridQid'] = WeakValueDictionary()
 
     def __new__(cls, row: int, col: int, *, dimension: int) -> 'cirq.GridQid':
         """Creates a grid qid at the given row, col coordinate
@@ -327,7 +328,7 @@ class GridQubit(_BaseGridQid):
     """
 
     _dimension = 2
-    _cache: Dict[Tuple[int, int], 'cirq.GridQubit'] = {}
+    _cache: WeakValueDictionary[Tuple[int, int], 'cirq.GridQubit'] = WeakValueDictionary()
 
     def __new__(cls, row: int, col: int) -> 'cirq.GridQubit':
         """Creates a grid qubit at the given row, col coordinate

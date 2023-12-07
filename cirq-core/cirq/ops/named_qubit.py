@@ -13,6 +13,7 @@
 # limitations under the License.
 import functools
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from weakref import WeakValueDictionary
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -79,7 +80,7 @@ class NamedQid(_BaseNamedQid):
     correctly come before 'qid22'.
     """
 
-    _cache: Dict[Tuple[str, int], 'cirq.NamedQid'] = {}
+    _cache: WeakValueDictionary[Tuple[str, int], 'cirq.NamedQid'] = WeakValueDictionary()
 
     def __new__(cls, name: str, dimension: int) -> 'cirq.NamedQid':
         """Initializes a `NamedQid` with a given name and dimension.
@@ -146,7 +147,7 @@ class NamedQubit(_BaseNamedQid):
     """
 
     _dimension = 2
-    _cache: Dict[str, 'cirq.NamedQubit'] = {}
+    _cache: WeakValueDictionary[str, 'cirq.NamedQubit'] = WeakValueDictionary()
 
     def __new__(cls, name: str) -> 'cirq.NamedQubit':
         """Initializes a `NamedQid` with a given name and dimension.
