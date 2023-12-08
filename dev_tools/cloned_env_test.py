@@ -24,6 +24,7 @@ import pytest
 
 from dev_tools import shell_tools
 
+
 # These tests fail in a macOS virtual environment.
 # Related: https://github.com/quantumlib/Cirq/issues/6377
 @pytest.mark.skipif(sys.platform == "darwin", reason="Non-macOS test")
