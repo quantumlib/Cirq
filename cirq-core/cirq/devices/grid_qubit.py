@@ -171,6 +171,8 @@ class GridQid(_BaseGridQid):
     cirq.GridQid(5, 4, dimension=2)
     """
 
+    # Cache of existing GridQid instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[Tuple[int, int, int], 'cirq.GridQid']()
 
     def __new__(cls, row: int, col: int, *, dimension: int) -> 'cirq.GridQid':
@@ -194,6 +196,7 @@ class GridQid(_BaseGridQid):
         return inst
 
     def __getnewargs_ex__(self):
+        """Returns a tuple of (args, kwargs) to pass to __new__ when unpickling."""
         return (self._row, self._col), {"dimension": self._dimension}
 
     def _with_row_col(self, row: int, col: int) -> 'GridQid':
@@ -328,6 +331,9 @@ class GridQubit(_BaseGridQid):
     """
 
     _dimension = 2
+
+    # Cache of existing GridQubit instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[Tuple[int, int], 'cirq.GridQubit']()
 
     def __new__(cls, row: int, col: int) -> 'cirq.GridQubit':
@@ -347,6 +353,7 @@ class GridQubit(_BaseGridQid):
         return inst
 
     def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._row, self._col)
 
     def _with_row_col(self, row: int, col: int) -> 'GridQubit':

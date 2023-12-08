@@ -80,6 +80,8 @@ class NamedQid(_BaseNamedQid):
     correctly come before 'qid22'.
     """
 
+    # Cache of existing NamedQid instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[Tuple[str, int], 'cirq.NamedQid']()
 
     def __new__(cls, name: str, dimension: int) -> 'cirq.NamedQid':
@@ -101,6 +103,7 @@ class NamedQid(_BaseNamedQid):
         return inst
 
     def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._name, self._dimension)
 
     def __repr__(self) -> str:
@@ -147,6 +150,9 @@ class NamedQubit(_BaseNamedQid):
     """
 
     _dimension = 2
+
+    # Cache of existing NamedQubit instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[str, 'cirq.NamedQubit']()
 
     def __new__(cls, name: str) -> 'cirq.NamedQubit':
@@ -165,6 +171,7 @@ class NamedQubit(_BaseNamedQid):
         return inst
 
     def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._name,)
 
     def _cmp_tuple(self):

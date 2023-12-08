@@ -149,6 +149,8 @@ class LineQid(_BaseLineQid):
 
     """
 
+    # Cache of existing LineQid instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[Tuple[int, int], 'cirq.LineQid']()
 
     def __new__(cls, x: int, dimension: int) -> 'cirq.LineQid':
@@ -170,6 +172,7 @@ class LineQid(_BaseLineQid):
         return inst
 
     def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._x, self._dimension)
 
     def _with_x(self, x: int) -> 'LineQid':
@@ -251,6 +254,9 @@ class LineQubit(_BaseLineQid):
     """
 
     _dimension = 2
+
+    # Cache of existing LineQubit instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[int, 'cirq.LineQubit']()
 
     def __new__(cls, x: int) -> 'cirq.LineQubit':
@@ -267,6 +273,7 @@ class LineQubit(_BaseLineQid):
         return inst
 
     def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._x,)
 
     def _with_x(self, x: int) -> 'LineQubit':
