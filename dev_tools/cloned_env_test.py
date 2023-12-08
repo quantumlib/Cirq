@@ -17,6 +17,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from unittest import mock
 
 import pytest
@@ -24,10 +25,9 @@ import pytest
 from dev_tools import shell_tools
 from dev_tools.test_utils import only_on_posix
 
-
 # due to shell_tools dependencies windows builds break on this
 # see https://github.com/quantumlib/Cirq/issues/4394
-@only_on_posix
+@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
 # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
 # the "isolation" fails and all the cirq modules would be in the list
 @mock.patch.dict(os.environ, {"PYTHONPATH": ""})
