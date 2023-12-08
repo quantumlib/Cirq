@@ -25,6 +25,7 @@ import pytest
 from dev_tools import shell_tools
 from dev_tools.test_utils import only_on_posix
 
+
 # due to shell_tools dependencies windows builds break on this
 # see https://github.com/quantumlib/Cirq/issues/4394
 @pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
