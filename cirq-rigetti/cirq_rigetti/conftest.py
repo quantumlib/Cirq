@@ -18,7 +18,14 @@ from unittest.mock import create_autospec, Mock
 import pytest
 from pyquil import Program
 from pyquil.quantum_processor import AbstractQuantumProcessor, NxQuantumProcessor
-from pyquil.api import QAM, QuantumComputer, QuantumExecutable, QAMExecutionResult, EncryptedProgram, MemoryMap
+from pyquil.api import (
+    QAM,
+    QuantumComputer,
+    QuantumExecutable,
+    QAMExecutionResult,
+    EncryptedProgram,
+    MemoryMap,
+)
 from pyquil.api._abstract_compiler import AbstractCompiler
 from qcs_sdk import QCSClient, ExecutionData, ResultData, RegisterData
 from qcs_sdk.qvm import QVMResultData
@@ -75,9 +82,7 @@ def qcs_client() -> QCSClient:
 @pytest.fixture
 def compiler(quantum_processor, qcs_client) -> AbstractCompiler:
     return MockCompiler(
-        client_configuration=qcs_client,
-        timeout=0,
-        quantum_processor=quantum_processor,
+        client_configuration=qcs_client, timeout=0, quantum_processor=quantum_processor
     )
 
 
@@ -153,7 +158,9 @@ class MockQPUImplementer:
             side_effect=native_quil_to_executable,
         )
 
-        def run(program: Union[Program, EncryptedProgram], memory_map: MemoryMap) -> QAMExecutionResult:
+        def run(
+            program: Union[Program, EncryptedProgram], memory_map: MemoryMap
+        ) -> QAMExecutionResult:
             qam = quantum_computer.qam
             qam._mock_results = qam._mock_results or {}  # type: ignore
             qam._mock_results["m0"] = results[qam._run_count]  # type: ignore
@@ -165,8 +172,8 @@ class MockQPUImplementer:
                     result_data=ResultData.from_qvm(
                         QVMResultData.from_memory_map(
                             {k: RegisterData.from_f64([v]) for k, v in qam._mock_results.items()}  # type: ignore
-                        ),
-                    ),
+                        )
+                    )
                 ),
             )
 

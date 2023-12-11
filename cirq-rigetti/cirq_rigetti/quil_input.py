@@ -522,9 +522,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
             raise ValueError(f"Cannot convert unknown BinaryExp: {expression}")
 
     else:
-        raise ValueError(
-            f"Unrecognized expression {expression} of type {type(expression)}"
-        )
+        raise ValueError(f"Unrecognized expression {expression} of type {type(expression)}")
 
 
 def defgate_to_cirq(defgate: DefGate):
