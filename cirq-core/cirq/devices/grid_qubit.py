@@ -14,6 +14,7 @@
 
 import abc
 import functools
+import weakref
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TYPE_CHECKING, Union
 from typing_extensions import Self
 
@@ -34,14 +35,6 @@ class _BaseGridQid(ops.Qid):
     _dimension: int
     _hash: Optional[int] = None
 
-    def __getstate__(self):
-        # Don't save hash when pickling; see #3777.
-        state = self.__dict__
-        if "_hash" in state:
-            state = state.copy()
-            del state["_hash"]
-        return state
-
     def __hash__(self) -> int:
         if self._hash is None:
             self._hash = hash((self._row, self._col, self._dimension))
@@ -50,7 +43,7 @@ class _BaseGridQid(ops.Qid):
     def __eq__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseGridQid):
-            return (
+            return self is other or (
                 self._row == other._row
                 and self._col == other._col
                 and self._dimension == other._dimension
@@ -60,7 +53,7 @@ class _BaseGridQid(ops.Qid):
     def __ne__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseGridQid):
-            return (
+            return self is not other and (
                 self._row != other._row
                 or self._col != other._col
                 or self._dimension != other._dimension
@@ -178,8 +171,12 @@ class GridQid(_BaseGridQid):
     cirq.GridQid(5, 4, dimension=2)
     """
 
-    def __init__(self, row: int, col: int, *, dimension: int) -> None:
-        """Initializes a grid qid at the given row, col coordinate
+    # Cache of existing GridQid instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
+    _cache = weakref.WeakValueDictionary[Tuple[int, int, int], 'cirq.GridQid']()
+
+    def __new__(cls, row: int, col: int, *, dimension: int) -> 'cirq.GridQid':
+        """Creates a grid qid at the given row, col coordinate
 
         Args:
             row: the row coordinate
@@ -187,13 +184,23 @@ class GridQid(_BaseGridQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        self.validate_dimension(dimension)
-        self._row = row
-        self._col = col
-        self._dimension = dimension
+        key = (row, col, dimension)
+        inst = cls._cache.get(key)
+        if inst is None:
+            cls.validate_dimension(dimension)
+            inst = super().__new__(cls)
+            inst._row = row
+            inst._col = col
+            inst._dimension = dimension
+            cls._cache[key] = inst
+        return inst
+
+    def __getnewargs_ex__(self):
+        """Returns a tuple of (args, kwargs) to pass to __new__ when unpickling."""
+        return (self._row, self._col), {"dimension": self._dimension}
 
     def _with_row_col(self, row: int, col: int) -> 'GridQid':
-        return GridQid(row, col, dimension=self.dimension)
+        return GridQid(row, col, dimension=self._dimension)
 
     @staticmethod
     def square(diameter: int, top: int = 0, left: int = 0, *, dimension: int) -> List['GridQid']:
@@ -290,16 +297,16 @@ class GridQid(_BaseGridQid):
         return [GridQid(*c, dimension=dimension) for c in coords]
 
     def __repr__(self) -> str:
-        return f"cirq.GridQid({self._row}, {self._col}, dimension={self.dimension})"
+        return f"cirq.GridQid({self._row}, {self._col}, dimension={self._dimension})"
 
     def __str__(self) -> str:
-        return f"q({self._row}, {self._col}) (d={self.dimension})"
+        return f"q({self._row}, {self._col}) (d={self._dimension})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-            wire_symbols=(f"({self._row}, {self._col}) (d={self.dimension})",)
+            wire_symbols=(f"({self._row}, {self._col}) (d={self._dimension})",)
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -325,11 +332,31 @@ class GridQubit(_BaseGridQid):
 
     _dimension = 2
 
-    def __init__(self, row: int, col: int) -> None:
-        self._row = row
-        self._col = col
+    # Cache of existing GridQubit instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
+    _cache = weakref.WeakValueDictionary[Tuple[int, int], 'cirq.GridQubit']()
 
-    def _with_row_col(self, row: int, col: int):
+    def __new__(cls, row: int, col: int) -> 'cirq.GridQubit':
+        """Creates a grid qubit at the given row, col coordinate
+
+        Args:
+            row: the row coordinate
+            col: the column coordinate
+        """
+        key = (row, col)
+        inst = cls._cache.get(key)
+        if inst is None:
+            inst = super().__new__(cls)
+            inst._row = row
+            inst._col = col
+            cls._cache[key] = inst
+        return inst
+
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self._row, self._col)
+
+    def _with_row_col(self, row: int, col: int) -> 'GridQubit':
         return GridQubit(row, col)
 
     def _cmp_tuple(self):
