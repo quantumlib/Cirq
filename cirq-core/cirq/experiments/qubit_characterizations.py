@@ -234,7 +234,7 @@ def parallel_single_qubit_randomized_benchmarking(
     sampler: 'cirq.Sampler',
     use_xy_basis: bool = True,
     *,
-    qubits: Iterator['cirq.GridQubit'] | None = None,
+    qubits: Optional[Iterator['cirq.GridQubit']] = None,
     num_clifford_range: Sequence[int] = [5, 18, 70, 265, 1000],
     num_circuits: int = 10,
     repetitions: int = 600,
@@ -259,7 +259,6 @@ def parallel_single_qubit_randomized_benchmarking(
         A dictionary from qubits to RandomizedBenchMarkResult objects.
     """
 
-    
     if qubits is None:
         try:
             device = sampler.processor.get_device()

@@ -98,7 +98,7 @@ def test_parallel_single_qubit_randomized_benchmarking():
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
     simulator = sim.Simulator()
-    qubits = (GridQubit(0, 0), GridQubit(0,1))
+    qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 20, 5)
     results = parallel_single_qubit_randomized_benchmarking(
         simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
