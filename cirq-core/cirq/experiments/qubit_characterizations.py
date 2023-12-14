@@ -259,11 +259,11 @@ def parallel_single_qubit_randomized_benchmarking(
         A dictionary from qubits to RandomizedBenchMarkResult objects.
     """
 
-    if qubits is None:
+    if qubits is None: # pragma: no cover
         try:
             device = sampler.processor.get_device()
         except:
-            device = sampler.device
+            device = sampler.device # type: ignore
         qubits = device.metadata.qubit_set
 
     cliffords = _single_qubit_cliffords()
@@ -278,15 +278,15 @@ def parallel_single_qubit_randomized_benchmarking(
 
     # run circuits
     results_all = sampler.run_batch(circuits_all, repetitions=repetitions)
-    gnd_probs = {q: [] for q in qubits}
+    gnd_probs: dict = {q: [] for q in qubits}
     idx = 0
     for num_cfds in num_clifford_range:
-        excited_probs_l = {q: [] for q in qubits}
+        excited_probs_l: dict = {q: [] for q in qubits}
         for _ in range(num_circuits):
             results = results_all[idx][0]
             for qubit in qubits:
                 excited_probs_l[qubit].append(
-                    np.mean(results.measurements["q{}_{}".format(qubit.row, qubit.col)])
+                    np.mean(results.measurements[f"q{qubit.row}_{qubit.col}"]])
                 )
             idx += 1
         for qubit in qubits:
@@ -529,14 +529,14 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Iterator['cirq.GridQubit'], num_cfds: int, c1: list, cfd_mats: np.array
+    qubits: Iterator['cirq.GridQubit'], num_cfds: int, c1: list, cfd_mats: np.ndarray
 ) -> 'cirq.Circuit':
     circuits_to_zip = [_random_single_q_clifford(qubit, num_cfds, c1, cfd_mats) for qubit in qubits]
     circuit = circuits.Circuit.zip(*circuits_to_zip)
     measure_moment = circuits.Moment(
-        ops.measure_each(*qubits, key_func=lambda q: "q{}_{}".format(q.row, q.col))
+        ops.measure_each(*qubits, key_func=lambda q: f"q{q.row}_{q.col}") # type: ignore
     )
-    circuit_with_meas = circuits.Circuit.from_moments(*(circuit.moments + [measure_moment]))
+    circuit_with_meas = circuits.Circuit.from_moments(*(circuit.moments + [measure_moment])) # type: ignore
     return circuit_with_meas
 
 
