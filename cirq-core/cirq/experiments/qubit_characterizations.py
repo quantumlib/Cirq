@@ -232,10 +232,10 @@ def single_qubit_randomized_benchmarking(
 
 def parallel_single_qubit_randomized_benchmarking(
     sampler: 'cirq.Sampler',
+    qubits: Iterator['cirq.GridQubit'],
     use_xy_basis: bool = True,
     *,
-    qubits: Optional[Iterator['cirq.GridQubit']] = None,
-    num_clifford_range: Sequence[int] = [5, 18, 70, 265, 1000],
+    num_clifford_range: Sequence[int] = np.logspace(np.log10(5), 3, 5, dtype=int),
     num_circuits: int = 10,
     repetitions: int = 600,
 ) -> dict:
@@ -249,7 +249,7 @@ def parallel_single_qubit_randomized_benchmarking(
         sampler: The quantum engine or simulator to run the circuits.
         use_xy_basis: Determines if the Clifford gates are built with x and y
             rotations (True) or x and z rotations (False).
-        qubits: The qubits to benchmark. If None, benchmark all of the qubits.
+        qubits: The qubits to benchmark.
         num_clifford_range: The different numbers of Cliffords in the RB study.
         num_circuits: The number of random circuits generated for each
             number of Cliffords.
@@ -258,13 +258,6 @@ def parallel_single_qubit_randomized_benchmarking(
     Returns:
         A dictionary from qubits to RandomizedBenchMarkResult objects.
     """
-
-    if qubits is None:  # pragma: no cover
-        try:
-            device = sampler.processor.get_device()  # type: ignore
-        except:
-            device = sampler.device  # type: ignore
-        qubits = device.metadata.qubit_set
 
     cliffords = _single_qubit_cliffords()
     c1 = cliffords.c1_in_xy if use_xy_basis else cliffords.c1_in_xz
