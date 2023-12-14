@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict
+from typing import List, Sequence
 from collections import defaultdict
-from cirq.sim.simulator import SimulatesSamples
-from cirq import ops, protocols
+from cirq.sim.simulation_state import SimulationState
+from cirq import ops, protocols, qis
 from cirq.study.resolver import ParamResolver
 from cirq.circuits.circuit import AbstractCircuit
 from cirq.ops.raw_types import Qid
-import numpy as np
-
+from cirq.value import big_endian_int_to_bits
 
 # class ClassicalStateSimulator(SimulatesSamples):
 #     """A simulator that only accepts only gates with classical counterparts.
@@ -126,34 +125,34 @@ import numpy as np
 
 #         return results_dict
 
-#TODO: study example custom class and compare information
+#TODO: study other simulation class examples using custom_simulation_class and compare current desgin
 
-class ClassicalBasisState(cirq.qis.QuantumStateRepresentation):
+class ClassicalState(qis.QuantumStateRepresentation):
     def __init__(self, initial_state: List[int]):
         self.basis = initial_state
 
     def copy(self, deep_copy_buffers: bool = True) -> 'ComputationalBasisState':
-        return ClassicalBasisState(self.basis)
+        return ClassicalState(self.basis)
 
     def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         return [self.basis[i] for i in axes]
 
 
-class ClassicalBasisSimState(cirq.SimulationState[ClassicalBasisState]):
+class ClassicalStateSimulator(SimulationState[ClassicalState]):
     def __init__(self, initial_state, qubits, classical_data):
-        state = ClassicalBasisState(
-            cirq.big_endian_int_to_bits(initial_state, bit_count=len(qubits))
+        state = ClassicalState(
+            big_endian_int_to_bits(initial_state, bit_count=len(qubits))
         )
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
-    def _act_on_fallback_(self, action, qubits: Sequence[cirq.Qid], allow_decompose: bool = True):
+    def _act_on_fallback_(self, action, qubits: Sequence[Qid], allow_decompose: bool = True):
         gate = action.gate if isinstance(action, ops.Operation) else action
-        if isinstance(gate, ops.X):
+        if gate == ops.X:
             q1 = self.qubit_map[qubits[0]]
             self._state.basis[q1] = int(1 - self._state.basis[q1])
             return True
 
-        elif isinstance(gate, cirq.XPowGate):
+        elif isinstance(gate, XPowGate):
             q1 = self.qubit_map[qubits[0]]
             self._state.basis[i] = int(gate.exponent + self._state.basis[q1]) % qubits[0].dimension
             return True
@@ -165,7 +164,7 @@ class ClassicalBasisSimState(cirq.SimulationState[ClassicalBasisState]):
                 self._state.basis[q2_i] =  int(gate.exponent + self._state.basis[q2_i]) % qubits[1].dimension
             return True
 
-        elif isinstance(gate, ops.SwapPowGate):
+        elif isinstance(gate, ops.SWAP) or isinstance(gate, ops.SwapPowGate):
             self.qubit_map[qubits[0]], self.qubit_map[qubits[1]] = self.qubit_map[qubits[1]], self.qubit_map[qubits[0]] 
             return True
 
@@ -178,4 +177,5 @@ class ClassicalBasisSimState(cirq.SimulationState[ClassicalBasisState]):
             return True
 
         else:
+            print(f'Unsupported operation: {gate!r}')
             return False
