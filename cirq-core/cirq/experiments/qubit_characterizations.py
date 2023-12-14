@@ -259,11 +259,11 @@ def parallel_single_qubit_randomized_benchmarking(
         A dictionary from qubits to RandomizedBenchMarkResult objects.
     """
 
-    if qubits is None: # pragma: no cover
+    if qubits is None:  # pragma: no cover
         try:
-            device = sampler.processor.get_device()
+            device = sampler.processor.get_device()  # pragma: no cover
         except:
-            device = sampler.device # type: ignore
+            device = sampler.device  # type: ignore
         qubits = device.metadata.qubit_set
 
     cliffords = _single_qubit_cliffords()
@@ -534,9 +534,9 @@ def _create_parallel_rb_circuit(
     circuits_to_zip = [_random_single_q_clifford(qubit, num_cfds, c1, cfd_mats) for qubit in qubits]
     circuit = circuits.Circuit.zip(*circuits_to_zip)
     measure_moment = circuits.Moment(
-        ops.measure_each(*qubits, key_func=lambda q: f"q{q.row}_{q.col}") # type: ignore
+        ops.measure_each(*qubits, key_func=lambda q: f"q{q.row}_{q.col}")  # type: ignore
     )
-    circuit_with_meas = circuits.Circuit.from_moments(*(circuit.moments + [measure_moment])) # type: ignore
+    circuit_with_meas = circuits.Circuit.from_moments(*(list(circuit.moments) + [measure_moment]))
     return circuit_with_meas
 
 
