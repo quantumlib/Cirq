@@ -20,6 +20,7 @@ from cirq.experiments.qubit_characterizations import (
     TomographyResult,
     two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
+    parallel_single_qubit_randomized_benchmarking,
 )
 
 from cirq.experiments.fidelity_estimation import (
