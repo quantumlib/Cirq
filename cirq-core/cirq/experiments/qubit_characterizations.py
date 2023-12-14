@@ -286,7 +286,7 @@ def parallel_single_qubit_randomized_benchmarking(
             results = results_all[idx][0]
             for qubit in qubits:
                 excited_probs_l[qubit].append(
-                    np.mean(results.measurements[f"q{qubit.row}_{qubit.col}"]])
+                    np.mean(results.measurements[f"q{qubit.row}_{qubit.col}"])
                 )
             idx += 1
         for qubit in qubits:
