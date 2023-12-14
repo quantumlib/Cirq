@@ -261,7 +261,7 @@ def parallel_single_qubit_randomized_benchmarking(
 
     if qubits is None:  # pragma: no cover
         try:
-            device = sampler.processor.get_device()  # pragma: no cover
+            device = sampler.processor.get_device()  #type: ignore
         except:
             device = sampler.device  # type: ignore
         qubits = device.metadata.qubit_set
