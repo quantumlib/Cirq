@@ -175,9 +175,9 @@ def single_qubit_randomized_benchmarking(
     qubit: 'cirq.Qid',
     use_xy_basis: bool = True,
     *,
-    num_clifford_range: Sequence[int] = range(10, 100, 10),
-    num_circuits: int = 20,
-    repetitions: int = 1000,
+    num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int)),
+    num_circuits: int = 10,
+    repetitions: int = 600,
 ) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of a single qubit.
 
@@ -213,21 +213,15 @@ def single_qubit_randomized_benchmarking(
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
-    cliffords = _single_qubit_cliffords()
-    c1 = cliffords.c1_in_xy if use_xy_basis else cliffords.c1_in_xz
-    cfd_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
-
-    gnd_probs = []
-    for num_cfds in num_clifford_range:
-        excited_probs_l = []
-        for _ in range(num_circuits):
-            circuit = _random_single_q_clifford(qubit, num_cfds, c1, cfd_mats)
-            circuit.append(ops.measure(qubit, key='z'))
-            results = sampler.run(circuit, repetitions=repetitions)
-            excited_probs_l.append(np.mean(results.measurements['z']))
-        gnd_probs.append(1.0 - np.mean(excited_probs_l))
-
-    return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
+    result = parallel_single_qubit_randomized_benchmarking(
+        sampler,
+        [qubit],
+        use_xy_basis,
+        num_clifford_range=num_clifford_range,
+        num_circuits=num_circuits,
+        repetitions=repetitions,
+    )
+    return result[qubit]
 
 
 def parallel_single_qubit_randomized_benchmarking(
