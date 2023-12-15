@@ -16,9 +16,14 @@ from typing import Optional, Sequence, TYPE_CHECKING, Union, cast
 
 import cirq
 import duet
+import concurrent.futures
+from typing import TypeVar, Generic
 
 if TYPE_CHECKING:
     import cirq_google as cg
+
+
+T = TypeVar("T")
 
 
 class ProcessorSampler(cirq.Sampler):
@@ -76,6 +81,7 @@ class ProcessorSampler(cirq.Sampler):
         params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence['cg.EngineResult']]:
+        print("outer")
         return cast(
             Sequence[Sequence['cg.EngineResult']],
             await super().run_batch_async(programs, params_list, repetitions),
