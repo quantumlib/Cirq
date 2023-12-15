@@ -215,7 +215,7 @@ def single_qubit_randomized_benchmarking(
 
     result = parallel_single_qubit_randomized_benchmarking(
         sampler,
-        [qubit],
+        (qubit,),
         use_xy_basis,
         num_clifford_range=num_clifford_range,
         num_circuits=num_circuits,
