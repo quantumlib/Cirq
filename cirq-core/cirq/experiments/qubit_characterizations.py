@@ -232,10 +232,10 @@ def single_qubit_randomized_benchmarking(
 
 def parallel_single_qubit_randomized_benchmarking(
     sampler: 'cirq.Sampler',
-    qubits: Iterator['cirq.GridQubit'],
+    qubits: Iterator['cirq.Qid'],
     use_xy_basis: bool = True,
     *,
-    num_clifford_range: Sequence[int] = np.logspace(np.log10(5), 3, 5, dtype=int),
+    num_clifford_range: Sequence[int] = cast(Sequence[int], np.logspace(np.log10(5), 3, 5, dtype=int)),
     num_circuits: int = 10,
     repetitions: int = 600,
 ) -> dict:
@@ -279,7 +279,7 @@ def parallel_single_qubit_randomized_benchmarking(
             results = results_all[idx][0]
             for qubit in qubits:
                 excited_probs_l[qubit].append(
-                    np.mean(results.measurements[f"q{qubit.row}_{qubit.col}"])
+                    np.mean(results.measurements[str(qubit)])
                 )
             idx += 1
         for qubit in qubits:
@@ -527,9 +527,9 @@ def _create_parallel_rb_circuit(
     circuits_to_zip = [_random_single_q_clifford(qubit, num_cfds, c1, cfd_mats) for qubit in qubits]
     circuit = circuits.Circuit.zip(*circuits_to_zip)
     measure_moment = circuits.Moment(
-        ops.measure_each(*qubits, key_func=lambda q: f"q{q.row}_{q.col}")  # type: ignore
+        ops.measure_each(*qubits)
     )
-    circuit_with_meas = circuits.Circuit.from_moments(*(list(circuit.moments) + [measure_moment]))
+    circuit_with_meas = circuits.Circuit.from_moments(*circuit.moments, measure_moment)
     return circuit_with_meas
 
 
