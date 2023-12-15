@@ -235,9 +235,7 @@ def parallel_single_qubit_randomized_benchmarking(
     qubits: Iterator['cirq.Qid'],
     use_xy_basis: bool = True,
     *,
-    num_clifford_range: Sequence[int] = cast(
-        Sequence[int], np.logspace(np.log10(5), 3, 5, dtype=int)
-    ),
+    num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int)),
     num_circuits: int = 10,
     repetitions: int = 600,
 ) -> dict:
@@ -263,19 +261,21 @@ def parallel_single_qubit_randomized_benchmarking(
 
     cliffords = _single_qubit_cliffords()
     c1 = cliffords.c1_in_xy if use_xy_basis else cliffords.c1_in_xz
-    cfd_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
+    clifford_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
 
     # create circuits
     circuits_all = []
-    for num_cfds in num_clifford_range:
+    for num_cliffords in num_clifford_range:
         for _ in range(num_circuits):
-            circuits_all.append(_create_parallel_rb_circuit(qubits, num_cfds, c1, cfd_mats))
+            circuits_all.append(
+                _create_parallel_rb_circuit(qubits, num_cliffords, c1, clifford_mats)
+            )
 
     # run circuits
     results_all = sampler.run_batch(circuits_all, repetitions=repetitions)
     gnd_probs: dict = {q: [] for q in qubits}
     idx = 0
-    for num_cfds in num_clifford_range:
+    for num_cliffords in num_clifford_range:
         excited_probs_l: dict = {q: [] for q in qubits}
         for _ in range(num_circuits):
             results = results_all[idx][0]
