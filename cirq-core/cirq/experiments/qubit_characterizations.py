@@ -522,7 +522,7 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Iterator['cirq.GridQubit'], num_cfds: int, c1: list, cfd_mats: np.ndarray
+    qubits: Iterator['cirq.Qid'], num_cfds: int, c1: list, cfd_mats: np.ndarray
 ) -> 'cirq.Circuit':
     circuits_to_zip = [_random_single_q_clifford(qubit, num_cfds, c1, cfd_mats) for qubit in qubits]
     circuit = circuits.Circuit.zip(*circuits_to_zip)
