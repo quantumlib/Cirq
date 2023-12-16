@@ -21,13 +21,13 @@
 
 import importlib.metadata
 import os
-import sys
 import tempfile
 
 import pytest
 
 from dev_tools import shell_tools
 from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
+from dev_tools.test_utils import only_on_posix
 
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
@@ -87,7 +87,7 @@ def env_with_temporary_pip_target():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
+@only_on_posix
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
 def test_notebooks_against_cirq_head(
     notebook_path, require_packages_not_changed, env_with_temporary_pip_target

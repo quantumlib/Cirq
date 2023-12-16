@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+import weakref
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -31,17 +32,6 @@ class _BaseNamedQid(raw_types.Qid):
     _comp_key: Optional[str] = None
     _hash: Optional[int] = None
 
-    def __getstate__(self):
-        # Don't save hash when pickling; see #3777.
-        state = self.__dict__
-        if "_hash" in state or "_comp_key" in state:
-            state = state.copy()
-            if "_hash" in state:
-                del state["_hash"]
-            if "_comp_key" in state:
-                del state["_comp_key"]
-        return state
-
     def __hash__(self) -> int:
         if self._hash is None:
             self._hash = hash((self._name, self._dimension))
@@ -50,13 +40,17 @@ class _BaseNamedQid(raw_types.Qid):
     def __eq__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseNamedQid):
-            return self._name == other._name and self._dimension == other._dimension
+            return self is other or (
+                self._name == other._name and self._dimension == other._dimension
+            )
         return NotImplemented
 
     def __ne__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseNamedQid):
-            return self._name != other._name or self._dimension != other._dimension
+            return self is not other and (
+                self._name != other._name or self._dimension != other._dimension
+            )
         return NotImplemented
 
     def _comparison_key(self):
@@ -86,7 +80,11 @@ class NamedQid(_BaseNamedQid):
     correctly come before 'qid22'.
     """
 
-    def __init__(self, name: str, dimension: int) -> None:
+    # Cache of existing NamedQid instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
+    _cache = weakref.WeakValueDictionary[Tuple[str, int], 'cirq.NamedQid']()
+
+    def __new__(cls, name: str, dimension: int) -> 'cirq.NamedQid':
         """Initializes a `NamedQid` with a given name and dimension.
 
         Args:
@@ -94,9 +92,19 @@ class NamedQid(_BaseNamedQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        self.validate_dimension(dimension)
-        self._name = name
-        self._dimension = dimension
+        key = (name, dimension)
+        inst = cls._cache.get(key)
+        if inst is None:
+            cls.validate_dimension(dimension)
+            inst = super().__new__(cls)
+            inst._name = name
+            inst._dimension = dimension
+            cls._cache[key] = inst
+        return inst
+
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self._name, self._dimension)
 
     def __repr__(self) -> str:
         return f'cirq.NamedQid({self._name!r}, dimension={self._dimension})'
@@ -143,13 +151,28 @@ class NamedQubit(_BaseNamedQid):
 
     _dimension = 2
 
-    def __init__(self, name: str) -> None:
-        """Initializes a `NamedQubit` with a given name.
+    # Cache of existing NamedQubit instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
+    _cache = weakref.WeakValueDictionary[str, 'cirq.NamedQubit']()
+
+    def __new__(cls, name: str) -> 'cirq.NamedQubit':
+        """Initializes a `NamedQid` with a given name and dimension.
 
         Args:
             name: The name.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
         """
-        self._name = name
+        inst = cls._cache.get(name)
+        if inst is None:
+            inst = super().__new__(cls)
+            inst._name = name
+            cls._cache[name] = inst
+        return inst
+
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self._name,)
 
     def _cmp_tuple(self):
         cls = NamedQid if type(self) is NamedQubit else type(self)
