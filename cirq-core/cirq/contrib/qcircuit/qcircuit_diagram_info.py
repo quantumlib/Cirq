@@ -129,3 +129,4 @@ def get_qcircuit_diagram_info(
     if info is None:
         info = fallback_qcircuit_diagram_info(op, args)
     return info
+
