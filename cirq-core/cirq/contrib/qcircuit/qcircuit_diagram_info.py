@@ -75,9 +75,14 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
 def multigate_qcircuit_diagram_info(
     op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
 ) -> Optional[protocols.CircuitDiagramInfo]:
-    if not (
-        isinstance(op, ops.GateOperation) and isinstance(op.gate, ops.InterchangeableQubitsGate)
-    ):
+    # Check if the operation is a SWAP gate
+    if isinstance(op.gate, ops.SwapPowGate):
+        # Custom LaTeX representation for the SWAP gate
+        symbols = tuple(
+            '\\qswap' if (args.label_map[q] == min(args.label_map.values()))
+            else '\\qswap\\qwx' for q in args.known_qubits
+        )
+        return protocols.CircuitDiagramInfo(symbols, connected=False)
         return None
 
     multigate_parameters = get_multigate_parameters(args)
@@ -88,7 +93,8 @@ def multigate_qcircuit_diagram_info(
 
     min_index, n_qubits = multigate_parameters
     name = escape_text_for_latex(
-        str(op.gate).rsplit('**', 1)[0] if isinstance(op, ops.GateOperation) else str(op)
+        str(op.gate).rsplit(
+            '**', 1)[0] if isinstance(op, ops.GateOperation) else str(op)
     )
     if (info is not None) and (info.exponent != 1):
         name += '^{' + str(info.exponent) + '}'
@@ -96,8 +102,8 @@ def multigate_qcircuit_diagram_info(
     ghost = r'\ghost{' + name + '}'
     assert args.label_map is not None
     assert args.known_qubits is not None
-    symbols = tuple(box if (args.label_map[q] == min_index) else ghost for q in args.known_qubits)
-    # Force exponent=1 to defer to exponent formatting given above.
+    symbols = tuple(
+        box if (args.label_map[q] == min_index) else ghost for q in args.known_qubits)
     return protocols.CircuitDiagramInfo(symbols, connected=False)
 
 
