@@ -107,6 +107,7 @@ class RandomizedBenchMarkResult:
     def pauli_error(self) -> float:
         r"""Returns the Pauli error inferred from randomized benchmarking.
         
+        
         If sequence fidelity $F$ decays with number of gates $m$ as
 
         $F = A p^m + B$
