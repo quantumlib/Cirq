@@ -294,11 +294,9 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         See docs for `cirq.Sampler.run_batch`.
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
-        results = []
-        for circuit, params, repetitions in zip(programs, params_list, repetitions):
-            results.append(duet.run(self.run_sweep_async, circuit, params, repetitions))
-
-        return results
+        return await duet.pstarmap_async(
+            self.run_sweep_async, zip(programs, params_list, repetitions)
+        )
 
     def _normalize_batch_args(
         self,
