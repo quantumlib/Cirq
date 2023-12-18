@@ -105,7 +105,18 @@ class RandomizedBenchMarkResult:
         return ax
 
     def pauli_error(self) -> float:
-        """Returns the Pauli error inferred from randomized benchmarking."""
+        """Returns the Pauli error inferred from randomized benchmarking.
+
+        If sequence fidelity (F) decays with number of gates (m) as
+
+        F = A p^m + B
+
+        where 0 < p < 1, then the Pauli error (r_p) is given by
+
+        r_p = (1 - 1/d^2) * (1 - p)
+
+        Where d = 2^num_qubits is the Hilbert space dimension.
+        """
         fit = self._fit_exponential()
         p = fit[0][2]
         return (1.0 - 1.0 / 4.0) * (1.0 - p)
