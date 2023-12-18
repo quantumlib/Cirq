@@ -109,13 +109,13 @@ class RandomizedBenchMarkResult:
 
         If sequence fidelity $F$ decays with number of gates $m$ as
 
-        $F = A p^m + B$
+        $$F = A p^m + B,$$
 
         where $0 < p < 1$, then the Pauli error $r_p$ is given by
 
-        $r_p = (1 - 1/d^2) * (1 - p)$
+        $$r_p = (1 - 1/d^2) * (1 - p),$$
 
-        Where $d = 2^N_Q$ is the Hilbert space dimension and $N_Q$ is the number of qubits.
+        where $d = 2^N_Q$ is the Hilbert space dimension and $N_Q$ is the number of qubits.
         """
         opt_params, _ = self._fit_exponential()
         p = opt_params[2]
