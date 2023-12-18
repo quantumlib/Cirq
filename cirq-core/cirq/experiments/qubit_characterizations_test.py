@@ -85,12 +85,11 @@ def test_single_qubit_randomized_benchmarking():
     # sequences is always unity.
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
-    num_cfds = range(5, 20, 5)
-    results = single_qubit_randomized_benchmarking(
-        simulator, qubit, num_clifford_range=num_cfds, repetitions=100
-    )
+    num_cfds = tuple(np.logspace(np.log10(5), 3, 5, dtype=int))
+    results = single_qubit_randomized_benchmarking(simulator, qubit, num_clifford_range=num_cfds)
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
+    assert np.isclose(results.pauli_error(), 0.0, atol=1e-7)  # warning is expected
 
 
 def test_two_qubit_randomized_benchmarking():
