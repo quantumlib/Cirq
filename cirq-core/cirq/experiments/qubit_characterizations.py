@@ -17,6 +17,7 @@ import itertools
 
 from typing import Any, cast, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
+from scipy.optimize import curve_fit
 
 from matplotlib import pyplot as plt
 
@@ -92,12 +93,31 @@ class RandomizedBenchMarkResult:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))  # pragma: no cover
             ax = cast(plt.Axes, ax)  # pragma: no cover
         ax.set_ylim((0.0, 1.0))  # pragma: no cover
-        ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-', **plot_kwargs)
+        ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro', **plot_kwargs)
+        x = np.linspace(self._num_cfds_seq[0], self._num_cfds_seq[-1], 100)
+        fit = self._fit_exponential()
+        ax.plot(x, fit[0][0] * fit[0][2] ** x + fit[0][1], '--k')
         ax.set_xlabel(r"Number of Cliffords")
         ax.set_ylabel('Ground State Probability')
         if show_plot:
             fig.show()
         return ax
+
+    def pauli_error(self):
+        """Returns the Pauli error inferred from randomized benchmarking."""
+        fit = self._fit_exponential()
+        p = fit[0][2]
+        return (1.0 - 1.0 / 4.0) * (1.0 - p)
+
+    def _fit_exponential(self):
+        exp_fit = lambda x, A, B, p: A * p**x + B
+        return curve_fit(
+            exp_fit,
+            self._num_cfds_seq,
+            self._gnd_state_probs,
+            [0.5, 0.5, 1.0 - 1e-3],
+            bounds=([0, 0.25, 0], [0.5, 0.75, 1]),
+        )
 
 
 class TomographyResult:

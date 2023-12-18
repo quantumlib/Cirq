@@ -91,6 +91,7 @@ def test_single_qubit_randomized_benchmarking():
     )
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
+    assert np.isclose(results.pauli_error(), 0.0)  # warning is expected
 
 
 def test_two_qubit_randomized_benchmarking():
