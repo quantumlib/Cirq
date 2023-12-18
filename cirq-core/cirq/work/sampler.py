@@ -277,7 +277,6 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError: If length of `programs` is not equal to the length
                 of `params_list` or the length of `repetitions`.
         """
-        print("um")
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         return [
             self.run_sweep(circuit, params=params, repetitions=repetitions)
@@ -294,18 +293,12 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
         See docs for `cirq.Sampler.run_batch`.
         """
-        print("finally")
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         results = []
         for circuit, params, repetitions in zip(programs, params_list, repetitions):
             results.append(duet.run(self.run_sweep_async, circuit, params, repetitions))
 
         return results
-
-        # return [
-        #    await self.run_sweep_async(circuit, params=params, repetitions=repetitions)
-        #    for circuit, params, repetitions in zip(programs, params_list, repetitions)
-        # ]
 
     def _normalize_batch_args(
         self,
