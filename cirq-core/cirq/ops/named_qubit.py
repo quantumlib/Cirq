@@ -37,7 +37,7 @@ class _BaseNamedQid(raw_types.Qid):
             self._hash = hash((self._name, self._dimension))
         return self._hash
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseNamedQid):
             return self is other or (
@@ -45,13 +45,41 @@ class _BaseNamedQid(raw_types.Qid):
             )
         return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseNamedQid):
             return self is not other and (
                 self._name != other._name or self._dimension != other._dimension
             )
         return NotImplemented
+
+    def __lt__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            k0, k1 = self._comparison_key(), other._comparison_key()
+            return k0 < k1 or (k0 == k1 and self._dimension < other._dimension)
+        return super().__lt__(other)
+
+    def __le__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            k0, k1 = self._comparison_key(), other._comparison_key()
+            return k0 < k1 or (k0 == k1 and self._dimension <= other._dimension)
+        return super().__le__(other)
+
+    def __ge__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            k0, k1 = self._comparison_key(), other._comparison_key()
+            return k0 > k1 or (k0 == k1 and self._dimension >= other._dimension)
+        return super().__ge__(other)
+
+    def __gt__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            k0, k1 = self._comparison_key(), other._comparison_key()
+            return k0 > k1 or (k0 == k1 and self._dimension > other._dimension)
+        return super().__gt__(other)
 
     def _comparison_key(self):
         if self._comp_key is None:
@@ -173,11 +201,6 @@ class NamedQubit(_BaseNamedQid):
     def __getnewargs__(self):
         """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._name,)
-
-    def _cmp_tuple(self):
-        cls = NamedQid if type(self) is NamedQubit else type(self)
-        # Must be same as Qid._cmp_tuple but with cls in place of type(self).
-        return (cls.__name__, repr(cls), self._comparison_key(), self._dimension)
 
     def __str__(self) -> str:
         return self._name
