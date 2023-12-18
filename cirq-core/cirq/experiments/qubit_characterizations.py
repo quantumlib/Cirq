@@ -121,7 +121,7 @@ class RandomizedBenchMarkResult:
         p = opt_params[2]
         return (1.0 - 1.0 / 4.0) * (1.0 - p)
 
-    def _fit_exponential(self) -> tuple:
+    def _fit_exponential(self) -> Tuple[np.ndarray, np.ndarray]:
         exp_fit = lambda x, A, B, p: A * p**x + B
         return curve_fit(
             f=exp_fit,
