@@ -283,7 +283,7 @@ daily basis.
 
 The Sycamore device is a 54 qubit device introduced in 2019 with a
 [publication in Nature](https://www.nature.com/articles/s41586-019-1666-5).
-Note that the supremacy result in the paper utilized a device that had 53 qubits since
+Note that the beyond-classical result in the paper utilized a device that had 53 qubits since
 one qubit had malfunctioned.
 
 It can be accessed using `cirq.GridQubit(row, col)` using grid coordinates specified below.
