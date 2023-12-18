@@ -95,7 +95,7 @@ class RandomizedBenchMarkResult:
         ax.set_ylim((0.0, 1.0))  # pragma: no cover
         ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro', label='data', **plot_kwargs)
         x = np.linspace(self._num_cfds_seq[0], self._num_cfds_seq[-1], 100)
-        opt_params, *_ = self._fit_exponential()
+        opt_params, _ = self._fit_exponential()
         ax.plot(x, opt_params[0] * opt_params[2] ** x + opt_params[1], '--k', label='fit')
         ax.legend(loc='upper right')
         ax.set_xlabel(r"Number of Cliffords")
@@ -117,11 +117,11 @@ class RandomizedBenchMarkResult:
 
         Where $d = 2^N_Q$ is the Hilbert space dimension and $N_Q$ is the number of qubits.
         """
-        opt_params, *_ = self._fit_exponential()
+        opt_params, _ = self._fit_exponential()
         p = opt_params[2]
         return (1.0 - 1.0 / 4.0) * (1.0 - p)
 
-    def _fit_exponential(self) -> np.ndarray:
+    def _fit_exponential(self) -> tuple:
         exp_fit = lambda x, A, B, p: A * p**x + B
         return curve_fit(
             f=exp_fit,
