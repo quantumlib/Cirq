@@ -15,7 +15,18 @@
 import dataclasses
 import itertools
 
-from typing import Any, cast, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import (
+    Any,
+    cast,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Mapping,
+    Dict,
+)
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -207,9 +218,9 @@ def single_qubit_randomized_benchmarking(
     qubit: 'cirq.Qid',
     use_xy_basis: bool = True,
     *,
-    num_clifford_range: Sequence[int] = range(10, 100, 10),
-    num_circuits: int = 20,
-    repetitions: int = 1000,
+    num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int)),
+    num_circuits: int = 10,
+    repetitions: int = 600,
 ) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of a single qubit.
 
@@ -245,21 +256,75 @@ def single_qubit_randomized_benchmarking(
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
+    qubits = cast(Iterator['cirq.Qid'], (qubit,))
+    result = parallel_single_qubit_randomized_benchmarking(
+        sampler,
+        qubits,
+        use_xy_basis,
+        num_clifford_range=num_clifford_range,
+        num_circuits=num_circuits,
+        repetitions=repetitions,
+    )
+    return result[qubit]
+
+
+def parallel_single_qubit_randomized_benchmarking(
+    sampler: 'cirq.Sampler',
+    qubits: Iterator['cirq.Qid'],
+    use_xy_basis: bool = True,
+    *,
+    num_clifford_range: Sequence[int] = tuple(
+        np.logspace(np.log10(5), np.log10(1000), 5, dtype=int)
+    ),
+    num_circuits: int = 10,
+    repetitions: int = 1000,
+) -> Mapping['cirq.Qid', 'RandomizedBenchMarkResult']:
+    """Clifford-based randomized benchmarking (RB) single qubits in parallel.
+
+    This is the same as `single_qubit_randomized_benchmarking` except on all
+    of the specified qubits in parallel, i.e. with the individual randomized
+    benchmarking circuits zipped together.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        use_xy_basis: Determines if the Clifford gates are built with x and y
+            rotations (True) or x and z rotations (False).
+        qubits: The qubits to benchmark.
+        num_clifford_range: The different numbers of Cliffords in the RB study.
+        num_circuits: The number of random circuits generated for each
+            number of Cliffords.
+        repetitions: The number of repetitions of each circuit.
+
+    Returns:
+        A dictionary from qubits to RandomizedBenchMarkResult objects.
+    """
+
     cliffords = _single_qubit_cliffords()
     c1 = cliffords.c1_in_xy if use_xy_basis else cliffords.c1_in_xz
-    cfd_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
+    clifford_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
 
-    gnd_probs = []
-    for num_cfds in num_clifford_range:
-        excited_probs_l = []
+    # create circuits
+    circuits_all: List['cirq.AbstractCircuit'] = []
+    for num_cliffords in num_clifford_range:
         for _ in range(num_circuits):
-            circuit = _random_single_q_clifford(qubit, num_cfds, c1, cfd_mats)
-            circuit.append(ops.measure(qubit, key='z'))
-            results = sampler.run(circuit, repetitions=repetitions)
-            excited_probs_l.append(np.mean(results.measurements['z']))
-        gnd_probs.append(1.0 - np.mean(excited_probs_l))
+            circuits_all.append(
+                _create_parallel_rb_circuit(qubits, num_cliffords, c1, clifford_mats)
+            )
 
-    return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
+    # run circuits
+    results = sampler.run_batch(circuits_all, repetitions=repetitions)
+    gnd_probs: dict = {q: [] for q in qubits}
+    idx = 0
+    for num_cliffords in num_clifford_range:
+        excited_probs: Dict['cirq.Qid', List[float]] = {q: [] for q in qubits}
+        for _ in range(num_circuits):
+            result = results[idx][0]
+            for qubit in qubits:
+                excited_probs[qubit].append(np.mean(result.measurements[str(qubit)]))
+            idx += 1
+        for qubit in qubits:
+            gnd_probs[qubit].append(1.0 - np.mean(excited_probs[qubit]))
+    return {q: RandomizedBenchMarkResult(num_clifford_range, gnd_probs[q]) for q in qubits}
 
 
 def two_qubit_randomized_benchmarking(
@@ -494,6 +559,16 @@ def two_qubit_state_tomography(
             rho = rho + c[i, j] * np.kron(sigmas[i], sigmas[j])
 
     return TomographyResult(rho)
+
+
+def _create_parallel_rb_circuit(
+    qubits: Iterator['cirq.Qid'], num_cliffords: int, c1: list, clifford_mats: np.ndarray
+) -> 'cirq.Circuit':
+    circuits_to_zip = [
+        _random_single_q_clifford(qubit, num_cliffords, c1, clifford_mats) for qubit in qubits
+    ]
+    circuit = circuits.Circuit.zip(*circuits_to_zip)
+    return circuits.Circuit.from_moments(*circuit, ops.measure_each(*qubits))
 
 
 def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int], Sequence[int]]:

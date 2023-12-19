@@ -26,6 +26,7 @@ from cirq.experiments import (
     two_qubit_randomized_benchmarking,
     single_qubit_state_tomography,
     two_qubit_state_tomography,
+    parallel_single_qubit_randomized_benchmarking,
 )
 
 
@@ -90,6 +91,20 @@ def test_single_qubit_randomized_benchmarking():
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
     assert np.isclose(results.pauli_error(), 0.0, atol=1e-7)  # warning is expected
+
+
+def test_parallel_single_qubit_randomized_benchmarking():
+    # Check that the ground state population at the end of the Clifford
+    # sequences is always unity.
+    simulator = sim.Simulator()
+    qubits = (GridQubit(0, 0), GridQubit(0, 1))
+    num_cfds = range(5, 20, 5)
+    results = parallel_single_qubit_randomized_benchmarking(
+        simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
+    )
+    for qubit in qubits:
+        g_pops = np.asarray(results[qubit].data)[:, 1]
+        assert np.isclose(np.mean(g_pops), 1.0)
 
 
 def test_two_qubit_randomized_benchmarking():
