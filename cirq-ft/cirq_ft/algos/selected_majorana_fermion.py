@@ -47,10 +47,13 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
         converter=lambda v: (v,) if isinstance(v, infra.SelectionRegister) else tuple(v)
     )
     control_regs: Tuple[infra.Register, ...] = attr.field(
-        converter=lambda v: (v,) if isinstance(v, infra.Register) else tuple(v),
-        default=(infra.Register('control', 1),),
+        converter=lambda v: (v,) if isinstance(v, infra.Register) else tuple(v)
     )
     target_gate: cirq.Gate = cirq.Y
+
+    @control_regs.default
+    def control_regs_default(self):
+        return infra.Register('control', 1)
 
     @classmethod
     def make_on(

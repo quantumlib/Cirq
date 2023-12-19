@@ -19,6 +19,7 @@ import cirq_ft
 from cirq_ft import infra
 import numpy as np
 import pytest
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 gateset_to_keep = cirq.Gateset(
     cirq_ft.And,
@@ -81,6 +82,7 @@ def get_3q_uniform_dirac_notation(signs):
 @pytest.mark.slow
 @pytest.mark.parametrize('num_ones', [*range(5, 9)])
 @pytest.mark.parametrize('eps', [0.01])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_reflection_using_prepare(num_ones, eps):
     data = [1] * num_ones
     prepare_gate = cirq_ft.StatePreparationAliasSampling.from_lcu_probs(
@@ -102,6 +104,7 @@ def test_reflection_using_prepare(num_ones, eps):
     assert cirq.dirac_notation(prepared_state) == get_3q_uniform_dirac_notation(signs)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_reflection_using_prepare_diagram():
     data = [1, 2, 3, 4, 5, 6]
     eps = 0.1
@@ -199,6 +202,7 @@ selection2: ────selection^-1──────────────�
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_reflection_using_prepare_consistent_protocols_and_controlled():
     prepare_gate = cirq_ft.StatePreparationAliasSampling.from_lcu_probs(
         [1, 2, 3, 4], probability_epsilon=0.1

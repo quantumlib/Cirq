@@ -19,10 +19,12 @@ import cachetools
 import cirq
 from cirq_ft.infra.decompose_protocol import _decompose_once_considering_known_decomposition
 from typing_extensions import Literal, Protocol
+from cirq_ft.deprecation import deprecated_cirq_ft_class, deprecated_cirq_ft_function
 
 _T_GATESET = cirq.Gateset(cirq.T, cirq.T**-1, unroll_circuit_op=False)
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class TComplexity:
     """Dataclass storing counts of logical T-gates, Clifford gates and single qubit rotations."""
@@ -165,6 +167,7 @@ def t_complexity(stc: Any, fail_quietly: bool) -> Optional[TComplexity]:
     ...
 
 
+@deprecated_cirq_ft_function()
 def t_complexity(stc: Any, fail_quietly: bool = False) -> Optional[TComplexity]:
     """Returns the TComplexity.
 

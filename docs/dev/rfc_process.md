@@ -89,10 +89,10 @@ If you are working on new code to implement an RFC:
 *   Make sure you understand the feature and the design approved in the RFC. Ask questions and discuss the approach before beginning work.
 *   New features must include new unit tests that verify the feature works as expected.
 *   Add or update relevant API documentation. Reference the RFC in the new documentation.
-*   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) file in the project repo you're contributing to.
+*   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) file in the project repo you're contributing to.
 *   Run unit tests before submitting your code.
 *   Work with the RFC sponsor to successfully land the new code. This could include PR / marketing of the new feature as well.
-*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_compat.py) as an example.
+*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_compat.py) as an example.
 
 
 ## Keeping the bar high
