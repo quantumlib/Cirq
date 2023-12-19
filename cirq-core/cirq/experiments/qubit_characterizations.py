@@ -17,6 +17,7 @@ import itertools
 
 from typing import Any, cast, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
+from scipy.optimize import curve_fit
 
 from matplotlib import pyplot as plt
 
@@ -92,12 +93,43 @@ class RandomizedBenchMarkResult:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))  # pragma: no cover
             ax = cast(plt.Axes, ax)  # pragma: no cover
         ax.set_ylim((0.0, 1.0))  # pragma: no cover
-        ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-', **plot_kwargs)
+        ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro', label='data', **plot_kwargs)
+        x = np.linspace(self._num_cfds_seq[0], self._num_cfds_seq[-1], 100)
+        opt_params, _ = self._fit_exponential()
+        ax.plot(x, opt_params[0] * opt_params[2] ** x + opt_params[1], '--k', label='fit')
+        ax.legend(loc='upper right')
         ax.set_xlabel(r"Number of Cliffords")
         ax.set_ylabel('Ground State Probability')
         if show_plot:
             fig.show()
         return ax
+
+    def pauli_error(self) -> float:
+        r"""Returns the Pauli error inferred from randomized benchmarking.
+
+        If sequence fidelity $F$ decays with number of gates $m$ as
+
+        $$F = A p^m + B,$$
+
+        where $0 < p < 1$, then the Pauli error $r_p$ is given by
+
+        $$r_p = (1 - 1/d^2) * (1 - p),$$
+
+        where $d = 2^N_Q$ is the Hilbert space dimension and $N_Q$ is the number of qubits.
+        """
+        opt_params, _ = self._fit_exponential()
+        p = opt_params[2]
+        return (1.0 - 1.0 / 4.0) * (1.0 - p)
+
+    def _fit_exponential(self) -> Tuple[np.ndarray, np.ndarray]:
+        exp_fit = lambda x, A, B, p: A * p**x + B
+        return curve_fit(
+            f=exp_fit,
+            xdata=self._num_cfds_seq,
+            ydata=self._gnd_state_probs,
+            p0=[0.5, 0.5, 1.0 - 1e-3],
+            bounds=([0, 0.25, 0], [0.5, 0.75, 1]),
+        )
 
 
 class TomographyResult:
