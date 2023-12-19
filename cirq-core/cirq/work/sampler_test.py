@@ -232,7 +232,7 @@ async def test_run_batch_async_impl():
 
             return result
 
-    results = await AsyncSampler().run_batch_async(
+    await AsyncSampler().run_batch_async(
         [circuit1, circuit2], params_list=params_list, repetitions=[1, 2]
     )
 
