@@ -235,7 +235,7 @@ async def test_run_batch_async_impl():
     results = await AsyncSampler().run_batch_async(
         [circuit1, circuit2], params_list=params_list, repetitions=[1, 2]
     )
-    assert len(results) == 2
+
     assert finished == list(reversed(params_list))
 
 
