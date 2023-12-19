@@ -278,7 +278,7 @@ def parallel_single_qubit_randomized_benchmarking(
     ),
     num_circuits: int = 10,
     repetitions: int = 1000,
-) -> Mapping['cirq.Qid', 'RandomizedBenchmarkResult']:
+) -> Mapping['cirq.Qid', RandomizedBenchmarkResult]:
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
 
     This is the same as `single_qubit_randomized_benchmarking` except on all
