@@ -335,7 +335,7 @@ def test_random_circuits_equal_more_rows():
     assert_same_output_as_dense(circuit, qubits)
 
 
-def test_supremacy_equal_more_cols():
+def test_random_circuits_equal_more_cols():
     circuit = cirq.testing.random_circuit(
         qubits=cirq.GridQubit.rect(2, 3), n_moments=6, op_density=1.0
     )
