@@ -212,7 +212,7 @@ def test_sampler_run_batch():
 
 
 @duet.sync
-async def test_run_batch_async_impl():
+async def test_run_batch_async_calls_run_sweep_asynchronously():
     """Test run_batch_async calls run_sweep_async without waiting."""
     finished = []
     a = cirq.LineQubit(0)
@@ -227,10 +227,7 @@ async def test_run_batch_async_impl():
             if params == params1:
                 await duet.sleep(0.001)
 
-            result = cirq.Simulator().run_sweep(program, params, repetitions)
             finished.append(params)
-
-            return result
 
     await AsyncSampler().run_batch_async(
         [circuit1, circuit2], params_list=params_list, repetitions=[1, 2]
