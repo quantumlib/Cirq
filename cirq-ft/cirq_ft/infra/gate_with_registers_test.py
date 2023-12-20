@@ -18,8 +18,10 @@ import numpy as np
 import pytest
 from cirq_ft.infra.jupyter_tools import execute_notebook
 from cirq_ft.infra import split_qubits, merge_qubits, get_named_qubits
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_register():
     r = cirq_ft.Register("my_reg", 5, (1, 2))
     assert r.bitsize == 5
@@ -29,6 +31,7 @@ def test_register():
         _ = cirq_ft.Register("zero bitsize register", bitsize=0)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_registers():
     r1 = cirq_ft.Register("r1", 5, side=cirq_ft.infra.Side.LEFT)
     r2 = cirq_ft.Register("r2", 2, side=cirq_ft.infra.Side.RIGHT)
@@ -96,6 +99,7 @@ def test_registers():
 
 
 @pytest.mark.parametrize('n, N, m, M', [(4, 10, 5, 19), (4, 16, 5, 32)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_selection_registers_indexing(n, N, m, M):
     regs = [cirq_ft.SelectionRegister('x', n, N), cirq_ft.SelectionRegister('y', m, M)]
     for x in range(regs[0].iteration_length):
@@ -106,6 +110,7 @@ def test_selection_registers_indexing(n, N, m, M):
     assert np.prod(tuple(reg.iteration_length for reg in regs)) == N * M
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_selection_registers_consistent():
     with pytest.raises(ValueError, match="iteration length must be in "):
         _ = cirq_ft.SelectionRegister('a', 3, 10)
@@ -124,6 +129,7 @@ def test_selection_registers_consistent():
     assert selection_reg[:1] == tuple([cirq_ft.SelectionRegister('n', 3, 5)])
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_registers_getitem_raises():
     g = cirq_ft.Signature.build(a=4, b=3, c=2)
     with pytest.raises(TypeError, match="indices must be integers or slices"):
@@ -136,6 +142,7 @@ def test_registers_getitem_raises():
         _ = selection_reg[2.5]
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_registers_build():
     regs1 = cirq_ft.Signature([cirq_ft.Register("r1", 5), cirq_ft.Register("r2", 2)])
     regs2 = cirq_ft.Signature.build(r1=5, r2=2)
@@ -157,6 +164,7 @@ class _TestGate(cirq_ft.GateWithRegisters):
         yield cirq.X.on_each(quregs['r3'])
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_gate_with_registers():
     tg = _TestGate()
     assert tg._num_qubits_() == 8
@@ -169,5 +177,6 @@ def test_gate_with_registers():
     assert op1 == op2
 
 
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('gate_with_registers')

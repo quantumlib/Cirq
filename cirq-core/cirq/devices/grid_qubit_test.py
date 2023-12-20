@@ -19,7 +19,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import _compat
 
 
 def test_init():
@@ -41,12 +40,29 @@ def test_eq():
     eq.make_equality_group(lambda: cirq.GridQid(0, 0, dimension=3))
 
 
-def test_pickled_hash():
-    q = cirq.GridQubit(3, 4)
-    q_bad = cirq.GridQubit(3, 4)
+def test_grid_qubit_pickled_hash():
+    # Use a large number that is unlikely to be used by any other tests.
+    row, col = 123456789, 2345678910
+    q_bad = cirq.GridQubit(row, col)
+    cirq.GridQubit._cache.pop((row, col))
+    q = cirq.GridQubit(row, col)
+    _test_qid_pickled_hash(q, q_bad)
+
+
+def test_grid_qid_pickled_hash():
+    # Use a large number that is unlikely to be used by any other tests.
+    row, col = 123456789, 2345678910
+    q_bad = cirq.GridQid(row, col, dimension=3)
+    cirq.GridQid._cache.pop((row, col, 3))
+    q = cirq.GridQid(row, col, dimension=3)
+    _test_qid_pickled_hash(q, q_bad)
+
+
+def _test_qid_pickled_hash(q: 'cirq.Qid', q_bad: 'cirq.Qid') -> None:
+    """Test that hashes are not pickled with Qid instances."""
+    assert q_bad is not q
     _ = hash(q_bad)  # compute hash to ensure it is cached.
-    hash_key = _compat._method_cache_name(cirq.GridQubit.__hash__)
-    setattr(q_bad, hash_key, getattr(q_bad, hash_key) + 1)
+    q_bad._hash = q_bad._hash + 1  # type: ignore[attr-defined]
     assert q_bad == q
     assert hash(q_bad) != hash(q)
     data = pickle.dumps(q_bad)

@@ -189,7 +189,7 @@ document(
 
     This is the `exponent=1` instance of the `cirq.XPowGate`.
 
-    The untary matrix of `cirq.X` is:
+    The unitary matrix of `cirq.X` is:
     $$
     \begin{bmatrix}
         0 & 1 \\

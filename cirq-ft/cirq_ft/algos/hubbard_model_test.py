@@ -17,9 +17,11 @@ import cirq_ft
 import pytest
 from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @pytest.mark.parametrize('dim', [*range(2, 10)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_select_t_complexity(dim):
     select = cirq_ft.SelectHubbard(x_dim=dim, y_dim=dim, control_val=1)
     cost = cirq_ft.t_complexity(select)
@@ -30,6 +32,7 @@ def test_select_t_complexity(dim):
 
 
 @pytest.mark.parametrize('dim', [*range(2, 10)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_prepare_t_complexity(dim):
     prepare = cirq_ft.PrepareHubbard(x_dim=dim, y_dim=dim, t=2, mu=8)
     cost = cirq_ft.t_complexity(prepare)
@@ -40,6 +43,7 @@ def test_prepare_t_complexity(dim):
     assert cost.rotations <= 2 * logN + 9
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_hubbard_model_consistent_protocols():
     select_gate = cirq_ft.SelectHubbard(x_dim=2, y_dim=2)
     prepare_gate = cirq_ft.PrepareHubbard(x_dim=2, y_dim=2, t=1, mu=2)
@@ -72,5 +76,6 @@ def test_hubbard_model_consistent_protocols():
     assert cirq.circuit_diagram_info(select_gate).wire_symbols == tuple(expected_symbols)
 
 
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('hubbard_model')

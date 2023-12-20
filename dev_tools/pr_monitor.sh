@@ -21,7 +21,7 @@
 # labelled PR, the script will not label any other PRs with 'front_of_queue_automerge'.
 #
 # While there is a 'front_of_queue_automerge' labelled PR, the script will sync that PR
-# with master, wait for status checks to succeed, and attempt to merge it into master.
+# with main, wait for status checks to succeed, and attempt to merge it into main.
 # If the PR goes out of date due to an intervening merge, the process will start over.
 # This will continue until either the PR is merged or there is a problem that must be
 # addressed by a human. After merging, the PR will be deleted unless it belongs to a

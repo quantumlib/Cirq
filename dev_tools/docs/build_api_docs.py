@@ -47,7 +47,7 @@ flags.DEFINE_string("output_dir", "docs/api_docs", "Where to output the docs")
 
 flags.DEFINE_string(
     "code_url_prefix",
-    "https://github.com/quantumlib/Cirq/blob/master",
+    "https://github.com/quantumlib/Cirq/blob/main",
     "The url prefix for links to code.",
 )
 
