@@ -343,14 +343,14 @@ class Moment:
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return self._sorted_operations_() == other._sorted_operations_()
+        return self is other or self._sorted_operations_() == other._sorted_operations_()
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return protocols.approx_eq(
+        return self is other or protocols.approx_eq(
             self._sorted_operations_(), other._sorted_operations_(), atol=atol
         )
 
