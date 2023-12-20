@@ -109,7 +109,7 @@ or internal Google systems.
     Install system dependencies that pip can't handle.
 
     ```bash
-    brew cask install mactex
+    brew install --cask mactex
     ```
 
     - Without `mactex`, pdf writing functionality will not work.

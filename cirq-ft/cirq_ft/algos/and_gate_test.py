@@ -14,7 +14,6 @@
 
 import itertools
 import random
-import sys
 from typing import List, Tuple
 
 import cirq
@@ -23,11 +22,13 @@ import numpy as np
 import pytest
 from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 random.seed(12345)
 
 
 @pytest.mark.parametrize("cv", [(0, 0), (0, 1), (1, 0), (1, 1)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_and_gate(cv: Tuple[int, int]):
     c1, c2, t = cirq.LineQubit.range(3)
     input_states = [(0, 0, 0), (0, 1, 0), (1, 0, 0), (1, 1, 0)]
@@ -44,6 +45,7 @@ def random_cv(n: int) -> List[int]:
 
 
 @pytest.mark.parametrize("cv", [[1] * 3, random_cv(5), random_cv(6), random_cv(7)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_multi_controlled_and_gate(cv: List[int]):
     gate = cirq_ft.And(cv)
     r = gate.signature
@@ -77,6 +79,7 @@ def test_multi_controlled_and_gate(cv: List[int]):
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_and_gate_diagram():
     gate = cirq_ft.And((1, 0, 1, 0, 1, 0))
     qubit_regs = infra.get_named_qubits(gate.signature)
@@ -186,6 +189,7 @@ target: ────────────────────────
         ((1, 0, 1), True, "And†(1, 0, 1)"),
     ],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_and_gate_str_and_repr(cv, adjoint, str_output):
     gate = cirq_ft.And(cv, adjoint=adjoint)
     assert str(gate) == str_output
@@ -193,6 +197,7 @@ def test_and_gate_str_and_repr(cv, adjoint, str_output):
 
 
 @pytest.mark.parametrize("cv", [(0, 0), (0, 1), (1, 0), (1, 1)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_and_gate_adjoint(cv: Tuple[int, int]):
     c1, c2, t = cirq.LineQubit.range(3)
     all_cvs = [(0, 0), (0, 1), (1, 0), (1, 1)]
@@ -204,7 +209,7 @@ def test_and_gate_adjoint(cv: Tuple[int, int]):
         cirq_ft.testing.assert_circuit_inp_out_cirqsim(circuit, [c1, c2, t], inp, out)
 
 
-@pytest.mark.skipif(sys.platform != "linux", reason="Linux-only test")
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('and_gate')
 
@@ -213,16 +218,19 @@ def test_notebook():
     "cv", [*itertools.chain(*[itertools.product(range(2), repeat=n) for n in range(2, 7 + 1)])]
 )
 @pytest.mark.parametrize("adjoint", [*range(2)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_t_complexity(cv, adjoint):
     gate = cirq_ft.And(cv=cv, adjoint=adjoint)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(gate)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_and_gate_raises():
     with pytest.raises(ValueError, match="at-least 2 control values"):
         _ = cirq_ft.And(cv=(1,))
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_and_gate_power():
     cv = (1, 0)
     and_gate = cirq_ft.And(cv)

@@ -22,6 +22,7 @@ import numpy as np
 from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import and_gate
+from cirq_ft.deprecation import deprecated_cirq_ft_function
 
 
 def _unary_iteration_segtree(
@@ -164,6 +165,7 @@ def _unary_iteration_multi_controls(
     ops.append(cirq.inverse(multi_controlled_and))
 
 
+@deprecated_cirq_ft_function()
 def unary_iteration(
     l_iter: int,
     r_iter: int,

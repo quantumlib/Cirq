@@ -21,8 +21,10 @@ from numpy.typing import NDArray
 
 from cirq_ft import infra
 from cirq_ft.algos import and_gate
+from cirq_ft.deprecation import deprecated_cirq_ft_class
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class LessThanGate(cirq.ArithmeticGate):
     """Applies U_a|x>|z> = |x> |z ^ (x < a)>"""
@@ -297,6 +299,7 @@ def _equality_with_zero(
     yield and_gate.And(cv=[0] * len(qubits)).on(*qubits, *ancilla, z)
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class LessThanEqualGate(cirq.ArithmeticGate):
     """Applies U|x>|y>|z> = |x>|y> |z ^ (x <= y)>"""
@@ -454,6 +457,7 @@ class LessThanEqualGate(cirq.ArithmeticGate):
         return True
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class ContiguousRegisterGate(cirq.ArithmeticGate):
     """Applies U|x>|y>|0> -> |x>|y>|x(x-1)/2 + y>
@@ -530,6 +534,7 @@ class ContiguousRegisterGate(cirq.ArithmeticGate):
         return NotImplemented  # pragma: no cover
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class AdditionGate(cirq.ArithmeticGate):
     """Applies U|p>|q> -> |p>|p+q>.
@@ -613,6 +618,7 @@ class AdditionGate(cirq.ArithmeticGate):
         return f'cirq_ft.AdditionGate({self.bitsize})'
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen(auto_attribs=True)
 class AddMod(cirq.ArithmeticGate):
     """Applies U_{M}_{add}|x> = |(x + add) % M> if x < M else |x>.

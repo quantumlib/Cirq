@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import cirq
+from cirq.devices.grid_qubit_test import _test_qid_pickled_hash
 from cirq.ops.named_qubit import _pad_digits
 
 
@@ -39,6 +40,24 @@ def test_named_qubit_repr():
     assert repr(q) == "cirq.NamedQubit('a')"
     qid = cirq.NamedQid('a', dimension=3)
     assert repr(qid) == "cirq.NamedQid('a', dimension=3)"
+
+
+def test_named_qubit_pickled_hash():
+    # Use a name that is unlikely to be used by any other tests.
+    x = "test_named_qubit_pickled_hash"
+    q_bad = cirq.NamedQubit(x)
+    cirq.NamedQubit._cache.pop(x)
+    q = cirq.NamedQubit(x)
+    _test_qid_pickled_hash(q, q_bad)
+
+
+def test_named_qid_pickled_hash():
+    # Use a name that is unlikely to be used by any other tests.
+    x = "test_named_qid_pickled_hash"
+    q_bad = cirq.NamedQid(x, dimension=3)
+    cirq.NamedQid._cache.pop((x, 3))
+    q = cirq.NamedQid(x, dimension=3)
+    _test_qid_pickled_hash(q, q_bad)
 
 
 def test_named_qubit_order():
