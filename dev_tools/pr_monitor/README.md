@@ -9,9 +9,9 @@ If there are multiple 'automerge' PRs, the bot prefers PRs that require less wor
 
 While there is a 'front_of_queue_automerge' labelled PR, depending on the state 
 of the PR, the script might do all of the following: 
- * sync that PR with master
+ * sync that PR with main
  * wait for status checks to succeed
- * attempt to merge it into master.
+ * attempt to merge it into main.
 If the PR goes out of date due to an intervening merge, the process will start over.
 This will continue until either the PR is merged or there is a problem that must be
 addressed by a human. After merging, the PR will be deleted unless it belongs to a
@@ -35,7 +35,7 @@ Extra Large (XL): >= 1000 total changes.
 The bot lives in the cirq-infra project and is deployed as a GKE Deployment \
 (see [Cirq infra](../cirq-infra/README.md) for more details on our GCP setup).
  
-On every push to master, Cloud Build triggers the execution of cloudbuild-deploy.yaml.
+On every push to main, Cloud Build triggers the execution of cloudbuild-deploy.yaml.
 
 ## Configuration files
 
@@ -64,7 +64,7 @@ gcloud container clusters get-credentials cirq-infra --zone us-central1-a
 ### Cloud Build file
 
 The [cloudbuild-deploy.yaml](cloudbuild-deploy.yaml) describes the workflow that is executed \
-when we push something to master. It is responsible for building the docker image and deploying \
+when we push something to main. It is responsible for building the docker image and deploying \
 the new version of the pr monitor script to GKE. 
 
 

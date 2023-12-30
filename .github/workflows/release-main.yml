@@ -3,7 +3,7 @@ name: Pre-release cirq to PyPi
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   push_to_pypi:
     if: github.repository == 'quantumlib/Cirq'

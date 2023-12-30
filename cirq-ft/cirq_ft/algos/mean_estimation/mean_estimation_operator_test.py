@@ -23,6 +23,7 @@ from cirq_ft import infra
 from cirq._compat import cached_property
 from cirq_ft.algos.mean_estimation import CodeForRandomVariable, MeanEstimationOperator
 from cirq_ft.infra import bit_tools
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @frozen
@@ -145,6 +146,7 @@ def satisfies_theorem_321(
         (1 / 4 * 1 / 4, 1, 1, 1.5),
     ],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_mean_estimation_bernoulli(
     p: int, y_1: int, selection_bitsize: int, target_bitsize: int, c: float, arctan_bitsize: int = 5
 ):
@@ -228,6 +230,7 @@ class GroverEncoder(cirq_ft.SelectOracle):
 
 
 @pytest.mark.parametrize('n, marked_val, c', [(5, 1, 4), (4, 1, 2), (2, 1, np.sqrt(2))])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_mean_estimation_grover(
     n: int, marked_val: int, c: float, marked_item: int = 1, arctan_bitsize: int = 5
 ):
@@ -246,6 +249,7 @@ def test_mean_estimation_grover(
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_mean_estimation_operator_consistent_protocols():
     p, selection_bitsize, y_1, target_bitsize, arctan_bitsize = 0.1, 2, 1, 1, 4
     synthesizer = BernoulliSynthesizer(p, selection_bitsize)

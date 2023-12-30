@@ -27,7 +27,7 @@ import cirq
 SQRT_ISWAP_INV_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 
 
-class DummyPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+class ExamplePhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def to_calibration_layer(self) -> cirq_google.CalibrationLayer:
         return NotImplemented
 
@@ -39,7 +39,7 @@ class DummyPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
 def test_test_calibration_request():
     a, b = cirq.LineQubit.range(2)
-    request = DummyPhasedFSimCalibrationRequest(
+    request = ExamplePhasedFSimCalibrationRequest(
         gate=cirq.FSimGate(np.pi / 4, 0.5),
         pairs=((a, b),),
         options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -108,7 +108,7 @@ def test_floquet_get_calibrations_when_invalid_request_fails():
     with pytest.raises(ValueError):
         engine_simulator.get_calibrations(
             [
-                DummyPhasedFSimCalibrationRequest(
+                ExamplePhasedFSimCalibrationRequest(
                     gate=cirq.FSimGate(np.pi / 4, 0.5),
                     pairs=((a, b),),
                     options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,

@@ -76,27 +76,6 @@ class ProcessorSampler(cirq.Sampler):
         params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence['cg.EngineResult']]:
-        """Runs the supplied circuits.
-
-        In order to gain a speedup from using this method instead of other run
-        methods, the following conditions must be satisfied:
-            1. All circuits must measure the same set of qubits.
-            2. The number of circuit repetitions must be the same for all
-               circuits. That is, the `repetitions` argument must be an integer,
-               or else a list with identical values.
-        """
-        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
-        if len(set(repetitions)) == 1:
-            # All repetitions are the same so batching can be done efficiently
-            job = await self._processor.run_batch_async(
-                programs=programs,
-                params_list=params_list,
-                repetitions=repetitions[0],
-                run_name=self._run_name,
-                device_config_name=self._device_config_name,
-            )
-            return await job.batched_results_async()
-        # Varying number of repetitions so no speedup
         return cast(
             Sequence[Sequence['cg.EngineResult']],
             await super().run_batch_async(programs, params_list, repetitions),

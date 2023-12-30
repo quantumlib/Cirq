@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummySimulationState
+from cirq.protocols.act_on_protocol_test import ExampleSimulationState
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -87,7 +87,6 @@ def test_asymmetric_depolarizing_channel_str():
 
 
 def test_asymmetric_depolarizing_channel_eq():
-
     a = cirq.asymmetric_depolarize(0.0099999, 0.01)
     b = cirq.asymmetric_depolarize(0.01, 0.0099999)
     c = cirq.asymmetric_depolarize(0.0, 0.0, 0.0)
@@ -492,7 +491,7 @@ def test_reset_channel_text_diagram():
 
 def test_reset_act_on():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.ResetChannel(), DummySimulationState(), qubits=())
+        cirq.act_on(cirq.ResetChannel(), ExampleSimulationState(), qubits=())
 
     args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
@@ -697,7 +696,6 @@ def test_bit_flip_channel_str():
 
 
 def test_bit_flip_channel_eq():
-
     a = cirq.bit_flip(0.0099999)
     b = cirq.bit_flip(0.01)
     c = cirq.bit_flip(0.0)
@@ -735,7 +733,7 @@ def test_bit_flip_channel_text_diagram():
 def test_stabilizer_supports_depolarize():
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on(cirq.depolarize(3 / 4), DummySimulationState(), qubits=())
+            cirq.act_on(cirq.depolarize(3 / 4), ExampleSimulationState(), qubits=())
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.depolarize(3 / 4).on(q), cirq.measure(q, key='m'))

@@ -156,7 +156,7 @@ To summarize, **all issues** are subject to staleness-check, **except** the foll
 * `kind/roadmap-item`
 * `kind/task` 
 
-The staleness check automation is implemented via Github Actions, the latest definition of staleness is defined in [our staleness Github Action workflow](https://github.com/quantumlib/Cirq/blob/master/.github/workflows/stale.yml).
+The staleness check automation is implemented via Github Actions, the latest definition of staleness is defined in [our staleness Github Action workflow](https://github.com/quantumlib/Cirq/blob/main/.github/workflows/stale.yml).
 
 
 ## Processes

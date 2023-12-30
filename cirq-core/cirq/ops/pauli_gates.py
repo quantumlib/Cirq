@@ -15,6 +15,7 @@ import abc
 from typing import Any, cast, Tuple, TYPE_CHECKING, Union, Dict
 
 from cirq._doc import document
+from cirq._import import LazyLoader
 from cirq.ops import common_gates, raw_types, identity
 from cirq.type_workarounds import NotImplementedType
 
@@ -27,6 +28,9 @@ if TYPE_CHECKING:
         _YEigenState,
         _ZEigenState,
     )  # pragma: no cover
+
+
+pauli_string = LazyLoader("pauli_string", globals(), "cirq.ops.pauli_string")
 
 
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -97,9 +101,8 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         """
         if len(qubits) != 1:
             raise ValueError(f'Expected a single qubit, got <{qubits!r}>.')
-        from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
 
-        return SingleQubitPauliStringGateOperation(self, qubits[0])
+        return pauli_string.SingleQubitPauliStringGateOperation(self, qubits[0])
 
     @property
     def _canonical_exponent(self):
@@ -186,7 +189,7 @@ document(
 
     This is the `exponent=1` instance of the `cirq.XPowGate`.
 
-    The untary matrix of `cirq.X` is:
+    The unitary matrix of `cirq.X` is:
     $$
     \begin{bmatrix}
         0 & 1 \\
