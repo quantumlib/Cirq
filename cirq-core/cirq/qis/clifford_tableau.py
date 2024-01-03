@@ -652,3 +652,6 @@ class CliffordTableau(StabilizerState):
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> List[int]:
         return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
+
+    def __hash__(self) -> int:
+        return hash(self.matrix().tobytes() + self.rs.tobytes())

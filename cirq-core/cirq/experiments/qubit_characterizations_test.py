@@ -73,12 +73,12 @@ def test_single_qubit_cliffords():
         for p in PAULIS:
             assert is_pauli(u @ p @ u.conj().T), str(u)
 
-    # Check that XZ decomposition has at most one X gate per clifford.
+    # Check that XZ decomposition has at most one X gate and one Z gate per clifford.
     for gates in cliffords.c1_in_xz:
-        num_x = len([gate for gate in gates if isinstance(gate, cirq.XPowGate)])
-        num_z = len([gate for gate in gates if isinstance(gate, cirq.ZPowGate)])
-        assert num_x + num_z == len(gates)
+        num_x = len([gate for gate in gates if gate == cirq.ops.SingleQubitCliffordGate.X])
+        num_z = len([gate for gate in gates if gate == cirq.ops.SingleQubitCliffordGate.Z])
         assert num_x <= 1
+        assert num_z <= 1
 
 
 def test_single_qubit_randomized_benchmarking():
