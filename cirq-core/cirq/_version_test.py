@@ -2,5 +2,5 @@
 import cirq
 
 
-def test_version():
+def test_version(1):
     assert cirq.__version__ == "1.4.0.dev"
