@@ -63,16 +63,16 @@ class SimulationProductState(
         return self._split_untangled_states
 
     def create_merged_state(self) -> TSimulationState:
-        final_state = self.sim_states[None]
+        merged_state = self.sim_states[None]
         if not self.split_untangled_states:
-            return final_state
+            return merged_state
         extra_states = set([self.sim_states[k] for k in self.sim_states.keys() if k is not None])
         if not extra_states:
-            return final_state
-        final_state = final_state.copy(deep_copy_buffers=False)
+            return merged_state
+        merged_state = merged_state.copy(deep_copy_buffers=False)
         for state in extra_states:
-            final_state.kronecker_product(state, inplace=True)
-        return final_state.transpose_to_qubit_order(self.qubits, inplace=True)
+            merged_state.kronecker_product(state, inplace=True)
+        return merged_state.transpose_to_qubit_order(self.qubits, inplace=True)
 
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
