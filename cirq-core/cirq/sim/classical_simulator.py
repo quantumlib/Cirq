@@ -12,17 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence
+#both interfaces
 from collections import defaultdict
-from cirq.sim.simulation_state import SimulationState
-from cirq import ops, protocols, qis
+from cirq import ops, protocols
 from cirq.study.resolver import ParamResolver
 from cirq.circuits.circuit import AbstractCircuit
 from cirq.ops.raw_types import Qid
+
+# #SimulatesSamples interfaces
+# from typing import Dict
+# from cirq.sim.simulator import SimulatesSamples
+# import numpy as np
+
+#SimulationState interfaces
+from typing import List, Sequence
+from cirq.sim.simulation_state import SimulationState
+from cirq import qis
 from cirq.value import big_endian_int_to_bits
 
+
+def _is_identity(gate: ops.GateOperation) -> bool:
+    if isinstance(gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
+        return gate.exponent % 2 == 0
+    return False
+
+
 # class ClassicalStateSimulator(SimulatesSamples):
-#     """A simulator that only accepts only gates with classical counterparts.
+#     """A simulator that accepts only gates with classical counterparts.
 
 #     This simulator evolves a single state, using only gates that output a single state for each
 #     input state. The simulator runs in linear time, at the cost of not supporting superposition.
@@ -46,7 +62,9 @@ from cirq.value import big_endian_int_to_bits
 #         A dictionary mapping measurement keys to measurement results.
 
 #     Raises:
-#         ValueError: If one of the gates is not an X, CNOT, SWAP, TOFFOLI or a measurement.
+#         ValueError: If
+#             - one of the gates is not an X, CNOT, SWAP, TOFFOLI or a measurement.
+#             - A measurement key is used for measurements on different numbers of qubits.
 #     """
 
 #     def _run(
@@ -59,73 +77,43 @@ from cirq.value import big_endian_int_to_bits
 
 #         for moment in resolved_circuit:
 #             for op in moment:
-#                 gate = op.gate
-#                 if gate == ops.X:
-#                     values_dict[op.qubits[0]] = 1 - values_dict[op.qubits[0]]
-
-#                 elif (
-#                     isinstance(gate, ops.CNotPowGate)
-#                     and gate.exponent == 1
-#                     and gate.global_shift == 0
-#                 ):
-#                     if values_dict[op.qubits[0]] == 1:
-#                         values_dict[op.qubits[1]] = 1 - values_dict[op.qubits[1]]
-
-#                 elif (
-#                     isinstance(gate, ops.SwapPowGate)
-#                     and gate.exponent == 1
-#                     and gate.global_shift == 0
-#                 ):
-#                     hold_qubit = values_dict[op.qubits[1]]
-#                     values_dict[op.qubits[1]] = values_dict[op.qubits[0]]
-#                     values_dict[op.qubits[0]] = hold_qubit
-
-#                 elif (
-#                     isinstance(gate, ops.CCXPowGate)
-#                     and gate.exponent == 1
-#                     and gate.global_shift == 0
-#                 ):
-#                     if (values_dict[op.qubits[0]] == 1) and (values_dict[op.qubits[1]] == 1):
-#                         values_dict[op.qubits[2]] = 1 - values_dict[op.qubits[2]]
-
-#                 elif isinstance(gate, ops.MeasurementGate):
-#                     qubits_in_order = op.qubits
-#                     # add the new instance of a key to the numpy array in results dictionary
-#                     if gate.key in results_dict:
-#                         shape = len(qubits_in_order)
-#                         current_array = results_dict[gate.key]
-#                         new_instance = np.zeros(shape, dtype=np.uint8)
-#                         for bits in range(0, len(qubits_in_order)):
-#                             new_instance[bits] = values_dict[qubits_in_order[bits]]
-#                             results_dict[gate.key] = np.insert(
-#                                 current_array, len(current_array[0]), new_instance, axis=1
+#                 if _is_identity(op):
+#                     continue
+#                 if op.gate == ops.X:
+#                     (q,) = op.qubits
+#                     values_dict[q] ^= 1
+#                 elif op.gate == ops.CNOT:
+#                     c, q = op.qubits
+#                     values_dict[q] ^= values_dict[c]
+#                 elif op.gate == ops.SWAP:
+#                     a, b = op.qubits
+#                     values_dict[a], values_dict[b] = values_dict[b], values_dict[a]
+#                 elif op.gate == ops.TOFFOLI:
+#                     c1, c2, q = op.qubits
+#                     values_dict[q] ^= values_dict[c1] & values_dict[c2]
+#                 elif protocols.is_measurement(op):
+#                     measurement_values = np.array(
+#                         [[[values_dict[q] for q in op.qubits]]] * repetitions, dtype=np.uint8
+#                     )
+#                     key = op.gate.key  # type: ignore
+#                     if key in results_dict:
+#                         if op._num_qubits_() != results_dict[key].shape[-1]:
+#                             raise ValueError(
+#                                 f'Measurement shape {len(measurement_values)} does not match '
+#                                 f'{results_dict[key].shape[-1]} in {key}.'
 #                             )
+#                         results_dict[key] = np.concatenate(
+#                             (results_dict[key], measurement_values), axis=1
+#                         )
 #                     else:
-#                         # create the array for the results dictionary
-#                         new_array_shape = (repetitions, 1, len(qubits_in_order))
-#                         new_array = np.zeros(new_array_shape, dtype=np.uint8)
-#                         for reps in range(0, repetitions):
-#                             for instances in range(1):
-#                                 for bits in range(0, len(qubits_in_order)):
-#                                     new_array[reps][instances][bits] = values_dict[
-#                                         qubits_in_order[bits]
-#                                     ]
-#                         results_dict[gate.key] = new_array
-
-#                 elif not (
-#                     (isinstance(gate, ops.XPowGate) and gate.exponent == 0)
-#                     or (isinstance(gate, ops.CCXPowGate) and gate.exponent == 0)
-#                     or (isinstance(gate, ops.SwapPowGate) and gate.exponent == 0)
-#                     or (isinstance(gate, ops.CNotPowGate) and gate.exponent == 0)
-#                 ):
+#                         results_dict[key] = measurement_values
+#                 else:
 #                     raise ValueError(
-#                         "Can not simulate gates other than cirq.XGate, "
-#                         + "cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
+#                         f'{op} is not one of cirq.X, cirq.CNOT, cirq.SWAP, '
+#                         'cirq.CCNOT, or a measurement'
 #                     )
 
 #         return results_dict
-
-#TODO: study other simulation class examples using custom_simulation_class and compare current desgin
 
 class ClassicalState(qis.QuantumStateRepresentation):
     def __init__(self, initial_state: List[int]):
@@ -140,40 +128,29 @@ class ClassicalState(qis.QuantumStateRepresentation):
 
 class ClassicalStateSimulator(SimulationState[ClassicalState]):
     def __init__(self, initial_state, qubits, classical_data):
-        state = ClassicalState(
-            big_endian_int_to_bits(initial_state, bit_count=len(qubits))
-        )
+        state = ClassicalState(big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence[Qid], allow_decompose: bool = True):
         gate = action.gate if isinstance(action, ops.Operation) else action
+        mapped_qubits = [self.qubit_map[i] for i in qubits]
+        if _is_identity(action):
+            return True
         if gate == ops.X:
-            q1 = self.qubit_map[qubits[0]]
-            self._state.basis[q1] = int(1 - self._state.basis[q1])
+            (q,) = mapped_qubits
+            self._state.basis[q] ^= 1
             return True
-
-        elif isinstance(gate, XPowGate):
-            q1 = self.qubit_map[qubits[0]]
-            self._state.basis[i] = int(gate.exponent + self._state.basis[q1]) % qubits[0].dimension
+        elif gate == ops.CNOT:
+            c, q = mapped_qubits
+            self._state.basis[q] ^= self._state.basis[c]
             return True
-
-        elif isinstance(gate, ops.CNotPowGate):
-            q1_i = self.qubit_map[qubits[0]]
-            q2_i = self.qubit_map[qubits[1]]
-            if self._state.basis[q1_i]:
-                self._state.basis[q2_i] =  int(gate.exponent + self._state.basis[q2_i]) % qubits[1].dimension
+        elif gate == ops.SWAP:
+            a, b = mapped_qubits
+            self._state.basis[a], self._state.basis[b] = self._state.basis[b], self._state.basis[a]
             return True
-
-        elif isinstance(gate, ops.SWAP) or isinstance(gate, ops.SwapPowGate):
-            self.qubit_map[qubits[0]], self.qubit_map[qubits[1]] = self.qubit_map[qubits[1]], self.qubit_map[qubits[0]] 
-            return True
-
-        elif isinstance(gate, ops.CCXPowGate):
-            q1_i = self.qubit_map[op.qubits[0]]
-            q2_i = self.qubit_map[op.qubits[1]]
-            q3_i = self.qubit_map[op.qubits[2]]
-            if self._state.basis[q1_i] and self._state.basis[q2_i]:
-                self._state.basis[q3_i] = int(gate.exponent + self._state.basis[q3_i]) % qubits[2].dimension
+        elif gate == ops.TOFFOLI:
+            c1, c2, q = mapped_qubits
+            self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
             return True
 
         else:
