@@ -69,6 +69,9 @@ class SimulationProductState(
         extra_states = set([self.sim_states[k] for k in self.sim_states.keys() if k is not None])
         if not extra_states:
             return merged_state
+
+        # This comes from a member variable so we need to copy it if we're going to modify inplace
+        # before returning. We're not running a step currently, so no need to copy buffers.
         merged_state = merged_state.copy(deep_copy_buffers=False)
         for state in extra_states:
             merged_state.kronecker_product(state, inplace=True)
