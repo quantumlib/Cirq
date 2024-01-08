@@ -565,13 +565,10 @@ def _create_parallel_rb_circuit(
     sequences_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
     # Ensure each sequence has the same number of moments.
     num_moments = max(len(sequence) for sequence in sequences_to_zip)
-    for i in range(len(sequences_to_zip)):
-        if len(sequences_to_zip[i]) < num_moments:
-            sequences_to_zip[i].extend(
-                [ops.SingleQubitCliffordGate.I(qubits[i])]
-                * (num_moments - len(sequences_to_zip[i]))
-            )
-    moments = tuple(zip(*sequences_to_zip))
+    for q, sequence in zip(qubits, sequences_to_zip):
+        if (n := len(sequence)) < num_moments:
+            sequence.extend([ops.SingleQubitCliffordGate.I(q)] * (num_moments - n))
+    moments = zip(*sequences_to_zip)
     return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
 
