@@ -257,7 +257,7 @@ def single_qubit_randomized_benchmarking(
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
-    qubits = cast(Iterator['cirq.Qid'], (qubit,))
+    qubits = (qubit,)
     result = parallel_single_qubit_randomized_benchmarking(
         sampler,
         qubits,
@@ -271,7 +271,7 @@ def single_qubit_randomized_benchmarking(
 
 def parallel_single_qubit_randomized_benchmarking(
     sampler: 'cirq.Sampler',
-    qubits: Iterator['cirq.Qid'],
+    qubits: Sequence['cirq.Qid'],
     use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(
