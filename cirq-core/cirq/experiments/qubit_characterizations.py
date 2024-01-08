@@ -14,6 +14,7 @@
 
 import dataclasses
 import itertools
+import functools
 
 from typing import (
     Any,
@@ -786,6 +787,7 @@ def _single_qubit_gates(
         yield gate(qubit)
 
 
+@functools.cache
 def _single_qubit_cliffords() -> Cliffords:
     X, Y, Z = (
         ops.SingleQubitCliffordGate.X,

@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import protocols, value, linalg, qis
 from cirq._import import LazyLoader
-from cirq._compat import cached_property
+from cirq._compat import cached_property, cached_method
 from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
@@ -777,7 +777,7 @@ class SingleQubitCliffordGate(CliffordGate):
         to, flip = self.pauli_tuple(pauli)
         return to == pauli and not flip
 
-    @functools.cache
+    @cached_method
     def merged_with(self, second: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
         """Returns a SingleQubitCliffordGate such that the circuits
             --output-- and --self--second--
