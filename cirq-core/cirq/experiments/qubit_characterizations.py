@@ -257,10 +257,9 @@ def single_qubit_randomized_benchmarking(
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
-    qubits = cast(Iterator['cirq.Qid'], (qubit,))
     result = parallel_single_qubit_randomized_benchmarking(
         sampler,
-        qubits,
+        (qubit,),
         use_xy_basis,
         num_clifford_range=num_clifford_range,
         num_circuits=num_circuits,
@@ -271,7 +270,7 @@ def single_qubit_randomized_benchmarking(
 
 def parallel_single_qubit_randomized_benchmarking(
     sampler: 'cirq.Sampler',
-    qubits: Iterator['cirq.Qid'],
+    qubits: Sequence['cirq.Qid'],
     use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(
@@ -560,11 +559,16 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Iterator['cirq.Qid'], num_cliffords: int, c1: list
+    qubits: Sequence['cirq.Qid'], num_cliffords: int, c1: list
 ) -> 'cirq.Circuit':
-    circuits_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
-    circuit = circuits.Circuit.zip(*circuits_to_zip)
-    return circuits.Circuit.from_moments(*circuit, ops.measure_each(*qubits))
+    sequences_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
+    # Ensure each sequence has the same number of moments.
+    num_moments = max(len(sequence) for sequence in sequences_to_zip)
+    for q, sequence in zip(qubits, sequences_to_zip):
+        if (n := len(sequence)) < num_moments:
+            sequence.extend([ops.SingleQubitCliffordGate.I(q)] * (num_moments - n))
+    moments = zip(*sequences_to_zip)
+    return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
 
 def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int], Sequence[int]]:
@@ -609,13 +613,12 @@ def _two_qubit_clifford_matrices(
 
 def _random_single_q_clifford(
     qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.Gate']]
-) -> 'cirq.Circuit':
+) -> List['cirq.Operation']:
     clifford_group_size = 24
+    operations = [[gate(qubit) for gate in gates] for gates in cfds]
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence = [gate for gate_id in gate_ids for gate in cfds[gate_id]]
-    gate_sequence.append(_reduce_gate_seq(gate_sequence) ** -1)
-    circuit = circuits.Circuit(gate(qubit) for gate in gate_sequence)
-    return circuit
+    adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
+    return [op for gate_id in gate_ids for op in operations[gate_id]] + [adjoint(qubit)]
 
 
 def _random_two_q_clifford(
