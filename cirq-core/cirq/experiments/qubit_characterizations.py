@@ -257,10 +257,9 @@ def single_qubit_randomized_benchmarking(
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
-    qubits = (qubit,)
     result = parallel_single_qubit_randomized_benchmarking(
         sampler,
-        qubits,
+        (qubit,),
         use_xy_basis,
         num_clifford_range=num_clifford_range,
         num_circuits=num_circuits,
