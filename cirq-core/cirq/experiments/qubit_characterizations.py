@@ -616,10 +616,10 @@ def _random_single_q_clifford(
     qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.Gate']]
 ) -> List['cirq.Operation']:
     clifford_group_size = 24
-    ops = [[gate(qubit) for gate in gates] for gates in cfds]
+    operations = [[gate(qubit) for gate in gates] for gates in cfds]
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
     adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
-    return [op for gate_id in gate_ids for op in ops[gate_id]] + [adjoint(qubit)]
+    return [op for gate_id in gate_ids for op in operations[gate_id]] + [adjoint(qubit)]
 
 
 def _random_two_q_clifford(
