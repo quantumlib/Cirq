@@ -571,7 +571,7 @@ def _create_parallel_rb_circuit(
                 [ops.SingleQubitCliffordGate.I(qubits[i])]
                 * (num_moments - len(sequences_to_zip[i]))
             )
-    moments = tuple(zip(*sequences_to_zip, strict=True))
+    moments = tuple(zip(*sequences_to_zip))
     return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
 
