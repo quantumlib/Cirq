@@ -53,7 +53,7 @@ def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
     assert all(np.abs(prepared_state[:L]) > 1e-6) and all(np.abs(prepared_state[L:]) <= 1e-6)
     prepared_state = prepared_state[:L] / np.sqrt(num_non_zero[:L])
     # Assert that the absolute square of prepared state (probabilities instead of amplitudes) is
-    # same as `lcu_coefficients` upto `epsilon`.
+    # same as `lcu_coefficients` up to `epsilon`.
     np.testing.assert_allclose(lcu_coefficients, abs(prepared_state) ** 2, atol=epsilon)
 
 
