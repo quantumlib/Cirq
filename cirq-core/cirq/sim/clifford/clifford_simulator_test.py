@@ -326,7 +326,7 @@ def test_clifford_circuit_SHSYSHS():
 
     # workaround until #6402 is resolved.
     final_state_vector = state_vector_simulator.simulate(circuit).final_state_vector
-    final_state_vector /= np.sqrt(np.linalg.norm(final_state_vector))
+    final_state_vector /= np.linalg.norm(final_state_vector)
     np.testing.assert_almost_equal(
         clifford_simulator.simulate(circuit).final_state.state_vector(), final_state_vector
     )
