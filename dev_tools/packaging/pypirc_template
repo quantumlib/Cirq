@@ -5,4 +5,3 @@ password = ${CIRQ_PYPI_TOKEN}
 [testpypi]
 username = __token__
 password = ${CIRQ_TEST_PYPI_TOKEN}
-
