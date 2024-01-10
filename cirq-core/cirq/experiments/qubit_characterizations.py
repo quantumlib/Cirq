@@ -14,6 +14,7 @@
 
 import dataclasses
 import itertools
+import functools
 
 from typing import (
     Any,
@@ -58,11 +59,11 @@ class Cliffords:
         s1_y
     """
 
-    c1_in_xy: List[List[ops.Gate]]
-    c1_in_xz: List[List[ops.Gate]]
-    s1: List[List[ops.Gate]]
-    s1_x: List[List[ops.Gate]]
-    s1_y: List[List[ops.Gate]]
+    c1_in_xy: List[List[ops.SingleQubitCliffordGate]]
+    c1_in_xz: List[List[ops.SingleQubitCliffordGate]]
+    s1: List[List[ops.SingleQubitCliffordGate]]
+    s1_x: List[List[ops.SingleQubitCliffordGate]]
+    s1_y: List[List[ops.SingleQubitCliffordGate]]
 
 
 class RandomizedBenchMarkResult:
@@ -256,10 +257,9 @@ def single_qubit_randomized_benchmarking(
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
-    qubits = cast(Iterator['cirq.Qid'], (qubit,))
     result = parallel_single_qubit_randomized_benchmarking(
         sampler,
-        qubits,
+        (qubit,),
         use_xy_basis,
         num_clifford_range=num_clifford_range,
         num_circuits=num_circuits,
@@ -270,7 +270,7 @@ def single_qubit_randomized_benchmarking(
 
 def parallel_single_qubit_randomized_benchmarking(
     sampler: 'cirq.Sampler',
-    qubits: Iterator['cirq.Qid'],
+    qubits: Sequence['cirq.Qid'],
     use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(
@@ -299,17 +299,14 @@ def parallel_single_qubit_randomized_benchmarking(
         A dictionary from qubits to RandomizedBenchMarkResult objects.
     """
 
-    cliffords = _single_qubit_cliffords()
-    c1 = cliffords.c1_in_xy if use_xy_basis else cliffords.c1_in_xz
-    clifford_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
+    clifford_group = _single_qubit_cliffords()
+    c1 = clifford_group.c1_in_xy if use_xy_basis else clifford_group.c1_in_xz
 
     # create circuits
     circuits_all: List['cirq.AbstractCircuit'] = []
     for num_cliffords in num_clifford_range:
         for _ in range(num_circuits):
-            circuits_all.append(
-                _create_parallel_rb_circuit(qubits, num_cliffords, c1, clifford_mats)
-            )
+            circuits_all.append(_create_parallel_rb_circuit(qubits, num_cliffords, c1))
 
     # run circuits
     results = sampler.run_batch(circuits_all, repetitions=repetitions)
@@ -562,13 +559,16 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Iterator['cirq.Qid'], num_cliffords: int, c1: list, clifford_mats: np.ndarray
+    qubits: Sequence['cirq.Qid'], num_cliffords: int, c1: list
 ) -> 'cirq.Circuit':
-    circuits_to_zip = [
-        _random_single_q_clifford(qubit, num_cliffords, c1, clifford_mats) for qubit in qubits
-    ]
-    circuit = circuits.Circuit.zip(*circuits_to_zip)
-    return circuits.Circuit.from_moments(*circuit, ops.measure_each(*qubits))
+    sequences_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
+    # Ensure each sequence has the same number of moments.
+    num_moments = max(len(sequence) for sequence in sequences_to_zip)
+    for q, sequence in zip(qubits, sequences_to_zip):
+        if (n := len(sequence)) < num_moments:
+            sequence.extend([ops.SingleQubitCliffordGate.I(q)] * (num_moments - n))
+    moments = zip(*sequences_to_zip)
+    return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
 
 def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int], Sequence[int]]:
@@ -612,18 +612,13 @@ def _two_qubit_clifford_matrices(
 
 
 def _random_single_q_clifford(
-    qubit: 'cirq.Qid',
-    num_cfds: int,
-    cfds: Sequence[Sequence['cirq.Gate']],
-    cfd_matrices: np.ndarray,
-) -> 'cirq.Circuit':
+    qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.Gate']]
+) -> List['cirq.Operation']:
     clifford_group_size = 24
+    operations = [[gate(qubit) for gate in gates] for gates in cfds]
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence = [gate for gate_id in gate_ids for gate in cfds[gate_id]]
-    idx = _find_inv_matrix(_gate_seq_to_mats(gate_sequence), cfd_matrices)
-    gate_sequence.extend(cfds[idx])
-    circuit = circuits.Circuit(gate(qubit) for gate in gate_sequence)
-    return circuit
+    adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
+    return [op for gate_id in gate_ids for op in operations[gate_id]] + [adjoint(qubit)]
 
 
 def _random_two_q_clifford(
@@ -681,11 +676,13 @@ def _matrix_bar_plot(
         ax.set_title(title)
 
 
-def _gate_seq_to_mats(gate_seq: Sequence['cirq.Gate']) -> np.ndarray:
-    mat_rep = protocols.unitary(gate_seq[0])
+def _reduce_gate_seq(
+    gate_seq: Sequence[ops.SingleQubitCliffordGate],
+) -> ops.SingleQubitCliffordGate:
+    cur = gate_seq[0]
     for gate in gate_seq[1:]:
-        mat_rep = np.dot(protocols.unitary(gate), mat_rep)
-    return mat_rep
+        cur = cur.merged_with(gate)
+    return cur
 
 
 def _two_qubit_clifford(
@@ -793,11 +790,16 @@ def _single_qubit_gates(
         yield gate(qubit)
 
 
+@functools.cache
 def _single_qubit_cliffords() -> Cliffords:
-    X, Y, Z = ops.X, ops.Y, ops.Z
+    X, Y, Z = (
+        ops.SingleQubitCliffordGate.X,
+        ops.SingleQubitCliffordGate.Y,
+        ops.SingleQubitCliffordGate.Z,
+    )
 
-    c1_in_xy: List[List['cirq.Gate']] = []
-    c1_in_xz: List[List['cirq.Gate']] = []
+    c1_in_xy: List[List[ops.SingleQubitCliffordGate]] = []
+    c1_in_xz: List[List[ops.SingleQubitCliffordGate]] = []
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
         c1_in_xy.append([X**phi_0, Y**phi_1])
@@ -820,8 +822,20 @@ def _single_qubit_cliffords() -> Cliffords:
     for z0, x, z1 in phi_xz:
         c1_in_xz.append([Z**z0, X**x, Z**z1])
 
-    s1: List[List['cirq.Gate']] = [[X**0.0], [Y**0.5, X**0.5], [X**-0.5, Y**-0.5]]
-    s1_x: List[List['cirq.Gate']] = [[X**0.5], [X**0.5, Y**0.5, X**0.5], [Y**-0.5]]
-    s1_y: List[List['cirq.Gate']] = [[Y**0.5], [X**-0.5, Y**-0.5, X**0.5], [Y, X**0.5]]
+    s1: List[List[ops.SingleQubitCliffordGate]] = [
+        [X**0.0],
+        [Y**0.5, X**0.5],
+        [X**-0.5, Y**-0.5],
+    ]
+    s1_x: List[List[ops.SingleQubitCliffordGate]] = [
+        [X**0.5],
+        [X**0.5, Y**0.5, X**0.5],
+        [Y**-0.5],
+    ]
+    s1_y: List[List[ops.SingleQubitCliffordGate]] = [
+        [Y**0.5],
+        [X**-0.5, Y**-0.5, X**0.5],
+        [Y, X**0.5],
+    ]
 
     return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)
