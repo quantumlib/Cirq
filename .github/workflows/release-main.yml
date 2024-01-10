@@ -26,7 +26,7 @@ jobs:
           CIRQ_PYPI_TOKEN: ${{ secrets.CIRQ_PYPI_TOKEN }}
           CIRQ_TEST_PYPI_TOKEN: ${{ secrets.CIRQ_TEST_PYPI_TOKEN }}
         run: |
-          dev_tools/packaging/create_pypirc.sh
+          envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
       - name: Build and publish
         run: |
           export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
