@@ -1,6 +1,7 @@
 #!bin/bash
 
 # Create default pypi config file with token authentication.
+# refrence: https://packaging.python.org/en/latest/specifications/pypirc/#common-configurations
 echo """
 [pypi]
 username = __token__
