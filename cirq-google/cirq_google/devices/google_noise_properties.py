@@ -107,7 +107,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         tphi_ns: Union[None, float, Dict['cirq.Qid', float]] = None,
         readout_errors: Union[None, Sequence[float], Dict['cirq.Qid', Sequence[float]]] = None,
         gate_pauli_errors: Union[
-            None, float, Dict[Union[Type['cirq.Gate'], noise_utils.OpIdentifier], float],
+            None, float, Dict[Union[Type['cirq.Gate'], noise_utils.OpIdentifier], float]
         ] = None,
         fsim_errors: Union[
             None,
