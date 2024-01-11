@@ -61,12 +61,6 @@ def with_debug(value: bool) -> Iterator[None]:
         __cirq_debug__.reset(token)
 
 
-try:
-    from functools import cached_property  # pylint: disable=unused-import
-except ImportError:
-    from backports.cached_property import cached_property  # type: ignore[no-redef]
-
-
 # Sentinel used by wrapped_no_args below when method has not yet been cached.
 _NOT_FOUND = object()
 

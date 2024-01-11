@@ -17,9 +17,10 @@
 
 import abc
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import Dict, TYPE_CHECKING, List, Set, Type
 
-from cirq import _compat, ops, devices
+from cirq import ops, devices
 from cirq.devices import noise_utils
 
 if TYPE_CHECKING:
@@ -131,7 +132,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
             p_error -= noise_utils.decoherence_pauli_error(self.t1_ns[q], self.tphi_ns[q], time_ns)
         return p_error
 
-    @_compat.cached_property
+    @cached_property
     def _depolarizing_error(self) -> Dict[noise_utils.OpIdentifier, float]:
         """Returns the portion of Pauli error from depolarization."""
         depol_errors = {}
