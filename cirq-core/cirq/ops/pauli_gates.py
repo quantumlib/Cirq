@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
+import weakref
 from typing import Any, cast, Tuple, TYPE_CHECKING, Union, Dict
 
 from cirq._doc import document
@@ -41,6 +42,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     """
 
     _XYZ: Tuple['Pauli', 'Pauli', 'Pauli']
+    _op_cache: weakref.WeakKeyDictionary['cirq.Qid', 'SingleQubitPauliStringGateOperation']
 
     @staticmethod
     def by_index(index: int) -> 'Pauli':
@@ -102,7 +104,12 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         if len(qubits) != 1:
             raise ValueError(f'Expected a single qubit, got <{qubits!r}>.')
 
-        return pauli_string.SingleQubitPauliStringGateOperation(self, qubits[0])
+        q = qubits[0]
+        op = self._op_cache.get(q)
+        if op is None:
+            op = pauli_string.SingleQubitPauliStringGateOperation(self, q)
+            self._op_cache[q] = op
+        return op
 
     @property
     def _canonical_exponent(self):
@@ -111,6 +118,8 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class _PauliX(Pauli, common_gates.XPowGate):
+    _op_cache = weakref.WeakValueDictionary()
+
     def __init__(self):
         Pauli.__init__(self, index=0, name='X')
         common_gates.XPowGate.__init__(self, exponent=1.0)
@@ -135,6 +144,8 @@ class _PauliX(Pauli, common_gates.XPowGate):
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
+    _op_cache = weakref.WeakValueDictionary()
+
     def __init__(self):
         Pauli.__init__(self, index=1, name='Y')
         common_gates.YPowGate.__init__(self, exponent=1.0)
@@ -159,6 +170,8 @@ class _PauliY(Pauli, common_gates.YPowGate):
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
+    _op_cache = weakref.WeakValueDictionary()
+
     def __init__(self):
         Pauli.__init__(self, index=2, name='Z')
         common_gates.ZPowGate.__init__(self, exponent=1.0)

@@ -25,6 +25,7 @@ Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
 
+import weakref
 from typing import (
     Any,
     cast,
@@ -634,6 +635,9 @@ class ZPowGate(eigen_gate.EigenGate):
     def _num_qubits_(self) -> int:
         return 1
 
+    def _value_equality_values_cls_(self) -> Any:
+        return ZPowGate
+
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return None
@@ -958,6 +962,9 @@ class HPowGate(eigen_gate.EigenGate):
     def _num_qubits_(self) -> int:
         return 1
 
+    def _value_equality_values_cls_(self) -> Any:
+        return HPowGate
+
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
@@ -1073,6 +1080,9 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def _num_qubits_(self) -> int:
         return 2
+
+    def _value_equality_values_cls_(self) -> Any:
+        return CZPowGate
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.pauli_interaction_gate import PauliInteractionGate
@@ -1269,6 +1279,9 @@ class CXPowGate(eigen_gate.EigenGate):
     def _num_qubits_(self) -> int:
         return 2
 
+    def _value_equality_values_cls_(self) -> Any:
+        return CXPowGate
+
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
@@ -1464,6 +1477,21 @@ def cphase(rads: value.TParamVal) -> CZPowGate:
     return CZPowGate(exponent=rads / _pi(rads))
 
 
+class _HGate(HPowGate):
+    _op_cache = weakref.WeakKeyDictionary[Tuple['cirq.Gate', 'cirq.Qid'], 'cirq.GateOperation']()
+
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.GateOperation':
+        if len(qubits) != 1:
+            raise ValueError(f"expected a single qubit, got {qubits=}")
+        q = qubits[0]
+        key = self, q
+        op = self._op_cache.get(key)
+        if op is None:
+            op = super().on(q)
+            self._op_cache[key] = op
+        return op
+
+
 H = HPowGate()
 document(
     H,
@@ -1481,7 +1509,23 @@ document(
     """,
 )
 
-S = ZPowGate(exponent=0.5)
+
+class _ZGate(ZPowGate):
+    _op_cache = weakref.WeakValueDictionary[Tuple['cirq.Gate', 'cirq.Qid'], 'cirq.GateOperation']()
+
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.GateOperation':
+        if len(qubits) != 1:
+            raise ValueError(f"expected a single qubit, got {qubits=}")
+        q = qubits[0]
+        key = self, q
+        op = self._op_cache.get(key)
+        if op is None:
+            op = super().on(q)
+            self._op_cache[key] = op
+        return op
+
+
+S = _ZGate(exponent=0.5)
 document(
     S,
     r"""The Clifford S gate.
@@ -1498,7 +1542,7 @@ document(
     """,
 )
 
-T = ZPowGate(exponent=0.25)
+T = _ZGate(exponent=0.25)
 document(
     T,
     r"""The non-Clifford T gate.
@@ -1515,7 +1559,23 @@ document(
     """,
 )
 
-CZ = CZPowGate()
+
+class _CZGate(CZPowGate):
+    _op_cache = weakref.WeakValueDictionary[Tuple['cirq.Gate', 'cirq.Qid', 'cirq.Qid'], 'cirq.GateOperation']()
+
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.GateOperation':
+        if len(qubits) != 2:
+            raise ValueError(f"expected two qubits, got {qubits=}")
+        q0, q1 = qubits
+        key = self, q0, q1
+        op = self._op_cache.get(key)
+        if op is None:
+            op = super().on(q0, q1)
+            self._op_cache[key] = op
+        return op
+
+
+CZ = _CZGate()
 document(
     CZ,
     r"""The controlled Z gate.
@@ -1534,8 +1594,24 @@ document(
     """,
 )
 
+
+class _CXGate(CXPowGate):
+    _op_cache = weakref.WeakValueDictionary[Tuple['cirq.Gate', 'cirq.Qid', 'cirq.Qid'], 'cirq.GateOperation']()
+
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.GateOperation':
+        if len(qubits) != 2:
+            raise ValueError(f"expected two qubits, got {qubits=}")
+        q0, q1 = qubits
+        key = self, q0, q1
+        op = self._op_cache.get(key)
+        if op is None:
+            op = super().on(q0, q1)
+            self._op_cache[key] = op
+        return op
+
+
 CNotPowGate = CXPowGate
-CNOT = CX = CNotPowGate()
+CNOT = CX = _CXGate()
 document(
     CNOT,
     r"""The controlled NOT gate.
