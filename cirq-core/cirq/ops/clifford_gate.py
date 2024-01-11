@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import protocols, value, linalg, qis
 from cirq._import import LazyLoader
-from cirq._compat import cached_property, cached_method
+from cirq._compat import cached_method
 from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
@@ -693,7 +693,7 @@ class SingleQubitCliffordGate(CliffordGate):
         """
         return self._to_phased_xz_gate
 
-    @cached_property
+    @functools.cached_property
     def _to_phased_xz_gate(self) -> phased_x_z_gate.PhasedXZGate:
         x_to_flip, z_to_flip = self.clifford_tableau.rs
         flip_index = int(z_to_flip) * 2 + x_to_flip
@@ -792,7 +792,7 @@ class SingleQubitCliffordGate(CliffordGate):
     def _unitary_(self) -> np.ndarray:
         return self._unitary
 
-    @cached_property
+    @functools.cached_property
     def _unitary(self) -> np.ndarray:
         mat = np.eye(2)
         qubit = named_qubit.NamedQubit('arbitrary')
@@ -810,7 +810,7 @@ class SingleQubitCliffordGate(CliffordGate):
         """
         return self._decompose_gate
 
-    @cached_property
+    @functools.cached_property
     def _decompose_gate(self) -> Sequence['cirq.Gate']:
         if self == SingleQubitCliffordGate.H:
             return [common_gates.H]
@@ -829,7 +829,7 @@ class SingleQubitCliffordGate(CliffordGate):
         """
         return self._decompose_rotation
 
-    @cached_property
+    @functools.cached_property
     def _decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
         x_rot = self.pauli_tuple(pauli_gates.X)
         y_rot = self.pauli_tuple(pauli_gates.Y)
@@ -926,7 +926,7 @@ class SingleQubitCliffordGate(CliffordGate):
     def _value_equality_values_(self):
         return self._value_equality_values
 
-    @cached_property
+    @functools.cached_property
     def _value_equality_values(self):
         return self._clifford_tableau.matrix().tobytes() + self._clifford_tableau.rs.tobytes()
 
