@@ -16,6 +16,7 @@
 """Class for representing noise on a Google device."""
 
 import dataclasses
+from functools import cached_property
 from typing import Any, Dict, List, Sequence, Set, Type, TypeVar, Union
 import numpy as np
 
@@ -106,7 +107,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         tphi_ns: Union[None, float, Dict['cirq.Qid', float]] = None,
         readout_errors: Union[None, Sequence[float], Dict['cirq.Qid', Sequence[float]]] = None,
         gate_pauli_errors: Union[
-            None, float, Dict[Union[Type['cirq.Gate'], noise_utils.OpIdentifier], float],
+            None, float, Dict[Union[Type['cirq.Gate'], noise_utils.OpIdentifier], float]
         ] = None,
         fsim_errors: Union[
             None,
@@ -204,7 +205,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
     def asymmetric_two_qubit_gates(cls) -> Set[type]:
         return set()
 
-    @_compat.cached_property
+    @cached_property
     def _depolarizing_error(self) -> Dict[noise_utils.OpIdentifier, float]:
         depol_errors = super()._depolarizing_error
 

@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
+from functools import cached_property
 from typing import Collection, Tuple, TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union
 import itertools
 
-from cirq import protocols, value, _compat
+from cirq import protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -144,7 +145,7 @@ class ProductOfSums(AbstractControlValues):
             (cv,) if isinstance(cv, int) else tuple(sorted(set(cv))) for cv in data
         )
 
-    @_compat.cached_property
+    @cached_property
     def is_trivial(self) -> bool:
         return self._qubit_sums == ((1,),) * self._num_qubits_()
 
@@ -252,7 +253,7 @@ class SumOfProducts(AbstractControlValues):
         if not all(len(p) == num_qubits for p in self._conjunctions):
             raise ValueError(f'Each term of {self._conjunctions} should be of length {num_qubits}.')
 
-    @_compat.cached_property
+    @cached_property
     def is_trivial(self) -> bool:
         return self._conjunctions == ((1,) * self._num_qubits_(),)
 

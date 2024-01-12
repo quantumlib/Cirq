@@ -38,7 +38,6 @@ import cirq.testing
 from cirq._compat import (
     block_overlapping_deprecation,
     cached_method,
-    cached_property,
     proper_repr,
     dataclass_repr,
     deprecated,
@@ -1009,23 +1008,6 @@ def test_block_overlapping_deprecation():
 
     with cirq.testing.assert_deprecated('f', deadline='v1000.0', count=1):
         f(5)
-
-
-def test_cached_property():
-    class Foo:
-        def __init__(self):
-            self.bar_calls = 0
-
-        @cached_property
-        def bar(self):
-            self.bar_calls += 1
-            return []
-
-    foo = Foo()
-    bar = foo.bar
-    bar2 = foo.bar
-    assert bar2 is bar
-    assert foo.bar_calls == 1
 
 
 class Bar:
