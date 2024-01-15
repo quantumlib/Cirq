@@ -134,7 +134,7 @@ class ClassicalStateSimulator(SimulationState[ClassicalState]):
     def _act_on_fallback_(self, action, qubits: Sequence[Qid], allow_decompose: bool = True):
         gate = action.gate if isinstance(action, ops.Operation) else action
         mapped_qubits = [self.qubit_map[i] for i in qubits]
-        if _is_identity(action):
+        if _is_identity(gate):
             return True
         if gate == ops.X:
             (q,) = mapped_qubits
@@ -152,7 +152,8 @@ class ClassicalStateSimulator(SimulationState[ClassicalState]):
             c1, c2, q = mapped_qubits
             self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
             return True
-
         else:
-            print(f'Unsupported operation: {gate!r}')
-            return False
+            raise ValueError(
+                        f'{gate} is not one of cirq.X, cirq.CNOT, cirq.SWAP, '
+                        'cirq.CCNOT, or a measurement'
+                    )
