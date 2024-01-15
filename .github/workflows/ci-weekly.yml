@@ -2,7 +2,7 @@ name: Continuous Integration - Weekly
 
 on:
   schedule:
-    # Checks out master by default.
+    # Checks out main by default.
     - cron: '0 0 * * 0'
 
 concurrency:

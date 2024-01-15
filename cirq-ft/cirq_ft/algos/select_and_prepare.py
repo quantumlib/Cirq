@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import abc
+from functools import cached_property
 from typing import Tuple
 
-from cirq._compat import cached_property
 from cirq_ft import infra
 
 

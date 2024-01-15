@@ -3,7 +3,7 @@ name: Pre-release cirq to PyPi
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   push_to_pypi:
     if: github.repository == 'quantumlib/Cirq'
@@ -21,10 +21,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
-      - name: Build and publish
+      - name: Create PYPI config file
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USER }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASS }}
+          CIRQ_PYPI_TOKEN: ${{ secrets.CIRQ_PYPI_TOKEN }}
+          CIRQ_TEST_PYPI_TOKEN: ${{ secrets.CIRQ_TEST_PYPI_TOKEN }}
+        run: |
+          envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
+      - name: Build and publish
         run: |
           export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
           [[ "$CIRQ_PRE_RELEASE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'" || (echo "not dev version"; exit 1)

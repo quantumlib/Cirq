@@ -130,7 +130,7 @@ def _verify_two_line_qubits_from_circuits(circuits: Sequence['cirq.Circuit']):
 
 
 class _NoProgress:
-    """Dummy (lack of) tqdm-style progress bar."""
+    """Lack of tqdm-style progress bar."""
 
     def __init__(self, total: int):
         pass

@@ -26,6 +26,7 @@ from cirq.experiments import (
     two_qubit_randomized_benchmarking,
     single_qubit_state_tomography,
     two_qubit_state_tomography,
+    parallel_single_qubit_randomized_benchmarking,
 )
 
 
@@ -74,9 +75,32 @@ def test_single_qubit_cliffords():
 
     # Check that XZ decomposition has at most one X gate per clifford.
     for gates in cliffords.c1_in_xz:
-        num_x = len([gate for gate in gates if isinstance(gate, cirq.XPowGate)])
-        num_z = len([gate for gate in gates if isinstance(gate, cirq.ZPowGate)])
-        assert num_x + num_z == len(gates)
+        num_i = len([gate for gate in gates if gate == cirq.ops.SingleQubitCliffordGate.I])
+        num_x = len(
+            [
+                gate
+                for gate in gates
+                if gate
+                in (
+                    cirq.ops.SingleQubitCliffordGate.X,
+                    cirq.ops.SingleQubitCliffordGate.X_sqrt,
+                    cirq.ops.SingleQubitCliffordGate.X_nsqrt,
+                )
+            ]
+        )
+        num_z = len(
+            [
+                gate
+                for gate in gates
+                if gate
+                in (
+                    cirq.ops.SingleQubitCliffordGate.Z,
+                    cirq.ops.SingleQubitCliffordGate.Z_sqrt,
+                    cirq.ops.SingleQubitCliffordGate.Z_nsqrt,
+                )
+            ]
+        )
+        assert num_x + num_z + num_i == len(gates)
         assert num_x <= 1
 
 
@@ -85,12 +109,25 @@ def test_single_qubit_randomized_benchmarking():
     # sequences is always unity.
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
-    num_cfds = range(5, 20, 5)
-    results = single_qubit_randomized_benchmarking(
-        simulator, qubit, num_clifford_range=num_cfds, repetitions=100
-    )
+    num_cfds = tuple(np.logspace(np.log10(5), 3, 5, dtype=int))
+    results = single_qubit_randomized_benchmarking(simulator, qubit, num_clifford_range=num_cfds)
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
+    assert np.isclose(results.pauli_error(), 0.0, atol=1e-7)  # warning is expected
+
+
+def test_parallel_single_qubit_randomized_benchmarking():
+    # Check that the ground state population at the end of the Clifford
+    # sequences is always unity.
+    simulator = sim.Simulator()
+    qubits = (GridQubit(0, 0), GridQubit(0, 1))
+    num_cfds = range(5, 20, 5)
+    results = parallel_single_qubit_randomized_benchmarking(
+        simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
+    )
+    for qubit in qubits:
+        g_pops = np.asarray(results[qubit].data)[:, 1]
+        assert np.isclose(np.mean(g_pops), 1.0)
 
 
 def test_two_qubit_randomized_benchmarking():

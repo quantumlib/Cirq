@@ -432,7 +432,7 @@ def test_monte_carlo_on_unknown_channel():
 
 
 def test_iter_definitions():
-    dummy_trial_result = SimulationTrialResult(params={}, measurements={}, final_simulator_state=[])
+    mock_trial_result = SimulationTrialResult(params={}, measurements={}, final_simulator_state=[])
 
     class FakeNonIterSimulatorImpl(
         SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
@@ -469,7 +469,7 @@ def test_iter_definitions():
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,
         ) -> List[SimulationTrialResult]:
-            return [dummy_trial_result]
+            return [mock_trial_result]
 
     non_iter_sim = FakeNonIterSimulatorImpl()
     q0 = cirq.LineQubit(0)
@@ -485,9 +485,9 @@ def test_iter_definitions():
     ev_iter = non_iter_sim.simulate_expectation_values_sweep_iter(circuit, obs, params)
     assert next(ev_iter) == [1.0]
 
-    assert non_iter_sim.simulate_sweep(circuit, params) == [dummy_trial_result]
+    assert non_iter_sim.simulate_sweep(circuit, params) == [mock_trial_result]
     state_iter = non_iter_sim.simulate_sweep_iter(circuit, params)
-    assert next(state_iter) == dummy_trial_result
+    assert next(state_iter) == mock_trial_result
 
 
 def test_missing_iter_definitions():

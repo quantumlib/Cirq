@@ -182,11 +182,11 @@ def test_already_converted():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.testing.TwoQubitGate):
+    class UnsupportedGate(cirq.testing.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit(UnsupportedDummy()(q0, q1), cirq.X(q0) ** sympy.Symbol("theta"))
+    c_orig = cirq.Circuit(UnsupportedGate()(q0, q1), cirq.X(q0) ** sympy.Symbol("theta"))
     c_new = cirq.optimize_for_target_gateset(
         c_orig, gateset=CliffordTargetGateset(), ignore_failures=True
     )
@@ -194,11 +194,11 @@ def test_ignore_unsupported_gate():
 
 
 def test_fail_unsupported_gate():
-    class UnsupportedDummy(cirq.testing.TwoQubitGate):
+    class UnsupportedGate(cirq.testing.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit(UnsupportedDummy()(q0, q1))
+    c_orig = cirq.Circuit(UnsupportedGate()(q0, q1))
     with pytest.raises(ValueError):
         _ = cirq.optimize_for_target_gateset(
             c_orig, gateset=CliffordTargetGateset(), ignore_failures=False

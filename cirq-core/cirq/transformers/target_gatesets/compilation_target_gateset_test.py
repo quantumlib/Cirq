@@ -19,7 +19,7 @@ from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 def test_compilation_target_gateset():
-    class DummyTargetGateset(cirq.CompilationTargetGateset):
+    class ExampleTargetGateset(cirq.CompilationTargetGateset):
         def __init__(self):
             super().__init__(cirq.AnyUnitaryGateFamily(2))
 
@@ -34,7 +34,7 @@ def test_compilation_target_gateset():
         def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
             return []
 
-    gateset = DummyTargetGateset()
+    gateset = ExampleTargetGateset()
 
     q = cirq.LineQubit.range(2)
     assert cirq.X(q[0]) not in gateset
@@ -57,7 +57,7 @@ def test_compilation_target_gateset():
     ]
 
 
-class DummyCXTargetGateset(cirq.TwoQubitCompilationTargetGateset):
+class ExampleCXTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     def __init__(self):
         super().__init__(cirq.AnyUnitaryGateFamily(1), cirq.CNOT)
 
@@ -90,7 +90,7 @@ class DummyCXTargetGateset(cirq.TwoQubitCompilationTargetGateset):
 
 def test_two_qubit_compilation_leaves_single_gates_in_gateset():
     q = cirq.LineQubit.range(2)
-    gateset = DummyCXTargetGateset()
+    gateset = ExampleCXTargetGateset()
 
     c = cirq.Circuit(cirq.X(q[0]) ** 0.5)
     cirq.testing.assert_same_circuits(cirq.optimize_for_target_gateset(c, gateset=gateset), c)
@@ -103,7 +103,7 @@ def test_two_qubit_compilation_merges_runs_of_single_qubit_gates():
     q = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CNOT(*q), cirq.X(q[0]), cirq.Y(q[0]), cirq.CNOT(*q))
     cirq.testing.assert_same_circuits(
-        cirq.optimize_for_target_gateset(c, gateset=DummyCXTargetGateset()),
+        cirq.optimize_for_target_gateset(c, gateset=ExampleCXTargetGateset()),
         cirq.Circuit(
             cirq.CNOT(*q),
             cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0, z_exponent=-1).on(q[0]),
@@ -113,7 +113,7 @@ def test_two_qubit_compilation_merges_runs_of_single_qubit_gates():
 
 
 def test_two_qubit_compilation_decompose_operation_not_implemented():
-    gateset = DummyCXTargetGateset()
+    gateset = ExampleCXTargetGateset()
     q = cirq.LineQubit.range(3)
     assert gateset.decompose_to_target_gateset(cirq.measure(q[0]), 1) is NotImplemented
     assert gateset.decompose_to_target_gateset(cirq.measure(*q[:2]), 1) is NotImplemented
@@ -145,7 +145,7 @@ def test_two_qubit_compilation_merge_and_replace_to_target_gateset():
     )
     c_new = cirq.optimize_for_target_gateset(
         c_orig,
-        gateset=DummyCXTargetGateset(),
+        gateset=ExampleCXTargetGateset(),
         context=cirq.TransformerContext(tags_to_ignore=("no_compile",)),
     )
     cirq.testing.assert_has_diagram(
@@ -187,7 +187,7 @@ m: ═════════════════════════�
     )
     c_new = cirq.optimize_for_target_gateset(
         c_orig,
-        gateset=DummyCXTargetGateset(),
+        gateset=ExampleCXTargetGateset(),
         context=cirq.TransformerContext(tags_to_ignore=("no_compile",)),
     )
     cirq.testing.assert_has_diagram(
@@ -203,7 +203,7 @@ m: ═════════════════════════�
 
 
 def test_two_qubit_compilation_replaces_only_if_2q_gate_count_is_less():
-    class DummyTargetGateset(cirq.TwoQubitCompilationTargetGateset):
+    class ExampleTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         def __init__(self):
             super().__init__(cirq.X, cirq.CNOT)
 
@@ -218,7 +218,7 @@ def test_two_qubit_compilation_replaces_only_if_2q_gate_count_is_less():
     ops = [cirq.Y.on_each(*q), cirq.CNOT(*q), cirq.Z.on_each(*q)]
     c_orig = cirq.Circuit(ops)
     c_expected = cirq.Circuit(cirq.X.on_each(*q), ops[-2:])
-    c_new = cirq.optimize_for_target_gateset(c_orig, gateset=DummyTargetGateset())
+    c_new = cirq.optimize_for_target_gateset(c_orig, gateset=ExampleTargetGateset())
     cirq.testing.assert_same_circuits(c_new, c_expected)
 
 

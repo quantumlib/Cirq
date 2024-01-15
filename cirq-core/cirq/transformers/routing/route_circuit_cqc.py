@@ -270,10 +270,10 @@ class RouteCQC:
                     elif key in ('', default_key):
                         single_qubit_ops[timestep].extend(ops.measure(qubit) for qubit in op.qubits)
                     else:
-                        operation = (
-                            'Intermediate measurements on three or more qubits with a custom key'
+                        raise ValueError(
+                            'Intermediate measurements on three or more qubits '
+                            'with a custom key are not supported'
                         )
-                        raise ValueError(f'Unsupported operation: {operation}')
                 elif protocols.num_qubits(op) == 2:
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:

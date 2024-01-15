@@ -105,7 +105,7 @@ PACKAGES = [
 
 # TODO(3577): extract these out to common utilities when we rewrite bash scripts in python
 def _find_base_revision():
-    for rev in ['upstream/master', 'origin/master', 'master']:
+    for rev in ['upstream/main', 'origin/main', 'main']:
         try:
             result = subprocess.run(
                 f'git cat-file -t {rev}'.split(), stdout=subprocess.PIPE, universal_newlines=True
@@ -184,7 +184,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs'). \n"
             f"If this is a new failure in this notebook due to a new change, "
-            f"that is only available in master for now, consider adding `pip install --pre cirq` "
+            f"that is only available in main for now, consider adding `pip install --pre cirq` "
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )

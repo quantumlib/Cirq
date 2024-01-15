@@ -61,10 +61,8 @@ def with_debug(value: bool) -> Iterator[None]:
         __cirq_debug__.reset(token)
 
 
-try:
-    from functools import cached_property  # pylint: disable=unused-import
-except ImportError:
-    from backports.cached_property import cached_property  # type: ignore[no-redef]
+# Sentinel used by wrapped_no_args below when method has not yet been cached.
+_NOT_FOUND = object()
 
 
 TFunc = TypeVar('TFunc', bound=Callable)
@@ -103,9 +101,11 @@ def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
 
             @functools.wraps(func)
             def wrapped_no_args(self):
-                if not hasattr(self, cache_name):
-                    object.__setattr__(self, cache_name, func(self))
-                return getattr(self, cache_name)
+                result = getattr(self, cache_name, _NOT_FOUND)
+                if result is _NOT_FOUND:
+                    result = func(self)
+                    object.__setattr__(self, cache_name, result)
+                return result
 
             return wrapped_no_args
 

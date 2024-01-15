@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @pytest.mark.parametrize(
@@ -33,6 +34,7 @@ from cirq_ft.infra.bit_tools import iter_bits
         for block_size in [None, 1, 2, 3]
     ],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_select_swap_qrom(data, block_size):
     qrom = cirq_ft.SelectSwapQROM(*data, block_size=block_size)
     qubit_regs = infra.get_named_qubits(qrom.signature)
@@ -79,11 +81,13 @@ def test_select_swap_qrom(data, block_size):
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_repr():
     qrom = cirq_ft.SelectSwapQROM([1, 2], [3, 5])
     cirq.testing.assert_equivalent_repr(qrom, setup_code="import cirq_ft\n")
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qroam_diagram():
     data = [[1, 2, 3], [4, 5, 6]]
     blocksize = 2
@@ -110,11 +114,13 @@ def test_qroam_diagram():
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qroam_raises():
     with pytest.raises(ValueError, match="must be of equal length"):
         _ = cirq_ft.SelectSwapQROM([1, 2], [1, 2, 3])
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qroam_hashable():
     qrom = cirq_ft.SelectSwapQROM([1, 2, 5, 6, 7, 8])
     assert hash(qrom) is not None
