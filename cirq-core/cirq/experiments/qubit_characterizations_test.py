@@ -126,7 +126,7 @@ def test_parallel_single_qubit_randomized_benchmarking():
         simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
     )
     for qubit in qubits:
-        g_pops = np.asarray(results[qubit].data)[:, 1]
+        g_pops = np.asarray(results._results_dictionary[qubit].data)[:, 1]
         assert np.isclose(np.mean(g_pops), 1.0)
 
 
