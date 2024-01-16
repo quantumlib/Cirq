@@ -176,7 +176,7 @@ class ParallelRandomizedBenchmarkingResult:
         return self._results_dictionary[qubit].plot(ax, **plot_kwargs)
 
     def pauli_error(self) -> Mapping['cirq.Qid', float]:
-        """
+        """Return a dictionary of Pauli errors.
         Returns:
             A dictionary containing the Pauli errors for all qubits.
         """
@@ -189,8 +189,8 @@ class ParallelRandomizedBenchmarkingResult:
     def plot_heatmap(
         self,
         ax: Optional[plt.Axes] = None,
-        annotation_format='0.1%',
-        title='Single-qubit Pauli error',
+        annotation_format: str = '0.1%',
+        title: str = 'Single-qubit Pauli error',
         **plot_kwargs: Any,
     ) -> plt.Axes:
         """Plot a heatmap of the Pauli errors. If qubits are not cirq.GridQubits, throws an error.
@@ -198,23 +198,24 @@ class ParallelRandomizedBenchmarkingResult:
         Args:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
+            annotation_format: The format string for the numbers in the heatmap.
+            title: The title printed above the heatmap.
             ***plot_kwargs: Arguments to be passed to 'cirq.Heatmap.plot()'.
         Returns:
             The plt.Axes containing the plot.
         """
 
         pauli_errors = self.pauli_error()
-        dictionary_with_grid_qubit_keys = {}
         for qubit in pauli_errors:
             assert type(qubit) == grid_qubit.GridQubit, "qubits must be cirq.GridQubits"
-            dictionary_with_grid_qubit_keys[cast(grid_qubit.GridQubit, qubit)] = pauli_errors[qubit]
 
         if ax is None:
             _, ax = plt.subplots(dpi=200, facecolor='white')
 
-        return cirq_heatmap.Heatmap(dictionary_with_grid_qubit_keys).plot(
+        ax, _ = cirq_heatmap.Heatmap(pauli_errors).plot(
             ax, annotation_format=annotation_format, title=title, **plot_kwargs
         )
+        return ax
 
     def plot_integrated_histogram(
         self,
@@ -407,7 +408,7 @@ def parallel_single_qubit_randomized_benchmarking(
     ),
     num_circuits: int = 10,
     repetitions: int = 1000,
-) -> Mapping['cirq.Qid', 'RandomizedBenchMarkResult']:
+) -> 'ParallelRandomizedBenchmarkingResult':
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
 
     This is the same as `single_qubit_randomized_benchmarking` except on all
