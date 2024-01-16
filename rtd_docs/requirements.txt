@@ -1,6 +1,14 @@
 # For generating documentation.
-# TODO(#6400,juhas) - upgrade Sphinx and remove the alabaster pin below
+
+# TODO(#6400,juhas) - upgrade Sphinx and remove the package pins below -------
 alabaster<=0.7.13
+sphinxcontrib-applehelp<=1.0.7
+sphinxcontrib-devhelp<=1.0.5
+sphinxcontrib-htmlhelp<=2.0.4
+sphinxcontrib-qthelp<=1.0.6
+sphinxcontrib-serializinghtml<=1.1.9
+# End of TODO ----------------------------------------------------------------
+
 myst-parser
 Sphinx~=7.2.6
 sphinx_rtd_theme
