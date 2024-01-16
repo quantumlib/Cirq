@@ -200,7 +200,7 @@ class ParallelRandomizedBenchmarkingResult:
                 plotted on, and shown.
             annotation_format: The format string for the numbers in the heatmap.
             title: The title printed above the heatmap.
-            ***plot_kwargs: Arguments to be passed to 'cirq.Heatmap.plot()'.
+            **plot_kwargs: Arguments to be passed to 'cirq.Heatmap.plot()'.
         Returns:
             The plt.Axes containing the plot.
         """
@@ -212,7 +212,7 @@ class ParallelRandomizedBenchmarkingResult:
         if ax is None:
             _, ax = plt.subplots(dpi=200, facecolor='white')
 
-        ax, _ = cirq_heatmap.Heatmap(pauli_errors).plot(
+        ax, _ = cirq_heatmap.Heatmap(pauli_errors).plot(  # type: ignore
             ax, annotation_format=annotation_format, title=title, **plot_kwargs
         )
         return ax
@@ -395,7 +395,7 @@ def single_qubit_randomized_benchmarking(
         num_circuits=num_circuits,
         repetitions=repetitions,
     )
-    return result[qubit]
+    return result._results_dictionary[qubit]
 
 
 def parallel_single_qubit_randomized_benchmarking(
