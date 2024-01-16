@@ -128,6 +128,11 @@ def test_parallel_single_qubit_randomized_benchmarking():
     for qubit in qubits:
         g_pops = np.asarray(results._results_dictionary[qubit].data)[:, 1]
         assert np.isclose(np.mean(g_pops), 1.0)
+        _ = results.plot_single_qubit(qubit)
+    pauli_errors = results.pauli_error()
+    assert len(pauli_errors) == len(qubits)
+    _ = results.plot_heatmap()
+    _ = results.plot_integrated_histogram()
 
 
 def test_two_qubit_randomized_benchmarking():
