@@ -177,8 +177,7 @@ class ParallelRandomizedBenchmarkingResult:
         """
 
         return {
-            qubit: self.results_dictionary[qubit].pauli_error()
-            for qubit in self.results_dictionary
+            qubit: self.results_dictionary[qubit].pauli_error() for qubit in self.results_dictionary
         }
 
     def plot_heatmap(
@@ -204,7 +203,7 @@ class ParallelRandomizedBenchmarkingResult:
         pauli_errors_with_grid_qubit_keys = {}
         for qubit in pauli_errors:
             assert type(qubit) == grid_qubit.GridQubit, "qubits must be cirq.GridQubits"
-            pauli_errors_with_grid_qubit_keys[qubit] = pauli_errors[qubit] # just for typecheck
+            pauli_errors_with_grid_qubit_keys[qubit] = pauli_errors[qubit]  # just for typecheck
 
         if ax is None:
             _, ax = plt.subplots(dpi=200, facecolor='white')
