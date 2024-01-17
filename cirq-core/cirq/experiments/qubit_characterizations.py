@@ -148,16 +148,11 @@ class RandomizedBenchMarkResult:
         )
 
 
+@dataclasses.dataclass(frozen=True)
 class ParallelRandomizedBenchmarkingResult:
     """Results from a parallel randomized benchmarking experiment."""
 
-    def __init__(self, results_dictionary: Mapping['cirq.Qid', 'RandomizedBenchMarkResult']):
-        """Inits ParallelRandomizedBenchmarkingResult.
-
-        Args:
-            results_dictionary: A dictionary containing the results for each qubit.
-        """
-        self._results_dictionary = results_dictionary
+    results_dictionary: Mapping['cirq.Qid', 'RandomizedBenchMarkResult']
 
     def plot_single_qubit(
         self, qubit: 'cirq.Qid', ax: Optional[plt.Axes] = None, **plot_kwargs: Any
@@ -173,7 +168,7 @@ class ParallelRandomizedBenchmarkingResult:
             The plt.Axes containing the plot.
         """
 
-        return self._results_dictionary[qubit].plot(ax, **plot_kwargs)
+        return self.results_dictionary[qubit].plot(ax, **plot_kwargs)
 
     def pauli_error(self) -> Mapping['cirq.Qid', float]:
         """Return a dictionary of Pauli errors.
@@ -182,8 +177,8 @@ class ParallelRandomizedBenchmarkingResult:
         """
 
         return {
-            qubit: self._results_dictionary[qubit].pauli_error()
-            for qubit in self._results_dictionary
+            qubit: self.results_dictionary[qubit].pauli_error()
+            for qubit in self.results_dictionary
         }
 
     def plot_heatmap(
@@ -206,13 +201,15 @@ class ParallelRandomizedBenchmarkingResult:
         """
 
         pauli_errors = self.pauli_error()
+        pauli_errors_with_grid_qubit_keys = {}
         for qubit in pauli_errors:
             assert type(qubit) == grid_qubit.GridQubit, "qubits must be cirq.GridQubits"
+            pauli_errors_with_grid_qubit_keys[qubit] = pauli_errors[qubit] # just for typecheck
 
         if ax is None:
             _, ax = plt.subplots(dpi=200, facecolor='white')
 
-        ax, _ = cirq_heatmap.Heatmap(pauli_errors).plot(  # type: ignore
+        ax, _ = cirq_heatmap.Heatmap(pauli_errors_with_grid_qubit_keys).plot(
             ax, annotation_format=annotation_format, title=title, **plot_kwargs
         )
         return ax
@@ -220,7 +217,6 @@ class ParallelRandomizedBenchmarkingResult:
     def plot_integrated_histogram(
         self,
         ax: Optional[plt.Axes] = None,
-        *,
         cdf_on_x: bool = False,
         axis_label: str = 'Pauli error',
         semilog: bool = True,
@@ -395,7 +391,7 @@ def single_qubit_randomized_benchmarking(
         num_circuits=num_circuits,
         repetitions=repetitions,
     )
-    return result._results_dictionary[qubit]
+    return result.results_dictionary[qubit]
 
 
 def parallel_single_qubit_randomized_benchmarking(
