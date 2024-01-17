@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 import itertools
 from typing import Callable, Sequence, Tuple
 
 import attr
 import cirq
 import numpy as np
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import unary_iteration_gate
 
@@ -52,9 +52,12 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
     )
     nth_gate: Callable[..., cirq.Gate]
     control_regs: Tuple[infra.Register, ...] = attr.field(
-        converter=lambda v: (v,) if isinstance(v, infra.Register) else tuple(v),
-        default=(infra.Register('control', 1),),
+        converter=lambda v: (v,) if isinstance(v, infra.Register) else tuple(v)
     )
+
+    @control_regs.default
+    def control_regs_default(self):
+        return (infra.Register('control', 1),)
 
     @classmethod
     def make_on(

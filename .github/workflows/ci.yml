@@ -2,11 +2,11 @@ name: Continuous Integration
 
 on:
   schedule:
-    # Checks out master by default.
+    # Checks out main by default.
     - cron: '0 0 * * *'
   pull_request:
     branches:
-      - master
+      - main
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}

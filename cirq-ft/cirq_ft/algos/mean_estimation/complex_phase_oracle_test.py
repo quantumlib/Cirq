@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 import math
 from typing import Optional, Tuple
 
@@ -20,14 +21,14 @@ import cirq_ft
 import numpy as np
 import pytest
 from attr import frozen
-from cirq._compat import cached_property
 from cirq_ft.algos.mean_estimation.complex_phase_oracle import ComplexPhaseOracle
 from cirq_ft.infra import bit_tools
 from cirq_ft.infra import testing as cq_testing
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @frozen
-class DummySelect(cirq_ft.SelectOracle):
+class ExampleSelect(cirq_ft.SelectOracle):
     bitsize: int
     control_val: Optional[int] = None
 
@@ -49,8 +50,9 @@ class DummySelect(cirq_ft.SelectOracle):
 
 @pytest.mark.parametrize('bitsize', [2, 3, 4, 5])
 @pytest.mark.parametrize('arctan_bitsize', [5, 6, 7])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_phase_oracle(bitsize: int, arctan_bitsize: int):
-    phase_oracle = ComplexPhaseOracle(DummySelect(bitsize), arctan_bitsize)
+    phase_oracle = ComplexPhaseOracle(ExampleSelect(bitsize), arctan_bitsize)
     g = cq_testing.GateHelper(phase_oracle)
 
     # Prepare uniform superposition state on selection register and apply phase oracle.
@@ -76,8 +78,9 @@ def test_phase_oracle(bitsize: int, arctan_bitsize: int):
         assert np.isclose(prepared_state[x], y)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_phase_oracle_consistent_protocols():
     bitsize, arctan_bitsize = 3, 5
-    gate = ComplexPhaseOracle(DummySelect(bitsize, 1), arctan_bitsize)
+    gate = ComplexPhaseOracle(ExampleSelect(bitsize, 1), arctan_bitsize)
     expected_symbols = ('@',) + ('ROTy',) * bitsize
     assert cirq.circuit_diagram_info(gate).wire_symbols == expected_symbols

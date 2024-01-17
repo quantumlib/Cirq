@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 from typing import Tuple
 from numpy.typing import NDArray
 
@@ -20,8 +21,8 @@ import cirq_ft
 import numpy as np
 import pytest
 from cirq_ft import infra
-from cirq._compat import cached_property
 from cirq_ft.infra.bit_tools import iter_bits
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 class CustomProgrammableRotationGateArray(cirq_ft.ProgrammableRotationGateArrayBase):
@@ -60,6 +61,7 @@ def construct_prga_with_identity(*args, **kwargs) -> cirq_ft.ProgrammableRotatio
 @pytest.mark.parametrize(
     "constructor", [construct_custom_prga, construct_prga_with_phase, construct_prga_with_identity]
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_programmable_rotation_gate_array(angles, kappa, constructor):
     rotation_gate = cirq.X
     programmable_rotation_gate = constructor(*angles, kappa=kappa, rotation_gate=rotation_gate)
@@ -141,6 +143,7 @@ def test_programmable_rotation_gate_array(angles, kappa, constructor):
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_programmable_rotation_gate_array_consistent():
     with pytest.raises(ValueError, match='must be of same length'):
         _ = CustomProgrammableRotationGateArray([1, 2], [1], kappa=1, rotation_gate=cirq.X)

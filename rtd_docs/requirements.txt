@@ -1,6 +1,5 @@
 # For generating documentation.
 myst-parser
-Sphinx~=3.2.0
+Sphinx==7.*
 sphinx_rtd_theme
 sphinx-notfound-page
-Jinja2<=3.0.3

@@ -15,6 +15,7 @@
 import pytest
 
 import cirq
+from cirq.devices.grid_qubit_test import _test_qid_pickled_hash
 
 
 def test_init():
@@ -65,6 +66,24 @@ def test_cmp_failure():
         _ = 0 < cirq.LineQid(1, 3)
     with pytest.raises(TypeError, match='not supported between instances'):
         _ = cirq.LineQid(1, 3) < 0
+
+
+def test_line_qubit_pickled_hash():
+    # Use a large number that is unlikely to be used by any other tests.
+    x = 1234567891011
+    q_bad = cirq.LineQubit(x)
+    cirq.LineQubit._cache.pop(x)
+    q = cirq.LineQubit(x)
+    _test_qid_pickled_hash(q, q_bad)
+
+
+def test_line_qid_pickled_hash():
+    # Use a large number that is unlikely to be used by any other tests.
+    x = 1234567891011
+    q_bad = cirq.LineQid(x, dimension=3)
+    cirq.LineQid._cache.pop((x, 3))
+    q = cirq.LineQid(x, dimension=3)
+    _test_qid_pickled_hash(q, q_bad)
 
 
 def test_is_adjacent():

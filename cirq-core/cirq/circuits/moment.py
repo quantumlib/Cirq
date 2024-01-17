@@ -343,14 +343,14 @@ class Moment:
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return self._sorted_operations_() == other._sorted_operations_()
+        return self is other or self._sorted_operations_() == other._sorted_operations_()
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return protocols.approx_eq(
+        return self is other or protocols.approx_eq(
             self._sorted_operations_(), other._sorted_operations_(), atol=atol
         )
 
@@ -510,13 +510,11 @@ class Moment:
         return cls.from_ops(*operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-
         if isinstance(other, circuits.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
     def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-
         must_remove = set(op_tree.flatten_to_ops(other))
         new_ops = []
         for op in self.operations:

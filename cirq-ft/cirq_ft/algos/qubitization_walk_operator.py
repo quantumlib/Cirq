@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 from typing import Collection, Optional, Sequence, Tuple, Union
 from numpy.typing import NDArray
 
 import attr
 import cirq
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import reflection_using_prepare, select_and_prepare
 
