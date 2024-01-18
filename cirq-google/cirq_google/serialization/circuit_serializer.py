@@ -142,7 +142,11 @@ class CircuitSerializer(serializer.Serializer):
         """
         gate = op.gate
 
-        if isinstance(gate, InternalGate):
+        if isinstance(gate, cirq.ops.SingleQubitCliffordGate):
+            arg_func_langs.clifford_tableau_arg_to_proto(
+                gate._clifford_tableau, out=msg.singlequbitcliffordgate.tableau
+            )
+        elif isinstance(gate, InternalGate):
             arg_func_langs.internal_gate_arg_to_proto(gate, out=msg.internalgate)
         elif isinstance(gate, cirq.XPowGate):
             arg_func_langs.float_arg_to_proto(
@@ -574,6 +578,12 @@ class CircuitSerializer(serializer.Serializer):
             op = arg_func_langs.internal_gate_from_proto(
                 operation_proto.internalgate, arg_function_language=arg_function_language
             )(*qubits)
+        elif which_gate_type == 'singlequbitcliffordgate':
+            tableau = arg_func_langs.clifford_tableau_from_proto(
+                operation_proto.singlequbitcliffordgate.tableau,
+                arg_function_language=arg_function_language,
+            )
+            op = cirq.ops.SingleQubitCliffordGate.from_clifford_tableau(tableau)(*qubits)
         else:
             raise ValueError(
                 f'Unsupported serialized gate with type "{which_gate_type}".'

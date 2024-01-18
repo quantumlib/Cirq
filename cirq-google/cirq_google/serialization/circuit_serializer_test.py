@@ -256,6 +256,23 @@ OPERATIONS = [
             }
         ),
     ),
+    (
+        cirq.ops.SingleQubitCliffordGate.X(Q0),
+        op_proto(
+            {
+                'singlequbitcliffordgate': {
+                    'tableau': {
+                        'num_qubits': 1,
+                        'initial_state': 0,
+                        'rs': 'AAE=',
+                        'xs': 'AQA=',
+                        'zs': 'AAE=',
+                    }
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
 ]
 
 
@@ -667,4 +684,13 @@ def test_measurement_gate_deserialize() -> None:
     circuit = cirq.Circuit(cirq.X(q) ** 0.5, cirq.measure(q))
     msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
 
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
+
+
+def test_circuit_with_cliffords():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(
+        g(q) for g in cirq.ops.SingleQubitCliffordGate.all_single_qubit_cliffords
+    )
+    msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
     assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit

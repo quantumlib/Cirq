@@ -543,6 +543,7 @@ class Operation(google.protobuf.message.Message):
     MEASUREMENTGATE_FIELD_NUMBER: builtins.int
     WAITGATE_FIELD_NUMBER: builtins.int
     INTERNALGATE_FIELD_NUMBER: builtins.int
+    SINGLEQUBITCLIFFORDGATE_FIELD_NUMBER: builtins.int
     ARGS_FIELD_NUMBER: builtins.int
     QUBITS_FIELD_NUMBER: builtins.int
     QUBIT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
@@ -576,6 +577,8 @@ class Operation(google.protobuf.message.Message):
     @property
     def internalgate(self) -> global___InternalGate: ...
     @property
+    def singlequbitcliffordgate(self) -> global___SingleQubitCliffordGate: ...
+    @property
     def args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
         """Map from the argument name to the Argument needed to fully specify
         the gate. Only populated pre-v2.5+.
@@ -608,16 +611,17 @@ class Operation(google.protobuf.message.Message):
         measurementgate: global___MeasurementGate | None = ...,
         waitgate: global___WaitGate | None = ...,
         internalgate: global___InternalGate | None = ...,
+        singlequbitcliffordgate: global___SingleQubitCliffordGate | None = ...,
         args: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
         qubits: collections.abc.Iterable[global___Qubit] | None = ...,
         qubit_constant_index: collections.abc.Iterable[builtins.int] | None = ...,
         token_value: builtins.str = ...,
         token_constant_index: builtins.int = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["args", b"args", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["args", b"args", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["gate_value", b"gate_value"]) -> typing_extensions.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate"] | None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["gate_value", b"gate_value"]) -> typing_extensions.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "singlequbitcliffordgate"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing_extensions.Literal["token", b"token"]) -> typing_extensions.Literal["token_value", "token_constant_index"] | None: ...
 
@@ -1136,3 +1140,58 @@ class InternalGate(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["gate_args", b"gate_args", "module", b"module", "name", b"name", "num_qubits", b"num_qubits"]) -> None: ...
 
 global___InternalGate = InternalGate
+
+@typing_extensions.final
+class CliffordTableau(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    NUM_QUBITS_FIELD_NUMBER: builtins.int
+    INITIAL_STATE_FIELD_NUMBER: builtins.int
+    RS_FIELD_NUMBER: builtins.int
+    XS_FIELD_NUMBER: builtins.int
+    ZS_FIELD_NUMBER: builtins.int
+    num_qubits: builtins.int
+    initial_state: builtins.int
+    rs: builtins.bytes
+    xs: builtins.bytes
+    zs: builtins.bytes
+    def __init__(
+        self,
+        *,
+        num_qubits: builtins.int | None = ...,
+        initial_state: builtins.int | None = ...,
+        rs: builtins.bytes | None = ...,
+        xs: builtins.bytes | None = ...,
+        zs: builtins.bytes | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["_initial_state", b"_initial_state", "_num_qubits", b"_num_qubits", "_rs", b"_rs", "_xs", b"_xs", "_zs", b"_zs", "initial_state", b"initial_state", "num_qubits", b"num_qubits", "rs", b"rs", "xs", b"xs", "zs", b"zs"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["_initial_state", b"_initial_state", "_num_qubits", b"_num_qubits", "_rs", b"_rs", "_xs", b"_xs", "_zs", b"_zs", "initial_state", b"initial_state", "num_qubits", b"num_qubits", "rs", b"rs", "xs", b"xs", "zs", b"zs"]) -> None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_initial_state", b"_initial_state"]) -> typing_extensions.Literal["initial_state"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_num_qubits", b"_num_qubits"]) -> typing_extensions.Literal["num_qubits"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_rs", b"_rs"]) -> typing_extensions.Literal["rs"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_xs", b"_xs"]) -> typing_extensions.Literal["xs"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_zs", b"_zs"]) -> typing_extensions.Literal["zs"] | None: ...
+
+global___CliffordTableau = CliffordTableau
+
+@typing_extensions.final
+class SingleQubitCliffordGate(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    TABLEAU_FIELD_NUMBER: builtins.int
+    @property
+    def tableau(self) -> global___CliffordTableau: ...
+    def __init__(
+        self,
+        *,
+        tableau: global___CliffordTableau | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["tableau", b"tableau"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["tableau", b"tableau"]) -> None: ...
+
+global___SingleQubitCliffordGate = SingleQubitCliffordGate
