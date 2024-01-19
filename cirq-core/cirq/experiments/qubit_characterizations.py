@@ -693,7 +693,9 @@ def _create_parallel_rb_circuit(
     num_moments = max(len(sequence) for sequence in sequences_to_zip)
     for q, sequence in zip(qubits, sequences_to_zip):
         if (n := len(sequence)) < num_moments:
-            sequence.extend([ops.SingleQubitCliffordGate.I(q)] * (num_moments - n))
+            sequence.extend(
+                [ops.SingleQubitCliffordGate.I.to_phased_xz_gate()(q)] * (num_moments - n)
+            )
     moments = zip(*sequences_to_zip)
     return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
