@@ -40,7 +40,7 @@ def get_op_string(op_obj: cirq.Operation) -> str:
     """Find the string representation for a given gate or operation.
 
     Args:
-        op_obj: Gate or operation object. Gate must be one of: XXPowGate, XPowGate, YPowGate,
+        op_obj: Gate or operation object. Gate must be one of: XXPowGate,
             ZPowGate, PhasedXPowGate, or MeasurementGate.
 
     Returns:
@@ -51,10 +51,6 @@ def get_op_string(op_obj: cirq.Operation) -> str:
     """
     if isinstance(op_obj.gate, cirq.XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj.gate, cirq.XPowGate):
-        op_str = 'X'
-    elif isinstance(op_obj.gate, cirq.YPowGate):
-        op_str = 'Y'
     elif isinstance(op_obj.gate, cirq.ZPowGate):
         op_str = 'Z'
     elif isinstance(op_obj.gate, cirq.PhasedXPowGate):
