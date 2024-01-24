@@ -295,10 +295,12 @@ class AQTSamplerLocalSimulator(AQTSampler):
     sampler.simulate_ideal=True
     """
 
-    def __init__(self, remote_host: str = '', access_token: str = '', simulate_ideal: bool = False):
+    def __init__(self, workspace: str = "", resource: str = "", access_token: str = "", remote_host: str = "", simulate_ideal: bool = False):
         """Args:
-        remote_host: Remote host is not used by the local simulator.
+        workspace: Workspace is not used by the local simulator.
+        resource: Resource is not used by the local simulator.
         access_token: Access token is not used by the local simulator.
+        remote_host: Remote host is not used by the local simulator.
         simulate_ideal: Boolean that determines whether a noisy or
                         an ideal simulation is performed.
         """
