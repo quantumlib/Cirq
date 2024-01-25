@@ -97,6 +97,8 @@ def test_estimate_parallel_readout_errors_no_noise():
     assert result.one_state_errors == {q: 0 for q in qubits}
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
+    _ = result.plot_integrated_histogram()
+    _, _ = result.plot_heatmap()
 
 
 def test_estimate_parallel_readout_errors_all_zeros():
