@@ -21,6 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cirq.vis.heatmap as cirq_heatmap
 import cirq.vis.histogram as cirq_histogram
+from cirq.devices import grid_qubit
 from cirq import circuits, ops, study
 
 if TYPE_CHECKING:
