@@ -126,29 +126,28 @@ class AQTSampler(cirq.Sampler):
 
             instruction = {}
 
-            match legacy_op[0]:
-                case "Z":
-                    instruction["operation"] = "RZ"
-                    instruction["qubit"] = legacy_op[2][0]
-                    instruction["phi"] = legacy_op[1]
+            if legacy_op[0] == "Z":
+                instruction["operation"] = "RZ"
+                instruction["qubit"] = legacy_op[2][0]
+                instruction["phi"] = legacy_op[1]
 
-                case "R":
-                    instruction["operation"] = "R"
-                    instruction["qubit"] = legacy_op[3][0]
-                    instruction["theta"] = legacy_op[1]
-                    instruction["phi"] = legacy_op[2]
+            elif legacy_op[0] == "R":
+                instruction["operation"] = "R"
+                instruction["qubit"] = legacy_op[3][0]
+                instruction["theta"] = legacy_op[1]
+                instruction["phi"] = legacy_op[2]
 
-                case "MS":
-                    instruction["operation"] = "RXX"
-                    instruction["qubits"] = legacy_op[2]
-                    instruction["theta"] = legacy_op[1]
+            elif legacy_op[0] == "MS":
+                instruction["operation"] = "RXX"
+                instruction["qubits"] = legacy_op[2]
+                instruction["theta"] = legacy_op[1]
 
-                case "Meas":
-                    instruction["operation"] = "MEASURE"
-                    number_of_measurements += 1
+            elif legacy_op[0] == "Meas":
+                instruction["operation"] = "MEASURE"
+                number_of_measurements += 1
 
-                case _:
-                    raise ValueError(f'Got unknown gate on operation: {legacy_op}.')
+            else:
+                raise ValueError(f'Got unknown gate on operation: {legacy_op}.')
             
             circuit.append(instruction)
         
