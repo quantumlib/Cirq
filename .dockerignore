@@ -19,10 +19,6 @@ __pycache__
 # packaging
 *.egg-info/
 
-# Sphinx
-_build
-rtd_docs/generated
-
 # swap files
 *.swp
 

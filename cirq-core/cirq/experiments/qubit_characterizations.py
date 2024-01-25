@@ -693,7 +693,9 @@ def _create_parallel_rb_circuit(
     num_moments = max(len(sequence) for sequence in sequences_to_zip)
     for q, sequence in zip(qubits, sequences_to_zip):
         if (n := len(sequence)) < num_moments:
-            sequence.extend([ops.SingleQubitCliffordGate.I(q)] * (num_moments - n))
+            sequence.extend(
+                [ops.SingleQubitCliffordGate.I.to_phased_xz_gate()(q)] * (num_moments - n)
+            )
     moments = zip(*sequences_to_zip)
     return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
@@ -739,13 +741,15 @@ def _two_qubit_clifford_matrices(
 
 
 def _random_single_q_clifford(
-    qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.Gate']]
+    qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.ops.SingleQubitCliffordGate']]
 ) -> List['cirq.Operation']:
     clifford_group_size = 24
-    operations = [[gate(qubit) for gate in gates] for gates in cfds]
+    operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
     adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
-    return [op for gate_id in gate_ids for op in operations[gate_id]] + [adjoint(qubit)]
+    return [op for gate_id in gate_ids for op in operations[gate_id]] + [
+        adjoint.to_phased_xz_gate()(qubit)
+    ]
 
 
 def _random_two_q_clifford(
