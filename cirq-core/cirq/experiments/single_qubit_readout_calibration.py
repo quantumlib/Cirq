@@ -79,7 +79,11 @@ class SingleQubitReadoutCalibrationResult:
             ['$|0\\rangle$ errors', '$|1\\rangle$ errors'],
             [self.zero_state_errors, self.one_state_errors],
         ):
-            _, _ = cirq_heatmap.Heatmap(data).plot(
+            data_with_grid_qubit_keys = {}
+            for qubit in data:
+                assert type(qubit) == grid_qubit.GridQubit, "qubits must be cirq.GridQubits"
+                data_with_grid_qubit_keys[qubit] = data[qubit]  # just for typecheck
+            _, _ = cirq_heatmap.Heatmap(data_with_grid_qubit_keys).plot(
                 ax, annotation_format=annotation_format, title=title, **plot_kwargs
             )
         return axs[0], axs[1]
