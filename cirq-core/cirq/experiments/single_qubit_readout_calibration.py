@@ -80,7 +80,7 @@ class SingleQubitReadoutCalibrationResult:
             _, axs = plt.subplots(1, 2, dpi=200, facecolor='white', figsize=(12, 4))
 
         else:
-            if not len(axes) != 2 or type(axs[0]) != plt.Axes or type(axs[1]) != plt.Axes:
+            if not len(axs) != 2 or type(axs[0]) != plt.Axes or type(axs[1]) != plt.Axes:
                 raise ValueError('axs should be a length-2 tuple of plt.Axes')
         for ax, title, data in zip(
             axs,
