@@ -14,7 +14,7 @@
 """Single qubit readout experiments using parallel or isolated statistics."""
 import dataclasses
 import time
-from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING, cast
+from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING
 
 import sympy
 import numpy as np
@@ -72,8 +72,8 @@ class SingleQubitReadoutCalibrationResult:
             The two plt.Axes containing the plot.
 
         Raises:
-            ValueError if axs does not contain two plt.Axes
-            TypeError if qubits are not cirq.GridQubits
+            ValueError: axs does not contain two plt.Axes
+            TypeError: qubits are not cirq.GridQubits
         """
 
         if axs is None:
@@ -91,7 +91,6 @@ class SingleQubitReadoutCalibrationResult:
             for qubit in data:
                 if type(qubit) != grid_qubit.GridQubit:
                     raise TypeError(f'{qubit} must be of type cirq.GridQubit')
-                cast(grid_qubit.GridQubit, qubit)
                 data_with_grid_qubit_keys[qubit] = data[qubit]  # just for typecheck
             _, _ = cirq_heatmap.Heatmap(data_with_grid_qubit_keys).plot(
                 ax, annotation_format=annotation_format, title=title, **plot_kwargs
