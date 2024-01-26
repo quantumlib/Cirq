@@ -81,7 +81,10 @@ class SingleQubitReadoutCalibrationResult:
 
         else:
             if (
-                not len(axs) != 2 or type(axs[0]) != plt.Axes or type(axs[1]) != plt.Axes
+                not isinstance(axs, (tuple, list, np.ndarray))
+                or len(axs) != 2
+                or type(axs[0]) != plt.Axes
+                or type(axs[1]) != plt.Axes
             ):  # pragma: no cover
                 raise ValueError('axs should be a length-2 tuple of plt.Axes')  # pragma: no cover
         for ax, title, data in zip(
