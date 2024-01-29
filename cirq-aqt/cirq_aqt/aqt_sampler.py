@@ -223,7 +223,7 @@ class AQTSampler(cirq.Sampler):
 
         Args:
             json_str: Json representation of the circuit.
-            id_str: A label to help identify a datapoint.
+            id_str: A label to help identify a circuit.
             repetitions: Number of repetitions.
             num_qubits: Number of qubits present in the device.
 
