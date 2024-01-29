@@ -20,10 +20,6 @@ __pycache__
 *.egg-info/
 build/
 
-# Sphinx
-_build
-rtd_docs/generated
-
 # API docs
 docs/api_docs
 

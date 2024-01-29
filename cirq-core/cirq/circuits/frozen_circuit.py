@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
+from functools import cached_property
 from typing import (
     AbstractSet,
     FrozenSet,
@@ -90,7 +91,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         """Returns a tuple of the Circuit's tags."""
         return self._tags
 
-    @_compat.cached_property
+    @cached_property
     def untagged(self) -> 'cirq.FrozenCircuit':
         """Returns the underlying FrozenCircuit without any tags."""
         return self._from_moments(self._moments) if self.tags else self
@@ -148,7 +149,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
         return super().all_qubits()
 
-    @_compat.cached_property
+    @cached_property
     def _all_operations(self) -> Tuple['cirq.Operation', ...]:
         return tuple(super().all_operations())
 

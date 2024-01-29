@@ -1,8 +1,0 @@
-# For generating documentation.
-# TODO(#6400,juhas) - upgrade Sphinx and remove the alabaster pin below
-alabaster<=0.7.13
-myst-parser
-Sphinx~=3.2.0
-sphinx_rtd_theme
-sphinx-notfound-page
-Jinja2<=3.0.3
