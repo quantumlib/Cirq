@@ -103,6 +103,7 @@ def optimize_for_target_gateset(
     gateset: Optional['cirq.CompilationTargetGateset'] = None,
     ignore_failures: bool = True,
     max_num_passes: Union[int, None] = 1,
+    preserve_moment_structure: bool = True,
 ) -> 'cirq.Circuit':
     """Transforms the given circuit into an equivalent circuit using gates accepted by `gateset`.
 
@@ -112,7 +113,10 @@ def optimize_for_target_gateset(
     3. Run all `gateset.postprocess_transformers`
 
     Note:
-      The optimizer is heuristic and may not produce optimal results even with max_num_passes=None.
+        The optimizer is a heuristic and may not produce optimal results even with
+        max_num_passes=None. The prerprocessors and postprocessors of the gate set
+        as well as their order yield different results.
+
 
     Args:
         circuit: Input circuit to transform. It will not be modified.
@@ -120,8 +124,9 @@ def optimize_for_target_gateset(
         gateset: Target gateset, which should be an instance of `cirq.CompilationTargetGateset`.
         ignore_failures: If set, operations that fail to convert are left unchanged. If not set,
             conversion failures raise a ValueError.
-        max_num_passes: The maximum number of passes to do. A value of `None` means keep iterating
-            until no further improvements can be done.
+        max_num_passes: The maximum number of passes to do. A value of `None` means to keep
+            iterating until no further improvements can be made.
+        preserve_moment_structure: Whether to preserve moment structure or not.
     Returns:
         An equivalent circuit containing gates accepted by `gateset`.
 
@@ -144,7 +149,6 @@ def optimize_for_target_gateset(
     for _ in _outerloop():
         for transformer in gateset.preprocess_transformers:
             circuit = transformer(circuit, context=context)
-
         circuit = _decompose_operations_to_target_gateset(
             circuit,
             context=context,
@@ -153,13 +157,13 @@ def optimize_for_target_gateset(
             ignore_failures=ignore_failures,
             tags_to_decompose=(gateset._intermediate_result_tag,),
         )
-
         for transformer in gateset.postprocess_transformers:
             circuit = transformer(circuit, context=context)
 
-        circuit = circuits.Circuit(
-            op for op in circuit.all_operations()
-        )  # Ensure the circuit is contracted.
+        if not preserve_moment_structure:
+            circuit = circuits.Circuit(
+                op for op in circuit.all_operations()
+            )  # Contract the moments.
 
         num_moments, num_ops = len(circuit), len(tuple(circuit.all_operations()))
         if (num_moments, num_ops) == (initial_num_moments, initial_num_ops):

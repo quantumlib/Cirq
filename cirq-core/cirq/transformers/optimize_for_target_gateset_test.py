@@ -312,6 +312,9 @@ def test_optimize_for_target_gateset_multiple_passes(max_num_passes: Union[int, 
     )
 
     got = cirq.optimize_for_target_gateset(
-        input_circuit, gateset=gateset, max_num_passes=max_num_passes
+        input_circuit,
+        gateset=gateset,
+        max_num_passes=max_num_passes,
+        preserve_moment_structure=False,
     )
     assert got == desired_circuit
