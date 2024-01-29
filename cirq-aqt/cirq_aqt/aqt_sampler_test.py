@@ -128,7 +128,7 @@ def test_aqt_sampler_submit_job_error_handling():
             num_points = 1
             max_angle = np.pi
             repetitions = 10
-            sampler = AQTSampler(remote_host="http://localhost:7777/api/v1/", access_token='testkey', workspace="default", resource="test")
+            sampler = AQTSampler(access_token='testkey', workspace="default", resource="test")
             _, qubits = get_aqt_device(1)
             circuit = cirq.Circuit(cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0]))
             sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
@@ -150,7 +150,7 @@ def test_aqt_sampler_get_result_error_handling():
             num_points = 1
             max_angle = np.pi
             repetitions = 10
-            sampler = AQTSampler(remote_host="http://localhost:7777/api/v1/", access_token='testkey', workspace="default", resource="test")
+            sampler = AQTSampler(access_token='testkey', workspace="default", resource="test")
             _, qubits = get_aqt_device(1)
             circuit = cirq.Circuit(cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0]))
             sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
@@ -203,7 +203,7 @@ def test_aqt_sampler():
         num_points = 1
         max_angle = np.pi
         repetitions = 10
-        sampler = AQTSampler(remote_host="http://localhost:5000", access_token='testkey', workspace="default", resource="test")
+        sampler = AQTSampler(access_token='testkey', workspace="default", resource="test")
         _, qubits = get_aqt_device(1)
         circuit = cirq.Circuit(cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0]))
         sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
@@ -297,7 +297,7 @@ def test_aqt_sampler_parses_legacy_json_correctly() -> None:
         ["R", 0.5, 1.0, [1]],
     ])
 
-    sampler = AQTSampler("default", "test", "testkey", "http://localhost:7777/api/v1/")
+    sampler = AQTSampler("default", "test", "testkey")
     quantum_circuit = sampler._parse_legacy_circuit_json(legacy_json)
 
     assert quantum_circuit == [
