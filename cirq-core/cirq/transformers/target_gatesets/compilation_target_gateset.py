@@ -150,11 +150,14 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
-        return [
+        processors: List['cirq.TRANSFORMER'] = [
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
             transformers.drop_negligible_operations,
             transformers.drop_empty_moments,
-        ] + ([] if self._preserve_moment_structure else [transformers.stratified_circuit])
+        ]
+        if not self._preserve_moment_structure:
+            processors.append(transformers.stratified_circuit)
+        return processors
 
 
 class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
