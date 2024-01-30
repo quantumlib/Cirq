@@ -259,6 +259,8 @@ def test_aqt_sampler_sim_xtalk():
         cirq.PhasedXPowGate(phase_exponent=0.0, exponent=1.0).on(qubits[1]),
         cirq.PhasedXPowGate(phase_exponent=0.0, exponent=1.0).on(qubits[3]),
         cirq.PhasedXPowGate(phase_exponent=0.0, exponent=1.0).on(qubits[2]),
+        cirq.XX(qubits[0], qubits[1]) ** 0.5,
+        cirq.Z.on_each(*qubits),
     )
     sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
     _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)

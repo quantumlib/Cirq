@@ -93,6 +93,7 @@ class AQTNoiseModel(cirq.NoiseModel):
             for qubit in op.qubits:
                 noise_list.append(noise_op.on(qubit))
             noise_list += self.get_crosstalk_operation(op, system_qubits)
+        
         return list(moment) + noise_list
 
     def get_crosstalk_operation(
@@ -122,12 +123,15 @@ class AQTNoiseModel(cirq.NoiseModel):
             xtlk_arr[idx] = 0
         xtlk_op_list = []
         op_str = get_op_string(operation)
+        # if op_str == "R":
+        #     gate = cast(cirq.PhasedXPowGate, gate_dict[op_str])
+        # else:
         gate = cast(cirq.EigenGate, gate_dict[op_str])
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
                 exponent = operation.gate.exponent  # type:ignore
                 exponent = exponent * xtlk_arr[idx]
-                xtlk_op = gate.on(system_qubits[idx]) ** exponent
+                xtlk_op = operation.gate.on(system_qubits[idx]) ** exponent
                 xtlk_op_list.append(xtlk_op)
         elif len(operation.qubits) == 2:
             for op_qubit in operation.qubits:
@@ -212,10 +216,14 @@ class AQTSimulator:
             noise_model = cirq.NO_NOISE
         else:
             noise_model = AQTNoiseModel()
+
         if self.circuit == cirq.Circuit():
             raise RuntimeError('Simulate called without a valid circuit.')
+        
         sim = cirq.DensityMatrixSimulator(noise=noise_model)
+        
         result = sim.run(self.circuit, repetitions=repetitions)
+        
         return result
 
 
@@ -338,9 +346,8 @@ def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
 def get_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
-        'X': cirq.depolarize(1e-3),
-        'Y': cirq.depolarize(1e-3),
-        'Z': cirq.depolarize(1e-3),
+        'R': cirq.depolarize(1e-3),
+        'Z': cirq.depolarize(0),
         'MS': cirq.depolarize(1e-2),
         'crosstalk': 0.03,
     }
