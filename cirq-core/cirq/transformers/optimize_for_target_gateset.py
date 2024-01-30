@@ -103,7 +103,6 @@ def optimize_for_target_gateset(
     gateset: Optional['cirq.CompilationTargetGateset'] = None,
     ignore_failures: bool = True,
     max_num_passes: Union[int, None] = 1,
-    preserve_moment_structure: bool = True,
 ) -> 'cirq.Circuit':
     """Transforms the given circuit into an equivalent circuit using gates accepted by `gateset`.
 
@@ -126,7 +125,6 @@ def optimize_for_target_gateset(
             conversion failures raise a ValueError.
         max_num_passes: The maximum number of passes to do. A value of `None` means to keep
             iterating until no further improvements can be made.
-        preserve_moment_structure: Whether to preserve moment structure or not.
     Returns:
         An equivalent circuit containing gates accepted by `gateset`.
 
@@ -159,11 +157,6 @@ def optimize_for_target_gateset(
         )
         for transformer in gateset.postprocess_transformers:
             circuit = transformer(circuit, context=context)
-
-        if not preserve_moment_structure:
-            circuit = circuits.Circuit(
-                op for op in circuit.all_operations()
-            )  # Contract the moments.
 
         num_moments, num_ops = len(circuit), len(tuple(circuit.all_operations()))
         if (num_moments, num_ops) == (initial_num_moments, initial_num_ops):
