@@ -14,7 +14,7 @@
 
 """Base class for creating custom target gatesets which can be used for compilation."""
 
-from typing import Optional, List, Hashable, TYPE_CHECKING
+from typing import Optional, List, Hashable, TYPE_CHECKING, Union, Type
 import abc
 
 from cirq import circuits, ops, protocols, transformers
@@ -80,6 +80,15 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     which can transform any given circuit to contain gates accepted by this gateset.
     """
 
+    def __init__(
+        self,
+        *gates: Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily'],
+        name: Optional[str] = None,
+        preserve_moment_structure: bool = True,
+    ):
+        super().__init__(*gates, name=name)
+        self._preserve_moment_structure = preserve_moment_structure
+
     @property
     @abc.abstractmethod
     def num_qubits(self) -> int:
@@ -144,7 +153,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
             transformers.drop_negligible_operations,
             transformers.drop_empty_moments,
-        ]
+        ] + ([] if self._preserve_moment_structure else [transformers.stratified_circuit])
 
 
 class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
