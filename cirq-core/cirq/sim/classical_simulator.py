@@ -30,7 +30,7 @@ class ClassicalState(qis.QuantumStateRepresentation):
     def __init__(self, initial_state: List[int]):
         self.basis = initial_state
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'ComputationalBasisState':
+    def copy(self, deep_copy_buffers: bool = True) -> 'ClassicalState':
         return ClassicalState(self.basis)
 
     def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
@@ -92,6 +92,6 @@ class ClassicalStateSimulator(SimulationState[ClassicalState]):
             return True
         else:
             raise ValueError(
-                        f'{gate} is not one of cirq.X, cirq.CNOT, cirq.SWAP, '
-                        'cirq.CCNOT, or a measurement'
-                    )
+                f'{gate} is not one of cirq.X, cirq.CNOT, cirq.SWAP, '
+                'cirq.CCNOT, or a measurement'
+            )
