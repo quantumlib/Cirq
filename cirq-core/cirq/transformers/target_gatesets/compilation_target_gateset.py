@@ -84,9 +84,10 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         self,
         *gates: Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily'],
         name: Optional[str] = None,
+        unroll_circuit_op: bool = True,
         preserve_moment_structure: bool = True,
     ):
-        super().__init__(*gates, name=name)
+        super().__init__(*gates, name=name, unroll_circuit_op=unroll_circuit_op)
         self._preserve_moment_structure = preserve_moment_structure
 
     @property
