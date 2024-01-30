@@ -65,7 +65,7 @@ class ClassicalStateSimulator(SimulationState[ClassicalState]):
             - one of the gates is not an X, CNOT, SWAP, TOFFOLI or a measurement.
             - A measurement key is used for measurements on different numbers of qubits.
     """
-    
+
     def __init__(self, initial_state, qubits, classical_data):
         state = ClassicalState(big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
