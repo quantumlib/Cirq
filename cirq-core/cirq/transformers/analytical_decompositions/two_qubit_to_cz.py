@@ -40,7 +40,7 @@ def _remove_partial_czs_or_fail(
             t = op.gate.exponent % 2  # CZ^t is periodic with period 2.
             if t < atol:
                 continue  # Identity.
-            elif t == 1:
+            elif abs(t - 1) < atol:
                 result.append(ops.CZ(*op.qubits))  # Was either CZ or CZ**-1.
             else:
                 raise ValueError(f'CZ^t is not allowed for t={t}')
