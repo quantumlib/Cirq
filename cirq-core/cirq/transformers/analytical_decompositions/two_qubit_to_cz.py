@@ -79,7 +79,7 @@ def two_qubit_matrix_to_cz_operations(
     operations = _kak_decomposition_to_operations(q0, q1, kak, allow_partial_czs, atol=atol)
     if clean_operations:
         if not allow_partial_czs:
-            # Only CZ^t is not allowed for any $t$ except $t=1$.
+            # CZ^t is not allowed for any $t$ except $t=1$.
             return _remove_partial_czs_or_fail(cleanup_operations(operations), atol=atol)
         return cleanup_operations(operations)
     return operations
