@@ -243,3 +243,25 @@ def test_optimize_for_target_gateset_deep():
 1: ───#2───────────────────────────────────────────────────────────────────────────
 ''',
     )
+
+
+# def test_optimize_cnot_for_cz_gateset():
+#     gateset = cirq.CZTargetGateset(allow_partial_czs=False)
+#     c = cirq.Circuit(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
+#     result = cirq.optimize_for_target_gateset(circuit=c, gateset=gateset)
+#     expected = cirq.Circuit(
+#         [
+#             cirq.Moment(
+#                 cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=0.0).on(
+#                     cirq.LineQubit(1)
+#                 )
+#             ),
+#             cirq.Moment(cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))),
+#             cirq.Moment(
+#                 cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0.0).on(
+#                     cirq.LineQubit(1)
+#                 )
+#             ),
+#         ]
+#     )
+#     assert result == expected
