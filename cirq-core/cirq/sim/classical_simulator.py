@@ -48,10 +48,7 @@ class ClassicalStateSimulator(
     """A simulator that accepts only gates with classical counterparts."""
 
     def __init__(
-        self,
-        *,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        split_untangled_states: bool = False,
+        self, *, noise: 'cirq.NOISE_MODEL_LIKE' = None, split_untangled_states: bool = False
     ):
         """Initializes a ClassicalStateSimulator.
 
