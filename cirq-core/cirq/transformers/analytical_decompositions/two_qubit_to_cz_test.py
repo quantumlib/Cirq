@@ -260,16 +260,17 @@ def test_decompose_to_diagonal_and_circuit(v):
 
 
 def test_remove_partial_czs_or_fail():
+    CZ = cirq.CZ(*cirq.LineQubit.range(2))
     assert (
         cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
-            [cirq.CZ(*cirq.LineQubit.range(2)) ** 1e-15], atol=1e-9
+            [CZ**1e-15], atol=1e-9
         )
         == []
     )
+    assert cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
+        [CZ**-1, CZ], atol=1e-9
+    ) == [CZ, CZ]
     with pytest.raises(ValueError):
-        _ = (
-            cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
-                [cirq.CZ(*cirq.LineQubit.range(2)) ** -0.5], atol=1e-9
-            )
-            == []
+        _ = cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
+            [CZ**-0.5], atol=1e-9
         )
