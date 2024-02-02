@@ -8,4 +8,4 @@ quimb<1.7.2
 opt_einsum
 autoray
 # required for py39 opcodes.
-numba~=0.53.0
+numba~=0.58.0
