@@ -87,7 +87,7 @@ def test_estimate_single_qubit_readout_errors_with_noise():
 
 
 def test_estimate_parallel_readout_errors_no_noise():
-    qubits = cirq.LineQubit.range(10)
+    qubits = [cirq.GridQubit(i, 0) for i in range(10)]
     sampler = cirq.Simulator()
     repetitions = 1000
     result = cirq.estimate_parallel_single_qubit_readout_errors(
@@ -97,6 +97,8 @@ def test_estimate_parallel_readout_errors_no_noise():
     assert result.one_state_errors == {q: 0 for q in qubits}
     assert result.repetitions == repetitions
     assert isinstance(result.timestamp, float)
+    _ = result.plot_integrated_histogram()
+    _, _ = result.plot_heatmap()
 
 
 def test_estimate_parallel_readout_errors_all_zeros():
