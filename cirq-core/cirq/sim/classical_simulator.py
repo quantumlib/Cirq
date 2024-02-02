@@ -13,14 +13,14 @@
 # limitations under the License.
 
 
-from typing import Any, Dict, Generic, Sequence, Type, TYPE_CHECKING
+from typing import Dict, Generic, Any, Sequence, TYPE_CHECKING
 from collections import defaultdict
 from cirq import ops, protocols
 from cirq.study.resolver import ParamResolver
 from cirq.circuits.circuit import AbstractCircuit
 from cirq.ops.raw_types import Qid
 from cirq import sim
-from cirq.sim.simulation_state import TSimulationState, SimulationState
+from cirq.sim.simulation_state import TSimulationState
 import numpy as np
 
 if TYPE_CHECKING:
@@ -49,7 +49,6 @@ class ClassicalStateSimulator(
 
     def __init__(
         self,
-        state_type: Type[TSimulationState] = SimulationState[TSimulationState],
         *,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         split_untangled_states: bool = False,
@@ -63,7 +62,6 @@ class ClassicalStateSimulator(
                 supported if the `state_type` supports it via an implementation of `kron` and
                 `factor` methods. Otherwise a runtime error will occur during simulation."""
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
-        self.state_type = state_type
 
     def _create_simulator_trial_result(
         self,
@@ -86,9 +84,7 @@ class ClassicalStateSimulator(
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ) -> TSimulationState:
-        return self.state_type(
-            initial_state=initial_state, qubits=qubits, classical_data=classical_data
-        )  # type: ignore[call-arg]
+        return initial_state
 
     def _is_identity(self, op: ops.Operation) -> bool:
         if isinstance(op.gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
