@@ -117,9 +117,9 @@ class ClassicalStateSimulator(
     def _run(
         self, circuit: AbstractCircuit, param_resolver: ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:
-        """This simulator evolves a single state, using only gates that output a single state 
-        for each input state. The simulator runs in linear time, at the cost of not 
-        supporting superposition. It can be used to estimate costs and simulate circuits for 
+        """This simulator evolves a single state, using only gates that output a single state
+        for each input state. The simulator runs in linear time, at the cost of not
+        supporting superposition. It can be used to estimate costs and simulate circuits for
         simple non-quantum algorithms using many more qubits than fully capable quantum simulators.
 
         Args:
