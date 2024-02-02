@@ -90,7 +90,7 @@ class ClassicalStateSimulator(
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
         )  # type: ignore[call-arg]
-    
+
     def _is_identity(self, op: ops.Operation) -> bool:
         if isinstance(op.gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
             return op.gate.exponent % 2 == 0
@@ -143,6 +143,3 @@ class ClassicalStateSimulator(
                     )
 
         return results_dict
-
-
-
