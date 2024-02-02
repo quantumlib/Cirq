@@ -141,5 +141,5 @@ class ClassicalStateSimulator(
                         f'{op} is not one of cirq.X, cirq.CNOT, cirq.SWAP, '
                         'cirq.CCNOT, or a measurement'
                     )
-        
+
         return results_dict
