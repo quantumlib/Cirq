@@ -13,18 +13,37 @@
 # limitations under the License.
 
 
-from typing import Any, Dict, Generic, Sequence, Type, TYPE_CHECKING
+from typing import Any, Dict, Generic, Sequence, Type, List, TYPE_CHECKING
 from collections import defaultdict
 from cirq import ops, protocols
 from cirq.study.resolver import ParamResolver
 from cirq.circuits.circuit import AbstractCircuit
 from cirq.ops.raw_types import Qid
-from cirq import sim
+from cirq import sim, qis
 from cirq.sim.simulation_state import TSimulationState, SimulationState
 import numpy as np
 
 if TYPE_CHECKING:
     import cirq
+
+
+class ClassicalBasisState(qis.QuantumStateRepresentation):
+    def __init__(self, initial_state: List[int]):
+        self.basis = initial_state
+
+    def copy(self, deep_copy_buffers: bool = True) -> 'ClassicalBasisState':
+        return ClassicalBasisState(self.basis)
+
+    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+        return [self.basis[i] for i in axes]
+
+
+class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
+    def __init__(self, initial_state, qubits, classical_data):
+        state = ClassicalBasisState(
+            cirq.big_endian_int_to_bits(initial_state, bit_count=len(qubits))
+        )
+        super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
 
 class ClassicalStateStepResult(sim.StepResultBase[TSimulationState], Generic[TSimulationState]):
@@ -49,7 +68,7 @@ class ClassicalStateSimulator(
 
     def __init__(
         self,
-        state_type: Type[TSimulationState] = SimulationState,
+        state_type: Type[TSimulationState] = ClassicalBasisSimState,
         *,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         split_untangled_states: bool = False,
@@ -98,11 +117,10 @@ class ClassicalStateSimulator(
     def _run(
         self, circuit: AbstractCircuit, param_resolver: ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:
-        """
-        This simulator evolves a single state, using only gates that output a single state for each
-        input state. The simulator runs in linear time, at the cost of not supporting superposition.
-        It can be used to estimate costs and simulate circuits for simple non-quantum algorithms using
-        many more qubits than fully capable quantum simulators.
+        """This simulator evolves a single state, using only gates that output a single state 
+        for each input state. The simulator runs in linear time, at the cost of not 
+        supporting superposition. It can be used to estimate costs and simulate circuits for 
+        simple non-quantum algorithms using many more qubits than fully capable quantum simulators.
 
         Args:
             circuit: The circuit to simulate.
