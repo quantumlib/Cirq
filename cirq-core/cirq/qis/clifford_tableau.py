@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, cached_method
 from cirq.qis import quantum_state_representation
 from cirq.value import big_endian_int_to_digits, linear_dict, random_state
 
@@ -652,3 +652,7 @@ class CliffordTableau(StabilizerState):
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> List[int]:
         return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
+
+    @cached_method
+    def __hash__(self) -> int:
+        return hash(self.matrix().tobytes() + self.rs.tobytes())

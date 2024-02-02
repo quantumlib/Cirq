@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 import math
 from typing import Optional, Tuple
 
@@ -20,7 +21,6 @@ import cirq_ft
 import numpy as np
 import pytest
 from attr import frozen
-from cirq._compat import cached_property
 from cirq_ft.algos.mean_estimation.complex_phase_oracle import ComplexPhaseOracle
 from cirq_ft.infra import bit_tools
 from cirq_ft.infra import testing as cq_testing

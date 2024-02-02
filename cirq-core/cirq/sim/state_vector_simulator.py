@@ -14,6 +14,7 @@
 """Abstract classes for simulations which keep track of state vector."""
 
 import abc
+from functools import cached_property
 from typing import Any, Dict, Iterator, Sequence, Type, TYPE_CHECKING, Generic, TypeVar
 
 import numpy as np
@@ -121,7 +122,7 @@ class StateVectorTrialResult(
             qubit_map=final_simulator_state.qubit_map,
         )
 
-    @_compat.cached_property
+    @cached_property
     def final_state_vector(self) -> np.ndarray:
         return self._get_merged_sim_state().target_tensor.reshape(-1)
 

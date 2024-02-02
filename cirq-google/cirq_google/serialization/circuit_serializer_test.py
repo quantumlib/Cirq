@@ -668,3 +668,16 @@ def test_measurement_gate_deserialize() -> None:
     msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
 
     assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
+
+
+def test_circuit_with_cliffords():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(
+        g(q) for g in cirq.ops.SingleQubitCliffordGate.all_single_qubit_cliffords
+    )
+    want = cirq.Circuit(
+        g.to_phased_xz_gate()(q)
+        for g in cirq.ops.SingleQubitCliffordGate.all_single_qubit_cliffords
+    )
+    msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == want
