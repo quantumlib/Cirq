@@ -13,13 +13,13 @@
 # limitations under the License.
 
 
-from typing import Any, Dict, Generic, Sequence, Type, List, TYPE_CHECKING
+from typing import Any, Dict, Generic, Sequence, Type, TYPE_CHECKING
 from collections import defaultdict
 from cirq import ops, protocols
 from cirq.study.resolver import ParamResolver
 from cirq.circuits.circuit import AbstractCircuit
 from cirq.ops.raw_types import Qid
-from cirq import sim, qis
+from cirq import sim
 from cirq.sim.simulation_state import TSimulationState, SimulationState
 import numpy as np
 
@@ -49,7 +49,7 @@ class ClassicalStateSimulator(
 
     def __init__(
         self,
-        state_type: Type[TSimulationState] = TSimulationState,
+        state_type: Type[TSimulationState] = SimulationState[TSimulationState],
         *,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         split_untangled_states: bool = False,
