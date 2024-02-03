@@ -248,11 +248,8 @@ def test_optimize_for_target_gateset_deep():
 
 
 @pytest.mark.parametrize('max_num_passes', [2, None])
-@pytest.mark.parametrize('preserve_moment_structure', [False, True])
-def test_optimize_for_target_gateset_multiple_passes(
-    max_num_passes: Union[int, None], preserve_moment_structure: bool
-):
-    gateset = cirq.CZTargetGateset(preserve_moment_structure=preserve_moment_structure)
+def test_optimize_for_target_gateset_multiple_passes(max_num_passes: Union[int, None]):
+    gateset = cirq.CZTargetGateset()
 
     input_circuit = cirq.Circuit(
         [
@@ -286,53 +283,16 @@ def test_optimize_for_target_gateset_multiple_passes(
             ),
         ]
     )
-    if preserve_moment_structure:
-        desired_circuit = cirq.Circuit.from_moments(
-            cirq.Moment(
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
-                    cirq.LineQubit(4)
-                )
-            ),
-            cirq.Moment(cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5))),
-            cirq.Moment(
-                cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
-                    cirq.LineQubit(1)
-                ),
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
-                    cirq.LineQubit(0)
-                ),
-                cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
-                    cirq.LineQubit(3)
-                ),
-                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
-                    cirq.LineQubit(2)
-                ),
-            ),
-            cirq.Moment(
-                cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)),
-                cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(3)),
-            ),
-            cirq.Moment(
-                cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(1)),
-                cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(3)),
-            ),
-            cirq.Moment(
-                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
-                    cirq.LineQubit(6)
-                )
-            ),
-            cirq.Moment(cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5))),
-        )
-    else:
-        desired_circuit = cirq.Circuit(
+    desired_circuit = cirq.Circuit.from_moments(
+        cirq.Moment(
             cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
                 cirq.LineQubit(4)
-            ),
+            )
+        ),
+        cirq.Moment(cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5))),
+        cirq.Moment(
             cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
                 cirq.LineQubit(1)
-            ),
-            cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
-                cirq.LineQubit(2)
             ),
             cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
                 cirq.LineQubit(0)
@@ -341,16 +301,95 @@ def test_optimize_for_target_gateset_multiple_passes(
                 cirq.LineQubit(3)
             ),
             cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
-                cirq.LineQubit(6)
+                cirq.LineQubit(2)
             ),
-            cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5)),
+        ),
+        cirq.Moment(
             cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)),
             cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(3)),
+        ),
+        cirq.Moment(
             cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(1)),
             cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(3)),
-            cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5)),
-        )
+        ),
+        cirq.Moment(
+            cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
+                cirq.LineQubit(6)
+            )
+        ),
+        cirq.Moment(cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5))),
+    )
     got = cirq.optimize_for_target_gateset(
         input_circuit, gateset=gateset, max_num_passes=max_num_passes
     )
-    assert got == desired_circuit
+    cirq.testing.assert_same_circuits(got, desired_circuit)
+
+
+@pytest.mark.parametrize('max_num_passes', [2, None])
+def test_optimize_for_target_gateset_multiple_passes_dont_preserve_moment_structure(
+    max_num_passes: Union[int, None]
+):
+    gateset = cirq.CZTargetGateset(preserve_moment_structure=False)
+
+    input_circuit = cirq.Circuit(
+        [
+            cirq.Moment(
+                cirq.X(cirq.LineQubit(1)),
+                cirq.X(cirq.LineQubit(2)),
+                cirq.X(cirq.LineQubit(3)),
+                cirq.X(cirq.LineQubit(6)),
+            ),
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(0)),
+                cirq.H(cirq.LineQubit(1)),
+                cirq.H(cirq.LineQubit(2)),
+                cirq.H(cirq.LineQubit(3)),
+                cirq.H(cirq.LineQubit(4)),
+                cirq.H(cirq.LineQubit(5)),
+                cirq.H(cirq.LineQubit(6)),
+            ),
+            cirq.Moment(
+                cirq.H(cirq.LineQubit(1)), cirq.H(cirq.LineQubit(3)), cirq.H(cirq.LineQubit(5))
+            ),
+            cirq.Moment(
+                cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)),
+                cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(3)),
+                cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5)),
+            ),
+            cirq.Moment(
+                cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(1)),
+                cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(3)),
+                cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5)),
+            ),
+        ]
+    )
+    desired_circuit = cirq.Circuit(
+        cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
+            cirq.LineQubit(4)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
+            cirq.LineQubit(1)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
+            cirq.LineQubit(2)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=-0.5, z_exponent=1.0).on(
+            cirq.LineQubit(0)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=-1.0, x_exponent=1, z_exponent=0).on(
+            cirq.LineQubit(3)
+        ),
+        cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0.0).on(
+            cirq.LineQubit(6)
+        ),
+        cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(5)),
+        cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)),
+        cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(3)),
+        cirq.CZ(cirq.LineQubit(2), cirq.LineQubit(1)),
+        cirq.CZ(cirq.LineQubit(4), cirq.LineQubit(3)),
+        cirq.CZ(cirq.LineQubit(6), cirq.LineQubit(5)),
+    )
+    got = cirq.optimize_for_target_gateset(
+        input_circuit, gateset=gateset, max_num_passes=max_num_passes
+    )
+    cirq.testing.assert_same_circuits(got, desired_circuit)

@@ -113,7 +113,7 @@ def optimize_for_target_gateset(
 
     Note:
         The optimizer is a heuristic and may not produce optimal results even with
-        max_num_passes=None. The prerprocessors and postprocessors of the gate set
+        max_num_passes=None. The preprocessors and postprocessors of the gate set
         as well as their order yield different results.
 
 
@@ -124,7 +124,8 @@ def optimize_for_target_gateset(
         ignore_failures: If set, operations that fail to convert are left unchanged. If not set,
             conversion failures raise a ValueError.
         max_num_passes: The maximum number of passes to do. A value of `None` means to keep
-            iterating until no further improvements can be made.
+            iterating until no more changes happen to the number of moments or operations.
+
     Returns:
         An equivalent circuit containing gates accepted by `gateset`.
 
@@ -143,7 +144,7 @@ def optimize_for_target_gateset(
             while True:
                 yield 0
 
-    initial_num_moments, initial_num_ops = len(circuit), len(tuple(circuit.all_operations()))
+    initial_num_moments, initial_num_ops = len(circuit), sum(1 for _ in circuit.all_operations())
     for _ in _outerloop():
         for transformer in gateset.preprocess_transformers:
             circuit = transformer(circuit, context=context)
@@ -158,7 +159,7 @@ def optimize_for_target_gateset(
         for transformer in gateset.postprocess_transformers:
             circuit = transformer(circuit, context=context)
 
-        num_moments, num_ops = len(circuit), len(tuple(circuit.all_operations()))
+        num_moments, num_ops = len(circuit), sum(1 for _ in circuit.all_operations())
         if (num_moments, num_ops) == (initial_num_moments, initial_num_ops):
             # Stop early. No further optimizations can be done.
             break

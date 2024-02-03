@@ -58,6 +58,8 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
              `cirq.CZ`, are part of this gateset.
             additional_gates: Sequence of additional gates / gate families which should also
               be "accepted" by this gateset. This is empty by default.
+            preserve_moment_structure: Whether to preserve the moment structure of the
+                circuit during compilation or not.
         """
         super().__init__(
             ops.CZPowGate if allow_partial_czs else ops.CZ,

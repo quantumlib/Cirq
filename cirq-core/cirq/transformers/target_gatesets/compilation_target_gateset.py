@@ -87,6 +87,17 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         unroll_circuit_op: bool = True,
         preserve_moment_structure: bool = True,
     ):
+        """Initializes CompilationTargetGateset.
+
+        Args:
+            *gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
+                `cirq.GateFamily` instances to initialize the Gateset.
+            name: (Optional) Name for the Gateset. Useful for description.
+            unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
+                validated by validating the underlying `cirq.Circuit`.
+            preserve_moment_structure: Whether to preserve the moment structure of the
+                circuit during compilation or not.
+        """
         super().__init__(*gates, name=name, unroll_circuit_op=unroll_circuit_op)
         self._preserve_moment_structure = preserve_moment_structure
 
