@@ -205,3 +205,11 @@ def test_compatible_measurement():
     sim = cirq.ClassicalStateSimulator()
     res = sim.run(c, repetitions=3).records
     np.testing.assert_equal(res['key'], np.array([[[0, 0], [1, 1]]] * 3, dtype=np.uint8))
+
+
+def test_simulation_state():
+    qs = cirq.LineQubit.range(2)
+    sim = cirq.ClassicalStateSimulator()
+    with pytest.raises(NotImplementedError):
+        args = sim._create_simulation_state(initial_state=0, qubits=qs)
+  

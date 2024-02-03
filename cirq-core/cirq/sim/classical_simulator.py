@@ -81,7 +81,7 @@ class ClassicalStateSimulator(
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ) -> TSimulationState:
-        return initial_state
+        raise NotImplementedError()
 
     def _is_identity(self, op: ops.Operation) -> bool:
         if isinstance(op.gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
