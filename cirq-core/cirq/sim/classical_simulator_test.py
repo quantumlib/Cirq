@@ -211,4 +211,4 @@ def test_simulation_state():
     qs = cirq.LineQubit.range(2)
     sim = cirq.ClassicalStateSimulator()
     with pytest.raises(NotImplementedError):
-        args = sim._create_simulation_state(initial_state=0, qubits=qs)
+        sim._create_simulation_state(initial_state=0, qubits=qs)
