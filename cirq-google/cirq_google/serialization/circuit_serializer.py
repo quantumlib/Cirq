@@ -175,7 +175,9 @@ class CircuitSerializer(serializer.Serializer):
                 out=msg.phasedxpowgate.exponent,
                 arg_function_language=arg_function_language,
             )
-        elif isinstance(gate, cirq.PhasedXZGate):
+        elif isinstance(gate, (cirq.PhasedXZGate, cirq.ops.SingleQubitCliffordGate)):
+            if isinstance(gate, cirq.ops.SingleQubitCliffordGate):
+                gate = gate.to_phased_xz_gate()
             arg_func_langs.float_arg_to_proto(
                 gate.x_exponent,
                 out=msg.phasedxzgate.x_exponent,
