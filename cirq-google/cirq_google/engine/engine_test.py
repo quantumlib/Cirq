@@ -767,6 +767,25 @@ def test_bad_sweep_proto():
         program.run_sweep()
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_run_calibration(client):
+    setup_run_circuit_with_result_(client, _CALIBRATION_RESULTS_V2)
+
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
+    q1 = cirq.GridQubit(2, 3)
+    q2 = cirq.GridQubit(2, 4)
+    layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)), {'num_layers': 42})
+    layer2 = cg.CalibrationLayer(
+        'readout', cirq.Circuit(cirq.measure(q1, q2)), {'num_samples': 4242}
+    )
+
+    with pytest.raises(
+        NotImplementedError,
+        match='Calibration programs are no longer supported on the Quantum Engine.',
+    ):
+        engine.run_calibration(layers=[layer1, layer2], job_id='job-id', processor_id='mysim')
+
+
 def test_run_calibration_validation_fails():
     engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     q1 = cirq.GridQubit(2, 3)

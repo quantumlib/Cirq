@@ -46,9 +46,7 @@ from cirq_google.engine import (
     util,
 )
 from cirq_google.cloud import quantum
-from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
-from cirq_google.serialization.arg_func_langs import arg_to_proto
 
 if TYPE_CHECKING:
     import cirq_google
@@ -648,23 +646,10 @@ class Engine(abstract_engine.AbstractEngine):
     ) -> engine_program.EngineProgram:
         """Wraps a list of Circuits into a BatchProgram for the Quantum Engine.
 
-        Args:
-            programs: The Circuits to execute within a batch.
-            program_id: A user-provided identifier for the program. This must be
-                unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            description: An optional description to set on the program.
-            labels: Optional set of labels to set on the program.
-
-        Returns:
-            A EngineProgram for the newly created program.
-
         Raises:
-            ValueError: If no gate set is provided.
+            NotImplementedError: Batch programs are no longer supported by the Quantum Engine.
         """
-        raise NotImplementedError('Batch programs are not yet supported by the Quantum Engine.')
+        raise NotImplementedError('Batch programs are no longer supported by the Quantum Engine.')
 
     create_batch_program = duet.sync(create_batch_program_async)
 
@@ -677,28 +662,11 @@ class Engine(abstract_engine.AbstractEngine):
     ) -> engine_program.EngineProgram:
         """Wraps a list of calibration layers into an Any for Quantum Engine.
 
-        Args:
-            layers: The calibration routines to execute.  All layers will be
-                executed within the same API call in the order specified,
-                though some layers may be interleaved together using
-                hardware-specific batching.
-            program_id: A user-provided identifier for the program. This must be
-                unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'calibration-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            description: An optional description to set on the program.
-            labels: Optional set of labels to set on the program.
-
-        Returns:
-            A EngineProgram for the newly created program.
-
         Raises:
-            ValueError: If not gate set is given.
+            NotImplementedError: Calibration programs are no longer supported on the Quantum Engine.
         """
         raise NotImplementedError(
-            'Calibration programs are not yet supported on the Quantum Engine.'
+            'Calibration programs are no longer supported on the Quantum Engine.'
         )
 
     create_calibration_program = duet.sync(create_calibration_program_async)
