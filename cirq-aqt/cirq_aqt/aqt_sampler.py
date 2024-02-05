@@ -26,9 +26,10 @@ import json
 import time
 import uuid
 from typing import cast, Dict, List, Sequence, Tuple, Union
+from urllib.parse import urljoin
 
 import numpy as np
-from requests import put
+from requests import post, get
 
 import cirq
 from cirq_aqt.aqt_device import AQTSimulator, get_op_string
@@ -40,15 +41,67 @@ class AQTSampler(cirq.Sampler):
     runs a single circuit or an entire sweep remotely
     """
 
-    def __init__(self, remote_host: str, access_token: str):
+    def __init__(self, workspace: str, resource: str, access_token: str, remote_host: str = "https://arnica.aqt.eu/api/v1/"):
         """Inits AQTSampler.
 
         Args:
-            remote_host: Address of the remote device.
-            access_token: Access token for the remote api.
+            workspace: the ID of the workspace you have access to.
+            resource: the ID of the resource to run the circuit on.
+            access_token: Access token for the AQT API.
+            remote_host: Address of the AQT API.
         """
+        self.workspace = workspace
+        self.resource = resource
         self.remote_host = remote_host
         self.access_token = access_token
+
+    @staticmethod
+    def fetch_resources(access_token: str, remote_host: str = "https://arnica.aqt.eu/api/v1/") -> None:
+        """Lists the workspaces and resources that are accessible with access_token.
+
+        Prints a table to STDOUT containing the workspaces and resources that the
+        passed access_token gives access to. The IDs in this table can be used to
+        submit jobs using the run and run_sweep methods.
+
+        The printed table contains four columns:
+            - WORKSPACE ID: the ID of the workspace. Use this value to submit circuits.
+            - RESOURCE NAME: the human-readable name of the resource.
+            - RESOURCE ID: the ID of the resource. Use this value to submit circuits.
+            - D/S: whether the resource is a (D)evice or (S)imulator.
+
+        Args:
+            access_token: Access token for the AQT API.
+            remote_host: Address of the AQT API. Defaults to "https://arnica.aqt.eu/api/v1/".
+
+        Raises:
+            RuntimeError: If there was an unexpected response from the server.
+        """
+        headers = {"Authorization": f"Bearer {access_token}", "SDK": "cirq"}
+        url = urljoin(remote_host if remote_host[-1] == "/" else remote_host + "/", "workspaces")
+
+        response = get(url, headers=headers)
+        if response.status_code != 200:
+            raise RuntimeError('Got unexpected return data from server: \n' + str(response.json()))
+        
+        workspaces = cast(list, response.json())
+        col_widths = [19, 21, 20, 3]
+
+        for workspace in workspaces:
+            col_widths[0] = max(col_widths[0], len(workspace['id']))
+            for resource in workspace['resources']:
+                col_widths[1] = max(col_widths[1], len(resource['name']))
+                col_widths[2] = max(col_widths[2], len(resource['id']))
+
+        print("+-" + col_widths[0]*"-"+ "-+-" + col_widths[1]*"-" + "-+-" + col_widths[2]*"-"  + "-+-" + col_widths[3]*"-" + "-+")
+        print(f"| {'WORKSPACE ID'.ljust(col_widths[0])} | {'RESOURCE NAME'.ljust(col_widths[1])} | {'RESOURCE ID'.ljust(col_widths[2])} | {'D/S'.ljust(col_widths[3])} |" )
+        print("+-" + col_widths[0]*"-"+ "-+-" + col_widths[1]*"-" + "-+-" + col_widths[2]*"-"  + "-+-" + col_widths[3]*"-" + "-+")
+
+        for workspace in workspaces:            
+            next_workspace = workspace['id']
+            for resource in workspace["resources"]:
+                print(f"| {next_workspace.ljust(col_widths[0])} | {resource['name'].ljust(col_widths[1])} | {resource['id'].ljust(col_widths[2])} | {resource['type'][0].upper().ljust(col_widths[3])} |" )
+                next_workspace = ""
+            print(f"+-----------------------+-----------------------+----------------------+---+" )
 
     def _generate_json(
         self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolverOrSimilarType
@@ -62,7 +115,7 @@ class AQTSampler(cirq.Sampler):
         which is a list of sequential quantum operations,
         each operation defined by:
 
-        op_string: str that specifies the operation type: "X","Y","Z","MS"
+        op_string: str that specifies the operation type: "Z","MS","R","Meas"
         gate_exponent: float that specifies the gate_exponent of the operation
         qubits: list of qubits where the operation acts on.
 
@@ -99,28 +152,78 @@ class AQTSampler(cirq.Sampler):
             raise RuntimeError('Cannot send an empty circuit')
         json_str = json.dumps(seq_list)
         return json_str
+    
+    def _parse_legacy_circuit_json(self, json_str: str) -> list:
+        """Converts a legacy JSON circuit representation.
+        
+        Converts a JSON created for the legacy API into one that will work
+        with the new API.
+
+        Args:
+            json_str: A JSON-formatted string that could be used as the
+                data parameter in the body of a request to the old AQT API.
+        """
+        circuit = []
+        number_of_measurements = 0
+
+        for legacy_op in json.loads(json_str):
+            if number_of_measurements > 0:
+                raise ValueError(
+                    "Need exactly one `MEASURE` operation at the end of the circuit."
+                )
+
+            instruction = {}
+
+            if legacy_op[0] == "Z":
+                instruction["operation"] = "RZ"
+                instruction["qubit"] = legacy_op[2][0]
+                instruction["phi"] = legacy_op[1]
+
+            elif legacy_op[0] == "R":
+                instruction["operation"] = "R"
+                instruction["qubit"] = legacy_op[3][0]
+                instruction["theta"] = legacy_op[1]
+                instruction["phi"] = legacy_op[2]
+
+            elif legacy_op[0] == "MS":
+                instruction["operation"] = "RXX"
+                instruction["qubits"] = legacy_op[2]
+                instruction["theta"] = legacy_op[1]
+
+            elif legacy_op[0] == "Meas":
+                instruction["operation"] = "MEASURE"
+                number_of_measurements += 1
+
+            else:
+                raise ValueError(f'Got unknown gate on operation: {legacy_op}.')
+            
+            circuit.append(instruction)
+        
+        if circuit[-1]["operation"] != "MEASURE":
+            circuit.append({"operation": "MEASURE"})
+
+        return circuit
 
     def _send_json(
         self,
         *,
         json_str: str,
-        id_str: Union[str, uuid.UUID],
+        id_str: str,
         repetitions: int = 1,
         num_qubits: int = 1,
     ) -> np.ndarray:
-        """Sends the json string to the remote AQT device
+        """Sends the json string to the remote AQT device.
 
-        The interface is given by PUT requests to a single endpoint URL.
-        The first PUT will insert the circuit into the remote queue,
-        given a valid access key.
-        Every subsequent PUT will return a dictionary, where the key "status"
-        is either 'queued', if the circuit has not been processed yet or
-        'finished' if the circuit has been processed.
-        The experimental data is returned via the key 'data'
+        Submits a pre-prepared JSON string representing a circuit to the AQT
+        API, then polls for the result, which is parsed and returned when 
+        available.
+
+        Please consider that due to the potential for long wait-times, there is
+        no timeout in the result polling.
 
         Args:
             json_str: Json representation of the circuit.
-            id_str: Unique id of the datapoint.
+            id_str: A label to help identify a circuit.
             repetitions: Number of repetitions.
             num_qubits: Number of qubits present in the device.
 
@@ -130,49 +233,64 @@ class AQTSampler(cirq.Sampler):
         Raises:
             RuntimeError: If there was an unexpected response from the server.
         """
-        header = {"Ocp-Apim-Subscription-Key": self.access_token, "SDK": "cirq"}
-        response = put(
-            self.remote_host,
-            data={
-                'data': json_str,
-                'access_token': self.access_token,
-                'repetitions': repetitions,
-                'no_qubits': num_qubits,
+        headers = {"Authorization": f"Bearer {self.access_token}", "SDK": "cirq"}
+        quantum_circuit = self._parse_legacy_circuit_json(json_str)
+        submission_data = {
+            "job_type": "quantum_circuit",
+            "label": id_str,
+            "payload": {
+                "circuits": [
+                    {
+                        "repetitions": repetitions,
+                        "quantum_circuit": quantum_circuit,
+                        "number_of_qubits": num_qubits,
+                    },
+                ],
             },
-            headers=header,
+        }
+
+        submission_url = urljoin(self.remote_host, f"submit/{self.workspace}/{self.resource}")
+
+        response = post(
+            submission_url,
+            json=submission_data,
+            headers=headers,
         )
         response = response.json()
         data = cast(Dict, response)
-        if 'status' not in data.keys():
+
+        if 'response' not in data.keys() or 'status' not in data['response'].keys():
             raise RuntimeError('Got unexpected return data from server: \n' + str(data))
-        if data['status'] == 'error':
+        if data['response']['status'] == 'error':
             raise RuntimeError('AQT server reported error: \n' + str(data))
 
-        if 'id' not in data.keys():
+        if 'job' not in data.keys() or 'job_id' not in data['job'].keys():
             raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
-        id_str = data['id']
+        job_id = data['job']['job_id']
 
+        result_url = urljoin(self.remote_host, f"result/{job_id}")
         while True:
-            response = put(
-                self.remote_host,
-                data={'id': id_str, 'access_token': self.access_token},
-                headers=header,
-            )
+            response = get(result_url, headers=headers)
             response = response.json()
             data = cast(Dict, response)
-            if 'status' not in data.keys():
+
+            if 'response' not in data.keys() or 'status' not in data['response'].keys():
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
-            if data['status'] == 'finished':
+            if data['response']['status'] == 'finished':
                 break
-            elif data['status'] == 'error':
+            elif data['response']['status'] == 'error':
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             time.sleep(1.0)
-        measurements_int = data['samples']
-        measurements = np.zeros((len(measurements_int), num_qubits))
-        for i, result_int in enumerate(measurements_int):
-            measurement_int_bin = format(result_int, f'0{num_qubits}b')
+
+        if 'result' not in data['response'].keys():
+            raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
+        
+        measurement_int = data['response']['result']['0']
+        measurements = np.zeros((repetitions, num_qubits), dtype=int)
+        for i, repetition in enumerate(measurement_int):
             for j in range(num_qubits):
-                measurements[i, j] = int(measurement_int_bin[j])
+                measurements[i, j] = repetition[j]
+        
         return measurements
 
     def run_sweep(
@@ -198,7 +316,7 @@ class AQTSampler(cirq.Sampler):
         meas_name = 'm'
         trial_results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
-            id_str = uuid.uuid1()
+            id_str = str(uuid.uuid1())
             num_qubits = len(program.all_qubits())
             json_str = self._generate_json(circuit=program, param_resolver=param_resolver)
             results = self._send_json(
@@ -223,10 +341,12 @@ class AQTSamplerLocalSimulator(AQTSampler):
     sampler.simulate_ideal=True
     """
 
-    def __init__(self, remote_host: str = '', access_token: str = '', simulate_ideal: bool = False):
+    def __init__(self, workspace: str = "", resource: str = "", access_token: str = "", remote_host: str = "", simulate_ideal: bool = False):
         """Args:
-        remote_host: Remote host is not used by the local simulator.
+        workspace: Workspace is not used by the local simulator.
+        resource: Resource is not used by the local simulator.
         access_token: Access token is not used by the local simulator.
+        remote_host: Remote host is not used by the local simulator.
         simulate_ideal: Boolean that determines whether a noisy or
                         an ideal simulation is performed.
         """
@@ -238,7 +358,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
         self,
         *,
         json_str: str,
-        id_str: Union[str, uuid.UUID],
+        id_str: str,
         repetitions: int = 1,
         num_qubits: int = 1,
     ) -> np.ndarray:
@@ -246,7 +366,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
 
         Args:
             json_str: Json representation of the circuit.
-            id_str: Unique id of the datapoint.
+            id_str: A label to help identify a datapoint.
             repetitions: Number of repetitions.
             num_qubits: Number of qubits present in the device.
 

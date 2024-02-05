@@ -1,44 +1,42 @@
 # Access and Authentication
 
-AQT offers access to several quantum computing devices, called backends,
+AQT offers access to several quantum computing devices, called quantum resources,
 ranging from real-hardware ion traps with various number of ions to
 quantum computing simulators including different noise models.
-To get an overview of available devices visit
-[www.aqt.eu](https://www.aqt.eu){:.external} and get direct access to the devices via the
-[AQT gateway portal](https://gateway-portal.aqt.eu){:.external}.
+To get an overview of available resources and information on how to get 
+access to them, visit [www.aqt.eu](https://www.aqt.eu/qc-systems/){:.external}.
 
 ## Tokens
 
-The AQT API to access backends uses token-based authentication. In order to be
-able to submit quantum circuits via quantum programming software development
-kits, you need to supply these tokens. Once you have successfully subscribed
-to an AQT backend, you can retrieve the token on the
-[AQT gateway portal](https://gateway-portal.aqt.eu){:.external}
-and use it in your quantum programs or Jupyter notebook tutorials.
+The AQT API to access quantum resources uses token-based authentication. In order to be
+able to submit quantum circuits you need to supply your token. You can request a 
+token from AQT and once you have it, use it in your quantum programs 
+or Jupyter notebook tutorials.
 
-## Backend URLs
+## Workspaces and Resources
 
-Accessing the AQT backends is done using a URL for each backend.
-E.g. the AQT simulators which are capable of running ideal simulations
-(without a noise model) and real simulations (with a noise model) of a
-quantum circuit have different URLs. For running a simulation without noise model use:
+To submit circuits to an AQT backend you need to specify a workspace and resource.
+E.g. to send a circuit to one of the hosted AQT simulators, which are capable of 
+running ideal simulations (without a noise model) and real simulations (with a 
+noise model) of a quantum circuit, you might use the workspace `aqt-simulators` 
+and the resource `simulator_noise`.
 
-```python
-url = 'https://gateway.aqt.eu/marmot/sim/'
-```
+Which workspaces and resources you have access to, can be retrieved using your access 
+token. The resource type helps distinguishing between
+- device (real hardware)
+- simulator (hosted simulators)
+- offline_simulator (offline simulators)
 
-whereas for a simulation with noise model use:
+## Offline Simulators
 
-```python
-url = 'https://gateway.aqt.eu/marmot/sim/noise-model-1'
-```
+The Cirq simulator with AQT specific noise model can be used to simulate circuits 
+even without a token on your machine. 
 
-Real-hardware backends have similar URLs which can be retrieved together
-with the token on the
-[AQT gateway portal](https://gateway-portal.aqt.eu){:.external}.
+## REST API
+
+It is also possible to access the documentation of the underlying REST API at 
+[AQT Public API](https://arnica.aqt.eu/api/v1/docs){:.external}.
 
 ## Next Steps
 
-At this point, you should now have access to the AQT service.
-You can now try out our
-[Getting Started Guide](./getting_started.ipynb).
+You can now try out our [Getting Started Guide](./getting_started.ipynb).
