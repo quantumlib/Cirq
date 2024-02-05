@@ -11,12 +11,11 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from . import program_pb2 as cirq__google_dot_api_dot_v2_dot_program__pb2
 from . import result_pb2 as cirq__google_dot_api_dot_v2_dot_result__pb2
 from . import run_context_pb2 as cirq__google_dot_api_dot_v2_dot_run__context__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x63irq_google/api/v2/batch.proto\x12\x12\x63irq.google.api.v2\x1a cirq_google/api/v2/program.proto\x1a\x1f\x63irq_google/api/v2/result.proto\x1a$cirq_google/api/v2/run_context.proto\"G\n\x0f\x42\x61tchRunContext\x12\x34\n\x0crun_contexts\x18\x01 \x03(\x0b\x32\x1e.cirq.google.api.v2.RunContext\":\n\x0b\x42\x61tchResult\x12+\n\x07results\x18\x01 \x03(\x0b\x32\x1a.cirq.google.api.v2.ResultB-\n\x1d\x63om.google.cirq.google.api.v2B\nBatchProtoP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x63irq_google/api/v2/batch.proto\x12\x12\x63irq.google.api.v2\x1a\x1f\x63irq_google/api/v2/result.proto\x1a$cirq_google/api/v2/run_context.proto\"G\n\x0f\x42\x61tchRunContext\x12\x34\n\x0crun_contexts\x18\x01 \x03(\x0b\x32\x1e.cirq.google.api.v2.RunContext\":\n\x0b\x42\x61tchResult\x12+\n\x07results\x18\x01 \x03(\x0b\x32\x1a.cirq.google.api.v2.ResultB-\n\x1d\x63om.google.cirq.google.api.v2B\nBatchProtoP\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'cirq_google.api.v2.batch_pb2', globals())
@@ -24,8 +23,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   DESCRIPTOR._serialized_options = b'\n\035com.google.cirq.google.api.v2B\nBatchProtoP\001'
-  _BATCHRUNCONTEXT._serialized_start=159
-  _BATCHRUNCONTEXT._serialized_end=230
-  _BATCHRESULT._serialized_start=232
-  _BATCHRESULT._serialized_end=290
+  _BATCHRUNCONTEXT._serialized_start=125
+  _BATCHRUNCONTEXT._serialized_end=196
+  _BATCHRESULT._serialized_start=198
+  _BATCHRESULT._serialized_end=256
 # @@protoc_insertion_point(module_scope)
