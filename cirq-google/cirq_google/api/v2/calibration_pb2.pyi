@@ -69,34 +69,6 @@ needed by the calibration did not exist.
 global___CalibrationLayerCode = CalibrationLayerCode
 
 @typing_extensions.final
-class FocusedCalibration(google.protobuf.message.Message):
-    """ This message represents a request to execute a custom calibration routine."""
-
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-    LAYERS_FIELD_NUMBER: builtins.int
-    @property
-    def layers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___CalibrationLayer]:
-        """The layers field represents each invocation of a calibration
-        procedure.
-
-        For instance, each (unique) moment of a circuit could be
-        calibrated using parallel_xeb.  In this case,
-        each moment would have its own CalibrationLayer.
-
-        Some calibrations, such as a readout calibration,
-        will only have one layer.
-        """
-    def __init__(
-        self,
-        *,
-        layers: collections.abc.Iterable[global___CalibrationLayer] | None = ...,
-    ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["layers", b"layers"]) -> None: ...
-
-global___FocusedCalibration = FocusedCalibration
-
-@typing_extensions.final
 class CalibrationLayer(google.protobuf.message.Message):
     """Each CalibrationLayer represents one invocation
     of a calibration procedure.

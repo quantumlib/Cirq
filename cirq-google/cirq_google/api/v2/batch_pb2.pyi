@@ -3,7 +3,6 @@
 isort:skip_file
 """
 import builtins
-import cirq_google.api.v2.program_pb2
 import cirq_google.api.v2.result_pb2
 import cirq_google.api.v2.run_context_pb2
 import collections.abc
@@ -18,32 +17,6 @@ else:
     import typing_extensions
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
-
-@typing_extensions.final
-class BatchProgram(google.protobuf.message.Message):
-    """A Batch of multiple circuits that should be run together
-    as one QuantumProgram within Quantum Engine.
-
-    Note: Batching is done on a best-effort basis.
-    Circuits will be be bundled together, but the size
-    of the total batch and different hardware constraints may
-    cause the programs to be executed separately on the hardware.
-    """
-
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-    PROGRAMS_FIELD_NUMBER: builtins.int
-    @property
-    def programs(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[cirq_google.api.v2.program_pb2.Program]:
-        """The circuits that should be bundled together as one program"""
-    def __init__(
-        self,
-        *,
-        programs: collections.abc.Iterable[cirq_google.api.v2.program_pb2.Program] | None = ...,
-    ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["programs", b"programs"]) -> None: ...
-
-global___BatchProgram = BatchProgram
 
 @typing_extensions.final
 class BatchRunContext(google.protobuf.message.Message):

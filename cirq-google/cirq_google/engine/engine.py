@@ -664,24 +664,7 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        if not program_id:
-            program_id = _make_random_id('prog-')
-
-        batch = v2.batch_pb2.BatchProgram()
-        for program in programs:
-            self.context.serializer.serialize(program, msg=batch.programs.add())
-
-        new_program_id, new_program = await self.context.client.create_program_async(
-            self.project_id,
-            program_id,
-            code=util.pack_any(batch),
-            description=description,
-            labels=labels,
-        )
-
-        return engine_program.EngineProgram(
-            self.project_id, new_program_id, self.context, new_program, result_type=ResultType.Batch
-        )
+        raise NotImplementedError('Batch programs are not yet supported by the Quantum Engine.')
 
     create_batch_program = duet.sync(create_batch_program_async)
 
@@ -714,31 +697,8 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If not gate set is given.
         """
-        if not program_id:
-            program_id = _make_random_id('calibration-')
-
-        calibration = v2.calibration_pb2.FocusedCalibration()
-        for layer in layers:
-            new_layer = calibration.layers.add()
-            new_layer.calibration_type = layer.calibration_type
-            for arg in layer.args:
-                arg_to_proto(layer.args[arg], out=new_layer.args[arg])
-            self.context.serializer.serialize(layer.program, msg=new_layer.layer)
-
-        new_program_id, new_program = await self.context.client.create_program_async(
-            self.project_id,
-            program_id,
-            code=util.pack_any(calibration),
-            description=description,
-            labels=labels,
-        )
-
-        return engine_program.EngineProgram(
-            self.project_id,
-            new_program_id,
-            self.context,
-            new_program,
-            result_type=ResultType.Calibration,
+        raise NotImplementedError(
+            'Calibration programs are not yet supported on the Quantum Engine.'
         )
 
     create_calibration_program = duet.sync(create_calibration_program_async)

@@ -9,20 +9,6 @@ option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "FocusedCalibrationProto";
 option java_multiple_files = true;
 
-//  This message represents a request to execute a custom calibration routine.
-//
-message FocusedCalibration {
-     // The layers field represents each invocation of a calibration
-     // procedure.
-     //
-     // For instance, each (unique) moment of a circuit could be
-     // calibrated using parallel_xeb.  In this case,
-     // each moment would have its own CalibrationLayer.
-     //
-     // Some calibrations, such as a readout calibration,
-     // will only have one layer.
-     repeated CalibrationLayer layers = 1;
-}
 
 // Each CalibrationLayer represents one invocation
 // of a calibration procedure.

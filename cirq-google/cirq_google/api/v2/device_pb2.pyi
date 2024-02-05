@@ -295,7 +295,7 @@ class ArgDefinition(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _ArgTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[ArgDefinition._ArgType.ValueType], builtins.type):  # noqa: F821
+    class _ArgTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[ArgDefinition._ArgType.ValueType], builtins.type):
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         UNSPECIFIED: ArgDefinition._ArgType.ValueType  # 0
         FLOAT: ArgDefinition._ArgType.ValueType  # 1
@@ -373,7 +373,7 @@ class TargetSet(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _TargetOrderingEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[TargetSet._TargetOrdering.ValueType], builtins.type):  # noqa: F821
+    class _TargetOrderingEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[TargetSet._TargetOrdering.ValueType], builtins.type):
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         UNSPECIFIED: TargetSet._TargetOrdering.ValueType  # 0
         SYMMETRIC: TargetSet._TargetOrdering.ValueType  # 1
