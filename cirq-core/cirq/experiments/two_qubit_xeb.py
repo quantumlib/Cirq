@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def grid_qubits_for_sampler(sampler: 'cirq.Sampler'):
+def _grid_qubits_for_sampler(sampler: 'cirq.Sampler'):
     if hasattr(sampler, 'processor'):
         device = sampler.processor.get_device()
         return sorted(device.metadata.qubit_set)
@@ -48,12 +48,12 @@ def parallel_two_qubit_randomized_benchmarking(
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
-    random_state: 'value.RANDOM_STATE_OR_SEED_LIKE' = 42,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
 ):
     rs = value.parse_random_state(random_state)
 
-    qubits = grid_qubits_for_sampler(sampler)
-    n_rows = max(q.row for q in qubits) * 2 + 1
+    qubits = _grid_qubits_for_sampler(sampler)
+    n_rows = max(q.row for q in qubits) + 1
     n_cols = max(q.col for q in qubits) * 2 + 1
     plt.figure(2, figsize=(n_cols, n_rows))
     graph = ccr.gridqubits_to_graph_device(qubits)
