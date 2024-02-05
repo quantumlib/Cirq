@@ -103,7 +103,7 @@ class TwoQubitRandomizedBenchMarkResult:
         return 1 - p
 
     def pauli_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
-        return self.depolarization_error(q0, q1) * (1 - 1 / 8)
+        return self.depolarization_error(q0, q1) * (1 - 1 / 16)
 
     def average_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
         return self.depolarization_error() * (1 - 1 / 4)
