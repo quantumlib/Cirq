@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple
+
+import itertools
 
 from matplotlib import pyplot as plt
 import networkx as nx
@@ -20,7 +22,6 @@ import pandas as pd
 import seaborn as sns  # type: ignore
 
 from cirq import ops, devices, value, vis
-import cirq.contrib.routing as ccr
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 from cirq.experiments.xeb_fitting import benchmark_2q_xeb_fidelities
 from cirq.experiments.xeb_fitting import fit_exponential_decays, exponential_decay
@@ -41,6 +42,76 @@ def _grid_qubits_for_sampler(sampler: 'cirq.Sampler'):
         return qubits[:-1]
 
 
+def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
+    return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
+
+
+class TwoQubitRandomizedBenchMarkResult:
+    def __init__(self, fidelities: pd.DataFrame) -> None:
+        self.fidelities = fidelities
+        self._qubit_pair_map = {idx[-1]: i for i, idx in enumerate(fidelities.index)}
+
+    def plot_device_fidelities_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs):
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
+        heatmap_data = {}
+        for (_, _, pair), fidelity in self.fidelities.layer_fid.items():
+            heatmap_data[pair] = 1.0 - fidelity
+
+        ax.title('device fidelity heatmap')
+        vis.TwoQubitInteractionHeatmap(heatmap_data).plot(ax=ax, **plot_kwargs)
+        if show_plot:
+            fig.show()
+
+    def plot_fitted_exponential(
+        self,
+        q0: 'cirq.GridQubit',
+        q1: 'cirq.GridQubit',
+        ax: Optional[plt.Axes] = None,
+        **plot_kwargs,
+    ):
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        if q0 > q1:
+            q0, q1 = q1, q0
+        record = self.fidelities.iloc[self._qubit_pair_map[(q0, q1)]]
+
+        plt.axhline(1, color='grey', ls='--')
+        plt.plot(record['cycle_depths'], record['fidelities'], 'o')
+        xx = np.linspace(0, np.max(record['cycle_depths']))
+
+        ax.plot(
+            xx,
+            exponential_decay(xx, a=record['a'], layer_fid=record['layer_fid']),
+            label='estimated exponential decay',
+            **plot_kwargs,
+        )
+        ax.title(f'{q0}-{q1}')
+        ax.ylabel('Circuit fidelity')
+        ax.xlabel('Cycle Depth $d$')
+        ax.legend(loc='best')
+        if show_plot:
+            fig.show()
+
+    def depolarization_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
+        if q0 > q1:
+            q0, q1 = q1, q0
+        p = self.fidelities.layer_fid[self._qubit_pair_map[(q0, q1)]]
+        return 1 - p
+
+    def pauli_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
+        return self.depolarization_error(q0, q1) * (1 - 1 / 8)
+
+    def average_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
+        return self.depolarization_error() * (1 - 1 / 4)
+
+    def all_qubit_pairs(self) -> frozenset[Tuple['cirq.GridQubit', 'Cirq.GridQubit']]:
+        return frozenset(self._qubit_pair_map.keys())
+
+
 def parallel_two_qubit_randomized_benchmarking(
     sampler: 'cirq.Sampler',
     entangling_gate: 'cirq.Gate' = ops.CZ,
@@ -49,14 +120,16 @@ def parallel_two_qubit_randomized_benchmarking(
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
-):
+) -> TwoQubitRandomizedBenchMarkResult:
     rs = value.parse_random_state(random_state)
 
     qubits = _grid_qubits_for_sampler(sampler)
     n_rows = max(q.row for q in qubits) + 1
     n_cols = max(q.col for q in qubits) * 2 + 1
     plt.figure(2, figsize=(n_cols, n_rows))
-    graph = ccr.gridqubits_to_graph_device(qubits)
+    graph = nx.Graph(
+        pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
+    )
     nx.draw_networkx(graph, pos={q: (q.row, q.col) for q in qubits})
     plt.title('device layout')
     plt.show()
@@ -102,30 +175,4 @@ def parallel_two_qubit_randomized_benchmarking(
     )
 
     print('Fit exponential decays')
-    return fit_exponential_decays(fids)
-
-
-def visulaize_fidelities(fidelities: pd.DataFrame):
-    heatmap_data = {}
-    for (_, _, pair), fidelity in fidelities.layer_fid.items():
-        heatmap_data[pair] = 1.0 - fidelity
-
-    vis.TwoQubitInteractionHeatmap(heatmap_data).plot()
-    plt.title('device fidelity heatmap')
-    plt.show()
-
-    for i, record in fidelities.iterrows():
-        plt.axhline(1, color='grey', ls='--')
-        plt.plot(record['cycle_depths'], record['fidelities'], 'o')
-        xx = np.linspace(0, np.max(record['cycle_depths']))
-        plt.plot(
-            xx,
-            exponential_decay(xx, a=record['a'], layer_fid=record['layer_fid']),
-            label='estimated exponential decay',
-        )
-        q0, q1 = i[-1]
-        plt.title(f'{q0}-{q1}')
-        plt.ylabel('Circuit fidelity')
-        plt.xlabel('Cycle Depth $d$')
-        plt.legend(loc='best')
-        plt.show()
+    return TwoQubitRandomizedBenchMarkResult(fit_exponential_decays(fids))
