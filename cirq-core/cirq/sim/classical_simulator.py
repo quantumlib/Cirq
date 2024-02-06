@@ -73,6 +73,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         else:
             raise ValueError(f'{gate} is not one of X, CNOT, SWAP, CCNOT, or a measurement')
 
+
 class ClassicalStateStepResult(sim.StepResultBase[TSimulationState], Generic[TSimulationState]):
     """The step result provided by `ClassicalStateSimulator.simulate_moment_steps`."""
 
@@ -127,7 +128,10 @@ class ClassicalStateSimulator(
         return ClassicalStateStepResult(sim_state)
 
     def _create_partial_simulation_state(
-        self, initial_state: Any, qubits: Sequence['cirq.Qid'], classical_data: 'cirq.ClassicalDataStore'
+        self, 
+        initial_state: Any, 
+        qubits: Sequence['cirq.Qid'], 
+        classical_data: 'cirq.ClassicalDataStore',
     ) -> TSimulationState:
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
