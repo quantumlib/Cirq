@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict
 
+from dataclasses import dataclass
 import itertools
 import functools
 
@@ -20,7 +21,6 @@ from matplotlib import pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-import seaborn as sns  # type: ignore
 
 from cirq import ops, devices, value, vis
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
@@ -43,28 +43,43 @@ def _grid_qubits_for_sampler(sampler: 'cirq.Sampler'):
         return qubits[:-1]
 
 
-def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
+def _manhattan_distance(qubit1: 'cirq.GridQubit', qubit2: 'cirq.GridQubit') -> int:
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
-def _decay_error(fidelity: float, n: int) -> float:
-    return 1 - (1 - fidelity) * (2**n) / (2**n - 1)
-
-
+@dataclass(frozen=True)
 class TwoQubitXEBResult:
-    def __init__(self, fidelities: pd.DataFrame) -> None:
-        self.fidelities = fidelities
-        self._qubit_pair_map = {idx[-1]: i for i, idx in enumerate(fidelities.index)}
+    """Results from an XEB experiment."""
 
-    def plot_heatmap(self, ax: Optional[plt.Axes] = None, target_error: str = 'xeb', **plot_kwargs):
+    fidelities: pd.DataFrame
+
+    @functools.cached_property
+    def _qubit_pair_map(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], int]:
+        return {idx[-1]: i for i, idx in enumerate(self.fidelities.index)}
+
+    @functools.cached_property
+    def all_qubit_pairs(self) -> Tuple[Tuple['cirq.GridQubit', 'cirq.GridQubit'], ...]:
+        return tuple(sorted(self._qubit_pair_map.keys()))
+
+    def plot_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs):
+        """plot the heatmap for xeb error.
+
+        Args:
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        """
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-        error_func = self.xeb_error
-        heatmap_data = {pair: error_func(*pair) for pair in self.all_qubit_pairs}
+        heatmap_data: Dict[Tuple['cirq.GridQubit', ...], float] = {
+            pair: self.xeb_error(*pair) for pair in self.all_qubit_pairs
+        }
 
-        ax.title(f'device {target_error} error heatmap')
+        if ax is not None:
+            ax.set_title('device xeb error heatmap')
+
         vis.TwoQubitInteractionHeatmap(heatmap_data).plot(ax=ax, **plot_kwargs)
         if show_plot:
             fig.show()
@@ -76,6 +91,15 @@ class TwoQubitXEBResult:
         ax: Optional[plt.Axes] = None,
         **plot_kwargs,
     ):
+        """plot the fitted model to for xeb error of a qubit pair.
+
+        Args:
+            q0: first qubit.
+            q1: second qubit.
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        """
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
@@ -87,28 +111,26 @@ class TwoQubitXEBResult:
         plt.plot(record['cycle_depths'], record['fidelities'], 'o')
         xx = np.linspace(0, np.max(record['cycle_depths']))
 
-        ax.plot(
-            xx,
-            exponential_decay(xx, a=record['a'], layer_fid=record['layer_fid']),
-            label='estimated exponential decay',
-            **plot_kwargs,
-        )
-        ax.title(f'{q0}-{q1}')
-        ax.ylabel('Circuit fidelity')
-        ax.xlabel('Cycle Depth $d$')
-        ax.legend(loc='best')
+        if ax is not None:
+            ax.plot(
+                xx,
+                exponential_decay(xx, a=record['a'], layer_fid=record['layer_fid']),
+                label='estimated exponential decay',
+                **plot_kwargs,
+            )
+            ax.set_title(f'{q0}-{q1}')
+            ax.set_ylabel('Circuit fidelity')
+            ax.set_xlabel('Cycle Depth $d$')
+            ax.legend(loc='best')
         if show_plot:
             fig.show()
 
-    def xeb_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
+    def xeb_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
+        """Return the XEB error of a qubit pair."""
         if q0 > q1:
             q0, q1 = q1, q0
-        p = self.fidelities.layer_fid[self._qubit_pair_map[(q0, q1)]]
+        p = self.fidelities.layer_fid.iloc[self._qubit_pair_map[(q0, q1)]]
         return 1 - p
-
-    @functools.cached_property
-    def all_qubit_pairs(self) -> frozenset[Tuple['cirq.GridQubit', 'Cirq.GridQubit']]:
-        return frozenset(self._qubit_pair_map.keys())
 
 
 def parallel_two_qubit_xeb(
@@ -119,19 +141,37 @@ def parallel_two_qubit_xeb(
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
+    ax: Optional[plt.Axes] = None,
+    **plot_kwargs,
 ) -> TwoQubitXEBResult:
+    """A convenience method that runs the full XEB workflow.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        entangling_gate: The entangling gate to use.
+        n_repetitions: The number of repetitions to use.
+        n_combinations: The number of combinations to generate.
+        n_circuits: The number of circuits to generate.
+        cycle_depths: The cycle depths to use.
+        random_state: The random state to use.
+        ax: the plt.Axes to plot the device layout on. If not given,
+            no plot is created.
+        **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+    Returns:
+        A TwoQubitXEBResult object representing the results of the experiment.
+    """
     rs = value.parse_random_state(random_state)
 
     qubits = _grid_qubits_for_sampler(sampler)
-    n_rows = max(q.row for q in qubits) + 1
-    n_cols = max(q.col for q in qubits) * 2 + 1
-    plt.figure(2, figsize=(n_cols, n_rows))
     graph = nx.Graph(
         pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
     )
-    nx.draw_networkx(graph, pos={q: (q.row, q.col) for q in qubits})
-    plt.title('device layout')
-    plt.show()
+
+    if ax is not None:
+        nx.draw_networkx(graph, pos={q: (q.row, q.col) for q in qubits}, ax=ax)
+        ax.set_title('device layout')
+        ax.plot(**plot_kwargs)
 
     print('Generate circuit library')
     circuit_library = rqcg.generate_library_of_2q_circuits(
@@ -145,18 +185,6 @@ def parallel_two_qubit_xeb(
         device_graph=graph,
         random_state=rs,
     )
-
-    pos = {q: (q.row, q.col) for q in qubits}
-    _, axes = plt.subplots(2, 2, figsize=(n_cols, n_rows))
-    for comb_layer, ax in zip(combs_by_layer, axes.reshape(-1)):
-        active_qubits = np.array(comb_layer.pairs).reshape(-1)
-        colors = ['red' if q in active_qubits else 'blue' for q in graph.nodes]
-        nx.draw_networkx(graph, pos=pos, node_color=colors, ax=ax)
-        nx.draw_networkx_edges(
-            graph, pos=pos, edgelist=comb_layer.pairs, width=3, edge_color='red', ax=ax
-        )
-
-    plt.tight_layout()
 
     print('Run circuits')
     sampled_df = sample_2q_xeb_circuits(
