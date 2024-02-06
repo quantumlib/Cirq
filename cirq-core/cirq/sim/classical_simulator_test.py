@@ -219,6 +219,6 @@ def test_simulation_state():
     result = simulator.simulate(circuit, initial_state=args)
     expected_circuit = cirq.Circuit()
     expected_circuit.append(cirq.X(q1))
-    expected_results =  simulator.simulate(expected_circuit, initial_state=args)
+    expected_results = simulator.simulate(expected_circuit, initial_state=args)
     assert result == expected_results
 

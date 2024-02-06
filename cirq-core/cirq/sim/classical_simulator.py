@@ -27,6 +27,7 @@ import numpy as np
 if TYPE_CHECKING:
     import cirq
 
+
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     def __init__(self, initial_state: List[int]):
         self.basis = initial_state
@@ -40,9 +41,7 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
 
 class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
     def __init__(self, initial_state, qubits, classical_data):
-        state = ClassicalBasisState(
-            big_endian_int_to_bits(initial_state, bit_count=len(qubits))
-        )
+        state = ClassicalBasisState(big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _is_identity(self, gate: ops.GateOperation) -> bool:
@@ -72,10 +71,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
             return True
         else:
-            raise ValueError(
-                f'{gate} is not one of X, CNOT, SWAP, '
-                'CCNOT, or a measurement'
-            )
+            raise ValueError(f'{gate} is not one of X, CNOT, SWAP, CCNOT, or a measurement')
 
 class ClassicalStateStepResult(sim.StepResultBase[TSimulationState], Generic[TSimulationState]):
     """The step result provided by `ClassicalStateSimulator.simulate_moment_steps`."""
@@ -131,10 +127,7 @@ class ClassicalStateSimulator(
         return ClassicalStateStepResult(sim_state)
 
     def _create_partial_simulation_state(
-        self,
-        initial_state: Any,
-        qubits: Sequence['Qid'],
-        classical_data: 'ClassicalDataStore',
+        self, initial_state: Any, qubits: Sequence['Qid'], classical_data: 'ClassicalDataStore'
     ) -> TSimulationState:
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
@@ -206,8 +199,7 @@ class ClassicalStateSimulator(
                         results_dict[key] = measurement_values
                 else:
                     raise ValueError(
-                        f'{op} is not one of X, CNOT, SWAP, '
-                        'CCNOT, or a measurement'
+                        f'{op} is not one of X, CNOT, SWAP, CCNOT, or a measurement'
                     )
 
         return results_dict
