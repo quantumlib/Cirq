@@ -13,19 +13,69 @@
 # limitations under the License.
 
 
-from typing import Dict, Generic, Any, Sequence, TYPE_CHECKING
+from typing import Dict, Generic, Any, Sequence, TYPE_CHECKING, Type, List
 from collections import defaultdict
-from cirq import ops, protocols
+from cirq import ops, protocols, qis
+from cirq.value import big_endian_int_to_bits
 from cirq.study.resolver import ParamResolver
 from cirq.circuits.circuit import AbstractCircuit
 from cirq.ops.raw_types import Qid
 from cirq import sim
-from cirq.sim.simulation_state import TSimulationState
+from cirq.sim.simulation_state import TSimulationState, SimulationState
 import numpy as np
 
 if TYPE_CHECKING:
     import cirq
 
+class ClassicalBasisState(qis.QuantumStateRepresentation):
+    def __init__(self, initial_state: List[int]):
+        self.basis = initial_state
+
+    def copy(self, deep_copy_buffers: bool = True) -> 'ClassicalBasisState':
+        return ClassicalBasisState(self.basis)
+
+    def measure(self, axes: Sequence[int], seed: 'RANDOM_STATE_OR_SEED_LIKE' = None):
+        return [self.basis[i] for i in axes]
+
+
+class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
+    def __init__(self, initial_state, qubits, classical_data):
+        state = ClassicalBasisState(
+            big_endian_int_to_bits(initial_state, bit_count=len(qubits))
+        )
+        super().__init__(state=state, qubits=qubits, classical_data=classical_data)
+
+    def _is_identity(self, gate: ops.GateOperation) -> bool:
+        if isinstance(gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
+            return gate.exponent % 2 == 0
+        return False
+
+    def _act_on_fallback_(self, action, qubits: Sequence[Qid], allow_decompose: bool = True):
+        gate = action.gate if isinstance(action, ops.Operation) else action
+        mapped_qubits = [self.qubit_map[i] for i in qubits]
+        if self._is_identity(gate):
+            return True
+        if gate == ops.X:
+            (q,) = mapped_qubits
+            self._state.basis[q] ^= 1
+            return True
+        elif gate == ops.CNOT:
+            c, q = mapped_qubits
+            self._state.basis[q] ^= self._state.basis[c]
+            return True
+        elif gate == ops.SWAP:
+            a, b = mapped_qubits
+            self._state.basis[a], self._state.basis[b] = self._state.basis[b], self._state.basis[a]
+            return True
+        elif gate == ops.TOFFOLI:
+            c1, c2, q = mapped_qubits
+            self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
+            return True
+        else:
+            raise ValueError(
+                f'{gate} is not one of X, CNOT, SWAP, '
+                'CCNOT, or a measurement'
+            )
 
 class ClassicalStateStepResult(sim.StepResultBase[TSimulationState], Generic[TSimulationState]):
     """The step result provided by `ClassicalStateSimulator.simulate_moment_steps`."""
@@ -48,7 +98,11 @@ class ClassicalStateSimulator(
     """A simulator that accepts only gates with classical counterparts."""
 
     def __init__(
-        self, *, noise: 'cirq.NOISE_MODEL_LIKE' = None, split_untangled_states: bool = False
+        self,
+        state_type: Type[TSimulationState] = ClassicalBasisSimState,
+        *,
+        noise: 'NOISE_MODEL_LIKE' = None,
+        split_untangled_states: bool = False,
     ):
         """Initializes a ClassicalStateSimulator.
 
@@ -59,29 +113,32 @@ class ClassicalStateSimulator(
                 supported if the `state_type` supports it via an implementation of `kron` and
                 `factor` methods. Otherwise a runtime error will occur during simulation."""
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
+        self.state_type = state_type
 
     def _create_simulator_trial_result(
         self,
-        params: 'cirq.ParamResolver',
+        params: 'ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+        final_simulator_state: 'SimulationStateBase[TSimulationState]',
     ) -> 'ClassicalStateTrialResult[TSimulationState]':
         return ClassicalStateTrialResult(
             params, measurements, final_simulator_state=final_simulator_state
         )
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[TSimulationState]'
+        self, sim_state: 'SimulationStateBase[TSimulationState]'
     ) -> 'ClassicalStateStepResult[TSimulationState]':
         return ClassicalStateStepResult(sim_state)
 
     def _create_partial_simulation_state(
         self,
         initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
+        qubits: Sequence['Qid'],
+        classical_data: 'ClassicalDataStore',
     ) -> TSimulationState:
-        raise NotImplementedError()
+        return self.state_type(
+            initial_state=initial_state, qubits=qubits, classical_data=classical_data
+        )  # type: ignore[call-arg]
 
     def _is_identity(self, op: ops.Operation) -> bool:
         if isinstance(op.gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
@@ -149,8 +206,8 @@ class ClassicalStateSimulator(
                         results_dict[key] = measurement_values
                 else:
                     raise ValueError(
-                        f'{op} is not one of cirq.X, cirq.CNOT, cirq.SWAP, '
-                        'cirq.CCNOT, or a measurement'
+                        f'{op} is not one of X, CNOT, SWAP, '
+                        'CCNOT, or a measurement'
                     )
 
         return results_dict

@@ -208,7 +208,17 @@ def test_compatible_measurement():
 
 
 def test_simulation_state():
-    qs = cirq.LineQubit.range(2)
-    sim = cirq.ClassicalStateSimulator()
-    with pytest.raises(NotImplementedError):
-        sim._create_simulation_state(initial_state=0, qubits=qs)
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.ClassicalStateSimulator()
+    circuit = cirq.Circuit()
+    circuit.append(cirq.X(q0))
+    circuit.append(cirq.CNOT(q0, q1))
+    circuit.append(cirq.CNOT(q1, q0))
+    circuit.append(cirq.measure((q0, q1), key='key'))
+    args = simulator._create_simulation_state(initial_state=1, qubits=(q0, q1))
+    result = simulator.simulate(circuit, initial_state=args)
+    expected_circuit = cirq.Circuit()
+    expected_circuit.append(cirq.X(q1))
+    expected_results =  simulator.simulate(expected_circuit, initial_state=args)
+    assert result == expected_results
+
