@@ -47,21 +47,21 @@ def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
+def _decay_error(fidelity: float, n: int) -> float:
+    return 1 - (1 - fidelity) * (2**n) / (2**n - 1)
+
+
 class TwoQubitXEBResult:
     def __init__(self, fidelities: pd.DataFrame) -> None:
         self.fidelities = fidelities
         self._qubit_pair_map = {idx[-1]: i for i, idx in enumerate(fidelities.index)}
 
-    def plot_heatmap(self, ax: Optional[plt.Axes] = None, target_error: str = 'pauli', **plot_kwargs):
+    def plot_heatmap(self, ax: Optional[plt.Axes] = None, target_error: str = 'xeb', **plot_kwargs):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-        error_func = self.depolarization_error
-        if target_error == 'pauli':
-            error_func = self.pauli_error
-        elif target_error == 'average':
-            error_func = self.average_error
+        error_func = self.xeb_error
         heatmap_data = {pair: error_func(*pair) for pair in self.all_qubit_pairs}
 
         ax.title(f'device {target_error} error heatmap')
@@ -100,17 +100,11 @@ class TwoQubitXEBResult:
         if show_plot:
             fig.show()
 
-    def depolarization_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
+    def xeb_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
         if q0 > q1:
             q0, q1 = q1, q0
         p = self.fidelities.layer_fid[self._qubit_pair_map[(q0, q1)]]
         return 1 - p
-
-    def pauli_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
-        return self.depolarization_error(q0, q1) * (1 - 1 / 16)
-
-    def average_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
-        return self.depolarization_error() * (1 - 1 / 4)
 
     @functools.cached_property
     def all_qubit_pairs(self) -> frozenset[Tuple['cirq.GridQubit', 'Cirq.GridQubit']]:
