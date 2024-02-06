@@ -64,7 +64,7 @@ class TwoQubitXEBResult:
             error_func = self.average_error
         heatmap_data = {pair: error_func(*pair) for pair in self.all_qubit_pairs}
 
-        ax.title('device depolarization error heatmap')
+        ax.title(f'device {target_error} error heatmap')
         vis.TwoQubitInteractionHeatmap(heatmap_data).plot(ax=ax, **plot_kwargs)
         if show_plot:
             fig.show()
