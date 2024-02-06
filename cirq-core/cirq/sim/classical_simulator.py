@@ -32,10 +32,10 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
     def __init__(self, initial_state: List[int]):
         self.basis = initial_state
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'ClassicalBasisState':
+    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.ClassicalBasisState':
         return ClassicalBasisState(self.basis)
 
-    def measure(self, axes: Sequence[int], seed: 'RANDOM_STATE_OR_SEED_LIKE' = None):
+    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         return [self.basis[i] for i in axes]
 
 
@@ -97,7 +97,7 @@ class ClassicalStateSimulator(
         self,
         state_type: Type[TSimulationState] = ClassicalBasisSimState,
         *,
-        noise: 'NOISE_MODEL_LIKE' = None,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
         split_untangled_states: bool = False,
     ):
         """Initializes a ClassicalStateSimulator.
@@ -113,21 +113,21 @@ class ClassicalStateSimulator(
 
     def _create_simulator_trial_result(
         self,
-        params: 'ParamResolver',
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'SimulationStateBase[TSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
     ) -> 'ClassicalStateTrialResult[TSimulationState]':
         return ClassicalStateTrialResult(
             params, measurements, final_simulator_state=final_simulator_state
         )
 
     def _create_step_result(
-        self, sim_state: 'SimulationStateBase[TSimulationState]'
+        self, sim_state: 'cirq.SimulationStateBase[TSimulationState]'
     ) -> 'ClassicalStateStepResult[TSimulationState]':
         return ClassicalStateStepResult(sim_state)
 
     def _create_partial_simulation_state(
-        self, initial_state: Any, qubits: Sequence['Qid'], classical_data: 'ClassicalDataStore'
+        self, initial_state: Any, qubits: Sequence['cirq.Qid'], classical_data: 'cirq.ClassicalDataStore'
     ) -> TSimulationState:
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
@@ -198,8 +198,6 @@ class ClassicalStateSimulator(
                     else:
                         results_dict[key] = measurement_values
                 else:
-                    raise ValueError(
-                        f'{op} is not one of X, CNOT, SWAP, CCNOT, or a measurement'
-                    )
+                    raise ValueError(f'{op} is not one of X, CNOT, SWAP, CCNOT, or a measurement')
 
         return results_dict
