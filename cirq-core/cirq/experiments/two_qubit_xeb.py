@@ -14,6 +14,7 @@
 from typing import Sequence, TYPE_CHECKING, Optional, Tuple
 
 import itertools
+import functools
 
 from matplotlib import pyplot as plt
 import networkx as nx
@@ -51,16 +52,14 @@ class TwoQubitRandomizedBenchMarkResult:
         self.fidelities = fidelities
         self._qubit_pair_map = {idx[-1]: i for i, idx in enumerate(fidelities.index)}
 
-    def plot_device_fidelities_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs):
+    def plot_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-        heatmap_data = {}
-        for (_, _, pair), fidelity in self.fidelities.layer_fid.items():
-            heatmap_data[pair] = 1.0 - fidelity
+        heatmap_data = {pair: self.depolarization_error(*pair) for pair in self.all_qubit_pairs}
 
-        ax.title('device fidelity heatmap')
+        ax.title('device depolarization error heatmap')
         vis.TwoQubitInteractionHeatmap(heatmap_data).plot(ax=ax, **plot_kwargs)
         if show_plot:
             fig.show()
@@ -108,6 +107,7 @@ class TwoQubitRandomizedBenchMarkResult:
     def average_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit'):
         return self.depolarization_error() * (1 - 1 / 4)
 
+    @functools.cached_property
     def all_qubit_pairs(self) -> frozenset[Tuple['cirq.GridQubit', 'Cirq.GridQubit']]:
         return frozenset(self._qubit_pair_map.keys())
 
