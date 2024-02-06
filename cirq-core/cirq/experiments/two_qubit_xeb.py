@@ -47,17 +47,22 @@ def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
-class TwoQubitRandomizedBenchMarkResult:
+class TwoQubitXEBResult:
     def __init__(self, fidelities: pd.DataFrame) -> None:
         self.fidelities = fidelities
         self._qubit_pair_map = {idx[-1]: i for i, idx in enumerate(fidelities.index)}
 
-    def plot_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs):
+    def plot_heatmap(self, ax: Optional[plt.Axes] = None, target_error: str = 'pauli', **plot_kwargs):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-        heatmap_data = {pair: self.depolarization_error(*pair) for pair in self.all_qubit_pairs}
+        error_func = self.depolarization_error
+        if target_error == 'pauli':
+            error_func = self.pauli_error
+        elif target_error == 'average':
+            error_func = self.average_error
+        heatmap_data = {pair: error_func(*pair) for pair in self.all_qubit_pairs}
 
         ax.title('device depolarization error heatmap')
         vis.TwoQubitInteractionHeatmap(heatmap_data).plot(ax=ax, **plot_kwargs)
@@ -112,7 +117,7 @@ class TwoQubitRandomizedBenchMarkResult:
         return frozenset(self._qubit_pair_map.keys())
 
 
-def parallel_two_qubit_randomized_benchmarking(
+def parallel_two_qubit_xeb(
     sampler: 'cirq.Sampler',
     entangling_gate: 'cirq.Gate' = ops.CZ,
     n_repetitions: int = 10**4,
@@ -120,7 +125,7 @@ def parallel_two_qubit_randomized_benchmarking(
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
-) -> TwoQubitRandomizedBenchMarkResult:
+) -> TwoQubitXEBResult:
     rs = value.parse_random_state(random_state)
 
     qubits = _grid_qubits_for_sampler(sampler)
@@ -175,4 +180,4 @@ def parallel_two_qubit_randomized_benchmarking(
     )
 
     print('Fit exponential decays')
-    return TwoQubitRandomizedBenchMarkResult(fit_exponential_decays(fids))
+    return TwoQubitXEBResult(fit_exponential_decays(fids))
