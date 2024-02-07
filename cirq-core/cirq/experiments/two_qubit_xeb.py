@@ -55,7 +55,10 @@ class TwoQubitXEBResult:
 
     @functools.cached_property
     def _qubit_pair_map(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], int]:
-        return {idx[-1]: i for i, idx in enumerate(self.fidelities.index)}
+        return {
+            (min(q0, q1), max(q0, q1)): i
+            for i, (_, _, (q0, q1)) in enumerate(self.fidelities.index)
+        }
 
     @functools.cached_property
     def all_qubit_pairs(self) -> Tuple[Tuple['cirq.GridQubit', 'cirq.GridQubit'], ...]:
@@ -103,9 +106,7 @@ class TwoQubitXEBResult:
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        if q0 > q1:
-            q0, q1 = q1, q0
-        record = self.fidelities.iloc[self._qubit_pair_map[(q0, q1)]]
+        record = self._record(q0, q1)
 
         plt.axhline(1, color='grey', ls='--')
         plt.plot(record['cycle_depths'], record['fidelities'], 'o')
@@ -125,11 +126,14 @@ class TwoQubitXEBResult:
         if show_plot:
             fig.show()
 
-    def xeb_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
-        """Return the XEB error of a qubit pair."""
+    def _record(self, q0, q1) -> pd.Series:
         if q0 > q1:
             q0, q1 = q1, q0
-        p = self.fidelities.layer_fid.iloc[self._qubit_pair_map[(q0, q1)]]
+        return self.fidelities.iloc[self._qubit_pair_map[(q0, q1)]]
+
+    def xeb_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
+        """Return the XEB error of a qubit pair."""
+        p = self._record(q0, q1).layer_fid
         return 1 - p
 
 
