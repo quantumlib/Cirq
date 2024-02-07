@@ -136,6 +136,25 @@ class TwoQubitXEBResult:
         p = self._record(q0, q1).layer_fid
         return 1 - p
 
+    def all_errors(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+        """Return the XEB error of all qubit pairs."""
+        return {(q0, q1): self.xeb_error(q0, q1) for q0, q1 in self.all_qubit_pairs}
+
+    def plot_histogram(self, ax: Optional[plt.Axes] = None, **plot_kwargs):
+        """plot a histogram of all xeb errors
+
+        Args:
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        """
+        fig = None
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        vis.integrated_histogram(data=self.all_errors(), ax=ax, **plot_kwargs)
+        if fig is not None:
+            fig.show(**plot_kwargs)
+
 
 def parallel_two_qubit_xeb(
     sampler: 'cirq.Sampler',
@@ -177,12 +196,10 @@ def parallel_two_qubit_xeb(
         ax.set_title('device layout')
         ax.plot(**plot_kwargs)
 
-    print('Generate circuit library')
     circuit_library = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=n_circuits, two_qubit_gate=entangling_gate, random_state=rs
     )
 
-    print('Generate random two qubit combinations')
     combs_by_layer = rqcg.get_random_combinations_for_device(
         n_library_circuits=len(circuit_library),
         n_combinations=n_combinations,
@@ -190,7 +207,6 @@ def parallel_two_qubit_xeb(
         random_state=rs,
     )
 
-    print('Run circuits')
     sampled_df = sample_2q_xeb_circuits(
         sampler=sampler,
         circuits=circuit_library,
@@ -200,10 +216,8 @@ def parallel_two_qubit_xeb(
         repetitions=n_repetitions,
     )
 
-    print('Compute fidelities')
     fids = benchmark_2q_xeb_fidelities(
         sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths
     )
 
-    print('Fit exponential decays')
     return TwoQubitXEBResult(fit_exponential_decays(fids))

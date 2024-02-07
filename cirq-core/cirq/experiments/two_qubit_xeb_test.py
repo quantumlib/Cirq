@@ -95,3 +95,4 @@ def test_plotting(sampler, ax):
     )
     res.plot_heatmap(ax=ax)
     res.plot_fitted_exponential(cirq.GridQubit(4, 4), cirq.GridQubit(4, 3), ax=ax)
+    res.plot_histogram(ax=ax)
