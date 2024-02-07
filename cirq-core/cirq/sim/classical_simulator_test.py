@@ -209,15 +209,15 @@ def test_compatible_measurement():
 
 def test_simulation_state():
     q0, q1 = cirq.LineQubit.range(2)
-    sim = cirq.ClassicalStateSimulator()
+    simulator = cirq.ClassicalStateSimulator()
     circuit = cirq.Circuit()
     circuit.append(cirq.X(q0))
     circuit.append(cirq.CNOT(q0, q1))
     circuit.append(cirq.CNOT(q1, q0))
     circuit.append(cirq.measure((q0, q1), key='key'))
-    result = sim.run(circuit)
+    state = simulator._create_simulation_state(initial_state=1, qubits=(q0, q1))
     expected_circuit = cirq.Circuit()
     expected_circuit.append(cirq.X(q1))
     expected_circuit.append(cirq.measure((q0, q1), key='key'))
-    expected_results = sim.run(expected_circuit)
-    assert result == expected_results
+    expected_state = simulator._create_simulation_state(initial_state=1, qubits=(q0, q1))
+    assert state == expected_state
