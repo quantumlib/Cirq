@@ -231,4 +231,5 @@ def test_custom_state_act_on_fallback():
     circuit.append(cirq.X(q1))
     circuit.append(cirq.measure((q0, q1), key='key'))
     with pytest.raises(TypeError):
-        [step for step in sim.simulate_moment_steps(circuit)]
+        for _ in sim.simulate_moment_steps(circuit):
+            pass
