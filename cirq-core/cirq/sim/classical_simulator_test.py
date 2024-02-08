@@ -15,6 +15,7 @@ import numpy as np
 import pytest
 import cirq
 import sympy
+from unittest import mock
 
 
 def test_x_gate():
@@ -221,3 +222,15 @@ def test_simulation_state():
     expected_circuit.append(cirq.measure((q0, q1), key='key'))
     expected_state = simulator._create_simulation_state(initial_state=1, qubits=(q0, q1))
     assert state == expected_state
+
+
+def test_custom_state_act_on_fallback():
+    sim = cirq.ClassicalStateSimulator()
+    q0, q1  = qs = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+    circuit.append(cirq.X(q0))
+    circuit.append(cirq.X(q1))
+    circuit.append(cirq.measure((q0, q1), key='key'))
+    state_ch_forms = []
+    with pytest.raises(TypeError):
+        steps=[step for step in sim.simulate_moment_steps(circuit)]
