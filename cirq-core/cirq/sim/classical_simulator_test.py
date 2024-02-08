@@ -241,3 +241,22 @@ def test_run_measure_at_end_no_repetitions():
                 )
                 assert result.repetitions == 0
         assert mock_sim.call_count == 0
+
+
+def test_simulate_sweeps_param_resolver(dtype: Type[np.complexfloating], split: bool):
+    q0, q1 = qs = cirq.LineQubit.range(2)
+    simulator = cirq.ClassicalStateSimulator()
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit(
+                (cirq.X ** sympy.Symbol('b0'))(q0), (cirq.X ** sympy.Symbol('b1'))(q1)
+            )
+            params = [
+                cirq.ParamResolver({'b0': b0, 'b1': b1}),
+                cirq.ParamResolver({'b0': b1, 'b1': b0}),
+            ]
+            results = simulator.simulate_sweep(circuit, params=params)
+            
+            assert results[0].params == params[0]
+            assert results[1].params == params[1]
+

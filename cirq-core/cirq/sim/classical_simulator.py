@@ -84,6 +84,17 @@ class ClassicalStateTrialResult(
 ):
     """The trial result provided by `ClassicalStateSimulator.simulate`."""
 
+    def __init__(
+        self,
+        params: 'cirq.ParamResolver',
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+    ) -> None:
+        self.final_simulator_state = final_simulator_state
+        super().__init__(
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
+
 
 class ClassicalStateSimulator(
     sim.SimulatorBase[
@@ -129,8 +140,6 @@ class ClassicalStateSimulator(
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ) -> 'ClassicalBasisSimState':
-        if isinstance(initial_state, ClassicalBasisSimState):
-            return initial_state
         return ClassicalBasisSimState(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
         )
