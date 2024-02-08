@@ -32,10 +32,14 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 from matplotlib import pyplot as plt
+import cirq.vis.heatmap as cirq_heatmap
+import cirq.vis.histogram as cirq_histogram
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d
 from cirq import circuits, ops, protocols
+from cirq.devices import grid_qubit
+
 
 if TYPE_CHECKING:
     import cirq
@@ -142,6 +146,127 @@ class RandomizedBenchMarkResult:
             p0=[0.5, 0.5, 1.0 - 1e-3],
             bounds=([0, 0.25, 0], [0.5, 0.75, 1]),
         )
+
+
+@dataclasses.dataclass(frozen=True)
+class ParallelRandomizedBenchmarkingResult:
+    """Results from a parallel randomized benchmarking experiment."""
+
+    results_dictionary: Mapping['cirq.Qid', 'RandomizedBenchMarkResult']
+
+    def plot_single_qubit(
+        self, qubit: 'cirq.Qid', ax: Optional[plt.Axes] = None, **plot_kwargs: Any
+    ) -> plt.Axes:
+        """Plot the raw data for the specified qubit.
+
+        Args:
+            qubit: Plot data for this qubit.
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        Returns:
+            The plt.Axes containing the plot.
+        """
+
+        return self.results_dictionary[qubit].plot(ax, **plot_kwargs)
+
+    def pauli_error(self) -> Mapping['cirq.Qid', float]:
+        """Return a dictionary of Pauli errors.
+        Returns:
+            A dictionary containing the Pauli errors for all qubits.
+        """
+
+        return {
+            qubit: self.results_dictionary[qubit].pauli_error() for qubit in self.results_dictionary
+        }
+
+    def plot_heatmap(
+        self,
+        ax: Optional[plt.Axes] = None,
+        annotation_format: str = '0.1%',
+        title: str = 'Single-qubit Pauli error',
+        **plot_kwargs: Any,
+    ) -> plt.Axes:
+        """Plot a heatmap of the Pauli errors. If qubits are not cirq.GridQubits, throws an error.
+
+        Args:
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            annotation_format: The format string for the numbers in the heatmap.
+            title: The title printed above the heatmap.
+            **plot_kwargs: Arguments to be passed to 'cirq.Heatmap.plot()'.
+        Returns:
+            The plt.Axes containing the plot.
+        """
+
+        pauli_errors = self.pauli_error()
+        pauli_errors_with_grid_qubit_keys = {}
+        for qubit in pauli_errors:
+            assert type(qubit) == grid_qubit.GridQubit, "qubits must be cirq.GridQubits"
+            pauli_errors_with_grid_qubit_keys[qubit] = pauli_errors[qubit]  # just for typecheck
+
+        if ax is None:
+            _, ax = plt.subplots(dpi=200, facecolor='white')
+
+        ax, _ = cirq_heatmap.Heatmap(pauli_errors_with_grid_qubit_keys).plot(
+            ax, annotation_format=annotation_format, title=title, **plot_kwargs
+        )
+        return ax
+
+    def plot_integrated_histogram(
+        self,
+        ax: Optional[plt.Axes] = None,
+        cdf_on_x: bool = False,
+        axis_label: str = 'Pauli error',
+        semilog: bool = True,
+        median_line: bool = True,
+        median_label: Optional[str] = 'median',
+        mean_line: bool = False,
+        mean_label: Optional[str] = 'mean',
+        show_zero: bool = False,
+        title: Optional[str] = None,
+        **kwargs,
+    ) -> plt.Axes:
+        """Plot the Pauli errors using cirq.integrated_histogram().
+
+        Args:
+            ax: The axis to plot on. If None, we generate one.
+            cdf_on_x: If True, flip the axes compared the above example.
+            axis_label: Label for x axis (y-axis if cdf_on_x is True).
+            semilog: If True, force the x-axis to be logarithmic.
+            median_line: If True, draw a vertical line on the median value.
+            median_label: If drawing median line, optional label for it.
+            mean_line: If True, draw a vertical line on the mean value.
+            mean_label: If drawing mean line, optional label for it.
+            title: Title of the plot. If None, we assign "N={len(data)}".
+            show_zero: If True, moves the step plot up by one unit by prepending 0
+                to the data.
+            **kwargs: Kwargs to forward to `ax.step()`. Some examples are
+                color: Color of the line.
+                linestyle: Linestyle to use for the plot.
+                lw: linewidth for integrated histogram.
+                ms: marker size for a histogram trace.
+                label: An optional label which can be used in a legend.
+        Returns:
+            The axis that was plotted on.
+        """
+
+        ax = cirq_histogram.integrated_histogram(
+            data=self.pauli_error(),
+            ax=ax,
+            cdf_on_x=cdf_on_x,
+            axis_label=axis_label,
+            semilog=semilog,
+            median_line=median_line,
+            median_label=median_label,
+            mean_line=mean_line,
+            mean_label=mean_label,
+            show_zero=show_zero,
+            title=title,
+            **kwargs,
+        )
+        ax.set_ylabel('Percentile')
+        return ax
 
 
 class TomographyResult:
@@ -265,7 +390,7 @@ def single_qubit_randomized_benchmarking(
         num_circuits=num_circuits,
         repetitions=repetitions,
     )
-    return result[qubit]
+    return result.results_dictionary[qubit]
 
 
 def parallel_single_qubit_randomized_benchmarking(
@@ -278,7 +403,7 @@ def parallel_single_qubit_randomized_benchmarking(
     ),
     num_circuits: int = 10,
     repetitions: int = 1000,
-) -> Mapping['cirq.Qid', 'RandomizedBenchMarkResult']:
+) -> 'ParallelRandomizedBenchmarkingResult':
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
 
     This is the same as `single_qubit_randomized_benchmarking` except on all
@@ -321,7 +446,9 @@ def parallel_single_qubit_randomized_benchmarking(
             idx += 1
         for qubit in qubits:
             gnd_probs[qubit].append(1.0 - np.mean(excited_probs[qubit]))
-    return {q: RandomizedBenchMarkResult(num_clifford_range, gnd_probs[q]) for q in qubits}
+    return ParallelRandomizedBenchmarkingResult(
+        {q: RandomizedBenchMarkResult(num_clifford_range, gnd_probs[q]) for q in qubits}
+    )
 
 
 def two_qubit_randomized_benchmarking(
@@ -566,7 +693,9 @@ def _create_parallel_rb_circuit(
     num_moments = max(len(sequence) for sequence in sequences_to_zip)
     for q, sequence in zip(qubits, sequences_to_zip):
         if (n := len(sequence)) < num_moments:
-            sequence.extend([ops.SingleQubitCliffordGate.I(q)] * (num_moments - n))
+            sequence.extend(
+                [ops.SingleQubitCliffordGate.I.to_phased_xz_gate()(q)] * (num_moments - n)
+            )
     moments = zip(*sequences_to_zip)
     return circuits.Circuit.from_moments(*moments, ops.measure_each(*qubits))
 
@@ -612,13 +741,15 @@ def _two_qubit_clifford_matrices(
 
 
 def _random_single_q_clifford(
-    qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.Gate']]
+    qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.ops.SingleQubitCliffordGate']]
 ) -> List['cirq.Operation']:
     clifford_group_size = 24
-    operations = [[gate(qubit) for gate in gates] for gates in cfds]
+    operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
     adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
-    return [op for gate_id in gate_ids for op in operations[gate_id]] + [adjoint(qubit)]
+    return [op for gate_id in gate_ids for op in operations[gate_id]] + [
+        adjoint.to_phased_xz_gate()(qubit)
+    ]
 
 
 def _random_two_q_clifford(

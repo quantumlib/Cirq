@@ -14,7 +14,7 @@
 
 """Transformers to rewrite a circuit using gates from a given target gateset."""
 
-from typing import Optional, Callable, Hashable, Sequence, TYPE_CHECKING
+from typing import Optional, Callable, Hashable, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits
 from cirq.protocols import decompose_protocol as dp
@@ -102,12 +102,20 @@ def optimize_for_target_gateset(
     context: Optional['cirq.TransformerContext'] = None,
     gateset: Optional['cirq.CompilationTargetGateset'] = None,
     ignore_failures: bool = True,
+    max_num_passes: Union[int, None] = 1,
 ) -> 'cirq.Circuit':
     """Transforms the given circuit into an equivalent circuit using gates accepted by `gateset`.
 
+    Repeat max_num_passes times or when `max_num_passes=None` until no further changes can be done
     1. Run all `gateset.preprocess_transformers`
     2. Convert operations using built-in cirq decompose + `gateset.decompose_to_target_gateset`.
     3. Run all `gateset.postprocess_transformers`
+
+    Note:
+        The optimizer is a heuristic and may not produce optimal results even with
+        max_num_passes=None. The preprocessors and postprocessors of the gate set
+        as well as their order yield different results.
+
 
     Args:
         circuit: Input circuit to transform. It will not be modified.
@@ -115,6 +123,8 @@ def optimize_for_target_gateset(
         gateset: Target gateset, which should be an instance of `cirq.CompilationTargetGateset`.
         ignore_failures: If set, operations that fail to convert are left unchanged. If not set,
             conversion failures raise a ValueError.
+        max_num_passes: The maximum number of passes to do. A value of `None` means to keep
+            iterating until no more changes happen to the number of moments or operations.
 
     Returns:
         An equivalent circuit containing gates accepted by `gateset`.
@@ -126,20 +136,32 @@ def optimize_for_target_gateset(
         return _decompose_operations_to_target_gateset(
             circuit, context=context, ignore_failures=ignore_failures
         )
+    if isinstance(max_num_passes, int):
+        _outerloop = lambda: range(max_num_passes)
+    else:
 
-    for transformer in gateset.preprocess_transformers:
-        circuit = transformer(circuit, context=context)
+        def _outerloop():
+            while True:
+                yield 0
 
-    circuit = _decompose_operations_to_target_gateset(
-        circuit,
-        context=context,
-        gateset=gateset,
-        decomposer=gateset.decompose_to_target_gateset,
-        ignore_failures=ignore_failures,
-        tags_to_decompose=(gateset._intermediate_result_tag,),
-    )
+    initial_num_moments, initial_num_ops = len(circuit), sum(1 for _ in circuit.all_operations())
+    for _ in _outerloop():
+        for transformer in gateset.preprocess_transformers:
+            circuit = transformer(circuit, context=context)
+        circuit = _decompose_operations_to_target_gateset(
+            circuit,
+            context=context,
+            gateset=gateset,
+            decomposer=gateset.decompose_to_target_gateset,
+            ignore_failures=ignore_failures,
+            tags_to_decompose=(gateset._intermediate_result_tag,),
+        )
+        for transformer in gateset.postprocess_transformers:
+            circuit = transformer(circuit, context=context)
 
-    for transformer in gateset.postprocess_transformers:
-        circuit = transformer(circuit, context=context)
-
+        num_moments, num_ops = len(circuit), sum(1 for _ in circuit.all_operations())
+        if (num_moments, num_ops) == (initial_num_moments, initial_num_ops):
+            # Stop early. No further optimizations can be done.
+            break
+        initial_num_moments, initial_num_ops = num_moments, num_ops
     return circuit.unfreeze(copy=False)
