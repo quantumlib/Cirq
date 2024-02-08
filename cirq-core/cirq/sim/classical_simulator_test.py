@@ -244,7 +244,7 @@ def test_run_measure_at_end_no_repetitions():
 
 
 def test_simulate_sweeps_param_resolver():
-    q0, q1 = qs = cirq.LineQubit.range(2)
+    q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.ClassicalStateSimulator()
     for b0 in [0, 1]:
         for b1 in [0, 1]:

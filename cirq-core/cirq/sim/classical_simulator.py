@@ -88,7 +88,7 @@ class ClassicalStateTrialResult(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[ClassicalBasisSimState]',
     ) -> None:
         self.final_simulator_state = final_simulator_state
         super().__init__(
