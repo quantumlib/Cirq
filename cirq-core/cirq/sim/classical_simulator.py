@@ -18,7 +18,7 @@ from cirq import ops, qis, value
 from cirq.value import big_endian_int_to_bits
 from cirq.ops.raw_types import Qid
 from cirq import sim
-from cirq.sim.simulation_state import SimulationState, SimulationStateBase
+from cirq.sim.simulation_state import TSimulationState, SimulationState, SimulationStateBase
 import numpy as np
 
 if TYPE_CHECKING:
@@ -31,40 +31,10 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
 
     def copy(self, deep_copy_buffers: bool = True) -> 'ClassicalBasisState':
         basis_copy = self.basis if deep_copy_buffers else self.basis.copy()
-        return ClassicalBasisState(self.basis)
+        return ClassicalBasisState(basis_copy)
 
     def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         return [self.basis[i] for i in axes]
-
-    def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        """Samples the ClassicalBasisState.
-
-        Args:
-            axes: The axes to sample.
-            repetitions: The number of samples to make.
-            seed: The random number seed to use.
-        Returns:
-            The samples in order.
-        """
-
-        measurements: List[List[int]] = []
-        prng = value.parse_random_state(seed) if seed else self._prng
-
-        for _ in range(repetitions):
-            measurements.append(self.measure(axes, prng))
-
-        return np.array(measurements, dtype=int)
-
-    def create_merged_state(self) -> 'ClassicalBasisSimState':
-        final_args = self.sim_state[None]
-        for args in set([self.sim_state[k] for k in self.sim_state.keys() if k is not None]):
-            final_args = final_args.kronecker_product(args)
-        return final_args.transpose_to_qubit_order(self.basis)
 
 
 class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
@@ -103,36 +73,14 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         return False
 
 
-class ClassicalStateStepResult(sim.StepResultBase['ClassicalBasisSimState'], Generic['ClassicalBasisSimState']):
+class ClassicalStateStepResult(sim.StepResultBase['ClassicalBasisSimState'], Generic[TSimulationState]):
     """The step result provided by `ClassicalStateSimulator.simulate_moment_steps`."""
-
-    def __init__(self, sim_state: SimulationStateBase['ClassicalBasisSimState']):
-        """Initializes the step result.
-
-        Args:
-            sim_state: The `SimulationStateBase` for this step.
-        """
-        super().__init__(sim_state)
-
-    @property
-    def state(self):
-        return self._merged_sim_state
 
 
 class ClassicalStateTrialResult(
-    sim.SimulationTrialResultBase['ClassicalBasisSimState'], Generic['ClassicalBasisSimState']
+    sim.SimulationTrialResultBase['ClassicalBasisSimState'], Generic[TSimulationState]
 ):
     """The trial result provided by `ClassicalStateSimulator.simulate`."""
-
-    def __init__(
-        self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[ClassicalBasisSimState]',
-    ) -> None:
-        super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
-        )
 
 
 class ClassicalStateSimulator(
@@ -141,7 +89,7 @@ class ClassicalStateSimulator(
         ClassicalStateTrialResult['ClassicalBasisSimState'],
         'ClassicalBasisSimState',
     ],
-    Generic['ClassicalBasisSimState'],
+    Generic[TSimulationState],
 ):
     """A simulator that accepts only gates with classical counterparts."""
 
