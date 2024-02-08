@@ -532,24 +532,6 @@ class Engine(abstract_engine.AbstractEngine):
 
     create_program = duet.sync(create_program_async)
 
-    async def create_calibration_program_async(
-        self,
-        layers: List['cirq_google.CalibrationLayer'],
-        program_id: Optional[str] = None,
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> engine_program.EngineProgram:
-        """Wraps a list of calibration layers into an Any for Quantum Engine.
-
-        Raises:
-            NotImplementedError: Calibration programs are no longer supported on the Quantum Engine.
-        """
-        raise NotImplementedError(
-            'Calibration programs are no longer supported on the Quantum Engine.'
-        )
-
-    create_calibration_program = duet.sync(create_calibration_program_async)
-
     def get_program(self, program_id: str) -> engine_program.EngineProgram:
         """Returns an EngineProgram for an existing Quantum Engine program.
 
