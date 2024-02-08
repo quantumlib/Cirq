@@ -61,8 +61,8 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
         return np.array(measurements, dtype=int)
 
     def create_merged_state(self) -> 'ClassicalBasisSimState':
-        final_args = self._state[None]
-        for args in set([self._state[k] for k in self._state.keys() if k is not None]):
+        final_args = self.sim_state[None]
+        for args in set([self.sim_state[k] for k in self.sim_state.keys() if k is not None]):
             final_args = final_args.kronecker_product(args)
         return final_args.transpose_to_qubit_order(self.basis)
 
