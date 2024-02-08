@@ -225,7 +225,7 @@ def test_simulation_state():
 
 def test_custom_state_act_on_fallback():
     sim = cirq.ClassicalStateSimulator()
-    q0, q1  = cirq.LineQubit.range(2)
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append(cirq.X(q0))
     circuit.append(cirq.X(q1))
