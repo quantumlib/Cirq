@@ -243,7 +243,7 @@ def test_run_measure_at_end_no_repetitions():
         assert mock_sim.call_count == 0
 
 
-def test_simulate_sweeps_param_resolver(dtype: Type[np.complexfloating], split: bool):
+def test_simulate_sweeps_param_resolver():
     q0, q1 = qs = cirq.LineQubit.range(2)
     simulator = cirq.ClassicalStateSimulator()
     for b0 in [0, 1]:
