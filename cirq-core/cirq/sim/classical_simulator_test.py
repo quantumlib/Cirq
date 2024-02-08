@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from unittest import mock
 import numpy as np
 import pytest
 import cirq
@@ -207,29 +209,39 @@ def test_compatible_measurement():
     np.testing.assert_equal(res['key'], np.array([[[0, 0], [1, 1]]] * 3, dtype=np.uint8))
 
 
-def test_simulation_state():
+def test_run_repetitions_measure_at_end():
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.ClassicalStateSimulator()
-    circuit = cirq.Circuit()
-    circuit.append(cirq.X(q0))
-    circuit.append(cirq.CNOT(q0, q1))
-    circuit.append(cirq.CNOT(q1, q0))
-    circuit.append(cirq.measure((q0, q1), key='key'))
-    state = simulator._create_simulation_state(initial_state=1, qubits=(q0, q1))
-    expected_circuit = cirq.Circuit()
-    expected_circuit.append(cirq.X(q1))
-    expected_circuit.append(cirq.measure((q0, q1), key='key'))
-    expected_state = simulator._create_simulation_state(initial_state=1, qubits=(q0, q1))
-    assert state == expected_state
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                gate0 = cirq.X**b0
+                gate1 = cirq.X**b1
+                circuit = cirq.Circuit(
+                    gate0(q0), gate1(q1),cirq.measure(q0), cirq.measure(q1)
+                )
+                result = simulator.run(circuit, repetitions=3)
+                np.testing.assert_equal(
+                    result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3}
+                )
+                assert result.repetitions == 3
+        assert mock_sim.call_count == 8
 
 
-def test_custom_state_act_on_fallback():
-    sim = cirq.ClassicalStateSimulator()
+def test_run_measure_at_end_no_repetitions():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit()
-    circuit.append(cirq.X(q0))
-    circuit.append(cirq.X(q1))
-    circuit.append(cirq.measure((q0, q1), key='key'))
-    with pytest.raises(TypeError):
-        for _ in sim.simulate_moment_steps(circuit):
-            pass
+    simulator = cirq.ClassicalStateSimulator()
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                gate0 = cirq.X**b0
+                gate1 = cirq.X**b1
+                circuit = cirq.Circuit(
+                    gate0(q0), gate1(q1),cirq.measure(q0), cirq.measure(q1)
+                )
+                result = simulator.run(circuit, repetitions=0)
+                np.testing.assert_equal(
+                    result.measurements, {'q(0)': np.empty([0, 1]), 'q(1)': np.empty([0, 1])}
+                )
+                assert result.repetitions == 0
+        assert mock_sim.call_count == 0
