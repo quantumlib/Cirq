@@ -256,7 +256,6 @@ def test_simulate_sweeps_param_resolver(dtype: Type[np.complexfloating], split: 
                 cirq.ParamResolver({'b0': b1, 'b1': b0}),
             ]
             results = simulator.simulate_sweep(circuit, params=params)
-            
+
             assert results[0].params == params[0]
             assert results[1].params == params[1]
-
