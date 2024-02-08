@@ -217,9 +217,7 @@ def test_run_repetitions_measure_at_end():
             for b1 in [0, 1]:
                 gate0 = cirq.X**b0
                 gate1 = cirq.X**b1
-                circuit = cirq.Circuit(
-                    gate0(q0), gate1(q1),cirq.measure(q0), cirq.measure(q1)
-                )
+                circuit = cirq.Circuit(gate0(q0), gate1(q1),cirq.measure(q0), cirq.measure(q1))
                 result = simulator.run(circuit, repetitions=3)
                 np.testing.assert_equal(
                     result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3}
@@ -236,9 +234,7 @@ def test_run_measure_at_end_no_repetitions():
             for b1 in [0, 1]:
                 gate0 = cirq.X**b0
                 gate1 = cirq.X**b1
-                circuit = cirq.Circuit(
-                    gate0(q0), gate1(q1),cirq.measure(q0), cirq.measure(q1)
-                )
+                circuit = cirq.Circuit(gate0(q0), gate1(q1),cirq.measure(q0), cirq.measure(q1))
                 result = simulator.run(circuit, repetitions=0)
                 np.testing.assert_equal(
                     result.measurements, {'q(0)': np.empty([0, 1]), 'q(1)': np.empty([0, 1])}
