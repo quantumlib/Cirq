@@ -449,6 +449,28 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     get_circuit = duet.sync(get_circuit_async)
 
+    async def batch_size_async(self) -> int:
+        """Returns the number of programs in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+        if self.result_type != ResultType.Batch:
+            raise ValueError(
+                f'Program was not a batch program but instead was of type {self.result_type}.'
+            )
+        import cirq_google.engine.engine as engine_base
+
+        if self._program is None or self._program.code is None:
+            self._program = await self.context.client.get_program_async(
+                self.project_id, self.program_id, True
+            )
+        code = self._program.code
+        code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
+        raise ValueError(f'Program was not a batch program but instead was of type {code_type}.')
+
+    batch_size = duet.sync(batch_size_async)
+
     async def delete_async(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 

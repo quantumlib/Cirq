@@ -41,9 +41,6 @@ class NothingJob(AbstractLocalJob):
     def delete(self) -> None:
         pass
 
-    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
-        return []  # pragma: no cover
-
     async def results_async(self) -> Sequence[EngineResult]:
         return []  # pragma: no cover
 

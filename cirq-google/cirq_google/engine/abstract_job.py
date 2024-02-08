@@ -164,17 +164,6 @@ class AbstractJob(abc.ABC):
         """Deletes the job and result, if any."""
 
     @abc.abstractmethod
-    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
-        """Returns the job results, blocking until the job is complete.
-
-        This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a List[Result]
-        for each circuit in the batch.
-        """
-
-    batched_results = duet.sync(batched_results_async)
-
-    @abc.abstractmethod
     async def results_async(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
 
