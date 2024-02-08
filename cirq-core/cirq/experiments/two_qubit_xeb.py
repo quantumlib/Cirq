@@ -64,7 +64,7 @@ class TwoQubitXEBResult:
     def all_qubit_pairs(self) -> Tuple[Tuple['cirq.GridQubit', 'cirq.GridQubit'], ...]:
         return tuple(sorted(self._qubit_pair_map.keys()))
 
-    def plot_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs):
+    def plot_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs) -> plt.Axes:
         """plot the heatmap for xeb error.
 
         Args:
@@ -73,19 +73,19 @@ class TwoQubitXEBResult:
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
         """
         show_plot = not ax
-        if ax is None:
+        if not isinstance(ax, plt.Axes):
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
         heatmap_data: Dict[Tuple['cirq.GridQubit', ...], float] = {
             pair: self.xeb_error(*pair) for pair in self.all_qubit_pairs
         }
 
-        if ax is not None:
-            ax.set_title('device xeb error heatmap')
+        ax.set_title('device xeb error heatmap')
 
         vis.TwoQubitInteractionHeatmap(heatmap_data).plot(ax=ax, **plot_kwargs)
         if show_plot:
             fig.show()
+        return ax
 
     def plot_fitted_exponential(
         self,
@@ -93,7 +93,7 @@ class TwoQubitXEBResult:
         q1: 'cirq.GridQubit',
         ax: Optional[plt.Axes] = None,
         **plot_kwargs,
-    ):
+    ) -> plt.Axes:
         """plot the fitted model to for xeb error of a qubit pair.
 
         Args:
@@ -104,27 +104,27 @@ class TwoQubitXEBResult:
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
         """
         show_plot = not ax
-        if not ax:
+        if not isinstance(ax, plt.Axes):
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
         record = self._record(q0, q1)
 
-        plt.axhline(1, color='grey', ls='--')
-        plt.plot(record['cycle_depths'], record['fidelities'], 'o')
-        xx = np.linspace(0, np.max(record['cycle_depths']))
-
-        if ax is not None:
-            ax.plot(
-                xx,
-                exponential_decay(xx, a=record['a'], layer_fid=record['layer_fid']),
-                label='estimated exponential decay',
-                **plot_kwargs,
-            )
-            ax.set_title(f'{q0}-{q1}')
-            ax.set_ylabel('Circuit fidelity')
-            ax.set_xlabel('Cycle Depth $d$')
-            ax.legend(loc='best')
+        ax.axhline(1, color='grey', ls='--')
+        ax.plot(record['cycle_depths'], record['fidelities'], 'o')
+        depths = np.linspace(0, np.max(record['cycle_depths']))
+        ax.plot(
+            depths,
+            exponential_decay(depths, a=record['a'], layer_fid=record['layer_fid']),
+            label='estimated exponential decay',
+            **plot_kwargs,
+        )
+        ax.set_title(f'{q0}-{q1}')
+        ax.set_ylabel('Circuit fidelity')
+        ax.set_xlabel('Cycle Depth $d$')
+        ax.legend(loc='best')
         if show_plot:
             fig.show()
+        return ax
 
     def _record(self, q0, q1) -> pd.Series:
         if q0 > q1:
@@ -140,7 +140,7 @@ class TwoQubitXEBResult:
         """Return the XEB error of all qubit pairs."""
         return {(q0, q1): self.xeb_error(q0, q1) for q0, q1 in self.all_qubit_pairs}
 
-    def plot_histogram(self, ax: Optional[plt.Axes] = None, **plot_kwargs):
+    def plot_histogram(self, ax: Optional[plt.Axes] = None, **plot_kwargs) -> plt.Axes:
         """plot a histogram of all xeb errors
 
         Args:
@@ -154,6 +154,7 @@ class TwoQubitXEBResult:
         vis.integrated_histogram(data=self.all_errors(), ax=ax, **plot_kwargs)
         if fig is not None:
             fig.show(**plot_kwargs)
+        return ax
 
 
 def parallel_two_qubit_xeb(

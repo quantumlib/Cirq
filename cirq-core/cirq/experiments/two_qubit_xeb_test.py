@@ -18,6 +18,7 @@ import io
 import random
 
 import matplotlib.pyplot as plt
+
 import numpy as np
 import networkx as nx
 import pytest
@@ -79,6 +80,7 @@ def test_parallel_two_qubit_xeb(sampler: cirq.Sampler):
         np.testing.assert_allclose(got, 0.1, atol=1e-1)
 
 
+@pytest.mark.usefixtures('closefigures')
 @pytest.mark.parametrize(
     'sampler', [cirq.DensityMatrixSimulator(seed=0), DensityMatrixSimulatorWithProcessor(seed=0)]
 )
