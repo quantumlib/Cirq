@@ -13,12 +13,16 @@
 # limitations under the License.
 
 
-from typing import Dict, Generic, Any, Sequence, List
+from typing import Dict, Generic, Any, Sequence, TYPE_CHECKING, List
 from cirq import ops, qis
 from cirq.value import big_endian_int_to_bits
 from cirq.ops.raw_types import Qid
 from cirq import sim
 from cirq.sim.simulation_state import TSimulationState, SimulationState
+import numpy as np
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ClassicalBasisState(qis.QuantumStateRepresentation):
