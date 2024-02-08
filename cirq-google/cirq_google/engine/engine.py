@@ -153,7 +153,6 @@ class Engine(abstract_engine.AbstractEngine):
     *   create_program
     *   run
     *   run_sweep
-    *   run_batch
 
     Another set of methods return information about programs and jobs that
     have been previously created on the Quantum Engine, as well as metadata
@@ -415,110 +414,6 @@ class Engine(abstract_engine.AbstractEngine):
     run_sweep = duet.sync(run_sweep_async)
 
     # TODO(#5996) Migrate to stream client
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
-    async def run_batch_async(
-        self,
-        programs: Sequence[cirq.AbstractCircuit],
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        params_list: Optional[List[cirq.Sweepable]] = None,
-        repetitions: int = 1,
-        processor_ids: Sequence[str] = (),
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-        *,
-        processor_id: str = "",
-        run_name: str = "",
-        device_config_name: str = "",
-    ) -> engine_job.EngineJob:
-        """Runs the supplied Circuits via Quantum Engine.Creates
-
-        This will combine each Circuit provided in `programs` into
-        a BatchProgram.  Each circuit will pair with the associated
-        parameter sweep provided in the `params_list`.  The number of
-        programs is required to match the number of sweeps.
-
-        This method does not block until a result is returned.  However,
-        no results will be available until the entire batch is complete.
-
-        Args:
-            programs: The Circuits to execute as a batch.
-            program_id: A user-provided identifier for the program. This must
-                be unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'job-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            params_list: Parameter sweeps to use with the circuits. The number
-                of sweeps should match the number of circuits and will be
-                paired in order with the circuits. If this is None, it is
-                assumed that the circuits are not parameterized and do not
-                require sweeps.
-            repetitions: Number of circuit repetitions to run.  Each sweep value
-                of each circuit in the batch will run with the same repetitions.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
-            program_description: An optional description to set on the program.
-            program_labels: Optional set of labels to set on the program.
-            job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
-            run_name: A unique identifier representing an automation run for the
-                specified processor. An Automation Run contains a collection of
-                device configurations for a processor. If specified, `processor_id`
-                is required to be set.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-                If specified, `processor_id` is required to be set.
-
-        Returns:
-            An EngineJob. If this is iterated over it returns a list of
-            TrialResults. All TrialResults for the first circuit are listed
-            first, then the TrialResults for the second, etc. The TrialResults
-            for a circuit are listed in the order imposed by the associated
-            parameter sweep.
-
-        Raises:
-            ValueError: If the length of programs mismatches that of params_list, or
-                `processor_ids` is not supplied.
-            ValueError: If neither `processor_id` or `processor_ids` are set.
-            ValueError: If  only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
-            ValueError: If either `run_name` and `device_config_name` are set but
-                `processor_id` is empty.
-        """
-        if params_list is None:
-            params_list = [None] * len(programs)
-        elif len(programs) != len(params_list):
-            raise ValueError('Number of circuits and sweeps must match')
-        if not processor_ids and not processor_id:
-            raise ValueError('Processor id must be specified.')
-        engine_program = await self.create_batch_program_async(
-            programs, program_id, description=program_description, labels=program_labels
-        )
-        return await engine_program.run_batch_async(
-            job_id=job_id,
-            params_list=params_list,
-            repetitions=repetitions,
-            processor_ids=processor_ids,
-            description=job_description,
-            labels=job_labels,
-            processor_id=processor_id,
-            run_name=run_name,
-            device_config_name=device_config_name,
-        )
-
-    run_batch = duet.sync(run_batch_async)
-
-    # TODO(#5996) Migrate to stream client
     async def run_calibration_async(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -636,22 +531,6 @@ class Engine(abstract_engine.AbstractEngine):
         )
 
     create_program = duet.sync(create_program_async)
-
-    async def create_batch_program_async(
-        self,
-        programs: Sequence[cirq.AbstractCircuit],
-        program_id: Optional[str] = None,
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> engine_program.EngineProgram:
-        """Wraps a list of Circuits into a BatchProgram for the Quantum Engine.
-
-        Raises:
-            NotImplementedError: Batch programs are no longer supported by the Quantum Engine.
-        """
-        raise NotImplementedError('Batch programs are no longer supported by the Quantum Engine.')
-
-    create_batch_program = duet.sync(create_batch_program_async)
 
     async def create_calibration_program_async(
         self,

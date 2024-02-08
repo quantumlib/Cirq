@@ -114,20 +114,6 @@ class SimulatedLocalJob(AbstractLocalJob):
         self.program().delete_job(self.id())
         self._state = quantum.ExecutionStatus.State.STATE_UNSPECIFIED
 
-    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
-        """Returns the job results, blocking until the job is complete.
-
-        This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a Sequence[Result]
-        for each circuit in the batch.
-        """
-        if self._type == LocalSimulationType.SYNCHRONOUS:
-            return self._execute_results()
-        elif self._type == LocalSimulationType.ASYNCHRONOUS:
-            return await self._future
-        else:
-            raise ValueError('Unsupported simulation type {self._type}')
-
     def _execute_results(self) -> Sequence[Sequence[EngineResult]]:
         """Executes the circuit and sweeps on the sampler.
 

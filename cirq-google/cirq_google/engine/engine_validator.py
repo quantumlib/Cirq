@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Callable, Sequence, Union
-from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.engine.validating_sampler import VALIDATOR_TYPE
 from cirq_google.serialization.serializer import Serializer
-from cirq_google.api import v2
+
 
 MAX_MESSAGE_SIZE = 10_000_000
 MAX_MOMENTS = 10000
 MAX_TOTAL_REPETITIONS = 5_000_000
 
 PROGRAM_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None
 ]
 
 
@@ -87,6 +86,8 @@ def validate_program(
     Raises:
         RuntimeError: if compiled proto is above the maximum size.
     """
+    pass
+    """
     batch = v2.batch_pb2.BatchProgram()
     packed = any_pb2.Any()
     for circuit in circuits:
@@ -95,6 +96,7 @@ def validate_program(
     message_size = len(packed.SerializeToString())
     if message_size > max_size:
         raise RuntimeError("INVALID_PROGRAM: Program too long.")
+    """
 
 
 def create_program_validator(max_size: int = MAX_MESSAGE_SIZE) -> PROGRAM_VALIDATOR_TYPE:

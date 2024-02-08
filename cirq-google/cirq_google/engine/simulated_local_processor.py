@@ -29,10 +29,7 @@ from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
 from cirq_google.engine.processor_sampler import ProcessorSampler
 from cirq_google.engine import engine_validator
 
-VALID_LANGUAGES = [
-    'type.googleapis.com/cirq.google.api.v2.Program',
-    'type.googleapis.com/cirq.google.api.v2.BatchProgram',
-]
+VALID_LANGUAGES = ['type.googleapis.com/cirq.google.api.v2.Program']
 
 
 def _date_to_timestamp(

@@ -28,7 +28,6 @@ from cirq_google.engine.engine_result import EngineResult
 from cirq_google.api import v1, v2
 
 if TYPE_CHECKING:
-    import datetime
     import cirq_google.engine.engine as engine_base
     from cirq_google.engine.engine import engine_program
     from cirq_google.engine.engine import engine_processor
@@ -81,8 +80,7 @@ class EngineJob(abstract_job.AbstractJob):
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
-            result_type: What type of results are expected, such as
-                batched results or the result of a focused calibration.
+            result_type: What type of results are expected.
             job_result_future: A future to be completed when the job result is available.
                 If set, EngineJob will await this future when a caller asks for the job result. If
                 the future is completed with a `QuantumJob`, it is assumed that the job has failed.
@@ -269,18 +267,6 @@ class EngineJob(abstract_job.AbstractJob):
         """Deletes the job and result, if any."""
         self.context.client.delete_job(self.project_id, self.program_id, self.job_id)
 
-    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
-        """Returns the job results, blocking until the job is complete.
-
-        This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a Sequence[Result]
-        for each circuit in the batch.
-        """
-        await self.results_async()
-        if self._batched_results is None:
-            raise ValueError('batched_results called for a non-batch result.')
-        return self._batched_results
-
     async def results_async(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
@@ -301,10 +287,6 @@ class EngineJob(abstract_job.AbstractJob):
             ):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
                 self._results = self._get_job_results_v2(v2_parsed_result)
-            elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
-                v2_parsed_result = v2.batch_pb2.BatchResult.FromString(result.value)
-                self._batched_results = self._get_batch_results_v2(v2_parsed_result)
-                self._results = _flatten(self._batched_results)
             else:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
@@ -394,11 +376,6 @@ class EngineJob(abstract_job.AbstractJob):
             for sweep_result in sweep_results
             for result in sweep_result
         ]
-
-    def _get_batch_results_v2(
-        self, results: v2.batch_pb2.BatchResult
-    ) -> Sequence[Sequence[EngineResult]]:
-        return [self._get_job_results_v2(result) for result in results.results]
 
     def __str__(self) -> str:
         return (

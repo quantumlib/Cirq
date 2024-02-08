@@ -111,7 +111,6 @@ class EngineProgram(abstract_program.AbstractProgram):
             TrialResults, one for each parameter sweep.
 
         Raises:
-            ValueError: If called on a program that is a batch of programs.
             ValueError: If a processor id hasn't been specified to run the job
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
             ValueError: If `processor_ids` has more than one processor id.
@@ -120,8 +119,6 @@ class EngineProgram(abstract_program.AbstractProgram):
         """
         import cirq_google.engine.engine as engine_base
 
-        if self.result_type != ResultType.Program:
-            raise ValueError('Please use run_batch() for batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
         run_context = self.context._serialize_run_context(params, repetitions)
@@ -143,112 +140,6 @@ class EngineProgram(abstract_program.AbstractProgram):
         )
 
     run_sweep = duet.sync(run_sweep_async)
-
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
-    async def run_batch_async(
-        self,
-        job_id: Optional[str] = None,
-        params_list: Optional[List[cirq.Sweepable]] = None,
-        repetitions: int = 1,
-        processor_ids: Sequence[str] = (),
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
-        *,
-        processor_id: str = "",
-        run_name: str = "",
-        device_config_name: str = "",
-    ) -> engine_job.EngineJob:
-        """Runs a batch of circuits on the QuantumEngine.
-
-        This method should only be used if the Program object was created
-        with a BatchProgram.  The number of parameter sweeps should match
-        the number of circuits within that BatchProgram.
-
-        This method does not block until a result is returned.  However,
-        no results will be available until the entire batch is complete.
-
-        Args:
-            job_id: Optional job id to use. If this is not provided, a random id
-                of the format 'job-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            params_list: Parameter sweeps to run with the program.  There must
-                be one Sweepable object for each circuit in the batch. If this
-                is None, it is assumed that the circuits are not parameterized
-                and do not require sweeps.
-            repetitions: The number of circuit repetitions to run.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
-            description: An optional description to set on the job.
-            labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
-            run_name: A unique identifier representing an automation run for the
-                specified processor. An Automation Run contains a collection of
-                device configurations for a processor. If specified, `processor_id`
-                is required to be set.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-                If specified, `processor_id` is required to be set.
-
-        Returns:
-            An EngineJob. If this is iterated over it returns a list of
-            TrialResults. All TrialResults for the first circuit are listed
-            first, then the TrialResults for the second, etc. The TrialResults
-            for a circuit are listed in the order imposed by the associated
-            parameter sweep.
-
-        Raises:
-            ValueError: if the program was not a batch program or no processors
-                were supplied.
-            Raises:
-            ValueError: If neither `processor_id` or `processor_ids` are set.
-            ValueError: If  only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
-            ValueError: If either `run_name` and `device_config_name` are set but
-                `processor_id` is empty.
-
-        """
-        import cirq_google.engine.engine as engine_base
-
-        if self.result_type != ResultType.Batch:
-            raise ValueError('Can only use run_batch() in batch mode.')
-        if params_list is None:
-            params_list = [None] * self.batch_size()
-        if not job_id:
-            job_id = engine_base._make_random_id('job-')
-        if not processor_ids and not processor_id:
-            raise ValueError('No processors specified')
-
-        # Pack the run contexts into batches
-        batch_context = v2.batch_run_context_to_proto(
-            (params, repetitions) for params in params_list
-        )
-
-        created_job_id, job = await self.context.client.create_job_async(
-            project_id=self.project_id,
-            program_id=self.program_id,
-            job_id=job_id,
-            processor_ids=processor_ids,
-            run_context=util.pack_any(batch_context),
-            description=description,
-            labels=labels,
-            processor_id=processor_id,
-            run_name=run_name,
-            device_config_name=device_config_name,
-        )
-        return engine_job.EngineJob(
-            self.project_id,
-            self.program_id,
-            created_job_id,
-            self.context,
-            job,
-            result_type=ResultType.Batch,
-        )
-
-    run_batch = duet.sync(run_batch_async)
 
     async def run_calibration_async(
         self,
@@ -543,8 +434,8 @@ class EngineProgram(abstract_program.AbstractProgram):
         supported if the program was created with the V2 protos.
 
         Args:
-            program_num: if this is a batch program, the index of the circuit in
-                the batch.  This argument is zero-indexed. Negative values
+            program_num:
+                The program number to retrieve. This argument is zero-indexed. Negative values
                 indexing from the end of the list.
 
         Returns:
@@ -557,31 +448,6 @@ class EngineProgram(abstract_program.AbstractProgram):
         return _deserialize_program(self._program.code, program_num)
 
     get_circuit = duet.sync(get_circuit_async)
-
-    async def batch_size_async(self) -> int:
-        """Returns the number of programs in a batch program.
-
-        Raises:
-            ValueError: if the program created was not a batch program.
-        """
-        if self.result_type != ResultType.Batch:
-            raise ValueError(
-                f'Program was not a batch program but instead was of type {self.result_type}.'
-            )
-        import cirq_google.engine.engine as engine_base
-
-        if self._program is None or self._program.code is None:
-            self._program = await self.context.client.get_program_async(
-                self.project_id, self.program_id, True
-            )
-        code = self._program.code
-        code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
-        if code_type == 'cirq.google.api.v2.BatchProgram':
-            batch = v2.batch_pb2.BatchProgram.FromString(code.value)
-            return len(batch.programs)
-        raise ValueError(f'Program was not a batch program but instead was of type {code_type}.')
-
-    batch_size = duet.sync(batch_size_async)
 
     async def delete_async(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
@@ -615,18 +481,6 @@ def _deserialize_program(code: any_pb2.Any, program_num: Optional[int] = None) -
         raise ValueError('deserializing a v1 Program is not supported')
     elif code_type == 'cirq.google.api.v2.Program' or code_type == 'cirq.api.google.v2.Program':
         program = v2.program_pb2.Program.FromString(code.value)
-    elif code_type == 'cirq.google.api.v2.BatchProgram':
-        if program_num is None:
-            raise ValueError(
-                'A program number must be specified when deserializing a Batch Program'
-            )
-        batch = v2.batch_pb2.BatchProgram.FromString(code.value)
-        if abs(program_num) >= len(batch.programs):
-            raise ValueError(
-                f'Only {len(batch.programs)} in the batch but index {program_num} was specified'
-            )
-
-        program = batch.programs[program_num]
     if program is not None:
         return circuit_serializer.CIRCUIT_SERIALIZER.deserialize(program)
 
