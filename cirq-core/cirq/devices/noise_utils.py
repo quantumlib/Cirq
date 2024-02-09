@@ -96,7 +96,7 @@ class OpIdentifier:
         return cls(gate_type, *qubits)
 
 
-@deprecated(deadline='v2.0', fix='use qis.decay_constant_to_xeb_fidelity')
+@deprecated(deadline='v2.0', fix='use cirq.qis.decay_constant_to_xeb_fidelity')
 def decay_constant_to_xeb_fidelity(
     decay_constant: float, num_qubits: int = 2
 ) -> float:  # pragma: no cover
@@ -112,7 +112,7 @@ def decay_constant_to_xeb_fidelity(
     return qis.decay_constant_to_xeb_fidelity(decay_constant, num_qubits)
 
 
-@deprecated(deadline='v2.0', fix='use qis.decay_constant_to_pauli_error')
+@deprecated(deadline='v2.0', fix='use cirq.qis.decay_constant_to_pauli_error')
 def decay_constant_to_pauli_error(
     decay_constant: float, num_qubits: int = 1
 ) -> float:  # pragma: no cover
@@ -128,7 +128,7 @@ def decay_constant_to_pauli_error(
     return qis.decay_constant_to_pauli_error(decay_constant, num_qubits)
 
 
-@deprecated(deadline='v2.0', fix='use qis.pauli_error_to_decay_constant')
+@deprecated(deadline='v2.0', fix='use cirq.qis.pauli_error_to_decay_constant')
 def pauli_error_to_decay_constant(
     pauli_error: float, num_qubits: int = 1
 ) -> float:  # pragma: no cover
@@ -144,7 +144,7 @@ def pauli_error_to_decay_constant(
     return qis.pauli_error_to_decay_constant(pauli_error, num_qubits)
 
 
-@deprecated(deadline='v2.0', fix='use qis.xeb_fidelity_to_decay_constant')
+@deprecated(deadline='v2.0', fix='use cirq.qis.xeb_fidelity_to_decay_constant')
 def xeb_fidelity_to_decay_constant(
     xeb_fidelity: float, num_qubits: int = 2
 ) -> float:  # pragma: no cover
@@ -160,7 +160,7 @@ def xeb_fidelity_to_decay_constant(
     return qis.xeb_fidelity_to_decay_constant(xeb_fidelity, num_qubits)
 
 
-@deprecated(deadline='v2.0', fix='use qis.pauli_error_from_t1')
+@deprecated(deadline='v2.0', fix='use cirq.qis.pauli_error_from_t1')
 def pauli_error_from_t1(t_ns: float, t1_ns: float) -> float:  # pragma: no cover
     """Calculates the pauli error from T1 decay constant.
 
@@ -176,7 +176,7 @@ def pauli_error_from_t1(t_ns: float, t1_ns: float) -> float:  # pragma: no cover
     return qis.pauli_error_from_t1(t_ns, t1_ns)
 
 
-@deprecated(deadline='v2.0', fix='use qis.average_error')
+@deprecated(deadline='v2.0', fix='use cirq.qis.average_error')
 def average_error(decay_constant: float, num_qubits: int = 1) -> float:  # pragma: no cover
     """Calculates the average error from the depolarization decay constant.
 
@@ -190,7 +190,7 @@ def average_error(decay_constant: float, num_qubits: int = 1) -> float:  # pragm
     return qis.average_error(decay_constant, num_qubits)
 
 
-@deprecated(deadline='v2.0', fix='use qis.decoherence_pauli_error')
+@deprecated(deadline='v2.0', fix='use cirq.qis.decoherence_pauli_error')
 def decoherence_pauli_error(
     t1_ns: float, tphi_ns: float, gate_time_ns: float
 ) -> float:  # pragma: no cover
