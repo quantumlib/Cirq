@@ -345,7 +345,7 @@ class ZZGate(cirq.Gate):
 ZZ = ZZGate(theta=0)
 document(
     ZZ,
-    r"""An instance of the two qubit ZZ gate with no phases.
+    r"""An instance of the two qubit ZZ gate with no phase.
 
     The unitary matrix of this gate for parameters $\theta$ is
 
