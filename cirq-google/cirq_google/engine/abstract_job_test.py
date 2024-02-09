@@ -84,9 +84,6 @@ class MockJob(AbstractJob):
     async def results_async(self):
         return [cirq.ResultDict(params={}, measurements={'a': np.asarray([t])}) for t in range(5)]
 
-    async def calibration_results_async(self):
-        pass
-
 
 def test_instantiation_and_iteration():
     job = MockJob()

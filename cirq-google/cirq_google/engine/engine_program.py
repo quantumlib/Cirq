@@ -19,7 +19,7 @@ import duet
 from google.protobuf import any_pb2
 
 import cirq
-from cirq_google.engine import abstract_program, engine_client, util
+from cirq_google.engine import abstract_program, engine_client
 from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.api import v2
@@ -140,70 +140,6 @@ class EngineProgram(abstract_program.AbstractProgram):
         )
 
     run_sweep = duet.sync(run_sweep_async)
-
-    async def run_calibration_async(
-        self,
-        job_id: Optional[str] = None,
-        processor_ids: Sequence[str] = (),
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> engine_job.EngineJob:
-        """Runs layers of calibration routines on the Quantum Engine.
-
-        This method should only be used if the Program object was created
-        with a `FocusedCalibration`.
-
-        This method does not block until a result is returned.  However,
-        no results will be available until all calibration routines complete.
-
-        Args:
-            job_id: Optional job id to use. If this is not provided, a random id
-                of the format 'calibration-################YYMMDD' will be
-                generated, where # is alphanumeric and YYMMDD is the current
-                year, month, and day.
-            processor_ids: The engine processors that should be candidates
-                to run the program. Only one of these will be scheduled for
-                execution.
-            description: An optional description to set on the job.
-            labels: Optional set of labels to set on the job.
-
-        Returns:
-            An EngineJob. Results can be accessed with calibration_results().
-
-        Raises:
-            ValueError: If no processors are specified.
-        """
-        import cirq_google.engine.engine as engine_base
-
-        if not job_id:
-            job_id = engine_base._make_random_id('calibration-')
-        if not processor_ids:
-            raise ValueError('No processors specified')
-
-        # Default run context
-        # Note that Quantum Engine currently requires a valid type url
-        # on a run context in order to succeed validation.
-        run_context = v2.run_context_pb2.RunContext()
-
-        created_job_id, job = await self.context.client.create_job_async(
-            project_id=self.project_id,
-            program_id=self.program_id,
-            job_id=job_id,
-            processor_ids=processor_ids,
-            run_context=util.pack_any(run_context),
-            description=description,
-            labels=labels,
-        )
-        return engine_job.EngineJob(
-            self.project_id,
-            self.program_id,
-            created_job_id,
-            self.context,
-            job,
-            result_type=ResultType.Batch,
-        )
-
-    run_calibration = duet.sync(run_calibration_async)
 
     # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_async(

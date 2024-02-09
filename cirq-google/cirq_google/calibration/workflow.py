@@ -17,7 +17,6 @@ from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tupl
 
 import cirq
 from cirq.experiments import HALF_GRID_STAGGERED_PATTERN
-from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
@@ -36,7 +35,7 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
-from cirq_google.engine import AbstractProcessor, AbstractEngine, ProcessorSampler
+from cirq_google.engine import AbstractEngine
 
 _CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.WaitGate
 
@@ -727,38 +726,6 @@ def _merge_into_calibrations(
     return index
 
 
-def _run_calibrations_via_engine(
-    calibration_requests: Sequence[PhasedFSimCalibrationRequest],
-    processor: AbstractProcessor,
-    max_layers_per_request: int = 1,
-    progress_func: Optional[Callable[[int, int], None]] = None,
-):
-    """Helper function for run_calibrations.
-
-    This batches and runs calibration requests the normal way: by using engine.run_calibration.
-    This function assumes that all inputs have been validated (by `run_calibrations`).
-    """
-    results = []
-    nested_calibration_layers = [
-        [
-            calibration.to_calibration_layer()
-            for calibration in calibration_requests[offset : offset + max_layers_per_request]
-        ]
-        for offset in range(0, len(calibration_requests), max_layers_per_request)
-    ]
-
-    for cal_layers in nested_calibration_layers:
-        job = processor.run_calibration(cal_layers)
-        request_results = job.calibration_results()
-        results += [
-            calibration.parse_result(result, job)  # type: ignore[arg-type]
-            for calibration, result in zip(calibration_requests, request_results)
-        ]
-        if progress_func:
-            progress_func(len(results), len(calibration_requests))
-    return results
-
-
 def _run_local_calibrations_via_sampler(
     calibration_requests: Sequence[PhasedFSimCalibrationRequest], sampler: cirq.Sampler
 ):
@@ -802,52 +769,7 @@ def run_calibrations(
             different types was supplied, if no `processor_id` or `gate_set` is provided, or
             if the calibration / sampler combo is not supported.
     """
-    if max_layers_per_request < 1:
-        raise ValueError(
-            f'Maximum number of layers per request must be at least 1, {max_layers_per_request} '
-            f'given'
-        )
-
-    if not calibrations:
-        return []
-
-    calibration_request_types = set(type(cr) for cr in calibrations)
-    if len(calibration_request_types) > 1:
-        raise ValueError(
-            f"All calibrations must be of the same type. You gave: {calibration_request_types}"
-        )
-    (calibration_request_type,) = calibration_request_types
-
-    if isinstance(sampler, AbstractEngine):
-        if processor_id is None:
-            raise ValueError('processor_id must be provided.')  # pragma: no cover
-        processor: Optional[AbstractProcessor] = sampler.get_processor(processor_id=processor_id)
-    elif isinstance(sampler, ProcessorSampler):
-        processor = sampler.processor
-    else:
-        processor = None
-
-    if processor is not None:
-        if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
-            engine_sampler = processor.get_sampler()
-            return _run_local_calibrations_via_sampler(calibrations, engine_sampler)
-
-        return _run_calibrations_via_engine(
-            calibrations, processor, max_layers_per_request, progress_func
-        )
-
-    if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
-        return _run_local_calibrations_via_sampler(
-            calibrations, sampler=cast(cirq.Sampler, sampler)
-        )
-
-    if isinstance(sampler, PhasedFSimEngineSimulator):
-        return sampler.get_calibrations(calibrations)
-
-    raise ValueError(
-        f'Unsupported sampler/request combination: Sampler {sampler} cannot run '
-        f'calibration request of type {calibration_request_type}'
-    )
+    raise NotImplementedError
 
 
 def make_zeta_chi_gamma_compensation_for_moments(
@@ -982,12 +904,10 @@ def _make_zeta_chi_gamma_compensation(
         if characterization_index is not None:
             parameters = characterizations[characterization_index]
 
-        (
-            decompositions,
-            decompositions_moment_to_calibration,
-            other,
-        ) = _find_moment_zeta_chi_gamma_corrections(
-            moment, characterization_index, parameters, gates_translator
+        (decompositions, decompositions_moment_to_calibration, other) = (
+            _find_moment_zeta_chi_gamma_corrections(
+                moment, characterization_index, parameters, gates_translator
+            )
         )
 
         if decompositions:

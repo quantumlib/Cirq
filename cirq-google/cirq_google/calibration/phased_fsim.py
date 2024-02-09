@@ -729,9 +729,6 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def parse_result(
         self, result: CalibrationResult, job: Optional[EngineJob] = None
     ) -> PhasedFSimCalibrationResult:
-        if result.code != v2.calibration_pb2.SUCCESS:
-            raise PhasedFSimCalibrationError(result.error_message)
-
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
@@ -915,9 +912,6 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def parse_result(
         self, result: CalibrationResult, job: Optional[EngineJob] = None
     ) -> PhasedFSimCalibrationResult:
-        if result.code != v2.calibration_pb2.SUCCESS:
-            raise PhasedFSimCalibrationError(result.error_message)
-
         # pylint: disable=unused-variable
         initial_fids = _parse_xeb_fidelities_df(result.metrics, 'initial_fidelities')
         final_fids = _parse_xeb_fidelities_df(result.metrics, 'final_fidelities')

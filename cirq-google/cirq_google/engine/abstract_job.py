@@ -25,7 +25,6 @@ from cirq_google.engine.engine_result import EngineResult
 if TYPE_CHECKING:
     import datetime
     import cirq_google.engine.calibration as calibration
-    import cirq_google.engine.calibration_result as calibration_result
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_processor as abstract_processor
     import cirq_google.engine.abstract_program as abstract_program
@@ -168,15 +167,6 @@ class AbstractJob(abc.ABC):
         """Returns the job results, blocking until the job is complete."""
 
     results = duet.sync(results_async)
-
-    @abc.abstractmethod
-    async def calibration_results_async(self) -> Sequence['calibration_result.CalibrationResult']:
-        """Returns the results of a run_calibration() call.
-
-        This function will fail if any other type of results were returned.
-        """
-
-    calibration_results = duet.sync(calibration_results_async)
 
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()

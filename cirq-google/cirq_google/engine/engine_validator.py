@@ -64,6 +64,49 @@ def _verify_measurements(circuits):
             raise RuntimeError('Code must measure at least one qubit.')
 
 
+def validate_program(
+    circuits: Sequence[cirq.AbstractCircuit],
+    sweeps: Sequence[cirq.Sweepable],
+    repetitions: int,
+    serializer: Serializer,
+    max_size: int = MAX_MESSAGE_SIZE,
+) -> None:
+    """Validate that the Program message size is below the maximum size limit.
+    Args:
+        circuits:  A sequence of  `cirq.Circuit` objects to validate.  For
+          sweeps and runs, this will be a single circuit.  For batches,
+          this will be a list of circuits.
+        sweeps:  Parameters to run with each circuit.  The length of the
+          sweeps sequence should be the same as the circuits argument.
+        repetitions:  Number of repetitions to run with each sweep.
+        serializer:  Serializer to use to serialize the circuits and sweeps.
+        max_size:  proto size limit to check against.
+    Raises:
+        RuntimeError: if compiled proto is above the maximum size.
+    """
+
+
+def create_program_validator(max_size: int = MAX_MESSAGE_SIZE) -> PROGRAM_VALIDATOR_TYPE:
+    """Creates a Callable program validator with a set message size.
+    This validator can be used for a validator in `cg.ValidatingSampler`
+    and can also be useful in generating 'engine emulators' by using
+    `cg.SimulatedLocalProcessor` with this callable as a program_validator.
+    Args:
+        max_size:  proto size limit to check against.
+    Returns: Callable to use in validation with the max_size already set.
+    """
+
+    def _validator(
+        circuits: Sequence[cirq.AbstractCircuit],
+        sweeps: Sequence[cirq.Sweepable],
+        repetitions: int,
+        serializer: Serializer,
+    ):
+        return validate_program(circuits, sweeps, repetitions, serializer, max_size)
+
+    return _validator
+
+
 def validate_for_engine(
     circuits: Sequence[cirq.AbstractCircuit],
     sweeps: Sequence[cirq.Sweepable],

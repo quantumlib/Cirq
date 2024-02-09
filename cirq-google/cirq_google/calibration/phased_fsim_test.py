@@ -323,7 +323,6 @@ def test_floquet_parse_result():
     )
 
     result = cirq_google.CalibrationResult(
-        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
         token=None,
         valid_until=None,
@@ -397,7 +396,6 @@ def test_floquet_parse_result_failure():
     )
 
     result = cirq_google.CalibrationResult(
-        code=cirq_google.api.v2.calibration_pb2.ERROR_CALIBRATION_FAILED,
         error_message="Test message",
         token=None,
         valid_until=None,
@@ -414,7 +412,6 @@ def _load_xeb_results_textproto() -> cirq_google.CalibrationResult:
             f.read(), cirq_google.api.v2.metrics_pb2.MetricsSnapshot()
         )
     return cirq_google.CalibrationResult(
-        code=cirq_google.api.v2.calibration_pb2.SUCCESS,  # type: ignore
         error_message=None,
         token=None,
         valid_until=None,
@@ -516,7 +513,6 @@ def test_xeb_parse_result_failure():
     )
 
     result = cirq_google.CalibrationResult(
-        code=cirq_google.api.v2.calibration_pb2.ERROR_CALIBRATION_FAILED,
         error_message="Test message",
         token=None,
         valid_until=None,
@@ -570,7 +566,6 @@ def test_floquet_parse_result_bad_metric():
         ),
     )
     result = cirq_google.CalibrationResult(
-        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
         token=None,
         valid_until=None,

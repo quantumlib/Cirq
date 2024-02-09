@@ -964,7 +964,6 @@ def test_run_calibrations():
     )
 
     result = cirq_google.CalibrationResult(
-        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
         token=None,
         valid_until=None,
@@ -1067,7 +1066,6 @@ def test_run_characterization_with_engine():
     )
 
     result = cirq_google.CalibrationResult(
-        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
         token=None,
         valid_until=None,
@@ -1228,7 +1226,6 @@ def test_run_floquet_characterization_for_moments():
     job = cirq_google.engine.EngineJob('project_id', 'program_id', 'job_id', None)
     job._calibration_results = [
         cirq_google.CalibrationResult(
-            code=cirq_google.api.v2.calibration_pb2.SUCCESS,
             error_message=None,
             token=None,
             valid_until=None,

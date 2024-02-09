@@ -316,33 +316,6 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return response
 
-    async def calibration_results_async(self) -> Sequence[CalibrationResult]:
-        """Returns the results of a run_calibration() call.
-
-        This function will fail if any other type of results were returned
-        by the Engine.
-        """
-        import cirq_google.engine.engine as engine_base
-
-        if self._calibration_results is None:
-            result_response = await self._await_result_async()
-            result = result_response.result
-            result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
-            if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
-                raise ValueError(f'Did not find calibration results, instead found: {result_type}')
-            parsed_val = v2.calibration_pb2.FocusedCalibrationResult.FromString(result.value)
-            cal_results = []
-            for layer in parsed_val.results:
-                metrics = calibration.Calibration(layer.metrics)
-                message = layer.error_message or None
-                token = layer.token or None
-                ts: Optional[datetime.datetime] = None
-                if layer.valid_until_ms > 0:
-                    ts = datetime.datetime.fromtimestamp(layer.valid_until_ms / 1000)
-                cal_results.append(CalibrationResult(layer.code, message, token, ts, metrics))
-            self._calibration_results = cal_results
-        return self._calibration_results
-
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
         job_id = self.id()
         job_finished = self.update_time()
