@@ -42,6 +42,7 @@ class AriaNativeGateset(cirq.TwoQubitCompilationTargetGateset):
         )
         self.atol = atol
 
+    # TODO: implement using native gates
     def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
         qubit = op.qubits[0]
         mat = cirq.unitary(op)
@@ -94,6 +95,7 @@ class ForteNativeGateset(cirq.TwoQubitCompilationTargetGateset):
         )
         self.atol = atol
 
+    # TODO: implement using native gates
     def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
         qubit = op.qubits[0]
         mat = cirq.unitary(op)
