@@ -57,7 +57,6 @@ class AriaNativeGateset(cirq.TwoQubitCompilationTargetGateset):
     def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
         pass
 
-    # TODO - implement
     def __repr__(self) -> str:
         return f'cirq_ionq.AriaNativeGateset(atol={self.atol})'
 
@@ -110,9 +109,8 @@ class ForteNativeGateset(cirq.TwoQubitCompilationTargetGateset):
     def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
         pass
 
-    # TODO - implement
     def __repr__(self) -> str:
-        return f'cirq_ionq.AriaNativeGateset(atol={self.atol})'
+        return f'cirq_ionq.ForteNativeGateset(atol={self.atol})'
 
     def _value_equality_values_(self) -> Any:
         return self.atol
