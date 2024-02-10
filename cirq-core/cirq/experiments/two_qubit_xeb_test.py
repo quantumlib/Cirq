@@ -167,23 +167,23 @@ def test_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
 class MockParallelRandomizedBenchmarkingResult(ParallelRandomizedBenchmarkingResult):
     def pauli_error(self) -> Dict[cirq.Qid, float]:
         return {
-            cirq.GridQubit(4, 4): 0.1,
-            cirq.GridQubit(5, 4): 0.2,
-            cirq.GridQubit(5, 3): 0.3,
-            cirq.GridQubit(5, 6): 0.4,
-            cirq.GridQubit(4, 3): 0.5,
-            cirq.GridQubit(6, 3): 0.6,
-            cirq.GridQubit(6, 4): 0.7,
+            cirq.GridQubit(4, 4): 0.01,
+            cirq.GridQubit(5, 4): 0.02,
+            cirq.GridQubit(5, 3): 0.03,
+            cirq.GridQubit(5, 6): 0.04,
+            cirq.GridQubit(4, 3): 0.05,
+            cirq.GridQubit(6, 3): 0.06,
+            cirq.GridQubit(6, 4): 0.07,
         }
 
 
 @pytest.mark.parametrize(
     'q0,q1,pauli',
     [
-        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 1 / 8 + 0.3),
-        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 1 / 4 + 0.9),
-        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.8 + 3 / 40 + 0.8),
-        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 5 / 8 + 1.3),
+        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 1 / 8 - 0.03),
+        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 1 / 4 - 0.09),
+        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.8 + 3 / 40 - 0.08),
+        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 5 / 8 - 0.13),
     ],
 )
 def test_combined_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
@@ -197,10 +197,10 @@ def test_combined_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: flo
 @pytest.mark.parametrize(
     'q0,q1,xeb',
     [
-        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 0.34),
-        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 0.92),
-        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 1.34),
-        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 1.54),
+        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 0.076),
+        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 0.128),
+        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.636),
+        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 0.396),
     ],
 )
 def test_combined_xeb_error(q0: cirq.GridQubit, q1: cirq.GridQubit, xeb: float):
