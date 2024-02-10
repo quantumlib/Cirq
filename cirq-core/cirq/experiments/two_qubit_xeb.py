@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, Iterable
 
 from dataclasses import dataclass
 import itertools
@@ -166,6 +166,7 @@ def parallel_two_qubit_xeb(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
     ax: Optional[plt.Axes] = None,
+    qubits: Optional[Iterable['cirq.GridQubit']] = None,
     **plot_kwargs,
 ) -> TwoQubitXEBResult:
     """A convenience method that runs the full XEB workflow.
@@ -180,6 +181,7 @@ def parallel_two_qubit_xeb(
         random_state: The random state to use.
         ax: the plt.Axes to plot the device layout on. If not given,
             no plot is created.
+        qubits: Which qubits to use. If None, use all of the qubits.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
     Returns:
@@ -187,7 +189,8 @@ def parallel_two_qubit_xeb(
     """
     rs = value.parse_random_state(random_state)
 
-    qubits = _grid_qubits_for_sampler(sampler)
+    if qubits is None:
+        qubits = _grid_qubits_for_sampler(sampler)
     graph = nx.Graph(
         pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
     )
