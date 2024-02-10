@@ -65,4 +65,8 @@ from cirq.experiments.t2_decay_experiment import t2_decay, T2DecayResult
 
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 
-from cirq.experiments.two_qubit_xeb import TwoQubitXEBResult, parallel_two_qubit_xeb
+from cirq.experiments.two_qubit_xeb import (
+    TwoQubitXEBResult,
+    CombinedXEBRBResult,
+    parallel_two_qubit_xeb,
+)
