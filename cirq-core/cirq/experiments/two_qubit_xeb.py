@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast
 
 from dataclasses import dataclass
 import itertools
@@ -203,6 +203,57 @@ class CombinedXEBRBResult:
             pair: 1 - noise_utils.decay_constant_to_xeb_fidelity(decay, 2)
             for pair, decay in self.decay_constant().items()
         }
+
+    def _target_errors(self, target_error: str) -> Dict[Tuple['cirq.GridQubit', ...], float]:
+        error_funcs = {
+            'pauli': self.pauli_error,
+            'decay_constant': self.decay_constant,
+            'xeb': self.xeb_error,
+        }
+        return cast(Dict[Tuple['cirq.GridQubit', ...], float], error_funcs[target_error]())
+
+    def plot_heatmap(
+        self, target_error: str = 'pauli', ax: Optional[plt.Axes] = None, **plot_kwargs
+    ) -> plt.Axes:
+        """plot the heatmap of the target errors.
+
+        Args:
+            target_error: The error to draw. Must be one of 'xeb', 'pauli', or 'decay_constant'
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        """
+        show_plot = not ax
+        if not isinstance(ax, plt.Axes):
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        heatmap_data = self._target_errors(target_error)
+
+        name = f'{target_error} error' if target_error != 'decay_constant' else 'decay constant'
+        ax.set_title(f'device {name} heatmap')
+
+        vis.TwoQubitInteractionHeatmap(heatmap_data).plot(ax=ax, **plot_kwargs)
+        if show_plot:
+            fig.show()
+        return ax
+
+    def plot_histogram(
+        self, target_error: str = 'pauli', ax: Optional[plt.Axes] = None, **plot_kwargs
+    ) -> plt.Axes:
+        """plot a histogram of target error.
+
+        Args:
+            target_error: The error to draw. Must be one of 'xeb', 'pauli', or 'decay_constant'
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        """
+        fig = None
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        vis.integrated_histogram(data=self._target_errors(target_error), ax=ax, **plot_kwargs)
+        if fig is not None:
+            fig.show(**plot_kwargs)
+        return ax
 
 
 def parallel_two_qubit_xeb(

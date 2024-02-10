@@ -209,3 +209,14 @@ def test_combined_xeb_error(q0: cirq.GridQubit, q1: cirq.GridQubit, xeb: float):
     )
 
     assert combined_results.xeb_error()[(q0, q1)] == pytest.approx(xeb)
+
+
+@pytest.mark.parametrize('ax', [None, plt.subplots(1, 1, figsize=(8, 8))[1]])
+@pytest.mark.parametrize('target_error', ['pauli', 'xeb', 'decay_constant'])
+def test_combined_plots(ax, target_error):
+    combined_results = cirq.experiments.CombinedXEBRBResult(
+        rb_result=MockParallelRandomizedBenchmarkingResult({}), xeb_result=_TEST_RESULT
+    )
+
+    combined_results.plot_heatmap(target_error=target_error, ax=ax)
+    combined_results.plot_histogram(target_error=target_error, ax=ax)
