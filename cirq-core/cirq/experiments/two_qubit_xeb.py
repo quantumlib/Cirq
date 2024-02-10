@@ -184,9 +184,11 @@ class CombinedXEBRBResult:
         single_q_paulis = self.rb_result.pauli_error()
         return self.xeb_result.pauli_error()[(q0, q1)] + single_q_paulis[q0] + single_q_paulis[q1]
 
+    @cached_method
     def pauli_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         return {pair: self._pauli_error(*pair) for pair in self.all_qubit_pairs}
 
+    @cached_method
     def decay_constant(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         """Return the equivalent decay constant."""
         return {
@@ -194,6 +196,7 @@ class CombinedXEBRBResult:
             for pair, pauli in self.pauli_error().items()
         }
 
+    @cached_method
     def xeb_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         """Return the equivalent XEB error."""
         return {
