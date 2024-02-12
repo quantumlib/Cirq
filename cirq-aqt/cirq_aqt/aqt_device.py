@@ -123,6 +123,8 @@ class AQTNoiseModel(cirq.NoiseModel):
         for idx in idx_list:
             xtlk_arr[idx] = 0
         xtlk_op_list = []
+        op_str = get_op_string(operation)
+        gate = cast(cirq.EigenGate, gate_dict[op_str])
         
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
@@ -137,9 +139,7 @@ class AQTNoiseModel(cirq.NoiseModel):
                 for idx in xtlk_arr.nonzero()[0]:
                     exponent = operation.gate.exponent  # type:ignore
                     exponent = exponent * xtlk_arr[idx]
-                    if operation.gate is None:
-                        raise RuntimeError("Operation applies no gate.")
-                    xtlk_op = operation.gate.on(op_qubit, system_qubits[idx]) ** exponent
+                    xtlk_op = gate.on(op_qubit, system_qubits[idx]) ** exponent
                     xtlk_op_list.append(xtlk_op)
         return xtlk_op_list
 
