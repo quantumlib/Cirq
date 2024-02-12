@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
 
 from dataclasses import dataclass
 import itertools
@@ -170,7 +170,9 @@ class TwoQubitXEBResult:
 
 
 @dataclass(frozen=True)
-class CombinedXEBRBResult:
+class InferredXEBResult:
+    """Uses the results from XEB and RB to compute inferred two-qubit Pauli errors."""
+
     rb_result: ParallelRandomizedBenchmarkingResult
     xeb_result: TwoQubitXEBResult
 
@@ -185,31 +187,41 @@ class CombinedXEBRBResult:
         return self.xeb_result.pauli_error()[(q0, q1)] - single_q_paulis[q0] - single_q_paulis[q1]
 
     @cached_method
-    def pauli_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def single_qubit_pauli_error(self) -> Mapping['cirq.Qid', float]:
+        """Return the single-qubit pauli error for all qubits (RB results)."""
+        return self.rb_result.pauli_error()
+
+    @cached_method
+    def two_qubit_pauli_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+        """Return the two-qubit pauli error for all pairs."""
+        return self.xeb_result.pauli_error()
+
+    @cached_method
+    def inferred_pauli_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         """Return the inferred pauli error for all pairs."""
         return {pair: self._pauli_error(*pair) for pair in self.all_qubit_pairs}
 
     @cached_method
-    def decay_constant(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def inferred_decay_constant(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         """Return the inferred decay constant for all pairs."""
         return {
             pair: noise_utils.pauli_error_to_decay_constant(pauli, 2)
-            for pair, pauli in self.pauli_error().items()
+            for pair, pauli in self.inferred_pauli_error().items()
         }
 
     @cached_method
-    def xeb_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def inferred_xeb_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         """Return the inferred XEB error for all pairs."""
         return {
             pair: 1 - noise_utils.decay_constant_to_xeb_fidelity(decay, 2)
-            for pair, decay in self.decay_constant().items()
+            for pair, decay in self.inferred_decay_constant().items()
         }
 
     def _target_errors(self, target_error: str) -> Dict[Tuple['cirq.GridQubit', ...], float]:
         error_funcs = {
-            'pauli': self.pauli_error,
-            'decay_constant': self.decay_constant,
-            'xeb': self.xeb_error,
+            'pauli': self.inferred_pauli_error,
+            'decay_constant': self.inferred_decay_constant,
+            'xeb': self.inferred_xeb_error,
         }
         return cast(Dict[Tuple['cirq.GridQubit', ...], float], error_funcs[target_error]())
 
@@ -238,20 +250,51 @@ class CombinedXEBRBResult:
         return ax
 
     def plot_histogram(
-        self, target_error: str = 'pauli', ax: Optional[plt.Axes] = None, **plot_kwargs
+        self,
+        target_error: str = 'pauli',
+        ax: Optional[plt.Axes] = None,
+        single_qubit: bool = True,
+        two_qubit: bool = True,
+        **plot_kwargs,
     ) -> plt.Axes:
         """plot a histogram of target error.
 
         Args:
             target_error: The error to draw. Must be one of 'xeb', 'pauli', or 'decay_constant'
+            single_qubit: Whether to plot the single-qubit RB pauli errors.
+            two_qubit: Whether to plot the two-qubit inferred pauli errors.
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Raises:
+            ValueError: If
+                - single_qubit and two_qubit are both False.
+                - single_qubit is True and target_error is not 'pauli'.
         """
+        if not single_qubit and not two_qubit:
+            raise ValueError("At least one of single_qubit and two_qubit must be True")
+        if single_qubit and target_error != 'pauli':
+            raise ValueError("single_qubit must be False if target_error is not 'pauli'")
         fig = None
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        vis.integrated_histogram(data=self._target_errors(target_error), ax=ax, **plot_kwargs)
+
+        alpha = 1 / (single_qubit + two_qubit)
+        if single_qubit:
+            self.rb_result.plot_integrated_histogram(
+                ax=ax, alpha=alpha, label='single qubit', color='green', **plot_kwargs
+            )
+        if two_qubit:
+            vis.integrated_histogram(
+                data=self._target_errors(target_error),
+                ax=ax,
+                alpha=alpha,
+                label='two qubit',
+                color='blue',
+                **plot_kwargs,
+            )
+
         if fig is not None:
             fig.show(**plot_kwargs)
         return ax

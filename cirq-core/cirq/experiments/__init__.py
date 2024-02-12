@@ -67,6 +67,6 @@ from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 
 from cirq.experiments.two_qubit_xeb import (
     TwoQubitXEBResult,
-    CombinedXEBRBResult,
+    InferredXEBResult,
     parallel_two_qubit_xeb,
 )

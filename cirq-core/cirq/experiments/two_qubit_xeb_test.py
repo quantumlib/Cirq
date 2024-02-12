@@ -186,12 +186,12 @@ class MockParallelRandomizedBenchmarkingResult(ParallelRandomizedBenchmarkingRes
         (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 5 / 8 - 0.13),
     ],
 )
-def test_combined_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
-    combined_results = cirq.experiments.CombinedXEBRBResult(
+def test_inferred_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
+    combined_results = cirq.experiments.InferredXEBResult(
         rb_result=MockParallelRandomizedBenchmarkingResult({}), xeb_result=_TEST_RESULT
     )
 
-    assert combined_results.pauli_error()[(q0, q1)] == pytest.approx(pauli)
+    assert combined_results.inferred_pauli_error()[(q0, q1)] == pytest.approx(pauli)
 
 
 @pytest.mark.parametrize(
@@ -203,20 +203,69 @@ def test_combined_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: flo
         (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 0.396),
     ],
 )
-def test_combined_xeb_error(q0: cirq.GridQubit, q1: cirq.GridQubit, xeb: float):
-    combined_results = cirq.experiments.CombinedXEBRBResult(
+def test_inferred_xeb_error(q0: cirq.GridQubit, q1: cirq.GridQubit, xeb: float):
+    combined_results = cirq.experiments.InferredXEBResult(
         rb_result=MockParallelRandomizedBenchmarkingResult({}), xeb_result=_TEST_RESULT
     )
 
-    assert combined_results.xeb_error()[(q0, q1)] == pytest.approx(xeb)
+    assert combined_results.inferred_xeb_error()[(q0, q1)] == pytest.approx(xeb)
+
+
+def test_inferred_single_qubit_pauli():
+    combined_results = cirq.experiments.InferredXEBResult(
+        rb_result=MockParallelRandomizedBenchmarkingResult({}), xeb_result=_TEST_RESULT
+    )
+
+    assert combined_results.single_qubit_pauli_error() == {
+        cirq.GridQubit(4, 4): 0.01,
+        cirq.GridQubit(5, 4): 0.02,
+        cirq.GridQubit(5, 3): 0.03,
+        cirq.GridQubit(5, 6): 0.04,
+        cirq.GridQubit(4, 3): 0.05,
+        cirq.GridQubit(6, 3): 0.06,
+        cirq.GridQubit(6, 4): 0.07,
+    }
+
+
+@pytest.mark.parametrize(
+    'q0,q1,pauli',
+    [
+        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 1 / 8),
+        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 1 / 4),
+        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.8 + 3 / 40),
+        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 5 / 8),
+    ],
+)
+def test_inferred_two_qubit_pauli(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
+    combined_results = cirq.experiments.InferredXEBResult(
+        rb_result=MockParallelRandomizedBenchmarkingResult({}), xeb_result=_TEST_RESULT
+    )
+    assert combined_results.two_qubit_pauli_error()[(q0, q1)] == pytest.approx(pauli)
 
 
 @pytest.mark.parametrize('ax', [None, plt.subplots(1, 1, figsize=(8, 8))[1]])
 @pytest.mark.parametrize('target_error', ['pauli', 'xeb', 'decay_constant'])
-def test_combined_plots(ax, target_error):
-    combined_results = cirq.experiments.CombinedXEBRBResult(
+@pytest.mark.parametrize('single_qubit', [False, True])
+@pytest.mark.parametrize('two_qubit', [False, True])
+def test_inferred_plots(ax, target_error, single_qubit, two_qubit):
+    combined_results = cirq.experiments.InferredXEBResult(
         rb_result=MockParallelRandomizedBenchmarkingResult({}), xeb_result=_TEST_RESULT
     )
 
     combined_results.plot_heatmap(target_error=target_error, ax=ax)
-    combined_results.plot_histogram(target_error=target_error, ax=ax)
+
+    raise_error = False
+    if not (single_qubit or two_qubit):
+        raise_error = True
+    if single_qubit and target_error != 'pauli':
+        raise_error = True
+
+    if raise_error:
+        with pytest.raises(ValueError):
+            combined_results.plot_histogram(
+                target_error=target_error, single_qubit=single_qubit, two_qubit=two_qubit, ax=ax
+            )
+    else:
+        combined_results.plot_histogram(
+            target_error=target_error, single_qubit=single_qubit, two_qubit=two_qubit, ax=ax
+        )
