@@ -91,22 +91,6 @@ def test_run_sweeps_delegation(create_job_async):
     assert job._job == quantum.QuantumJob()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-def test_run_calibration_delegation(create_job_async):
-    create_job_async.return_value = ('dogs', quantum.QuantumJob())
-    program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
-    job = program.run_calibration(processor_ids=['lazydog'])
-    assert job._job == quantum.QuantumJob()
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-def test_run_calibration_no_processors(create_job_async):
-    create_job_async.return_value = ('dogs', quantum.QuantumJob())
-    program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
-    with pytest.raises(ValueError, match='No processors specified'):
-        _ = program.run_calibration(job_id='spot')
-
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
 def test_run_delegation(create_job_async, get_results_async):

@@ -402,7 +402,7 @@ def create_default_noisy_quantum_virtual_machine(
 
     if simulator_class is None:
         try:  # pragma: no cover
-            import qsimcirq
+            import qsimcirq  # type: ignore
 
             simulator_class = qsimcirq.QSimSimulator  # pragma: no cover
         except ImportError:

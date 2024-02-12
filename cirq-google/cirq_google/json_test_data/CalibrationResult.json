@@ -1,6 +1,5 @@
 {
   "cirq_type": "CalibrationResult",
-  "code": 1,
   "error_message": "a",
   "token": "b",
   "utc_valid_until": 1606319984.041021,

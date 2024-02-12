@@ -208,9 +208,3 @@ def test_device_specification():
     device_spec.valid_qubits.append('q0_1')
     proc = SimulatedLocalProcessor(processor_id='test_proc', device_specification=device_spec)
     assert proc.get_device_specification() == device_spec
-
-
-def test_unsupported():
-    proc = SimulatedLocalProcessor(processor_id='test_proc')
-    with pytest.raises(NotImplementedError):
-        _ = proc.run_calibration()
