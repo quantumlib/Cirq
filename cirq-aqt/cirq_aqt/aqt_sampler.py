@@ -203,7 +203,7 @@ class AQTSampler(cirq.Sampler):
         """Converts a legacy JSON circuit representation.
         
         Converts a JSON created for the legacy API into one that will work
-        with the new API.
+        with the Arnica v1 API.
 
         Args:
             json_str: A JSON-formatted string that could be used as the
