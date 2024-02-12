@@ -36,7 +36,7 @@ def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor):
     with pytest.raises(ValueError, match='Qubit not on device'):
         _ = processor.run(circuit, repetitions=100)
     circuit = cirq.Circuit(cirq.H(good_qubit), cirq.measure(good_qubit))
-    with pytest.raises(ValueError, match='Cannot serialize op'):
+    with pytest.raises(ValueError, match='gate which is not supported'):
         _ = processor.run(circuit, repetitions=100)
 
 

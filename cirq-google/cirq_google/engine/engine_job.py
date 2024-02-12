@@ -130,11 +130,11 @@ class EngineJob(abstract_job.AbstractJob):
 
     _refresh_job = duet.sync(_refresh_job_async)
 
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the job was created."""
         return self._inner_job().create_time
 
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the job was last updated."""
         job = self._refresh_job()
         return job.update_time
