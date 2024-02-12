@@ -25,7 +25,7 @@ API keys for classical simulators and quantum devices can be obtained at:
 import json
 import time
 import uuid
-from typing import cast, Dict, List, Sequence, Tuple, Union
+from typing import cast, Dict, List, Sequence, Tuple, Union, Literal, TypeAlias, TypedDict
 from urllib.parse import urljoin
 
 import numpy as np
@@ -33,6 +33,49 @@ from requests import post, get
 
 import cirq
 from cirq_aqt.aqt_device import AQTSimulator, get_op_string
+
+
+class SingleQubitGate(TypedDict):
+    """Abstract single qubit rotation."""
+
+    qubit: int
+
+
+class GateRZ(SingleQubitGate):
+    """A single-qubit rotation rotation around the Bloch sphere's z-axis."""
+
+    operation: Literal["RZ"]
+    phi: float
+
+
+class GateR(SingleQubitGate):
+    """A single-qubit rotation around an arbitrary axis on the Bloch sphere's equatorial plane."""
+
+    operation: Literal["R"]
+    phi: float
+    theta: float
+
+
+class GateRXX(TypedDict):
+    """A two-qubit entangling gate of Mølmer-Sørenson-type."""
+
+    operation: Literal["RXX"]
+    qubits: list[int]
+    theta: float
+
+
+class Measure(TypedDict):
+    """Measurement operation.
+
+    The MEASURE operation instructs the resource
+    to perform a projective measurement of all qubits.
+    """
+
+    operation: Literal["MEASURE"]
+
+
+Gate: TypeAlias = GateRZ | GateR | GateRXX
+Operation: TypeAlias = Gate | Measure
 
 
 class AQTSampler(cirq.Sampler):
@@ -153,7 +196,7 @@ class AQTSampler(cirq.Sampler):
         json_str = json.dumps(seq_list)
         return json_str
     
-    def _parse_legacy_circuit_json(self, json_str: str) -> list:
+    def _parse_legacy_circuit_json(self, json_str: str) -> list[Operation]:
         """Converts a legacy JSON circuit representation.
         
         Converts a JSON created for the legacy API into one that will work
@@ -165,6 +208,7 @@ class AQTSampler(cirq.Sampler):
         """
         circuit = []
         number_of_measurements = 0
+        instruction: Operation
 
         for legacy_op in json.loads(json_str):
             if number_of_measurements > 0:
@@ -172,26 +216,30 @@ class AQTSampler(cirq.Sampler):
                     "Need exactly one `MEASURE` operation at the end of the circuit."
                 )
 
-            instruction = {}
-
             if legacy_op[0] == "Z":
-                instruction["operation"] = "RZ"
-                instruction["qubit"] = legacy_op[2][0]
-                instruction["phi"] = legacy_op[1]
+                instruction = GateRZ(
+                    operation="RZ",
+                    qubit=legacy_op[2][0],
+                    phi=legacy_op[1],
+                )
 
             elif legacy_op[0] == "R":
-                instruction["operation"] = "R"
-                instruction["qubit"] = legacy_op[3][0]
-                instruction["theta"] = legacy_op[1]
-                instruction["phi"] = legacy_op[2]
+                instruction = GateR(
+                    operation="R",
+                    qubit=legacy_op[3][0],
+                    theta=legacy_op[1],
+                    phi=legacy_op[2],
+                )
 
             elif legacy_op[0] == "MS":
-                instruction["operation"] = "RXX"
-                instruction["qubits"] = legacy_op[2]
-                instruction["theta"] = legacy_op[1]
+                instruction = GateRXX(
+                    operation="RXX",
+                    qubits=legacy_op[2],
+                    theta=legacy_op[1],
+                )
 
             elif legacy_op[0] == "Meas":
-                instruction["operation"] = "MEASURE"
+                instruction = Measure(operation="MEASURE")
                 number_of_measurements += 1
 
             else:
