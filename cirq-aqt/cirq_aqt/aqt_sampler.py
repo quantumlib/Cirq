@@ -35,6 +35,9 @@ import cirq
 from cirq_aqt.aqt_device import AQTSimulator, get_op_string
 
 
+_DEFAULT_HOST = "https://arnica.aqt.eu/api/v1/"
+
+
 class SingleQubitGate(TypedDict):
     """Abstract single qubit rotation."""
 
@@ -84,7 +87,7 @@ class AQTSampler(cirq.Sampler):
     runs a single circuit or an entire sweep remotely
     """
 
-    def __init__(self, workspace: str, resource: str, access_token: str, remote_host: str = "https://arnica.aqt.eu/api/v1/"):
+    def __init__(self, workspace: str, resource: str, access_token: str, remote_host: str = _DEFAULT_HOST):
         """Inits AQTSampler.
 
         Args:
@@ -99,7 +102,7 @@ class AQTSampler(cirq.Sampler):
         self.access_token = access_token
 
     @staticmethod
-    def fetch_resources(access_token: str, remote_host: str = "https://arnica.aqt.eu/api/v1/") -> None:
+    def fetch_resources(access_token: str, remote_host: str = _DEFAULT_HOST) -> None:
         """Lists the workspaces and resources that are accessible with access_token.
 
         Prints a table to STDOUT containing the workspaces and resources that the
