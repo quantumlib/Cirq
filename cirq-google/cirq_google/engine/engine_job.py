@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
+import datetime
 from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import duet

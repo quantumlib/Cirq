@@ -402,8 +402,10 @@ class EngineProgram(abstract_program.AbstractProgram):
                 self.project_id, self.program_id, True
             )
         code = self._program.code
-        code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
-        raise ValueError(f'Program was not a batch program but instead was of type {code_type}.')
+        code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]  # pragma: no cover
+        raise ValueError(
+            f'Program was not a batch program but instead was of type {code_type}.'
+        )  # pragma: no cover
 
     batch_size = duet.sync(batch_size_async)
 

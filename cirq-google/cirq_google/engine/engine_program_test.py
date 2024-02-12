@@ -26,7 +26,6 @@ from cirq_google.api import v1, v2
 from cirq_google.engine import util
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine import EngineContext
-from cirq_google.engine.result_type import ResultType
 
 
 _PROGRAM_V2 = util.pack_any(
