@@ -87,7 +87,9 @@ class AQTSampler(cirq.Sampler):
     runs a single circuit or an entire sweep remotely
     """
 
-    def __init__(self, workspace: str, resource: str, access_token: str, remote_host: str = _DEFAULT_HOST):
+    def __init__(
+        self, workspace: str, resource: str, access_token: str, remote_host: str = _DEFAULT_HOST
+    ):
         """Inits AQTSampler.
 
         Args:
@@ -128,7 +130,7 @@ class AQTSampler(cirq.Sampler):
         response = get(url, headers=headers)
         if response.status_code != 200:
             raise RuntimeError('Got unexpected return data from server: \n' + str(response.json()))
-        
+
         workspaces = cast(list, response.json())
         col_widths = [19, 21, 20, 3]
 
@@ -138,16 +140,40 @@ class AQTSampler(cirq.Sampler):
                 col_widths[1] = max(col_widths[1], len(resource['name']))
                 col_widths[2] = max(col_widths[2], len(resource['id']))
 
-        print("+-" + col_widths[0]*"-"+ "-+-" + col_widths[1]*"-" + "-+-" + col_widths[2]*"-"  + "-+-" + col_widths[3]*"-" + "-+")
-        print(f"| {'WORKSPACE ID'.ljust(col_widths[0])} | {'RESOURCE NAME'.ljust(col_widths[1])} | {'RESOURCE ID'.ljust(col_widths[2])} | {'D/S'.ljust(col_widths[3])} |" )
-        print("+-" + col_widths[0]*"-"+ "-+-" + col_widths[1]*"-" + "-+-" + col_widths[2]*"-"  + "-+-" + col_widths[3]*"-" + "-+")
+        print(
+            "+-"
+            + col_widths[0] * "-"
+            + "-+-"
+            + col_widths[1] * "-"
+            + "-+-"
+            + col_widths[2] * "-"
+            + "-+-"
+            + col_widths[3] * "-"
+            + "-+"
+        )
+        print(
+            f"| {'WORKSPACE ID'.ljust(col_widths[0])} | {'RESOURCE NAME'.ljust(col_widths[1])} | {'RESOURCE ID'.ljust(col_widths[2])} | {'D/S'.ljust(col_widths[3])} |"
+        )
+        print(
+            "+-"
+            + col_widths[0] * "-"
+            + "-+-"
+            + col_widths[1] * "-"
+            + "-+-"
+            + col_widths[2] * "-"
+            + "-+-"
+            + col_widths[3] * "-"
+            + "-+"
+        )
 
-        for workspace in workspaces:            
+        for workspace in workspaces:
             next_workspace = workspace['id']
             for resource in workspace["resources"]:
-                print(f"| {next_workspace.ljust(col_widths[0])} | {resource['name'].ljust(col_widths[1])} | {resource['id'].ljust(col_widths[2])} | {resource['type'][0].upper().ljust(col_widths[3])} |" )
+                print(
+                    f"| {next_workspace.ljust(col_widths[0])} | {resource['name'].ljust(col_widths[1])} | {resource['id'].ljust(col_widths[2])} | {resource['type'][0].upper().ljust(col_widths[3])} |"
+                )
                 next_workspace = ""
-            print(f"+-----------------------+-----------------------+----------------------+---+" )
+            print(f"+-----------------------+-----------------------+----------------------+---+")
 
     def _generate_json(
         self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolverOrSimilarType
@@ -198,10 +224,10 @@ class AQTSampler(cirq.Sampler):
             raise RuntimeError('Cannot send an empty circuit')
         json_str = json.dumps(seq_list)
         return json_str
-    
+
     def _parse_legacy_circuit_json(self, json_str: str) -> list[Operation]:
         """Converts a legacy JSON circuit representation.
-        
+
         Converts a JSON created for the legacy API into one that will work
         with the Arnica v1 API.
 
@@ -215,31 +241,18 @@ class AQTSampler(cirq.Sampler):
 
         for legacy_op in json.loads(json_str):
             if number_of_measurements > 0:
-                raise ValueError(
-                    "Need exactly one `MEASURE` operation at the end of the circuit."
-                )
+                raise ValueError("Need exactly one `MEASURE` operation at the end of the circuit.")
 
             if legacy_op[0] == "Z":
-                instruction = GateRZ(
-                    operation="RZ",
-                    qubit=legacy_op[2][0],
-                    phi=legacy_op[1],
-                )
+                instruction = GateRZ(operation="RZ", qubit=legacy_op[2][0], phi=legacy_op[1])
 
             elif legacy_op[0] == "R":
                 instruction = GateR(
-                    operation="R",
-                    qubit=legacy_op[3][0],
-                    theta=legacy_op[1],
-                    phi=legacy_op[2],
+                    operation="R", qubit=legacy_op[3][0], theta=legacy_op[1], phi=legacy_op[2]
                 )
 
             elif legacy_op[0] == "MS":
-                instruction = GateRXX(
-                    operation="RXX",
-                    qubits=legacy_op[2],
-                    theta=legacy_op[1],
-                )
+                instruction = GateRXX(operation="RXX", qubits=legacy_op[2], theta=legacy_op[1])
 
             elif legacy_op[0] == "Meas":
                 instruction = Measure(operation="MEASURE")
@@ -247,26 +260,21 @@ class AQTSampler(cirq.Sampler):
 
             else:
                 raise ValueError(f'Got unknown gate on operation: {legacy_op}.')
-            
+
             circuit.append(instruction)
-        
+
         if circuit[-1]["operation"] != "MEASURE":
             circuit.append({"operation": "MEASURE"})
 
         return circuit
 
     def _send_json(
-        self,
-        *,
-        json_str: str,
-        id_str: str,
-        repetitions: int = 1,
-        num_qubits: int = 1,
+        self, *, json_str: str, id_str: str, repetitions: int = 1, num_qubits: int = 1
     ) -> np.ndarray:
         """Sends the json string to the remote AQT device.
 
         Submits a pre-prepared JSON string representing a circuit to the AQT
-        API, then polls for the result, which is parsed and returned when 
+        API, then polls for the result, which is parsed and returned when
         available.
 
         Please consider that due to the potential for long wait-times, there is
@@ -295,18 +303,14 @@ class AQTSampler(cirq.Sampler):
                         "repetitions": repetitions,
                         "quantum_circuit": quantum_circuit,
                         "number_of_qubits": num_qubits,
-                    },
-                ],
+                    }
+                ]
             },
         }
 
         submission_url = urljoin(self.remote_host, f"submit/{self.workspace}/{self.resource}")
 
-        response = post(
-            submission_url,
-            json=submission_data,
-            headers=headers,
-        )
+        response = post(submission_url, json=submission_data, headers=headers)
         response = response.json()
         data = cast(Dict, response)
 
@@ -335,13 +339,13 @@ class AQTSampler(cirq.Sampler):
 
         if 'result' not in data['response'].keys():
             raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
-        
+
         measurement_int = data['response']['result']['0']
         measurements = np.zeros((repetitions, num_qubits), dtype=int)
         for i, repetition in enumerate(measurement_int):
             for j in range(num_qubits):
                 measurements[i, j] = repetition[j]
-        
+
         return measurements
 
     def run_sweep(
@@ -392,7 +396,14 @@ class AQTSamplerLocalSimulator(AQTSampler):
     sampler.simulate_ideal=True
     """
 
-    def __init__(self, workspace: str = "", resource: str = "", access_token: str = "", remote_host: str = "", simulate_ideal: bool = False):
+    def __init__(
+        self,
+        workspace: str = "",
+        resource: str = "",
+        access_token: str = "",
+        remote_host: str = "",
+        simulate_ideal: bool = False,
+    ):
         """Args:
         workspace: Workspace is not used by the local simulator.
         resource: Resource is not used by the local simulator.
@@ -406,12 +417,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
         self.simulate_ideal = simulate_ideal
 
     def _send_json(
-        self,
-        *,
-        json_str: str,
-        id_str: str,
-        repetitions: int = 1,
-        num_qubits: int = 1,
+        self, *, json_str: str, id_str: str, repetitions: int = 1, num_qubits: int = 1
     ) -> np.ndarray:
         """Replaces the remote host with a local simulator
 

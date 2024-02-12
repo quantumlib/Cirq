@@ -27,14 +27,7 @@ class GetResultReturn:
     """A put mock class for testing the REST interface"""
 
     def __init__(self):
-        self.test_dict = {
-            'job': {
-                'job_id': '2131da',
-            },
-            'response': {
-                'status': 'queued',
-            },
-        }
+        self.test_dict = {'job': {'job_id': '2131da'}, 'response': {'status': 'queued'}}
         self.counter = 0
 
     def json(self):
@@ -74,55 +67,41 @@ class GetResultErrorSecond(GetResultReturn):
         if self.counter >= 1:
             self.test_dict['response']['status'] = 'error'
         return self
-    
+
 
 class SubmitGoodResponse:
     def json(self):
-        return {
-            "job": {"job_id": "test_job"},
-            "response": {"status": "queued"},
-        }
+        return {"job": {"job_id": "test_job"}, "response": {"status": "queued"}}
+
 
 class SubmitResultNoID:
     """A put mock class for testing error responses
     This will not return an id at the first call"""
 
     def json(self):
-        return {
-            "job": {},
-            "response": {"status": "queued"},
-        }
+        return {"job": {}, "response": {"status": "queued"}}
+
 
 class SubmitResultNoStatus:
     """A put mock class for testing error responses
     This will not return an id at the first call"""
 
     def json(self):
-        return {
-            "job": {"job_id": "test_job"},
-            "response": {},
-        }
+        return {"job": {"job_id": "test_job"}, "response": {}}
+
 
 class SubmitResultWithError:
     """A put mock class for testing error responses
     This will not return an id at the first call"""
 
     def json(self):
-        return {
-            "job": {"job_id": "test_job"},
-            "response": {"status": "error"},
-        }
+        return {"job": {"job_id": "test_job"}, "response": {"status": "error"}}
 
 
 def test_aqt_sampler_submit_job_error_handling():
-    for e_return in [
-        SubmitResultNoID(),
-        SubmitResultNoStatus(),
-        SubmitResultWithError(),
-    ]:
-        with (
-            mock.patch('cirq_aqt.aqt_sampler.post', return_value=e_return),
-            mock.patch('cirq_aqt.aqt_sampler.get', return_value=GetResultReturn()),
+    for e_return in [SubmitResultNoID(), SubmitResultNoStatus(), SubmitResultWithError()]:
+        with mock.patch('cirq_aqt.aqt_sampler.post', return_value=e_return), mock.patch(
+            'cirq_aqt.aqt_sampler.get', return_value=GetResultReturn()
         ):
             theta = sympy.Symbol('theta')
             num_points = 1
@@ -130,21 +109,18 @@ def test_aqt_sampler_submit_job_error_handling():
             repetitions = 10
             sampler = AQTSampler(access_token='testkey', workspace="default", resource="test")
             _, qubits = get_aqt_device(1)
-            circuit = cirq.Circuit(cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0]))
+            circuit = cirq.Circuit(
+                cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0])
+            )
             sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
             with pytest.raises(RuntimeError):
                 _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
 
 def test_aqt_sampler_get_result_error_handling():
-    for e_return in [
-        GetResultError(),
-        GetResultErrorSecond(),
-        GetResultNoStatus(),
-    ]:
-        with (
-            mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()),
-            mock.patch('cirq_aqt.aqt_sampler.get', return_value=e_return, side_effect=e_return.update),
+    for e_return in [GetResultError(), GetResultErrorSecond(), GetResultNoStatus()]:
+        with mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()), mock.patch(
+            'cirq_aqt.aqt_sampler.get', return_value=e_return, side_effect=e_return.update
         ):
             theta = sympy.Symbol('theta')
             num_points = 1
@@ -152,7 +128,9 @@ def test_aqt_sampler_get_result_error_handling():
             repetitions = 10
             sampler = AQTSampler(access_token='testkey', workspace="default", resource="test")
             _, qubits = get_aqt_device(1)
-            circuit = cirq.Circuit(cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0]))
+            circuit = cirq.Circuit(
+                cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0])
+            )
             sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
             with pytest.raises(RuntimeError):
                 _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
@@ -179,25 +157,23 @@ def test_aqt_sampler():
             self.status = "queued"
 
         def json(self):
-            return {
-                "response": {
-                    "status": self.status,
-                    "result": {"0": [[1, 1], [0, 0]]},
-                },
-            }
-    
+            return {"response": {"status": self.status, "result": {"0": [[1, 1], [0, 0]]}}}
+
         def on_request(self, *args, **kwargs):
             self.request_counter += 1
             if self.request_counter >= 3:
                 self.status = "finished"
             return self
 
-
     result_return = ResultReturn()
 
     with (
         mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()) as submit_method,
-        mock.patch('cirq_aqt.aqt_sampler.get', return_value=result_return, side_effect=result_return.on_request) as result_method
+        mock.patch(
+            'cirq_aqt.aqt_sampler.get',
+            return_value=result_return,
+            side_effect=result_return.on_request,
+        ) as result_method,
     ):
         theta = sympy.Symbol('theta')
         num_points = 1
@@ -205,14 +181,16 @@ def test_aqt_sampler():
         repetitions = 10
         sampler = AQTSampler(access_token='testkey', workspace="default", resource="test")
         _, qubits = get_aqt_device(1)
-        circuit = cirq.Circuit(cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0]))
+        circuit = cirq.Circuit(
+            cirq.PhasedXPowGate(exponent=theta, phase_exponent=0.0).on(qubits[0])
+        )
         sweep = cirq.Linspace(key='theta', start=0.1, stop=max_angle / np.pi, length=num_points)
         results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
         excited_state_probs = np.zeros(num_points)
 
         for i in range(num_points):
             excited_state_probs[i] = np.mean(results[i].measurements['m'])
-    
+
     assert submit_method.call_count == 1
     assert result_method.call_count == 3
 
@@ -291,13 +269,15 @@ def test_aqt_device_wrong_op_str():
 
 
 def test_aqt_sampler_parses_legacy_json_correctly() -> None:
-    legacy_json = json.dumps([
-        ["R", 1.0, 0.0, [0]],
-        ["MS", 0.5, [0, 1]],
-        ["Z", -0.5, [0]],
-        ["R", 0.5, 1.0, [0]],
-        ["R", 0.5, 1.0, [1]],
-    ])
+    legacy_json = json.dumps(
+        [
+            ["R", 1.0, 0.0, [0]],
+            ["MS", 0.5, [0, 1]],
+            ["Z", -0.5, [0]],
+            ["R", 0.5, 1.0, [0]],
+            ["R", 0.5, 1.0, [1]],
+        ]
+    )
 
     sampler = AQTSampler("default", "test", "testkey")
     quantum_circuit = sampler._parse_legacy_circuit_json(legacy_json)
@@ -308,38 +288,37 @@ def test_aqt_sampler_parses_legacy_json_correctly() -> None:
         {"operation": "RZ", "qubit": 0, "phi": -0.5},
         {"operation": "R", "qubit": 0, "theta": 0.5, "phi": 1.0},
         {"operation": "R", "qubit": 1, "theta": 0.5, "phi": 1.0},
-        {"operation": "MEASURE"}
+        {"operation": "MEASURE"},
     ]
 
 
 def test_aqt_sampler_submits_jobs_correctly() -> None:
-    legacy_json = json.dumps([
-        ["R", 1.0, 0.0, [0]],
-        ["MS", 0.5, [0, 1]],
-        ["Z", -0.5, [0]],
-        ["R", 0.5, 1.0, [0]],
-        ["R", 0.5, 1.0, [1]],
-    ])
+    legacy_json = json.dumps(
+        [
+            ["R", 1.0, 0.0, [0]],
+            ["MS", 0.5, [0, 1]],
+            ["Z", -0.5, [0]],
+            ["R", 0.5, 1.0, [0]],
+            ["R", 0.5, 1.0, [1]],
+        ]
+    )
 
     result = [[1, 1], [0, 0]]
 
     class ResultReturn:
         def json(self):
-            return {
-                "response": {
-                    "status": "finished",
-                    "result": {"0": result},
-                },
-            }
+            return {"response": {"status": "finished", "result": {"0": result}}}
 
     sampler = AQTSampler("default", "test", "testkey", "http://localhost:7777/api/v1/")
 
     with (
         mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()) as submit_method,
-        mock.patch('cirq_aqt.aqt_sampler.get', return_value=ResultReturn()) as result_method
+        mock.patch('cirq_aqt.aqt_sampler.get', return_value=ResultReturn()) as result_method,
     ):
-        measurements = sampler._send_json(json_str=legacy_json, id_str="test", repetitions=2, num_qubits=2)
-        
+        measurements = sampler._send_json(
+            json_str=legacy_json, id_str="test", repetitions=2, num_qubits=2
+        )
+
         assert submit_method.call_count == 1
         assert submit_method.call_args[0][0] == "http://localhost:7777/api/v1/submit/default/test"
 
@@ -352,11 +331,7 @@ def test_aqt_sampler_submits_jobs_correctly() -> None:
 
 
 def test_measurement_not_at_end_is_not_allowed() -> None:
-    legacy_json = json.dumps([
-        ["R", 1.0, 0.0, [0]],
-        ["Meas"],
-        ["MS", 0.5, [0, 1]],
-    ])
+    legacy_json = json.dumps([["R", 1.0, 0.0, [0]], ["Meas"], ["MS", 0.5, [0, 1]]])
 
     sampler = AQTSampler("default", "dummy_resource", "test")
     with pytest.raises(ValueError):
@@ -364,11 +339,7 @@ def test_measurement_not_at_end_is_not_allowed() -> None:
 
 
 def test_multiple_measurements_are_not_allowed() -> None:
-    legacy_json = json.dumps([
-        ["R", 1.0, 0.0, [0]],
-        ["Meas"],
-        ["Meas"],
-    ])
+    legacy_json = json.dumps([["R", 1.0, 0.0, [0]], ["Meas"], ["Meas"]])
 
     sampler = AQTSampler("default", "dummy_resource", "test")
     with pytest.raises(ValueError):

@@ -93,7 +93,7 @@ class AQTNoiseModel(cirq.NoiseModel):
             for qubit in op.qubits:
                 noise_list.append(noise_op.on(qubit))
             noise_list += self.get_crosstalk_operation(op, system_qubits)
-        
+
         return list(moment) + noise_list
 
     def get_crosstalk_operation(
@@ -119,13 +119,13 @@ class AQTNoiseModel(cirq.NoiseModel):
             for neigh_idx in neighbors:
                 if neigh_idx >= 0 and neigh_idx < num_qubits:
                     xtlk_arr[neigh_idx] = self.noise_op_dict['crosstalk']
-        
+
         for idx in idx_list:
             xtlk_arr[idx] = 0
         xtlk_op_list = []
         op_str = get_op_string(operation)
         gate = cast(cirq.EigenGate, gate_dict[op_str])
-        
+
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
                 exponent = operation.gate.exponent  # type:ignore
@@ -220,11 +220,11 @@ class AQTSimulator:
 
         if self.circuit == cirq.Circuit():
             raise RuntimeError('Simulate called without a valid circuit.')
-        
+
         sim = cirq.DensityMatrixSimulator(noise=noise_model)
-        
+
         result = sim.run(self.circuit, repetitions=repetitions)
-        
+
         return result
 
 
