@@ -226,6 +226,8 @@ jobs:
         run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
