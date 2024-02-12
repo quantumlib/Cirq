@@ -681,3 +681,16 @@ def test_circuit_with_cliffords():
     )
     msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
     assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == want
+
+
+def test_circuit_with_identity():
+    q = cirq.GridQubit(7, 4)
+    c = cirq.Circuit(cirq.I(q))
+    want = cirq.Circuit(cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0)(q))
+    msg = cg.CIRCUIT_SERIALIZER.serialize(c)
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == want
+
+    with pytest.raises(ValueError, match='Multiqubit identity gate.*'):
+        _ = cg.CIRCUIT_SERIALIZER.serialize(
+            cirq.Circuit(cirq.identity_each(*cirq.LineQubit.range(2)))
+        )

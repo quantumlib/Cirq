@@ -29,6 +29,28 @@ from cirq_google.serialization import serializer, op_deserializer, op_serializer
 _SERIALIZER_NAME = 'v2_5'
 
 
+def _serialize_phasedxz_gate(
+    gate: cirq.PhasedXZGate,
+    msg: v2.program_pb2.Operation,
+    arg_function_language: Optional[str] = None,
+):
+    arg_func_langs.float_arg_to_proto(
+        gate.x_exponent,
+        out=msg.phasedxzgate.x_exponent,
+        arg_function_language=arg_function_language,
+    )
+    arg_func_langs.float_arg_to_proto(
+        gate.z_exponent,
+        out=msg.phasedxzgate.z_exponent,
+        arg_function_language=arg_function_language,
+    )
+    arg_func_langs.float_arg_to_proto(
+        gate.axis_phase_exponent,
+        out=msg.phasedxzgate.axis_phase_exponent,
+        arg_function_language=arg_function_language,
+    )
+
+
 class CircuitSerializer(serializer.Serializer):
     """A class for serializing and deserializing programs and operations.
 
@@ -178,21 +200,7 @@ class CircuitSerializer(serializer.Serializer):
         elif isinstance(gate, (cirq.PhasedXZGate, cirq.ops.SingleQubitCliffordGate)):
             if isinstance(gate, cirq.ops.SingleQubitCliffordGate):
                 gate = gate.to_phased_xz_gate()
-            arg_func_langs.float_arg_to_proto(
-                gate.x_exponent,
-                out=msg.phasedxzgate.x_exponent,
-                arg_function_language=arg_function_language,
-            )
-            arg_func_langs.float_arg_to_proto(
-                gate.z_exponent,
-                out=msg.phasedxzgate.z_exponent,
-                arg_function_language=arg_function_language,
-            )
-            arg_func_langs.float_arg_to_proto(
-                gate.axis_phase_exponent,
-                out=msg.phasedxzgate.axis_phase_exponent,
-                arg_function_language=arg_function_language,
-            )
+            _serialize_phasedxz_gate(gate, msg, arg_function_language)
         elif isinstance(gate, cirq.CZPowGate):
             arg_func_langs.float_arg_to_proto(
                 gate.exponent,
@@ -226,6 +234,17 @@ class CircuitSerializer(serializer.Serializer):
                 gate.duration.total_nanos(),
                 out=msg.waitgate.duration_nanos,
                 arg_function_language=arg_function_language,
+            )
+        elif isinstance(gate, cirq.IdentityGate):
+            if cirq.num_qubits(gate) != 1:
+                raise ValueError(
+                    f'Multiqubit identity gate {gate!r} cannot be serialized. '
+                    'Please decompose the operation into single qubit gates.'
+                )
+            _serialize_phasedxz_gate(
+                cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0),
+                msg,
+                arg_function_language,
             )
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
