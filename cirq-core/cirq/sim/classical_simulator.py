@@ -53,20 +53,16 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Inits ClassicalBasisSimState. 
+        """Inits ClassicalBasisSimState.
 
-        Args: 
-            qubits: Determines the canonical ordering of the qubits. This 
-                is often used in specifying the initial state, i.e. the 
-                ordering of the computational basis states. 
-            initial_state: The initial state for the simulation in the 
-                computational basis. 
-            classical_data: The shared classical data container for this 
+        Args:
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation in the
+                computational basis.
+            classical_data: The shared classical data container for this
                 simulation.
-
-        Raises:
-            ValueError: If `initial_state` is provided as integer, but `qubits`
-                is not provided.
         """
         state = ClassicalBasisState(big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
