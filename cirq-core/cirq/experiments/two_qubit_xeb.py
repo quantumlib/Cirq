@@ -292,7 +292,7 @@ class InferredXEBResult:
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-        alpha = 1 / (1 + int(kind == 'both'))
+        alpha = 0.5 if kind == 'both' else 1.0
         if kind == 'single_qubit' or kind == 'both':
             self.rb_result.plot_integrated_histogram(
                 ax=ax, alpha=alpha, label='single qubit', color='green', **plot_kwargs
