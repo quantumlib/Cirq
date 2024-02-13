@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict, Generic, Any, Sequence, TYPE_CHECKING, List
+from typing import Dict, Generic, Any, Sequence, TYPE_CHECKING, List, Union
 from cirq import ops, qis
 from cirq.value import big_endian_int_to_bits
 from cirq.ops.raw_types import Qid
@@ -48,21 +48,21 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
 
 class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
     def __init__(
-            self, 
-            initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0, 
-            qubits: Optional[Sequence['cirq.Qid']] = None, 
-            classical_data: Optional['cirq.ClassicalDataStore'] = None,
-        ):
+        self,
+        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+    ):
         """Inits ClassicalBasisSimState. 
-  
-         Args: 
-             qubits: Determines the canonical ordering of the qubits. This 
-                 is often used in specifying the initial state, i.e. the 
-                 ordering of the computational basis states. 
-             initial_state: The initial state for the simulation in the 
-                 computational basis. 
-             classical_data: The shared classical data container for this 
-                 simulation.
+
+        Args: 
+            qubits: Determines the canonical ordering of the qubits. This 
+                is often used in specifying the initial state, i.e. the 
+                ordering of the computational basis states. 
+            initial_state: The initial state for the simulation in the 
+                computational basis. 
+            classical_data: The shared classical data container for this 
+                simulation.
 
         Raises:
             ValueError: If `initial_state` is provided as integer, but `qubits`
