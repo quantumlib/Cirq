@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict, Generic, Any, Sequence, TYPE_CHECKING, List, Union
+from typing import Dict, Generic, Any, Sequence, Optional, List, Union, TYPE_CHECKING
 from cirq import ops, qis
 from cirq.value import big_endian_int_to_bits
 from cirq.ops.raw_types import Qid
@@ -64,7 +64,12 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             classical_data: The shared classical data container for this
                 simulation.
         """
-        state = ClassicalBasisState(big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
+        if not isinstance(initial_state, np.ndarray):
+            if qubits is None:
+                raise ValueError('qubits must be provided if initial_state is not ndarray')
+            state = ClassicalBasisState(big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
+        else: 
+            state = ClassicalBasisState(initial_state)
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence[Qid], allow_decompose: bool = True):
