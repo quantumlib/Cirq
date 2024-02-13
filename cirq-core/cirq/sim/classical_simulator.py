@@ -40,12 +40,34 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
         basis_copy = self.basis if deep_copy_buffers else self.basis.copy()
         return ClassicalBasisState(basis_copy)
 
-    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> List[int]:
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
         return [self.basis[i] for i in axes]
 
 
 class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
-    def __init__(self, initial_state, qubits, classical_data):
+    def __init__(
+            self, 
+            initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0, 
+            qubits: Optional[Sequence['cirq.Qid']] = None, 
+            classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        ):
+        """Inits ClassicalBasisSimState. 
+  
+         Args: 
+             qubits: Determines the canonical ordering of the qubits. This 
+                 is often used in specifying the initial state, i.e. the 
+                 ordering of the computational basis states. 
+             initial_state: The initial state for the simulation in the 
+                 computational basis. 
+             classical_data: The shared classical data container for this 
+                 simulation.
+
+        Raises:
+            ValueError: If `initial_state` is provided as integer, but `qubits`
+                is not provided.
+        """
         state = ClassicalBasisState(big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
