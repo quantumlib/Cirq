@@ -70,7 +70,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
-        else: 
+        else:
             state = ClassicalBasisState(initial_state)
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
