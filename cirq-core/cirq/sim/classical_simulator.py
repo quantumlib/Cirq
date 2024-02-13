@@ -25,6 +25,13 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _is_identity(action) -> bool:
+    gate = action.gate if isinstance(action, ops.Operation) else action
+    if isinstance(gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
+        return gate.exponent % 2 == 0
+    return False
+
+
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     def __init__(self, initial_state: List[int]):
         self.basis = initial_state
@@ -33,7 +40,7 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
         basis_copy = self.basis if deep_copy_buffers else self.basis.copy()
         return ClassicalBasisState(basis_copy)
 
-    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> List[int]:
         return [self.basis[i] for i in axes]
 
 
@@ -45,7 +52,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
     def _act_on_fallback_(self, action, qubits: Sequence[Qid], allow_decompose: bool = True):
         gate = action.gate if isinstance(action, ops.Operation) else action
         mapped_qubits = [self.qubit_map[i] for i in qubits]
-        if self._is_identity(gate):
+        if _is_identity(gate):
             return True
         if gate == ops.X:
             (q,) = mapped_qubits
@@ -66,12 +73,6 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         else:
             raise ValueError(f'{gate} is not one of X, CNOT, SWAP, CCNOT, or a measurement')
 
-    def _is_identity(self, action) -> bool:
-        gate = action.gate if isinstance(action, ops.Operation) else action
-        if isinstance(gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
-            return gate.exponent % 2 == 0
-        return False
-
 
 class ClassicalStateStepResult(
     sim.StepResultBase['ClassicalBasisSimState'], Generic[TSimulationState]
@@ -83,17 +84,6 @@ class ClassicalStateTrialResult(
     sim.SimulationTrialResultBase['ClassicalBasisSimState'], Generic[TSimulationState]
 ):
     """The trial result provided by `ClassicalStateSimulator.simulate`."""
-
-    def __init__(
-        self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[ClassicalBasisSimState]',
-    ) -> None:
-        self.final_simulator_state = final_simulator_state
-        super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
-        )
 
 
 class ClassicalStateSimulator(
