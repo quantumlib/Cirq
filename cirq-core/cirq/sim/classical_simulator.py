@@ -67,7 +67,9 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         if not isinstance(initial_state, np.ndarray):
             if qubits is None:
                 raise ValueError('qubits must be provided if initial_state is not ndarray')
-            state = ClassicalBasisState(big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
+            state = ClassicalBasisState(
+                big_endian_int_to_bits(initial_state, bit_count=len(qubits))
+            )
         else: 
             state = ClassicalBasisState(initial_state)
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
