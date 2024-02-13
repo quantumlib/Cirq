@@ -63,9 +63,6 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
-    # TODO(#6088) - enable notebooks below
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    # End of TODO(#6088)
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
     "**/azure-quantum/*.ipynb",
