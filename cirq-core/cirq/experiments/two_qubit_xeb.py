@@ -160,7 +160,7 @@ class TwoQubitXEBResult:
 
     @cached_method
     def pauli_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
-        """Return the Pauli error of a qubit pair."""
+        """Return the Pauli error of all qubit pairs."""
         return {
             pair: noise_utils.decay_constant_to_pauli_error(
                 noise_utils.xeb_fidelity_to_decay_constant(self.xeb_fidelity(*pair), num_qubits=2),
