@@ -14,6 +14,7 @@
 from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
 
 from dataclasses import dataclass
+from types import MappingProxyType
 import itertools
 import functools
 
@@ -180,50 +181,57 @@ class InferredXEBResult:
     def all_qubit_pairs(self) -> Sequence[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
         return self.xeb_result.all_qubit_pairs
 
-    def _pauli_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
-        """Return the inferred pauli error."""
-        q0, q1 = sorted([q0, q1])
-        single_q_paulis = self.rb_result.pauli_error()
-        return self.xeb_result.pauli_error()[(q0, q1)] - single_q_paulis[q0] - single_q_paulis[q1]
-
     @cached_method
     def single_qubit_pauli_error(self) -> Mapping['cirq.Qid', float]:
-        """Return the single-qubit pauli error for all qubits (RB results)."""
+        """Return the single-qubit Pauli error for all qubits (RB results)."""
         return self.rb_result.pauli_error()
 
     @cached_method
-    def two_qubit_pauli_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
-        """Return the two-qubit pauli error for all pairs."""
-        return self.xeb_result.pauli_error()
+    def two_qubit_pauli_error(self) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+        """Return the two-qubit Pauli error for all pairs."""
+        return MappingProxyType(self.xeb_result.pauli_error())
 
     @cached_method
-    def inferred_pauli_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
-        """Return the inferred pauli error for all pairs."""
-        return {pair: self._pauli_error(*pair) for pair in self.all_qubit_pairs}
+    def inferred_pauli_error(self) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+        """Return the inferred Pauli error for all pairs."""
+        single_q_paulis = self.rb_result.pauli_error()
+        xeb = self.xeb_result.pauli_error()
+
+        def _pauli_error(q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
+            q0, q1 = sorted([q0, q1])
+            return xeb[(q0, q1)] - single_q_paulis[q0] - single_q_paulis[q1]
+
+        return MappingProxyType({pair: _pauli_error(*pair) for pair in self.all_qubit_pairs})
 
     @cached_method
-    def inferred_decay_constant(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def inferred_decay_constant(self) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         """Return the inferred decay constant for all pairs."""
-        return {
-            pair: noise_utils.pauli_error_to_decay_constant(pauli, 2)
-            for pair, pauli in self.inferred_pauli_error().items()
-        }
+        return MappingProxyType(
+            {
+                pair: noise_utils.pauli_error_to_decay_constant(pauli, 2)
+                for pair, pauli in self.inferred_pauli_error().items()
+            }
+        )
 
     @cached_method
-    def inferred_xeb_error(self) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+    def inferred_xeb_error(self) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         """Return the inferred XEB error for all pairs."""
-        return {
-            pair: 1 - noise_utils.decay_constant_to_xeb_fidelity(decay, 2)
-            for pair, decay in self.inferred_decay_constant().items()
-        }
+        return MappingProxyType(
+            {
+                pair: 1 - noise_utils.decay_constant_to_xeb_fidelity(decay, 2)
+                for pair, decay in self.inferred_decay_constant().items()
+            }
+        )
 
-    def _target_errors(self, target_error: str) -> Dict[Tuple['cirq.GridQubit', ...], float]:
+    def _target_errors(
+        self, target_error: str
+    ) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
         error_funcs = {
             'pauli': self.inferred_pauli_error,
             'decay_constant': self.inferred_decay_constant,
             'xeb': self.inferred_xeb_error,
         }
-        return cast(Dict[Tuple['cirq.GridQubit', ...], float], error_funcs[target_error]())
+        return error_funcs[target_error]()
 
     def plot_heatmap(
         self, target_error: str = 'pauli', ax: Optional[plt.Axes] = None, **plot_kwargs
@@ -239,7 +247,9 @@ class InferredXEBResult:
         show_plot = not ax
         if not isinstance(ax, plt.Axes):
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        heatmap_data = self._target_errors(target_error)
+        heatmap_data = cast(
+            Mapping[Tuple['cirq.GridQubit', ...], float], self._target_errors(target_error)
+        )
 
         name = f'{target_error} error' if target_error != 'decay_constant' else 'decay constant'
         ax.set_title(f'device {name} heatmap')
@@ -253,39 +263,41 @@ class InferredXEBResult:
         self,
         target_error: str = 'pauli',
         ax: Optional[plt.Axes] = None,
-        single_qubit: bool = True,
-        two_qubit: bool = True,
+        kind: str = 'two_qubit',
         **plot_kwargs,
     ) -> plt.Axes:
         """plot a histogram of target error.
 
         Args:
             target_error: The error to draw. Must be one of 'xeb', 'pauli', or 'decay_constant'
-            single_qubit: Whether to plot the single-qubit RB pauli errors.
-            two_qubit: Whether to plot the two-qubit inferred pauli errors.
+            kind: Whether to plot the single-qubit RB errors ('single_qubit') or the
+                two-qubit inferred errors ('two_qubit') or both ('both').
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
         Raises:
             ValueError: If
-                - single_qubit and two_qubit are both False.
-                - single_qubit is True and target_error is not 'pauli'.
+                - `kind` is not one of 'single_qubit', 'two_qubit', or 'both'.
+                - `target_error` is not one of 'pauli', 'xeb', or 'decay_constant'
+                - single qubit error is requested and `target_error` is not 'pauli'.
         """
-        if not single_qubit and not two_qubit:
-            raise ValueError("At least one of single_qubit and two_qubit must be True")
-        if single_qubit and target_error != 'pauli':
-            raise ValueError("single_qubit must be False if target_error is not 'pauli'")
+        if kind not in ('single_qubit', 'two_qubit', 'both'):
+            raise ValueError(
+                f"kind must be one of 'single_qubit', 'two_qubit', or 'both', not {kind}"
+            )
+        if kind != 'two_qubit' and target_error != 'pauli':
+            raise ValueError(f'{target_error} is not supported for single qubits')
         fig = None
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
-        alpha = 1 / (single_qubit + two_qubit)
-        if single_qubit:
+        alpha = 1 / (1 + int(kind == 'both'))
+        if kind == 'single_qubit' or kind == 'both':
             self.rb_result.plot_integrated_histogram(
                 ax=ax, alpha=alpha, label='single qubit', color='green', **plot_kwargs
             )
-        if two_qubit:
+        if kind == 'two_qubit' or kind == 'both':
             vis.integrated_histogram(
                 data=self._target_errors(target_error),
                 ax=ax,

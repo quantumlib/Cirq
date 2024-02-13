@@ -245,9 +245,8 @@ def test_inferred_two_qubit_pauli(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli:
 
 @pytest.mark.parametrize('ax', [None, plt.subplots(1, 1, figsize=(8, 8))[1]])
 @pytest.mark.parametrize('target_error', ['pauli', 'xeb', 'decay_constant'])
-@pytest.mark.parametrize('single_qubit', [False, True])
-@pytest.mark.parametrize('two_qubit', [False, True])
-def test_inferred_plots(ax, target_error, single_qubit, two_qubit):
+@pytest.mark.parametrize('kind', ['single_qubit', 'two_qubit', 'both', ''])
+def test_inferred_plots(ax, target_error, kind):
     combined_results = cirq.experiments.InferredXEBResult(
         rb_result=MockParallelRandomizedBenchmarkingResult({}), xeb_result=_TEST_RESULT
     )
@@ -255,17 +254,13 @@ def test_inferred_plots(ax, target_error, single_qubit, two_qubit):
     combined_results.plot_heatmap(target_error=target_error, ax=ax)
 
     raise_error = False
-    if not (single_qubit or two_qubit):
+    if kind not in ('single_qubit', 'two_qubit', 'both'):
         raise_error = True
-    if single_qubit and target_error != 'pauli':
+    if kind != 'two_qubit' and target_error != 'pauli':
         raise_error = True
 
     if raise_error:
         with pytest.raises(ValueError):
-            combined_results.plot_histogram(
-                target_error=target_error, single_qubit=single_qubit, two_qubit=two_qubit, ax=ax
-            )
+            combined_results.plot_histogram(target_error=target_error, kind=kind, ax=ax)
     else:
-        combined_results.plot_histogram(
-            target_error=target_error, single_qubit=single_qubit, two_qubit=two_qubit, ax=ax
-        )
+        combined_results.plot_histogram(target_error=target_error, kind=kind, ax=ax)
