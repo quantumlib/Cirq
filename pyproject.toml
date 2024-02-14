@@ -8,6 +8,9 @@ skip-magic-trailing-comma = true
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
     "ignore:FigureCanvasAgg is non-interactive.*cannot be shown:UserWarning",
+    # temporarily expose following deprecations in the CI
+    "error:`np.*` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
+    "error:NotImplemented should not be used in a boolean context:DeprecationWarning",
 ]
 markers = [
     "rigetti_integration: tests that connect to Quil compiler or QVM.",
