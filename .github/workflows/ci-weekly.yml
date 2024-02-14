@@ -29,7 +29,7 @@ jobs:
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
         run: check/pytest -n auto -m weekly dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: notebook-outputs
