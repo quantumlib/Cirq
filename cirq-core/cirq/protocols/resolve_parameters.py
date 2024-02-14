@@ -181,7 +181,7 @@ def resolve_parameters(
     is_parameterized = (
         val._is_parameterized_() if hasattr(val, '_is_parameterized_') else NotImplemented
     )
-    if is_parameterized is NotImplemented or not is_parameterized:
+    if is_parameterized is not NotImplemented and not is_parameterized:
         return val
 
     getter = getattr(val, '_resolve_parameters_', None)
