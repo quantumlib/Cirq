@@ -27,6 +27,7 @@ TestSpec = ModuleJsonTestSpec(
         'ProcessorSampler',
         'ValidatingSampler',
         'CouldNotPlaceError',
+        'CalibrationResult',
         # Abstract:
         'ExecutableSpec',
     ],

@@ -32,6 +32,7 @@ class CalibrationResult:
     These defaults will converted to `None` by the API client.
     """
 
+    code: Any
     error_message: Optional[str]
     token: Optional[str]
     valid_until: Optional[datetime.datetime]
@@ -40,6 +41,7 @@ class CalibrationResult:
     @classmethod
     def _from_json_dict_(
         cls,
+        code: Any,
         error_message: Optional[str],
         token: Optional[str],
         utc_valid_until: float,
@@ -52,7 +54,7 @@ class CalibrationResult:
             if utc_valid_until is not None
             else None
         )
-        return cls(error_message, token, valid_until, metrics)
+        return cls(code, error_message, token, valid_until, metrics)
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
@@ -62,6 +64,7 @@ class CalibrationResult:
             else None
         )
         return {
+            'code': self.code,
             'error_message': self.error_message,
             'token': self.token,
             'utc_valid_until': utc_valid_until,

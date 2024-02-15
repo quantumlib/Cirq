@@ -1,4 +1,5 @@
 cirq_google.CalibrationResult(
+    code=1,
     error_message='a',
     token='b',
     valid_until=datetime.datetime(2020, 11, 25, 15, 59, 44, 41021),
