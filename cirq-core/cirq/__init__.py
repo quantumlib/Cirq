@@ -240,6 +240,7 @@ from cirq.ops import (
     MatrixGate,
     MixedUnitaryChannel,
     M,
+    MSGate,
     measure,
     measure_each,
     measure_paulistring_terms,
