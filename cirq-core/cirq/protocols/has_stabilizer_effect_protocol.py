@@ -102,11 +102,7 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
 
 
 def _strat_has_stabilizer_effect_from_decompose(val: Any) -> Optional[bool]:
-    qid_shape = qid_shape_protocol.qid_shape(val, default=None)
-    if qid_shape is None or len(qid_shape) <= 3:
-        return None
-
-    decomposition = decompose_protocol.decompose_once(val, default=None)
+    decomposition, _, _ = decompose_protocol._try_decompose_into_operations_and_qubits(val)
     if decomposition is None:
         return None
     for op in decomposition:
