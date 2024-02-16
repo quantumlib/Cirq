@@ -74,6 +74,18 @@ def _keyed_repeated_bitstrings(vals: Mapping[str, np.ndarray]) -> str:
     return '\n'.join(keyed_bitstrings)
 
 
+def _keyed_repeated_records(vals: Mapping[str, np.ndarray]) -> str:
+    keyed_bitstrings = []
+    for key in sorted(vals.keys()):
+        reps = vals[key]
+        n = reps.shape[2]
+        num_records = reps.shape[1]
+        for j in range(num_records):
+            all_bits = ', '.join(_bitstring(reps[:, j, i]) for i in range(n))
+            keyed_bitstrings.append(f'{key}={all_bits}')
+    return '\n'.join(keyed_bitstrings)
+
+
 def _key_to_str(key: TMeasurementKey) -> str:
     if isinstance(key, str):
         return key
@@ -388,6 +400,8 @@ class ResultDict(Result):
             p.text(str(self))
 
     def __str__(self) -> str:
+        if self._records:
+            return _keyed_repeated_records(self.records)
         return _keyed_repeated_bitstrings(self.measurements)
 
     def _json_dict_(self):
