@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Callable, Sequence, Union
+from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.engine.validating_sampler import VALIDATOR_TYPE
@@ -84,6 +85,11 @@ def validate_program(
     Raises:
         RuntimeError: if compiled proto is above the maximum size.
     """
+    packed = any_pb2.Any()
+    packed.Pack(serializer.serialize(circuits[0]))
+    message_size = len(packed.SerializeToString())
+    if message_size > max_size:
+        raise RuntimeError("INVALID_PROGRAM: Program too long.")
 
 
 def create_program_validator(max_size: int = MAX_MESSAGE_SIZE) -> PROGRAM_VALIDATOR_TYPE:
@@ -118,14 +124,13 @@ def validate_for_engine(
 
     Args:
        circuits:  A sequence of  `cirq.Circuit` objects to validate.  For
-          sweeps and runs, this will be a single circuit.  For batches,
-          this will be a list of circuits.
+          sweeps and runs, this will be a single circuit.
        sweeps:  Parameters to run with each circuit.  The length of the
           sweeps sequence should be the same as the circuits argument.
        repetitions:  Number of repetitions to run with each sweep.
        max_moments: Maximum number of moments to allow.
        max_repetitions: Maximum number of parameter sweep values allowed
-           when summed across all sweeps and all batches.
+           when summed across all sweeps.
        max_duration_ns:  Maximum duration of the circuit, in nanoseconds.
     """
     _verify_reps(sweeps, repetitions, max_repetitions)

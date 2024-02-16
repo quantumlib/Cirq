@@ -21,7 +21,6 @@ from google.protobuf import any_pb2
 import cirq
 from cirq_google.engine import abstract_program, engine_client
 from cirq_google.cloud import quantum
-from cirq_google.engine.result_type import ResultType
 from cirq_google.api import v2
 from cirq_google.engine import engine_job
 from cirq_google.serialization import circuit_serializer
@@ -47,7 +46,6 @@ class EngineProgram(abstract_program.AbstractProgram):
         program_id: str,
         context: 'engine_base.EngineContext',
         _program: Optional[quantum.QuantumProgram] = None,
-        result_type: ResultType = ResultType.Program,
     ) -> None:
         """A job submitted to the engine.
 
@@ -56,13 +54,11 @@ class EngineProgram(abstract_program.AbstractProgram):
             program_id: Unique ID of the program within the parent project.
             context: Engine configuration and context to use.
             _program: The optional current program state.
-            result_type: The type of program that was created.
         """
         self.project_id = project_id
         self.program_id = program_id
         self.context = context
         self._program = _program
-        self.result_type = result_type
 
     # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_sweep_async(
@@ -365,14 +361,9 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     remove_labels = duet.sync(remove_labels_async)
 
-    async def get_circuit_async(self, program_num: Optional[int] = None) -> cirq.Circuit:
+    async def get_circuit_async(self) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine program. This is only
         supported if the program was created with the V2 protos.
-
-        Args:
-            program_num:
-                The program number to retrieve. This argument is zero-indexed. Negative values
-                indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
@@ -381,7 +372,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             self._program = await self.context.client.get_program_async(
                 self.project_id, self.program_id, True
             )
-        return _deserialize_program(self._program.code, program_num)
+        return _deserialize_program(self._program.code)
 
     get_circuit = duet.sync(get_circuit_async)
 
@@ -391,22 +382,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         Raises:
             ValueError: if the program created was not a batch program.
         """
-        if self.result_type != ResultType.Batch:
-            raise ValueError(
-                f'Program was not a batch program but instead was of type {self.result_type}.'
-            )
-        import cirq_google.engine.engine as engine_base
-
-        if self._program is None or self._program.code is None:
-            self._program = await self.context.client.get_program_async(
-                self.project_id, self.program_id, True
-            )
-        code = self._program.code
-        code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]  # pragma: no cover
-        raise ValueError(  # pragma: no cover
-            'Program was not a batch program but'  # pragma: no cover
-            + f'instead was of type {code_type}.'  # pragma: no cover
-        )  # pragma: no cover
+        raise NotImplementedError("Batch programs are no longer supported.")
 
     batch_size = duet.sync(batch_size_async)
 
@@ -433,7 +409,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
 
 
-def _deserialize_program(code: any_pb2.Any, program_num: Optional[int] = None) -> cirq.Circuit:
+def _deserialize_program(code: any_pb2.Any) -> cirq.Circuit:
     import cirq_google.engine.engine as engine_base
 
     code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]

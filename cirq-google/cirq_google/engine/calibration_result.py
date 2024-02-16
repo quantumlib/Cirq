@@ -30,6 +30,8 @@ class CalibrationResult:
     they will be set to the default values in the proto, as defined here:
     https://developers.google.com/protocol-buffers/docs/proto3#default
     These defaults will converted to `None` by the API client.
+
+    Deprecated: Calibrations are no longer supported via cirq.
     """
 
     code: Any

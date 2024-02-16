@@ -22,7 +22,6 @@ import cirq
 from cirq_google.engine import abstract_job, calibration, engine_client
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.cloud import quantum
-from cirq_google.engine.result_type import ResultType
 from cirq_google.engine.engine_result import EngineResult
 from cirq_google.api import v1, v2
 
@@ -66,7 +65,6 @@ class EngineJob(abstract_job.AbstractJob):
         job_id: str,
         context: 'engine_base.EngineContext',
         _job: Optional[quantum.QuantumJob] = None,
-        result_type: ResultType = ResultType.Program,
         job_result_future: Optional[
             duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]
         ] = None,
@@ -79,7 +77,6 @@ class EngineJob(abstract_job.AbstractJob):
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
-            result_type: What type of results are expected.
             job_result_future: A future to be completed when the job result is available.
                 If set, EngineJob will await this future when a caller asks for the job result. If
                 the future is completed with a `QuantumJob`, it is assumed that the job has failed.
@@ -92,7 +89,6 @@ class EngineJob(abstract_job.AbstractJob):
         self._results: Optional[Sequence[EngineResult]] = None
         self._calibration_results: Optional[Sequence[CalibrationResult]] = None
         self._batched_results: Optional[Sequence[Sequence[EngineResult]]] = None
-        self.result_type = result_type
         self._job_result_future = job_result_future
 
     def id(self) -> str:
