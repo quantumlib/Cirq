@@ -25,11 +25,42 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-from cirq.protocols.decompose_protocol import DecomposeResult
 from .ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate, VirtualZGate
 
+class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
+    """Base class for IonQ native gate sets.
+    """
 
-class AriaNativeGateset(cirq.TwoQubitCompilationTargetGateset):
+    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+        qubit = op.qubits[0]
+        mat = cirq.unitary(op)
+        for gate in _single_qubit_matrix_to_gates(mat, self.atol):
+            yield gate(qubit)
+
+    def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+        raise Exception()
+    
+    # TODO - implement
+    def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> cirq.OP_TREE:
+        raise Exception()
+
+    @property
+    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+        """List of transformers which should be run after decomposing individual operations."""
+        return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
+
+    def _value_equality_values_(self) -> Any:
+        return self.atol
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ['atol'])
+
+    @classmethod
+    def _from_json_dict_(cls, atol, **kwargs):
+        return cls(atol=atol)
+
+
+class AriaNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
 
     The gates forming this gateset are: 
@@ -46,50 +77,25 @@ class AriaNativeGateset(cirq.TwoQubitCompilationTargetGateset):
             GPIGate,
             GPI2Gate,
             MSGate,
-            VirtualZGate,
+            #VirtualZGate,
             ops.MeasurementGate,
             unroll_circuit_op=False,
         )
         self.atol = atol
 
-    def _decompose_single_qubit_operation(self, op: cirq.Operation, _): #-> cirq.OP_TREE: ??
-        qubit = op.qubits[0]
-        mat = cirq.unitary(op)
-        for gate in single_qubit_matrix_to_gates(mat, self.atol):
-            print("zzzzzzzzzzzzzzzzzzz", gate)
-            yield gate(qubit)
-
-    # TODO - implement
-    def _decompose_two_qubit_operation(self, op: cirq.Operation, _): # -> cirq.OP_TREE: ??
-        pass
-    
-    # TODO - implement
-    def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
-        pass
-
     def __repr__(self) -> str:
         return f'cirq_ionq.AriaNativeGateset(atol={self.atol})'
 
-    def _value_equality_values_(self) -> Any:
-        return self.atol
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ['atol'])
-
-    @classmethod
-    def _from_json_dict_(cls, atol, **kwargs):
-        return cls(atol=atol)
-
-
-class ForteNativeGateset(cirq.TwoQubitCompilationTargetGateset):
+class ForteNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
 
-    The gates forming this gateset are: 
+    The gates forming this gateset are:
     GPIGate, GPI2Gate, MSGate, ZZGate and VirtualZGate
     """
 
     def __init__(self, *, atol: float = 1e-8):
-        """Initializes AriaNativeGateset
+        """Initializes ForteNativeGateset
 
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
@@ -99,41 +105,17 @@ class ForteNativeGateset(cirq.TwoQubitCompilationTargetGateset):
             GPI2Gate,
             MSGate,
             ZZGate,
-            VirtualZGate,
+            #VirtualZGate,
             ops.MeasurementGate,
             unroll_circuit_op=False,
         )
         self.atol = atol
 
-    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
-        qubit = op.qubits[0]
-        mat = cirq.unitary(op)
-        for gate in single_qubit_matrix_to_gates(mat, self.atol):
-            yield gate(qubit)
-
-    # TODO - implement
-    def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
-        pass
-    
-    # TODO - implement
-    def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
-        pass
-
     def __repr__(self) -> str:
         return f'cirq_ionq.ForteNativeGateset(atol={self.atol})'
-
-    def _value_equality_values_(self) -> Any:
-        return self.atol
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ['atol'])
-
-    @classmethod
-    def _from_json_dict_(cls, atol, **kwargs):
-        return cls(atol=atol)
     
 
-def single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float) -> List[cirq.Gate]:
+def _single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float) -> List[cirq.Gate]:
     """Implements a single-qubit operation with few gates.
        Code is based on existing implementation from Cirq core.
 
@@ -146,14 +128,11 @@ def single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float) -> List[cirq
         A list of gates that, when applied in order, perform the desired
             operation.
     """
-    rotations = single_qubit_matrix_to_pauli_rotations(mat, tolerance)
-    # temporary:
-    # return [pauli**ht for pauli, ht in rotations]
-    for pauli, ht in rotations:
-        print("aaaa", pauli, ht)
-    return [pauli for pauli, ht in rotations]
+    rotations = _single_qubit_matrix_to_pauli_rotations(mat, tolerance)
+    return [pauli**ht for pauli, ht in rotations]
 
-def single_qubit_matrix_to_pauli_rotations(mat: np.ndarray, atol: float) -> List[Tuple[cirq.Gate, float]]:
+
+def _single_qubit_matrix_to_pauli_rotations(mat: np.ndarray, atol: float) -> List[Tuple[cirq.Gate, float]]:
     """Implements a single-qubit operation with few rotations.
        Code is based on existing implementation from Cirq core.
 
@@ -186,7 +165,6 @@ def single_qubit_matrix_to_pauli_rotations(mat: np.ndarray, atol: float) -> List
     z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
     z_ht_before = z_rad_before / np.pi - 0.5
     m_ht = y_rad / np.pi
-    #m_pauli: ops.Pauli = ops.X !!
     m_pauli = GPIGate(phi=0)
     z_ht_after = z_rad_after / np.pi + 0.5
     
@@ -197,7 +175,6 @@ def single_qubit_matrix_to_pauli_rotations(mat: np.ndarray, atol: float) -> List
         ):
             z_ht_before += 0.5
             z_ht_after -= 0.5
-            #m_pauli = ops.Y !!
             m_pauli = GPIGate(phi=np.pi/2)
         if is_half_turn(z_ht_before) or is_half_turn(z_ht_after):
             z_ht_before -= 1
@@ -212,5 +189,6 @@ def single_qubit_matrix_to_pauli_rotations(mat: np.ndarray, atol: float) -> List
 
     # Generate operations
     #rotation_list = [(ops.Z, z_ht_before), (m_pauli, m_ht), (ops.Z, z_ht_after)] !!
-    rotation_list = [(VirtualZGate(theta=np.pi), z_ht_before), (m_pauli, m_ht), (VirtualZGate(theta=np.pi), z_ht_after)]
+    #rotation_list = [(VirtualZGate(theta=np.pi), z_ht_before), (m_pauli, m_ht), (VirtualZGate(theta=np.pi), z_ht_after)]
+    rotation_list = [(m_pauli, m_ht)]
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]

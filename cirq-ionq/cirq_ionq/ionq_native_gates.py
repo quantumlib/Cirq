@@ -77,7 +77,8 @@ class GPIGate(cirq.Gate):
         if power == -1:
             return self
 
-        return NotImplemented
+        # TODO: Implement power for any argument
+        return self
 
 
 GPI = GPIGate(phi=0)
@@ -153,7 +154,8 @@ class GPI2Gate(cirq.Gate):
         if power == -1:
             return GPI2Gate(phi=self.phi + 0.5)
 
-        return NotImplemented
+        # TODO: Implement power for any argument
+        return self
 
 
 GPI2 = GPI2Gate(phi=0)
@@ -409,16 +411,10 @@ class VirtualZGate(cirq.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI({self.phase!r})',))
+        return protocols.CircuitDiagramInfo(wire_symbols=(f'VirtualZ({self.phase!r})',))
 
     def __pow__(self, power):
-        if power == 1:
-            return self
-
-        if power == -1:
-            return VirtualZGate(theta=-self.theta)
-
-        return NotImplemented
+        return VirtualZGate(theta=self.theta * power)
 
 
 VirtualZ = VirtualZGate(theta=0)

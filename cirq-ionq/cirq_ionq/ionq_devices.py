@@ -13,9 +13,6 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
-
-### TODO: IonQAPIDevice is deprecated (see cirq._compat.deprecated below) and this file will be removed.
-
 from typing import Sequence
 from typing import Union
 
