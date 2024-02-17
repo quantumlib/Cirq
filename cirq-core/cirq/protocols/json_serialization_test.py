@@ -26,6 +26,7 @@ from unittest import mock
 
 import networkx as nx
 import numpy as np
+import orjson
 import pandas as pd
 import pytest
 import sympy
@@ -99,8 +100,11 @@ def test_deprecated_cirq_type_in_json_dict():
             return HasOldJsonDict
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
-    with pytest.raises(ValueError, match="Found 'cirq_type'"):
+    with pytest.raises(orjson.JSONEncodeError) as excinfo:
         assert_json_roundtrip_works(HasOldJsonDict(), resolvers=test_resolvers)
+
+    assert isinstance(excinfo.value.__cause__, ValueError)
+    assert "Found 'cirq_type'" in str(excinfo.value.__cause__)
 
 
 def test_line_qubit_roundtrip():
@@ -709,7 +713,7 @@ def assert_repr_and_json_test_data_agree(
     )
 
     if not inward_only:
-        json_from_cirq = cirq.to_json(repr_obj)
+        json_from_cirq = cirq.to_json(repr_obj, indent=2)
         json_from_cirq_obj = json.loads(json_from_cirq)
         json_from_file_obj = json.loads(json_from_file)
 

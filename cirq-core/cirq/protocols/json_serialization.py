@@ -37,6 +37,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 import sympy
+import orjson
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
@@ -569,13 +570,20 @@ def to_json(
     indent=2,
     separators=None,
     cls=CirqEncoder,
+    enable_contextual_serialization: bool = True,
 ) -> None:
     pass
 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    indent=2,
+    separators=None,
+    cls=CirqEncoder,
+    enable_contextual_serialization=True,
 ) -> str:
     pass
 
@@ -587,11 +595,16 @@ def to_json(
     indent: Optional[int] = 2,
     separators: Optional[Tuple[str, str]] = None,
     cls: Type[json.JSONEncoder] = CirqEncoder,
+    enable_contextual_serialization: bool = True,
 ) -> Optional[str]:
     """Write a JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
     objects which implement the SupportsJSON protocol.
+
+    For maximum performance, set `indent` to `None` and `enable_contextual_serialization`
+    to `False`. Alternatively, use the `to_json_bytes` function directly for optimized
+    serialization.
 
     Args:
         obj: An object which can be serialized to a JSON representation.
@@ -600,17 +613,24 @@ def to_json(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
-            Passed to json.dump.
-        separators: Passed to json.dump; key-value pairs delimiters defined as
-            `(item_separator, key_separators)` tuple. Note that any non-standard
-            operators (':', ',') will cause `read_json` to fail.
+            If set to any not `None` value then indent of 2 will be used. Defaults to `2`.
+            Degrades serialization performance.
+        separators: Deprecated. This parameter has no effect.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
             party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
+        enable_contextual_serialization: If `True`, enables concise serialization of
+            objects by using a context map. Objects that have already been serialized
+            will not be serialized again, but will instead be represented by a unique
+            key in the context map. Setting to true decreases serialization performance.
+            Defaults to `True`.
+    Returns:
+        The serialized object as a JSON formatted string if `file_or_fn` is `None`.
+        Otherwise, returns `None` after writing the JSON data to the specified file or IO object.
     """
-    if has_serializable_by_keys(obj):
+    if enable_contextual_serialization and has_serializable_by_keys(obj):
         obj = _ContextualSerialization(obj)
 
         class ContextualEncoder(cls):  # type: ignore
@@ -635,15 +655,33 @@ def to_json(
 
         cls = ContextualEncoder
 
+    json_bytes = to_json_bytes(obj, file_or_fn, cls=cls, indent=indent is not None)
+    if json_bytes is None:
+        return None
+    return json_bytes.decode()
+
+
+def to_json_bytes(
+    obj: Any,
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    indent: bool,
+    cls: Type[json.JSONEncoder] = CirqEncoder,
+) -> Optional[bytes]:
+    option = (
+        orjson.OPT_NON_STR_KEYS | orjson.OPT_PASSTHROUGH_DATACLASS | orjson.OPT_PASSTHROUGH_DATETIME
+    )
+    if indent:
+        option = option | orjson.OPT_INDENT_2
+    json_bytes = orjson.dumps(obj, option=option, default=cls().default)
     if file_or_fn is None:
-        return json.dumps(obj, indent=indent, separators=separators, cls=cls)
-
+        return json_bytes
     if isinstance(file_or_fn, (str, pathlib.Path)):
-        with open(file_or_fn, 'w') as actually_a_file:
-            json.dump(obj, actually_a_file, indent=indent, cls=cls)
+        with open(file_or_fn, 'wb') as actually_a_file:
+            actually_a_file.write(json_bytes)
             return None
-
-    json.dump(obj, file_or_fn, indent=indent, separators=separators, cls=cls)
+    # IO is StringIO, so we need to decode first. Small performance impact.
+    file_or_fn.write(json_bytes.decode())
     return None
 
 
@@ -701,7 +739,8 @@ def to_json_gzip(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
-    indent: int = 2,
+    indent: Optional[int] = 2,
+    enable_contextual_serialization: bool = True,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[bytes]:
     """Write a gzipped JSON file containing a representation of obj.
@@ -716,14 +755,22 @@ def to_json_gzip(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
-            Passed to json.dump.
+            If set to any not `None` value then indent of 2 will be used. Defaults to `2`.
+            Degrades serialization performance.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
             party classes, prefer adding the _json_dict_ magic method
             to your classes rather than overriding this default.
+        enable_contextual_serialization: If `True`, enables concise serialization of
+            objects by using a context map. Objects that have already been serialized
+            will not be serialized again, but will instead be represented by a unique
+            key in the context map. Setting to true decreases serialization performance.
+            Defaults to `True`.
     """
-    json_str = to_json(obj, indent=indent, cls=cls)
+    json_str = to_json(
+        obj, indent=indent, cls=cls, enable_contextual_serialization=enable_contextual_serialization
+    )
     if isinstance(file_or_fn, (str, pathlib.Path)):
         with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
             actually_a_file.write(json_str)
