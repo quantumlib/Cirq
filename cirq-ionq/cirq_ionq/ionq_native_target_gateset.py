@@ -38,8 +38,21 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             yield gate(qubit)
 
     def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
-        raise Exception()
-    
+        if not cirq.has_unitary(op):
+            return NotImplemented
+        mat = cirq.unitary(op)
+        q0, q1 = op.qubits
+        naive = cirq.two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs=False)
+        temp = cirq.map_operations_and_unroll(
+            cirq.Circuit(naive),
+            lambda op, _: [self._hadamard(op.qubits[1]) + self._cnot(*op.qubits) + self._hadamard(op.qubits[1])]
+            if op.gate == cirq.CZ
+            else op,
+        )
+        return cirq.merge_k_qubit_unitaries(
+            temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, -1)
+        ).all_operations()
+
     # TODO - implement
     def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> cirq.OP_TREE:
         raise Exception()
@@ -59,6 +72,13 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def _from_json_dict_(cls, atol, **kwargs):
         return cls(atol=atol)
 
+    def _hadamard(self, qubit):
+        return [GPI2Gate(phi=np.pi/2).on(qubit), VirtualZGate(theta=np.pi).on(qubit)]
+
+    # TODO: implement CNOT as native gates here
+    def _cnot(self, *qubits):
+        return [MSGate(phi0=0, phi1=1).on(qubits[0], qubits[1])]
+
 
 class AriaNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
@@ -77,7 +97,7 @@ class AriaNativeGateset(IonqNativeGatesetBase):
             GPIGate,
             GPI2Gate,
             MSGate,
-            #VirtualZGate,
+            VirtualZGate,
             ops.MeasurementGate,
             unroll_circuit_op=False,
         )
@@ -105,7 +125,7 @@ class ForteNativeGateset(IonqNativeGatesetBase):
             GPI2Gate,
             MSGate,
             ZZGate,
-            #VirtualZGate,
+            VirtualZGate,
             ops.MeasurementGate,
             unroll_circuit_op=False,
         )
@@ -187,8 +207,5 @@ def _single_qubit_matrix_to_pauli_rotations(mat: np.ndarray, atol: float) -> Lis
         z_ht_after -= z_ht_before
         z_ht_before = 0
 
-    # Generate operations
-    #rotation_list = [(ops.Z, z_ht_before), (m_pauli, m_ht), (ops.Z, z_ht_after)] !!
-    #rotation_list = [(VirtualZGate(theta=np.pi), z_ht_before), (m_pauli, m_ht), (VirtualZGate(theta=np.pi), z_ht_after)]
-    rotation_list = [(m_pauli, m_ht)]
+    rotation_list = [(VirtualZGate(theta=np.pi), z_ht_before), (m_pauli, m_ht), (VirtualZGate(theta=-np.pi), z_ht_after)]
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
