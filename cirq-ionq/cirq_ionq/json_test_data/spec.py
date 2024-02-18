@@ -30,7 +30,6 @@ TestSpec = ModuleJsonTestSpec(
         "IonQException",
         "IonQUnsuccessfulJobException",
         "IonQNotFoundException",
-        "IonQAPIDevice",
         "Job",
         "SimulatorResult",
     ],
