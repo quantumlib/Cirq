@@ -40,7 +40,7 @@ INVALID_GATE_POWER = [-2, -0.5, 0, 0.5, 2]
         (ionq.GPI2Gate(phi=0.2), 1, "0: ───GPI2(0.2)───"),
         (ionq.VirtualZGate(theta=0.3), 1, "0: ───VirtualZ(0.3)───"),
         (ionq.MSGate(phi0=0.1, phi1=0.2), 2, "0: ───MS(0.1)───\n      │\n1: ───MS(0.2)───"),
-        (ionq.ZZGate(theta=0.3), 2, "0: ───ZZ(0.3)───\n      │\n1: ───ZZ───"),
+        (ionq.ZZGate(theta=0.3), 2, "0: ───ZZ(0.3)───\n      │\n1: ───ZZ────────"),
     ],
 )
 def test_gate_methods(gate, nqubits, diagram):

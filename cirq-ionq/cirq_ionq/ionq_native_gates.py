@@ -317,12 +317,12 @@ class ZZGate(cirq.Gate):
 
     def _num_qubits_(self) -> int:
         return 2
-
+    
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(
-            wire_symbols=(f'ZZ({self.theta!r})')
+            wire_symbols=(f'ZZ({self.theta!r})', f'ZZ')
         )
 
     def __repr__(self) -> str:
