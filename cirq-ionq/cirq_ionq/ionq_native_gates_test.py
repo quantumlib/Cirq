@@ -97,12 +97,12 @@ def test_ms_unitary(phases):
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(4))
 
 @pytest.mark.parametrize("phase", [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi])
-def test_virtualz_unitary(phase):
+def test_zz_unitary(phase):
     """Tests that the ZZ gate is unitary."""
     gate = ionq.ZZGate(theta=phase)
 
     mat = cirq.protocols.unitary(gate)
-    numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(2))
+    numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(4))
 
 @pytest.mark.parametrize(
     "gate",
