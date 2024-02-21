@@ -28,7 +28,10 @@ from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 from cirq.experiments.xeb_fitting import benchmark_2q_xeb_fidelities
 from cirq.experiments.xeb_fitting import fit_exponential_decays, exponential_decay
 from cirq.experiments import random_quantum_circuit_generation as rqcg
-from cirq.experiments.qubit_characterizations import ParallelRandomizedBenchmarkingResult
+from cirq.experiments.qubit_characterizations import (
+    ParallelRandomizedBenchmarkingResult,
+    parallel_single_qubit_randomized_benchmarking,
+)
 from cirq.qis import noise_utils
 from cirq._compat import cached_method
 
@@ -386,3 +389,63 @@ def parallel_two_qubit_xeb(
     )
 
     return TwoQubitXEBResult(fit_exponential_decays(fids))
+
+
+def run_rb_and_xeb(
+    sampler: 'cirq.Sampler',
+    qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    repetitions: int = 10**3,
+    num_circuits: int = 20,
+    num_clifford_range: Sequence[int] = tuple(
+        np.logspace(np.log10(5), np.log10(1000), 5, dtype=int)
+    ),
+    entangling_gate: 'cirq.Gate' = ops.CZ,
+    depths_xeb: Sequence[int] = tuple(np.arange(3, 100, 20)),
+    xeb_combinations: int = 10,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
+) -> InferredXEBResult:
+    """A convenience method that runs both RB and XEB workflows.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        repetitions: The number of repetitions to use for RB and XEB.
+        num_circuits: The number of circuits to generate for RB and XEB.
+        num_clifford_range: The different numbers of Cliffords in the RB study.
+        entangling_gate: The entangling gate to use.
+        depths_xeb: The cycle depths to use for XEB.
+        xeb_combinations: The number of combinations to generate for XEB.
+        random_state: The random state to use.
+
+    Returns:
+        An InferredXEBResult object representing the results of the experiment.
+
+    Raises:
+        ValueError: If qubits are not specified and the sampler has no device.
+    """
+
+    if qubits is None:
+        qubits = _grid_qubits_for_sampler(sampler)
+        if qubits is None:
+            raise ValueError("Couldn't determine qubits from sampler. Please specify them.")
+
+    rb = parallel_single_qubit_randomized_benchmarking(
+        sampler=sampler,
+        qubits=qubits,
+        repetitions=repetitions,
+        num_circuits=num_circuits,
+        num_clifford_range=num_clifford_range,
+    )
+
+    xeb = parallel_two_qubit_xeb(
+        sampler=sampler,
+        qubits=qubits,
+        entangling_gate=entangling_gate,
+        n_repetitions=repetitions,
+        n_circuits=num_circuits,
+        cycle_depths=depths_xeb,
+        n_combinations=xeb_combinations,
+        random_state=random_state,
+    )
+
+    return InferredXEBResult(rb, xeb)

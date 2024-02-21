@@ -69,4 +69,5 @@ from cirq.experiments.two_qubit_xeb import (
     InferredXEBResult,
     TwoQubitXEBResult,
     parallel_two_qubit_xeb,
+    run_rb_and_xeb,
 )
