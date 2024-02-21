@@ -292,7 +292,7 @@ def test_run_rb_and_xeb(sampler: cirq.Sampler, qubits: Optional[Sequence[cirq.Gr
             sampler=sampler,
             qubits=qubits,
             repetitions=100,
-            num_clifford_range=np.arange(3, 10, 1),
+            num_clifford_range=tuple(np.arange(3, 10, 1)),
             xeb_combinations=1,
             num_circuits=1,
             depths_xeb=(3, 4, 5),
