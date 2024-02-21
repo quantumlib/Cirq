@@ -300,9 +300,6 @@ def test_serialize_deserialize_ops(op, op_proto):
         ),
         constants=constants,
     )
-    print(f'{circuit_proto=}')
-    print()
-    print(serializer.serialize(circuit))
     assert circuit_proto == serializer.serialize(circuit)
     assert serializer.deserialize(circuit_proto) == circuit
 
