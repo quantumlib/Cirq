@@ -107,8 +107,8 @@ class GPI2Gate(cirq.Gate):
     $$
     \frac{1}{\sqrt{2}}
     \begin{bmatrix}
-        1 & -i e^{-i \phi} \\
-        -i e^{-i \phi} & 1
+        1 & -i e^{-i 2\pi\phi} \\
+        -i e^{-i 2\pi\phi} & 1
     \end{bmatrix}
     $$
 
@@ -185,10 +185,10 @@ class MSGate(cirq.Gate):
 
     $$
     \begin{bmatrix}
-        \cos\frac{\theta}{2} & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} \\
-        0 & \cos\frac{\theta}{2} & -ie^{-i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & 0 \\
-        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & \cos\frac{\theta}{2} & 0 \\
-        -ie^{i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} & 0 & 0 & \cos\frac{\theta}{2}
+        \cos\pi\theta & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin\pi\theta \\
+        0 & \cos\pi\theta & -ie^{-i2\pi(\phi_0-\phi_1)}\sin\pi\theta & 0 \\
+        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin\pi\theta & \cos\pi\theta & 0 \\
+        -ie^{i2\pi(\phi_0+\phi_1)}\sin\pi\theta & 0 & 0 & \cos\frac{\theta}{2}
     \end{bmatrix}
     $$
 
@@ -283,10 +283,10 @@ class ZZGate(cirq.Gate):
 
     $$
     \begin{bmatrix}
-        e{-i\theta/2} & 0 & 0 & 0 \\
-        0 & e{i\theta/2} & 0 & 0 \\
-        0 & 0 & e{i\theta/2} & 0 \\
-        0 & 0 & 0 & e{-i\theta/2}
+        e{-i\pi\theta} & 0 & 0 & 0 \\
+        0 & e{i\pi\theta} & 0 & 0 \\
+        0 & 0 & e{i\pi\theta} & 0 \\
+        0 & 0 & 0 & e{-i\pi\theta}
     \end{bmatrix}
     $$
 
@@ -301,10 +301,10 @@ class ZZGate(cirq.Gate):
 
         return np.array(
             [
-                [cmath.exp(-1j*theta/2), 0, 0, 0],
-                [0, cmath.exp(1j*theta/2), 0, 0],
-                [0, 0, cmath.exp(1j*theta/2), 0],
-                [0, 0, 0, cmath.exp(-1j*theta/2)],
+                [cmath.exp(-1j * theta * math.pi), 0, 0, 0],
+                [0, cmath.exp(1j * theta * math.pi), 0, 0],
+                [0, 0, cmath.exp(1j * theta * math.pi), 0],
+                [0, 0, 0, cmath.exp(-1j * theta * math.pi)],
             ]
         )
 
@@ -414,7 +414,13 @@ class VirtualZGate(cirq.Gate):
         return protocols.CircuitDiagramInfo(wire_symbols=(f'VirtualZ({self.phase!r})',))
 
     def __pow__(self, power):
-        return VirtualZGate(theta=self.theta * power)
+        if power == 1:
+            return self
+
+        if power == -1:
+            return VirtualZGate(theta=-self.theta)
+
+        return NotImplemented
 
 
 VirtualZ = VirtualZGate(theta=0)
