@@ -17,7 +17,6 @@ import datetime
 import cirq
 
 from cirq_google.cloud import quantum
-from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
 from cirq_google.engine.engine_result import EngineResult
 
@@ -41,13 +40,7 @@ class NothingJob(AbstractLocalJob):
     def delete(self) -> None:
         pass
 
-    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
-        return []  # pragma: no cover
-
     async def results_async(self) -> Sequence[EngineResult]:
-        return []  # pragma: no cover
-
-    async def calibration_results_async(self) -> Sequence[CalibrationResult]:
         return []  # pragma: no cover
 
 

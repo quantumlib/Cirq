@@ -53,12 +53,6 @@ class ProgramDictProcessor(AbstractLocalProcessor):
     def list_calibrations(self, *args, **kwargs):
         pass
 
-    async def run_batch_async(self, *args, **kwargs):
-        pass
-
-    async def run_calibration_async(self, *args, **kwargs):
-        pass
-
     async def run_sweep_async(self, *args, **kwargs):
         pass
 
