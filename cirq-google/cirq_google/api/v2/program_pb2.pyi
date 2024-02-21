@@ -543,6 +543,7 @@ class Operation(google.protobuf.message.Message):
     MEASUREMENTGATE_FIELD_NUMBER: builtins.int
     WAITGATE_FIELD_NUMBER: builtins.int
     INTERNALGATE_FIELD_NUMBER: builtins.int
+    COUPLERPULSEGATE_FIELD_NUMBER: builtins.int
     ARGS_FIELD_NUMBER: builtins.int
     QUBITS_FIELD_NUMBER: builtins.int
     QUBIT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
@@ -576,6 +577,8 @@ class Operation(google.protobuf.message.Message):
     @property
     def internalgate(self) -> global___InternalGate: ...
     @property
+    def couplerpulsegate(self) -> global___CouplerPulseGate: ...
+    @property
     def args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
         """Map from the argument name to the Argument needed to fully specify
         the gate. Only populated pre-v2.5+.
@@ -608,16 +611,17 @@ class Operation(google.protobuf.message.Message):
         measurementgate: global___MeasurementGate | None = ...,
         waitgate: global___WaitGate | None = ...,
         internalgate: global___InternalGate | None = ...,
+        couplerpulsegate: global___CouplerPulseGate | None = ...,
         args: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
         qubits: collections.abc.Iterable[global___Qubit] | None = ...,
         qubit_constant_index: collections.abc.Iterable[builtins.int] | None = ...,
         token_value: builtins.str = ...,
         token_constant_index: builtins.int = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["args", b"args", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["args", b"args", "couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["gate_value", b"gate_value"]) -> typing_extensions.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate"] | None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["gate_value", b"gate_value"]) -> typing_extensions.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "couplerpulsegate"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing_extensions.Literal["token", b"token"]) -> typing_extensions.Literal["token_value", "token_constant_index"] | None: ...
 
@@ -1136,3 +1140,49 @@ class InternalGate(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["gate_args", b"gate_args", "module", b"module", "name", b"name", "num_qubits", b"num_qubits"]) -> None: ...
 
 global___InternalGate = InternalGate
+
+@typing_extensions.final
+class CouplerPulseGate(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    HOLD_TIME_PS_FIELD_NUMBER: builtins.int
+    RISE_TIME_PS_FIELD_NUMBER: builtins.int
+    PADDING_TIME_PS_FIELD_NUMBER: builtins.int
+    COUPLING_MHZ_FIELD_NUMBER: builtins.int
+    Q0_DETUNE_MHZ_FIELD_NUMBER: builtins.int
+    Q1_DETUNE_MHZ_FIELD_NUMBER: builtins.int
+    hold_time_ps: builtins.float
+    rise_time_ps: builtins.float
+    padding_time_ps: builtins.float
+    @property
+    def coupling_mhz(self) -> global___Arg: ...
+    @property
+    def q0_detune_mhz(self) -> global___Arg: ...
+    @property
+    def q1_detune_mhz(self) -> global___Arg: ...
+    def __init__(
+        self,
+        *,
+        hold_time_ps: builtins.float | None = ...,
+        rise_time_ps: builtins.float | None = ...,
+        padding_time_ps: builtins.float | None = ...,
+        coupling_mhz: global___Arg | None = ...,
+        q0_detune_mhz: global___Arg | None = ...,
+        q1_detune_mhz: global___Arg | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["_coupling_mhz", b"_coupling_mhz", "_hold_time_ps", b"_hold_time_ps", "_padding_time_ps", b"_padding_time_ps", "_q0_detune_mhz", b"_q0_detune_mhz", "_q1_detune_mhz", b"_q1_detune_mhz", "_rise_time_ps", b"_rise_time_ps", "coupling_mhz", b"coupling_mhz", "hold_time_ps", b"hold_time_ps", "padding_time_ps", b"padding_time_ps", "q0_detune_mhz", b"q0_detune_mhz", "q1_detune_mhz", b"q1_detune_mhz", "rise_time_ps", b"rise_time_ps"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["_coupling_mhz", b"_coupling_mhz", "_hold_time_ps", b"_hold_time_ps", "_padding_time_ps", b"_padding_time_ps", "_q0_detune_mhz", b"_q0_detune_mhz", "_q1_detune_mhz", b"_q1_detune_mhz", "_rise_time_ps", b"_rise_time_ps", "coupling_mhz", b"coupling_mhz", "hold_time_ps", b"hold_time_ps", "padding_time_ps", b"padding_time_ps", "q0_detune_mhz", b"q0_detune_mhz", "q1_detune_mhz", b"q1_detune_mhz", "rise_time_ps", b"rise_time_ps"]) -> None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_coupling_mhz", b"_coupling_mhz"]) -> typing_extensions.Literal["coupling_mhz"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_hold_time_ps", b"_hold_time_ps"]) -> typing_extensions.Literal["hold_time_ps"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_padding_time_ps", b"_padding_time_ps"]) -> typing_extensions.Literal["padding_time_ps"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_q0_detune_mhz", b"_q0_detune_mhz"]) -> typing_extensions.Literal["q0_detune_mhz"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_q1_detune_mhz", b"_q1_detune_mhz"]) -> typing_extensions.Literal["q1_detune_mhz"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["_rise_time_ps", b"_rise_time_ps"]) -> typing_extensions.Literal["rise_time_ps"] | None: ...
+
+global___CouplerPulseGate = CouplerPulseGate

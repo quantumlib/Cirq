@@ -21,6 +21,7 @@ import cirq
 from cirq_google.api import v2
 from cirq_google.ops import PhysicalZTag, InternalGate
 from cirq_google.ops.calibration_tag import CalibrationTag
+from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
 # The name used in program.proto to identify the serializer as CircuitSerializer.
@@ -225,6 +226,25 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.duration.total_nanos(),
                 out=msg.waitgate.duration_nanos,
+                arg_function_language=arg_function_language,
+            )
+        elif isinstance(gate, CouplerPulse):
+            msg.couplerpulsegate.hold_time_ps = gate.hold_time.total_picos()
+            msg.couplerpulsegate.rise_time_ps = gate.rise_time.total_picos()
+            msg.couplerpulsegate.padding_time_ps = gate.padding_time.total_picos()
+            arg_func_langs.arg_to_proto(
+                gate.coupling_mhz,
+                out=msg.couplerpulsegate.coupling_mhz,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.arg_to_proto(
+                gate.q0_detune_mhz,
+                out=msg.couplerpulsegate.q0_detune_mhz,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.arg_to_proto(
+                gate.q1_detune_mhz,
+                out=msg.couplerpulsegate.q1_detune_mhz,
                 arg_function_language=arg_function_language,
             )
         else:
@@ -576,6 +596,31 @@ class CircuitSerializer(serializer.Serializer):
             op = arg_func_langs.internal_gate_from_proto(
                 operation_proto.internalgate, arg_function_language=arg_function_language
             )(*qubits)
+        elif which_gate_type == 'couplerpulsegate':
+            gate = CouplerPulse(
+                hold_time=cirq.Duration(picos=operation_proto.couplerpulsegate.hold_time_ps),
+                rise_time=cirq.Duration(picos=operation_proto.couplerpulsegate.rise_time_ps),
+                padding_time=cirq.Duration(picos=operation_proto.couplerpulsegate.padding_time_ps),
+                coupling_mhz=arg_func_langs.arg_from_proto(
+                    operation_proto.couplerpulsegate.coupling_mhz,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0,
+                q0_detune_mhz=arg_func_langs.arg_from_proto(
+                    operation_proto.couplerpulsegate.q0_detune_mhz,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0,
+                q1_detune_mhz=arg_func_langs.arg_from_proto(
+                    operation_proto.couplerpulsegate.q1_detune_mhz,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0,
+            )
+            op = gate(*qubits)
         else:
             raise ValueError(
                 f'Unsupported serialized gate with type "{which_gate_type}".'
