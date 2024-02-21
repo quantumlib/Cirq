@@ -175,7 +175,12 @@ class TwoQubitXEBResult:
 
 @dataclass(frozen=True)
 class InferredXEBResult:
-    """Uses the results from XEB and RB to compute inferred two-qubit Pauli errors."""
+    """Uses the results from XEB and RB to compute inferred two-qubit Pauli errors.
+    
+    The result of running just XEB combines both two-qubit and single-qubit error rates,
+    this class computes inferred errors which are the result of removing the single qubit errors
+    from the two-qubit errors.
+    """
 
     rb_result: ParallelRandomizedBenchmarkingResult
     xeb_result: TwoQubitXEBResult
