@@ -428,10 +428,10 @@ message InternalGate{
 }
 
 message CouplerPulseGate{
-  optional float hold_time_ps = 1;
-  optional float rise_time_ps = 2;
-  optional float padding_time_ps = 3;
-  optional Arg coupling_mhz = 4;
-  optional Arg q0_detune_mhz = 5;
-  optional Arg q1_detune_mhz = 6;
+  optional FloatArg hold_time_ps = 1;
+  optional FloatArg rise_time_ps = 2;
+  optional FloatArg padding_time_ps = 3;
+  optional FloatArg coupling_mhz = 4;
+  optional FloatArg q0_detune_mhz = 5;
+  optional FloatArg q1_detune_mhz = 6;
 }

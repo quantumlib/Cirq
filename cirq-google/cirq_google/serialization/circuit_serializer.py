@@ -229,20 +229,32 @@ class CircuitSerializer(serializer.Serializer):
                 arg_function_language=arg_function_language,
             )
         elif isinstance(gate, CouplerPulse):
-            msg.couplerpulsegate.hold_time_ps = gate.hold_time.total_picos()
-            msg.couplerpulsegate.rise_time_ps = gate.rise_time.total_picos()
-            msg.couplerpulsegate.padding_time_ps = gate.padding_time.total_picos()
-            arg_func_langs.arg_to_proto(
+            arg_func_langs.float_arg_to_proto(
+                gate.hold_time.total_picos(),
+                out=msg.couplerpulsegate.hold_time_ps,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.float_arg_to_proto(
+                gate.rise_time.total_picos(),
+                out=msg.couplerpulsegate.rise_time_ps,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.float_arg_to_proto(
+                gate.padding_time.total_picos(),
+                out=msg.couplerpulsegate.padding_time_ps,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.float_arg_to_proto(
                 gate.coupling_mhz,
                 out=msg.couplerpulsegate.coupling_mhz,
                 arg_function_language=arg_function_language,
             )
-            arg_func_langs.arg_to_proto(
+            arg_func_langs.float_arg_to_proto(
                 gate.q0_detune_mhz,
                 out=msg.couplerpulsegate.q0_detune_mhz,
                 arg_function_language=arg_function_language,
             )
-            arg_func_langs.arg_to_proto(
+            arg_func_langs.float_arg_to_proto(
                 gate.q1_detune_mhz,
                 out=msg.couplerpulsegate.q1_detune_mhz,
                 arg_function_language=arg_function_language,
@@ -598,22 +610,43 @@ class CircuitSerializer(serializer.Serializer):
             )(*qubits)
         elif which_gate_type == 'couplerpulsegate':
             gate = CouplerPulse(
-                hold_time=cirq.Duration(picos=operation_proto.couplerpulsegate.hold_time_ps),
-                rise_time=cirq.Duration(picos=operation_proto.couplerpulsegate.rise_time_ps),
-                padding_time=cirq.Duration(picos=operation_proto.couplerpulsegate.padding_time_ps),
-                coupling_mhz=arg_func_langs.arg_from_proto(
+                hold_time=cirq.Duration(
+                    picos=arg_func_langs.float_arg_from_proto(
+                        operation_proto.couplerpulsegate.hold_time_ps,
+                        arg_function_language=arg_function_language,
+                        required_arg_name=None,
+                    )
+                    or 0.0
+                ),
+                rise_time=cirq.Duration(
+                    picos=arg_func_langs.float_arg_from_proto(
+                        operation_proto.couplerpulsegate.rise_time_ps,
+                        arg_function_language=arg_function_language,
+                        required_arg_name=None,
+                    )
+                    or 0.0
+                ),
+                padding_time=cirq.Duration(
+                    picos=arg_func_langs.float_arg_from_proto(
+                        operation_proto.couplerpulsegate.padding_time_ps,
+                        arg_function_language=arg_function_language,
+                        required_arg_name=None,
+                    )
+                    or 0.0
+                ),
+                coupling_mhz=arg_func_langs.float_arg_from_proto(
                     operation_proto.couplerpulsegate.coupling_mhz,
                     arg_function_language=arg_function_language,
                     required_arg_name=None,
                 )
                 or 0.0,
-                q0_detune_mhz=arg_func_langs.arg_from_proto(
+                q0_detune_mhz=arg_func_langs.float_arg_from_proto(
                     operation_proto.couplerpulsegate.q0_detune_mhz,
                     arg_function_language=arg_function_language,
                     required_arg_name=None,
                 )
                 or 0.0,
-                q1_detune_mhz=arg_func_langs.arg_from_proto(
+                q1_detune_mhz=arg_func_langs.float_arg_from_proto(
                     operation_proto.couplerpulsegate.q1_detune_mhz,
                     arg_function_language=arg_function_language,
                     required_arg_name=None,

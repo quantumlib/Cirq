@@ -1151,24 +1151,27 @@ class CouplerPulseGate(google.protobuf.message.Message):
     COUPLING_MHZ_FIELD_NUMBER: builtins.int
     Q0_DETUNE_MHZ_FIELD_NUMBER: builtins.int
     Q1_DETUNE_MHZ_FIELD_NUMBER: builtins.int
-    hold_time_ps: builtins.float
-    rise_time_ps: builtins.float
-    padding_time_ps: builtins.float
     @property
-    def coupling_mhz(self) -> global___Arg: ...
+    def hold_time_ps(self) -> global___FloatArg: ...
     @property
-    def q0_detune_mhz(self) -> global___Arg: ...
+    def rise_time_ps(self) -> global___FloatArg: ...
     @property
-    def q1_detune_mhz(self) -> global___Arg: ...
+    def padding_time_ps(self) -> global___FloatArg: ...
+    @property
+    def coupling_mhz(self) -> global___FloatArg: ...
+    @property
+    def q0_detune_mhz(self) -> global___FloatArg: ...
+    @property
+    def q1_detune_mhz(self) -> global___FloatArg: ...
     def __init__(
         self,
         *,
-        hold_time_ps: builtins.float | None = ...,
-        rise_time_ps: builtins.float | None = ...,
-        padding_time_ps: builtins.float | None = ...,
-        coupling_mhz: global___Arg | None = ...,
-        q0_detune_mhz: global___Arg | None = ...,
-        q1_detune_mhz: global___Arg | None = ...,
+        hold_time_ps: global___FloatArg | None = ...,
+        rise_time_ps: global___FloatArg | None = ...,
+        padding_time_ps: global___FloatArg | None = ...,
+        coupling_mhz: global___FloatArg | None = ...,
+        q0_detune_mhz: global___FloatArg | None = ...,
+        q1_detune_mhz: global___FloatArg | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions.Literal["_coupling_mhz", b"_coupling_mhz", "_hold_time_ps", b"_hold_time_ps", "_padding_time_ps", b"_padding_time_ps", "_q0_detune_mhz", b"_q0_detune_mhz", "_q1_detune_mhz", b"_q1_detune_mhz", "_rise_time_ps", b"_rise_time_ps", "coupling_mhz", b"coupling_mhz", "hold_time_ps", b"hold_time_ps", "padding_time_ps", b"padding_time_ps", "q0_detune_mhz", b"q0_detune_mhz", "q1_detune_mhz", b"q1_detune_mhz", "rise_time_ps", b"rise_time_ps"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing_extensions.Literal["_coupling_mhz", b"_coupling_mhz", "_hold_time_ps", b"_hold_time_ps", "_padding_time_ps", b"_padding_time_ps", "_q0_detune_mhz", b"_q0_detune_mhz", "_q1_detune_mhz", b"_q1_detune_mhz", "_rise_time_ps", b"_rise_time_ps", "coupling_mhz", b"coupling_mhz", "hold_time_ps", b"hold_time_ps", "padding_time_ps", b"padding_time_ps", "q0_detune_mhz", b"q0_detune_mhz", "q1_detune_mhz", b"q1_detune_mhz", "rise_time_ps", b"rise_time_ps"]) -> None: ...

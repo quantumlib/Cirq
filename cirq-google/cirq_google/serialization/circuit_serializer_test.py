@@ -268,10 +268,10 @@ OPERATIONS = [
         op_proto(
             {
                 'couplerpulsegate': {
-                    'hold_time_ps': 1,
-                    'rise_time_ps': 3e3,
-                    'padding_time_ps': 8e6,
-                    'coupling_mhz': {'arg_value': {'float_value': 4.0}},
+                    'hold_time_ps': {'float_value': 1.0},
+                    'rise_time_ps': {'float_value': 3e3},
+                    'padding_time_ps': {'float_value': 8e6},
+                    'coupling_mhz': {'float_value': 4.0},
                     'q0_detune_mhz': {'symbol': 'x'},
                     'q1_detune_mhz': {'symbol': 'y'},
                 },
