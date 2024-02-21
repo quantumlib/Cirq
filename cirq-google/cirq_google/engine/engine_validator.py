@@ -65,7 +65,7 @@ def _verify_measurements(circuits):
             raise RuntimeError('Code must measure at least one qubit.')
 
 
-# TODO: update validate methods to accept a `cirq.AbstractCircuit``
+# TODO(b/326267074): update validate methods to accept a `cirq.AbstractCircuit``
 # instead of a `Sequence` since batching is no longer supported.
 def validate_program(
     circuits: Sequence[cirq.AbstractCircuit],
