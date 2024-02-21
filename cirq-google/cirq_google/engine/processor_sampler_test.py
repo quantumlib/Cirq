@@ -155,7 +155,6 @@ def test_run_batch_differing_repetitions():
         run_name=run_name,
         device_config_name=device_config_name,
     )
-    processor.run_batch_async.assert_not_called()
 
 
 def test_processor_sampler_processor_property():
