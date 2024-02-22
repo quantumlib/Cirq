@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Provides functions for running and analyzing two-qubit XEB experiments."""
 from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
 
 from dataclasses import dataclass
@@ -74,6 +76,9 @@ class TwoQubitXEBResult:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes that was plotted on.
         """
         show_plot = not ax
         if not isinstance(ax, plt.Axes):
@@ -104,6 +109,9 @@ class TwoQubitXEBResult:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes that was plotted on.
         """
         show_plot = not ax
         if not isinstance(ax, plt.Axes):
@@ -146,12 +154,15 @@ class TwoQubitXEBResult:
         return {(q0, q1): self.xeb_error(q0, q1) for q0, q1 in self.all_qubit_pairs}
 
     def plot_histogram(self, ax: Optional[plt.Axes] = None, **plot_kwargs) -> plt.Axes:
-        """plot a histogram of all xeb errors
+        """plot a histogram of all xeb errors.
 
         Args:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes that was plotted on.
         """
         fig = None
         if ax is None:
@@ -234,6 +245,19 @@ class InferredXEBResult:
     def _target_errors(
         self, target_error: str
     ) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+        """Returns requested error.
+
+        The requested error must be one of 'pauli', 'decay_constant', or 'xeb'.
+
+        Args:
+            target_error: The error to draw.
+
+        Returns:
+            A mapping of qubit pairs to the requested error.
+
+        Raises:
+            ValueError: If the requested error is not one of 'pauli', 'decay_constant', or 'xeb'.
+        """
         error_funcs = {
             'pauli': self.inferred_pauli_error,
             'decay_constant': self.inferred_decay_constant,
@@ -278,11 +302,14 @@ class InferredXEBResult:
 
         Args:
             target_error: The error to draw. Must be one of 'xeb', 'pauli', or 'decay_constant'
-            kind: Whether to plot the single-qubit RB errors ('single_qubit') or the
-                two-qubit inferred errors ('two_qubit') or both ('both').
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
+            kind: Whether to plot the single-qubit RB errors ('single_qubit') or the
+                two-qubit inferred errors ('two_qubit') or both ('both').
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes that was plotted on.
 
         Raises:
             ValueError: If
