@@ -355,7 +355,7 @@ def parallel_two_qubit_xeb(
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
     **plot_kwargs,
 ) -> TwoQubitXEBResult:
@@ -434,7 +434,7 @@ def run_rb_and_xeb(
     entangling_gate: 'cirq.Gate' = ops.CZ,
     depths_xeb: Sequence[int] = tuple(np.arange(3, 100, 20)),
     xeb_combinations: int = 10,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> InferredXEBResult:
     """A convenience method that runs both RB and XEB workflows.
 
