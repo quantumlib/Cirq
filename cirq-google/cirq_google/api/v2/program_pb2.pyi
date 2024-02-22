@@ -1152,11 +1152,14 @@ class CouplerPulseGate(google.protobuf.message.Message):
     Q0_DETUNE_MHZ_FIELD_NUMBER: builtins.int
     Q1_DETUNE_MHZ_FIELD_NUMBER: builtins.int
     @property
-    def hold_time_ps(self) -> global___FloatArg: ...
+    def hold_time_ps(self) -> global___FloatArg:
+        """ps=picoseconds."""
     @property
-    def rise_time_ps(self) -> global___FloatArg: ...
+    def rise_time_ps(self) -> global___FloatArg:
+        """ps=picoseconds."""
     @property
-    def padding_time_ps(self) -> global___FloatArg: ...
+    def padding_time_ps(self) -> global___FloatArg:
+        """ps=picoseconds."""
     @property
     def coupling_mhz(self) -> global___FloatArg: ...
     @property
