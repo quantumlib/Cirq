@@ -13,10 +13,8 @@
 # limitations under the License.
 """Wraps Parallel Two Qubit XEB into a few convenience methods."""
 from typing import Optional, Sequence, Dict
-from contextlib import redirect_stdout, redirect_stderr
 import itertools
 import io
-import random
 
 import matplotlib.pyplot as plt
 
@@ -90,22 +88,18 @@ def test_parallel_two_qubit_xeb_simulator_without_processor_fails():
     ],
 )
 def test_parallel_two_qubit_xeb(sampler: cirq.Sampler, qubits: Optional[Sequence[cirq.GridQubit]]):
-    np.random.seed(0)
-    random.seed(0)
+    res = cirq.experiments.parallel_two_qubit_xeb(
+        sampler=sampler,
+        qubits=qubits,
+        n_repetitions=100,
+        n_combinations=1,
+        n_circuits=1,
+        cycle_depths=[3, 4, 5],
+        random_state=0,
+    )
 
-    with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-        res = cirq.experiments.parallel_two_qubit_xeb(
-            sampler=sampler,
-            qubits=qubits,
-            n_repetitions=100,
-            n_combinations=1,
-            n_circuits=1,
-            cycle_depths=[3, 4, 5],
-            random_state=0,
-        )
-
-        got = [res.xeb_error(*reversed(pair)) for pair in res.all_qubit_pairs]
-        np.testing.assert_allclose(got, 0.1, atol=1e-1)
+    got = [res.xeb_error(*reversed(pair)) for pair in res.all_qubit_pairs]
+    np.testing.assert_allclose(got, 0.1, atol=1e-1)
 
 
 @pytest.mark.usefixtures('closefigures')
@@ -264,3 +258,47 @@ def test_inferred_plots(ax, target_error, kind):
             combined_results.plot_histogram(target_error=target_error, kind=kind, ax=ax)
     else:
         combined_results.plot_histogram(target_error=target_error, kind=kind, ax=ax)
+
+
+@pytest.mark.parametrize(
+    'sampler,qubits',
+    [
+        (
+            cirq.DensityMatrixSimulator(
+                seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
+            ),
+            cirq.GridQubit.rect(3, 2, 4, 3),
+        ),
+        (
+            DensityMatrixSimulatorWithProcessor(
+                seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
+            ),
+            None,
+        ),
+    ],
+)
+def test_run_rb_and_xeb(sampler: cirq.Sampler, qubits: Optional[Sequence[cirq.GridQubit]]):
+    res = cirq.experiments.run_rb_and_xeb(
+        sampler=sampler,
+        qubits=qubits,
+        repetitions=100,
+        num_clifford_range=tuple(np.arange(3, 10, 1)),
+        xeb_combinations=1,
+        num_circuits=1,
+        depths_xeb=(3, 4, 5),
+        random_state=0,
+    )
+    np.testing.assert_allclose(
+        [res.xeb_result.xeb_error(*pair) for pair in res.all_qubit_pairs], 0.1, atol=1e-1
+    )
+
+
+def test_run_rb_and_xeb_without_processor_fails():
+    sampler = (
+        cirq.DensityMatrixSimulator(
+            seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
+        ),
+    )
+
+    with pytest.raises(ValueError):
+        _ = cirq.experiments.run_rb_and_xeb(sampler=sampler)
