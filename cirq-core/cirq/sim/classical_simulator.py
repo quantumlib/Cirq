@@ -36,7 +36,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: List[int]):
+    def __init__(self, initial_state: Sequence[int]):
         """Initializes the ClassicalBasisState object.
 
         Args:
@@ -55,9 +55,9 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
         return ClassicalBasisState(initial_state=deepcopy(self.basis))
 
     def measure(
-        self, axes: List[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
-        """Measures the density matrix.
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> Sequence[int]:
+        """Measures the basis state.
 
         Args:
             axes: The axes to measure.
@@ -86,7 +86,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Raises:
             ValueError: If qubits not provided and initial_state is int.
-                        If initial_state is not an int or List[int].
+                        If initial_state is not an int or Sequence[int].
         """
         if isinstance(initial_state, int):
             if qubits is None:
@@ -97,7 +97,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         elif isinstance(initial_state, Sequence):
             state = ClassicalBasisState(initial_state)
         else:
-            raise ValueError('initial_state must be an int or List[int]')
+            raise ValueError('initial_state must be an int or Sequence[int]')
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True):
