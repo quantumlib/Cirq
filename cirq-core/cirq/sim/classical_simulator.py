@@ -36,7 +36,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: Sequence[int]):
+    def __init__(self, initial_state: List[int]):
         """Initializes the ClassicalBasisState object.
 
         Args:
@@ -73,7 +73,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: Union[int, Sequence[int]] = 0,
+        initial_state: Union[int, List[int]] = 0,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
@@ -94,7 +94,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
-        elif isinstance(initial_state, Sequence):
+        elif isinstance(initial_state, List):
             state = ClassicalBasisState(initial_state)
         else:
             raise ValueError('initial_state must be an int or Sequence[int]')
