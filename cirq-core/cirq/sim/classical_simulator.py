@@ -57,7 +57,7 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
     def measure(
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> Sequence[int]:
-        """Measures the basis state.
+        """Measures the density matrix.
 
         Args:
             axes: The axes to measure.
@@ -73,7 +73,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: Union[int, List[int]] = 0,
+        initial_state: Union[int, Sequence[int]] = 0,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
