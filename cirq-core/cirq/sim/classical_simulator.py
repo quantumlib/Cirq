@@ -20,12 +20,14 @@ from cirq.ops.raw_types import Qid
 from cirq import sim
 from cirq.sim.simulation_state import TSimulationState, SimulationState
 import numpy as np
+from copy import deepcopy
 
 if TYPE_CHECKING:
     import cirq
 
 
 def _is_identity(action) -> bool:
+    """Check if the given action is an identity gate."""
     gate = action.gate if isinstance(action, ops.Operation) else action
     if isinstance(gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
         return gate.exponent % 2 == 0
@@ -33,38 +35,57 @@ def _is_identity(action) -> bool:
 
 
 class ClassicalBasisState(qis.QuantumStateRepresentation):
+    """Represents a classical basis state for efficient state evolution."""
+
     def __init__(self, initial_state: List[int]):
+        """Initializes the ClassicalBasisState object.
+
+        Args:
+            initial_state: The initial state in the computational basis.
+        """
         self.basis = initial_state
 
     def copy(self, deep_copy_buffers: bool = True) -> 'ClassicalBasisState':
-        basis_copy = self.basis if deep_copy_buffers else self.basis.copy()
-        return ClassicalBasisState(basis_copy)
+        """Creates a copy of the ClassicalBasisState object.
+
+        Args:
+            deep_copy_buffers: Whether to deep copy the internal buffers.
+        Returns:
+            A copy of the ClassicalBasisState object.
+        """
+        return ClassicalBasisState(initial_state = deepcopy(self.basis))
 
     def measure(
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> List[int]:
+        """Measures the density matrix.
+
+        Args:
+            axes: The axes to measure.
+            seed: The random number seed to use.
+        Returns:
+            The measurements in order.
+        """
         return [self.basis[i] for i in axes]
 
 
 class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
+    """Represents the state of a quantum simulation using classical basis states."""
+
     def __init__(
         self,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
+        initial_state: Union[int, Sequence] = 0,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Inits ClassicalBasisSimState.
+        """Initializes the ClassicalBasisSimState object.
 
         Args:
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            initial_state: The initial state for the simulation in the
-                computational basis.
-            classical_data: The shared classical data container for this
-                simulation.
+            qubits: The qubits to simulate.
+            initial_state: The initial state for the simulation.
+            classical_data: The classical data container for the simulation.
         """
-        if not isinstance(initial_state, np.ndarray):
+        if not isinstance(initial_state, Sequence):
             if qubits is None:
                 raise ValueError('qubits must be provided if initial_state is not ndarray')
             state = ClassicalBasisState(
@@ -75,6 +96,15 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence[Qid], allow_decompose: bool = True):
+        """Acts on the state with a given operation.
+
+        Args:
+            action: The operation to apply.
+            qubits: The qubits to apply the operation to.
+            allow_decompose: Whether to allow decomposition of the operation.
+        Returns:
+            True if the operation was applied successfully.
+        """
         gate = action.gate if isinstance(action, ops.Operation) else action
         mapped_qubits = [self.qubit_map[i] for i in qubits]
         if _is_identity(gate):
@@ -124,14 +154,12 @@ class ClassicalStateSimulator(
     def __init__(
         self, *, noise: 'cirq.NOISE_MODEL_LIKE' = None, split_untangled_states: bool = False
     ):
-        """Initializes a CustomStateSimulator.
+        """Initializes a ClassicalStateSimulator.
 
         Args:
-            state_type: The class that represents the simulation state this simulator should use.
             noise: The noise model used by the simulator.
-            split_untangled_states: True to run the simulation as a product state. This is only
-                supported if the `state_type` supports it via an implementation of `kron` and
-                `factor` methods. Otherwise a runtime error will occur during simulation."""
+            split_untangled_states: Whether to run the simulation as a product state.
+        """
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
     def _create_simulator_trial_result(
@@ -140,6 +168,15 @@ class ClassicalStateSimulator(
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[ClassicalBasisSimState]',
     ) -> 'ClassicalStateTrialResult[ClassicalBasisSimState]':
+        """Creates a trial result for the simulator.
+
+        Args:
+            params: The parameter resolver for the simulation.
+            measurements: The measurement results.
+            final_simulator_state: The final state of the simulator.
+        Returns:
+            A trial result for the simulator.
+        """
         return ClassicalStateTrialResult(
             params, measurements, final_simulator_state=final_simulator_state
         )
@@ -147,6 +184,13 @@ class ClassicalStateSimulator(
     def _create_step_result(
         self, sim_state: 'cirq.SimulationStateBase[ClassicalBasisSimState]'
     ) -> 'ClassicalStateStepResult[ClassicalBasisSimState]':
+        """Creates a step result for the simulator.
+
+        Args:
+            sim_state: The current state of the simulator.
+        Returns:
+            A step result for the simulator.
+        """
         return ClassicalStateStepResult(sim_state)
 
     def _create_partial_simulation_state(
@@ -155,6 +199,15 @@ class ClassicalStateSimulator(
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ) -> 'ClassicalBasisSimState':
+        """Creates a partial simulation state for the simulator.
+
+        Args:
+            initial_state: The initial state for the simulation.
+            qubits: The qubits associated with the state.
+            classical_data: The shared classical data container for this simulation.
+        Returns:
+            A partial simulation state.
+        """
         return ClassicalBasisSimState(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
         )
