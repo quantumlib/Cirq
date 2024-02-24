@@ -224,3 +224,53 @@ def test_simulate_sweeps_param_resolver():
 
             assert results[0].params == params[0]
             assert results[1].params == params[1]
+
+def test_create_partial_simulation_state_from_int_with_no_qubits():
+    sim = cirq.ClassicalStateSimulator()
+    initial_state = 5
+    qs = None
+    classical_data = cirq.value.ClassicalDataDictionaryStore()
+    with pytest.raises(ValueError):
+        sim._create_partial_simulation_state(
+            initial_state = initial_state,
+            qubits = qs,
+            classical_data = classical_data,
+        )
+
+def test_create_partial_simulation_state_from_invalid_state():
+    sim = cirq.ClassicalStateSimulator()
+    initial_state = None
+    qs = cirq.LineQubit.range(2)
+    classical_data = cirq.value.ClassicalDataDictionaryStore()
+    with pytest.raises(ValueError):
+        sim._create_partial_simulation_state(
+            initial_state = initial_state,
+            qubits = qs,
+            classical_data = classical_data,
+        )
+
+def test_create_partial_simulation_state_from_int():
+    sim = cirq.ClassicalStateSimulator()
+    initial_state = 15
+    qs = cirq.LineQubit.range(4)
+    classical_data = cirq.value.ClassicalDataDictionaryStore()
+    expected_result = [1,1,1,1]
+    result = sim._create_partial_simulation_state(
+                initial_state = initial_state,
+                qubits = qs,
+                classical_data = classical_data,
+            )._state.basis
+    assert result == expected_result
+
+def test_create_valid_partial_simulation_state_from_list():
+    sim = cirq.ClassicalStateSimulator()
+    initial_state = [1,1,1,1]
+    qs = cirq.LineQubit.range(4)
+    classical_data = cirq.value.ClassicalDataDictionaryStore()
+    expected_result = [1,1,1,1]
+    result = sim._create_partial_simulation_state(
+                initial_state = initial_state,
+                qubits = qs,
+                classical_data = classical_data,
+            )._state.basis
+    assert result == expected_result
