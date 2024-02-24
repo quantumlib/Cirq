@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict, Generic, Any, Sequence, Optional, Union, TYPE_CHECKING
+from typing import Dict, Generic, Any, Sequence, List, Optional, Union, TYPE_CHECKING
 from copy import deepcopy
 from cirq import ops, qis
 from cirq.value import big_endian_int_to_bits
@@ -36,7 +36,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: Sequence[int]):
+    def __init__(self, initial_state: List[int]):
         """Initializes the ClassicalBasisState object.
 
         Args:
@@ -55,8 +55,8 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
         return ClassicalBasisState(initial_state=deepcopy(self.basis))
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> Sequence[int]:
+        self, axes: List[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
         """Measures the density matrix.
 
         Args:
@@ -73,7 +73,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: Union[int, Sequence[int]] = 0,
+        initial_state: Union[int, List[int]] = 0,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
@@ -86,7 +86,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Raises:
             ValueError: If qubits not provided and initial_state is int.
-                        If initial_state is not an int or Sequence[int].
+                        If initial_state is not an int or List[int].
         """
         if isinstance(initial_state, int):
             if qubits is None:
@@ -97,7 +97,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         elif isinstance(initial_state, Sequence):
             state = ClassicalBasisState(initial_state)
         else:
-            raise ValueError('initial_state must be an int or Sequence[int]')
+            raise ValueError('initial_state must be an int or List[int]')
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True):
