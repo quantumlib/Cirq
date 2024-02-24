@@ -86,18 +86,18 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Raises:
             ValueError: If qubits not provided and initial_state is int.
-                        If initial_state is not an int or Sequence[int].
+                        If initial_state is not an int or List[int].
         """
         if isinstance(initial_state, int):
             if qubits is None:
-                raise ValueError('qubits must be provided if initial_state is not Sequence')
+                raise ValueError('qubits must be provided if initial_state is not List[int]')
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
         elif isinstance(initial_state, List):
             state = ClassicalBasisState(initial_state)
         else:
-            raise ValueError('initial_state must be an int or Sequence[int]')
+            raise ValueError('initial_state must be an int or List[int]')
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True):
