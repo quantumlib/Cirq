@@ -233,7 +233,7 @@ def test_create_partial_simulation_state_from_int_with_no_qubits():
     classical_data = cirq.value.ClassicalDataDictionaryStore()
     with pytest.raises(ValueError):
         sim._create_partial_simulation_state(
-            initial_state = initial_state, qubits = qs, classical_data = classical_data
+            initial_state=initial_state, qubits=qs, classical_data=classical_data
         )
 
 
@@ -244,7 +244,7 @@ def test_create_partial_simulation_state_from_invalid_state():
     classical_data = cirq.value.ClassicalDataDictionaryStore()
     with pytest.raises(ValueError):
         sim._create_partial_simulation_state(
-            initial_state = initial_state, qubits = qs, classical_data = classical_data
+            initial_state=initial_state, qubits=qs, classical_data=classical_data
         )
 
 
@@ -255,7 +255,7 @@ def test_create_partial_simulation_state_from_int():
     classical_data = cirq.value.ClassicalDataDictionaryStore()
     expected_result = [1, 1, 1, 1]
     result = sim._create_partial_simulation_state(
-        initial_state = initial_state, qubits = qs, classical_data = classical_data
+        initial_state=initial_state, qubits=qs, classical_data=classical_data
     )._state.basis
     assert result == expected_result
 
@@ -267,6 +267,6 @@ def test_create_valid_partial_simulation_state_from_list():
     classical_data = cirq.value.ClassicalDataDictionaryStore()
     expected_result = [1, 1, 1, 1]
     result = sim._create_partial_simulation_state(
-        initial_state = initial_state, qubits = qs, classical_data = classical_data
+        initial_state=initial_state, qubits=qs, classical_data=classical_data
     )._state.basis
     assert result == expected_result
