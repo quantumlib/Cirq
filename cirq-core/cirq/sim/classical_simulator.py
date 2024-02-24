@@ -13,14 +13,13 @@
 # limitations under the License.
 
 
-from typing import Dict, Generic, Any, Sequence, Optional, List, Union, TYPE_CHECKING
+from typing import Dict, Generic, Any, Sequence, Optional, Union, TYPE_CHECKING
+from copy import deepcopy
 from cirq import ops, qis
 from cirq.value import big_endian_int_to_bits
-from cirq.ops.raw_types import Qid
 from cirq import sim
 from cirq.sim.simulation_state import TSimulationState, SimulationState
 import numpy as np
-from copy import deepcopy
 
 if TYPE_CHECKING:
     import cirq
@@ -37,7 +36,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: List[int]):
+    def __init__(self, initial_state: Sequence[int]):
         """Initializes the ClassicalBasisState object.
 
         Args:
@@ -53,11 +52,11 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
         Returns:
             A copy of the ClassicalBasisState object.
         """
-        return ClassicalBasisState(initial_state = deepcopy(self.basis))
+        return ClassicalBasisState(initial_state=deepcopy(self.basis))
 
     def measure(
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
+    ) -> Sequence[int]:
         """Measures the density matrix.
 
         Args:
@@ -74,7 +73,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: Union[int, Sequence] = 0,
+        initial_state: Union[int, Sequence[int]] = 0,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
@@ -84,26 +83,36 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             qubits: The qubits to simulate.
             initial_state: The initial state for the simulation.
             classical_data: The classical data container for the simulation.
+
+        Raises:
+            ValueError: If qubits not provided and initial_state is int.
+                        If initial_state is not an int or Sequence[int].
         """
-        if not isinstance(initial_state, Sequence):
+        if isinstance(initial_state, int):
             if qubits is None:
-                raise ValueError('qubits must be provided if initial_state is not ndarray')
+                raise ValueError('qubits must be provided if initial_state is not Sequence')
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
-        else:
+        elif isinstance(initial_state, Sequence):
             state = ClassicalBasisState(initial_state)
+        else:
+            raise ValueError('initial_state must be an int or Sequence[int]')
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
-    def _act_on_fallback_(self, action, qubits: Sequence[Qid], allow_decompose: bool = True):
+    def _act_on_fallback_(self, action, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True):
         """Acts on the state with a given operation.
 
         Args:
             action: The operation to apply.
             qubits: The qubits to apply the operation to.
             allow_decompose: Whether to allow decomposition of the operation.
+
         Returns:
             True if the operation was applied successfully.
+
+        Raises:
+            ValueError: If gate is not one of X, CNOT, SWAP, CCNOT, or a measurement.
         """
         gate = action.gate if isinstance(action, ops.Operation) else action
         mapped_qubits = [self.qubit_map[i] for i in qubits]
