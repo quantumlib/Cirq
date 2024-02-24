@@ -56,7 +56,7 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
 
     def measure(
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> Sequence[int]:
+    ) -> List[int]:
         """Measures the density matrix.
 
         Args:
