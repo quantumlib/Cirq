@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Provides functions for running and analyzing two-qubit XEB experiments."""
 from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
 
 from dataclasses import dataclass
@@ -28,7 +30,10 @@ from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 from cirq.experiments.xeb_fitting import benchmark_2q_xeb_fidelities
 from cirq.experiments.xeb_fitting import fit_exponential_decays, exponential_decay
 from cirq.experiments import random_quantum_circuit_generation as rqcg
-from cirq.experiments.qubit_characterizations import ParallelRandomizedBenchmarkingResult
+from cirq.experiments.qubit_characterizations import (
+    ParallelRandomizedBenchmarkingResult,
+    parallel_single_qubit_randomized_benchmarking,
+)
 from cirq.qis import noise_utils
 from cirq._compat import cached_method
 
@@ -71,6 +76,9 @@ class TwoQubitXEBResult:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes that was plotted on.
         """
         show_plot = not ax
         if not isinstance(ax, plt.Axes):
@@ -101,6 +109,9 @@ class TwoQubitXEBResult:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes that was plotted on.
         """
         show_plot = not ax
         if not isinstance(ax, plt.Axes):
@@ -143,12 +154,15 @@ class TwoQubitXEBResult:
         return {(q0, q1): self.xeb_error(q0, q1) for q0, q1 in self.all_qubit_pairs}
 
     def plot_histogram(self, ax: Optional[plt.Axes] = None, **plot_kwargs) -> plt.Axes:
-        """plot a histogram of all xeb errors
+        """plot a histogram of all xeb errors.
 
         Args:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes that was plotted on.
         """
         fig = None
         if ax is None:
@@ -172,7 +186,12 @@ class TwoQubitXEBResult:
 
 @dataclass(frozen=True)
 class InferredXEBResult:
-    """Uses the results from XEB and RB to compute inferred two-qubit Pauli errors."""
+    """Uses the results from XEB and RB to compute inferred two-qubit Pauli errors.
+
+    The result of running just XEB combines both two-qubit and single-qubit error rates,
+    this class computes inferred errors which are the result of removing the single qubit errors
+    from the two-qubit errors.
+    """
 
     rb_result: ParallelRandomizedBenchmarkingResult
     xeb_result: TwoQubitXEBResult
@@ -226,6 +245,19 @@ class InferredXEBResult:
     def _target_errors(
         self, target_error: str
     ) -> Mapping[Tuple['cirq.GridQubit', 'cirq.GridQubit'], float]:
+        """Returns requested error.
+
+        The requested error must be one of 'pauli', 'decay_constant', or 'xeb'.
+
+        Args:
+            target_error: The error to draw.
+
+        Returns:
+            A mapping of qubit pairs to the requested error.
+
+        Raises:
+            ValueError: If the requested error is not one of 'pauli', 'decay_constant', or 'xeb'.
+        """
         error_funcs = {
             'pauli': self.inferred_pauli_error,
             'decay_constant': self.inferred_decay_constant,
@@ -270,11 +302,14 @@ class InferredXEBResult:
 
         Args:
             target_error: The error to draw. Must be one of 'xeb', 'pauli', or 'decay_constant'
-            kind: Whether to plot the single-qubit RB errors ('single_qubit') or the
-                two-qubit inferred errors ('two_qubit') or both ('both').
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
+            kind: Whether to plot the single-qubit RB errors ('single_qubit') or the
+                two-qubit inferred errors ('two_qubit') or both ('both').
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes that was plotted on.
 
         Raises:
             ValueError: If
@@ -320,7 +355,7 @@ def parallel_two_qubit_xeb(
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = 42,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
     **plot_kwargs,
 ) -> TwoQubitXEBResult:
@@ -386,3 +421,63 @@ def parallel_two_qubit_xeb(
     )
 
     return TwoQubitXEBResult(fit_exponential_decays(fids))
+
+
+def run_rb_and_xeb(
+    sampler: 'cirq.Sampler',
+    qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    repetitions: int = 10**3,
+    num_circuits: int = 20,
+    num_clifford_range: Sequence[int] = tuple(
+        np.logspace(np.log10(5), np.log10(1000), 5, dtype=int)
+    ),
+    entangling_gate: 'cirq.Gate' = ops.CZ,
+    depths_xeb: Sequence[int] = tuple(np.arange(3, 100, 20)),
+    xeb_combinations: int = 10,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> InferredXEBResult:
+    """A convenience method that runs both RB and XEB workflows.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        repetitions: The number of repetitions to use for RB and XEB.
+        num_circuits: The number of circuits to generate for RB and XEB.
+        num_clifford_range: The different numbers of Cliffords in the RB study.
+        entangling_gate: The entangling gate to use.
+        depths_xeb: The cycle depths to use for XEB.
+        xeb_combinations: The number of combinations to generate for XEB.
+        random_state: The random state to use.
+
+    Returns:
+        An InferredXEBResult object representing the results of the experiment.
+
+    Raises:
+        ValueError: If qubits are not specified and the sampler has no device.
+    """
+
+    if qubits is None:
+        qubits = _grid_qubits_for_sampler(sampler)
+        if qubits is None:
+            raise ValueError("Couldn't determine qubits from sampler. Please specify them.")
+
+    rb = parallel_single_qubit_randomized_benchmarking(
+        sampler=sampler,
+        qubits=qubits,
+        repetitions=repetitions,
+        num_circuits=num_circuits,
+        num_clifford_range=num_clifford_range,
+    )
+
+    xeb = parallel_two_qubit_xeb(
+        sampler=sampler,
+        qubits=qubits,
+        entangling_gate=entangling_gate,
+        n_repetitions=repetitions,
+        n_circuits=num_circuits,
+        cycle_depths=depths_xeb,
+        n_combinations=xeb_combinations,
+        random_state=random_state,
+    )
+
+    return InferredXEBResult(rb, xeb)
