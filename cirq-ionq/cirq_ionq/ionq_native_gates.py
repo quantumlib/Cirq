@@ -77,8 +77,7 @@ class GPIGate(cirq.Gate):
         if power == -1:
             return self
 
-        # TODO: Implement power for any argument
-        return self
+        return NotImplemented
 
 
 GPI = GPIGate(phi=0)
@@ -154,8 +153,7 @@ class GPI2Gate(cirq.Gate):
         if power == -1:
             return GPI2Gate(phi=self.phi + 0.5)
 
-        # TODO: Implement power for any argument
-        return self
+        return NotImplemented
 
 
 GPI2 = GPI2Gate(phi=0)

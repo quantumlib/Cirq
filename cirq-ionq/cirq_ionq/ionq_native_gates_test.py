@@ -123,31 +123,35 @@ def test_gate_inverse(gate):
     numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(dim))
 
 
-# @pytest.mark.parametrize(
-#     "gate",
-#     [
-#         *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
-#         *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
-#         *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
-#     ],
-# )
-# def test_gate_power1(gate):
-#     """Tests that power=1 for native gates are correct."""
-#     mat = cirq.protocols.unitary(gate)
-#     mat_power1 = cirq.protocols.unitary(gate**1)
+@pytest.mark.parametrize(
+    "gate",
+    [
+        *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.VirtualZGate(theta=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.ZZGate(theta=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
+    ],
+)
+def test_gate_power1(gate):
+    """Tests that power=1 for native gates are correct."""
+    mat = cirq.protocols.unitary(gate)
+    mat_power1 = cirq.protocols.unitary(gate**1)
 
-#     numpy.testing.assert_array_almost_equal(mat, mat_power1)
+    numpy.testing.assert_array_almost_equal(mat, mat_power1)
 
 
-# @pytest.mark.parametrize(
-#     "gate,power",
-#     [
-#         *[(ionq.GPIGate(phi=0.1), power) for power in INVALID_GATE_POWER],
-#         *[(ionq.GPI2Gate(phi=0.1), power) for power in INVALID_GATE_POWER],
-#         *[(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in INVALID_GATE_POWER],
-#     ],
-# )
-# def test_gate_power_not_implemented(gate, power):
-#     """Tests that any power other than 1 and -1 is not implemented."""
-#     with pytest.raises(TypeError):
-#         _ = gate**power
+@pytest.mark.parametrize(
+    "gate,power",
+    [
+        *[(ionq.GPIGate(phi=0.1), power) for power in INVALID_GATE_POWER],
+        *[(ionq.GPI2Gate(phi=0.1), power) for power in INVALID_GATE_POWER],
+        *[(ionq.VirtualZGate(theta=0.1), power) for power in INVALID_GATE_POWER],
+        *[(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in INVALID_GATE_POWER],
+        *[(ionq.ZZGate(theta=0.1), power) for power in INVALID_GATE_POWER],
+    ],
+)
+def test_gate_power_not_implemented(gate, power):
+    """Tests that any power other than 1 and -1 is not implemented."""
+    with pytest.raises(TypeError):
+        _ = gate**power
