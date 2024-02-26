@@ -22,6 +22,7 @@ def test_docker_stable():
     assert result.returncode == 0
 
 
+@pytest.mark.skip(reason="fails due to boken dependendencies #6475")
 def test_docker_pre():
     if platform.system() != 'Linux':
         pytest.skip("Unsupported os")
