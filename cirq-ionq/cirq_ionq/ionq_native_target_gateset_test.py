@@ -109,6 +109,8 @@ qubits2 = cirq.LineQubit.range(2)
         ([1, 0, 0.0, 0], cirq.Circuit(cirq.H(qubits2[0]), cirq.SWAP(qubits2[0], qubits2[1]), cirq.CNOT(qubits2[0], qubits2[1]), cirq.H(qubits2[1]))),
         ([0.25, 0.25, 0.25, 0.25], cirq.Circuit(cirq.H(qubits2[0]), cirq.SWAP(qubits2[0], qubits2[1]), cirq.CNOT(qubits2[1], qubits2[0]), cirq.SingleQubitCliffordGate.X_sqrt(qubits2[1]))),
         ([0, 0.5, 0.5, 0], cirq.Circuit(cirq.H(qubits2[0]), cirq.SWAP(qubits2[0], qubits2[1]), cirq.CNOT(qubits2[1], qubits2[0]), cirq.Y(qubits2[1]))),
+        ([0, 0.5, 0, 0.5], cirq.Circuit(cirq.H(qubits2[1]), cirq.SWAP(qubits2[0], qubits2[1]), cirq.CNOT(qubits2[1], qubits2[0]), cirq.X(qubits2[1]))),
+        ([0.5, 0.5, 0, 0], cirq.Circuit(cirq.H(qubits2[1]), cirq.SWAP(qubits2[0], qubits2[1]), cirq.CNOT(qubits2[1], qubits2[0]), cirq.SWAP(qubits2[0], qubits2[1]))),
     ],
 )
 def test_transpiling_three_qubit_circuits_to_native_gates(ideal_results, circuit):
