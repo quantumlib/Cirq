@@ -47,9 +47,10 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             if op.gate == cirq.CZ
             else op,
         )
-        return cirq.merge_k_qubit_unitaries(
-            temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, -1)
-        ).all_operations()
+        return temp
+        # return cirq.merge_k_qubit_unitaries(
+        #     temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, -1)
+        # ).all_operations()
 
     # TODO - implement
     def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> cirq.OP_TREE:
@@ -91,11 +92,11 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     def _cnot(self, *qubits):
         return [
-                GPI2Gate(phi=-1/4).on(qubits[0]),
-                GPI2Gate(phi=1/2).on(qubits[0]),
-                GPI2Gate(phi=1/2).on(qubits[1]),
-                MSGate(phi0=0, phi1=0).on(qubits[0], qubits[1]),
                 GPI2Gate(phi=1/4).on(qubits[0]),
+                MSGate(phi0=0, phi1=0).on(qubits[0], qubits[1]),
+                GPI2Gate(phi=1/2).on(qubits[1]),
+                GPI2Gate(phi=1/2).on(qubits[0]),
+                GPI2Gate(phi=-1/4).on(qubits[0]),
             ]
 
 
@@ -116,7 +117,6 @@ class AriaNativeGateset(IonqNativeGatesetBase):
             GPIGate,
             GPI2Gate,
             MSGate,
-            VirtualZGate,
             ops.MeasurementGate,
             unroll_circuit_op=False,
         )
@@ -144,7 +144,6 @@ class ForteNativeGateset(IonqNativeGatesetBase):
             GPI2Gate,
             MSGate,
             ZZGate,
-            VirtualZGate,
             ops.MeasurementGate,
             unroll_circuit_op=False,
         )
