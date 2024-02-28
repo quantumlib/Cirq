@@ -22,6 +22,7 @@ from cirq import ops
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Tuple
 
 from .ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate, VirtualZGate
 
@@ -50,12 +51,14 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         )
         return temp
         # return cirq.merge_k_qubit_unitaries(
-        #     temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, -1)
+        #     temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)
         # ).all_operations()
 
-    # TODO - implement
-    def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> cirq.OP_TREE:
-        pass
+
+    def _decompose_multi_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+        if isinstance(op.gate, cirq.CCZPowGate):
+            return self.decompose_all_to_all_connect_ccz_gate(op.gate, op.qubits)
+        return NotImplemented
 
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
@@ -112,6 +115,68 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
                 GPI2Gate(phi=-1/4).on(qubits[0]),
             ]
 
+    def _t(self, qubit):
+        return [
+            GPI2Gate(phi=0.625).on(qubit),
+            GPIGate(phi=0.0625).on(qubit),
+            GPI2Gate(phi=0.5).on(qubit)
+        ]
+
+    def _t_dagger(self, qubit):
+        return [
+            GPI2Gate(phi=1.375).on(qubit),
+            GPIGate(phi=0.4375).on(qubit),
+            GPI2Gate(phi=0.5).on(qubit)
+        ]
+
+    def decompose_all_to_all_connect_ccz_gate(self,
+        ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
+    ) -> 'cirq.OP_TREE':
+        """Decomposition of all-to-all connected qubits are different from line qubits or grid qubits, ckeckout IonQTargetGateset.
+
+        For example, for qubits in the same ion trap, the decomposition of CCZ gate will be:
+
+        0: ──────────────@──────────────────@───@───p──────@───
+                        │                  │   │          │
+        1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
+            │          │       │          │
+        2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
+
+        where p = T**ccz_gate._exponent
+        """
+        if len(qubits) != 3:
+            raise ValueError(f'Expect 3 qubits for CCZ gate, got {len(qubits)} qubits.')
+
+        a, b, c = qubits
+
+        p = cirq.T**ccz_gate._exponent
+        global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
+        global_phase = (
+            complex(global_phase)
+            if cirq.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
+            else global_phase
+        )
+        global_phase_operation = (
+            [cirq.global_phase_operation(global_phase)]
+            if cirq.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
+            else []
+        )
+
+        return global_phase_operation + [
+            self._cnot(*[b,c]),
+            p(c) ** -1,
+            self._cnot(*[a,c]),
+            p(c),
+            self._cnot(*[b,c]),
+            p(c) ** -1,
+            self._cnot(*[a,c]),
+            p(b),
+            p(c),
+            self._cnot(*[a,b]),
+            p(a),
+            p(b) ** -1,
+            self._cnot(*[a,b]),
+        ]
 
 class AriaNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
