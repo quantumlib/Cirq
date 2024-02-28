@@ -192,19 +192,14 @@ ry(pi*-0.25) q[0];
 
 
 def test_qasm_global_pahse():
-    (q0,) = _make_qubits(1)
-    output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5)), cirq.X(q0)), (q0,))
+    output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5))), ())
     assert (
         str(output)
         == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
-// Qubits: [q0]
-qreg q[1];
-
-
-x q[0];
+// Qubits: []
 """
     )
 
