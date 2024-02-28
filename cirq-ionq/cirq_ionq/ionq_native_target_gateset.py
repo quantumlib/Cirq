@@ -32,7 +32,8 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
         qubit = op.qubits[0]
         mat = cirq.unitary(op)
-        for gate in self.single_qubit_matrix_to_native_gates(mat, self.atol):
+        yield cirq.global_phase_operation(-1j)
+        for gate in self.single_qubit_matrix_to_native_gates(mat):
             yield gate(qubit)
 
     def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
@@ -40,7 +41,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             return NotImplemented
         mat = cirq.unitary(op)
         q0, q1 = op.qubits
-        naive = cirq.two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs=False)
+        naive = cirq.two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs=False, atol=self.atol)
         temp = cirq.map_operations_and_unroll(
             cirq.Circuit(naive),
             lambda op, _: [self._hadamard(op.qubits[1]) + self._cnot(*op.qubits) + self._hadamard(op.qubits[1])]
@@ -54,15 +55,27 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     # TODO - implement
     def _decompose_multi_qubit_operation(self, op: 'cirq.Operation', moment_idx: int) -> cirq.OP_TREE:
-        raise Exception()
+        pass
+
+    @property
+    def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+        """List of transformers which should be run before decomposing individual operations.
+
+        Decompose to three qubit gates because three qubit gates have different decomposition
+        for all-to-all connectivity between qubits.
+        """
+        return [
+            cirq.create_transformer_with_kwargs(
+                cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 3
+            )
+        ]
 
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
         return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
 
-    def single_qubit_matrix_to_native_gates(self, mat: np.ndarray, tolerance: float) -> List[cirq.Gate]:
-        # TODO: do we need tolerance?
+    def single_qubit_matrix_to_native_gates(self, mat: np.ndarray) -> List[cirq.Gate]:
         z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         z_rot_before = z_rad_before / np.pi
         y_rot = y_rad / np.pi
