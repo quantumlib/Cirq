@@ -128,6 +128,16 @@ qubits3 = cirq.LineQubit.range(3)
     [
         ([0.5, 0, 0, 0, 0, 0, 0, 0.5], cirq.Circuit(cirq.H(qubits3[0]), cirq.CNOT(qubits3[0], qubits3[1]), cirq.CNOT(qubits3[1], qubits3[2]))),
         ([0.5, 0, 0, 0, 0, 0, 0, 0.5], cirq.Circuit(cirq.H(qubits3[2]), cirq.CNOT(qubits3[2], qubits3[1]), cirq.CNOT(qubits3[1], qubits3[0]))),
+        ([0, 1, 0, 0, 0, 0, 0, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.SWAP(qubits3[0], qubits3[1]), cirq.SWAP(qubits3[1], qubits3[2]))),
+        ([0, 0, 0, 0, 0, 1, 0, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.SWAP(qubits3[0], qubits3[1]), cirq.CNOT(qubits3[1], qubits3[0]), cirq.SWAP(qubits3[1], qubits3[2]))),
+        ([0, 0.5, 0, 0, 0, 0.5, 0, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.SWAP(qubits3[0], qubits3[1]), cirq.CNOT(qubits3[1], qubits3[0]), cirq.SWAP(qubits3[1], qubits3[2]))),
+        ([0, 0.25, 0, 0.25, 0, 0.25, 0, 0.25], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.SWAP(qubits3[0], qubits3[1]), cirq.CNOT(qubits3[1], qubits3[0]), cirq.SWAP(qubits3[1], qubits3[2]))),
+        ([0, 0, 0.25, 0.25, 0, 0, 0.25, 0.25], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.CNOT(qubits3[1], qubits3[0]), cirq.SWAP(qubits3[1], qubits3[2]))),
+        ([0, 0,  0, 0, 0.25, 0.25, 0.25, 0.25], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.CNOT(qubits3[2], qubits3[1]), cirq.SWAP(qubits3[0], qubits3[2]))),
+        ([0.25, 0.25, 0.25, 0.25, 0, 0,  0, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.CNOT(qubits3[2], qubits3[1]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.Y(qubits3[0]), cirq.Y(qubits3[1]), cirq.Y(qubits3[2]))),
+        ([0, 0, 0.25, 0.25, 0.25, 0.25, 0, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.CNOT(qubits3[2], qubits3[1]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.Y(qubits3[1]), cirq.Y(qubits3[2]), cirq.CNOT(qubits3[1], qubits3[0]))),
+        ([0, 0.25, 0.25, 0, 0.25, 0, 0, 0.25], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.CNOT(qubits3[1], qubits3[0]), cirq.CNOT(qubits3[2], qubits3[1]))),
+        ([0, 0, 0.25, 0.25, 0, 0, 0.25, 0.25], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.SWAP(qubits3[1], qubits3[2]))),
     ],
 )
 def test_transpiling_two_qubit_circuits_to_native_gates(ideal_results, circuit):
