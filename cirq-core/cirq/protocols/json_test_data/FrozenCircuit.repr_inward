@@ -20,4 +20,8 @@
     cirq.Moment(
         (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
     ),
+]), cirq.FrozenCircuit([
+    cirq.Moment(
+        (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
+    ),
 ])]

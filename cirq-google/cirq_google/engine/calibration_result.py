@@ -18,8 +18,6 @@ from typing import Any, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq_google
-    import cirq
-    import cirq_google.api.v2.calibration_pb2 as calibration_pb2
 
 
 @dataclasses.dataclass
@@ -32,9 +30,11 @@ class CalibrationResult:
     they will be set to the default values in the proto, as defined here:
     https://developers.google.com/protocol-buffers/docs/proto3#default
     These defaults will converted to `None` by the API client.
+
+    Deprecated: Calibrations are no longer supported via cirq.
     """
 
-    code: 'calibration_pb2.CalibrationLayerCode'
+    code: Any
     error_message: Optional[str]
     token: Optional[str]
     valid_until: Optional[datetime.datetime]
@@ -43,7 +43,7 @@ class CalibrationResult:
     @classmethod
     def _from_json_dict_(
         cls,
-        code: 'calibration_pb2.CalibrationLayerCode',
+        code: Any,
         error_message: Optional[str],
         token: Optional[str],
         utc_valid_until: float,

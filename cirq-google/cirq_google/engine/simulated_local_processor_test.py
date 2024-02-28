@@ -160,24 +160,6 @@ def test_run_sweep():
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
 
-def test_run_batch():
-    q = cirq.GridQubit(5, 4)
-    proc = SimulatedLocalProcessor(processor_id='test_proc')
-    circuits = [
-        cirq.Circuit(cirq.X(q) ** sympy.Symbol('t'), cirq.measure(q, key='m')),
-        cirq.Circuit(cirq.X(q) ** sympy.Symbol('x'), cirq.measure(q, key='m2')),
-    ]
-    sweeps = [cirq.Points(key='t', points=[1, 0]), cirq.Points(key='x', points=[0, 1])]
-    job = proc.run_batch(circuits, params_list=sweeps, repetitions=100)
-    assert job.execution_status() == quantum.ExecutionStatus.State.READY
-    results = job.batched_results()
-    assert np.all(results[0][0].measurements['m'] == 1)
-    assert np.all(results[0][1].measurements['m'] == 0)
-    assert np.all(results[1][0].measurements['m2'] == 0)
-    assert np.all(results[1][1].measurements['m2'] == 1)
-    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
-
-
 def _no_y_gates(circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable], repetitions: int):
     for circuit in circuits:
         for moment in circuit:
@@ -226,9 +208,3 @@ def test_device_specification():
     device_spec.valid_qubits.append('q0_1')
     proc = SimulatedLocalProcessor(processor_id='test_proc', device_specification=device_spec)
     assert proc.get_device_specification() == device_spec
-
-
-def test_unsupported():
-    proc = SimulatedLocalProcessor(processor_id='test_proc')
-    with pytest.raises(NotImplementedError):
-        _ = proc.run_calibration()
