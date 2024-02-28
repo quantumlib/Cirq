@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests transpiling of circuits using the IonQ native gate set."""
 
-import math
 import cirq
 import numpy as np
 import pytest
