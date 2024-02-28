@@ -115,20 +115,6 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
                 GPI2Gate(phi=-1/4).on(qubits[0]),
             ]
 
-    def _t(self, qubit):
-        return [
-            GPI2Gate(phi=0.625).on(qubit),
-            GPIGate(phi=0.0625).on(qubit),
-            GPI2Gate(phi=0.5).on(qubit)
-        ]
-
-    def _t_dagger(self, qubit):
-        return [
-            GPI2Gate(phi=1.375).on(qubit),
-            GPIGate(phi=0.4375).on(qubit),
-            GPI2Gate(phi=0.5).on(qubit)
-        ]
-
     def decompose_all_to_all_connect_ccz_gate(self,
         ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
     ) -> 'cirq.OP_TREE':
