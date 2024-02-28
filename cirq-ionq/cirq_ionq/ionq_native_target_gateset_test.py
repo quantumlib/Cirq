@@ -140,7 +140,7 @@ qubits3 = cirq.LineQubit.range(3)
         ([0, 0, 0.25, 0.25, 0, 0, 0.25, 0.25], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.SWAP(qubits3[1], qubits3[2]))),
     ],
 )
-def test_transpiling_two_qubit_circuits_to_native_gates(ideal_results, circuit):
+def test_transpiling_three_qubit_circuits_to_native_gates(ideal_results, circuit):
     transpiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=AriaNativeGateset())
     simulator = cirq.Simulator()
     result = simulator.simulate(transpiled_circuit)
