@@ -294,7 +294,8 @@ class QasmOutput:
             else:
                 output(f'creg {meas_id}[{len(meas.qubits)}];  // Measurement: {comment}\n')
         # In OpenQASM 2.0, the transformation of global phase gates is ignored.
-        # Therefore, no newline is created when the operations contained in a circuit consist only of global phase gates.
+        # Therefore, no newline is created when the operations contained in
+        # a circuit consist only of global phase gates.
         if any(not isinstance(op.gate, ops.GlobalPhaseGate) for op in self.operations):
             output_line_gap(2)
 
