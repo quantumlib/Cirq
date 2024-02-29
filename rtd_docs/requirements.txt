@@ -1,5 +1,0 @@
-# For generating documentation.
-myst-parser
-Sphinx==7.*
-sphinx_rtd_theme
-sphinx-notfound-page

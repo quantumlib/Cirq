@@ -42,6 +42,8 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    # Requires pinned quimb from #6438
+    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
     # Hardcoded qubit placement
     'docs/google/qubit-placement.ipynb',
     # get_qcs_objects_for_notebook
@@ -63,9 +65,6 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
-    # TODO(#6088) - enable notebooks below
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    # End of TODO(#6088)
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
     "**/azure-quantum/*.ipynb",

@@ -21,7 +21,6 @@ from dev_tools import env_tools, shell_tools
 
 IGNORED_FILE_PATTERNS = [
     r'^dev_tools/.+',  # Environment-heavy code.
-    r'^rtd_docs/.+',  # Environment-heavy code.
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
     r'^(.+/)?setup\.py$',  # Installation code.
     r'^(.+/)?_version\.py$',  # Installation code.
