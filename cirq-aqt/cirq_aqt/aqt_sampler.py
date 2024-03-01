@@ -83,12 +83,15 @@ Operation: TypeAlias = Gate | Measure
 
 class Resource(TypedDict):
     """A quantum computing device."""
+
     id: str
     name: str
     type: Literal["device", "simulator"]
 
+
 class Workspace(TypedDict):
     """A user workspace."""
+
     id: str
     resources: list[Resource]
 
@@ -119,7 +122,7 @@ class AQTSampler(cirq.Sampler):
     def fetch_resources(access_token: str, remote_host: str = _DEFAULT_HOST) -> list[Workspace]:
         """Lists the workspaces and resources that are accessible with access_token.
 
-        Returns a list containing the workspaces and resources that the passed 
+        Returns a list containing the workspaces and resources that the passed
         access_token gives access to. The workspace and resource IDs in this list can be
         used to submit jobs using the run and run_sweep methods.
 
@@ -144,17 +147,16 @@ class AQTSampler(cirq.Sampler):
             raise RuntimeError('Got unexpected return data from server: \n' + str(response.json()))
 
         workspaces = [
-            Workspace(
-                id=w['id'],
-                resources=[Resource(**r) for r in w['resources']]
-            )
+            Workspace(id=w['id'], resources=[Resource(**r) for r in w['resources']])
             for w in response.json()
         ]
-        
+
         return workspaces
 
     @staticmethod
-    def print_resources(access_token: str, emit: Callable = print, remote_host: str = _DEFAULT_HOST) -> None:
+    def print_resources(
+        access_token: str, emit: Callable = print, remote_host: str = _DEFAULT_HOST
+    ) -> None:
         """Displays the workspaces and resources that are accessible with access_token.
 
         Prints a table using the function passed as 'emit' containing the workspaces and
@@ -183,7 +185,7 @@ class AQTSampler(cirq.Sampler):
             return emit("No workspaces are accessible with this access token.")
         if any(len(w['resources']) == 0 for w in workspaces):
             return emit("No workspaces accessible with this access token contain resources.")
-        
+
         col_widths = [
             max([len(w['id']) for w in workspaces]),
             max([len(d['name']) for w in workspaces for d in w['resources']]),
