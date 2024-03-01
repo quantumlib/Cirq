@@ -20,6 +20,7 @@ from cirq.experiments.qubit_characterizations import (
     TomographyResult,
     two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
+    parallel_single_qubit_randomized_benchmarking,
 )
 
 from cirq.experiments.fidelity_estimation import (
@@ -63,3 +64,10 @@ from cirq.experiments.t1_decay_experiment import t1_decay, T1DecayResult
 from cirq.experiments.t2_decay_experiment import t2_decay, T2DecayResult
 
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
+
+from cirq.experiments.two_qubit_xeb import (
+    InferredXEBResult,
+    TwoQubitXEBResult,
+    parallel_two_qubit_xeb,
+    run_rb_and_xeb,
+)
