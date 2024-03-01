@@ -25,7 +25,7 @@ API keys for classical simulators and quantum devices can be obtained at:
 import json
 import time
 import uuid
-from typing import cast, Dict, List, Sequence, Tuple, Union, Literal, TypeAlias, TypedDict
+from typing import Callable, cast, Dict, List, Sequence, Tuple, Union, Literal, TypeAlias, TypedDict
 from urllib.parse import urljoin
 
 import numpy as np
@@ -81,6 +81,18 @@ Gate: TypeAlias = GateRZ | GateR | GateRXX
 Operation: TypeAlias = Gate | Measure
 
 
+class Resource(TypedDict):
+    """A quantum computing device."""
+    id: str
+    name: str
+    type: Literal["device", "simulator"]
+
+class Workspace(TypedDict):
+    """A user workspace."""
+    id: str
+    resources: list[Resource]
+
+
 class AQTSampler(cirq.Sampler):
     """cirq.Sampler for the AQT ion trap device
     This sampler connects to the AQT machine and
@@ -104,12 +116,12 @@ class AQTSampler(cirq.Sampler):
         self.access_token = access_token
 
     @staticmethod
-    def fetch_resources(access_token: str, remote_host: str = _DEFAULT_HOST) -> None:
+    def fetch_resources(access_token: str, remote_host: str = _DEFAULT_HOST) -> list[Workspace]:
         """Lists the workspaces and resources that are accessible with access_token.
 
-        Prints a table to STDOUT containing the workspaces and resources that the
-        passed access_token gives access to. The IDs in this table can be used to
-        submit jobs using the run and run_sweep methods.
+        Returns a list containing the workspaces and resources that the passed 
+        access_token gives access to. The workspace and resource IDs in this list can be
+        used to submit jobs using the run and run_sweep methods.
 
         The printed table contains four columns:
             - WORKSPACE ID: the ID of the workspace. Use this value to submit circuits.
@@ -131,49 +143,71 @@ class AQTSampler(cirq.Sampler):
         if response.status_code != 200:
             raise RuntimeError('Got unexpected return data from server: \n' + str(response.json()))
 
-        workspaces = cast(list, response.json())
-        col_widths = [19, 21, 20, 3]
+        workspaces = [
+            Workspace(
+                id=w['id'],
+                resources=[Resource(**r) for r in w['resources']]
+            )
+            for w in response.json()
+        ]
+        
+        return workspaces
 
-        for workspace in workspaces:
-            col_widths[0] = max(col_widths[0], len(workspace['id']))
-            for resource in workspace['resources']:
-                col_widths[1] = max(col_widths[1], len(resource['name']))
-                col_widths[2] = max(col_widths[2], len(resource['id']))
+    @staticmethod
+    def print_resources(access_token: str, emit: Callable = print, remote_host: str = _DEFAULT_HOST) -> None:
+        """Displays the workspaces and resources that are accessible with access_token.
 
-        print(
-            "+-"
-            + col_widths[0] * "-"
-            + "-+-"
-            + col_widths[1] * "-"
-            + "-+-"
-            + col_widths[2] * "-"
-            + "-+-"
-            + col_widths[3] * "-"
-            + "-+"
-        )
-        print(
+        Prints a table using the function passed as 'emit' containing the workspaces and
+        resources that the passed access_token gives access to. The IDs in this table
+        can be used to submit jobs using the run and run_sweep methods.
+
+        The printed table contains four columns:
+            - WORKSPACE ID: the ID of the workspace. Use this value to submit circuits.
+            - RESOURCE NAME: the human-readable name of the resource.
+            - RESOURCE ID: the ID of the resource. Use this value to submit circuits.
+            - D/S: whether the resource is a (D)evice or (S)imulator.
+
+        Args:
+            access_token: Access token for the AQT API.
+            emit (optional): A Callable which will be called once with a single string argument,
+                containing the table. Defaults to print from the standard library.
+            remote_host (optional): Address of the AQT API. Defaults to "https://arnica.aqt.eu/api/v1/".
+
+        Raises:
+            RuntimeError: If there was an unexpected response from the server.
+        """
+        table_lines = []
+        workspaces = AQTSampler.fetch_resources(access_token, remote_host)
+
+        if len(workspaces) == 0:
+            return emit("No workspaces are accessible with this access token.")
+        if any(len(w['resources']) == 0 for w in workspaces):
+            return emit("No workspaces accessible with this access token contain resources.")
+        
+        col_widths = [
+            max([len(w['id']) for w in workspaces]),
+            max([len(d['name']) for w in workspaces for d in w['resources']]),
+            max([len(d['id']) for w in workspaces for d in w['resources']]),
+            3,
+        ]
+        SEPARATOR = "+-" + "-+-".join(col_width * "-" for col_width in col_widths) + "-+"
+
+        table_lines.append(SEPARATOR)
+        table_lines.append(
             f"| {'WORKSPACE ID'.ljust(col_widths[0])} | {'RESOURCE NAME'.ljust(col_widths[1])} | {'RESOURCE ID'.ljust(col_widths[2])} | {'D/S'.ljust(col_widths[3])} |"
         )
-        print(
-            "+-"
-            + col_widths[0] * "-"
-            + "-+-"
-            + col_widths[1] * "-"
-            + "-+-"
-            + col_widths[2] * "-"
-            + "-+-"
-            + col_widths[3] * "-"
-            + "-+"
-        )
+        table_lines.append(SEPARATOR)
 
         for workspace in workspaces:
             next_workspace = workspace['id']
             for resource in workspace["resources"]:
-                print(
+                table_lines.append(
                     f"| {next_workspace.ljust(col_widths[0])} | {resource['name'].ljust(col_widths[1])} | {resource['id'].ljust(col_widths[2])} | {resource['type'][0].upper().ljust(col_widths[3])} |"
                 )
                 next_workspace = ""
-            print(f"+-----------------------+-----------------------+----------------------+---+")
+            table_lines.append(SEPARATOR)
+
+        emit("\n".join(table_lines))
 
     def _generate_json(
         self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolverOrSimilarType
