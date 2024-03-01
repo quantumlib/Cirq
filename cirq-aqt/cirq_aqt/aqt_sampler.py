@@ -147,7 +147,12 @@ class AQTSampler(cirq.Sampler):
             raise RuntimeError('Got unexpected return data from server: \n' + str(response.json()))
 
         workspaces = [
-            Workspace(id=w['id'], resources=[Resource(**r) for r in w['resources']])
+            Workspace(
+                id=w['id'],
+                resources=[
+                    Resource(id=r['id'], name=r['name'], type=r['type']) for r in w['resources']
+                ],
+            )
             for w in response.json()
         ]
 

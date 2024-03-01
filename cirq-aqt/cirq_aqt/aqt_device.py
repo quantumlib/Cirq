@@ -67,7 +67,7 @@ def get_op_string(op_obj: cirq.Operation) -> str:
         op_str = OperationString.MEASURE
     else:
         raise ValueError(f'Got unknown gate on operation: {op_obj}.')
-    return op_str
+    return str(op_str)
 
 
 class AQTNoiseModel(cirq.NoiseModel):
