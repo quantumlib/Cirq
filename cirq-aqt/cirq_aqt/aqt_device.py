@@ -25,6 +25,7 @@ The native gate set consists of the local gates: X, Y, and XX entangling gates
 """
 
 import json
+from enum import Enum
 from typing import Any, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
 
 import networkx as nx
@@ -34,6 +35,13 @@ import cirq
 from cirq_aqt import aqt_device_metadata
 
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
+
+
+class OperationString(Enum):
+    MS = "MS"
+    Z = "Z"
+    R = "R"
+    MEASURE = "Meas"
 
 
 def get_op_string(op_obj: cirq.Operation) -> str:
@@ -50,13 +58,13 @@ def get_op_string(op_obj: cirq.Operation) -> str:
         ValueError: If the gate is not one of the supported gates.
     """
     if isinstance(op_obj.gate, cirq.XXPowGate):
-        op_str = 'MS'
+        op_str = OperationString.MS
     elif isinstance(op_obj.gate, cirq.ZPowGate):
-        op_str = 'Z'
+        op_str = OperationString.Z
     elif isinstance(op_obj.gate, cirq.PhasedXPowGate):
-        op_str = 'R'
+        op_str = OperationString.R
     elif isinstance(op_obj.gate, cirq.MeasurementGate):
-        op_str = 'Meas'
+        op_str = OperationString.MEASURE
     else:
         raise ValueError(f'Got unknown gate on operation: {op_obj}.')
     return op_str

@@ -32,7 +32,7 @@ import numpy as np
 from requests import post, get
 
 import cirq
-from cirq_aqt.aqt_device import AQTSimulator, get_op_string
+from cirq_aqt.aqt_device import AQTSimulator, get_op_string, OperationString
 
 
 _DEFAULT_HOST = "https://arnica.aqt.eu/api/v1/"
@@ -277,18 +277,18 @@ class AQTSampler(cirq.Sampler):
             if number_of_measurements > 0:
                 raise ValueError("Need exactly one `MEASURE` operation at the end of the circuit.")
 
-            if legacy_op[0] == "Z":
+            if legacy_op[0] == OperationString.Z:
                 instruction = GateRZ(operation="RZ", qubit=legacy_op[2][0], phi=legacy_op[1])
 
-            elif legacy_op[0] == "R":
+            elif legacy_op[0] == OperationString.R:
                 instruction = GateR(
                     operation="R", qubit=legacy_op[3][0], theta=legacy_op[1], phi=legacy_op[2]
                 )
 
-            elif legacy_op[0] == "MS":
+            elif legacy_op[0] == OperationString.MS:
                 instruction = GateRXX(operation="RXX", qubits=legacy_op[2], theta=legacy_op[1])
 
-            elif legacy_op[0] == "Meas":
+            elif legacy_op[0] == OperationString.MEASURE:
                 instruction = Measure(operation="MEASURE")
                 number_of_measurements += 1
 
