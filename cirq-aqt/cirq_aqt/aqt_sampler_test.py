@@ -13,10 +13,10 @@
 # limitations under the License.
 
 from unittest import mock
+import json
 import numpy as np
 import pytest
 import sympy
-import json
 
 import cirq
 from cirq_aqt import AQTSampler, AQTSamplerLocalSimulator

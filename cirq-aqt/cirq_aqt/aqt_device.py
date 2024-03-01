@@ -113,6 +113,9 @@ class AQTNoiseModel(cirq.NoiseModel):
             operation: Ideal operation
             system_qubits: Tuple of line qubits
 
+        Raises:
+            RuntimeError: if operation applies no gate.
+
         Returns:
             List of operations including crosstalk
         """

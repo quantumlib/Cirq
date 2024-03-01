@@ -178,7 +178,8 @@ class AQTSampler(cirq.Sampler):
             access_token: Access token for the AQT API.
             emit (optional): A Callable which will be called once with a single string argument,
                 containing the table. Defaults to print from the standard library.
-            remote_host (optional): Address of the AQT API. Defaults to "https://arnica.aqt.eu/api/v1/".
+            remote_host (optional): Address of the AQT API. Defaults to
+                "https://arnica.aqt.eu/api/v1/".
 
         Raises:
             RuntimeError: If there was an unexpected response from the server.
@@ -201,7 +202,10 @@ class AQTSampler(cirq.Sampler):
 
         table_lines.append(SEPARATOR)
         table_lines.append(
-            f"| {'WORKSPACE ID'.ljust(col_widths[0])} | {'RESOURCE NAME'.ljust(col_widths[1])} | {'RESOURCE ID'.ljust(col_widths[2])} | {'D/S'.ljust(col_widths[3])} |"
+            f"| {'WORKSPACE ID'.ljust(col_widths[0])} |"
+            f" {'RESOURCE NAME'.ljust(col_widths[1])} |"
+            f" {'RESOURCE ID'.ljust(col_widths[2])} |"
+            f" {'D/S'.ljust(col_widths[3])} |"
         )
         table_lines.append(SEPARATOR)
 
@@ -209,7 +213,10 @@ class AQTSampler(cirq.Sampler):
             next_workspace = workspace['id']
             for resource in workspace["resources"]:
                 table_lines.append(
-                    f"| {next_workspace.ljust(col_widths[0])} | {resource['name'].ljust(col_widths[1])} | {resource['id'].ljust(col_widths[2])} | {resource['type'][0].upper().ljust(col_widths[3])} |"
+                    f"| {next_workspace.ljust(col_widths[0])} |"
+                    f" {resource['name'].ljust(col_widths[1])} |"
+                    f" {resource['id'].ljust(col_widths[2])} |"
+                    f" {resource['type'][0].upper().ljust(col_widths[3])} |"
                 )
                 next_workspace = ""
             table_lines.append(SEPARATOR)
@@ -271,6 +278,14 @@ class AQTSampler(cirq.Sampler):
 
         Converts a JSON created for the legacy API into one that will work
         with the Arnica v1 API.
+
+        Raises:
+            ValueError:
+                * if there is not exactly one measurement operation at the end
+                    of the circuit.
+
+                * if an operation is found in json_str that is not in
+                    OperationString.
 
         Args:
             json_str: A JSON-formatted string that could be used as the
