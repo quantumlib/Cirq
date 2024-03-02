@@ -43,8 +43,8 @@ class ExampleSimulationState(cirq.SimulationState):
         return True
 
     def add_qubits(self, qubits):
-        ret = super().add_qubits(qubits)
-        return self if NotImplemented else ret
+        super().add_qubits(qubits)
+        return self
 
 
 class DelegatingAncillaZ(cirq.Gate):
