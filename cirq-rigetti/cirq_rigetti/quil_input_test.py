@@ -42,8 +42,6 @@ from cirq_rigetti.quil_input import (
 )
 
 from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, ZPowGate, YPowGate, XPowGate
-from cirq.ops.parity_gates import ZZPowGate, XXPowGate, YYPowGate
-from cirq.ops.fsim_gate import FSimGate, PhasedFSimGate
 from cirq.ops.pauli_gates import X, Y, Z
 from cirq.ops.identity import I
 from cirq.ops.measurement_gate import MeasurementGate
@@ -208,8 +206,7 @@ def test_unsupported_quil_instruction():
 
 
 def test_undefined_quil_gate():
-    """
-    There are no such things as FREDKIN & TOFFOLI in Quil. The standard
+    """There are no such things as FREDKIN & TOFFOLI in Quil. The standard
     names for those gates in Quil are CSWAP and CCNOT. Of course, they can
     be defined via DEFGATE / DEFCIRCUIT.
     """
@@ -281,7 +278,7 @@ def test_readout_noise():
     program = Program(QUIL_PROGRAM_WITH_READOUT_NOISE)
     circuit = circuit_from_quil(program)
 
-    result = cirq.Simulator(seed=0).run(circuit, repetitions=1000)
+    result = Simulator(seed=0).run(circuit, repetitions=1000)
     assert result.histogram(key="ro[0]")[1] < 1000
     assert result.histogram(key="ro[0]")[1] > 900
 
@@ -329,4 +326,4 @@ def test_op_identifier():
     op = gate1(beta=np.pi, theta=np.pi)(cirq.LineQubit(0), cirq.LineQubit(1))
     op_id = cirq.OpIdentifier(gate2)
 
-    op in op_id
+    assert op in op_id

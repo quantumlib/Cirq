@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import cirq
+
 from typing import Callable, cast, Dict, Union, List, Tuple, Optional
 
 import sympy
@@ -45,6 +45,7 @@ from pyquil.quilatom import (
 )
 from pyquil.simulation import matrices
 
+import cirq
 from cirq.circuits.circuit import Circuit
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
 from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs, CircuitDiagramInfo
@@ -323,7 +324,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
             if hasattr(matrices, gate_name):
                 u = getattr(matrices, gate_name)
             elif gate_name in defined_gates:
-                u = quil_defined_gates[gate_name]
+                u = defined_gates[gate_name]
             else:
                 raise UndefinedQuilGate(f"{gate_name} is not known.")
 
@@ -533,7 +534,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
 
     else:
         raise ValueError(
-            f"quil_expression_to_sympy encountered unrecognized expression {expression} of type {type(expression)}"
+            f"quil_expression_to_sympy failed to convert {expression} of type {type(expression)}"
         )
 
 
@@ -595,7 +596,8 @@ def defgate_to_cirq(defgate: DefGate):
 def remove_gate_from_kraus(
     kraus_ops: List[NDArray[np.complex_]], gate_matrix: NDArray[np.complex_]
 ):
-    """Recover the kraus operators from a kraus composed with a gate. This function is the reverse of append_kraus_to_gate.
+    """Recover the kraus operators from a kraus composed with a gate.
+    This function is the reverse of append_kraus_to_gate.
 
     Args:
         kraus_ops: A list of Kraus Operators.
