@@ -85,7 +85,7 @@ def get_qcs_objects_for_notebook(
     if not virtual:
         # Set up auth
         try:
-            _authenticate_user()
+            authenticate_user()
         except Exception as exc:
             print(f"Authentication failed: {exc}")
             print("Using virtual engine instead.")
@@ -136,39 +136,7 @@ def get_qcs_objects_for_notebook(
     )
 
 
-def get_hardware_engine_and_authenticate_user(
-    project_id: Optional[str] = None, clear_output: bool = False
-) -> AbstractEngine:
-    """Authenticates on Google Cloud and returns an Engine for running against hardware.
-
-    Args:
-        project_id: Optional explicit Google Cloud project id. Otherwise,
-            this defaults to the environment variable GOOGLE_CLOUD_PROJECT.
-            By using an environment variable, you can avoid hard-coding
-            personal project IDs in shared code.
-
-        clear_output: Optional bool for whether to clear output before
-            authenticating. Defaults to false.
-
-    Returns:
-        An instance of AbstractEngine.
-
-    Raises:
-        Exception: if authentication fails.
-    """
-
-    try:
-        _authenticate_user(clear_output)
-        return get_engine(project_id)
-    except Exception as exc:
-        print(
-            "Authentication failed, you may not have permission to access a"
-            + " hardware Engine. Use a virtual Engine instead."
-        )
-        raise exc
-
-
-def _authenticate_user(clear_output: bool = False) -> None:
+def authenticate_user(clear_output: bool = False) -> None:
     """Authenticates on Google Cloud.
 
     Args:
@@ -177,6 +145,9 @@ def _authenticate_user(clear_output: bool = False) -> None:
 
     Returns:
         None.
+
+    Raises:
+        Exception: if authentication fails.
     """
 
     # Check for Google Application Default Credentials and run
@@ -194,8 +165,15 @@ def _authenticate_user(clear_output: bool = False) -> None:
         print("Not running in a colab kernel. Will use Application Default Credentials.")
         return
 
-    print("Getting OAuth2 credentials.")
-    print("Press enter after entering the verification code.")
-    a = auth.authenticate_user(clear_output=clear_output)
-    print(a)
-    print("Authentication complete.")
+    try:
+        print("Getting OAuth2 credentials.")
+        print("Press enter after entering the verification code.")
+        a = auth.authenticate_user(clear_output=clear_output)
+        print(a)
+        print("Authentication complete.")
+    except Exception as exc:
+        print(
+            "Authentication failed, you may not have permission to access a"
+            + " hardware Engine. Use a virtual Engine instead."
+        )
+        raise exc
