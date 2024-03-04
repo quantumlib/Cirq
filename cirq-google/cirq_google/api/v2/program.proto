@@ -208,6 +208,7 @@ message Operation {
     MeasurementGate measurementgate = 15;
     WaitGate waitgate = 16;
     InternalGate internalgate = 17;
+    CouplerPulseGate couplerpulsegate = 18;
   }
 
   // Map from the argument name to the Argument needed to fully specify
@@ -424,4 +425,13 @@ message InternalGate{
   string module = 2;  // Gate module. 
   int32 num_qubits = 3;  // Number of qubits. Required during deserialization.
   map<string, Arg> gate_args = 4;  // Gate args.
+}
+
+message CouplerPulseGate{
+  optional FloatArg hold_time_ps = 1;  // ps=picoseconds.
+  optional FloatArg rise_time_ps = 2;  // ps=picoseconds.
+  optional FloatArg padding_time_ps = 3;  // ps=picoseconds.
+  optional FloatArg coupling_mhz = 4;
+  optional FloatArg q0_detune_mhz = 5;
+  optional FloatArg q1_detune_mhz = 6;
 }
