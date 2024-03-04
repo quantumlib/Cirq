@@ -82,32 +82,14 @@ def get_qcs_objects_for_notebook(
         ValueError: if processor_id is not specified and no processors are available.
     """
 
-    # Check for Google Application Default Credentials and run
-    # interactive login if the notebook is executed in Colab. In
-    # case the notebook is executed in Jupyter notebook or other
-    # IPython runtimes, no interactive login is provided, it is
-    # assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
-    # set or `gcloud auth application-default login` was executed
-    # already. For more information on using Application Default Credentials
-    # see https://cloud.google.com/docs/authentication/production
-    # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
     if not virtual:
         # Set up auth
         try:
-            from google.colab import auth
-        except ImportError:
-            print("Not running in a colab kernel. Will use Application Default Credentials.")
-        else:
-            print("Getting OAuth2 credentials.")
-            print("Press enter after entering the verification code.")
-            try:
-                a = auth.authenticate_user(clear_output=False)
-                print(a)
-                print("Authentication complete.")
-            except Exception as exc:
-                print(f"Authentication failed: {exc}")
-                print("Using virtual engine instead.")
-                virtual = True
+            _authenticate_user()
+        except Exception as exc:
+            print(f"Authentication failed: {exc}")
+            print("Using virtual engine instead.")
+            virtual = True
 
     if not virtual:
         # Set up production engine
@@ -152,3 +134,68 @@ def get_qcs_objects_for_notebook(
         processor_id=processor_id,
         is_simulator=is_simulator,
     )
+
+
+def get_hardware_engine_and_authenticate_user(
+    project_id: Optional[str] = None, clear_output: bool = False
+) -> AbstractEngine:
+    """Authenticates on Google Cloud and returns an Engine for running against hardware.
+
+    Args:
+        project_id: Optional explicit Google Cloud project id. Otherwise,
+            this defaults to the environment variable GOOGLE_CLOUD_PROJECT.
+            By using an environment variable, you can avoid hard-coding
+            personal project IDs in shared code.
+
+        clear_output: Optional bool for whether to clear output before
+            authenticating. Defaults to false.
+
+    Returns:
+        An instance of AbstractEngine.
+
+    Raises:
+        Exception: if authentication fails.
+    """
+
+    try:
+        _authenticate_user(clear_output)
+        return get_engine(project_id)
+    except Exception as exc:
+        print(
+            "Authentication failed, you may not have permission to access a"
+            + " hardware Engine. Use a virtual Engine instead."
+        )
+        raise exc
+
+
+def _authenticate_user(clear_output: bool = False) -> None:
+    """Authenticates on Google Cloud.
+
+    Args:
+        clear_output: Optional bool for whether to clear output before
+            authenticating. Defaults to false.
+
+    Returns:
+        None.
+    """
+
+    # Check for Google Application Default Credentials and run
+    # interactive login if the notebook is executed in Colab. In
+    # case the notebook is executed in Jupyter notebook or other
+    # IPython runtimes, no interactive login is provided, it is
+    # assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
+    # set or `gcloud auth application-default login` was executed
+    # already. For more information on using Application Default Credentials
+    # see https://cloud.google.com/docs/authentication/production
+    # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
+    try:
+        from google.colab import auth
+    except ImportError:
+        print("Not running in a colab kernel. Will use Application Default Credentials.")
+        return
+
+    print("Getting OAuth2 credentials.")
+    print("Press enter after entering the verification code.")
+    a = auth.authenticate_user(clear_output=clear_output)
+    print(a)
+    print("Authentication complete.")
