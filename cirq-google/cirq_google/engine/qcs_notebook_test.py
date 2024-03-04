@@ -13,11 +13,17 @@
 # limitations under the License.
 
 import sys
+import unittest
 import unittest.mock as mock
 import pytest
 
 import cirq_google as cg
-from cirq_google.engine.qcs_notebook import get_qcs_objects_for_notebook, QCSObjectsForNotebook
+from cirq_google.engine.qcs_notebook import (
+    get_qcs_objects_for_notebook,
+    QCSObjectsForNotebook,
+    get_hardware_engine_and_authenticate_user,
+)
+from cirq_google.engine.abstract_engine import AbstractEngine
 
 
 def _assert_correct_types(result: QCSObjectsForNotebook):
@@ -132,3 +138,59 @@ def test_get_qcs_objects_for_notebook_auth_fails(engine_mock):
     assert not result.signed_in
     assert result.is_simulator
     assert result.project_id == 'fake_project'
+
+
+class TestGetHardwareEngineAndAuthenticateUser(unittest.TestCase):
+    """Tests for the public API `get_hardware_engine_and_authenticate_user` which
+    authenticates the user and returns a production engine instance ."""
+
+    @mock.patch.dict('sys.modules', {'google.colab': mock.Mock()})
+    @mock.patch('cirq_google.engine.qcs_notebook.get_engine')
+    def test_authentication_success(self, engine_mock):
+        fake_processor = cg.engine.SimulatedLocalProcessor(
+            processor_id='tester', project_name='mock_project', device=cg.Sycamore
+        )
+        fake_engine = cg.engine.SimulatedLocalEngine([fake_processor])
+        engine_mock.return_value = fake_engine
+        project_id = "my-project"
+
+        engine = get_hardware_engine_and_authenticate_user(project_id)
+
+        self.assertIsInstance(engine, AbstractEngine)
+        self.assertEqual(engine, fake_engine)
+
+    def test_authentication_failure(self):
+        project_id = "invalid-project"
+
+        # Mock authentication failure
+        with unittest.mock.patch(
+            "cirq_google.engine.qcs_notebook._authenticate_user"
+        ) as mock_authenticate_user:
+            mock_authenticate_user.side_effect = Exception("mock auth failure")
+
+            with self.assertRaises(
+                Exception,
+                msg="Authentication failed, you may not have permission to access"
+                + " a hardware Engine. Use a virtual Engine instead.",
+            ):
+                get_hardware_engine_and_authenticate_user(project_id)
+
+    def test_clear_output(self):
+        project_id = "my-project"
+
+        with unittest.mock.patch(
+            "cirq_google.engine.qcs_notebook._authenticate_user"
+        ) as mock_authenticate_user:
+            get_hardware_engine_and_authenticate_user(project_id, True)
+
+            mock_authenticate_user.assert_called_with(True)
+
+    def test_no_clear_output(self):
+        project_id = "my-project"
+
+        with unittest.mock.patch(
+            "cirq_google.engine.qcs_notebook._authenticate_user"
+        ) as mock_authenticate_user:
+            get_hardware_engine_and_authenticate_user(project_id, False)
+
+            mock_authenticate_user.assert_called_with(False)
