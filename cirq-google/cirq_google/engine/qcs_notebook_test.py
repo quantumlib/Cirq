@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import sys
-import unittest
 import unittest.mock as mock
 import pytest
 
@@ -139,14 +138,15 @@ def test_get_qcs_objects_for_notebook_auth_fails(engine_mock):
     assert result.project_id == 'fake_project'
 
 
-class TestAuthenticateUser(unittest.TestCase):
+class TestAuthenticateUser:
     """Tests for the public API `get_hardware_engine_and_authenticate_user` which
     authenticates the user and returns a production engine instance ."""
 
     @mock.patch.dict('sys.modules', {'google.colab': mock.Mock()})
     def test_authentication_succeeds_no_exceptions_thrown(self):
-        authenticate_user("project_id")
         auth_mock = sys.modules['google.colab']
+
+        authenticate_user()
 
         assert auth_mock.auth.authenticate_user.called
 
@@ -158,9 +158,17 @@ class TestAuthenticateUser(unittest.TestCase):
 
         auth_mock.auth.authenticate_user = mock.Mock(side_effect=Exception('mock auth failure'))
 
-        with self.assertRaises(
-            Exception,
-            msg="Authentication failed, you may not have permission to access"
-            + " a hardware Engine. Use a virtual Engine instead.",
-        ):
+        with pytest.raises(Exception, match="mock auth failure"):
             authenticate_user(project_id)
+
+    @mock.patch.dict('sys.modules', {'google.colab': mock.Mock()})
+    @pytest.mark.parametrize('clear_output', ([True, False]))
+    def test_clear_output_is_passed(self, clear_output):
+        auth_mock = sys.modules['google.colab']
+
+        with mock.patch.object(
+            auth_mock.auth, 'authenticate_user', return_value=None
+        ) as mock_authenticate_user:
+            authenticate_user(clear_output)
+
+        mock_authenticate_user.assert_called_with(clear_output=clear_output)
