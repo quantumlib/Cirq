@@ -387,7 +387,9 @@ def test_grid_device_validate_operations_negative():
         device.validate_operation(cirq.CZ(q00, q10))
 
     with pytest.raises(ValueError, match='gate which is not supported'):
-        device.validate_operation(cirq.H(device_info.grid_qubits[0]))
+        device.validate_operation(
+            cirq.testing.DoesNotSupportSerializationGate()(device_info.grid_qubits[0])
+        )
 
 
 @pytest.mark.parametrize(

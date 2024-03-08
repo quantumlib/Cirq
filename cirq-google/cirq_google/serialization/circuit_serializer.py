@@ -176,9 +176,7 @@ class CircuitSerializer(serializer.Serializer):
                 out=msg.phasedxpowgate.exponent,
                 arg_function_language=arg_function_language,
             )
-        elif isinstance(gate, (cirq.PhasedXZGate, cirq.ops.SingleQubitCliffordGate)):
-            if isinstance(gate, cirq.ops.SingleQubitCliffordGate):
-                gate = gate.to_phased_xz_gate()
+        elif isinstance(gate, cirq.PhasedXZGate):
             arg_func_langs.float_arg_to_proto(
                 gate.x_exponent,
                 out=msg.phasedxzgate.x_exponent,
@@ -192,6 +190,18 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.axis_phase_exponent,
                 out=msg.phasedxzgate.axis_phase_exponent,
+                arg_function_language=arg_function_language,
+            )
+        elif isinstance(gate, cirq.ops.SingleQubitCliffordGate):
+            arg_func_langs.clifford_tableau_arg_to_proto(
+                gate._clifford_tableau, out=msg.singlequbitcliffordgate.tableau
+            )
+        elif isinstance(gate, cirq.ops.IdentityGate):
+            msg.identitygate.qid_shape.extend(cirq.qid_shape(gate))
+        elif isinstance(gate, cirq.HPowGate):
+            arg_func_langs.float_arg_to_proto(
+                gate.exponent,
+                out=msg.hpowgate.exponent,
                 arg_function_language=arg_function_language,
             )
         elif isinstance(gate, cirq.CZPowGate):
@@ -491,6 +501,23 @@ class CircuitSerializer(serializer.Serializer):
             )(*qubits)
             if operation_proto.zpowgate.is_physical_z:
                 op = op.with_tags(PhysicalZTag())
+        elif which_gate_type == 'hpowgate':
+            op = cirq.HPowGate(
+                exponent=arg_func_langs.float_arg_from_proto(
+                    operation_proto.hpowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0
+            )(*qubits)
+        elif which_gate_type == 'identitygate':
+            op = cirq.IdentityGate(qid_shape=tuple(operation_proto.identitygate.qid_shape))(*qubits)
+        elif which_gate_type == 'singlequbitcliffordgate':
+            tableau = arg_func_langs.clifford_tableau_from_proto(
+                operation_proto.singlequbitcliffordgate.tableau,
+                arg_function_language=arg_function_language,
+            )
+            op = cirq.ops.SingleQubitCliffordGate.from_clifford_tableau(tableau)(*qubits)
         elif which_gate_type == 'phasedxpowgate':
             exponent = (
                 arg_func_langs.float_arg_from_proto(

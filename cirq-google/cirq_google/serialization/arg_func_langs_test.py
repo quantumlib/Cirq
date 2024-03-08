@@ -28,8 +28,11 @@ from cirq_google.serialization.arg_func_langs import (
     internal_gate_from_proto,
     ARG_LIKE,
     LANGUAGE_ORDER,
+    clifford_tableau_arg_to_proto,
+    clifford_tableau_from_proto,
 )
 from cirq_google.api import v2
+from cirq.qis import CliffordTableau
 
 
 @pytest.mark.parametrize(
@@ -249,3 +252,27 @@ def test_invalid_list():
 
     with pytest.raises(ValueError):
         _ = arg_to_proto([1.0, ''])
+
+
+@pytest.mark.parametrize('lang', LANGUAGE_ORDER)
+def test_clifford_tableau(lang):
+    tests = [
+        CliffordTableau(
+            1,
+            0,
+            rs=np.array([True, False], dtype=bool),
+            xs=np.array([[True], [False]], dtype=bool),
+            zs=np.array([[True], [False]], dtype=bool),
+        ),
+        CliffordTableau(
+            1,
+            1,
+            rs=np.array([True, True], dtype=bool),
+            xs=np.array([[True], [False]], dtype=bool),
+            zs=np.array([[False], [False]], dtype=bool),
+        ),
+    ]
+    for ct in tests:
+        proto = clifford_tableau_arg_to_proto(ct)
+        tableau = clifford_tableau_from_proto(proto, lang)
+        assert tableau == ct
