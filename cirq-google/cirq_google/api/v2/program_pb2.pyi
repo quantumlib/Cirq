@@ -1215,31 +1215,33 @@ class CliffordTableau(google.protobuf.message.Message):
     XS_FIELD_NUMBER: builtins.int
     ZS_FIELD_NUMBER: builtins.int
     num_qubits: builtins.int
+    """Number of qubits the CliffordTableau acts on."""
     initial_state: builtins.int
-    rs: builtins.bytes
-    xs: builtins.bytes
-    zs: builtins.bytes
+    """The initial state."""
+    @property
+    def rs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.bool]:
+        """A flattened version of the `rs` array."""
+    @property
+    def xs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.bool]:
+        """A flattened version of the `xs` array."""
+    @property
+    def zs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.bool]:
+        """A flattened version of the `zs` array."""
     def __init__(
         self,
         *,
         num_qubits: builtins.int | None = ...,
         initial_state: builtins.int | None = ...,
-        rs: builtins.bytes | None = ...,
-        xs: builtins.bytes | None = ...,
-        zs: builtins.bytes | None = ...,
+        rs: collections.abc.Iterable[builtins.bool] | None = ...,
+        xs: collections.abc.Iterable[builtins.bool] | None = ...,
+        zs: collections.abc.Iterable[builtins.bool] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["_initial_state", b"_initial_state", "_num_qubits", b"_num_qubits", "_rs", b"_rs", "_xs", b"_xs", "_zs", b"_zs", "initial_state", b"initial_state", "num_qubits", b"num_qubits", "rs", b"rs", "xs", b"xs", "zs", b"zs"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["_initial_state", b"_initial_state", "_num_qubits", b"_num_qubits", "_rs", b"_rs", "_xs", b"_xs", "_zs", b"_zs", "initial_state", b"initial_state", "num_qubits", b"num_qubits", "rs", b"rs", "xs", b"xs", "zs", b"zs"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["_initial_state", b"_initial_state", "_num_qubits", b"_num_qubits", "initial_state", b"initial_state", "num_qubits", b"num_qubits"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["_initial_state", b"_initial_state", "_num_qubits", b"_num_qubits", "initial_state", b"initial_state", "num_qubits", b"num_qubits", "rs", b"rs", "xs", b"xs", "zs", b"zs"]) -> None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing_extensions.Literal["_initial_state", b"_initial_state"]) -> typing_extensions.Literal["initial_state"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing_extensions.Literal["_num_qubits", b"_num_qubits"]) -> typing_extensions.Literal["num_qubits"] | None: ...
-    @typing.overload
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["_rs", b"_rs"]) -> typing_extensions.Literal["rs"] | None: ...
-    @typing.overload
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["_xs", b"_xs"]) -> typing_extensions.Literal["xs"] | None: ...
-    @typing.overload
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["_zs", b"_zs"]) -> typing_extensions.Literal["zs"] | None: ...
 
 global___CliffordTableau = CliffordTableau
 

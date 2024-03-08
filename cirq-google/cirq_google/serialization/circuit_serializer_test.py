@@ -287,9 +287,9 @@ OPERATIONS = [
                     'tableau': {
                         'num_qubits': 1,
                         'initial_state': 0,
-                        'rs': 'AAE=',
-                        'xs': 'AQA=',
-                        'zs': 'AAE=',
+                        'rs': [False, True],
+                        'xs': [True, False],
+                        'zs': [False, True],
                     }
                 },
                 'qubit_constant_index': [0],

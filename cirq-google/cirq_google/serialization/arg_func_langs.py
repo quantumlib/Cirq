@@ -474,9 +474,9 @@ def clifford_tableau_arg_to_proto(
     msg = v2.program_pb2.CliffordTableau() if out is None else out
     msg.num_qubits = value.n
     msg.initial_state = value.initial_state
-    msg.xs = value.xs.tobytes()
-    msg.rs = value.rs.tobytes()
-    msg.zs = value.zs.tobytes()
+    msg.xs.extend(value.xs.flatten())
+    msg.rs.extend(value.rs.flatten())
+    msg.zs.extend(value.zs.flatten())
     return msg
 
 
@@ -494,7 +494,7 @@ def clifford_tableau_from_proto(
     return CliffordTableau(
         num_qubits=msg.num_qubits,
         initial_state=msg.initial_state,
-        rs=np.frombuffer(msg.rs, dtype=bool) if msg.rs else None,
-        xs=np.frombuffer(msg.xs, dtype=bool).reshape((2 * msg.num_qubits, -1)) if msg.xs else None,
-        zs=np.frombuffer(msg.zs, dtype=bool).reshape((2 * msg.num_qubits, -1)) if msg.zs else None,
+        rs=np.array(msg.rs, dtype=bool) if msg.rs else None,
+        xs=np.array(msg.xs, dtype=bool).reshape((2 * msg.num_qubits, -1)) if msg.xs else None,
+        zs=np.array(msg.zs, dtype=bool).reshape((2 * msg.num_qubits, -1)) if msg.zs else None,
     )

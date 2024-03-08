@@ -440,11 +440,11 @@ message CouplerPulseGate{
 }
 
 message CliffordTableau {
-  optional int32 num_qubits = 1;
-  optional int32 initial_state = 2;
-  optional bytes rs = 3;
-  optional bytes xs = 4;
-  optional bytes zs = 5;
+  optional int32 num_qubits = 1;  // Number of qubits the CliffordTableau acts on.
+  optional int32 initial_state = 2;  // The initial state.
+  repeated bool rs = 3;  // A flattened version of the `rs` array.
+  repeated bool xs = 4;  // A flattened version of the `xs` array.
+  repeated bool zs = 5;  // A flattened version of the `zs` array.
 }
 
 message SingleQubitCliffordGate {
