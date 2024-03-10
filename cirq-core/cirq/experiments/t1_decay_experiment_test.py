@@ -25,7 +25,7 @@ def test_init_result():
     data = pd.DataFrame(
         columns=['delay_ns', 'false_count', 'true_count'],
         index=range(2),
-        data=[[100.0, 0, 10], [1000.0, 10, 0]],
+        data=[[100, 0, 10], [1000, 10, 0]],
     )
     result = cirq.experiments.T1DecayResult(data)
     assert result.data is data
@@ -103,7 +103,7 @@ def test_sudden_decay_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100, 0, 10], [400, 0, 10], [700, 10, 0], [1000, 10, 0]],
+            data=[[100, 0, 10], [215, 0, 10], [700, 10, 0], [1000, 10, 0]],
         )
     )
 
