@@ -77,7 +77,12 @@ def t1_decay(
 
     var = sympy.Symbol('delay_ns')
 
-    sweep = study.Linspace(var, start=min_delay_nanos, stop=max_delay_nanos, length=num_points)
+    if min_delay_nanos == 0:
+        min_delay_nanos = 0.4
+    sweep_vals_ns = np.unique(
+        np.logspace(np.log10(min_delay_nanos), np.log10(max_delay_nanos), num_points, dtype=int)
+    )
+    sweep = study.Points(var, sweep_vals_ns)
 
     circuit = circuits.Circuit(
         ops.X(qubit), ops.wait(qubit, nanos=var), ops.measure(qubit, key='output')
@@ -118,8 +123,8 @@ class T1DecayResult:
     def constant(self) -> float:
         """The t1 decay constant."""
 
-        def exp_decay(x, t1):
-            return np.exp(-x / t1)
+        def exp_decay(x, t1, A, B):
+            return A * np.exp(-x / t1) + B
 
         xs = self._data['delay_ns']
         ts = self._data['true_count']
@@ -132,7 +137,8 @@ class T1DecayResult:
 
         # Fit to exponential decay to find the t1 constant
         try:
-            popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess])
+            popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess, 1.0, 0.0])
+            self.popt = popt
             t1 = popt[0]
             return t1
         except RuntimeError:
@@ -166,7 +172,9 @@ class T1DecayResult:
         ax.plot(xs, ts / (fs + ts), 'ro-', **plot_kwargs)
 
         if include_fit and not np.isnan(self.constant):
-            ax.plot(xs, np.exp(-xs / self.constant), label='curve fit')
+            t1 = self.constant
+            t1, A, B = self.popt
+            ax.plot(xs, A * np.exp(-xs / t1) + B, label='curve fit')
             plt.legend()
 
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
