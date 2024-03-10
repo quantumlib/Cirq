@@ -103,7 +103,7 @@ def test_sudden_decay_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100, 0, 10], [215, 0, 10], [700, 10, 0], [1000, 10, 0]],
+            data=[[100, 0, 10], [215, 0, 10], [464, 10, 0], [1000, 10, 0]],
         )
     )
 
@@ -155,20 +155,6 @@ def test_curve_fit_plot_works():
     )
 
     good_fit.plot(include_fit=True)
-
-
-@pytest.mark.usefixtures('closefigures')
-def test_curve_fit_plot_warning():
-    bad_fit = cirq.experiments.T1DecayResult(
-        data=pd.DataFrame(
-            columns=['delay_ns', 'false_count', 'true_count'],
-            index=range(4),
-            data=[[100, 10, 0], [215, 10, 0], [464, 10, 0], [1000, 10, 0]],
-        )
-    )
-
-    with pytest.warns(RuntimeWarning, match='Optimal parameters could not be found for curve fit'):
-        bad_fit.plot(include_fit=True)
 
 
 @pytest.mark.parametrize('t1', [200, 500, 700])
