@@ -61,7 +61,7 @@ def test_result_eq():
     eq.make_equality_group(
         lambda: cirq.experiments.T1DecayResult(
             data=pd.DataFrame(
-                columns=['delay_ns', 'false_count', 'true_count'], index=[0], data=[[100.0, 2, 8]]
+                columns=['delay_ns', 'false_count', 'true_count'], index=[0], data=[[100, 2, 8]]
             )
         )
     )
@@ -103,7 +103,7 @@ def test_sudden_decay_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100.0, 0, 10], [400.0, 0, 10], [700.0, 10, 0], [1000.0, 10, 0]],
+            data=[[100, 0, 10], [400, 0, 10], [700, 10, 0], [1000, 10, 0]],
         )
     )
 
@@ -121,7 +121,7 @@ def test_all_on_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100.0, 0, 10], [215.0, 0, 10], [464.0, 0, 10], [1000.0, 0, 10]],
+            data=[[100, 0, 10], [215, 0, 10], [464, 0, 10], [1000, 0, 10]],
         )
     )
 
@@ -139,7 +139,7 @@ def test_all_off_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100.0, 10, 0], [215.0, 10, 0], [464.0, 10, 0], [1000.0, 10, 0]],
+            data=[[100, 10, 0], [215, 10, 0], [464, 10, 0], [1000, 10, 0]],
         )
     )
 
@@ -150,7 +150,7 @@ def test_curve_fit_plot_works():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100.0, 6, 4], [215.0, 10, 0], [464.0, 10, 0], [1000.0, 10, 0]],
+            data=[[100, 6, 4], [215, 10, 0], [464, 10, 0], [1000, 10, 0]],
         )
     )
 
@@ -163,7 +163,7 @@ def test_curve_fit_plot_warning():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100.0, 10, 0], [215.0, 10, 0], [464.0, 10, 0], [1000.0, 10, 0]],
+            data=[[100, 10, 0], [215, 10, 0], [464, 10, 0], [1000, 10, 0]],
         )
     )
 
