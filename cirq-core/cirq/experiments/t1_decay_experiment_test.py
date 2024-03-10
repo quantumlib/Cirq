@@ -103,7 +103,7 @@ def test_sudden_decay_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100, 0, 10], [215, 0, 10], [464, 10, 10], [1000, 10, 0]],
+            data=[[100, 0, 10], [215, 0, 10], [464, 0, 10], [1000, 10, 0]],
         )
     )
 
