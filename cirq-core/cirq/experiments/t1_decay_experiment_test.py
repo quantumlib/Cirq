@@ -53,7 +53,7 @@ def test_plot_does_not_raise_error():
         repetitions=10,
         max_delay=cirq.Duration(nanos=500),
     )
-    results.plot()
+    results.plot(include_fit=True)
 
 
 def test_result_eq():
@@ -182,10 +182,10 @@ def test_noise_model_continous(t1):
     results = cirq.experiments.t1_decay(
         sampler=cirq.DensityMatrixSimulator(noise=GradualDecay(t1)),
         qubit=cirq.GridQubit(0, 0),
-        num_points=4,
+        num_points=10,
         repetitions=10,
-        min_delay=cirq.Duration(nanos=100),
-        max_delay=cirq.Duration(micros=1),
+        min_delay=cirq.Duration(nanos=1),
+        max_delay=cirq.Duration(micros=10),
     )
 
     assert np.isclose(results.constant, t1, 50)
