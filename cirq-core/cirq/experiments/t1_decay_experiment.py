@@ -123,8 +123,8 @@ class T1DecayResult:
     def constant(self) -> float:
         """The t1 decay constant."""
 
-        def exp_decay(x, t1, A, B):
-            return A * np.exp(-x / t1) + B
+        def exp_decay(x, t1, a, b):
+            return a * np.exp(-x / t1) + b
 
         xs = self._data['delay_ns']
         ts = self._data['true_count']
@@ -173,8 +173,8 @@ class T1DecayResult:
 
         if include_fit and not np.isnan(self.constant):
             t1 = self.constant
-            t1, A, B = self.popt
-            ax.plot(xs, A * np.exp(-xs / t1) + B, label='curve fit')
+            t1, a, b = self.popt
+            ax.plot(xs, a * np.exp(-xs / t1) + b, label='curve fit')
             plt.legend()
 
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
