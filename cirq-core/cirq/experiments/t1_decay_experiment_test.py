@@ -117,13 +117,14 @@ def test_all_on_results():
         min_delay=cirq.Duration(nanos=100),
         max_delay=cirq.Duration(micros=1),
     )
-    assert results == cirq.experiments.T1DecayResult(
+    desired = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
             data=[[100, 0, 10], [215, 0, 10], [464, 0, 10], [1000, 0, 10]],
         )
     )
+    assert results == desired, f'{results.data=} {desired.data=}'
 
 
 def test_all_off_results():
@@ -135,13 +136,14 @@ def test_all_off_results():
         min_delay=cirq.Duration(nanos=100),
         max_delay=cirq.Duration(micros=1),
     )
-    assert results == cirq.experiments.T1DecayResult(
+    desired = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
             data=[[100, 10, 0], [215, 10, 0], [464, 10, 0], [1000, 10, 0]],
         )
     )
+    assert results == desired, f'{results.data=} {desired.data=}'
 
 
 @pytest.mark.usefixtures('closefigures')
