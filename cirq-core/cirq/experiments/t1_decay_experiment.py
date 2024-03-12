@@ -80,7 +80,7 @@ def t1_decay(
     if min_delay_nanos == 0:
         min_delay_nanos = 0.4
     sweep_vals_ns = np.unique(
-        np.logspace(np.log10(min_delay_nanos), np.log10(max_delay_nanos), num_points, dtype=int)
+        np.round(np.logspace(np.log10(min_delay_nanos), np.log10(max_delay_nanos), num_points))
     )
     sweep = study.Points(var, sweep_vals_ns)
 

@@ -25,7 +25,7 @@ def test_init_result():
     data = pd.DataFrame(
         columns=['delay_ns', 'false_count', 'true_count'],
         index=range(2),
-        data=[[100, 0, 10], [1000, 10, 0]],
+        data=[[100.0, 0, 10], [1000.0, 10, 0]],
     )
     result = cirq.experiments.T1DecayResult(data)
     assert result.data is data
@@ -103,7 +103,7 @@ def test_sudden_decay_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100, 0, 10], [215, 0, 10], [464, 0, 10], [1000, 10, 0]],
+            data=[[100.0, 0, 10], [215.0, 0, 10], [464.0, 0, 10], [1000.0, 10, 0]],
         )
     )
 
@@ -121,7 +121,7 @@ def test_all_on_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100, 0, 10], [215, 0, 10], [464, 0, 10], [1000, 0, 10]],
+            data=[[100.0, 0, 10], [215.0, 0, 10], [464.0, 0, 10], [1000.0, 0, 10]],
         )
     )
     assert results == desired, f'{results.data=} {desired.data=}'
@@ -140,7 +140,7 @@ def test_all_off_results():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100, 10, 0], [215, 10, 0], [464, 10, 0], [1000, 10, 0]],
+            data=[[100.0, 10, 0], [215.0, 10, 0], [464.0, 10, 0], [1000.0, 10, 0]],
         )
     )
     assert results == desired, f'{results.data=} {desired.data=}'
@@ -152,14 +152,14 @@ def test_curve_fit_plot_works():
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
             index=range(4),
-            data=[[100, 6, 4], [215, 10, 0], [464, 10, 0], [1000, 10, 0]],
+            data=[[100.0, 6, 4], [215.0, 10, 0], [464.0, 10, 0], [1000.0, 10, 0]],
         )
     )
 
     good_fit.plot(include_fit=True)
 
 
-@pytest.mark.parametrize('t1', [200, 500, 700])
+@pytest.mark.parametrize('t1', [200.0, 500.0, 700.0])
 def test_noise_model_continous(t1):
     class GradualDecay(cirq.NoiseModel):
         def __init__(self, t1: float):
