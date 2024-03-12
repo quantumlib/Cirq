@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, Optional, Sequence, TYPE_CHECKING, cast
 
 import warnings
 import pandas as pd
@@ -82,7 +82,7 @@ def t1_decay(
     sweep_vals_ns = np.unique(
         np.round(np.logspace(np.log10(min_delay_nanos), np.log10(max_delay_nanos), num_points))
     )
-    sweep = study.Points(var, sweep_vals_ns)
+    sweep = study.Points(var, cast(Sequence[float], sweep_vals_ns))
 
     circuit = circuits.Circuit(
         ops.X(qubit), ops.wait(qubit, nanos=var), ops.measure(qubit, key='output')
