@@ -118,7 +118,7 @@ _GATES: List[_GateRepresentations] = [
             cirq.GateFamily(cirq.PhasedXZGate),
             cirq.GateFamily(cirq.XPowGate),
             cirq.GateFamily(cirq.YPowGate),
-            cirq.GateFamily(cirq.ZPowGate),
+            cirq.GateFamily(cirq.HPowGate),
             cirq.GateFamily(cirq.PhasedXPowGate),
             cirq.GateFamily(cirq.ops.SingleQubitCliffordGate),
         ],
