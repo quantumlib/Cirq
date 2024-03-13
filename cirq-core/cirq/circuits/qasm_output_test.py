@@ -191,6 +191,19 @@ ry(pi*-0.25) q[0];
     )
 
 
+def test_qasm_global_pahse():
+    output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5))), ())
+    assert (
+        str(output)
+        == """OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: []
+"""
+    )
+
+
 def test_precision():
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.1234567,), (q0,), precision=3)
