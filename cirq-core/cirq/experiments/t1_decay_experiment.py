@@ -137,9 +137,8 @@ class T1DecayResult:
 
         # Fit to exponential decay to find the t1 constant
         try:
-            popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess, 1.0, 0.0])
-            self.popt = popt
-            t1 = popt[0]
+            self.popt, _ = optimize.curve_fit(exp_decay, xs, probs, p0=[t1_guess, 1.0, 0.0])
+            t1 = self.popt[0]
             return t1
         except RuntimeError:
             warnings.warn("Optimal parameters could not be found for curve fit", RuntimeWarning)
