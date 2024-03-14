@@ -14,7 +14,7 @@
 
 
 from typing import Dict, Generic, Any, Sequence, List, Optional, Union, TYPE_CHECKING
-from copy import deepcopy
+from copy import deepcopy, copy
 from cirq import ops, qis
 from cirq.value import big_endian_int_to_bits
 from cirq import sim
