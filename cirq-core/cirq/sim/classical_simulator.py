@@ -53,7 +53,7 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
             A copy of the ClassicalBasisState object.
         """
         return ClassicalBasisState(
-            initial_state=deepcopy(self.basis) if deep_copy_buffers else self.basis.copy()
+            initial_state=deepcopy(self.basis) if deep_copy_buffers else copy(self.basis)
         )
 
     def measure(
