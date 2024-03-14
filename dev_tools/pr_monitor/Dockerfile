@@ -23,7 +23,7 @@
 # value of the cirqbot-api-key secret.
 ########################################################################################
 
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 RUN mkdir -p /app/dev_tools/pr_monitor
 WORKDIR /app
