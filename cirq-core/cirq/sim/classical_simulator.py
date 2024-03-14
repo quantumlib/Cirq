@@ -98,7 +98,7 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
-        elif isinstance(initial_state,  (list, np.ndarray)):
+        elif isinstance(initial_state, (list, np.ndarray)):
             state = ClassicalBasisState(initial_state)
         else:
             raise ValueError('initial_state must be an int or List[int] or np.ndarray')
@@ -173,7 +173,8 @@ class ClassicalStateSimulator(
         Raises:
             ValueError: If noise_model is not None.
         """
-        if noise is not None: raise ValueError(f'{noise=} is not supported')
+        if noise is not None:
+            raise ValueError(f'{noise=} is not supported')
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
     def _create_simulator_trial_result(
