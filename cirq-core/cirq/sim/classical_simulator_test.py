@@ -270,3 +270,9 @@ def test_create_valid_partial_simulation_state_from_list():
         initial_state=initial_state, qubits=qs, classical_data=classical_data
     )._state.basis
     assert result == expected_result
+
+
+def test_noise_model():
+    noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
+    with pytest.raises(ValueError):
+        cirq.ClassicalStateSimulator(noise=noise_model)

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 def _is_identity(action) -> bool:
-    """Check if the given action is an identity gate."""
+    """Check if the given action is equivalent to an identity."""
     gate = action.gate if isinstance(action, ops.Operation) else action
     if isinstance(gate, (ops.XPowGate, ops.CXPowGate, ops.CCXPowGate, ops.SwapPowGate)):
         return gate.exponent % 2 == 0
@@ -36,7 +36,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: List[int]):
+    def __init__(self, initial_state: Union[Sequence[int], np.ndarray]):
         """Initializes the ClassicalBasisState object.
 
         Args:
@@ -52,7 +52,9 @@ class ClassicalBasisState(qis.QuantumStateRepresentation):
         Returns:
             A copy of the ClassicalBasisState object.
         """
-        return ClassicalBasisState(initial_state=deepcopy(self.basis))
+        return ClassicalBasisState(
+            initial_state=deepcopy(self.basis) if deep_copy_buffers else self.basis.copy()
+        )
 
     def measure(
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
@@ -87,6 +89,8 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         Raises:
             ValueError: If qubits not provided and initial_state is int.
                         If initial_state is not an int or List[int].
+
+        An initial_state value of type integer is parsed in big endian order.
         """
         if isinstance(initial_state, int):
             if qubits is None:
@@ -94,10 +98,10 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             state = ClassicalBasisState(
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
-        elif isinstance(initial_state, List):
+        elif isinstance(initial_state,  (list, np.ndarray)):
             state = ClassicalBasisState(initial_state)
         else:
-            raise ValueError('initial_state must be an int or List[int]')
+            raise ValueError('initial_state must be an int or List[int] or np.ndarray')
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True):
@@ -117,25 +121,22 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         gate = action.gate if isinstance(action, ops.Operation) else action
         mapped_qubits = [self.qubit_map[i] for i in qubits]
         if _is_identity(gate):
-            return True
-        if gate == ops.X:
+            pass
+        elif gate == ops.X:
             (q,) = mapped_qubits
             self._state.basis[q] ^= 1
-            return True
         elif gate == ops.CNOT:
             c, q = mapped_qubits
             self._state.basis[q] ^= self._state.basis[c]
-            return True
         elif gate == ops.SWAP:
             a, b = mapped_qubits
             self._state.basis[a], self._state.basis[b] = self._state.basis[b], self._state.basis[a]
-            return True
         elif gate == ops.TOFFOLI:
             c1, c2, q = mapped_qubits
             self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
-            return True
         else:
             raise ValueError(f'{gate} is not one of X, CNOT, SWAP, CCNOT, or a measurement')
+        return True
 
 
 class ClassicalStateStepResult(
@@ -168,7 +169,11 @@ class ClassicalStateSimulator(
         Args:
             noise: The noise model used by the simulator.
             split_untangled_states: Whether to run the simulation as a product state.
+
+        Raises:
+            ValueError: If noise_model is not None.
         """
+        if noise is not None: raise ValueError(f'{noise=} is not supported')
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
     def _create_simulator_trial_result(
