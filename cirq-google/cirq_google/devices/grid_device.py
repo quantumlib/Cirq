@@ -112,15 +112,7 @@ _GATES: List[_GateRepresentations] = [
     ),
     _GateRepresentations(
         gate_spec_name='phased_xz',
-        deserialized_forms=[
-            cirq.IdentityGate,
-            cirq.PhasedXZGate,
-            cirq.XPowGate,
-            cirq.YPowGate,
-            cirq.PhasedXPowGate,
-            cirq.HPowGate,
-            cirq.ops.SingleQubitCliffordGate,
-        ],
+        deserialized_forms=[cirq.PhasedXZGate, cirq.XPowGate, cirq.YPowGate, cirq.PhasedXPowGate],
         serializable_forms=[
             cirq.GateFamily(cirq.IdentityGate),
             cirq.GateFamily(cirq.PhasedXZGate),
