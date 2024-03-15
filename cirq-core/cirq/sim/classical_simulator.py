@@ -88,7 +88,8 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Raises:
             ValueError: If qubits not provided and initial_state is int.
-                        If initial_state is not an int or List[int].
+                        If initial_state is not an int, List[int], or np.ndarray.
+                        If initial_state shape for type np.ndarray is not equal to 1.
 
         An initial_state value of type integer is parsed in big endian order.
         """
@@ -99,6 +100,8 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
         elif isinstance(initial_state, (list, np.ndarray)):
+            if isinstance(initial_state, np.ndarray) and len(initial_state.shape) != 1:
+                raise ValueError('initial_state shape for type np.ndarray is not equal to 1')
             state = ClassicalBasisState(initial_state)
         else:
             raise ValueError('initial_state must be an int or List[int] or np.ndarray')
