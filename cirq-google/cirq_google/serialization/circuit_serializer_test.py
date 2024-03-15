@@ -279,6 +279,28 @@ OPERATIONS = [
             }
         ),
     ),
+    (
+        cirq.ops.SingleQubitCliffordGate.X(Q0),
+        op_proto(
+            {
+                'singlequbitcliffordgate': {
+                    'tableau': {
+                        'num_qubits': 1,
+                        'initial_state': 0,
+                        'rs': [False, True],
+                        'xs': [True, False],
+                        'zs': [False, True],
+                    }
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.H(Q0),
+        op_proto({'hpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
+    ),
+    (cirq.I(Q0), op_proto({'identitygate': {'qid_shape': [2]}, 'qubit_constant_index': [0]})),
 ]
 
 
@@ -698,12 +720,8 @@ def test_circuit_with_cliffords():
     circuit = cirq.Circuit(
         g(q) for g in cirq.ops.SingleQubitCliffordGate.all_single_qubit_cliffords
     )
-    want = cirq.Circuit(
-        g.to_phased_xz_gate()(q)
-        for g in cirq.ops.SingleQubitCliffordGate.all_single_qubit_cliffords
-    )
     msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
-    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == want
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
 
 
 def test_circuit_with_couplerpulse():
