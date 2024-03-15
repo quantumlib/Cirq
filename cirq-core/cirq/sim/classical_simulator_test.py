@@ -272,6 +272,29 @@ def test_create_valid_partial_simulation_state_from_list():
     assert result == expected_result
 
 
+def test_create_valid_partial_simulation_state_from_np():
+    sim = cirq.ClassicalStateSimulator()
+    initial_state = np.array([1, 1, 1, 1])
+    qs = cirq.LineQubit.range(4)
+    classical_data = cirq.value.ClassicalDataDictionaryStore()
+    expected_result = np.array([1, 1, 1, 1])
+    result = sim._create_partial_simulation_state(
+        initial_state=initial_state, qubits=qs, classical_data=classical_data
+    )._state.basis
+    np.testing.assert_equal(result, expected_result)
+
+
+def test_create_invalid_partial_simulation_state_from_np():
+    sim = cirq.ClassicalStateSimulator()
+    initial_state = np.array([[1, 1, 1, 1], [1, 1, 1, 1]])
+    qs = cirq.LineQubit.range(4)
+    classical_data = cirq.value.ClassicalDataDictionaryStore()
+    with pytest.raises(ValueError):
+        sim._create_partial_simulation_state(
+            initial_state=initial_state, qubits=qs, classical_data=classical_data
+        )._state.basis
+
+
 def test_noise_model():
     noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
     with pytest.raises(ValueError):
