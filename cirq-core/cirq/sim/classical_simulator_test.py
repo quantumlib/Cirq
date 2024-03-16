@@ -297,6 +297,7 @@ def test_create_invalid_partial_simulation_state_from_np():
     with pytest.raises(ValueError):
         sim_state._act_on_fallback_(action=cirq.CX, qubits=qs)
 
+
 def test_noise_model():
     noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
     with pytest.raises(ValueError):
