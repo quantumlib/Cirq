@@ -89,7 +89,6 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
         Raises:
             ValueError: If qubits not provided and initial_state is int.
                         If initial_state is not an int, List[int], or np.ndarray.
-                        If initial_state shape for type np.ndarray is not equal to 1.
 
         An initial_state value of type integer is parsed in big endian order.
         """
@@ -100,8 +99,6 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
                 big_endian_int_to_bits(initial_state, bit_count=len(qubits))
             )
         elif isinstance(initial_state, (list, np.ndarray)):
-            if isinstance(initial_state, np.ndarray) and len(initial_state.shape) != 1:
-                raise ValueError('initial_state shape for type np.ndarray is not equal to 1')
             state = ClassicalBasisState(initial_state)
         else:
             raise ValueError('initial_state must be an int or List[int] or np.ndarray')
@@ -119,8 +116,11 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             True if the operation was applied successfully.
 
         Raises:
-            ValueError: If gate is not one of X, CNOT, SWAP, CCNOT, or a measurement.
+            ValueError: If initial_state shape for type np.ndarray is not equal to 1.
+                        If gate is not one of X, CNOT, SWAP, CCNOT, or a measurement.
         """
+        if isinstance(self._state.basis, np.ndarray) and len(self._state.basis.shape) != 1:
+            raise ValueError('initial_state shape for type np.ndarray is not equal to 1')
         gate = action.gate if isinstance(action, ops.Operation) else action
         mapped_qubits = [self.qubit_map[i] for i in qubits]
         if _is_identity(gate):
