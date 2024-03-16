@@ -157,7 +157,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'LineTopology': cirq.LineTopology,
         'Linspace': cirq.Linspace,
         'ListSweep': cirq.ListSweep,
-        'MSGate': cirq.MSGate,
+        'cirq.MSGate': cirq.MSGate,
         'MatrixGate': cirq.MatrixGate,
         'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
