@@ -39,7 +39,6 @@ TestSpec = ModuleJsonTestSpec(
         'KakDecomposition',
         'LinearCombinationOfGates',
         'LinearCombinationOfOperations',
-        'MSGate',  # namespace conflict with `cirq_ionq.ionq_native_gates.MSGate`
         'PauliSumCollector',
         'PauliSumExponential',
         'PeriodicValue',
