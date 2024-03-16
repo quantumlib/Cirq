@@ -59,6 +59,10 @@ class DecomposeQuditGate:
     def _decompose_(self, qids):
         yield cirq.identity_each(*qids)
 
+class DecomposePreserveMomentStructure:
+    def _decompose_(self):
+        yield cirq.Moment(cirq.X(cirq.LineQubit(0)))
+        yield cirq.Moment(cirq.Y(cirq.LineQubit(1)))
 
 def test_decompose_once():
     # No default value results in descriptive error.
@@ -84,6 +88,10 @@ def test_decompose_once():
     assert cirq.decompose_once(DecomposeGenerated()) == [
         cirq.X(cirq.LineQubit(0)),
         cirq.Y(cirq.LineQubit(1)),
+    ]
+    assert cirq.decompose_once(DecomposePreserveMomentStructure()) == [
+        cirq.Moment(cirq.X(cirq.LineQubit(0))),
+        cirq.Moment(cirq.Y(cirq.LineQubit(1))),
     ]
 
 

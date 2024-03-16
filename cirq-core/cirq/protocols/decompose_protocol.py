@@ -381,7 +381,7 @@ def decompose_once(
         decomposed = NotImplemented if method is None else method(*args, **kwargs)
 
     if decomposed is not NotImplemented and decomposed is not None:
-        return list(ops.flatten_to_ops(decomposed)) if flatten else decomposed
+        return list(ops.flatten_to_ops_or_moments(decomposed)) if flatten else decomposed
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
