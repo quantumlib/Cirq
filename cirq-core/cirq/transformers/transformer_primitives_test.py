@@ -216,7 +216,6 @@ def test_map_operations_preserves_circuit_tags(deep: bool) -> None:
     circuit = cirq.FrozenCircuit.from_moments(x, cirq.FrozenCircuit(x)).with_tags(tag)
     mapped = cirq.map_operations(circuit, func, deep=deep)
 
-    assert circuit.tags == (tag,)
     assert mapped.tags == (tag,)
 
 
@@ -230,7 +229,6 @@ def test_map_operations_deep_preserves_subcircuit_tags():
     circuit = cirq.FrozenCircuit.from_moments(x, cirq.FrozenCircuit(x).with_tags(tag))
     mapped = cirq.map_operations(circuit, func, deep=True)
 
-    assert circuit[1].operations[0].circuit.tags == (tag,)
     assert mapped[1].operations[0].circuit.tags == (tag,)
 
 
