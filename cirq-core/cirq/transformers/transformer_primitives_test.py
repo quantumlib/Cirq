@@ -205,6 +205,25 @@ def test_map_operations_deep_subcircuits():
 # pylint: enable=line-too-long
 
 
+@pytest.mark.parametrize("deep", [False, True])
+def test_map_operations_preserves_circuit_tags(deep: bool) -> None:
+    tag = "should be preserved"
+    circuit = cirq.FrozenCircuit.from_moments(cirq.FrozenCircuit()).with_tags(tag)
+    mapped = cirq.map_operations(circuit, lambda x, idx: x, deep=deep)
+
+    assert circuit.tags == (tag,)
+    assert mapped.tags == (tag,)
+
+
+def test_map_operations_deep_preserves_subcircuit_tags() -> None:
+    tag = "should be preserved"
+    circuit = cirq.FrozenCircuit.from_moments(cirq.FrozenCircuit().with_tags(tag))
+    mapped = cirq.map_operations(circuit, lambda x, idx: x, deep=True)
+
+    assert circuit[0].operations[0].circuit.tags == (tag,)
+    assert mapped[0].operations[0].circuit.tags == (tag,)
+
+
 def test_map_operations_deep_respects_tags_to_ignore():
     q = cirq.LineQubit.range(2)
     c_nested = cirq.FrozenCircuit(cirq.CX(*q), cirq.CX(*q).with_tags("ignore"), cirq.CX(*q))
