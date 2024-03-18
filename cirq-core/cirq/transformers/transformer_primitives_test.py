@@ -220,7 +220,7 @@ def test_map_operations_preserves_circuit_tags(deep: bool) -> None:
     assert mapped.tags == (tag,)
 
 
-def test_map_operations_deep_preserves_subcircuit_tags() -> None:
+def test_map_operations_deep_preserves_subcircuit_tags():
     tag = "should be preserved"
 
     def func(op: cirq.Operation, idx: int) -> cirq.Operation:
