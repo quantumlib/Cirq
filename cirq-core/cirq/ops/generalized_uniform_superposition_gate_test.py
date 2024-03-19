@@ -30,10 +30,11 @@ def check_uniform_superposition_error(M, n):
     )
 
 """The following code tests the creation of M uniform superposition states, where M ranges from 3 to 1024."""
-M=1025  
-for mm in range(3, M):
-    if (mm & (mm-1)) == 0:
-        n = int(np.log2(mm))
-    else:
-        n = int(np.ceil(np.log2(M)))
-    check_uniform_superposition_error(mm, n)
+def test1_check_uniform(): 
+    M=1025  
+    for mm in range(3, M):
+        if (mm & (mm-1)) == 0:
+            n = int(np.log2(mm))
+        else:
+            n = int(np.ceil(np.log2(M)))
+        check_uniform_superposition_error(mm, n)
