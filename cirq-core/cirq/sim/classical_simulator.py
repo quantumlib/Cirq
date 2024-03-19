@@ -36,7 +36,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: Union[Sequence[int], np.ndarray]):
+    def __init__(self, initial_state: Union[List[int], np.ndarray]):
         """Initializes the ClassicalBasisState object.
 
         Args:
