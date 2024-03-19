@@ -5,7 +5,7 @@ def generalized_uniform_superposition_cirqx(M, num_qubits):
 
     Note: The Shukla-Vedula algorithm [SV24] offers an efficient approach for creation of a generalized uniform superposition 
     state of the form, $\frac{1}{\sqrt{M}} \sum_{j=0}^{M-1}  \ket{j} $, requiring only $O(log_2 (M))$ qubits and $O(log_2 (M))$ 
-    gates. This represents an exponential improvement (in the context of reduced resources and complexity) over other approaches 
+    gates. This provides an exponential improvement (in the context of reduced resources and complexity) over other approaches 
     in the literature.
 
     Args:
