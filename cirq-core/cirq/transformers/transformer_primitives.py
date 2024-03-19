@@ -53,12 +53,9 @@ def _to_target_circuit_type(
 
 
 def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
-    return cast(
-        CIRCUIT_TYPE,
-        circuits.Circuit(ops)
-        if isinstance(target_circuit, circuits.Circuit)
-        else circuits.FrozenCircuit(ops),
-    )
+    if isinstance(target_circuit, circuits.FrozenCircuit):
+        return cast(CIRCUIT_TYPE, circuits.FrozenCircuit(ops).with_tags(*target_circuit.tags))
+    return cast(CIRCUIT_TYPE, circuits.Circuit(ops))
 
 
 def map_moments(
