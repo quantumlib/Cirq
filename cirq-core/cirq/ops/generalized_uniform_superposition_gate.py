@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import cirq
+import numpy as np
 
 def generalized_uniform_superposition_cirqx(M, num_qubits):
     """
