@@ -122,6 +122,7 @@ _GATES: List[_GateRepresentations] = [
             cirq.ops.SingleQubitCliffordGate,
         ],
         serializable_forms=[
+            # TODO: Extend support to cirq.IdentityGate.
             cirq.GateFamily(cirq.I),
             cirq.GateFamily(cirq.PhasedXZGate),
             cirq.GateFamily(cirq.XPowGate),
