@@ -221,9 +221,11 @@ class CircuitDiagramInfoArgs:
             self.known_qubit_count,
             self.use_unicode_characters,
             self.precision,
-            None
-            if self.label_map is None
-            else tuple(sorted(self.label_map.items(), key=lambda e: e[0])),
+            (
+                None
+                if self.label_map is None
+                else tuple(sorted(self.label_map.items(), key=lambda e: e[0]))
+            ),
             self.include_tags,
             self.transpose,
         )

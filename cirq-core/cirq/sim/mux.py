@@ -292,9 +292,11 @@ def final_density_matrix(
         density_result = density_matrix_simulator.DensityMatrixSimulator(
             dtype=dtype, noise=noise, seed=seed
         ).simulate(
-            program=measurement_transformers.dephase_measurements(circuit_like)
-            if ignore_measurement_results
-            else circuit_like,
+            program=(
+                measurement_transformers.dephase_measurements(circuit_like)
+                if ignore_measurement_results
+                else circuit_like
+            ),
             initial_state=initial_state,
             qubit_order=qubit_order,
             param_resolver=param_resolver,
