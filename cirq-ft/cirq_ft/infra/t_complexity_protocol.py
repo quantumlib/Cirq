@@ -158,13 +158,11 @@ def _t_complexity_for_gate_or_op(
 
 
 @overload
-def t_complexity(stc: Any, fail_quietly: Literal[False] = False) -> TComplexity:
-    ...
+def t_complexity(stc: Any, fail_quietly: Literal[False] = False) -> TComplexity: ...
 
 
 @overload
-def t_complexity(stc: Any, fail_quietly: bool) -> Optional[TComplexity]:
-    ...
+def t_complexity(stc: Any, fail_quietly: bool) -> Optional[TComplexity]: ...
 
 
 @deprecated_cirq_ft_function()

@@ -57,8 +57,7 @@ _CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset th
 class OpDecomposerWithContext(Protocol):
     def __call__(
         self, __op: 'cirq.Operation', *, context: Optional['cirq.DecompositionContext'] = None
-    ) -> DecomposeResult:
-        ...
+    ) -> DecomposeResult: ...
 
 
 OpDecomposer = Union[Callable[['cirq.Operation'], DecomposeResult], OpDecomposerWithContext]

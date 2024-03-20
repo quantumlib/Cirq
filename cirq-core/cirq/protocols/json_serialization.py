@@ -47,8 +47,7 @@ ObjectFactory = Union[Type, Callable[..., Any]]
 class JsonResolver(Protocol):
     """Protocol for json resolver functions passed to read_json."""
 
-    def __call__(self, cirq_type: str) -> Optional[ObjectFactory]:
-        ...
+    def __call__(self, cirq_type: str) -> Optional[ObjectFactory]: ...
 
 
 def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> JsonResolver:

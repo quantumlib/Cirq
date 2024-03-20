@@ -83,9 +83,7 @@ class SimulationProductState(
         gate_opt = (
             action
             if isinstance(action, ops.Gate)
-            else action.gate
-            if isinstance(action, ops.Operation)
-            else None
+            else action.gate if isinstance(action, ops.Operation) else None
         )
 
         if isinstance(gate_opt, ops.IdentityGate):
