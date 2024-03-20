@@ -92,6 +92,9 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.ops.phased_x_z_gate.PhasedXZGate,
         cirq.ops.common_gates.XPowGate,
         cirq.ops.common_gates.YPowGate,
+        cirq.ops.IdentityGate,
+        cirq.ops.SingleQubitCliffordGate,
+        cirq.ops.HPowGate,
         cirq.ops.phased_x_gate.PhasedXPowGate,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -113,6 +116,9 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.XPowGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.YPowGate): base_duration * 4,
+        cirq.GateFamily(cirq.ops.common_gates.HPowGate): base_duration * 4,
+        cirq.GateFamily(cirq.ops.IdentityGate): base_duration * 4,
+        cirq.GateFamily(cirq.ops.SingleQubitCliffordGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.phased_x_gate.PhasedXPowGate): base_duration * 4,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -135,6 +141,9 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
                 cirq.ops.common_gates.XPowGate,
                 cirq.ops.common_gates.YPowGate,
+                cirq.ops.common_gates.HPowGate,
+                cirq.ops.IdentityGate,
+                cirq.ops.SingleQubitCliffordGate,
                 cirq.ops.phased_x_gate.PhasedXPowGate,
                 cirq.GateFamily(
                     cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -154,6 +163,9 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
                 cirq.ops.common_gates.XPowGate,
                 cirq.ops.common_gates.YPowGate,
+                cirq.ops.common_gates.HPowGate,
+                cirq.ops.IdentityGate,
+                cirq.ops.SingleQubitCliffordGate,
                 cirq.ops.phased_x_gate.PhasedXPowGate,
                 cirq.GateFamily(
                     cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
