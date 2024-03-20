@@ -1,0 +1,2 @@
+[cirq.DynamicalDecouplingModel.from_schema("XX_PAIR"),
+cirq.DynamicalDecouplingModel(base_dd_sequence=[cirq.XPowGate(), cirq.XPowGate()])]
