@@ -92,7 +92,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.ops.phased_x_z_gate.PhasedXZGate,
         cirq.ops.common_gates.XPowGate,
         cirq.ops.common_gates.YPowGate,
-        cirq.ops.IdentityGate,
+        cirq.GateFamily(cirq.I),
         cirq.ops.SingleQubitCliffordGate,
         cirq.ops.HPowGate,
         cirq.ops.phased_x_gate.PhasedXPowGate,
@@ -117,7 +117,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.ops.common_gates.XPowGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.YPowGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.HPowGate): base_duration * 4,
-        cirq.GateFamily(cirq.ops.IdentityGate): base_duration * 4,
+        cirq.GateFamily(cirq.I): base_duration * 4,
         cirq.GateFamily(cirq.ops.SingleQubitCliffordGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.phased_x_gate.PhasedXPowGate): base_duration * 4,
         cirq.GateFamily(
@@ -142,7 +142,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.ops.common_gates.XPowGate,
                 cirq.ops.common_gates.YPowGate,
                 cirq.ops.common_gates.HPowGate,
-                cirq.ops.IdentityGate,
+                cirq.GateFamily(cirq.I),
                 cirq.ops.SingleQubitCliffordGate,
                 cirq.ops.phased_x_gate.PhasedXPowGate,
                 cirq.GateFamily(
@@ -164,7 +164,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.ops.common_gates.XPowGate,
                 cirq.ops.common_gates.YPowGate,
                 cirq.ops.common_gates.HPowGate,
-                cirq.ops.IdentityGate,
+                cirq.GateFamily(cirq.I),
                 cirq.ops.SingleQubitCliffordGate,
                 cirq.ops.phased_x_gate.PhasedXPowGate,
                 cirq.GateFamily(

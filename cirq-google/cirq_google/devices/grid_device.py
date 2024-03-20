@@ -118,11 +118,11 @@ _GATES: List[_GateRepresentations] = [
             cirq.YPowGate,
             cirq.PhasedXPowGate,
             cirq.HPowGate,
-            cirq.IdentityGate,
+            cirq.GateFamily(cirq.I),
             cirq.ops.SingleQubitCliffordGate,
         ],
         serializable_forms=[
-            cirq.GateFamily(cirq.IdentityGate),
+            cirq.GateFamily(cirq.I),
             cirq.GateFamily(cirq.PhasedXZGate),
             cirq.GateFamily(cirq.XPowGate),
             cirq.GateFamily(cirq.YPowGate),
