@@ -452,9 +452,7 @@ def test_extrapolatable_effect():
 
     assert cirq.ControlledGate(cirq.Z) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5)
 
-    assert cirq.ControlledGate(cirq.Z).on(a, b) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5).on(
-        a, b
-    )
+    assert cirq.ControlledGate(cirq.Z).on(a, b) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5).on(a, b)
 
     assert cirq.ControlledGate(cirq.Z) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5)
 

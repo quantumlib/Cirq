@@ -55,6 +55,7 @@ class TwoQubitGateTabulationResult(NamedTuple):
             equal to U_target.
         success: Whether actual_gate is expected to be close to U_target.
     """
+
     base_gate_unitary: np.ndarray
     target_gate: np.ndarray
     local_unitaries: Tuple[_SingleQubitGatePair, ...]

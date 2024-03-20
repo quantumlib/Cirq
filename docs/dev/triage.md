@@ -10,13 +10,13 @@ The goals for this document are as follows:
 
 * provide visibility for project and release status 
 
-## Automation: Triage party and Github Actions
+## Automation: Triage party and GitHub Actions
 
 [Triage Party](https://github.com/google/triage-party) is a stateless web app to optimize issue and PR triage for large open-source projects using the GitHub API. 
 
 Our deployed version is here (a static IP, domain request is in progress): [http://bit.do/cirq-triage-party](http://bit.do/cirq-triage-party)
 
-[Github Actions](https://github.com/features/actions) is Github's workflow automation platform. We use it for continuous integration testing as well as for stale issue handling later described here.
+[GitHub Actions](https://github.com/features/actions) is GitHub's workflow automation platform. We use it for continuous integration testing as well as for stale issue handling later described here.
 
 ## Issue states and labels
 
@@ -55,7 +55,7 @@ Triage states are
 * `triage/needs-reproduction` - for bugs only
 * `triage/needs-feasibility` - for feature requests (maybe bugs).
 * `triage/needs-more-evidence` - for feature requests - the feature request seems plausible but we need more understanding if it is valuable for enough users to warrant implementing and maintaining it. 
-* `triage/stale` - Github actions automatically marks some of the issues stale and then it closes them in case of 30 days of inactivity.
+* `triage/stale` - GitHub actions automatically marks some of the issues stale and then it closes them in case of 30 days of inactivity.
 * `triage/duplicate` - we mark duplicated issues with this label.
 
 While these are fairly straightforward and intuitive the workflows are depicted below. 
@@ -156,7 +156,7 @@ To summarize, **all issues** are subject to staleness-check, **except** the foll
 * `kind/roadmap-item`
 * `kind/task` 
 
-The staleness check automation is implemented via Github Actions, the latest definition of staleness is defined in [our staleness Github Action workflow](https://github.com/quantumlib/Cirq/blob/main/.github/workflows/stale.yml).
+The staleness check automation is implemented via GitHub Actions, the latest definition of staleness is defined in [our staleness GitHub Action workflow](https://github.com/quantumlib/Cirq/blob/main/.github/workflows/stale.yml).
 
 
 ## Processes
@@ -170,7 +170,7 @@ The staleness check automation is implemented via Github Actions, the latest def
     - maintain a backlog that makes it easy to match contributors as well as maintainers to work items.
     - for pull requests we are aiming for 
         * **responsiveness** - people can get their work done - we don't want to block community / our team members.
-        * **clean workspace** - stale PRs are wasteful as clutter is cognitive cost for maintainers. Stale PRs also a resource cost on Github - eating into other contributors' capacity to execute Github Actions / checks.
+        * **clean workspace** - stale PRs are wasteful as clutter is cognitive cost for maintainers. Stale PRs also a resource cost on GitHub - eating into other contributors' capacity to execute GitHub Actions / checks.
 
 **Who**
 

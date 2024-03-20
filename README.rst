@@ -75,7 +75,7 @@ Example output:
 Feature requests / Bugs / Questions
 -----------------------------------
 
-If you have feature requests or you found a bug, please `file them on Github <https://github.com/quantumlib/Cirq/issues/new/choose>`__.
+If you have feature requests or you found a bug, please `file them on GitHub <https://github.com/quantumlib/Cirq/issues/new/choose>`__.
 
 For questions about how to use Cirq post to
 `Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with the
