@@ -39,18 +39,15 @@ class SelectOracle(infra.GateWithRegisters):
 
     @property
     @abc.abstractmethod
-    def control_registers(self) -> Tuple[infra.Register, ...]:
-        ...
+    def control_registers(self) -> Tuple[infra.Register, ...]: ...
 
     @property
     @abc.abstractmethod
-    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
-        ...
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]: ...
 
     @property
     @abc.abstractmethod
-    def target_registers(self) -> Tuple[infra.Register, ...]:
-        ...
+    def target_registers(self) -> Tuple[infra.Register, ...]: ...
 
     @cached_property
     def signature(self) -> infra.Signature:
@@ -76,8 +73,7 @@ class PrepareOracle(infra.GateWithRegisters):
 
     @property
     @abc.abstractmethod
-    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
-        ...
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]: ...
 
     @cached_property
     def junk_registers(self) -> Tuple[infra.Register, ...]:

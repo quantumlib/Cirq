@@ -50,6 +50,7 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
             dense pauli string must contain `target_bitsize` terms.
         control_val: Optional control value. If specified, a singly controlled gate is constructed.
     """
+
     selection_bitsize: int
     target_bitsize: int
     select_unitaries: Tuple[cirq.DensePauliString, ...] = attr.field(converter=_to_tuple)

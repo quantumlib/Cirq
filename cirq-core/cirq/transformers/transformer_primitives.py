@@ -46,9 +46,11 @@ def _to_target_circuit_type(
 ) -> CIRCUIT_TYPE:
     return cast(
         CIRCUIT_TYPE,
-        circuit.unfreeze(copy=False)
-        if isinstance(target_circuit, circuits.Circuit)
-        else circuit.freeze(),
+        (
+            circuit.unfreeze(copy=False)
+            if isinstance(target_circuit, circuits.Circuit)
+            else circuit.freeze()
+        ),
     )
 
 
@@ -637,11 +639,13 @@ def merge_moments(
     if deep:
         circuit = map_operations(
             circuit,
-            lambda op, _: op.untagged.replace(
-                circuit=merge_moments(op.untagged.circuit, merge_func, deep=deep)
-            ).with_tags(*op.tags)
-            if isinstance(op.untagged, circuits.CircuitOperation)
-            else op,
+            lambda op, _: (
+                op.untagged.replace(
+                    circuit=merge_moments(op.untagged.circuit, merge_func, deep=deep)
+                ).with_tags(*op.tags)
+                if isinstance(op.untagged, circuits.CircuitOperation)
+                else op
+            ),
             tags_to_ignore=tags_to_ignore,
         )
     merged_moments: List[circuits.Moment] = [circuit[0]]
