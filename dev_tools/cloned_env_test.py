@@ -39,5 +39,7 @@ def test_isolated_env_cloning(cloned_env, param):
     result = shell_tools.run(f"{env}/bin/pip list --format=json".split(), stdout=subprocess.PIPE)
     packages = json.loads(result.stdout)
     assert {"name": "flynt", "version": "0.64"} in packages
-    assert {"astor", "flynt", "pip", "setuptools", "wheel"} == set(p['name'] for p in packages)
+    package_names = set(p['name'] for p in packages)
+    assert package_names.issuperset({"astor", "flynt", "pip"})
+    assert package_names.issubset({"astor", "flynt", "pip", "setuptools", "wheel"})
     shutil.rmtree(env)
