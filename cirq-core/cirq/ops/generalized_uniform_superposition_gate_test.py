@@ -15,8 +15,13 @@
 import cirq
 import numpy as np
 
-def check_uniform_superposition_error(M, n):
-
+def _assert_generated_unitary_is_uniform(M :int, n :int) -> None:
+""" 
+The code checks that the unitary matrix corresponds to the generated uniform superposition states (see generalized_uniform_superposition_gate.py). 
+It is enough to check that the first colum of the unitary matrix (which corresponds to the action of 
+the gate on $\ket{0}^n$ is $\frac{1}{\sqrt{M}} [1 1  \cdots 1 0 \cdots 0]^T$, where the first $M$ entries
+are all "1"s (excluding the normalization factor of $\frac{1}{\sqrt{M}}$ and the remaining $2^n-M$ entries are all "0"s.
+"""
     gate = generalized_uniform_superposition_gate(M, n)
     qregx = cirq.LineQubit.range(n)
     qcircuit = cirq.Circuit(gate.on(*qregx))
@@ -29,12 +34,13 @@ def check_uniform_superposition_error(M, n):
         atol=1e-8,
     )
 
-"""The following code tests the creation of M uniform superposition states, where M ranges from 3 to 1024."""
-def test1_check_uniform(): 
+
+def _test1_check_uniform(): 
+    """The code tests the creation of M uniform superposition states, where M ranges from 3 to 1024."""
     M=1025  
     for mm in range(3, M):
         if (mm & (mm-1)) == 0:
             n = int(np.log2(mm))
         else:
             n = int(np.ceil(np.log2(M)))
-        check_uniform_superposition_error(mm, n)
+        _assert_generated_unitary_is_uniform(mm, n)
