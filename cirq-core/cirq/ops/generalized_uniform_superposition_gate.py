@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import typing import Sequence
 import numpy as np
+from typing import Sequence
+from cirq.ops import raw_types
 
-class generalized_uniform_superposition_gate(cirq.Gate) -> gate:
+if TYPE_CHECKING:
+    import cirq
+
+class generalized_uniform_superposition_gate(raw_types.Gate):
     """
     Creates a generalized uniform superposition state, $\frac{1}{\sqrt{M}} \sum_{j=0}^{M-1}  \ket{j} $ (where 1< M <= 2^n), 
     using n qubits, according to the Shukla-Vedula algorithm [SV24].
