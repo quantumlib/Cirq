@@ -220,6 +220,16 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
+    def get_default_device_configuration(self) -> quantum.DeviceConfigKey:
+        """Returns the default device configuration key for the processor.
+
+        Returns:
+            Device configuration proto if present.
+        """
+        if not self._inner_processor().default_device_config_key:
+            raise ValueError('Processor does not have a default device configuration key')
+        return self._inner_processor().default_device_config_key
+
     def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
