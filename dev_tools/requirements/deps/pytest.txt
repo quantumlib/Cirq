@@ -10,7 +10,7 @@ coverage<=6.2
 
 # for parallel testing notebooks
 pytest-xdist~=2.2.0
-filelock~=3.0.12
+filelock~=3.1
 
 # For testing time specific logic
 freezegun~=0.3.15
@@ -22,5 +22,5 @@ importlib-metadata
 codeowners; platform_system != "Windows"
 
 # for creating isolated environments
-virtualenv
+virtualenv~=20.23
 virtualenv-clone
