@@ -74,15 +74,13 @@ class SupportsCommutes(Protocol):
 
 
 @overload
-def commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool:
-    ...
+def commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool: ...
 
 
 @overload
 def commutes(
     v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: TDefault
-) -> Union[bool, TDefault]:
-    ...
+) -> Union[bool, TDefault]: ...
 
 
 def commutes(

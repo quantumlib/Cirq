@@ -131,11 +131,11 @@ def test_map_operations_deep_subcircuits():
     )
 
     def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
-        yield [
-            cirq.Z.on_each(*op.qubits),
-            cirq.CX(*op.qubits),
-            cirq.Z.on_each(*op.qubits),
-        ] if op.gate == cirq.CX else op
+        yield (
+            [cirq.Z.on_each(*op.qubits), cirq.CX(*op.qubits), cirq.Z.on_each(*op.qubits)]
+            if op.gate == cirq.CX
+            else op
+        )
 
     cirq.testing.assert_has_diagram(
         c_orig_with_circuit_ops,

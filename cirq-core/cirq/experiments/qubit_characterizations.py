@@ -953,16 +953,8 @@ def _single_qubit_cliffords() -> Cliffords:
     for z0, x, z1 in phi_xz:
         c1_in_xz.append([Z**z0, X**x, Z**z1])
 
-    s1: List[List[ops.SingleQubitCliffordGate]] = [
-        [X**0.0],
-        [Y**0.5, X**0.5],
-        [X**-0.5, Y**-0.5],
-    ]
-    s1_x: List[List[ops.SingleQubitCliffordGate]] = [
-        [X**0.5],
-        [X**0.5, Y**0.5, X**0.5],
-        [Y**-0.5],
-    ]
+    s1: List[List[ops.SingleQubitCliffordGate]] = [[X**0.0], [Y**0.5, X**0.5], [X**-0.5, Y**-0.5]]
+    s1_x: List[List[ops.SingleQubitCliffordGate]] = [[X**0.5], [X**0.5, Y**0.5, X**0.5], [Y**-0.5]]
     s1_y: List[List[ops.SingleQubitCliffordGate]] = [
         [Y**0.5],
         [X**-0.5, Y**-0.5, X**0.5],
