@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, cast, FrozenSet, Iterable, Mapping, Optional, 
 import networkx as nx
 from cirq import value
 from cirq.devices import device
+from cirq_google.cloud import quantum
 
 if TYPE_CHECKING:
     import cirq
@@ -31,6 +32,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         self,
         qubit_pairs: Iterable[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
         gateset: 'cirq.Gateset',
+        device_config_key: Optional[quantum.DeviceConfigKey] = None,
         gate_durations: Optional[Mapping['cirq.GateFamily', 'cirq.Duration']] = None,
         all_qubits: Optional[Iterable['cirq.GridQubit']] = None,
         compilation_target_gatesets: Iterable['cirq.CompilationTargetGateset'] = (),
@@ -47,6 +49,8 @@ class GridDeviceMetadata(device.DeviceMetadata):
                 bi-directional couplings.
             gateset: `cirq.Gateset` indicating gates supported
                 everywhere on the device.
+            device_config_key: quantum.DeviceConfigKey representing
+                the name of the device configuration.
             gate_durations: Optional dictionary of `cirq.GateFamily`
                 instances mapping to `cirq.Duration` instances for
                 gate timing metadata information. If provided,
@@ -99,6 +103,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
         self._qubit_pairs = frozenset({frozenset(pair) for pair in edge_set})
         self._gateset = gateset
+        self._device_config_key = device_config_key
         self._isolated_qubits = all_qubits.difference(node_set)
         self._compilation_target_gatesets = tuple(compilation_target_gatesets)
 
@@ -142,6 +147,11 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._gateset
 
     @property
+    def device_config_key(self) -> quantum.DeviceConfigKey | None:
+        """Returns the key of the device configuration."""
+        return self._device_config_key
+
+    @property
     def compilation_target_gatesets(self) -> Tuple['cirq.CompilationTargetGateset', ...]:
         """Returns a sequence of valid `cirq.CompilationTargetGateset`s for this device."""
         return self._compilation_target_gatesets
@@ -178,6 +188,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return (
             self._qubit_pairs,
             self._gateset,
+            self._device_config_key,
             tuple(duration_equality),
             tuple(sorted(self.qubit_set)),
             frozenset(self._compilation_target_gatesets),
@@ -186,6 +197,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
     def __repr__(self) -> str:
         qubit_pair_tuples = frozenset({tuple(sorted(p)) for p in self._qubit_pairs})
         return (
+            f'device_config_key={self._device_config_key},'
             f'cirq.GridDeviceMetadata({repr(qubit_pair_tuples)},'
             f' {repr(self._gateset)}, {repr(self._gate_durations)},'
             f' {repr(self.qubit_set)}, {repr(self._compilation_target_gatesets)})'
@@ -199,6 +211,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return {
             'qubit_pairs': sorted([sorted(pair) for pair in self._qubit_pairs]),
             'gateset': self._gateset,
+            'device_config_key': self._device_config_key,
             'gate_durations': duration_payload,
             'all_qubits': sorted(list(self.qubit_set)),
             'compilation_target_gatesets': list(self._compilation_target_gatesets),
@@ -209,6 +222,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         cls,
         qubit_pairs,
         gateset,
+        device_config_key,
         gate_durations,
         all_qubits,
         compilation_target_gatesets=(),
@@ -217,6 +231,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return cls(
             qubit_pairs,
             gateset,
+            device_config_key,
             dict(gate_durations) if gate_durations is not None else None,
             all_qubits,
             compilation_target_gatesets,
