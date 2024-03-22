@@ -185,8 +185,8 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         yield swap_network.MultiTargetCSwap.make_on(control=V, target_x=p_y, target_y=q_y)
         yield swap_network.MultiTargetCSwap.make_on(control=V, target_x=p_x, target_y=q_x)
 
-        yield cirq.S(*control) ** -1 if control else cirq.global_phase_operation(
-            -1j
+        yield (
+            cirq.S(*control) ** -1 if control else cirq.global_phase_operation(-1j)
         )  # Fix errant i from XY=iZ
         yield cirq.Z(*U).controlled_by(*control)  # Fix errant -1 from multiple pauli applications
 

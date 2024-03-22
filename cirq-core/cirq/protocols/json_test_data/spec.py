@@ -22,6 +22,7 @@ TestSpec = ModuleJsonTestSpec(
     name="cirq",
     packages=[cirq, cirq.work],
     test_data_path=pathlib.Path(__file__).parent,
+    custom_class_name_to_cirq_type={"MSGate": "cirq.MSGate"},
     resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
         'Alignment',

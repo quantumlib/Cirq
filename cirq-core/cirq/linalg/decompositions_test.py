@@ -422,9 +422,7 @@ def test_axis_angle_decomposition_str():
     assert (
         str(
             cirq.axis_angle(
-                cirq.unitary(cirq.X**0.25)
-                @ cirq.unitary(cirq.Y**0.25)
-                @ cirq.unitary(cirq.Z**0.25)
+                cirq.unitary(cirq.X**0.25) @ cirq.unitary(cirq.Y**0.25) @ cirq.unitary(cirq.Z**0.25)
             )
         )
         == '0.477*π around 0.679*X+0.281*Y+0.679*Z'

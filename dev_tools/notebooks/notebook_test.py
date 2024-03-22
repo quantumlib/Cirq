@@ -124,7 +124,7 @@ papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
         print(result.stderr)
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "
-            f"notebook (in Github Actions, you can download it from the workflow artifact"
+            f"notebook (in GitHub Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs')"
         )
     os.remove(rewritten_notebook_path)

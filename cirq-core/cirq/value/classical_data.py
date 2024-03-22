@@ -165,13 +165,13 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
         if _channel_records is None:
             _channel_records = {}
         self._records: Dict['cirq.MeasurementKey', List[Tuple[int, ...]]] = _records
-        self._measured_qubits: Dict[
-            'cirq.MeasurementKey', List[Tuple['cirq.Qid', ...]]
-        ] = _measured_qubits
+        self._measured_qubits: Dict['cirq.MeasurementKey', List[Tuple['cirq.Qid', ...]]] = (
+            _measured_qubits
+        )
         self._channel_records: Dict['cirq.MeasurementKey', List[int]] = _channel_records
-        self._measurement_types: Dict[
-            'cirq.MeasurementKey', 'cirq.MeasurementType'
-        ] = _measurement_types
+        self._measurement_types: Dict['cirq.MeasurementKey', 'cirq.MeasurementType'] = (
+            _measurement_types
+        )
 
     @property
     def records(self) -> Mapping['cirq.MeasurementKey', List[Tuple[int, ...]]]:

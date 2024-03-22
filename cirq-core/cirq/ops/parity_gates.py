@@ -399,6 +399,11 @@ class MSGate(XXPowGate):
             return 'cirq.ms(np.pi/2)'
         return f'cirq.ms({self._exponent!r}*np.pi/2)'
 
+    # the default namespace is already occupied by cirq_ionq.MSGate
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq'
+
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ["rads"])
 

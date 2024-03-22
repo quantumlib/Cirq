@@ -46,19 +46,18 @@ def _to_target_circuit_type(
 ) -> CIRCUIT_TYPE:
     return cast(
         CIRCUIT_TYPE,
-        circuit.unfreeze(copy=False)
-        if isinstance(target_circuit, circuits.Circuit)
-        else circuit.freeze(),
+        (
+            circuit.unfreeze(copy=False)
+            if isinstance(target_circuit, circuits.Circuit)
+            else circuit.freeze()
+        ),
     )
 
 
 def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
-    return cast(
-        CIRCUIT_TYPE,
-        circuits.Circuit(ops)
-        if isinstance(target_circuit, circuits.Circuit)
-        else circuits.FrozenCircuit(ops),
-    )
+    if isinstance(target_circuit, circuits.FrozenCircuit):
+        return cast(CIRCUIT_TYPE, circuits.FrozenCircuit(ops).with_tags(*target_circuit.tags))
+    return cast(CIRCUIT_TYPE, circuits.Circuit(ops))
 
 
 def map_moments(
@@ -640,11 +639,13 @@ def merge_moments(
     if deep:
         circuit = map_operations(
             circuit,
-            lambda op, _: op.untagged.replace(
-                circuit=merge_moments(op.untagged.circuit, merge_func, deep=deep)
-            ).with_tags(*op.tags)
-            if isinstance(op.untagged, circuits.CircuitOperation)
-            else op,
+            lambda op, _: (
+                op.untagged.replace(
+                    circuit=merge_moments(op.untagged.circuit, merge_func, deep=deep)
+                ).with_tags(*op.tags)
+                if isinstance(op.untagged, circuits.CircuitOperation)
+                else op
+            ),
             tags_to_ignore=tags_to_ignore,
         )
     merged_moments: List[circuits.Moment] = [circuit[0]]

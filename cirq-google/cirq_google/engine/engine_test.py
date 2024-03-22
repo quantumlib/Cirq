@@ -824,6 +824,8 @@ valid_gates {
     with pytest.raises(ValueError):
         device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
     with pytest.raises(ValueError):
-        device.validate_operation(cirq.H(cirq.GridQubit(0, 0)))
+        device.validate_operation(
+            cirq.testing.DoesNotSupportSerializationGate()(cirq.GridQubit(0, 0))
+        )
     with pytest.raises(ValueError):
         device.validate_operation(cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)))
