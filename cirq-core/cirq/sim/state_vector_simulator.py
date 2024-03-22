@@ -124,7 +124,8 @@ class StateVectorTrialResult(
 
     @cached_property
     def final_state_vector(self) -> np.ndarray:
-        return self._get_merged_sim_state().target_tensor.reshape(-1)
+        ret = self._get_merged_sim_state().target_tensor.reshape(-1)
+        return ret / np.linalg.norm(ret)
 
     def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at the end of the computation.
