@@ -108,6 +108,10 @@ class _GateRepresentations:
 
 # Edit this list to add support for new gates. If a new `_GateRepresentations` is added, add a new
 # `GateSpecification` message in cirq-google/cirq_google/api/v2/device.proto.
+
+# Update `_build_compilation_target_gatesets()` if the gate you are updating affects an existing
+# CompilationTargetGateset there, or if you'd like to add another `CompilationTargetGateset` to
+# allow users to transform their circuits that include your gate.
 _GATES: List[_GateRepresentations] = [
     _GateRepresentations(
         gate_spec_name='syc', supported_gates=[_SYC_FSIM_GATE_FAMILY, _SYC_GATE_FAMILY]
