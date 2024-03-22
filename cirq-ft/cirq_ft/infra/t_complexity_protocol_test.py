@@ -26,8 +26,7 @@ class SupportTComplexity:
         return cirq_ft.TComplexity(t=1)
 
 
-class DoesNotSupportTComplexity:
-    ...
+class DoesNotSupportTComplexity: ...
 
 
 class SupportsTComplexityGateWithRegisters(cirq_ft.GateWithRegisters):
@@ -195,8 +194,7 @@ def test_cache_clear():
         def qubits(self):
             return [cirq.LineQubit(3)]  # pragma: no cover
 
-        def with_qubits(self, _):
-            ...
+        def with_qubits(self, _): ...
 
         @property
         def gate(self):

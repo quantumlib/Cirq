@@ -261,9 +261,9 @@ class SimulatorBase(
         for i in range(repetitions):
             for step_result in self._core_iterator(
                 general_suffix,
-                sim_state=sim_state.copy(deep_copy_buffers=False)
-                if i < repetitions - 1
-                else sim_state,
+                sim_state=(
+                    sim_state.copy(deep_copy_buffers=False) if i < repetitions - 1 else sim_state
+                ),
             ):
                 pass
             for k, r in step_result._classical_data.records.items():

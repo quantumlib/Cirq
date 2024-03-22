@@ -51,13 +51,15 @@ def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> Optional[protocols.Cir
     symbols = (
         (r'\targ',)
         if op.gate == ops.X
-        else (r'\control', r'\control')
-        if op.gate == ops.CZ
-        else (r'\control', r'\targ')
-        if op.gate == ops.CNOT
-        else (r'\meter',)
-        if isinstance(op.gate, ops.MeasurementGate)
-        else ()
+        else (
+            (r'\control', r'\control')
+            if op.gate == ops.CZ
+            else (
+                (r'\control', r'\targ')
+                if op.gate == ops.CNOT
+                else (r'\meter',) if isinstance(op.gate, ops.MeasurementGate) else ()
+            )
+        )
     )
     return protocols.CircuitDiagramInfo(symbols) if symbols else None
 

@@ -140,7 +140,7 @@ def _enumerate_all_from_stabilizer_bases(
     dense_pauli_strings = []
     for coefficients in itertools.product([False, True], repeat=n_qubits):
         dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
-        for (keep, stabilizer) in zip(coefficients, stabilizer_basis):
+        for keep, stabilizer in zip(coefficients, stabilizer_basis):
             if keep:
                 dense_pauli_string *= stabilizer
         dense_pauli_strings.append(dense_pauli_string)

@@ -131,11 +131,11 @@ def test_map_operations_deep_subcircuits():
     )
 
     def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
-        yield [
-            cirq.Z.on_each(*op.qubits),
-            cirq.CX(*op.qubits),
-            cirq.Z.on_each(*op.qubits),
-        ] if op.gate == cirq.CX else op
+        yield (
+            [cirq.Z.on_each(*op.qubits), cirq.CX(*op.qubits), cirq.Z.on_each(*op.qubits)]
+            if op.gate == cirq.CX
+            else op
+        )
 
     cirq.testing.assert_has_diagram(
         c_orig_with_circuit_ops,
@@ -203,6 +203,33 @@ def test_map_operations_deep_subcircuits():
 
 
 # pylint: enable=line-too-long
+
+
+@pytest.mark.parametrize("deep", [False, True])
+def test_map_operations_preserves_circuit_tags(deep: bool) -> None:
+    tag = "should be preserved"
+
+    def func(op: cirq.Operation, idx: int) -> cirq.Operation:
+        return cirq.Y(op.qubits[0]) if op.gate == cirq.X else op
+
+    x = cirq.X(cirq.q(0))
+    circuit = cirq.FrozenCircuit.from_moments(x, cirq.FrozenCircuit(x)).with_tags(tag)
+    mapped = cirq.map_operations(circuit, func, deep=deep)
+
+    assert mapped.tags == (tag,)
+
+
+def test_map_operations_deep_preserves_subcircuit_tags():
+    tag = "should be preserved"
+
+    def func(op: cirq.Operation, idx: int) -> cirq.Operation:
+        return cirq.Y(op.qubits[0]) if op.gate == cirq.X else op
+
+    x = cirq.X(cirq.q(0))
+    circuit = cirq.FrozenCircuit.from_moments(x, cirq.FrozenCircuit(x).with_tags(tag))
+    mapped = cirq.map_operations(circuit, func, deep=True)
+
+    assert mapped[1].operations[0].circuit.tags == (tag,)
 
 
 def test_map_operations_deep_respects_tags_to_ignore():

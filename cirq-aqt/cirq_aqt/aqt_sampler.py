@@ -77,9 +77,9 @@ class AQTSampler(cirq.Sampler):
             RuntimeError: If the circuit is empty.
         """
 
-        seq_list: List[
-            Union[Tuple[str, float, List[int]], Tuple[str, float, float, List[int]]]
-        ] = []
+        seq_list: List[Union[Tuple[str, float, List[int]], Tuple[str, float, float, List[int]]]] = (
+            []
+        )
         circuit = cirq.resolve_parameters(circuit, param_resolver)
         for op in circuit.all_operations():
             line_qubit = cast(Tuple[cirq.LineQubit], op.qubits)

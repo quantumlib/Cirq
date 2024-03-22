@@ -112,12 +112,24 @@ _GATES: List[_GateRepresentations] = [
     ),
     _GateRepresentations(
         gate_spec_name='phased_xz',
-        deserialized_forms=[cirq.PhasedXZGate, cirq.XPowGate, cirq.YPowGate, cirq.PhasedXPowGate],
+        deserialized_forms=[
+            cirq.PhasedXZGate,
+            cirq.XPowGate,
+            cirq.YPowGate,
+            cirq.PhasedXPowGate,
+            cirq.HPowGate,
+            cirq.GateFamily(cirq.I),
+            cirq.ops.SingleQubitCliffordGate,
+        ],
         serializable_forms=[
+            # TODO: Extend support to cirq.IdentityGate.
+            cirq.GateFamily(cirq.I),
             cirq.GateFamily(cirq.PhasedXZGate),
             cirq.GateFamily(cirq.XPowGate),
             cirq.GateFamily(cirq.YPowGate),
+            cirq.GateFamily(cirq.HPowGate),
             cirq.GateFamily(cirq.PhasedXPowGate),
+            cirq.GateFamily(cirq.ops.SingleQubitCliffordGate),
         ],
     ),
     _GateRepresentations(
@@ -263,7 +275,6 @@ def _deserialize_gateset_and_gate_durations(
                 g = cirq.GateFamily(g)
             gate_durations[g] = cirq.Duration(picos=gate_spec.gate_duration_picos)
 
-    # TODO(#4833) Add identity gate support
     # TODO(#5050) Add GlobalPhaseGate support
 
     return cirq.Gateset(*gates_list), gate_durations
