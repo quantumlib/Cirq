@@ -205,6 +205,10 @@ class _Unit(Sweep):
 UnitSweep = _Unit()
 document(UnitSweep, """The singleton sweep with no parameters.""")
 
+# Alternate name to designate as a constant.
+UNIT_SWEEP = UnitSweep
+document(UNIT_SWEEP, """The singleton sweep with no parameters.""")
+
 
 class Product(Sweep):
     """Cartesian product of one or more sweeps.
