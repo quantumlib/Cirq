@@ -32,7 +32,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         self,
         qubit_pairs: Iterable[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
         gateset: 'cirq.Gateset',
-        device_config_key: quantum.DeviceConfigKey,
+        device_config_key: Optional[quantum.DeviceConfigKey] = None,
         gate_durations: Optional[Mapping['cirq.GateFamily', 'cirq.Duration']] = None,
         all_qubits: Optional[Iterable['cirq.GridQubit']] = None,
         compilation_target_gatesets: Iterable['cirq.CompilationTargetGateset'] = (),
