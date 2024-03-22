@@ -369,8 +369,8 @@ class DensityMatrixTrialResult(
             self._final_density_matrix = np.reshape(tensor.copy(), (size, size))
             if abs(np.trace(self._final_density_matrix) - 1) < 1e-6:
                 # Normalize if this is a pure state.
-                self._final_density_matrix = self._final_density_matrix / np.trace(
-                    self._final_density_matrix
+                self._final_density_matrix = self._final_density_matrix / float(
+                    np.trace(self._final_density_matrix)
                 )
         return self._final_density_matrix
 
