@@ -100,7 +100,14 @@ class _GateRepresentations:
     supported_gates: List[cirq.GateFamily]
 
 
-"""Valid gates for a GridDevice."""
+# Gates recognized by the GridDevice class. This controls the (de)serialization between
+# `DeviceSpecification.valid_gates` and `cirq.Gateset`.
+
+# This is a superset of valid gates for a given `GridDevice` instance. The specific gateset depends
+# on the underlying device.
+
+# Edit this list to add support for new gates. If a new `_GateRepresentations` is added, add a new
+# `GateSpecification` message in cirq-google/cirq_google/api/v2/device.proto.
 _GATES: List[_GateRepresentations] = [
     _GateRepresentations(
         gate_spec_name='syc', supported_gates=[_SYC_FSIM_GATE_FAMILY, _SYC_GATE_FAMILY]
