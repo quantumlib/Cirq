@@ -36,7 +36,6 @@ import cirq
 from cirq_google import ops
 from cirq_google import transformers
 from cirq_google.api import v2
-from cirq_google.cloud.quantum import DeviceConfigKey
 from cirq_google.devices import known_devices
 from cirq_google.experimental import ops as experimental_ops
 
@@ -429,16 +428,11 @@ class GridDevice(cirq.Device):
         self._metadata = metadata
 
     @classmethod
-    def from_proto(
-        cls,
-        proto: v2.device_pb2.DeviceSpecification,
-        device_config_key: DeviceConfigKey = DeviceConfigKey(),
-    ) -> 'GridDevice':
+    def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> 'GridDevice':
         """Deserializes the `DeviceSpecification` to a `GridDevice`.
 
         Args:
             proto: The `DeviceSpecification` proto describing a Google device.
-            device_config_key: The default device config key for a Google device.
 
         Raises:
             ValueError: If the given `DeviceSpecification` is invalid. It is invalid if:
@@ -469,7 +463,6 @@ class GridDevice(cirq.Device):
             metadata = cirq.GridDeviceMetadata(
                 qubit_pairs=qubit_pairs,
                 gateset=gateset,
-                device_config_key=device_config_key,
                 gate_durations=gate_durations if len(gate_durations) > 0 else None,
                 all_qubits=all_qubits,
                 compilation_target_gatesets=_build_compilation_target_gatesets(gateset),
