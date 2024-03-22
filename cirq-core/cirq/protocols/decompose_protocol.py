@@ -93,8 +93,8 @@ class SupportsDecompose(Protocol):
 
     All decomposition methods should ultimately terminate on basic 1-qubit and
     2-qubit gates included by default in Cirq. If a custom decomposition is not
-    specified, Cirq will decompose all operations to X/Y/Z/CZ/Measurement + Global
-    phase gateset. However, the default decomposition in Cirq should be a last resort
+    specified, Cirq will decompose all operations to XPow/YPow/ZPow/CZPow/Measurement
+    + Global phase gateset. However, the default decomposition in Cirq should be a last resort
     fallback and it is recommended for consumers of decomposition to either not depend
     upon a specific target gateset, or give an `intercepting_decomposer` to `cirq.decompose`
     that attempts to target a specific gate set.
