@@ -148,7 +148,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
     @property
     def device_config_key(self) -> quantum.DeviceConfigKey | None:
-        """Returns the name of the device configuration."""
+        """Returns the key of the device configuration."""
         return self._device_config_key
 
     @property
