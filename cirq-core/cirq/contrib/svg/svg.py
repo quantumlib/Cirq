@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     import cirq
 
 QBLUE = '#1967d2'
-FONT = matplotlib.font_manager.FontProperties(family="Arial")
+FONT = matplotlib.font_manager.FontProperties()
 EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 

@@ -7,6 +7,7 @@ skip-magic-trailing-comma = true
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
+    "ignore:FigureCanvasAgg is non-interactive.*cannot be shown:UserWarning",
 ]
 markers = [
     "rigetti_integration: tests that connect to Quil compiler or QVM.",

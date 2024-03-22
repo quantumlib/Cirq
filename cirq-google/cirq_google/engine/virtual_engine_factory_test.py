@@ -35,7 +35,9 @@ def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor):
     circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
     with pytest.raises(ValueError, match='Qubit not on device'):
         _ = processor.run(circuit, repetitions=100)
-    circuit = cirq.Circuit(cirq.H(good_qubit), cirq.measure(good_qubit))
+    circuit = cirq.Circuit(
+        cirq.testing.DoesNotSupportSerializationGate()(good_qubit), cirq.measure(good_qubit)
+    )
     with pytest.raises(ValueError, match='Cannot serialize op'):
         _ = processor.run(circuit, repetitions=100)
 
@@ -122,7 +124,6 @@ def test_device_zphase_bad_processor():
 
 
 def test_create_from_proto():
-
     # Create a minimal gate specification that can handle the test.
     device_spec = text_format.Merge(
         """
@@ -196,7 +197,9 @@ def test_create_default_noisy_quantum_virtual_machine():
         with pytest.raises(ValueError, match='Qubit not on device'):
             _ = processor.run(circuit, repetitions=100)
         good_qubit = cirq.GridQubit(5, 4)
-        circuit = cirq.Circuit(cirq.H(good_qubit), cirq.measure(good_qubit))
+        circuit = cirq.Circuit(
+            cirq.testing.DoesNotSupportSerializationGate()(good_qubit), cirq.measure(good_qubit)
+        )
         with pytest.raises(ValueError, match='.* contains a gate which is not supported.'):
             _ = processor.run(circuit, repetitions=100)
         device_specification = processor.get_device_specification()

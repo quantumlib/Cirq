@@ -584,7 +584,7 @@ def test_partial_trace_of_state_vector_as_mixture_mixed_result():
         (0.5, np.array([1, 0, 0, 0]).reshape((2, 2))),
         (0.5, np.array([0, 0, 0, 1]).reshape((2, 2))),
     )
-    for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
+    for q1, q2 in [(0, 1), (0, 2), (1, 2)]:
         mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1, q2], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 

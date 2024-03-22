@@ -48,6 +48,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         atol: float = 1e-8,
         allow_partial_czs: bool = False,
         additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (),
+        preserve_moment_structure: bool = True,
     ) -> None:
         """Initializes CZTargetGateset
 
@@ -57,6 +58,8 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
              `cirq.CZ`, are part of this gateset.
             additional_gates: Sequence of additional gates / gate families which should also
               be "accepted" by this gateset. This is empty by default.
+            preserve_moment_structure: Whether to preserve the moment structure of the
+                circuit during compilation or not.
         """
         super().__init__(
             ops.CZPowGate if allow_partial_czs else ops.CZ,
@@ -65,6 +68,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
             ops.GlobalPhaseGate,
             *additional_gates,
             name='CZPowTargetGateset' if allow_partial_czs else 'CZTargetGateset',
+            preserve_moment_structure=preserve_moment_structure,
         )
         self.additional_gates = tuple(
             g if isinstance(g, ops.GateFamily) else ops.GateFamily(gate=g) for g in additional_gates

@@ -14,7 +14,7 @@
 
 """Base class for creating custom target gatesets which can be used for compilation."""
 
-from typing import Optional, List, Hashable, TYPE_CHECKING
+from typing import Optional, List, Hashable, TYPE_CHECKING, Union, Type
 import abc
 
 from cirq import circuits, ops, protocols, transformers
@@ -80,6 +80,27 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     which can transform any given circuit to contain gates accepted by this gateset.
     """
 
+    def __init__(
+        self,
+        *gates: Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily'],
+        name: Optional[str] = None,
+        unroll_circuit_op: bool = True,
+        preserve_moment_structure: bool = True,
+    ):
+        """Initializes CompilationTargetGateset.
+
+        Args:
+            *gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
+                `cirq.GateFamily` instances to initialize the Gateset.
+            name: (Optional) Name for the Gateset. Useful for description.
+            unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
+                validated by validating the underlying `cirq.Circuit`.
+            preserve_moment_structure: Whether to preserve the moment structure of the
+                circuit during compilation or not.
+        """
+        super().__init__(*gates, name=name, unroll_circuit_op=unroll_circuit_op)
+        self._preserve_moment_structure = preserve_moment_structure
+
     @property
     @abc.abstractmethod
     def num_qubits(self) -> int:
@@ -140,11 +161,14 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
-        return [
+        processors: List['cirq.TRANSFORMER'] = [
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
             transformers.drop_negligible_operations,
             transformers.drop_empty_moments,
         ]
+        if not self._preserve_moment_structure:
+            processors.append(transformers.stratified_circuit)
+        return processors
 
 
 class TwoQubitCompilationTargetGateset(CompilationTargetGateset):

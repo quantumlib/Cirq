@@ -13,7 +13,7 @@
 # limitations under the License.
 import datetime
 
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Union
 
 import cirq
 
@@ -29,10 +29,7 @@ from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
 from cirq_google.engine.processor_sampler import ProcessorSampler
 from cirq_google.engine import engine_validator
 
-VALID_LANGUAGES = [
-    'type.googleapis.com/cirq.google.api.v2.Program',
-    'type.googleapis.com/cirq.google.api.v2.BatchProgram',
-]
+VALID_LANGUAGES = ['type.googleapis.com/cirq.google.api.v2.Program']
 
 
 def _date_to_timestamp(
@@ -199,44 +196,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """
         return self._programs[program_id]
 
-    async def run_batch_async(
-        self,
-        programs: Sequence[cirq.AbstractCircuit],
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
-    ) -> SimulatedLocalJob:
-        if program_id is None:
-            program_id = self._create_id(id_type='program')
-        if job_id is None:
-            job_id = self._create_id(id_type='job')
-        self._program_validator(programs, params_list or [{}], repetitions, CIRCUIT_SERIALIZER)
-        self._programs[program_id] = SimulatedLocalProgram(
-            program_id=program_id,
-            simulation_type=self._simulation_type,
-            circuits=programs,
-            engine=self.engine(),
-            processor=self,
-        )
-        job = SimulatedLocalJob(
-            job_id=job_id,
-            processor_id=self.processor_id,
-            parent_program=self._programs[program_id],
-            repetitions=repetitions,
-            sweeps=list(params_list) if params_list is not None else None,
-            sampler=self._sampler,
-            simulation_type=self._simulation_type,
-        )
-        self._programs[program_id].add_job(job_id, job)
-        return job
-
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
@@ -274,6 +233,3 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         )
         self._programs[program_id].add_job(job_id, job)
         return job
-
-    async def run_calibration_async(self, *args, **kwargs):
-        raise NotImplementedError
