@@ -109,6 +109,7 @@ TestSpec = ModuleJsonTestSpec(
         'StateVectorStepResult',
         'StepResultBase',
         'UnitSweep',
+        'UNIT_SWEEP',
         'NamedTopology',
         # protocols:
         'HasJSONNamespace',
