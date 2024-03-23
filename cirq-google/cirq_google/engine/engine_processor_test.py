@@ -301,6 +301,40 @@ def test_get_missing_device():
         _ = processor.get_device()
 
 
+def test_get_default_device_config_key() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="conflig_alias"
+            )
+        ),
+    )
+
+    inner_default_device_config_key = processor.get_default_device_config_key()
+    assert inner_default_device_config_key.run == "run"
+    assert inner_default_device_config_key.config_alias == "conflig_alias"
+
+
+def test_get_sampler_initializes_default_device_configuration() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="conflig_alias"
+            )
+        ),
+    )
+    sampler = processor.get_sampler()
+
+    assert sampler.run_name == "run"
+    assert sampler.device_config_name == "config_alias"
+
+
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
 def test_list_calibrations(list_calibrations):
     list_calibrations.return_value = [_CALIBRATION]
