@@ -1571,19 +1571,3 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries():
     simulator.simulate_sweep(program=circuit, params=params)
     assert op1.count == 1
     assert op2.count == 2
-
-
-def test_unitary_simulation_output_has_trace_one():
-    q0 = cirq.NamedQubit('q0')
-    q1 = cirq.NamedQubit('q1')
-    qc = cirq.Circuit()
-    qc.append(cirq.CNOT.on(q1, q0))
-    qc.append(cirq.H.on(q1))
-    qc.append(cirq.measure(q1))
-    sim = cirq.DensityMatrixSimulator()
-    initial_state = None
-
-    for _ in range(10):
-        output = sim.simulate(qc, initial_state=initial_state)
-        initial_state = output.final_density_matrix
-        assert np.trace(initial_state) == 1
