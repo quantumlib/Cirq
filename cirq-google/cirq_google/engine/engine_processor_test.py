@@ -187,7 +187,7 @@ class FakeEngineClient(engine_client.EngineClient):
         self._processor = quantum.QuantumProcessor()
 
     def get_processor(
-        self, unused_project_id: str = "", unused_processor_id: str = ""
+        self, project_id: str = "", processor_id: str = ""
     ) -> quantum.QuantumProcessor:
         return self._processor
 
