@@ -112,7 +112,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
-        if processor := self._inner_processor():
+        processor = self._inner_processor()
+        if processor is not None:
             run_name = processor.default_device_config_key.run
             device_config_name = processor.default_device_config_key.config_alias
         return processor_sampler.ProcessorSampler(
