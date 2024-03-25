@@ -367,11 +367,10 @@ class DensityMatrixTrialResult(
             size = np.prod(protocols.qid_shape(self), dtype=np.int64)
             tensor = self._get_merged_sim_state().target_tensor
             self._final_density_matrix = np.reshape(tensor.copy(), (size, size))
-            if abs(np.trace(self._final_density_matrix) - 1) < 1e-6:
-                # Normalize if this is a pure state.
-                self._final_density_matrix = self._final_density_matrix / float(
-                    np.trace(self._final_density_matrix)
-                )
+            trace = float(np.trace(self._final_density_matrix))
+            if abs(trace - 1) < 1e-6:
+                # Normalize only if this is a pure state.
+                self._final_density_matrix = self._final_density_matrix / trace
         return self._final_density_matrix
 
     def _value_equality_values_(self) -> Any:

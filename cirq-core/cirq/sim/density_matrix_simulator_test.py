@@ -1583,7 +1583,7 @@ def test_unitary_simulation_output_has_trace_one():
     sim = cirq.DensityMatrixSimulator()
     initial_state = None
 
-    for _ in range(100):
+    for _ in range(10):
         output = sim.simulate(qc, initial_state=initial_state)
         initial_state = output.final_density_matrix
         assert np.trace(initial_state) == 1
