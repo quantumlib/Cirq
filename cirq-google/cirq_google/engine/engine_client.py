@@ -455,7 +455,7 @@ class EngineClient:
             scheduling_config=quantum.SchedulingConfig(
                 processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                     processor=_processor_name_from_ids(project_id, processor_id),
-                    device_config_key=quantum.DeviceConfigKey(
+                    device_config_selector=quantum.DeviceConfigSelector(
                         run_name=run_name, config_alias=device_config_name
                     ),
                 )
@@ -816,7 +816,7 @@ class EngineClient:
             scheduling_config=quantum.SchedulingConfig(
                 processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                     processor=_processor_name_from_ids(project_id, processor_id),
-                    device_config_key=quantum.DeviceConfigKey(
+                    device_config_selector=quantum.DeviceConfigSelector(
                         run_name=run_name, config_alias=device_config_name
                     ),
                 )
