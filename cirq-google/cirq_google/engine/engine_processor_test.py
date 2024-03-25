@@ -186,9 +186,8 @@ class FakeEngineClient(engine_client.EngineClient):
         super().__init__()
         self._processor = quantum.QuantumProcessor()
 
-    @duet.sync
-    async def get_processor_async(
-        self, project_id: str = "", processor_id: str = ""
+    def get_processor(
+        self, unused_project_id: str = "", unused_processor_id: str = ""
     ) -> quantum.QuantumProcessor:
         return self._processor
 
@@ -352,7 +351,7 @@ def test_get_sampler_loads_processor_with_default_device_configuration() -> None
             )
         )
     )
-    processor = cg.EngineProcessor('a', 'p', EngineContext(client=client))
+    processor = cg.EngineProcessor('a', 'p', FakeEngineContext(client=client))
     sampler = processor.get_sampler()
 
     assert sampler.run_name == "run"
