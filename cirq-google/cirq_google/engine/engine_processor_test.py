@@ -308,14 +308,14 @@ def test_get_default_device_config_key() -> None:
         EngineContext(),
         _processor=quantum.QuantumProcessor(
             default_device_config_key=quantum.DeviceConfigKey(
-                run="run", config_alias="conflig_alias"
+                run="run", config_alias="config_alias"
             )
         ),
     )
 
     inner_default_device_config_key = processor.get_default_device_config_key()
     assert inner_default_device_config_key.run == "run"
-    assert inner_default_device_config_key.config_alias == "conflig_alias"
+    assert inner_default_device_config_key.config_alias == "config_alias"
 
 
 def test_get_sampler_initializes_default_device_configuration() -> None:
@@ -325,7 +325,7 @@ def test_get_sampler_initializes_default_device_configuration() -> None:
         EngineContext(),
         _processor=quantum.QuantumProcessor(
             default_device_config_key=quantum.DeviceConfigKey(
-                run="run", config_alias="conflig_alias"
+                run="run", config_alias="config_alias"
             )
         ),
     )
