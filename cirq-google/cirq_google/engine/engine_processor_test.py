@@ -301,32 +301,6 @@ def test_get_missing_device():
         _ = processor.get_device()
 
 
-def test_get_default_device_config_key() -> None:
-    processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-        _processor=quantum.QuantumProcessor(
-            default_device_config_key=quantum.DeviceConfigKey(
-                run="run", config_alias="config_alias"
-            )
-        ),
-    )
-
-    inner_default_device_config_key = processor.get_default_device_config_key()
-    assert inner_default_device_config_key.run == "run"
-    assert inner_default_device_config_key.config_alias == "config_alias"
-
-
-def test_get_default_device_config_key_on_empty_raises_exception() -> None:
-    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
-
-    with pytest.raises(
-        ValueError, match='Processor does not have a default device configuration key'
-    ):
-        processor.get_default_device_config_key()
-
-
 def test_get_sampler_initializes_default_device_configuration() -> None:
     processor = cg.EngineProcessor(
         'a',

@@ -112,9 +112,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
-        if self._processor is not None:
-            run_name = self._processor.default_device_config_key.run
-            device_config_name = self._processor.default_device_config_key.config_alias
+        if processor := self._inner_processor():
+            run_name = processor.default_device_config_key.run
+            device_config_name = processor.default_device_config_key.config_alias
         return processor_sampler.ProcessorSampler(
             processor=self, run_name=run_name, device_config_name=device_config_name
         )
@@ -222,17 +222,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             return util.unpack_any(device_spec, v2.device_pb2.DeviceSpecification())
         else:
             return None
-
-    def get_default_device_config_key(self) -> quantum.DeviceConfigKey:
-        """Returns the default device configuration key for the processor.
-        Returns:
-            Device configuration proto if present.
-        Raises:
-            ValueError: If the processor does not have a default device configuration key.
-        """
-        if not self._inner_processor().default_device_config_key:
-            raise ValueError('Processor does not have a default device configuration key.')
-        return self._inner_processor().default_device_config_key
 
     def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
