@@ -231,7 +231,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             ValueError: If the processor does not have a default device configuration key.
         """
         if not self._inner_processor().default_device_config_key:
-            raise ValueError('Processor does not have a default device configuration key')
+            raise ValueError('Processor does not have a default device configuration key.')
         return self._inner_processor().default_device_config_key
 
     def get_device(self) -> cirq.Device:
