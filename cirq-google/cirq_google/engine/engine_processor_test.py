@@ -182,22 +182,26 @@ _RESULTS2_V2 = v2.result_pb2.Result(
 class FakeEngineClient(engine_client.EngineClient):
     """Fake engine client for testing."""
 
+    def __init__(self):
+        super().__init__()
+        self._processor = quantum.QuantumProcessor()
+
     @duet.sync
     async def get_processor_async(
         self, project_id: str = "", processor_id: str = ""
     ) -> quantum.QuantumProcessor:
-        return quantum.QuantumProcessor(
-            default_device_config_key=quantum.DeviceConfigKey(
-                run="run", config_alias="config_alias"
-            )
-        )
+        return self._processor
+
+    def set_processor(self, processor: quantum.QuantumProcessor):
+        self._processor = processor
 
 
 class FakeEngineContext(EngineContext):
     """Fake engine context for testing."""
 
-    def __init__(self):
-        self.client = FakeEngineClient()
+    def __init__(self, client: FakeEngineClient = FakeEngineClient()):
+        super().__init__()
+        self.client = client
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -339,12 +343,16 @@ def test_get_sampler_initializes_default_device_configuration() -> None:
     assert sampler.device_config_name == "config_alias"
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
-def test_get_sampler_loads_processor_with_default_device_configuration(get_processor) -> None:
-    get_processor.return_value = quantum.QuantumProcessor(
-        default_device_config_key=quantum.DeviceConfigKey(run="run", config_alias="config_alias")
+def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
+    client = FakeEngineClient()
+    client.set_processor(
+        quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        )
     )
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(client=client))
     sampler = processor.get_sampler()
 
     assert sampler.run_name == "run"
