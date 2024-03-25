@@ -186,7 +186,8 @@ class FakeEngineClient(engine_client.EngineClient):
         super().__init__()
         self._processor = quantum.QuantumProcessor()
 
-    def get_processor(
+    @duet.sync
+    async def get_processor_async(
         self, project_id: str = "", processor_id: str = ""
     ) -> quantum.QuantumProcessor:
         return self._processor
