@@ -366,9 +366,9 @@ def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
 def get_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
-        OperationString.R: cirq.depolarize(1e-3),
-        OperationString.Z: cirq.depolarize(0),
-        OperationString.MS: cirq.depolarize(1e-2),
+        OperationString.R.value: cirq.depolarize(1e-3),
+        OperationString.Z.value: cirq.depolarize(0),
+        OperationString.MS.value: cirq.depolarize(1e-2),
         'crosstalk': 0.03,
     }
     return default_noise_dict
