@@ -83,6 +83,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         (https://arxiv.org/abs/1805.03662).
         Babbush et. al. (2018). Section III.D. and Figure 11.
     """
+
     selection_registers: Tuple[infra.SelectionRegister, ...] = attr.field(
         converter=lambda v: (v,) if isinstance(v, infra.SelectionRegister) else tuple(v)
     )

@@ -256,6 +256,51 @@ OPERATIONS = [
             }
         ),
     ),
+    (
+        cg.experimental.CouplerPulse(
+            hold_time=cirq.Duration(picos=1),
+            rise_time=cirq.Duration(nanos=3),
+            padding_time=cirq.Duration(micros=8),
+            coupling_mhz=4.0,
+            q0_detune_mhz=sympy.Symbol('x'),
+            q1_detune_mhz=sympy.Symbol('y'),
+        )(Q0, Q1),
+        op_proto(
+            {
+                'couplerpulsegate': {
+                    'hold_time_ps': {'float_value': 1.0},
+                    'rise_time_ps': {'float_value': 3e3},
+                    'padding_time_ps': {'float_value': 8e6},
+                    'coupling_mhz': {'float_value': 4.0},
+                    'q0_detune_mhz': {'symbol': 'x'},
+                    'q1_detune_mhz': {'symbol': 'y'},
+                },
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
+    (
+        cirq.ops.SingleQubitCliffordGate.X(Q0),
+        op_proto(
+            {
+                'singlequbitcliffordgate': {
+                    'tableau': {
+                        'num_qubits': 1,
+                        'initial_state': 0,
+                        'rs': [False, True],
+                        'xs': [True, False],
+                        'zs': [False, True],
+                    }
+                },
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
+        cirq.H(Q0),
+        op_proto({'hpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
+    ),
+    (cirq.I(Q0), op_proto({'identitygate': {'qid_shape': [2]}, 'qubit_constant_index': [0]})),
 ]
 
 
@@ -675,9 +720,11 @@ def test_circuit_with_cliffords():
     circuit = cirq.Circuit(
         g(q) for g in cirq.ops.SingleQubitCliffordGate.all_single_qubit_cliffords
     )
-    want = cirq.Circuit(
-        g.to_phased_xz_gate()(q)
-        for g in cirq.ops.SingleQubitCliffordGate.all_single_qubit_cliffords
-    )
     msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
-    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == want
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
+
+
+def test_circuit_with_couplerpulse():
+    circuit = cirq.Circuit(cg.experimental.CouplerPulse(cirq.Duration(nanos=1), 2)(Q0, Q1))
+    msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)
+    assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit

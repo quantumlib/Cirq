@@ -36,3 +36,13 @@ class ThreeQubitGate(raw_types.Gate):
 
     def _num_qubits_(self) -> int:
         return 3
+
+
+class DoesNotSupportSerializationGate(raw_types.Gate):
+    """A gate that can't be serialized."""
+
+    def __init__(self, n_qubits: int = 1):
+        self.n_qubits = n_qubits
+
+    def _num_qubits_(self) -> int:
+        return self.n_qubits

@@ -208,6 +208,10 @@ message Operation {
     MeasurementGate measurementgate = 15;
     WaitGate waitgate = 16;
     InternalGate internalgate = 17;
+    CouplerPulseGate couplerpulsegate = 18;
+    IdentityGate identitygate = 19;
+    HPowGate hpowgate = 20;
+    SingleQubitCliffordGate singlequbitcliffordgate = 21;
   }
 
   // Map from the argument name to the Argument needed to fully specify
@@ -424,4 +428,33 @@ message InternalGate{
   string module = 2;  // Gate module. 
   int32 num_qubits = 3;  // Number of qubits. Required during deserialization.
   map<string, Arg> gate_args = 4;  // Gate args.
+}
+
+message CouplerPulseGate{
+  optional FloatArg hold_time_ps = 1;  // ps=picoseconds.
+  optional FloatArg rise_time_ps = 2;  // ps=picoseconds.
+  optional FloatArg padding_time_ps = 3;  // ps=picoseconds.
+  optional FloatArg coupling_mhz = 4;
+  optional FloatArg q0_detune_mhz = 5;
+  optional FloatArg q1_detune_mhz = 6;
+}
+
+message CliffordTableau {
+  optional int32 num_qubits = 1;  // Number of qubits the CliffordTableau acts on.
+  optional int32 initial_state = 2;  // The initial state.
+  repeated bool rs = 3;  // A flattened version of the `rs` array.
+  repeated bool xs = 4;  // A flattened version of the `xs` array.
+  repeated bool zs = 5;  // A flattened version of the `zs` array.
+}
+
+message SingleQubitCliffordGate {
+  CliffordTableau tableau = 1;
+}
+
+message IdentityGate {
+  repeated uint32 qid_shape = 1;
+}
+
+message HPowGate {
+  FloatArg exponent = 1;
 }

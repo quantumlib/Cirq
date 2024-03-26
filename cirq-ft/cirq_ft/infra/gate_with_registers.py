@@ -145,9 +145,11 @@ def get_named_qubits(registers: Iterable[Register]) -> Dict[str, NDArray[cirq.Qi
             return _qubit_array(reg)
 
         return np.array(
-            [cirq.NamedQubit(f"{reg.name}")]
-            if reg.total_bits() == 1
-            else cirq.NamedQubit.range(reg.total_bits(), prefix=reg.name),
+            (
+                [cirq.NamedQubit(f"{reg.name}")]
+                if reg.total_bits() == 1
+                else cirq.NamedQubit.range(reg.total_bits(), prefix=reg.name)
+            ),
             dtype=object,
         )
 
@@ -336,8 +338,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def signature(self) -> Signature:
-        ...
+    def signature(self) -> Signature: ...
 
     def _num_qubits_(self) -> int:
         return total_bits(self.signature)

@@ -262,8 +262,7 @@ class TRANSFORMER(Protocol):
 
     def __call__(
         self, circuit: 'cirq.AbstractCircuit', *, context: Optional[TransformerContext] = None
-    ) -> 'cirq.AbstractCircuit':
-        ...
+    ) -> 'cirq.AbstractCircuit': ...
 
 
 _TRANSFORMER_T = TypeVar('_TRANSFORMER_T', bound=TRANSFORMER)
