@@ -356,10 +356,10 @@ def test_get_sampler_with_incomplete_device_configuration_uses_defaults(run, con
         ),
     )
 
-    sampler = processor.get_sampler(run_name=run, device_config_name=config_alias)
-
-    assert sampler.run_name == "default_run"
-    assert sampler.device_config_name == "default_config_alias"
+    with pytest.raises(
+        ValueError, match='Cannot specify only one of `run_name` and `device_config_name`'
+    ):
+        processor.get_sampler(run_name=run, device_config_name=config_alias)
 
 
 def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
