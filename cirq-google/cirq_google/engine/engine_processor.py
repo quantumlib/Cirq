@@ -14,6 +14,7 @@
 
 import datetime
 
+import logging
 from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
 from google.protobuf import any_pb2
@@ -113,7 +114,17 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             when sampled.
         """
         processor = self._inner_processor()
-        if processor is not None:
+        # If a run_name or config_alias is not provided, initialize them
+        # to the Processor's default values.
+        if not run_name or not device_config_name:
+            logging.basicConfig(level=logging.INFO)
+            logging.info(
+                "Cannot specify only one of `run_name` and `device_config_name`. Defaulting to the default values.\n"
+                "Default run_name: `%s`\n"
+                "Default device_config_name: `%s`\n",
+                processor.default_device_config_key.run,
+                processor.default_device_config_key.config_alias,
+            )
             run_name = processor.default_device_config_key.run
             device_config_name = processor.default_device_config_key.config_alias
         return processor_sampler.ProcessorSampler(

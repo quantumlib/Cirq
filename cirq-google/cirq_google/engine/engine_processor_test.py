@@ -179,28 +179,10 @@ _RESULTS2_V2 = v2.result_pb2.Result(
 )
 
 
-class FakeEngineClient(engine_client.EngineClient):
-    """Fake engine client for testing."""
-
-    def __init__(self):
-        super().__init__()
-        self._processor = quantum.QuantumProcessor()
-
-    async def get_processor_async(
-        self, project_id: str = "", processor_id: str = ""
-    ) -> quantum.QuantumProcessor:
-        return self._processor
-
-    get_processor = duet.sync(get_processor_async)
-
-    def set_processor(self, processor: quantum.QuantumProcessor):
-        self._processor = processor
-
-
 class FakeEngineContext(EngineContext):
     """Fake engine context for testing."""
 
-    def __init__(self, client: FakeEngineClient = FakeEngineClient()):
+    def __init__(self, client: engine_client.EngineClient):
         super().__init__()
         self.client = client
 
@@ -344,15 +326,48 @@ def test_get_sampler_initializes_default_device_configuration() -> None:
     assert sampler.device_config_name == "config_alias"
 
 
-def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
-    client = FakeEngineClient()
-    client.set_processor(
-        quantum.QuantumProcessor(
+def test_get_sampler_uses_custom_default_device_configuration_key() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
             default_device_config_key=quantum.DeviceConfigKey(
-                run="run", config_alias="config_alias"
+                run="default_run", config_alias="default_config_alias"
             )
-        )
+        ),
     )
+    sampler = processor.get_sampler(run_name="run1", device_config_name="config_alias1")
+
+    assert sampler.run_name == "run1"
+    assert sampler.device_config_name == "config_alias1"
+
+
+@pytest.mark.parametrize('run, config_alias', [('run', ''), ('', 'config')])
+def test_get_sampler_with_incomplete_device_configuration_uses_defaults(run, config_alias) -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_config_alias"
+            )
+        ),
+    )
+
+    sampler = processor.get_sampler(run_name=run, device_config_name=config_alias)
+
+    assert sampler.run_name == "default_run"
+    assert sampler.device_config_name == "default_config_alias"
+
+
+def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
+    client = mock.Mock(engine_client.EngineClient)
+    client.get_processor.return_value = quantum.QuantumProcessor(
+        default_device_config_key=quantum.DeviceConfigKey(run="run", config_alias="config_alias")
+    )
+
     processor = cg.EngineProcessor('a', 'p', FakeEngineContext(client=client))
     sampler = processor.get_sampler()
 
