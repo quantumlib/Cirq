@@ -41,4 +41,4 @@ class FSimViaModelTag:
         return isinstance(other, FSimViaModelTag)
 
     def __hash__(self) -> int:
-        return 12345
+        return hash("FSimViaModelTag")
