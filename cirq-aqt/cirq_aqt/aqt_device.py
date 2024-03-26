@@ -38,10 +38,18 @@ gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.Pha
 
 
 class OperationString(Enum):
+    """String representations of operations supported by AQT resources."""
     MS = "MS"
+    """Cirq: XXPowGate, AQT: RXX gate."""
+
     Z = "Z"
+    """Cirq: ZPowGate, AQT: RZ gate."""
+
     R = "R"
+    """Cirq: PhasedXPowGate, AQT: R gate."""
+
     MEASURE = "Meas"
+    """Measurement gate."""
 
 
 def get_op_string(op_obj: cirq.Operation) -> str:
@@ -358,9 +366,9 @@ def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
 def get_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
-        'R': cirq.depolarize(1e-3),
-        'Z': cirq.depolarize(0),
-        'MS': cirq.depolarize(1e-2),
+        OperationString.R: cirq.depolarize(1e-3),
+        OperationString.Z: cirq.depolarize(0),
+        OperationString.MS: cirq.depolarize(1e-2),
         'crosstalk': 0.03,
     }
     return default_noise_dict
