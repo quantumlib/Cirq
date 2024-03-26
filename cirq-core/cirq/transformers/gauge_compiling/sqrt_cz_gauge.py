@@ -1,4 +1,4 @@
-# Copyright 2022 The Cirq Developers
+# Copyright 2024 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Transformers for compiling to Google-specific gates, such as Sycamore."""
+"""A Gauge transformer for CZ**0.5 gate."""
 
-from cirq_google.transformers.analytical_decompositions import (
-    known_2q_op_to_sycamore_operations,
-    two_qubit_matrix_to_sycamore_operations,
+from cirq.transformers.gauge_compiling.gauge_compiling import (
+    GaugeTransformer,
+    GaugeSelector,
+    ConstantGauge,
+)
+from cirq.ops.common_gates import CZ
+from cirq import ops
+
+SqrtCZGaugeSelector = GaugeSelector(
+    gauges=[ConstantGauge(pre_q0=ops.X, post_q0=ops.X, post_q1=ops.Z**0.5, two_qubit_gate=CZ**-0.5)]
 )
 
-from cirq_google.transformers.target_gatesets import GoogleCZTargetGateset, SycamoreTargetGateset
-
-from cirq_google.transformers.sycamore_gauge import SYCGaugeTransformer
+SqrtCZGaugeTransormer = GaugeTransformer(target=CZ**0.5, gauge_selector=SqrtCZGaugeSelector)
