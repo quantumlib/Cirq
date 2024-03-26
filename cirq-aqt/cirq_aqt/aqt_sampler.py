@@ -25,7 +25,7 @@ API keys for classical simulators and quantum devices can be obtained at:
 import json
 import time
 import uuid
-from typing import Callable, cast, Dict, List, Sequence, Tuple, Union, Literal, TypeAlias, TypedDict
+from typing import Callable, cast, Dict, List, Sequence, Tuple, Union, Literal, TypedDict
 from urllib.parse import urljoin
 
 import numpy as np
@@ -77,8 +77,8 @@ class Measure(TypedDict):
     operation: Literal["MEASURE"]
 
 
-Gate: TypeAlias = GateRZ | GateR | GateRXX
-Operation: TypeAlias = Gate | Measure
+Gate = GateRZ | GateR | GateRXX
+Operation = Gate | Measure
 
 
 class Resource(TypedDict):
