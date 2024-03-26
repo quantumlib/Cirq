@@ -81,6 +81,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self.context = context
         self._processor = _processor
 
+        logging.basicConfig(level=logging.INFO)
+
     def __repr__(self) -> str:
         return (
             f'<EngineProcessor: processor_id={self.processor_id!r}, '
@@ -117,9 +119,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         # If a run_name or config_alias is not provided, initialize them
         # to the Processor's default values.
         if not run_name or not device_config_name:
-            logging.basicConfig(level=logging.INFO)
             logging.info(
-                "Cannot specify only one of `run_name` and `device_config_name`. Defaulting to the default values.\n"
+                "Cannot specify only one of `run_name` and `device_config_name`. "
+                "Using the Processor's default values instead.\n"
                 "Default run_name: `%s`\n"
                 "Default device_config_name: `%s`\n",
                 processor.default_device_config_key.run,
