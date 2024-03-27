@@ -122,11 +122,11 @@ from cirq.transformers.transformer_primitives import (
 
 
 from cirq.transformers.gauge_compiling import (
+    CZGaugeTransformer,
+    ConstantGauge,
     Gauge,
     GaugeSelector,
     GaugeTransformer,
-    ConstantGauge,
-    SqrtCZGaugeTransformer,
-    CZGaugeTransformer,
     SpinInversionGaugeTransformer,
+    SqrtCZGaugeTransformer,
 )

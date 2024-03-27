@@ -14,10 +14,10 @@
 
 
 from cirq.transformers.gauge_compiling.gauge_compiling import (
+    ConstantGauge,
     Gauge,
     GaugeSelector,
     GaugeTransformer,
-    ConstantGauge,
 )
 from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGaugeTransformer
 from cirq.transformers.gauge_compiling.spin_inversion_gauge import SpinInversionGaugeTransformer
