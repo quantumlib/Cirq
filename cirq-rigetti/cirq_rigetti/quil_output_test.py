@@ -416,11 +416,11 @@ def test_equivalent_unitaries():
     assert np.allclose(pyquil_unitary, cirq_unitary)
 
 
-QUIL_CPHASES_PROGRAM = """
-CPHASE00(pi/2) 0 1
-CPHASE01(pi/2) 0 1
-CPHASE10(pi/2) 0 1
-CPHASE(pi/2) 0 1
+QUIL_CPHASES_PROGRAM = f"""
+CPHASE00({np.pi/2}) 0 1
+CPHASE01({np.pi/2}) 0 1
+CPHASE10({np.pi/2}) 0 1
+CPHASE({np.pi/2}) 0 1
 """
 
 QUIL_DIAGONAL_DECOMPOSE_PROGRAM = """

@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, cast, Dict, Union
+from typing import Callable, cast, Dict, Union, List, Tuple, Optional
 
+import sympy
 import numpy as np
-from pyquil.parser import parse
+from numpy.typing import NDArray
+
+from pyquil.quil import Program
 from pyquil.quilbase import (
     Declare,
     DefGate,
@@ -24,160 +27,197 @@ from pyquil.quilbase import (
     Pragma,
     Reset,
     ResetQubit,
+    Fence,
+    FenceAll,
 )
+from pyquil.quilatom import (
+    MemoryReference,
+    ParameterDesignator,
+    Function,
+    BinaryExp,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Pow,
+    Parameter,
+    substitute_array,
+)
+from pyquil.simulation import matrices
 
-from cirq import Circuit, LineQubit
-from cirq.ops import (
-    CCNOT,
-    CNOT,
-    CSWAP,
-    CZ,
-    CZPowGate,
-    Gate,
-    H,
-    I,
-    ISWAP,
-    ISwapPowGate,
-    MatrixGate,
-    MeasurementGate,
-    S,
-    SWAP,
-    T,
-    TwoQubitDiagonalGate,
-    X,
-    Y,
-    Z,
-    ZPowGate,
-    rx,
-    ry,
-    rz,
-)
+import cirq
+from cirq.circuits.circuit import Circuit
+from cirq.devices.insertion_noise_model import InsertionNoiseModel
+from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs, CircuitDiagramInfo
+from cirq.devices.line_qubit import LineQubit
+from cirq.devices.noise_utils import OpIdentifier
+from cirq.value import value_equality
+from cirq.protocols import is_parameterized
+
+from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, ZPowGate, YPowGate, XPowGate
+from cirq.ops.parity_gates import ZZPowGate, XXPowGate, YYPowGate
+from cirq.ops.pauli_gates import X, Y, Z
+from cirq.ops.fsim_gate import FSimGate, PhasedFSimGate
+from cirq.ops.identity import I
+from cirq.ops.matrix_gates import MatrixGate
+from cirq.ops.measurement_gate import MeasurementGate
+from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
+from cirq.ops.three_qubit_gates import CCNOT, CSWAP
+from cirq.ops.raw_types import Gate
+from cirq.ops.kraus_channel import KrausChannel
 
 
 class UndefinedQuilGate(Exception):
-    pass
+    """Error for a undefined Quil Gate."""
 
 
 class UnsupportedQuilInstruction(Exception):
-    pass
+    """Error for a unsupported instruction."""
 
 
 #
-# Functions for converting supported parameterized Quil gates.
+# Cirq doesn't have direct analogues of these Quil gates
 #
 
 
-def cphase(param: float) -> CZPowGate:
-    """Returns a controlled-phase gate as a Cirq CZPowGate with exponent
-    determined by the input param. The angle parameter of pyQuil's CPHASE
-    gate and the exponent of Cirq's CZPowGate differ by a factor of pi.
+@value_equality(distinct_child_types=True, approximate=True)
+class CPHASE00(Gate):
+    """Cirq equivalent to Quil CPHASE00."""
 
-    Args:
-        param: Gate parameter (in radians).
+    def __init__(self, phi):
+        super().__init__()
+        self.phi = phi
 
-    Returns:
-        A CZPowGate equivalent to a CPHASE gate of given angle.
-    """
-    return CZPowGate(exponent=param / np.pi)
+    def _num_qubits_(self):
+        return 2
 
+    def _unitary_(self):
+        return matrices.CPHASE00(self.phi)
 
-def cphase00(phi: float) -> TwoQubitDiagonalGate:
-    """Returns a Cirq TwoQubitDiagonalGate for pyQuil's CPHASE00 gate.
+    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+        return CircuitDiagramInfo(wire_symbols=("@00", "@00"), exponent=self.phi / np.pi)
 
-    In pyQuil, CPHASE00(phi) = diag([exp(1j * phi), 1, 1, 1]), and in Cirq,
-    a TwoQubitDiagonalGate is specified by its diagonal in radians, which
-    would be [phi, 0, 0, 0].
+    def __repr__(self) -> str:
+        """Represent the CPHASE gate as a string."""
+        return f"CPHASE00({self.phi:.3f})"
 
-    Args:
-        phi: Gate parameter (in radians).
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
+        return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    Returns:
-        A TwoQubitDiagonalGate equivalent to a CPHASE00 gate of given angle.
-    """
-    return TwoQubitDiagonalGate([phi, 0, 0, 0])
+    def _is_parameterized_(self) -> bool:
+        parameter_names = ["phi"]
+        return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
+    def _value_equality_values_(self):
+        return (self.phi,)
 
-def cphase01(phi: float) -> TwoQubitDiagonalGate:
-    """Returns a Cirq TwoQubitDiagonalGate for pyQuil's CPHASE01 gate.
-
-    In pyQuil, CPHASE01(phi) = diag(1, [exp(1j * phi), 1, 1]), and in Cirq,
-    a TwoQubitDiagonalGate is specified by its diagonal in radians, which
-    would be [0, phi, 0, 0].
-
-    Args:
-        phi: Gate parameter (in radians).
-
-    Returns:
-        A TwoQubitDiagonalGate equivalent to a CPHASE01 gate of given angle.
-    """
-    return TwoQubitDiagonalGate([0, phi, 0, 0])
+    def _value_equality_approximate_values_(self):
+        return (self.phi,)
 
 
-def cphase10(phi: float) -> TwoQubitDiagonalGate:
-    """Returns a Cirq TwoQubitDiagonalGate for pyQuil's CPHASE10 gate.
+@value_equality(distinct_child_types=True, approximate=True)
+class CPHASE01(Gate):
+    """Cirq equivalent to Quil CPHASE01."""
 
-    In pyQuil, CPHASE10(phi) = diag(1, 1, [exp(1j * phi), 1]), and in Cirq,
-    a TwoQubitDiagonalGate is specified by its diagonal in radians, which
-    would be [0, 0, phi, 0].
+    def __init__(self, phi):
+        super().__init__()
+        self.phi = phi
 
-    Args:
-        phi: Gate parameter (in radians).
+    def _num_qubits_(self):
+        return 2
 
-    Returns:
-        A TwoQubitDiagonalGate equivalent to a CPHASE10 gate of given angle.
-    """
-    return TwoQubitDiagonalGate([0, 0, phi, 0])
+    def _unitary_(self):
+        return matrices.CPHASE01(self.phi)
 
+    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+        return CircuitDiagramInfo(wire_symbols=("@01", "@01"), exponent=self.phi / np.pi)
 
-def phase(param: float) -> ZPowGate:
-    """Returns a single-qubit phase gate as a Cirq ZPowGate with exponent
-    determined by the input param. The angle parameter of pyQuil's PHASE
-    gate and the exponent of Cirq's ZPowGate differ by a factor of pi.
+    def __repr__(self) -> str:
+        """Represent the CPHASE gate as a string."""
+        return f"CPHASE01({self.phi:.3f})"
 
-    Args:
-        param: Gate parameter (in radians).
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
+        return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    Returns:
-        A ZPowGate equivalent to a PHASE gate of given angle.
-    """
-    return ZPowGate(exponent=param / np.pi)
+    def _is_parameterized_(self) -> bool:
+        parameter_names = ["phi"]
+        return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
+    def _value_equality_values_(self):
+        return (self.phi,)
 
-def pswap(phi: float) -> MatrixGate:
-    """Returns a Cirq MatrixGate for pyQuil's PSWAP gate.
-
-    Args:
-        phi: Gate parameter (in radians).
-
-    Returns:
-        A MatrixGate equivalent to a PSWAP gate of given angle.
-    """
-    # fmt: off
-    pswap_matrix = np.array(
-        [
-            [1, 0, 0, 0],
-            [0, 0, np.exp(1j * phi), 0],
-            [0, np.exp(1j * phi), 0, 0],
-            [0, 0, 0, 1]
-        ],
-        dtype=complex,
-    )
-    # fmt: on
-    return MatrixGate(pswap_matrix)
+    def _value_equality_approximate_values_(self):
+        return (self.phi,)
 
 
-def xy(param: float) -> ISwapPowGate:
-    """Returns an ISWAP-family gate as a Cirq ISwapPowGate with exponent
-    determined by the input param. The angle parameter of pyQuil's XY gate
-    and the exponent of Cirq's ISwapPowGate differ by a factor of pi.
+@value_equality(distinct_child_types=True, approximate=True)
+class CPHASE10(Gate):
+    """Cirq equivalent to Quil CPHASE10."""
 
-    Args:
-        param: Gate parameter (in radians).
+    def __init__(self, phi):
+        super().__init__()
+        self.phi = phi
 
-    Returns:
-        An ISwapPowGate equivalent to an XY gate of given angle.
-    """
-    return ISwapPowGate(exponent=param / np.pi)
+    def _num_qubits_(self):
+        return 2
+
+    def _unitary_(self):
+        return matrices.CPHASE10(self.phi)
+
+    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+        return CircuitDiagramInfo(wire_symbols=("@10", "@10"), exponent=self.phi / np.pi)
+
+    def __repr__(self) -> str:
+        """Represent the CPHASE gate as a string."""
+        return f"CPHASE10({self.phi:.3f})"
+
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
+        return type(self)(phi=resolver.value_of(self.phi, recursive))
+
+    def _is_parameterized_(self) -> bool:
+        parameter_names = ["phi"]
+        return any(is_parameterized(getattr(self, p)) for p in parameter_names)
+
+    def _value_equality_values_(self):
+        return (self.phi,)
+
+    def _value_equality_approximate_values_(self):
+        return (self.phi,)
+
+
+@value_equality(distinct_child_types=True, approximate=True)
+class PSWAP(Gate):
+    """Cirq equivalent to Quil PSWAP."""
+
+    def __init__(self, phi):
+        super().__init__()
+        self.phi = phi
+
+    def _num_qubits_(self):
+        return 2
+
+    def _unitary_(self):
+        return matrices.PSWAP(self.phi)
+
+    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+        return CircuitDiagramInfo(wire_symbols=("PSWAP", "PSWAP"), exponent=self.phi / np.pi)
+
+    def __repr__(self) -> str:
+        """Represent the PSWAP gate as a string."""
+        return f"PSWAP({self.phi:.3f})"
+
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
+        return type(self)(phi=resolver.value_of(self.phi, recursive))
+
+    def _is_parameterized_(self) -> bool:
+        parameter_names = ["phi"]
+        return any(is_parameterized(getattr(self, p)) for p in parameter_names)
+
+    def _value_equality_values_(self):
+        return (self.phi,)
+
+    def _value_equality_approximate_values_(self):
+        return (self.phi,)
 
 
 PRAGMA_ERROR = """
@@ -190,35 +230,62 @@ Please remove RESETs from your Quil program.
 RESET directives have special meaning on QCS, to enable active reset.
 """
 
+
 # Parameterized gates map to functions that produce Gate constructors.
 SUPPORTED_GATES: Dict[str, Union[Gate, Callable[..., Gate]]] = {
     "CCNOT": CCNOT,
     "CNOT": CNOT,
     "CSWAP": CSWAP,
-    "CPHASE": cphase,
-    "CPHASE00": cphase00,
-    "CPHASE01": cphase01,
-    "CPHASE10": cphase10,
+    "CPHASE": CZPowGate,
+    "CPHASE00": CPHASE00,
+    "CPHASE01": CPHASE01,
+    "CPHASE10": CPHASE10,
+    "PSWAP": PSWAP,
     "CZ": CZ,
-    "PHASE": phase,
+    "PHASE": ZPowGate,
     "H": H,
     "I": I,
     "ISWAP": ISWAP,
-    "PSWAP": pswap,
-    "RX": rx,
-    "RY": ry,
-    "RZ": rz,
+    "RX": XPowGate,
+    "RY": YPowGate,
+    "RZ": ZPowGate,
     "S": S,
     "SWAP": SWAP,
     "T": T,
     "X": X,
     "Y": Y,
     "Z": Z,
-    "XY": xy,
+    "XY": ISwapPowGate,
+    "RZZ": ZZPowGate,
+    "RYY": YYPowGate,
+    "RXX": XXPowGate,
+    "FSIM": FSimGate,
+    "PHASEDFSIM": PhasedFSimGate,
+}
+
+# Gate parameters must be transformed to Cirq units
+PARAMETRIC_TRANSFORMERS: Dict[str, Callable] = {
+    "CPHASE": lambda theta: dict(exponent=theta / np.pi, global_shift=0.0),
+    "CPHASE00": lambda phi: dict(phi=phi),
+    "CPHASE01": lambda phi: dict(phi=phi),
+    "CPHASE10": lambda phi: dict(phi=phi),
+    "PSWAP": lambda phi: dict(phi=phi),
+    "PHASE": lambda theta: dict(exponent=theta / np.pi, global_shift=-0.0),
+    "XY": lambda theta: dict(exponent=theta / np.pi, global_shift=0.0),
+    "RX": lambda theta: dict(exponent=theta / np.pi, global_shift=-0.5),
+    "RY": lambda theta: dict(exponent=theta / np.pi, global_shift=-0.5),
+    "RZ": lambda theta: dict(exponent=theta / np.pi, global_shift=-0.5),
+    "RXX": lambda theta: dict(exponent=theta / np.pi, global_shift=-0.5),
+    "RYY": lambda theta: dict(exponent=theta / np.pi, global_shift=-0.5),
+    "RZZ": lambda theta: dict(exponent=theta / np.pi, global_shift=-0.5),
+    "FSIM": lambda theta, phi: dict(theta=-1 * theta / 2, phi=-1 * phi),
+    "PHASEDFSIM": lambda theta, zeta, chi, gamma, phi: dict(
+        theta=-1 * theta / 2, zeta=zeta, chi=chi, gamma=gamma, phi=-1 * phi
+    ),
 }
 
 
-def circuit_from_quil(quil: str) -> Circuit:
+def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
     """Convert a Quil program to a Cirq Circuit.
 
     Args:
@@ -234,21 +301,62 @@ def circuit_from_quil(quil: str) -> Circuit:
     References:
         https://github.com/rigetti/pyquil
     """
+    if isinstance(quil, str):
+        program = Program(quil)
+    else:
+        program = quil
     circuit = Circuit()
-    defined_gates = SUPPORTED_GATES.copy()
-    instructions = parse(quil)
 
-    for inst in instructions:
-        # Add DEFGATE-defined gates to defgates dict using MatrixGate.
-        if isinstance(inst, DefGate):
-            if inst.parameters:
-                raise UnsupportedQuilInstruction(
-                    "Parameterized DEFGATEs are currently unsupported."
-                )
-            defined_gates[inst.name] = MatrixGate(inst.matrix)
+    defined_gates, parameter_transformers = get_defined_gates(program)
 
+    kraus_model = {}
+    confusion_maps = {}
+
+    # Interpret the Pragmas
+    for inst in program:
+        if not isinstance(inst, Pragma):
+            continue
+
+        # ADD-KRAUS provides Kraus operators that replace the gate operation
+        if inst.command == "ADD-KRAUS":
+            args = inst.args
+            gate_name = args[0]
+            if hasattr(matrices, gate_name):
+                u = getattr(matrices, gate_name)
+            elif gate_name in defined_gates:
+                u = defined_gates[gate_name]
+            else:
+                raise UndefinedQuilGate(f"{gate_name} is not known.")
+
+            entries = np.fromstring(
+                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.complex_, sep=" "
+            )
+            dim = int(np.sqrt(len(entries)))
+            kraus_gate_op = entries.reshape((dim, dim))
+
+            kraus_op = remove_gate_from_kraus([kraus_gate_op], u)[0]
+
+            if args in kraus_model:
+                kraus_model[args].append(kraus_op)
+            else:
+                kraus_model[args] = [kraus_op]
+
+        # READOUT-POVM provides a confusion matrix
+        elif inst.command == "READOUT-POVM":
+            qubit = int(inst.args[0].index)
+            entries = np.fromstring(
+                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.float_, sep=" "
+            )
+            confusion_matrix = entries.reshape((2, 2)).T
+            confusion_maps[qubit] = confusion_matrix
+
+        else:
+            raise UnsupportedQuilInstruction(PRAGMA_ERROR)
+
+    # Interpret the instructions
+    for inst in program:
         # Pass when encountering a DECLARE.
-        elif isinstance(inst, Declare):
+        if isinstance(inst, Declare):
             pass
 
         # Convert pyQuil gates to Cirq operations.
@@ -260,7 +368,11 @@ def circuit_from_quil(quil: str) -> Circuit:
                 raise UndefinedQuilGate(f"Quil gate {quil_gate_name} not supported in Cirq.")
             cirq_gate_fn = defined_gates[quil_gate_name]
             if quil_gate_params:
-                circuit += cast(Callable[..., Gate], cirq_gate_fn)(*quil_gate_params)(*line_qubits)
+                params = [quil_expression_to_sympy(p) for p in quil_gate_params]
+                transformer = parameter_transformers[quil_gate_name]
+                circuit += cast(Callable[..., Gate], cirq_gate_fn)(**transformer(*params))(
+                    *line_qubits
+                )
             else:
                 circuit += cirq_gate_fn(*line_qubits)
 
@@ -273,11 +385,25 @@ def circuit_from_quil(quil: str) -> Circuit:
                     f"not currently supported in Cirq."
                 )
             quil_memory_reference = inst.classical_reg.out()
-            circuit += MeasurementGate(1, key=quil_memory_reference)(line_qubit)
+            if inst.qubit.index in confusion_maps:
+                cmap = {(inst.qubit.index,): confusion_maps[inst.qubit.index]}
+                circuit += MeasurementGate(1, key=quil_memory_reference, confusion_map=cmap)(
+                    line_qubit
+                )
+            else:
+                circuit += MeasurementGate(1, key=quil_memory_reference)(line_qubit)
 
-        # Raise a targeted error when encountering a PRAGMA.
+        # PRAGMAs
         elif isinstance(inst, Pragma):
-            raise UnsupportedQuilInstruction(PRAGMA_ERROR)
+            continue
+
+        # Drop FENCE statements
+        elif isinstance(inst, (Fence, FenceAll)):
+            continue
+
+        # Drop DEFGATES
+        elif isinstance(inst, (DefGate)):
+            continue
 
         # Raise a targeted error when encountering a RESET.
         elif isinstance(inst, (Reset, ResetQubit)):
@@ -289,4 +415,195 @@ def circuit_from_quil(quil: str) -> Circuit:
                 f"Quil instruction {inst} of type {type(inst)} not currently supported in Cirq."
             )
 
+    if len(kraus_model) > 0:
+        noise_model = kraus_noise_model_to_cirq(kraus_model, defined_gates)
+        circuit = circuit.with_noise(noise_model)
+
     return circuit
+
+
+def get_defined_gates(program: Program) -> Tuple[Dict, Dict]:
+    """Get the gate definitions for the program. Will include the default SUPPORTED_GATES, in
+    addition to any gates defined in the Quil
+
+    Args:
+        program: A pyquil program which may contain some DefGates.
+
+    Returns:
+        A dictionary mapping quil gate names to Cirq Gates
+        A dictionary mapping quil gate names to callable parameter transformers
+    """
+    defined_gates = SUPPORTED_GATES.copy()
+    parameter_transformers = PARAMETRIC_TRANSFORMERS.copy()
+    for defgate in program.defined_gates:
+        if defgate.parameters:
+            defined_gates[defgate.name] = defgate_to_cirq(defgate)
+            parameter_transformers[defgate.name] = lambda *args: {
+                p.name: a for p, a in zip(defgate.parameters, args)
+            }
+        else:
+            defined_gates[defgate.name] = MatrixGate(np.asarray(defgate.matrix, dtype=np.complex_))
+    return defined_gates, parameter_transformers
+
+
+def kraus_noise_model_to_cirq(
+    kraus_noise_model: Dict[Tuple[str, ...], List[NDArray[np.complex_]]],
+    defined_gates: Optional[Dict[str, Gate]] = None,
+) -> InsertionNoiseModel:
+    """Construct a Cirq noise model from the provided Kraus operators.
+
+    Args:
+        kraus_noise_model: A dictionary where the keys are tuples of Quil gate names and qubit
+        indices and the values are the Kraus representation of the noise channel.
+        defined_gates: A dictionary mapping Quil gates to Cirq gates.
+    Returns:
+        A Cirq InsertionNoiseModel which applies the Kraus operators to the specified gates.
+    """
+    if defined_gates is None:
+        defined_gates = SUPPORTED_GATES
+    ops_added = {}
+    for key, kraus_ops in kraus_noise_model.items():
+        gate_name = key[0]
+        qubits = [LineQubit(q) for q in key[1:]]
+        target_op = OpIdentifier(defined_gates[gate_name], *qubits)
+
+        insert_op = KrausChannel(kraus_ops, validate=True).on(*qubits)
+        ops_added[target_op] = insert_op
+
+    noise_model = InsertionNoiseModel(ops_added=ops_added, require_physical_tag=False)
+
+    return noise_model
+
+
+def quil_expression_to_sympy(expression: ParameterDesignator):
+    """Convert a quil expression to a Sympy expression.
+
+    Args:
+        expression: A quil expression.
+
+    Returns:
+        The sympy form of the expression.
+
+    Raises:
+        ValueError: Connect convert unknown BinaryExp.
+        ValueError: Unrecognized expression.
+    """
+    if type(expression) in {np.int_, np.float_, np.complex_, int, float, complex}:
+        return expression  # type: ignore
+    elif isinstance(expression, Parameter):
+        return sympy.Symbol(expression.name)
+    elif isinstance(expression, MemoryReference):
+        return sympy.Symbol(expression.name + f"_{expression.offset}")
+    elif isinstance(expression, Function):
+        if expression.name == "SIN":
+            return sympy.sin(quil_expression_to_sympy(expression.expression))
+        elif expression.name == "COS":
+            return sympy.cos(quil_expression_to_sympy(expression.expression))
+        elif expression.name == "SQRT":
+            return sympy.sqrt(quil_expression_to_sympy(expression.expression))
+        elif expression.name == "EXP":
+            return sympy.exp(quil_expression_to_sympy(expression.expression))
+        elif expression.name == "CIS":
+            return sympy.exp(1j * quil_expression_to_sympy(expression.expression))
+        else:
+            raise ValueError(f"Cannot convert unknown function: {expression}")
+
+    elif isinstance(expression, BinaryExp):
+        if isinstance(expression, Add):
+            return quil_expression_to_sympy(expression.op1) + quil_expression_to_sympy(
+                expression.op2
+            )
+        elif isinstance(expression, Sub):
+            return quil_expression_to_sympy(expression.op1) - quil_expression_to_sympy(
+                expression.op2
+            )
+        elif isinstance(expression, Mul):
+            return quil_expression_to_sympy(expression.op1) * quil_expression_to_sympy(
+                expression.op2
+            )
+        elif isinstance(expression, Div):
+            return quil_expression_to_sympy(expression.op1) / quil_expression_to_sympy(
+                expression.op2
+            )
+        elif isinstance(expression, Pow):
+            return quil_expression_to_sympy(expression.op1) ** quil_expression_to_sympy(
+                expression.op2
+            )
+        else:
+            raise ValueError(f"Cannot convert unknown BinaryExp: {expression}")
+
+    else:
+        raise ValueError(
+            f"quil_expression_to_sympy failed to convert {expression} of type {type(expression)}"
+        )
+
+
+def defgate_to_cirq(defgate: DefGate):
+    """Convert a Quil DefGate to a Cirq Gate class.
+
+    For non-parametric gates, it's recommended to create `MatrixGate` object. This function is
+    intended for the case of parametric gates.
+
+    Args:
+        defgate: A quil gate defintion.
+    Returns:
+        A subclass of `Gate` corresponding to the DefGate.
+    """
+    name = defgate.name
+    matrix = defgate.matrix
+    parameters = defgate.parameters
+    dim = int(np.sqrt(matrix.shape[0]))
+    if parameters:
+        parameter_names = set(p.name for p in parameters)
+
+        def constructor(self, **kwargs):
+            for p, val in kwargs.items():
+                assert p in parameter_names, f"{p} is not a known parameter"
+                setattr(self, p, val)
+
+        def unitary(self, *args):
+            if parameters:
+                parameter_map = {p: getattr(self, p.name) for p in parameters}
+                return substitute_array(matrix, parameter_map)
+
+    else:
+
+        def constructor(self):
+            ...
+
+        def unitary(self, *args):
+            return matrix
+
+    def circuit_diagram_info(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+        return CircuitDiagramInfo(wire_symbols=tuple(name for _ in range(dim)))
+
+    def num_qubits(self):
+        return defgate.num_args()
+
+    gate = type(
+        name,
+        (Gate,),
+        {
+            "__init__": constructor,
+            "_num_qubits_": num_qubits,
+            "_unitary_": unitary,
+            "_circuit_diagram_info_": circuit_diagram_info,
+        },
+    )
+    return gate
+
+
+def remove_gate_from_kraus(
+    kraus_ops: List[NDArray[np.complex_]], gate_matrix: NDArray[np.complex_]
+):
+    """Recover the kraus operators from a kraus composed with a gate.
+    This function is the reverse of append_kraus_to_gate.
+
+    Args:
+        kraus_ops: A list of Kraus Operators.
+        gate_matrix: The gate unitary.
+
+    Returns:
+        The noise channel without the gate unitary.
+    """
+    return [kju @ gate_matrix.conj().T for kju in kraus_ops]
