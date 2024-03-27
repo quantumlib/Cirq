@@ -2305,9 +2305,9 @@ global phase:   0.5π   0.5π
     cirq.testing.assert_has_diagram(
         c,
         """\
-2: ───X──────────
+2: ───X────────
 
-      π['tag']""",
+      π[tag]""",
     )
 
 

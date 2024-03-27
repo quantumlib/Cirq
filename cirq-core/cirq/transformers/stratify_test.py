@@ -237,29 +237,29 @@ def test_stratify_respects_no_compile_operations():
     cirq.testing.assert_has_diagram(
         input_circuit,
         '''
-0: ───X['nocompile']───────X───────iSwap───
-                                   │
-1: ───iSwap['nocompile']───────────iSwap───
+0: ───X[nocompile]───────X───────iSwap───
+                                 │
+1: ───iSwap[nocompile]───────────iSwap───
       │
-2: ───iSwap────────────────────────────────
+2: ───iSwap──────────────────────────────
 
-3: ────────────────────────iSwap───X───────
-                           │
-4: ───Z────────────────────iSwap───────────
+3: ──────────────────────iSwap───X───────
+                         │
+4: ───Z──────────────────iSwap───────────
 ''',
     )
     cirq.testing.assert_has_diagram(
         expected,
         '''
-0: ───────────────X['nocompile']───────X───iSwap───
-                                           │
-1: ───────────────iSwap['nocompile']───────iSwap───
+0: ───────────────X[nocompile]───────X───iSwap───
+                                         │
+1: ───────────────iSwap[nocompile]───────iSwap───
                   │
-2: ───────────────iSwap────────────────────────────
+2: ───────────────iSwap──────────────────────────
 
-3: ───────iSwap────────────────────────X───────────
+3: ───────iSwap──────────────────────X───────────
           │
-4: ───Z───iSwap────────────────────────────────────
+4: ───Z───iSwap──────────────────────────────────
 ''',
     )
     cirq.testing.assert_same_circuits(
