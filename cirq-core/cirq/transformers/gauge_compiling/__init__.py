@@ -19,6 +19,6 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeTransformer,
     ConstantGauge,
 )
-from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGaugeTransormer
+from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGaugeTransformer
 from cirq.transformers.gauge_compiling.spin_inversion_gauge import SpinInversionGaugeTransformer
 from cirq.transformers.gauge_compiling.cz_gauge import CZGaugeTransformer
