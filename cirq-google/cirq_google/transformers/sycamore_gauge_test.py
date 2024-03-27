@@ -1,4 +1,4 @@
-# Copyright 2022 The Cirq Developers
+# Copyright 2024 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Transformers for compiling to Google-specific gates, such as Sycamore."""
 
-from cirq_google.transformers.analytical_decompositions import (
-    known_2q_op_to_sycamore_operations,
-    two_qubit_matrix_to_sycamore_operations,
-)
+import cirq_google as cg
+from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
 
-from cirq_google.transformers.target_gatesets import GoogleCZTargetGateset, SycamoreTargetGateset
+from cirq_google.transformers import SYCGaugeTransformer
 
-from cirq_google.transformers.sycamore_gauge import SYCGaugeTransformer
+
+class TestCZGauge(GaugeTester):
+    two_qubit_gate = cg.SYC
+    gauge_transformer = SYCGaugeTransformer
