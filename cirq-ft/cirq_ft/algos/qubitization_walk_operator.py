@@ -52,6 +52,7 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         (https://arxiv.org/abs/1805.03662).
             Babbush et. al. (2018). Figure 1.
     """
+
     select: select_and_prepare.SelectOracle
     prepare: select_and_prepare.PrepareOracle
     control_val: Optional[int] = None

@@ -509,6 +509,7 @@ from cirq.study import (
     to_sweeps,
     Result,
     UnitSweep,
+    UNIT_SWEEP,
     Zip,
     ZipLongest,
 )

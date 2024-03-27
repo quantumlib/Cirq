@@ -87,8 +87,8 @@ def test_decompose_operations_to_target_gateset():
         cirq.T.on_each(*q),
     )
     gateset = cirq.Gateset(cirq.H, cirq.CNOT)
-    decomposer = (
-        lambda op, _: cirq.H(op.qubits[0])
+    decomposer = lambda op, _: (
+        cirq.H(op.qubits[0])
         if cirq.has_unitary(op) and cirq.num_qubits(op) == 1
         else NotImplemented
     )

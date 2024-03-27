@@ -331,16 +331,18 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         cirq.PhasedXPowGate(phase_exponent=0.333, exponent=0.5).on(q1),
         cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
         (
-            cirq.measure(q0, key='xX'),
-            cirq.measure(q2, key='x_a'),
-            cirq.measure(q1, key='x?'),
-            cirq.measure(q3, key='X'),
-            cirq.measure(q4, key='_x'),
-            cirq.measure(q2, key='x_a'),
-            cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True)),
-        )
-        if include_measurements
-        else (),
+            (
+                cirq.measure(q0, key='xX'),
+                cirq.measure(q2, key='x_a'),
+                cirq.measure(q1, key='x?'),
+                cirq.measure(q3, key='X'),
+                cirq.measure(q4, key='_x'),
+                cirq.measure(q2, key='x_a'),
+                cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True)),
+            )
+            if include_measurements
+            else ()
+        ),
         ExampleOperation(),
         ExampleCompositeOperation(),
     )

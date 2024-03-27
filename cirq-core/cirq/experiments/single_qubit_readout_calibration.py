@@ -343,15 +343,19 @@ def estimate_parallel_single_qubit_readout_errors(
             trial_idx += 1
 
     zero_state_errors = {
-        q: zero_state_trials[0][qubit_idx] / zero_state_totals[0][qubit_idx]
-        if zero_state_totals[0][qubit_idx] > 0
-        else np.nan
+        q: (
+            zero_state_trials[0][qubit_idx] / zero_state_totals[0][qubit_idx]
+            if zero_state_totals[0][qubit_idx] > 0
+            else np.nan
+        )
         for qubit_idx, q in enumerate(qubits)
     }
     one_state_errors = {
-        q: one_state_trials[0][qubit_idx] / one_state_totals[0][qubit_idx]
-        if one_state_totals[0][qubit_idx] > 0
-        else np.nan
+        q: (
+            one_state_trials[0][qubit_idx] / one_state_totals[0][qubit_idx]
+            if one_state_totals[0][qubit_idx] > 0
+            else np.nan
+        )
         for qubit_idx, q in enumerate(qubits)
     }
 
