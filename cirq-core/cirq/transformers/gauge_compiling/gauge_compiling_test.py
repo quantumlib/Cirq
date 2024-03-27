@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+import numpy as np
 import cirq
 from cirq.transformers.gauge_compiling import GaugeTransformer, CZGaugeTransformer
 
@@ -28,3 +29,13 @@ def test_deep_transformation_not_supported():
 def test_ignore_tags():
     c = cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2)).with_tags('foo'))
     assert c == CZGaugeTransformer(c, context=cirq.TransformerContext(tags_to_ignore={"foo"}))
+
+
+def test_target_can_be_gateset():
+    qs = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.CZ(*qs))
+    transformer = GaugeTransformer(
+        target=cirq.Gateset(cirq.CZ), gauge_selector=CZGaugeTransformer.gauge_selector
+    )
+    want = cirq.Circuit(cirq.Y.on_each(qs), cirq.CZ(*qs), cirq.X.on_each(qs))
+    assert transformer(c, prng=np.random.default_rng(0)) == want

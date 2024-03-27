@@ -118,7 +118,7 @@ class GaugeTransformer:
         if isinstance(target, ops.Gate):
             self.target: Union[ops.GateFamily, ops.Gateset] = ops.GateFamily(target)
         else:
-            self.target = target  # pragma: no cover
+            self.target = target
         self.gauge_selector = gauge_selector
 
     def __call__(
