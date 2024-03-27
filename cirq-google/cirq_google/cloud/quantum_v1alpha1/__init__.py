@@ -57,7 +57,7 @@ from .types.engine import StreamError
 from .types.engine import UpdateQuantumJobRequest
 from .types.engine import UpdateQuantumProgramRequest
 from .types.engine import UpdateQuantumReservationRequest
-from .types.quantum import DeviceConfigKey
+from .types.quantum import DeviceConfigSelector
 from .types.quantum import ExecutionStatus
 from .types.quantum import GcsLocation
 from .types.quantum import InlineData
@@ -73,6 +73,7 @@ from .types.quantum import QuantumReservationGrant
 from .types.quantum import QuantumResult
 from .types.quantum import QuantumTimeSlot
 from .types.quantum import SchedulingConfig
+from .types.quantum import DeviceConfigKey
 
 __all__ = (
     'QuantumEngineServiceAsyncClient',
@@ -85,7 +86,7 @@ __all__ = (
     'DeleteQuantumJobRequest',
     'DeleteQuantumProgramRequest',
     'DeleteQuantumReservationRequest',
-    'DeviceConfigKey',
+    'DeviceConfigSelector',
     'ExecutionStatus',
     'GcsLocation',
     'GetQuantumCalibrationRequest',
@@ -133,4 +134,5 @@ __all__ = (
     'UpdateQuantumJobRequest',
     'UpdateQuantumProgramRequest',
     'UpdateQuantumReservationRequest',
+    'DeviceConfigKey',
 )
