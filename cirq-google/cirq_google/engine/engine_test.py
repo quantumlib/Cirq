@@ -184,7 +184,7 @@ def test_create_context(client):
 
     context = EngineContext(cg.engine.engine.ProtoVersion.V2, {'args': 'test'}, True)
     assert context.proto_version == cg.engine.engine.ProtoVersion.V2
-    assert client.called_with({'args': 'test'}, True)
+    client.assert_called_with(service_args={'args': 'test'}, verbose=True)
 
     assert context.copy().proto_version == context.proto_version
     assert context.copy().client == context.client
