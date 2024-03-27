@@ -373,7 +373,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
                 description='A job',
@@ -396,7 +398,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
                 description='A job',
@@ -417,7 +421,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
                 labels=labels,
@@ -439,7 +445,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
             ),
@@ -463,7 +471,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
             ),
@@ -573,7 +583,7 @@ def test_create_job_with_run_name_and_device_config_name(
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(
+                        device_config_selector=quantum.DeviceConfigSelector(
                             run_name=run_name, config_alias=device_config_name
                         ),
                     ),
@@ -615,7 +625,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                     description='A job',
@@ -649,7 +659,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                     description='A job',
@@ -680,7 +690,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                     description='A job',
@@ -717,7 +727,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                     description='A job',
@@ -752,7 +762,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                 ),
@@ -784,7 +794,7 @@ def test_create_job_with_run_name_and_device_config_name(
                     scheduling_config=quantum.SchedulingConfig(
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         )
                     ),
                 ),

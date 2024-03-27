@@ -39,6 +39,8 @@ __protobuf__ = proto.module(
         'QuantumReservationBudget',
         'QuantumTimeSlot',
         'QuantumReservation',
+        'DeviceConfigSelector',
+        'DeviceConfigKey',
     },
 )
 
@@ -152,7 +154,7 @@ class QuantumJob(proto.Message):
     run_context = proto.Field(proto.MESSAGE, number=11, message=any_pb2.Any)
 
 
-class DeviceConfigKey(proto.Message):
+class DeviceConfigSelector(proto.Message):
     r"""-
     Attributes:
         run_name (str):
@@ -185,13 +187,13 @@ class SchedulingConfig(proto.Message):
                 -
             processor (str):
                 -
-            device_config_key ((google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
+            device_config_selector ((google.cloud.quantum_v1alpha1.types.DeviceConfigSelector):
                 -
         """
 
         processor_names = proto.RepeatedField(proto.STRING, number=1)
         processor = proto.Field(proto.STRING, number=2)
-        device_config_key = proto.Field(proto.MESSAGE, number=3, message=DeviceConfigKey)
+        device_config_selector = proto.Field(proto.MESSAGE, number=3, message=DeviceConfigSelector)
 
     target_route = proto.Field(proto.STRING, number=1)
     processor_selector = proto.Field(proto.MESSAGE, number=3, message=ProcessorSelector)
@@ -378,6 +380,9 @@ class QuantumProcessor(proto.Message):
             Output only. -
         activity_stats (google.cloud.quantum_v1alpha1.types.QuantumProcessor.ActivityStats):
             -
+        default_device_config_key (google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
+            -
+
     """
 
     class Health(proto.Enum):
@@ -413,6 +418,7 @@ class QuantumProcessor(proto.Message):
     current_calibration = proto.Field(proto.STRING, number=10)
     active_time_slot = proto.Field(proto.MESSAGE, number=11, message='QuantumTimeSlot')
     activity_stats = proto.Field(proto.MESSAGE, number=12, message=ActivityStats)
+    default_device_config_key = proto.Field(proto.MESSAGE, number=13, message='DeviceConfigKey')
 
 
 class QuantumCalibration(proto.Message):
@@ -603,6 +609,20 @@ class QuantumReservation(proto.Message):
     end_time = proto.Field(proto.MESSAGE, number=3, message=timestamp_pb2.Timestamp)
     cancelled_time = proto.Field(proto.MESSAGE, number=4, message=timestamp_pb2.Timestamp)
     whitelisted_users = proto.RepeatedField(proto.STRING, number=5)
+
+
+class DeviceConfigKey(proto.Message):
+    r"""-
+
+    Attributes:
+        run (str):
+            -
+        config_alias (str):
+            -
+    """
+
+    run = proto.Field(proto.STRING, number=1)
+    config_alias = proto.Field(proto.STRING, number=2)
 
 
 __all__ = tuple(sorted(__protobuf__.manifest))
