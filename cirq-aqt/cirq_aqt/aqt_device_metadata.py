@@ -53,8 +53,6 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
         self._gate_durations = {
             cirq.GateFamily(cirq.MeasurementGate): self._measurement_duration,
             cirq.GateFamily(cirq.XXPowGate): self._twoq_gates_duration,
-            cirq.GateFamily(cirq.XPowGate): self._oneq_gates_duration,
-            cirq.GateFamily(cirq.YPowGate): self._oneq_gates_duration,
             cirq.GateFamily(cirq.ZPowGate): self._oneq_gates_duration,
             cirq.GateFamily(cirq.PhasedXPowGate): self._oneq_gates_duration,
         }

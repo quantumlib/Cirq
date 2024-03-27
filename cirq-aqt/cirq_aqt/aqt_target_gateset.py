@@ -30,8 +30,7 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     gates to the following universal target gateset:
 
     - `cirq.XXPowGate`: The two qubit entangling gate.
-    - `cirq.XPowGate`, `cirq.YPowGate`, `cirq.ZPowGate`,
-      `cirq.PhasedXPowGate`: Single qubit rotations.
+    - `cirq.ZPowGate`, `cirq.PhasedXPowGate`: Single qubit rotations.
     - `cirq.MeasurementGate`: Measurements.
     """
 
@@ -39,8 +38,6 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         super().__init__(
             cirq.XXPowGate,
             cirq.MeasurementGate,
-            cirq.XPowGate,
-            cirq.YPowGate,
             cirq.ZPowGate,
             cirq.PhasedXPowGate,
             unroll_circuit_op=False,

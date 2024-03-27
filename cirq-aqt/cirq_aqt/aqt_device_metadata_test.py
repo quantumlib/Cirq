@@ -45,7 +45,7 @@ def test_aqtdevice_metadata(metadata, qubits):
     assert len(edges) == 10
     assert all(q0 != q1 for q0, q1 in edges)
     assert AQTTargetGateset() == metadata.gateset
-    assert len(metadata.gate_durations) == 6
+    assert len(metadata.gate_durations) == 4
 
 
 def test_aqtdevice_duration_of(metadata, qubits):
