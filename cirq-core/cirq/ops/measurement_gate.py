@@ -91,6 +91,19 @@ class MeasurementGate(raw_types.Gate):
         self._invert_mask = invert_mask or ()
         if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')
+
+        def right_trim_mask(invert_mask):
+            if invert_mask is None or len(invert_mask) == 0:
+                return invert_mask
+            last_invert_index = -1
+            for i, mask_bit in enumerate(invert_mask):
+                if mask_bit:
+                    last_invert_index = i
+            return invert_mask[: last_invert_index + 1]
+
+        # Remove trailing False values from the invert_mask to ensure equality across gates
+        # with equivalent invert_mask values.
+        self._invert_mask = right_trim_mask(self._invert_mask)
         self._confusion_map = confusion_map or {}
         if any(x >= self.num_qubits() for idx in self._confusion_map for x in idx):
             raise ValueError('Confusion matrices have index out of bounds.')
