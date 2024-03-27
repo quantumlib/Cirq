@@ -493,7 +493,7 @@ def test_circuit_diagram():
         """Tag with a custom str function to test circuit diagrams."""
 
         def __str__(self):
-            return '<taggy-tag>'
+            return '<taggy>'
 
     h = cirq.H(cirq.GridQubit(1, 1))
     tagged_h = h.with_tags('tag1')
@@ -518,7 +518,7 @@ def test_circuit_diagram():
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
 
     c = cirq.Circuit(non_string_tag_h)
-    diagram_with_non_string_tag = "(1, 1): ───H[<taggy-tag>]───"
+    diagram_with_non_string_tag = "(1, 1): ───H[<taggy>]───"
     assert c.to_text_diagram() == diagram_with_non_string_tag
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
 
