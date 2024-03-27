@@ -19,8 +19,8 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Union
 from google.protobuf import any_pb2
 
 import cirq
-from cirq_google.cloud import quantum
 from cirq_google.api import v2
+from cirq_google.cloud import quantum
 from cirq_google.devices import grid_device
 from cirq_google.engine import abstract_processor, calibration, processor_sampler, util
 
@@ -110,8 +110,14 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
-            when sampled.1
+            when sampled.
         """
+        processor = self._inner_processor()
+        # If a run_name or config_alias is not provided, initialize them
+        # to the Processor's default values.
+        if not run_name and not device_config_name:
+            run_name = processor.default_device_config_key.run
+            device_config_name = processor.default_device_config_key.config_alias
         return processor_sampler.ProcessorSampler(
             processor=self, run_name=run_name, device_config_name=device_config_name
         )

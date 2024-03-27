@@ -86,3 +86,11 @@ class ProcessorSampler(cirq.Sampler):
     @property
     def processor(self) -> 'cg.engine.AbstractProcessor':
         return self._processor
+
+    @property
+    def run_name(self) -> str:
+        return self._run_name
+
+    @property
+    def device_config_name(self) -> str:
+        return self._device_config_name
