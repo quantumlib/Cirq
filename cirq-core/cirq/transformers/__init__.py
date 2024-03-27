@@ -126,7 +126,7 @@ from cirq.transformers.gauge_compiling import (
     GaugeSelector,
     GaugeTransformer,
     ConstantGauge,
-    SqrtCZGaugeTransormer,
+    SqrtCZGaugeTransformer,
     CZGaugeTransformer,
     SpinInversionGaugeTransformer,
 )

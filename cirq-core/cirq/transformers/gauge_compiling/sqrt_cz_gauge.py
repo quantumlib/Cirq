@@ -26,4 +26,4 @@ SqrtCZGaugeSelector = GaugeSelector(
     gauges=[ConstantGauge(pre_q0=ops.X, post_q0=ops.X, post_q1=ops.Z**0.5, two_qubit_gate=CZ**-0.5)]
 )
 
-SqrtCZGaugeTransormer = GaugeTransformer(target=CZ**0.5, gauge_selector=SqrtCZGaugeSelector)
+SqrtCZGaugeTransformer = GaugeTransformer(target=CZ**0.5, gauge_selector=SqrtCZGaugeSelector)

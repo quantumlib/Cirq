@@ -14,10 +14,10 @@
 
 
 import cirq
-from cirq.transformers.gauge_compiling import SqrtCZGaugeTransormer
+from cirq.transformers.gauge_compiling import SqrtCZGaugeTransformer
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
 
 
 class TestSqrtCZGauge(GaugeTester):
     two_qubit_gate = cirq.CZ**0.5
-    gauge_transformer = SqrtCZGaugeTransormer
+    gauge_transformer = SqrtCZGaugeTransformer
