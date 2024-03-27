@@ -32,7 +32,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install --pre cirq &&
+          pip install cirq~=1.0.dev &&
           pip install \
             -r dev_tools/requirements/deps/format.txt \
             -r dev_tools/requirements/deps/pylint.txt \
@@ -62,7 +62,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install "cirq~=1.0.dev0" &&
+          pip install cirq~=1.0.dev &&
             pip install -r dev_tools/requirements/deps/format.txt &&
             pip install -r dev_tools/requirements/deps/pylint.txt &&
             pip install -r dev_tools/requirements/deps/pytest.txt &&
@@ -88,7 +88,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install --pre cirq &&
+          pip install cirq~=1.0.dev &&
           pip install \
             -r dev_tools/requirements/deps/format.txt \
             -r dev_tools/requirements/deps/pylint.txt \
