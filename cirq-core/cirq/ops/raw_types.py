@@ -1032,6 +1032,9 @@ class _InverseCompositeGate(Gate):
     def __repr__(self) -> str:
         return f'({self._original!r}**-1)'
 
+    def __str__(self) -> str:
+        return f'{self._original!s}†'
+
 
 def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
     """Helper function to validate qubits for gates and operations.
