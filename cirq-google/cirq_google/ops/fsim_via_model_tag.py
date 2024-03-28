@@ -20,7 +20,7 @@ import cirq
 class FSimViaModelTag:
     """A tag class to denote FSim gate implementation using polynomial model.
 
-    By default, the translation of FSim gate implementation is possible for a certain
+    Without the tag, the translation of FSim gate implementation is possible only for a certain
     angles. For example, when theta=pi/2, phi=0, it translates into the same implementation
     as the SWAP gate. If FSimGate is tagged with this class, the translation will become
     a coupler gate that with proper coupler strength and coupler length via some polynomial

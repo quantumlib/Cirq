@@ -20,7 +20,7 @@ def test_equality():
     assert hash(cirq_google.FSimViaModelTag()) == hash(cirq_google.FSimViaModelTag())
 
 
-def test_syc_str_repr():
+def test_str_repr():
     assert str(cirq_google.FSimViaModelTag()) == 'FSimViaModelTag()'
     assert repr(cirq_google.FSimViaModelTag()) == 'cirq_google.FSimViaModelTag()'
     cirq.testing.assert_equivalent_repr(
