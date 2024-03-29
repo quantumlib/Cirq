@@ -14,7 +14,7 @@
 
 """Creates the abstraction for gauge compiling as a cirq transformer."""
 
-from typing import Callable, Tuple, Optional, Sequence, Union, List, TYPE_CHECKING
+from typing import Callable, Tuple, Optional, Sequence, Union, List
 import abc
 import itertools
 import functools
@@ -24,9 +24,6 @@ import numpy as np
 
 from cirq.transformers import transformer_api
 from cirq import ops, circuits
-
-if TYPE_CHECKING:
-    import cirq
 
 
 _SINGLE_QUBIT_GATES_T = Optional[Union[ops.Gate, Sequence[ops.Gate]]]
@@ -129,7 +126,7 @@ class GaugeTransformer:
         self,
         circuit: circuits.AbstractCircuit,
         *,
-        context: Optional["cirq.TransformerContext"] = None,
+        context: Optional[transformer_api.TransformerContext] = None,
         prng: Optional[np.random.Generator] = None,
     ) -> circuits.AbstractCircuit:
         rng = np.random.default_rng() if prng is None else prng
