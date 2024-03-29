@@ -2,9 +2,6 @@
 
 duet>=0.2.8
 matplotlib~=3.0
-# Temporary fix for https://github.com/sympy/sympy/issues/26273
-# TODO: remove once `pip install --pre sympy` works in a fresh environment
-mpmath<1.4
 networkx>=2.4
 numpy~=1.16
 pandas
