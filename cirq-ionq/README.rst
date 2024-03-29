@@ -20,8 +20,8 @@ Installation
 ------------
 
 To install the stable version of only **cirq-ionq**, use `pip install cirq-ionq`.
-To install the pre-release version of only **cirq-ionq**, use `pip install cirq-ionq --pre`.
+To install the pre-release version of only **cirq-ionq**, use `pip install cirq-ionq~=1.0.dev`.
 
 Note, that this will install both **cirq-ionq** and **cirq-core**.
 
-To get all the optional modules installed, you'll have to use `pip install cirq` or `pip install cirq --pre` for the pre-release version.
+To get all the optional modules installed, you'll have to use `pip install cirq` or `pip install cirq~=1.0.dev` for the pre-release version.
