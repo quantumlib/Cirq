@@ -83,6 +83,10 @@ class ConstantGauge(Gauge):
         return _as_sequence(self.post_q0), _as_sequence(self.post_q1)
 
 
+def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
+    return choices[prng.choice(len(choices), p=probabilites)]
+
+
 @dataclass(frozen=True)
 class GaugeSelector:
     """Samples a gauge from a list of gauges."""
@@ -94,9 +98,9 @@ class GaugeSelector:
         weights = np.array([g.weight() for g in self.gauges])
         return weights / np.sum(weights)
 
-    def __call__(self, prng: np.random.Generator) -> "Gauge":
+    def __call__(self, prng: np.random.Generator) -> Gauge:
         """Randomly selects a gauge with probability proportional to its weight."""
-        return self.gauges[prng.choice(len(self.gauges), p=self._weights)]
+        return _select(self.gauges, self._weights, prng)
 
 
 @transformer_api.transformer

@@ -127,6 +127,8 @@ from cirq.transformers.gauge_compiling import (
     Gauge,
     GaugeSelector,
     GaugeTransformer,
+    ISWAPGaugeTransformer,
     SpinInversionGaugeTransformer,
     SqrtCZGaugeTransformer,
+    SqrtISWAPGaugeTransformer,
 )

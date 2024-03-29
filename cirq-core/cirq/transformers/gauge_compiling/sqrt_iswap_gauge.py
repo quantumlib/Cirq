@@ -12,15 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""A Gauge transformer for SQRT_ISWAP gate."""
 
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
-    Gauge,
-    GaugeSelector,
     GaugeTransformer,
+    GaugeSelector,
 )
-from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGaugeTransformer
-from cirq.transformers.gauge_compiling.spin_inversion_gauge import SpinInversionGaugeTransformer
-from cirq.transformers.gauge_compiling.cz_gauge import CZGaugeTransformer
-from cirq.transformers.gauge_compiling.iswap_gauge import ISWAPGaugeTransformer
-from cirq.transformers.gauge_compiling.sqrt_iswap_gauge import SqrtISWAPGaugeTransformer
+from cirq import ops
+
+
+SqrtISWAPGaugeSelector = GaugeSelector(
+    gauges=[
+        ConstantGauge(
+            pre_q0=ops.Z, pre_q1=ops.Z, post_q0=ops.Z, post_q1=ops.Z, two_qubit_gate=ops.SQRT_ISWAP
+        ),
+        ConstantGauge(
+            pre_q0=ops.X, pre_q1=ops.X, post_q0=ops.X, post_q1=ops.X, two_qubit_gate=ops.SQRT_ISWAP
+        ),
+        ConstantGauge(
+            pre_q0=ops.Y, pre_q1=ops.Y, post_q0=ops.Y, post_q1=ops.Y, two_qubit_gate=ops.SQRT_ISWAP
+        ),
+    ]
+)
+
+SqrtISWAPGaugeTransformer = GaugeTransformer(
+    target=ops.SQRT_ISWAP, gauge_selector=SqrtISWAPGaugeSelector
+)

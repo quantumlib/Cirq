@@ -42,19 +42,22 @@ class GaugeTester:
             nc, c, qubit_map={q: q for q in c.all_qubits()}
         )
 
-    @patch('numpy.random.Generator', autospec=True)
-    def test_all_gauges(self, generator_mock):
+    @patch('cirq.transformers.gauge_compiling.gauge_compiling._select', autospec=True)
+    @pytest.mark.parametrize('seed', [*range(5)])
+    def test_all_gauges(self, mock_select, seed):
         assert isinstance(
             self.gauge_transformer.gauge_selector, GaugeSelector
         ), 'When using a custom selector, please override this method to properly test all gauges'
         c = cirq.Circuit(self.two_qubit_gate(cirq.LineQubit(0), cirq.LineQubit(1)))
-        prng = generator_mock()
-        for idx, gauge in enumerate(self.gauge_transformer.gauge_selector.gauges):
-            prng.choice.return_value = idx
+        prng = np.random.default_rng(seed)
+        for gauge in self.gauge_transformer.gauge_selector.gauges:
+            mock_select.return_value = gauge
+            assert self.gauge_transformer.gauge_selector(prng) == gauge
             nc = self.gauge_transformer(c, prng=prng)
-            _ = (
-                cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+            try:
+                _ = cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
                     nc, c, qubit_map={q: q for q in c.all_qubits()}
-                ),
-                f'{gauge=}',
-            )
+                )
+            except Exception as e:
+                print(f'checking {gauge=} failed')
+                raise e

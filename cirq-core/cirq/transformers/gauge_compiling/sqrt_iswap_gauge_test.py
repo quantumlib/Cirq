@@ -12,15 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cirq
+from cirq.transformers.gauge_compiling import SqrtISWAPGaugeTransformer
+from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
 
-from cirq.transformers.gauge_compiling.gauge_compiling import (
-    ConstantGauge,
-    Gauge,
-    GaugeSelector,
-    GaugeTransformer,
-)
-from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGaugeTransformer
-from cirq.transformers.gauge_compiling.spin_inversion_gauge import SpinInversionGaugeTransformer
-from cirq.transformers.gauge_compiling.cz_gauge import CZGaugeTransformer
-from cirq.transformers.gauge_compiling.iswap_gauge import ISWAPGaugeTransformer
-from cirq.transformers.gauge_compiling.sqrt_iswap_gauge import SqrtISWAPGaugeTransformer
+
+class TestSqrtISWAPGauge(GaugeTester):
+    two_qubit_gate = cirq.SQRT_ISWAP
+    gauge_transformer = SqrtISWAPGaugeTransformer
