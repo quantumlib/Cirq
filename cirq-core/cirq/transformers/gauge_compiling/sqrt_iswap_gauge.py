@@ -33,6 +33,9 @@ SqrtISWAPGaugeSelector = GaugeSelector(
         ConstantGauge(
             pre_q0=ops.Y, pre_q1=ops.Y, post_q0=ops.Y, post_q1=ops.Y, two_qubit_gate=ops.SQRT_ISWAP
         ),
+        ConstantGauge(
+            pre_q0=ops.I, pre_q1=ops.I, post_q0=ops.I, post_q1=ops.I, two_qubit_gate=ops.SQRT_ISWAP
+        ),
     ]
 )
 

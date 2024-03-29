@@ -67,8 +67,8 @@ class XYRotation(Gauge):
     """Represents an ISWAP Gauge composed of XY rotations.
 
     The gauge replaces an ISWAP gate with either
-        0: ───XY(a)──────iSwap───XY(b)───
-                            │
+        0: ───XY(a)───iSwap───XY(b)───
+                        │
         1: ───XY(b)───iSwap───XY(a)───
 
     where a and b are uniformly sampled from [0, 2π) and XY is a single-qubit rotation defined as
@@ -85,9 +85,11 @@ class XYRotation(Gauge):
         return ops.PhasedXZGate.from_matrix(unitary)
 
     def _xy_gauge(self, a: float, b: float) -> ConstantGauge:
-        A = self._xy(a)
-        B = self._xy(b)
-        return ConstantGauge(two_qubit_gate=ops.ISWAP, pre_q0=A, pre_q1=B, post_q0=B, post_q1=A)
+        xy_a = self._xy(a)
+        xy_b = self._xy(b)
+        return ConstantGauge(
+            two_qubit_gate=ops.ISWAP, pre_q0=xy_a, pre_q1=xy_b, post_q0=xy_b, post_q1=xy_a
+        )
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         a = prng.random() * 2 * np.pi
