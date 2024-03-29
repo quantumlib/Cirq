@@ -26,7 +26,7 @@ from cirq import ops
 
 
 class RZRotation(Gauge):
-    """Represents an ISWAP Gauge composed for Rz rotations.
+    """Represents an ISWAP Gauge composed of Rz rotations.
 
     The gauge replaces an ISWAP gate with either
         0: ───Rz(t)──────iSwap───Rz(sgn*t)───
@@ -40,7 +40,7 @@ class RZRotation(Gauge):
         return 2.0
 
     def _rz(self, theta, sgn: int) -> ConstantGauge:
-        """Returns an ISWAP Gauge composed for Rz rotations.
+        """Returns an ISWAP Gauge composed of Rz rotations.
 
         0: ───Rz(theta)──────iSwap───Rz(sgn*theta)───
                                 │
@@ -64,7 +64,7 @@ class RZRotation(Gauge):
 
 
 class XYRotation(Gauge):
-    """Represents an ISWAP Gauge composed for XY rotations.
+    """Represents an ISWAP Gauge composed of XY rotations.
 
     The gauge replaces an ISWAP gate with either
         0: ───XY(a)──────iSwap───XY(b)───
