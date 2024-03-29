@@ -43,7 +43,7 @@ class RZRotation(Gauge):
 
         0: ───Rz(theta)────iSwap───Rz(theta)───
                             │
-        1: ───Rz(theta)───iSwap───Rz(theta)───
+        1: ───Rz(theta)───iSwap^0.5───Rz(theta)───
 
         """
         rz = ops.rz(theta)
