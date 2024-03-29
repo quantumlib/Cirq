@@ -87,24 +87,7 @@ class XYRotation(Gauge):
         return self._xy_gauge(prng.random() * 2 * np.pi)
 
 
-SqrtISWAPGaugeSelector = GaugeSelector(
-    gauges=[
-        ConstantGauge(
-            pre_q0=ops.Z, pre_q1=ops.Z, post_q0=ops.Z, post_q1=ops.Z, two_qubit_gate=ops.SQRT_ISWAP
-        ),
-        ConstantGauge(
-            pre_q0=ops.X, pre_q1=ops.X, post_q0=ops.X, post_q1=ops.X, two_qubit_gate=ops.SQRT_ISWAP
-        ),
-        ConstantGauge(
-            pre_q0=ops.Y, pre_q1=ops.Y, post_q0=ops.Y, post_q1=ops.Y, two_qubit_gate=ops.SQRT_ISWAP
-        ),
-        ConstantGauge(
-            pre_q0=ops.I, pre_q1=ops.I, post_q0=ops.I, post_q1=ops.I, two_qubit_gate=ops.SQRT_ISWAP
-        ),
-        RZRotation(),
-        XYRotation(),
-    ]
-)
+SqrtISWAPGaugeSelector = GaugeSelector(gauges=[RZRotation(), XYRotation()])
 
 SqrtISWAPGaugeTransformer = GaugeTransformer(
     target=ops.SQRT_ISWAP, gauge_selector=SqrtISWAPGaugeSelector
