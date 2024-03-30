@@ -60,11 +60,11 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         This initializer creates the buffer if necessary.
 
         Args:
-            initial_state: The density matrix, must be correctly formatted. The data is not
+            initial_state: The state vector, must be correctly formatted. The data is not
                 checked for validity here due to performance concerns.
-            qid_shape: The shape of the density matrix, if the initial state is provided as an int.
-            dtype: The dtype of the density matrix, if the initial state is provided as an int.
-            buffer: Optional, must be length 3 and same shape as the density matrix. If not
+            qid_shape: The shape of the state vector, if the initial state is provided as an int.
+            dtype: The dtype of the state vector, if the initial state is provided as an int.
+            buffer: Optional, must be length 3 and same shape as the state vector. If not
                 provided, a buffer will be created automatically.
         Raises:
             ValueError: If initial state is provided as integer, but qid_shape is not provided.
