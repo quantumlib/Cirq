@@ -183,7 +183,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs'). \n"
             f"If this is a new failure in this notebook due to a new change, "
-            f"that is only available in main for now, consider adding `pip install --pre cirq` "
+            f"that is only available in main for now, consider adding `pip install cirq~=1.0.dev` "
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
@@ -231,10 +231,10 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
         mandatory_matches = [
-            r"!pip install --quiet cirq(-google)? --pre",
+            r"!pip install --quiet cirq(-google)?~=1.0.dev",
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install cirq(-google)? --pre`\.",
+            r"`pip install cirq(-google)?~=1.0.dev`\.",
         ]
 
         for m in mandatory_matches:
