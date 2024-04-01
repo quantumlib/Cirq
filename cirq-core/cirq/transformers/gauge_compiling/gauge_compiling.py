@@ -19,8 +19,8 @@ import abc
 import itertools
 import functools
 
-from attrs import frozen, field
 from dataclasses import dataclass
+from attrs import frozen, field
 import numpy as np
 
 from cirq.transformers import transformer_api
