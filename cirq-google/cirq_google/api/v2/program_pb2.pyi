@@ -433,7 +433,7 @@ class FSimGate(google.protobuf.message.Message):
     def phi(self) -> global___FloatArg: ...
     translate_via_model: builtins.bool
     """If true, this is equivalent to:
-    cirq.FSimGate(...).with_tags(cirq.google.FSimViaModelTag).
+    cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
     This field controls how we translate the gate implementation.
     """
     def __init__(
