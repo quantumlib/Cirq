@@ -18,15 +18,13 @@ from typing import Callable, Tuple, Optional, Sequence, Union, List
 import abc
 import itertools
 import functools
-from dataclasses import dataclass
 
+from attrs import frozen, field
+from dataclasses import dataclass
 import numpy as np
 
 from cirq.transformers import transformer_api
 from cirq import ops, circuits
-
-
-_SINGLE_QUBIT_GATES_T = Union[ops.Gate, Sequence[ops.Gate]]
 
 
 class Gauge(abc.ABC):
@@ -56,28 +54,36 @@ class Gauge(abc.ABC):
         """
 
 
-@dataclass(frozen=True)
+@frozen
 class ConstantGauge(Gauge):
     """A gauge that replaces a two qubit gate with a constant gauge."""
 
     two_qubit_gate: ops.Gate
-    pre_q0: _SINGLE_QUBIT_GATES_T = ()
-    pre_q1: _SINGLE_QUBIT_GATES_T = ()
-    post_q0: _SINGLE_QUBIT_GATES_T = ()
-    post_q1: _SINGLE_QUBIT_GATES_T = ()
+    pre_q0: Tuple[ops.Gate, ...] = field(
+        default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
+    )
+    pre_q1: Tuple[ops.Gate, ...] = field(
+        default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
+    )
+    post_q0: Tuple[ops.Gate, ...] = field(
+        default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
+    )
+    post_q1: Tuple[ops.Gate, ...] = field(
+        default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
+    )
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> "ConstantGauge":
         return self
 
     @functools.cached_property
-    def pre(self) -> Tuple[Sequence[ops.Gate], Sequence[ops.Gate]]:
+    def pre(self) -> Tuple[Tuple[ops.Gate, ...], Tuple[ops.Gate, ...]]:
         """A tuple (ops to apply to q0, ops to apply to q1)."""
-        return _as_sequence(self.pre_q0), _as_sequence(self.pre_q1)
+        return self.pre_q0, self.pre_q1
 
     @functools.cached_property
-    def post(self) -> Tuple[Sequence[ops.Gate], Sequence[ops.Gate]]:
+    def post(self) -> Tuple[Tuple[ops.Gate, ...], Tuple[ops.Gate, ...]]:
         """A tuple (ops to apply to q0, ops to apply to q1)."""
-        return _as_sequence(self.post_q0), _as_sequence(self.post_q1)
+        return self.post_q0, self.post_q1
 
 
 def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
@@ -158,12 +164,6 @@ class GaugeTransformer:
             if right:
                 new_moments.extend(_build_moments(right))
         return circuits.Circuit.from_moments(*new_moments)
-
-
-def _as_sequence(gate: _SINGLE_QUBIT_GATES_T) -> Sequence[ops.Gate]:
-    if isinstance(gate, ops.Gate):
-        return [gate]
-    return gate
 
 
 def _build_moments(operation_by_qubits: List[List[ops.Operation]]) -> List[List[ops.Operation]]:
