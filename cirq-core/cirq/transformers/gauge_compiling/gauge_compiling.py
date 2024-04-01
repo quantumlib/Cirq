@@ -26,7 +26,7 @@ from cirq.transformers import transformer_api
 from cirq import ops, circuits
 
 
-_SINGLE_QUBIT_GATES_T = Optional[Union[ops.Gate, Sequence[ops.Gate]]]
+_SINGLE_QUBIT_GATES_T = Union[ops.Gate, Sequence[ops.Gate]]
 
 
 class Gauge(abc.ABC):
@@ -61,10 +61,10 @@ class ConstantGauge(Gauge):
     """A gauge that replaces a two qubit gate with a constant gauge."""
 
     two_qubit_gate: ops.Gate
-    pre_q0: _SINGLE_QUBIT_GATES_T = None
-    pre_q1: _SINGLE_QUBIT_GATES_T = None
-    post_q0: _SINGLE_QUBIT_GATES_T = None
-    post_q1: _SINGLE_QUBIT_GATES_T = None
+    pre_q0: _SINGLE_QUBIT_GATES_T = ()
+    pre_q1: _SINGLE_QUBIT_GATES_T = ()
+    post_q0: _SINGLE_QUBIT_GATES_T = ()
+    post_q1: _SINGLE_QUBIT_GATES_T = ()
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> "ConstantGauge":
         return self
@@ -164,8 +164,6 @@ class GaugeTransformer:
 
 
 def _as_sequence(gate: _SINGLE_QUBIT_GATES_T) -> Sequence[ops.Gate]:
-    if gate is None:
-        return []
     if isinstance(gate, ops.Gate):
         return [gate]
     return gate

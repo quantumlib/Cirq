@@ -58,6 +58,5 @@ class GaugeTester:
                 _ = cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
                     nc, c, qubit_map={q: q for q in c.all_qubits()}
                 )
-            except Exception as e:
-                print(f'checking {gauge=} failed')
-                raise e
+            except AssertionError as ex:
+                raise AssertionError(f"{gauge=} didn't result in an equivalent circuit") from ex

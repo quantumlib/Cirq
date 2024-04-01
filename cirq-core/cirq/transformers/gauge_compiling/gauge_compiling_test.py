@@ -20,7 +20,7 @@ from cirq.transformers.gauge_compiling import GaugeTransformer, CZGaugeTransform
 
 def test_deep_transformation_not_supported():
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="cannot be used with deep=True"):
         _ = GaugeTransformer(target=cirq.CZ, gauge_selector=lambda _: None)(
             cirq.Circuit(), context=cirq.TransformerContext(deep=True)
         )

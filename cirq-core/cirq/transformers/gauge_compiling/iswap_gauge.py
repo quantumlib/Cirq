@@ -31,7 +31,7 @@ class RZRotation(Gauge):
     The gauge replaces an ISWAP gate with either
         0: ───Rz(t)──────iSwap───Rz(sgn*t)───
                             │
-        1: ───Rz(sgn*t)───iSwap───Rz(t)───
+        1: ───Rz(-sgn*t)───iSwap───Rz(-t)───
 
     where t is uniformly sampled from [0, 2π) and sgn is uniformly sampled from {-1, 1}.
     """
@@ -44,7 +44,7 @@ class RZRotation(Gauge):
 
         0: ───Rz(theta)──────iSwap───Rz(sgn*theta)───
                                 │
-        1: ───Rz(sgn*theta)───iSwap───Rz(theta)───
+        1: ───Rz(-sgn*theta)───iSwap───Rz(-theta)───
 
         """
         flip_diangonal = sgn == -1
