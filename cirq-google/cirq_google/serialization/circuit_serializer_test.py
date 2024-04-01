@@ -239,6 +239,16 @@ OPERATIONS = [
         ),
     ),
     (
+        cirq.FSimGate(theta=2, phi=1)(Q0, Q1).with_tags(cg.FSimViaModelTag()),
+        op_proto(
+            {
+                'fsimgate': {'theta': {'float_value': 2.0}, 'phi': {'float_value': 1.0}, 
+                             'translate_via_model': True},
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
+    (
         cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
         op_proto(
             {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0]}
