@@ -116,10 +116,7 @@ class GaugeTransformer:
             gauge_selector: A callable that takes a numpy random number generator
                 as an argument and returns a Gauge.
         """
-        if isinstance(target, ops.Gate):
-            self.target: Union[ops.GateFamily, ops.Gateset] = ops.GateFamily(target)
-        else:
-            self.target = target
+        self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
         self.gauge_selector = gauge_selector
 
     def __call__(
