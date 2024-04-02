@@ -55,8 +55,8 @@ Installation
 
 Cirq-web is currently in development, and therefore is only available via pre-release.
 
-To install the pre-release version of only **cirq-web**, use `pip install cirq-web --pre`.
+To install the pre-release version of only **cirq-web**, use `pip install cirq-web~=1.0.dev`.
 
 Note, that this will install both cirq-web and cirq-core.
 
-To get all the optional modules installed as well, you'll have to use `pip install cirq` or `pip install cirq --pre` for the pre-release version.
+To get all the optional modules installed as well, you'll have to use `pip install cirq` or `pip install cirq~=1.0.dev` for the pre-release version.

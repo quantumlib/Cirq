@@ -426,18 +426,25 @@ class FSimGate(google.protobuf.message.Message):
 
     THETA_FIELD_NUMBER: builtins.int
     PHI_FIELD_NUMBER: builtins.int
+    TRANSLATE_VIA_MODEL_FIELD_NUMBER: builtins.int
     @property
     def theta(self) -> global___FloatArg: ...
     @property
     def phi(self) -> global___FloatArg: ...
+    translate_via_model: builtins.bool
+    """If true, this is equivalent to:
+    cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
+    This field controls how we translate the gate implementation.
+    """
     def __init__(
         self,
         *,
         theta: global___FloatArg | None = ...,
         phi: global___FloatArg | None = ...,
+        translate_via_model: builtins.bool = ...,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions.Literal["phi", b"phi", "theta", b"theta"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["phi", b"phi", "theta", b"theta"]) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["phi", b"phi", "theta", b"theta", "translate_via_model", b"translate_via_model"]) -> None: ...
 
 global___FSimGate = FSimGate
 

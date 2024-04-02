@@ -23,4 +23,4 @@ RUN pip3 install cirq
 
 ##cirq pre_release image
 FROM cirq_base AS cirq_pre_release
-RUN pip3 install cirq --pre
+RUN pip3 install cirq~=1.0.dev
