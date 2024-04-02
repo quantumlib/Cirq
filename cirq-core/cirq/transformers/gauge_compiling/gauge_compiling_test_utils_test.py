@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-import pytest
 import numpy as np
 import cirq
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
@@ -47,7 +46,7 @@ class TestValidTransformer(GaugeTester):
     gauge_transformer = _GOOD_TRANSFORMER
 
 
-@pytest.mark.xfail(strict=True)
 class TestInvalidTransformer(GaugeTester):
     two_qubit_gate = _EXAMPLE_TARGET
     gauge_transformer = _BAD_TRANSFORMER
+    must_fail = True

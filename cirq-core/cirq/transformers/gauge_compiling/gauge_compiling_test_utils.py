@@ -26,6 +26,7 @@ class GaugeTester:
 
     two_qubit_gate: cirq.Gate
     gauge_transformer: GaugeTransformer
+    must_fail: bool = False
 
     @pytest.mark.parametrize(
         ['generation_seed', 'transformation_seed'],
@@ -43,9 +44,15 @@ class GaugeTester:
             )
             generation_seed += 1
         nc = self.gauge_transformer(c, prng=np.random.default_rng(transformation_seed))
-        cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-            nc, c, qubit_map={q: q for q in c.all_qubits()}
-        )
+        if self.must_fail:
+            with pytest.raises(AssertionError):
+                cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                    nc, c, qubit_map={q: q for q in c.all_qubits()}
+                )
+        else:
+            cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                nc, c, qubit_map={q: q for q in c.all_qubits()}
+            )
 
     @patch('cirq.transformers.gauge_compiling.gauge_compiling._select', autospec=True)
     @pytest.mark.parametrize('seed', range(5))
@@ -59,9 +66,18 @@ class GaugeTester:
             mock_select.return_value = gauge
             assert self.gauge_transformer.gauge_selector(prng) == gauge
             nc = self.gauge_transformer(c, prng=prng)
-            try:
-                _ = cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-                    nc, c, qubit_map={q: q for q in c.all_qubits()}
-                )
-            except AssertionError as ex:
-                raise AssertionError(f"{gauge=} didn't result in an equivalent circuit") from ex
+
+            if self.must_fail:
+                with pytest.raises(AssertionError):
+                    _check_equivalent_with_error_message(c, nc, gauge)
+            else:
+                _check_equivalent_with_error_message(c, nc, gauge)
+
+
+def _check_equivalent_with_error_message(c: cirq.AbstractCircuit, nc: cirq.AbstractCircuit, gauge):
+    try:
+        cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+            nc, c, qubit_map={q: q for q in c.all_qubits()}
+        )
+    except AssertionError as ex:
+        raise AssertionError(f"{gauge=} didn't result in an equivalent circuit") from ex
