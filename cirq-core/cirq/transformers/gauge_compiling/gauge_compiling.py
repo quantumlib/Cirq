@@ -75,12 +75,10 @@ class ConstantGauge(Gauge):
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> "ConstantGauge":
         return self
 
-    @functools.cached_property
     def pre(self) -> Tuple[Tuple[ops.Gate, ...], Tuple[ops.Gate, ...]]:
         """A tuple (ops to apply to q0, ops to apply to q1)."""
         return self.pre_q0, self.pre_q1
 
-    @functools.cached_property
     def post(self) -> Tuple[Tuple[ops.Gate, ...], Tuple[ops.Gate, ...]]:
         """A tuple (ops to apply to q0, ops to apply to q1)."""
         return self.post_q0, self.post_q1
@@ -153,9 +151,9 @@ class GaugeTransformer:
                 if op.gate is not None and len(op.qubits) == 2 and op in self.target:
                     gauge = self.gauge_selector(rng).sample(op.gate, rng)
                     q0, q1 = op.qubits
-                    left.extend([g(q) for g in gs] for q, gs in zip(op.qubits, gauge.pre))
+                    left.extend([g(q) for g in gs] for q, gs in zip(op.qubits, gauge.pre()))
                     center.append(gauge.two_qubit_gate(q0, q1))
-                    right.extend([g(q) for g in gs] for q, gs in zip(op.qubits, gauge.post))
+                    right.extend([g(q) for g in gs] for q, gs in zip(op.qubits, gauge.post()))
                 else:
                     center.append(op)
             if left:

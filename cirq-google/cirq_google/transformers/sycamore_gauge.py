@@ -15,11 +15,7 @@
 """A gauge transformer for the Sycamore gate."""
 
 import math
-from cirq.transformers.gauge_compiling.gauge_compiling import (
-    GaugeTransformer,
-    GaugeSelector,
-    ConstantGauge,
-)
+from cirq.transformers import GaugeTransformer, GaugeSelector, ConstantGauge
 from cirq import ops
 
 from cirq_google.ops.sycamore_gate import SYC

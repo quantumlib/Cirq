@@ -20,34 +20,34 @@ from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTe
 from cirq.transformers import GaugeTransformer, GaugeSelector, ConstantGauge
 
 
-class _TEST_GATE(cirq.testing.TwoQubitGate):
+class ExampleGate(cirq.testing.TwoQubitGate):
     unitary = cirq.unitary(cirq.CZ**0.123)
 
     def _unitary_(self) -> np.ndarray:
         return self.unitary
 
 
-_TEST_TARGET = _TEST_GATE()
+_EXAMPLE_TARGET = ExampleGate()
 
 _GOOD_TRANSFORMER = GaugeTransformer(
-    target=_TEST_TARGET,
-    gauge_selector=GaugeSelector(gauges=[ConstantGauge(two_qubit_gate=_TEST_TARGET)]),
+    target=_EXAMPLE_TARGET,
+    gauge_selector=GaugeSelector(gauges=[ConstantGauge(two_qubit_gate=_EXAMPLE_TARGET)]),
 )
 
 _BAD_TRANSFORMER = GaugeTransformer(
-    target=_TEST_TARGET,
+    target=_EXAMPLE_TARGET,
     gauge_selector=GaugeSelector(
-        gauges=[ConstantGauge(two_qubit_gate=_TEST_TARGET, pre_q0=cirq.X)]
+        gauges=[ConstantGauge(two_qubit_gate=_EXAMPLE_TARGET, pre_q0=cirq.X)]
     ),
 )
 
 
 class TestValidTransformer(GaugeTester):
-    two_qubit_gate = _TEST_TARGET
+    two_qubit_gate = _EXAMPLE_TARGET
     gauge_transformer = _GOOD_TRANSFORMER
 
 
 @pytest.mark.xfail(strict=True)
 class TestInvalidTransformer(GaugeTester):
-    two_qubit_gate = _TEST_TARGET
+    two_qubit_gate = _EXAMPLE_TARGET
     gauge_transformer = _BAD_TRANSFORMER

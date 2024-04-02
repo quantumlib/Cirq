@@ -27,23 +27,28 @@ class GaugeTester:
     two_qubit_gate: cirq.Gate
     gauge_transformer: GaugeTransformer
 
-    @pytest.mark.parametrize('generation_seed', [*range(5)])
-    @pytest.mark.parametrize('transformation_seed', [*range(5)])
+    @pytest.mark.parametrize(
+        ['generation_seed', 'transformation_seed'],
+        np.random.RandomState(0).randint(2**31, size=(5, 2)).tolist(),
+    )
     def test_gauge_transformer(self, generation_seed, transformation_seed):
-        c = cirq.testing.random_circuit(
-            qubits=3,
-            n_moments=3,
-            op_density=1,
-            gate_domain={self.two_qubit_gate: 2, cirq.X: 1, cirq.Y: 1, cirq.H: 1, cirq.Z: 1},
-            random_state=generation_seed,
-        )
+        c = cirq.Circuit()
+        while not any(op.gate == self.two_qubit_gate for op in c.all_operations()):
+            c = cirq.testing.random_circuit(
+                qubits=3,
+                n_moments=3,
+                op_density=1,
+                gate_domain={self.two_qubit_gate: 2, cirq.X: 1, cirq.Y: 1, cirq.H: 1, cirq.Z: 1},
+                random_state=generation_seed,
+            )
+            generation_seed += 1
         nc = self.gauge_transformer(c, prng=np.random.default_rng(transformation_seed))
         cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
             nc, c, qubit_map={q: q for q in c.all_qubits()}
         )
 
     @patch('cirq.transformers.gauge_compiling.gauge_compiling._select', autospec=True)
-    @pytest.mark.parametrize('seed', [*range(5)])
+    @pytest.mark.parametrize('seed', range(5))
     def test_all_gauges(self, mock_select, seed):
         assert isinstance(
             self.gauge_transformer.gauge_selector, GaugeSelector
