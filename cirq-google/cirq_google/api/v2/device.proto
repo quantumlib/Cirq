@@ -56,7 +56,7 @@ message GateSpecification {
     CouplerPulse coupler_pulse = 9;
     Measurement meas = 10;
     Wait wait = 11;
-    FSimViaModel fsim = 12;
+    FSimViaModel fsim_via_model = 12;
   }
 
   // Gate types available to Google devices.

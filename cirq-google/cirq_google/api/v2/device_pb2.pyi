@@ -186,7 +186,7 @@ class GateSpecification(google.protobuf.message.Message):
     COUPLER_PULSE_FIELD_NUMBER: builtins.int
     MEAS_FIELD_NUMBER: builtins.int
     WAIT_FIELD_NUMBER: builtins.int
-    FSIM_FIELD_NUMBER: builtins.int
+    FSIM_VIA_MODEL_FIELD_NUMBER: builtins.int
     gate_duration_picos: builtins.int
     """This defines the approximate duration to run the gate on the device,
     specified as an integer number of picoseconds.
@@ -212,7 +212,7 @@ class GateSpecification(google.protobuf.message.Message):
     @property
     def wait(self) -> global___GateSpecification.Wait: ...
     @property
-    def fsim(self) -> global___GateSpecification.FSimViaModel: ...
+    def fsim_via_model(self) -> global___GateSpecification.FSimViaModel: ...
     def __init__(
         self,
         *,
@@ -227,11 +227,11 @@ class GateSpecification(google.protobuf.message.Message):
         coupler_pulse: global___GateSpecification.CouplerPulse | None = ...,
         meas: global___GateSpecification.Measurement | None = ...,
         wait: global___GateSpecification.Wait | None = ...,
-        fsim: global___GateSpecification.FSimViaModel | None = ...,
+        fsim_via_model: global___GateSpecification.FSimViaModel | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "fsim", b"fsim", "gate", b"gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "fsim", b"fsim", "gate", b"gate", "gate_duration_picos", b"gate_duration_picos", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["gate", b"gate"]) -> typing_extensions.Literal["syc", "sqrt_iswap", "sqrt_iswap_inv", "cz", "phased_xz", "virtual_zpow", "physical_zpow", "coupler_pulse", "meas", "wait", "fsim"] | None: ...
+    def HasField(self, field_name: typing_extensions.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["coupler_pulse", b"coupler_pulse", "cz", b"cz", "fsim_via_model", b"fsim_via_model", "gate", b"gate", "gate_duration_picos", b"gate_duration_picos", "meas", b"meas", "phased_xz", b"phased_xz", "physical_zpow", b"physical_zpow", "sqrt_iswap", b"sqrt_iswap", "sqrt_iswap_inv", b"sqrt_iswap_inv", "syc", b"syc", "virtual_zpow", b"virtual_zpow", "wait", b"wait"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["gate", b"gate"]) -> typing_extensions.Literal["syc", "sqrt_iswap", "sqrt_iswap_inv", "cz", "phased_xz", "virtual_zpow", "physical_zpow", "coupler_pulse", "meas", "wait", "fsim_via_model"] | None: ...
 
 global___GateSpecification = GateSpecification
 
