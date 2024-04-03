@@ -39,6 +39,7 @@ gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.Pha
 
 class OperationString(Enum):
     """String representations of operations supported by AQT resources."""
+
     MS = "MS"
     """Cirq: XXPowGate, AQT: RXX gate."""
 
