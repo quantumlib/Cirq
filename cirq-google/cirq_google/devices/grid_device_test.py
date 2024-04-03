@@ -170,6 +170,7 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
             ]
         ),
         cirq_google.SycamoreTargetGateset(),
@@ -195,6 +196,7 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
             ]
         ),
     )
@@ -638,6 +640,10 @@ def test_to_proto():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
+        ): base_duration
+        * 10,
     }
 
     spec = cirq_google.GridDevice._from_device_information(
