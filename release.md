@@ -5,7 +5,7 @@ themselves are created. Note that development is done on the `main`
 branch, so if you want to use a more stable version you should use one
 of the [releases](https://github.com/quantumlib/Cirq/releases) or
 install from pypi using `pip install cirq`.  The release from the
-latest commit to main can be installed with `pip install --pre cirq`.
+latest commit to main can be installed with `pip install cirq~=1.0.dev`.
 
 ## Versioning
 

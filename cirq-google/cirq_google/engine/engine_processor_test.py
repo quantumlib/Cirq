@@ -26,7 +26,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
 import cirq_google as cg
 from cirq_google.api import v2
-from cirq_google.engine import util
+from cirq_google.engine import engine_client, util
 from cirq_google.engine.engine import EngineContext
 from cirq_google.cloud import quantum
 
@@ -179,6 +179,14 @@ _RESULTS2_V2 = v2.result_pb2.Result(
 )
 
 
+class FakeEngineContext(EngineContext):
+    """Fake engine context for testing."""
+
+    def __init__(self, client: engine_client.EngineClient):
+        super().__init__()
+        self.client = client
+
+
 @pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client():
     with mock.patch(
@@ -299,6 +307,72 @@ def test_get_missing_device():
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     with pytest.raises(ValueError, match='device specification'):
         _ = processor.get_device()
+
+
+def test_get_sampler_initializes_default_device_configuration() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
+    sampler = processor.get_sampler()
+
+    assert sampler.run_name == "run"
+    assert sampler.device_config_name == "config_alias"
+
+
+def test_get_sampler_uses_custom_default_device_configuration_key() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_config_alias"
+            )
+        ),
+    )
+    sampler = processor.get_sampler(run_name="run1", device_config_name="config_alias1")
+
+    assert sampler.run_name == "run1"
+    assert sampler.device_config_name == "config_alias1"
+
+
+@pytest.mark.parametrize('run, config_alias', [('run', ''), ('', 'config')])
+def test_get_sampler_with_incomplete_device_configuration_uses_defaults(run, config_alias) -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_config_alias"
+            )
+        ),
+    )
+
+    with pytest.raises(
+        ValueError, match='Cannot specify only one of `run_name` and `device_config_name`'
+    ):
+        processor.get_sampler(run_name=run, device_config_name=config_alias)
+
+
+def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
+    client = mock.Mock(engine_client.EngineClient)
+    client.get_processor.return_value = quantum.QuantumProcessor(
+        default_device_config_key=quantum.DeviceConfigKey(run="run", config_alias="config_alias")
+    )
+
+    processor = cg.EngineProcessor('a', 'p', FakeEngineContext(client=client))
+    sampler = processor.get_sampler()
+
+    assert sampler.run_name == "run"
+    assert sampler.device_config_name == "config_alias"
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
