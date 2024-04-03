@@ -67,13 +67,13 @@ def get_op_string(op_obj: cirq.Operation) -> str:
         ValueError: If the gate is not one of the supported gates.
     """
     if isinstance(op_obj.gate, cirq.XXPowGate):
-        op_str = OperationString.MS
+        op_str = OperationString.MS.value
     elif isinstance(op_obj.gate, cirq.ZPowGate):
-        op_str = OperationString.Z
+        op_str = OperationString.Z.value
     elif isinstance(op_obj.gate, cirq.PhasedXPowGate):
-        op_str = OperationString.R
+        op_str = OperationString.R.value
     elif isinstance(op_obj.gate, cirq.MeasurementGate):
-        op_str = OperationString.MEASURE
+        op_str = OperationString.MEASURE.value
     else:
         raise ValueError(f'Got unknown gate on operation: {op_obj}.')
     return str(op_str)

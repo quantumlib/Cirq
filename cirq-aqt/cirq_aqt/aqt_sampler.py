@@ -299,18 +299,18 @@ class AQTSampler(cirq.Sampler):
             if number_of_measurements > 0:
                 raise ValueError("Need exactly one `MEASURE` operation at the end of the circuit.")
 
-            if legacy_op[0] == OperationString.Z:
+            if legacy_op[0] == OperationString.Z.value:
                 instruction = GateRZ(operation="RZ", qubit=legacy_op[2][0], phi=legacy_op[1])
 
-            elif legacy_op[0] == OperationString.R:
+            elif legacy_op[0] == OperationString.R.value:
                 instruction = GateR(
                     operation="R", qubit=legacy_op[3][0], theta=legacy_op[1], phi=legacy_op[2]
                 )
 
-            elif legacy_op[0] == OperationString.MS:
+            elif legacy_op[0] == OperationString.MS.value:
                 instruction = GateRXX(operation="RXX", qubits=legacy_op[2], theta=legacy_op[1])
 
-            elif legacy_op[0] == OperationString.MEASURE:
+            elif legacy_op[0] == OperationString.MEASURE.value:
                 instruction = Measure(operation="MEASURE")
                 number_of_measurements += 1
 
