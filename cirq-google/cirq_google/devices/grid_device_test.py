@@ -77,6 +77,7 @@ def _create_device_spec_with_horizontal_couplings():
         'coupler_pulse',
         'meas',
         'wait',
+        'fsim_via_model',
     ]
     gate_durations = [(n, i * 1000) for i, n in enumerate(gate_names)]
     for gate_name, duration in sorted(gate_durations):
@@ -109,6 +110,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse),
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate),
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate),
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -139,6 +141,10 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
+        ): base_duration
+        * 10,
     }
 
     expected_target_gatesets = (
@@ -164,6 +170,7 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
             ]
         ),
         cirq_google.SycamoreTargetGateset(),
@@ -189,6 +196,7 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
             ]
         ),
     )
@@ -505,6 +513,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
         cirq.ops.measurement_gate.MeasurementGate,
         cirq.ops.wait_gate.WaitGate,
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -525,6 +534,10 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
+        ): base_duration
+        * 10,
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
@@ -627,6 +640,10 @@ def test_to_proto():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
+        ): base_duration
+        * 10,
     }
 
     spec = cirq_google.GridDevice._from_device_information(
