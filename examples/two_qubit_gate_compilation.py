@@ -88,7 +88,7 @@ def main(samples: int = 1000, max_infidelity: float = 0.01):
         print(f'Maximum infidelity of "failed" compilation: {np.max(failed_infidelities_arr)}')
 
     plt.figure()
-    plt.hist(infidelities_arr, bins=25, range=[0, max_infidelity * 1.1])
+    plt.hist(infidelities_arr, bins=25, range=(0.0, max_infidelity * 1.1))  # pragma: no cover
     ylim = plt.ylim()
     plt.plot([max_infidelity] * 2, ylim, '--', label='Maximum tabulation infidelity')
     plt.xlabel('Compiled gate infidelity vs target')

@@ -788,9 +788,9 @@ def test_tagged_act_on():
             pass
 
     q = cirq.LineQubit(1)
-    from cirq.protocols.act_on_protocol_test import DummySimulationState
+    from cirq.protocols.act_on_protocol_test import ExampleSimulationState
 
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoActOn()(q).with_tags("test"), args)
@@ -799,11 +799,11 @@ def test_tagged_act_on():
 
 
 def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.testing.SingleQubitGate):
+    class Example(cirq.testing.SingleQubitGate):
         def matrix(self):
             pass
 
-    g = Dummy()
+    g = Example()
     assert g.num_qubits() == 1
 
     test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]

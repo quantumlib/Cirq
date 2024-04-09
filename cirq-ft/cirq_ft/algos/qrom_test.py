@@ -18,23 +18,38 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @pytest.mark.parametrize(
-    "data", [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
+    "data,num_controls",
+    [
+        pytest.param(
+            data,
+            num_controls,
+            id=f"{num_controls}-data{idx}",
+            marks=pytest.mark.slow if num_controls == 2 and idx == 2 else (),
+        )
+        for idx, data in enumerate(
+            [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
+        )
+        for num_controls in [0, 1, 2]
+    ],
 )
-@pytest.mark.parametrize("num_controls", [0, 1, 2])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_1d(data, num_controls):
     qrom = cirq_ft.QROM.build(*data, num_controls=num_controls)
-    greedy_mm = cirq_ft.GreedyQubitManager('a', maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager('a', maximize_reuse=True)
     g = cirq_ft.testing.GateHelper(qrom, context=cirq.DecompositionContext(greedy_mm))
     decomposed_circuit = cirq.Circuit(cirq.decompose(g.operation, context=g.context))
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
 
     assert (
-        len(inverse.all_qubits()) <= g.r.total_bits() + g.r['selection'].total_bits() + num_controls
+        len(inverse.all_qubits())
+        <= infra.total_bits(g.r) + g.r.get_left('selection').total_bits() + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 
@@ -44,7 +59,7 @@ def test_qrom_1d(data, num_controls):
             qubit_vals.update(
                 zip(
                     g.quregs['selection'],
-                    iter_bits(selection_integer, g.r['selection'].total_bits()),
+                    iter_bits(selection_integer, g.r.get_left('selection').total_bits()),
                 )
             )
             if num_controls:
@@ -68,12 +83,13 @@ def test_qrom_1d(data, num_controls):
             )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_diagram():
     d0 = np.array([1, 2, 3])
     d1 = np.array([4, 5, 6])
     qrom = cirq_ft.QROM.build(d0, d1)
     q = cirq.LineQubit.range(cirq.num_qubits(qrom))
-    circuit = cirq.Circuit(qrom.on_registers(**qrom.registers.split_qubits(q)))
+    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -93,6 +109,7 @@ def test_qrom_diagram():
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_repr():
     data = [np.array([1, 2]), np.array([3, 5])]
     selection_bitsizes = tuple((s - 1).bit_length() for s in data[0].shape)
@@ -101,6 +118,7 @@ def test_qrom_repr():
     cirq.testing.assert_equivalent_repr(qrom, setup_code="import cirq_ft\nimport numpy as np")
 
 
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('qrom')
 
@@ -108,6 +126,7 @@ def test_notebook():
 @pytest.mark.parametrize(
     "data", [[[1, 2, 3, 4, 5]], [[1, 2, 3], [4, 5, 10]], [[1], [2], [3], [4], [5], [6]]]
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_t_complexity(data):
     qrom = cirq_ft.QROM.build(*data)
     g = cirq_ft.testing.GateHelper(qrom)
@@ -119,7 +138,7 @@ def test_t_complexity(data):
 def _assert_qrom_has_diagram(qrom: cirq_ft.QROM, expected_diagram: str):
     gh = cirq_ft.testing.GateHelper(qrom)
     op = gh.operation
-    context = cirq.DecompositionContext(qubit_manager=cirq_ft.GreedyQubitManager(prefix="anc"))
+    context = cirq.DecompositionContext(qubit_manager=cirq.GreedyQubitManager(prefix="anc"))
     circuit = cirq.Circuit(cirq.decompose_once(op, context=context))
     selection = [
         *itertools.chain.from_iterable(gh.quregs[reg.name] for reg in qrom.selection_registers)
@@ -131,6 +150,7 @@ def _assert_qrom_has_diagram(qrom: cirq_ft.QROM, expected_diagram: str):
     cirq.testing.assert_has_diagram(circuit, expected_diagram, qubit_order=qubit_order)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_variable_spacing():
     # Tests for variable spacing optimization applied from https://arxiv.org/abs/2007.07391
     data = [1, 2, 3, 4, 5, 5, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8]  # Figure 3a.
@@ -141,8 +161,10 @@ def test_qrom_variable_spacing():
     assert cirq_ft.t_complexity(cirq_ft.QROM.build(data)).t == (8 - 2) * 4
     # Works as expected when multiple data arrays are to be loaded.
     data = [1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5]
+    # (a) Both data sequences are identical
     assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, data)).t == (5 - 2) * 4
-    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, 2 * np.array(data))).t == (16 - 2) * 4
+    # (b) Both data sequences have identical structure, even though the elements are not same.
+    assert cirq_ft.t_complexity(cirq_ft.QROM.build(data, 2 * np.array(data))).t == (5 - 2) * 4
     # Works as expected when multidimensional input data is to be loaded
     qrom = cirq_ft.QROM.build(
         np.array(
@@ -191,10 +213,24 @@ target01: ────────────────X───────
 
 
 @pytest.mark.parametrize(
-    "data",
-    [[np.arange(6).reshape(2, 3), 4 * np.arange(6).reshape(2, 3)], [np.arange(8).reshape(2, 2, 2)]],
+    "data,num_controls",
+    [
+        pytest.param(
+            data,
+            num_controls,
+            id=f"{num_controls}-data{idx}",
+            marks=pytest.mark.slow if num_controls == 2 and idx == 0 else (),
+        )
+        for idx, data in enumerate(
+            [
+                [np.arange(6).reshape(2, 3), 4 * np.arange(6).reshape(2, 3)],
+                [np.arange(8).reshape(2, 2, 2)],
+            ]
+        )
+        for num_controls in [0, 1, 2]
+    ],
 )
-@pytest.mark.parametrize("num_controls", [0, 1, 2])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_multi_dim(data, num_controls):
     selection_bitsizes = tuple((s - 1).bit_length() for s in data[0].shape)
     target_bitsizes = tuple(int(np.max(d)).bit_length() for d in data)
@@ -204,14 +240,14 @@ def test_qrom_multi_dim(data, num_controls):
         target_bitsizes=target_bitsizes,
         num_controls=num_controls,
     )
-    greedy_mm = cirq_ft.GreedyQubitManager('a', maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager('a', maximize_reuse=True)
     g = cirq_ft.testing.GateHelper(qrom, context=cirq.DecompositionContext(greedy_mm))
     decomposed_circuit = cirq.Circuit(cirq.decompose(g.operation, context=g.context))
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
 
     assert (
         len(inverse.all_qubits())
-        <= g.r.total_bits() + qrom.selection_registers.total_bits() + num_controls
+        <= infra.total_bits(g.r) + infra.total_bits(qrom.selection_registers) + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 
@@ -245,6 +281,7 @@ def test_qrom_multi_dim(data, num_controls):
     ],
 )
 @pytest.mark.parametrize("num_controls", [0, 1, 2])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_ndim_t_complexity(data, num_controls):
     selection_bitsizes = tuple((s - 1).bit_length() for s in data[0].shape)
     target_bitsizes = tuple(int(np.max(d)).bit_length() for d in data)

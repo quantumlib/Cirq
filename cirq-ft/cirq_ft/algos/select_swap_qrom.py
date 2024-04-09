@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 from typing import List, Optional, Sequence, Tuple
 from numpy.typing import NDArray
 
 import cirq
 import numpy as np
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import qrom, swap_network
 
@@ -62,7 +62,7 @@ class SelectSwapQROM(infra.GateWithRegisters):
     target register as follows:
 
         * Divide the `N` data elements into batches of size `B` (a variable) and
-        load each batch simultaneously into `B` distinct target registers using the conventional
+        load each batch simultaneously into `B` distinct target signature using the conventional
         QROM. This has T-complexity `O(N / B)`.
         * Use `SwapWithZeroGate` to swap the `i % B`'th target register in batch number `i / B`
         to load `data[i]` in the 0'th target register. This has T-complexity `O(B * b)`.
@@ -96,12 +96,12 @@ class SelectSwapQROM(infra.GateWithRegisters):
         SelectSwapQROM requires:
             - Selection register & ancilla of size `logN` for QROM data load.
             - 1 clean target register of size `b`.
-            - `B` dirty target registers, each of size `b`.
+            - `B` dirty target signature, each of size `b`.
 
         Similarly, to load `M` such data sequences, `SelectSwapQROM` requires:
             - Selection register & ancilla of size `logN` for QROM data load.
             - 1 clean target register of size `sum(target_bitsizes)`.
-            - `B` dirty target registers, each of size `sum(target_bitsizes)`.
+            - `B` dirty target signature, each of size `sum(target_bitsizes)`.
 
         Args:
             data: Sequence of integers to load in the target register. If more than one sequence
@@ -138,25 +138,23 @@ class SelectSwapQROM(infra.GateWithRegisters):
         self._data = tuple(tuple(d) for d in data)
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters(
-            [
-                infra.SelectionRegister(
-                    'selection', self.selection_q + self.selection_r, self._iteration_length
-                )
-            ]
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
+        return (
+            infra.SelectionRegister(
+                'selection', self.selection_q + self.selection_r, self._iteration_length
+            ),
         )
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        clean_output = {}
-        for sequence_id in range(self._num_sequences):
-            clean_output[f'target{sequence_id}'] = self._target_bitsizes[sequence_id]
-        return infra.Registers.build(**clean_output)
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        return tuple(
+            infra.Register(f'target{sequence_id}', self._target_bitsizes[sequence_id])
+            for sequence_id in range(self._num_sequences)
+        )
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.selection_registers, *self.target_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.selection_registers, *self.target_registers])
 
     @property
     def data(self) -> Tuple[Tuple[int, ...], ...]:
@@ -212,15 +210,16 @@ class SelectSwapQROM(infra.GateWithRegisters):
             target_bitsizes=tuple(qrom_target_bitsizes),
         )
         qrom_op = qrom_gate.on_registers(
-            selection=q, **qrom_gate.target_registers.split_qubits(ordered_target_qubits)
+            selection=q, **infra.split_qubits(qrom_gate.target_registers, ordered_target_qubits)
         )
         swap_with_zero_gate = swap_network.SwapWithZeroGate(
-            k, self.target_registers.total_bits(), self.block_size
+            k, infra.total_bits(self.target_registers), self.block_size
         )
         swap_with_zero_op = swap_with_zero_gate.on_registers(
-            selection=r, **swap_with_zero_gate.target_registers.split_qubits(ordered_target_qubits)
+            selection=r,
+            **infra.split_qubits(swap_with_zero_gate.target_registers, ordered_target_qubits),
         )
-        clean_targets = self.target_registers.merge_qubits(**targets)
+        clean_targets = infra.merge_qubits(self.target_registers, **targets)
         cnot_op = cirq.Moment(cirq.CNOT(s, t) for s, t in zip(ordered_target_qubits, clean_targets))
         # Yield the operations in correct order.
         yield qrom_op

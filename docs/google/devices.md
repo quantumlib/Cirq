@@ -27,7 +27,7 @@ of total circuit run-time. Circuits that exceed this limit will return a
 
 ### Moment structure
 
-The hardware will attempt to run your circuit as it exists in cirq to the
+The hardware will attempt to run your circuit as it exists in Cirq to the
 extent possible.  The device will respect the moment structure of your circuit
 and will execute successive moments in a serial fashion.
 
@@ -65,10 +65,39 @@ cirq.Circuit(
 
 The duration of a moment is the time of its longest gate.  For example,
 if a moment has gates of duration 12ns, 25ns, and 32ns, the entire moment
-will take 32ns.  Qubits executing the shorter gtes will idle during the rest
+will take 32ns.  Qubits executing the shorter gates will idle during the rest
 of the time.  To minimize the duration of the circuit, it is best to align
 gates of the same duration together when possible.  See the
 [best practices](./best_practices.ipynb) for more details.
+
+## Device Parameter Sweeps
+
+Certain device parameters can be changed for the duration of
+a circuit in order to support hardware parameter sweeps.  For instance,
+frequencies, amplitudes, and various other parameters can be modified
+in order to find optimal values or explore the parameter space.
+
+These parameter names are generally not public, so you will need to
+work with a Google sponsor or resident in order to access the proper
+key names.  These parameters are specified as lists of strings representing
+a path from the device config's folder (or the "sample folder").
+
+These keys can be swept like any other symbol using the
+`cirq_google.study.DeviceParameter` variable.  For instance, the
+following code will sweep qubit (4,8)'s pi amplitude from 0.0 to 1.0
+in 0.02 increments.
+
+
+```
+descriptor = cirq_google.study.DeviceParameter( ["q4_8", "piAmp"])
+sweep = cirq.Linspace("q4_8.piAmp", 0, 1, 51, metadata=descriptor)
+```
+
+Any `DeviceParameter` keys that are set to a single value using a `cirq.Points`
+object will change that value for all circuits run.
+
+If units are required, they should be specified as a string (such as 'MHz')
+using the `units` argument of the `DeviceParameter`.
 
 ## Gates supported
 
@@ -188,7 +217,7 @@ $$
 This gate has a duration of 32ns and can be used in
 `cirq_google.SQRT_ISWAP_GATESET` or in the `cirq_google.FSIM_GATESET`.
 
-This gate is implemented by using an entangling gate surrounding by
+This gate is implemented by using an entangling gate surrounded by
 Z gates.  The preceding Z gates are physical Z gates and will absorb
 any phases that have accumulated through the use of Virtual Z gates.
 Following the entangler are virtual Z gates to match phases back.  All
@@ -238,7 +267,8 @@ expressions, but only a subset of Sympy expression types are supported:
 `sympy.Symbol`, `sympy.Add`, `sympy.Mul`, and `sympy.Pow`.
 
 ## Specific Device Layouts
-The following devices are provided as part of cirq and can help you get your
+
+The following devices are provided as part of Cirq and can help you get your
 circuit ready for running on hardware by verifying that you are using
 appropriate qubits.
 
@@ -253,7 +283,7 @@ daily basis.
 
 The Sycamore device is a 54 qubit device introduced in 2019 with a
 [publication in Nature](https://www.nature.com/articles/s41586-019-1666-5).
-Note that the supremacy result in the paper utilized a device that had 53 qubits since
+Note that the beyond-classical result in the paper utilized a device that had 53 qubits since
 one qubit had malfunctioned.
 
 It can be accessed using `cirq.GridQubit(row, col)` using grid coordinates specified below.
@@ -272,7 +302,7 @@ It can be accessed using `cirq.GridQubit(row, col)` using grid coordinates speci
 9 ----I-----
 ```
 
-It can be accessing by using `cirq_google.Sycamore`. This device has two possible
+It can be accessed by using `cirq_google.Sycamore`. This device has two possible
 two-qubits gates that can be used.
 
 *  Square root of ISWAP. The gate `cirq.ISWAP ** 0.5` or `cirq.ISWAP ** -0.5` can be
@@ -304,32 +334,3 @@ with and presents less hardware-related complications than using the full Sycamo
 
 This grid can be accessed using `cirq_google.Sycamore23` and uses the same gate sets and
 compilation as the Sycamore device.
-
-
-### Bristlecone
-
-The Bristlecone processor is a 72 qubit device
-[announced by Google in 2018](https://ai.googleblog.com/2018/03/a-preview-of-bristlecone-googles-new.html).
-
-The device is arrayed on a grid in a diamond pattern like this.
-
-```
-            11
-  012345678901
-0 -----AB-----
-1 ----ABCD----
-2 ---ABCDEF---
-3 --ABCDEFGH--
-4 -ABCDEFGHIJ-
-5 ABCDEFGHIJKL
-6 -CDEFGHIJKL-
-7 --EFGHIJKL--
-8 ---GHIJKL---
-9 ----IJKL----
-10-----KL-----
-```
-
-It can be accessing by using `cirq_google.Bristlecone`. Circuits can be compiled to it by using
-`cirq_google.optimized_for_xmon` or by using `cirq_google.optimized_for_sycamore` with
-optimizer_type `xmon`.
-

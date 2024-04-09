@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import abc
+from functools import cached_property
 from typing import Sequence, Tuple
 from numpy.typing import NDArray
 
 import cirq
 import numpy as np
-from cirq._compat import cached_method, cached_property
+from cirq._compat import cached_method
 from cirq_ft import infra
 from cirq_ft.algos import qrom
 from cirq_ft.infra.bit_tools import iter_bits
@@ -102,27 +103,25 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         pass
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters(
-            [infra.SelectionRegister('selection', self._selection_bitsize, len(self.angles[0]))]
-        )
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
+        return (infra.SelectionRegister('selection', self._selection_bitsize, len(self.angles[0])),)
 
     @cached_property
-    def kappa_load_target(self) -> infra.Registers:
-        return infra.Registers.build(kappa_load_target=self.kappa)
+    def kappa_load_target(self) -> Tuple[infra.Register, ...]:
+        return (infra.Register('kappa_load_target', self.kappa),)
 
     @cached_property
-    def rotations_target(self) -> infra.Registers:
-        return infra.Registers.build(rotations_target=self._target_bitsize)
+    def rotations_target(self) -> Tuple[infra.Register, ...]:
+        return (infra.Register('rotations_target', self._target_bitsize),)
 
     @property
     @abc.abstractmethod
-    def interleaved_unitary_target(self) -> infra.Registers:
+    def interleaved_unitary_target(self) -> Tuple[infra.Register, ...]:
         pass
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [
                 *self.selection_registers,
                 *self.kappa_load_target,
@@ -195,7 +194,7 @@ class ProgrammableRotationGateArray(ProgrammableRotationGateArrayBase):
     ):
         super().__init__(*angles, kappa=kappa, rotation_gate=rotation_gate)
         if not interleaved_unitaries:
-            identity_gate = cirq.IdentityGate(self.rotations_target.total_bits())
+            identity_gate = cirq.IdentityGate(infra.total_bits(self.rotations_target))
             interleaved_unitaries = (identity_gate,) * (len(angles) - 1)
         assert len(interleaved_unitaries) == len(angles) - 1
         assert all(cirq.num_qubits(u) == self._target_bitsize for u in interleaved_unitaries)
@@ -205,5 +204,5 @@ class ProgrammableRotationGateArray(ProgrammableRotationGateArrayBase):
         return self._interleaved_unitaries[index].on(*qubit_regs['rotations_target'])
 
     @cached_property
-    def interleaved_unitary_target(self) -> infra.Registers:
-        return infra.Registers.build()
+    def interleaved_unitary_target(self) -> Tuple[infra.Register, ...]:
+        return ()

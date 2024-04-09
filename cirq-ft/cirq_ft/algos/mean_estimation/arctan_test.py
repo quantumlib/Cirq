@@ -18,10 +18,12 @@ import numpy as np
 import pytest
 from cirq_ft.algos.mean_estimation.arctan import ArcTan
 from cirq_ft.infra.bit_tools import iter_bits_fixed_point
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @pytest.mark.parametrize('selection_bitsize', [3, 4])
 @pytest.mark.parametrize('target_bitsize', [3, 5, 6])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_arctan(selection_bitsize, target_bitsize):
     gate = ArcTan(selection_bitsize, target_bitsize)
     maps = {}
@@ -43,6 +45,7 @@ def test_arctan(selection_bitsize, target_bitsize):
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_arctan_t_complexity():
     gate = ArcTan(4, 5)
     assert cirq_ft.t_complexity(gate) == cirq_ft.TComplexity(t=5)

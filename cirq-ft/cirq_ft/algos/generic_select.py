@@ -14,13 +14,13 @@
 
 """Gates for applying generic selected unitaries."""
 
+from functools import cached_property
 from typing import Collection, Optional, Sequence, Tuple, Union
 from numpy.typing import NDArray
 
 import attr
 import cirq
 import numpy as np
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import select_and_prepare, unary_iteration_gate
 
@@ -50,6 +50,7 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
             dense pauli string must contain `target_bitsize` terms.
         control_val: Optional control value. If specified, a singly controlled gate is constructed.
     """
+
     selection_bitsize: int
     target_bitsize: int
     select_unitaries: Tuple[cirq.DensePauliString, ...] = attr.field(converter=_to_tuple)
@@ -68,23 +69,20 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
             )
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
-        registers = [] if self.control_val is None else [infra.Register('control', 1)]
-        return infra.Registers(registers)
+    def control_registers(self) -> Tuple[infra.Register, ...]:
+        return () if self.control_val is None else (infra.Register('control', 1),)
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters(
-            [
-                infra.SelectionRegister(
-                    'selection', self.selection_bitsize, len(self.select_unitaries)
-                )
-            ]
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
+        return (
+            infra.SelectionRegister(
+                'selection', self.selection_bitsize, len(self.select_unitaries)
+            ),
         )
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        return infra.Registers.build(target=self.target_bitsize)
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        return (infra.Register('target', self.target_bitsize),)
 
     def decompose_from_registers(
         self, context, **quregs: NDArray[cirq.Qid]  # type:ignore[type-var]

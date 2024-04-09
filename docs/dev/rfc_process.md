@@ -26,7 +26,7 @@ The following are NOT major features:
 *   Fixing a bug.
 *   Extending the functionality of an existing method in a natural way.
 
-If you are not sure if a feature constitute as a “major feature”, just submit a Github issue with a description, 
+If you are not sure if a feature constitute as a “major feature”, just submit a GitHub issue with a description, 
 and one of the maintainers will flag the issue as a major feature if necessary.
 
 ## How to submit an RFC
@@ -37,12 +37,12 @@ Open a [feature request](https://github.com/quantumlib/Cirq/issues/new?assignees
 and have a discussion with the maintainers. Mention that you are willing to write an RFC.
 2. [Join the cirq-dev Google Group](https://groups.google.com/forum/#!forum/cirq-dev) to get an invitation to our weekly Cirq Cynq meeting. 
 3. Draft your RFC. 
-    * Follow the [RFC template](https://tinyurl.com/cirq-rfc-template), link the Github issue in your RFC.
+    * Follow the [RFC template](https://tinyurl.com/cirq-rfc-template), link the GitHub issue in your RFC.
     * Make sure to share your doc with cirq-dev@googlegroups.com for comments.
     * Link the RFC in your issue.
 4. Recruiting a sponsor:
     * A sponsor must be a maintainer of the project or the product manager.
-    * Write a comment in your Github issue that calls out that you are "Looking for a sponsor". A maintainer will mark the issue with a label: "rfc/needs-sponsor".
+    * Write a comment in your GitHub issue that calls out that you are "Looking for a sponsor". A maintainer will mark the issue with a label: "rfc/needs-sponsor".
     * While it might take some time to get a maintainer to sponsor your RFC, it is essential, as the sponsor will facilitate the process for reviewing your design.
     * Tips to recruit a sponsor: 1) keep commenting on the issue weekly 2) attend Cirq Cynq and push for a sponsor.
 5. Agree with your sponsor on a Cirq Cync meeting to present the RFC so that other contributors and maintainers can become more familiar with your design.
@@ -89,10 +89,10 @@ If you are working on new code to implement an RFC:
 *   Make sure you understand the feature and the design approved in the RFC. Ask questions and discuss the approach before beginning work.
 *   New features must include new unit tests that verify the feature works as expected.
 *   Add or update relevant API documentation. Reference the RFC in the new documentation.
-*   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) file in the project repo you're contributing to.
+*   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) file in the project repo you're contributing to.
 *   Run unit tests before submitting your code.
 *   Work with the RFC sponsor to successfully land the new code. This could include PR / marketing of the new feature as well.
-*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_compat.py) as an example.
+*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_compat.py) as an example.
 
 
 ## Keeping the bar high

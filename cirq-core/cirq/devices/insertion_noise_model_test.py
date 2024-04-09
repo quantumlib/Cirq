@@ -47,6 +47,8 @@ def test_insertion_noise():
     moment_3 = cirq.Moment(cirq.Z(q0), cirq.X(q1))
     assert model.noisy_moment(moment_3, system_qubits=[q0, q1]) == [moment_3]
 
+    cirq.testing.assert_equivalent_repr(model)
+
 
 def test_colliding_noise_qubits():
     # Check that noise affecting other qubits doesn't cause issues.
@@ -60,6 +62,8 @@ def test_colliding_noise_qubits():
         cirq.Moment(cirq.CNOT(q1, q2)),
         cirq.Moment(cirq.CNOT(q1, q2)),
     ]
+
+    cirq.testing.assert_equivalent_repr(model)
 
 
 def test_prepend():
@@ -106,3 +110,5 @@ def test_supertype_matching():
 
     moment_1 = cirq.Moment(cirq.Y(q0))
     assert model.noisy_moment(moment_1, system_qubits=[q0]) == [moment_1, cirq.Moment(cirq.T(q0))]
+
+    cirq.testing.assert_equivalent_repr(model)

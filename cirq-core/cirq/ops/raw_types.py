@@ -230,7 +230,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Returns: a `cirq.Operation` which is this gate applied to the given
             qubits.
         """
-        return ops.gate_operation.GateOperation(self, list(qubits))
+        return ops.gate_operation.GateOperation(self, qubits)
 
     def on_each(self, *targets: Union[Qid, Iterable[Any]]) -> List['cirq.Operation']:
         """Returns a list of operations applying the gate to all targets.

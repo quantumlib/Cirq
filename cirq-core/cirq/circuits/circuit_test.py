@@ -23,7 +23,6 @@ import pytest
 import sympy
 
 import cirq
-import cirq.testing
 from cirq import circuits
 from cirq import ops
 from cirq.testing.devices import ValidatingTestDevice
@@ -72,19 +71,32 @@ moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 def test_from_moments():
     a, b, c, d = cirq.LineQubit.range(4)
-    assert cirq.Circuit.from_moments(
+    moment = cirq.Moment(cirq.Z(a), cirq.Z(b))
+    subcircuit = cirq.FrozenCircuit.from_moments(cirq.X(c), cirq.Y(d))
+    circuit = cirq.Circuit.from_moments(
+        moment,
+        subcircuit,
         [cirq.X(a), cirq.Y(b)],
         [cirq.X(c)],
         [],
         cirq.Z(d),
         [cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')],
-    ) == cirq.Circuit(
+    )
+    assert circuit == cirq.Circuit(
+        cirq.Moment(cirq.Z(a), cirq.Z(b)),
+        cirq.Moment(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(cirq.Moment(cirq.X(c)), cirq.Moment(cirq.Y(d)))
+            )
+        ),
         cirq.Moment(cirq.X(a), cirq.Y(b)),
         cirq.Moment(cirq.X(c)),
         cirq.Moment(),
         cirq.Moment(cirq.Z(d)),
         cirq.Moment(cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')),
     )
+    assert circuit[0] is moment
+    assert circuit[1].operations[0].circuit is subcircuit
 
 
 def test_alignment():
@@ -4519,6 +4531,100 @@ def test_freeze_not_relocate_moments():
     c = cirq.Circuit(cirq.X(q), cirq.measure(q))
     f = c.freeze()
     assert [mc is fc for mc, fc in zip(c, f)] == [True, True]
+
+
+def test_freeze_is_cached():
+    q = cirq.q(0)
+    c = cirq.Circuit(cirq.X(q), cirq.measure(q))
+    f0 = c.freeze()
+    f1 = c.freeze()
+    assert f1 is f0
+
+    c.append(cirq.Y(q))
+    f2 = c.freeze()
+    f3 = c.freeze()
+    assert f2 is not f1
+    assert f3 is f2
+
+    c[-1] = cirq.Moment(cirq.Y(q))
+    f4 = c.freeze()
+    f5 = c.freeze()
+    assert f4 is not f3
+    assert f5 is f4
+
+
+@pytest.mark.parametrize(
+    "circuit, mutate",
+    [
+        (
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
+            lambda c: c.__setitem__(0, cirq.Moment(cirq.Y(cirq.q(0)))),
+        ),
+        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c.__delitem__(0)),
+        (cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))), lambda c: c.__imul__(2)),
+        (
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
+            lambda c: c.insert(1, cirq.Y(cirq.q(0))),
+        ),
+        (
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
+            lambda c: c.insert_into_range([cirq.Y(cirq.q(1)), cirq.M(cirq.q(1))], 0, 2),
+        ),
+        (
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
+            lambda c: c.insert_at_frontier([cirq.Y(cirq.q(0)), cirq.Y(cirq.q(1))], 1),
+        ),
+        (
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
+            lambda c: c.batch_replace([(0, cirq.X(cirq.q(0)), cirq.Y(cirq.q(0)))]),
+        ),
+        (
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0), cirq.q(1))),
+            lambda c: c.batch_insert_into([(0, cirq.X(cirq.q(1)))]),
+        ),
+        (
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
+            lambda c: c.batch_insert([(1, cirq.Y(cirq.q(0)))]),
+        ),
+        (
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.M(cirq.q(0))),
+            lambda c: c.clear_operations_touching([cirq.q(0)], [0]),
+        ),
+    ],
+)
+def test_mutation_clears_cached_attributes(circuit, mutate):
+    cached_attributes = [
+        "_all_qubits",
+        "_frozen",
+        "_is_measurement",
+        "_is_parameterized",
+        "_parameter_names",
+    ]
+
+    for attr in cached_attributes:
+        assert getattr(circuit, attr) is None, f"{attr=} is not None"
+
+    # Check that attributes are cached after getting them.
+    qubits = circuit.all_qubits()
+    frozen = circuit.freeze()
+    is_measurement = cirq.is_measurement(circuit)
+    is_parameterized = cirq.is_parameterized(circuit)
+    parameter_names = cirq.parameter_names(circuit)
+
+    for attr in cached_attributes:
+        assert getattr(circuit, attr) is not None, f"{attr=} is None"
+
+    # Check that getting again returns same object.
+    assert circuit.all_qubits() is qubits
+    assert circuit.freeze() is frozen
+    assert cirq.is_measurement(circuit) is is_measurement
+    assert cirq.is_parameterized(circuit) is is_parameterized
+    assert cirq.parameter_names(circuit) is parameter_names
+
+    # Check that attributes are cleared after mutation.
+    mutate(circuit)
+    for attr in cached_attributes:
+        assert getattr(circuit, attr) is None, f"{attr=} is not None"
 
 
 def test_factorize_one_factor():

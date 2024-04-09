@@ -16,19 +16,33 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
-@pytest.mark.parametrize("data", [[[1, 2, 3, 4, 5]], [[1, 2, 3], [3, 2, 1]]])
-@pytest.mark.parametrize("block_size", [None, 1, 2, 3])
+@pytest.mark.parametrize(
+    "data,block_size",
+    [
+        pytest.param(
+            data,
+            block_size,
+            id=f"{block_size}-data{didx}",
+            marks=pytest.mark.slow if block_size == 3 and didx == 1 else (),
+        )
+        for didx, data in enumerate([[[1, 2, 3, 4, 5]], [[1, 2, 3], [3, 2, 1]]])
+        for block_size in [None, 1, 2, 3]
+    ],
+)
+@allow_deprecated_cirq_ft_use_in_tests
 def test_select_swap_qrom(data, block_size):
     qrom = cirq_ft.SelectSwapQROM(*data, block_size=block_size)
-    qubit_regs = qrom.registers.get_named_qubits()
+    qubit_regs = infra.get_named_qubits(qrom.signature)
     selection = qubit_regs["selection"]
     selection_q, selection_r = selection[: qrom.selection_q], selection[qrom.selection_q :]
     targets = [qubit_regs[f"target{i}"] for i in range(len(data))]
 
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     qrom_circuit = cirq.Circuit(cirq.decompose(qrom.on_registers(**qubit_regs), context=context))
 
@@ -47,7 +61,7 @@ def test_select_swap_qrom(data, block_size):
         cirq.H.on_each(*dirty_target_ancilla),
     )
     all_qubits = sorted(circuit.all_qubits())
-    for selection_integer in range(qrom.selection_registers.iteration_lengths[0]):
+    for selection_integer in range(qrom.selection_registers[0].iteration_length):
         svals_q = list(iter_bits(selection_integer // qrom.block_size, len(selection_q)))
         svals_r = list(iter_bits(selection_integer % qrom.block_size, len(selection_r)))
         qubit_vals = {x: 0 for x in all_qubits}
@@ -67,17 +81,19 @@ def test_select_swap_qrom(data, block_size):
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qrom_repr():
     qrom = cirq_ft.SelectSwapQROM([1, 2], [3, 5])
     cirq.testing.assert_equivalent_repr(qrom, setup_code="import cirq_ft\n")
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qroam_diagram():
     data = [[1, 2, 3], [4, 5, 6]]
     blocksize = 2
     qrom = cirq_ft.SelectSwapQROM(*data, block_size=blocksize)
     q = cirq.LineQubit.range(cirq.num_qubits(qrom))
-    circuit = cirq.Circuit(qrom.on_registers(**qrom.registers.split_qubits(q)))
+    circuit = cirq.Circuit(qrom.on_registers(**infra.split_qubits(qrom.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -98,11 +114,13 @@ def test_qroam_diagram():
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qroam_raises():
     with pytest.raises(ValueError, match="must be of equal length"):
         _ = cirq_ft.SelectSwapQROM([1, 2], [1, 2, 3])
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_qroam_hashable():
     qrom = cirq_ft.SelectSwapQROM([1, 2, 5, 6, 7, 8])
     assert hash(qrom) is not None

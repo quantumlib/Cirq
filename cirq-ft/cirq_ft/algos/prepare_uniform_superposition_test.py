@@ -14,12 +14,15 @@
 
 import cirq
 import cirq_ft
+from cirq_ft import infra
 import numpy as np
 import pytest
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @pytest.mark.parametrize("n", [*range(3, 20), 25, 41])
 @pytest.mark.parametrize("num_controls", [0, 1])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_prepare_uniform_superposition(n, num_controls):
     gate = cirq_ft.PrepareUniformSuperposition(n, cv=[1] * num_controls)
     all_qubits = cirq.LineQubit.range(cirq.num_qubits(gate))
@@ -39,6 +42,7 @@ def test_prepare_uniform_superposition(n, num_controls):
 
 
 @pytest.mark.parametrize("n", [*range(3, 41, 3)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_prepare_uniform_superposition_t_complexity(n: int):
     gate = cirq_ft.PrepareUniformSuperposition(n)
     result = cirq_ft.t_complexity(gate)
@@ -51,10 +55,11 @@ def test_prepare_uniform_superposition_t_complexity(n: int):
     result = cirq_ft.t_complexity(gate)
     # TODO(#233): Controlled-H is currently counted as a separate rotation, but it can be
     # implemented using 2 T-gates.
-    assert result.rotations <= 2 + 2 * gate.registers.total_bits()
+    assert result.rotations <= 2 + 2 * infra.total_bits(gate.signature)
     assert result.t <= 12 * (n - 1).bit_length()
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_prepare_uniform_superposition_consistent_protocols():
     gate = cirq_ft.PrepareUniformSuperposition(5, cv=(1, 0))
     # Repr

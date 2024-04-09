@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import abc
+from functools import cached_property
+from typing import Tuple
 
-from cirq._compat import cached_property
 from cirq_ft import infra
 
 
@@ -38,22 +39,19 @@ class SelectOracle(infra.GateWithRegisters):
 
     @property
     @abc.abstractmethod
-    def control_registers(self) -> infra.Registers:
-        ...
+    def control_registers(self) -> Tuple[infra.Register, ...]: ...
 
     @property
     @abc.abstractmethod
-    def selection_registers(self) -> infra.SelectionRegisters:
-        ...
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]: ...
 
     @property
     @abc.abstractmethod
-    def target_registers(self) -> infra.Registers:
-        ...
+    def target_registers(self) -> Tuple[infra.Register, ...]: ...
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [*self.control_registers, *self.selection_registers, *self.target_registers]
         )
 
@@ -75,13 +73,12 @@ class PrepareOracle(infra.GateWithRegisters):
 
     @property
     @abc.abstractmethod
-    def selection_registers(self) -> infra.SelectionRegisters:
-        ...
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]: ...
 
     @cached_property
-    def junk_registers(self) -> infra.Registers:
-        return infra.Registers([])
+    def junk_registers(self) -> Tuple[infra.Register, ...]:
+        return ()
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.selection_registers, *self.junk_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.selection_registers, *self.junk_registers])

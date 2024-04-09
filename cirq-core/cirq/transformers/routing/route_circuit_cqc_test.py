@@ -107,6 +107,48 @@ def test_circuit_with_measurement_gates():
     cirq.testing.assert_same_circuits(routed_circuit, circuit)
 
 
+def test_circuit_with_two_qubit_intermediate_measurement_gate():
+    device = cirq.testing.construct_ring_device(2)
+    device_graph = device.metadata.nx_graph
+    router = cirq.RouteCQC(device_graph)
+    qs = cirq.LineQubit.range(2)
+    hard_coded_mapper = cirq.HardCodedInitialMapper({qs[i]: qs[i] for i in range(2)})
+    circuit = cirq.Circuit([cirq.Moment(cirq.measure(qs)), cirq.Moment(cirq.H.on_each(qs))])
+    routed_circuit = router(
+        circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)
+    )
+    device.validate_circuit(routed_circuit)
+
+
+def test_circuit_with_multi_qubit_intermediate_measurement_gate_and_with_default_key():
+    device = cirq.testing.construct_ring_device(3)
+    device_graph = device.metadata.nx_graph
+    router = cirq.RouteCQC(device_graph)
+    qs = cirq.LineQubit.range(3)
+    hard_coded_mapper = cirq.HardCodedInitialMapper({qs[i]: qs[i] for i in range(3)})
+    circuit = cirq.Circuit([cirq.Moment(cirq.measure(qs)), cirq.Moment(cirq.H.on_each(qs))])
+    routed_circuit = router(
+        circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)
+    )
+    expected = cirq.Circuit([cirq.Moment(cirq.measure_each(qs)), cirq.Moment(cirq.H.on_each(qs))])
+    cirq.testing.assert_same_circuits(routed_circuit, expected)
+
+
+def test_circuit_with_multi_qubit_intermediate_measurement_gate_with_custom_key():
+    device = cirq.testing.construct_ring_device(3)
+    device_graph = device.metadata.nx_graph
+    router = cirq.RouteCQC(device_graph)
+    qs = cirq.LineQubit.range(3)
+    hard_coded_mapper = cirq.HardCodedInitialMapper({qs[i]: qs[i] for i in range(3)})
+    circuit = cirq.Circuit(
+        [cirq.Moment(cirq.measure(qs, key="test")), cirq.Moment(cirq.H.on_each(qs))]
+    )
+    with pytest.raises(ValueError):
+        _ = router(
+            circuit, initial_mapper=hard_coded_mapper, context=cirq.TransformerContext(deep=True)
+        )
+
+
 def test_circuit_with_non_unitary_and_global_phase():
     device = cirq.testing.construct_ring_device(4)
     device_graph = device.metadata.nx_graph

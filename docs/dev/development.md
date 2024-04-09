@@ -72,15 +72,15 @@ This remote can be used to merge changes from Cirq's main repository into your l
    
     You can check the branches that are on the ```upstream``` remote by
     running ```git remote -va``` or ```git branch -r```.
-Most importantly you should see ```upstream/master``` listed.
-1. Merge the upstream master into your local master so that it is up to date.
+Most importantly you should see ```upstream/main``` listed.
+1. Merge the upstream main into your local main so that it is up to date.
     
    ```shell
-    git checkout master
-    git merge upstream/master
+    git checkout main
+    git merge upstream/main
    ```
     
-At this point your local git master should be synced with the master from the main cirq repo.
+At this point your local git main should be synced with the main from the main cirq repo.
 
 
 ## Setting up an environment
@@ -94,15 +94,15 @@ See the previous section for instructions.
 
 1. Install system dependencies.
 
-    Make sure you have python 3.9 or greater.
+    Make sure you have python 3.10 or greater.
     You can install most other dependencies via `apt-get`:
 
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
-    
-    This installs docker and docker-compose among other things. You may need to restart
-    docker or configure permissions, see 
+
+    This installs docker among other things. You may need to restart
+    docker or configure permissions, see
     [docker install instructions](https://docs.docker.com/engine/install/ubuntu/).
     Note that docker is necessary only for cirq_rigetti.
 
@@ -159,9 +159,9 @@ get picked up!
 ## Protocol buffers
 
 [Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
-Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/master/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
+Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
-If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/master/dev_tools).
+If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/main/dev_tools).
 This script uses grpcio-tools and protobuf version 3.8.0 to generate the python proto api.
 
 ## Continuous integration and local testing
@@ -177,7 +177,7 @@ mypy --config-file=dev_tools/conf/mypy.ini .
 ```
 
 This can be a bit tedious, because you have to specify the configuration files each time.
-A more convenient way to run checks is to via the scripts in the [check/](https://github.com/quantumlib/Cirq/tree/master/check) directory, which specify configuration arguments for you and cover more use cases:
+A more convenient way to run checks is to via the scripts in the [check/](https://github.com/quantumlib/Cirq/tree/main/check) directory, which specify configuration arguments for you and cover more use cases:
 
 - **Fast checks (complete in seconds or tens of seconds)**
 
@@ -255,8 +255,8 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 
 In the above, `[BASE_REVISION]` controls what commit is being compared
 against for an incremental check (e.g. in order to determine which files changed.)
-If not specified, it defaults to the `upstream/master` branch if it exists, or
-else the `origin/master` branch if it exists, or else the `master` branch.
+If not specified, it defaults to the `upstream/main` branch if it exists, or
+else the `origin/main` branch if it exists, or else the `main` branch.
 The actual commit used for comparison is the `git merge-base` of the base
 revision and the working directory.
 
@@ -343,7 +343,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
     ./dev_tools/packaging/publish-dev-package.sh EXPECTED_VERSION --test
     ```
 
-    You must specify the EXPECTED_VERSION argument to match the version in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_version.py), and it must contain the string `dev`.
+    You must specify the EXPECTED_VERSION argument to match the version in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_version.py), and it must contain the string `dev`.
     This is to prevent accidentally uploading the wrong version.
 
     The script will append the current date and time to the expected version number before uploading to test pypi.
@@ -376,13 +376,13 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     If everything goes smoothly, the script will finish by printing `VERIFIED`.
 
-3. Set the version number in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_version.py).
+3. Set the version number in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_version.py).
 
     Development versions end with `.dev` or `.dev#`.
     For example, `0.0.4.dev500` is a development version of the release version `0.0.4`.
     For a release, create a pull request turning `#.#.#.dev*` into `#.#.#` and a follow up pull request turning `#.#.#` into `(#+1).#.#.dev`.
 
-4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/master/dev_tools/packaging/produce-package.sh) to produce pypi artifacts.
+4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/packaging/produce-package.sh) to produce pypi artifacts.
 
     ```bash
     ./dev_tools/packaging/produce-package.sh dist

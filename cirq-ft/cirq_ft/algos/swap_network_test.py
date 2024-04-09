@@ -18,7 +18,9 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 random.seed(12345)
 
@@ -27,6 +29,7 @@ random.seed(12345)
     "selection_bitsize, target_bitsize, n_target_registers",
     [[3, 5, 1], [2, 2, 3], [2, 3, 4], [3, 2, 5], [4, 1, 10]],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_swap_with_zero_gate(selection_bitsize, target_bitsize, n_target_registers):
     # Construct the gate.
     gate = cirq_ft.SwapWithZeroGate(selection_bitsize, target_bitsize, n_target_registers)
@@ -62,10 +65,11 @@ def test_swap_with_zero_gate(selection_bitsize, target_bitsize, n_target_registe
         expected_state_vector[data[selection_integer]] = 0
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_swap_with_zero_gate_diagram():
     gate = cirq_ft.SwapWithZeroGate(3, 2, 4)
     q = cirq.LineQubit.range(cirq.num_qubits(gate))
-    circuit = cirq.Circuit(gate.on_registers(**gate.registers.split_qubits(q)))
+    circuit = cirq.Circuit(gate.on_registers(**infra.split_qubits(gate.signature, q)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -95,6 +99,7 @@ def test_swap_with_zero_gate_diagram():
     cirq.testing.assert_equivalent_repr(gate, setup_code='import cirq_ft')
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_multi_target_cswap():
     qubits = cirq.LineQubit.range(5)
     c, q_x, q_y = qubits[0], qubits[1:3], qubits[3:]
@@ -137,6 +142,7 @@ def test_multi_target_cswap():
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_multi_target_cswap_make_on():
     qubits = cirq.LineQubit.range(5)
     c, q_x, q_y = qubits[:1], qubits[1:3], qubits[3:]
@@ -145,11 +151,13 @@ def test_multi_target_cswap_make_on():
     assert cswap1 == cswap2
 
 
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('swap_network')
 
 
 @pytest.mark.parametrize("n", [*range(1, 6)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_t_complexity(n):
     g = cirq_ft.MultiTargetCSwap(n)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
@@ -161,13 +169,15 @@ def test_t_complexity(n):
 @pytest.mark.parametrize(
     "selection_bitsize, target_bitsize, n_target_registers, want",
     [
-        [3, 5, 1, cirq_ft.TComplexity(t=0, clifford=0)],
-        [2, 2, 3, cirq_ft.TComplexity(t=16, clifford=86)],
-        [2, 3, 4, cirq_ft.TComplexity(t=36, clifford=195)],
-        [3, 2, 5, cirq_ft.TComplexity(t=32, clifford=172)],
-        [4, 1, 10, cirq_ft.TComplexity(t=36, clifford=189)],
+        [3, 5, 1, (0, 0)],
+        [2, 2, 3, (16, 86)],
+        [2, 3, 4, (36, 195)],
+        [3, 2, 5, (32, 172)],
+        [4, 1, 10, (36, 189)],
     ],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_swap_with_zero_t_complexity(selection_bitsize, target_bitsize, n_target_registers, want):
+    t_complexity = cirq_ft.TComplexity(t=want[0], clifford=want[1])
     gate = cirq_ft.SwapWithZeroGate(selection_bitsize, target_bitsize, n_target_registers)
-    assert want == cirq_ft.t_complexity(gate)
+    assert t_complexity == cirq_ft.t_complexity(gate)

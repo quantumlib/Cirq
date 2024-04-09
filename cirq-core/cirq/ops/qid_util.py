@@ -19,18 +19,15 @@ if TYPE_CHECKING:
 
 
 @overload
-def q(__x: int) -> 'cirq.LineQubit':
-    ...
+def q(__x: int) -> 'cirq.LineQubit': ...
 
 
 @overload
-def q(__row: int, __col: int) -> 'cirq.GridQubit':
-    ...
+def q(__row: int, __col: int) -> 'cirq.GridQubit': ...
 
 
 @overload
-def q(__name: str) -> 'cirq.NamedQubit':
-    ...
+def q(__name: str) -> 'cirq.NamedQubit': ...
 
 
 def q(*args: Union[int, str]) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:

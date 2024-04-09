@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
+from functools import cached_property
+from typing import Sequence, Union, Tuple
 from numpy.typing import NDArray
 
 import attr
 import cirq
 import numpy as np
 
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import unary_iteration_gate
 
@@ -34,18 +34,26 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
 
 
     Args:
-        selection_regs: Indexing `select` registers of type `SelectionRegisters`. It also contains
+        selection_regs: Indexing `select` signature of type `SelectionRegister`. It also contains
             information about the iteration length of each selection register.
-        control_regs: Control registers for constructing a controlled version of the gate.
+        control_regs: Control signature for constructing a controlled version of the gate.
         target_gate: Single qubit gate to be applied to the target qubits.
 
     References:
         See Fig 9 of https://arxiv.org/abs/1805.03662 for more details.
     """
 
-    selection_regs: infra.SelectionRegisters
-    control_regs: infra.Registers = infra.Registers.build(control=1)
+    selection_regs: Tuple[infra.SelectionRegister, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, infra.SelectionRegister) else tuple(v)
+    )
+    control_regs: Tuple[infra.Register, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, infra.Register) else tuple(v)
+    )
     target_gate: cirq.Gate = cirq.Y
+
+    @control_regs.default
+    def control_regs_default(self):
+        return infra.Register('control', 1)
 
     @classmethod
     def make_on(
@@ -55,38 +63,39 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
         **quregs: Union[Sequence[cirq.Qid], NDArray[cirq.Qid]],  # type: ignore[type-var]
     ) -> cirq.Operation:
         """Helper constructor to automatically deduce selection_regs attribute."""
-        return cls(
-            selection_regs=infra.SelectionRegisters(
-                [
-                    infra.SelectionRegister(
-                        'selection', len(quregs['selection']), len(quregs['target'])
-                    )
-                ]
+        return SelectedMajoranaFermionGate(
+            selection_regs=infra.SelectionRegister(
+                'selection', len(quregs['selection']), len(quregs['target'])
             ),
             target_gate=target_gate,
         ).on_registers(**quregs)
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
+    def control_registers(self) -> Tuple[infra.Register, ...]:
         return self.control_regs
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.selection_regs
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        return infra.Registers.build(target=self.selection_regs.total_iteration_size)
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        total_iteration_size = np.prod(
+            tuple(reg.iteration_length for reg in self.selection_registers)
+        )
+        return (infra.Register('target', int(total_iteration_size)),)
 
     @cached_property
-    def extra_registers(self) -> infra.Registers:
-        return infra.Registers.build(accumulator=1)
+    def extra_registers(self) -> Tuple[infra.Register, ...]:
+        return (infra.Register('accumulator', 1),)
 
     def decompose_from_registers(
         self, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         quregs['accumulator'] = np.array(context.qubit_manager.qalloc(1))
-        control = quregs[self.control_regs[0].name] if self.control_registers.total_bits() else []
+        control = (
+            quregs[self.control_regs[0].name] if infra.total_bits(self.control_registers) else []
+        )
         yield cirq.X(*quregs['accumulator']).controlled_by(*control)
         yield super(SelectedMajoranaFermionGate, self).decompose_from_registers(
             context=context, **quregs
@@ -94,9 +103,9 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
         context.qubit_manager.qfree(quregs['accumulator'])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ["@"] * self.control_registers.total_bits()
-        wire_symbols += ["In"] * self.selection_registers.total_bits()
-        wire_symbols += [f"Z{self.target_gate}"] * self.target_registers.total_bits()
+        wire_symbols = ["@"] * infra.total_bits(self.control_registers)
+        wire_symbols += ["In"] * infra.total_bits(self.selection_registers)
+        wire_symbols += [f"Z{self.target_gate}"] * infra.total_bits(self.target_registers)
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def nth_operation(  # type: ignore[override]
@@ -107,8 +116,9 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
         accumulator: Sequence[cirq.Qid],
         **selection_indices: int,
     ) -> cirq.OP_TREE:
+        selection_shape = tuple(reg.iteration_length for reg in self.selection_regs)
         selection_idx = tuple(selection_indices[reg.name] for reg in self.selection_regs)
-        target_idx = self.selection_registers.to_flat_idx(*selection_idx)
+        target_idx = int(np.ravel_multi_index(selection_idx, selection_shape))
         yield cirq.CNOT(control, *accumulator)
         yield self.target_gate(target[target_idx]).controlled_by(control)
         yield cirq.CZ(*accumulator, target[target_idx])

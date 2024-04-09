@@ -30,12 +30,6 @@ RETRYABLE_GOOGLE_API_EXCEPTIONS = [
 ]
 
 
-class ProgramAlreadyExistsError(Exception):
-    def __init__(self, program_name: str):
-        # Call the base class constructor with the parameters it needs
-        super().__init__(f"'{program_name}' already exists")
-
-
 class StreamError(Exception):
     pass
 
@@ -109,8 +103,6 @@ class StreamManager:
 
     def __init__(self, grpc_client: quantum.QuantumEngineServiceAsyncClient):
         self._grpc_client = grpc_client
-        # TODO(#5996) Make this local to the asyncio thread.
-        self._request_queue: Optional[asyncio.Queue] = None
         # Used to determine whether the stream coroutine is actively running, and provides a way to
         # cancel it.
         self._manage_stream_loop_future: Optional[duet.AwaitableFuture[None]] = None
@@ -121,6 +113,16 @@ class StreamManager:
         # interface.
         self._response_demux = ResponseDemux()
         self._next_available_message_id = 0
+        # Construct queue in AsyncioExecutor to ensure it binds to the correct event loop, since it
+        # is used by asyncio coroutines.
+        self._request_queue = self._executor.submit(self._make_request_queue).result()
+
+    async def _make_request_queue(self) -> asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]]:
+        """Returns a queue used to back the request iterator passed to the stream.
+
+        If `None` is put into the queue, the request iterator will stop.
+        """
+        return asyncio.Queue()
 
     def submit(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
@@ -142,7 +144,6 @@ class StreamManager:
             A future for the job result, or the job if the job has failed.
 
         Raises:
-            ProgramAlreadyExistsError: if the program already exists.
             StreamError: if there is a non-retryable error while executing the job.
             ValueError: if program name is not set.
             concurrent.futures.CancelledError: if the stream is stopped while a job is in flight.
@@ -153,8 +154,12 @@ class StreamManager:
             raise ValueError('Program name must be set.')
 
         if self._manage_stream_loop_future is None or self._manage_stream_loop_future.done():
-            self._manage_stream_loop_future = self._executor.submit(self._manage_stream)
-        return self._executor.submit(self._manage_execution, project_name, program, job)
+            self._manage_stream_loop_future = self._executor.submit(
+                self._manage_stream, self._request_queue
+            )
+        return self._executor.submit(
+            self._manage_execution, self._request_queue, project_name, program, job
+        )
 
     def stop(self) -> None:
         """Closes the open stream and resets all management resources."""
@@ -168,9 +173,9 @@ class StreamManager:
 
     def _reset(self):
         """Resets the manager state."""
-        self._request_queue = None
         self._manage_stream_loop_future = None
         self._response_demux = ResponseDemux()
+        self._request_queue = self._executor.submit(self._make_request_queue).result()
 
     @property
     def _executor(self) -> AsyncioExecutor:
@@ -178,7 +183,9 @@ class StreamManager:
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
-    async def _manage_stream(self) -> None:
+    async def _manage_stream(
+        self, request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]]
+    ) -> None:
         """The stream coroutine, an asyncio coroutine to manage QuantumRunStream.
 
         This coroutine reads responses from the stream and forwards them to the ResponseDemux, where
@@ -187,25 +194,32 @@ class StreamManager:
         When the stream breaks, the stream is reopened, and all execution coroutines are notified.
 
         There is at most a single instance of this coroutine running.
+
+        Args:
+            request_queue: The queue holding requests from the execution coroutine.
         """
-        self._request_queue = asyncio.Queue()
         while True:
             try:
                 # The default gRPC client timeout is used.
                 response_iterable = await self._grpc_client.quantum_run_stream(
-                    _request_iterator(self._request_queue)
+                    _request_iterator(request_queue)
                 )
                 async for response in response_iterable:
                     self._response_demux.publish(response)
             except asyncio.CancelledError:
+                await request_queue.put(None)
                 break
             except BaseException as e:
-                # TODO(#5996) Close the request iterator to close the existing stream.
                 # Note: the message ID counter is not reset upon a new stream.
+                await request_queue.put(None)
                 self._response_demux.publish_exception(e)  # Raise to all request tasks
 
     async def _manage_execution(
-        self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
+        self,
+        request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]],
+        project_name: str,
+        program: quantum.QuantumProgram,
+        job: quantum.QuantumJob,
     ) -> Union[quantum.QuantumResult, quantum.QuantumJob]:
         """The execution coroutine, an asyncio coroutine to manage the lifecycle of a job execution.
 
@@ -216,8 +230,20 @@ class StreamManager:
         error by sending another request. The exact request type depends on the error.
 
         There is one execution coroutine per running job submission.
+
+        Args:
+            request_queue: The queue used to send requests to the stream coroutine.
+            project_name: The full project ID resource path associated with the job.
+            program: The Quantum Engine program representing the circuit to be executed.
+            job: The Quantum Engine job to be executed.
+
+        Raises:
+            concurrent.futures.CancelledError: if either the request is cancelled or the stream
+                coroutine is cancelled.
+            google.api_core.exceptions.GoogleAPICallError: if the stream breaks with a non-retryable
+                error.
+            ValueError: if the response is of a type which is not recognized by this client.
         """
-        # Construct requests ahead of time to be reused for retries.
         create_program_and_job_request = quantum.QuantumRunStreamRequest(
             parent=project_name,
             create_quantum_program_and_job=quantum.CreateQuantumProgramAndJobRequest(
@@ -225,19 +251,12 @@ class StreamManager:
             ),
         )
 
-        while self._request_queue is None:
-            # Wait for the stream coroutine to start.
-            # Ignoring coverage since this is rarely triggered.
-            # TODO(#5996) Consider awaiting for the queue to become available, once it is changed
-            # to be local to the asyncio thread.
-            await asyncio.sleep(1)  # pragma: no cover
-
         current_request = create_program_and_job_request
         while True:
             try:
                 current_request.message_id = self._generate_message_id()
                 response_future = self._response_demux.subscribe(current_request.message_id)
-                await self._request_queue.put(current_request)
+                await request_queue.put(current_request)
                 response = await response_future
 
             # Broken stream
@@ -272,6 +291,7 @@ class StreamManager:
                     current_request,
                     create_program_and_job_request,
                     _to_create_job_request(create_program_and_job_request),
+                    _to_get_result_request(create_program_and_job_request),
                 )
                 continue
             else:  # pragma: no cover
@@ -291,9 +311,10 @@ class StreamManager:
 
 def _get_retry_request_or_raise(
     error: quantum.StreamError,
-    current_request,
-    create_program_and_job_request,
+    current_request: quantum.QuantumRunStreamRequest,
+    create_program_and_job_request: quantum.QuantumRunStreamRequest,
     create_job_request: quantum.QuantumRunStreamRequest,
+    get_result_request: quantum.QuantumRunStreamRequest,
 ):
     """Decide whether the given stream error is retryable.
 
@@ -304,19 +325,18 @@ def _get_retry_request_or_raise(
             return create_program_and_job_request
     elif error.code == Code.PROGRAM_ALREADY_EXISTS:
         if 'create_quantum_program_and_job' in current_request:
-            raise ProgramAlreadyExistsError(
-                current_request.create_quantum_program_and_job.quantum_program.name
-            )
+            # If the program already exists and is created as part of the stream client, the job
+            # should also exist because they are created at the same time.
+            # If the job is missing, the program is created outside StreamManager.
+            # A `CreateQuantumJobRequest` will be issued after a `GetQuantumResultRequest` is
+            # attempted.
+            return get_result_request
     elif error.code == Code.JOB_DOES_NOT_EXIST:
         if 'get_quantum_result' in current_request:
             return create_job_request
-
-    # Code.JOB_ALREADY_EXISTS should never happen.
-    # The first stream request is always a CreateQuantumProgramAndJobRequest, which never fails
-    # with this error because jobs are scoped within a program.
-    # CreateQuantumJobRequests would fail with a PROGRAM_ALREADY_EXISTS if the job already
-    # exists because program and job creation happen atomically for a
-    # CreateQuantumProgramAndJobRequest.
+    elif error.code == Code.JOB_ALREADY_EXISTS:
+        if not 'get_quantum_result' in current_request:
+            return get_result_request
 
     raise StreamError(error.message)
 
@@ -325,16 +345,15 @@ def _is_retryable_error(e: google_exceptions.GoogleAPICallError) -> bool:
     return any(isinstance(e, exception_type) for exception_type in RETRYABLE_GOOGLE_API_EXCEPTIONS)
 
 
-# TODO(#5996) Add stop signal to the request iterator.
 async def _request_iterator(
-    request_queue: asyncio.Queue,
+    request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]],
 ) -> AsyncIterator[quantum.QuantumRunStreamRequest]:
     """The request iterator for Quantum Engine client RPC quantum_run_stream().
 
     Every call to this method generates a new iterator.
     """
-    while True:
-        yield await request_queue.get()
+    while request := await request_queue.get():
+        yield request
 
 
 def _to_create_job_request(

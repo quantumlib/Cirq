@@ -237,7 +237,7 @@ def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
-def test_mutually_exclusive_blacklist(mod_spec: ModuleJsonTestSpec):
+def test_mutually_exclusive_not_serialize_lists(mod_spec: ModuleJsonTestSpec):
     common = set(mod_spec.should_not_be_serialized) & set(mod_spec.not_yet_serializable)
     assert len(common) == 0, (
         f"Defined in both {mod_spec.name} 'Not yet serializable' "
@@ -373,6 +373,11 @@ class SBKImpl(cirq.SerializableByKey):
             and self.data_dict == other.data_dict
         )
 
+    def __hash__(self):
+        return hash(
+            (self.name, tuple(self.data_list), self.data_tuple, frozenset(self.data_dict.items()))
+        )
+
     def _json_dict_(self):
         return {
             "name": self.name,
@@ -386,12 +391,12 @@ class SBKImpl(cirq.SerializableByKey):
         return cls(name, data_list, tuple(data_tuple), data_dict)
 
 
-def test_context_serialization():
+def test_serializable_by_key():
     def custom_resolver(name):
         if name == 'SBKImpl':
             return SBKImpl
 
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
 
     sbki_empty = SBKImpl('sbki_empty')
     assert_json_roundtrip_works(sbki_empty, resolvers=test_resolvers)
@@ -406,21 +411,10 @@ def test_context_serialization():
     assert_json_roundtrip_works(sbki_dict, resolvers=test_resolvers)
 
     sbki_json = str(cirq.to_json(sbki_dict))
-    # There should be exactly one context item for each previous SBKImpl.
-    assert sbki_json.count('"cirq_type": "_SerializedContext"') == 4
-    # There should be exactly two key items for each of sbki_(empty|list|tuple),
-    # plus one for the top-level sbki_dict.
-    assert sbki_json.count('"cirq_type": "_SerializedKey"') == 7
-    # The final object should be a _SerializedKey for sbki_dict.
-    final_obj_idx = sbki_json.rfind('{')
-    final_obj = sbki_json[final_obj_idx : sbki_json.find('}', final_obj_idx) + 1]
-    assert (
-        final_obj
-        == """{
-      "cirq_type": "_SerializedKey",
-      "key": 4
-    }"""
-    )
+    # There are 4 SBKImpl instances, one each for empty, list, tuple, dict.
+    assert sbki_json.count('"cirq_type": "VAL"') == 4
+    # There are 3 SBKImpl refs, one each for empty, list, and tuple.
+    assert sbki_json.count('"cirq_type": "REF"') == 3
 
     list_sbki = [sbki_dict]
     assert_json_roundtrip_works(list_sbki, resolvers=test_resolvers)
@@ -428,31 +422,9 @@ def test_context_serialization():
     dict_sbki = {'a': sbki_dict}
     assert_json_roundtrip_works(dict_sbki, resolvers=test_resolvers)
 
-    assert sbki_list != json_serialization._SerializedKey(sbki_list)
-
     # Serialization keys have unique suffixes.
     sbki_other_list = SBKImpl('sbki_list', data_list=[sbki_list])
     assert_json_roundtrip_works(sbki_other_list, resolvers=test_resolvers)
-
-
-def test_internal_serializer_types():
-    sbki = SBKImpl('test_key')
-    key = 1
-    test_key = json_serialization._SerializedKey(key)
-    test_context = json_serialization._SerializedContext(sbki, 1)
-    test_serialization = json_serialization._ContextualSerialization(sbki)
-
-    key_json = test_key._json_dict_()
-    with pytest.raises(TypeError, match='_from_json_dict_'):
-        _ = json_serialization._SerializedKey._from_json_dict_(**key_json)
-
-    context_json = test_context._json_dict_()
-    with pytest.raises(TypeError, match='_from_json_dict_'):
-        _ = json_serialization._SerializedContext._from_json_dict_(**context_json)
-
-    serialization_json = test_serialization._json_dict_()
-    with pytest.raises(TypeError, match='_from_json_dict_'):
-        _ = json_serialization._ContextualSerialization._from_json_dict_(**serialization_json)
 
 
 # during test setup deprecated submodules are inspected and trigger the

@@ -19,15 +19,17 @@ import IPython.display
 import ipywidgets
 import pytest
 from cirq_ft.infra.jupyter_tools import display_gate_and_compilation, svg_circuit
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_svg_circuit():
     g = cq_testing.GateHelper(cirq_ft.And(cv=(1, 1, 1)))
     svg = svg_circuit(g.circuit, g.r)
     svg_str = svg.data
 
     # check that the order is respected in the svg data.
-    assert svg_str.find('control') < svg_str.find('ancilla') < svg_str.find('target')
+    assert svg_str.find('ctrl') < svg_str.find('junk') < svg_str.find('target')
 
     # Check svg_circuit raises.
     with pytest.raises(ValueError):
@@ -36,13 +38,14 @@ def test_svg_circuit():
         svg_circuit(cirq.Circuit(cirq.Moment()))
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_display_gate_and_compilation(monkeypatch):
     call_args = []
 
-    def _dummy_display(stuff):
+    def _mock_display(stuff):
         call_args.append(stuff)
 
-    monkeypatch.setattr(IPython.display, "display", _dummy_display)
+    monkeypatch.setattr(IPython.display, "display", _mock_display)
     g = cq_testing.GateHelper(cirq_ft.And(cv=(1, 1, 1)))
     display_gate_and_compilation(g)
 
@@ -51,6 +54,7 @@ def test_display_gate_and_compilation(monkeypatch):
     assert len(display_arg.children) == 2
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_circuit_with_costs():
     g = cq_testing.GateHelper(cirq_ft.And(cv=(1, 1, 1)))
     circuit = cirq_ft.infra.jupyter_tools.circuit_with_costs(g.circuit)

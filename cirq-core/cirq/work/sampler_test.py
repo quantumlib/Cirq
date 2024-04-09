@@ -211,6 +211,31 @@ def test_sampler_run_batch():
         assert np.array_equal(result.measurements['m'], np.array([[0], [0]], dtype='uint8'))
 
 
+@duet.sync
+async def test_run_batch_async_calls_run_sweep_asynchronously():
+    """Test run_batch_async calls run_sweep_async without waiting."""
+    finished = []
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
+    circuit2 = cirq.Circuit(cirq.Y(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
+    params1 = cirq.Points('t', [0.3, 0.7])
+    params2 = cirq.Points('t', [0.4, 0.6])
+    params_list = [params1, params2]
+
+    class AsyncSampler(cirq.Sampler):
+        async def run_sweep_async(self, program, params, repetitions: int = 1):
+            if params == params1:
+                await duet.sleep(0.001)
+
+            finished.append(params)
+
+    await AsyncSampler().run_batch_async(
+        [circuit1, circuit2], params_list=params_list, repetitions=[1, 2]
+    )
+
+    assert finished == list(reversed(params_list))
+
+
 def test_sampler_run_batch_default_params_and_repetitions():
     sampler = cirq.ZerosSampler()
     a = cirq.LineQubit(0)

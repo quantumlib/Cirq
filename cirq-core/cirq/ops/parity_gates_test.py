@@ -258,7 +258,7 @@ def test_trace_distance():
 def test_ms_arguments():
     eq_tester = cirq.testing.EqualsTester()
     eq_tester.add_equality_group(
-        cirq.ms(np.pi / 2), cirq.ops.MSGate(rads=np.pi / 2), cirq.XXPowGate(global_shift=-0.5)
+        cirq.ms(np.pi / 2), cirq.MSGate(rads=np.pi / 2), cirq.XXPowGate(global_shift=-0.5)
     )
     eq_tester.add_equality_group(
         cirq.ms(np.pi / 4), cirq.XXPowGate(exponent=0.5, global_shift=-0.5)
@@ -323,12 +323,27 @@ b: ───×───────────MS(π)───
 
 
 def test_json_serialization():
-    def custom_resolver(cirq_type: str):
-        if cirq_type == "MSGate":
-            return cirq.ops.MSGate
-        return None
+    assert cirq.read_json(json_text=cirq.to_json(cirq.ms(np.pi / 2))) == cirq.ms(np.pi / 2)
 
-    assert cirq.read_json(
-        json_text=cirq.to_json(cirq.ms(np.pi / 2)), resolvers=[custom_resolver]
-    ) == cirq.ms(np.pi / 2)
-    assert custom_resolver('X') is None
+
+@pytest.mark.parametrize('gate_cls', (cirq.XXPowGate, cirq.YYPowGate, cirq.ZZPowGate))
+@pytest.mark.parametrize(
+    'exponent,is_clifford',
+    ((0, True), (0.5, True), (0.75, False), (1, True), (1.5, True), (-1.5, True)),
+)
+def test_clifford_protocols(gate_cls: type[cirq.EigenGate], exponent: float, is_clifford: bool):
+    gate = gate_cls(exponent=exponent)
+    assert hasattr(gate, '_decompose_into_clifford_with_qubits_')
+    if is_clifford:
+        clifford_decomposition = cirq.Circuit(
+            gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2))
+        )
+        assert cirq.has_stabilizer_effect(gate)
+        assert cirq.has_stabilizer_effect(clifford_decomposition)
+        if exponent == 0:
+            assert clifford_decomposition == cirq.Circuit()
+        else:
+            np.testing.assert_allclose(cirq.unitary(gate), cirq.unitary(clifford_decomposition))
+    else:
+        assert not cirq.has_stabilizer_effect(gate)
+        assert gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2)) is NotImplemented

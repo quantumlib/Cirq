@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import dataclasses
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence
 
 from cirq import devices
 from cirq.devices import noise_utils
@@ -74,3 +74,23 @@ class InsertionNoiseModel(devices.NoiseModel):
         if self.prepend:
             return [*noise_steps.moments, moment]
         return [moment, *noise_steps.moments]
+
+    def __repr__(self) -> str:
+        return (
+            f'cirq.devices.InsertionNoiseModel(ops_added={self.ops_added},'
+            + f' prepend={self.prepend},'
+            + f' require_physical_tag={self.require_physical_tag})'
+        )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'ops_added': list(self.ops_added.items()),
+            'prepend': self.prepend,
+            'require_physical_tag': self.require_physical_tag,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, ops_added, prepend, require_physical_tag, **kwargs):
+        return cls(
+            ops_added=dict(ops_added), prepend=prepend, require_physical_tag=require_physical_tag
+        )

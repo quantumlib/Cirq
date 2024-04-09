@@ -22,7 +22,7 @@ from cirq.sim import simulation_state
 from cirq.testing import PhaseUsingCleanAncilla, PhaseUsingDirtyAncilla
 
 
-class DummyQuantumState(cirq.QuantumStateRepresentation):
+class ExampleQuantumState(cirq.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers=True):
         pass
 
@@ -33,9 +33,9 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
         return self
 
 
-class DummySimulationState(cirq.SimulationState):
+class ExampleSimulationState(cirq.SimulationState):
     def __init__(self, qubits=cirq.LineQubit.range(2)):
-        super().__init__(state=DummyQuantumState(), qubits=qubits)
+        super().__init__(state=ExampleQuantumState(), qubits=qubits)
 
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
@@ -43,8 +43,8 @@ class DummySimulationState(cirq.SimulationState):
         return True
 
     def add_qubits(self, qubits):
-        ret = super().add_qubits(qubits)
-        return self if NotImplemented else ret
+        super().add_qubits(qubits)
+        return self
 
 
 class DelegatingAncillaZ(cirq.Gate):
@@ -73,13 +73,13 @@ class Composite(cirq.Gate):
 
 
 def test_measurements():
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     args.measure([cirq.LineQubit(0)], "test", [False], {})
     assert args.log_of_measurement_results["test"] == [5]
 
 
 def test_decompose():
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     assert simulation_state.strat_act_on_from_apply_decompose(
         Composite(), args, [cirq.LineQubit(0)]
     )
@@ -91,14 +91,14 @@ def test_decompose_for_gate_allocating_qubits_raises():
             anc = cirq.NamedQubit("anc")
             yield cirq.CNOT(*qubits, anc)
 
-    args = DummySimulationState()
+    args = ExampleSimulationState()
 
     with pytest.raises(TypeError, match="add_qubits but not remove_qubits"):
         simulation_state.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
 
 
 def test_mapping():
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     assert list(iter(args)) == cirq.LineQubit.range(2)
     r1 = args[cirq.LineQubit(0)]
     assert args is r1
@@ -109,7 +109,7 @@ def test_mapping():
 def test_swap_bad_dimensions():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQid(1, 3)
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     with pytest.raises(ValueError, match='Cannot swap different dimensions'):
         args.swap(q0, q1)
 
@@ -117,14 +117,14 @@ def test_swap_bad_dimensions():
 def test_rename_bad_dimensions():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQid(1, 3)
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     with pytest.raises(ValueError, match='Cannot rename to different dimensions'):
         args.rename(q0, q1)
 
 
 def test_transpose_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     assert args.transpose_to_qubit_order((q1, q0)).qubits == (q1, q0)
     with pytest.raises(ValueError, match='Qubits do not match'):
         args.transpose_to_qubit_order((q0, q2))
@@ -133,7 +133,7 @@ def test_transpose_qubits():
 
 
 def test_field_getters():
-    args = DummySimulationState()
+    args = ExampleSimulationState()
     assert args.prng is np.random
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
 
@@ -164,9 +164,8 @@ def test_delegating_gate_channel(exp):
     control_circuit = cirq.Circuit(cirq.H(q))
     control_circuit.append(cirq.ZPowGate(exponent=exp).on(q))
 
-    with pytest.raises(TypeError, match="DensityMatrixSimulator doesn't support"):
-        # TODO: This test should pass once we extend support to DensityMatrixSimulator.
-        assert_test_circuit_for_dm_simulator(test_circuit, control_circuit)
+    assert_test_circuit_for_sv_simulator(test_circuit, control_circuit)
+    assert_test_circuit_for_dm_simulator(test_circuit, control_circuit)
 
 
 @pytest.mark.parametrize('num_ancilla', [1, 2, 3])

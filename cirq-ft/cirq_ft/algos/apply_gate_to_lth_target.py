@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 import itertools
-from typing import Callable, Sequence
+from typing import Callable, Sequence, Tuple
 
 import attr
 import cirq
-from cirq._compat import cached_property
+import numpy as np
 from cirq_ft import infra
 from cirq_ft.algos import unary_iteration_gate
 
@@ -36,53 +37,59 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
     `selection`-th qubit of `target` all controlled by the `control` register.
 
     Args:
-        selection_regs: Indexing `select` registers of type `SelectionRegisters`. It also contains
-            information about the iteration length of each selection register.
+        selection_regs: Indexing `select` signature of type Tuple[`SelectionRegisters`, ...].
+            It also contains information about the iteration length of each selection register.
         nth_gate: A function mapping the composite selection index to a single-qubit gate.
-        control_regs: Control registers for constructing a controlled version of the gate.
+        control_regs: Control signature for constructing a controlled version of the gate.
 
     References:
             [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]
         (https://arxiv.org/abs/1805.03662).
         Babbush et. al. (2018). Section III.A. and Figure 7.
     """
-    selection_regs: infra.SelectionRegisters
+
+    selection_regs: Tuple[infra.SelectionRegister, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, infra.SelectionRegister) else tuple(v)
+    )
     nth_gate: Callable[..., cirq.Gate]
-    control_regs: infra.Registers = infra.Registers.build(control=1)
+    control_regs: Tuple[infra.Register, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, infra.Register) else tuple(v)
+    )
+
+    @control_regs.default
+    def control_regs_default(self):
+        return (infra.Register('control', 1),)
 
     @classmethod
     def make_on(
         cls, *, nth_gate: Callable[..., cirq.Gate], **quregs: Sequence[cirq.Qid]
     ) -> cirq.Operation:
         """Helper constructor to automatically deduce bitsize attributes."""
-        return cls(
-            infra.SelectionRegisters(
-                [
-                    infra.SelectionRegister(
-                        'selection', len(quregs['selection']), len(quregs['target'])
-                    )
-                ]
-            ),
+        return ApplyGateToLthQubit(
+            infra.SelectionRegister('selection', len(quregs['selection']), len(quregs['target'])),
             nth_gate=nth_gate,
-            control_regs=infra.Registers.build(control=len(quregs['control'])),
+            control_regs=infra.Register('control', len(quregs['control'])),
         ).on_registers(**quregs)
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
+    def control_registers(self) -> Tuple[infra.Register, ...]:
         return self.control_regs
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.selection_regs
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        return infra.Registers.build(target=self.selection_registers.total_iteration_size)
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        total_iteration_size = np.prod(
+            tuple(reg.iteration_length for reg in self.selection_registers)
+        )
+        return (infra.Register('target', int(total_iteration_size)),)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ["@"] * self.control_registers.total_bits()
-        wire_symbols += ["In"] * self.selection_registers.total_bits()
-        for it in itertools.product(*[range(x) for x in self.selection_regs.iteration_lengths]):
+        wire_symbols = ["@"] * infra.total_bits(self.control_registers)
+        wire_symbols += ["In"] * infra.total_bits(self.selection_registers)
+        for it in itertools.product(*[range(reg.iteration_length) for reg in self.selection_regs]):
             wire_symbols += [str(self.nth_gate(*it))]
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
@@ -93,6 +100,7 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
         target: Sequence[cirq.Qid],
         **selection_indices: int,
     ) -> cirq.OP_TREE:
+        selection_shape = tuple(reg.iteration_length for reg in self.selection_regs)
         selection_idx = tuple(selection_indices[reg.name] for reg in self.selection_regs)
-        target_idx = self.selection_registers.to_flat_idx(*selection_idx)
+        target_idx = int(np.ravel_multi_index(selection_idx, selection_shape))
         return self.nth_gate(*selection_idx).on(target[target_idx]).controlled_by(control)

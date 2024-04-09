@@ -26,7 +26,8 @@ GOOGLE_TEAM = {('USERNAME', "@wcourtney"), ('USERNAME', "@verult")}
 GOOGLE_MAINTAINERS = BASE_MAINTAINERS.union(GOOGLE_TEAM)
 
 IONQ_TEAM = {
-    ('USERNAME', u) for u in ["@dabacon", "@ColemanCollins", "@nakardo", "@gmauricio", "@Cynocracy"]
+    ('USERNAME', u)
+    for u in ["@dabacon", "@ColemanCollins", "@nakardo", "@gmauricio", "@Cynocracy", "@splch"]
 }
 IONQ_MAINTAINERS = BASE_MAINTAINERS.union(IONQ_TEAM)
 

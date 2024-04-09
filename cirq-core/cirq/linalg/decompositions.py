@@ -20,6 +20,7 @@ import math
 from typing import (
     Any,
     Callable,
+    cast,
     Iterable,
     List,
     Optional,
@@ -33,7 +34,7 @@ from typing import (
 import matplotlib.pyplot as plt
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
-from mpl_toolkits import mplot3d  # pylint: disable=unused-import
+from mpl_toolkits import mplot3d
 import numpy as np
 
 from cirq import value, protocols
@@ -450,18 +451,14 @@ class KakDecomposition:
             single_qubit_operations_after: a0, a1 from the above equation.
         """
         self.global_phase: complex = global_phase
-        self.single_qubit_operations_before: Tuple[
-            np.ndarray, np.ndarray
-        ] = single_qubit_operations_before or (
-            np.eye(2, dtype=np.complex64),
-            np.eye(2, dtype=np.complex64),
+        self.single_qubit_operations_before: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_before
+            or (np.eye(2, dtype=np.complex64), np.eye(2, dtype=np.complex64))
         )
         self.interaction_coefficients = interaction_coefficients
-        self.single_qubit_operations_after: Tuple[
-            np.ndarray, np.ndarray
-        ] = single_qubit_operations_after or (
-            np.eye(2, dtype=np.complex64),
-            np.eye(2, dtype=np.complex64),
+        self.single_qubit_operations_after: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_after
+            or (np.eye(2, dtype=np.complex64), np.eye(2, dtype=np.complex64))
         )
 
     def _value_equality_values_(self) -> Any:
@@ -554,7 +551,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     interactions: Iterable[Union[np.ndarray, 'cirq.SupportsUnitary', 'KakDecomposition']],
     *,
     include_frame: bool = True,
-    ax: Optional[plt.Axes] = None,
+    ax: Optional[mplot3d.axes3d.Axes3D] = None,
     **kwargs,
 ):
     r"""Plots the interaction coefficients of many two-qubit operations.
@@ -633,13 +630,13 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     show_plot = not ax
     if not ax:
         fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1, projection='3d')
+        ax = cast(mplot3d.axes3d.Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
     def coord_transform(
         pts: Union[List[Tuple[int, int, int]], np.ndarray]
-    ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         if len(pts) == 0:
-            return [], [], []
+            return np.array([]), np.array([]), np.array([])
         xs, ys, zs = np.transpose(pts)
         return xs, zs, ys
 

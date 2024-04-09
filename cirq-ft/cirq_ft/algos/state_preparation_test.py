@@ -18,9 +18,19 @@ import numpy as np
 import pytest
 from cirq_ft.algos.generic_select_test import get_1d_Ising_lcu_coeffs
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
-@pytest.mark.parametrize("num_sites, epsilon", [[2, 3e-3], [3, 3.0e-3], [4, 5.0e-3], [7, 8.0e-3]])
+@pytest.mark.parametrize(
+    "num_sites, epsilon",
+    [
+        (2, 3e-3),
+        pytest.param(3, 3.0e-3, marks=pytest.mark.slow),
+        pytest.param(4, 5.0e-3, marks=pytest.mark.slow),
+        pytest.param(7, 8.0e-3, marks=pytest.mark.slow),
+    ],
+)
+@allow_deprecated_cirq_ft_use_in_tests
 def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
     lcu_coefficients = get_1d_Ising_lcu_coeffs(num_sites)
     gate = cirq_ft.StatePreparationAliasSampling.from_lcu_probs(
@@ -43,10 +53,11 @@ def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
     assert all(np.abs(prepared_state[:L]) > 1e-6) and all(np.abs(prepared_state[L:]) <= 1e-6)
     prepared_state = prepared_state[:L] / np.sqrt(num_non_zero[:L])
     # Assert that the absolute square of prepared state (probabilities instead of amplitudes) is
-    # same as `lcu_coefficients` upto `epsilon`.
+    # same as `lcu_coefficients` up to `epsilon`.
     np.testing.assert_allclose(lcu_coefficients, abs(prepared_state) ** 2, atol=epsilon)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_state_preparation_via_coherent_alias_sampling_diagram():
     data = np.asarray(range(1, 5)) / np.sum(range(1, 5))
     gate = cirq_ft.StatePreparationAliasSampling.from_lcu_probs(
@@ -85,5 +96,6 @@ less_than_equal: ─────────────────────
     )
 
 
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('state_preparation')

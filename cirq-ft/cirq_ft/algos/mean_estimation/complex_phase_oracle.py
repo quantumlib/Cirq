@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
+from typing import Tuple
 from numpy.typing import NDArray
 
 import attr
 import cirq
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import select_and_prepare
 from cirq_ft.algos.mean_estimation import arctan
@@ -37,16 +38,16 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
     arctan_bitsize: int = 32
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
+    def control_registers(self) -> Tuple[infra.Register, ...]:
         return self.encoder.control_registers
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.encoder.selection_registers
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.control_registers, *self.selection_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
         self,
@@ -58,7 +59,7 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
         target_reg = {
             reg.name: qm.qalloc(reg.total_bits()) for reg in self.encoder.target_registers
         }
-        target_qubits = self.encoder.target_registers.merge_qubits(**target_reg)
+        target_qubits = infra.merge_qubits(self.encoder.target_registers, **target_reg)
         encoder_op = self.encoder.on_registers(**quregs, **target_reg)
 
         arctan_sign, arctan_target = qm.qalloc(1), qm.qalloc(self.arctan_bitsize)
@@ -78,6 +79,6 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
         qm.qfree([*arctan_sign, *arctan_target, *target_qubits])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@'] * self.control_registers.total_bits()
-        wire_symbols += ['ROTy'] * self.selection_registers.total_bits()
+        wire_symbols = ['@'] * infra.total_bits(self.control_registers)
+        wire_symbols += ['ROTy'] * infra.total_bits(self.selection_registers)
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

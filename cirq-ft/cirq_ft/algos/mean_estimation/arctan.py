@@ -18,8 +18,10 @@ import attr
 import cirq
 import numpy as np
 from cirq_ft import infra
+from cirq_ft.deprecation import deprecated_cirq_ft_class
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class ArcTan(cirq.ArithmeticGate):
     r"""Applies U|x>|0>|0000...0> = |x>|sign>|abs(-2 arctan(x) / pi)>.

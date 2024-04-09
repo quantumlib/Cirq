@@ -155,14 +155,9 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_circuit(self, program_num: Optional[int] = None) -> cirq.Circuit:
+    def get_circuit(self) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
-
-        Args:
-            program_num: if this is a batch program, the index of the circuit in
-                the batch.  This argument is zero-indexed. Negative values
-                indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.

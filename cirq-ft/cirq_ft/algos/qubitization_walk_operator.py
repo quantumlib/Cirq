@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 from typing import Collection, Optional, Sequence, Tuple, Union
 from numpy.typing import NDArray
 
 import attr
 import cirq
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import reflection_using_prepare, select_and_prepare
 
@@ -52,6 +52,7 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         (https://arxiv.org/abs/1805.03662).
             Babbush et. al. (2018). Figure 1.
     """
+
     select: select_and_prepare.SelectOracle
     prepare: select_and_prepare.PrepareOracle
     control_val: Optional[int] = None
@@ -61,20 +62,20 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         assert self.select.control_registers == self.reflect.control_registers
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
+    def control_registers(self) -> Tuple[infra.Register, ...]:
         return self.select.control_registers
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.prepare.selection_registers
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
+    def target_registers(self) -> Tuple[infra.Register, ...]:
         return self.select.target_registers
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers(
+    def signature(self) -> infra.Signature:
+        return infra.Signature(
             [*self.control_registers, *self.selection_registers, *self.target_registers]
         )
 
@@ -89,18 +90,22 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         context: cirq.DecompositionContext,
         **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
-        select_reg = {reg.name: quregs[reg.name] for reg in self.select.registers}
+        select_reg = {reg.name: quregs[reg.name] for reg in self.select.signature}
         select_op = self.select.on_registers(**select_reg)
 
-        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.registers}
+        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.signature}
         reflect_op = self.reflect.on_registers(**reflect_reg)
         for _ in range(self.power):
             yield select_op
             yield reflect_op
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.total_bits()
-        wire_symbols += ['W'] * (self.registers.total_bits() - self.control_registers.total_bits())
+        wire_symbols = ['@' if self.control_val else '@(0)'] * infra.total_bits(
+            self.control_registers
+        )
+        wire_symbols += ['W'] * (
+            infra.total_bits(self.signature) - infra.total_bits(self.control_registers)
+        )
         wire_symbols[-1] = f'W^{self.power}' if self.power != 1 else 'W'
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 

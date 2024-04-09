@@ -17,9 +17,10 @@
 
 import abc
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import Dict, TYPE_CHECKING, List, Set, Type
 
-from cirq import _compat, ops, devices
+from cirq import ops, devices, qis
 from cirq.devices import noise_utils
 
 if TYPE_CHECKING:
@@ -128,10 +129,10 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
     def _get_pauli_error(self, p_error: float, op_id: noise_utils.OpIdentifier):
         time_ns = float(self.gate_times_ns[op_id.gate_type])
         for q in op_id.qubits:
-            p_error -= noise_utils.decoherence_pauli_error(self.t1_ns[q], self.tphi_ns[q], time_ns)
+            p_error -= qis.decoherence_pauli_error(self.t1_ns[q], self.tphi_ns[q], time_ns)
         return p_error
 
-    @_compat.cached_property
+    @cached_property
     def _depolarizing_error(self) -> Dict[noise_utils.OpIdentifier, float]:
         """Returns the portion of Pauli error from depolarization."""
         depol_errors = {}
@@ -179,9 +180,9 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
                 p_00, p_11 = self.readout_errors[qubit]
                 p = p_11 / (p_00 + p_11)
                 gamma = p_11 / p
-                added_measure_errors[
-                    noise_utils.OpIdentifier(ops.MeasurementGate, qubit)
-                ] = ops.generalized_amplitude_damp(p, gamma).on(qubit)
+                added_measure_errors[noise_utils.OpIdentifier(ops.MeasurementGate, qubit)] = (
+                    ops.generalized_amplitude_damp(p, gamma).on(qubit)
+                )
 
             noise_models.append(
                 devices.InsertionNoiseModel(ops_added=added_measure_errors, prepend=True)

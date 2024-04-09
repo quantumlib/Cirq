@@ -16,7 +16,6 @@ from typing import Any, FrozenSet, Sequence
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
-from cirq_ft.infra import qubit_manager
 
 _FREDKIN_GATESET = cirq.Gateset(cirq.FREDKIN, unroll_circuit_op=False)
 
@@ -82,9 +81,7 @@ def _decompose_once_considering_known_decomposition(val: Any) -> DecomposeResult
     import uuid
 
     context = cirq.DecompositionContext(
-        qubit_manager=qubit_manager.GreedyQubitManager(
-            prefix=f'_{uuid.uuid4()}', maximize_reuse=True
-        )
+        qubit_manager=cirq.GreedyQubitManager(prefix=f'_{uuid.uuid4()}', maximize_reuse=True)
     )
 
     decomposed = _try_decompose_from_known_decompositions(val, context)

@@ -2,12 +2,14 @@
 from typing import TYPE_CHECKING, List, Tuple, cast, Dict
 
 import matplotlib.textpath
+import matplotlib.font_manager
+
 
 if TYPE_CHECKING:
     import cirq
 
 QBLUE = '#1967d2'
-FONT = "Arial"
+FONT = matplotlib.font_manager.FontProperties()
 EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 

@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Sequence, Tuple, Set
+from functools import cached_property
+from typing import Callable, Sequence, Tuple
 
 import attr
 import cirq
 import numpy as np
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import and_gate, unary_iteration_gate
 from numpy.typing import ArrayLike, NDArray
@@ -29,8 +29,8 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     """Gate to load data[l] in the target register when the selection stores an index l.
 
     In the case of multi-dimensional data[p,q,r,...] we use multiple named
-    selection registers [p, q, r, ...] to index and load the data. Here `p, q, r, ...`
-    correspond to registers named `selection0`, `selection1`, `selection2`, ... etc.
+    selection signature [p, q, r, ...] to index and load the data. Here `p, q, r, ...`
+    correspond to signature named `selection0`, `selection1`, `selection2`, ... etc.
 
     When the input data elements contain consecutive entries of identical data elements to
     load, the QROM also implements the "variable-spaced" QROM optimization described in Ref[2].
@@ -45,9 +45,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             corresponding to the size of each dimension of the array. Should be
             the same length as the shape of each of the datasets.
         target_bitsizes: The number of bits used to represent the data
-            registers. This can be deduced from the maximum element of each of the
+            signature. This can be deduced from the maximum element of each of the
             datasets. Should be of length len(data), i.e. the number of datasets.
-        num_controls: The number of control registers.
+        num_controls: The number of control signature.
 
     References:
         [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]
@@ -92,35 +92,27 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         assert isinstance(self.target_bitsizes, tuple)
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
-        return (
-            infra.Registers.build(control=self.num_controls)
-            if self.num_controls
-            else infra.Registers([])
-        )
+    def control_registers(self) -> Tuple[infra.Register, ...]:
+        return () if not self.num_controls else (infra.Register('control', self.num_controls),)
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         if len(self.data[0].shape) == 1:
-            return infra.SelectionRegisters(
-                [
-                    infra.SelectionRegister(
-                        'selection', self.selection_bitsizes[0], self.data[0].shape[0]
-                    )
-                ]
+            return (
+                infra.SelectionRegister(
+                    'selection', self.selection_bitsizes[0], self.data[0].shape[0]
+                ),
             )
         else:
-            return infra.SelectionRegisters(
-                [
-                    infra.SelectionRegister(f'selection{i}', sb, len)
-                    for i, (len, sb) in enumerate(zip(self.data[0].shape, self.selection_bitsizes))
-                ]
+            return tuple(
+                infra.SelectionRegister(f'selection{i}', sb, l)
+                for i, (l, sb) in enumerate(zip(self.data[0].shape, self.selection_bitsizes))
             )
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        return infra.Registers.build(
-            **{f'target{i}': len for i, len in enumerate(self.target_bitsizes)}
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        return tuple(
+            infra.Register(f'target{i}', l) for i, l in enumerate(self.target_bitsizes) if l
         )
 
     def __repr__(self) -> str:
@@ -139,7 +131,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         **target_regs: NDArray[cirq.Qid],  # type: ignore[type-var]
     ) -> cirq.OP_TREE:
         for i, d in enumerate(self.data):
-            target = target_regs[f'target{i}']
+            target = target_regs.get(f'target{i}', ())
             for q, bit in zip(target, f'{int(d[selection_idx]):0{len(target)}b}'):
                 if int(bit):
                     yield gate(q)
@@ -147,8 +139,8 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     def decompose_zero_selection(
         self, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
-        controls = self.control_registers.merge_qubits(**quregs)
-        target_regs = {k: v for k, v in quregs.items() if k in self.target_registers}
+        controls = infra.merge_qubits(self.control_registers, **quregs)
+        target_regs = {reg.name: quregs[reg.name] for reg in self.target_registers}
         zero_indx = (0,) * len(self.data[0].shape)
         if self.num_controls == 0:
             yield self._load_nth_data(zero_indx, cirq.X, **target_regs)
@@ -158,7 +150,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             and_ancilla = context.qubit_manager.qalloc(len(controls) - 2)
             and_target = context.qubit_manager.qalloc(1)[0]
             multi_controlled_and = and_gate.And((1,) * len(controls)).on_registers(
-                control=controls, ancilla=and_ancilla, target=and_target
+                ctrl=np.array(controls)[:, np.newaxis],
+                junk=np.array(and_ancilla)[:, np.newaxis],
+                target=and_target,
             )
             yield multi_controlled_and
             yield self._load_nth_data(zero_indx, lambda q: cirq.CNOT(and_target, q), **target_regs)
@@ -166,13 +160,9 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
             context.qubit_manager.qfree(and_ancilla + [and_target])
 
     def _break_early(self, selection_index_prefix: Tuple[int, ...], l: int, r: int):
-        global_unique_element: Set[int] = set()
         for data in self.data:
             unique_element = np.unique(data[selection_index_prefix][l:r])
             if len(unique_element) > 1:
-                return False
-            global_unique_element.add(unique_element[0])
-            if len(global_unique_element) > 1:
                 return False
         return True
 
@@ -185,7 +175,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
 
     def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
         wire_symbols = ["@"] * self.num_controls
-        wire_symbols += ["In"] * self.selection_registers.total_bits()
+        wire_symbols += ["In"] * infra.total_bits(self.selection_registers)
         for i, target in enumerate(self.target_registers):
             wire_symbols += [f"QROM_{i}"] * target.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

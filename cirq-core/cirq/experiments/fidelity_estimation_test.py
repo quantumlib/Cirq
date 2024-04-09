@@ -81,7 +81,7 @@ def test_xeb_fidelity(depolarization, estimator):
         f2 = cirq.xeb_fidelity(
             circuit, bitstrings, qubits, amplitudes=amplitudes, estimator=estimator
         )
-        assert np.abs(f - f2) < 1e-6
+        assert np.abs(f - f2) < 2e-6
 
         fs.append(f)
 

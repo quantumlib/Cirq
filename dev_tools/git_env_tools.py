@@ -86,7 +86,7 @@ def fetch_github_pull_request(
         destination_directory: The location to fetch the contents into.
         repository: The github repository that the commit lives under.
         pull_request_number: The id of the pull request to clone. If None, then
-            the master branch is cloned instead.
+            the main branch is cloned instead.
         verbose: When set, more progress output is produced.
 
     Returns:
@@ -100,10 +100,7 @@ def fetch_github_pull_request(
     optional_quiet = [] if verbose else ['--quiet']
     shell_tools.run(['git', 'init', *optional_quiet], stdout=sys.stderr)
     result = _git_fetch_for_comparison(
-        remote=repository.as_remote(),
-        actual_branch=branch,
-        compare_branch='master',
-        verbose=verbose,
+        remote=repository.as_remote(), actual_branch=branch, compare_branch='main', verbose=verbose
     )
     optional_actual_commit_id = [] if result.actual_commit_id is None else [result.actual_commit_id]
     shell_tools.run(
@@ -165,7 +162,7 @@ def fetch_local_files(destination_directory: str, verbose: bool) -> prepared_env
         shell_tools.run(
             ['git', 'init', *optional_quiet], stdout=sys.stderr, log_run_to_stderr=verbose
         )
-        result = _git_fetch_for_comparison(staging_dir, cur_commit, 'master', verbose=verbose)
+        result = _git_fetch_for_comparison(staging_dir, cur_commit, 'main', verbose=verbose)
     finally:
         shutil.rmtree(staging_dir, ignore_errors=True)
 

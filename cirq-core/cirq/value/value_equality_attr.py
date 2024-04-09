@@ -17,7 +17,7 @@ from typing import Any, Callable, Optional, overload, Union
 
 from typing_extensions import Protocol
 
-from cirq import protocols
+from cirq import protocols, _compat
 
 
 class _SupportsValueEquality(Protocol):
@@ -70,6 +70,8 @@ class _SupportsValueEquality(Protocol):
 
 
 def _value_equality_eq(self: _SupportsValueEquality, other: _SupportsValueEquality) -> bool:
+    if other is self:
+        return True
     cls_self = self._value_equality_values_cls_()
     get_cls_other = getattr(other, '_value_equality_values_cls_', None)
     if get_cls_other is None:
@@ -91,6 +93,8 @@ def _value_equality_hash(self: _SupportsValueEquality) -> int:
 def _value_equality_approx_eq(
     self: _SupportsValueEquality, other: _SupportsValueEquality, atol: float
 ) -> bool:
+    if other is self:
+        return True
     cls_self = self._value_equality_values_cls_()
     get_cls_other = getattr(other, '_value_equality_values_cls_', None)
     if get_cls_other is None:
@@ -221,13 +225,21 @@ def value_equality(
             )
     else:
         setattr(cls, '_value_equality_values_cls_', lambda self: cls)
-    setattr(cls, '__hash__', None if unhashable else _value_equality_hash)
+    cached_values_getter = values_getter if unhashable else _compat.cached_method(values_getter)
+    setattr(cls, '_value_equality_values_', cached_values_getter)
+    setattr(cls, '__hash__', None if unhashable else _compat.cached_method(_value_equality_hash))
     setattr(cls, '__eq__', _value_equality_eq)
     setattr(cls, '__ne__', _value_equality_ne)
 
     if approximate:
         if not hasattr(cls, '_value_equality_approximate_values_'):
-            setattr(cls, '_value_equality_approximate_values_', values_getter)
+            setattr(cls, '_value_equality_approximate_values_', cached_values_getter)
+        else:
+            approx_values_getter = getattr(cls, '_value_equality_approximate_values_')
+            cached_approx_values_getter = (
+                approx_values_getter if unhashable else _compat.cached_method(approx_values_getter)
+            )
+            setattr(cls, '_value_equality_approximate_values_', cached_approx_values_getter)
         setattr(cls, '_approx_eq_', _value_equality_approx_eq)
 
     return cls

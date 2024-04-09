@@ -1,4 +1,10 @@
+[
 cirq.devices.noise_utils.OpIdentifier(
     cirq.ops.common_gates.XPowGate,
     cirq.LineQubit(1)
+),
+cirq.devices.noise_utils.OpIdentifier(
+    cirq.CliffordGate.from_clifford_tableau(cirq.CliffordTableau(1,rs=np.array([False, False],dtype=np.dtype('bool')), xs=np.array([[True], [False]], dtype=np.dtype('bool')),zs=np.array([[False], [True]], dtype=np.dtype('bool')), initial_state=0)),
+    cirq.LineQubit(0)
 )
+]

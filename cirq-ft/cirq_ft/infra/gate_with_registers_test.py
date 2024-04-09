@@ -17,46 +17,65 @@ import cirq_ft
 import numpy as np
 import pytest
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.infra import split_qubits, merge_qubits, get_named_qubits
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_register():
-    r = cirq_ft.Register("my_reg", 5)
-    assert r.shape == (5,)
+    r = cirq_ft.Register("my_reg", 5, (1, 2))
+    assert r.bitsize == 5
+    assert r.shape == (1, 2)
+
+    with pytest.raises(ValueError, match="must be a positive integer"):
+        _ = cirq_ft.Register("zero bitsize register", bitsize=0)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_registers():
-    r1 = cirq_ft.Register("r1", 5)
-    r2 = cirq_ft.Register("r2", 2)
+    r1 = cirq_ft.Register("r1", 5, side=cirq_ft.infra.Side.LEFT)
+    r2 = cirq_ft.Register("r2", 2, side=cirq_ft.infra.Side.RIGHT)
     r3 = cirq_ft.Register("r3", 1)
-    regs = cirq_ft.Registers([r1, r2, r3])
+    regs = cirq_ft.Signature([r1, r2, r3])
     assert len(regs) == 3
     cirq.testing.assert_equivalent_repr(regs, setup_code='import cirq_ft')
 
     with pytest.raises(ValueError, match="unique"):
-        _ = cirq_ft.Registers([r1, r1])
+        _ = cirq_ft.Signature([r1, r1])
 
     assert regs[0] == r1
     assert regs[1] == r2
     assert regs[2] == r3
 
-    assert regs[0:1] == cirq_ft.Registers([r1])
-    assert regs[0:2] == cirq_ft.Registers([r1, r2])
-    assert regs[1:3] == cirq_ft.Registers([r2, r3])
+    assert regs[0:1] == tuple([r1])
+    assert regs[0:2] == tuple([r1, r2])
+    assert regs[1:3] == tuple([r2, r3])
 
-    assert regs["r1"] == r1
-    assert regs["r2"] == r2
-    assert regs["r3"] == r3
+    assert regs.get_left("r1") == r1
+    assert regs.get_right("r2") == r2
+    assert regs.get_left("r3") == r3
+
+    assert r1 in regs
+    assert r2 in regs
+    assert r3 in regs
 
     assert list(regs) == [r1, r2, r3]
 
     qubits = cirq.LineQubit.range(8)
-    qregs = regs.split_qubits(qubits)
+    qregs = split_qubits(regs, qubits)
     assert qregs["r1"].tolist() == cirq.LineQubit.range(5)
     assert qregs["r2"].tolist() == cirq.LineQubit.range(5, 5 + 2)
     assert qregs["r3"].tolist() == [cirq.LineQubit(7)]
 
     qubits = qubits[::-1]
-    merged_qregs = regs.merge_qubits(r1=qubits[:5], r2=qubits[5:7], r3=qubits[-1])
+
+    with pytest.raises(ValueError, match="qubit registers must be present"):
+        _ = merge_qubits(regs, r1=qubits[:5], r2=qubits[5:7], r4=qubits[-1])
+
+    with pytest.raises(ValueError, match="register must of shape"):
+        _ = merge_qubits(regs, r1=qubits[:4], r2=qubits[5:7], r3=qubits[-1])
+
+    merged_qregs = merge_qubits(regs, r1=qubits[:5], r2=qubits[5:7], r3=qubits[-1])
     assert merged_qregs == qubits
 
     expected_named_qubits = {
@@ -65,7 +84,7 @@ def test_registers():
         "r3": [cirq.NamedQubit("r3")],
     }
 
-    named_qregs = regs.get_named_qubits()
+    named_qregs = get_named_qubits(regs)
     for reg_name in expected_named_qubits:
         assert np.array_equal(named_qregs[reg_name], expected_named_qubits[reg_name])
 
@@ -73,69 +92,70 @@ def test_registers():
     # initial registers.
     for reg_order in [[r1, r2, r3], [r2, r3, r1]]:
         flat_named_qubits = [
-            q for v in cirq_ft.Registers(reg_order).get_named_qubits().values() for q in v
+            q for v in get_named_qubits(cirq_ft.Signature(reg_order)).values() for q in v
         ]
         expected_qubits = [q for r in reg_order for q in expected_named_qubits[r.name]]
         assert flat_named_qubits == expected_qubits
 
 
 @pytest.mark.parametrize('n, N, m, M', [(4, 10, 5, 19), (4, 16, 5, 32)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_selection_registers_indexing(n, N, m, M):
-    reg = cirq_ft.SelectionRegisters(
-        [cirq_ft.SelectionRegister('x', n, N), cirq_ft.SelectionRegister('y', m, M)]
-    )
-    assert reg.iteration_lengths == (N, M)
-    for x in range(N):
-        for y in range(M):
-            assert reg.to_flat_idx(x, y) == x * M + y
+    regs = [cirq_ft.SelectionRegister('x', n, N), cirq_ft.SelectionRegister('y', m, M)]
+    for x in range(regs[0].iteration_length):
+        for y in range(regs[1].iteration_length):
+            assert np.ravel_multi_index((x, y), (N, M)) == x * M + y
+            assert np.unravel_index(x * M + y, (N, M)) == (x, y)
 
-    assert reg.total_iteration_size == N * M
+    assert np.prod(tuple(reg.iteration_length for reg in regs)) == N * M
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_selection_registers_consistent():
     with pytest.raises(ValueError, match="iteration length must be in "):
         _ = cirq_ft.SelectionRegister('a', 3, 10)
 
     with pytest.raises(ValueError, match="should be flat"):
-        _ = cirq_ft.SelectionRegister('a', (3, 5), 5)
+        _ = cirq_ft.SelectionRegister('a', bitsize=1, shape=(3, 5), iteration_length=5)
 
-    selection_reg = cirq_ft.SelectionRegisters(
+    selection_reg = cirq_ft.Signature(
         [
-            cirq_ft.SelectionRegister('n', shape=3, iteration_length=5),
-            cirq_ft.SelectionRegister('m', shape=4, iteration_length=12),
+            cirq_ft.SelectionRegister('n', bitsize=3, iteration_length=5),
+            cirq_ft.SelectionRegister('m', bitsize=4, iteration_length=12),
         ]
     )
     assert selection_reg[0] == cirq_ft.SelectionRegister('n', 3, 5)
-    assert selection_reg['n'] == cirq_ft.SelectionRegister('n', 3, 5)
     assert selection_reg[1] == cirq_ft.SelectionRegister('m', 4, 12)
-    assert selection_reg[:1] == cirq_ft.SelectionRegisters([cirq_ft.SelectionRegister('n', 3, 5)])
+    assert selection_reg[:1] == tuple([cirq_ft.SelectionRegister('n', 3, 5)])
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_registers_getitem_raises():
-    g = cirq_ft.Registers.build(a=4, b=3, c=2)
-    with pytest.raises(IndexError, match="must be of the type"):
+    g = cirq_ft.Signature.build(a=4, b=3, c=2)
+    with pytest.raises(TypeError, match="indices must be integers or slices"):
         _ = g[2.5]
 
-    selection_reg = cirq_ft.SelectionRegisters(
-        [cirq_ft.SelectionRegister('n', shape=3, iteration_length=5)]
+    selection_reg = cirq_ft.Signature(
+        [cirq_ft.SelectionRegister('n', bitsize=3, iteration_length=5)]
     )
-    with pytest.raises(IndexError, match='must be of the type'):
+    with pytest.raises(TypeError, match='indices must be integers or slices'):
         _ = selection_reg[2.5]
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_registers_build():
-    regs1 = cirq_ft.Registers([cirq_ft.Register("r1", 5), cirq_ft.Register("r2", 2)])
-    regs2 = cirq_ft.Registers.build(r1=5, r2=2)
+    regs1 = cirq_ft.Signature([cirq_ft.Register("r1", 5), cirq_ft.Register("r2", 2)])
+    regs2 = cirq_ft.Signature.build(r1=5, r2=2)
     assert regs1 == regs2
 
 
 class _TestGate(cirq_ft.GateWithRegisters):
     @property
-    def registers(self) -> cirq_ft.Registers:
+    def signature(self) -> cirq_ft.Signature:
         r1 = cirq_ft.Register("r1", 5)
         r2 = cirq_ft.Register("r2", 2)
         r3 = cirq_ft.Register("r3", 1)
-        regs = cirq_ft.Registers([r1, r2, r3])
+        regs = cirq_ft.Signature([r1, r2, r3])
         return regs
 
     def decompose_from_registers(self, *, context, **quregs) -> cirq.OP_TREE:
@@ -144,6 +164,7 @@ class _TestGate(cirq_ft.GateWithRegisters):
         yield cirq.X.on_each(quregs['r3'])
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_gate_with_registers():
     tg = _TestGate()
     assert tg._num_qubits_() == 8
@@ -156,5 +177,6 @@ def test_gate_with_registers():
     assert op1 == op2
 
 
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('gate_with_registers')

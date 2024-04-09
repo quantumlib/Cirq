@@ -42,7 +42,7 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq import value, protocols, linalg, qis
+from cirq import value, protocols, linalg, qis, _compat
 from cirq._doc import document
 from cirq._import import LazyLoader
 from cirq.ops import (
@@ -184,7 +184,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Raises:
             TypeError: If the `qubit_pauli_map` has values that are not Paulis.
         """
-        if qubit_pauli_map is not None:
+        if _compat.__cirq_debug__.get() and qubit_pauli_map is not None:
             for v in qubit_pauli_map.values():
                 if not isinstance(v, pauli_gates.Pauli):
                     raise TypeError(f'{v} is not a Pauli')

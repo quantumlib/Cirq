@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Any, Dict, List, TYPE_CHECKING
+import weakref
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -26,16 +27,72 @@ if TYPE_CHECKING:
 class _BaseNamedQid(raw_types.Qid):
     """The base class for `NamedQid` and `NamedQubit`."""
 
-    def __init__(self, name: str) -> None:
-        self._name = name
-        self._comp_key = _pad_digits(name)
+    _name: str
+    _dimension: int
+    _comp_key: Optional[str] = None
+    _hash: Optional[int] = None
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            self._hash = hash((self._name, self._dimension))
+        return self._hash
+
+    def __eq__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            return self is other or (
+                self._name == other._name and self._dimension == other._dimension
+            )
+        return NotImplemented
+
+    def __ne__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            return self is not other and (
+                self._name != other._name or self._dimension != other._dimension
+            )
+        return NotImplemented
+
+    def __lt__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            k0, k1 = self._comparison_key(), other._comparison_key()
+            return k0 < k1 or (k0 == k1 and self._dimension < other._dimension)
+        return super().__lt__(other)
+
+    def __le__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            k0, k1 = self._comparison_key(), other._comparison_key()
+            return k0 < k1 or (k0 == k1 and self._dimension <= other._dimension)
+        return super().__le__(other)
+
+    def __ge__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            k0, k1 = self._comparison_key(), other._comparison_key()
+            return k0 > k1 or (k0 == k1 and self._dimension >= other._dimension)
+        return super().__ge__(other)
+
+    def __gt__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseNamedQid):
+            k0, k1 = self._comparison_key(), other._comparison_key()
+            return k0 > k1 or (k0 == k1 and self._dimension > other._dimension)
+        return super().__gt__(other)
 
     def _comparison_key(self):
+        if self._comp_key is None:
+            self._comp_key = _pad_digits(self._name)
         return self._comp_key
 
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension
 
     def with_dimension(self, dimension: int) -> 'NamedQid':
         return NamedQid(self._name, dimension=dimension)
@@ -51,7 +108,11 @@ class NamedQid(_BaseNamedQid):
     correctly come before 'qid22'.
     """
 
-    def __init__(self, name: str, dimension: int) -> None:
+    # Cache of existing NamedQid instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
+    _cache = weakref.WeakValueDictionary[Tuple[str, int], 'cirq.NamedQid']()
+
+    def __new__(cls, name: str, dimension: int) -> 'cirq.NamedQid':
         """Initializes a `NamedQid` with a given name and dimension.
 
         Args:
@@ -59,19 +120,25 @@ class NamedQid(_BaseNamedQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        super().__init__(name)
-        self._dimension = dimension
-        self.validate_dimension(dimension)
+        key = (name, dimension)
+        inst = cls._cache.get(key)
+        if inst is None:
+            cls.validate_dimension(dimension)
+            inst = super().__new__(cls)
+            inst._name = name
+            inst._dimension = dimension
+            cls._cache[key] = inst
+        return inst
 
-    @property
-    def dimension(self) -> int:
-        return self._dimension
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self._name, self._dimension)
 
     def __repr__(self) -> str:
-        return f'cirq.NamedQid({self.name!r}, dimension={self.dimension})'
+        return f'cirq.NamedQid({self._name!r}, dimension={self._dimension})'
 
     def __str__(self) -> str:
-        return f'{self.name} (d={self.dimension})'
+        return f'{self._name} (d={self._dimension})'
 
     @staticmethod
     def range(*args, prefix: str, dimension: int) -> List['NamedQid']:
@@ -95,7 +162,7 @@ class NamedQid(_BaseNamedQid):
         Returns:
             A list of ``NamedQid``\\s.
         """
-        return [NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)]
+        return [NamedQid(f"{prefix}{i}", dimension=dimension) for i in range(*args)]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name', 'dimension'])
@@ -110,14 +177,30 @@ class NamedQubit(_BaseNamedQid):
     wire for 'qubit3' will correctly come before 'qubit22'.
     """
 
-    @property
-    def dimension(self) -> int:
-        return 2
+    _dimension = 2
 
-    def _cmp_tuple(self):
-        cls = NamedQid if type(self) is NamedQubit else type(self)
-        # Must be same as Qid._cmp_tuple but with cls in place of type(self).
-        return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
+    # Cache of existing NamedQubit instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
+    _cache = weakref.WeakValueDictionary[str, 'cirq.NamedQubit']()
+
+    def __new__(cls, name: str) -> 'cirq.NamedQubit':
+        """Initializes a `NamedQid` with a given name and dimension.
+
+        Args:
+            name: The name.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
+        """
+        inst = cls._cache.get(name)
+        if inst is None:
+            inst = super().__new__(cls)
+            inst._name = name
+            cls._cache[name] = inst
+        return inst
+
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self._name,)
 
     def __str__(self) -> str:
         return self._name
@@ -146,7 +229,7 @@ class NamedQubit(_BaseNamedQid):
         Returns:
             A list of ``NamedQubit``\\s.
         """
-        return [NamedQubit(prefix + str(i)) for i in range(*args)]
+        return [NamedQubit(f"{prefix}{i}") for i in range(*args)]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name'])

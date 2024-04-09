@@ -1,11 +1,11 @@
 # Versioning and Releases
 
 Below is info on how we version releases, and how the releases
-themselves are created. Note that development is done on the `master`
+themselves are created. Note that development is done on the `main`
 branch, so if you want to use a more stable version you should use one
 of the [releases](https://github.com/quantumlib/Cirq/releases) or
 install from pypi using `pip install cirq`.  The release from the
-latest commit to master can be installed with `pip install --pre cirq`.
+latest commit to main can be installed with `pip install cirq~=1.0.dev`.
 
 ## Versioning
 
@@ -39,7 +39,7 @@ is a numerical value. The following guarantees are provided:
       changes to its public API.
    2. For each vendor directory, version policies may be modified to strictly
       follow Semantic Versioning in the future.
-5. Versions based on unreleased branches of master will be suffixed with ".dev".
+5. Versions based on unreleased branches of main will be suffixed with ".dev".
 
 The rules for version changes are:
 * Increment the PATCH version if all changes are bug fixes only.
@@ -57,10 +57,10 @@ directories that prohibit them for a minor version increment.
 We use github's release system for creating releases.  Release are listed
 [on the Cirq release page](https://github.com/quantumlib/Cirq/releases).
 
-Our development process uses the `master` branch for development.
+Our development process uses the `main` branch for development.
 Master will always use the next unreleased minor version with the suffix
 of ".dev".  When a release is performed, the ".dev" will be removed and tagged
-in a release branch with a version tag (vX.X.X).  Then, master will be updated
+in a release branch with a version tag (vX.X.X).  Then, main will be updated
 to the next minor version.  This can always be found in the
 [version file](./cirq-core/cirq/_version.py).
 
@@ -82,14 +82,14 @@ release.
 
 ### Preparation
 
-System requirements: Linux, python3.9
+System requirements: Linux, python3.10
 
-For MINOR / MAJOR release: Make sure you're on an up-to-date master branch and 
+For MINOR / MAJOR release: Make sure you're on an up-to-date main branch and 
 in cirq's root directory.
 
 ```bash
-git checkout master
-git pull origin master  # or upstream master
+git checkout main
+git pull origin main  # or upstream main
 git status  # should be no pending changes
 ```
 
@@ -145,13 +145,13 @@ git commit -m "Removing ${VER}.dev -> ${VER}"
 git push origin "v${VER}-dev"
 ```
 
-### Bump the master version 
+### Bump the main version 
 
-WARNING: Only bump the master version for minor and major releases, for PATCH
+WARNING: Only bump the main version for minor and major releases, for PATCH
 updates, leave it as it is.  
 
 ```bash
-git checkout master -b "version_bump_${NEXT_VER}"
+git checkout main -b "version_bump_${NEXT_VER}"
 python dev_tools/modules.py replace_version --old ${VER}.dev --new ${NEXT_VER}.dev
 git add .
 git commit -m "Bump cirq version to ${NEXT_VER}"

@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
+from functools import cached_property
+from typing import Sequence, Union, Tuple
 from numpy.typing import NDArray
 
 import attr
 import cirq
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import multi_control_multi_target_pauli as mcmtp
 
@@ -26,7 +26,7 @@ from cirq_ft.algos import multi_control_multi_target_pauli as mcmtp
 class MultiTargetCSwap(infra.GateWithRegisters):
     """Implements a multi-target controlled swap unitary $CSWAP_n = |0><0| I + |1><1| SWAP_n$.
 
-    This decomposes into a qubitwise SWAP on the two target registers, and takes 14*n T-gates.
+    This decomposes into a qubitwise SWAP on the two target signature, and takes 14*n T-gates.
 
     References:
         [Trading T-gates for dirty qubits in state preparation and unitary synthesis]
@@ -44,8 +44,8 @@ class MultiTargetCSwap(infra.GateWithRegisters):
         return cls(bitsize=len(quregs['target_x'])).on_registers(**quregs)
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(control=1, target_x=self.bitsize, target_y=self.bitsize)
+    def signature(self) -> infra.Signature:
+        return infra.Signature.build(control=1, target_x=self.bitsize, target_y=self.bitsize)
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
@@ -145,18 +145,20 @@ class SwapWithZeroGate(infra.GateWithRegisters):
         assert self.n_target_registers <= 2**self.selection_bitsize
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters(
-            [infra.SelectionRegister('selection', self.selection_bitsize, self.n_target_registers)]
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
+        return (
+            infra.SelectionRegister('selection', self.selection_bitsize, self.n_target_registers),
         )
 
     @cached_property
-    def target_registers(self) -> infra.Registers:
-        return infra.Registers.build(target=(self.n_target_registers, self.target_bitsize))
+    def target_registers(self) -> Tuple[infra.Register, ...]:
+        return (
+            infra.Register('target', bitsize=self.target_bitsize, shape=self.n_target_registers),
+        )
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.selection_registers, *self.target_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.selection_registers, *self.target_registers])
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]

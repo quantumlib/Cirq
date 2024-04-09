@@ -68,6 +68,8 @@ from cirq.sim.state_vector import measure_state_vector, sample_state_vector, Sta
 
 from cirq.sim.state_vector_simulation_state import StateVectorSimulationState
 
+from cirq.sim.classical_simulator import ClassicalStateSimulator
+
 from cirq.sim.state_vector_simulator import (
     SimulatesIntermediateStateVector,
     StateVectorStepResult,

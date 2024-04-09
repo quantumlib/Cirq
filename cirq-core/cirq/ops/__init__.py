@@ -122,6 +122,8 @@ from cirq.ops.controlled_operation import ControlledOperation
 
 from cirq.ops.qubit_manager import BorrowableQubit, CleanQubit, QubitManager, SimpleQubitManager
 
+from cirq.ops.greedy_qubit_manager import GreedyQubitManager
+
 from cirq.ops.qubit_order import QubitOrder
 
 from cirq.ops.qubit_order_or_list import QubitOrderOrList

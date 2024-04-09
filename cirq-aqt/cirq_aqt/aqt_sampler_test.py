@@ -204,7 +204,7 @@ def test_aqt_sampler_ms():
     _, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerLocalSimulator()
     circuit = cirq.Circuit(cirq.Z.on_each(*qubits), cirq.Z.on_each(*qubits))
-    for _dummy in range(9):
+    for _ in range(9):
         circuit.append(cirq.XX(qubits[0], qubits[1]) ** 0.5)
     circuit.append(cirq.Z(qubits[0]) ** 0.5)
     results = sampler.run(circuit, repetitions=repetitions)

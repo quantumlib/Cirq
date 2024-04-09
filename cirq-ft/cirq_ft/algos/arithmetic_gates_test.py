@@ -18,7 +18,8 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
-from cirq_ft.infra import bit_tools, GreedyQubitManager
+from cirq_ft.infra import bit_tools
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 def identity_map(n: int):
@@ -26,6 +27,7 @@ def identity_map(n: int):
     return {i: i for i in range(2**n)}
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_less_than_gate():
     qubits = cirq.LineQubit.range(4)
     gate = cirq_ft.LessThanGate(3, 5)
@@ -61,6 +63,7 @@ def test_less_than_gate():
 
 @pytest.mark.parametrize("bits", [*range(8)])
 @pytest.mark.parametrize("val", [3, 5, 7, 8, 9])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_decompose_less_than_gate(bits: int, val: int):
     qubit_states = list(bit_tools.iter_bits(bits, 3))
     circuit = cirq.Circuit(
@@ -81,6 +84,7 @@ def test_decompose_less_than_gate(bits: int, val: int):
 
 @pytest.mark.parametrize("n", [*range(2, 5)])
 @pytest.mark.parametrize("val", [3, 4, 5, 7, 8, 9])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_less_than_consistent_protocols(n: int, val: int):
     g = cirq_ft.LessThanGate(n, val)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
@@ -90,6 +94,7 @@ def test_less_than_consistent_protocols(n: int, val: int):
     np.testing.assert_allclose(u @ u, np.eye(2 ** (n + 1)))
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_multi_in_less_equal_than_gate():
     qubits = cirq.LineQubit.range(7)
     op = cirq_ft.LessThanEqualGate(3, 3).on(*qubits)
@@ -114,6 +119,7 @@ def test_multi_in_less_equal_than_gate():
 
 @pytest.mark.parametrize("x_bitsize", [*range(1, 5)])
 @pytest.mark.parametrize("y_bitsize", [*range(1, 5)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_less_than_equal_consistent_protocols(x_bitsize: int, y_bitsize: int):
     g = cirq_ft.LessThanEqualGate(x_bitsize, y_bitsize)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
@@ -138,6 +144,7 @@ def test_less_than_equal_consistent_protocols(x_bitsize: int, y_bitsize: int):
     assert g.with_registers([2] * 4, [2] * 5, [2]) == cirq_ft.LessThanEqualGate(4, 5)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_contiguous_register_gate():
     gate = cirq_ft.ContiguousRegisterGate(3, 6)
     circuit = cirq.Circuit(gate.on(*cirq.LineQubit.range(12)))
@@ -163,6 +170,7 @@ def test_contiguous_register_gate():
 
 
 @pytest.mark.parametrize('n', [*range(1, 10)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_contiguous_register_gate_t_complexity(n):
     gate = cirq_ft.ContiguousRegisterGate(n, 2 * n)
     toffoli_complexity = cirq_ft.t_complexity(cirq.CCNOT)
@@ -170,11 +178,12 @@ def test_contiguous_register_gate_t_complexity(n):
 
 
 @pytest.mark.parametrize('a,b,num_bits', itertools.product(range(4), range(4), range(3, 5)))
+@allow_deprecated_cirq_ft_use_in_tests
 def test_add(a: int, b: int, num_bits: int):
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
     ancillas = sorted(circuit.all_qubits())[-num_anc:]
@@ -199,6 +208,7 @@ def test_add(a: int, b: int, num_bits: int):
 @pytest.mark.parametrize('mod', [5, 8])
 @pytest.mark.parametrize('add_val', [1, 2])
 @pytest.mark.parametrize('cv', [[], [0, 1], [1, 0], [1, 1]])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_add_mod_n(bitsize, mod, add_val, cv):
     gate = cirq_ft.AddMod(bitsize, mod, add_val=add_val, cv=cv)
     basis_map = {}
@@ -225,6 +235,7 @@ def test_add_mod_n(bitsize, mod, add_val, cv):
     cirq.testing.assert_equivalent_repr(gate, setup_code='import cirq_ft')
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_add_mod_n_protocols():
     with pytest.raises(ValueError, match="must be between"):
         _ = cirq_ft.AddMod(3, 10)
@@ -238,6 +249,7 @@ def test_add_mod_n_protocols():
     assert cirq.circuit_diagram_info(add_two).wire_symbols == ('@', '@(0)') + ('Add_2_Mod_5',) * 3
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_add_truncated():
     num_bits = 3
     num_anc = num_bits - 1
@@ -258,7 +270,7 @@ def test_add_truncated():
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
     ancillas = sorted(circuit.all_qubits() - frozenset(qubits))
@@ -272,7 +284,7 @@ def test_add_truncated():
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
     ancillas = sorted(circuit.all_qubits() - frozenset(qubits))
@@ -286,11 +298,12 @@ def test_add_truncated():
 
 
 @pytest.mark.parametrize('a,b,num_bits', itertools.product(range(4), range(4), range(3, 5)))
+@allow_deprecated_cirq_ft_use_in_tests
 def test_subtract(a, b, num_bits):
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
+    greedy_mm = cirq.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
     ancillas = sorted(circuit.all_qubits())[-num_anc:]
@@ -309,6 +322,7 @@ def test_subtract(a, b, num_bits):
 
 
 @pytest.mark.parametrize("n", [*range(3, 10)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_addition_gate_t_complexity(n: int):
     g = cirq_ft.AdditionGate(n)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
@@ -316,6 +330,7 @@ def test_addition_gate_t_complexity(n: int):
 
 
 @pytest.mark.parametrize('a,b', itertools.product(range(2**3), repeat=2))
+@allow_deprecated_cirq_ft_use_in_tests
 def test_add_no_decompose(a, b):
     num_bits = 5
     qubits = cirq.LineQubit.range(2 * num_bits)
@@ -335,12 +350,13 @@ def test_add_no_decompose(a, b):
 
 @pytest.mark.parametrize("P,n", [(v, n) for n in range(1, 4) for v in range(1 << n)])
 @pytest.mark.parametrize("Q,m", [(v, n) for n in range(1, 4) for v in range(1 << n)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_decompose_less_than_equal_gate(P: int, n: int, Q: int, m: int):
     qubit_states = list(bit_tools.iter_bits(P, n)) + list(bit_tools.iter_bits(Q, m))
     circuit = cirq.Circuit(
         cirq.decompose_once(
             cirq_ft.LessThanEqualGate(n, m).on(*cirq.LineQubit.range(n + m + 1)),
-            context=cirq.DecompositionContext(GreedyQubitManager(prefix='_c')),
+            context=cirq.DecompositionContext(cirq.GreedyQubitManager(prefix='_c')),
         )
     )
     qubit_order = tuple(sorted(circuit.all_qubits()))
@@ -353,10 +369,14 @@ def test_decompose_less_than_equal_gate(P: int, n: int, Q: int, m: int):
 
 
 @pytest.mark.parametrize("adjoint", [False, True])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_single_qubit_compare_protocols(adjoint: bool):
     g = cirq_ft.algos.SingleQubitCompare(adjoint=adjoint)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
     cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
+    expected_side = cirq_ft.infra.Side.LEFT if adjoint else cirq_ft.infra.Side.RIGHT
+    assert g.signature[2] == cirq_ft.Register('less_than', 1, side=expected_side)
+    assert g.signature[3] == cirq_ft.Register('greater_than', 1, side=expected_side)
 
     with pytest.raises(ValueError):
         _ = g**0.5  # type: ignore
@@ -367,6 +387,7 @@ def test_single_qubit_compare_protocols(adjoint: bool):
 
 
 @pytest.mark.parametrize("v1,v2", [(v1, v2) for v1 in range(2) for v2 in range(2)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_single_qubit_compare(v1: int, v2: int):
     g = cirq_ft.algos.SingleQubitCompare()
     qubits = cirq.LineQid.range(4, dimension=2)
@@ -385,6 +406,7 @@ def test_single_qubit_compare(v1: int, v2: int):
 
 
 @pytest.mark.parametrize("adjoint", [False, True])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_bi_qubits_mixer_protocols(adjoint: bool):
     g = cirq_ft.algos.BiQubitsMixer(adjoint=adjoint)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
@@ -396,6 +418,7 @@ def test_bi_qubits_mixer_protocols(adjoint: bool):
 
 @pytest.mark.parametrize("x", [*range(4)])
 @pytest.mark.parametrize("y", [*range(4)])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_bi_qubits_mixer(x: int, y: int):
     g = cirq_ft.algos.BiQubitsMixer()
     qubits = cirq.LineQid.range(7, dimension=2)

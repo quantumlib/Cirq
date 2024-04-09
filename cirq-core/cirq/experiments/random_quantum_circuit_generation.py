@@ -142,7 +142,7 @@ document(
 
     This pattern of gates was used in the paper
     https://www.nature.com/articles/s41586-019-1666-5
-    to demonstrate quantum supremacy.
+    to demonstrate beyond-classical computation.
     """,
 )
 
@@ -693,5 +693,5 @@ def _two_qubit_layer(
     prng: 'np.random.RandomState',
 ) -> 'cirq.OP_TREE':
     for a, b in coupled_qubit_pairs:
-        if (a, b) in layer:
+        if (a, b) in layer or (b, a) in layer:
             yield two_qubit_op_factory(a, b, prng)

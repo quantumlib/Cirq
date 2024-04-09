@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/images/Cirq_logo_color.png
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/main/docs/images/Cirq_logo_color.png
   :target: https://github.com/quantumlib/cirq
   :alt: cirq-ft
   :width: 500px
@@ -16,11 +16,11 @@ To install the pre-release version of **cirq-ft**, use
 
 .. code-block:: bash
 
-    pip install cirq-ft --pre
+    pip install cirq-ft~=1.0.dev
 
 
 
 Note, that this will install both cirq-ft and cirq-core as well.
 
 To get all the optional **Cirq** modules installed as well, use `pip install cirq` or
-`pip install cirq --pre` for the pre-release version.
+`pip install cirq~=1.0.dev` for the pre-release version.

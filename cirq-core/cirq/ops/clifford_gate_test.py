@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummySimulationState
+from cirq.protocols.act_on_protocol_test import ExampleSimulationState
 from cirq.testing import EqualsTester, assert_allclose_up_to_global_phase
 
 _bools = (False, True)
@@ -47,7 +47,7 @@ def _assert_no_collision(gate) -> None:
 
 
 def _all_rotations():
-    for (pauli, flip) in itertools.product(_paulis, _bools):
+    for pauli, flip in itertools.product(_paulis, _bools):
         yield (pauli, flip)
 
 
@@ -490,7 +490,6 @@ def test_commutes_pauli(gate, pauli, half_turns):
 
 
 def test_to_clifford_tableau_util_function():
-
     tableau = cirq.ops.clifford_gate._to_clifford_tableau(
         x_to=(cirq.X, False), z_to=(cirq.Z, False)
     )
@@ -879,7 +878,7 @@ def test_clifford_gate_act_on_ch_form():
 
 def test_clifford_gate_act_on_fail():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CliffordGate.X, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.CliffordGate.X, ExampleSimulationState(), qubits=())
 
 
 def test_all_single_qubit_clifford_unitaries():

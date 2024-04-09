@@ -20,13 +20,13 @@ database) with a number of T gates scaling as 4L + O(log(1/eps)) where eps is th
 largest absolute error that one can tolerate in the prepared amplitudes.
 """
 
-from typing import List
+from functools import cached_property
+from typing import List, Tuple
 from numpy.typing import NDArray
 
 import attr
 import cirq
 import numpy as np
-from cirq._compat import cached_property
 from cirq_ft import infra, linalg
 from cirq_ft.algos import (
     arithmetic_gates,
@@ -57,10 +57,10 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
     selecting `l` uniformly at random and then returning it with probability `keep[l] / 2**mu`;
     otherwise returning `alt[l]`.
 
-    Registers:
+    Signature:
         selection: The input/output register $|\ell\rangle$ of size lg(L) where the desired
             coefficient state is prepared.
-        temp: Work space comprised of sub registers:
+        temp: Work space comprised of sub signature:
             - sigma: A mu-sized register containing uniform probabilities for comparison against
                 `keep`.
             - alt: A lg(L)-sized register of alternate indices
@@ -70,8 +70,8 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
     This gate corresponds to the following operations:
      - UNIFORM_L on the selection register
      - H^mu on the sigma register
-     - QROM addressed by the selection register into the alt and keep registers.
-     - LessThanEqualGate comparing the keep and sigma registers.
+     - QROM addressed by the selection register into the alt and keep signature.
+     - LessThanEqualGate comparing the keep and sigma signature.
      - Coherent swap between the selection register and alt register if the comparison
        returns True.
 
@@ -83,7 +83,10 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         (https://arxiv.org/abs/1805.03662).
         Babbush et. al. (2018). Section III.D. and Figure 11.
     """
-    selection_registers: infra.SelectionRegisters
+
+    selection_registers: Tuple[infra.SelectionRegister, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, infra.SelectionRegister) else tuple(v)
+    )
     alt: NDArray[np.int_]
     keep: NDArray[np.int_]
     mu: int
@@ -106,9 +109,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         )
         N = len(lcu_probabilities)
         return StatePreparationAliasSampling(
-            selection_registers=infra.SelectionRegisters(
-                [infra.SelectionRegister('selection', (N - 1).bit_length(), N)]
-            ),
+            selection_registers=infra.SelectionRegister('selection', (N - 1).bit_length(), N),
             alt=np.array(alt),
             keep=np.array(keep),
             mu=mu,
@@ -120,7 +121,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
 
     @cached_property
     def alternates_bitsize(self) -> int:
-        return self.selection_registers.total_bits()
+        return infra.total_bits(self.selection_registers)
 
     @cached_property
     def keep_bitsize(self) -> int:
@@ -128,15 +129,17 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
 
     @cached_property
     def selection_bitsize(self) -> int:
-        return self.selection_registers.total_bits()
+        return infra.total_bits(self.selection_registers)
 
     @cached_property
-    def junk_registers(self) -> infra.Registers:
-        return infra.Registers.build(
-            sigma_mu=self.sigma_mu_bitsize,
-            alt=self.alternates_bitsize,
-            keep=self.keep_bitsize,
-            less_than_equal=1,
+    def junk_registers(self) -> Tuple[infra.Register, ...]:
+        return tuple(
+            infra.Signature.build(
+                sigma_mu=self.sigma_mu_bitsize,
+                alt=self.alternates_bitsize,
+                keep=self.keep_bitsize,
+                less_than_equal=1,
+            )
         )
 
     def _value_equality_values_(self):
@@ -165,7 +168,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         selection, less_than_equal = quregs['selection'], quregs['less_than_equal']
-        sigma_mu, alt, keep = quregs['sigma_mu'], quregs['alt'], quregs['keep']
+        sigma_mu, alt, keep = quregs.get('sigma_mu', ()), quregs['alt'], quregs.get('keep', ())
         N = self.selection_registers[0].iteration_length
         yield prepare_uniform_superposition.PrepareUniformSuperposition(N).on(*selection)
         yield cirq.H.on_each(*sigma_mu)

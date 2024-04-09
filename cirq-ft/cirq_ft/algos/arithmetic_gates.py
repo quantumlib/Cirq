@@ -12,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Optional, Sequence, Tuple, Union, List, Iterator
-from numpy.typing import NDArray
+from functools import cached_property
+from typing import Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
-from cirq._compat import cached_property
 import attr
 import cirq
+from numpy.typing import NDArray
+
 from cirq_ft import infra
 from cirq_ft.algos import and_gate
+from cirq_ft.deprecation import deprecated_cirq_ft_class
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class LessThanGate(cirq.ArithmeticGate):
     """Applies U_a|x>|z> = |x> |z ^ (x < a)>"""
@@ -137,18 +140,30 @@ class BiQubitsMixer(infra.GateWithRegisters):
     """Implements the COMPARE2 (Fig. 1) https://static-content.springer.com/esm/art%3A10.1038%2Fs41534-018-0071-5/MediaObjects/41534_2018_71_MOESM1_ESM.pdf
 
     This gates mixes the values in a way that preserves the result of comparison.
-    The registers being compared are 2-qubit registers where
+    The signature being compared are 2-qubit signature where
         x = 2*x_msb + x_lsb
         y = 2*y_msb + y_lsb
     The Gate mixes the 4 qubits so that sign(x - y) = sign(x_lsb' - y_lsb') where x_lsb' and y_lsb'
     are the final values of x_lsb' and y_lsb'.
+
+    Note that the ancilla qubits are used to reduce the T-count and the user
+    should clean the qubits at a later point in time with the adjoint gate.
+    See: https://github.com/quantumlib/Cirq/pull/6313 and
+    https://github.com/quantumlib/Qualtran/issues/389
     """  # pylint: disable=line-too-long
 
     adjoint: bool = False
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(x=2, y=2, ancilla=3)
+    def signature(self) -> infra.Signature:
+        one_side = infra.Side.RIGHT if not self.adjoint else infra.Side.LEFT
+        return infra.Signature(
+            [
+                infra.Register('x', 2),
+                infra.Register('y', 2),
+                infra.Register('ancilla', 3, side=one_side),
+            ]
+        )
 
     def __repr__(self) -> str:
         return f'cirq_ft.algos.BiQubitsMixer({self.adjoint})'
@@ -221,8 +236,16 @@ class SingleQubitCompare(infra.GateWithRegisters):
     adjoint: bool = False
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers.build(a=1, b=1, less_than=1, greater_than=1)
+    def signature(self) -> infra.Signature:
+        one_side = infra.Side.RIGHT if not self.adjoint else infra.Side.LEFT
+        return infra.Signature(
+            [
+                infra.Register('a', 1),
+                infra.Register('b', 1),
+                infra.Register('less_than', 1, side=one_side),
+                infra.Register('greater_than', 1, side=one_side),
+            ]
+        )
 
     def __repr__(self) -> str:
         return f'cirq_ft.algos.SingleQubitCompare({self.adjoint})'
@@ -276,6 +299,7 @@ def _equality_with_zero(
     yield and_gate.And(cv=[0] * len(qubits)).on(*qubits, *ancilla, z)
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class LessThanEqualGate(cirq.ArithmeticGate):
     """Applies U|x>|y>|z> = |x>|y> |z ^ (x <= y)>"""
@@ -433,11 +457,12 @@ class LessThanEqualGate(cirq.ArithmeticGate):
         return True
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class ContiguousRegisterGate(cirq.ArithmeticGate):
     """Applies U|x>|y>|0> -> |x>|y>|x(x-1)/2 + y>
 
-    This is useful in the case when $|x>$ and $|y>$ represent two selection registers such that
+    This is useful in the case when $|x>$ and $|y>$ represent two selection signature such that
      $y < x$. For example, imagine a classical for-loop over two variables $x$ and $y$:
 
     >>> N = 10
@@ -460,8 +485,8 @@ class ContiguousRegisterGate(cirq.ArithmeticGate):
      Note that both the for-loops iterate over the same ranges and in the same order. The only
      difference is that the second loop is a "flattened" version of the first one.
 
-     Such a flattening of selection registers is useful when we want to load multi dimensional
-     data to a target register which is indexed on selection registers $x$ and $y$ such that
+     Such a flattening of selection signature is useful when we want to load multi dimensional
+     data to a target register which is indexed on selection signature $x$ and $y$ such that
      $0<= y <= x < N$ and we want to use a `SelectSwapQROM` to laod this data; which gives a
      sqrt-speedup over a traditional QROM at the cost of using more memory and loading chunks
      of size `sqrt(N)` in a single iteration. See the reference for more details.
@@ -509,6 +534,7 @@ class ContiguousRegisterGate(cirq.ArithmeticGate):
         return NotImplemented  # pragma: no cover
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen
 class AdditionGate(cirq.ArithmeticGate):
     """Applies U|p>|q> -> |p>|p+q>.
@@ -592,6 +618,7 @@ class AdditionGate(cirq.ArithmeticGate):
         return f'cirq_ft.AdditionGate({self.bitsize})'
 
 
+@deprecated_cirq_ft_class()
 @attr.frozen(auto_attribs=True)
 class AddMod(cirq.ArithmeticGate):
     """Applies U_{M}_{add}|x> = |(x + add) % M> if x < M else |x>.
@@ -611,7 +638,9 @@ class AddMod(cirq.ArithmeticGate):
     bitsize: int
     mod: int = attr.field()
     add_val: int = 1
-    cv: Tuple[int, ...] = attr.field(converter=infra.to_tuple, default=())
+    cv: Tuple[int, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v), default=()
+    )
 
     @mod.validator
     def _validate_mod(self, attribute, value):

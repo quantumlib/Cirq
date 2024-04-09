@@ -19,7 +19,7 @@ Where `$HOME/.github-token` is a file containing the token.
 
 # Cloud Build based deployment 
 
-On every push to master Triage Party is redeployed as defined by [cloudbuild-deploy.yaml](cloudbuild-deploy.yaml). 
+On every push to main Triage Party is redeployed as defined by [cloudbuild-deploy.yaml](cloudbuild-deploy.yaml). 
 
 # Deploying Triage Party manually
 

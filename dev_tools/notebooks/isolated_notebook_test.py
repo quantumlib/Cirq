@@ -42,6 +42,8 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    # Requires pinned quimb from #6438
+    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
     # Hardcoded qubit placement
     'docs/google/qubit-placement.ipynb',
     # get_qcs_objects_for_notebook
@@ -63,9 +65,6 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
-    # TODO(#6088) - enable notebooks below
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    # End of TODO(#6088)
     # skipping vendor notebooks as we don't have auth sorted out
     "**/aqt/*.ipynb",
     "**/azure-quantum/*.ipynb",
@@ -105,7 +104,7 @@ PACKAGES = [
 
 # TODO(3577): extract these out to common utilities when we rewrite bash scripts in python
 def _find_base_revision():
-    for rev in ['upstream/master', 'origin/master', 'master']:
+    for rev in ['upstream/main', 'origin/main', 'main']:
         try:
             result = subprocess.run(
                 f'git cat-file -t {rev}'.split(), stdout=subprocess.PIPE, universal_newlines=True
@@ -184,7 +183,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs'). \n"
             f"If this is a new failure in this notebook due to a new change, "
-            f"that is only available in master for now, consider adding `pip install --pre cirq` "
+            f"that is only available in main for now, consider adding `pip install cirq~=1.0.dev` "
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
@@ -232,10 +231,10 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
         mandatory_matches = [
-            r"!pip install --quiet cirq(-google)? --pre",
+            r"!pip install --quiet cirq(-google)?~=1.0.dev",
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install cirq(-google)? --pre`\.",
+            r"`pip install cirq(-google)?~=1.0.dev`\.",
         ]
 
         for m in mandatory_matches:

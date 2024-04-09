@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 from typing import Optional, Sequence, Tuple
 
 import cirq
@@ -19,9 +20,10 @@ import cirq_ft
 import numpy as np
 import pytest
 from attr import frozen
-from cirq._compat import cached_property
+from cirq_ft import infra
 from cirq_ft.algos.mean_estimation import CodeForRandomVariable, MeanEstimationOperator
 from cirq_ft.infra import bit_tools
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 @frozen
@@ -32,8 +34,8 @@ class BernoulliSynthesizer(cirq_ft.PrepareOracle):
     nqubits: int
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters([cirq_ft.SelectionRegister('q', self.nqubits, 2)])
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return (cirq_ft.SelectionRegister('q', self.nqubits, 2),)
 
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid]
@@ -54,19 +56,16 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
     control_val: Optional[int] = None
 
     @cached_property
-    def control_registers(self) -> cirq_ft.Registers:
-        registers = [] if self.control_val is None else [cirq_ft.Register('control', 1)]
-        return cirq_ft.Registers(registers)
+    def control_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return () if self.control_val is None else (cirq_ft.Register('control', 1),)
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters(
-            [cirq_ft.SelectionRegister('q', self.selection_bitsize, 2)]
-        )
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return (cirq_ft.SelectionRegister('q', self.selection_bitsize, 2),)
 
     @cached_property
-    def target_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(t=self.target_bitsize)
+    def target_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return (cirq_ft.Register('t', self.target_bitsize),)
 
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid], t: Sequence[cirq.Qid]
@@ -119,7 +118,7 @@ def satisfies_theorem_321(
     assert cirq.is_unitary(u)
 
     # Compute the final state vector obtained using the synthesizer `Prep |0>`
-    prep_op = synthesizer.on_registers(**synthesizer.registers.get_named_qubits())
+    prep_op = synthesizer.on_registers(**infra.get_named_qubits(synthesizer.signature))
     prep_state = cirq.Circuit(prep_op).final_state_vector()
 
     expected_hav = abs(mu) * np.sqrt(1 / (1 + s**2))
@@ -147,6 +146,7 @@ def satisfies_theorem_321(
         (1 / 4 * 1 / 4, 1, 1, 1.5),
     ],
 )
+@allow_deprecated_cirq_ft_use_in_tests
 def test_mean_estimation_bernoulli(
     p: int, y_1: int, selection_bitsize: int, target_bitsize: int, c: float, arctan_bitsize: int = 5
 ):
@@ -174,8 +174,8 @@ class GroverSynthesizer(cirq_ft.PrepareOracle):
     n: int
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(selection=self.n)
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return (cirq_ft.SelectionRegister('selection', self.n),)
 
     def decompose_from_registers(  # type:ignore[override]
         self, *, context, selection: Sequence[cirq.Qid]
@@ -197,24 +197,24 @@ class GroverEncoder(cirq_ft.SelectOracle):
     marked_val: int
 
     @cached_property
-    def control_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers([])
+    def control_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return ()
 
     @cached_property
-    def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(selection=self.n)
+    def selection_registers(self) -> Tuple[cirq_ft.SelectionRegister, ...]:
+        return (cirq_ft.SelectionRegister('selection', self.n),)
 
     @cached_property
-    def target_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(target=self.marked_val.bit_length())
+    def target_registers(self) -> Tuple[cirq_ft.Register, ...]:
+        return (cirq_ft.Register('target', self.marked_val.bit_length()),)
 
     def decompose_from_registers(  # type:ignore[override]
         self, context, *, selection: Sequence[cirq.Qid], target: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
         selection_cv = [
-            *bit_tools.iter_bits(self.marked_item, self.selection_registers.total_bits())
+            *bit_tools.iter_bits(self.marked_item, infra.total_bits(self.selection_registers))
         ]
-        yval_bin = [*bit_tools.iter_bits(self.marked_val, self.target_registers.total_bits())]
+        yval_bin = [*bit_tools.iter_bits(self.marked_val, infra.total_bits(self.target_registers))]
 
         for b, q in zip(yval_bin, target):
             if b:
@@ -230,6 +230,7 @@ class GroverEncoder(cirq_ft.SelectOracle):
 
 
 @pytest.mark.parametrize('n, marked_val, c', [(5, 1, 4), (4, 1, 2), (2, 1, np.sqrt(2))])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_mean_estimation_grover(
     n: int, marked_val: int, c: float, marked_item: int = 1, arctan_bitsize: int = 5
 ):
@@ -248,13 +249,14 @@ def test_mean_estimation_grover(
     )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_mean_estimation_operator_consistent_protocols():
     p, selection_bitsize, y_1, target_bitsize, arctan_bitsize = 0.1, 2, 1, 1, 4
     synthesizer = BernoulliSynthesizer(p, selection_bitsize)
     encoder = BernoulliEncoder(p, (0, y_1), selection_bitsize, target_bitsize)
     code = CodeForRandomVariable(synthesizer=synthesizer, encoder=encoder)
     mean_gate = MeanEstimationOperator(code, arctan_bitsize=arctan_bitsize)
-    op = mean_gate.on_registers(**mean_gate.registers.get_named_qubits())
+    op = mean_gate.on_registers(**infra.get_named_qubits(mean_gate.signature))
 
     # Test controlled gate.
     equals_tester = cirq.testing.EqualsTester()

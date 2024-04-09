@@ -58,16 +58,17 @@ def test_job_str():
 
 
 def test_job_results_qpu():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '0.6', '2': '0.4'}
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
         'qubits': '2',
         'target': 'qpu',
         'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
-        'data': {'histogram': {'0': '0.6', '2': '0.4'}},
         'warning': {'messages': ['foo', 'bar']},
     }
-    job = ionq.Job(None, job_dict)
+    job = ionq.Job(mock_client, job_dict)
     with warnings.catch_warnings(record=True) as w:
         results = job.results()
         assert len(w) == 2
@@ -78,16 +79,17 @@ def test_job_results_qpu():
 
 
 def test_job_results_rounding_qpu():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '0.0006', '2': '0.9994'}
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
         'qubits': '2',
         'target': 'qpu',
         'metadata': {'shots': 5000, 'measurement0': f'a{chr(31)}0,1'},
-        'data': {'histogram': {'0': '0.0006', '2': '0.9994'}},
     }
     # 5000*0.0006 ~ 2.9999 but should be interpreted as 3
-    job = ionq.Job(None, job_dict)
+    job = ionq.Job(mock_client, job_dict)
     expected = ionq.QPUResult({0: 3, 1: 4997}, 2, {'a': [0, 1]})
     results = job.results()
     assert results == expected
@@ -110,20 +112,23 @@ def test_job_results_failed_no_error_message():
 
 
 def test_job_results_qpu_endianness():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
         'qubits': '2',
         'target': 'qpu',
         'metadata': {'shots': 1000},
-        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
-    job = ionq.Job(None, job_dict)
+    job = ionq.Job(mock_client, job_dict)
     results = job.results()
     assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
 
 def test_job_results_qpu_target_endianness():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
@@ -132,7 +137,7 @@ def test_job_results_qpu_target_endianness():
         'metadata': {'shots': 1000},
         'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
-    job = ionq.Job(None, job_dict)
+    job = ionq.Job(mock_client, job_dict)
     results = job.results()
     assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
@@ -146,10 +151,10 @@ def test_job_results_poll(mock_sleep):
         'qubits': '1',
         'target': 'qpu',
         'metadata': {'shots': 1000},
-        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
     mock_client = mock.MagicMock()
     mock_client.get_job.side_effect = [ready_job, completed_job]
+    mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     job = ionq.Job(mock_client, ready_job)
     results = job.results(polling_seconds=0)
     assert results == ionq.QPUResult({0: 600, 1: 400}, 1, measurement_dict={})
@@ -179,31 +184,48 @@ def test_job_results_poll_timeout_with_error_message(mock_sleep):
 
 
 def test_job_results_simulator():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
         'qubits': '1',
         'target': 'simulator',
-        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
         'metadata': {'shots': '100'},
     }
-    job = ionq.Job(None, job_dict)
+    job = ionq.Job(mock_client, job_dict)
     results = job.results()
     assert results == ionq.SimulatorResult({0: 0.6, 1: 0.4}, 1, {}, 100)
 
 
 def test_job_results_simulator_endianness():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
     job_dict = {
         'id': 'my_id',
         'status': 'completed',
         'qubits': '2',
         'target': 'simulator',
-        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
         'metadata': {'shots': '100'},
     }
-    job = ionq.Job(None, job_dict)
+    job = ionq.Job(mock_client, job_dict)
     results = job.results()
     assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
+
+
+def test_job_sharpen_results():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {'0': '60', '1': '40'}
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '1',
+        'target': 'simulator',
+        'metadata': {'shots': '100'},
+    }
+    job = ionq.Job(mock_client, job_dict)
+    results = job.results(sharpen=False)
+    assert results == ionq.SimulatorResult({0: 60, 1: 40}, 1, {}, 100)
 
 
 def test_job_cancel():

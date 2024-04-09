@@ -16,6 +16,7 @@ import datetime
 from unittest import mock
 import pytest
 
+import duet
 from google.protobuf import any_pb2, timestamp_pb2
 from google.protobuf.text_format import Merge
 
@@ -270,65 +271,6 @@ def test_get_processor_no_processor():
     assert not job.get_processor()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration')
-def test_get_calibration(get_calibration):
-    qjob = quantum.QuantumJob(
-        execution_status=quantum.ExecutionStatus(
-            calibration_name='projects/a/processors/p/calibrations/123'
-        )
-    )
-    calibration = quantum.QuantumCalibration(
-        data=util.pack_any(
-            Merge(
-                """
-    timestamp_ms: 123000,
-    metrics: [{
-        name: 'xeb',
-        targets: ['0_0', '0_1'],
-        values: [{
-            double_val: .9999
-        }]
-    }, {
-        name: 't1',
-        targets: ['0_0'],
-        values: [{
-            double_val: 321
-        }]
-    }, {
-        name: 'globalMetric',
-        values: [{
-            int32_val: 12300
-        }]
-    }]
-""",
-                v2.metrics_pb2.MetricsSnapshot(),
-            )
-        )
-    )
-    get_calibration.return_value = calibration
-
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
-    assert list(job.get_calibration()) == ['xeb', 't1', 'globalMetric']
-    get_calibration.assert_called_once_with('a', 'p', 123)
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
-def test_calibration__with_no_calibration(get_calibration):
-    job = cg.EngineJob(
-        'a',
-        'b',
-        'steve',
-        EngineContext(),
-        _job=quantum.QuantumJob(
-            name='projects/project-id/programs/test/jobs/test',
-            execution_status={'state': 'SUCCESS'},
-        ),
-    )
-    calibration = job.get_calibration()
-    assert not calibration
-    assert not get_calibration.called
-
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_job_async')
 def test_cancel(cancel_job):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
@@ -390,117 +332,6 @@ sweep_results: [{
 )
 
 
-BATCH_RESULTS = quantum.QuantumResult(
-    result=util.pack_any(
-        Merge(
-            """
-results: [{
-    sweep_results: [{
-        repetitions: 3,
-        parameterized_results: [{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 1
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\006'
-                }]
-            }
-        },{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 2
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\007'
-                }]
-            }
-        }]
-    }],
-    },{
-    sweep_results: [{
-        repetitions: 4,
-        parameterized_results: [{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 3
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\013'
-                }]
-            }
-        },{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 4
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\011'
-                }]
-            }
-        }]
-    }]
-}]
-""",
-            v2.batch_pb2.BatchResult(),
-        )
-    )
-)
-
-CALIBRATION_RESULT = quantum.QuantumResult(
-    result=util.pack_any(
-        Merge(
-            """
-results: [{
-    code: ERROR_CALIBRATION_FAILED
-    error_message: 'uh oh'
-    token: 'abc'
-    valid_until_ms: 1234567891000
-    metrics: {
-        timestamp_ms: 1234567890000,
-        metrics: [{
-            name: 'theta',
-            targets: ['0_0', '0_1'],
-            values: [{
-                double_val: .9999
-            }]
-        }]
-    }
-}]
-""",
-            v2.calibration_pb2.FocusedCalibrationResult(),
-        )
-    )
-)
-
 UPDATE_TIME = datetime.datetime.now(tz=datetime.timezone.utc)
 
 
@@ -550,94 +381,49 @@ def test_results_getitem(get_job_results):
         _ = job[2]
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-def test_batched_results(get_job_results):
+def test_receives_results_via_stream_returns_correct_results():
     qjob = quantum.QuantumJob(
         execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
         update_time=UPDATE_TIME,
     )
-    get_job_results.return_value = BATCH_RESULTS
+    result_future = duet.completed_future(RESULTS)
 
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    job = cg.EngineJob(
+        'a', 'b', 'steve', EngineContext(), _job=qjob, job_result_future=result_future
+    )
     data = job.results()
-    assert len(data) == 4
-    assert str(data[0]) == 'q=011'
-    assert str(data[1]) == 'q=111'
-    assert str(data[2]) == 'q=1101'
-    assert str(data[3]) == 'q=1001'
-    get_job_results.assert_called_once_with('a', 'b', 'steve')
 
-    data = job.batched_results()
     assert len(data) == 2
-    assert len(data[0]) == 2
-    assert len(data[1]) == 2
-    assert str(data[0][0]) == 'q=011'
-    assert str(data[0][1]) == 'q=111'
-    assert str(data[1][0]) == 'q=1101'
-    assert str(data[1][1]) == 'q=1001'
+    assert str(data[0]) == 'q=0110'
+    assert str(data[1]) == 'q=1010'
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-def test_batched_results_not_a_batch(get_job_results):
+def test_receives_job_via_stream_raises_and_updates_underlying_job():
+    expected_error_code = quantum.ExecutionStatus.Failure.Code.SYSTEM_ERROR
+    expected_error_message = 'system error'
     qjob = quantum.QuantumJob(
-        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        execution_status=quantum.ExecutionStatus(
+            state=quantum.ExecutionStatus.State.SUCCESS,
+            failure=quantum.ExecutionStatus.Failure(
+                error_code=expected_error_code, error_message=expected_error_message
+            ),
+        ),
         update_time=UPDATE_TIME,
     )
-    get_job_results.return_value = RESULTS
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
-    with pytest.raises(ValueError, match='batched_results'):
-        job.batched_results()
+    result_future = duet.completed_future(qjob)
 
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-def test_calibration_results(get_job_results):
-    qjob = quantum.QuantumJob(
-        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
-        update_time=UPDATE_TIME,
+    job = cg.EngineJob(
+        'a', 'b', 'steve', EngineContext(), _job=qjob, job_result_future=result_future
     )
-    get_job_results.return_value = CALIBRATION_RESULT
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
-    data = job.calibration_results()
-    get_job_results.assert_called_once_with('a', 'b', 'steve')
-    assert len(data) == 1
-    assert data[0].code == v2.calibration_pb2.ERROR_CALIBRATION_FAILED
-    assert data[0].error_message == 'uh oh'
-    assert data[0].token == 'abc'
-    assert data[0].valid_until.timestamp() == 1234567891
-    assert len(data[0].metrics)
-    assert data[0].metrics['theta'] == {(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): [0.9999]}
+    qjob.execution_status.state = quantum.ExecutionStatus.State.FAILURE
 
+    with pytest.raises(RuntimeError):
+        job.results()
+    actual_error_code, actual_error_message = job.failure()
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-def test_calibration_defaults(get_job_results):
-    qjob = quantum.QuantumJob(
-        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
-        update_time=UPDATE_TIME,
-    )
-    result = v2.calibration_pb2.FocusedCalibrationResult()
-    result.results.add()
-    get_job_results.return_value = quantum.QuantumResult(result=util.pack_any(result))
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
-    data = job.calibration_results()
-    get_job_results.assert_called_once_with('a', 'b', 'steve')
-    assert len(data) == 1
-    assert data[0].code == v2.calibration_pb2.CALIBRATION_RESULT_UNSPECIFIED
-    assert data[0].error_message is None
-    assert data[0].token is None
-    assert data[0].valid_until is None
-    assert len(data[0].metrics) == 0
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-def test_calibration_results_not_a_calibration(get_job_results):
-    qjob = quantum.QuantumJob(
-        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
-        update_time=UPDATE_TIME,
-    )
-    get_job_results.return_value = RESULTS
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
-    with pytest.raises(ValueError, match='calibration results'):
-        job.calibration_results()
+    # Checks that the underlying job has been updated by checking failure information.
+    assert actual_error_code == expected_error_code.name
+    assert actual_error_message == expected_error_message
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')

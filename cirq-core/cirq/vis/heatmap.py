@@ -15,6 +15,7 @@ import copy
 from dataclasses import astuple, dataclass
 from typing import (
     Any,
+    cast,
     Dict,
     List,
     Mapping,
@@ -217,7 +218,7 @@ class Heatmap:
         )
         position = self._config['colorbar_position']
         orien = 'vertical' if position in ('left', 'right') else 'horizontal'
-        colorbar = ax.figure.colorbar(
+        colorbar = cast(plt.Figure, ax.figure).colorbar(
             mappable, colorbar_ax, ax, orientation=orien, **self._config.get("colorbar_options", {})
         )
         colorbar_ax.tick_params(axis='y', direction='out')
@@ -230,15 +231,15 @@ class Heatmap:
         ax: plt.Axes,
     ) -> None:
         """Writes annotations to the center of cells. Internal."""
-        for (center, annotation), facecolor in zip(centers_and_annot, collection.get_facecolors()):
+        for (center, annotation), facecolor in zip(centers_and_annot, collection.get_facecolor()):
             # Calculate the center of the cell, assuming that it is a square
             # centered at (x=col, y=row).
             if not annotation:
                 continue
             x, y = center
-            face_luminance = vis_utils.relative_luminance(facecolor)
+            face_luminance = vis_utils.relative_luminance(facecolor)  # type: ignore
             text_color = 'black' if face_luminance > 0.4 else 'white'
-            text_kwargs = dict(color=text_color, ha="center", va="center")
+            text_kwargs: Dict[str, Any] = dict(color=text_color, ha="center", va="center")
             text_kwargs.update(self._config.get('annotation_text_kwargs', {}))
             ax.text(x, y, annotation, **text_kwargs)
 
@@ -295,6 +296,7 @@ class Heatmap:
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
+            ax = cast(plt.Axes, ax)
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         collection = self._plot_on_axis(ax)
@@ -381,6 +383,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
+            ax = cast(plt.Axes, ax)
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])

@@ -11,14 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import List, Sequence
 
 import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq_ft import infra
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.deprecation import allow_deprecated_cirq_ft_use_in_tests
 
 
 def get_1d_Ising_hamiltonian(
@@ -66,6 +69,7 @@ def get_1d_Ising_lcu_coeffs(
 
 
 @pytest.mark.parametrize('control_val', [0, 1])
+@allow_deprecated_cirq_ft_use_in_tests
 def test_ising_zero_bitflip_select(control_val):
     num_sites = 4
     target_bitsize = num_sites
@@ -115,6 +119,7 @@ def test_ising_zero_bitflip_select(control_val):
         )
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_ising_one_bitflip_select():
     num_sites = 4
     target_bitsize = num_sites
@@ -182,6 +187,7 @@ def _fake_prepare(
     return circuit
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_select_application_to_eigenstates():
     # To validate the unary iteration correctly applies the Hamiltonian to a state we
     # compare to directly applying Hamiltonian to the initial state.
@@ -237,6 +243,7 @@ def test_select_application_to_eigenstates():
         np.testing.assert_allclose(np.vdot(input_vec, out_vec), ie / qubitization_lambda, atol=1e-8)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_generic_select_raises():
     with pytest.raises(ValueError, match='should contain 3'):
         _ = cirq_ft.GenericSelect(2, 3, [cirq.DensePauliString('Y')])
@@ -245,6 +252,7 @@ def test_generic_select_raises():
         _ = cirq_ft.GenericSelect(1, 2, [cirq.DensePauliString('XX')] * 5)
 
 
+@allow_deprecated_cirq_ft_use_in_tests
 def test_generic_select_consistent_protocols_and_controlled():
     select_bitsize, num_select, num_sites = 3, 6, 3
     # Get Ising Hamiltonian
@@ -255,7 +263,7 @@ def test_generic_select_consistent_protocols_and_controlled():
 
     # Build GenericSelect gate.
     gate = cirq_ft.GenericSelect(select_bitsize, num_sites, dps_hamiltonian)
-    op = gate.on_registers(**gate.registers.get_named_qubits())
+    op = gate.on_registers(**infra.get_named_qubits(gate.signature))
     cirq.testing.assert_equivalent_repr(gate, setup_code='import cirq\nimport cirq_ft')
 
     # Build controlled gate
@@ -275,5 +283,6 @@ def test_generic_select_consistent_protocols_and_controlled():
         _ = gate.controlled(num_controls=2)
 
 
+@pytest.mark.skip(reason="Cirq-FT is deprecated, use Qualtran instead.")
 def test_notebook():
     execute_notebook('generic_select')

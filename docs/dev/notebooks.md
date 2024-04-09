@@ -34,14 +34,14 @@ feasible to do so.
 
 ## Editing the tree nav on the site: _book.yaml
 
-If you are placing a guide or a tutorial on the site, please make sure you add an entry to the right place in the nav tree in [docs/_book.yaml](https://github.com/quantumlib/Cirq/blob/master/docs/_book.yaml).
+If you are placing a guide or a tutorial on the site, please make sure you add an entry to the right place in the nav tree in [docs/_book.yaml](https://github.com/quantumlib/Cirq/blob/main/docs/_book.yaml).
 
 ## Testing
 
 Those notebooks that don't have any external dependencies (e.g. API calls, authentication) are tested on a continuous basis.
-See the [`dev_tools/notebooks`](https://github.com/quantumlib/Cirq/tree/master/dev_tools/notebooks) directory for the two tests:
-- [notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/notebook_test.py) - to test notebooks against the current branch
-- [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/isolated_notebook_test.py) - to test notebooks against the latest released version of Cirq.
+See the [`dev_tools/notebooks`](https://github.com/quantumlib/Cirq/tree/main/dev_tools/notebooks) directory for the two tests:
+- [notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/notebook_test.py) - to test notebooks against the current branch
+- [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/isolated_notebook_test.py) - to test notebooks against the latest released version of Cirq.
 
 In order to speed up the execution of these tests an auxiliary file may be supplied which performs substitutions on the notebook to make it faster (for example it is often useful
 to reduce the number of repetitions in sampling from a simulator).
@@ -77,23 +77,23 @@ You should configure notebooks differently depending on whether they rely on fea
 
 When you introduce a notebook that depends on pre-release features of Cirq, make sure to
 
- - mark the notebook at the top that `Note: this notebook relies on unreleased Cirq features. If you want to try these feature, make sure you install cirq via pip install cirq --pre`.
+ - mark the notebook at the top that `Note: this notebook relies on unreleased Cirq features. If you want to try these feature, make sure you install cirq via pip install cirq~=1.0.dev`.
  - use `pip install cirq —pre`  in the installation instructions
- - make sure [notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/notebook_test.py) covers the notebook
- - exclude the notebook from the [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/isolated_notebook_test.py) by adding it to `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES`
+ - make sure [notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/notebook_test.py) covers the notebook
+ - exclude the notebook from the [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/isolated_notebook_test.py) by adding it to `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES`
 
 ### Stable notebooks
 
 When you introduce a notebook that only uses already released features of Cirq, make sure to
- - use `pip install cirq` (NOT `pip install cirq --pre`)
- - ensure the notebook is not excluded from either [notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/notebook_test.py) or [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/isolated_notebook_test.py)  (except if the notebook has external dependencies, in which case you should exclude this from both!)
+ - use `pip install cirq` (NOT `pip install cirq~=1.0.dev`)
+ - ensure the notebook is not excluded from either [notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/notebook_test.py) or [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/isolated_notebook_test.py)  (except if the notebook has external dependencies, in which case you should exclude this from both!)
 
 ### Release
 
 At release time, we change all the **pre-release notebooks** in bulk:
  - remove the pre-release notices
  - change `pip install cirq —pre` to `pip install cirq`
- - remove the exclusions in [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/isolated_notebook_test.py) by making `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
+ - remove the exclusions in [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/isolated_notebook_test.py) by making `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
 
 As all the notebooks have been tested continuously up to this point, the release notebook PR should pass without issues.
 

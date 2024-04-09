@@ -1,0 +1,91 @@
+[
+    {
+        "cirq_type": "InsertionNoiseModel",
+        "ops_added": [
+            [
+            {
+                "cirq_type": "OpIdentifier",
+                "gate_type": "XPowGate",
+                "qubits": [
+                {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                }
+                ]
+            },
+            {
+                "cirq_type": "GateOperation",
+                "gate": {
+                "cirq_type": "BitFlipChannel",
+                "p": 0.2
+                },
+                "qubits": [
+                {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                }
+                ]
+            }
+            ]
+        ],
+        "prepend": false,
+        "require_physical_tag": false
+    },
+    {
+        "cirq_type": "InsertionNoiseModel",
+        "ops_added": [
+            [
+            {
+                "cirq_type": "OpIdentifier",
+                "gate_type": "XPowGate",
+                "qubits": [
+                {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                }
+                ]
+            },
+            {
+                "cirq_type": "GateOperation",
+                "gate": {
+                "cirq_type": "BitFlipChannel",
+                "p": 0.2
+                },
+                "qubits": [
+                {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                }
+                ]
+            }
+            ],
+            [
+            {
+                "cirq_type": "OpIdentifier",
+                "gate_type": "HPowGate",
+                "qubits": [
+                {
+                    "cirq_type": "LineQubit",
+                    "x": 1
+                }
+                ]
+            },
+            {
+                "cirq_type": "GateOperation",
+                "gate": {
+                "cirq_type": "BitFlipChannel",
+                "p": 0.1
+                },
+                "qubits": [
+                {
+                    "cirq_type": "LineQubit",
+                    "x": 1
+                }
+                ]
+            }
+            ]
+        ],
+        "prepend": false,
+        "require_physical_tag": false
+    }
+]

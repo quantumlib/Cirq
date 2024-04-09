@@ -285,6 +285,22 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
+    def add_qubits(self, qubits: Sequence['cirq.Qid']):
+        ret = super().add_qubits(qubits)
+        return (
+            self.kronecker_product(type(self)(qubits=qubits), inplace=True)
+            if ret is NotImplemented
+            else ret
+        )
+
+    def remove_qubits(self, qubits: Sequence['cirq.Qid']):
+        ret = super().remove_qubits(qubits)
+        if ret is not NotImplemented:
+            return ret
+        extracted, remainder = self.factor(qubits, inplace=True)
+        remainder._state._density_matrix *= extracted._state._density_matrix.reshape(-1)[0]
+        return remainder
+
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:

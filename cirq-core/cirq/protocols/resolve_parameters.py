@@ -178,8 +178,10 @@ def resolve_parameters(
     if isinstance(val, (list, tuple)):
         return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
 
-    is_parameterized = getattr(val, '_is_parameterized_', None)
-    if is_parameterized is not None and not is_parameterized():
+    is_parameterized = (
+        val._is_parameterized_() if hasattr(val, '_is_parameterized_') else NotImplemented
+    )
+    if is_parameterized is not NotImplemented and not is_parameterized:
         return val
 
     getter = getattr(val, '_resolve_parameters_', None)

@@ -21,10 +21,12 @@ import pytest
 
 from dev_tools import shell_tools
 from dev_tools.modules import list_modules
+from dev_tools.test_utils import only_on_posix
 
 PACKAGES = ["-r", "dev_tools/requirements/isolated-base.env.txt"]
 
 
+@only_on_posix
 @pytest.mark.slow
 # ensure that no cirq packages are on the PYTHONPATH, this is important, otherwise
 # the "isolation" fails and for example cirq-core would be on the PATH

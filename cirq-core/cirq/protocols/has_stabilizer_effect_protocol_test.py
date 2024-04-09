@@ -41,15 +41,15 @@ class Yes:
         return True
 
 
-q = cirq.LineQubit(0)
-
-
 class EmptyOp(cirq.Operation):
     """A trivial operation."""
 
+    def __init__(self, q: cirq.Qid = cirq.LineQubit(0)):
+        self.q = q
+
     @property
     def qubits(self):
-        return (q,)
+        return (self.q,)
 
     def with_qubits(self, *new_qubits):  # pragma: no cover
         return self
@@ -92,6 +92,18 @@ class OpWithUnitary(EmptyOp):
     def _unitary_(self):
         return self.unitary
 
+    @property
+    def qubits(self):
+        return cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1)
+
+
+class GateDecomposes(cirq.Gate):
+    def _num_qubits_(self):
+        return 1
+
+    def _decompose_(self, qubits):
+        yield YesOp(*qubits)
+
 
 def test_inconclusive():
     assert not cirq.has_stabilizer_effect(object())
@@ -125,9 +137,21 @@ def test_via_unitary():
     op3 = OpWithUnitary(np.array([[1, 0], [0, np.sqrt(1j)]]))
     assert not cirq.has_stabilizer_effect(op3)
 
+    # 2+ qubit cliffords
+    assert cirq.has_stabilizer_effect(cirq.CNOT)
+    assert cirq.has_stabilizer_effect(cirq.XX)
+    assert cirq.has_stabilizer_effect(cirq.ZZ)
 
-def test_via_unitary_not_supported():
-    # Unitaries larger than 2x2 are not yet supported.
-    op = OpWithUnitary(cirq.unitary(cirq.CNOT))
-    assert not cirq.has_stabilizer_effect(op)
-    assert not cirq.has_stabilizer_effect(op)
+    # Non Cliffords
+    assert not cirq.has_stabilizer_effect(cirq.T)
+    assert not cirq.has_stabilizer_effect(cirq.CCNOT)
+    assert not cirq.has_stabilizer_effect(cirq.CCZ)
+
+
+def test_via_decompose():
+    assert cirq.has_stabilizer_effect(cirq.Circuit(cirq.H.on_each(cirq.LineQubit.range(4))))
+    assert not cirq.has_stabilizer_effect(cirq.Circuit(cirq.T.on_each(cirq.LineQubit.range(4))))
+    assert not cirq.has_stabilizer_effect(
+        OpWithUnitary(cirq.unitary(cirq.Circuit(cirq.T.on_each(cirq.LineQubit.range(4)))))
+    )
+    assert cirq.has_stabilizer_effect(GateDecomposes())

@@ -61,7 +61,7 @@ export GIT_CONFIG_GLOBAL=/dev/null
 export GIT_CONFIG_SYSTEM=/dev/null
 dir=$(git rev-parse --show-toplevel)
 cd {dir_path}
-git init --quiet --initial-branch master
+git init --quiet --initial-branch main
 git config --local user.name 'Me'
 git config --local user.email '<>'
 git commit -m init --allow-empty --quiet --no-gpg-sign
@@ -209,21 +209,21 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert (
         result.stderr.split()
         == (
-            "Comparing against revision 'master'.\nFound 0 test files associated with changes.\n"
+            "Comparing against revision 'main'.\nFound 0 test files associated with changes.\n"
         ).split()
     )
 
     result = run(
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch origin/master',
+        setup='git branch origin/main',
     )
     assert result.returncode == 0
     assert result.stdout == ''
     assert (
         result.stderr.split()
         == (
-            "Comparing against revision 'origin/master'.\n"
+            "Comparing against revision 'origin/main'.\n"
             "Found 0 test files associated with changes.\n"
         ).split()
     )
@@ -231,14 +231,14 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch upstream/master',
+        setup='git branch upstream/main',
     )
     assert result.returncode == 0
     assert result.stdout == ''
     assert (
         result.stderr.split()
         == (
-            "Comparing against revision 'upstream/master'.\n"
+            "Comparing against revision 'upstream/main'.\n"
             "Found 0 test files associated with changes.\n"
         ).split()
     )
@@ -246,14 +246,14 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch upstream/master; git branch origin/master',
+        setup='git branch upstream/main; git branch origin/main',
     )
     assert result.returncode == 0
     assert result.stdout == ''
     assert (
         result.stderr.split()
         == (
-            "Comparing against revision 'upstream/master'.\n"
+            "Comparing against revision 'upstream/main'.\n"
             "Found 0 test files associated with changes.\n"
         ).split()
     )
@@ -262,7 +262,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='file',
-        setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
+        setup='git checkout -b other --quiet\ngit branch -D main --quiet\n',
     )
     assert result.returncode == 1
     assert result.stdout == ''
@@ -298,14 +298,14 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
-        setup='touch master\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
+        setup='touch main\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.returncode == 0
     assert result.stdout == ''
     assert (
         result.stderr.split()
         == (
-            "Comparing against revision 'master'.\nFound 0 test files associated with changes.\n"
+            "Comparing against revision 'main'.\nFound 0 test files associated with changes.\n"
         ).split()
     )
 
@@ -315,20 +315,20 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         tmpdir_factory=tmpdir_factory,
         setup='mkdir alt\n'
         'cd alt\n'
-        'git init --quiet --initial-branch master\n'
+        'git init --quiet --initial-branch main\n'
         'git config --local user.name \'Me\'\n'
         'git config --local user.email \'<>\'\n'
         'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
         'cd ..\n'
         'git remote add origin alt\n'
-        'git fetch origin master --quiet 2> /dev/null\n',
+        'git fetch origin main --quiet 2> /dev/null\n',
     )
     assert result.returncode == 0
     assert result.stdout == ''
     assert (
         result.stderr.split()
         == (
-            "Comparing against revision 'origin/master'.\n"
+            "Comparing against revision 'origin/main'.\n"
             "Found 0 test files associated with changes.\n"
         ).split()
     )
@@ -376,14 +376,14 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
-        'python dev_tools/check_incremental_coverage_annotations.py master\n'
+        'python dev_tools/check_incremental_coverage_annotations.py main\n'
     )
-    assert result.stderr == "Comparing against revision 'master'.\n"
+    assert result.stderr == "Comparing against revision 'main'.\n"
 
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch origin/master',
+        setup='git branch origin/main',
         additional_intercepts=['check/pytest'],
     )
     assert result.returncode == 0
@@ -394,14 +394,14 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
-        'python dev_tools/check_incremental_coverage_annotations.py origin/master\n'
+        'python dev_tools/check_incremental_coverage_annotations.py origin/main\n'
     )
-    assert result.stderr == "Comparing against revision 'origin/master'.\n"
+    assert result.stderr == "Comparing against revision 'origin/main'.\n"
 
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch upstream/master',
+        setup='git branch upstream/main',
         additional_intercepts=['check/pytest'],
     )
     assert result.returncode == 0
@@ -412,14 +412,14 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
-        'python dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
+        'python dev_tools/check_incremental_coverage_annotations.py upstream/main\n'
     )
-    assert result.stderr == "Comparing against revision 'upstream/master'.\n"
+    assert result.stderr == "Comparing against revision 'upstream/main'.\n"
 
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch upstream/master; git branch origin/master',
+        setup='git branch upstream/main; git branch origin/main',
         additional_intercepts=['check/pytest'],
     )
     assert result.returncode == 0
@@ -430,14 +430,14 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
-        'python dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
+        'python dev_tools/check_incremental_coverage_annotations.py upstream/main\n'
     )
-    assert result.stderr == "Comparing against revision 'upstream/master'.\n"
+    assert result.stderr == "Comparing against revision 'upstream/main'.\n"
 
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
-        setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
+        setup='git checkout -b other --quiet\ngit branch -D main --quiet\n',
         additional_intercepts=['check/pytest'],
     )
     assert result.returncode == 1
@@ -467,7 +467,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
-        setup='touch master\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
+        setup='touch main\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
         additional_intercepts=['check/pytest'],
     )
     assert result.returncode == 0
@@ -478,18 +478,18 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
-        'python dev_tools/check_incremental_coverage_annotations.py master\n'
+        'python dev_tools/check_incremental_coverage_annotations.py main\n'
     )
-    assert result.stderr == "Comparing against revision 'master'.\n"
+    assert result.stderr == "Comparing against revision 'main'.\n"
 
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
-        setup='touch master\n'
+        setup='touch main\n'
         'git add -A\n'
         'git commit -q -m test --no-gpg-sign\n'
         'git branch alt\n'
-        'touch master2\n'
+        'touch main2\n'
         'git add -A\n'
         'git commit -q -m test2 --no-gpg-sign\n'
         'git checkout -q alt\n',
@@ -505,7 +505,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py '
     )
-    assert result.stderr.startswith("Comparing against revision 'master' (merge base ")
+    assert result.stderr.startswith("Comparing against revision 'main' (merge base ")
 
 
 @only_on_posix
@@ -525,39 +525,39 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     result = run(script_file='check/format-incremental', tmpdir_factory=tmpdir_factory)
     assert result.returncode == 0
     assert "No files to format" in result.stdout
-    assert "Comparing against revision 'master'." in result.stderr
+    assert "Comparing against revision 'main'." in result.stderr
 
     result = run(
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch origin/master',
+        setup='git branch origin/main',
     )
     assert result.returncode == 0
     assert "No files to format" in result.stdout
-    assert "Comparing against revision 'origin/master'." in result.stderr
+    assert "Comparing against revision 'origin/main'." in result.stderr
 
     result = run(
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch upstream/master',
+        setup='git branch upstream/main',
     )
     assert result.returncode == 0
     assert "No files to format" in result.stdout
-    assert "Comparing against revision 'upstream/master'." in result.stderr
+    assert "Comparing against revision 'upstream/main'." in result.stderr
 
     result = run(
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
-        setup='git branch upstream/master; git branch origin/master',
+        setup='git branch upstream/main; git branch origin/main',
     )
     assert result.returncode == 0
     assert "No files to format" in result.stdout
-    assert "Comparing against revision 'upstream/master'." in result.stderr
+    assert "Comparing against revision 'upstream/main'." in result.stderr
 
     result = run(
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
-        setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
+        setup='git checkout -b other --quiet\ngit branch -D main --quiet\n',
     )
     assert result.returncode == 1
     assert result.stdout == ''
@@ -578,20 +578,20 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
-        setup='touch master.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
+        setup='touch main.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.returncode == 0
     assert "No files to format" in result.stdout
-    assert "Comparing against revision 'master'." in result.stderr
+    assert "Comparing against revision 'main'." in result.stderr
 
     result = run(
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
-        setup='touch master.py\n'
+        setup='touch main.py\n'
         'git add -A\n'
         'git commit -q -m test --no-gpg-sign\n'
         'git branch alt\n'
-        'touch master2.py\n'
+        'touch main2.py\n'
         'git add -A\n'
         'git commit -q -m test2 --no-gpg-sign\n'
         'git checkout -q alt\n'
@@ -601,7 +601,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert 'INTERCEPTED black --color --check --diff alt.py' in result.stdout
-    assert result.stderr.startswith("Comparing against revision 'master' (merge base ")
+    assert result.stderr.startswith("Comparing against revision 'main' (merge base ")
 
 
 @only_on_posix

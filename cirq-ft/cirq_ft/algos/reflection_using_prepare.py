@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 from typing import Collection, Optional, Sequence, Tuple, Union
 from numpy.typing import NDArray
 
 import attr
 import cirq
-from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import multi_control_multi_target_pauli as mcmt
 from cirq_ft.algos import select_and_prepare
@@ -57,17 +57,16 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
     control_val: Optional[int] = None
 
     @cached_property
-    def control_registers(self) -> infra.Registers:
-        registers = [] if self.control_val is None else [infra.Register('control', 1)]
-        return infra.Registers(registers)
+    def control_registers(self) -> Tuple[infra.Register, ...]:
+        return () if self.control_val is None else (infra.Register('control', 1),)
 
     @cached_property
-    def selection_registers(self) -> infra.SelectionRegisters:
+    def selection_registers(self) -> Tuple[infra.SelectionRegister, ...]:
         return self.prepare_gate.selection_registers
 
     @cached_property
-    def registers(self) -> infra.Registers:
-        return infra.Registers([*self.control_registers, *self.selection_registers])
+    def signature(self) -> infra.Signature:
+        return infra.Signature([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
         self,
@@ -87,7 +86,7 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
         # 1. PREPARE†
         yield cirq.inverse(prepare_op)
         # 2. MultiControlled Z, controlled on |000..00> state.
-        phase_control = self.selection_registers.merge_qubits(**state_prep_selection_regs)
+        phase_control = infra.merge_qubits(self.selection_registers, **state_prep_selection_regs)
         yield cirq.X(phase_target) if not self.control_val else []
         yield mcmt.MultiControlPauli([0] * len(phase_control), target_gate=cirq.Z).on_registers(
             controls=phase_control, target=phase_target
@@ -102,8 +101,10 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
             qm.qfree([phase_target])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.total_bits()
-        wire_symbols += ['R_L'] * self.selection_registers.total_bits()
+        wire_symbols = ['@' if self.control_val else '@(0)'] * infra.total_bits(
+            self.control_registers
+        )
+        wire_symbols += ['R_L'] * infra.total_bits(self.selection_registers)
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def __repr__(self):

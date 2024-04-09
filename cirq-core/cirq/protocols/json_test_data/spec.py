@@ -22,6 +22,7 @@ TestSpec = ModuleJsonTestSpec(
     name="cirq",
     packages=[cirq, cirq.work],
     test_data_path=pathlib.Path(__file__).parent,
+    custom_class_name_to_cirq_type={"MSGate": "cirq.MSGate"},
     resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
         'Alignment',
@@ -58,6 +59,7 @@ TestSpec = ModuleJsonTestSpec(
         'ZerosSampler',
     ],
     should_not_be_serialized=[
+        'ClassicalStateSimulator',
         # Heatmaps
         'Heatmap',
         'TwoQubitInteractionHeatmap',
@@ -89,6 +91,9 @@ TestSpec = ModuleJsonTestSpec(
         'LineInitialMapper',
         'MappingManager',
         'RouteCQC',
+        # Qubit Managers,
+        'SimpleQubitManager',
+        'GreedyQubitManager',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
@@ -104,6 +109,7 @@ TestSpec = ModuleJsonTestSpec(
         'StateVectorStepResult',
         'StepResultBase',
         'UnitSweep',
+        'UNIT_SWEEP',
         'NamedTopology',
         # protocols:
         'HasJSONNamespace',

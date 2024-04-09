@@ -83,7 +83,7 @@ def test_equal_up_to_global_mixed_array_types():
     assert not cirq.equal_up_to_global_phase([], [[]], atol=0.0)
 
 
-# Dummy container class implementing _equal_up_to_global_phase_
+# Example container class implementing _equal_up_to_global_phase_
 # for homogeneous comparison, with nontrivial getter.
 class A:
     def __init__(self, val):
@@ -95,7 +95,7 @@ class A:
         return cirq.equal_up_to_global_phase(self.val[0], other.val[0], atol=atol)
 
 
-# Dummy container class implementing _equal_up_to_global_phase_
+# Example container class implementing _equal_up_to_global_phase_
 # for heterogeneous comparison.
 class B:
     def __init__(self, val):
