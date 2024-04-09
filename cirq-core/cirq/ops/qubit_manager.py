@@ -53,7 +53,7 @@ class _BaseAncillaQid(raw_types.Qid):
 
     def __repr__(self) -> str:
         dim_str = f', dim={self.dim}' if self.dim != 2 else ''
-        prefix_str = f', prefix={self.prefix}' if self.prefix != '' else ''
+        prefix_str = f', prefix={self.prefix!r}' if self.prefix != '' else ''
         return f"cirq.ops.{type(self).__name__}({self.id}{dim_str}{prefix_str})"
 
 
