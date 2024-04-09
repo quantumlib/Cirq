@@ -167,6 +167,11 @@ message CZPowGate {
 message FSimGate {
   FloatArg theta = 1;
   FloatArg phi = 2;
+
+  // If true, this is equivalent to:
+  // cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
+  // This field controls how we translate the gate implementation.
+  bool translate_via_model = 3;
 }
 
 // Representation of cirq.ISwapPowGate
