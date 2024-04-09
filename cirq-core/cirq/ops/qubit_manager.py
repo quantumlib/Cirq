@@ -48,7 +48,7 @@ class _BaseAncillaQid(raw_types.Qid):
     def dimension(self) -> int:
         return self.dim
 
-    def with_dimension(self, dimension: int) -> 'Qid':
+    def with_dimension(self, dimension: int) -> '_BaseAncillaQid':
         return dataclasses.replace(self, dim=dimension)
 
     def __repr__(self) -> str:
