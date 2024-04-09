@@ -14,7 +14,7 @@
 
 import abc
 import dataclasses
-from typing import Iterable, List, TYPE_CHECKING
+from typing import Iterable, List, TYPE_CHECKING, Tuple
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -41,12 +41,15 @@ class _BaseAncillaQid(raw_types.Qid):
     dim: int = 2
     prefix: str = ''
 
-    def _comparison_key(self) -> int:
-        return self.id
+    def _comparison_key(self) -> Tuple[str, int]:
+        return self.prefix, self.id
 
     @property
     def dimension(self) -> int:
         return self.dim
+
+    def with_dimension(self, dimension: int) -> 'Qid':
+        return dataclasses.replace(self, dim=dimension)
 
     def __repr__(self) -> str:
         dim_str = f', dim={self.dim}' if self.dim != 2 else ''
