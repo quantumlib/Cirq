@@ -39,8 +39,8 @@ def _test1_check_uniform():
     """The code tests the creation of M uniform superposition states, where M ranges from 3 to 1024."""
     M=1025  
     for mm in range(3, M):
-        if (mm & (mm-1)) == 0:
+        if (mm & (mm-1)) == 0:         #if mm is an integer power of 2
             n = int(np.log2(mm))
-        else:
-            n = int(np.ceil(np.log2(M)))
+        else:                          #if mm is not an integer power of 2
+            n = int(np.ceil(np.log2(mm)))    
         _assert_generated_unitary_is_uniform(mm, n)
