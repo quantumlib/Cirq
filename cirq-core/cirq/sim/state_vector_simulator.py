@@ -16,6 +16,7 @@
 import abc
 from functools import cached_property
 from typing import Any, Dict, Iterator, Sequence, Type, TYPE_CHECKING, Generic, TypeVar
+import warnings
 
 import numpy as np
 
@@ -124,7 +125,16 @@ class StateVectorTrialResult(
 
     @cached_property
     def final_state_vector(self) -> np.ndarray:
-        return self._get_merged_sim_state().target_tensor.reshape(-1)
+        ret = self._get_merged_sim_state().target_tensor.reshape(-1)
+        norm = np.linalg.norm(ret)
+        if abs(norm - 1) > np.sqrt(np.finfo(ret.dtype).eps):
+            warnings.warn(
+                f"final state vector's {norm=} is too far from 1,"
+                f" {abs(norm-1)} > {np.sqrt(np.finfo(ret.dtype).eps)}."
+                "skipping renormalization"
+            )
+            return ret
+        return ret / norm
 
     def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at the end of the computation.

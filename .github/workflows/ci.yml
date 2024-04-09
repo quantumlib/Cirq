@@ -166,11 +166,11 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
+        run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --rigetti-integration
       - name: Stop Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
+        run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
   pip-compile:
     name: Check consistency of requirements
     runs-on: ubuntu-20.04
@@ -221,7 +221,7 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
+        run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
         run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
       - name: Upload coverage reports to Codecov
@@ -229,7 +229,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Stop Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
+        run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
     name: Pytest Windows
     strategy:
