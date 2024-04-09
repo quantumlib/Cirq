@@ -27,10 +27,21 @@ def test_clean_qubits():
     q = cqi.CleanQubit(2, dim=3)
     assert q.id == 2
     assert q.dimension == 3
+    assert q.with_dimension(4) == cqi.CleanQubit(2, dim=4)
     assert str(q) == '_c(2) (d=3)'
     assert repr(q) == 'cirq.ops.CleanQubit(2, dim=3)'
 
     assert cqi.CleanQubit(1) < cqi.CleanQubit(2)
+
+
+def test_ancilla_qubits_prefix():
+    assert cqi.CleanQubit(1, prefix="1") != cqi.CleanQubit(1, prefix="2")
+    assert cqi.CleanQubit(1, prefix="1") < cqi.CleanQubit(1, prefix="2")
+    assert cqi.CleanQubit(1, prefix="1") < cqi.CleanQubit(2, prefix="1")
+    assert cqi.BorrowableQubit(1, prefix="1") != cqi.BorrowableQubit(1, prefix="2")
+    assert cqi.BorrowableQubit(1, prefix="1") < cqi.BorrowableQubit(1, prefix="2")
+    assert cqi.BorrowableQubit(1, prefix="1") < cqi.BorrowableQubit(2, prefix="1")
+    assert cqi.CleanQubit(1, prefix="1") != cqi.BorrowableQubit(1, prefix="1")
 
 
 def test_borrow_qubits():
@@ -43,6 +54,7 @@ def test_borrow_qubits():
     q = cqi.BorrowableQubit(20, dim=4)
     assert q.id == 20
     assert q.dimension == 4
+    assert q.with_dimension(10) == cqi.BorrowableQubit(20, dim=10)
     assert str(q) == '_b(20) (d=4)'
     assert repr(q) == 'cirq.ops.BorrowableQubit(20, dim=4)'
 
