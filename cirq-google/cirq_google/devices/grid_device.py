@@ -156,6 +156,10 @@ _GATES: List[_GateRepresentations] = [
         gate_spec_name='meas', supported_gates=[cirq.GateFamily(cirq.MeasurementGate)]
     ),
     _GateRepresentations(gate_spec_name='wait', supported_gates=[cirq.GateFamily(cirq.WaitGate)]),
+    _GateRepresentations(
+        gate_spec_name='fsim_via_model',
+        supported_gates=[cirq.GateFamily(cirq.FSimGate, tags_to_accept=[ops.FSimViaModelTag()])],
+    ),
 ]
 
 
