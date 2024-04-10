@@ -16,8 +16,7 @@
 
 ################################################################################
 # Downloads and tests cirq wheels from the pypi package repository.
-# Can verify prod, test, or pre-release versions.
-#   --pre: pre-release cirq from prod pypi
+# Can verify test or prod versions.
 #   --test: cirq from test pypi
 #   --prod: cirq from prod pypi
 #
@@ -27,7 +26,7 @@
 # dependencies disagree, the tests can spuriously fail.
 #
 # Usage:
-#     dev_tools/packaging/verify-published-package.sh PACKAGE_VERSION --test|--prod|--pre
+#     dev_tools/packaging/verify-published-package.sh PACKAGE_VERSION --test|--prod
 ################################################################################
 
 set -e
@@ -51,12 +50,8 @@ elif [ "${PROD_SWITCH}" = "--prod" ]; then
     PIP_FLAGS=''
     PYPI_REPO_NAME="PROD"
     PYPI_PROJECT_NAME="cirq"
-elif [ "${PROD_SWITCH}" = "--pre" ]; then
-    PIP_FLAGS='--pre'
-    PYPI_REPO_NAME="PROD"
-    PYPI_PROJECT_NAME="cirq"
 else
-    echo -e "\033[31mSecond argument must be '--prod' or '--test' or '--pre'.\033[0m"
+    echo -e "\033[31mSecond argument must be '--test' or '--prod'.\033[0m"
     exit 1
 fi
 
