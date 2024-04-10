@@ -20,15 +20,15 @@ def test_routed_circuit_with_mapping_simple():
     q = cirq.LineQubit.range(2)
     circuit = cirq.Circuit([cirq.Moment(cirq.SWAP(q[0], q[1]).with_tags(cirq.RoutingSwapTag()))])
     expected_diagram = """
-0: ───q(0)───×[cirq.RoutingSwapTag()]───q(1)───
-      │      │                          │
-1: ───q(1)───×──────────────────────────q(0)───"""
+0: ───q(0)───×[<r>]───q(1)───
+      │      │        │
+1: ───q(1)───×────────q(0)───"""
     cirq.testing.assert_has_diagram(cirq.routed_circuit_with_mapping(circuit), expected_diagram)
 
     expected_diagram_with_initial_mapping = """
-0: ───a───×[cirq.RoutingSwapTag()]───b───
-      │   │                          │
-1: ───b───×──────────────────────────a───"""
+0: ───a───×[<r>]───b───
+      │   │        │
+1: ───b───×────────a───"""
     cirq.testing.assert_has_diagram(
         cirq.routed_circuit_with_mapping(
             circuit, {cirq.NamedQubit("a"): q[0], cirq.NamedQubit("b"): q[1]}
@@ -74,16 +74,16 @@ def test_routed_circuit_with_mapping_multi_swaps():
         ]
     )
     expected_diagram = """
-0: ───q(0)──────────────────────────────────────q(0)───×[cirq.RoutingSwapTag()]───q(1)───────X───
-      │                                         │      │                          │          │
-1: ───q(1)───────────X──────────────────────────q(1)───×──────────────────────────q(0)───X───@───
-      │              │                          │                                 │      │
-2: ───q(2)───────@───@──────────────────────────q(2)───×──────────────────────────q(4)───@───────
-      │          │                              │      │                          │
-3: ───q(3)───@───X───×──────────────────────────q(4)───×[cirq.RoutingSwapTag()]───q(2)───────────
-      │      │       │                          │                                 │
-4: ───q(4)───X───X───×[cirq.RoutingSwapTag()]───q(3)──────────────────────────────q(3)───────────
-      │          │                              │                                 │
-5: ───q(5)───────@──────────────────────────────q(5)──────────────────────────────q(5)───────────
+0: ───q(0)────────────────────q(0)───×[<r>]───q(1)───────X───
+      │                       │      │        │          │
+1: ───q(1)───────────X────────q(1)───×────────q(0)───X───@───
+      │              │        │               │      │
+2: ───q(2)───────@───@────────q(2)───×────────q(4)───@───────
+      │          │            │      │        │
+3: ───q(3)───@───X───×────────q(4)───×[<r>]───q(2)───────────
+      │      │       │        │               │
+4: ───q(4)───X───X───×[<r>]───q(3)────────────q(3)───────────
+      │          │            │               │
+5: ───q(5)───────@────────────q(5)────────────q(5)───────────
 """
     cirq.testing.assert_has_diagram(cirq.routed_circuit_with_mapping(circuit), expected_diagram)
