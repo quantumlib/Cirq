@@ -22,7 +22,7 @@ def _assert_generated_unitary_is_uniform(M :int, n :int) -> None:
     the gate on $\ket{0}^n$ is $\frac{1}{\sqrt{M}} [1 1  \cdots 1 0 \cdots 0]^T$, where the first $M$ entries
     are all "1"s (excluding the normalization factor of $\frac{1}{\sqrt{M}}$ and the remaining $2^n-M$ entries are all "0"s.
     """
-    gate = generalized_uniform_superposition_gate(M, n)
+    gate = cirq.generalized_uniform_superposition_gate(M, n)
     qregx = cirq.LineQubit.range(n)
     qcircuit = cirq.Circuit(gate.on(*qregx))
     
