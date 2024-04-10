@@ -43,7 +43,7 @@ class generalized_uniform_superposition_gate(raw_types.Gate):
 
     References:
         [SV24] 
-            A. Shukla and P. Vedula, "An efficient quantum algorithm for preparation of uniform quantum superposition states,"
+            A. Shukla and P. Vedula, “An efficient quantum algorithm for preparation of uniform quantum superposition states,” 
             Quantum Information Processing, 23(38): pp. 1-32 (2024).
     """
     def __init__(self, M: int, num_qubits: int) -> None:
