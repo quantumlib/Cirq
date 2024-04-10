@@ -356,7 +356,7 @@ def _op_info_with_fallback(
 
     # Add tags onto the representation, if they exist
     if op.tags:
-        name += f"[{', '.join(str(tag) for tag in op.tags)}]"
+        name += f"[{', '.join(map(str, op.tags))}]"
 
     # Include ordering in the qubit labels.
     symbols = (name,) + tuple(f'#{i + 1}' for i in range(1, len(op.qubits)))
