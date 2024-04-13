@@ -52,7 +52,7 @@ _CZ_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.CZ])
 _SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
 _SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
 _SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
-_CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZ)
+_CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZPowGate)
 
 
 # TODO(#5050) Add GlobalPhaseGate
