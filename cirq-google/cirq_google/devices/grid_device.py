@@ -129,9 +129,7 @@ _GATES: List[_GateRepresentations] = [
     _GateRepresentations(
         gate_spec_name='cz', supported_gates=[_CZ_FSIM_GATE_FAMILY, _CZ_GATE_FAMILY]
     ),
-    _GateRepresentations(
-        gate_spec_name='cz_pow_gate', supported_gates=[_CZ_POWER_GATE_FAMILY]
-    ),
+    _GateRepresentations(gate_spec_name='cz_pow_gate', supported_gates=[_CZ_POWER_GATE_FAMILY]),
     _GateRepresentations(
         gate_spec_name='phased_xz',
         supported_gates=[
