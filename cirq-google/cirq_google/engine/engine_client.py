@@ -22,7 +22,6 @@ from typing import (
     Dict,
     List,
     Optional,
-    Sequence,
     Set,
     TypeVar,
     Tuple,
@@ -36,7 +35,6 @@ from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
-from cirq._compat import deprecated_parameter
 from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine import stream_manager
@@ -378,25 +376,17 @@ class EngineClient:
 
     delete_program = duet.sync(delete_program_async)
 
-    @deprecated_parameter(
-        deadline='v1.4',
-        fix='Use `processor_id` instead of `processor_ids`.',
-        parameter_desc='processor_ids',
-        match=lambda args, kwargs: _match_deprecated_processor_ids(args, kwargs),
-        rewrite=lambda args, kwargs: rewrite_processor_ids_to_processor_id(args, kwargs),
-    )
     async def create_job_async(
         self,
         project_id: str,
         program_id: str,
         job_id: Optional[str],
-        processor_ids: Optional[Sequence[str]] = None,
+        processor_id: str = "",
         run_context: any_pb2.Any = any_pb2.Any(),
         priority: Optional[int] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,
-        processor_id: str = "",
         run_name: str = "",
         device_config_name: str = "",
     ) -> Tuple[str, quantum.QuantumJob]:
@@ -411,16 +401,10 @@ class EngineClient:
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
             run_context: Properly serialized run context.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored. Otherwise the deprecated
-                decorator will fix the arguments and call create_job_async using
-                `processor_id` instead of `processor_ids`.
             priority: Optional priority to run at, 0-1000.
             description: Optional description to set on the job.
             labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
+            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
@@ -434,17 +418,23 @@ class EngineClient:
 
         Raises:
             ValueError: If the priority is not between 0 and 1000.
-            ValueError: If neither `processor_id` or `processor_ids` are set.
+            ValueError: If `processor_id` is not set.
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
+        # if not processor_id and (run_name or device_config_name):
+
         if not processor_id:
-            raise ValueError('Must specify a processor id when creating a job.')
+            if run_name or device_config_name:
+                raise ValueError(
+                    'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty'
+                    )
+            else:
+                raise ValueError('Must specify a processor id when creating a job.')
         if bool(run_name) ^ bool(device_config_name):
             raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
@@ -474,8 +464,7 @@ class EngineClient:
         job = await self._send_request_async(self.grpc_client.create_quantum_job, request)
         return _ids_from_job_name(job.name)[2], job
 
-    # TODO(cxing): Remove type ignore once @deprecated_parameter decorator is removed
-    create_job = duet.sync(create_job_async)  # type: ignore
+    create_job = duet.sync(create_job_async)
 
     async def list_jobs_async(
         self,
@@ -775,8 +764,7 @@ class EngineClient:
             priority: Optional priority to run at, 0-1000.
             job_description: Optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
+            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
@@ -1225,40 +1213,3 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
         f"type {type(param)}. Supported types: datetime.datetime and"
         f"datetime.date"
     )
-
-
-def rewrite_processor_ids_to_processor_id(args, kwargs):
-    """Rewrites the create_job parameters so that `processor_id` is used instead of the deprecated
-    `processor_ids`.
-
-        Raises:
-            ValueError: If `processor_ids` has more than one processor id.
-            ValueError: If `run_name` or `device_config_name` are set but `processor_id` is not.
-    """
-
-    # Use `processor_id` keyword argument instead of `processor_ids`
-    processor_ids = args[4] if len(args) > 4 else kwargs['processor_ids']
-    if len(processor_ids) > 1:
-        raise ValueError("The use of multiple processors is no longer supported.")
-    if 'processor_id' not in kwargs or not kwargs['processor_id']:
-        if ('run_name' in kwargs and kwargs['run_name']) or (
-            'device_config_name' in kwargs and kwargs['device_config_name']
-        ):
-            raise ValueError(
-                'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty.'
-            )
-        kwargs['processor_id'] = processor_ids[0]
-
-    # Erase `processor_ids` from args and kwargs
-    if len(args) > 4:
-        args_list = list(args)
-        args_list[4] = None
-        args = tuple(args_list)
-    else:
-        kwargs.pop('processor_ids')
-
-    return args, kwargs
-
-
-def _match_deprecated_processor_ids(args, kwargs):
-    return ('processor_ids' in kwargs and kwargs['processor_ids']) or len(args) > 4

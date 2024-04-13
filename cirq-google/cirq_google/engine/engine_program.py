@@ -60,17 +60,15 @@ class EngineProgram(abstract_program.AbstractProgram):
         self.context = context
         self._program = _program
 
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_sweep_async(
         self,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        processor_ids: Sequence[str] = ('xmonsim',),
+        processor_id: str = "xmonsim",
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,
-        processor_id: str = "",
         run_name: str = "",
         device_config_name: str = "",
     ) -> engine_job.EngineJob:
@@ -86,13 +84,9 @@ class EngineProgram(abstract_program.AbstractProgram):
                 and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
             description: An optional description to set on the job.
             labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
+            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
@@ -109,7 +103,6 @@ class EngineProgram(abstract_program.AbstractProgram):
         Raises:
             ValueError: If a processor id hasn't been specified to run the job
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
@@ -123,11 +116,10 @@ class EngineProgram(abstract_program.AbstractProgram):
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
-            processor_ids=processor_ids,
+            processor_id=processor_id,
             run_context=run_context,
             description=description,
             labels=labels,
-            processor_id=processor_id,
             run_name=run_name,
             device_config_name=device_config_name,
         )
@@ -137,17 +129,15 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     run_sweep = duet.sync(run_sweep_async)
 
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_async(
         self,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
-        processor_ids: Sequence[str] = ('xmonsim',),
+        processor_id: str = "xmonsim",
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,
-        processor_id: str = "",
         run_name: str = "",
         device_config_name: str = "",
     ) -> cirq.Result:
@@ -160,13 +150,9 @@ class EngineProgram(abstract_program.AbstractProgram):
                 and day.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
             description: An optional description to set on the job.
             labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
+            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
@@ -182,7 +168,6 @@ class EngineProgram(abstract_program.AbstractProgram):
         Raises:
             ValueError: If a processor id hasn't been specified to run the job
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
@@ -190,10 +175,9 @@ class EngineProgram(abstract_program.AbstractProgram):
             job_id=job_id,
             params=[param_resolver],
             repetitions=repetitions,
-            processor_ids=processor_ids,
+            processor_id=processor_id,
             description=description,
             labels=labels,
-            processor_id=processor_id,
             run_name=run_name,
             device_config_name=device_config_name,
         )

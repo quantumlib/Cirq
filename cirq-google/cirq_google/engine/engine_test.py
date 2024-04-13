@@ -255,7 +255,7 @@ def test_run_circuit_with_unary_rpcs(client):
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
     result = engine.run(
-        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_ids=['mysim']
+        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim'
     )
 
     assert result.repetitions == 1
@@ -267,7 +267,7 @@ def test_run_circuit_with_unary_rpcs(client):
         project_id='proj',
         program_id='prog',
         job_id='job-id',
-        processor_ids=['mysim'],
+        processor_id='mysim',
         run_context=util.pack_any(
             v2.run_context_pb2.RunContext(
                 parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
@@ -275,7 +275,6 @@ def test_run_circuit_with_unary_rpcs(client):
         ),
         description=None,
         labels=None,
-        processor_id='',
         run_name='',
         device_config_name='',
     )
@@ -292,7 +291,7 @@ def test_run_circuit_with_stream_rpcs(client):
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=True),
     )
     result = engine.run(
-        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_ids=['mysim']
+        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim'
     )
 
     assert result.repetitions == 1
@@ -526,21 +525,6 @@ def test_run_sweep_params_with_stream_rpcs(client):
     for i, v in enumerate([1.0, 2.0]):
         assert sweeps[i].repetitions == 1
         assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
-
-
-def test_run_sweep_with_multiple_processor_ids():
-    engine = cg.Engine(
-        project_id='proj',
-        context=EngineContext(
-            proto_version=cg.engine.engine.ProtoVersion.V2, enable_streaming=True
-        ),
-    )
-    with pytest.raises(ValueError, match='multiple processors is no longer supported'):
-        _ = engine.run_sweep(
-            program=_CIRCUIT,
-            params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
-            processor_ids=['mysim', 'mysim2'],
-        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
