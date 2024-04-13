@@ -52,7 +52,8 @@ _CZ_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.CZ])
 _SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
 _SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
 _SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
-_CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZPowGate)
+_CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZ)
+_CZ_POWER_GATE_FAMILY = cirq.GateFamily(cirq.CZPowGate)
 
 
 # TODO(#5050) Add GlobalPhaseGate
@@ -62,6 +63,7 @@ _CZ_TARGET_GATES = [
     _CZ_GATE_FAMILY,
     _PHASED_XZ_GATE_FAMILY,
     _MEASUREMENT_GATE_FAMILY,
+    _CZ_POWER_GATE_FAMILY,
 ]
 # Target gates of `cirq_google.SycamoreTargetGateset`.
 _SYC_TARGET_GATES = [
@@ -126,6 +128,9 @@ _GATES: List[_GateRepresentations] = [
     ),
     _GateRepresentations(
         gate_spec_name='cz', supported_gates=[_CZ_FSIM_GATE_FAMILY, _CZ_GATE_FAMILY]
+    ),
+    _GateRepresentations(
+        gate_spec_name='cz_pow_gate', supported_gates=[_CZ_POWER_GATE_FAMILY]
     ),
     _GateRepresentations(
         gate_spec_name='phased_xz',

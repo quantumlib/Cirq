@@ -94,6 +94,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.SQRT_ISWAP),
         cirq.GateFamily(cirq.SQRT_ISWAP_INV),
         cirq.GateFamily(cirq.CZPowGate),
+        cirq.GateFamily(cirq.CZ),
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate),
         cirq.GateFamily(cirq.ops.common_gates.XPowGate),
         cirq.GateFamily(cirq.ops.common_gates.YPowGate),
@@ -123,6 +124,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
         cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 3,
+        cirq.GateFamily(cirq.CZ): base_duration * 3,
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.XPowGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.YPowGate): base_duration * 4,
@@ -182,6 +184,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.GateFamily(cirq_google.SYC),
                 cirq.GateFamily(cirq.SQRT_ISWAP_INV),
                 cirq.GateFamily(cirq.CZPowGate),
+                cirq.GateFamily(cirq.CZ),
                 cirq.ops.common_gates.XPowGate,
                 cirq.ops.common_gates.YPowGate,
                 cirq.ops.common_gates.HPowGate,
@@ -503,6 +506,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.SQRT_ISWAP,
         cirq.SQRT_ISWAP_INV,
         cirq.GateFamily(cirq.CZPowGate),
+        cirq.GateFamily(cirq.CZ),
         cirq.ops.phased_x_z_gate.PhasedXZGate,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -522,6 +526,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
         cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 3,
+        cirq.GateFamily(cirq.CZ): base_duration * 3,
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -628,6 +633,7 @@ def test_to_proto():
         cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
         cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 3,
+        cirq.GateFamily(cirq.CZ): base_duration * 3,
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
