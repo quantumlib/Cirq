@@ -71,6 +71,7 @@ def _create_device_spec_with_horizontal_couplings():
         'sqrt_iswap',
         'sqrt_iswap_inv',
         'cz',
+        'cz_pow_gate',
         'phased_xz',
         'virtual_zpow',
         'physical_zpow',
