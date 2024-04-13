@@ -502,7 +502,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq_google.SYC,
         cirq.SQRT_ISWAP,
         cirq.SQRT_ISWAP_INV,
-        cirq.CZ,
+        cirq.GateFamily(cirq.CZPowGate),
         cirq.ops.phased_x_z_gate.PhasedXZGate,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
