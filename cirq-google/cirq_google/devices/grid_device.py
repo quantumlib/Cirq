@@ -63,8 +63,9 @@ _CZ_TARGET_GATES = [
     _CZ_GATE_FAMILY,
     _PHASED_XZ_GATE_FAMILY,
     _MEASUREMENT_GATE_FAMILY,
-    _CZ_POWER_GATE_FAMILY,
 ]
+# Target gates of cirq.CZTargetGateset with allow_partial_czs=True.
+_CZ_POWER_TARGET_GATES = [_CZ_POWER_GATE_FAMILY, _PHASED_XZ_GATE_FAMILY, _MEASUREMENT_GATE_FAMILY]
 # Target gates of `cirq_google.SycamoreTargetGateset`.
 _SYC_TARGET_GATES = [
     _SYC_FSIM_GATE_FAMILY,
@@ -300,6 +301,8 @@ def _build_compilation_target_gatesets(
                 additional_gates=list(gateset.gates - set(_CZ_TARGET_GATES))
             )
         )
+    elif all(gate_family in gateset.gates for gate_family in _CZ_POWER_TARGET_GATES):
+        target_gatesets.append(cirq.CZTargetGateset(allow_partial_czs=True))
     if all(gate_family in gateset.gates for gate_family in _SYC_TARGET_GATES):
         # TODO(#5050) SycamoreTargetGateset additional gates
         target_gatesets.append(transformers.SycamoreTargetGateset())
