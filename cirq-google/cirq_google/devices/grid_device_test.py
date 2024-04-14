@@ -159,6 +159,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq.GateFamily(cirq_google.SYC),
                 cirq.GateFamily(cirq.SQRT_ISWAP),
                 cirq.GateFamily(cirq.SQRT_ISWAP_INV),
+                cirq.GateFamily(cirq.CZPowGate),
                 cirq.ops.common_gates.XPowGate,
                 cirq.ops.common_gates.YPowGate,
                 cirq.ops.common_gates.HPowGate,
