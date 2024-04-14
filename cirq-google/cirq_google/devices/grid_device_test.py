@@ -71,7 +71,6 @@ def _create_device_spec_with_horizontal_couplings():
         'sqrt_iswap',
         'sqrt_iswap_inv',
         'cz',
-        'cz_pow_gate',
         'phased_xz',
         'virtual_zpow',
         'physical_zpow',
@@ -79,6 +78,7 @@ def _create_device_spec_with_horizontal_couplings():
         'meas',
         'wait',
         'fsim_via_model',
+        'cz_pow_gate',
     ]
     gate_durations = [(n, i * 1000) for i, n in enumerate(gate_names)]
     for gate_name, duration in sorted(gate_durations):
@@ -94,7 +94,6 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq_google.SYC),
         cirq.GateFamily(cirq.SQRT_ISWAP),
         cirq.GateFamily(cirq.SQRT_ISWAP_INV),
-        cirq.GateFamily(cirq.CZPowGate),
         cirq.GateFamily(cirq.CZ),
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate),
         cirq.GateFamily(cirq.ops.common_gates.XPowGate),
@@ -113,6 +112,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate),
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate),
         cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+        cirq.GateFamily(cirq.CZPowGate),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -124,7 +124,6 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq_google.SYC): base_duration * 0,
         cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
         cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 4,
         cirq.GateFamily(cirq.CZ): base_duration * 3,
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.XPowGate): base_duration * 4,
@@ -148,6 +147,7 @@ def _create_device_spec_with_horizontal_couplings():
             cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
     }
 
     expected_target_gatesets = (
@@ -526,7 +526,6 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.GateFamily(cirq_google.SYC): base_duration * 0,
         cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
         cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 4,
         cirq.GateFamily(cirq.CZ): base_duration * 3,
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(
@@ -544,6 +543,7 @@ def test_device_from_device_information_equals_device_from_proto():
             cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
@@ -633,7 +633,6 @@ def test_to_proto():
         cirq.GateFamily(cirq_google.SYC): base_duration * 0,
         cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
         cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 4,
         cirq.GateFamily(cirq.CZ): base_duration * 3,
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(
@@ -651,6 +650,7 @@ def test_to_proto():
             cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
     }
 
     spec = cirq_google.GridDevice._from_device_information(
