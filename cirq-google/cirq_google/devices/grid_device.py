@@ -301,13 +301,6 @@ def _build_compilation_target_gatesets(
                 additional_gates=list(gateset.gates - set(_CZ_TARGET_GATES))
             )
         )
-    if all(gate_family in gateset.gates for gate_family in _CZ_POWER_TARGET_GATES):
-        target_gatesets.append(
-            cirq.CZTargetGateset(
-                allow_partial_czs=True,
-                additional_gates=list(gateset.gates - set(_CZ_POWER_TARGET_GATES)),
-            )
-        )
     if all(gate_family in gateset.gates for gate_family in _SYC_TARGET_GATES):
         # TODO(#5050) SycamoreTargetGateset additional gates
         target_gatesets.append(transformers.SycamoreTargetGateset())
@@ -315,6 +308,13 @@ def _build_compilation_target_gatesets(
         target_gatesets.append(
             cirq.SqrtIswapTargetGateset(
                 additional_gates=list(gateset.gates - set(_SQRT_ISWAP_TARGET_GATES))
+            )
+        )
+    if all(gate_family in gateset.gates for gate_family in _CZ_POWER_TARGET_GATES):
+        target_gatesets.append(
+            cirq.CZTargetGateset(
+                allow_partial_czs=True,
+                additional_gates=list(gateset.gates - set(_CZ_POWER_TARGET_GATES)),
             )
         )
 
