@@ -210,6 +210,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
                 cirq.GateFamily(cirq_google.SYC),
                 cirq.GateFamily(cirq.SQRT_ISWAP),
                 cirq.GateFamily(cirq.SQRT_ISWAP_INV),
