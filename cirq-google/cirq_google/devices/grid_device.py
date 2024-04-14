@@ -301,7 +301,7 @@ def _build_compilation_target_gatesets(
                 additional_gates=list(gateset.gates - set(_CZ_TARGET_GATES))
             )
         )
-    elif all(gate_family in gateset.gates for gate_family in _CZ_POWER_TARGET_GATES):
+    if all(gate_family in gateset.gates for gate_family in _CZ_POWER_TARGET_GATES):
         target_gatesets.append(
             cirq.CZTargetGateset(
                 allow_partial_czs=True,
