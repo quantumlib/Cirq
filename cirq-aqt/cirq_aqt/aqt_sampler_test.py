@@ -35,8 +35,6 @@ class GetResultReturn:
         return self.test_dict
 
     def update(self, *args, **kwargs):
-        if self.counter >= 2:
-            self.test_dict['response']['status'] = 'finished'
         return self
 
 
