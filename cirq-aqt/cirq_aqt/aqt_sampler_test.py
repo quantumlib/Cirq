@@ -100,8 +100,9 @@ class SubmitResultWithError:
 
 def test_aqt_sampler_submit_job_error_handling():
     for e_return in [SubmitResultNoID(), SubmitResultNoStatus(), SubmitResultWithError()]:
-        with mock.patch('cirq_aqt.aqt_sampler.post', return_value=e_return), mock.patch(
-            'cirq_aqt.aqt_sampler.get', return_value=GetResultReturn()
+        with (
+            mock.patch('cirq_aqt.aqt_sampler.post', return_value=e_return),
+            mock.patch('cirq_aqt.aqt_sampler.get', return_value=GetResultReturn()),
         ):
             theta = sympy.Symbol('theta')
             num_points = 1
@@ -119,8 +120,9 @@ def test_aqt_sampler_submit_job_error_handling():
 
 def test_aqt_sampler_get_result_error_handling():
     for e_return in [GetResultError(), GetResultErrorSecond(), GetResultNoStatus()]:
-        with mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()), mock.patch(
-            'cirq_aqt.aqt_sampler.get', return_value=e_return, side_effect=e_return.update
+        with (
+            mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()),
+            mock.patch('cirq_aqt.aqt_sampler.get', return_value=e_return, side_effect=e_return.update),
         ):
             theta = sympy.Symbol('theta')
             num_points = 1
