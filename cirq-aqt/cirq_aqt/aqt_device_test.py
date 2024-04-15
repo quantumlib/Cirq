@@ -155,3 +155,11 @@ def test_at(device):
     assert device.at(-1) is None
     assert device.at(0) == cirq.LineQubit(0)
     assert device.at(2) == cirq.LineQubit(2)
+
+
+def test_xtalk_operation_with_no_gate():
+    operation = cirq.Operation(gate=None, qubits=[cirq.LineQubit(0)])
+    noise_model = aqt_device.AQTNoiseModel()
+
+    with pytest.raises(RuntimeError, match="Operation applies no gate."):
+        noise_model.get_crosstalk_operation(operation)
