@@ -120,7 +120,9 @@ def test_aqt_sampler_get_result_error_handling():
     for e_return in [GetResultError(), GetResultErrorSecond(), GetResultNoStatus()]:
         with (
             mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()),
-            mock.patch('cirq_aqt.aqt_sampler.get', return_value=e_return, side_effect=e_return.update),
+            mock.patch(
+                'cirq_aqt.aqt_sampler.get', return_value=e_return, side_effect=e_return.update
+            ),
         ):
             theta = sympy.Symbol('theta')
             num_points = 1
@@ -427,8 +429,9 @@ def test_aqt_sampler_fetch_resources_raises_exception_if_non_200_status_code() -
 
     sampler = AQTSampler("default", "test", "testkey", "http://localhost:7777/api/v1/")
 
-    with mock.patch('cirq_aqt.aqt_sampler.get', return_value=ResourceResponse()), pytest.raises(
-        RuntimeError
+    with (
+        mock.patch('cirq_aqt.aqt_sampler.get', return_value=ResourceResponse()),
+        pytest.raises(RuntimeError),
     ):
         sampler.fetch_resources("token")
 
