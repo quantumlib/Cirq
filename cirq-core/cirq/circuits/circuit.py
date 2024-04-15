@@ -2630,7 +2630,7 @@ def _draw_moment_in_diagram(
         if desc:
             y = max(label_map.values(), default=0) + 1
             if tags and include_tags:
-                desc = desc + str(tags)
+                desc = desc + f"[{', '.join(map(str, tags))}]"
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:

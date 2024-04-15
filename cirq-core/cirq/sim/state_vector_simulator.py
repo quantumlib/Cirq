@@ -134,7 +134,11 @@ class StateVectorTrialResult(
                 "skipping renormalization"
             )
             return ret
-        return ret / norm
+        # normalize only if doing so improves the round-off on total probability
+        ret_norm = ret / norm
+        round_off_change = abs(np.vdot(ret_norm, ret_norm) - 1) - abs(np.vdot(ret, ret) - 1)
+        result = ret_norm if round_off_change < 0 else ret
+        return result
 
     def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at the end of the computation.
