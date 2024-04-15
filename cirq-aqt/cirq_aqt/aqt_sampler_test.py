@@ -344,3 +344,111 @@ def test_multiple_measurements_are_not_allowed() -> None:
     sampler = AQTSampler("default", "dummy_resource", "test")
     with pytest.raises(ValueError):
         sampler._send_json(json_str=legacy_json, id_str="test")
+
+
+def test_unknown_gate_in_json() -> None:
+    legacy_json = json.dumps([["A", 1.0, 0.0, [0]], ["Meas"]])
+
+    sampler = AQTSampler("default", "dummy_resource", "test")
+    with pytest.raises(
+        ValueError, match=r"Got unknown gate on operation: \['A', 1\.0, 0\.0, \[0\]\]\."
+    ):
+        sampler._send_json(json_str=legacy_json, id_str="test")
+
+
+def test_aqt_sampler_raises_exception_on_bad_result_response() -> None:
+    legacy_json = json.dumps([["R", 1.0, 0.0, [0]]])
+
+    class ResultReturn:
+        def json(self):
+            return {"response": {"status": "finished"}}
+
+    sampler = AQTSampler("default", "test", "testkey", "http://localhost:7777/api/v1/")
+
+    with (
+        mock.patch('cirq_aqt.aqt_sampler.post', return_value=SubmitGoodResponse()),
+        mock.patch('cirq_aqt.aqt_sampler.get', return_value=ResultReturn()),
+        pytest.raises(RuntimeError),
+    ):
+        sampler._send_json(json_str=legacy_json, id_str="test", repetitions=2, num_qubits=2)
+
+
+def test_aqt_sampler_print_resources_shows_hint_if_no_workspaces() -> None:
+    output = []
+
+    def intercept(values):
+        output.append(str(values))
+
+    with mock.patch('cirq_aqt.aqt_sampler.AQTSampler.fetch_resources', return_value=[]):
+        AQTSampler.print_resources(access_token="test", emit=intercept)
+
+    assert output[0] == "No workspaces are accessible with this access token."
+
+
+def test_aqt_sampler_print_resources_shows_hint_if_no_resources() -> None:
+    output = []
+
+    def intercept(values):
+        output.append(str(values))
+
+    empty_workspace_list = [{"id": "test_ws", "resources": []}]
+
+    with mock.patch(
+        'cirq_aqt.aqt_sampler.AQTSampler.fetch_resources', return_value=empty_workspace_list
+    ):
+        AQTSampler.print_resources("test", emit=intercept)
+
+    assert output[0] == "No workspaces accessible with this access token contain resources."
+
+
+def test_aqt_sampler_print_resources_includes_received_resources_in_table() -> None:
+    output = []
+
+    def intercept(values):
+        output.append(str(values))
+
+    workspace_list = [
+        {"id": "test_ws", "resources": [{"id": "resource", "name": "Resource", "type": "device"}]}
+    ]
+
+    with mock.patch('cirq_aqt.aqt_sampler.AQTSampler.fetch_resources', return_value=workspace_list):
+        AQTSampler.print_resources("test", emit=intercept)
+
+    assert any("test_ws" in o and "resource" in o and "Resource" in o and "D" in o for o in output)
+
+
+def test_aqt_sampler_fetch_resources_raises_exception_if_non_200_status_code() -> None:
+    class ResourceResponse:
+        def __init__(self):
+            self.status_code = 403
+
+        def json(self):
+            return "error"
+
+    sampler = AQTSampler("default", "test", "testkey", "http://localhost:7777/api/v1/")
+
+    with mock.patch('cirq_aqt.aqt_sampler.get', return_value=ResourceResponse()), pytest.raises(
+        RuntimeError
+    ):
+        sampler.fetch_resources("token")
+
+
+def test_aqt_sampler_fetch_resources_returns_retrieved_resources() -> None:
+    class ResourceResponse:
+        def __init__(self):
+            self.status_code = 200
+
+        def json(self):
+            return [
+                {"id": "wid", "resources": [{"id": "rid", "name": "Resource", "type": "device"}]}
+            ]
+
+    sampler = AQTSampler("default", "test", "testkey", "http://localhost:7777/api/v1/")
+
+    with mock.patch('cirq_aqt.aqt_sampler.get', return_value=ResourceResponse()):
+        workspaces = sampler.fetch_resources("token")
+
+    assert workspaces[0]["id"] == "wid"
+    assert workspaces[0]["resources"][0]["id"] == "rid"
+    assert workspaces[0]["resources"][0]["name"] == "Resource"
+    assert workspaces[0]["resources"][0]["type"] == "device"
