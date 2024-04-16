@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Any
+from typing import Union, overload, Any
+from types import ModuleType
 
 import numpy as np
 
@@ -37,12 +38,28 @@ document(
 )
 
 
-def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:
+@overload
+def parse_random_state(random_state: None) -> np.random.RandomState: ...
+
+
+@overload
+def parse_random_state(random_state: int) -> np.random.RandomState: ...
+
+
+@overload
+def parse_random_state(random_state: np.random.RandomState) -> np.random.RandomState: ...
+
+@overload
+def parse_random_state(random_state: np.random.Generator) -> np.random.Generator: ...
+
+
+def parse_random_state(
+    random_state: RANDOM_STATE_OR_SEED_LIKE,
+) -> Union[np.random.Generator, np.random.RandomState]:
     """Interpret an object as a pseudorandom number generator.
 
     If `random_state` is None, returns the module `np.random`.
-    If `random_state` is an integer, returns
-    `np.random.RandomState(random_state)`.
+    If `random_state` is an integer, returns `np.random.RandomState(random_state)`.
     Otherwise, returns `random_state` unmodified.
 
     Args:
@@ -53,8 +70,9 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
         The pseudorandom number generator object.
     """
     if random_state is None:
-        return cast(np.random.RandomState, np.random)
+        return np.random.RandomState(np.random.randint((1 << 31) - 1))
     elif isinstance(random_state, int):
         return np.random.RandomState(random_state)
-    else:
-        return cast(np.random.RandomState, random_state)
+    elif isinstance(random_state, (np.random.RandomState, np.random.Generator)):
+        return random_state
+    raise TypeError(f'{random_state=}')
