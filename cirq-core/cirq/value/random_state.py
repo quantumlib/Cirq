@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import Union, overload, Any
-from types import ModuleType
 
 import numpy as np
 
@@ -69,6 +68,10 @@ def parse_random_state(
 
     Returns:
         The pseudorandom number generator object.
+
+    Raises:
+        TypeError: if `random_state` cannot be converted to a pseudorandom number
+            generator.
     """
     if random_state is None:
         return np.random.RandomState(np.random.randint((1 << 31) - 1))
