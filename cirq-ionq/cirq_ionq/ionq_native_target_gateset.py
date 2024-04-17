@@ -101,9 +101,8 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     def _hadamard(self, qubit):
         return [
-                GPI2Gate(phi=1).on(qubit),
-                GPIGate(phi=0.375).on(qubit),
-                GPI2Gate(phi=0.5).on(qubit),
+                GPI2Gate(phi=0.25).on(qubit),
+                GPIGate(phi=0).on(qubit),
             ]
 
     def _cnot(self, *qubits):
