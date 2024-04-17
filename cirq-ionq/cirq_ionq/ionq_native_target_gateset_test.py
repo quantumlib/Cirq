@@ -168,6 +168,8 @@ qubits3 = cirq.LineQubit.range(3)
         ([0, 0.5, 0, 0, 0, 0.5, 0, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[2]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]))),
         ([0, 0, 0, 0, 0, 0, 0.5, 0.5], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[2]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]), cirq.CNOT(qubits3[0], qubits3[1]))),
         ([0, 0, 0.25, 0.25, 0.25, 0.25, 0, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]), cirq.CNOT(qubits3[1], qubits3[0]))),
+        ([0, 0, 0, 0, 0, 0, 1, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.X(qubits3[1]),  cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]))),
+        ([0.224828, 0, 0.545324, 0, 0.067099, 0, 0, 0.162750], cirq.Circuit(cirq.Rx(rads=1)(qubits3[0]), cirq.Rx(rads=2)(qubits3[1]), cirq.H(qubits3[2]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]), cirq.H(qubits3[2]))),
     ],
 )
 def test_transpiling_three_qubit_circuits_to_native_gates(ideal_results, circuit):
