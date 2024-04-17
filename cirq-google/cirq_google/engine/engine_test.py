@@ -533,11 +533,13 @@ def test_run_multiple_times(client):
 
     engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     program = engine.create_program(program=_CIRCUIT)
-    program.run(param_resolver=cirq.ParamResolver({'a': 1}))
+    program.run(processor_id='processor0', param_resolver=cirq.ParamResolver({'a': 1}))
     run_context = v2.run_context_pb2.RunContext()
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps1 = run_context.parameter_sweeps
-    job2 = program.run_sweep(repetitions=2, params=cirq.Points('a', [3, 4]))
+    job2 = program.run_sweep(
+        processor_id='processor0', repetitions=2, params=cirq.Points('a', [3, 4])
+        )
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps2 = run_context.parameter_sweeps
     results = job2.results()
@@ -617,7 +619,7 @@ def test_bad_sweep_proto():
     engine = cg.Engine(project_id='project-id', proto_version=cg.ProtoVersion.UNDEFINED)
     program = cg.EngineProgram('proj', 'prog', engine.context)
     with pytest.raises(ValueError, match='invalid run context proto version'):
-        program.run_sweep()
+        program.run_sweep(processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)

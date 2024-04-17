@@ -62,10 +62,10 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     async def run_sweep_async(
         self,
+        processor_id: str,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        processor_id: str = "xmonsim",
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,
@@ -131,10 +131,10 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     async def run_async(
         self,
+        processor_id: str,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
-        processor_id: str = "xmonsim",
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,

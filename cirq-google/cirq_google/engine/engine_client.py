@@ -381,7 +381,7 @@ class EngineClient:
         project_id: str,
         program_id: str,
         job_id: Optional[str],
-        processor_id: str = "",
+        processor_id: str,
         run_context: any_pb2.Any = any_pb2.Any(),
         priority: Optional[int] = None,
         description: Optional[str] = None,
@@ -418,7 +418,6 @@ class EngineClient:
 
         Raises:
             ValueError: If the priority is not between 0 and 1000.
-            ValueError: If `processor_id` is not set.
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
@@ -426,7 +425,6 @@ class EngineClient:
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
-        # if not processor_id and (run_name or device_config_name):
 
         if not processor_id:
             if run_name or device_config_name:
