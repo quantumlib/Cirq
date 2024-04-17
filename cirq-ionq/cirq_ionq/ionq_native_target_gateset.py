@@ -80,13 +80,10 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     def single_qubit_matrix_to_native_gates(self, mat: np.ndarray) -> List[cirq.Gate]:
         z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
-        z_rot_before = z_rad_before / np.pi
-        y_rot = y_rad / np.pi
-        z_rot_after = z_rad_after / np.pi
         return [
-                GPI2Gate(phi = (1 + z_rot_before)/2.0),
-                GPIGate(phi = (y_rot/2 + z_rot_before/2 - z_rot_after/2)/2.0),
-                GPI2Gate(phi= (1 - z_rot_after)/2.0)
+                GPI2Gate(phi = (np.pi + z_rad_before)/(2.0*np.pi)),
+                GPIGate(phi = (y_rad/2 + z_rad_before/2 - z_rad_after/2)/(2.0*np.pi)),
+                GPI2Gate(phi= (np.pi - z_rad_after)/(2.0*np.pi))
             ]
 
     def _value_equality_values_(self) -> Any:
