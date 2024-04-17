@@ -58,6 +58,9 @@ qubit1 = cirq.LineQubit.range(2)
         ([0.5, 0.5], cirq.Circuit(cirq.H(qubit1[0]), cirq.H(qubit1[0]), cirq.H(qubit1[0]))),
         ([0.5, 0.5], cirq.Circuit(cirq.SingleQubitCliffordGate.X_sqrt(qubit1[0]), cirq.SingleQubitCliffordGate.X_sqrt(qubit1[0]), cirq.SingleQubitCliffordGate.X_sqrt(qubit1[0]))),
         ([0.5, 0.5], cirq.Circuit(cirq.SingleQubitCliffordGate.Y_sqrt(qubit1[0]), cirq.SingleQubitCliffordGate.Y_sqrt(qubit1[0]), cirq.SingleQubitCliffordGate.Y_sqrt(qubit1[0]))),
+        ([0.387577, 0.612423], cirq.Circuit(cirq.Rx(rads=1)(qubit1[0]), cirq.Circuit(cirq.Ry(rads=2)(qubit1[0])), cirq.Circuit(cirq.Rz(rads=1)(qubit1[0])))),
+        ([0.551923, 0.448077], cirq.Circuit(cirq.Rx(rads=1)(qubit1[0]), cirq.Circuit(cirq.Ry(rads=2)(qubit1[0])), cirq.Circuit(cirq.Rx(rads=3)(qubit1[0])))),
+        ([0.257261, 0.742739], cirq.Circuit(cirq.Rx(rads=1)(qubit1[0]), cirq.Circuit(cirq.Rz(rads=2)(qubit1[0])), cirq.Circuit(cirq.Rx(rads=3)(qubit1[0])))),
     ],
 )
 def test_transpiling_one_qubit_circuits_to_native_gates(ideal_results, circuit):
@@ -155,6 +158,11 @@ qubits3 = cirq.LineQubit.range(3)
         ([0, 0, 0.25, 0.25, 0, 0, 0.25, 0.25], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[1]), cirq.H(qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]), cirq.SWAP(qubits3[1], qubits3[2]))),
         ([1, 0, 0, 0, 0, 0, 0, 0], cirq.Circuit(cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]))),
         ([0, 0, 0, 0, 0, 0, 1, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.X(qubits3[1]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]))),
+        ([0.25, 0, 0.25, 0, 0.25, 0, 0.25, 0], cirq.Circuit(cirq.H(qubits3[0]), cirq.H(qubits3[1]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]))),
+        ([0.25, 0, 0.25, 0, 0.25, 0, 0.25, 0], cirq.Circuit(cirq.SingleQubitCliffordGate.X_sqrt(qubits3[0]), cirq.SingleQubitCliffordGate.X_sqrt(qubits3[1]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]))),
+        ([0.224828, 0, 0.545324, 0, 0.067099, 0, 0.162750, 0], cirq.Circuit(cirq.Rx(rads=1)(qubits3[0]), cirq.Rx(rads=2)(qubits3[1]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]))),
+        ([0.003854, 0, 0.766298, 0, 0.001150, 0, 0.228699, 0], cirq.Circuit(cirq.Rx(rads=1)(qubits3[0]), cirq.Ry(rads=3)(qubits3[1]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]))),
+         ([0.709106, 0, 0.061046, 0, 0.211630, 0, 0.018219, 0], cirq.Circuit(cirq.Rx(rads=1)(qubits3[0]), cirq.Ry(rads=1)(qubits3[1]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]), cirq.H(qubits3[1]))),
         ([0, 0, 0, 0, 0, 0, 0.5, 0.5], cirq.Circuit(cirq.X(qubits3[0]), cirq.X(qubits3[1]), cirq.H(qubits3[2]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]))),
         ([0, 0, 0, 0.5, 0, 0, 0, 0.5], cirq.Circuit(cirq.X(qubits3[0]), cirq.X(qubits3[1]), cirq.H(qubits3[2]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]))),
         ([0, 0.5, 0, 0, 0, 0.5, 0, 0], cirq.Circuit(cirq.X(qubits3[0]), cirq.H(qubits3[2]), cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]), cirq.SWAP(qubits3[0], qubits3[2]))),
