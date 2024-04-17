@@ -18,7 +18,9 @@ import numpy as np
 import pytest
 
 from cirq_ionq.ionq_native_target_gateset import AriaNativeGateset
+from cirq_ionq.ionq_native_target_gateset import ForteNativeGateset
 
+# Tests for transpiling one qubit circuits
 qubit1 = cirq.LineQubit.range(2)
 
 @pytest.mark.parametrize(
@@ -65,7 +67,14 @@ def test_transpiling_one_qubit_circuits_to_native_gates(ideal_results, circuit):
     probabilities = np.abs(result.final_state_vector)**2
     np.testing.assert_allclose(probabilities, ideal_results, atol=1e-3)
 
+    transpiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=ForteNativeGateset())
+    simulator = cirq.Simulator()
+    result = simulator.simulate(transpiled_circuit)
+    probabilities = np.abs(result.final_state_vector)**2
+    np.testing.assert_allclose(probabilities, ideal_results, atol=1e-3)
 
+
+# Tests for transpiling two qubit circuits
 qubits2 = cirq.LineQubit.range(2)
 
 @pytest.mark.parametrize(
@@ -119,7 +128,14 @@ def test_transpiling_two_qubit_circuits_to_native_gates(ideal_results, circuit):
     probabilities = np.abs(result.final_state_vector)**2
     np.testing.assert_allclose(probabilities, ideal_results, atol=1e-3)
 
+    transpiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=ForteNativeGateset())
+    simulator = cirq.Simulator()
+    result = simulator.simulate(transpiled_circuit)
+    probabilities = np.abs(result.final_state_vector)**2
+    np.testing.assert_allclose(probabilities, ideal_results, atol=1e-3)
 
+
+# Tests for transpiling three qubit circuits
 qubits3 = cirq.LineQubit.range(3)
 
 @pytest.mark.parametrize(
@@ -153,5 +169,9 @@ def test_transpiling_three_qubit_circuits_to_native_gates(ideal_results, circuit
     probabilities = np.abs(result.final_state_vector)**2
     np.testing.assert_allclose(probabilities, ideal_results, atol=1e-3)
 
-
+    transpiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=ForteNativeGateset())
+    simulator = cirq.Simulator()
+    result = simulator.simulate(transpiled_circuit)
+    probabilities = np.abs(result.final_state_vector)**2
+    np.testing.assert_allclose(probabilities, ideal_results, atol=1e-3)
 
