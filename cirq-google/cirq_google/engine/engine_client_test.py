@@ -496,12 +496,6 @@ def test_create_job(client_constructor):
 @pytest.mark.parametrize(
     'processor_id, run_name, device_config_name, error_message',
     [
-        (
-            '',
-            'RUN_NAME',
-            'CONFIG_ALIAS',
-            'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty',
-        ),
         ('', '', '', 'Must specify a processor id when creating a job.'),
         (
             'processor0',

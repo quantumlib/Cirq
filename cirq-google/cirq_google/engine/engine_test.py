@@ -326,7 +326,9 @@ def test_no_gate_set():
 def test_unsupported_program_type():
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(TypeError, match='program'):
-        engine.run(program="this isn't even the right type of thing!")
+        engine.run(
+            program="this isn't even the right type of thing!", processor_id='processor0'
+        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -356,7 +358,7 @@ def test_run_circuit_failed_with_unary_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' myqc failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -379,7 +381,7 @@ def test_run_circuit_failed_with_stream_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' myqc failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -408,7 +410,7 @@ def test_run_circuit_failed_missing_processor_name_with_unary_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' UNKNOWN failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -430,7 +432,7 @@ def test_run_circuit_failed_missing_processor_name_with_stream_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' UNKNOWN failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -453,7 +455,7 @@ def test_run_circuit_cancelled_with_unary_rpcs(client):
     with pytest.raises(
         RuntimeError, match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.'
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -469,7 +471,7 @@ def test_run_circuit_cancelled_with_stream_rpcs(client):
     with pytest.raises(
         RuntimeError, match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.'
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -478,7 +480,8 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
     job = engine.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT, processor_id='processor0',
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
     results = job.results()
     assert len(results) == 2
@@ -507,7 +510,8 @@ def test_run_sweep_params_with_stream_rpcs(client):
 
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=True))
     job = engine.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT, processor_id='processor0',
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
     results = job.results()
     assert len(results) == 2
@@ -570,7 +574,10 @@ def test_run_sweep_v2_with_unary_rpcs(client):
             proto_version=cg.engine.engine.ProtoVersion.V2, enable_streaming=False
         ),
     )
-    job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
+    job = engine.run_sweep(
+        program=_CIRCUIT,
+        processor_id='processor0', job_id='job-id', params=cirq.Points('a', [1, 2])
+    )
     results = job.results()
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
@@ -599,7 +606,10 @@ def test_run_sweep_v2_with_stream_rpcs(client):
             proto_version=cg.engine.engine.ProtoVersion.V2, enable_streaming=True
         ),
     )
-    job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
+    job = engine.run_sweep(
+        program=_CIRCUIT,
+        processor_id='processor0', job_id='job-id', params=cirq.Points('a', [1, 2])
+    )
     results = job.results()
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
@@ -630,7 +640,10 @@ def test_bad_result_proto(client):
     setup_run_circuit_with_result_(client, result)
 
     engine = cg.Engine(project_id='project-id', proto_version=cg.engine.engine.ProtoVersion.V2)
-    job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
+    job = engine.run_sweep(
+        program=_CIRCUIT,
+        processor_id='processor0', job_id='job-id', params=cirq.Points('a', [1, 2])
+    )
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
 
@@ -640,7 +653,7 @@ def test_bad_program_proto():
         project_id='project-id', proto_version=cg.engine.engine.ProtoVersion.UNDEFINED
     )
     with pytest.raises(ValueError, match='invalid (program|run context) proto version'):
-        engine.run_sweep(program=_CIRCUIT)
+        engine.run_sweep(program=_CIRCUIT, processor_id='processor0')
     with pytest.raises(ValueError, match='invalid program proto version'):
         engine.create_program(_CIRCUIT)
 

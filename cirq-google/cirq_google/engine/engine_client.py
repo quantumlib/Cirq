@@ -425,14 +425,8 @@ class EngineClient:
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
-
         if not processor_id:
-            if run_name or device_config_name:
-                raise ValueError(
-                    'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty'
-                    )
-            else:
-                raise ValueError('Must specify a processor id when creating a job.')
+            raise ValueError('Must specify a processor id when creating a job.')
         if bool(run_name) ^ bool(device_config_name):
             raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
