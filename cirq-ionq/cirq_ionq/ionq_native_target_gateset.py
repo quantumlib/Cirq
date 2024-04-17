@@ -43,16 +43,15 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         mat = cirq.unitary(op)
         q0, q1 = op.qubits
         naive = cirq.two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs=False, atol=self.atol)
-        temp = cirq.map_operations_and_unroll(
+        return cirq.map_operations_and_unroll(
             cirq.Circuit(naive),
             lambda op, _: [self._hadamard(op.qubits[1]) + self._cnot(*op.qubits) + self._hadamard(op.qubits[1])]
             if op.gate == cirq.CZ
             else op,
         )
-        return temp
-        # return cirq.merge_k_qubit_unitaries(
-        #     temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)
-        # ).all_operations()
+#         return cirq.merge_k_qubit_unitaries(
+# -           temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)
+# -       ).all_operations()
 
 
     def _decompose_multi_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
@@ -73,6 +72,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             )
         ]
 
+    # TODO: add transformer that will fuse single qubit GPI and GPI2 gates
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
