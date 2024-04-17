@@ -72,7 +72,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             )
         ]
 
-    # TODO: add transformer that will fuse single qubit GPI and GPI2 gates
+    # TODO: add transformer that will fuse GPI and GPI2 gates in order to optimize circuits
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
