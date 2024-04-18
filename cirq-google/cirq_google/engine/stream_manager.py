@@ -339,13 +339,6 @@ def _get_retry_request_or_raise(
         if not 'get_quantum_result' in current_request:
             return get_result_request
 
-    # Code.JOB_ALREADY_EXISTS should never happen.
-    # The first stream request is always a CreateQuantumProgramAndJobRequest, which never fails
-    # with this error because jobs are scoped within a program.
-    # CreateQuantumJobRequests would fail with a PROGRAM_ALREADY_EXISTS if the job already
-    # exists because program and job creation happen atomically for a
-    # CreateQuantumProgramAndJobRequest.
-
     raise StreamError(error.message)
 
 
