@@ -364,6 +364,7 @@ class TestStreamManager:
         [
             google_exceptions.InternalServerError('server error'),
             google_exceptions.ServiceUnavailable('unavailable'),
+            google_exceptions.Unknown('timeout'),
         ],
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
