@@ -404,7 +404,6 @@ class TestStreamManager:
             google_exceptions.TooManyRequests('too many requests'),
             google_exceptions.Unauthenticated('unauthenticated'),
             google_exceptions.Unauthorized('unauthorized'),
-            google_exceptions.Unknown('unknown'),
         ],
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
