@@ -27,7 +27,7 @@ Code = quantum.StreamError.Code
 RETRYABLE_GOOGLE_API_EXCEPTIONS = [
     google_exceptions.InternalServerError,
     google_exceptions.ServiceUnavailable,
-    google_exceptions.Unknown, # 408 Timeouts sometimes show up as UNKNOWN.
+    google_exceptions.Unknown,  # 408 Timeouts sometimes show up as UNKNOWN.
 ]
 
 
