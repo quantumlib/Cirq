@@ -27,7 +27,14 @@ Code = quantum.StreamError.Code
 RETRYABLE_GOOGLE_API_EXCEPTIONS = [
     google_exceptions.InternalServerError,
     google_exceptions.ServiceUnavailable,
+    google_exceptions.Unknown, # 408 Timeouts sometimes show up as UNKNOWN.
 ]
+
+
+class ProgramAlreadyExistsError(Exception):
+    def __init__(self, program_name: str):
+        # Call the base class constructor with the parameters it needs
+        super().__init__(f"'{program_name}' already exists")
 
 
 class StreamError(Exception):
@@ -144,6 +151,7 @@ class StreamManager:
             A future for the job result, or the job if the job has failed.
 
         Raises:
+            ProgramAlreadyExistsError: if the program already exists.
             StreamError: if there is a non-retryable error while executing the job.
             ValueError: if program name is not set.
             concurrent.futures.CancelledError: if the stream is stopped while a job is in flight.
@@ -291,7 +299,6 @@ class StreamManager:
                     current_request,
                     create_program_and_job_request,
                     _to_create_job_request(create_program_and_job_request),
-                    _to_get_result_request(create_program_and_job_request),
                 )
                 continue
             else:  # pragma: no cover
@@ -311,10 +318,9 @@ class StreamManager:
 
 def _get_retry_request_or_raise(
     error: quantum.StreamError,
-    current_request: quantum.QuantumRunStreamRequest,
-    create_program_and_job_request: quantum.QuantumRunStreamRequest,
+    current_request,
+    create_program_and_job_request,
     create_job_request: quantum.QuantumRunStreamRequest,
-    get_result_request: quantum.QuantumRunStreamRequest,
 ):
     """Decide whether the given stream error is retryable.
 
@@ -325,18 +331,19 @@ def _get_retry_request_or_raise(
             return create_program_and_job_request
     elif error.code == Code.PROGRAM_ALREADY_EXISTS:
         if 'create_quantum_program_and_job' in current_request:
-            # If the program already exists and is created as part of the stream client, the job
-            # should also exist because they are created at the same time.
-            # If the job is missing, the program is created outside StreamManager.
-            # A `CreateQuantumJobRequest` will be issued after a `GetQuantumResultRequest` is
-            # attempted.
-            return get_result_request
+            raise ProgramAlreadyExistsError(
+                current_request.create_quantum_program_and_job.quantum_program.name
+            )
     elif error.code == Code.JOB_DOES_NOT_EXIST:
         if 'get_quantum_result' in current_request:
             return create_job_request
-    elif error.code == Code.JOB_ALREADY_EXISTS:
-        if not 'get_quantum_result' in current_request:
-            return get_result_request
+
+    # Code.JOB_ALREADY_EXISTS should never happen.
+    # The first stream request is always a CreateQuantumProgramAndJobRequest, which never fails
+    # with this error because jobs are scoped within a program.
+    # CreateQuantumJobRequests would fail with a PROGRAM_ALREADY_EXISTS if the job already
+    # exists because program and job creation happen atomically for a
+    # CreateQuantumProgramAndJobRequest.
 
     raise StreamError(error.message)
 
