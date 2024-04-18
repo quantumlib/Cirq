@@ -43,15 +43,14 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         mat = cirq.unitary(op)
         q0, q1 = op.qubits
         naive = cirq.two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs=False, atol=self.atol)
-        return cirq.map_operations_and_unroll(
+        temp = cirq.map_operations_and_unroll(
             cirq.Circuit(naive),
             lambda op, _: [self._hadamard(op.qubits[1]) + self._cnot(*op.qubits) + self._hadamard(op.qubits[1])]
             if op.gate == cirq.CZ
             else op,
         )
-#         return cirq.merge_k_qubit_unitaries(
-# -           temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)
-# -       ).all_operations()
+        return cirq.merge_k_qubit_unitaries(
+            temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)).all_operations()
 
 
     def _decompose_multi_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
@@ -81,9 +80,9 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def single_qubit_matrix_to_native_gates(self, mat: np.ndarray) -> List[cirq.Gate]:
         z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return [
-                GPI2Gate(phi = (np.pi + z_rad_before)/(2.0*np.pi)),
-                GPIGate(phi = (y_rad/2 + z_rad_before/2 - z_rad_after/2)/(2.0*np.pi)),
-                GPI2Gate(phi= (np.pi - z_rad_after)/(2.0*np.pi))
+                GPI2Gate(phi = (np.pi - z_rad_before)/(2.0*np.pi)),
+                GPIGate(phi = (y_rad/2 + z_rad_after/2 - z_rad_before/2)/(2.0*np.pi)),
+                GPI2Gate(phi= (np.pi + z_rad_after)/(2.0*np.pi))
             ]
 
     def _value_equality_values_(self) -> Any:
