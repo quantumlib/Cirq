@@ -57,6 +57,7 @@ message GateSpecification {
     Measurement meas = 10;
     Wait wait = 11;
     FSimViaModel fsim_via_model = 12;
+    CZPowGate cz_pow_gate = 13;
   }
 
   // Gate types available to Google devices.
@@ -74,6 +75,7 @@ message GateSpecification {
   message Measurement {}
   message Wait {}
   message FSimViaModel {}
+  message CZPowGate {}
 }
 
 message GateSet {
