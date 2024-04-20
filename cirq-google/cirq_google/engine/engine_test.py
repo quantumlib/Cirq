@@ -254,9 +254,7 @@ def test_run_circuit_with_unary_rpcs(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
-    result = engine.run(
-        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim'
-    )
+    result = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
 
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -290,9 +288,7 @@ def test_run_circuit_with_stream_rpcs(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=True),
     )
-    result = engine.run(
-        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim'
-    )
+    result = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
 
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -326,9 +322,7 @@ def test_no_gate_set():
 def test_unsupported_program_type():
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(TypeError, match='program'):
-        engine.run(
-            program="this isn't even the right type of thing!", processor_id='processor0'
-        )
+        engine.run(program="this isn't even the right type of thing!", processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -480,8 +474,9 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
     job = engine.run_sweep(
-        program=_CIRCUIT, processor_id='processor0',
-        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        processor_id='processor0',
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
     )
     results = job.results()
     assert len(results) == 2
@@ -510,8 +505,9 @@ def test_run_sweep_params_with_stream_rpcs(client):
 
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=True))
     job = engine.run_sweep(
-        program=_CIRCUIT, processor_id='processor0',
-        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        processor_id='processor0',
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
     )
     results = job.results()
     assert len(results) == 2
@@ -543,7 +539,7 @@ def test_run_multiple_times(client):
     sweeps1 = run_context.parameter_sweeps
     job2 = program.run_sweep(
         processor_id='processor0', repetitions=2, params=cirq.Points('a', [3, 4])
-        )
+    )
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps2 = run_context.parameter_sweeps
     results = job2.results()
@@ -576,7 +572,9 @@ def test_run_sweep_v2_with_unary_rpcs(client):
     )
     job = engine.run_sweep(
         program=_CIRCUIT,
-        processor_id='processor0', job_id='job-id', params=cirq.Points('a', [1, 2])
+        processor_id='processor0',
+        job_id='job-id',
+        params=cirq.Points('a', [1, 2]),
     )
     results = job.results()
     assert len(results) == 2
@@ -608,7 +606,9 @@ def test_run_sweep_v2_with_stream_rpcs(client):
     )
     job = engine.run_sweep(
         program=_CIRCUIT,
-        processor_id='processor0', job_id='job-id', params=cirq.Points('a', [1, 2])
+        processor_id='processor0',
+        job_id='job-id',
+        params=cirq.Points('a', [1, 2]),
     )
     results = job.results()
     assert len(results) == 2
@@ -642,7 +642,9 @@ def test_bad_result_proto(client):
     engine = cg.Engine(project_id='project-id', proto_version=cg.engine.engine.ProtoVersion.V2)
     job = engine.run_sweep(
         program=_CIRCUIT,
-        processor_id='processor0', job_id='job-id', params=cirq.Points('a', [1, 2])
+        processor_id='processor0',
+        job_id='job-id',
+        params=cirq.Points('a', [1, 2]),
     )
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
