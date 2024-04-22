@@ -31,7 +31,6 @@ from cirq.experiments.random_quantum_circuit_generation import (
     get_random_combinations_for_layer_circuit,
     get_grid_interaction_layer_circuit,
 )
-from cirq.experiments.xeb_utils import grid_qubits_to_graph
 
 SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]
 
@@ -105,8 +104,18 @@ def test_generate_library_of_2q_circuits_custom_qubits():
             assert m2.operations[0].gate == cirq.ISWAP**0.5
 
 
+def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
+    # cirq contrib: routing.gridqubits_to_graph_device
+    def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
+        return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
+
+    return nx.Graph(
+        pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
+    )
+
+
 def test_get_random_combinations_for_device():
-    graph = grid_qubits_to_graph(cirq.GridQubit.rect(3, 3))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     n_combinations = 4
     combinations = get_random_combinations_for_device(
         n_library_circuits=3, n_combinations=n_combinations, device_graph=graph, random_state=99
@@ -125,7 +134,7 @@ def test_get_random_combinations_for_device():
 
 
 def test_get_random_combinations_for_small_device():
-    graph = grid_qubits_to_graph(cirq.GridQubit.rect(3, 1))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 1))
     n_combinations = 4
     combinations = get_random_combinations_for_device(
         n_library_circuits=3, n_combinations=n_combinations, device_graph=graph, random_state=99
@@ -187,7 +196,7 @@ def test_get_random_combinations_for_bad_layer_circuit():
 
 
 def test_get_grid_interaction_layer_circuit():
-    graph = grid_qubits_to_graph(cirq.GridQubit.rect(3, 3))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     layer_circuit = get_grid_interaction_layer_circuit(graph)
 
     sqrtisw = cirq.ISWAP**0.5
@@ -215,7 +224,7 @@ def test_get_grid_interaction_layer_circuit():
 
 def test_random_combinations_layer_circuit_vs_device():
     # Random combinations from layer circuit is the same as getting it directly from graph
-    graph = grid_qubits_to_graph(cirq.GridQubit.rect(3, 3))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     layer_circuit = get_grid_interaction_layer_circuit(graph)
     combs1 = get_random_combinations_for_layer_circuit(
         n_library_circuits=10, n_combinations=10, layer_circuit=layer_circuit, random_state=1

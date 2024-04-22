@@ -25,14 +25,19 @@ import pytest
 
 import cirq
 from cirq.experiments.qubit_characterizations import ParallelRandomizedBenchmarkingResult
-from cirq.experiments.xeb_utils import grid_qubits_to_graph
+
+
+def _manhattan_distance(qubit1: 'cirq.GridQubit', qubit2: 'cirq.GridQubit') -> int:
+    return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
 class MockDevice(cirq.Device):
     @property
     def metadata(self):
         qubits = cirq.GridQubit.rect(3, 2, 4, 3)
-        graph = grid_qubits_to_graph(qubits)
+        graph = nx.Graph(
+            pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
+        )
         return cirq.DeviceMetadata(qubits, graph)
 
 
