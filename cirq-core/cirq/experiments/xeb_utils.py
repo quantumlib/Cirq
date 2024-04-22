@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Any, Union, Sequence, Callable, TypeVar, Iterable, Optional, ContextManager, TYPE_CHECKING
+from typing import (
+    cast,
+    Any,
+    Union,
+    Sequence,
+    Callable,
+    TypeVar,
+    Iterable,
+    Optional,
+    ContextManager,
+    TYPE_CHECKING,
+)
 
 import itertools
 import multiprocessing
@@ -24,23 +35,27 @@ import networkx as nx
 if TYPE_CHECKING:
     import cirq
 
+
 def _manhattan_distance(a: 'cirq.GridQubit', b: 'cirq.GridQubit') -> int:
     return abs(a.row - b.row) + abs(a.col - b.col)
+
 
 def grid_qubits_to_graph(qubits: Sequence['cirq.GridQubit']) -> nx.Graph:
     return nx.Graph(
         pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
     )
 
+
 _OUTPUT_T = TypeVar('_OUTPUT_T')
 
+
 def execute_with_progress_par(
-        func: Callable[..., _OUTPUT_T],
-        inputs: Iterable[Any],
-        pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
-        progress_bar: Callable[..., ContextManager] = tqdm.tqdm,
-        **progres_bar_args,
-) -> Sequence[_OUTPUT_T]: 
+    func: Callable[..., _OUTPUT_T],
+    inputs: Iterable[Any],
+    pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
+    progress_bar: Callable[..., ContextManager] = tqdm.tqdm,
+    **progres_bar_args,
+) -> Sequence[_OUTPUT_T]:
     if pool is None:
         return [func(args) for args in progress_bar(inputs, **progres_bar_args)]
     if isinstance(pool, concurrent.futures.ThreadPoolExecutor):

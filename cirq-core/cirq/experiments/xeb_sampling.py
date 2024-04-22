@@ -278,14 +278,14 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     run_batch = _SampleInBatches(
         sampler=sampler, repetitions=repetitions, combinations_by_layer=combinations_by_layer
     )
-    
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
         results = xeb_utils.execute_with_progress_par(
-                func=run_batch,
-                inputs=batched_tasks,
-                pool=pool,
-                progress_bar=progress_bar,
-                desc='sample 2q xeb circuits',
+            func=run_batch,
+            inputs=batched_tasks,
+            pool=pool,
+            progress_bar=progress_bar,
+            desc='sample 2q xeb circuits',
         )
     return list(itertools.chain(*results))
 

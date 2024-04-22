@@ -343,7 +343,7 @@ class InferredXEBResult:
         return ax
 
 
-def _parallel_two_qubit_xeb(
+def parallel_xeb_workflow(
     sampler: 'cirq.Sampler',
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
     entangling_gate: 'cirq.Gate' = ops.CZ,
@@ -354,7 +354,33 @@ def _parallel_two_qubit_xeb(
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
     **plot_kwargs,
-) -> TwoQubitXEBResult:
+) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
+    """A utility method that runs the full XEB workflow.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        entangling_gate: The entangling gate to use.
+        n_repetitions: The number of repetitions to use.
+        n_combinations: The number of combinations to generate.
+        n_circuits: The number of circuits to generate.
+        cycle_depths: The cycle depths to use.
+        random_state: The random state to use.
+        ax: the plt.Axes to plot the device layout on. If not given,
+            no plot is created.
+        **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+    Returns:
+        - A DataFrame with columns 'cycle_depth' and 'fidelity'.
+        - The circuits used to perform XEB.
+        - A pandas dataframe with index given by ['circuit_i', 'cycle_depth'].
+            Columns always include "sampled_probs". If `combinations_by_layer` is
+            not `None` and you are doing parallel XEB, additional metadata columns
+            will be attached to the returned DataFrame.
+
+    Raises:
+        ValueError: If qubits are not specified and the sampler has no device.
+    """
     rs = value.parse_random_state(random_state)
 
     if qubits is None:
@@ -429,7 +455,7 @@ def parallel_two_qubit_xeb(
     Raises:
         ValueError: If qubits are not specified and the sampler has no device.
     """
-    fids, *_ = _parallel_two_qubit_xeb(
+    fids, *_ = parallel_xeb_workflow(
         sampler=sampler,
         qubits=qubits,
         entangling_gate=entangling_gate,

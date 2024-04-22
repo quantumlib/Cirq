@@ -508,11 +508,11 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     )
     subselected_dfs = [sampled_df[sampled_df['pair'] == pair] for pair in pairs]
     results = xeb_utils.execute_with_progress_par(
-            closure,
-            subselected_dfs,
-            pool=pool,
-            progress_bar = tqdm.tqdm,
-            desc='characterize fsim parameters',
+        closure,
+        subselected_dfs,
+        pool=pool,
+        progress_bar=tqdm.tqdm,
+        desc='characterize fsim parameters',
     )
     optimization_results = {}
     all_final_params = {}
@@ -594,7 +594,6 @@ def _fit_exponential_decay(
 
     a_std, layer_fid_std = np.sqrt(np.diag(pcov))
     return a, layer_fid, a_std, layer_fid_std
-
 
 
 def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:

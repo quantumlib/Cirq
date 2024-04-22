@@ -20,11 +20,12 @@ import concurrent.futures
 import numpy as np
 
 from cirq.experiments import xeb_fitting
-from cirq.experiments.two_qubit_xeb import _parallel_two_qubit_xeb
+from cirq.experiments.two_qubit_xeb import parallel_xeb_workflow
 from cirq import ops
 
 if TYPE_CHECKING:
-  import cirq
+    import cirq
+
 
 def z_phase_calibration_workflow(
     sampler: 'cirq.Sampler',
@@ -40,7 +41,7 @@ def z_phase_calibration_workflow(
     atol: float = 1e-3,
     pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
 ):
-    fids_df_0, circuits, sampled_df = _parallel_two_qubit_xeb(
+    fids_df_0, circuits, sampled_df = parallel_xeb_workflow(
         sampler=sampler,
         qubits=(q0, q1),
         entangling_gate=two_qubit_gate,
