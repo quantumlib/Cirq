@@ -69,12 +69,18 @@ class PhasedXZGate(raw_types.Gate):
 
     @classmethod
     def from_zyz_angles(cls, z0_rad: float, y_rad: float, z1_rad: float) -> 'cirq.PhasedXZGate':
-        """Create a PhasedXZGate from ZYZ angles: $Rz(z0_rad) Ry(y_rad) Rz(z1_rad)$ (in time order)."""
+        """Create a PhasedXZGate from ZYZ angles.
+
+        The returned gate is equivalent to $Rz(z0_rad) Ry(y_rad) Rz(z1_rad)$ (in time order).
+        """
         return cls.from_zyz_exponents(z0=z0_rad / np.pi, y=y_rad / np.pi, z1=z1_rad / np.pi)
 
     @classmethod
     def from_zyz_exponents(cls, z0: float, y: float, z1: float) -> 'cirq.PhasedXZGate':
-        """Create a PhasedXZGate from ZYZ exponents: $Z^z0 Y^y Z^z1$ (in time order)."""
+        """Create a PhasedXZGate from ZYZ exponents.
+
+        The returned gate is equivalent to $Z^z0 Y^y Z^z1$ (in time order).
+        """
         return PhasedXZGate(axis_phase_exponent=-z0 + 0.5, x_exponent=y, z_exponent=z0 + z1)
 
     def _canonical(self) -> 'cirq.PhasedXZGate':
