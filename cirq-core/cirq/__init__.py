@@ -536,6 +536,7 @@ from cirq.value import (
     MeasurementKey,
     MeasurementType,
     PeriodicValue,
+    PRNG_OR_SEED_LIKE,
     RANDOM_STATE_OR_SEED_LIKE,
     state_vector_to_probabilities,
     SympyCondition,

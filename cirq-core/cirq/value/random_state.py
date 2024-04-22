@@ -33,6 +33,8 @@ document(
     at hand. For example, it might be an existing instance of
     `np.random.RandomState` or a custom pseudorandom number generator
     implementation.
+
+    Note: prefer to use cirq.PRNG_OR_SEED_LIKE.
     """,
 )
 
