@@ -17,8 +17,8 @@ from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
 
 from dataclasses import dataclass
 from types import MappingProxyType
-import itertools
 import functools
+import multiprocessing
 
 from matplotlib import pyplot as plt
 import networkx as nx
@@ -27,13 +27,13 @@ import pandas as pd
 
 from cirq import ops, value, vis
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
-from cirq.experiments.xeb_fitting import benchmark_2q_xeb_fidelities
-from cirq.experiments.xeb_fitting import fit_exponential_decays, exponential_decay
+from cirq.experiments import xeb_fitting as xeb_fitting
 from cirq.experiments import random_quantum_circuit_generation as rqcg
 from cirq.experiments.qubit_characterizations import (
     ParallelRandomizedBenchmarkingResult,
     parallel_single_qubit_randomized_benchmarking,
 )
+from cirq.experiments.xeb_utils import grid_qubits_to_graph
 from cirq.qis import noise_utils
 from cirq._compat import cached_method
 
@@ -46,10 +46,6 @@ def _grid_qubits_for_sampler(sampler: 'cirq.Sampler') -> Optional[Sequence['cirq
         device = sampler.processor.get_device()
         return sorted(device.metadata.qubit_set)
     return None
-
-
-def _manhattan_distance(qubit1: 'cirq.GridQubit', qubit2: 'cirq.GridQubit') -> int:
-    return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
 @dataclass(frozen=True)
@@ -124,7 +120,7 @@ class TwoQubitXEBResult:
         depths = np.linspace(0, np.max(record['cycle_depths']))
         ax.plot(
             depths,
-            exponential_decay(depths, a=record['a'], layer_fid=record['layer_fid']),
+            xeb_fitting.exponential_decay(depths, a=record['a'], layer_fid=record['layer_fid']),
             label='estimated exponential decay',
             **plot_kwargs,
         )
@@ -347,6 +343,59 @@ class InferredXEBResult:
         return ax
 
 
+def _parallel_two_qubit_xeb(
+    sampler: 'cirq.Sampler',
+    qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    entangling_gate: 'cirq.Gate' = ops.CZ,
+    n_repetitions: int = 10**4,
+    n_combinations: int = 10,
+    n_circuits: int = 20,
+    cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ax: Optional[plt.Axes] = None,
+    **plot_kwargs,
+) -> TwoQubitXEBResult:
+    rs = value.parse_random_state(random_state)
+
+    if qubits is None:
+        qubits = _grid_qubits_for_sampler(sampler)
+        if qubits is None:
+            raise ValueError("Couldn't determine qubits from sampler. Please specify them.")
+
+    graph = grid_qubits_to_graph(qubits)
+
+    if ax is not None:
+        nx.draw_networkx(graph, pos={q: (q.row, q.col) for q in qubits}, ax=ax)
+        ax.set_title('device layout')
+        ax.plot(**plot_kwargs)
+
+    circuit_library = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=n_circuits, two_qubit_gate=entangling_gate, random_state=rs
+    )
+
+    combs_by_layer = rqcg.get_random_combinations_for_device(
+        n_library_circuits=len(circuit_library),
+        n_combinations=n_combinations,
+        device_graph=graph,
+        random_state=rs,
+    )
+
+    sampled_df = sample_2q_xeb_circuits(
+        sampler=sampler,
+        circuits=circuit_library,
+        cycle_depths=cycle_depths,
+        combinations_by_layer=combs_by_layer,
+        shuffle=rs,
+        repetitions=n_repetitions,
+    )
+
+    fids = xeb_fitting.benchmark_2q_xeb_fidelities(
+        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths
+    )
+
+    return fids, circuit_library, sampled_df
+
+
 def parallel_two_qubit_xeb(
     sampler: 'cirq.Sampler',
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
@@ -380,47 +429,19 @@ def parallel_two_qubit_xeb(
     Raises:
         ValueError: If qubits are not specified and the sampler has no device.
     """
-    rs = value.parse_random_state(random_state)
-
-    if qubits is None:
-        qubits = _grid_qubits_for_sampler(sampler)
-        if qubits is None:
-            raise ValueError("Couldn't determine qubits from sampler. Please specify them.")
-
-    graph = nx.Graph(
-        pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
-    )
-
-    if ax is not None:
-        nx.draw_networkx(graph, pos={q: (q.row, q.col) for q in qubits}, ax=ax)
-        ax.set_title('device layout')
-        ax.plot(**plot_kwargs)
-
-    circuit_library = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=n_circuits, two_qubit_gate=entangling_gate, random_state=rs
-    )
-
-    combs_by_layer = rqcg.get_random_combinations_for_device(
-        n_library_circuits=len(circuit_library),
-        n_combinations=n_combinations,
-        device_graph=graph,
-        random_state=rs,
-    )
-
-    sampled_df = sample_2q_xeb_circuits(
+    fids, *_ = _parallel_two_qubit_xeb(
         sampler=sampler,
-        circuits=circuit_library,
+        qubits=qubits,
+        entangling_gate=entangling_gate,
+        n_repetitions=n_repetitions,
+        n_combinations=n_combinations,
+        n_circuits=n_circuits,
         cycle_depths=cycle_depths,
-        combinations_by_layer=combs_by_layer,
-        shuffle=rs,
-        repetitions=n_repetitions,
+        random_state=random_state,
+        ax=ax,
+        **plot_kwargs,
     )
-
-    fids = benchmark_2q_xeb_fidelities(
-        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths
-    )
-
-    return TwoQubitXEBResult(fit_exponential_decays(fids))
+    return TwoQubitXEBResult(xeb_fitting.fit_exponential_decays(fids))
 
 
 def run_rb_and_xeb(

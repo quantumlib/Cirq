@@ -14,13 +14,16 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Dict, Iterable, List, Union, Optional, Sequence, Tuple, TYPE_CHECKING
 
+import concurrent.futures
+import tqdm
 import numpy as np
 import pandas as pd
 import sympy
 from cirq import circuits, ops, protocols, _import
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
+from cirq.experiments import xeb_utils
 
 if TYPE_CHECKING:
     import cirq
@@ -174,6 +177,15 @@ def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal
             'gamma_default': gate.gamma,
             'phi_default': gate.phi,
         }
+
+    # Handle all gates that preserve excitations (i.e. fermionic gates).
+    u = protocols.unitary(gate)
+    phi = -np.angle(u[3, 3])
+    theta = np.angle(u[1, 1] - u[1, 2])
+    if np.allclose(u, protocols.unitary(ops.FSimGate(theta=theta, phi=phi))):
+        defaults['theta_default'] = theta
+        defaults['phi_default'] = phi
+        return defaults
 
     raise ValueError(f"Unknown default angles for {gate}.")
 
@@ -456,7 +468,9 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool: Optional[
+        Union['multiprocessing.pool.Pool', 'concurrent.futures.ThreadPoolExecutor']
+    ] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates grouped by pairs.
@@ -493,11 +507,13 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
         fatol=fatol,
     )
     subselected_dfs = [sampled_df[sampled_df['pair'] == pair] for pair in pairs]
-    if pool is not None:
-        results = pool.map(closure, subselected_dfs)
-    else:
-        results = [closure(df) for df in subselected_dfs]
-
+    results = xeb_utils.execute_with_progress_par(
+            closure,
+            subselected_dfs,
+            pool=pool,
+            progress_bar = tqdm.tqdm,
+            desc='characterize fsim parameters',
+    )
     optimization_results = {}
     all_final_params = {}
     fid_dfs = []
@@ -579,14 +595,6 @@ def _fit_exponential_decay(
     a_std, layer_fid_std = np.sqrt(np.diag(pcov))
     return a, layer_fid, a_std, layer_fid_std
 
-
-def _one_unique(df, name, default):
-    """Helper function to assert that there's one unique value in a column and return it."""
-    if name not in df.columns:
-        return default
-    vals = df[name].unique()
-    assert len(vals) == 1, name
-    return vals[0]
 
 
 def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:

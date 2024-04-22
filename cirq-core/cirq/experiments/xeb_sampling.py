@@ -16,6 +16,7 @@ import concurrent
 import os
 import time
 import uuid
+import itertools
 from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import (
@@ -38,6 +39,7 @@ import tqdm
 from cirq import ops, devices, value, protocols
 from cirq.circuits import Circuit, Moment
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
+from cirq.experiments import xeb_utils
 
 if TYPE_CHECKING:
     import cirq
@@ -276,19 +278,16 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     run_batch = _SampleInBatches(
         sampler=sampler, repetitions=repetitions, combinations_by_layer=combinations_by_layer
     )
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        futures = [pool.submit(run_batch, task_batch) for task_batch in batched_tasks]
-
-        records = []
-        with progress_bar(total=len(batched_tasks) * batch_size) as progress:
-            for future in concurrent.futures.as_completed(futures):
-                new_records = future.result()
-                if dataset_directory is not None:
-                    os.makedirs(f'{dataset_directory}', exist_ok=True)
-                    protocols.to_json(new_records, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
-                records.extend(new_records)
-                progress.update(batch_size)
-    return records
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        results = xeb_utils.execute_with_progress_par(
+                func=run_batch,
+                inputs=batched_tasks,
+                pool=pool,
+                progress_bar=progress_bar,
+                desc='sample 2q xeb circuits',
+        )
+    return list(itertools.chain(*results))
 
 
 def sample_2q_xeb_circuits(
