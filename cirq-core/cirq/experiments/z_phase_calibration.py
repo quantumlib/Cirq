@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for fermionic gates."""
-from typing import Optional, Sequence, Union, ContextManager, TYPE_CHECKING
+from typing import Optional, Sequence, Union, Tuple, Dict, TYPE_CHECKING
 import multiprocessing
 import concurrent.futures
 
@@ -29,8 +29,7 @@ if TYPE_CHECKING:
 
 def z_phase_calibration_workflow(
     sampler: 'cirq.Sampler',
-    q0: 'cirq.GridQubit',
-    q1: 'cirq.GridQubit',
+    qubits: Optional['cirq.GridQubit'] = None,
     two_qubit_gate: 'cirq.Gate' = ops.CZ,
     options: Optional[xeb_fitting.XEBPhasedFSimCharacterizationOptions] = None,
     n_repetitions: int = 10**4,
@@ -40,10 +39,47 @@ def z_phase_calibration_workflow(
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
     pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
-):
+) -> Tuple[xeb_fitting.XEBCharacterizationResult]:
+    """Perform z-phase calibration for fermionic gates.
+
+    For a given fermionic two-qubit gate we assume an error model that can be described
+    using Z-rotations:
+                0: ───Rz(a)───two_qubit_gate───Rz(c)───
+                                │
+                1: ───Rz(b)───two_qubit_gate───Rz(d)───
+    for some angles a, b, c, and d.
+
+    Since the two-qubit gate is a fermionic-gate, it can be represented by an FSimGate and the
+    effect of rotations turns it into a PhasedFSimGate. Using XEB-data we find the PhasedFSimGate
+    parameters that minimize the infidelity of the gate.
+
+    References:
+        - https://arxiv.org/abs/2001.08343
+        - https://arxiv.org/abs/2010.07965
+        - https://arxiv.org/abs/1910.11333
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: Qubits to use. If none, use all qubits on the sampler's device.
+        two_qubit_gate: The entangling gate to use.
+        options: The XEB-fitting options. If None, calibrate all 5 PhasedFSimGate parameters,
+            using the representation of a two-qubit gate as an FSimGate for the initial guess.
+        n_repetitions: The number of repetitions to use.
+        n_combinations: The number of combinations to generate.
+        n_circuits: The number of circuits to generate.
+        cycle_depths: The cycle depths to use.
+        random_state: The random state to use.
+        atol: Absolute tolerance to be used by the minimizer.
+        pool: Optional multi-threading or multi-processing pool.
+
+    Returns:
+        - An `XEBCharacterizationResult` object that contains the calibration result.
+        - A `pd.DataFrame` comparing the before and after fidilities.            
+    """
+    
     fids_df_0, circuits, sampled_df = parallel_xeb_workflow(
         sampler=sampler,
-        qubits=(q0, q1),
+        qubits=qubits,
         entangling_gate=two_qubit_gate,
         n_repetitions=n_repetitions,
         cycle_depths=cycle_depths,
@@ -72,3 +108,72 @@ def z_phase_calibration_workflow(
     return result, xeb_fitting.before_and_after_characterization(
         fids_df_0, characterization_result=result
     )
+
+
+def calibrate_z_phases(
+    sampler: 'cirq.Sampler',
+    qubits: Optional[Sequence['cirq.GridQubit']] = None, 
+    two_qubit_gate: 'cirq.Gate' = ops.CZ,
+    options: Optional[xeb_fitting.XEBPhasedFSimCharacterizationOptions] = None,
+    n_repetitions: int = 10**4,
+    n_combinations: int = 10,
+    n_circuits: int = 20,
+    cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    atol: float = 1e-3,
+    pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
+) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], 'cirq.PhasedFSimGate']:
+    """Perform z-phase calibration for fermionic gates.
+
+    For a given fermionic two-qubit gate we assume an error model that can be described
+    using Z-rotations:
+                0: ───Rz(a)───two_qubit_gate───Rz(c)───
+                                │
+                1: ───Rz(b)───two_qubit_gate───Rz(d)───
+    for some angles a, b, c, and d.
+
+    Since the two-qubit gate is a fermionic gate, it can be represented by an FSimGate and the
+    effect of rotations turns it into a PhasedFSimGate. Using XEB-data we find the PhasedFSimGate
+    parameters that minimize the infidelity of the gate.
+
+    References:
+        - https://arxiv.org/abs/2001.08343
+        - https://arxiv.org/abs/2010.07965
+        - https://arxiv.org/abs/1910.11333
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: Qubits to use. If none, use all qubits on the sampler's device.
+        two_qubit_gate: The entangling gate to use.
+        options: The XEB-fitting options. If None, calibrate all 5 PhasedFSimGate parameters,
+            using the representation of a two-qubit gate as an FSimGate for the initial guess.
+        n_repetitions: The number of repetitions to use.
+        n_combinations: The number of combinations to generate.
+        n_circuits: The number of circuits to generate.
+        cycle_depths: The cycle depths to use.
+        random_state: The random state to use.
+        atol: Absolute tolerance to be used by the minimizer.
+        pool: Optional multi-threading or multi-processing pool.
+
+    Returns:
+        - A dictionary mapping qubit pairs to the calibrated PhasedFSimGates.
+    """
+
+    result, _ = z_phase_calibration_workflow(
+        sampler=sampler,
+        qubits=qubits,
+        two_qubit_gate=two_qubit_gate,
+        options=options,
+        n_repetitions=n_repetitions,
+        n_combinations=n_combinations,
+        n_circuits=n_circuits,
+        cycle_depths=cycle_depths,
+        random_state=random_state,
+        atol=atol,
+        pool=pool,
+    )
+
+    gates = {}
+    for qubits, params in result.final_params.items():
+        gates[qubits] = ops.PhasedFSimGate(**params)
+    return gates

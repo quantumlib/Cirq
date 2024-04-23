@@ -59,23 +59,19 @@ def execute_with_progress_par(
     if pool is None:
         return [func(args) for args in progress_bar(inputs, **progres_bar_args)]
     if isinstance(pool, concurrent.futures.ThreadPoolExecutor):
-        futures = [pool.submit(lambda s: (i, func(s)), args) for i, args in enumerate(inputs)]
-        results: Sequence[Optional[_OUTPUT_T]] = [None for _ in range(len(futures))]
-        with progress_bar(total=len(results), **progres_bar_args) as progress:
+        futures = [pool.submit(func, args) for args in inputs]
+        results: Sequence[_OUTPUT_T] = []
+        with progress_bar(total=len(futures), **progres_bar_args) as progress:
             for future in concurrent.futures.as_completed(futures):
-                i, res = future.result()
-                results[i] = res
-            progress.update(1)
-        return cast(_OUTPUT_T, results)
+                results.append(future.result())
+                progress.update(1)
+        return results
     if isinstance(pool, multiprocessing.pool.Pool):
-        raise NotImplementedError
-        # def modified_func(args):
-        #     return args[0], func(args[1])
-        # sequential_inputs = [*inputs]
-        # results: Sequence[Optional[_OUTPUT_T]] = [None for _ in range(len(sequential_inputs))]
-        # with progress_bar(total=len(sequential_inputs), **progres_bar_args) as progress:
-        #     for i, res in pool.imap(modified_func, enumerate(sequential_inputs)):
-        #         results[i] = res
-        #         progres.update(1)
-        # return cast(_OUTPUT_T, results)
+        sequential_inputs = [*inputs]
+        results: Sequence[_OUTPUT_T] = []
+        with progress_bar(total=len(sequential_inputs), **progres_bar_args) as progress:
+            for res in pool.imap_unordered(func, sequential_inputs):
+                results.append(res)
+                progress.update(1)
+        return results
     raise TypeError(f'type {type(pool)} of {pool=} is not supported')

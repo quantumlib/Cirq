@@ -287,6 +287,14 @@ def _execute_sample_2q_xeb_tasks_in_batches(
             progress_bar=progress_bar,
             desc='sample 2q xeb circuits',
         )
+
+    if dataset_directory is not None:
+        os.makedirs(f'{dataset_directory}', exist_ok=True)
+        for record in results:
+            protocols.to_json(record, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
+
+    # for i, res in enumerate(results):
+    #     print(f'{i}.', res)
     return list(itertools.chain(*results))
 
 
