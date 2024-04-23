@@ -32,6 +32,7 @@ SqrtCZGaugeSelector = GaugeSelector(
             two_qubit_gate=CZ**-0.5,
             swap_qubits=True,
         ),
+        ConstantGauge(two_qubit_gate=CZ**0.5),
     ]
 )
 
