@@ -7,12 +7,12 @@
         "cirq_type": "DynamicalDecouplingModel",
         "base_dd_sequence": [
             {
-                "cirq_type": "XPowGate",
+                "cirq_type": "_PauliX",
                 "exponent": 1.0,
                 "global_shift": 0.0
             },
             {
-                "cirq_type": "XPowGate",
+                "cirq_type": "_PauliX",
                 "exponent": 1.0,
                 "global_shift": 0.0
             }

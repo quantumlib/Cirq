@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Transformer pass that adds dynamical decoupling moments to a circuit."""
+"""Transformer pass that adds dynamical decoupling operations to a circuit."""
 
 import enum
 from functools import reduce
 from typing import Any, Dict, Optional, Tuple
 
+from cirq.transformers import transformer_api
 import cirq
 from cirq import value
 import numpy as np
@@ -28,7 +29,9 @@ class _DynamicalDecouplingSchema(enum.Enum):
     """Supported schemes of dynamical decoupling."""
 
     XX_PAIR = 'XX_PAIR'
+    X_XINV = 'X_XINV'
     YY_PAIR = 'YY_PAIR'
+    Y_YINV = 'Y_YINV'
 
 
 def _repeat_sequence(base_sequence: list['cirq.Gate'], num_idle_moments: int):
@@ -41,9 +44,13 @@ def _generate_dd_sequence_from_schema(
 ) -> list['cirq.Gate']:
     match schema:
         case _DynamicalDecouplingSchema.XX_PAIR:
-            return _repeat_sequence([cirq.XPowGate(), cirq.XPowGate()], num_idle_moments)
+            return _repeat_sequence([cirq.X, cirq.X], num_idle_moments)
+        case _DynamicalDecouplingSchema.X_XINV:
+            return _repeat_sequence([cirq.X, cirq.X**-1], num_idle_moments)
         case _DynamicalDecouplingSchema.YY_PAIR:
-            return _repeat_sequence([cirq.YPowGate(), cirq.YPowGate()], num_idle_moments)
+            return _repeat_sequence([cirq.Y, cirq.Y], num_idle_moments)
+        case _DynamicalDecouplingSchema.Y_YINV:
+            return _repeat_sequence([cirq.Y, cirq.Y**-1], num_idle_moments)
 
 
 def _validate_dd_sequence(dd_sequence: list['cirq.Gate']) -> None:
@@ -51,15 +58,17 @@ def _validate_dd_sequence(dd_sequence: list['cirq.Gate']) -> None:
         raise ValueError('Invalid dynamical decoupling sequence. Expect more than one gates.')
     matrices = [cirq.unitary(gate) for gate in dd_sequence]
     product = reduce(np.matmul, matrices)
-    if not np.array_equal(product, np.eye(2)):
+
+    if not cirq.equal_up_to_global_phase(product, np.eye(2)):
         raise ValueError(
-            "Invalid dynamical decoupling sequence, sequence product doesn't equal" ' identity.'
+            "Invalid dynamical decoupling sequence. Expect sequence production equals identity"
+            f" up to a global phase, got {product}.".replace('\n', ' ')
         )
 
 
 @value.value_equality
 class DynamicalDecouplingModel:
-    """Dynamical decoupling model that generates dynamical decoupling gate sequences."""
+    """Dynamical decoupling model that generates dynamical decoupling operation sequences."""
 
     def __init__(
         self,
@@ -81,10 +90,10 @@ class DynamicalDecouplingModel:
         if num_idle_moments <= 0:
             return []
         if self.schema:
-            return _generate_dd_sequence_from_schema(self.schema, num_idle_moments)
-        if self.base_dd_sequence:
-            return _repeat_sequence(self.base_dd_sequence, num_idle_moments)
-        return []
+            dd_sequence = _generate_dd_sequence_from_schema(self.schema, num_idle_moments)
+        elif self.base_dd_sequence:
+            dd_sequence = _repeat_sequence(self.base_dd_sequence, num_idle_moments)
+        return dd_sequence
 
     @classmethod
     def from_schema(cls, schema: str):
@@ -117,21 +126,27 @@ class DynamicalDecouplingModel:
         return self.schema, self.base_dd_sequence
 
 
+@transformer_api.transformer
 def add_dynamical_decoupling(
-    circuit: 'cirq.AbstractCircuit', dd_model: DynamicalDecouplingModel
+    circuit: 'cirq.AbstractCircuit',
+    *,
+    context: Optional['cirq.TransformerContext'] = None,
+    dd_model: DynamicalDecouplingModel = DynamicalDecouplingModel.from_schema("X_XINV"),
 ) -> 'cirq.Circuit':
-    """Add dynamical decoupling gates in a given circuit.
+    """Add dynamical decoupling gate operations to a given circuit.
 
     Args:
           circuit: Input circuit to transform.
-          dd_model: Dynamical decoupling model that defines the schema to generate
-            dynamical decoupling sequences.
+          context: `cirq.TransformerContext` storing common configurable options for transformers.
+          dd_model: Dynamical decoupling model that defines the schema to generate dynamical
+            decoupling sequences.
 
     Return:
-          A circuit with dynamical decoupling operations.
+          A copy of the input circuit with dynamical decoupling operations.
     """
     last_busy_moment_by_qubits: Dict['cirq.Qid', int] = {q: 0 for q in circuit.all_qubits()}
     insert_into: list[Tuple[int, 'cirq.OP_TREE']] = []
+
     for moment_id, moment in enumerate(circuit):
         for q in moment.qubits:
             insert_gates = dd_model.generate_dd_sequence(
@@ -141,6 +156,6 @@ def add_dynamical_decoupling(
                 insert_into.append((last_busy_moment_by_qubits[q] + idx + 1, gate.on(q)))
             last_busy_moment_by_qubits[q] = moment_id
 
-    circuit.batch_insert_into(insert_into)
-
-    return circuit
+    updated_circuit = circuit.unfreeze(copy=True)
+    updated_circuit.batch_insert_into(insert_into)
+    return updated_circuit

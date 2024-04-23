@@ -24,10 +24,9 @@ def assert_dd(
     cirq.testing.assert_same_circuits(updated_circuit, expected_circuit)
 
 
-def test_insert_provided_schema():
+def test_no_insert_due_to_no_consecutive_moments():
     a = cirq.NamedQubit("a")
     b = cirq.NamedQubit("b")
-    c = cirq.NamedQubit("c")
 
     # No insertion as there is no room for a dd sequence.
     assert_dd(
@@ -40,42 +39,39 @@ def test_insert_provided_schema():
         dd_model=DynamicalDecouplingModel.from_schema("XX_PAIR"),
     )
 
-    # Insert one XX_PAIR dynamical decoupling sequence in idle moments.
-    assert_dd(
-        input_circuit=cirq.Circuit(
-            cirq.Moment(cirq.H(a)),
-            cirq.Moment(cirq.CNOT(a, b)),
-            cirq.Moment(cirq.CNOT(b, c)),
-            cirq.Moment(cirq.CNOT(b, c)),
-            cirq.Moment(cirq.measure_each(a, b, c)),
-        ),
-        expected_circuit=cirq.Circuit(
-            cirq.Moment(cirq.H(a)),
-            cirq.Moment(cirq.CNOT(a, b)),
-            cirq.Moment(cirq.CNOT(b, c), cirq.X(a)),
-            cirq.Moment(cirq.CNOT(b, c), cirq.X(a)),
-            cirq.Moment(cirq.measure_each(a, b, c)),
-        ),
-        dd_model=DynamicalDecouplingModel.from_schema("XX_PAIR"),
+
+@pytest.mark.parametrize(
+    'schema,inserted_gates',
+    [
+        ("XX_PAIR", [cirq.X, cirq.X]),
+        ("X_XINV", [cirq.X, cirq.X**-1]),
+        ("YY_PAIR", [cirq.Y, cirq.Y]),
+        ("Y_YINV", [cirq.Y, cirq.Y**-1]),
+    ],
+)
+def test_insert_provided_schema(schema: str, inserted_gates: list['cirq.Gate']):
+    a = cirq.NamedQubit("a")
+    b = cirq.NamedQubit("b")
+    c = cirq.NamedQubit("c")
+
+    input_circuit = cirq.Circuit(
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.CNOT(a, b)),
+        cirq.Moment(cirq.CNOT(b, c)),
+        cirq.Moment(cirq.CNOT(b, c)),
+        cirq.Moment(cirq.measure_each(a, b, c)),
+    )
+    expected_circuit = cirq.Circuit(
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.CNOT(a, b)),
+        cirq.Moment(cirq.CNOT(b, c), inserted_gates[0](a)),
+        cirq.Moment(cirq.CNOT(b, c), inserted_gates[1](a)),
+        cirq.Moment(cirq.measure_each(a, b, c)),
     )
 
-    # Insert one XX_PAIR dynamical decoupling sequence in idle moments.
+    # Insert one dynamical decoupling sequence in idle moments.
     assert_dd(
-        input_circuit=cirq.Circuit(
-            cirq.Moment(cirq.H(a)),
-            cirq.Moment(cirq.CNOT(a, b)),
-            cirq.Moment(cirq.CNOT(b, c)),
-            cirq.Moment(cirq.CNOT(b, c)),
-            cirq.Moment(cirq.measure_each(a, b, c)),
-        ),
-        expected_circuit=cirq.Circuit(
-            cirq.Moment(cirq.H(a)),
-            cirq.Moment(cirq.CNOT(a, b)),
-            cirq.Moment(cirq.CNOT(b, c), cirq.Y(a)),
-            cirq.Moment(cirq.CNOT(b, c), cirq.Y(a)),
-            cirq.Moment(cirq.measure_each(a, b, c)),
-        ),
-        dd_model=DynamicalDecouplingModel.from_schema("YY_PAIR"),
+        input_circuit, expected_circuit, dd_model=DynamicalDecouplingModel.from_schema(schema)
     )
 
 
@@ -99,7 +95,7 @@ def test_insert_by_customized_dd_sequence():
             cirq.Moment(cirq.CNOT(b, c), cirq.X(a)),
             cirq.Moment(cirq.measure_each(a, b, c)),
         ),
-        dd_model=DynamicalDecouplingModel.from_base_dd_sequence([cirq.XPowGate(), cirq.XPowGate()]),
+        dd_model=DynamicalDecouplingModel.from_base_dd_sequence([cirq.X, cirq.X]),
     )
 
 
@@ -107,15 +103,19 @@ def test_dd_model_constructor():
     # Succeed
     DynamicalDecouplingModel.from_schema("XX_PAIR")
     DynamicalDecouplingModel.from_schema("YY_PAIR")
-    DynamicalDecouplingModel.from_base_dd_sequence(
-        [cirq.XPowGate(), cirq.XPowGate(), cirq.YPowGate(), cirq.YPowGate()]
-    )
+    DynamicalDecouplingModel.from_base_dd_sequence([cirq.X, cirq.X, cirq.Y, cirq.Y])
     # Fail
     with pytest.raises(ValueError, match="Specify either schema or base_dd_sequence"):
         DynamicalDecouplingModel()
     with pytest.raises(ValueError, match="Invalid schema name."):
         DynamicalDecouplingModel.from_schema("unimplemented_schema")
-    with pytest.raises(ValueError, match="Invalid dynamical decoupling sequence. Expect more than one gates."):
-        DynamicalDecouplingModel.from_base_dd_sequence([cirq.XPowGate()])
-    with pytest.raises(ValueError, match="Invalid dynamical decoupling sequence"):
-        DynamicalDecouplingModel.from_base_dd_sequence([cirq.XPowGate(), cirq.YPowGate()])
+    with pytest.raises(
+        ValueError, match="Invalid dynamical decoupling sequence. Expect more than one gates."
+    ):
+        DynamicalDecouplingModel.from_base_dd_sequence([cirq.X])
+    with pytest.raises(
+        ValueError,
+        match="Invalid dynamical decoupling sequence. Expect sequence production equals identity"
+        " up to a global phase, got",
+    ):
+        DynamicalDecouplingModel.from_base_dd_sequence([cirq.X, cirq.H])
