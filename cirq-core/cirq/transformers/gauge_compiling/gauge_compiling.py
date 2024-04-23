@@ -161,7 +161,7 @@ class GaugeTransformer:
                     gauge = self.gauge_selector(rng).sample(op.gate, rng)
                     q0, q1 = op.qubits
                     left.extend([g(q) for g in gs] for q, gs in zip(op.qubits, gauge.pre))
-                    center.append(gauge.two_qubit_gate(q0, q1))
+                    center.append(gauge.on(q0, q1))
                     right.extend([g(q) for g in gs] for q, gs in zip(op.qubits, gauge.post))
                 else:
                     center.append(op)
