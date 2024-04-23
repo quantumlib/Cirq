@@ -44,5 +44,5 @@ def test_parse_rng() -> None:
     eq.add_equality_group(_sample(custom_prng))
 
     # RandomState PRNG.
-    random_state: np.random.RandomState = np.random.RandomState(42)
-    eq.add_equality_group(_sample(cirq.value.parse_prng(random_state)))
+    random_state: np.random.RandomState = cirq.value.parse_prng(np.random.RandomState(42))
+    eq.add_equality_group(_sample(random_state))
