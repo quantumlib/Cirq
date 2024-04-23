@@ -23,7 +23,16 @@ from cirq.ops.common_gates import CZ
 from cirq import ops
 
 SqrtCZGaugeSelector = GaugeSelector(
-    gauges=[ConstantGauge(pre_q0=ops.X, post_q0=ops.X, post_q1=ops.Z**0.5, two_qubit_gate=CZ**-0.5)]
+    gauges=[
+        ConstantGauge(pre_q0=ops.X, post_q0=ops.X, post_q1=ops.Z**0.5, two_qubit_gate=CZ**-0.5),
+        ConstantGauge(
+            pre_q0=ops.X,
+            post_q0=ops.X,
+            post_q1=ops.Z**0.5,
+            two_qubit_gate=CZ**-0.5,
+            swap_qubits=True,
+        ),
+    ]
 )
 
 SqrtCZGaugeTransformer = GaugeTransformer(target=CZ**0.5, gauge_selector=SqrtCZGaugeSelector)

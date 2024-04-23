@@ -71,6 +71,7 @@ class ConstantGauge(Gauge):
     post_q1: Tuple[ops.Gate, ...] = field(
         default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
     )
+    swap_qubits: bool = False
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> "ConstantGauge":
         return self
@@ -84,6 +85,12 @@ class ConstantGauge(Gauge):
     def post(self) -> Tuple[Tuple[ops.Gate, ...], Tuple[ops.Gate, ...]]:
         """A tuple (ops to apply to q0, ops to apply to q1)."""
         return self.post_q0, self.post_q1
+
+    def on(self, q0: ops.Qid, q1: ops.Qid) -> ops.Operation:
+        """Returns the operation that replaces the two qubit gate."""
+        if self.swap_qubits:
+            return self.two_qubit_gate(q1, q0)
+        return self.two_qubit_gate(q0, q1)
 
 
 def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
