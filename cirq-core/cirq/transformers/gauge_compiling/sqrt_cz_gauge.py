@@ -14,26 +14,35 @@
 
 """A Gauge transformer for CZ**0.5 gate."""
 
+import numpy as np
+
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeTransformer,
     GaugeSelector,
     ConstantGauge,
+    Gauge,
 )
 from cirq.ops.common_gates import CZ
 from cirq import ops
 
-SqrtCZGaugeSelector = GaugeSelector(
-    gauges=[
-        ConstantGauge(pre_q0=ops.X, post_q0=ops.X, post_q1=ops.Z**0.5, two_qubit_gate=CZ**-0.5),
-        ConstantGauge(
+
+class SqrtCZGauge(Gauge):
+
+    def weight(self) -> float:
+        return 3.0
+
+    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
+        if prng.choice([True, False]):
+            return ConstantGauge(two_qubit_gate=gate)
+        return ConstantGauge(
             pre_q0=ops.X,
             post_q0=ops.X,
-            post_q1=ops.Z**0.5,
-            two_qubit_gate=CZ**-0.5,
-            swap_qubits=True,
-        ),
-        ConstantGauge(two_qubit_gate=CZ**0.5),
-    ]
-)
+            post_q1=ops.S if gate == CZ**0.5 else ops.S**-1,
+            two_qubit_gate=gate**-1,
+            swap_qubits=prng.choice([True, False]),
+        )
 
-SqrtCZGaugeTransformer = GaugeTransformer(target=CZ**0.5, gauge_selector=SqrtCZGaugeSelector)
+
+SqrtCZGaugeTransformer = GaugeTransformer(
+    target=ops.Gateset(CZ**0.5, CZ**-0.5), gauge_selector=GaugeSelector(gauges=[SqrtCZGauge()])
+)
