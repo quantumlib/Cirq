@@ -34,13 +34,22 @@ class SqrtCZGauge(Gauge):
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
             return ConstantGauge(two_qubit_gate=gate)
-        return ConstantGauge(
-            pre_q0=ops.X,
-            post_q0=ops.X,
-            post_q1=ops.S if gate == CZ**0.5 else ops.S**-1,
-            two_qubit_gate=gate**-1,
-            swap_qubits=prng.choice([True, False]),
-        )
+        if prng.choice([True, False]):
+            return ConstantGauge(
+                pre_q0=ops.X,
+                post_q0=ops.X,
+                post_q1=ops.S if gate == CZ**0.5 else ops.S**-1,
+                two_qubit_gate=gate**-1,
+                swap_qubits=prng.choice([True, False]),
+            )
+        else:
+            return ConstantGauge(
+                pre_q1=ops.X,
+                post_q1=ops.X,
+                post_q0=ops.S if gate == CZ**0.5 else ops.S**-1,
+                two_qubit_gate=gate**-1,
+                swap_qubits=prng.choice([True, False]),
+            )
 
 
 SqrtCZGaugeTransformer = GaugeTransformer(
