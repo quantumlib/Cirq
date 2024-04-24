@@ -80,6 +80,4 @@ def _check_equivalent_with_error_message(c: cirq.AbstractCircuit, nc: cirq.Abstr
             nc, c, qubit_map={q: q for q in c.all_qubits()}
         )
     except AssertionError as ex:
-        print(c)
-        print(nc)
         raise AssertionError(f"{gauge=} didn't result in an equivalent circuit") from ex

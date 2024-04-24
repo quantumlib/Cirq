@@ -29,7 +29,7 @@ from cirq import ops
 class SqrtCZGauge(Gauge):
 
     def weight(self) -> float:
-        return 3.0
+        return 5.0
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
