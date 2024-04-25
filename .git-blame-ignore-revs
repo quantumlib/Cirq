@@ -18,3 +18,6 @@ cb6940a40141dba95cba84f5acc27acbeb65b17c
 
 # Rewrite strings to satisfy pylint consider-using-f-string (#6198)
 084e273aba66bb31ed4fc524ffbbedadbf840a59
+
+# Format all files with black-24.3.0 (#6513)
+1a6c16a07cb37136a7674dc9f2e114942c88e02b

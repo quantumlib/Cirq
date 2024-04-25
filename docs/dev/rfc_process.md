@@ -26,7 +26,7 @@ The following are NOT major features:
 *   Fixing a bug.
 *   Extending the functionality of an existing method in a natural way.
 
-If you are not sure if a feature constitute as a “major feature”, just submit a Github issue with a description, 
+If you are not sure if a feature constitute as a “major feature”, just submit a GitHub issue with a description, 
 and one of the maintainers will flag the issue as a major feature if necessary.
 
 ## How to submit an RFC
@@ -37,12 +37,12 @@ Open a [feature request](https://github.com/quantumlib/Cirq/issues/new?assignees
 and have a discussion with the maintainers. Mention that you are willing to write an RFC.
 2. [Join the cirq-dev Google Group](https://groups.google.com/forum/#!forum/cirq-dev) to get an invitation to our weekly Cirq Cynq meeting. 
 3. Draft your RFC. 
-    * Follow the [RFC template](https://tinyurl.com/cirq-rfc-template), link the Github issue in your RFC.
+    * Follow the [RFC template](https://tinyurl.com/cirq-rfc-template), link the GitHub issue in your RFC.
     * Make sure to share your doc with cirq-dev@googlegroups.com for comments.
     * Link the RFC in your issue.
 4. Recruiting a sponsor:
     * A sponsor must be a maintainer of the project or the product manager.
-    * Write a comment in your Github issue that calls out that you are "Looking for a sponsor". A maintainer will mark the issue with a label: "rfc/needs-sponsor".
+    * Write a comment in your GitHub issue that calls out that you are "Looking for a sponsor". A maintainer will mark the issue with a label: "rfc/needs-sponsor".
     * While it might take some time to get a maintainer to sponsor your RFC, it is essential, as the sponsor will facilitate the process for reviewing your design.
     * Tips to recruit a sponsor: 1) keep commenting on the issue weekly 2) attend Cirq Cynq and push for a sponsor.
 5. Agree with your sponsor on a Cirq Cync meeting to present the RFC so that other contributors and maintainers can become more familiar with your design.

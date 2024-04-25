@@ -14,7 +14,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.10', '3.11']
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
@@ -28,23 +28,23 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install --pre cirq &&
+          pip install cirq~=1.0.dev &&
           pip install \
             -r dev_tools/requirements/deps/format.txt \
             -r dev_tools/requirements/deps/pylint.txt \
             -r dev_tools/requirements/deps/pytest.txt \
             -r dev_tools/requirements/deps/notebook.txt
       - name: Run Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
+        run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --rigetti-integration --enable-slow-tests
       - name: Stop Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
+        run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.10', '3.11']
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install --pre cirq &&
+          pip install cirq~=1.0.dev &&
             pip install -r dev_tools/requirements/deps/format.txt &&
             pip install -r dev_tools/requirements/deps/pylint.txt &&
             pip install -r dev_tools/requirements/deps/pytest.txt &&
@@ -70,7 +70,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.10', '3.11']
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,7 +84,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install --pre cirq &&
+          pip install cirq~=1.0.dev &&
           pip install \
             -r dev_tools/requirements/deps/format.txt \
             -r dev_tools/requirements/deps/pylint.txt \

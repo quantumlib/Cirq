@@ -14,16 +14,17 @@ feature request at the links above. If not, file an issue by following
 the provided template and/or contributing guidelines. Thanks for helping
 improve open-source quantum software!
 
-# Questions
-
-If you're not sure whether a certain behavior is buggy, or if you have other questions,
-please ask us in the [Cirq Gitter channel](https://gitter.im/cirqdev/community).
 
 # Weekly developer meetings
 
-You may also be interested to join the weekly
+You may also be interested to join the bi-weekly
 [Cirq sync](https://groups.google.com/g/cirq-dev/about) with Cirq developers and
-contributors. There are also weekly syncs for
+contributors. There are also syncs for
 [OpenFermion](https://groups.google.com/g/openfermion-dev/about),
 [qsim](https://groups.google.com/g/qsim-qsimh-dev/about), and
 [TensorFlow Quantum](https://groups.google.com/g/tfq-dev/about).
+
+# Questions
+
+If you're not sure whether a certain behavior is buggy, or if you have other questions,
+please ask us in the bi-weekly cirq cync meeting.

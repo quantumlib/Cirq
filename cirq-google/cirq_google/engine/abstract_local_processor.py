@@ -28,13 +28,11 @@ if TYPE_CHECKING:
 
 
 @overload
-def _to_timestamp(union_time: None) -> None:
-    ...
+def _to_timestamp(union_time: None) -> None: ...
 
 
 @overload
-def _to_timestamp(union_time: Union[datetime.datetime, datetime.timedelta]) -> int:
-    ...
+def _to_timestamp(union_time: Union[datetime.datetime, datetime.timedelta]) -> int: ...
 
 
 def _to_timestamp(union_time: Union[None, datetime.datetime, datetime.timedelta]) -> Optional[int]:

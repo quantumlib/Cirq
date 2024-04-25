@@ -20,41 +20,6 @@ from cirq_google import api
 
 from cirq_google._version import __version__
 
-from cirq_google.calibration import (
-    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    CircuitWithCalibration,
-    FloquetPhasedFSimCalibrationOptions,
-    FloquetPhasedFSimCalibrationRequest,
-    FSimPhaseCorrections,
-    PhasedFSimCalibrationError,
-    PhasedFSimCalibrationOptions,
-    PhasedFSimCalibrationRequest,
-    PhasedFSimCalibrationResult,
-    PhasedFSimCharacterization,
-    PhasedFSimEngineSimulator,
-    XEBPhasedFSimCalibrationOptions,
-    XEBPhasedFSimCalibrationRequest,
-    LocalXEBPhasedFSimCalibrationOptions,
-    LocalXEBPhasedFSimCalibrationRequest,
-    SQRT_ISWAP_INV_PARAMETERS,
-    THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    make_zeta_chi_gamma_compensation_for_moments,
-    make_zeta_chi_gamma_compensation_for_operations,
-    merge_matching_results,
-    prepare_characterization_for_circuits_moments,
-    prepare_floquet_characterization_for_moments,
-    prepare_characterization_for_moments,
-    prepare_floquet_characterization_for_moment,
-    prepare_characterization_for_moment,
-    prepare_floquet_characterization_for_operations,
-    prepare_characterization_for_operations,
-    run_calibrations,
-    run_floquet_characterization_for_moments,
-    run_zeta_chi_gamma_compensation_for_moments,
-    try_convert_sqrt_iswap_to_fsim,
-    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-)
-
 from cirq_google.devices import (
     GoogleNoiseProperties,
     GridDevice,
@@ -92,6 +57,7 @@ from cirq_google.line import (
 from cirq_google.ops import (
     CalibrationTag,
     FSimGateFamily,
+    FSimViaModelTag,
     InternalGate,
     PhysicalZTag,
     SYC,

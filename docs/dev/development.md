@@ -94,15 +94,15 @@ See the previous section for instructions.
 
 1. Install system dependencies.
 
-    Make sure you have python 3.9 or greater.
+    Make sure you have python 3.10 or greater.
     You can install most other dependencies via `apt-get`:
 
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
-    
-    This installs docker and docker-compose among other things. You may need to restart
-    docker or configure permissions, see 
+
+    This installs docker among other things. You may need to restart
+    docker or configure permissions, see
     [docker install instructions](https://docs.docker.com/engine/install/ubuntu/).
     Note that docker is necessary only for cirq_rigetti.
 

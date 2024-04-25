@@ -240,6 +240,7 @@ from cirq.ops import (
     MatrixGate,
     MixedUnitaryChannel,
     M,
+    MSGate,
     measure,
     measure_each,
     measure_paulistring_terms,
@@ -508,6 +509,7 @@ from cirq.study import (
     to_sweeps,
     Result,
     UnitSweep,
+    UNIT_SWEEP,
     Zip,
     ZipLongest,
 )

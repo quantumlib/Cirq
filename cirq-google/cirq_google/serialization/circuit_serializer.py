@@ -19,8 +19,9 @@ import sympy
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.ops import PhysicalZTag, InternalGate
+from cirq_google.ops import PhysicalZTag, InternalGate, FSimViaModelTag
 from cirq_google.ops.calibration_tag import CalibrationTag
+from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
 # The name used in program.proto to identify the serializer as CircuitSerializer.
@@ -175,9 +176,7 @@ class CircuitSerializer(serializer.Serializer):
                 out=msg.phasedxpowgate.exponent,
                 arg_function_language=arg_function_language,
             )
-        elif isinstance(gate, (cirq.PhasedXZGate, cirq.ops.SingleQubitCliffordGate)):
-            if isinstance(gate, cirq.ops.SingleQubitCliffordGate):
-                gate = gate.to_phased_xz_gate()
+        elif isinstance(gate, cirq.PhasedXZGate):
             arg_func_langs.float_arg_to_proto(
                 gate.x_exponent,
                 out=msg.phasedxzgate.x_exponent,
@@ -191,6 +190,18 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.axis_phase_exponent,
                 out=msg.phasedxzgate.axis_phase_exponent,
+                arg_function_language=arg_function_language,
+            )
+        elif isinstance(gate, cirq.ops.SingleQubitCliffordGate):
+            arg_func_langs.clifford_tableau_arg_to_proto(
+                gate._clifford_tableau, out=msg.singlequbitcliffordgate.tableau
+            )
+        elif isinstance(gate, cirq.ops.IdentityGate):
+            msg.identitygate.qid_shape.extend(cirq.qid_shape(gate))
+        elif isinstance(gate, cirq.HPowGate):
+            arg_func_langs.float_arg_to_proto(
+                gate.exponent,
+                out=msg.hpowgate.exponent,
                 arg_function_language=arg_function_language,
             )
         elif isinstance(gate, cirq.CZPowGate):
@@ -212,6 +223,8 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.phi, out=msg.fsimgate.phi, arg_function_language=arg_function_language
             )
+            if any(isinstance(tag, FSimViaModelTag) for tag in op.tags):
+                msg.fsimgate.translate_via_model = True
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(
                 gate.key, out=msg.measurementgate.key, arg_function_language=arg_function_language
@@ -225,6 +238,37 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.duration.total_nanos(),
                 out=msg.waitgate.duration_nanos,
+                arg_function_language=arg_function_language,
+            )
+        elif isinstance(gate, CouplerPulse):
+            arg_func_langs.float_arg_to_proto(
+                gate.hold_time.total_picos(),
+                out=msg.couplerpulsegate.hold_time_ps,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.float_arg_to_proto(
+                gate.rise_time.total_picos(),
+                out=msg.couplerpulsegate.rise_time_ps,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.float_arg_to_proto(
+                gate.padding_time.total_picos(),
+                out=msg.couplerpulsegate.padding_time_ps,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.float_arg_to_proto(
+                gate.coupling_mhz,
+                out=msg.couplerpulsegate.coupling_mhz,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.float_arg_to_proto(
+                gate.q0_detune_mhz,
+                out=msg.couplerpulsegate.q0_detune_mhz,
+                arg_function_language=arg_function_language,
+            )
+            arg_func_langs.float_arg_to_proto(
+                gate.q1_detune_mhz,
+                out=msg.couplerpulsegate.q1_detune_mhz,
                 arg_function_language=arg_function_language,
             )
         else:
@@ -459,6 +503,23 @@ class CircuitSerializer(serializer.Serializer):
             )(*qubits)
             if operation_proto.zpowgate.is_physical_z:
                 op = op.with_tags(PhysicalZTag())
+        elif which_gate_type == 'hpowgate':
+            op = cirq.HPowGate(
+                exponent=arg_func_langs.float_arg_from_proto(
+                    operation_proto.hpowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0
+            )(*qubits)
+        elif which_gate_type == 'identitygate':
+            op = cirq.IdentityGate(qid_shape=tuple(operation_proto.identitygate.qid_shape))(*qubits)
+        elif which_gate_type == 'singlequbitcliffordgate':
+            tableau = arg_func_langs.clifford_tableau_from_proto(
+                operation_proto.singlequbitcliffordgate.tableau,
+                arg_function_language=arg_function_language,
+            )
+            op = cirq.ops.SingleQubitCliffordGate.from_clifford_tableau(tableau)(*qubits)
         elif which_gate_type == 'phasedxpowgate':
             exponent = (
                 arg_func_langs.float_arg_from_proto(
@@ -542,6 +603,8 @@ class CircuitSerializer(serializer.Serializer):
                 op = cirq.FSimGate(theta=theta, phi=phi)(*qubits)
             else:
                 raise ValueError('theta and phi must be specified for FSimGate')
+            if operation_proto.fsimgate.translate_via_model:
+                op = op.with_tags(FSimViaModelTag())
         elif which_gate_type == 'measurementgate':
             key = arg_func_langs.arg_from_proto(
                 operation_proto.measurementgate.key,
@@ -576,6 +639,52 @@ class CircuitSerializer(serializer.Serializer):
             op = arg_func_langs.internal_gate_from_proto(
                 operation_proto.internalgate, arg_function_language=arg_function_language
             )(*qubits)
+        elif which_gate_type == 'couplerpulsegate':
+            gate = CouplerPulse(
+                hold_time=cirq.Duration(
+                    picos=arg_func_langs.float_arg_from_proto(
+                        operation_proto.couplerpulsegate.hold_time_ps,
+                        arg_function_language=arg_function_language,
+                        required_arg_name=None,
+                    )
+                    or 0.0
+                ),
+                rise_time=cirq.Duration(
+                    picos=arg_func_langs.float_arg_from_proto(
+                        operation_proto.couplerpulsegate.rise_time_ps,
+                        arg_function_language=arg_function_language,
+                        required_arg_name=None,
+                    )
+                    or 0.0
+                ),
+                padding_time=cirq.Duration(
+                    picos=arg_func_langs.float_arg_from_proto(
+                        operation_proto.couplerpulsegate.padding_time_ps,
+                        arg_function_language=arg_function_language,
+                        required_arg_name=None,
+                    )
+                    or 0.0
+                ),
+                coupling_mhz=arg_func_langs.float_arg_from_proto(
+                    operation_proto.couplerpulsegate.coupling_mhz,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0,
+                q0_detune_mhz=arg_func_langs.float_arg_from_proto(
+                    operation_proto.couplerpulsegate.q0_detune_mhz,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0,
+                q1_detune_mhz=arg_func_langs.float_arg_from_proto(
+                    operation_proto.couplerpulsegate.q1_detune_mhz,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0,
+            )
+            op = gate(*qubits)
         else:
             raise ValueError(
                 f'Unsupported serialized gate with type "{which_gate_type}".'

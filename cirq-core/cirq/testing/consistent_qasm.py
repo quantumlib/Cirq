@@ -42,6 +42,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     if isinstance(val, ops.Operation):
         qubits: Sequence[ops.Qid] = val.qubits
         op = val
+        gate = val.gate
     elif isinstance(val, ops.Gate):
         qid_shape = protocols.qid_shape(val)
         remaining_shape = list(qid_shape)
@@ -52,8 +53,13 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
                     remaining_shape.pop(i)
         qubits = devices.LineQid.for_qid_shape(remaining_shape)
         op = val.on(*qubits)
+        gate = val
     else:
         raise NotImplementedError(f"Don't know how to test {val!r}")
+
+    if isinstance(gate, ops.GlobalPhaseGate):
+        # OpenQASM 2.0 does not support global phase gates.
+        return
 
     args = protocols.QasmArgs(qubit_id_map={q: f'q[{i}]' for i, q in enumerate(qubits)})
     qasm = protocols.qasm(op, args=args, default=None)

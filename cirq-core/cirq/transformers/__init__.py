@@ -119,3 +119,16 @@ from cirq.transformers.transformer_primitives import (
     unroll_circuit_op_greedy_earliest,
     unroll_circuit_op_greedy_frontier,
 )
+
+
+from cirq.transformers.gauge_compiling import (
+    CZGaugeTransformer,
+    ConstantGauge,
+    Gauge,
+    GaugeSelector,
+    GaugeTransformer,
+    ISWAPGaugeTransformer,
+    SpinInversionGaugeTransformer,
+    SqrtCZGaugeTransformer,
+    SqrtISWAPGaugeTransformer,
+)

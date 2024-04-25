@@ -17,7 +17,7 @@
 In order to publish to our site, devsite runs two jobs for us: stable and nightly.
 The stable one downloads the latest cirq release from pypi and uses that to generate the reference
 API docs.
-The nightly one downloads the latest cirq pre-release (pip install cirq --pre) and uses that to
+The nightly one downloads the latest cirq pre-release (pip install cirq~=1.0.dev) and uses that to
 generate the "nightly diff".
 
 This script needs to cater for both of these cases.
