@@ -26,9 +26,16 @@ from typing import Tuple
 
 from .ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
 
+
 class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
-    """Base class for IonQ native gate sets.
-    """
+    def __init__(self, *args, atol: float = 1e-8):
+        """Base class for IonQ native gate sets
+
+        Args:
+            atol: A limit on the amount of absolute error introduced by the decomposition.
+        """
+        super().__init__(*args, unroll_circuit_op=False)
+        self.atol = atol
 
     def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
         qubit = op.qubits[0]
@@ -42,16 +49,20 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             return NotImplemented
         mat = cirq.unitary(op)
         q0, q1 = op.qubits
-        naive = cirq.two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs=False, atol=self.atol)
+        naive = cirq.two_qubit_matrix_to_cz_operations(
+            q0, q1, mat, allow_partial_czs=False, atol=self.atol
+        )
         temp = cirq.map_operations_and_unroll(
             cirq.Circuit(naive),
-            lambda op, _: [self._hadamard(op.qubits[1]) + self._cnot(*op.qubits) + self._hadamard(op.qubits[1])]
+            lambda op, _: [
+                self._hadamard(op.qubits[1]) + self._cnot(*op.qubits) + self._hadamard(op.qubits[1])
+            ]
             if op.gate == cirq.CZ
             else op,
         )
         return cirq.merge_k_qubit_unitaries(
-            temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)).all_operations()
-
+            temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)
+        ).all_operations()
 
     def _decompose_multi_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
         if isinstance(op.gate, cirq.CCZPowGate):
@@ -71,7 +82,6 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             )
         ]
 
-    # TODO: add transformer that will fuse GPI and GPI2 gates in order to optimize circuits
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
@@ -80,10 +90,10 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def single_qubit_matrix_to_native_gates(self, mat: np.ndarray) -> List[cirq.Gate]:
         z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return [
-                GPI2Gate(phi = (np.pi - z_rad_before)/(2.0*np.pi)),
-                GPIGate(phi = (y_rad/2 + z_rad_after/2 - z_rad_before/2)/(2.0*np.pi)),
-                GPI2Gate(phi= (np.pi + z_rad_after)/(2.0*np.pi))
-            ]
+            GPI2Gate(phi=(np.pi - z_rad_before) / (2.0 * np.pi)),
+            GPIGate(phi=(y_rad / 2 + z_rad_after / 2 - z_rad_before / 2) / (2.0 * np.pi)),
+            GPI2Gate(phi=(np.pi + z_rad_after) / (2.0 * np.pi)),
+        ]
 
     def _value_equality_values_(self) -> Any:
         return self.atol
@@ -96,22 +106,19 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         return cls(atol=atol)
 
     def _hadamard(self, qubit):
-        return [
-                GPI2Gate(phi=0.25).on(qubit),
-                GPIGate(phi=0).on(qubit),
-            ]
+        return [GPI2Gate(phi=0.25).on(qubit), GPIGate(phi=0).on(qubit)]
 
     def _cnot(self, *qubits):
         return [
-                GPI2Gate(phi=1/4).on(qubits[0]),
-                MSGate(phi0=0, phi1=0).on(qubits[0], qubits[1]),
-                GPI2Gate(phi=1/2).on(qubits[1]),
-                GPI2Gate(phi=1/2).on(qubits[0]),
-                GPI2Gate(phi=-1/4).on(qubits[0]),
-            ]
+            GPI2Gate(phi=1 / 4).on(qubits[0]),
+            MSGate(phi0=0, phi1=0).on(qubits[0], qubits[1]),
+            GPI2Gate(phi=1 / 2).on(qubits[1]),
+            GPI2Gate(phi=1 / 2).on(qubits[0]),
+            GPI2Gate(phi=-1 / 4).on(qubits[0]),
+        ]
 
-    def decompose_all_to_all_connect_ccz_gate(self,
-        ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
+    def decompose_all_to_all_connect_ccz_gate(
+        self, ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
     ) -> 'cirq.OP_TREE':
         """Decomposition of all-to-all connected qubits are different from line qubits or grid qubits, ckeckout IonQTargetGateset.
 
@@ -130,7 +137,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
         a, b, c = qubits
 
-        p = cirq.T**ccz_gate._exponent
+        p = cirq.T ** ccz_gate._exponent
         global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
         global_phase = (
             complex(global_phase)
@@ -144,25 +151,26 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         )
 
         return global_phase_operation + [
-            self._cnot(*[b,c]),
+            self._cnot(*[b, c]),
             p(c) ** -1,
-            self._cnot(*[a,c]),
+            self._cnot(*[a, c]),
             p(c),
-            self._cnot(*[b,c]),
+            self._cnot(*[b, c]),
             p(c) ** -1,
-            self._cnot(*[a,c]),
+            self._cnot(*[a, c]),
             p(b),
             p(c),
-            self._cnot(*[a,b]),
+            self._cnot(*[a, b]),
             p(a),
             p(b) ** -1,
-            self._cnot(*[a,b]),
+            self._cnot(*[a, b]),
         ]
+
 
 class AriaNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
 
-    The gates forming this gateset are: 
+    The gates forming this gateset are:
     GPIGate, GPI2Gate, MSGate
     """
 
@@ -172,13 +180,7 @@ class AriaNativeGateset(IonqNativeGatesetBase):
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
         """
-        super().__init__(
-            GPIGate,
-            GPI2Gate,
-            MSGate,
-            ops.MeasurementGate,
-            unroll_circuit_op=False,
-        )
+        super().__init__(GPIGate, GPI2Gate, MSGate, ops.MeasurementGate)
         self.atol = atol
 
     def __repr__(self) -> str:
@@ -198,14 +200,7 @@ class ForteNativeGateset(IonqNativeGatesetBase):
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
         """
-        super().__init__(
-            GPIGate,
-            GPI2Gate,
-            MSGate,
-            ZZGate,
-            ops.MeasurementGate,
-            unroll_circuit_op=False,
-        )
+        super().__init__(GPIGate, GPI2Gate, MSGate, ZZGate, ops.MeasurementGate)
         self.atol = atol
 
     def __repr__(self) -> str:
