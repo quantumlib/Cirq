@@ -36,6 +36,7 @@ from cirq.study.sweeps import (
     Points,
     Product,
     Sweep,
+    UNIT_SWEEP,
     UnitSweep,
     Zip,
     ZipLongest,

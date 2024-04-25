@@ -20,3 +20,5 @@ from cirq_google.transformers.analytical_decompositions import (
 )
 
 from cirq_google.transformers.target_gatesets import GoogleCZTargetGateset, SycamoreTargetGateset
+
+from cirq_google.transformers.sycamore_gauge import SYCGaugeTransformer

@@ -57,6 +57,7 @@ from .engine import (
 )
 from .quantum import (
     DeviceConfigKey,
+    DeviceConfigSelector,
     ExecutionStatus,
     GcsLocation,
     InlineData,
@@ -115,7 +116,7 @@ __all__ = (
     'UpdateQuantumJobRequest',
     'UpdateQuantumProgramRequest',
     'UpdateQuantumReservationRequest',
-    'DeviceConfigKey',
+    'DeviceConfigSelector',
     'ExecutionStatus',
     'GcsLocation',
     'InlineData',
@@ -131,4 +132,5 @@ __all__ = (
     'QuantumResult',
     'QuantumTimeSlot',
     'SchedulingConfig',
+    'DeviceConfigKey',
 )

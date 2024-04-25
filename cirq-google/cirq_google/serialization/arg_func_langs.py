@@ -19,6 +19,7 @@ import numpy as np
 import sympy
 from cirq_google.api import v2
 from cirq_google.ops import InternalGate
+from cirq.qis import CliffordTableau
 
 SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     '': frozenset(),
@@ -454,4 +455,46 @@ def internal_gate_from_proto(
         gate_module=str(msg.module),
         num_qubits=int(msg.num_qubits),
         **gate_args,
+    )
+
+
+def clifford_tableau_arg_to_proto(
+    value: CliffordTableau, *, out: Optional[v2.program_pb2.CliffordTableau] = None
+):
+    """Writes an CliffordTableau object into an CliffordTableau proto.
+    Args:
+        value: The gate to encode.
+        arg_function_language: The language to use when encoding functions. If
+            this is set to None, it will be set to the minimal language
+            necessary to support the features that were actually used.
+        out: The proto to write the result into. Defaults to a new instance.
+    Returns:
+        The proto that was written into.
+    """
+    msg = v2.program_pb2.CliffordTableau() if out is None else out
+    msg.num_qubits = value.n
+    msg.initial_state = value.initial_state
+    msg.xs.extend(value.xs.flatten())
+    msg.rs.extend(value.rs.flatten())
+    msg.zs.extend(value.zs.flatten())
+    return msg
+
+
+def clifford_tableau_from_proto(
+    msg: v2.program_pb2.CliffordTableau, arg_function_language: str
+) -> CliffordTableau:
+    """Extracts a CliffordTableau object from a CliffordTableau proto.
+    Args:
+        msg: The proto containing a serialized value.
+        arg_function_language: The `arg_function_language` field from
+            `Program.Language`.
+    Returns:
+        The deserialized InternalGate object.
+    """
+    return CliffordTableau(
+        num_qubits=msg.num_qubits,
+        initial_state=msg.initial_state,
+        rs=np.array(msg.rs, dtype=bool) if msg.rs else None,
+        xs=np.array(msg.xs, dtype=bool).reshape((2 * msg.num_qubits, -1)) if msg.xs else None,
+        zs=np.array(msg.zs, dtype=bool).reshape((2 * msg.num_qubits, -1)) if msg.zs else None,
     )

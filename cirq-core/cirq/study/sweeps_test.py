@@ -232,6 +232,9 @@ def test_equality():
 
     et.add_equality_group(cirq.UnitSweep, cirq.UnitSweep)
 
+    # Test singleton
+    assert cirq.UNIT_SWEEP is cirq.UnitSweep
+
     # Simple sweeps with the same key are equal to themselves, but different
     # from each other even if they happen to contain the same points.
     et.make_equality_group(lambda: cirq.Linspace('a', 0, 10, 11))
