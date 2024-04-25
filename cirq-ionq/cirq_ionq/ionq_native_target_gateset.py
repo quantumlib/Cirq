@@ -163,7 +163,7 @@ class AriaNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
 
     The gates forming this gateset are: 
-    GPIGate, GPI2Gate, MSGate and VirtualZGate
+    GPIGate, GPI2Gate, MSGate
     """
 
     def __init__(self, *, atol: float = 1e-8):
@@ -189,7 +189,7 @@ class ForteNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
 
     The gates forming this gateset are:
-    GPIGate, GPI2Gate, MSGate, ZZGate and VirtualZGate
+    GPIGate, GPI2Gate, MSGate, ZZGate
     """
 
     def __init__(self, *, atol: float = 1e-8):

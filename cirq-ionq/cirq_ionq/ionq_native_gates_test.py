@@ -38,7 +38,6 @@ INVALID_GATE_POWER = [-2, -0.5, 0, 0.5, 2]
     [
         (ionq.GPIGate(phi=0.1), 1, "0: ───GPI(0.1)───"),
         (ionq.GPI2Gate(phi=0.2), 1, "0: ───GPI2(0.2)───"),
-        (ionq.VirtualZGate(theta=0.3), 1, "0: ───VirtualZ(0.3)───"),
         (ionq.MSGate(phi0=0.1, phi1=0.2), 2, "0: ───MS(0.1)───\n      │\n1: ───MS(0.2)───"),
         (ionq.ZZGate(theta=0.3), 2, "0: ───ZZ(0.3)───\n      │\n1: ───ZZ────────"),
     ],
@@ -54,7 +53,7 @@ def test_gate_methods(gate, nqubits, diagram):
 
 
 @pytest.mark.parametrize(
-    "gate", [ionq.GPIGate(phi=0.1), ionq.GPI2Gate(phi=0.2), ionq.VirtualZGate(theta=0.3), ionq.MSGate(phi0=0.1, phi1=0.2), ionq.ZZGate(theta=0.4)]
+    "gate", [ionq.GPIGate(phi=0.1), ionq.GPI2Gate(phi=0.2), ionq.MSGate(phi0=0.1, phi1=0.2), ionq.ZZGate(theta=0.4)]
 )
 def test_gate_json(gate):
     g_json = cirq.to_json(gate)
@@ -74,14 +73,6 @@ def test_gpi_unitary(phase):
 def test_gpi2_unitary(phase):
     """Tests that the GPI2 gate is unitary."""
     gate = ionq.GPI2Gate(phi=phase)
-
-    mat = cirq.protocols.unitary(gate)
-    numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(2))
-
-@pytest.mark.parametrize("phase", [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi])
-def test_virtualz_unitary(phase):
-    """Tests that the VirtualZ gate is unitary."""
-    gate = ionq.VirtualZGate(theta=phase)
 
     mat = cirq.protocols.unitary(gate)
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(2))
@@ -109,7 +100,6 @@ def test_zz_unitary(phase):
     [
         *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
         *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
-        *[ionq.VirtualZGate(theta=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
         *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
         *[ionq.ZZGate(theta=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
     ],
@@ -128,7 +118,6 @@ def test_gate_inverse(gate):
     [
         *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
         *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
-        *[ionq.VirtualZGate(theta=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
         *[ionq.ZZGate(theta=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
         *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
     ],
@@ -146,7 +135,6 @@ def test_gate_power1(gate):
     [
         *[(ionq.GPIGate(phi=0.1), power) for power in INVALID_GATE_POWER],
         *[(ionq.GPI2Gate(phi=0.1), power) for power in INVALID_GATE_POWER],
-        *[(ionq.VirtualZGate(theta=0.1), power) for power in INVALID_GATE_POWER],
         *[(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in INVALID_GATE_POWER],
         *[(ionq.ZZGate(theta=0.1), power) for power in INVALID_GATE_POWER],
     ],

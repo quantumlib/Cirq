@@ -282,10 +282,9 @@ def test_serialize_native_gates():
     q0, q1, q2 = cirq.LineQubit.range(3)
     gpi = ionq.GPIGate(phi=0.1).on(q0)
     gpi2 = ionq.GPI2Gate(phi=0.2).on(q1)
-    virtualz = ionq.VirtualZGate(theta=0.3).on(q0)
     ms = ionq.MSGate(phi0=0.4, phi1=0.5).on(q1, q2)
     zz = ionq.ZZGate(theta=0.6).on(q1, q2)
-    circuit = cirq.Circuit([gpi, gpi2, virtualz, ms, zz])
+    circuit = cirq.Circuit([gpi, gpi2, ms, zz])
     serializer = ionq.Serializer()
     result = serializer.serialize(circuit)
     assert result == ionq.SerializedProgram(
@@ -295,7 +294,6 @@ def test_serialize_native_gates():
             'circuit': [
                 {'gate': 'gpi', 'target': 0, 'phase': 0.1},
                 {'gate': 'gpi2', 'target': 1, 'phase': 0.2},
-                {'gate': 'virtualz', 'target': 0, 'phase': 0.3},
                 {'gate': 'ms', 'targets': [1, 2], 'phases': [0.4, 0.5], 'angle': 0.25},
                 {'gate': 'zz', 'targets': [1, 2], 'phase': 0.6},
             ],

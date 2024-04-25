@@ -21,10 +21,10 @@ import sympy
 import cirq
 from cirq.devices import line_qubit
 from cirq.ops import common_gates, parity_gates
-from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, VirtualZGate, MSGate, ZZGate
+from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
 
 _NATIVE_GATES = cirq.Gateset(
-    GPIGate, GPI2Gate, VirtualZGate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
+    GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
 )
 
 
@@ -76,7 +76,6 @@ class Serializer:
             # Rather than validating this here, we rely on the IonQ API to report failure.
             GPIGate: self._serialize_gpi_gate,
             GPI2Gate: self._serialize_gpi2_gate,
-            VirtualZGate: self._serialize_virtualz_gate,
             MSGate: self._serialize_ms_gate,
             ZZGate: self._serialize_zz_gate,
         }
@@ -219,9 +218,6 @@ class Serializer:
 
     def _serialize_gpi2_gate(self, gate: GPI2Gate, targets: Sequence[int]) -> Optional[dict]:
         return {'gate': 'gpi2', 'target': targets[0], 'phase': gate.phase}
-
-    def _serialize_virtualz_gate(self, gate: VirtualZGate, targets: Sequence[int]) -> Optional[dict]:
-        return {'gate': 'virtualz', 'target': targets[0], 'phase': gate.phase}
 
     def _serialize_ms_gate(self, gate: MSGate, targets: Sequence[int]) -> Optional[dict]:
         return {'gate': 'ms', 'targets': targets, 'phases': gate.phases, 'angle': gate.theta}

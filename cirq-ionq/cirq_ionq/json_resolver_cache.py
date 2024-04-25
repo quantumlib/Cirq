@@ -24,7 +24,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # pragma: no cove
     return {
         "GPIGate": cirq_ionq.GPIGate,
         "GPI2Gate": cirq_ionq.GPI2Gate,
-        "VirtualZGate": cirq_ionq.VirtualZGate,
         "MSGate": cirq_ionq.MSGate,
         "ZZGate": cirq_ionq.ZZGate,
         "IonQTargetGateset": cirq_ionq.IonQTargetGateset,
