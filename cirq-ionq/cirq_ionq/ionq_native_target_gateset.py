@@ -24,8 +24,7 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-from .ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
-
+from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
 
 class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def __init__(self, *args, atol: float = 1e-8):
