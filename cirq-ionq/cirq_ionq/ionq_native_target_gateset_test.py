@@ -23,6 +23,15 @@ from cirq_ionq.ionq_native_target_gateset import ForteNativeGateset
 # Tests for transpiling one qubit circuits
 qubit1 = cirq.LineQubit.range(2)
 
+gateset=AriaNativeGateset(atol=1e-8)
+
+def test_AriaNativeGateset_init():
+    gateset = AriaNativeGateset(atol=7)
+    assert gateset.atol == pytest.approx(7)
+
+def test_ForteNativeGateset_init():
+    gateset = ForteNativeGateset(atol=7)
+    assert gateset.atol == pytest.approx(7)
 
 @pytest.mark.parametrize(
     "ideal_results, circuit",
