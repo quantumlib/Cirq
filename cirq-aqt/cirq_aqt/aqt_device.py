@@ -25,6 +25,7 @@ The native gate set consists of the local gates: X, Y, and XX entangling gates
 """
 
 import json
+from enum import Enum
 from typing import Any, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
 
 import networkx as nx
@@ -36,11 +37,27 @@ from cirq_aqt import aqt_device_metadata
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
 
 
+class OperationString(Enum):
+    """String representations of operations supported by AQT resources."""
+
+    MS = "MS"
+    """Cirq: XXPowGate, AQT: RXX gate."""
+
+    Z = "Z"
+    """Cirq: ZPowGate, AQT: RZ gate."""
+
+    R = "R"
+    """Cirq: PhasedXPowGate, AQT: R gate."""
+
+    MEASURE = "Meas"
+    """Measurement gate."""
+
+
 def get_op_string(op_obj: cirq.Operation) -> str:
     """Find the string representation for a given gate or operation.
 
     Args:
-        op_obj: Gate or operation object. Gate must be one of: XXPowGate, XPowGate, YPowGate,
+        op_obj: Gate or operation object. Gate must be one of: XXPowGate,
             ZPowGate, PhasedXPowGate, or MeasurementGate.
 
     Returns:
@@ -50,20 +67,16 @@ def get_op_string(op_obj: cirq.Operation) -> str:
         ValueError: If the gate is not one of the supported gates.
     """
     if isinstance(op_obj.gate, cirq.XXPowGate):
-        op_str = 'MS'
-    elif isinstance(op_obj.gate, cirq.XPowGate):
-        op_str = 'X'
-    elif isinstance(op_obj.gate, cirq.YPowGate):
-        op_str = 'Y'
+        op_str = OperationString.MS.value
     elif isinstance(op_obj.gate, cirq.ZPowGate):
-        op_str = 'Z'
+        op_str = OperationString.Z.value
     elif isinstance(op_obj.gate, cirq.PhasedXPowGate):
-        op_str = 'R'
+        op_str = OperationString.R.value
     elif isinstance(op_obj.gate, cirq.MeasurementGate):
-        op_str = 'Meas'
+        op_str = OperationString.MEASURE.value
     else:
         raise ValueError(f'Got unknown gate on operation: {op_obj}.')
-    return op_str
+    return str(op_str)
 
 
 class AQTNoiseModel(cirq.NoiseModel):
@@ -97,6 +110,7 @@ class AQTNoiseModel(cirq.NoiseModel):
             for qubit in op.qubits:
                 noise_list.append(noise_op.on(qubit))
             noise_list += self.get_crosstalk_operation(op, system_qubits)
+
         return list(moment) + noise_list
 
     def get_crosstalk_operation(
@@ -122,16 +136,18 @@ class AQTNoiseModel(cirq.NoiseModel):
             for neigh_idx in neighbors:
                 if neigh_idx >= 0 and neigh_idx < num_qubits:
                     xtlk_arr[neigh_idx] = self.noise_op_dict['crosstalk']
+
         for idx in idx_list:
             xtlk_arr[idx] = 0
         xtlk_op_list = []
         op_str = get_op_string(operation)
         gate = cast(cirq.EigenGate, gate_dict[op_str])
+
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
                 exponent = operation.gate.exponent  # type:ignore
                 exponent = exponent * xtlk_arr[idx]
-                xtlk_op = gate.on(system_qubits[idx]) ** exponent
+                xtlk_op = operation.gate.on(system_qubits[idx]) ** exponent  # type:ignore
                 xtlk_op_list.append(xtlk_op)
         elif len(operation.qubits) == 2:
             for op_qubit in operation.qubits:
@@ -216,10 +232,14 @@ class AQTSimulator:
             noise_model = cirq.NO_NOISE
         else:
             noise_model = AQTNoiseModel()
+
         if self.circuit == cirq.Circuit():
             raise RuntimeError('Simulate called without a valid circuit.')
+
         sim = cirq.DensityMatrixSimulator(noise=noise_model)
+
         result = sim.run(self.circuit, repetitions=repetitions)
+
         return result
 
 
@@ -342,10 +362,9 @@ def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
 def get_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
-        'X': cirq.depolarize(1e-3),
-        'Y': cirq.depolarize(1e-3),
-        'Z': cirq.depolarize(1e-3),
-        'MS': cirq.depolarize(1e-2),
+        OperationString.R.value: cirq.depolarize(1e-3),
+        OperationString.Z.value: cirq.depolarize(0),
+        OperationString.MS.value: cirq.depolarize(1e-2),
         'crosstalk': 0.03,
     }
     return default_noise_dict

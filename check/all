@@ -35,6 +35,8 @@ thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
 topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
+errors=()
+
 # Parse arguments.
 apply_arg=""
 only_changed=0
@@ -57,29 +59,43 @@ for arg in "$@"; do
 done
 
 echo "Running misc"
-check/misc
+check/misc || errors+=( "check/misc failed" )
 
 if [ ${only_changed} -ne 0 ]; then
   echo "Running incremental pylint"
-  check/pylint-changed-files
+  check/pylint-changed-files || errors+=( "check/pylint-changed-files failed" )
 else
   echo "Running pylint"
-  check/pylint
+  check/pylint || errors+=( "check/pylint failed" )
 fi
 
 echo "Running mypy"
-check/mypy
+check/mypy || errors+=( "check/mypy failed" )
 
 echo "Running incremental format"
-check/format-incremental "${rev}" "${apply_arg}"
+check/format-incremental "${rev}" "${apply_arg}" || errors+=( "check/format-incremental failed" )
 
 if [ ${only_changed} -ne 0 ]; then
     echo "Running pytest and incremental coverage on changed files"
-    check/pytest-changed-files-and-incremental-coverage "${rev}"
+    check/pytest-changed-files-and-incremental-coverage "${rev}" ||
+         errors+=( "check/pytest-changed-files-and-incremental-coverage failed" )
 else
     echo "Running pytest and incremental coverage"
-    check/pytest-and-incremental-coverage "${rev}"
+    check/pytest-and-incremental-coverage "${rev}" ||
+         errors+=( "check/pytest-and-incremental-coverage failed" )
 fi
 
 echo "Running doctest"
-check/doctest
+check/doctest || errors+=( "check/doctest failed" )
+
+echo
+if [[ "${#errors[@]}" == 0 ]]; then
+    echo "All checks passed."
+    result=0
+else
+    printf "Some checks failed.\n\n"
+    printf "  %s\n" "${errors[@]}"
+    result=1
+fi
+
+exit "${result}"
