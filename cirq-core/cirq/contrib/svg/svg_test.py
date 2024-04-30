@@ -65,6 +65,7 @@ def test_empty_moments():
     'symbol,svg_symbol',
     [
         ('<a', '&lt;a'),
+        ('<a&', '&lt;a&amp;'),
         ('<=b', '&lt;=b'),
         ('>c', '&gt;c'),
         ('>=d', '&gt;=d'),

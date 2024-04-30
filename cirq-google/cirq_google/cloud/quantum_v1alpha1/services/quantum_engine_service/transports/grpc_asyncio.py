@@ -214,8 +214,9 @@ class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):
                 ssl_credentials=self._ssl_channel_credentials,
                 quota_project_id=quota_project_id,
                 options=[
-                    ("grpc.max_send_message_length", -1),
-                    ("grpc.max_receive_message_length", -1),
+                    ('grpc.max_send_message_length', 20 * 1024 * 1024),  # 20MiB
+                    ('grpc.max_receive_message_length', -1),  # unlimited
+                    ('grpc.max_metadata_length', 10 * 1024 * 1024),  # 10MiB
                 ],
             )
 
