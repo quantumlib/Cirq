@@ -273,7 +273,6 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         phi = PHI_SYMBOL if self.characterize_phi else self.phi_default
         return ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
 
-
     def defaults_set(self) -> bool:
         """Whether the default angles are set.
 
@@ -321,17 +320,18 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions, target: Union[ops.GateFamily, ops.Gateset] = ops.Gateset(ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate)
+    circuit: 'cirq.Circuit',
+    options: XEBCharacterizationOptions,
+    target: Union[ops.GateFamily, ops.Gateset] = ops.Gateset(
+        ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate
+    ),
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
     gate = options.get_parameterized_gate()
     return circuits.Circuit(
-        circuits.Moment(
-            gate.on(*op.qubits) if op in target else op
-            for op in moment.operations
-        )
+        circuits.Moment(gate.on(*op.qubits) if op in target else op for op in moment.operations)
         for moment in circuit.moments
     )
 

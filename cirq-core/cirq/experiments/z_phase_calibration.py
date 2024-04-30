@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Provides a method to do z-phase calibration for fermionic gates."""
+"""Provides a method to do z-phase calibration for excitation-preserving gates."""
 from typing import Optional, Sequence, Union, Tuple, Dict, TYPE_CHECKING
 import multiprocessing
 import concurrent.futures
@@ -41,18 +41,18 @@ def z_phase_calibration_workflow(
     atol: float = 1e-3,
     pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
 ) -> Tuple[xeb_fitting.XEBCharacterizationResult, 'pd.DataFrame']:
-    """Perform z-phase calibration for fermionic gates.
+    """Perform z-phase calibration for excitation-preserving gates.
 
-    For a given fermionic two-qubit gate we assume an error model that can be described
+    For a given excitation-preserving two-qubit gate we assume an error model that can be described
     using Z-rotations:
                 0: ───Rz(a)───two_qubit_gate───Rz(c)───
                                 │
                 1: ───Rz(b)───two_qubit_gate───Rz(d)───
     for some angles a, b, c, and d.
 
-    Since the two-qubit gate is a fermionic-gate, it can be represented by an FSimGate and the
-    effect of rotations turns it into a PhasedFSimGate. Using XEB-data we find the PhasedFSimGate
-    parameters that minimize the infidelity of the gate.
+    Since the two-qubit gate is a excitation-preserving-gate, it can be represented by an FSimGate
+    and the effect of rotations turns it into a PhasedFSimGate. Using XEB-data we find the
+    PhasedFSimGate parameters that minimize the infidelity of the gate.
 
     References:
         - https://arxiv.org/abs/2001.08343
@@ -75,9 +75,9 @@ def z_phase_calibration_workflow(
 
     Returns:
         - An `XEBCharacterizationResult` object that contains the calibration result.
-        - A `pd.DataFrame` comparing the before and after fidilities.            
+        - A `pd.DataFrame` comparing the before and after fidilities.
     """
-    
+
     fids_df_0, circuits, sampled_df = parallel_xeb_workflow(
         sampler=sampler,
         qubits=qubits,
@@ -94,7 +94,10 @@ def z_phase_calibration_workflow(
             two_qubit_gate
         )
 
-    p_circuits = [xeb_fitting.parameterize_circuit(circuit, options, ops.GateFamily(two_qubit_gate)) for circuit in circuits]
+    p_circuits = [
+        xeb_fitting.parameterize_circuit(circuit, options, ops.GateFamily(two_qubit_gate))
+        for circuit in circuits
+    ]
 
     result = xeb_fitting.characterize_phased_fsim_parameters_with_xeb_by_pair(
         sampled_df=sampled_df,
@@ -113,7 +116,7 @@ def z_phase_calibration_workflow(
 
 def calibrate_z_phases(
     sampler: 'cirq.Sampler',
-    qubits: Optional[Sequence['cirq.GridQubit']] = None, 
+    qubits: Optional[Sequence['cirq.GridQubit']] = None,
     two_qubit_gate: 'cirq.Gate' = ops.CZ,
     options: Optional[xeb_fitting.XEBPhasedFSimCharacterizationOptions] = None,
     n_repetitions: int = 10**4,
@@ -124,17 +127,17 @@ def calibrate_z_phases(
     atol: float = 1e-3,
     pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
 ) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], 'cirq.PhasedFSimGate']:
-    """Perform z-phase calibration for fermionic gates.
+    """Perform z-phase calibration for excitation-preserving gates.
 
-    For a given fermionic two-qubit gate we assume an error model that can be described
+    For a given excitation-preserving two-qubit gate we assume an error model that can be described
     using Z-rotations:
                 0: ───Rz(a)───two_qubit_gate───Rz(c)───
                                 │
                 1: ───Rz(b)───two_qubit_gate───Rz(d)───
     for some angles a, b, c, and d.
 
-    Since the two-qubit gate is a fermionic gate, it can be represented by an FSimGate and the
-    effect of rotations turns it into a PhasedFSimGate. Using XEB-data we find the PhasedFSimGate
+    Since the two-qubit gate is a excitation-preserving gate, it can be represented by an FSimGate and
+    the effect of rotations turns it into a PhasedFSimGate. Using XEB-data we find the PhasedFSimGate
     parameters that minimize the infidelity of the gate.
 
     References:
