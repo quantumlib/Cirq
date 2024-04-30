@@ -123,7 +123,7 @@ class StreamManager:
 
         If `None` is put into the queue, the request iterator will stop.
         """
-        return asyncio.Queue()
+        return asyncio.Queue(maxsize=100)
 
     def submit(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
