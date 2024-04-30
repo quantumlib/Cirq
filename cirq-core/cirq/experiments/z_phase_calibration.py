@@ -25,6 +25,7 @@ from cirq import ops
 
 if TYPE_CHECKING:
     import cirq
+    import pandas as pd
 
 
 def z_phase_calibration_workflow(
@@ -39,7 +40,7 @@ def z_phase_calibration_workflow(
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
     pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
-) -> Tuple[xeb_fitting.XEBCharacterizationResult]:
+) -> Tuple[xeb_fitting.XEBCharacterizationResult, 'pd.DataFrame']:
     """Perform z-phase calibration for fermionic gates.
 
     For a given fermionic two-qubit gate we assume an error model that can be described
@@ -93,7 +94,7 @@ def z_phase_calibration_workflow(
             two_qubit_gate
         )
 
-    p_circuits = [xeb_fitting.parameterize_circuit(circuit, options) for circuit in circuits]
+    p_circuits = [xeb_fitting.parameterize_circuit(circuit, options, ops.GateFamily(two_qubit_gate)) for circuit in circuits]
 
     result = xeb_fitting.characterize_phased_fsim_parameters_with_xeb_by_pair(
         sampled_df=sampled_df,

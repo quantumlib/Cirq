@@ -133,11 +133,6 @@ def benchmark_2q_xeb_fidelities(
 
 
 class XEBCharacterizationOptions(ABC):
-    @staticmethod
-    @abstractmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
-        """Whether to replace `op` with a parameterized version."""
-
     @abstractmethod
     def get_parameterized_gate(self) -> 'cirq.Gate':
         """The parameterized gate to use."""
@@ -278,9 +273,6 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         phi = PHI_SYMBOL if self.characterize_phi else self.phi_default
         return ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
 
-    @staticmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
-        return isinstance(op.gate, (ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate))
 
     def defaults_set(self) -> bool:
         """Whether the default angles are set.
@@ -329,7 +321,7 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions
+    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions, target: Union[ops.GateFamily, ops.Gateset] = ops.Gateset(ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate)
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
@@ -337,7 +329,7 @@ def parameterize_circuit(
     gate = options.get_parameterized_gate()
     return circuits.Circuit(
         circuits.Moment(
-            gate.on(*op.qubits) if options.should_parameterize(op) else op
+            gate.on(*op.qubits) if op in target else op
             for op in moment.operations
         )
         for moment in circuit.moments
