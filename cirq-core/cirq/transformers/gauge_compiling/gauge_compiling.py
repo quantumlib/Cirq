@@ -93,6 +93,35 @@ class ConstantGauge(Gauge):
         return self.two_qubit_gate(q0, q1)
 
 
+@frozen
+class SameGateGauge(Gauge):
+    """Same as ConstantGauge but the new two-qubit gate equals the old gate."""
+
+    pre_q0: Tuple[ops.Gate, ...] = field(
+        default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
+    )
+    pre_q1: Tuple[ops.Gate, ...] = field(
+        default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
+    )
+    post_q0: Tuple[ops.Gate, ...] = field(
+        default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
+    )
+    post_q1: Tuple[ops.Gate, ...] = field(
+        default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
+    )
+    swap_qubits: bool = False
+
+    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
+        return ConstantGauge(
+            two_qubit_gate=gate,
+            pre_q0=self.pre_q0,
+            pre_q1=self.pre_q1,
+            post_q0=self.post_q0,
+            post_q1=self.post_q1,
+            swap_qubits=self.swap_qubits,
+        )
+
+
 def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
     return choices[prng.choice(len(choices), p=probabilites)]
 
