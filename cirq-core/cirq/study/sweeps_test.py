@@ -142,6 +142,11 @@ def test_product():
     assert _values(sweep, 'b') == [4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7]
 
 
+def test_empty_product():
+    sweep = cirq.Product()
+    assert len(sweep) == len(list(sweep)) == 1
+
+
 def test_slice_access_error():
     sweep = cirq.Points('a', [1, 2, 3])
     with pytest.raises(TypeError, match='<class \'str\'>'):
