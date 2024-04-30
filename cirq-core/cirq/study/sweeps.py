@@ -236,8 +236,6 @@ class Product(Sweep):
         return sum((factor.keys for factor in self.factors), [])
 
     def __len__(self) -> int:
-        if not self.factors:
-            return 0
         length = 1
         for factor in self.factors:
             length *= len(factor)
