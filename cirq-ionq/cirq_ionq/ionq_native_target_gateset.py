@@ -179,8 +179,7 @@ class AriaNativeGateset(IonqNativeGatesetBase):
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
         """
-        super().__init__(GPIGate, GPI2Gate, MSGate, ops.MeasurementGate)
-        self.atol = atol
+        super().__init__(GPIGate, GPI2Gate, MSGate, ops.MeasurementGate, atol=atol)
 
     def __repr__(self) -> str:
         return f'cirq_ionq.AriaNativeGateset(atol={self.atol})'
@@ -199,8 +198,7 @@ class ForteNativeGateset(IonqNativeGatesetBase):
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
         """
-        super().__init__(GPIGate, GPI2Gate, MSGate, ZZGate, ops.MeasurementGate)
-        self.atol = atol
+        super().__init__(GPIGate, GPI2Gate, MSGate, ZZGate, ops.MeasurementGate, atol=atol)
 
     def __repr__(self) -> str:
         return f'cirq_ionq.ForteNativeGateset(atol={self.atol})'
