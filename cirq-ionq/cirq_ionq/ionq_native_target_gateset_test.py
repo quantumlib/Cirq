@@ -89,7 +89,7 @@ def test_ForteNativeGateset_decompose_two_qubit_operation():
 
 
 # test CCZ_gate not working with 2 qubits
-def test_CCZ_gate_needs_3_qubits():
+def test_CCZ_gate_not_working_with_2_qubits():
     with pytest.raises(Exception) as exc_info:
         gateset = AriaNativeGateset()
         gateset.decompose_all_to_all_connect_ccz_gate(cirq.CCZ, cirq.LineQubit.range(2))
@@ -97,7 +97,7 @@ def test_CCZ_gate_needs_3_qubits():
 
 
 # test CCZ_gate not working with 1 qubits
-def test_CCZ_gate_needs_3_qubits():
+def test_CCZ_gate_not_working_with_1_qubit():
     with pytest.raises(Exception) as exc_info:
         gateset = ForteNativeGateset()
         gateset.decompose_all_to_all_connect_ccz_gate(cirq.CCZ, cirq.LineQubit.range(1))
