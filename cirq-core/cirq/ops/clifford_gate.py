@@ -412,30 +412,21 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             )
         if exponent == 1:
             return self
+
         base_tableau = self.clifford_tableau.copy()
         if exponent < 0:
             base_tableau = base_tableau.inverse()
             exponent = int(abs(exponent))
 
         # https://cp-algorithms.com/algebra/binary-exp.html
-        operation_order: List[bool] = list()
+        aux = qis.CliffordTableau(num_qubits=self.clifford_tableau.n)  # this tableau collects the odd terms
         while exponent > 1:
-            if exponent % 2 == 0:
-                exponent /= 2
-                operation_order.append(True)  # Represents multiplication by 2
-            else:
-                exponent -= 1
-                operation_order.append(False)  # Represents addition of 1
-        operation_order = operation_order[::-1]
+            if exponent & 1: aux = aux.then(base_tableau)
+            base_tableau = base_tableau.then(base_tableau)
+            exponent >>= 1
 
-        result_tableau = base_tableau.copy()
-        for multiply_by_two in operation_order:
-            if multiply_by_two:
-                result_tableau.then(result_tableau)
-            else:
-                result_tableau.then(base_tableau)
-
-        return CliffordGate.from_clifford_tableau(result_tableau)
+        base_tableau = base_tableau.then(aux)
+        return CliffordGate.from_clifford_tableau(base_tableau)
 
     def __repr__(self) -> str:
         return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
