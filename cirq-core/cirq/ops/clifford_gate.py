@@ -400,7 +400,10 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # By definition, Clifford Gate should always return True.
         return True
 
-    def __pow__(self, exponent) -> 'CliffordGate':
+    def __pow__(self, exponent: int) -> 'CliffordGate':
+        if exponent != int(exponent):
+            return NotImplemented
+
         if exponent == -1:
             return CliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
         if exponent == 0:
@@ -409,18 +412,30 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             )
         if exponent == 1:
             return self
-        if exponent > 0 and int(exponent) == exponent:
-            base_tableau = self.clifford_tableau.copy()
-            for _ in range(int(exponent) - 1):
-                base_tableau = base_tableau.then(self.clifford_tableau)
-            return CliffordGate.from_clifford_tableau(base_tableau)
-        if exponent < 0 and int(exponent) == exponent:
-            base_tableau = self.clifford_tableau.copy()
-            for _ in range(int(-exponent) - 1):
-                base_tableau = base_tableau.then(self.clifford_tableau)
-            return CliffordGate.from_clifford_tableau(base_tableau.inverse())
+        base_tableau = self.clifford_tableau.copy()
+        if exponent < 0:
+            base_tableau = base_tableau.inverse()
+            exponent = int(abs(exponent))
 
-        return NotImplemented
+        # https://cp-algorithms.com/algebra/binary-exp.html
+        operation_order: List[bool] = list()
+        while exponent > 1:
+            if exponent % 2 == 0:
+                exponent /= 2
+                operation_order.append(True)  # Represents multiplication by 2
+            else:
+                exponent -= 1
+                operation_order.append(False)  # Represents addition of 1
+        operation_order = operation_order[::-1]
+
+        result_tableau = base_tableau.copy()
+        for multiply_by_two in operation_order:
+            if multiply_by_two:
+                result_tableau.then(result_tableau)
+            else:
+                result_tableau.then(base_tableau)
+
+        return CliffordGate.from_clifford_tableau(result_tableau)
 
     def __repr__(self) -> str:
         return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
