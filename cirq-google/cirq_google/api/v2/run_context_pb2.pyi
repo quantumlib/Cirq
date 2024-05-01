@@ -3,6 +3,7 @@
 isort:skip_file
 """
 import builtins
+import cirq_google.api.v2.program_pb2
 import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
@@ -225,6 +226,97 @@ class DeviceParameter(google.protobuf.message.Message):
     def WhichOneof(self, oneof_group: typing_extensions.Literal["_units", b"_units"]) -> typing_extensions.Literal["units"] | None: ...
 
 global___DeviceParameter = DeviceParameter
+
+@typing_extensions.final
+class DeviceParametersDiff(google.protobuf.message.Message):
+    """A bundle of multiple DeviceParameters and their values.
+    The main use case is to set those parameters with the
+    values from this bundle before executing a circuit sweep.
+    See run_context.py for utility function to construct a
+    DeviceParametersDiff from a list of (DeviceParameter, ArgValue) pairs.
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing_extensions.final
+    class Dir(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        PARENT_FIELD_NUMBER: builtins.int
+        NAME_FIELD_NUMBER: builtins.int
+        parent: builtins.int
+        name: builtins.int
+        def __init__(
+            self,
+            *,
+            parent: builtins.int = ...,
+            name: builtins.int = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "parent", b"parent"]) -> None: ...
+
+    @typing_extensions.final
+    class Key(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        DIR_FIELD_NUMBER: builtins.int
+        NAME_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        dir: builtins.int
+        name: builtins.int
+        @property
+        def value(self) -> cirq_google.api.v2.program_pb2.ArgValue: ...
+        def __init__(
+            self,
+            *,
+            dir: builtins.int = ...,
+            name: builtins.int = ...,
+            value: cirq_google.api.v2.program_pb2.ArgValue | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["dir", b"dir", "name", b"name", "value", b"value"]) -> None: ...
+
+    @typing_extensions.final
+    class Del(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        DIR_FIELD_NUMBER: builtins.int
+        NAME_FIELD_NUMBER: builtins.int
+        dir: builtins.int
+        name: builtins.int
+        def __init__(
+            self,
+            *,
+            dir: builtins.int = ...,
+            name: builtins.int = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["dir", b"dir", "name", b"name"]) -> None: ...
+
+    DIRS_FIELD_NUMBER: builtins.int
+    KEYS_FIELD_NUMBER: builtins.int
+    DELETIONS_FIELD_NUMBER: builtins.int
+    STRS_FIELD_NUMBER: builtins.int
+    @property
+    def dirs(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Dir]: ...
+    @property
+    def keys(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Key]: ...
+    @property
+    def deletions(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Del]: ...
+    @property
+    def strs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+        """List of all key, dir, and deletion names in these contents.
+        Dir.name, Key.name, and Del.name are indexes into this list.
+        """
+    def __init__(
+        self,
+        *,
+        dirs: collections.abc.Iterable[global___DeviceParametersDiff.Dir] | None = ...,
+        keys: collections.abc.Iterable[global___DeviceParametersDiff.Key] | None = ...,
+        deletions: collections.abc.Iterable[global___DeviceParametersDiff.Del] | None = ...,
+        strs: collections.abc.Iterable[builtins.str] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["deletions", b"deletions", "dirs", b"dirs", "keys", b"keys", "strs", b"strs"]) -> None: ...
+
+global___DeviceParametersDiff = DeviceParametersDiff
 
 @typing_extensions.final
 class SingleSweep(google.protobuf.message.Message):

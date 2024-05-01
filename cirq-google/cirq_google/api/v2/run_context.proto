@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "cirq_google/api/v2/program.proto";
+
 package cirq.google.api.v2;
 
 option java_package = "com.google.cirq.google.api.v2";
@@ -100,6 +102,33 @@ message DeviceParameter {
     // by the sweep values themselves.
 }
 
+// A bundle of multiple DeviceParameters and their values.
+// The main use case is to set those parameters with the
+// values from this bundle before executing a circuit sweep.
+// See run_context.py for utility function to construct a
+// DeviceParametersDiff from a list of (DeviceParameter, ArgValue) pairs.
+message DeviceParametersDiff {
+  message Dir {
+    int32 parent = 1;
+    int32 name = 2;
+  }
+  message Key {
+    int32 dir = 1;
+    int32 name = 2;
+    ArgValue value = 3;
+  }
+  message Del {
+    int32 dir = 1;
+    int32 name = 2;
+  }
+  repeated Dir dirs = 1;
+  repeated Key keys = 2;
+  repeated Del deletions = 3;
+
+  // List of all key, dir, and deletion names in these contents.
+  // Dir.name, Key.name, and Del.name are indexes into this list.
+  repeated string strs = 4;
+}
 
 // A set of values to loop over for a particular parameter.
 message SingleSweep {
