@@ -78,10 +78,7 @@ from cirq.transformers.drop_empty_moments import drop_empty_moments
 
 from cirq.transformers.drop_negligible_operations import drop_negligible_operations
 
-from cirq.transformers.dynamical_decoupling import (
-    add_dynamical_decoupling,
-    DynamicalDecouplingModel,
-)
+from cirq.transformers.dynamical_decoupling import add_dynamical_decoupling
 
 from cirq.transformers.eject_z import eject_z
 

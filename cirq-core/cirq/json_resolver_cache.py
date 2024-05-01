@@ -102,7 +102,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import sympy
 
     return {
-        'DynamicalDecouplingModel': cirq.DynamicalDecouplingModel,
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
         'AnyIntegerPowerGateFamily': cirq.AnyIntegerPowerGateFamily,
         'AnyUnitaryGateFamily': cirq.AnyUnitaryGateFamily,

@@ -1,2 +1,0 @@
-[cirq.DynamicalDecouplingModel.from_schema("XX_PAIR"),
-cirq.DynamicalDecouplingModel.from_base_dd_sequence(base_dd_sequence=[cirq.X, cirq.X])]
