@@ -20,18 +20,93 @@ import pytest
 from cirq_ionq.ionq_native_target_gateset import AriaNativeGateset
 from cirq_ionq.ionq_native_target_gateset import ForteNativeGateset
 
-# Tests for transpiling one qubit circuits
-qubit1 = cirq.LineQubit.range(2)
+gateset = AriaNativeGateset(atol=1e-8)
 
-gateset=AriaNativeGateset(atol=1e-8)
+# test object representation
+def test_AriaNativeGateset_repr():
+    gateset = AriaNativeGateset(atol=7)
+    assert repr(gateset) == 'cirq_ionq.AriaNativeGateset(atol=7)'
 
+
+# test object representation
+def test_ForteNativeGateset_repr():
+    gateset = ForteNativeGateset(atol=7)
+    assert repr(gateset) == 'cirq_ionq.ForteNativeGateset(atol=7)'
+
+
+# test init and atol argument
 def test_AriaNativeGateset_init():
     gateset = AriaNativeGateset(atol=7)
     assert gateset.atol == pytest.approx(7)
 
+
+# test init and atol argument
 def test_ForteNativeGateset_init():
     gateset = ForteNativeGateset(atol=7)
     assert gateset.atol == pytest.approx(7)
+
+
+# test _value_equality_values_ method
+def test_AriaNativeGateset__value_equality_values_():
+    gateset = AriaNativeGateset(atol=7)
+    assert gateset._value_equality_values_() == pytest.approx(7)
+
+
+# test _value_equality_values_ method
+def test_ForteNativeGateset_value_equality_values_():
+    gateset = ForteNativeGateset(atol=7)
+    assert gateset._value_equality_values_() == pytest.approx(7)
+
+
+# test _json_dict_ method
+def test_AriaNativeGateset__json_dict_():
+    gateset = AriaNativeGateset(atol=7)
+    assert str(gateset._json_dict_()) == "{'atol': 7}"
+
+
+# test _json_dict_ method
+def test_ForteNativeGateset__json_dict_():
+    gateset = ForteNativeGateset(atol=7)
+    assert str(gateset._json_dict_()) == "{'atol': 7}"
+
+
+# test _decompose_two_qubit_operation on non unitary argument
+def test_AriaNativeGateset_decompose_two_qubit_operation():
+    gateset = AriaNativeGateset(atol=7)
+    result = gateset._decompose_two_qubit_operation(
+        cirq.MeasurementGate(num_qubits=1, key='key'), "blank"
+    )
+    assert result == NotImplemented
+
+
+# test _decompose_two_qubit_operation on non unitary argument
+def test_ForteNativeGateset_decompose_two_qubit_operation():
+    gateset = ForteNativeGateset(atol=7)
+    result = gateset._decompose_two_qubit_operation(
+        cirq.MeasurementGate(num_qubits=1, key='key'), "blank"
+    )
+    assert result == NotImplemented
+
+
+# test CCZ_gate not working with 2 qubits
+def test_CCZ_gate_needs_3_qubits():
+    with pytest.raises(Exception) as exc_info:
+        gateset = AriaNativeGateset()
+        gateset.decompose_all_to_all_connect_ccz_gate(cirq.CCZ, cirq.LineQubit.range(2))
+    assert exc_info.value.args[0] == 'Expect 3 qubits for CCZ gate, got 2 qubits.'
+
+
+# test CCZ_gate not working with 1 qubits
+def test_CCZ_gate_needs_3_qubits():
+    with pytest.raises(Exception) as exc_info:
+        gateset = ForteNativeGateset()
+        gateset.decompose_all_to_all_connect_ccz_gate(cirq.CCZ, cirq.LineQubit.range(1))
+    assert exc_info.value.args[0] == 'Expect 3 qubits for CCZ gate, got 1 qubits.'
+
+
+# Tests for transpiling one qubit circuits
+qubit1 = cirq.LineQubit.range(2)
+
 
 @pytest.mark.parametrize(
     "ideal_results, circuit",

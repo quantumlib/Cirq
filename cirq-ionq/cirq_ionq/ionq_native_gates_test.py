@@ -53,7 +53,13 @@ def test_gate_methods(gate, nqubits, diagram):
 
 
 @pytest.mark.parametrize(
-    "gate", [ionq.GPIGate(phi=0.1), ionq.GPI2Gate(phi=0.2), ionq.MSGate(phi0=0.1, phi1=0.2), ionq.ZZGate(theta=0.4)]
+    "gate",
+    [
+        ionq.GPIGate(phi=0.1),
+        ionq.GPI2Gate(phi=0.2),
+        ionq.MSGate(phi0=0.1, phi1=0.2),
+        ionq.ZZGate(theta=0.4),
+    ],
 )
 def test_gate_json(gate):
     g_json = cirq.to_json(gate)
@@ -77,6 +83,7 @@ def test_gpi2_unitary(phase):
     mat = cirq.protocols.unitary(gate)
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(2))
 
+
 @pytest.mark.parametrize(
     "phases", [(0, 1), (0.1, 1), (0.4, 1), (math.pi / 2, 0), (0, math.pi), (0.1, 2 * math.pi)]
 )
@@ -87,6 +94,7 @@ def test_ms_unitary(phases):
     mat = cirq.protocols.unitary(gate)
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(4))
 
+
 @pytest.mark.parametrize("phase", [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi])
 def test_zz_unitary(phase):
     """Tests that the ZZ gate is unitary."""
@@ -94,6 +102,7 @@ def test_zz_unitary(phase):
 
     mat = cirq.protocols.unitary(gate)
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(4))
+
 
 @pytest.mark.parametrize(
     "gate",
@@ -107,7 +116,7 @@ def test_zz_unitary(phase):
 def test_gate_inverse(gate):
     """Tests that the inverse of natives gate are correct."""
     mat = cirq.protocols.unitary(gate)
-    mat_inverse = cirq.protocols.unitary(gate**-1)
+    mat_inverse = cirq.protocols.unitary(gate ** -1)
     dim = mat.shape[0]
 
     numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(dim))
@@ -125,7 +134,7 @@ def test_gate_inverse(gate):
 def test_gate_power1(gate):
     """Tests that power=1 for native gates are correct."""
     mat = cirq.protocols.unitary(gate)
-    mat_power1 = cirq.protocols.unitary(gate**1)
+    mat_power1 = cirq.protocols.unitary(gate ** 1)
 
     numpy.testing.assert_array_almost_equal(mat, mat_power1)
 
@@ -142,4 +151,4 @@ def test_gate_power1(gate):
 def test_gate_power_not_implemented(gate, power):
     """Tests that any power other than 1 and -1 is not implemented."""
     with pytest.raises(TypeError):
-        _ = gate**power
+        _ = gate ** power

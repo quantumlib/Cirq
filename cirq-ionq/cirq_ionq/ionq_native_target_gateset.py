@@ -13,18 +13,20 @@
 # limitations under the License.
 
 """Target gateset used for compiling circuits to IonQ native gates."""
-import cirq
-import numpy as np
-
-from cirq import linalg
-from cirq import ops
 
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
 
+import cirq
+import numpy as np
+
+from cirq import linalg
+from cirq import ops
+
 from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
+
 
 class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def __init__(self, *args, atol: float = 1e-8):
@@ -54,7 +56,9 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         temp = cirq.map_operations_and_unroll(
             cirq.Circuit(naive),
             lambda op, _: [
-                self._hadamard(op.qubits[1]) + self._cnot(*op.qubits) + self._hadamard(op.qubits[1])
+                self._hadamard(op.qubits[1])
+                + self._cnot(*op.qubits)
+                + self._hadamard(op.qubits[1])
             ]
             if op.gate == cirq.CZ
             else op,

@@ -17,10 +17,11 @@ from typing import Any, Dict, Sequence, Union
 
 import cmath
 import math
+import numpy as np
+
 import cirq
 from cirq import protocols
 from cirq._doc import document
-import numpy as np
 
 
 @cirq.value.value_equality
@@ -274,7 +275,7 @@ document(
 
 @cirq.value.value_equality
 class ZZGate(cirq.Gate):
-    r"""The ZZ gate is another two qubit gate native to trapped ions. The ZZ gate only 
+    r"""The ZZ gate is another two qubit gate native to trapped ions. The ZZ gate only
     requires a single parameter, θ, to set the phase of the entanglement.
 
     The unitary matrix of this gate usinng the parameter $\theta$ is:
@@ -315,13 +316,11 @@ class ZZGate(cirq.Gate):
 
     def _num_qubits_(self) -> int:
         return 2
-    
+
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=(f'ZZ({self.theta!r})', f'ZZ')
-        )
+        return protocols.CircuitDiagramInfo(wire_symbols=(f'ZZ({self.theta!r})', 'ZZ'))
 
     def __repr__(self) -> str:
         return f'cirq_ionq.ZZGate(theta={self.theta!r})'
@@ -330,7 +329,7 @@ class ZZGate(cirq.Gate):
         return cirq.obj_to_dict_helper(self, ['theta'])
 
     def _value_equality_values_(self) -> Any:
-        return (self.theta)
+        return self.theta
 
     def __pow__(self, power):
         if power == 1:
