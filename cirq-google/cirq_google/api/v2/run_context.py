@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2024 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
 from cirq_google.api.v2 import program_pb2
 from cirq_google.api.v2 import run_context_pb2
 
-from typing import Optional, Sequence, Set, Tuple
+from typing import Sequence
 
 
 def to_device_parameters_diff(
-    device_params: Sequence[Tuple[run_context_pb2.DeviceParameter, program_pb2.ArgValue]]
+    device_params: Sequence[tuple[run_context_pb2.DeviceParameter, program_pb2.ArgValue]]
 ) -> run_context_pb2.DeviceParametersDiff:
     """Constructs a DeviceParametersDiff from multiple DeviceParameters and values
 
@@ -43,10 +43,10 @@ def to_device_parameters_diff(
         diff.strs.append(s)
         return idx
 
-    dirs_seen: Set[Tuple[int, int]] = set()
+    dirs_seen: set[tuple[int, int]] = set()
 
     for device_param, value in device_params:
-        parent: Optional[int] = None
+        parent: int | None = None
         for path_component in device_param.path[:-1]:
             token_id = str_token_id(path_component)
             if parent is not None:
