@@ -19,7 +19,7 @@ import google.protobuf.text_format as text_format
 
 
 def test_to_device_parameters_diff() -> None:
-    readout_path = ["", "Automation", "deviceName", "readout"]
+    readout_path = ["q3_4", "readout_default"]
 
     device_params = [
         (
@@ -38,31 +38,27 @@ def test_to_device_parameters_diff() -> None:
     diff = run_context.to_device_parameters_diff(device_params)
     expected_diff_pb_text = """
         dirs {
+          parent: -1
+          name: 0
+        }
+        dirs {
           parent: 0
           name: 1
         }
         dirs {
           parent: 1
-          name: 2
-        }
-        dirs {
-          parent: 2
-          name: 3
-        }
-        dirs {
-          parent: 3
-          name: 6
+          name: 4
         }
         keys {
-          dir: 3
-          name: 4
+          dir: 1
+          name: 2
           value {
             float_value: 5
           }
         }
         keys {
-          dir: 3
-          name: 5
+          dir: 1
+          name: 3
           value {
             double_values {
               values: 0.991
@@ -71,20 +67,17 @@ def test_to_device_parameters_diff() -> None:
           }
         }
         keys {
-          dir: 6
-          name: 7
+          dir: 4
+          name: 5
           value {
             double_value: 0
           }
         }
-        strs: ""
-        strs: "Automation"
-        strs: "deviceName"
-        strs: "readout"
+        strs: "q3_4"
+        strs: "readout_default"
         strs: "readoutDemodDelay"
         strs: "readoutFidelities"
         strs: "sub"
         strs: "phase_i_rad"
     """
-
     assert text_format.Parse(expected_diff_pb_text, run_context_pb2.DeviceParametersDiff()) == diff

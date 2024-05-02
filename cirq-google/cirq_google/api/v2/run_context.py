@@ -45,7 +45,7 @@ def to_device_parameters_diff(
     dirs_seen: set[tuple[int, int]] = set()
 
     for device_param, value in device_params:
-        parent: int | None = None
+        parent = -1  # no parent for the 1st path component
         for path_component in device_param.path[:-1]:
             token_id = str_token_id(path_component)
             if parent is not None:
