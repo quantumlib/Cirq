@@ -20,7 +20,9 @@ import numpy as np
 import pandas as pd
 import sympy
 from cirq import circuits, ops, protocols, _import
-from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
+from cirq.experiments.randomized_and_cross_entropy_benchmarking.xeb_simulation import (
+    simulate_2q_xeb_circuits,
+)
 
 if TYPE_CHECKING:
     import cirq

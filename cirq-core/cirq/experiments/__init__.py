@@ -13,24 +13,12 @@
 # limitations under the License.
 """Experiments and tools for characterizing quantum operations."""
 
-from cirq.experiments.qubit_characterizations import (
-    RandomizedBenchMarkResult,
-    single_qubit_randomized_benchmarking,
+from cirq.experiments.tomography import (
     single_qubit_state_tomography,
     TomographyResult,
-    two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
-    parallel_single_qubit_randomized_benchmarking,
 )
 
-from cirq.experiments.fidelity_estimation import (
-    hog_score_xeb_fidelity_from_probabilities,
-    linear_xeb_fidelity_from_probabilities,
-    linear_xeb_fidelity,
-    log_xeb_fidelity,
-    log_xeb_fidelity_from_probabilities,
-    xeb_fidelity,
-)
 
 from cirq.experiments.purity_estimation import purity_from_probabilities
 
@@ -63,11 +51,21 @@ from cirq.experiments.t1_decay_experiment import t1_decay, T1DecayResult
 
 from cirq.experiments.t2_decay_experiment import t2_decay, T2DecayResult
 
-from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
-
-from cirq.experiments.two_qubit_xeb import (
+from cirq.experiments.randomized_and_cross_entropy_benchmarking import (
+    hog_score_xeb_fidelity_from_probabilities,
+    linear_xeb_fidelity_from_probabilities,
+    linear_xeb_fidelity,
+    log_xeb_fidelity,
+    log_xeb_fidelity_from_probabilities,
+    xeb_fidelity,
+    XEBPhasedFSimCharacterizationOptions,
     InferredXEBResult,
     TwoQubitXEBResult,
     parallel_two_qubit_xeb,
     run_rb_and_xeb,
+    RandomizedBenchMarkResult,
+    single_qubit_randomized_benchmarking,
+    two_qubit_randomized_benchmarking,
+    parallel_single_qubit_randomized_benchmarking,
+    GridParallelXEBMetadata,
 )

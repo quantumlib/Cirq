@@ -26,11 +26,16 @@ import numpy as np
 import pandas as pd
 
 from cirq import ops, value, vis
-from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
-from cirq.experiments.xeb_fitting import benchmark_2q_xeb_fidelities
-from cirq.experiments.xeb_fitting import fit_exponential_decays, exponential_decay
+from cirq.experiments.randomized_and_cross_entropy_benchmarking.xeb_sampling import (
+    sample_2q_xeb_circuits,
+)
+from cirq.experiments.randomized_and_cross_entropy_benchmarking.xeb_fitting import (
+    benchmark_2q_xeb_fidelities,
+    fit_exponential_decays,
+    exponential_decay,
+)
 from cirq.experiments import random_quantum_circuit_generation as rqcg
-from cirq.experiments.qubit_characterizations import (
+from cirq.experiments.randomized_and_cross_entropy_benchmarking.randomized_benchmarking import (
     ParallelRandomizedBenchmarkingResult,
     parallel_single_qubit_randomized_benchmarking,
 )

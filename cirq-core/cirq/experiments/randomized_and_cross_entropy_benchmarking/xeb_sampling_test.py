@@ -22,7 +22,9 @@ import pytest
 
 import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
-from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
+from cirq.experiments.randomized_and_cross_entropy_benchmarking.xeb_sampling import (
+    sample_2q_xeb_circuits,
+)
 
 
 def test_sample_2q_xeb_circuits():
