@@ -33,6 +33,12 @@ from cirq.experiments.randomized_and_cross_entropy_benchmarking.fidelity_estimat
 
 from cirq.experiments.randomized_and_cross_entropy_benchmarking.xeb_fitting import (
     XEBPhasedFSimCharacterizationOptions,
+    benchmark_2q_xeb_fidelities,
+    parameterize_circuit,
+    SqrtISwapXEBOptions,
+    before_and_after_characterization,
+    exponential_decay,
+    fit_exponential_decays,
 )
 
 from cirq.experiments.randomized_and_cross_entropy_benchmarking.two_qubit_xeb import (
@@ -44,4 +50,8 @@ from cirq.experiments.randomized_and_cross_entropy_benchmarking.two_qubit_xeb im
 
 from cirq.experiments.randomized_and_cross_entropy_benchmarking.grid_parallel_two_qubit_xeb import (
     GridParallelXEBMetadata,
+)
+
+from cirq.experiments.randomized_and_cross_entropy_benchmarking.xeb_sampling import (
+    sample_2q_xeb_circuits,
 )
