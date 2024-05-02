@@ -39,6 +39,7 @@ from cirq.experiments.randomized_and_cross_entropy_benchmarking.xeb_fitting impo
     before_and_after_characterization,
     exponential_decay,
     fit_exponential_decays,
+    characterize_phased_fsim_parameters_with_xeb_by_pair,
 )
 
 from cirq.experiments.randomized_and_cross_entropy_benchmarking.two_qubit_xeb import (
