@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Sequence
 from cirq_google.api.v2 import program_pb2
 from cirq_google.api.v2 import run_context_pb2
-
-from typing import Sequence
 
 
 def to_device_parameters_diff(
