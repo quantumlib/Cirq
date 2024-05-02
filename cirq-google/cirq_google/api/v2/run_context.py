@@ -48,10 +48,9 @@ def to_device_parameters_diff(
         parent = -1  # no parent for the 1st path component
         for path_component in device_param.path[:-1]:
             token_id = str_token_id(path_component)
-            if parent is not None:
-                if (parent, token_id) not in dirs_seen:
-                    diff.dirs.add(parent=parent, name=token_id)
-                    dirs_seen.add((parent, token_id))
+            if (parent, token_id) not in dirs_seen:
+                diff.dirs.add(parent=parent, name=token_id)
+                dirs_seen.add((parent, token_id))
             parent = token_id
         diff.keys.add(name=str_token_id(device_param.path[-1]), dir=parent, value=value)
 
