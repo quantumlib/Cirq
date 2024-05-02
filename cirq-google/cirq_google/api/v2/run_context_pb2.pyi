@@ -26,15 +26,23 @@ class RunContext(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     PARAMETER_SWEEPS_FIELD_NUMBER: builtins.int
+    DEVICE_PARAMETERS_OVERRIDE_FIELD_NUMBER: builtins.int
     @property
     def parameter_sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ParameterSweep]:
         """The parameters for operations in a program."""
+    @property
+    def device_parameters_override(self) -> global___DeviceParametersDiff:
+        """optional override of select device parameters before program
+        execution.
+        """
     def __init__(
         self,
         *,
         parameter_sweeps: collections.abc.Iterable[global___ParameterSweep] | None = ...,
+        device_parameters_override: global___DeviceParametersDiff | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["parameter_sweeps", b"parameter_sweeps"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["device_parameters_override", b"device_parameters_override"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
 
 global___RunContext = RunContext
 

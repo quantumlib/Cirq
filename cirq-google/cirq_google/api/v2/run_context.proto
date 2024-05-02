@@ -12,6 +12,10 @@ option java_multiple_files = true;
 message RunContext {
   // The parameters for operations in a program.
   repeated ParameterSweep parameter_sweeps = 1;
+
+  // optional override of select device parameters before program
+  // execution.
+  DeviceParametersDiff device_parameters_override = 2;
 }
 
 // Specifies how to repeatedly sample a circuit, with or without sweeping over
