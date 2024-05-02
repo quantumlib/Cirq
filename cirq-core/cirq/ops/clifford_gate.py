@@ -416,7 +416,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         base_tableau = self.clifford_tableau.copy()
         if exponent < 0:
             base_tableau = base_tableau.inverse()
-            exponent = int(abs(exponent))
+            exponent = abs(exponent)
 
         # https://cp-algorithms.com/algebra/binary-exp.html
         aux = qis.CliffordTableau(
