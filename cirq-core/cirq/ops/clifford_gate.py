@@ -419,9 +419,12 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             exponent = int(abs(exponent))
 
         # https://cp-algorithms.com/algebra/binary-exp.html
-        aux = qis.CliffordTableau(num_qubits=self.clifford_tableau.n)  # this tableau collects the odd terms
+        aux = qis.CliffordTableau(
+            num_qubits=self.clifford_tableau.n
+        )  # this tableau collects the odd terms
         while exponent > 1:
-            if exponent & 1: aux = aux.then(base_tableau)
+            if exponent & 1:
+                aux = aux.then(base_tableau)
             base_tableau = base_tableau.then(base_tableau)
             exponent >>= 1
 
