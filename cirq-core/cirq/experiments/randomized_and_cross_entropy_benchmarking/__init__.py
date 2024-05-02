@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Experiments and tools for characterizing quantum operations."""
+"""Randomized benchmarking (RB) and cross-entropy benchmarking (XEB) experiments."""
 
 
 from cirq.experiments.randomized_and_cross_entropy_benchmarking.randomized_benchmarking import (
