@@ -19,45 +19,60 @@ import google.protobuf.text_format as text_format
 
 
 def test_to_device_parameters_diff() -> None:
-    readout_path = ["q3_4", "readout_default"]
+    readout_paths = (["q3_4", "readout_default"], ["q5_6", "readout_default"])
 
-    device_params = [
-        (
-            run_context_pb2.DeviceParameter(path=[*readout_path, "readoutDemodDelay"], units="ns"),
-            program_pb2.ArgValue(float_value=5.0),
-        ),
-        (
-            run_context_pb2.DeviceParameter(path=[*readout_path, "readoutFidelities"]),
-            program_pb2.ArgValue(double_values=program_pb2.RepeatedDouble(values=[0.991, 0.993])),
-        ),
-        (
-            run_context_pb2.DeviceParameter(path=[*readout_path, "sub", "phase_i_rad"]),
-            program_pb2.ArgValue(double_value=0.0),
-        ),
-    ]
+    device_params = []
+    for readout_path in readout_paths:
+        device_params.extend(
+            [
+                (
+                    run_context_pb2.DeviceParameter(
+                        path=[*readout_path, "readoutDemodDelay"], units="ns"
+                    ),
+                    program_pb2.ArgValue(float_value=5.0),
+                ),
+                (
+                    run_context_pb2.DeviceParameter(path=[*readout_path, "readoutFidelities"]),
+                    program_pb2.ArgValue(
+                        double_values=program_pb2.RepeatedDouble(values=[0.991, 0.993])
+                    ),
+                ),
+                (
+                    run_context_pb2.DeviceParameter(path=[*readout_path, "demod", "phase_i_rad"]),
+                    program_pb2.ArgValue(double_value=0.0),
+                ),
+            ]
+        )
     diff = run_context.to_device_parameters_diff(device_params)
     expected_diff_pb_text = """
         dirs {
           parent: -1
-          name: 0
         }
         dirs {
-          parent: 0
           name: 1
         }
         dirs {
-          parent: 1
+          name: 4
+        }
+        dirs {
+          parent: -1
+          name: 6
+        }
+        dirs {
+          parent: 3
+          name: 1
+        }
+        dirs {
+          parent: 3
           name: 4
         }
         keys {
-          dir: 1
           name: 2
           value {
             float_value: 5
           }
         }
         keys {
-          dir: 1
           name: 3
           value {
             double_values {
@@ -67,7 +82,31 @@ def test_to_device_parameters_diff() -> None:
           }
         }
         keys {
-          dir: 4
+          dir: 2
+          name: 5
+          value {
+            double_value: 0
+          }
+        }
+        keys {
+          dir: 3
+          name: 2
+          value {
+            float_value: 5
+          }
+        }
+        keys {
+          dir: 3
+          name: 3
+          value {
+            double_values {
+              values: 0.991
+              values: 0.993
+            }
+          }
+        }
+        keys {
+          dir: 5
           name: 5
           value {
             double_value: 0
@@ -77,7 +116,8 @@ def test_to_device_parameters_diff() -> None:
         strs: "readout_default"
         strs: "readoutDemodDelay"
         strs: "readoutFidelities"
-        strs: "sub"
+        strs: "demod"
         strs: "phase_i_rad"
+        strs: "q5_6"
     """
     assert text_format.Parse(expected_diff_pb_text, run_context_pb2.DeviceParametersDiff()) == diff

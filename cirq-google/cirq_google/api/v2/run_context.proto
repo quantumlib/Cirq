@@ -113,15 +113,20 @@ message DeviceParameter {
 // DeviceParametersDiff from a list of (DeviceParameter, ArgValue) pairs.
 message DeviceParametersDiff {
   message Dir {
+    // parent directory, as an index into the dirs array.
     int32 parent = 1;
+    // as index into the strs array.
     int32 name = 2;
   }
   message Key {
+    // directory hosting this key, as index into dirs array.
     int32 dir = 1;
+    // as index into the strs array.
     int32 name = 2;
     ArgValue value = 3;
   }
   message Del {
+    // as index into the dirs array.
     int32 dir = 1;
     int32 name = 2;
   }

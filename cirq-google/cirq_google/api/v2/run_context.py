@@ -17,6 +17,10 @@ from cirq_google.api.v2 import program_pb2
 from cirq_google.api.v2 import run_context_pb2
 
 
+# The special index of an empty directory path [].
+_EMPTY_DIR_PATH_IDX = -1
+
+
 def to_device_parameters_diff(
     device_params: Sequence[tuple[run_context_pb2.DeviceParameter, program_pb2.ArgValue]]
 ) -> run_context_pb2.DeviceParametersDiff:
@@ -42,16 +46,26 @@ def to_device_parameters_diff(
         diff.strs.append(s)
         return idx
 
-    dirs_seen: set[tuple[int, int]] = set()
+    # Maps a directory path to its index into diff.dirs
+    dirs_index: dict[tuple[str, ...], int] = {tuple(): _EMPTY_DIR_PATH_IDX}
+
+    def dir_path_id(path: tuple[str, ...]) -> int:
+        idx = dirs_index.get(path)
+        if idx is not None:
+            return idx
+        # This path has not been seen. It will be appended to diff.dirs, with idx as,
+        idx = len(diff.dirs)
+        # Recursive call to get the assigned index of the parent. Note the base case
+        # of the empty path, which returns -1.
+        parent_id = dir_path_id(path[:-1])
+        diff.dirs.add(parent=parent_id, name=str_token_id(path[-1]))
+        dirs_index[path] = idx
+        return idx
 
     for device_param, value in device_params:
-        parent = -1  # no parent for the 1st path component
-        for path_component in device_param.path[:-1]:
-            token_id = str_token_id(path_component)
-            if (parent, token_id) not in dirs_seen:
-                diff.dirs.add(parent=parent, name=token_id)
-                dirs_seen.add((parent, token_id))
-            parent = token_id
-        diff.keys.add(name=str_token_id(device_param.path[-1]), dir=parent, value=value)
+        dir_path = tuple(device_param.path[:-1])
+        param_name = device_param.path[-1]
+        dir_id = dir_path_id(dir_path)
+        diff.keys.add(name=str_token_id(param_name), dir=dir_id, value=value)
 
     return diff

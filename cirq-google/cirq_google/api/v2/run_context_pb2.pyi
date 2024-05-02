@@ -253,7 +253,9 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         PARENT_FIELD_NUMBER: builtins.int
         NAME_FIELD_NUMBER: builtins.int
         parent: builtins.int
+        """parent directory, as an index into the dirs array."""
         name: builtins.int
+        """as index into the strs array."""
         def __init__(
             self,
             *,
@@ -270,7 +272,9 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         NAME_FIELD_NUMBER: builtins.int
         VALUE_FIELD_NUMBER: builtins.int
         dir: builtins.int
+        """directory hosting this key, as index into dirs array."""
         name: builtins.int
+        """as index into the strs array."""
         @property
         def value(self) -> cirq_google.api.v2.program_pb2.ArgValue: ...
         def __init__(
@@ -290,6 +294,7 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         DIR_FIELD_NUMBER: builtins.int
         NAME_FIELD_NUMBER: builtins.int
         dir: builtins.int
+        """as index into the dirs array."""
         name: builtins.int
         def __init__(
             self,
