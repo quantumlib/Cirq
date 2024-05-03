@@ -116,7 +116,7 @@ def test_zz_unitary(phase):
 def test_gate_inverse(gate):
     """Tests that the inverse of natives gate are correct."""
     mat = cirq.protocols.unitary(gate)
-    mat_inverse = cirq.protocols.unitary(gate ** -1)
+    mat_inverse = cirq.protocols.unitary(gate**-1)
     dim = mat.shape[0]
 
     numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(dim))
@@ -134,7 +134,7 @@ def test_gate_inverse(gate):
 def test_gate_power1(gate):
     """Tests that power=1 for native gates are correct."""
     mat = cirq.protocols.unitary(gate)
-    mat_power1 = cirq.protocols.unitary(gate ** 1)
+    mat_power1 = cirq.protocols.unitary(gate**1)
 
     numpy.testing.assert_array_almost_equal(mat, mat_power1)
 
@@ -151,4 +151,4 @@ def test_gate_power1(gate):
 def test_gate_power_not_implemented(gate, power):
     """Tests that any power other than 1 and -1 is not implemented."""
     with pytest.raises(TypeError):
-        _ = gate ** power
+        _ = gate**power

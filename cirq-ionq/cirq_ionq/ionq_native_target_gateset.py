@@ -55,13 +55,15 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         )
         temp = cirq.map_operations_and_unroll(
             cirq.Circuit(naive),
-            lambda op, _: [
-                self._hadamard(op.qubits[1])
-                + self._cnot(*op.qubits)
-                + self._hadamard(op.qubits[1])
-            ]
-            if op.gate == cirq.CZ
-            else op,
+            lambda op, _: (
+                [
+                    self._hadamard(op.qubits[1])
+                    + self._cnot(*op.qubits)
+                    + self._hadamard(op.qubits[1])
+                ]
+                if op.gate == cirq.CZ
+                else op
+            ),
         )
         return cirq.merge_k_qubit_unitaries(
             temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)
@@ -123,9 +125,11 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def decompose_all_to_all_connect_ccz_gate(
         self, ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
     ) -> 'cirq.OP_TREE':
-        """Decomposition of all-to-all connected qubits are different from line qubits or grid qubits, ckeckout IonQTargetGateset.
+        """Decomposition of all-to-all connected qubits are different from line
+         qubits or grid qubits, ckeckout IonQTargetGateset.
 
-        For example, for qubits in the same ion trap, the decomposition of CCZ gate will be:
+        For example, for qubits in the same ion trap, the decomposition of CCZ
+        gate will be:
 
         0: ──────────────@──────────────────@───@───p──────@───
                         │                  │   │          │
@@ -140,7 +144,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
         a, b, c = qubits
 
-        p = cirq.T ** ccz_gate._exponent
+        p = cirq.T**ccz_gate._exponent
         global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
         global_phase = (
             complex(global_phase)
