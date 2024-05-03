@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A Gauge transformer for CZ**±0.5 gate."""
+"""A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
 
 from typing import TYPE_CHECKING
