@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import cirq
 from cirq.transformers.gauge_compiling import SqrtCZGaugeTransformer
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
@@ -20,4 +19,9 @@ from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTe
 
 class TestSqrtCZGauge(GaugeTester):
     two_qubit_gate = cirq.CZ**0.5
+    gauge_transformer = SqrtCZGaugeTransformer
+
+
+class TestAdjointSqrtCZGauge(GaugeTester):
+    two_qubit_gate = cirq.CZ**-0.5
     gauge_transformer = SqrtCZGaugeTransformer
