@@ -400,7 +400,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # By definition, Clifford Gate should always return True.
         return True
 
-    def __pow__(self, exponent: int) -> 'CliffordGate':
+    def __pow__(self, exponent: Union[float, int]) -> 'CliffordGate':
         if exponent != int(exponent):
             return NotImplemented
 
