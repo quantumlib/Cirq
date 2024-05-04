@@ -131,7 +131,7 @@ class CliffordTableau(StabilizerState):
     """Tableau representation of a stabilizer state
 
     References:
-        - [Aaronson and Gottesman](https://arxiv.org/pdf/quant-ph/0406196)
+        - [Aaronson and Gottesman](https://arxiv.org/abs/quant-ph/0406196)
 
     The tableau stores the stabilizer generators of
     the state using three binary arrays: xs, zs, and rs.

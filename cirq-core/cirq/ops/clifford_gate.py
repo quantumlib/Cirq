@@ -400,9 +400,10 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # By definition, Clifford Gate should always return True.
         return True
 
-    def __pow__(self, exponent: Union[float, int]) -> 'CliffordGate':
+    def __pow__(self, exponent: float) -> 'CliffordGate':
         if exponent != int(exponent):
             return NotImplemented
+        exponent = int(exponent)
 
         if exponent == -1:
             return CliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
