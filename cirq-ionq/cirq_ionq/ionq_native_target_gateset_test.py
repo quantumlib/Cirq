@@ -423,6 +423,14 @@ qubits2 = cirq.LineQubit.range(2)
                 cirq.SWAP(qubits2[0], qubits2[1]),
             ),
         ),
+        (
+            [0.224828, 0.545324, 0.162750, 0.067099],
+            cirq.Circuit(
+                cirq.Rx(rads=1)(qubits2[0]),
+                cirq.Ry(rads=2)(qubits2[1]),
+                cirq.CNOT(qubits2[0], qubits2[1]),
+            ),
+        ),
     ],
 )
 def test_transpiling_two_qubit_circuits_to_native_gates(ideal_results, circuit):
@@ -677,6 +685,15 @@ qubits3 = cirq.LineQubit.range(3)
                 cirq.H(qubits3[2]),
                 cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]),
                 cirq.H(qubits3[2]),
+            ),
+        ),
+        (
+            [0.065633, 0.159194, 0.159194, 0.386129, 0.019588, 0.047511, 0.047511, 0.115239],
+            cirq.Circuit(
+                cirq.Rx(rads=1)(qubits3[0]),
+                cirq.Rx(rads=2)(qubits3[1]),
+                cirq.Ry(rads=2)(qubits3[2]),
+                cirq.CCZ(qubits3[0], qubits3[1], qubits3[2]),
             ),
         ),
     ],
