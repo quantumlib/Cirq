@@ -45,34 +45,36 @@ def test_to_device_parameters_diff() -> None:
         )
     diff = run_context.to_device_parameters_diff(device_params)
     expected_diff_pb_text = """
-        dirs {
+        groups {
           parent: -1
+          name: 0
         }
-        dirs {
+        groups {
+          parent: 0
           name: 1
         }
-        dirs {
+        groups {
           name: 4
         }
-        dirs {
+        groups {
           parent: -1
           name: 6
         }
-        dirs {
+        groups {
           parent: 3
           name: 1
         }
-        dirs {
+        groups {
           parent: 3
           name: 4
         }
-        keys {
+        params {
           name: 2
           value {
             float_value: 5
           }
         }
-        keys {
+        params {
           name: 3
           value {
             double_values {
@@ -81,22 +83,22 @@ def test_to_device_parameters_diff() -> None:
             }
           }
         }
-        keys {
-          dir: 2
+        params {
+          resource_group: 2
           name: 5
           value {
             double_value: 0
           }
         }
-        keys {
-          dir: 3
+        params {
+          resource_group: 3
           name: 2
           value {
             float_value: 5
           }
         }
-        keys {
-          dir: 3
+        params {
+          resource_group: 3
           name: 3
           value {
             double_values {
@@ -105,8 +107,8 @@ def test_to_device_parameters_diff() -> None:
             }
           }
         }
-        keys {
-          dir: 5
+        params {
+          resource_group: 5
           name: 5
           value {
             double_value: 0
@@ -120,4 +122,5 @@ def test_to_device_parameters_diff() -> None:
         strs: "phase_i_rad"
         strs: "q5_6"
     """
+    print(diff)
     assert text_format.Parse(expected_diff_pb_text, run_context_pb2.DeviceParametersDiff()) == diff

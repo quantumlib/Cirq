@@ -32,8 +32,11 @@ class RunContext(google.protobuf.message.Message):
         """The parameters for operations in a program."""
     @property
     def device_parameters_override(self) -> global___DeviceParametersDiff:
-        """optional override of select device parameters before program
-        execution.
+        """Optional override of select device parameters before program
+        execution. Note it is permissible to specify the same device parameter
+        here and in a parameter_sweeps, as sweep.single_sweep.parameter.
+        However the override will have no effect since it is applied before
+        the circuit sweep is executed.
         """
     def __init__(
         self,
@@ -240,20 +243,28 @@ class DeviceParametersDiff(google.protobuf.message.Message):
     """A bundle of multiple DeviceParameters and their values.
     The main use case is to set those parameters with the
     values from this bundle before executing a circuit sweep.
-    See run_context.py for utility function to construct a
-    DeviceParametersDiff from a list of (DeviceParameter, ArgValue) pairs.
+    Note multiple device parameters may have common ancestor paths
+    and/or share the same parameter names. A DeviceParamaetersDiff
+    stores the resource groups hierarchy extracted from the DeviceParameters'
+    paths and maintains a string tables; thereby storing ancestor resource
+    groups only once, and avoiding repeated storage of common parameter names.
     """
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     @typing_extensions.final
-    class Dir(google.protobuf.message.Message):
+    class ResourceGroup(google.protobuf.message.Message):
+        """A resource group a device parameter belongs to.
+        The identifier of a resource group is DeviceParameter.path without the
+        last component.
+        """
+
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
         PARENT_FIELD_NUMBER: builtins.int
         NAME_FIELD_NUMBER: builtins.int
         parent: builtins.int
-        """parent directory, as an index into the dirs array."""
+        """parent resource group, as an index into the dirs array."""
         name: builtins.int
         """as index into the strs array."""
         def __init__(
@@ -265,69 +276,70 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "parent", b"parent"]) -> None: ...
 
     @typing_extensions.final
-    class Key(google.protobuf.message.Message):
+    class Param(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-        DIR_FIELD_NUMBER: builtins.int
+        RESOURCE_GROUP_FIELD_NUMBER: builtins.int
         NAME_FIELD_NUMBER: builtins.int
         VALUE_FIELD_NUMBER: builtins.int
-        dir: builtins.int
-        """directory hosting this key, as index into dirs array."""
+        resource_group: builtins.int
+        """the resource group hosting this parameter key, as index into groups array."""
         name: builtins.int
-        """as index into the strs array."""
+        """name of this param, as index into the strs array."""
         @property
-        def value(self) -> cirq_google.api.v2.program_pb2.ArgValue: ...
+        def value(self) -> cirq_google.api.v2.program_pb2.ArgValue:
+            """this param's new value."""
         def __init__(
             self,
             *,
-            dir: builtins.int = ...,
+            resource_group: builtins.int = ...,
             name: builtins.int = ...,
             value: cirq_google.api.v2.program_pb2.ArgValue | None = ...,
         ) -> None: ...
         def HasField(self, field_name: typing_extensions.Literal["value", b"value"]) -> builtins.bool: ...
-        def ClearField(self, field_name: typing_extensions.Literal["dir", b"dir", "name", b"name", "value", b"value"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "resource_group", b"resource_group", "value", b"value"]) -> None: ...
 
     @typing_extensions.final
-    class Del(google.protobuf.message.Message):
+    class Deletion(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-        DIR_FIELD_NUMBER: builtins.int
+        RESOURCE_GROUP_FIELD_NUMBER: builtins.int
         NAME_FIELD_NUMBER: builtins.int
-        dir: builtins.int
+        resource_group: builtins.int
         """as index into the dirs array."""
         name: builtins.int
         def __init__(
             self,
             *,
-            dir: builtins.int = ...,
+            resource_group: builtins.int = ...,
             name: builtins.int = ...,
         ) -> None: ...
-        def ClearField(self, field_name: typing_extensions.Literal["dir", b"dir", "name", b"name"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "resource_group", b"resource_group"]) -> None: ...
 
-    DIRS_FIELD_NUMBER: builtins.int
-    KEYS_FIELD_NUMBER: builtins.int
+    GROUPS_FIELD_NUMBER: builtins.int
+    PARAMS_FIELD_NUMBER: builtins.int
     DELETIONS_FIELD_NUMBER: builtins.int
     STRS_FIELD_NUMBER: builtins.int
     @property
-    def dirs(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Dir]: ...
+    def groups(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.ResourceGroup]: ...
     @property
-    def keys(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Key]: ...
+    def params(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Param]: ...
     @property
-    def deletions(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Del]: ...
+    def deletions(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Deletion]: ...
     @property
     def strs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """List of all key, dir, and deletion names in these contents.
-        Dir.name, Key.name, and Del.name are indexes into this list.
+        ResourceGroup.name, Param.name, and Deletion.name are indexes into this list.
         """
     def __init__(
         self,
         *,
-        dirs: collections.abc.Iterable[global___DeviceParametersDiff.Dir] | None = ...,
-        keys: collections.abc.Iterable[global___DeviceParametersDiff.Key] | None = ...,
-        deletions: collections.abc.Iterable[global___DeviceParametersDiff.Del] | None = ...,
+        groups: collections.abc.Iterable[global___DeviceParametersDiff.ResourceGroup] | None = ...,
+        params: collections.abc.Iterable[global___DeviceParametersDiff.Param] | None = ...,
+        deletions: collections.abc.Iterable[global___DeviceParametersDiff.Deletion] | None = ...,
         strs: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["deletions", b"deletions", "dirs", b"dirs", "keys", b"keys", "strs", b"strs"]) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["deletions", b"deletions", "groups", b"groups", "params", b"params", "strs", b"strs"]) -> None: ...
 
 global___DeviceParametersDiff = DeviceParametersDiff
 

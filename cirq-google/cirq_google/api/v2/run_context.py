@@ -18,7 +18,7 @@ from cirq_google.api.v2 import run_context_pb2
 
 
 # The special index of an empty directory path [].
-_EMPTY_DIR_PATH_IDX = -1
+_EMPTY_RESOURCE_PATH_IDX = -1
 
 
 def to_device_parameters_diff(
@@ -34,7 +34,8 @@ def to_device_parameters_diff(
     """
     diff = run_context_pb2.DeviceParametersDiff()
 
-    # Maps a string to its token id. A string is a component of a device parameter's path
+    # Maps a string to its token id. A string is a component of a device
+    # parameter's path.
     strs_index: dict[str, int] = {}
 
     def str_token_id(s: str) -> int:
@@ -46,26 +47,26 @@ def to_device_parameters_diff(
         diff.strs.append(s)
         return idx
 
-    # Maps a directory path to its index into diff.dirs
-    dirs_index: dict[tuple[str, ...], int] = {tuple(): _EMPTY_DIR_PATH_IDX}
+    # Maps a resource group path to its index into diff.groups.
+    resource_groups_index: dict[tuple[str, ...], int] = {tuple(): _EMPTY_RESOURCE_PATH_IDX}
 
-    def dir_path_id(path: tuple[str, ...]) -> int:
-        idx = dirs_index.get(path)
+    def resource_path_id(path: tuple[str, ...]) -> int:
+        idx = resource_groups_index.get(path)
         if idx is not None:
             return idx
-        # This path has not been seen. It will be appended to diff.dirs, with idx as,
-        idx = len(diff.dirs)
+        # This path has not been seen. It will be appended to diff.groups, with idx as,
+        idx = len(diff.groups)
         # Recursive call to get the assigned index of the parent. Note the base case
-        # of the empty path, which returns -1.
-        parent_id = dir_path_id(path[:-1])
-        diff.dirs.add(parent=parent_id, name=str_token_id(path[-1]))
-        dirs_index[path] = idx
+        # of the empty path, which returns _EMPTY_RESOURCE_PATH_IDX.
+        parent_id = resource_path_id(path[:-1])
+        diff.groups.add(parent=parent_id, name=str_token_id(path[-1]))
+        resource_groups_index[path] = idx
         return idx
 
     for device_param, value in device_params:
-        dir_path = tuple(device_param.path[:-1])
+        resource_path = tuple(device_param.path[:-1])
         param_name = device_param.path[-1]
-        dir_id = dir_path_id(dir_path)
-        diff.keys.add(name=str_token_id(param_name), dir=dir_id, value=value)
+        path_id = resource_path_id(resource_path)
+        diff.params.add(name=str_token_id(param_name), resource_group=path_id, value=value)
 
     return diff

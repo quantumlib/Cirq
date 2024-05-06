@@ -13,8 +13,11 @@ message RunContext {
   // The parameters for operations in a program.
   repeated ParameterSweep parameter_sweeps = 1;
 
-  // optional override of select device parameters before program
-  // execution.
+  // Optional override of select device parameters before program
+  // execution. Note it is permissible to specify the same device parameter
+  // here and in a parameter_sweeps, as sweep.single_sweep.parameter.
+  // However the override will have no effect since it is applied before
+  // the circuit sweep is executed.
   DeviceParametersDiff device_parameters_override = 2;
 }
 
@@ -109,33 +112,40 @@ message DeviceParameter {
 // A bundle of multiple DeviceParameters and their values.
 // The main use case is to set those parameters with the
 // values from this bundle before executing a circuit sweep.
-// See run_context.py for utility function to construct a
-// DeviceParametersDiff from a list of (DeviceParameter, ArgValue) pairs.
+// Note multiple device parameters may have common ancestor paths
+// and/or share the same parameter names. A DeviceParamaetersDiff
+// stores the resource groups hierarchy extracted from the DeviceParameters'
+// paths and maintains a string tables; thereby storing ancestor resource
+// groups only once, and avoiding repeated storage of common parameter names.
 message DeviceParametersDiff {
-  message Dir {
-    // parent directory, as an index into the dirs array.
+  // A resource group a device parameter belongs to.
+  // The identifier of a resource group is DeviceParameter.path without the
+  // last component.
+  message ResourceGroup {
+    // parent resource group, as an index into the dirs array.
     int32 parent = 1;
     // as index into the strs array.
     int32 name = 2;
   }
-  message Key {
-    // directory hosting this key, as index into dirs array.
-    int32 dir = 1;
-    // as index into the strs array.
+  message Param {
+    // the resource group hosting this parameter key, as index into groups array.
+    int32 resource_group = 1;
+    // name of this param, as index into the strs array.
     int32 name = 2;
+    // this param's new value.
     ArgValue value = 3;
   }
-  message Del {
-    // as index into the dirs array.
-    int32 dir = 1;
+  message Deletion {
+    // as index into the groups array.
+    int32 resource_group = 1;
     int32 name = 2;
   }
-  repeated Dir dirs = 1;
-  repeated Key keys = 2;
-  repeated Del deletions = 3;
+  repeated ResourceGroup groups = 1;
+  repeated Param params = 2;
+  repeated Deletion deletions = 3;
 
   // List of all key, dir, and deletion names in these contents.
-  // Dir.name, Key.name, and Del.name are indexes into this list.
+  // ResourceGroup.name, Param.name, and Deletion.name are indexes into this list.
   repeated string strs = 4;
 }
 
