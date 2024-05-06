@@ -299,33 +299,13 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         def HasField(self, field_name: typing_extensions.Literal["value", b"value"]) -> builtins.bool: ...
         def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "resource_group", b"resource_group", "value", b"value"]) -> None: ...
 
-    @typing_extensions.final
-    class Deletion(google.protobuf.message.Message):
-        DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-        RESOURCE_GROUP_FIELD_NUMBER: builtins.int
-        NAME_FIELD_NUMBER: builtins.int
-        resource_group: builtins.int
-        """as index into the dirs array."""
-        name: builtins.int
-        def __init__(
-            self,
-            *,
-            resource_group: builtins.int = ...,
-            name: builtins.int = ...,
-        ) -> None: ...
-        def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "resource_group", b"resource_group"]) -> None: ...
-
     GROUPS_FIELD_NUMBER: builtins.int
     PARAMS_FIELD_NUMBER: builtins.int
-    DELETIONS_FIELD_NUMBER: builtins.int
     STRS_FIELD_NUMBER: builtins.int
     @property
     def groups(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.ResourceGroup]: ...
     @property
     def params(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Param]: ...
-    @property
-    def deletions(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Deletion]: ...
     @property
     def strs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """List of all key, dir, and deletion names in these contents.
@@ -336,10 +316,9 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         *,
         groups: collections.abc.Iterable[global___DeviceParametersDiff.ResourceGroup] | None = ...,
         params: collections.abc.Iterable[global___DeviceParametersDiff.Param] | None = ...,
-        deletions: collections.abc.Iterable[global___DeviceParametersDiff.Deletion] | None = ...,
         strs: collections.abc.Iterable[builtins.str] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["deletions", b"deletions", "groups", b"groups", "params", b"params", "strs", b"strs"]) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["groups", b"groups", "params", b"params", "strs", b"strs"]) -> None: ...
 
 global___DeviceParametersDiff = DeviceParametersDiff
 

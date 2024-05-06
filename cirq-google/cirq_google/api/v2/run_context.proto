@@ -135,14 +135,8 @@ message DeviceParametersDiff {
     // this param's new value.
     ArgValue value = 3;
   }
-  message Deletion {
-    // as index into the groups array.
-    int32 resource_group = 1;
-    int32 name = 2;
-  }
   repeated ResourceGroup groups = 1;
   repeated Param params = 2;
-  repeated Deletion deletions = 3;
 
   // List of all key, dir, and deletion names in these contents.
   // ResourceGroup.name, Param.name, and Deletion.name are indexes into this list.

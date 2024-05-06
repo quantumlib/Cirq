@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 from typing import Sequence
 from cirq_google.api.v2 import program_pb2
 from cirq_google.api.v2 import run_context_pb2
@@ -34,20 +35,17 @@ def to_device_parameters_diff(
     """
     diff = run_context_pb2.DeviceParametersDiff()
 
-    # Maps a string to its token id. A string is a component of a device
+    # Maps a token to its token id. A token is a component of a device
     # parameter's path.
     strs_index: dict[str, int] = {}
 
-    def str_token_id(s: str) -> int:
-        idx = strs_index.get(s)
-        if idx is not None:
-            return idx
+    @functools.lru_cache(maxsize=2048)
+    def token_id(s: str) -> int:
         idx = len(diff.strs)
-        strs_index[s] = idx
         diff.strs.append(s)
         return idx
 
-    # Maps a resource group path to its index into diff.groups.
+    # Maps a resource group path to its index in diff.groups.
     resource_groups_index: dict[tuple[str, ...], int] = {tuple(): _EMPTY_RESOURCE_PATH_IDX}
 
     def resource_path_id(path: tuple[str, ...]) -> int:
@@ -59,7 +57,7 @@ def to_device_parameters_diff(
         # Recursive call to get the assigned index of the parent. Note the base case
         # of the empty path, which returns _EMPTY_RESOURCE_PATH_IDX.
         parent_id = resource_path_id(path[:-1])
-        diff.groups.add(parent=parent_id, name=str_token_id(path[-1]))
+        diff.groups.add(parent=parent_id, name=token_id(path[-1]))
         resource_groups_index[path] = idx
         return idx
 
@@ -67,6 +65,6 @@ def to_device_parameters_diff(
         resource_path = tuple(device_param.path[:-1])
         param_name = device_param.path[-1]
         path_id = resource_path_id(resource_path)
-        diff.params.add(name=str_token_id(param_name), resource_group=path_id, value=value)
+        diff.params.add(name=token_id(param_name), resource_group=path_id, value=value)
 
     return diff
