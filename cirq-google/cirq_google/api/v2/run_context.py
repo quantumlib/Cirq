@@ -35,12 +35,9 @@ def to_device_parameters_diff(
     """
     diff = run_context_pb2.DeviceParametersDiff()
 
-    # Maps a token to its token id. A token is a component of a device
-    # parameter's path.
-    strs_index: dict[str, int] = {}
-
-    @functools.lru_cache(maxsize=2048)
+    @functools.lru_cache(maxsize=None)
     def token_id(s: str) -> int:
+        """Computes the index of s in the string table diff.strs."""
         idx = len(diff.strs)
         diff.strs.append(s)
         return idx
