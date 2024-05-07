@@ -74,23 +74,14 @@ class QubitPermutationGate(raw_types.Gate):
         return True
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        n = len(qubits)
-        qubit_ids = [*range(n)]
-        is_sorted = False
+        reversed_permutation_map = {v: i for i, v in enumerate(self.permutation)}
 
-        def _swap_if_out_of_order(idx: int) -> Iterable['cirq.Operation']:
-            nonlocal is_sorted
-            if self._permutation[qubit_ids[idx]] > self._permutation[qubit_ids[idx + 1]]:
-                yield swap_gates.SWAP(qubits[idx], qubits[idx + 1])
-                qubit_ids[idx + 1], qubit_ids[idx] = qubit_ids[idx], qubit_ids[idx + 1]
-                is_sorted = False
-
-        while not is_sorted:
-            is_sorted = True
-            for i in range(0, n - 1, 2):
-                yield from _swap_if_out_of_order(i)
-            for i in range(1, n - 1, 2):
-                yield from _swap_if_out_of_order(i)
+        while reversed_permutation_map:
+            current_element = list(reversed_permutation_map.keys())[0]
+            next_element = reversed_permutation_map.pop(current_element)
+            while next_element in reversed_permutation_map.keys():
+                yield swap_gates.SWAP(qubits[current_element], qubits[next_element])
+                (current_element, next_element) = (next_element, reversed_permutation_map.pop(next_element))
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.
