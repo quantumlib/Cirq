@@ -81,7 +81,10 @@ class QubitPermutationGate(raw_types.Gate):
             next_element = reversed_permutation_map.pop(current_element)
             while next_element in reversed_permutation_map.keys():
                 yield swap_gates.SWAP(qubits[current_element], qubits[next_element])
-                (current_element, next_element) = (next_element, reversed_permutation_map.pop(next_element))
+                (current_element, next_element) = (
+                    next_element,
+                    reversed_permutation_map.pop(next_element),
+                )
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.
