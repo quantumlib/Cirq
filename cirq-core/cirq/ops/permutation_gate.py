@@ -77,7 +77,7 @@ class QubitPermutationGate(raw_types.Gate):
         reversed_permutation_map = {v: i for i, v in enumerate(self.permutation)}
 
         while reversed_permutation_map:
-            a = list(reversed_permutation_map.keys())[0]
+            a = next(iter(reversed_permutation_map))
             b = reversed_permutation_map.pop(a)
             while b in reversed_permutation_map.keys():
                 yield swap_gates.SWAP(qubits[a], qubits[b])
