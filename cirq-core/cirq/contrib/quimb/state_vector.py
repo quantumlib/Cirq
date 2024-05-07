@@ -170,6 +170,7 @@ def tensor_expectation_value(
         )
     else:
         tn.rank_simplify(inplace=True)
+    # TODO(#6586): revert when our minimum quimb version has bugfix for quimb#231
     # Skip path-info evaluation when TensorNetwork consists of scalar Tensors.
     # Avoid bug in quimb-1.8.0.
     # Ref: https://github.com/jcmgray/quimb/issues/231
