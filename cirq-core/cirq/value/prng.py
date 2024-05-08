@@ -29,7 +29,7 @@ document(
     If is an integer or None, turns into a `np.random.Generator` seeded with that value.
     If is an instance of `np.random.Generator` or a subclass of it, return as is.
     If is an instance of `np.random.RandomState` or has a `randint` method, returns
-    `np.random.default_rng(rs.randint(2**63 - 1))`
+    `np.random.default_rng(rs.randint(2**31 - 1))`
     """,
 )
 
@@ -42,7 +42,7 @@ def parse_prng(
     If `prng_or_seed` is an `np.random.Generator`, return it unmodified.
     If `prng_or_seed` is None or an integer, returns `np.random.default_rng(prng_or_seed)`.
     If `prng_or_seed` is an instance of `np.random.RandomState` or has a `randint` method,
-        returns `np.random.default_rng(prng_or_seed.randint(2**63 - 1))`.
+        returns `np.random.default_rng(prng_or_seed.randint(2**31 - 1))`.
 
     Args:
         prng_or_seed: The object to be used as or converted to a pseudorandom
@@ -59,8 +59,8 @@ def parse_prng(
     if prng_or_seed is None or isinstance(prng_or_seed, numbers.Integral):
         return np.random.default_rng(prng_or_seed if prng_or_seed is None else int(prng_or_seed))
     if isinstance(prng_or_seed, np.random.RandomState):
-        return np.random.default_rng(prng_or_seed.randint(2**63 - 1))
+        return np.random.default_rng(prng_or_seed.randint(2**31 - 1))
     randint = getattr(prng_or_seed, "randint", None)
     if randint is not None:
-        return np.random.default_rng(randint(2**63 - 1))
+        return np.random.default_rng(randint(2**31 - 1))
     raise TypeError(f"{prng_or_seed} can't be converted to a pseudorandom number generator")
