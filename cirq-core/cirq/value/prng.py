@@ -20,7 +20,6 @@ import numpy as np
 from cirq._doc import document
 from cirq.value.random_state import RANDOM_STATE_OR_SEED_LIKE
 
-_SEED_T = Union[int, None]
 PRNG_OR_SEED_LIKE = Union[None, int, np.random.RandomState, np.random.Generator]
 
 document(
