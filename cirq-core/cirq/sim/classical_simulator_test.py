@@ -78,6 +78,87 @@ def test_CCNOT():
     np.testing.assert_equal(results, expected_results)
 
 
+def test_CCCX():
+    CCCX = cirq.CCNOT.controlled()
+    qubits = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit()
+
+    for i in range(8):
+        not_idxs = []
+        tmp = i
+        for j in range(3):
+            if tmp & 1:
+                not_idxs.append(j)
+            tmp >>= 1
+
+        circuit.append(cirq.X(qubits[j]) for j in not_idxs)
+        circuit.append(CCCX(*qubits))
+        circuit.append(cirq.measure(qubits, key='key'))
+        circuit.append(cirq.X(qubits[j]) for j in not_idxs)
+
+    expected_results = {
+        'key': np.array(
+            [
+                [
+                    [0, 0, 0, 0],
+                    [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [1, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [1, 0, 1, 0],
+                    [0, 1, 1, 0],
+                    [1, 1, 1, 1],
+                ]
+            ],
+            dtype=np.uint8,
+        )
+    }
+    sim = cirq.ClassicalStateSimulator()
+    results = sim.run(circuit, param_resolver=None, repetitions=1).records
+    np.testing.assert_equal(results, expected_results)
+
+
+def test_CSWAP():
+    CSWAP = cirq.SWAP.controlled()
+    qubits = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit()
+
+    for i in range(8):
+        not_idxs = []
+        tmp = i
+        for j in range(3):
+            if tmp & 1:
+                not_idxs.append(j)
+            tmp >>= 1
+
+        circuit.append(cirq.X(qubits[j]) for j in not_idxs)
+        circuit.append(CSWAP(*qubits))
+        circuit.append(cirq.measure(qubits, key='key'))
+        circuit.append(CSWAP(*qubits))
+        circuit.append(cirq.X(qubits[j]) for j in not_idxs)
+
+    expected_results = {
+        'key': np.array(
+            [
+                [
+                    [0, 0, 0],
+                    [1, 0, 0],
+                    [0, 1, 0],
+                    [1, 0, 1],
+                    [0, 0, 1],
+                    [1, 1, 0],
+                    [0, 1, 1],
+                    [1, 1, 1],
+                ]
+            ],
+            dtype=np.uint8,
+        )
+    }
+    sim = cirq.ClassicalStateSimulator()
+    results = sim.run(circuit, param_resolver=None, repetitions=1).records
+    np.testing.assert_equal(results, expected_results)
+
+
 def test_measurement_gate():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
