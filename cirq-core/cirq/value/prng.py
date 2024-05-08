@@ -12,61 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-from typing import TypeVar, Union, overload
+from typing import Union
 
+import numbers
 import numpy as np
 
 from cirq._doc import document
+from cirq.value.random_state import RANDOM_STATE_OR_SEED_LIKE
 
-
-class CustomPRNG(abc.ABC): ...
-
-
-_CUSTOM_PRNG_T = TypeVar("_CUSTOM_PRNG_T", bound=CustomPRNG)
-_PRNG_T = Union[np.random.Generator, np.random.RandomState, _CUSTOM_PRNG_T]
 _SEED_T = Union[int, None]
-PRNG_OR_SEED_LIKE = Union[None, int, np.random.RandomState, np.random.Generator, _CUSTOM_PRNG_T]
+PRNG_OR_SEED_LIKE = Union[None, int, np.random.RandomState, np.random.Generator]
 
 document(
     PRNG_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
 
-    If an integer or None, turns into a `np.random.Generator` seeded with that
-    value.
-
-    If none of the above, it is used unmodified. In this case, it is assumed
-    that the object implements whatever methods are required for the use case
-    at hand. For example, it might be an existing instance of `np.random.Generator`
-    or `np.random.RandomState` or a custom pseudorandom number generator implementation
-    and in that case, it has to inherit `cirq.value.CustomPRNG`.
+    If is an integer or None, turns into a `np.random.Generator` seeded with that value.
+    If is an instance of `np.random.Generator` or a subclass of it, return as is.
+    If is an instance of `np.random.RandomState` or has a `randint` method, returns
+    `np.random.default_rng(rs.randint(2**63 - 1))`
     """,
 )
 
 
-@overload
-def parse_prng(prng_or_seed: _SEED_T) -> np.random.Generator: ...
-
-
-@overload
-def parse_prng(prng_or_seed: np.random.Generator) -> np.random.Generator: ...
-
-
-@overload
-def parse_prng(prng_or_seed: np.random.RandomState) -> np.random.RandomState: ...
-
-
-@overload
-def parse_prng(prng_or_seed: _CUSTOM_PRNG_T) -> _CUSTOM_PRNG_T: ...
-
-
 def parse_prng(
-    prng_or_seed: PRNG_OR_SEED_LIKE,
-) -> Union[np.random.Generator, np.random.RandomState, _CUSTOM_PRNG_T]:
+    prng_or_seed: Union[PRNG_OR_SEED_LIKE, RANDOM_STATE_OR_SEED_LIKE]
+) -> np.random.Generator:
     """Interpret an object as a pseudorandom number generator.
 
+    If `prng_or_seed` is an `np.random.Generator`, return it unmodified.
     If `prng_or_seed` is None or an integer, returns `np.random.default_rng(prng_or_seed)`.
-    Otherwise, returns `prng_or_seed` unmodified.
+    If `prng_or_seed` is an instance of `np.random.RandomState` or has a `randint` method,
+        returns `np.random.default_rng(prng_or_seed.randint(2**63 - 1))`.
 
     Args:
         prng_or_seed: The object to be used as or converted to a pseudorandom
@@ -74,7 +51,17 @@ def parse_prng(
 
     Returns:
         The pseudorandom number generator object.
+
+    Raises:
+        TypeError: If `prng_or_seed` is can't be converted to an np.random.Generator.
     """
-    if prng_or_seed is None or isinstance(prng_or_seed, int):
-        return np.random.default_rng(prng_or_seed)
-    return prng_or_seed
+    if isinstance(prng_or_seed, np.random.Generator):
+        return prng_or_seed
+    if prng_or_seed is None or isinstance(prng_or_seed, numbers.Integral):
+        return np.random.default_rng(prng_or_seed if prng_or_seed is None else int(prng_or_seed))
+    if isinstance(prng_or_seed, np.random.RandomState):
+        return np.random.default_rng(prng_or_seed.randint(2**63 - 1))
+    randint = getattr(prng_or_seed, "randint", None)
+    if randint is not None:
+        return np.random.default_rng(randint(2**63 - 1))
+    raise TypeError(f"{prng_or_seed} can't be converted to a pseudorandom number generator")

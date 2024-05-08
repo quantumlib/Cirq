@@ -67,4 +67,4 @@ from cirq.value.type_alias import TParamKey, TParamVal, TParamValComplex
 from cirq.value.value_equality_attr import value_equality
 
 
-from cirq.value.prng import parse_prng, CustomPRNG, PRNG_OR_SEED_LIKE
+from cirq.value.prng import parse_prng, PRNG_OR_SEED_LIKE

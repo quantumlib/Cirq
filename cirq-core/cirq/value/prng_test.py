@@ -13,14 +13,11 @@
 # limitations under the License.
 
 from typing import List, Union
+
+import pytest
 import numpy as np
+
 import cirq
-
-
-class TestPrng(cirq.value.CustomPRNG):
-
-    def random(self, size):
-        return tuple(range(size))
 
 
 def _sample(prng):
@@ -36,13 +33,16 @@ def test_parse_rng() -> None:
     eq.add_equality_group(*[_sample(g) for g in group])
 
     # A None seed.
-    prng: np.random.Generator = cirq.value.parse_prng(None)
+    prng = cirq.value.parse_prng(None)
     eq.add_equality_group(_sample(prng))
 
-    # Custom PRNG.
-    custom_prng: TestPrng = cirq.value.parse_prng(TestPrng())
-    eq.add_equality_group(_sample(custom_prng))
-
     # RandomState PRNG.
-    random_state: np.random.RandomState = cirq.value.parse_prng(np.random.RandomState(42))
-    eq.add_equality_group(_sample(random_state))
+    prng = cirq.value.parse_prng(np.random.RandomState(42))
+    eq.add_equality_group(_sample(prng))
+
+    # np.random module
+    prng = cirq.value.parse_prng(np.random)
+    eq.add_equality_group(_sample(prng))
+
+    with pytest.raises(TypeError):
+        _ = cirq.value.parse_prng(1.0)
