@@ -47,7 +47,7 @@ def _get_dd_sequence_from_schema_name(schema: str) -> Sequence['cirq.Gate']:
     return dd_sequence
 
 
-def _validate_dd_sequence(dd_sequence: Sequence['cirq.Gate']) -> Tuple[bool, Optional[str]]:
+def _validate_dd_sequence(dd_sequence: Sequence['cirq.Gate']) -> None:
     """Validates a given dynamical decoupling sequence.
 
     Args:
@@ -57,18 +57,30 @@ def _validate_dd_sequence(dd_sequence: Sequence['cirq.Gate']) -> Tuple[bool, Opt
         A tuple containing:
             - is_valid (bool): True if the dd sequence is valid, False otherwise.
             - error_message (str): An error message if the dd sequence is invalid, else None.
+
+    Raises:
+        ValueError: If dd_sequence is not valid.
     """
     if len(dd_sequence) < 2:
-        return False, 'Invalid dynamical decoupling sequence. Expect more than one gates.'
+        raise ValueError('Invalid dynamical decoupling sequence. Expect more than one gates.')
     matrices = [cirq.unitary(gate) for gate in dd_sequence]
     product = reduce(np.matmul, matrices)
 
     if not cirq.equal_up_to_global_phase(product, np.eye(2)):
-        return False, (
+        raise ValueError(
             'Invalid dynamical decoupling sequence. Expect sequence production equals'
             f' identity up to a global phase, got {product}.'.replace('\n', ' ')
         )
-    return True, None
+
+
+def _parse_dd_sequence(schema: Union[str, Sequence['cirq.Gate']]) -> Sequence['cirq.Gate']:
+    """Parses and returns dynamical decoupling sequence from schema."""
+    if isinstance(schema, str):
+        dd_sequence = _get_dd_sequence_from_schema_name(schema)
+    else:
+        _validate_dd_sequence(schema)
+        dd_sequence = schema
+    return dd_sequence
 
 
 @transformer_api.transformer
@@ -90,24 +102,11 @@ def add_dynamical_decoupling(
 
     Returns:
           A copy of the input circuit with dynamical decoupling operations.
-
-    Raises:
-          ValueError: If schema is not valid.
     """
     last_busy_moment_by_qubits: Dict['cirq.Qid', int] = {q: 0 for q in circuit.all_qubits()}
     insert_into: list[Tuple[int, 'cirq.OP_TREE']] = []
 
-    if isinstance(schema, str):
-        try:
-            base_dd_sequence = _get_dd_sequence_from_schema_name(schema)
-        except ValueError:
-            raise
-    else:
-        is_valid, error_message = _validate_dd_sequence(schema)
-        if is_valid:
-            base_dd_sequence = schema
-        else:
-            raise ValueError(error_message)
+    base_dd_sequence = _parse_dd_sequence(schema)
 
     for moment_id, moment in enumerate(circuit):
         for q in moment.qubits:
