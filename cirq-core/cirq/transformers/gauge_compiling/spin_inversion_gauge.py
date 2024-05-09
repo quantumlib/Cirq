@@ -17,17 +17,17 @@
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeTransformer,
     GaugeSelector,
-    ConstantGauge,
+    SameGateGauge,
 )
 from cirq import ops
 
 SpinInversionGaugeSelector = GaugeSelector(
     gauges=[
-        ConstantGauge(two_qubit_gate=ops.ZZ, pre_q0=ops.X, post_q0=ops.X),
-        ConstantGauge(two_qubit_gate=ops.ZZ, pre_q1=ops.X, post_q1=ops.X),
+        SameGateGauge(pre_q0=ops.X, post_q0=ops.X, pre_q1=ops.X, post_q1=ops.X),
+        SameGateGauge(),
     ]
 )
 
 SpinInversionGaugeTransformer = GaugeTransformer(
-    target=ops.ZZ, gauge_selector=SpinInversionGaugeSelector
+    target=ops.GateFamily(ops.ZZPowGate), gauge_selector=SpinInversionGaugeSelector
 )
