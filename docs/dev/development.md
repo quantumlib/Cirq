@@ -122,6 +122,8 @@ See the previous section for instructions.
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
 
+    **Note: Some highly managed or customized devices have configurations that interfere with `virtualenv`. In that case, [anaconda](https://www.anaconda.com/) environments may be a better choice.**
+
 3. Check that the tests pass.
 
     ```bash
