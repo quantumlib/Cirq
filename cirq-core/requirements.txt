@@ -4,7 +4,7 @@ attrs
 duet>=0.2.8
 matplotlib~=3.0
 networkx>=2.4
-numpy~=1.16
+numpy~=1.22
 pandas
 sortedcontainers~=2.0
 scipy<1.13.0
