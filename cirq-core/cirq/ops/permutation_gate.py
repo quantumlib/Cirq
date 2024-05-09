@@ -16,6 +16,7 @@ from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types, swap_gates
+from copy import deepcopy
 
 if TYPE_CHECKING:
     import cirq
@@ -74,14 +75,19 @@ class QubitPermutationGate(raw_types.Gate):
         return True
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        reversed_permutation_map = {v: i for i, v in enumerate(self.permutation)}
+        # List is need otherwise permutation[j] = -1 fails to assign to a tuple
+        permutation = list(deepcopy(self.permutation))
 
-        while reversed_permutation_map:
-            a = next(iter(reversed_permutation_map))
-            b = reversed_permutation_map.pop(a)
-            while b in reversed_permutation_map.keys():
-                yield swap_gates.SWAP(qubits[a], qubits[b])
-                (a, b) = (b, reversed_permutation_map.pop(b))
+        for i in range(len(permutation)):
+            if permutation[i] == -1:
+                continue
+            cycle = [i]
+            while permutation[cycle[-1]] != i:
+                cycle.append(permutation[cycle[-1]])
+            for j in cycle:
+                permutation[j] = -1
+            cycle.reverse()
+            # yield len(cycle) - 1 swap operations
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.
