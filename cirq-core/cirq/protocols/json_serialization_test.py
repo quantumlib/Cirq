@@ -56,12 +56,6 @@ TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
 }
 
 
-# pyQuil 3.0, necessary for cirq_rigetti module requires
-# python >= 3.9
-if sys.version_info < (3, 9):  # pragma: no cover
-    del TESTED_MODULES['cirq_rigetti']
-
-
 def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
     modules = []
     for m in TESTED_MODULES.keys():

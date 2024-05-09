@@ -759,9 +759,8 @@ print("abc")
         {},
     )
 
-    if sys.version_info[0] >= 3:  # Our print capture only works in python 3.
-        with pytest.raises(AssertionError):
-            assert_code_snippet_executes_correctly(
+    with pytest.raises(AssertionError):
+        assert_code_snippet_executes_correctly(
                 """
 print("abc")
 # prints
