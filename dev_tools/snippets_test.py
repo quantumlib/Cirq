@@ -54,8 +54,8 @@ In addition to checking that the code executes:
       where pattern is the regex matching pattern (passed to re.compile) and
       substitution is the replacement string.
 """
+
 import inspect
-import sys
 from typing import Any, Dict, List, Optional, Pattern, Tuple, Iterator
 
 import os
