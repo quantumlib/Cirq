@@ -761,13 +761,13 @@ print("abc")
 
     with pytest.raises(AssertionError):
         assert_code_snippet_executes_correctly(
-                """
+            """
 print("abc")
 # prints
 # def
                 """,
-                {},
-            )
+            {},
+        )
 
     assert_code_snippet_executes_correctly(
         """
