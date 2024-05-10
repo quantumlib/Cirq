@@ -38,10 +38,10 @@ def _assert_generated_unitary_is_uniform(m_value: int, n: int) -> None:
         atol=1e-8,
     )
 
-@pytest.mark.parametrize('m_value', [127])
-def test_uniform_superposition_gate(m_value):
+@pytest.mark.parametrize('low_value, max_value', [(3,127)])
+def test_uniform_superposition_gate(low_value,max_value):
     r"""The code tests the creation of M uniform superposition states,
-    where M ranges from 3 to m_value."""
-    for mm in range(3, m_value):
+    where M ranges from low_value to max_value."""
+    for mm in range(low_value, max_value):
         n = int(np.ceil(np.log2(mm)))
         _assert_generated_unitary_is_uniform(mm, n)
