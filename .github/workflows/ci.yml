@@ -144,7 +144,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Test each module in isolation
-        run: pytest -n auto -m slow dev_tools/packaging/isolated_packages_test.py
+        run: pytest -n auto --enable-slow-tests dev_tools/packaging/isolated_packages_test.py
   pytest:
     name: Pytest Ubuntu
     strategy:
