@@ -16,7 +16,6 @@ from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types, swap_gates
-from copy import deepcopy
 
 if TYPE_CHECKING:
     import cirq
