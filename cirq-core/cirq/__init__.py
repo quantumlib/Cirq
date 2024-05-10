@@ -332,6 +332,7 @@ from cirq.ops import (
     ZPowGate,
     ZZ,
     ZZPowGate,
+    UniformSuperpositionGate,
 )
 
 from cirq.transformers import (
