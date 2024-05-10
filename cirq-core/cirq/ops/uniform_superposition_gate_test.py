@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 import cirq
 
 
@@ -26,7 +27,6 @@ def _assert_generated_unitary_is_uniform(m_value: int, n: int) -> None:
     remaining $2^n-M$ entries are all "0"s.
     """
     gate = cirq.UniformSuperpositionGate(m_value, n)
-    #gate = UniformSuperpositionGate(m_value, n)
     qregx = cirq.LineQubit.range(n)
     qcircuit = cirq.Circuit(gate.on(*qregx))
 
@@ -34,14 +34,14 @@ def _assert_generated_unitary_is_uniform(m_value: int, n: int) -> None:
 
     np.testing.assert_allclose(
         unitary_matrix1[:, 0],
-        (1 / np.sqrt(m_value)) * np.array([1] * m_value + [1] * (2**n - m_value)),
+        (1 / np.sqrt(m_value)) * np.array([1] * m_value + [0] * (2**n - m_value)),
         atol=1e-8,
     )
 
-def test_uniform_superposition_gate():
+@pytest.mark.parametrize('m_value', [127])
+def test_uniform_superposition_gate(m_value):
     r"""The code tests the creation of M uniform superposition states,
-    where M ranges from 3 to 1024."""
-    m_value = 127
+    where M ranges from 3 to m_value."""
     for mm in range(3, m_value):
         n = int(np.ceil(np.log2(mm)))
         _assert_generated_unitary_is_uniform(mm, n)
