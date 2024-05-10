@@ -88,26 +88,25 @@ class UniformSuperpositionGate(raw_types.Gate):
         qreg = list(qubits)
 
         if (self._m_value & (self._m_value - 1)) == 0:  # if m_value is an integer power of 2
-            m = int(math.log2(self._m_value))
-            for i in range(m):
-                yield H(qreg[i])
+            m = self._m_value.bit_length() - 1
+            yield H.on_each(qreg[:m])
             return
-
-        n_value = [int(x) for x in list(np.binary_repr(self._m_value))][::-1]
-        k = len(n_value)
-        l_value = [index for (index, item) in enumerate(n_value) if item == 1]  # Locations of '1's
+        
+        k = self._m_value.bit_length()
+        l_value = []
+        for i in range(self._m_value.bit_length()):
+            if (self._m_value >> i) & 1:
+                l_value.append(i) # Locations of '1's
 
         qreg.reverse()
 
-        for i in l_value[1:k]:
-            yield X(qreg[i])
-
+        yield X.on_each(qreg[q_bit] for q_bit in l_value[1:k])
+        
         m_current = 2 ** (l_value[0])
         theta = -2 * np.arccos(np.sqrt(m_current / self._m_value))
 
         if l_value[0] > 0:  # if m_value is even
-            for i in range(l_value[0]):
-                yield H(qreg[i])
+            yield H.on_each(qreg[:l_value[0]])
 
         yield ry(theta).on(qreg[l_value[1]])
 
