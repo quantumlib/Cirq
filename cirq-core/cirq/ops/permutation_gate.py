@@ -75,19 +75,21 @@ class QubitPermutationGate(raw_types.Gate):
         return True
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        # List is need otherwise permutation[j] = -1 fails to assign to a tuple
-        permutation = list(deepcopy(self.permutation))
+        permutation = [p for p in self.permutation]
 
         for i in range(len(permutation)):
+
             if permutation[i] == -1:
                 continue
             cycle = [i]
             while permutation[cycle[-1]] != i:
                 cycle.append(permutation[cycle[-1]])
+
             for j in cycle:
                 permutation[j] = -1
-            cycle.reverse()
-            # yield len(cycle) - 1 swap operations
+
+            for idx in cycle[1:]:
+                yield swap_gates.SWAP(qubits[cycle[0]], qubits[idx])
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.
