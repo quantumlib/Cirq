@@ -73,8 +73,6 @@ class UniformSuperpositionGate(raw_types.Gate):
             )
         self._m_value = m_value
         self._num_qubits = num_qubits
-        # super(UniformSuperpositionGate, self).__init__()
-
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """
         Decomposes the gate into a sequence of standard gates.
@@ -86,25 +84,22 @@ class UniformSuperpositionGate(raw_types.Gate):
             cirq.Operation: Operations implementing the gate.
         """
         qreg = list(qubits)
+        qreg.reverse()
 
         if (self._m_value & (self._m_value - 1)) == 0:  # if m_value is an integer power of 2
             m = self._m_value.bit_length() - 1
             yield H.on_each(qreg[:m])
             return
-        
         k = self._m_value.bit_length()
         l_value = []
         for i in range(self._m_value.bit_length()):
             if (self._m_value >> i) & 1:
                 l_value.append(i) # Locations of '1's
 
-        qreg.reverse()
 
         yield X.on_each(qreg[q_bit] for q_bit in l_value[1:k])
-        
         m_current = 2 ** (l_value[0])
         theta = -2 * np.arccos(np.sqrt(m_current / self._m_value))
-
         if l_value[0] > 0:  # if m_value is even
             yield H.on_each(qreg[:l_value[0]])
 
@@ -126,19 +121,4 @@ class UniformSuperpositionGate(raw_types.Gate):
             m_current = m_current + 2 ** (l_value[m])
 
     def num_qubits(self) -> int:
-        """
-        Returns the number of qubits used by the gate.
-
-        Returns:
-            int: The number of qubits.
-        """
         return self._num_qubits
-
-    def __repr__(self) -> str:
-        """
-        Returns a string representation of the gate.
-
-        Returns:
-            str: String representation of the gate.
-        """
-        return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'
