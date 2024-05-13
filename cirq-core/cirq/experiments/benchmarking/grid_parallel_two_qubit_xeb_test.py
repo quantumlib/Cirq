@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata, LAYER_A, LAYER_B
+from cirq.experiments.benchmarking.grid_parallel_two_qubit_xeb import (
+    GridParallelXEBMetadata,
+    LAYER_A,
+    LAYER_B,
+)
 import cirq
 
 

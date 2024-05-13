@@ -22,7 +22,7 @@ import pytest
 
 import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
-from cirq.experiments.xeb_fitting import (
+from cirq.experiments.benchmarking.xeb_fitting import (
     benchmark_2q_xeb_fidelities,
     parameterize_circuit,
     SqrtISwapXEBOptions,
@@ -33,7 +33,7 @@ from cirq.experiments.xeb_fitting import (
     before_and_after_characterization,
     XEBPhasedFSimCharacterizationOptions,
 )
-from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
+from cirq.experiments.benchmarking.xeb_sampling import sample_2q_xeb_circuits
 
 
 @pytest.fixture(scope='module')

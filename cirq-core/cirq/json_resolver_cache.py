@@ -48,8 +48,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import numpy as np
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.devices import InsertionNoiseModel
-    from cirq.experiments import GridInteractionLayer
-    from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
         return cirq.BooleanHamiltonianGate(
@@ -140,8 +138,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseGate': cirq.GlobalPhaseGate,
         'GridDeviceMetadata': cirq.GridDeviceMetadata,
-        'GridInteractionLayer': GridInteractionLayer,
-        'GridParallelXEBMetadata': GridParallelXEBMetadata,
+        'GridInteractionLayer': cirq.experiments.GridInteractionLayer,
+        'GridParallelXEBMetadata': cirq.experiments.GridParallelXEBMetadata,
         'GridQid': cirq.GridQid,
         'GridQubit': cirq.GridQubit,
         'HPowGate': cirq.HPowGate,

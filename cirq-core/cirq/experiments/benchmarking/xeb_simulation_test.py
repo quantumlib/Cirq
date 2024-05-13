@@ -21,7 +21,7 @@ import pytest
 
 import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
-from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
+from cirq.experiments.benchmarking.xeb_simulation import simulate_2q_xeb_circuits
 
 
 def test_simulate_2q_xeb_circuits():

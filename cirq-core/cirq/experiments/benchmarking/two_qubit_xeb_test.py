@@ -24,7 +24,7 @@ import pandas as pd
 import pytest
 
 import cirq
-from cirq.experiments.qubit_characterizations import ParallelRandomizedBenchmarkingResult
+from cirq.experiments.benchmarking.randomized_benchmarking import ParallelRandomizedBenchmarkingResult
 
 
 def _manhattan_distance(qubit1: 'cirq.GridQubit', qubit2: 'cirq.GridQubit') -> int:

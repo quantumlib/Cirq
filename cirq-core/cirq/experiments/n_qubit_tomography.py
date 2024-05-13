@@ -23,7 +23,7 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols, study
-from cirq.experiments.qubit_characterizations import TomographyResult
+from cirq.experiments.tomography import TomographyResult
 
 if TYPE_CHECKING:
     import cirq
