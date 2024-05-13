@@ -53,6 +53,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
+        print("Dict")
         if any(isinstance(val, Sequence) for val in sweepable.values()):
             warnings.warn(
                 'Implicit expansion of a dictionary into a Cartesian product '
@@ -99,7 +100,31 @@ def to_sweep(
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
+    print("hello")
     params = resolver.param_dict
+    print("params: ", params)
     if not params:
         return UnitSweep
-    return Zip(*[Points(key, [cast(float, value)]) for key, value in params.items()])
+    return Zip(*[_add_unit_to_metadata_if_present(key, value) for key, value in params.items()])
+
+
+def _add_unit_to_metadata_if_present(k, v):
+    import cirq_google
+    from labrad.units import Value, DimensionlessFloat  # this won't be mergeable
+
+    print("value before split: ", v)
+    value_unit = str(v).split(" ")
+    value = value_unit[0]
+    print("value after split: ", value)
+    print("key: ", k)
+
+    unit = None
+    if len(value_unit) == 2:
+        unit = value_unit[1]
+        print("unit ", unit)
+
+    if unit is not None:
+        descriptor = cirq_google.study.DeviceParameter(path=[k], idx=None, value=value, units=unit)
+        return Points(k, [Value(float(value), unit=unit)], metadata=descriptor)
+
+    return Points(k, [cast(float, v)])
