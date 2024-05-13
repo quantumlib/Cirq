@@ -16,25 +16,29 @@ import numpy as np
 import pytest
 import cirq
 
-@pytest.mark.parameterize(['m', 'n'],[[m, n] for n in range(3, 7)
-                                      for m in np.random.randint(2, 1 << n, size=3)])
+
+@pytest.mark.parametrize(
+    ['m', 'n'], [[m, n] for n in range(3, 7) for m in np.random.randint(1, 1 << n, size=3)]
+)
 def test_generated_unitary_is_uniform(m: int, n: int) -> None:
-    r"""
-    The code checks that the unitary matrix corresponds to the generated uniform superposition
+    r"""The code checks that the unitary matrix corresponds to the generated uniform superposition
     states (see uniform_superposition_gate.py). It is enough to check that the
     first colum of the unitary matrix (which corresponds to the action of the gate on
     $\ket{0}^n$ is $\frac{1}{\sqrt{M}} [1 1  \cdots 1 0 \cdots 0]^T$, where the first $M$
     entries are all "1"s (excluding the normalization factor of $\frac{1}{\sqrt{M}}$ and the
     remaining $2^n-M$ entries are all "0"s.
     """
-    gate = cirq.UniformSuperpositionGate(int(m), int(n))
-    qregx = cirq.LineQubit.range(n)
-    qcircuit = cirq.Circuit(gate.on(*qregx))
 
-    unitary_matrix1 = np.real(qcircuit.unitary())
+    if m == 1:
+        with pytest.raises(ValueError, match='m_value must be a positive integer greater than 1.'):
+            gate = cirq.UniformSuperpositionGate(int(m), int(n))
+    else:
+        gate = cirq.UniformSuperpositionGate(int(m), int(n))
+        qregx = cirq.LineQubit.range(n)
+        qcircuit = cirq.Circuit(gate.on(*qregx))
 
-    np.testing.assert_allclose(
-        unitary_matrix1[:, 0],
-        (1 / np.sqrt(m)) * np.array([1] * m + [0] * (2**n - m)),
-        atol=1e-8,
-    )
+        unitary_matrix1 = np.real(qcircuit.unitary())
+
+        np.testing.assert_allclose(           
+            unitary_matrix1[:, 0], (1 / np.sqrt(m)) * np.array([1] * m + [0] * (2**n - m)), atol=1e-8
+        )
