@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-import IPython.display
+import IPython.display  # type: ignore
 import numpy as np
 import pytest
 
