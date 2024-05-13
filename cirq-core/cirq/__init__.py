@@ -337,6 +337,7 @@ from cirq.ops import (
 
 from cirq.transformers import (
     AbstractInitialMapper,
+    add_dynamical_decoupling,
     align_left,
     align_right,
     CompilationTargetGateset,

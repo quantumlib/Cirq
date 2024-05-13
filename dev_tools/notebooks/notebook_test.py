@@ -36,6 +36,8 @@ SKIP_NOTEBOOKS = [
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
     '**/rigetti/*.ipynb',
+    # disabled to unblock Python 3.12.  TODO(#6590) - fix and enable.
+    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
     # skipp cirq-ft notebooks since they are included in individual tests
     'cirq-ft/**',
     # skipping fidelity estimation due to
