@@ -64,6 +64,10 @@ class UniformSuperpositionGate(raw_types.Gate):
         Args:
             m_value (int): The number of computational basis states with amplitude 1/sqrt(M).
             num_qubits (int): The number of qubits used.
+
+        Raises:
+            ValueError: If `m_value` is not a positive integer greater than 1, or
+                if `num_qubits` is not an integer greater than or equal to log2(m_value).
         """
         if not (isinstance(m_value, int) and (m_value > 1)):
             raise ValueError('m_value must be a positive integer greater than 1.')
@@ -73,6 +77,7 @@ class UniformSuperpositionGate(raw_types.Gate):
             )
         self._m_value = m_value
         self._num_qubits = num_qubits
+
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """
         Decomposes the gate into a sequence of standard gates.
@@ -94,14 +99,13 @@ class UniformSuperpositionGate(raw_types.Gate):
         l_value = []
         for i in range(self._m_value.bit_length()):
             if (self._m_value >> i) & 1:
-                l_value.append(i) # Locations of '1's
-
+                l_value.append(i)  # Locations of '1's
 
         yield X.on_each(qreg[q_bit] for q_bit in l_value[1:k])
         m_current = 2 ** (l_value[0])
         theta = -2 * np.arccos(np.sqrt(m_current / self._m_value))
         if l_value[0] > 0:  # if m_value is even
-            yield H.on_each(qreg[:l_value[0]])
+            yield H.on_each(qreg[: l_value[0]])
 
         yield ry(theta).on(qreg[l_value[1]])
 
@@ -119,6 +123,9 @@ class UniformSuperpositionGate(raw_types.Gate):
                 )
 
             m_current = m_current + 2 ** (l_value[m])
+
+    def __repr__(self) -> str:
+        return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'
 
     def num_qubits(self) -> int:
         return self._num_qubits
