@@ -452,18 +452,14 @@ class KakDecomposition:
             single_qubit_operations_after: a0, a1 from the above equation.
         """
         self.global_phase: complex = global_phase
-        self.single_qubit_operations_before: Tuple[
-            np.ndarray, np.ndarray
-        ] = single_qubit_operations_before or (
-            np.eye(2, dtype=np.complex64),
-            np.eye(2, dtype=np.complex64),
+        self.single_qubit_operations_before: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_before
+            or (np.eye(2, dtype=np.complex64), np.eye(2, dtype=np.complex64))
         )
         self.interaction_coefficients = interaction_coefficients
-        self.single_qubit_operations_after: Tuple[
-            np.ndarray, np.ndarray
-        ] = single_qubit_operations_after or (
-            np.eye(2, dtype=np.complex64),
-            np.eye(2, dtype=np.complex64),
+        self.single_qubit_operations_after: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_after
+            or (np.eye(2, dtype=np.complex64), np.eye(2, dtype=np.complex64))
         )
 
     def _value_equality_values_(self) -> Any:
