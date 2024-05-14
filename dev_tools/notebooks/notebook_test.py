@@ -27,7 +27,6 @@ import pytest
 
 from dev_tools import shell_tools
 from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
-from dev_tools.test_utils import only_on_posix
 
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
