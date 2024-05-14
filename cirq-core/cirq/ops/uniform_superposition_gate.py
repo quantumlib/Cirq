@@ -123,8 +123,5 @@ class UniformSuperpositionGate(raw_types.Gate):
 
             m_current = m_current + 2 ** (l_value[m])
 
-    def __repr__(self) -> str:
-        return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'
-
     def num_qubits(self) -> int:
         return self._num_qubits
