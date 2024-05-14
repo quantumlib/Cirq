@@ -255,10 +255,11 @@ def bidiagonalize_unitary_with_special_orthogonals(
     )
 
     # Convert to special orthogonal w/o breaking diagonalization.
-    if np.linalg.det(left) < 0:
-        left[0, :] *= -1
-    if np.linalg.det(right) < 0:
-        right[:, 0] *= -1
+    with np.errstate(divide="ignore", invalid="ignore"):
+        if np.linalg.det(left) < 0:
+            left[0, :] *= -1
+        if np.linalg.det(right) < 0:
+            right[:, 0] *= -1
 
     diag = combinators.dot(left, mat, right)
 
