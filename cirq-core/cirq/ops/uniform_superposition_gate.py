@@ -26,9 +26,8 @@ if TYPE_CHECKING:
 
 
 class UniformSuperpositionGate(raw_types.Gate):
-    r"""
-    Creates a generalized uniform superposition state, $\frac{1}{\sqrt{M}}\sum_{j=0}^{M-1}\ket{j}$
-    (where 1< M <= 2^n), using n qubits, according to the Shukla-Vedula algorithm [SV24].
+    r"""Creates a uniform superposition state, $\frac{1}{\sqrt{M}}\sum_{j=0}^{M-1}\ket{j}$
+    (where 1<= M <= 2^n), using n qubits, according to the Shukla-Vedula algorithm [SV24].
 
     Note: The Shukla-Vedula algorithm [SV24] offers an efficient approach for creation of a
     generalized uniform superposition state of the form,
@@ -38,7 +37,7 @@ class UniformSuperpositionGate(raw_types.Gate):
 
     Args:
         m_value (int):
-            A positive integer M = m_value (> 1) representing the number of computational basis
+            A positive integer M = m_value representing the number of computational basis
             states with an amplitude of 1/sqrt(M) in the uniform superposition state
             ($\frac{1}{\sqrt{M}} \sum_{j=0}^{M-1}  \ket{j} $). Note that the remaining (2^n - M)
             computational basis states have zero amplitudes. Here M need not be an integer
@@ -58,19 +57,18 @@ class UniformSuperpositionGate(raw_types.Gate):
     """
 
     def __init__(self, m_value: int, num_qubits: int) -> None:
-        """
-        Initializes UniformSuperpositionGate.
+        """Initializes UniformSuperpositionGate.
 
         Args:
             m_value (int): The number of computational basis states with amplitude 1/sqrt(M).
             num_qubits (int): The number of qubits used.
 
         Raises:
-            ValueError: If `m_value` is not a positive integer greater than 1, or
+            ValueError: If `m_value` is not a positive integer, or
                 if `num_qubits` is not an integer greater than or equal to log2(m_value).
         """
-        if not (isinstance(m_value, int) and (m_value > 1)):
-            raise ValueError('m_value must be a positive integer greater than 1.')
+        if not (isinstance(m_value, int) and (m_value > 0)):
+            raise ValueError('m_value must be a positive integer.')
         if not (isinstance(num_qubits, int) and (num_qubits >= math.log2(m_value))):
             raise ValueError(
                 'num_qubits must be an integer greater than or equal to log2(m_value).'
@@ -79,8 +77,7 @@ class UniformSuperpositionGate(raw_types.Gate):
         self._num_qubits = num_qubits
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        """
-        Decomposes the gate into a sequence of standard gates.
+        """Decomposes the gate into a sequence of standard gates.
 
         Args:
             qubits (list[cirq.Qid]): Qubits to apply the gate on.
@@ -91,6 +88,8 @@ class UniformSuperpositionGate(raw_types.Gate):
         qreg = list(qubits)
         qreg.reverse()
 
+        if self._m_value == 1:  #  if m_value is 1, do nothing
+            return
         if (self._m_value & (self._m_value - 1)) == 0:  # if m_value is an integer power of 2
             m = self._m_value.bit_length() - 1
             yield H.on_each(qreg[:m])
