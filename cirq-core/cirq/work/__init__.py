@@ -31,3 +31,4 @@ from cirq.work.observable_measurement import (
 from cirq.work.observable_readout_calibration import calibrate_readout_error
 from cirq.work.sampler import Sampler
 from cirq.work.zeros_sampler import ZerosSampler
+from cirq.work.multiprocessing import execute_with_progress_bar, starmap_with_progress_bar
