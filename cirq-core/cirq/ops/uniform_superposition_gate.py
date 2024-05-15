@@ -18,7 +18,7 @@ import math
 import numpy as np
 from cirq.ops.common_gates import H, ry
 from cirq.ops.pauli_gates import X
-from cirq.ops import controlled_gate, raw_types
+from cirq.ops import raw_types
 
 
 if TYPE_CHECKING:
@@ -113,13 +113,11 @@ class UniformSuperpositionGate(raw_types.Gate):
 
         for m in range(1, len(l_value) - 1):
             theta = -2 * np.arccos(np.sqrt(2 ** l_value[m] / (self._m_value - m_current)))
-            yield controlled_gate.ControlledGate(ry(theta), control_values=[False])(
-                qreg[l_value[m]], qreg[l_value[m + 1]]
+            yield ry(theta).on(qreg[l_value[m + 1]]).controlled_by(
+                qreg[l_value[m]], control_values=[0]
             )
             for i in range(l_value[m], l_value[m + 1]):
-                yield controlled_gate.ControlledGate(H, control_values=[False])(
-                    qreg[l_value[m + 1]], qreg[i]
-                )
+                yield H.on(qreg[i]).controlled_by(qreg[l_value[m + 1]], control_values=[0])
 
             m_current = m_current + 2 ** (l_value[m])
 
