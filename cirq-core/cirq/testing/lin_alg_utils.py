@@ -133,7 +133,8 @@ def random_special_unitary(
         The sampled special unitary.
     """
     r = random_unitary(dim, random_state=random_state)
-    r[0, :] /= np.linalg.det(r)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        r[0, :] /= np.linalg.det(r)
     return r
 
 
@@ -152,8 +153,9 @@ def random_special_orthogonal(
         The sampled special orthogonal matrix.
     """
     m = random_orthogonal(dim, random_state=random_state)
-    if np.linalg.det(m) < 0:
-        m[0, :] *= -1
+    with np.errstate(divide="ignore", invalid="ignore"):
+        if np.linalg.det(m) < 0:
+            m[0, :] *= -1
     return m
 
 
