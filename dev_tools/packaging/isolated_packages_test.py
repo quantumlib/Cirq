@@ -39,7 +39,7 @@ def test_isolated_packages(cloned_env, module):
         assert f'cirq-core=={module.version}' in module.install_requires
 
     result = shell_tools.run(
-        f"{env}/bin/pip install ./{module.root} ./cirq-core".split(),
+        f"{env}/bin/pip install --no-clean ./{module.root} ./cirq-core".split(),
         stderr=subprocess.PIPE,
         check=False,
     )
