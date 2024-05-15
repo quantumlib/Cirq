@@ -18,9 +18,8 @@ import cirq
 
 
 @pytest.mark.parametrize(
-    ['m', 'n'],
-    [[int(m), n] for n in range(3, 7) for m in np.random.randint(1, 1 << n, size=3)]
-    + [(1, 1), (-2, 1), (-3.1, 2), (6, -4), (5, 6.1)],
+    ["m", "n"],
+    [[int(m), n] for n in range(3, 7) for m in np.random.randint(1, 1 << n, size=3)],
 )
 def test_generated_unitary_is_uniform(m: int, n: int) -> None:
     r"""The code checks that the unitary matrix corresponds to the generated uniform superposition
@@ -30,28 +29,38 @@ def test_generated_unitary_is_uniform(m: int, n: int) -> None:
     entries are all "1"s (excluding the normalization factor of $\frac{1}{\sqrt{M}}$ and the
     remaining $2^n-M$ entries are all "0"s.
     """
+    gate = cirq.UniformSuperpositionGate(m, n)
+    matrix = np.array(cirq.unitary(gate))
+    np.testing.assert_allclose(
+        matrix[:, 0], (1 / np.sqrt(m)) * np.array([1] * m + [0] * (2**n - m)), atol=1e-8
+    )
+
+
+@pytest.mark.parametrize(
+    ["m", "n"],
+    [(1, 1), (-2, 1), (-3.1, 2), (6, -4), (5, 6.1)],
+)
+def test_incompatible_m_value_and_qubit_args(m: int, n: int) -> None:
+    r"""The code checks that test errors are raised if the arguments m (number of
+    superposition states and n (number of qubits) are positive integers and are compatible
+     (i.e., n >= log2(m)).
+    """
 
     if not (isinstance(m, int)):
-        with pytest.raises(ValueError, match='m_value must be a positive integer.'):
-            gate = cirq.UniformSuperpositionGate(m, n)
+        with pytest.raises(ValueError, match="m_value must be a positive integer."):
+            cirq.UniformSuperpositionGate(m, n)
     elif not (isinstance(n, int)):
         with pytest.raises(
             ValueError,
-            match='num_qubits must be an integer greater than or equal to log2\\(m_value\\).',
+            match="num_qubits must be an integer greater than or equal to log2\\(m_value\\).",
         ):
-            gate = cirq.UniformSuperpositionGate(m, n)
+            cirq.UniformSuperpositionGate(m, n)
     elif m < 1:
-        with pytest.raises(ValueError, match='m_value must be a positive integer.'):
-            gate = cirq.UniformSuperpositionGate(int(m), int(n))
+        with pytest.raises(ValueError, match="m_value must be a positive integer."):
+            cirq.UniformSuperpositionGate(int(m), int(n))
     elif n < np.log2(m):
         with pytest.raises(
             ValueError,
-            match='num_qubits must be an integer greater than or equal to log2\\(m_value\\).',
+            match="num_qubits must be an integer greater than or equal to log2\\(m_value\\).",
         ):
-            gate = cirq.UniformSuperpositionGate(m, n)
-    else:
-        gate = cirq.UniformSuperpositionGate(m, n)
-        matrix = np.real(cirq.unitary(gate))
-        np.testing.assert_allclose(
-            matrix[:, 0], (1 / np.sqrt(m)) * np.array([1] * m + [0] * (2**n - m)), atol=1e-8
-        )
+            cirq.UniformSuperpositionGate(m, n)
