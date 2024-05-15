@@ -592,7 +592,8 @@ def to_special(u: np.ndarray) -> np.ndarray:
     Returns:
         the special unitary matrix
     """
-    return u * (np.linalg.det(u) ** (-1 / len(u)))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return u * (np.linalg.det(u) ** (-1 / len(u)))
 
 
 def state_vector_kronecker_product(t1: np.ndarray, t2: np.ndarray) -> np.ndarray:

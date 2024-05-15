@@ -47,7 +47,9 @@ def _decompose_abc(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarr
     See [1], chapter 4.
     """
     assert matrix.shape == (2, 2)
-    delta = np.angle(np.linalg.det(matrix)) * 0.5
+    with np.errstate(divide="ignore", invalid="ignore"):
+        # On MacOS, np.linalg.det emits superflous warnings
+        delta = np.angle(np.linalg.det(matrix)) * 0.5
     alpha = np.angle(matrix[0, 0]) + np.angle(matrix[0, 1]) - 2 * delta
     beta = np.angle(matrix[0, 0]) - np.angle(matrix[0, 1])
 
