@@ -105,7 +105,8 @@ def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
     print("params: ", params)
     if not params:
         return UnitSweep
-    return Zip(*[_add_unit_to_metadata_if_present(key, value) for key, value in params.items()])
+
+    return [_add_unit_to_metadata_if_present(key, value) for key, value in params.items()]
 
 
 def _add_unit_to_metadata_if_present(k, v):
@@ -125,6 +126,6 @@ def _add_unit_to_metadata_if_present(k, v):
 
     if unit is not None:
         descriptor = cirq_google.study.DeviceParameter(path=[k], idx=None, value=value, units=unit)
-        return Points(k, [Value(float(value), unit=unit)], metadata=descriptor)
+        return Points(k, [float(value)], metadata=descriptor)
 
     return Points(k, [cast(float, v)])
