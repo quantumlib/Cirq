@@ -346,8 +346,6 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.stdout == (
         'INTERCEPTED check/pytest '
         '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
@@ -372,8 +370,6 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.stdout == (
         'INTERCEPTED check/pytest '
         '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py main\n'
@@ -390,8 +386,6 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.stdout == (
         'INTERCEPTED check/pytest '
         '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py origin/main\n'
@@ -408,8 +402,6 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.stdout == (
         'INTERCEPTED check/pytest '
         '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py upstream/main\n'
@@ -426,8 +418,6 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.stdout == (
         'INTERCEPTED check/pytest '
         '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py upstream/main\n'
@@ -456,8 +446,6 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.stdout == (
         'INTERCEPTED check/pytest '
         '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
@@ -474,8 +462,6 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.stdout == (
         'INTERCEPTED check/pytest '
         '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py main\n'
@@ -499,8 +485,6 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.stdout.startswith(
         'INTERCEPTED check/pytest '
         '--cov --cov-config=dev_tools/conf/.coveragerc\n'
-        'The annotate command will be removed in a future version.\n'
-        'Get in touch if you still use it: ned@nedbatchelder.com\n'
         'No data to report.\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py '
