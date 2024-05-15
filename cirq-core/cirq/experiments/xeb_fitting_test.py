@@ -11,11 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import itertools
 import multiprocessing
-from typing import Iterable
 
-import networkx as nx
 import numpy as np
 import pandas as pd
 import pytest

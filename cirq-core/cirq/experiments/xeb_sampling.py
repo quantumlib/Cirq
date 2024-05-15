@@ -17,7 +17,6 @@ import os
 import time
 import uuid
 import itertools
-from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import (
     Callable,
@@ -129,22 +128,6 @@ def _verify_two_line_qubits_from_circuits(circuits: Sequence['cirq.Circuit']):
             "`circuits` should be a sequence of circuits each operating "
             "on LineQubit(0) and LineQubit(1)"
         )
-
-
-class _NoProgress:
-    """Lack of tqdm-style progress bar."""
-
-    def __init__(self, total: int):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-    def update(self, n: int = 1):
-        pass
 
 
 @dataclass(frozen=True)
@@ -268,7 +251,7 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     combinations_by_layer: List[CircuitLibraryCombination],
     repetitions: int,
     batch_size: int,
-    progress_bar: Callable[..., ContextManager],
+    progress_bar: Optional[Callable[..., ContextManager]] = None,
     dataset_directory: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
@@ -280,13 +263,16 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-        results = xeb_utils.execute_with_progress_par(
-            func=run_batch,
-            inputs=batched_tasks,
-            pool=pool,
-            progress_bar=progress_bar,
-            desc='sample 2q xeb circuits',
-        )
+        if progress_bar is None:
+            results = pool.map(run_batch, batched_tasks)
+        else:
+            results = xeb_utils.execute_with_progress_par(
+                func=run_batch,
+                inputs=batched_tasks,
+                pool=pool,
+                progress_bar=progress_bar,
+                desc='sample 2q xeb circuits',
+            )
 
     if dataset_directory is not None:
         os.makedirs(f'{dataset_directory}', exist_ok=True)
@@ -341,9 +327,6 @@ def sample_2q_xeb_circuits(
         not `None` and you are doing parallel XEB, additional metadata columns
         will be attached to the returned DataFrame.
     """
-    # Set up progress reporting
-    if progress_bar is None:
-        progress_bar = _NoProgress
 
     # Shim isolated-XEB as a special case of combination-style parallel XEB.
     if combinations_by_layer is None:

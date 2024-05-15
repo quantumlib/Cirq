@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import multiprocessing.pool
 from typing import (
-    cast,
     Any,
     Union,
     Sequence,
+    List,
     Callable,
     TypeVar,
     Iterable,
@@ -52,7 +53,7 @@ _OUTPUT_T = TypeVar('_OUTPUT_T')
 def execute_with_progress_par(
     func: Callable[..., _OUTPUT_T],
     inputs: Iterable[Any],
-    pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
+    pool: Optional[Union[multiprocessing.pool.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
     progress_bar: Callable[..., ContextManager] = tqdm.tqdm,
     **progres_bar_args,
 ) -> Sequence[_OUTPUT_T]:
@@ -60,7 +61,7 @@ def execute_with_progress_par(
         return [func(args) for args in progress_bar(inputs, **progres_bar_args)]
     if isinstance(pool, concurrent.futures.ThreadPoolExecutor):
         futures = [pool.submit(func, args) for args in inputs]
-        results: Sequence[_OUTPUT_T] = []
+        results: List[_OUTPUT_T] = []
         with progress_bar(total=len(futures), **progres_bar_args) as progress:
             for future in concurrent.futures.as_completed(futures):
                 results.append(future.result())
@@ -68,7 +69,7 @@ def execute_with_progress_par(
         return results
     if isinstance(pool, multiprocessing.pool.Pool):
         sequential_inputs = [*inputs]
-        results: Sequence[_OUTPUT_T] = []
+        results: List[_OUTPUT_T] = []
         with progress_bar(total=len(sequential_inputs), **progres_bar_args) as progress:
             for res in pool.imap_unordered(func, sequential_inputs):
                 results.append(res)

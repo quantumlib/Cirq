@@ -18,7 +18,6 @@ from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 import functools
-import multiprocessing
 
 from matplotlib import pyplot as plt
 import networkx as nx

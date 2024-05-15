@@ -16,7 +16,6 @@ import dataclasses
 from abc import abstractmethod, ABC
 from typing import Dict, Iterable, List, Union, Optional, Sequence, Tuple, TYPE_CHECKING
 
-import concurrent.futures
 import tqdm
 import numpy as np
 import pandas as pd
@@ -28,6 +27,7 @@ from cirq.experiments import xeb_utils
 if TYPE_CHECKING:
     import cirq
     import multiprocessing
+    import concurrent.futures
     import scipy.optimize
 
 # We initialize these lazily, otherwise they slow global import speed.
@@ -46,11 +46,25 @@ def benchmark_2q_xeb_fidelities(
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> pd.DataFrame:
-    """Simulate and benchmark two-qubit XEB circuits.
+    r"""Simulate and benchmark two-qubit XEB circuits.
 
     This uses the estimator from
     `cirq.experiments.fidelity_estimation.least_squares_xeb_fidelity_from_expectations`, but
     adapted for use on pandas DataFrames for efficient vectorized operation.
+
+    The error model is assumed to be a channel that applies the unitary with probability $f$
+    (i.e. fidelity) or does nothing. This mapping is represented by
+    $$
+        \ket{\psi} \xrightarrow \rho_U = f \ket{\psi_U}\bra{\psi_U} + (1 - f) I / D
+    $$
+    Where $\rho_U$ is the density matrix after the operation. This leads to
+    $$
+        Tr(\rho_U O_U) = f \bra{\psi_U} O_U \ket{\psi_U} + (1 - f) Tr(O_U / D)
+    $$
+    setting $m_U = Tr(\rho_U O_U), u_U = Tr(O_U / D), e_U = \bra{\psi_U} O_U \ket{\psi_U}$ we get
+    $$
+        f = \frac{m_U - u_U}{e_U - u_U}
+    $$
 
     Args:
         sampled_df: The sampled results to benchmark. This is likely produced by a call to
@@ -95,6 +109,8 @@ def benchmark_2q_xeb_fidelities(
     D = 4  # two qubits
     pure_probs = np.array(df['pure_probs'].to_list())
     sampled_probs = np.array(df['sampled_probs'].to_list())
+    # pure_probs = np.sqrt(np.array(df['pure_probs'].to_list()))
+    # sampled_probs = np.sqrt(np.array(df['sampled_probs'].to_list()))
     df['e_u'] = np.sum(pure_probs**2, axis=1)
     df['u_u'] = np.sum(pure_probs, axis=1) / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
@@ -402,7 +418,6 @@ def characterize_phased_fsim_parameters_with_xeb(
         fids = benchmark_2q_xeb_fidelities(
             sampled_df, parameterized_circuits, cycle_depths, param_resolver=params, pool=pool
         )
-
         loss = 1 - fids['fidelity'].mean()
         if verbose:
             print(f"Loss: {loss:7.3g}", flush=True)
@@ -504,7 +519,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
         subselected_dfs,
         pool=pool,
         progress_bar=tqdm.tqdm,
-        desc='characterize fsim parameters',
+        # desc='characterize fsim parameters',
     )
     optimization_results = {}
     all_final_params = {}

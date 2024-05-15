@@ -136,9 +136,9 @@ def calibrate_z_phases(
                 1: ───Rz(b)───two_qubit_gate───Rz(d)───
     for some angles a, b, c, and d.
 
-    Since the two-qubit gate is a excitation-preserving gate, it can be represented by an FSimGate and
-    the effect of rotations turns it into a PhasedFSimGate. Using XEB-data we find the PhasedFSimGate
-    parameters that minimize the infidelity of the gate.
+    Since the two-qubit gate is a excitation-preserving gate, it can be represented by an FSimGate
+    and the effect of rotations turns it into a PhasedFSimGate. Using XEB-data we find the
+    PhasedFSimGate parameters that minimize the infidelity of the gate.
 
     References:
         - https://arxiv.org/abs/2001.08343
