@@ -91,9 +91,10 @@ def is_special_orthogonal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float
     Returns:
         Whether the matrix is special orthogonal within the given tolerance.
     """
-    return is_orthogonal(matrix, rtol=rtol, atol=atol) and (
-        matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
-    )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return is_orthogonal(matrix, rtol=rtol, atol=atol) and (
+            matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
+        )
 
 
 def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
@@ -128,9 +129,10 @@ def is_special_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 
         Whether the matrix is unitary with unit determinant within the given
         tolerance.
     """
-    return is_unitary(matrix, rtol=rtol, atol=atol) and (
-        matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
-    )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return is_unitary(matrix, rtol=rtol, atol=atol) and (
+            matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
+        )
 
 
 def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
