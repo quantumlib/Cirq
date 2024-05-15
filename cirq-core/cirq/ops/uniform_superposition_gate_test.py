@@ -51,12 +51,9 @@ def test_generated_unitary_is_uniform(m: int, n: int) -> None:
             gate = cirq.UniformSuperpositionGate(m, n)
     else:
         gate = cirq.UniformSuperpositionGate(m, n)
-        qregx = cirq.LineQubit.range(n)
-        qcircuit = cirq.Circuit(gate.on(*qregx))
-
-        unitary_matrix1 = np.real(qcircuit.unitary())
+        matrix = np.real(cirq.unitary(gate))
         np.testing.assert_allclose(
-            unitary_matrix1[:, 0],
+            matrix[:, 0],
             (1 / np.sqrt(m)) * np.array([1] * m + [0] * (2**n - m)),
             atol=1e-8,
         )
