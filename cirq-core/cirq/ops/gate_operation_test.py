@@ -509,6 +509,7 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.ops.raw_types._InverseCompositeGate,
         cirq.circuits.qasm_output.QasmTwoQubitGate,
         cirq.ops.MSGate,
+        cirq.ops.UniformSuperpositionGate,
         # Interop gates
         cirq.interop.quirk.QuirkQubitPermutationGate,
         cirq.interop.quirk.QuirkArithmeticGate,
