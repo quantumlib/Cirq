@@ -14,7 +14,6 @@
 
 from typing import Any, Union, List, Callable, TypeVar, Iterable, Optional, ContextManager
 
-import multiprocessing
 import concurrent.futures
 import tqdm
 
@@ -42,9 +41,6 @@ def execute_with_progress_bar(
 
     Returns:
         An out-of-order list of the results of the function calls.
-
-    Raises:
-        TypeError: If the pool is not a multiprocessing pool or threading pool or None.
     """
     sequential_inputs = [*inputs]
     results: List[_OUTPUT_T] = []
