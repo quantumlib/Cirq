@@ -4,10 +4,10 @@
 notebook>=6.4.1,<=6.4.7
 
 # https://github.com/nteract/papermill/issues/519
-ipykernel==5.3.4
+ipykernel~=6.28
 
 # for executing notebooks in tests
-papermill~=2.3.2
+papermill~=2.4
 
 # for notebooks that do `pip install cirq-core[contrib]`
 -r ../../../cirq-core/cirq/contrib/requirements.txt
