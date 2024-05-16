@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union, List, Callable, TypeVar, Iterable, Optional, ContextManager
+from typing import Any, Union, List, Callable, TypeVar, Iterable, Optional, ContextManager, TYPE_CHECKING
 
 import concurrent.futures
 import tqdm
 
+if TYPE_CHECKING:
+    import multiprocessing
 
 _OUTPUT_T = TypeVar('_OUTPUT_T')
 
