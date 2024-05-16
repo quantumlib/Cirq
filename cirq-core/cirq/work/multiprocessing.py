@@ -61,13 +61,11 @@ def execute_with_progress_bar(
                 results.append(future.result())
                 progress.update(1)
         return results
-    if isinstance(pool, multiprocessing.pool.Pool):
-        with progress_bar(total=len(sequential_inputs), **progress_bar_args) as progress:
-            for res in pool.imap_unordered(func, sequential_inputs):
-                results.append(res)
-                progress.update(1)
-        return results
-    raise TypeError(f'type {type(pool)} of {pool=} is not supported')
+    with progress_bar(total=len(sequential_inputs), **progress_bar_args) as progress:
+        for res in pool.imap_unordered(func, sequential_inputs):
+            results.append(res)
+            progress.update(1)
+    return results
 
 
 def starmap_with_progress_bar(
@@ -90,9 +88,6 @@ def starmap_with_progress_bar(
 
     Returns:
         An out-of-order list of the results of the function calls.
-
-    Raises:
-        TypeError: If the pool is not a multiprocessing pool or threading pool or None.
     """
     sequential_inputs = [*inputs]
     results: List[_OUTPUT_T] = []
@@ -109,10 +104,8 @@ def starmap_with_progress_bar(
                 results.append(future.result())
                 progress.update(1)
         return results
-    if isinstance(pool, multiprocessing.pool.Pool):
-        with progress_bar(total=len(sequential_inputs), **progress_bar_args) as progress:
-            for res in pool.starmap(func, sequential_inputs):
-                results.append(res)
-                progress.update(1)
-        return results
-    raise TypeError(f'type {type(pool)} of {pool=} is not supported')
+    with progress_bar(total=len(sequential_inputs), **progress_bar_args) as progress:
+        for res in pool.starmap(func, sequential_inputs):
+            results.append(res)
+            progress.update(1)
+    return results

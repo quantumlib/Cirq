@@ -60,13 +60,3 @@ def test_starmap_with_progress_bar(pool_creator):
                 )
             )
     assert actual == desired
-
-
-def test_invalid_argument_raises_error():
-    with pytest.raises(TypeError):
-        _ = execute_with_progress_bar(_sinle_arg_func, range(10), pool=3)
-
-    with pytest.raises(TypeError):
-        _ = starmap_with_progress_bar(
-            _multi_arg_func, zip(range(10), range(1000, 1000 + 10)), pool=3
-        )
