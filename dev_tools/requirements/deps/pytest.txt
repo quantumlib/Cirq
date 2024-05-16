@@ -4,7 +4,7 @@ pytest
 pytest-asyncio
 pytest-cov
 pytest-randomly
-coverage
+coverage~=7.4
 
 # for parallel testing notebooks
 pytest-xdist
