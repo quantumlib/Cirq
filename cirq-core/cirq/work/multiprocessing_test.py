@@ -29,33 +29,37 @@ def _multi_arg_func(x: int, y: int) -> str:
 
 
 @pytest.mark.parametrize(
-    'pool', [None, multiprocessing.Pool(2), concurrent.futures.ThreadPoolExecutor(2)]
+    'pool_creator', [None, multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]
 )
-def test_execute_with_progress_bar(pool):
+def test_execute_with_progress_bar(pool_creator):
     desired = set([f'{x=}' for x in range(10)])
-    actual = set(execute_with_progress_bar(_sinle_arg_func, range(10), pool=pool))
+    if pool_creator is None:
+        actual = set(execute_with_progress_bar(_sinle_arg_func, range(10), pool=None))
+    else:
+        with pool_creator(2) as pool:
+            actual = set(execute_with_progress_bar(_sinle_arg_func, range(10), pool=pool))
     assert actual == desired
-    if isinstance(pool, multiprocessing.pool.Pool):
-        pool.close()
-    if isinstance(pool, concurrent.futures.ThreadPoolExecutor):
-        pool.shutdown()
 
 
 @pytest.mark.parametrize(
-    'pool', [None, multiprocessing.Pool(2), concurrent.futures.ThreadPoolExecutor(2)]
+    'pool_creator', [None, multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]
 )
-def test_starmap_with_progress_bar(pool):
+def test_starmap_with_progress_bar(pool_creator):
     desired = set([f'{x=}-{y=}' for x, y in zip(range(10), range(1000, 1000 + 10))])
-    actual = set(
-        starmap_with_progress_bar(
-            _multi_arg_func, zip(range(10), range(1000, 1000 + 10)), pool=pool
+    if pool_creator is None:
+        actual = set(
+            starmap_with_progress_bar(
+                _multi_arg_func, zip(range(10), range(1000, 1000 + 10)), pool=None
+            )
         )
-    )
+    else:
+        with pool_creator(2) as pool:
+            actual = set(
+                starmap_with_progress_bar(
+                    _multi_arg_func, zip(range(10), range(1000, 1000 + 10)), pool=pool
+                )
+            )
     assert actual == desired
-    if isinstance(pool, multiprocessing.pool.Pool):
-        pool.close()
-    if isinstance(pool, concurrent.futures.ThreadPoolExecutor):
-        pool.shutdown()
 
 
 def test_invalid_argument_raises_error():
