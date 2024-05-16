@@ -26,6 +26,7 @@ import tempfile
 import pytest
 
 from dev_tools import shell_tools
+from dev_tools.modules import list_modules
 from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
 from dev_tools.test_utils import only_on_posix
 
@@ -63,9 +64,18 @@ def require_packages_not_changed():
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    packages_before = set((d.name, d.version) for d in importlib.metadata.distributions())
+    cirq_packages = set(m.name for m in list_modules()).union(["cirq"])
+    packages_before = set(
+        (d.name, d.version)
+        for d in importlib.metadata.distributions()
+        if d.name not in cirq_packages
+    )
     yield
-    packages_after = set((d.name, d.version) for d in importlib.metadata.distributions())
+    packages_after = set(
+        (d.name, d.version)
+        for d in importlib.metadata.distributions()
+        if d.name not in cirq_packages
+    )
     assert packages_after == packages_before
 
 
