@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 import cirq
 import sympy
+from itertools import product
 
 
 def test_x_gate():
@@ -78,85 +79,41 @@ def test_CCNOT():
     np.testing.assert_equal(results, expected_results)
 
 
-def test_CCCX():
+@pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=4)])
+def test_CCCX(initial_state):
     CCCX = cirq.CCNOT.controlled()
     qubits = cirq.LineQubit.range(4)
+
     circuit = cirq.Circuit()
+    circuit.append(CCCX(*qubits))
+    circuit.append(cirq.measure(qubits, key='key'))
 
-    for i in range(8):
-        not_idxs = []
-        tmp = i
-        for j in range(3):
-            if tmp & 1:
-                not_idxs.append(j)
-            tmp >>= 1
+    final_state = initial_state.copy()
+    final_state[-1] ^= all(final_state[:-1])
 
-        circuit.append(cirq.X(qubits[j]) for j in not_idxs)
-        circuit.append(CCCX(*qubits))
-        circuit.append(cirq.measure(qubits, key='key'))
-        circuit.append(cirq.X(qubits[j]) for j in not_idxs)
-
-    expected_results = {
-        'key': np.array(
-            [
-                [
-                    [0, 0, 0, 0],
-                    [1, 0, 0, 0],
-                    [0, 1, 0, 0],
-                    [1, 1, 0, 0],
-                    [0, 0, 1, 0],
-                    [1, 0, 1, 0],
-                    [0, 1, 1, 0],
-                    [1, 1, 1, 1],
-                ]
-            ],
-            dtype=np.uint8,
-        )
-    }
     sim = cirq.ClassicalStateSimulator()
-    results = sim.run(circuit, param_resolver=None, repetitions=1).records
-    np.testing.assert_equal(results, expected_results)
+    results = sim.simulate(circuit, initial_state=initial_state).measurements['key']
+    np.testing.assert_equal(results, final_state)
 
 
-def test_CSWAP():
+@pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=3)])
+def test_CSWAP(initial_state):
     CSWAP = cirq.SWAP.controlled()
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit()
 
-    for i in range(8):
-        not_idxs = []
-        tmp = i
-        for j in range(3):
-            if tmp & 1:
-                not_idxs.append(j)
-            tmp >>= 1
+    circuit = cirq.Circuit()
+    circuit.append(CSWAP(*qubits))
+    circuit.append(cirq.measure(qubits, key='key'))
 
-        circuit.append(cirq.X(qubits[j]) for j in not_idxs)
-        circuit.append(CSWAP(*qubits))
-        circuit.append(cirq.measure(qubits, key='key'))
-        circuit.append(CSWAP(*qubits))
-        circuit.append(cirq.X(qubits[j]) for j in not_idxs)
+    a, b, c = initial_state
+    if a:
+        b, c = c, b
+    final_state = [a, b, c]
 
-    expected_results = {
-        'key': np.array(
-            [
-                [
-                    [0, 0, 0],
-                    [1, 0, 0],
-                    [0, 1, 0],
-                    [1, 0, 1],
-                    [0, 0, 1],
-                    [1, 1, 0],
-                    [0, 1, 1],
-                    [1, 1, 1],
-                ]
-            ],
-            dtype=np.uint8,
-        )
-    }
     sim = cirq.ClassicalStateSimulator()
-    results = sim.run(circuit, param_resolver=None, repetitions=1).records
-    np.testing.assert_equal(results, expected_results)
+    results = sim.simulate(circuit, initial_state=initial_state).measurements['key']
+    np.testing.assert_equal(results, final_state)
 
 
 def test_measurement_gate():
