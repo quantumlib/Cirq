@@ -96,7 +96,7 @@ PACKAGES = [
     "papermill",
     "jupyter",
     # assumed to be part of colab
-    "seaborn~=0.11.1",
+    "seaborn~=0.12",
 ]
 
 
