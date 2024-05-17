@@ -18,7 +18,8 @@ import cirq
 
 
 @pytest.mark.parametrize(
-    ["m", "n"], [[int(m), n] for n in range(3, 7) for m in np.random.randint(1, 1 << n, size=3)]
+    ["m", "n"], [[int(m), n] for n in range(3, 7) for m in np.random.randint(1, 1 << n, size=3)] +
+    [(1,2), (4,2), (6,3), (7,3)]
 )
 def test_generated_unitary_is_uniform(m: int, n: int) -> None:
     r"""The code checks that the unitary matrix corresponds to the generated uniform superposition
