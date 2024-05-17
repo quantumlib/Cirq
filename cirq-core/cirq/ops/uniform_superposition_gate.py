@@ -47,7 +47,10 @@ class UniformSuperpositionGate(raw_types.Gate):
         """
         if not (isinstance(m_value, int) and (m_value > 0)):
             raise ValueError("m_value must be a positive integer.")
-        if not (isinstance(num_qubits, int) and (num_qubits >= m_value.bit_length())):
+        log_two_m_value = m_value.bit_length()
+        if (m_value & (m_value -1)) == 0:
+            log_two_m_value = log_two_m_value - 1
+        if not (isinstance(num_qubits, int) and (num_qubits >= log_two_m_value)):
             raise ValueError(
                 "num_qubits must be an integer greater than or equal to log2(m_value)."
             )
