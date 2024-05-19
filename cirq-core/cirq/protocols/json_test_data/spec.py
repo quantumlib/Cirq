@@ -57,7 +57,6 @@ TestSpec = ModuleJsonTestSpec(
         'TwoQubitGateTabulationResult',
         'StateVectorTrialResult',
         'ZerosSampler',
-        'UniformSuperpositionGate',
     ],
     should_not_be_serialized=[
         'ClassicalStateSimulator',
