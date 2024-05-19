@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, TYPE_CHECKING
+from typing import Sequence, Any, Dict, TYPE_CHECKING
 
 import numpy as np
 from cirq.ops.common_gates import H, ry
@@ -48,7 +48,8 @@ class UniformSuperpositionGate(raw_types.Gate):
         if not (isinstance(m_value, int) and (m_value > 0)):
             raise ValueError("m_value must be a positive integer.")
         log_two_m_value = m_value.bit_length()
-        if (m_value & (m_value -1)) == 0:
+
+        if (m_value & (m_value - 1)) == 0:
             log_two_m_value = log_two_m_value - 1
         if not (isinstance(num_qubits, int) and (num_qubits >= log_two_m_value)):
             raise ValueError(
@@ -99,3 +100,27 @@ class UniformSuperpositionGate(raw_types.Gate):
 
     def num_qubits(self) -> int:
         return self._num_qubits
+
+    @property
+    def m_value(self) -> int:
+        return self._m_value
+
+    def __eq__(self, other):
+        if isinstance(other, UniformSuperpositionGate):
+            return (self._m_value == other._m_value) and (self._num_qubits == other._num_qubits)
+        return False
+
+    def _value_equality_values_(self):
+        return tuple(self._m_value, self._num_qubits)
+
+    def __repr__(self) -> str:
+        return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        d = {}
+        d['m_value'] = self._m_value
+        d['num_qubits'] = self._num_qubits
+        return d
+
+    def __str__(self) -> str:
+        return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'
