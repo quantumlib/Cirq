@@ -61,3 +61,14 @@ def test_incompatible_m_value_and_qubit_args(m: int, n: int) -> None:
             match="num_qubits must be an integer greater than or equal to log2\\(m_value\\).",
         ):
             cirq.UniformSuperpositionGate(m, n)
+
+
+def test_repr():
+    assert (
+        repr(cirq.UniformSuperpositionGate(7,3)) ==
+        'UniformSuperpositionGate(m_value=7, num_qubits=3)'
+    )
+
+
+def test_uniform_superposition_gate_json_dict():
+    assert cirq.UniformSuperpositionGate(7,3)._json_dict_() == {'m_value': 7, 'num_qubits': 3}
