@@ -18,8 +18,9 @@ import cirq
 
 
 @pytest.mark.parametrize(
-    ["m", "n"], [[int(m), n] for n in range(3, 7) for m in np.random.randint(1, 1 << n, size=3)] +
-    [(1,2), (4,2), (6,3), (7,3)]
+    ["m", "n"],
+    [[int(m), n] for n in range(3, 7) for m in np.random.randint(1, 1 << n, size=3)]
+    + [(1, 2), (4, 2), (6, 3), (7, 3)]
 )
 def test_generated_unitary_is_uniform(m: int, n: int) -> None:
     r"""The code checks that the unitary matrix corresponds to the generated uniform superposition
@@ -65,10 +66,25 @@ def test_incompatible_m_value_and_qubit_args(m: int, n: int) -> None:
 
 def test_repr():
     assert (
-        repr(cirq.UniformSuperpositionGate(7,3)) ==
-        'UniformSuperpositionGate(m_value=7, num_qubits=3)'
+        repr(cirq.UniformSuperpositionGate(7, 3))
+        == 'UniformSuperpositionGate(m_value=7, num_qubits=3)'
     )
 
 
 def test_uniform_superposition_gate_json_dict():
-    assert cirq.UniformSuperpositionGate(7,3)._json_dict_() == {'m_value': 7, 'num_qubits': 3}
+    assert cirq.UniformSuperpositionGate(7, 3)._json_dict_() == {'m_value': 7, 'num_qubits': 3}
+
+def test_str():
+    assert (
+        str(cirq.UniformSuperpositionGate(7, 3))
+        == 'UniformSuperpositionGate(m_value=7, num_qubits=3)'
+    )
+
+@pytest.mark.parametrize(["m", "n"], [(5, 3), (10, 4)])
+def test_eq(m: int, n: int) -> None:
+    a = cirq.UniformSuperpositionGate(m, n)
+    b = cirq.UniformSuperpositionGate(m, n)
+    c = cirq.UniformSuperpositionGate(m + 1, n)
+    assert a.m_value == b.m_value
+    assert (a.__eq__(b))
+    assert not (a.__eq__(c))
