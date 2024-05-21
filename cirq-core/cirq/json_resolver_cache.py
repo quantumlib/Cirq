@@ -247,6 +247,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ZipLongest': cirq.ZipLongest,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
+        'UniformSuperpositionGate': cirq.UniformSuperpositionGate,
         # Old types, only supported for backwards-compatibility
         'BooleanHamiltonian': _boolean_hamiltonian_gate_op,  # Removed in v0.15
         'CrossEntropyResult': _cross_entropy_result,  # Removed in v0.16
