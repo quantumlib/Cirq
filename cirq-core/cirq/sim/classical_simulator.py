@@ -129,11 +129,10 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             control_qubits = mapped_qubits[: gate.num_controls()]
             mapped_qubits = mapped_qubits[gate.num_controls() :]
 
-            for c, v in zip(control_qubits, gate.control_values):
-                controls_state = tuple(self._state.basis[c] for c in control_qubits)
-                if controls_state not in gate.control_values.expand():
-                    # gate has no effect; controls were off
-                    return True
+            controls_state = tuple(self._state.basis[c] for c in control_qubits)
+            if controls_state not in gate.control_values.expand():
+                # gate has no effect; controls were off
+                return True
 
             gate = gate.sub_gate
 
