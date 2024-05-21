@@ -74,11 +74,13 @@ def test_repr():
 def test_uniform_superposition_gate_json_dict():
     assert cirq.UniformSuperpositionGate(7, 3)._json_dict_() == {'m_value': 7, 'num_qubits': 3}
 
+
 def test_str():
     assert (
         str(cirq.UniformSuperpositionGate(7, 3))
         == 'UniformSuperpositionGate(m_value=7, num_qubits=3)'
     )
+
 
 @pytest.mark.parametrize(["m", "n"], [(5, 3), (10, 4)])
 def test_eq(m: int, n: int) -> None:
