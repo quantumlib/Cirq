@@ -536,7 +536,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     )
 
 
-def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> np.ndarray:
+def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float, b: float) -> np.ndarray:
     """An exponential decay for fitting.
 
     This computes `a * layer_fid**cycle_depths`
@@ -545,12 +545,13 @@ def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> n
         cycle_depths: The various depths at which fidelity was estimated. This is the independent
             variable in the exponential function.
         a: A scale parameter in the exponential function.
+        b: An offset parameter.
         layer_fid: The base of the exponent in the exponential function.
     """
-    return a * layer_fid**cycle_depths
+    return a * layer_fid**cycle_depths + b
 
 
-def _fit_exponential_decay(
+def fit_exponential_decay(
     cycle_depths: np.ndarray, fidelities: np.ndarray
 ) -> Tuple[float, float, float, float]:
     """Fit an exponential model fidelity = a * layer_fid**x using nonlinear least squares.
@@ -589,17 +590,17 @@ def _fit_exponential_decay(
     a_0 = np.clip(np.exp(intercept), 0, 1)
 
     try:
-        (a, layer_fid), pcov = optimize.curve_fit(
+        (a, layer_fid, _), pcov = optimize.curve_fit(
             exponential_decay,
             cycle_depths,
             fidelities,
-            p0=(a_0, layer_fid_0),
-            bounds=((0, 0), (1, 1)),
+            p0=(a_0, layer_fid_0, 0.999),
+            bounds=((0, 0, 0), (1, 1, 1)),
         )
     except ValueError:  # pragma: no cover
         return 0, 0, np.inf, np.inf
 
-    a_std, layer_fid_std = np.sqrt(np.diag(pcov))
+    a_std, layer_fid_std = np.sqrt(np.diag(pcov[:2]))
     return a, layer_fid, a_std, layer_fid_std
 
 
@@ -619,7 +620,7 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
     """
 
     def _per_pair(f1):
-        a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(
+        a, layer_fid, a_std, layer_fid_std = fit_exponential_decay(
             f1['cycle_depth'], f1['fidelity']
         )
         record = {
