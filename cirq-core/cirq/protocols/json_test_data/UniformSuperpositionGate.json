@@ -1,0 +1,5 @@
+{
+  "cirq_type": "UniformSuperpositionGate",
+  "m_value": 7,
+  "num_qubits": 3
+}
