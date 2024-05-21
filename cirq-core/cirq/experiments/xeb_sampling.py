@@ -16,7 +16,7 @@ import concurrent
 import os
 import time
 import uuid
-from concurrent.futures.thread import ThreadPoolExecutor
+import itertools
 from dataclasses import dataclass
 from typing import (
     Callable,
@@ -38,6 +38,7 @@ import tqdm
 from cirq import ops, devices, value, protocols
 from cirq.circuits import Circuit, Moment
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
+from cirq.experiments import xeb_utils
 
 if TYPE_CHECKING:
     import cirq
@@ -127,22 +128,6 @@ def _verify_two_line_qubits_from_circuits(circuits: Sequence['cirq.Circuit']):
             "`circuits` should be a sequence of circuits each operating "
             "on LineQubit(0) and LineQubit(1)"
         )
-
-
-class _NoProgress:
-    """Lack of tqdm-style progress bar."""
-
-    def __init__(self, total: int):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-    def update(self, n: int = 1):
-        pass
 
 
 @dataclass(frozen=True)
@@ -266,7 +251,7 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     combinations_by_layer: List[CircuitLibraryCombination],
     repetitions: int,
     batch_size: int,
-    progress_bar: Callable[..., ContextManager],
+    progress_bar: Optional[Callable[..., ContextManager]] = None,
     dataset_directory: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
@@ -276,19 +261,27 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     run_batch = _SampleInBatches(
         sampler=sampler, repetitions=repetitions, combinations_by_layer=combinations_by_layer
     )
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        futures = [pool.submit(run_batch, task_batch) for task_batch in batched_tasks]
 
-        records = []
-        with progress_bar(total=len(batched_tasks) * batch_size) as progress:
-            for future in concurrent.futures.as_completed(futures):
-                new_records = future.result()
-                if dataset_directory is not None:
-                    os.makedirs(f'{dataset_directory}', exist_ok=True)
-                    protocols.to_json(new_records, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
-                records.extend(new_records)
-                progress.update(batch_size)
-    return records
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        if progress_bar is None:
+            results = pool.map(run_batch, batched_tasks)
+        else:
+            results = xeb_utils.execute_with_progress_par(
+                func=run_batch,
+                inputs=batched_tasks,
+                pool=pool,
+                progress_bar=progress_bar,
+                desc='sample 2q xeb circuits',
+            )
+
+    if dataset_directory is not None:
+        os.makedirs(f'{dataset_directory}', exist_ok=True)
+        for record in results:
+            protocols.to_json(record, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
+
+    # for i, res in enumerate(results):
+    #     print(f'{i}.', res)
+    return list(itertools.chain(*results))
 
 
 def sample_2q_xeb_circuits(
@@ -334,9 +327,6 @@ def sample_2q_xeb_circuits(
         not `None` and you are doing parallel XEB, additional metadata columns
         will be attached to the returned DataFrame.
     """
-    # Set up progress reporting
-    if progress_bar is None:
-        progress_bar = _NoProgress
 
     # Shim isolated-XEB as a special case of combination-style parallel XEB.
     if combinations_by_layer is None:

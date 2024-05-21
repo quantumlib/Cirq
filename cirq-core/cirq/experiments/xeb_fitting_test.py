@@ -11,11 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import itertools
 import multiprocessing
-from typing import Iterable
 
-import networkx as nx
 import numpy as np
 import pandas as pd
 import pytest
@@ -28,12 +25,14 @@ from cirq.experiments.xeb_fitting import (
     SqrtISwapXEBOptions,
     characterize_phased_fsim_parameters_with_xeb,
     characterize_phased_fsim_parameters_with_xeb_by_pair,
-    _fit_exponential_decay,
+    fit_exponential_decay,
     fit_exponential_decays,
     before_and_after_characterization,
     XEBPhasedFSimCharacterizationOptions,
+    phased_fsim_angles_from_gate,
 )
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
+from cirq.experiments.xeb_utils import grid_qubits_to_graph
 
 
 @pytest.fixture(scope='module')
@@ -91,22 +90,12 @@ def test_benchmark_2q_xeb_subsample_depths(circuits_cycle_depths_sampled_df):
         _ = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
 
 
-def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
-    # cirq contrib: routing.gridqubits_to_graph_device
-    def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
-        return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
-
-    return nx.Graph(
-        pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
-    )
-
-
 def test_benchmark_2q_xeb_fidelities_parallel():
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, max_cycle_depth=4
     )
     cycle_depths = [2, 3, 4]
-    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
+    graph = grid_qubits_to_graph(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
         n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=10
     )
@@ -256,7 +245,7 @@ def test_parallel_full_workflow(use_pool):
         random_state=8675309,
     )
     cycle_depths = [2, 3, 4]
-    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
+    graph = grid_qubits_to_graph(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
         n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=10
     )
@@ -316,7 +305,7 @@ def test_fit_exponential_decays():
     rs = np.random.RandomState(999)
     cycle_depths = np.arange(3, 100, 11)
     fidelities = 0.95 * 0.98**cycle_depths + rs.normal(0, 0.2)
-    a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
+    a, layer_fid, a_std, layer_fid_std = fit_exponential_decay(cycle_depths, fidelities)
     np.testing.assert_allclose([a, layer_fid], [0.95, 0.98], atol=0.02)
     assert 0 < a_std < 0.2 / len(cycle_depths)
     assert 0 < layer_fid_std < 1e-3
@@ -327,7 +316,7 @@ def test_fit_exponential_decays_negative_fids():
     cycle_depths = np.arange(3, 100, 11)
     fidelities = 0.5 * 0.5**cycle_depths + rs.normal(0, 0.2) - 0.5
     assert np.sum(fidelities > 0) <= 1, 'they go negative'
-    a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
+    a, layer_fid, a_std, layer_fid_std = fit_exponential_decay(cycle_depths, fidelities)
     assert a == 0
     assert layer_fid == 0
     assert a_std == np.inf
@@ -354,7 +343,7 @@ def test_options_with_defaults_from_gate():
     assert options.zeta_default == 0.0
 
     with pytest.raises(ValueError):
-        _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.CZ)
+        _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.XX)
 
 
 def test_options_defaults_set():
@@ -395,3 +384,24 @@ def test_options_defaults_set():
         phi_default=0.0,
     )
     assert o3.defaults_set() is True
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.CZ,
+        cirq.SQRT_ISWAP,
+        cirq.SQRT_ISWAP_INV,
+        cirq.ISWAP,
+        cirq.ISWAP_INV,
+        cirq.cphase(0.1),
+        cirq.CZ**0.2,
+    ],
+)
+def test_phased_fsim_angles_from_gate(gate):
+    angles = phased_fsim_angles_from_gate(gate)
+    angles = {k.removesuffix('_default'): v for k, v in angles.items()}
+    phasedfsim = cirq.PhasedFSimGate(**angles)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(phasedfsim), cirq.unitary(gate), atol=1e-6
+    )

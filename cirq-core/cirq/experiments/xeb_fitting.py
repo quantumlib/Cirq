@@ -14,17 +14,20 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Dict, Iterable, List, Union, Optional, Sequence, Tuple, TYPE_CHECKING
 
+import tqdm
 import numpy as np
 import pandas as pd
 import sympy
 from cirq import circuits, ops, protocols, _import
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
+from cirq.experiments import xeb_utils
 
 if TYPE_CHECKING:
     import cirq
     import multiprocessing
+    import concurrent.futures
     import scipy.optimize
 
 # We initialize these lazily, otherwise they slow global import speed.
@@ -43,11 +46,25 @@ def benchmark_2q_xeb_fidelities(
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> pd.DataFrame:
-    """Simulate and benchmark two-qubit XEB circuits.
+    r"""Simulate and benchmark two-qubit XEB circuits.
 
     This uses the estimator from
     `cirq.experiments.fidelity_estimation.least_squares_xeb_fidelity_from_expectations`, but
     adapted for use on pandas DataFrames for efficient vectorized operation.
+
+    The error model is assumed to be a channel that applies the unitary with probability $f$
+    (i.e. fidelity) or does nothing. This mapping is represented by
+    $$
+        \ket{\psi} \xrightarrow \rho_U = f \ket{\psi_U}\bra{\psi_U} + (1 - f) I / D
+    $$
+    Where $\rho_U$ is the density matrix after the operation. This leads to
+    $$
+        Tr(\rho_U O_U) = f \bra{\psi_U} O_U \ket{\psi_U} + (1 - f) Tr(O_U / D)
+    $$
+    setting $m_U = Tr(\rho_U O_U), u_U = Tr(O_U / D), e_U = \bra{\psi_U} O_U \ket{\psi_U}$ we get
+    $$
+        f = \frac{m_U - u_U}{e_U - u_U}
+    $$
 
     Args:
         sampled_df: The sampled results to benchmark. This is likely produced by a call to
@@ -92,6 +109,8 @@ def benchmark_2q_xeb_fidelities(
     D = 4  # two qubits
     pure_probs = np.array(df['pure_probs'].to_list())
     sampled_probs = np.array(df['sampled_probs'].to_list())
+    # pure_probs = np.sqrt(np.array(df['pure_probs'].to_list()))
+    # sampled_probs = np.sqrt(np.array(df['sampled_probs'].to_list()))
     df['e_u'] = np.sum(pure_probs**2, axis=1)
     df['u_u'] = np.sum(pure_probs, axis=1) / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
@@ -130,11 +149,6 @@ def benchmark_2q_xeb_fidelities(
 
 
 class XEBCharacterizationOptions(ABC):
-    @staticmethod
-    @abstractmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
-        """Whether to replace `op` with a parameterized version."""
-
     @abstractmethod
     def get_parameterized_gate(self) -> 'cirq.Gate':
         """The parameterized gate to use."""
@@ -174,6 +188,15 @@ def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal
             'gamma_default': gate.gamma,
             'phi_default': gate.phi,
         }
+
+    # Handle all gates that preserve excitations (i.e. fermionic gates).
+    u = protocols.unitary(gate)
+    phi = -np.angle(u[3, 3])
+    theta = np.angle(u[1, 1] - u[1, 2])
+    if np.allclose(u, protocols.unitary(ops.FSimGate(theta=theta, phi=phi))):
+        defaults['theta_default'] = theta
+        defaults['phi_default'] = phi
+        return defaults
 
     raise ValueError(f"Unknown default angles for {gate}.")
 
@@ -266,10 +289,6 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         phi = PHI_SYMBOL if self.characterize_phi else self.phi_default
         return ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
 
-    @staticmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
-        return isinstance(op.gate, (ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate))
-
     def defaults_set(self) -> bool:
         """Whether the default angles are set.
 
@@ -317,17 +336,18 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions
+    circuit: 'cirq.Circuit',
+    options: XEBCharacterizationOptions,
+    target: Union[ops.GateFamily, ops.Gateset] = ops.Gateset(
+        ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate
+    ),
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
     gate = options.get_parameterized_gate()
     return circuits.Circuit(
-        circuits.Moment(
-            gate.on(*op.qubits) if options.should_parameterize(op) else op
-            for op in moment.operations
-        )
+        circuits.Moment(gate.on(*op.qubits) if op in target else op for op in moment.operations)
         for moment in circuit.moments
     )
 
@@ -398,7 +418,6 @@ def characterize_phased_fsim_parameters_with_xeb(
         fids = benchmark_2q_xeb_fidelities(
             sampled_df, parameterized_circuits, cycle_depths, param_resolver=params, pool=pool
         )
-
         loss = 1 - fids['fidelity'].mean()
         if verbose:
             print(f"Loss: {loss:7.3g}", flush=True)
@@ -456,7 +475,9 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool: Optional[
+        Union['multiprocessing.pool.Pool', 'concurrent.futures.ThreadPoolExecutor']
+    ] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates grouped by pairs.
@@ -493,11 +514,13 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
         fatol=fatol,
     )
     subselected_dfs = [sampled_df[sampled_df['pair'] == pair] for pair in pairs]
-    if pool is not None:
-        results = pool.map(closure, subselected_dfs)
-    else:
-        results = [closure(df) for df in subselected_dfs]
-
+    results = xeb_utils.execute_with_progress_par(
+        closure,
+        subselected_dfs,
+        pool=pool,
+        progress_bar=tqdm.tqdm,
+        # desc='characterize fsim parameters',
+    )
     optimization_results = {}
     all_final_params = {}
     fid_dfs = []
@@ -513,7 +536,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     )
 
 
-def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> np.ndarray:
+def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float, b: float) -> np.ndarray:
     """An exponential decay for fitting.
 
     This computes `a * layer_fid**cycle_depths`
@@ -522,12 +545,13 @@ def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> n
         cycle_depths: The various depths at which fidelity was estimated. This is the independent
             variable in the exponential function.
         a: A scale parameter in the exponential function.
+        b: An offset parameter.
         layer_fid: The base of the exponent in the exponential function.
     """
-    return a * layer_fid**cycle_depths
+    return a * layer_fid**cycle_depths + b
 
 
-def _fit_exponential_decay(
+def fit_exponential_decay(
     cycle_depths: np.ndarray, fidelities: np.ndarray
 ) -> Tuple[float, float, float, float]:
     """Fit an exponential model fidelity = a * layer_fid**x using nonlinear least squares.
@@ -566,27 +590,18 @@ def _fit_exponential_decay(
     a_0 = np.clip(np.exp(intercept), 0, 1)
 
     try:
-        (a, layer_fid), pcov = optimize.curve_fit(
+        (a, layer_fid, _), pcov = optimize.curve_fit(
             exponential_decay,
             cycle_depths,
             fidelities,
-            p0=(a_0, layer_fid_0),
-            bounds=((0, 0), (1, 1)),
+            p0=(a_0, layer_fid_0, 0.999),
+            bounds=((0, 0, 0), (1, 1, 1)),
         )
     except ValueError:  # pragma: no cover
         return 0, 0, np.inf, np.inf
 
-    a_std, layer_fid_std = np.sqrt(np.diag(pcov))
+    a_std, layer_fid_std = np.sqrt(np.diag(pcov[:2]))
     return a, layer_fid, a_std, layer_fid_std
-
-
-def _one_unique(df, name, default):
-    """Helper function to assert that there's one unique value in a column and return it."""
-    if name not in df.columns:
-        return default
-    vals = df[name].unique()
-    assert len(vals) == 1, name
-    return vals[0]
 
 
 def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
@@ -605,7 +620,7 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
     """
 
     def _per_pair(f1):
-        a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(
+        a, layer_fid, a_std, layer_fid_std = fit_exponential_decay(
             f1['cycle_depth'], f1['fidelity']
         )
         record = {
