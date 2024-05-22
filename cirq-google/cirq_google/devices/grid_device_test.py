@@ -79,6 +79,7 @@ def _create_device_spec_with_horizontal_couplings():
         'wait',
         'fsim_via_model',
         'cz_pow_gate',
+        'internal_gate',
     ]
     gate_durations = [(n, i * 1000) for i, n in enumerate(gate_names)]
     for gate_name, duration in sorted(gate_durations):
@@ -113,6 +114,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate),
         cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
         cirq.GateFamily(cirq.CZPowGate),
+        cirq.GateFamily(cirq_google.InternalGate),
     )
 
     base_duration = cirq.Duration(picos=1_000)

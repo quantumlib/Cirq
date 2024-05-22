@@ -58,6 +58,7 @@ message GateSpecification {
     Wait wait = 11;
     FSimViaModel fsim_via_model = 12;
     CZPowGate cz_pow_gate = 13;
+    InternalGate internal_gate = 14;
   }
 
   // Gate types available to Google devices.
@@ -76,6 +77,7 @@ message GateSpecification {
   message Wait {}
   message FSimViaModel {}
   message CZPowGate {}
+  message InternalGate {}
 }
 
 message GateSet {
