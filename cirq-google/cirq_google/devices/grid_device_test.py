@@ -150,6 +150,7 @@ def _create_device_spec_with_horizontal_couplings():
         ): base_duration
         * 10,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
     }
 
     expected_target_gatesets = (
@@ -177,6 +178,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq_google.InternalGate),
             ]
         ),
         cirq_google.SycamoreTargetGateset(),
@@ -204,6 +206,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq_google.InternalGate),
             ]
         ),
         cirq.CZTargetGateset(
@@ -232,6 +235,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq_google.InternalGate),
             ],
         ),
     )
@@ -550,6 +554,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.ops.measurement_gate.MeasurementGate,
         cirq.ops.wait_gate.WaitGate,
         cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+        cirq.GateFamily(cirq_google.InternalGate),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -575,6 +580,7 @@ def test_device_from_device_information_equals_device_from_proto():
         ): base_duration
         * 10,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
@@ -682,6 +688,7 @@ def test_to_proto():
         ): base_duration
         * 10,
         cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
     }
 
     spec = cirq_google.GridDevice._from_device_information(
