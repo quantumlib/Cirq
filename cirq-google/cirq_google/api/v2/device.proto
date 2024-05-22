@@ -58,7 +58,6 @@ message GateSpecification {
     Wait wait = 11;
     FSimViaModel fsim_via_model = 12;
     CZPowGate cz_pow_gate = 13;
-    // A wrapper for serializing internal gates.
     InternalGate internal_gate = 14;
   }
 

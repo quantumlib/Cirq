@@ -238,8 +238,7 @@ class GateSpecification(google.protobuf.message.Message):
     @property
     def cz_pow_gate(self) -> global___GateSpecification.CZPowGate: ...
     @property
-    def internal_gate(self) -> global___GateSpecification.InternalGate:
-        """A wrapper for serializing internal gates."""
+    def internal_gate(self) -> global___GateSpecification.InternalGate: ...
     def __init__(
         self,
         *,
