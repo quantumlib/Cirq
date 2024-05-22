@@ -105,7 +105,7 @@ class SweepFunction(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _FunctionTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[SweepFunction._FunctionType.ValueType], builtins.type):
+    class _FunctionTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[SweepFunction._FunctionType.ValueType], builtins.type):  # noqa: F821
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         FUNCTION_TYPE_UNSPECIFIED: SweepFunction._FunctionType.ValueType  # 0
         """The function type is not specified. Should never be used."""
