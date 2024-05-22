@@ -105,7 +105,7 @@ class Circuit(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _SchedulingStrategyEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Circuit._SchedulingStrategy.ValueType], builtins.type):  # noqa: F821
+    class _SchedulingStrategyEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Circuit._SchedulingStrategy.ValueType], builtins.type):
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         SCHEDULING_STRATEGY_UNSPECIFIED: Circuit._SchedulingStrategy.ValueType  # 0
         """The scheduling strategy is unspecified."""
