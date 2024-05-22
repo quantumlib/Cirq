@@ -185,6 +185,10 @@ class GateSpecification(google.protobuf.message.Message):
 
     @typing_extensions.final
     class InternalGate(google.protobuf.message.Message):
+        """This gate gets mapped to the internal representation corresponding
+        to <gate_module.gate_name>.
+        """
+
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
         def __init__(
@@ -234,7 +238,8 @@ class GateSpecification(google.protobuf.message.Message):
     @property
     def cz_pow_gate(self) -> global___GateSpecification.CZPowGate: ...
     @property
-    def internal_gate(self) -> global___GateSpecification.InternalGate: ...
+    def internal_gate(self) -> global___GateSpecification.InternalGate:
+        """A wrapper for serializing internal gates."""
     def __init__(
         self,
         *,
