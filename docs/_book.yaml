@@ -22,8 +22,6 @@ upper_tabs:
 - name: "Software"
   path: /software
   is_default: true
-  menu:
-  - include: /_book/menu_software.yaml
   lower_tabs:
     # Subsite tabs
     other:
