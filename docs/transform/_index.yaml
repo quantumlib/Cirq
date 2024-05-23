@@ -4,17 +4,19 @@ title: Transform a circuit
 landing_page:
   nav: left
   rows:
-    - heading: Transform a circuit
-      description: Programmatically transform a provided circuit into another one to implement any compilation or optimization process that changes a circuit.
-      options:
-        - cards
-      items:
-      - heading: Circuit Transformers
-        description: The Transformer class and contract to represent some process that changes a supplied circuit.
-        path: /cirq/transform/transformers
-      - heading: Custom Transformers
-        description: Write your own Transformer with decorators, primitives and decompositions.
-        path: /cirq/transform/custom_transformers
-      - heading: Routing as a Transformer
-        description: Qubit Routing utilities for easily executing circuits on hardware.
-        path: /cirq/transform/routing_transformer
+  - heading: Transform a circuit
+    description: Programmatically transform a provided circuit into another one to
+      implement any compilation or optimization process that changes a circuit.
+    options:
+    - cards
+    items:
+    - heading: Circuit Transformers
+      description: The Transformer class and contract to represent some process that
+        changes a supplied circuit.
+      path: /cirq/transform/transformers
+    - heading: Custom Transformers
+      description: Write your own Transformer with decorators, primitives and decompositions.
+      path: /cirq/transform/custom_transformers
+    - heading: Routing as a Transformer
+      description: Qubit Routing utilities for easily executing circuits on hardware.
+      path: /cirq/transform/routing_transformer
