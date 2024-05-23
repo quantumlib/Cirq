@@ -40,8 +40,6 @@ SKIP_NOTEBOOKS = [
     # disabled to unblock Python 3.12.  TODO(#6590) - fix and enable.
     'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
     # skipping fidelity estimation due to
-    # https://github.com/quantumlib/Cirq/issues/3502
-    'examples/*fidelity*',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
@@ -53,8 +51,6 @@ SKIP_NOTEBOOKS = [
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    # shouldn't have outputs generated for style reasons
-    'docs/simulate/qvm_builder_code.ipynb',
 ]
 
 
