@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from itertools import product
 import numpy as np
 import pytest
 import cirq
@@ -76,6 +77,43 @@ def test_CCNOT():
     sim = cirq.ClassicalStateSimulator()
     results = sim.run(circuit, param_resolver=None, repetitions=1).records
     np.testing.assert_equal(results, expected_results)
+
+
+@pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=4)])
+def test_CCCX(initial_state):
+    CCCX = cirq.CCNOT.controlled()
+    qubits = cirq.LineQubit.range(4)
+
+    circuit = cirq.Circuit()
+    circuit.append(CCCX(*qubits))
+    circuit.append(cirq.measure(qubits, key='key'))
+
+    final_state = initial_state.copy()
+    final_state[-1] ^= all(final_state[:-1])
+
+    sim = cirq.ClassicalStateSimulator()
+    results = sim.simulate(circuit, initial_state=initial_state).measurements['key']
+    np.testing.assert_equal(results, final_state)
+
+
+@pytest.mark.parametrize(['initial_state'], [(list(x),) for x in product([0, 1], repeat=3)])
+def test_CSWAP(initial_state):
+    CSWAP = cirq.SWAP.controlled()
+    qubits = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit()
+
+    circuit = cirq.Circuit()
+    circuit.append(CSWAP(*qubits))
+    circuit.append(cirq.measure(qubits, key='key'))
+
+    a, b, c = initial_state
+    if a:
+        b, c = c, b
+    final_state = [a, b, c]
+
+    sim = cirq.ClassicalStateSimulator()
+    results = sim.simulate(circuit, initial_state=initial_state).measurements['key']
+    np.testing.assert_equal(results, final_state)
 
 
 def test_measurement_gate():
