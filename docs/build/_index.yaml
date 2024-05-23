@@ -4,46 +4,47 @@ title: Build a circuit
 landing_page:
   nav: left
   rows:
-    - heading: Build a circuit
-      description: At the core of Cirq is the ability to construct quantum circuits. These are the methods and data structures necessary to do so.
-    - heading: Circuit construction
-      description: The core data structures that compose a circuit and how to use them.
-      options:
-        - cards
-      items:
-      - heading: Circuits
-        description: Quantum circuits and how to create them.
-        path: /cirq/build/circuits
-      - heading: Qubits
-        description: The quantum bit data structure.
-        path: /cirq/build/qubits
-      - heading: Gates and Operations
-        description: Quantum gates to apply to qubits in a circuit.
-        path: /cirq/build/gates
-      - heading: Custom gates
-        description: Create your own gates with unitaries or decomposition.
-        path: /cirq/build/custom_gates
-      - heading: Import/export circuits
-        description: Importing or exporting circuits into/out of Cirq.
-        path: /cirq/build/interop
+  - heading: Build a circuit
+    description: At the core of Cirq is the ability to construct quantum circuits.
+      These are the methods and data structures necessary to do so.
+  - heading: Circuit construction
+    description: The core data structures that compose a circuit and how to use them.
+    options:
+    - cards
+    items:
+    - heading: Circuits
+      description: Quantum circuits and how to create them.
+      path: /cirq/build/circuits
+    - heading: Qubits
+      description: The quantum bit data structure.
+      path: /cirq/build/qubits
+    - heading: Gates and Operations
+      description: Quantum gates to apply to qubits in a circuit.
+      path: /cirq/build/gates
+    - heading: Custom gates
+      description: Create your own gates with unitaries or decomposition.
+      path: /cirq/build/custom_gates
+    - heading: Import/export circuits
+      description: Importing or exporting circuits into/out of Cirq.
+      path: /cirq/build/interop
 
-    - heading: Advanced construction
-      description: More elaborate ways to build quantum circuits.
-      options:
-        - cards
-      items:
-      - heading: Operators
-        description: Unitary operators, measurements and noise channels.
-        path: /cirq/build/operators
-      - heading: Observables and PauliStrings
-        description: Build and measure observables from sums and products of Pauli operators.
-        path: /cirq/build/pauli_observables
-      - heading: Qudits
-        description: Qutrits and higher dimensional quantum systems.
-        path: /cirq/build/qudits
-      - heading: Protocols
-        description: Magic methods supported by Cirq's classes.
-        path: /cirq/build/protocols
-      - heading: Tools ecosystem
-        description: External tools for circuit construction.
-        path: /cirq/build/ecosystem
+  - heading: Advanced construction
+    description: More elaborate ways to build quantum circuits.
+    options:
+    - cards
+    items:
+    - heading: Operators
+      description: Unitary operators, measurements and noise channels.
+      path: /cirq/build/operators
+    - heading: Observables and PauliStrings
+      description: Build and measure observables from sums and products of Pauli operators.
+      path: /cirq/build/pauli_observables
+    - heading: Qudits
+      description: Qutrits and higher dimensional quantum systems.
+      path: /cirq/build/qudits
+    - heading: Protocols
+      description: Magic methods supported by Cirq's classes.
+      path: /cirq/build/protocols
+    - heading: Tools ecosystem
+      description: External tools for circuit construction.
+      path: /cirq/build/ecosystem
