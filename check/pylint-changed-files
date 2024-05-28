@@ -31,7 +31,7 @@ cd "${topdir}" || exit $?
 
 # Figure out which revision to compare against.
 if [ -n "$1" ] && [[ $1 != -* ]]; then
-    if [ "$(git cat-file -t "$1" 2> /dev/null)" != "commit" ]; then
+    if ! git rev-parse --verify --quiet --no-revs "$1^{commit}"; then
         echo -e "\033[31mNo revision '$1'.\033[0m" >&2
         exit 1
     fi

@@ -46,7 +46,7 @@ for arg in "$@"; do
     elif [[ "${arg}" == "--all" ]]; then
         only_changed=0
     elif [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
+        if ! git rev-parse --verify --quiet --no-revs "${arg}^{commit}"; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi

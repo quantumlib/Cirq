@@ -44,22 +44,10 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     # Requires pinned quimb from #6438
     'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    # Hardcoded qubit placement
-    'docs/google/qubit-placement.ipynb',
     # get_qcs_objects_for_notebook
     'docs/noise/calibration_api.ipynb',
-    'docs/tutorials/google/colab.ipynb',
-    'docs/tutorials/google/identifying_hardware_changes.ipynb',
-    'docs/tutorials/google/echoes.ipynb',
     'docs/noise/floquet_calibration_example.ipynb',
-    'docs/tutorials/google/spin_echoes.ipynb',
-    'docs/tutorials/google/start.ipynb',
-    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
-    'docs/named_topologies.ipynb',
-    'docs/start/intro.ipynb',
-    # Circuit routing
-    'docs/transform/routing_transformer.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -71,8 +59,6 @@ SKIP_NOTEBOOKS = [
     "**/google/*.ipynb",
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",
-    # skipp cirq-ft notebooks since they are included in individual tests
-    'cirq-ft/**',
     # Rigetti uses local simulation with docker, so should work
     # if you run into issues locally, run
     # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
@@ -98,7 +84,7 @@ PACKAGES = [
     "papermill",
     "jupyter",
     # assumed to be part of colab
-    "seaborn~=0.11.1",
+    "seaborn~=0.12",
 ]
 
 
