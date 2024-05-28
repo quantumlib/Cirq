@@ -18,7 +18,8 @@ import cirq_google.api.v2.run_context as run_context
 import google.protobuf.text_format as text_format
 
 
-def test_to_device_parameters_diff() -> None:
+def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
+    """Test of converting a list of DeviceParameter's to a DeviceParametersDiff object."""
     readout_paths = (["q3_4", "readout_default"], ["q5_6", "readout_default"])
 
     device_params = []
@@ -122,5 +123,4 @@ def test_to_device_parameters_diff() -> None:
         strs: "phase_i_rad"
         strs: "q5_6"
     """
-    print(diff)
     assert text_format.Parse(expected_diff_pb_text, run_context_pb2.DeviceParametersDiff()) == diff
