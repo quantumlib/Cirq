@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, cast, Dict, Union, List, Tuple, Optional
+from typing import Callable, cast, Dict, Union, List, Tuple, Optional, Any
 
 import sympy
 import numpy as np
@@ -33,6 +33,7 @@ from pyquil.quilbase import (
 from pyquil.quilatom import (
     MemoryReference,
     ParameterDesignator,
+    QubitDesignator,
     Function,
     BinaryExp,
     Add,
@@ -42,6 +43,7 @@ from pyquil.quilatom import (
     Pow,
     Parameter,
     substitute_array,
+    qubit_index,
 )
 from pyquil.simulation import matrices
 
@@ -309,8 +311,8 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
     defined_gates, parameter_transformers = get_defined_gates(program)
 
-    kraus_model = {}
-    confusion_maps = {}
+    kraus_model: Dict[Tuple[QubitDesignator], List[NDArray[np.complex_]]] = {}
+    confusion_maps: Dict[int, NDArray[np.float_]] = {}
 
     # Interpret the Pragmas
     for inst in program:
@@ -321,8 +323,8 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
         if inst.command == "ADD-KRAUS":
             args = inst.args
             gate_name = args[0]
-            if hasattr(matrices, gate_name):
-                u = getattr(matrices, gate_name)
+            if gate_name in matrices.QUANTUM_GATES:
+                u = matrices.QUANTUM_GATES[gate_name]
             elif gate_name in defined_gates:
                 u = defined_gates[gate_name]
             else:
@@ -343,7 +345,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
         # READOUT-POVM provides a confusion matrix
         elif inst.command == "READOUT-POVM":
-            qubit = int(inst.args[0].index)
+            qubit = qubit_index(inst.args[0])
             entries = np.fromstring(
                 inst.freeform_string.strip("()").replace("i", "j"), dtype=np.float_, sep=" "
             )
@@ -363,7 +365,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
         elif isinstance(inst, PyQuilGate):
             quil_gate_name = inst.name
             quil_gate_params = inst.params
-            line_qubits = list(LineQubit(q.index) for q in inst.qubits)
+            line_qubits = list(LineQubit(qubit_index(q)) for q in inst.qubits)
             if quil_gate_name not in defined_gates:
                 raise UndefinedQuilGate(f"Quil gate {quil_gate_name} not supported in Cirq.")
             cirq_gate_fn = defined_gates[quil_gate_name]
@@ -378,15 +380,16 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
         # Convert pyQuil MEASURE operations to Cirq MeasurementGate objects.
         elif isinstance(inst, PyQuilMeasurement):
-            line_qubit = LineQubit(inst.qubit.index)
+            qubit = qubit_index(inst.qubit)
+            line_qubit = LineQubit(qubit)
             if inst.classical_reg is None:
                 raise UnsupportedQuilInstruction(
                     f"Quil measurement {inst} without classical register "
                     f"not currently supported in Cirq."
                 )
             quil_memory_reference = inst.classical_reg.out()
-            if inst.qubit.index in confusion_maps:
-                cmap = {(inst.qubit.index,): confusion_maps[inst.qubit.index]}
+            if qubit in confusion_maps:
+                cmap = {(qubit,): confusion_maps[qubit]}
                 circuit += MeasurementGate(1, key=quil_memory_reference, confusion_map=cmap)(
                     line_qubit
                 )

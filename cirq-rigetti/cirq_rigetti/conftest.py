@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Optional, List, Union, Generic, TypeVar, Dict
+from typing import Any, Iterable, Tuple, Optional, List, Union, Generic, TypeVar, Dict
 
 from unittest.mock import create_autospec, Mock
 import pytest
@@ -46,6 +46,14 @@ class MockQAM(QAM, Generic[T]):
         self._mock_results: Dict[str, np.ndarray] = {}
 
     def execute(self, executable: QuantumExecutable) -> T:  # type: ignore[empty-body]
+        pass
+
+    def execute_with_memory_map_batch(
+        self,
+        executable: QuantumExecutable,
+        memory_maps: Iterable[MemoryMap],
+        **kwargs: Any,
+    ) -> List[T]: # type: ignore[empty-body]
         pass
 
     def run(self, program: QuantumExecutable) -> QAMExecutionResult:
