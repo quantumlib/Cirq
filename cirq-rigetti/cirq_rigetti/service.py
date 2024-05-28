@@ -96,9 +96,7 @@ class RigettiQCSService:
         )
 
     @staticmethod
-    def list_quantum_processors(
-        client: Optional[QCSClient],
-    ) -> List[str]:  # pragma: no cover
+    def list_quantum_processors(client: Optional[QCSClient]) -> List[str]:  # pragma: no cover
         """Retrieve a list of available Rigetti quantum processors.
 
         Args:
@@ -114,9 +112,7 @@ class RigettiQCSService:
         return list_quantum_processors(client=client)
 
     @staticmethod
-    def get_quilt_calibrations(
-        quantum_processor_id: str, client: Optional[QCSClient]
-    ) -> str:
+    def get_quilt_calibrations(quantum_processor_id: str, client: Optional[QCSClient]) -> str:
         """Retrieve the calibration data used for client-side Quil-T generation.
 
         Args:

@@ -211,9 +211,7 @@ def test_rigetti_qcs_aspen_device_readonly_nodes(qcs_aspen8_isa: InstructionSetA
     assert len(device_with_limited_nodes.isa.architecture.nodes) > 0
 
     device_with_limited_nodes.isa.architecture.nodes = []
-    assert len(device_with_limited_nodes.isa.architecture.nodes) > 0, (
-        'Nodes should be read-only'
-    )
+    assert len(device_with_limited_nodes.isa.architecture.nodes) > 0, 'Nodes should be read-only'
 
 
 @pytest.mark.parametrize(
@@ -269,6 +267,6 @@ def test_rigetti_qcs_aspen_device_family_validation(qcs_aspen8_isa: InstructionS
     non_aspen_isa = InstructionSetArchitecture.from_raw(qcs_aspen8_isa.json())
     non_aspen_isa.architecture.family = Family.NONE
 
-    assert non_aspen_isa.architecture.family == Family.Aspen, (
-        'ISA family is read-only and should still be Aspen'
-    )
+    assert (
+        non_aspen_isa.architecture.family == Family.Aspen
+    ), 'ISA family is read-only and should still be Aspen'

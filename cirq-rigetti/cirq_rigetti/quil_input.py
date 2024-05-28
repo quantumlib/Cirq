@@ -571,8 +571,7 @@ def defgate_to_cirq(defgate: DefGate):
 
     else:
 
-        def constructor(self):
-            ...
+        def constructor(self): ...
 
         def unitary(self, *args):
             return matrix

@@ -49,11 +49,8 @@ class MockQAM(QAM, Generic[T]):
         pass
 
     def execute_with_memory_map_batch(
-        self,
-        executable: QuantumExecutable,
-        memory_maps: Iterable[MemoryMap],
-        **kwargs: Any,
-    ) -> List[T]: # type: ignore[empty-body]
+        self, executable: QuantumExecutable, memory_maps: Iterable[MemoryMap], **kwargs: Any
+    ) -> List[T]:  # type: ignore[empty-body]
         pass
 
     def run(self, program: QuantumExecutable) -> QAMExecutionResult:
@@ -180,8 +177,7 @@ class MockQPUImplementer:
                     result_data=ResultData.from_qvm(
                         QVMResultData.from_memory_map(
                             {
-                                k: RegisterData.from_f64([v])
-                                for k, v in qam._mock_results.items()
+                                k: RegisterData.from_f64([v]) for k, v in qam._mock_results.items()
                             }  # type: ignore
                         )
                     )

@@ -249,9 +249,7 @@ def get_rigetti_qcs_aspen_device(
         set and architecture.
 
     """
-    isa = get_instruction_set_architecture(
-        client=client, quantum_processor_id=quantum_processor_id
-    )
+    isa = get_instruction_set_architecture(client=client, quantum_processor_id=quantum_processor_id)
     return RigettiQCSAspenDevice(isa=isa)
 
 
