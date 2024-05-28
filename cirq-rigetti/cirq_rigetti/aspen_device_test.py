@@ -3,7 +3,6 @@ import os
 from unittest.mock import patch, PropertyMock
 from math import sqrt
 import pathlib
-import json
 import pytest
 import cirq
 from cirq_rigetti import (
@@ -13,7 +12,7 @@ from cirq_rigetti import (
     UnsupportedQubit,
     UnsupportedRigettiQCSOperation,
 )
-from qcs_sdk.qpu.isa import InstructionSetArchitecture, Node, Family
+from qcs_sdk.qpu.isa import InstructionSetArchitecture, Family
 import numpy as np
 
 dir_path = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
@@ -209,11 +208,12 @@ def test_rigetti_qcs_aspen_device_readonly_nodes(qcs_aspen8_isa: InstructionSetA
     device_with_limited_nodes = RigettiQCSAspenDevice(
         isa=InstructionSetArchitecture.from_raw(qcs_aspen8_isa.json())
     )
-    num_nodes = len(device_with_limited_nodes.isa.architecture.nodes)
     assert len(device_with_limited_nodes.isa.architecture.nodes) > 0
 
     device_with_limited_nodes.isa.architecture.nodes = []
-    assert len(device_with_limited_nodes.isa.architecture.nodes) > 0, 'Nodes should be read-only'
+    assert len(device_with_limited_nodes.isa.architecture.nodes) > 0, (
+        'Nodes should be read-only'
+    )
 
 
 @pytest.mark.parametrize(
@@ -269,4 +269,6 @@ def test_rigetti_qcs_aspen_device_family_validation(qcs_aspen8_isa: InstructionS
     non_aspen_isa = InstructionSetArchitecture.from_raw(qcs_aspen8_isa.json())
     non_aspen_isa.architecture.family = Family.NONE
 
-    assert non_aspen_isa.architecture.family == Family.Aspen, 'ISA family is read-only and should still be Aspen'
+    assert non_aspen_isa.architecture.family == Family.Aspen, (
+        'ISA family is read-only and should still be Aspen'
+    )

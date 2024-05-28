@@ -1,7 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Optional, Iterator
 import pytest
-from cirq_rigetti import get_rigetti_qcs_service, RigettiQCSService
+from cirq_rigetti import get_rigetti_qcs_service
 
 
 @pytest.mark.rigetti_integration

@@ -179,7 +179,10 @@ class MockQPUImplementer:
                 data=ExecutionData(
                     result_data=ResultData.from_qvm(
                         QVMResultData.from_memory_map(
-                            {k: RegisterData.from_f64([v]) for k, v in qam._mock_results.items()}  # type: ignore
+                            {
+                                k: RegisterData.from_f64([v])
+                                for k, v in qam._mock_results.items()
+                            }  # type: ignore
                         )
                     )
                 ),

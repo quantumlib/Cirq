@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, cast, Optional, Union, Dict, Any
+from typing import List, Optional, Union, Dict, Any
 import functools
 from math import sqrt
 import numpy as np

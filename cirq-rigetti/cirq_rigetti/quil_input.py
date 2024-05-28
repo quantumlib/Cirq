@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, cast, Dict, Union, List, Tuple, Optional, Any
+from typing import Callable, cast, Dict, Union, List, Tuple, Optional
 
 import sympy
 import numpy as np
