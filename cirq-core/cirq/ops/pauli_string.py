@@ -813,6 +813,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 return NotImplemented
 
             if len(self) == 1:
+                if isinstance(power, int):
+                    return PauliString(
+                        qubit_pauli_map={} if power % 2 == 0 else self._qubit_pauli_map,
+                        coefficient=self.coefficient**power,
+                    )
                 q, p = next(iter(self.items()))
                 gates = {
                     pauli_gates.X: common_gates.XPowGate,
@@ -1162,13 +1167,8 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return NotImplemented
 
     def __pow__(self, exponent):
-        if exponent.is_integer() and exponent > 0:
-            temp = self
-            for _ in range(exponent - 1):
-                temp = temp * self
-            return temp
-        if exponent == 0:
-            return cirq.I(self.qubit)
+        if isinstance(exponent, (int, float)):
+            return PauliString.__pow__(self, exponent)
         return super().__pow__(exponent)
 
     def __rmul__(self, other):
