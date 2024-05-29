@@ -210,18 +210,17 @@ def test_list_op_constructor_matches_mapping(pauli):
     op = pauli.on(q0)
     assert cirq.PauliString([op]) == cirq.PauliString({q0: pauli})
 
-def test_exponent_mul_consistency():
-    gates = [cirq.X, cirq.Y, cirq.Z]
+@pytest.mark.parametrize('pauli1', (cirq.X, cirq.Y, cirq.Z))
+@pytest.mark.parametrize('pauli2', (cirq.X, cirq.Y, cirq.Z))
+def test_exponent_mul_consistency(pauli1, pauli2):
     a, b = cirq.LineQubit.range(2)
-    for gate_a in gates:
-        for gate_b in gates:
-            op_a, op_b = gate_a(a), gate_b(b)
-            assert op_a * op_a == op_a**2
-            assert -op_a * -op_a == op_a**2
-            assert op_a**-1 * op_a**-1 == op_a**-2
-            assert (-op_a) ** -1 * (-op_a) ** -1 == op_a**-2
-            assert -(op_a**-1) * -(op_a**-1) == op_a**-2
-            assert op_a * op_b * op_b == op_a * op_b**2
+    op_a, op_b = pauli1(a), pauli2(b)
+    assert op_a * op_a == op_a**2
+    assert -op_a * -op_a == op_a**2
+    assert op_a**-1 * op_a**-1 == op_a**-2
+    assert (-op_a) ** -1 * (-op_a) ** -1 == op_a**-2
+    assert -(op_a**-1) * -(op_a**-1) == op_a**-2
+    assert op_a * op_b * op_b == op_a * op_b**2
 
 def test_constructor_flexibility():
     a, b = cirq.LineQubit.range(2)
