@@ -23,7 +23,7 @@ from typing import (
     Union,
     Generic,
     TypeVar,
-    Dict
+    Dict,
 )
 
 from unittest.mock import create_autospec, Mock
@@ -61,7 +61,7 @@ class MockQAM(QAM, Generic[T]):
         self,
         executable: Union[EncryptedProgram, Program],
         memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ...,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> Any:
         pass
 
@@ -74,7 +74,7 @@ class MockQAM(QAM, Generic[T]):
         self,
         executable: Union[EncryptedProgram, Program],
         memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ...,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> Any:
         raise NotImplementedError
 

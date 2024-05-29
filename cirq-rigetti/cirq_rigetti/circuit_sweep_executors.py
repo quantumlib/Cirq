@@ -66,7 +66,7 @@ def _execute_and_read_result(
             value = [value] if not isinstance(value, Sequence) else value
             memory_map[region_name] = value
 
-    qam_execution_result = quantum_computer.qam.run(executable, memory_map) # type: ignore
+    qam_execution_result = quantum_computer.qam.run(executable, memory_map)  # type: ignore
 
     measurements = {}
     # For every key, value in QuilOutput#measurement_id_map, use the value to read
