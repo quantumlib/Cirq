@@ -1161,6 +1161,14 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
             return self._as_pauli_string() * other
         return NotImplemented
 
+    def __pow__(self, exponent):
+        if exponent.is_integer() and exponent > 0:
+            temp = self
+            for _ in range(exponent - 1):
+                temp = temp * self
+            return temp
+        return super().__pow__(exponent)
+
     def __rmul__(self, other):
         if isinstance(other, (PauliString, complex, float, int)):
             return other * self._as_pauli_string()
