@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, cast, Dict, Union, List, Tuple, Optional
+from typing import Any, Callable, cast, Dict, Union, List, Tuple, Optional
 
 import sympy
 import numpy as np
@@ -450,8 +450,8 @@ def get_defined_gates(program: Program) -> Tuple[Dict, Dict]:
 
 
 def kraus_noise_model_to_cirq(
-    kraus_noise_model: Dict[Tuple[str, ...], List[NDArray[np.complex_]]],
-    defined_gates: Optional[Dict[str, Gate]] = None,
+    kraus_noise_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex_]]],
+    defined_gates: Optional[Dict[QubitDesignator, Gate]] = None,
 ) -> InsertionNoiseModel:
     """Construct a Cirq noise model from the provided Kraus operators.
 
@@ -468,7 +468,7 @@ def kraus_noise_model_to_cirq(
     for key, kraus_ops in kraus_noise_model.items():
         gate_name = key[0]
         qubits = [LineQubit(q) for q in key[1:]]
-        target_op = OpIdentifier(defined_gates[gate_name], *qubits)
+        target_op = OpIdentifier(defined_gates.get(gate_name), *qubits)
 
         insert_op = KrausChannel(kraus_ops, validate=True).on(*qubits)
         ops_added[target_op] = insert_op
@@ -492,7 +492,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
         ValueError: Unrecognized expression.
     """
     if type(expression) in {np.int_, np.float_, np.complex_, int, float, complex}:
-        return expression  # type: ignore
+        return expression
     elif isinstance(expression, Parameter):
         return sympy.Symbol(expression.name)
     elif isinstance(expression, MemoryReference):
@@ -571,7 +571,7 @@ def defgate_to_cirq(defgate: DefGate):
 
     else:
 
-        def constructor(self): ...
+        def constructor(self, **kwards: Any): ...
 
         def unitary(self, *args):
             return matrix

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Tuple, Optional, List, Union, Generic, TypeVar, Dict
+from typing import Any, Iterable, Mapping, Sequence, Tuple, Optional, List, Union, Generic, TypeVar, Dict
 
 from unittest.mock import create_autospec, Mock
 import pytest
@@ -45,15 +45,15 @@ class MockQAM(QAM, Generic[T]):
         self._run_count = 0
         self._mock_results: Dict[str, np.ndarray] = {}
 
-    def execute(self, executable: QuantumExecutable) -> T:  # type: ignore[empty-body]
+    def execute(self, executable: Union[EncryptedProgram, Program], memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ..., **kwargs: Any) -> Any:
         pass
 
-    def execute_with_memory_map_batch(
+    def execute_with_memory_map_batch(  # type: ignore[empty-body]
         self, executable: QuantumExecutable, memory_maps: Iterable[MemoryMap], **kwargs: Any
-    ) -> List[T]:  # type: ignore[empty-body]
+    ) -> List[T]:
         pass
 
-    def run(self, program: QuantumExecutable) -> QAMExecutionResult:
+    def run(self, executable: Union[EncryptedProgram, Program], memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ..., **kwargs: Any) -> QAMExecutionResult:
         raise NotImplementedError
 
     def get_result(self, execute_response: T) -> QAMExecutionResult:
@@ -64,7 +64,7 @@ class MockCompiler(AbstractCompiler):
     def quil_to_native_quil(self, program: Program, *, protoquil: Optional[bool] = None) -> Program:
         raise NotImplementedError
 
-    def native_quil_to_executable(self, nq_program: Program) -> QuantumExecutable:
+    def native_quil_to_executable(self, nq_program: Program, **kwargs: Any) -> QuantumExecutable:
         raise NotImplementedError
 
 
@@ -177,8 +177,8 @@ class MockQPUImplementer:
                     result_data=ResultData.from_qvm(
                         QVMResultData.from_memory_map(
                             {
-                                k: RegisterData.from_f64([v]) for k, v in qam._mock_results.items()
-                            }  # type: ignore
+                                k: RegisterData.from_f64([v]) for k, v in qam._mock_results.items()  # type: ignore
+                            }
                         )
                     )
                 ),

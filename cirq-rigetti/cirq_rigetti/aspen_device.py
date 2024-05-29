@@ -14,6 +14,7 @@
 from typing import List, Optional, Union, Dict, Any
 import functools
 from math import sqrt
+import json
 import numpy as np
 import networkx as nx
 import cirq
@@ -63,7 +64,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         if isinstance(isa, InstructionSetArchitecture):
             self.isa = isa
         else:
-            self.isa = InstructionSetArchitecture.from_dict(isa)
+            self.isa = InstructionSetArchitecture.from_raw(json.dumps(isa))
 
         if self.isa.architecture.family != Family.Aspen:
             raise UnsupportedRigettiQCSQuantumProcessor(
