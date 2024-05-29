@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 @value.value_equality(approximate=True)
 class PhasedXZGate(raw_types.Gate):
-    r"""A single qubit gate equivalent to the circuit $Z^z Z^{a} X^x Z^{-a}$.
+    r"""A single qubit gate equivalent to the circuit $Z^{-a} X^x Z^{a} Z^z$ (in time order).
 
     The unitary matrix of `cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)` is:
     $$
@@ -66,6 +66,22 @@ class PhasedXZGate(raw_types.Gate):
         self._x_exponent = x_exponent
         self._z_exponent = z_exponent
         self._axis_phase_exponent = axis_phase_exponent
+
+    @classmethod
+    def from_zyz_angles(cls, z0_rad: float, y_rad: float, z1_rad: float) -> 'cirq.PhasedXZGate':
+        """Create a PhasedXZGate from ZYZ angles.
+
+        The returned gate is equivalent to $Rz(z0_rad) Ry(y_rad) Rz(z1_rad)$ (in time order).
+        """
+        return cls.from_zyz_exponents(z0=z0_rad / np.pi, y=y_rad / np.pi, z1=z1_rad / np.pi)
+
+    @classmethod
+    def from_zyz_exponents(cls, z0: float, y: float, z1: float) -> 'cirq.PhasedXZGate':
+        """Create a PhasedXZGate from ZYZ exponents.
+
+        The returned gate is equivalent to $Z^z0 Y^y Z^z1$ (in time order).
+        """
+        return PhasedXZGate(axis_phase_exponent=-z0 + 0.5, x_exponent=y, z_exponent=z0 + z1)
 
     def _canonical(self) -> 'cirq.PhasedXZGate':
         x = self.x_exponent
