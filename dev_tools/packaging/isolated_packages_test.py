@@ -32,14 +32,22 @@ PACKAGES = ["-r", "dev_tools/requirements/isolated-base.env.txt"]
 # the "isolation" fails and for example cirq-core would be on the PATH
 @mock.patch.dict(os.environ, {"PYTHONPATH": ""})
 @pytest.mark.parametrize('module', list_modules(), ids=[m.name for m in list_modules()])
-def test_isolated_packages(cloned_env, module):
+def test_isolated_packages(cloned_env, module, tmp_path):
     env = cloned_env("isolated_packages", *PACKAGES)
 
     if str(module.root) != "cirq-core":
         assert f'cirq-core=={module.version}' in module.install_requires
 
+    # TODO: Remove after upgrading package builds from setup.py to PEP-517
+    # Create per-worker copy of cirq-core sources so that parallel builds
+    # of cirq-core wheel do not conflict.
+    opt_cirq_core = (
+        [str(shutil.copytree("./cirq-core", tmp_path / "cirq-core"))]
+        if str(module.root) != "cirq-core"
+        else []
+    )
     result = shell_tools.run(
-        f"{env}/bin/pip install ./{module.root} ./cirq-core".split(),
+        [f"{env}/bin/pip", "install", f"./{module.root}", *opt_cirq_core],
         stderr=subprocess.PIPE,
         check=False,
     )

@@ -192,7 +192,7 @@ engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
 
 # Create a sampler from the engine
 job = engine.run_batch(circuit_list,
-                       processor_ids=['PROCESSOR_ID'],
+                       processor_id='PROCESSOR_ID',
                        gate_set=cirq_google.FSIM_GATESET,
                        repetitions=1000,
                        params_list=param_list)
@@ -250,7 +250,7 @@ param_sweep = cirq.Linspace('t', start=0, stop=1, length=10)
 job = e.run_sweep(program=circuit,
                   params=param_sweep,
                   repetitions=1000,
-                  processor_ids=[PROCESSOR_ID],
+                  processor_id='PROCESSOR_ID',
                   gate_set=GATE_SET)
 
 # Save the program and jo id for later
