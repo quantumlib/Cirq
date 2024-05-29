@@ -1167,6 +1167,8 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
             for _ in range(exponent - 1):
                 temp = temp * self
             return temp
+        if exponent == 0:
+            return cirq.I(self.qubit)
         return super().__pow__(exponent)
 
     def __rmul__(self, other):
