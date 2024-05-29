@@ -193,7 +193,6 @@ engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
 # Create a sampler from the engine
 job = engine.run_batch(circuit_list,
                        processor_id='PROCESSOR_ID',
-                       gate_set=cirq_google.FSIM_GATESET,
                        repetitions=1000,
                        params_list=param_list)
 results = job.results()
