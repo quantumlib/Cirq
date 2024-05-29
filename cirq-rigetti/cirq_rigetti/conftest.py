@@ -12,7 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Mapping, Sequence, Tuple, Optional, List, Union, Generic, TypeVar, Dict
+from typing import (
+    Any,
+    Iterable,
+    Mapping,
+    Sequence,
+    Tuple,
+    Optional,
+    List,
+    Union,
+    Generic,
+    TypeVar,
+    Dict
+)
 
 from unittest.mock import create_autospec, Mock
 import pytest
@@ -45,7 +57,12 @@ class MockQAM(QAM, Generic[T]):
         self._run_count = 0
         self._mock_results: Dict[str, np.ndarray] = {}
 
-    def execute(self, executable: Union[EncryptedProgram, Program], memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ..., **kwargs: Any) -> Any:
+    def execute(
+        self,
+        executable: Union[EncryptedProgram, Program],
+        memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ...,
+        **kwargs: Any
+    ) -> Any:
         pass
 
     def execute_with_memory_map_batch(  # type: ignore[empty-body]
@@ -53,7 +70,12 @@ class MockQAM(QAM, Generic[T]):
     ) -> List[T]:
         pass
 
-    def run(self, executable: Union[EncryptedProgram, Program], memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ..., **kwargs: Any) -> QAMExecutionResult:
+    def run(
+        self,
+        executable: Union[EncryptedProgram, Program],
+        memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ...,
+        **kwargs: Any
+    ) -> Any:
         raise NotImplementedError
 
     def get_result(self, execute_response: T) -> QAMExecutionResult:
@@ -177,7 +199,8 @@ class MockQPUImplementer:
                     result_data=ResultData.from_qvm(
                         QVMResultData.from_memory_map(
                             {
-                                k: RegisterData.from_f64([v]) for k, v in qam._mock_results.items()  # type: ignore
+                                k: RegisterData.from_f64([v])
+                                for k, v in qam._mock_results.items()  # type: ignore
                             }
                         )
                     )
