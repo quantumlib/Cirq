@@ -45,7 +45,7 @@ done
 
 # Figure out which revision to compare against.
 if [ -n "${BASEREV}" ]; then
-    if [ "$(git cat-file -t "${BASEREV}" 2> /dev/null)" != "commit" ]; then
+    if ! git rev-parse --verify --quiet --no-revs "${BASEREV}^{commit}"; then
         echo -e "\033[31mNo revision '${BASEREV}'.\033[0m" >&2
         exit 1
     fi
