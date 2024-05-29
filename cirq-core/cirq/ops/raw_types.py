@@ -921,7 +921,7 @@ class TaggedOperation(Operation):
         # Add tag to wire symbol if it exists.
         if sub_op_info is not NotImplemented and args.include_tags and sub_op_info.wire_symbols:
             sub_op_info.wire_symbols = (
-                sub_op_info.wire_symbols[0] + str(list(self._tags)),
+                sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, self._tags))}]",
             ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
 

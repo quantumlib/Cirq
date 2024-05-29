@@ -78,7 +78,7 @@ You should configure notebooks differently depending on whether they rely on fea
 When you introduce a notebook that depends on pre-release features of Cirq, make sure to
 
  - mark the notebook at the top that `Note: this notebook relies on unreleased Cirq features. If you want to try these feature, make sure you install cirq via pip install cirq~=1.0.dev`.
- - use `pip install cirq —pre`  in the installation instructions
+ - use `pip install cirq~=1.0.dev`  in the installation instructions
  - make sure [notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/notebook_test.py) covers the notebook
  - exclude the notebook from the [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/isolated_notebook_test.py) by adding it to `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES`
 
@@ -92,7 +92,7 @@ When you introduce a notebook that only uses already released features of Cirq, 
 
 At release time, we change all the **pre-release notebooks** in bulk:
  - remove the pre-release notices
- - change `pip install cirq —pre` to `pip install cirq`
+ - change `pip install cirq~=1.0.dev` to `pip install cirq`
  - remove the exclusions in [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/main/dev_tools/notebooks/isolated_notebook_test.py) by making `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
 
 As all the notebooks have been tested continuously up to this point, the release notebook PR should pass without issues.

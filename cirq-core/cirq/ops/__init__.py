@@ -217,3 +217,5 @@ from cirq.ops.wait_gate import wait, WaitGate
 from cirq.ops.state_preparation_channel import StatePreparationChannel
 
 from cirq.ops.control_values import AbstractControlValues, ProductOfSums, SumOfProducts
+
+from cirq.ops.uniform_superposition_gate import UniformSuperpositionGate
