@@ -79,9 +79,12 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def __repr__(self) -> str:
         return 'cirq.CZSWAPGate()'
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self)
+    
+    def __eq__(self, other):
+        'Fubar objects are considered equal if they have the same contents'
+        if type(self) != type(other):
+            return NotImplemented
+        return vars(self) == vars(other)
 
 
 class CXSWAPGate(raw_types.Gate):
@@ -138,5 +141,8 @@ class CXSWAPGate(raw_types.Gate):
     def __repr__(self) -> str:
         return 'cirq.CXSWAPGate()'
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self)
+    def __eq__(self, other):
+        'Fubar objects are considered equal if they have the same contents'
+        if type(self) != type(other):
+            return NotImplemented
+        return vars(self) == vars(other)

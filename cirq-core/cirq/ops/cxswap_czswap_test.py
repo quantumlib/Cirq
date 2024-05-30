@@ -13,19 +13,17 @@
 # limitations under the License.
 
 import numpy as np
-import pytest
-import sympy
 
 import cirq
 
-# # Checking Consistency
-# def test_cxswap_consistent():
-#     gate = cirq.CXSWAPGate()
-#     cirq.testing.assert_implements_consistent_protocols(gate)
+# Checking Consistency
+def test_cxswap_consistent():
+    gate = cirq.CXSWAPGate()     
+    cirq.testing.assert_implements_consistent_protocols(gate)
 
-# def test_czswap_consistent():
-#     gate = cirq.CZSWAPGate()
-#     cirq.testing.assert_implements_consistent_protocols(gate)
+def test_czswap_consistent():
+    gate = cirq.CZSWAPGate()
+    cirq.testing.assert_implements_consistent_protocols(gate)
 
 # Verifying Unitaries
 def test_cxswap_unitary():
