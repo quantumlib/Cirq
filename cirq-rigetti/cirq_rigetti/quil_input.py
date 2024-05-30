@@ -311,7 +311,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
     defined_gates, parameter_transformers = get_defined_gates(program)
 
-    kraus_model: Dict[Tuple[QubitDesignator], List[NDArray[np.complex_]]] = {}
+    kraus_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex_]]] = {}
     confusion_maps: Dict[int, NDArray[np.float_]] = {}
 
     # Interpret the Pragmas
@@ -322,7 +322,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
         # ADD-KRAUS provides Kraus operators that replace the gate operation
         if inst.command == "ADD-KRAUS":
             args = inst.args
-            gate_name = args[0]
+            gate_name = str(args[0])
             if gate_name in matrices.QUANTUM_GATES:
                 u = matrices.QUANTUM_GATES[gate_name]
             elif gate_name in defined_gates:
@@ -350,6 +350,14 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 inst.freeform_string.strip("()").replace("i", "j"), dtype=np.float_, sep=" "
             )
             confusion_matrix = entries.reshape((2, 2)).T
+
+            """
+            Incompatible types in assignment
+                expression has type
+                    "ndarray[Any, dtype[complexfloating[Any, Any]]]"
+                target has type
+                    "ndarray[Any, dtype[floating[Any]]]"
+            """
             confusion_maps[qubit] = confusion_matrix
 
         else:
@@ -389,7 +397,16 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 )
             quil_memory_reference = inst.classical_reg.out()
             if qubit in confusion_maps:
-                cmap = {(qubit,): confusion_maps[qubit]}
+                cmap_key: Tuple[int, ...] = (qubit,)
+                cmap_value: NDArray[Any] = confusion_maps[qubit]
+                cmap = {cmap_key: cmap_value}
+                # cmap = {(qubit,): confusion_maps[qubit]}
+                """
+                Argument "confusion_map" to "MeasurementGate" has incompatible type
+                    "         Dict[Tuple[int],      ndarray[Any, dtype[floating[Any]]]]"
+                expected
+                    "Optional[Dict[Tuple[int, ...], ndarray[Any, Any]]]"
+                """
                 circuit += MeasurementGate(1, key=quil_memory_reference, confusion_map=cmap)(
                     line_qubit
                 )
@@ -463,12 +480,32 @@ def kraus_noise_model_to_cirq(
         A Cirq InsertionNoiseModel which applies the Kraus operators to the specified gates.
     """
     if defined_gates is None:
+        """
+        Incompatible types in assignment
+            expression has type
+                "         Dict[str, Union[Gate, Callable[..., Gate]]]"
+            variable has type
+                "Optional[Dict[Union[Qubit, QubitPlaceholder, FormalArgument, int], Gate]]"
+        """
         defined_gates = SUPPORTED_GATES
     ops_added = {}
     for key, kraus_ops in kraus_noise_model.items():
         gate_name = key[0]
+        """
+        Argument 1 to "LineQubit" has incompatible type
+            "Union[Qubit, QubitPlaceholder, FormalArgument, int]"
+        expected
+            "int"
+        """
         qubits = [LineQubit(q) for q in key[1:]]
-        target_op = OpIdentifier(defined_gates.get(gate_name), *qubits)
+        """
+        Value of type
+            "Optional[Dict[Union[Qubit, QubitPlaceholder, FormalArgument, int], Gate]]"
+        is not indexable
+
+        Argument 1 to "OpIdentifier" has incompatible type "Union[Gate, Any]"; expected "Type[Gate]"
+        """
+        target_op = OpIdentifier(defined_gates[gate_name], *qubits)
 
         insert_op = KrausChannel(kraus_ops, validate=True).on(*qubits)
         ops_added[target_op] = insert_op
