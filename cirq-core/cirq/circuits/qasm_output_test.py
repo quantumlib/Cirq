@@ -395,13 +395,19 @@ creg m_multi[3];
 id q[0];
 z q[0];
 rz(pi*0.625) q[0];
-rz(0) q[0];
+
+// Operation: I
+
 y q[0];
 ry(pi*0.375) q[0];
-ry(0) q[0];
+
+// Operation: I
+
 x q[0];
 rx(pi*0.875) q[0];
-rx(0) q[0];
+
+// Operation: I
+
 h q[0];
 id q[0];
 sx q[0];
