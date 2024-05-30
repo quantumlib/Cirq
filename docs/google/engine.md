@@ -80,7 +80,7 @@ circuit = cirq.Circuit(
 engine = cg.Engine(project_id=YOUR_PROJECT_ID)
 
 # Create a sampler from the engine
-sampler = engine.sampler(processor_id='PROCESSOR_ID', gate_set=cg.SYC_GATESET)
+sampler = engine.get_sampler(processor_id='PROCESSOR_ID')
 
 # This will run the circuit and return the results in a 'Result'
 results = sampler.run(circuit, repetitions=1000)
@@ -193,7 +193,6 @@ engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
 # Create a sampler from the engine
 job = engine.run_batch(circuit_list,
                        processor_id='PROCESSOR_ID',
-                       gate_set=cirq_google.FSIM_GATESET,
                        repetitions=1000,
                        params_list=param_list)
 results = job.results()
