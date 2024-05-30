@@ -46,17 +46,16 @@ def test_from_zyz_angles(z0_rad: float, y_rad: float, z1_rad: float) -> None:
     )
 
 
-@pytest.mark.parametrize('z0', [-0.2, 0, 0.2, 0.25, 0.5, 1])
-@pytest.mark.parametrize('y', [0, 0.2, 0.25, 0.5, 1])
-@pytest.mark.parametrize('z1', [-0.2, 0, 0.2, 0.25, 0.5, 1])
+@pytest.mark.parametrize('z0', [-0.2, 0.0, 0.2, 0.25, 0.5, 1])
+@pytest.mark.parametrize('y', [0.0, 0.2, 0.25, 0.5, 1])
+@pytest.mark.parametrize('z1', [-0.2, 0.0, 0.2, 0.25, 0.5, 1])
 def test_from_zyz_exponents(z0: float, y: float, z1: float) -> None:
     q = cirq.q(0)
     phxz = cirq.PhasedXZGate.from_zyz_exponents(z0, y, z1)
     zyz = cirq.Circuit(cirq.Z(q) ** z0, cirq.Y(q) ** y, cirq.Z(q) ** z1)
-    if not (z0 == y == z1 == 0):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.unitary(phxz), cirq.unitary(zyz), atol=1e-8
-        )
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(phxz), cirq.unitary(zyz), atol=1e-8
+    )
 
 
 def test_canonicalization():

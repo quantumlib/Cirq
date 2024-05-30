@@ -286,15 +286,15 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         cirq.I(q0),
         cirq.Z(q0),
         cirq.Z(q0) ** 0.625,
-        cirq.Z(q0) ** 0,
+        cirq.Z(q0) ** 0.0,
         cirq.Y(q0),
         cirq.Y(q0) ** 0.375,
-        cirq.Y(q0) ** 0,
+        cirq.Y(q0) ** 0.0,
         cirq.X(q0),
         cirq.X(q0) ** 0.875,
-        cirq.X(q0) ** 0,
+        cirq.X(q0) ** 0.0,
         cirq.H(q0),
-        cirq.H(q0) ** 0,
+        cirq.H(q0) ** 0.0,
         cirq.X(q0) ** 0.5,
         cirq.X(q0) ** -0.5,
         cirq.S(q0),
@@ -395,19 +395,13 @@ creg m_multi[3];
 id q[0];
 z q[0];
 rz(pi*0.625) q[0];
-
-// Operation: I
-
+rz(0) q[0];
 y q[0];
 ry(pi*0.375) q[0];
-
-// Operation: I
-
+ry(0) q[0];
 x q[0];
 rx(pi*0.875) q[0];
-
-// Operation: I
-
+rx(0) q[0];
 h q[0];
 id q[0];
 sx q[0];
