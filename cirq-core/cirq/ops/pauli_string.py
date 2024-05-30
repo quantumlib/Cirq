@@ -797,7 +797,12 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return math.e**self
         return NotImplemented
 
-    def __pow__(self, power):
+    def __pow__(self, power) -> Union['PauliString', gate_operation.GateOperation]:
+        """Return the exponentiated Pauli operator.
+
+        If power is int, the returned object will be `cirq.ops.pauli_string.PauliString`
+        If power is float, the returned object will be `cirq.ops.gate_operation.GateOperation`
+        """
         if power == 1:
             return self
         if power == -1:
