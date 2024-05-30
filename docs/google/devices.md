@@ -191,8 +191,7 @@ $$
 \right]
 $$
 
-This gate has a duration of 12ns and can be used in `cirq_google.SYC_GATESET`
-or in the `cirq_google.FSIM_GATESET`.
+This gate has a duration of 12ns.
 
 #### Square root of iSWAP
 
@@ -214,8 +213,7 @@ $$
 \right]
 $$
 
-This gate has a duration of 32ns and can be used in
-`cirq_google.SQRT_ISWAP_GATESET` or in the `cirq_google.FSIM_GATESET`.
+This gate has a duration of 32ns.
 
 This gate is implemented by using an entangling gate surrounded by
 Z gates.  The preceding Z gates are physical Z gates and will absorb
@@ -236,15 +234,6 @@ to see if it is available on the processor you are using.
 
 This gate is equivalent to FSimGate(0, π).  It has an approximate duration
 of 26ns.
-
-#### FSim gateset
-
-The `cirq.FSIM_GATESET` provides all three of the above gates in one set.
-In addition, by using this combined gate set, the FSimGate can be parameterized,
-which allows for efficient sweeps across varying two-qubit gates.
-Note that providing a theta/phi combination that
-is not one of the above gates will cause an error when run on hardware.
-
 
 ### Wait gate
 
