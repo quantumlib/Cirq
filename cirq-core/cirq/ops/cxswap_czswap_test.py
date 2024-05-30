@@ -17,15 +17,21 @@ import numpy as np
 import cirq
 
 # Checking Consistency
+
+
 def test_cxswap_consistent():
-    gate = cirq.CXSWAPGate()     
+    gate = cirq.CXSWAPGate()
     cirq.testing.assert_implements_consistent_protocols(gate)
+
 
 def test_czswap_consistent():
     gate = cirq.CZSWAPGate()
     cirq.testing.assert_implements_consistent_protocols(gate)
 
+
 # Verifying Unitaries
+
+
 def test_cxswap_unitary():
     # fmt: off
     np.testing.assert_allclose(
@@ -40,6 +46,7 @@ def test_cxswap_unitary():
         ),
         atol=1e-8,
     )
+
 
 def test_czswap_unitary():
     # fmt: off
@@ -56,8 +63,8 @@ def test_czswap_unitary():
         atol=1e-8,
     )
 
-# Verifying __repr__()
 
+# Verifying __repr__()
 def test_cswap_repr():
     assert repr(cirq.CXSWAPGate()) == 'cirq.CXSWAPGate()'
     assert repr(cirq.CZSWAPGate()) == 'cirq.CZSWAPGate()'

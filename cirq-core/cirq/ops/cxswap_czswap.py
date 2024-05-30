@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Optional,
-    Tuple,
-    Dict,
-    Any
-)
+from typing import Optional, Tuple, Dict, Any
 
 import numpy as np
 
 import cirq
 from cirq import protocols
 from cirq.ops import gate_features, raw_types
+
 
 class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     r"""CZSWAP gate.
@@ -48,6 +44,7 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     H(1)
 
     """
+
     def __init__(self) -> None:
         super(CZSWAPGate, self)
 
@@ -55,7 +52,7 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         return 2
 
     def _unitary_(self) -> Optional[np.ndarray]:
- 
+
         # fmt: off
         return np.array(
             [
@@ -66,7 +63,7 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             ]
         )
         # fmt: on
-    
+
     def _has_unitary_(self):
         return True
 
@@ -79,10 +76,9 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def __repr__(self) -> str:
         return 'cirq.CZSWAPGate()'
-    
-    def __eq__(self, other):
-        'Fubar objects are considered equal if they have the same contents'
-        if type(self) != type(other):
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(self, type(other)):
             return NotImplemented
         return vars(self) == vars(other)
 
@@ -108,6 +104,7 @@ class CXSWAPGate(raw_types.Gate):
     CX(1,0)
 
     """
+
     def __init__(self) -> None:
         super(CXSWAPGate, self)
 
@@ -115,7 +112,7 @@ class CXSWAPGate(raw_types.Gate):
         return 2
 
     def _unitary_(self) -> Optional[np.ndarray]:
- 
+
         # fmt: off
         return np.array(
             [
@@ -141,8 +138,7 @@ class CXSWAPGate(raw_types.Gate):
     def __repr__(self) -> str:
         return 'cirq.CXSWAPGate()'
 
-    def __eq__(self, other):
-        'Fubar objects are considered equal if they have the same contents'
-        if type(self) != type(other):
+    def __eq__(self, other) -> bool:
+        if not isinstance(self, type(other)):
             return NotImplemented
         return vars(self) == vars(other)
