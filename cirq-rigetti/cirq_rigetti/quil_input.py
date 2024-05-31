@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, Dict, Union, List, Tuple, Optional
+from typing import Any, Callable, Type, cast, Dict, Union, List, Tuple, Optional
 
 import sympy
 import numpy as np
@@ -351,14 +351,8 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
             )
             confusion_matrix = entries.reshape((2, 2)).T
 
-            """
-            Incompatible types in assignment
-                expression has type
-                    "ndarray[Any, dtype[complexfloating[Any, Any]]]"
-                target has type
-                    "ndarray[Any, dtype[floating[Any]]]"
-            """
-            confusion_maps[qubit] = confusion_matrix
+            # these types actually agree - both arrays are floats
+            confusion_maps[qubit] = confusion_matrix  # type: ignore
 
         else:
             raise UnsupportedQuilInstruction(PRAGMA_ERROR)
@@ -397,10 +391,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 )
             quil_memory_reference = inst.classical_reg.out()
             if qubit in confusion_maps:
-                cmap_key: Tuple[int, ...] = (qubit,)
-                cmap_value: NDArray[Any] = confusion_maps[qubit]
-                cmap = {cmap_key: cmap_value}
-                # cmap = {(qubit,): confusion_maps[qubit]}
+                cmap: Dict[Tuple[int, ...], NDArray[np.float_]] = {(qubit,): confusion_maps[qubit]}
                 """
                 Argument "confusion_map" to "MeasurementGate" has incompatible type
                     "         Dict[Tuple[int],      ndarray[Any, dtype[floating[Any]]]]"
@@ -480,32 +471,21 @@ def kraus_noise_model_to_cirq(
         A Cirq InsertionNoiseModel which applies the Kraus operators to the specified gates.
     """
     if defined_gates is None:
-        """
-        Incompatible types in assignment
-            expression has type
-                "         Dict[str, Union[Gate, Callable[..., Gate]]]"
-            variable has type
-                "Optional[Dict[Union[Qubit, QubitPlaceholder, FormalArgument, int], Gate]]"
-        """
-        defined_gates = SUPPORTED_GATES
+        # SUPPORTED_GATES values are all safe to use as `Gate`
+        defined_gates = SUPPORTED_GATES  # type: ignore
     ops_added = {}
     for key, kraus_ops in kraus_noise_model.items():
         gate_name = key[0]
-        """
-        Argument 1 to "LineQubit" has incompatible type
-            "Union[Qubit, QubitPlaceholder, FormalArgument, int]"
-        expected
-            "int"
-        """
-        qubits = [LineQubit(q) for q in key[1:]]
-        """
-        Value of type
-            "Optional[Dict[Union[Qubit, QubitPlaceholder, FormalArgument, int], Gate]]"
-        is not indexable
 
-        Argument 1 to "OpIdentifier" has incompatible type "Union[Gate, Any]"; expected "Type[Gate]"
-        """
-        target_op = OpIdentifier(defined_gates[gate_name], *qubits)
+        try:
+            qubit_indices = [int(q) for q in key[1:]]  # type: ignore
+        except ValueError as e:
+            raise Exception("Qubit identifier must be integers") from e
+        qubits = [LineQubit(q) for q in qubit_indices]
+
+        # defined_gates is not None by this point
+        gate: Type[Gate] = defined_gates[gate_name]  # type: ignore
+        target_op = OpIdentifier(gate, *qubits)
 
         insert_op = KrausChannel(kraus_ops, validate=True).on(*qubits)
         ops_added[target_op] = insert_op
