@@ -47,10 +47,9 @@ if [ -n "$(git status --short)" ]; then
 fi
 tmp_git_dir=$(mktemp -d "/tmp/produce-package-git.XXXXXXXXXXXXXXXX")
 trap '{ rm -rf "${tmp_git_dir}"; }' EXIT
+echo "Creating pristine repository clone at ${tmp_git_dir}"
+git clone --shared --quiet "${repo_dir}" "${tmp_git_dir}"
 cd "${tmp_git_dir}"
-git init --quiet
-git fetch "${repo_dir}" HEAD --quiet --depth=1
-git checkout FETCH_HEAD -b work --quiet
 if [ -n "${SPECIFIED_VERSION}" ]; then
     CIRQ_PACKAGES=$(env PYTHONPATH=. python3 dev_tools/modules.py list --mode package-path)
     for PROJECT_NAME in $CIRQ_PACKAGES; do
