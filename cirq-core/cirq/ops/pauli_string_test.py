@@ -228,6 +228,11 @@ def test_exponent_mul_consistency(pauli1, pauli2):
     assert op_b * op_a * op_a * op_a == op_b * op_a
     assert op_b * op_a**3 == op_b * op_a
 
+    op_a, op_b = pauli1(a), pauli2(a)
+
+    assert op_a * op_b ** 3 == op_a * op_b * op_b * op_b
+    assert op_b ** 3 * op_a == op_b * op_b * op_b * op_a
+
 
 def test_constructor_flexibility():
     a, b = cirq.LineQubit.range(2)

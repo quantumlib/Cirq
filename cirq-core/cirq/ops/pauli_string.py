@@ -1185,7 +1185,23 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         if isinstance(other, (PauliString, complex, float, int)):
             return other * self._as_pauli_string()
         if isinstance(other, gate_operation.GateOperation):
-            return self * other
+            if (
+                isinstance(
+                    other.gate,
+                    (common_gates.XPowGate, common_gates.YPowGate, common_gates.ZPowGate),
+                )
+                and len(other.qubits) == 1
+            ):
+                power = other.gate.exponent
+                if power % 2 == 0:
+                    return self
+                elif power % 2 == 1:
+                    gates = {
+                        common_gates.XPowGate: pauli_gates.X,
+                        common_gates.YPowGate: pauli_gates.Y,
+                        common_gates.ZPowGate: pauli_gates.Z,
+                    }
+                    return gates[type(other.gate)].on(other.qubits[0]) * self
         return NotImplemented
 
     def __neg__(self):
