@@ -17,14 +17,14 @@ from google.protobuf import any_pb2
 import cirq
 from cirq_google.engine.validating_sampler import VALIDATOR_TYPE
 from cirq_google.serialization.serializer import Serializer
-from cirq_google.api import v2
+
 
 MAX_MESSAGE_SIZE = 10_000_000
 MAX_MOMENTS = 10000
 MAX_TOTAL_REPETITIONS = 5_000_000
 
 PROGRAM_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None
 ]
 
 
@@ -65,6 +65,8 @@ def _verify_measurements(circuits):
             raise RuntimeError('Code must measure at least one qubit.')
 
 
+# TODO(b/326267074): update validate methods to accept a `cirq.AbstractCircuit``
+# instead of a `Sequence` since batching is no longer supported.
 def validate_program(
     circuits: Sequence[cirq.AbstractCircuit],
     sweeps: Sequence[cirq.Sweepable],
@@ -73,7 +75,6 @@ def validate_program(
     max_size: int = MAX_MESSAGE_SIZE,
 ) -> None:
     """Validate that the Program message size is below the maximum size limit.
-
     Args:
         circuits:  A sequence of  `cirq.Circuit` objects to validate.  For
           sweeps and runs, this will be a single circuit.  For batches,
@@ -83,15 +84,11 @@ def validate_program(
         repetitions:  Number of repetitions to run with each sweep.
         serializer:  Serializer to use to serialize the circuits and sweeps.
         max_size:  proto size limit to check against.
-
     Raises:
         RuntimeError: if compiled proto is above the maximum size.
     """
-    batch = v2.batch_pb2.BatchProgram()
     packed = any_pb2.Any()
-    for circuit in circuits:
-        serializer.serialize(circuit, msg=batch.programs.add())
-    packed.Pack(batch)
+    packed.Pack(serializer.serialize(circuits[0]))
     message_size = len(packed.SerializeToString())
     if message_size > max_size:
         raise RuntimeError("INVALID_PROGRAM: Program too long.")
@@ -99,14 +96,11 @@ def validate_program(
 
 def create_program_validator(max_size: int = MAX_MESSAGE_SIZE) -> PROGRAM_VALIDATOR_TYPE:
     """Creates a Callable program validator with a set message size.
-
     This validator can be used for a validator in `cg.ValidatingSampler`
     and can also be useful in generating 'engine emulators' by using
     `cg.SimulatedLocalProcessor` with this callable as a program_validator.
-
     Args:
         max_size:  proto size limit to check against.
-
     Returns: Callable to use in validation with the max_size already set.
     """
 
@@ -132,14 +126,13 @@ def validate_for_engine(
 
     Args:
        circuits:  A sequence of  `cirq.Circuit` objects to validate.  For
-          sweeps and runs, this will be a single circuit.  For batches,
-          this will be a list of circuits.
+          sweeps and runs, this will be a single circuit.
        sweeps:  Parameters to run with each circuit.  The length of the
           sweeps sequence should be the same as the circuits argument.
        repetitions:  Number of repetitions to run with each sweep.
        max_moments: Maximum number of moments to allow.
        max_repetitions: Maximum number of parameter sweep values allowed
-           when summed across all sweeps and all batches.
+           when summed across all sweeps.
        max_duration_ns:  Maximum duration of the circuit, in nanoseconds.
     """
     _verify_reps(sweeps, repetitions, max_repetitions)
@@ -148,9 +141,7 @@ def validate_for_engine(
 
 
 def create_engine_validator(
-    max_moments: int = MAX_MOMENTS,
-    max_repetitions: int = MAX_TOTAL_REPETITIONS,
-    max_duration_ns: int = 55000,
+    max_moments: int = MAX_MOMENTS, max_repetitions: int = MAX_TOTAL_REPETITIONS
 ) -> VALIDATOR_TYPE:
     """Creates a Callable gate set validator with a set message size.
 
@@ -162,7 +153,6 @@ def create_engine_validator(
         max_moments: Maximum number of moments to allow.
         max_repetitions: Maximum number of parameter sweep values allowed
             when summed across all sweeps and all batches.
-        max_duration_ns:  Maximum duration of the circuit, in nanoseconds.
     """
 
     def _validator(

@@ -283,9 +283,11 @@ class Moment:
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return Moment(
-            protocols.with_measurement_key_mapping(op, key_map)
-            if protocols.measurement_keys_touched(op)
-            else op
+            (
+                protocols.with_measurement_key_mapping(op, key_map)
+                if protocols.measurement_keys_touched(op)
+                else op
+            )
             for op in self.operations
         )
 
@@ -320,9 +322,11 @@ class Moment:
 
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
         return Moment(
-            protocols.with_key_path_prefix(op, prefix)
-            if protocols.measurement_keys_touched(op)
-            else op
+            (
+                protocols.with_key_path_prefix(op, prefix)
+                if protocols.measurement_keys_touched(op)
+                else op
+            )
             for op in self.operations
         )
 
@@ -343,14 +347,14 @@ class Moment:
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return self._sorted_operations_() == other._sorted_operations_()
+        return self is other or self._sorted_operations_() == other._sorted_operations_()
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return protocols.approx_eq(
+        return self is other or protocols.approx_eq(
             self._sorted_operations_(), other._sorted_operations_(), atol=atol
         )
 
@@ -510,13 +514,11 @@ class Moment:
         return cls.from_ops(*operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-
         if isinstance(other, circuits.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
     def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-
         must_remove = set(op_tree.flatten_to_ops(other))
         new_ops = []
         for op in self.operations:

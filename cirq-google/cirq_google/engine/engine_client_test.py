@@ -361,7 +361,7 @@ def test_create_job(client_constructor):
     labels = {'hello': 'world'}
     client = EngineClient()
     assert client.create_job(
-        'proj', 'prog', 'job0', ['processor0'], run_context, 10, 'A job', labels
+        'proj', 'prog', 'job0', 'processor0', run_context, 10, 'A job', labels
     ) == ('job0', result)
     grpc_client.create_quantum_job.assert_called_with(
         quantum.CreateQuantumJobRequest(
@@ -373,7 +373,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
                 description='A job',
@@ -382,7 +384,7 @@ def test_create_job(client_constructor):
         )
     )
 
-    assert client.create_job('proj', 'prog', 'job0', ['processor0'], run_context, 10, 'A job') == (
+    assert client.create_job('proj', 'prog', 'job0', 'processor0', run_context, 10, 'A job') == (
         'job0',
         result,
     )
@@ -396,7 +398,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
                 description='A job',
@@ -405,7 +409,7 @@ def test_create_job(client_constructor):
     )
 
     assert client.create_job(
-        'proj', 'prog', 'job0', ['processor0'], run_context, 10, labels=labels
+        'proj', 'prog', 'job0', 'processor0', run_context, 10, labels=labels
     ) == ('job0', result)
     grpc_client.create_quantum_job.assert_called_with(
         quantum.CreateQuantumJobRequest(
@@ -417,7 +421,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
                 labels=labels,
@@ -425,7 +431,7 @@ def test_create_job(client_constructor):
         )
     )
 
-    assert client.create_job('proj', 'prog', 'job0', ['processor0'], run_context, 10) == (
+    assert client.create_job('proj', 'prog', 'job0', 'processor0', run_context, 10) == (
         'job0',
         result,
     )
@@ -439,7 +445,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
             ),
@@ -447,12 +455,7 @@ def test_create_job(client_constructor):
     )
 
     assert client.create_job(
-        'proj',
-        'prog',
-        job_id=None,
-        processor_ids=['processor0'],
-        run_context=run_context,
-        priority=10,
+        'proj', 'prog', job_id=None, processor_id='processor0', run_context=run_context, priority=10
     ) == ('job0', result)
     grpc_client.create_quantum_job.assert_called_with(
         quantum.CreateQuantumJobRequest(
@@ -463,7 +466,9 @@ def test_create_job(client_constructor):
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(run_name="", config_alias=""),
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            run_name="", config_alias=""
+                        ),
                     ),
                 ),
             ),
@@ -475,7 +480,7 @@ def test_create_job(client_constructor):
             'proj',
             'prog',
             job_id=None,
-            processor_ids=['processor0'],
+            processor_id='processor0',
             run_context=run_context,
             priority=5000,
         )
@@ -484,32 +489,16 @@ def test_create_job(client_constructor):
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
-    'processor_ids, processor_id, run_name, device_config_name, error_message',
+    'processor_id, run_name, device_config_name, error_message',
     [
+        ('', '', '', 'Must specify a processor id when creating a job.'),
         (
-            ['processor0'],
-            '',
-            'RUN_NAME',
-            'CONFIG_ALIAS',
-            'Cannot specify `run_name` or `device_config_name` if `processor_id` is empty',
-        ),
-        (
-            ['processor0', 'processor1'],
-            '',
-            '',
-            '',
-            'The use of multiple processors is no longer supported.',
-        ),
-        (None, '', '', '', 'Must specify a processor id when creating a job.'),
-        (
-            None,
             'processor0',
             'RUN_NAME',
             '',
             'Cannot specify only one of `run_name` and `device_config_name`',
         ),
         (
-            None,
             'processor0',
             '',
             'CONFIG_ALIAS',
@@ -518,7 +507,7 @@ def test_create_job(client_constructor):
     ],
 )
 def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
-    client_constructor, processor_ids, processor_id, run_name, device_config_name, error_message
+    client_constructor, processor_id, run_name, device_config_name, error_message
 ):
     grpc_client = _setup_client_mock(client_constructor)
     result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
@@ -530,7 +519,6 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
             project_id='proj',
             program_id='prog',
             job_id=None,
-            processor_ids=processor_ids,
             processor_id=processor_id,
             run_name=run_name,
             device_config_name=device_config_name,
@@ -539,12 +527,10 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-@pytest.mark.parametrize(
-    'processor_ids, processor_id', [(None, 'processor0'), (['ignored-processor'], 'processor0')]
-)
+@pytest.mark.parametrize('processor_id', [('processor0'), ('processor0')])
 @pytest.mark.parametrize('run_name, device_config_name', [('RUN_NAME', 'CONFIG_NAME'), ('', '')])
 def test_create_job_with_run_name_and_device_config_name(
-    client_constructor, processor_ids, processor_id, run_name, device_config_name
+    client_constructor, processor_id, run_name, device_config_name
 ):
     grpc_client = _setup_client_mock(client_constructor)
     result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
@@ -556,7 +542,6 @@ def test_create_job_with_run_name_and_device_config_name(
         project_id='proj',
         program_id='prog',
         job_id='job0',
-        processor_ids=processor_ids,
         processor_id=processor_id,
         run_name=run_name,
         device_config_name=device_config_name,
@@ -573,7 +558,7 @@ def test_create_job_with_run_name_and_device_config_name(
                     priority=10,
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                         processor='projects/proj/processors/processor0',
-                        device_config_key=quantum.DeviceConfigKey(
+                        device_config_selector=quantum.DeviceConfigSelector(
                             run_name=run_name, config_alias=device_config_name
                         ),
                     ),
@@ -615,7 +600,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                     description='A job',
@@ -649,7 +634,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                     description='A job',
@@ -680,7 +665,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                     description='A job',
@@ -717,7 +702,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                     description='A job',
@@ -752,7 +737,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         ),
                     ),
                 ),
@@ -784,7 +769,7 @@ def test_create_job_with_run_name_and_device_config_name(
                     scheduling_config=quantum.SchedulingConfig(
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_key=quantum.DeviceConfigKey(),
+                            device_config_selector=quantum.DeviceConfigSelector(),
                         )
                     ),
                 ),

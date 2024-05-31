@@ -27,14 +27,13 @@ import datetime
 import enum
 import random
 import string
-from typing import Dict, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Set, TypeVar, Union, TYPE_CHECKING
 
 import duet
 import google.auth
 from google.protobuf import any_pb2
 
 import cirq
-from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.engine import (
     abstract_engine,
@@ -46,9 +45,7 @@ from cirq_google.engine import (
     util,
 )
 from cirq_google.cloud import quantum
-from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
-from cirq_google.serialization.arg_func_langs import arg_to_proto
 
 if TYPE_CHECKING:
     import cirq_google
@@ -89,7 +86,7 @@ class EngineContext:
         timeout: Optional[int] = None,
         serializer: Serializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
-        enable_streaming: bool = False,
+        enable_streaming: bool = True,
     ) -> None:
         """Context and client for using Quantum Engine.
 
@@ -155,7 +152,6 @@ class Engine(abstract_engine.AbstractEngine):
     *   create_program
     *   run
     *   run_sweep
-    *   run_batch
 
     Another set of methods return information about programs and jobs that
     have been previously created on the Quantum Engine, as well as metadata
@@ -213,21 +209,19 @@ class Engine(abstract_engine.AbstractEngine):
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     def run(
         self,
         program: cirq.AbstractCircuit,
+        processor_id: str,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
-        processor_ids: Sequence[str] = ('xmonsim',),
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
         *,
-        processor_id: str = "",
         run_name: str = "",
         device_config_name: str = "",
     ) -> cirq.Result:
@@ -247,15 +241,11 @@ class Engine(abstract_engine.AbstractEngine):
                 and day.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
+            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
@@ -270,9 +260,7 @@ class Engine(abstract_engine.AbstractEngine):
 
         Raises:
             ValueError: If no gate set is provided.
-            ValueError: If neither `processor_id` or `processor_ids` are set.
             ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
@@ -283,32 +271,29 @@ class Engine(abstract_engine.AbstractEngine):
                 job_id=job_id,
                 params=[param_resolver],
                 repetitions=repetitions,
-                processor_ids=processor_ids,
+                processor_id=processor_id,
                 program_description=program_description,
                 program_labels=program_labels,
                 job_description=job_description,
                 job_labels=job_labels,
-                processor_id=processor_id,
                 run_name=run_name,
                 device_config_name=device_config_name,
             )
         )[0]
 
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
+        processor_id: str,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        processor_ids: Sequence[str] = ('xmonsim',),
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
         *,
-        processor_id: str = "",
         run_name: str = "",
         device_config_name: str = "",
     ) -> engine_job.EngineJob:
@@ -331,15 +316,11 @@ class Engine(abstract_engine.AbstractEngine):
                 and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
+            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
@@ -355,22 +336,12 @@ class Engine(abstract_engine.AbstractEngine):
 
         Raises:
             ValueError: If no gate set is provided.
-            ValueError: If neither `processor_id` or `processor_ids` are set.
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
 
         if self.context.enable_streaming:
-            # This logic is temporary prior to deprecating the processor_ids parameter.
-            # TODO(#6271) Remove after deprecating processor_ids elsewhere prior to v1.4.
-            if processor_ids:
-                if len(processor_ids) > 1:
-                    raise ValueError("The use of multiple processors is no longer supported.")
-                if len(processor_ids) == 1 and not processor_id:
-                    processor_id = processor_ids[0]
-
             if not program_id:
                 program_id = _make_random_id('prog-')
             if not job_id:
@@ -406,196 +377,14 @@ class Engine(abstract_engine.AbstractEngine):
             job_id=job_id,
             params=params,
             repetitions=repetitions,
-            processor_ids=processor_ids,
+            processor_id=processor_id,
             description=job_description,
             labels=job_labels,
-            processor_id=processor_id,
             run_name=run_name,
             device_config_name=device_config_name,
         )
 
     run_sweep = duet.sync(run_sweep_async)
-
-    # TODO(#5996) Migrate to stream client
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
-    async def run_batch_async(
-        self,
-        programs: Sequence[cirq.AbstractCircuit],
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        params_list: Optional[List[cirq.Sweepable]] = None,
-        repetitions: int = 1,
-        processor_ids: Sequence[str] = (),
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-        *,
-        processor_id: str = "",
-        run_name: str = "",
-        device_config_name: str = "",
-    ) -> engine_job.EngineJob:
-        """Runs the supplied Circuits via Quantum Engine.Creates
-
-        This will combine each Circuit provided in `programs` into
-        a BatchProgram.  Each circuit will pair with the associated
-        parameter sweep provided in the `params_list`.  The number of
-        programs is required to match the number of sweeps.
-
-        This method does not block until a result is returned.  However,
-        no results will be available until the entire batch is complete.
-
-        Args:
-            programs: The Circuits to execute as a batch.
-            program_id: A user-provided identifier for the program. This must
-                be unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'job-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            params_list: Parameter sweeps to use with the circuits. The number
-                of sweeps should match the number of circuits and will be
-                paired in order with the circuits. If this is None, it is
-                assumed that the circuits are not parameterized and do not
-                require sweeps.
-            repetitions: Number of circuit repetitions to run.  Each sweep value
-                of each circuit in the batch will run with the same repetitions.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
-            program_description: An optional description to set on the program.
-            program_labels: Optional set of labels to set on the program.
-            job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
-            run_name: A unique identifier representing an automation run for the
-                specified processor. An Automation Run contains a collection of
-                device configurations for a processor. If specified, `processor_id`
-                is required to be set.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-                If specified, `processor_id` is required to be set.
-
-        Returns:
-            An EngineJob. If this is iterated over it returns a list of
-            TrialResults. All TrialResults for the first circuit are listed
-            first, then the TrialResults for the second, etc. The TrialResults
-            for a circuit are listed in the order imposed by the associated
-            parameter sweep.
-
-        Raises:
-            ValueError: If the length of programs mismatches that of params_list, or
-                `processor_ids` is not supplied.
-            ValueError: If neither `processor_id` or `processor_ids` are set.
-            ValueError: If  only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
-            ValueError: If either `run_name` and `device_config_name` are set but
-                `processor_id` is empty.
-        """
-        if params_list is None:
-            params_list = [None] * len(programs)
-        elif len(programs) != len(params_list):
-            raise ValueError('Number of circuits and sweeps must match')
-        if not processor_ids and not processor_id:
-            raise ValueError('Processor id must be specified.')
-        engine_program = await self.create_batch_program_async(
-            programs, program_id, description=program_description, labels=program_labels
-        )
-        return await engine_program.run_batch_async(
-            job_id=job_id,
-            params_list=params_list,
-            repetitions=repetitions,
-            processor_ids=processor_ids,
-            description=job_description,
-            labels=job_labels,
-            processor_id=processor_id,
-            run_name=run_name,
-            device_config_name=device_config_name,
-        )
-
-    run_batch = duet.sync(run_batch_async)
-
-    # TODO(#5996) Migrate to stream client
-    async def run_calibration_async(
-        self,
-        layers: List['cirq_google.CalibrationLayer'],
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        processor_id: Optional[str] = None,
-        processor_ids: Sequence[str] = (),
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-    ) -> engine_job.EngineJob:
-        """Runs the specified calibrations via the Calibration API.
-
-        Each calibration will be specified by a `CalibrationLayer`
-        that contains the type of the calibrations to run, a `Circuit`
-        to optimize, and any arguments needed by the calibration routine.
-
-        Arguments and circuits needed for each layer will vary based on the
-        calibration type.  However, the typical calibration routine may
-        require a single moment defining the gates to optimize, for example.
-
-        Note: this is an experimental API and is not yet fully supported
-        for all users.
-
-        Args:
-            layers: The layers of calibration to execute as a batch.
-            program_id: A user-provided identifier for the program. This must
-                be unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'calibration-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'calibration-################YYMMDD' will be
-                generated, where # is alphanumeric and YYMMDD is the current
-                year, month, and day.
-            processor_id: The engine processor that should run the calibration.
-                If this is specified, processor_ids should not be specified.
-            processor_ids: The engine processors that should be candidates
-                to run the program. Only one of these will be scheduled for
-                execution.
-            program_description: An optional description to set on the program.
-            program_labels: Optional set of labels to set on the program.
-            job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.  By default,
-                this will add a 'calibration' label to the job.
-
-        Returns:
-            An EngineJob whose results can be retrieved by calling
-            calibration_results().
-
-        Raises:
-            ValueError: If `processor_id` and `processor_ids` are both specified, or neither is
-                supplied.
-        """
-        if processor_id and processor_ids:
-            raise ValueError('Only one of processor_id and processor_ids can be specified.')
-        if not processor_ids and not processor_id:
-            raise ValueError('Processor id must be specified.')
-        if processor_id:
-            processor_ids = [processor_id]
-        if job_labels is None:
-            job_labels = {'calibration': ''}
-        engine_program = await self.create_calibration_program_async(
-            layers, program_id, description=program_description, labels=program_labels
-        )
-        return await engine_program.run_calibration_async(
-            job_id=job_id,
-            processor_ids=processor_ids,
-            description=job_description,
-            labels=job_labels,
-        )
-
-    run_calibration = duet.sync(run_calibration_async)
 
     async def create_program_async(
         self,
@@ -638,110 +427,6 @@ class Engine(abstract_engine.AbstractEngine):
         )
 
     create_program = duet.sync(create_program_async)
-
-    async def create_batch_program_async(
-        self,
-        programs: Sequence[cirq.AbstractCircuit],
-        program_id: Optional[str] = None,
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> engine_program.EngineProgram:
-        """Wraps a list of Circuits into a BatchProgram for the Quantum Engine.
-
-        Args:
-            programs: The Circuits to execute within a batch.
-            program_id: A user-provided identifier for the program. This must be
-                unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            description: An optional description to set on the program.
-            labels: Optional set of labels to set on the program.
-
-        Returns:
-            A EngineProgram for the newly created program.
-
-        Raises:
-            ValueError: If no gate set is provided.
-        """
-        if not program_id:
-            program_id = _make_random_id('prog-')
-
-        batch = v2.batch_pb2.BatchProgram()
-        for program in programs:
-            self.context.serializer.serialize(program, msg=batch.programs.add())
-
-        new_program_id, new_program = await self.context.client.create_program_async(
-            self.project_id,
-            program_id,
-            code=util.pack_any(batch),
-            description=description,
-            labels=labels,
-        )
-
-        return engine_program.EngineProgram(
-            self.project_id, new_program_id, self.context, new_program, result_type=ResultType.Batch
-        )
-
-    create_batch_program = duet.sync(create_batch_program_async)
-
-    async def create_calibration_program_async(
-        self,
-        layers: List['cirq_google.CalibrationLayer'],
-        program_id: Optional[str] = None,
-        description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> engine_program.EngineProgram:
-        """Wraps a list of calibration layers into an Any for Quantum Engine.
-
-        Args:
-            layers: The calibration routines to execute.  All layers will be
-                executed within the same API call in the order specified,
-                though some layers may be interleaved together using
-                hardware-specific batching.
-            program_id: A user-provided identifier for the program. This must be
-                unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'calibration-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            description: An optional description to set on the program.
-            labels: Optional set of labels to set on the program.
-
-        Returns:
-            A EngineProgram for the newly created program.
-
-        Raises:
-            ValueError: If not gate set is given.
-        """
-        if not program_id:
-            program_id = _make_random_id('calibration-')
-
-        calibration = v2.calibration_pb2.FocusedCalibration()
-        for layer in layers:
-            new_layer = calibration.layers.add()
-            new_layer.calibration_type = layer.calibration_type
-            for arg in layer.args:
-                arg_to_proto(layer.args[arg], out=new_layer.args[arg])
-            self.context.serializer.serialize(layer.program, msg=new_layer.layer)
-
-        new_program_id, new_program = await self.context.client.create_program_async(
-            self.project_id,
-            program_id,
-            code=util.pack_any(calibration),
-            description=description,
-            labels=labels,
-        )
-
-        return engine_program.EngineProgram(
-            self.project_id,
-            new_program_id,
-            self.context,
-            new_program,
-            result_type=ResultType.Calibration,
-        )
-
-    create_calibration_program = duet.sync(create_calibration_program_async)
 
     def get_program(self, program_id: str) -> engine_program.EngineProgram:
         """Returns an EngineProgram for an existing Quantum Engine program.
@@ -877,21 +562,6 @@ class Engine(abstract_engine.AbstractEngine):
             A EngineProcessor for the processor.
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
-
-    @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
-    def sampler(self, processor_id: Union[str, List[str]]) -> 'cirq_google.ProcessorSampler':
-        """Returns a sampler backed by the engine.
-
-        Args:
-            processor_id: String identifier, or list of string identifiers,
-                determining which processors may be used when sampling.
-
-        Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
-            that will send circuits to the Quantum Computing Service
-            when sampled.
-        """
-        return self.get_sampler(processor_id)
 
     def get_sampler(
         self, processor_id: Union[str, List[str]], run_name: str = "", device_config_name: str = ""

@@ -71,7 +71,7 @@ def map_clean_and_borrowable_qubits(
     inserting all mapped operations in a resulting circuit using EARLIEST strategy. The reason
     is that preserving moment structure forces additional constraints on the qubit allocation
     strategy (i.e. if two operations `op1` and `op2` are in the same moment, then we cannot
-    reuse ancilla across `op1` and `op2`). We leave it upto the user to force such constraints
+    reuse ancilla across `op1` and `op2`). We leave it up to the user to force such constraints
     using the qubit manager instead of making it part of the transformer.
         3. However, for borrowable system qubits managed by the transformer, we do not reuse qubits
     within the same moment.

@@ -3,11 +3,11 @@
 See cirq/_compat_test.py for the tests.
 This module contains example deprecations for modules.
 """
-import sys
-from logging import info
+import logging
+
 from cirq import _compat
 
-info("init:compat_test_data")
+logging.info("init:compat_test_data")
 
 # simulates a rename of a child module
 # fake_a -> module_a

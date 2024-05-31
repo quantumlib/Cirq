@@ -70,6 +70,8 @@ class _SupportsValueEquality(Protocol):
 
 
 def _value_equality_eq(self: _SupportsValueEquality, other: _SupportsValueEquality) -> bool:
+    if other is self:
+        return True
     cls_self = self._value_equality_values_cls_()
     get_cls_other = getattr(other, '_value_equality_values_cls_', None)
     if get_cls_other is None:
@@ -91,6 +93,8 @@ def _value_equality_hash(self: _SupportsValueEquality) -> int:
 def _value_equality_approx_eq(
     self: _SupportsValueEquality, other: _SupportsValueEquality, atol: float
 ) -> bool:
+    if other is self:
+        return True
     cls_self = self._value_equality_values_cls_()
     get_cls_other = getattr(other, '_value_equality_values_cls_', None)
     if get_cls_other is None:

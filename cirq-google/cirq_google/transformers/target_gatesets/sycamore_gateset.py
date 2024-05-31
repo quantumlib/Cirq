@@ -92,9 +92,11 @@ def merge_swap_rzz_and_2q_unitaries(
         merged_cop_tags = {merged_swap_rzz_tag, merged_2q_component_tag}
         circuit = cirq.map_operations(
             circuit,
-            map_func=lambda op, _: op
-            if merged_cop_tags.isdisjoint(op.tags)
-            else op.with_tags(cast(str, intermediate_result_tag)),
+            map_func=lambda op, _: (
+                op
+                if merged_cop_tags.isdisjoint(op.tags)
+                else op.with_tags(cast(str, intermediate_result_tag))
+            ),
             tags_to_ignore=tags_to_ignore,
             deep=True,
         )

@@ -11,7 +11,7 @@
 asv
 
 # For verifying behavior of qasm output.
-qiskit-aer~=0.12.2
+qiskit-aer~=0.12.0
 
 # For verifying rst
-rstcheck~=3.3.1
+rstcheck

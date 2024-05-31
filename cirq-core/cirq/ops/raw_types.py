@@ -230,7 +230,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Returns: a `cirq.Operation` which is this gate applied to the given
             qubits.
         """
-        return ops.gate_operation.GateOperation(self, list(qubits))
+        return ops.gate_operation.GateOperation(self, qubits)
 
     def on_each(self, *targets: Union[Qid, Iterable[Any]]) -> List['cirq.Operation']:
         """Returns a list of operations applying the gate to all targets.
@@ -921,7 +921,7 @@ class TaggedOperation(Operation):
         # Add tag to wire symbol if it exists.
         if sub_op_info is not NotImplemented and args.include_tags and sub_op_info.wire_symbols:
             sub_op_info.wire_symbols = (
-                sub_op_info.wire_symbols[0] + str(list(self._tags)),
+                sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, self._tags))}]",
             ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
 
@@ -1031,6 +1031,9 @@ class _InverseCompositeGate(Gate):
 
     def __repr__(self) -> str:
         return f'({self._original!r}**-1)'
+
+    def __str__(self) -> str:
+        return f'{self._original!s}†'
 
 
 def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:

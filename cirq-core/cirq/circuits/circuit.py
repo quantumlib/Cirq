@@ -29,14 +29,14 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
-    Mapping,
-    MutableSequence,
     cast,
     Dict,
     FrozenSet,
     Iterable,
     Iterator,
     List,
+    Mapping,
+    MutableSequence,
     Optional,
     overload,
     Sequence,
@@ -58,9 +58,9 @@ from cirq._doc import document
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
+from cirq.circuits.moment import Moment
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-from cirq.circuits.moment import Moment
 from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -203,19 +203,24 @@ class AbstractCircuit(abc.ABC):
             copy: If True and 'self' is a Circuit, returns a copy that circuit.
         """
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.moments)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, AbstractCircuit):
             return NotImplemented
-        return tuple(self.moments) == tuple(other.moments)
+        return other is self or (
+            len(self.moments) == len(other.moments)
+            and all(m0 == m1 for m0, m1 in zip(self.moments, other.moments))
+        )
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, AbstractCircuit):
             return NotImplemented
-        return cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
+        return other is self or cirq.protocols.approx_eq(
+            tuple(self.moments), tuple(other.moments), atol=atol
+        )
 
     def __ne__(self, other) -> bool:
         return not self == other
@@ -2625,7 +2630,7 @@ def _draw_moment_in_diagram(
         if desc:
             y = max(label_map.values(), default=0) + 1
             if tags and include_tags:
-                desc = desc + str(tags)
+                desc = desc + f"[{', '.join(map(str, tags))}]"
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:

@@ -38,27 +38,27 @@ Forking creates a new github repo at the location
 your github id. Use the directions on the
 [development page](docs/dev/development.md) to download a copy to
 your local machine. You need only do this once.
-1. Checkout master and create a new branch from this master
+1. Checkout main and create a new branch from this main
     ```shell
-    git checkout master -b new_branch_name
+    git checkout main -b new_branch_name
     ```
     where ```new_branch_name``` is the name of your new branch.
 1. Do your work and commit your changes to this branch.
-1. If you have drifted out of sync with the master from the
+1. If you have drifted out of sync with the main from the
 main cirq repo you may need to merge in changes.  To do this,
-first update your local master and then merge the local master
+first update your local main and then merge the local main
 into your branch:
     ```shell
     # Track the upstream repo (if your local repo hasn't):
     git remote add upstream https://github.com/quantumlib/Cirq.git
 
-    # Update your local master.
+    # Update your local main.
     git fetch upstream
-    git checkout master
-    git merge upstream/master
-    # Merge local master into your branch.
+    git checkout main
+    git merge upstream/main
+    # Merge local main into your branch.
     git checkout new_branch_name
-    git merge master
+    git merge main
     ```
     You may need to fix merge conflicts for both of these merge
     commands.

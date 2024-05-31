@@ -19,6 +19,7 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 import math
+from functools import cached_property
 from typing import (
     Callable,
     cast,
@@ -38,7 +39,7 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols, value, study
-from cirq._compat import cached_property, proper_repr
+from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq

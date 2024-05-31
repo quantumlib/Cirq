@@ -17,7 +17,7 @@ The public APIs of Cirq are backwards compatible across minor and patch versions
     *   Private symbols: any symbol whose name start with an underscore **\_**.
     *   Experimental and `cirq.contrib` symbols, see [below](#what-is-not-covered) for details.
 * Note that only code reachable through the `cirq` Python module is covered by the compatibility guarantees. 
-    *   For example: Code in the [examples/](https://github.com/quantumlib/Cirq/tree/master/examples) and [dev\_tools/](https://github.com/quantumlib/Cirq/tree/master/dev_tools) directories is not reachable through the `cirq` Python module and is thus not covered by the compatibility guarantee. 
+    *   For example: Code in the [examples/](https://github.com/quantumlib/Cirq/tree/main/examples) and [dev\_tools/](https://github.com/quantumlib/Cirq/tree/main/dev_tools) directories is not reachable through the `cirq` Python module and is thus not covered by the compatibility guarantee. 
     *   Similarly, symbols in vendor packages, like [cirq-google](https://quantumai.google/reference/python/cirq_google/all_symbols), [cirq-aqt](https://quantumai.google/reference/python/cirq_aqt/all_symbols) are also not covered by the compatibility guarantee.
     *   If a symbol is available through the `cirq` Python module or its submodules, but is not documented, then it is **not** considered part of the public API.
 

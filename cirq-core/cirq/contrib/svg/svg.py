@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     import cirq
 
 QBLUE = '#1967d2'
-FONT = matplotlib.font_manager.FontProperties(family="Arial")
+FONT = matplotlib.font_manager.FontProperties()
 EMPTY_MOMENT_COLWIDTH = float(21)  # assumed default column width
 
 
@@ -21,6 +21,7 @@ def fixup_text(text: str):
     # https://github.com/quantumlib/Cirq/issues/2905
     text = text.replace('[<virtual>]', '')
     text = text.replace('[cirq.VirtualTag()]', '')
+    text = text.replace('&', '&amp;')
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     return text
 

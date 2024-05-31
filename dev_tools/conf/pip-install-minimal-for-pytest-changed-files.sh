@@ -26,7 +26,7 @@ reqs=(
 )
 
 # Install contrib requirements only if needed.
-changed=$(git diff --name-only origin/master | grep "cirq/contrib" || true)
+changed=$(git diff --name-only origin/main | grep "cirq/contrib" || true)
 [ "${changed}" = "" ] || reqs+=( -r cirq-core/cirq/contrib/requirements.txt )
 
 pip install "${reqs[@]}"

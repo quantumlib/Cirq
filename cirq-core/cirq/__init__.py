@@ -240,6 +240,7 @@ from cirq.ops import (
     MatrixGate,
     MixedUnitaryChannel,
     M,
+    MSGate,
     measure,
     measure_each,
     measure_paulistring_terms,
@@ -331,10 +332,12 @@ from cirq.ops import (
     ZPowGate,
     ZZ,
     ZZPowGate,
+    UniformSuperpositionGate,
 )
 
 from cirq.transformers import (
     AbstractInitialMapper,
+    add_dynamical_decoupling,
     align_left,
     align_right,
     CompilationTargetGateset,
@@ -508,6 +511,7 @@ from cirq.study import (
     to_sweeps,
     Result,
     UnitSweep,
+    UNIT_SWEEP,
     Zip,
     ZipLongest,
 )

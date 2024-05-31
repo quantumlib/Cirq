@@ -14,7 +14,8 @@
 
 import abc
 import functools
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+import weakref
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 from typing_extensions import Self
 
 from cirq import ops, protocols
@@ -31,30 +32,56 @@ class _BaseLineQid(ops.Qid):
     _dimension: int
     _hash: Optional[int] = None
 
-    def __getstate__(self):
-        # Don't save hash when pickling; see #3777.
-        state = self.__dict__
-        if "_hash" in state:
-            state = state.copy()
-            del state["_hash"]
-        return state
-
     def __hash__(self) -> int:
         if self._hash is None:
             self._hash = hash((self._x, self._dimension))
         return self._hash
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseLineQid):
-            return self._x == other._x and self._dimension == other._dimension
+            return self is other or (self._x == other._x and self._dimension == other._dimension)
         return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseLineQid):
-            return self._x != other._x or self._dimension != other._dimension
+            return self is not other and (
+                self._x != other._x or self._dimension != other._dimension
+            )
         return NotImplemented
+
+    def __lt__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseLineQid):
+            return self._x < other._x or (
+                self._x == other._x and self._dimension < other._dimension
+            )
+        return super().__lt__(other)
+
+    def __le__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseLineQid):
+            return self._x < other._x or (
+                self._x == other._x and self._dimension <= other._dimension
+            )
+        return super().__le__(other)
+
+    def __ge__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseLineQid):
+            return self._x > other._x or (
+                self._x == other._x and self._dimension >= other._dimension
+            )
+        return super().__ge__(other)
+
+    def __gt__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, _BaseLineQid):
+            return self._x > other._x or (
+                self._x == other._x and self._dimension > other._dimension
+            )
+        return super().__gt__(other)
 
     def _comparison_key(self):
         return self._x
@@ -154,7 +181,11 @@ class LineQid(_BaseLineQid):
 
     """
 
-    def __init__(self, x: int, dimension: int) -> None:
+    # Cache of existing LineQid instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
+    _cache = weakref.WeakValueDictionary[Tuple[int, int], 'cirq.LineQid']()
+
+    def __new__(cls, x: int, dimension: int) -> 'cirq.LineQid':
         """Initializes a line qid at the given x coordinate.
 
         Args:
@@ -162,9 +193,19 @@ class LineQid(_BaseLineQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        self.validate_dimension(dimension)
-        self._x = x
-        self._dimension = dimension
+        key = (x, dimension)
+        inst = cls._cache.get(key)
+        if inst is None:
+            cls.validate_dimension(dimension)
+            inst = super().__new__(cls)
+            inst._x = x
+            inst._dimension = dimension
+            cls._cache[key] = inst
+        return inst
+
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self._x, self._dimension)
 
     def _with_x(self, x: int) -> 'LineQid':
         return LineQid(x, dimension=self._dimension)
@@ -246,22 +287,29 @@ class LineQubit(_BaseLineQid):
 
     _dimension = 2
 
-    def __init__(self, x: int) -> None:
-        """Initializes a line qubit at the given x coordinate.
+    # Cache of existing LineQubit instances, returned by __new__ if available.
+    # Holds weak references so instances can still be garbage collected.
+    _cache = weakref.WeakValueDictionary[int, 'cirq.LineQubit']()
+
+    def __new__(cls, x: int) -> 'cirq.LineQubit':
+        """Initializes a line qid at the given x coordinate.
 
         Args:
             x: The x coordinate.
         """
-        self._x = x
+        inst = cls._cache.get(x)
+        if inst is None:
+            inst = super().__new__(cls)
+            inst._x = x
+            cls._cache[x] = inst
+        return inst
+
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self._x,)
 
     def _with_x(self, x: int) -> 'LineQubit':
         return LineQubit(x)
-
-    def _cmp_tuple(self):
-        cls = LineQid if type(self) is LineQubit else type(self)
-        # Must be the same as Qid._cmp_tuple but with cls in place of
-        # type(self).
-        return (cls.__name__, repr(cls), self._comparison_key(), self._dimension)
 
     @staticmethod
     def range(*range_args) -> List['LineQubit']:

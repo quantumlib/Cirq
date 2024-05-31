@@ -1,13 +1,19 @@
 -r ipython.txt
 
-# Notebook >=6.4.8 + coverage > 6.2 hangs CI: https://github.com/quantumlib/Cirq/issues/4897
-notebook>=6.4.1,<=6.4.7
+notebook~=7.0
 
-# https://github.com/nteract/papermill/issues/519
-ipykernel==5.3.4
+ipykernel~=6.29
 
 # for executing notebooks in tests
-papermill~=2.3.2
+papermill~=2.6
+
+# for notebooks that do `pip install cirq-core[contrib]`
+-r ../../../cirq-core/cirq/contrib/requirements.txt
 
 # assumed to be part of colab
-seaborn~=0.11.1
+seaborn~=0.12
+
+# TODO(#6281) - remove below after the merge of #6281
+jupyterlab~=4.0.13
+jupyterlab-server~=2.24.0
+nbformat~=5.10.4

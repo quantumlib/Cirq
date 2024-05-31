@@ -257,3 +257,20 @@ def test_decompose_to_diagonal_and_circuit(v):
     combined_circuit = cirq.Circuit(cirq.MatrixGate(diagonal)(b, c), ops)
     circuit_unitary = combined_circuit.unitary(qubits_that_should_be_present=[b, c])
     cirq.testing.assert_allclose_up_to_global_phase(circuit_unitary, v, atol=2e-6)
+
+
+def test_remove_partial_czs_or_fail():
+    CZ = cirq.CZ(*cirq.LineQubit.range(2))
+    assert (
+        cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
+            [CZ**1e-15], atol=1e-9
+        )
+        == []
+    )
+    assert cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
+        [CZ**-1, CZ], atol=1e-9
+    ) == [CZ, CZ]
+    with pytest.raises(ValueError):
+        _ = cirq.transformers.analytical_decompositions.two_qubit_to_cz._remove_partial_czs_or_fail(
+            [CZ**-0.5], atol=1e-9
+        )

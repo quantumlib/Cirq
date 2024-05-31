@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/images/Cirq_logo_color.png
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/main/docs/images/Cirq_logo_color.png
   :target: https://github.com/quantumlib/cirq
   :alt: Cirq
   :width: 500px
@@ -13,6 +13,6 @@ Installation
 ------------
 
 To install the stable version of only **cirq-core**, use `pip install cirq-core`.
-To install the pre-release version of only **cirq-core**, use `pip install cirq-core --pre`.
+To install the pre-release version of only **cirq-core**, use `pip install cirq-core~=1.0.dev`.
 
-To get all the optional modules installed as well, you'll have to use `pip install cirq` or `pip install cirq --pre` for the pre-release version.
+To get all the optional modules installed as well, you'll have to use `pip install cirq` or `pip install cirq~=1.0.dev` for the pre-release version.

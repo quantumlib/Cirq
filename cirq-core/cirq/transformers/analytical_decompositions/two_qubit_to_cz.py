@@ -31,6 +31,24 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _remove_partial_czs_or_fail(
+    operations: Iterable['cirq.Operation'], atol: float
+) -> List['cirq.Operation']:
+    result = []
+    for op in operations:
+        if isinstance(op.gate, ops.CZPowGate):
+            t = op.gate.exponent % 2  # CZ^t is periodic with period 2.
+            if t < atol:
+                continue  # Identity.
+            elif abs(t - 1) < atol:
+                result.append(ops.CZ(*op.qubits))  # Was either CZ or CZ**-1.
+            else:
+                raise ValueError(f'CZ^t is not allowed for t={t}')
+        else:
+            result.append(op)
+    return result
+
+
 def two_qubit_matrix_to_cz_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
@@ -53,10 +71,16 @@ def two_qubit_matrix_to_cz_operations(
 
     Returns:
         A list of operations implementing the matrix.
+
+    Raises:
+        ValueError: If allow_partial_czs=False and the matrix requires partial CZs.
     """
     kak = linalg.kak_decomposition(mat, atol=atol)
     operations = _kak_decomposition_to_operations(q0, q1, kak, allow_partial_czs, atol=atol)
     if clean_operations:
+        if not allow_partial_czs:
+            # CZ^t is not allowed for any $t$ except $t=1$.
+            return _remove_partial_czs_or_fail(cleanup_operations(operations), atol=atol)
         return cleanup_operations(operations)
     return operations
 

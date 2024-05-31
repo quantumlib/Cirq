@@ -20,8 +20,8 @@ Installation
 ------------
 
 To install the stable version of only **cirq-aqt**, use `pip install cirq-aqt`.
-To install the pre-release version of only **cirq-aqt**, use `pip install cirq-aqt --pre`.
+To install the pre-release version of only **cirq-aqt**, use `pip install cirq-aqt~=1.0.dev`.
 
 Note, that this will install both cirq-aqt and cirq-core as well.
 
-To get all the optional modules installed as well, you'll have to use `pip install cirq` or `pip install cirq --pre` for the pre-release version.
+To get all the optional modules installed as well, you'll have to use `pip install cirq` or `pip install cirq~=1.0.dev` for the pre-release version.

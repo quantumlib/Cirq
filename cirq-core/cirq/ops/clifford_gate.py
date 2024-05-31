@@ -14,11 +14,13 @@
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
-
+import functools
+from dataclasses import dataclass
 import numpy as np
 
 from cirq import protocols, value, linalg, qis
 from cirq._import import LazyLoader
+from cirq._compat import cached_method
 from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
@@ -356,6 +358,8 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 class CliffordGate(raw_types.Gate, CommonCliffordGates):
     """Clifford rotation for N-qubit."""
 
+    _clifford_tableau: qis.CliffordTableau
+
     def __init__(self, *, _clifford_tableau: qis.CliffordTableau) -> None:
         # We use the Clifford tableau to represent a Clifford gate.
         # It is crucial to note that the meaning of tableau here is different
@@ -376,7 +380,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # more precisely the conjugate transformation of ZI by this gate, becomes -ZI.
         # (Note the real clifford tableau has to satify the Symplectic property.
         # here is just for illustration)
-        self._clifford_tableau = _clifford_tableau.copy()
+        object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
 
     @property
     def clifford_tableau(self):
@@ -396,21 +400,37 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # By definition, Clifford Gate should always return True.
         return True
 
-    def __pow__(self, exponent) -> 'CliffordGate':
+    def __pow__(self, exponent: float) -> 'CliffordGate':
+        if exponent != int(exponent):
+            return NotImplemented
+        exponent = int(exponent)
+
         if exponent == -1:
             return CliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
-        if exponent > 0 and int(exponent) == exponent:
-            base_tableau = self.clifford_tableau.copy()
-            for _ in range(int(exponent) - 1):
-                base_tableau = base_tableau.then(self.clifford_tableau)
-            return CliffordGate.from_clifford_tableau(base_tableau)
-        if exponent < 0 and int(exponent) == exponent:
-            base_tableau = self.clifford_tableau.copy()
-            for _ in range(int(-exponent) - 1):
-                base_tableau = base_tableau.then(self.clifford_tableau)
-            return CliffordGate.from_clifford_tableau(base_tableau.inverse())
+        if exponent == 0:
+            return CliffordGate.from_clifford_tableau(
+                qis.CliffordTableau(num_qubits=self._num_qubits_())
+            )
+        if exponent == 1:
+            return self
 
-        return NotImplemented
+        base_tableau = self.clifford_tableau.copy()
+        if exponent < 0:
+            base_tableau = base_tableau.inverse()
+            exponent = abs(exponent)
+
+        # https://cp-algorithms.com/algebra/binary-exp.html
+        aux = qis.CliffordTableau(
+            num_qubits=self.clifford_tableau.n
+        )  # this tableau collects the odd terms
+        while exponent > 1:
+            if exponent & 1:
+                aux = aux.then(base_tableau)
+            base_tableau = base_tableau.then(base_tableau)
+            exponent >>= 1
+
+        base_tableau = base_tableau.then(aux)
+        return CliffordGate.from_clifford_tableau(base_tableau)
 
     def __repr__(self) -> str:
         return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
@@ -457,6 +477,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         return NotImplemented
 
 
+@dataclass(frozen=True, init=False, eq=False, repr=False)
 @value.value_equality(manual_cls=True)
 class SingleQubitCliffordGate(CliffordGate):
     """Any single qubit Clifford rotation."""
@@ -468,6 +489,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return 1
 
     @staticmethod
+    @functools.cache
     def from_clifford_tableau(tableau: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
         if not isinstance(tableau, qis.CliffordTableau):
             raise ValueError('Input argument has to be a CliffordTableau instance.')
@@ -679,6 +701,10 @@ class SingleQubitCliffordGate(CliffordGate):
             * {middle point of xyz in 4 Quadrant} * 120 is [[0, 1], [1, 1]]
             * {middle point of xyz in 4 Quadrant} * 240 is [[1, 1], [1, 0]]
         """
+        return self._to_phased_xz_gate
+
+    @functools.cached_property
+    def _to_phased_xz_gate(self) -> phased_x_z_gate.PhasedXZGate:
         x_to_flip, z_to_flip = self.clifford_tableau.rs
         flip_index = int(z_to_flip) * 2 + x_to_flip
         a, x, z = 0.0, 0.0, 0.0
@@ -716,7 +742,7 @@ class SingleQubitCliffordGate(CliffordGate):
             z = -0.5 if x_to_flip else 0.5
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
-    def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
+    def __pow__(self, exponent: Union[float, int]) -> 'SingleQubitCliffordGate':
         # First to check if we can get the sqrt and negative sqrt Clifford.
         if self._get_sqrt_map().get(exponent, None):
             pow_gate = self._get_sqrt_map()[exponent].get(self, None)
@@ -761,6 +787,7 @@ class SingleQubitCliffordGate(CliffordGate):
         to, flip = self.pauli_tuple(pauli)
         return to == pauli and not flip
 
+    @cached_method
     def merged_with(self, second: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
         """Returns a SingleQubitCliffordGate such that the circuits
             --output-- and --self--second--
@@ -773,6 +800,10 @@ class SingleQubitCliffordGate(CliffordGate):
         return True
 
     def _unitary_(self) -> np.ndarray:
+        return self._unitary
+
+    @functools.cached_property
+    def _unitary(self) -> np.ndarray:
         mat = np.eye(2)
         qubit = named_qubit.NamedQubit('arbitrary')
         for op in protocols.decompose_once_with_qubits(self, (qubit,)):
@@ -787,6 +818,10 @@ class SingleQubitCliffordGate(CliffordGate):
             clifford gate if applied in order. This decomposition agrees with
             cirq.unitary(self), including global phase.
         """
+        return self._decompose_gate
+
+    @functools.cached_property
+    def _decompose_gate(self) -> Sequence['cirq.Gate']:
         if self == SingleQubitCliffordGate.H:
             return [common_gates.H]
         rotations = self.decompose_rotation()
@@ -802,6 +837,10 @@ class SingleQubitCliffordGate(CliffordGate):
         Note that the combined unitary effect of these rotations may
         differ from cirq.unitary(self) by a global phase.
         """
+        return self._decompose_rotation
+
+    @functools.cached_property
+    def _decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
         x_rot = self.pauli_tuple(pauli_gates.X)
         y_rot = self.pauli_tuple(pauli_gates.Y)
         z_rot = self.pauli_tuple(pauli_gates.Z)
@@ -895,6 +934,10 @@ class SingleQubitCliffordGate(CliffordGate):
         )
 
     def _value_equality_values_(self):
+        return self._value_equality_values
+
+    @functools.cached_property
+    def _value_equality_values(self):
         return self._clifford_tableau.matrix().tobytes() + self._clifford_tableau.rs.tobytes()
 
     def _value_equality_values_cls_(self):

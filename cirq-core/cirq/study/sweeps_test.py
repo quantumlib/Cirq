@@ -142,6 +142,11 @@ def test_product():
     assert _values(sweep, 'b') == [4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7]
 
 
+def test_empty_product():
+    sweep = cirq.Product()
+    assert len(sweep) == len(list(sweep)) == 1
+
+
 def test_slice_access_error():
     sweep = cirq.Points('a', [1, 2, 3])
     with pytest.raises(TypeError, match='<class \'str\'>'):
@@ -231,6 +236,9 @@ def test_equality():
     et = cirq.testing.EqualsTester()
 
     et.add_equality_group(cirq.UnitSweep, cirq.UnitSweep)
+
+    # Test singleton
+    assert cirq.UNIT_SWEEP is cirq.UnitSweep
 
     # Simple sweeps with the same key are equal to themselves, but different
     # from each other even if they happen to contain the same points.

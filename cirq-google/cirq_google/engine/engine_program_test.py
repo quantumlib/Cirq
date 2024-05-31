@@ -26,58 +26,7 @@ from cirq_google.api import v1, v2
 from cirq_google.engine import util
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine import EngineContext
-from cirq_google.engine.result_type import ResultType
 
-_BATCH_PROGRAM_V2 = util.pack_any(
-    Merge(
-        """programs { language {
-  gate_set: "v2_5"
-  arg_function_language: "exp"
-}
-circuit {
-  scheduling_strategy: MOMENT_BY_MOMENT
-  moments {
-    operations {
-      qubit_constant_index: 0
-      phasedxpowgate {
-        phase_exponent {
-          float_value: 0.0
-        }
-        exponent {
-          float_value: 0.5
-        }
-      }
-    }
-  }
-  moments {
-    operations {
-      qubit_constant_index: 0
-      measurementgate {
-        key {
-          arg_value {
-            string_value: "result"
-          }
-        }
-        invert_mask {
-          arg_value {
-            bool_values {
-            }
-          }
-        }
-      }
-    }
-  }
-}
-constants {
-  qubit {
-    id: "5_2"
-  }
-}
-}
-""",
-        v2.batch_pb2.BatchProgram(),
-    )
-)
 
 _PROGRAM_V2 = util.pack_any(
     Merge(
@@ -136,77 +85,9 @@ def test_run_sweeps_delegation(create_job_async):
     program = cg.EngineProgram('my-proj', 'my-prog', EngineContext())
     param_resolver = cirq.ParamResolver({})
     job = program.run_sweep(
-        job_id='steve', repetitions=10, params=param_resolver, processor_ids=['mine']
+        job_id='steve', repetitions=10, params=param_resolver, processor_id='mine'
     )
     assert job._job == quantum.QuantumJob()
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-def test_run_batch_delegation(create_job_async):
-    create_job_async.return_value = ('kittens', quantum.QuantumJob())
-    program = cg.EngineProgram('my-meow', 'my-meow', EngineContext(), result_type=ResultType.Batch)
-    resolver_list = [cirq.Points('cats', [1.0, 2.0, 3.0]), cirq.Points('cats', [4.0, 5.0, 6.0])]
-    job = program.run_batch(
-        job_id='steve', repetitions=10, params_list=resolver_list, processor_ids=['lazykitty']
-    )
-    assert job._job == quantum.QuantumJob()
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-def test_run_calibration_delegation(create_job_async):
-    create_job_async.return_value = ('dogs', quantum.QuantumJob())
-    program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
-    job = program.run_calibration(processor_ids=['lazydog'])
-    assert job._job == quantum.QuantumJob()
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-def test_run_calibration_no_processors(create_job_async):
-    create_job_async.return_value = ('dogs', quantum.QuantumJob())
-    program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
-    with pytest.raises(ValueError, match='No processors specified'):
-        _ = program.run_calibration(job_id='spot')
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-def test_run_batch_no_sweeps(create_job_async):
-    # Running with no sweeps is fine. Uses program's batch size to create
-    # proper empty sweeps.
-    create_job_async.return_value = ('kittens', quantum.QuantumJob())
-    program = cg.EngineProgram(
-        'my-meow',
-        'my-meow',
-        _program=quantum.QuantumProgram(code=_BATCH_PROGRAM_V2),
-        context=EngineContext(),
-        result_type=ResultType.Batch,
-    )
-    job = program.run_batch(job_id='steve', repetitions=10, processor_ids=['lazykitty'])
-    assert job._job == quantum.QuantumJob()
-    batch_run_context = v2.batch_pb2.BatchRunContext()
-    create_job_async.call_args[1]['run_context'].Unpack(batch_run_context)
-    assert len(batch_run_context.run_contexts) == 1
-
-
-def test_run_batch_no_processors():
-    program = cg.EngineProgram('no-meow', 'no-meow', EngineContext(), result_type=ResultType.Batch)
-    resolver_list = [cirq.Points('cats', [1.0, 2.0]), cirq.Points('cats', [3.0, 4.0])]
-    with pytest.raises(ValueError, match='No processors specified'):
-        _ = program.run_batch(repetitions=1, params_list=resolver_list)
-
-
-def test_run_batch_not_in_batch_mode():
-    program = cg.EngineProgram('no-meow', 'no-meow', EngineContext())
-    resolver_list = [cirq.Points('cats', [1.0, 2.0, 3.0]), cirq.Points('cats', [4.0, 5.0, 6.0])]
-    with pytest.raises(ValueError, match='Can only use run_batch'):
-        _ = program.run_batch(repetitions=1, processor_ids=['lazykitty'], params_list=resolver_list)
-
-
-def test_run_in_batch_mode():
-    program = cg.EngineProgram('no-meow', 'no-meow', EngineContext(), result_type=ResultType.Batch)
-    with pytest.raises(ValueError, match='Please use run_batch'):
-        _ = program.run_sweep(
-            repetitions=1, processor_ids=['lazykitty'], params=cirq.Points('cats', [1.0, 2.0, 3.0])
-        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
@@ -253,7 +134,7 @@ def test_run_delegation(create_job_async, get_results_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
     param_resolver = cirq.ParamResolver({})
     results = program.run(
-        job_id='steve', repetitions=10, param_resolver=param_resolver, processor_ids=['mine']
+        job_id='steve', repetitions=10, param_resolver=param_resolver, processor_id='mine'
     )
 
     assert results == cg.EngineResult(
@@ -416,49 +297,6 @@ def test_get_circuit_v2(get_program_async):
     get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
     assert program.get_circuit() == circuit
     get_program_async.assert_called_once_with('a', 'b', True)
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
-def test_get_circuit_batch(get_program_async):
-    circuit = cirq.Circuit(
-        cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
-    )
-
-    program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
-    with pytest.raises(ValueError, match='A program number must be specified'):
-        program.get_circuit()
-    with pytest.raises(ValueError, match='Only 1 in the batch but index 1 was specified'):
-        program.get_circuit(1)
-    assert program.get_circuit(0) == circuit
-    get_program_async.assert_called_once_with('a', 'b', True)
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
-def test_get_batch_size(get_program_async):
-    # Has to fetch from engine if not _program specified.
-    program = cg.EngineProgram('a', 'b', EngineContext(), result_type=ResultType.Batch)
-    get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
-    assert program.batch_size() == 1
-
-    # If _program specified, uses that value.
-    program = cg.EngineProgram(
-        'a',
-        'b',
-        EngineContext(),
-        _program=quantum.QuantumProgram(code=_BATCH_PROGRAM_V2),
-        result_type=ResultType.Batch,
-    )
-    assert program.batch_size() == 1
-
-    with pytest.raises(ValueError, match='ResultType.Program'):
-        program = cg.EngineProgram('a', 'b', EngineContext(), result_type=ResultType.Program)
-        _ = program.batch_size()
-
-    with pytest.raises(ValueError, match='cirq.google.api.v2.Program'):
-        get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
-        program = cg.EngineProgram('a', 'b', EngineContext(), result_type=ResultType.Batch)
-        _ = program.batch_size()
 
 
 @pytest.fixture(scope='module', autouse=True)

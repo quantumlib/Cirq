@@ -20,13 +20,13 @@ import cirq
 import cirq_google as cg
 
 
-class _DummyProcessorRecord(cg.ProcessorRecord):
+class _ExampleProcessorRecord(cg.ProcessorRecord):
     def get_processor(self) -> 'cg.engine.AbstractProcessor':
-        return cg.engine.SimulatedLocalProcessor(processor_id='dummy')
+        return cg.engine.SimulatedLocalProcessor(processor_id='example')
 
 
 def test_abstract_processor_record():
-    proc_rec = _DummyProcessorRecord()
+    proc_rec = _ExampleProcessorRecord()
     assert isinstance(proc_rec.get_processor(), cg.engine.AbstractProcessor)
     assert isinstance(proc_rec.get_sampler(), cirq.Sampler)
     assert isinstance(proc_rec.get_device(), cirq.Device)

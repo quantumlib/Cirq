@@ -38,7 +38,6 @@ import cirq.testing
 from cirq._compat import (
     block_overlapping_deprecation,
     cached_method,
-    cached_property,
     proper_repr,
     dataclass_repr,
     deprecated,
@@ -346,7 +345,7 @@ def test_wrap_module():
 
 
 def test_deprecate_attributes_assert_attributes_in_sys_modules():
-    subprocess_context(_test_deprecate_attributes_assert_attributes_in_sys_modules)()
+    run_in_subprocess(_test_deprecate_attributes_assert_attributes_in_sys_modules)
 
 
 def _test_deprecate_attributes_assert_attributes_in_sys_modules():
@@ -635,42 +634,49 @@ _repeated_child_deprecation_msg = [
 ] + _deprecation_origin
 
 
-def _trace_unhandled_exceptions(*args, queue: 'multiprocessing.Queue', func: Callable, **kwargs):
+def _trace_unhandled_exceptions(*args, queue: 'multiprocessing.Queue', func: Callable):
     try:
-        func(*args, **kwargs)
+        func(*args)
         queue.put(None)
     except BaseException as ex:
         msg = str(ex)
         queue.put((type(ex).__name__, msg, traceback.format_exc()))
 
 
-def subprocess_context(test_func):
-    """Ensures that sys.modules changes in subprocesses won't impact the parent process."""
+def run_in_subprocess(test_func, *args):
+    """Run a function in a subprocess.
+
+    This ensures that sys.modules changes in subprocesses won't impact the parent process.
+
+    Args:
+        test_func: The function to be run in a subprocess.
+        *args: Positional args to pass to the function.
+    """
+
     assert callable(test_func), (
-        "subprocess_context expects a function. Did you call the function instead of passing "
+        "run_in_subprocess expects a function. Did you call the function instead of passing "
         "it to this method?"
     )
 
-    ctx = multiprocessing.get_context('spawn' if os.name == 'nt' else 'fork')
+    # Use spawn to ensure subprocesses are isolated.
+    # See https://github.com/quantumlib/Cirq/issues/6373
+    ctx = multiprocessing.get_context('spawn')
 
-    exception = ctx.Queue()
+    queue = ctx.Queue()
 
-    def isolated_func(*args, **kwargs):
-        kwargs['queue'] = exception
-        kwargs['func'] = test_func
-        p = ctx.Process(target=_trace_unhandled_exceptions, args=args, kwargs=kwargs)
-        p.start()
-        p.join()
-        result = exception.get()
-        if result:  # pragma: no cover
-            ex_type, msg, ex_trace = result
-            if ex_type == "Skipped":
-                warnings.warn(f"Skipping: {ex_type}: {msg}\n{ex_trace}")
-                pytest.skip(f'{ex_type}: {msg}\n{ex_trace}')
-            else:
-                pytest.fail(f'{ex_type}: {msg}\n{ex_trace}')
-
-    return isolated_func
+    p = ctx.Process(
+        target=_trace_unhandled_exceptions, args=args, kwargs={'queue': queue, 'func': test_func}
+    )
+    p.start()
+    p.join()
+    result = queue.get()
+    if result:  # pragma: no cover
+        ex_type, msg, ex_trace = result
+        if ex_type == "Skipped":
+            warnings.warn(f"Skipping: {ex_type}: {msg}\n{ex_trace}")
+            pytest.skip(f'{ex_type}: {msg}\n{ex_trace}')
+        else:
+            pytest.fail(f'{ex_type}: {msg}\n{ex_trace}')
 
 
 @mock.patch.dict(os.environ, {"CIRQ_FORCE_DEDUPE_MODULE_DEPRECATION": "1"})
@@ -698,7 +704,7 @@ def subprocess_context(test_func):
     ],
 )
 def test_deprecated_module(outdated_method, deprecation_messages):
-    subprocess_context(_test_deprecated_module_inner)(outdated_method, deprecation_messages)
+    run_in_subprocess(_test_deprecated_module_inner, outdated_method, deprecation_messages)
 
 
 def _test_deprecated_module_inner(outdated_method, deprecation_messages):
@@ -736,7 +742,7 @@ def test_same_name_submodule_earlier_in_subtree():
     cirq.ops.engine.calibration packages. The wrong resolution resulted in false circular
     imports!
     """
-    subprocess_context(_test_same_name_submodule_earlier_in_subtree_inner)()
+    run_in_subprocess(_test_same_name_submodule_earlier_in_subtree_inner)
 
 
 def _test_same_name_submodule_earlier_in_subtree_inner():
@@ -748,7 +754,7 @@ def _test_same_name_submodule_earlier_in_subtree_inner():
 def test_metadata_search_path():
     # to cater for metadata path finders
     # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
-    subprocess_context(_test_metadata_search_path_inner)()
+    run_in_subprocess(_test_metadata_search_path_inner)
 
 
 def _test_metadata_search_path_inner():  # pragma: no cover
@@ -760,7 +766,7 @@ def _test_metadata_search_path_inner():  # pragma: no cover
 
 
 def test_metadata_distributions_after_deprecated_submodule():
-    subprocess_context(_test_metadata_distributions_after_deprecated_submodule)()
+    run_in_subprocess(_test_metadata_distributions_after_deprecated_submodule)
 
 
 def _test_metadata_distributions_after_deprecated_submodule():
@@ -779,7 +785,7 @@ def _test_metadata_distributions_after_deprecated_submodule():
 
 
 def test_parent_spec_after_deprecated_submodule():
-    subprocess_context(_test_parent_spec_after_deprecated_submodule)()
+    run_in_subprocess(_test_parent_spec_after_deprecated_submodule)
 
 
 def _test_parent_spec_after_deprecated_submodule():
@@ -791,7 +797,7 @@ def _test_parent_spec_after_deprecated_submodule():
 def test_type_repr_in_new_module():
     # to cater for metadata path finders
     # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
-    subprocess_context(_test_type_repr_in_new_module_inner)()
+    run_in_subprocess(_test_type_repr_in_new_module_inner)
 
 
 def _test_type_repr_in_new_module_inner():
@@ -849,19 +855,19 @@ def _test_broken_module_3_inner():
 
 
 def test_deprecated_module_error_handling_1():
-    subprocess_context(_test_broken_module_1_inner)()
+    run_in_subprocess(_test_broken_module_1_inner)
 
 
 def test_deprecated_module_error_handling_2():
-    subprocess_context(_test_broken_module_2_inner)()
+    run_in_subprocess(_test_broken_module_2_inner)
 
 
 def test_deprecated_module_error_handling_3():
-    subprocess_context(_test_broken_module_3_inner)()
+    run_in_subprocess(_test_broken_module_3_inner)
 
 
 def test_new_module_is_top_level():
-    subprocess_context(_test_new_module_is_top_level_inner)()
+    run_in_subprocess(_test_new_module_is_top_level_inner)
 
 
 def _test_new_module_is_top_level_inner():
@@ -877,7 +883,7 @@ def _test_new_module_is_top_level_inner():
 
 
 def test_import_deprecated_with_no_attribute():
-    subprocess_context(_test_import_deprecated_with_no_attribute_inner)()
+    run_in_subprocess(_test_import_deprecated_with_no_attribute_inner)
 
 
 def _test_import_deprecated_with_no_attribute_inner():
@@ -970,7 +976,7 @@ def test_deprecated_module_loader_repr():
 
 def test_subprocess_test_failure():
     with pytest.raises(Failed, match='ValueError.*this fails'):
-        subprocess_context(_test_subprocess_test_failure_inner)()
+        run_in_subprocess(_test_subprocess_test_failure_inner)
 
 
 def _test_subprocess_test_failure_inner():
@@ -978,7 +984,7 @@ def _test_subprocess_test_failure_inner():
 
 
 def test_dir_is_still_valid():
-    subprocess_context(_dir_is_still_valid_inner)()
+    run_in_subprocess(_dir_is_still_valid_inner)
 
 
 def _dir_is_still_valid_inner():
@@ -986,7 +992,7 @@ def _dir_is_still_valid_inner():
 
     import cirq.testing._compat_test_data as mod
 
-    for m in ['fake_a', 'info', 'module_a', 'sys']:
+    for m in ['fake_a', 'logging', 'module_a']:
         assert m in dir(mod)
 
 
@@ -1002,23 +1008,6 @@ def test_block_overlapping_deprecation():
 
     with cirq.testing.assert_deprecated('f', deadline='v1000.0', count=1):
         f(5)
-
-
-def test_cached_property():
-    class Foo:
-        def __init__(self):
-            self.bar_calls = 0
-
-        @cached_property
-        def bar(self):
-            self.bar_calls += 1
-            return []
-
-    foo = Foo()
-    bar = foo.bar
-    bar2 = foo.bar
-    assert bar2 is bar
-    assert foo.bar_calls == 1
 
 
 class Bar:

@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/images/Cirq_logo_color.png
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/main/docs/images/Cirq_logo_color.png
   :target: https://github.com/quantumlib/cirq
   :alt: Cirq
   :width: 500px
@@ -10,15 +10,11 @@ circuits and running them against quantum computers and simulators.
   :target: https://github.com/quantumlib/Cirq
   :alt: Build Status
 
-.. image:: https://codecov.io/gh/quantumlib/Cirq/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/quantumlib/Cirq/branch/main/graph/badge.svg
   :target: https://codecov.io/gh/quantumlib/Cirq
 
 .. image:: https://badge.fury.io/py/cirq.svg
   :target: https://badge.fury.io/py/cirq
-
-.. image:: https://readthedocs.org/projects/cirq/badge/?version=latest
-  :target: https://readthedocs.org/projects/cirq/versions/
-  :alt: Documentation Status
 
 
 Installation and Documentation
@@ -26,7 +22,7 @@ Installation and Documentation
 
 Cirq documentation is available at `quantumai.google/cirq <https://quantumai.google/cirq>`_.
 
-Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
+Documentation for the latest **pre-release** version of cirq (tracks the repository's main branch; what you get if you ``pip install cirq~=1.0.dev``), is available `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
 
 Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available `here <https://quantumai.google/reference/python/cirq/all_symbols>`__.
 
@@ -79,7 +75,7 @@ Example output:
 Feature requests / Bugs / Questions
 -----------------------------------
 
-If you have feature requests or you found a bug, please `file them on Github <https://github.com/quantumlib/Cirq/issues/new/choose>`__.
+If you have feature requests or you found a bug, please `file them on GitHub <https://github.com/quantumlib/Cirq/issues/new/choose>`__.
 
 For questions about how to use Cirq post to
 `Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with the
@@ -98,12 +94,10 @@ Cirq Contributors Community
 ---------------------------
 
 We welcome contributions! Before opening your first PR, a good place to start is to read our
-`guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
+`guidelines <https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md>`__.
 
 We are dedicated to cultivating an open and inclusive community to build software for near term quantum computers.
-Please read our `code of conduct <https://github.com/quantumlib/cirq/blob/master/CODE_OF_CONDUCT.md>`__ for the rules of engagement within our community.
-
-For real time informal discussions about Cirq, join our `cirqdev <https://gitter.im/cirqdev/community>`__ Gitter channel, come hangout with us!
+Please read our `code of conduct <https://github.com/quantumlib/cirq/blob/main/CODE_OF_CONDUCT.md>`__ for the rules of engagement within our community.
 
 **Cirq Cynque** is our weekly meeting for contributors to discuss upcoming features, designs, issues, community and status of different efforts.
 To get an invitation please join the `cirq-dev email list <https://groups.google.com/forum/#!forum/cirq-dev>`__ which also serves as yet another platform to discuss contributions and design ideas.

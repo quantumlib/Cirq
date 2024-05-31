@@ -35,21 +35,23 @@ thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
 topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
+errors=()
+
 # Parse arguments.
-apply_arg=""
+apply_arg=( )
 only_changed=0
-rev=""
+rev=( )
 for arg in "$@"; do
     if [[ "${arg}" == "--only-changed-files" ]]; then
         only_changed=1
     elif [[ "${arg}" == "--apply-format-changes" ]]; then
-        apply_arg="--apply"
-    elif [ -z "${rev}" ]; then
+        apply_arg=( "--apply" )
+    elif [[ "${#rev[@]}" == 0 ]]; then
         if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi
-        rev="${arg}"
+        rev=( "${arg}" )
     else
         echo -e "\033[31mInvalid arguments. Expected [BASE_REVISION] [--only-changed-files] [--apply-format].\033[0m" >&2
         exit 1
@@ -57,29 +59,44 @@ for arg in "$@"; do
 done
 
 echo "Running misc"
-check/misc
+check/misc || errors+=( "check/misc failed" )
 
 if [ ${only_changed} -ne 0 ]; then
   echo "Running incremental pylint"
-  check/pylint-changed-files
+  check/pylint-changed-files || errors+=( "check/pylint-changed-files failed" )
 else
   echo "Running pylint"
-  check/pylint
+  check/pylint || errors+=( "check/pylint failed" )
 fi
 
 echo "Running mypy"
-check/mypy
+check/mypy || errors+=( "check/mypy failed" )
 
 echo "Running incremental format"
-check/format-incremental "${rev}" "${apply_arg}"
+check/format-incremental "${rev[@]}" "${apply_arg[@]}" ||
+    errors+=( "check/format-incremental failed" )
 
 if [ ${only_changed} -ne 0 ]; then
     echo "Running pytest and incremental coverage on changed files"
-    check/pytest-changed-files-and-incremental-coverage "${rev}"
+    check/pytest-changed-files-and-incremental-coverage "${rev[@]}" ||
+         errors+=( "check/pytest-changed-files-and-incremental-coverage failed" )
 else
     echo "Running pytest and incremental coverage"
-    check/pytest-and-incremental-coverage "${rev}"
+    check/pytest-and-incremental-coverage "${rev[@]}" ||
+         errors+=( "check/pytest-and-incremental-coverage failed" )
 fi
 
 echo "Running doctest"
-check/doctest
+check/doctest || errors+=( "check/doctest failed" )
+
+echo
+if [[ "${#errors[@]}" == 0 ]]; then
+    echo "All checks passed."
+    result=0
+else
+    printf "Some checks failed.\n\n"
+    printf "  %s\n" "${errors[@]}"
+    result=1
+fi
+
+exit "${result}"

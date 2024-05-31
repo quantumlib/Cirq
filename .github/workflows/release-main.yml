@@ -1,0 +1,36 @@
+name: Pre-release cirq to PyPi
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  push_to_pypi:
+    if: github.repository == 'quantumlib/Cirq'
+    name: Push to PyPi
+    runs-on: ubuntu-20.04
+    env:
+      NAME: dev-release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          architecture: 'x64'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
+      - name: Create PYPI config file
+        env:
+          CIRQ_PYPI_TOKEN: ${{ secrets.CIRQ_PYPI_TOKEN }}
+          CIRQ_TEST_PYPI_TOKEN: ${{ secrets.CIRQ_TEST_PYPI_TOKEN }}
+        run: |
+          envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
+      - name: Build and publish
+        run: |
+          export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+          [[ "$CIRQ_PRE_RELEASE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'" || (echo "not dev version"; exit 1)
+          out_dir="${PWD}/dist"
+          dev_tools/packaging/produce-package.sh ${out_dir} $CIRQ_PRE_RELEASE_VERSION
+          twine upload "${out_dir}/*"

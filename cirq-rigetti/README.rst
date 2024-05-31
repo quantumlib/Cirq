@@ -20,11 +20,11 @@ Installation
 ------------
 
 To install the stable version of only **cirq-rigetti**, use `pip install cirq-rigetti`.
-To install the pre-release version of only **cirq-rigetti**, use `pip install cirq-rigetti --pre`.
+To install the pre-release version of only **cirq-rigetti**, use `pip install cirq-rigetti~=1.0.dev`.
 
 Note, that this will install both **cirq-rigetti** and **cirq-core**.
 
-To get all the optional modules installed, you'll have to use `pip install cirq` or `pip install cirq --pre` for the pre-release version.
+To get all the optional modules installed, you'll have to use `pip install cirq` or `pip install cirq~=1.0.dev` for the pre-release version.
 
 Development
 ------------

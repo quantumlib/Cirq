@@ -153,114 +153,6 @@ sweep_results: [{
     )
 )
 
-_BATCH_RESULTS_V2 = util.pack_any(
-    Merge(
-        """
-results: [{
-    sweep_results: [{
-        repetitions: 1,
-        parameterized_results: [{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 1
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        },{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 2
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        }]
-    }],
-    },{
-    sweep_results: [{
-        repetitions: 1,
-        parameterized_results: [{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 3
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        },{
-            params: {
-                assignments: {
-                    key: 'a'
-                    value: 4
-                }
-            },
-            measurement_results: {
-                key: 'q'
-                qubit_measurement_results: [{
-                  qubit: {
-                    id: '1_1'
-                  }
-                  results: '\000\001'
-                }]
-            }
-        }]
-    }]
-}]
-""",
-        v2.batch_pb2.BatchResult(),
-    )
-)
-
-
-_CALIBRATION_RESULTS_V2 = util.pack_any(
-    Merge(
-        """
-results: [{
-    code: 1
-    error_message: 'First success'
-    token: 'abc123'
-    metrics: {
-      metrics: [{
-        name: 'fidelity'
-        targets: ['q2_3','q2_4']
-        values: [{
-            double_val: 0.75
-    }]
-    }]}
-    },{
-    code: 1
-    error_message: 'Second success'
-}]
-""",
-        v2.calibration_pb2.FocusedCalibrationResult(),
-    )
-)
-
 
 def test_make_random_id():
     with mock.patch('random.choice', return_value='A'):
@@ -292,7 +184,7 @@ def test_create_context(client):
 
     context = EngineContext(cg.engine.engine.ProtoVersion.V2, {'args': 'test'}, True)
     assert context.proto_version == cg.engine.engine.ProtoVersion.V2
-    assert client.called_with({'args': 'test'}, True)
+    client.assert_called_with(service_args={'args': 'test'}, verbose=True)
 
     assert context.copy().proto_version == context.proto_version
     assert context.copy().client == context.client
@@ -362,9 +254,7 @@ def test_run_circuit_with_unary_rpcs(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
-    result = engine.run(
-        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_ids=['mysim']
-    )
+    result = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
 
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -375,7 +265,7 @@ def test_run_circuit_with_unary_rpcs(client):
         project_id='proj',
         program_id='prog',
         job_id='job-id',
-        processor_ids=['mysim'],
+        processor_id='mysim',
         run_context=util.pack_any(
             v2.run_context_pb2.RunContext(
                 parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
@@ -383,7 +273,6 @@ def test_run_circuit_with_unary_rpcs(client):
         ),
         description=None,
         labels=None,
-        processor_id='',
         run_name='',
         device_config_name='',
     )
@@ -399,9 +288,7 @@ def test_run_circuit_with_stream_rpcs(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=True),
     )
-    result = engine.run(
-        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_ids=['mysim']
-    )
+    result = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
 
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -435,7 +322,7 @@ def test_no_gate_set():
 def test_unsupported_program_type():
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(TypeError, match='program'):
-        engine.run(program="this isn't even the right type of thing!")
+        engine.run(program="this isn't even the right type of thing!", processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -465,7 +352,7 @@ def test_run_circuit_failed_with_unary_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' myqc failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -488,7 +375,7 @@ def test_run_circuit_failed_with_stream_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' myqc failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -517,7 +404,7 @@ def test_run_circuit_failed_missing_processor_name_with_unary_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' UNKNOWN failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -539,7 +426,7 @@ def test_run_circuit_failed_missing_processor_name_with_stream_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' UNKNOWN failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -562,7 +449,7 @@ def test_run_circuit_cancelled_with_unary_rpcs(client):
     with pytest.raises(
         RuntimeError, match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.'
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -578,7 +465,7 @@ def test_run_circuit_cancelled_with_stream_rpcs(client):
     with pytest.raises(
         RuntimeError, match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.'
     ):
-        engine.run(program=_CIRCUIT)
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -587,7 +474,9 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
     job = engine.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        processor_id='processor0',
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
     )
     results = job.results()
     assert len(results) == 2
@@ -616,7 +505,9 @@ def test_run_sweep_params_with_stream_rpcs(client):
 
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=True))
     job = engine.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        processor_id='processor0',
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
     )
     results = job.results()
     assert len(results) == 2
@@ -636,32 +527,19 @@ def test_run_sweep_params_with_stream_rpcs(client):
         assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
 
 
-def test_run_sweep_with_multiple_processor_ids():
-    engine = cg.Engine(
-        project_id='proj',
-        context=EngineContext(
-            proto_version=cg.engine.engine.ProtoVersion.V2, enable_streaming=True
-        ),
-    )
-    with pytest.raises(ValueError, match='multiple processors is no longer supported'):
-        _ = engine.run_sweep(
-            program=_CIRCUIT,
-            params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
-            processor_ids=['mysim', 'mysim2'],
-        )
-
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_multiple_times(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
     engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     program = engine.create_program(program=_CIRCUIT)
-    program.run(param_resolver=cirq.ParamResolver({'a': 1}))
+    program.run(processor_id='processor0', param_resolver=cirq.ParamResolver({'a': 1}))
     run_context = v2.run_context_pb2.RunContext()
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps1 = run_context.parameter_sweeps
-    job2 = program.run_sweep(repetitions=2, params=cirq.Points('a', [3, 4]))
+    job2 = program.run_sweep(
+        processor_id='processor0', repetitions=2, params=cirq.Points('a', [3, 4])
+    )
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps2 = run_context.parameter_sweeps
     results = job2.results()
@@ -692,7 +570,12 @@ def test_run_sweep_v2_with_unary_rpcs(client):
             proto_version=cg.engine.engine.ProtoVersion.V2, enable_streaming=False
         ),
     )
-    job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
+    job = engine.run_sweep(
+        program=_CIRCUIT,
+        processor_id='processor0',
+        job_id='job-id',
+        params=cirq.Points('a', [1, 2]),
+    )
     results = job.results()
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
@@ -721,7 +604,12 @@ def test_run_sweep_v2_with_stream_rpcs(client):
             proto_version=cg.engine.engine.ProtoVersion.V2, enable_streaming=True
         ),
     )
-    job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
+    job = engine.run_sweep(
+        program=_CIRCUIT,
+        processor_id='processor0',
+        job_id='job-id',
+        params=cirq.Points('a', [1, 2]),
+    )
     results = job.results()
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
@@ -737,140 +625,11 @@ def test_run_sweep_v2_with_stream_rpcs(client):
     assert sweeps[0].sweep.single_sweep.points.points == [1, 2]
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_run_batch(client):
-    setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
-
-    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
-    job = engine.run_batch(
-        programs=[_CIRCUIT, _CIRCUIT2],
-        job_id='job-id',
-        params_list=[cirq.Points('a', [1, 2]), cirq.Points('a', [3, 4])],
-        processor_ids=['mysim'],
-    )
-    results = job.results()
-    assert len(results) == 4
-    for i, v in enumerate([1, 2, 3, 4]):
-        assert results[i].repetitions == 1
-        assert results[i].params.param_dict == {'a': v}
-        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    client().create_program_async.assert_called_once()
-    client().create_job_async.assert_called_once()
-    run_context = v2.batch_pb2.BatchRunContext()
-    client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
-    assert len(run_context.run_contexts) == 2
-    for idx, rc in enumerate(run_context.run_contexts):
-        sweeps = rc.parameter_sweeps
-        assert len(sweeps) == 1
-        assert sweeps[0].repetitions == 1
-        if idx == 0:
-            assert sweeps[0].sweep.single_sweep.points.points == [1.0, 2.0]
-        if idx == 1:
-            assert sweeps[0].sweep.single_sweep.points.points == [3.0, 4.0]
-    client().get_job_async.assert_called_once()
-    client().get_job_results_async.assert_called_once()
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_run_batch_no_params(client):
-    # OK to run with no params, it should use empty sweeps for each
-    # circuit.
-    setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
-    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
-    engine.run_batch(programs=[_CIRCUIT, _CIRCUIT2], job_id='job-id', processor_ids=['mysim'])
-    # Validate correct number of params have been created and that they
-    # are empty sweeps.
-    run_context = v2.batch_pb2.BatchRunContext()
-    client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
-    assert len(run_context.run_contexts) == 2
-    for rc in run_context.run_contexts:
-        sweeps = rc.parameter_sweeps
-        assert len(sweeps) == 1
-        assert sweeps[0].repetitions == 1
-        assert sweeps[0].sweep == v2.run_context_pb2.Sweep()
-
-
-def test_batch_size_validation_fails():
-    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
-
-    with pytest.raises(ValueError, match='Number of circuits and sweeps'):
-        _ = engine.run_batch(
-            programs=[_CIRCUIT, _CIRCUIT2],
-            job_id='job-id',
-            params_list=[
-                cirq.Points('a', [1, 2]),
-                cirq.Points('a', [3, 4]),
-                cirq.Points('a', [5, 6]),
-            ],
-            processor_ids=['mysim'],
-        )
-
-    with pytest.raises(ValueError, match='Processor id must be specified'):
-        _ = engine.run_batch(
-            programs=[_CIRCUIT, _CIRCUIT2],
-            job_id='job-id',
-            params_list=[cirq.Points('a', [1, 2]), cirq.Points('a', [3, 4])],
-        )
-
-
 def test_bad_sweep_proto():
     engine = cg.Engine(project_id='project-id', proto_version=cg.ProtoVersion.UNDEFINED)
     program = cg.EngineProgram('proj', 'prog', engine.context)
     with pytest.raises(ValueError, match='invalid run context proto version'):
-        program.run_sweep()
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_run_calibration(client):
-    setup_run_circuit_with_result_(client, _CALIBRATION_RESULTS_V2)
-
-    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
-    q1 = cirq.GridQubit(2, 3)
-    q2 = cirq.GridQubit(2, 4)
-    layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)), {'num_layers': 42})
-    layer2 = cg.CalibrationLayer(
-        'readout', cirq.Circuit(cirq.measure(q1, q2)), {'num_samples': 4242}
-    )
-    job = engine.run_calibration(layers=[layer1, layer2], job_id='job-id', processor_id='mysim')
-    results = job.calibration_results()
-    assert len(results) == 2
-    assert results[0].code == v2.calibration_pb2.SUCCESS
-    assert results[0].error_message == 'First success'
-    assert results[0].token == 'abc123'
-    assert len(results[0].metrics) == 1
-    assert len(results[0].metrics['fidelity']) == 1
-    assert results[0].metrics['fidelity'][(q1, q2)] == [0.75]
-    assert results[1].code == v2.calibration_pb2.SUCCESS
-    assert results[1].error_message == 'Second success'
-
-    # assert label is correct
-    client().create_job_async.assert_called_once_with(
-        project_id='proj',
-        program_id='prog',
-        job_id='job-id',
-        processor_ids=['mysim'],
-        run_context=util.pack_any(v2.run_context_pb2.RunContext()),
-        description=None,
-        labels={'calibration': ''},
-    )
-
-
-def test_run_calibration_validation_fails():
-    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
-    q1 = cirq.GridQubit(2, 3)
-    q2 = cirq.GridQubit(2, 4)
-    layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)), {'num_layers': 42})
-    layer2 = cg.CalibrationLayer(
-        'readout', cirq.Circuit(cirq.measure(q1, q2)), {'num_samples': 4242}
-    )
-
-    with pytest.raises(ValueError, match='Processor id must be specified'):
-        _ = engine.run_calibration(layers=[layer1, layer2], job_id='job-id')
-
-    with pytest.raises(ValueError, match='processor_id and processor_ids'):
-        _ = engine.run_calibration(
-            layers=[layer1, layer2], processor_ids=['mysim'], processor_id='mysim', job_id='job-id'
-        )
+        program.run_sweep(processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -881,7 +640,12 @@ def test_bad_result_proto(client):
     setup_run_circuit_with_result_(client, result)
 
     engine = cg.Engine(project_id='project-id', proto_version=cg.engine.engine.ProtoVersion.V2)
-    job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
+    job = engine.run_sweep(
+        program=_CIRCUIT,
+        processor_id='processor0',
+        job_id='job-id',
+        params=cirq.Points('a', [1, 2]),
+    )
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
 
@@ -891,7 +655,7 @@ def test_bad_program_proto():
         project_id='project-id', proto_version=cg.engine.engine.ProtoVersion.UNDEFINED
     )
     with pytest.raises(ValueError, match='invalid (program|run context) proto version'):
-        engine.run_sweep(program=_CIRCUIT)
+        engine.run_sweep(program=_CIRCUIT, processor_id='processor0')
     with pytest.raises(ValueError, match='invalid program proto version'):
         engine.create_program(_CIRCUIT)
 
@@ -977,9 +741,6 @@ def test_sampler_with_unary_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().create_program_async.call_args[0][0] == 'proj'
 
-    with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
-        _ = engine.sampler(processor_id='tmp')
-
     with pytest.raises(ValueError, match='list of processors'):
         _ = engine.get_sampler(['test1', 'test2'])
 
@@ -999,9 +760,6 @@ def test_sampler_with_stream_rpcs(client):
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().run_job_over_stream.call_args[1]['project_id'] == 'proj'
-
-    with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
-        _ = engine.sampler(processor_id='tmp')
 
     with pytest.raises(ValueError, match='list of processors'):
         _ = engine.get_sampler(['test1', 'test2'])
@@ -1061,43 +819,8 @@ valid_gates {
     with pytest.raises(ValueError):
         device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
     with pytest.raises(ValueError):
-        device.validate_operation(cirq.H(cirq.GridQubit(0, 0)))
+        device.validate_operation(
+            cirq.testing.DoesNotSupportSerializationGate()(cirq.GridQubit(0, 0))
+        )
     with pytest.raises(ValueError):
         device.validate_operation(cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)))
-
-
-_CALIBRATION = quantum.QuantumCalibration(
-    name='projects/a/processors/p/calibrations/1562715599',
-    timestamp=_to_timestamp('2019-07-09T23:39:59Z'),
-    data=util.pack_any(
-        Merge(
-            """
-    timestamp_ms: 1562544000021,
-    metrics: [
-    {
-        name: 't1',
-        targets: ['0_0'],
-        values: [{
-            double_val: 321
-        }]
-    }, {
-        name: 'globalMetric',
-        values: [{
-            int32_val: 12300
-        }]
-    }]
-""",
-            v2.metrics_pb2.MetricsSnapshot(),
-        )
-    ),
-)
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration')
-def test_get_engine_calibration(get_current_calibration):
-    get_current_calibration.return_value = _CALIBRATION
-    calibration = cirq_google.get_engine_calibration('rainbow', 'project')
-    assert calibration.timestamp == 1562544000021
-    assert set(calibration.keys()) == {'t1', 'globalMetric'}
-    assert calibration['t1'][(cirq.GridQubit(0, 0),)] == [321.0]
-    get_current_calibration.assert_called_once_with('project', 'rainbow')

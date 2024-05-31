@@ -27,6 +27,7 @@ Code = quantum.StreamError.Code
 RETRYABLE_GOOGLE_API_EXCEPTIONS = [
     google_exceptions.InternalServerError,
     google_exceptions.ServiceUnavailable,
+    google_exceptions.Unknown,  # 408 Timeouts sometimes show up as UNKNOWN.
 ]
 
 
@@ -122,7 +123,7 @@ class StreamManager:
 
         If `None` is put into the queue, the request iterator will stop.
         """
-        return asyncio.Queue()
+        return asyncio.Queue(maxsize=100)
 
     def submit(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob

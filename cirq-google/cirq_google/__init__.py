@@ -15,45 +15,9 @@
 """Classes for working with Google's Quantum Engine API."""
 
 import sys
-from cirq import _compat
 from cirq_google import api
 
 from cirq_google._version import __version__
-
-from cirq_google.calibration import (
-    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    CircuitWithCalibration,
-    FloquetPhasedFSimCalibrationOptions,
-    FloquetPhasedFSimCalibrationRequest,
-    FSimPhaseCorrections,
-    PhasedFSimCalibrationError,
-    PhasedFSimCalibrationOptions,
-    PhasedFSimCalibrationRequest,
-    PhasedFSimCalibrationResult,
-    PhasedFSimCharacterization,
-    PhasedFSimEngineSimulator,
-    XEBPhasedFSimCalibrationOptions,
-    XEBPhasedFSimCalibrationRequest,
-    LocalXEBPhasedFSimCalibrationOptions,
-    LocalXEBPhasedFSimCalibrationRequest,
-    SQRT_ISWAP_INV_PARAMETERS,
-    THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    make_zeta_chi_gamma_compensation_for_moments,
-    make_zeta_chi_gamma_compensation_for_operations,
-    merge_matching_results,
-    prepare_characterization_for_circuits_moments,
-    prepare_floquet_characterization_for_moments,
-    prepare_characterization_for_moments,
-    prepare_floquet_characterization_for_moment,
-    prepare_characterization_for_moment,
-    prepare_floquet_characterization_for_operations,
-    prepare_characterization_for_operations,
-    run_calibrations,
-    run_floquet_characterization_for_moments,
-    run_zeta_chi_gamma_compensation_for_moments,
-    try_convert_sqrt_iswap_to_fsim,
-    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-)
 
 from cirq_google.devices import (
     GoogleNoiseProperties,
@@ -92,6 +56,7 @@ from cirq_google.line import (
 from cirq_google.ops import (
     CalibrationTag,
     FSimGateFamily,
+    FSimViaModelTag,
     InternalGate,
     PhysicalZTag,
     SYC,
@@ -148,26 +113,3 @@ from cirq.protocols.json_serialization import _register_resolver
 from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
-
-
-_SERIALIZABLE_GATESET_DEPRECATION_MESSAGE = (
-    'SerializableGateSet and associated classes (GateOpSerializer, GateOpDeserializer,'
-    ' SerializingArgs, DeserializingArgs) will no longer be supported.'
-    ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of a device'
-    ' is represented as a cirq.Gateset and is available as'
-    ' GridDevice.metadata.gateset.'
-    ' Engine methods no longer require gate sets to be passed in.'
-    ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.'
-)
-
-
-_compat.deprecate_attributes(
-    __name__,
-    {
-        'XMON': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-        'FSIM_GATESET': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-        'SQRT_ISWAP_GATESET': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-        'SYC_GATESET': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-        'NAMED_GATESETS': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-    },
-)

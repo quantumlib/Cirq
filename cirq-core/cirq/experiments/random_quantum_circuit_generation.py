@@ -142,7 +142,7 @@ document(
 
     This pattern of gates was used in the paper
     https://www.nature.com/articles/s41586-019-1666-5
-    to demonstrate quantum supremacy.
+    to demonstrate beyond-classical computation.
     """,
 )
 

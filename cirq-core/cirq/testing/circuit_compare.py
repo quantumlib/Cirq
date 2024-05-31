@@ -226,7 +226,7 @@ def assert_circuits_have_same_unitary_given_final_permutation(
     expected: circuits.AbstractCircuit,
     qubit_map: Dict[ops.Qid, ops.Qid],
 ) -> None:
-    """Asserts two circuits have the same unitary up to a final permuation of qubits.
+    """Asserts two circuits have the same unitary up to a final permutation of qubits.
 
     Args:
         actual: A circuit computed by some code under test.
