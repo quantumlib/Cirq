@@ -560,6 +560,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
             f"quil_expression_to_sympy failed to convert {expression} of type {type(expression)}"
         )
 
+
 @cached_method
 def defgate_to_cirq(defgate: DefGate):
     """Convert a Quil DefGate to a Cirq Gate class.
