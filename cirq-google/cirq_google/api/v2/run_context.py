@@ -46,14 +46,16 @@ def to_device_parameters_diff(
     resource_groups_index: dict[tuple[str, ...], int] = {tuple(): _EMPTY_RESOURCE_PATH_IDX}
 
     def resource_path_id(path: tuple[str, ...]) -> int:
+        """Computes the index of a path in diff.groups."""
         idx = resource_groups_index.get(path)
         if idx is not None:
             return idx
-        # This path has not been seen. It will be appended to diff.groups, with idx as,
-        idx = len(diff.groups)
         # Recursive call to get the assigned index of the parent. Note the base case
         # of the empty path, which returns _EMPTY_RESOURCE_PATH_IDX.
         parent_id = resource_path_id(path[:-1])
+        # This path has not been seen. It will be appended to diff.groups, with idx as
+        # the size of diff.groups before appending.
+        idx = len(diff.groups)
         diff.groups.add(parent=parent_id, name=token_id(path[-1]))
         resource_groups_index[path] = idx
         return idx

@@ -16,8 +16,8 @@ message RunContext {
   // Optional override of select device parameters before program
   // execution. Note it is permissible to specify the same device parameter
   // here and in a parameter_sweeps, as sweep.single_sweep.parameter.
-  // However the override will have no effect since it is applied before
-  // the circuit sweep is executed.
+  // If the same parameter is supplied in both places, the provision here in
+  // device_parameters_override will have no effect.
   DeviceParametersDiff device_parameters_override = 2;
 }
 

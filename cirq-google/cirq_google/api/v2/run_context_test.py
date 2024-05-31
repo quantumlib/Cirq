@@ -48,13 +48,13 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
     expected_diff_pb_text = """
         groups {
           parent: -1
-          name: 0
         }
         groups {
           parent: 0
           name: 1
         }
         groups {
+          parent: 1
           name: 4
         }
         groups {
@@ -66,16 +66,18 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
           name: 1
         }
         groups {
-          parent: 3
+          parent: 4
           name: 4
         }
         params {
+          resource_group: 1
           name: 2
           value {
             float_value: 5
           }
         }
         params {
+          resource_group: 1
           name: 3
           value {
             double_values {
@@ -92,14 +94,14 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
           }
         }
         params {
-          resource_group: 3
+          resource_group: 4
           name: 2
           value {
             float_value: 5
           }
         }
         params {
-          resource_group: 3
+          resource_group: 4
           name: 3
           value {
             double_values {
@@ -122,5 +124,41 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
         strs: "demod"
         strs: "phase_i_rad"
         strs: "q5_6"
+    """
+    print(diff)
+    assert text_format.Parse(expected_diff_pb_text, run_context_pb2.DeviceParametersDiff()) == diff
+
+
+def test_converting_to_device_parameters_diff_token_id_caching_is_correct() -> None:
+    """Test that multiple calling of run_context.to_device_parameters_diff gives
+       correct token id assignments.
+    """
+    device_params = [
+        (
+            run_context_pb2.DeviceParameter(
+                path=["q1_2", "readout_default", "readoutDemodDelay"], units="ns"
+            ),
+            program_pb2.ArgValue(float_value=5.0),
+        )
+    ]
+
+    diff = run_context.to_device_parameters_diff(device_params)
+    expected_diff_pb_text = """
+        groups {
+          parent: -1
+        }
+        groups {
+          name: 1
+        }
+        params {
+          resource_group: 1
+          name: 2
+          value {
+            float_value: 5
+          }
+        }
+        strs: "q1_2"
+        strs: "readout_default"
+        strs: "readoutDemodDelay"
     """
     assert text_format.Parse(expected_diff_pb_text, run_context_pb2.DeviceParametersDiff()) == diff
