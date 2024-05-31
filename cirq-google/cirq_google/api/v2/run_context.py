@@ -25,7 +25,7 @@ _EMPTY_RESOURCE_PATH_IDX = -1
 def to_device_parameters_diff(
     device_params: Sequence[tuple[run_context_pb2.DeviceParameter, program_pb2.ArgValue]]
 ) -> run_context_pb2.DeviceParametersDiff:
-    """Constructs a DeviceParametersDiff from multiple DeviceParameters and values
+    """Constructs a DeviceParametersDiff from multiple DeviceParameters and values.
 
     Args:
         device_params: a list of (DeviceParameter, value) pairs.
@@ -47,7 +47,7 @@ def to_device_parameters_diff(
 
     def resource_path_id(path: tuple[str, ...]) -> int:
         """Computes the index of a path in diff.groups."""
-        idx = resource_groups_index.get(path)
+        idx = resource_groups_index.get(path, None)
         if idx is not None:
             return idx
         # Recursive call to get the assigned index of the parent. Note the base case

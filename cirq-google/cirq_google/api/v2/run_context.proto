@@ -113,24 +113,25 @@ message DeviceParameter {
 // The main use case is to set those parameters with the
 // values from this bundle before executing a circuit sweep.
 // Note multiple device parameters may have common ancestor paths
-// and/or share the same parameter names. A DeviceParamaetersDiff
+// and/or share the same parameter names. A DeviceParametersDiff
 // stores the resource groups hierarchy extracted from the DeviceParameters'
-// paths and maintains a string tables; thereby storing ancestor resource
+// paths and maintains a table of strings; thereby storing ancestor resource
 // groups only once, and avoiding repeated storage of common parameter names.
 message DeviceParametersDiff {
   // A resource group a device parameter belongs to.
   // The identifier of a resource group is DeviceParameter.path without the
   // last component.
   message ResourceGroup {
-    // parent resource group, as an index into the dirs array.
+    // parent resource group, as an index into the groups repeated field.
     int32 parent = 1;
-    // as index into the strs array.
+    // as index into the strs repeated field.
     int32 name = 2;
   }
   message Param {
-    // the resource group hosting this parameter key, as index into groups array.
+    // the resource group hosting this parameter key, as index into groups
+    // repeated field.
     int32 resource_group = 1;
-    // name of this param, as index into the strs array.
+    // name of this param, as index into the strs repeated field.
     int32 name = 2;
     // this param's new value, as message ArgValue to allow variant types,
     // including bool, string, double, float and arrays.

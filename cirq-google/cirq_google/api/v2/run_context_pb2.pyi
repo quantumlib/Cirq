@@ -35,8 +35,8 @@ class RunContext(google.protobuf.message.Message):
         """Optional override of select device parameters before program
         execution. Note it is permissible to specify the same device parameter
         here and in a parameter_sweeps, as sweep.single_sweep.parameter.
-        However the override will have no effect since it is applied before
-        the circuit sweep is executed.
+        If the same parameter is supplied in both places, the provision here in
+        device_parameters_override will have no effect.
         """
     def __init__(
         self,
@@ -244,9 +244,9 @@ class DeviceParametersDiff(google.protobuf.message.Message):
     The main use case is to set those parameters with the
     values from this bundle before executing a circuit sweep.
     Note multiple device parameters may have common ancestor paths
-    and/or share the same parameter names. A DeviceParamaetersDiff
+    and/or share the same parameter names. A DeviceParametersDiff
     stores the resource groups hierarchy extracted from the DeviceParameters'
-    paths and maintains a string tables; thereby storing ancestor resource
+    paths and maintains a table of strings; thereby storing ancestor resource
     groups only once, and avoiding repeated storage of common parameter names.
     """
 
@@ -264,9 +264,9 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         PARENT_FIELD_NUMBER: builtins.int
         NAME_FIELD_NUMBER: builtins.int
         parent: builtins.int
-        """parent resource group, as an index into the dirs array."""
+        """parent resource group, as an index into the groups repeated field."""
         name: builtins.int
-        """as index into the strs array."""
+        """as index into the strs repeated field."""
         def __init__(
             self,
             *,
@@ -283,12 +283,16 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         NAME_FIELD_NUMBER: builtins.int
         VALUE_FIELD_NUMBER: builtins.int
         resource_group: builtins.int
-        """the resource group hosting this parameter key, as index into groups array."""
+        """the resource group hosting this parameter key, as index into groups
+        repeated field.
+        """
         name: builtins.int
-        """name of this param, as index into the strs array."""
+        """name of this param, as index into the strs repeated field."""
         @property
         def value(self) -> cirq_google.api.v2.program_pb2.ArgValue:
-            """this param's new value."""
+            """this param's new value, as message ArgValue to allow variant types,
+            including bool, string, double, float and arrays.
+            """
         def __init__(
             self,
             *,
