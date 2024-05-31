@@ -3,4 +3,4 @@ import cirq_google
 
 
 def test_version():
-    assert cirq_google.__version__ == "1.4.0.dev"
+    assert cirq_google.__version__ == "1.5.0.dev"
