@@ -67,6 +67,7 @@ from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
 from cirq.ops.three_qubit_gates import CCNOT, CSWAP
 from cirq.ops.raw_types import Gate
 from cirq.ops.kraus_channel import KrausChannel
+from cirq._compat import cached_method
 
 
 class UndefinedQuilGate(Exception):
@@ -559,7 +560,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
             f"quil_expression_to_sympy failed to convert {expression} of type {type(expression)}"
         )
 
-
+@cached_method
 def defgate_to_cirq(defgate: DefGate):
     """Convert a Quil DefGate to a Cirq Gate class.
 

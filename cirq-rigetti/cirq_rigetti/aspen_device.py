@@ -225,11 +225,11 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         return f'cirq_rigetti.RigettiQCSAspenDevice(isa={self.isa!r})'
 
     def _json_dict_(self):
-        return {'isa': self.isa.to_dict()}
+        return {'isa': json.loads(self.isa.json())}
 
     @classmethod
     def _from_json_dict_(cls, isa, **kwargs):
-        return cls(isa=InstructionSetArchitecture.from_dict(isa))
+        return cls(isa=InstructionSetArchitecture.from_raw(json.dumps(isa)))
 
 
 def get_rigetti_qcs_aspen_device(

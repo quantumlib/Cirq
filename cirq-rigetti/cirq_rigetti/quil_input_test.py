@@ -324,6 +324,6 @@ def test_op_identifier():
     gate2 = defgate_to_cirq(defgate)
 
     op = gate1(beta=np.pi, theta=np.pi)(cirq.LineQubit(0), cirq.LineQubit(1))
-    op_id = cirq.OpIdentifier(gate2)
 
-    assert op in op_id
+    assert op in cirq.OpIdentifier(gate1)
+    assert op in cirq.OpIdentifier(gate2)
