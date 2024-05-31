@@ -469,6 +469,8 @@ def kraus_noise_model_to_cirq(
         defined_gates: A dictionary mapping Quil gates to Cirq gates.
     Returns:
         A Cirq InsertionNoiseModel which applies the Kraus operators to the specified gates.
+    Raises:
+        Exception: If a QubitDesignator identifier is not an integer.
     """
     if defined_gates is None:
         # SUPPORTED_GATES values are all safe to use as `Gate`
