@@ -219,8 +219,10 @@ def test_exponent_mul_consistency(pauli1, pauli2):
 
     assert op_a * op_a * op_a == op_a
     assert op_a * op_a**2 == op_a
+    assert op_a**2 * op_a == op_a
     assert op_b * op_a * op_a == op_b
     assert op_b * op_a**2 == op_b
+    assert op_a**2 * op_b == op_b
     assert op_a * op_a * op_a * op_a == cirq.PauliString()
     assert op_a * op_a**3 == cirq.PauliString()
     assert op_b * op_a * op_a * op_a == op_b * op_a
