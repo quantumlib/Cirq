@@ -741,9 +741,6 @@ def test_sampler_with_unary_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().create_program_async.call_args[0][0] == 'proj'
 
-    with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
-        _ = engine.sampler(processor_id='tmp')
-
     with pytest.raises(ValueError, match='list of processors'):
         _ = engine.get_sampler(['test1', 'test2'])
 
@@ -763,9 +760,6 @@ def test_sampler_with_stream_rpcs(client):
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().run_job_over_stream.call_args[1]['project_id'] == 'proj'
-
-    with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
-        _ = engine.sampler(processor_id='tmp')
 
     with pytest.raises(ValueError, match='list of processors'):
         _ = engine.get_sampler(['test1', 'test2'])

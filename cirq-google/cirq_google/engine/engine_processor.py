@@ -42,16 +42,6 @@ def _date_to_timestamp(
     return None
 
 
-def _fix_deprecated_seconds_kwargs(kwargs):
-    if 'earliest_timestamp_seconds' in kwargs:
-        kwargs['earliest_timestamp'] = kwargs['earliest_timestamp_seconds']
-        del kwargs['earliest_timestamp_seconds']
-    if 'latest_timestamp_seconds' in kwargs:
-        kwargs['latest_timestamp'] = kwargs['latest_timestamp_seconds']
-        del kwargs['latest_timestamp_seconds']
-    return kwargs
-
-
 class EngineProcessor(abstract_processor.AbstractProcessor):
     """A processor available via the Quantum Engine API.
 
@@ -238,20 +228,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             raise ValueError('Processor does not have a device specification')
         return grid_device.GridDevice.from_proto(spec)
 
-    @cirq._compat.deprecated_parameter(
-        deadline='v1.0',
-        fix='Change earliest_timestamp_seconds to earliest_timestamp.',
-        parameter_desc='earliest_timestamp_seconds',
-        match=lambda args, kwargs: 'earliest_timestamp_seconds' in kwargs,
-        rewrite=lambda args, kwargs: (args, _fix_deprecated_seconds_kwargs(kwargs)),
-    )
-    @cirq._compat.deprecated_parameter(
-        deadline='v1.0',
-        fix='Change latest_timestamp_seconds to latest_timestamp.',
-        parameter_desc='latest_timestamp_seconds',
-        match=lambda args, kwargs: 'latest_timestamp_seconds' in kwargs,
-        rewrite=lambda args, kwargs: (args, _fix_deprecated_seconds_kwargs(kwargs)),
-    )
     def list_calibrations(
         self,
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
@@ -260,10 +236,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         """Retrieve metadata about a specific calibration run.
 
         Params:
-            earliest_timestamp_seconds: The earliest timestamp of a calibration
-                to return in UTC.
-            latest_timestamp_seconds: The latest timestamp of a calibration to
-                return in UTC.
+            earliest_timestamp: The earliest timestamp of a calibration to return in UTC.
+            latest_timestamp: The latest timestamp of a calibration to return in UTC.
 
         Returns:
             The list of calibration data with the most recent first.

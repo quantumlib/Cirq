@@ -1,6 +1,6 @@
 ---
 name: Project task
-about: Task to track larger efforts 
+about: Task to track larger efforts
 title: ''
 labels: 'kind/task'
 assignees: ''
@@ -16,4 +16,4 @@ assignees: ''
 <!-- optional, feel free to remove this section -->
 **Related**
 
-Related issues: #abc, #xyz, ... 
+Related issues: #abc, #xyz, ...

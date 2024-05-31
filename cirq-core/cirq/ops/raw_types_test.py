@@ -759,6 +759,7 @@ def test_inverse_composite_standards():
     assert cirq.parameter_names(g) == {'a'}
     assert cirq.resolve_parameters(g, {a: 0}) == Gate(0) ** -1
     cirq.testing.assert_implements_consistent_protocols(g, global_vals={'C': Gate, 'a': a})
+    assert str(g) == 'C(a)†'
 
 
 def test_tagged_act_on():
