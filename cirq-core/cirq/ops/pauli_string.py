@@ -797,12 +797,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return math.e**self
         return NotImplemented
 
-    def __pow__(self, power) -> Union['PauliString', gate_operation.GateOperation]:
-        """Return the exponentiated Pauli operator.
-
-        If power is int, the returned object will be `cirq.ops.pauli_string.PauliString`
-        If power is float, the returned object will be `cirq.ops.gate_operation.GateOperation`
-        """
+    def __pow__(self, power):
         if power == 1:
             return self
         if power == -1:
@@ -818,11 +813,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 return NotImplemented
 
             if len(self) == 1:
-                if isinstance(power, int):
-                    return PauliString(
-                        qubit_pauli_map={} if power % 2 == 0 else self._qubit_pauli_map,
-                        coefficient=self.coefficient**power,
-                    )
                 q, p = next(iter(self.items()))
                 gates = {
                     pauli_gates.X: common_gates.XPowGate,
@@ -1170,11 +1160,6 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         if isinstance(other, (PauliString, complex, float, int)):
             return self._as_pauli_string() * other
         return NotImplemented
-
-    def __pow__(self, exponent):
-        if isinstance(exponent, (int, float)):
-            return PauliString.__pow__(self, exponent)
-        return super().__pow__(exponent)
 
     def __rmul__(self, other):
         if isinstance(other, (PauliString, complex, float, int)):

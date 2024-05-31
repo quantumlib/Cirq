@@ -46,9 +46,9 @@ def test_from_zyz_angles(z0_rad: float, y_rad: float, z1_rad: float) -> None:
     )
 
 
-@pytest.mark.parametrize('z0', [-0.2, 0.0, 0.2, 0.25, 0.5, 1])
-@pytest.mark.parametrize('y', [0.0, 0.2, 0.25, 0.5, 1])
-@pytest.mark.parametrize('z1', [-0.2, 0.0, 0.2, 0.25, 0.5, 1])
+@pytest.mark.parametrize('z0', [-0.2, 0, 0.2, 0.25, 0.5, 1])
+@pytest.mark.parametrize('y', [0, 0.2, 0.25, 0.5, 1])
+@pytest.mark.parametrize('z1', [-0.2, 0, 0.2, 0.25, 0.5, 1])
 def test_from_zyz_exponents(z0: float, y: float, z1: float) -> None:
     q = cirq.q(0)
     phxz = cirq.PhasedXZGate.from_zyz_exponents(z0, y, z1)
