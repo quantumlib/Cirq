@@ -131,7 +131,7 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
 
 def test_converting_to_device_parameters_diff_token_id_caching_is_correct() -> None:
     """Test that multiple calling of run_context.to_device_parameters_diff gives
-       correct token id assignments.
+    correct token id assignments.
     """
     device_params = [
         (
