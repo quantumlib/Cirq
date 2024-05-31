@@ -1171,7 +1171,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
             ):
                 power = other.gate.exponent
                 if power % 2 == 0:
-                    return self._as_pauli_string()
+                    return self
                 elif power % 2 == 1:
                     gates = {
                         common_gates.XPowGate: pauli_gates.X,
