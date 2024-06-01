@@ -211,6 +211,16 @@ def test_list_op_constructor_matches_mapping(pauli):
     assert cirq.PauliString([op]) == cirq.PauliString({q0: pauli})
 
 
+@pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
+def test_try_interpret_as_pauli_string(pauli):
+    q = cirq.q(0)
+    op_a = pauli(q)
+
+    assert op_a == op_a._try_interpret_as_pauli_string(op_a**3)
+    assert cirq.PauliString() == op_a._try_interpret_as_pauli_string(op_a**2)
+    assert op_a._try_interpret_as_pauli_string(op_a**3.5) is None
+
+
 @pytest.mark.parametrize('pauli1', (cirq.X, cirq.Y, cirq.Z))
 @pytest.mark.parametrize('pauli2', (cirq.X, cirq.Y, cirq.Z))
 def test_exponent_mul_consistency(pauli1, pauli2):
@@ -230,8 +240,8 @@ def test_exponent_mul_consistency(pauli1, pauli2):
 
     op_a, op_b = pauli1(a), pauli2(a)
 
-    assert op_a * op_b ** 3 == op_a * op_b * op_b * op_b
-    assert op_b ** 3 * op_a == op_b * op_b * op_b * op_a
+    assert op_a * op_b**3 == op_a * op_b * op_b * op_b
+    assert op_b**3 * op_a == op_b * op_b * op_b * op_a
 
 
 def test_constructor_flexibility():

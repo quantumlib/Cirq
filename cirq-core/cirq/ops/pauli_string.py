@@ -1154,54 +1154,36 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def _as_pauli_string(self) -> PauliString:
         return PauliString(qubit_pauli_map={self.qubit: self.pauli})
 
+    def _try_interpret_as_pauli_string(self, op: Any):
+        """Return a reprepresentation of an operation as a pauli string, if it is possible."""
+        if isinstance(op, gate_operation.GateOperation):
+            gates = {
+                common_gates.XPowGate: pauli_gates.X,
+                common_gates.YPowGate: pauli_gates.Y,
+                common_gates.ZPowGate: pauli_gates.Z,
+            }
+            if isinstance(op.gate, tuple(gates.keys())) and len(op.qubits) == 1:
+                power = op.gate.exponent
+                if power % 2 == 0:
+                    return cirq.PauliString()
+                if power % 2 == 1:
+                    return gates[type(op.gate)].on(op.qubits[0])
+        return None
+
     def __mul__(self, other):
         if isinstance(other, SingleQubitPauliStringGateOperation):
             return self._as_pauli_string() * other._as_pauli_string()
         if isinstance(other, (PauliString, complex, float, int)):
             return self._as_pauli_string() * other
-        if isinstance(other, gate_operation.GateOperation):
-            # if multiplication by an exponentiated pauli
-            # solve it, if exponent is integer
-            if (
-                isinstance(
-                    other.gate,
-                    (common_gates.XPowGate, common_gates.YPowGate, common_gates.ZPowGate),
-                )
-                and len(other.qubits) == 1
-            ):
-                power = other.gate.exponent
-                if power % 2 == 0:
-                    return self
-                elif power % 2 == 1:
-                    gates = {
-                        common_gates.XPowGate: pauli_gates.X,
-                        common_gates.YPowGate: pauli_gates.Y,
-                        common_gates.ZPowGate: pauli_gates.Z,
-                    }
-                    return self * gates[type(other.gate)].on(other.qubits[0])
+        if (as_pauli_string := self._try_interpret_as_pauli_string(other)) is not None:
+            return self * as_pauli_string
         return NotImplemented
 
     def __rmul__(self, other):
         if isinstance(other, (PauliString, complex, float, int)):
             return other * self._as_pauli_string()
-        if isinstance(other, gate_operation.GateOperation):
-            if (
-                isinstance(
-                    other.gate,
-                    (common_gates.XPowGate, common_gates.YPowGate, common_gates.ZPowGate),
-                )
-                and len(other.qubits) == 1
-            ):
-                power = other.gate.exponent
-                if power % 2 == 0:
-                    return self
-                elif power % 2 == 1:
-                    gates = {
-                        common_gates.XPowGate: pauli_gates.X,
-                        common_gates.YPowGate: pauli_gates.Y,
-                        common_gates.ZPowGate: pauli_gates.Z,
-                    }
-                    return gates[type(other.gate)].on(other.qubits[0]) * self
+        if (as_pauli_string := self._try_interpret_as_pauli_string(other)) is not None:
+            return as_pauli_string * self
         return NotImplemented
 
     def __neg__(self):
