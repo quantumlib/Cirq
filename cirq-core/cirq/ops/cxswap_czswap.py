@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple
 
 import numpy as np
 
 import cirq
-from cirq import protocols
 from cirq.ops import gate_features, raw_types
 
 
@@ -73,6 +72,9 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         yield cirq.CNOT(a, b)
         yield cirq.CNOT(b, a)
         yield cirq.H(b)
+
+    def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
+        return 'CZSWAPGate', 'CZSWAPGate'
 
     def __repr__(self) -> str:
         return 'cirq.CZSWAPGate()'
@@ -133,7 +135,7 @@ class CXSWAPGate(raw_types.Gate):
         yield cirq.CNOT(b, a)
 
     def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
-        return 'cirq.CXSWAPGate', 'cirq.CXSWAPGate'
+        return 'CXSWAPGate', 'CXSWAPGate'
 
     def __repr__(self) -> str:
         return 'cirq.CXSWAPGate()'

@@ -64,7 +64,32 @@ def test_czswap_unitary():
     )
 
 
+def test_cswap_circuit():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.CXSWAPGate().on(a, b), cirq.CZSWAPGate().on(a, b))
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───CXSWAPGate───CZSWAPGate───
+      │                │
+1: ───CXSWAPGate───CZSWAPGate───
+    """,
+    )
+
+
 # Verifying __repr__()
 def test_cswap_repr():
     assert repr(cirq.CXSWAPGate()) == 'cirq.CXSWAPGate()'
     assert repr(cirq.CZSWAPGate()) == 'cirq.CZSWAPGate()'
+
+
+# Verifying __eq__()
+def test_cswap_eq():
+    gate = cirq.CXSWAPGate()
+    gate1 = cirq.CXSWAPGate()
+    gate2 = cirq.CZSWAPGate()
+    gate3 = cirq.CZSWAPGate()
+    assert gate == gate1
+    assert gate2 == gate3
+    assert gate != gate3
+    assert gate2 != gate1
