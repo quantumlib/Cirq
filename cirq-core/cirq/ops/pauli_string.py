@@ -48,6 +48,7 @@ from cirq._import import LazyLoader
 from cirq.ops import (
     clifford_gate,
     common_gates,
+    eigen_gate,
     gate_operation,
     global_phase_op,
     identity,
@@ -1163,6 +1164,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
                 common_gates.ZPowGate: pauli_gates.Z,
             }
             if isinstance(op.gate, tuple(gates.keys())) and len(op.qubits) == 1:
+                assert isinstance(op.gate, eigen_gate.EigenGate)  # provide explicit type for mypy
                 power = op.gate.exponent
                 if power % 2 == 0:
                     return cirq.PauliString()
