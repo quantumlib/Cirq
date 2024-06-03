@@ -1163,11 +1163,11 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
                 common_gates.YPowGate: pauli_gates.Y,
                 common_gates.ZPowGate: pauli_gates.Z,
             }
-            if (pauli := gates.get(type(op.gate), None)) is not None and len(op.qubits) == 1:
-                assert isinstance(op.gate, eigen_gate.EigenGate)  # provide explicit type for mypy
-                if op.gate.exponent % 2 == 0:
+            if (pauli := gates.get(type(op.gate), None)) is not None:
+                exponent = op.gate.exponent  # type: ignore
+                if exponent % 2 == 0:
                     return cirq.PauliString()
-                if op.gate.exponent % 2 == 1:
+                if exponent % 2 == 1:
                     return pauli.on(op.qubits[0])
         return None
 
