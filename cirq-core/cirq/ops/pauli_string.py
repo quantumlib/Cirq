@@ -48,7 +48,6 @@ from cirq._import import LazyLoader
 from cirq.ops import (
     clifford_gate,
     common_gates,
-    eigen_gate,
     gate_operation,
     global_phase_op,
     identity,
