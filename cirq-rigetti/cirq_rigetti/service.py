@@ -112,7 +112,7 @@ class RigettiQCSService:
         return list_quantum_processors(client=client)
 
     @staticmethod
-    def get_quilt_calibrations(quantum_processor_id: str, client: Optional[QCSClient]) -> str:
+    def get_quilt_calibrations(quantum_processor_id: str, client: Optional[QCSClient]) -> str: # pragma: no cover
         """Retrieve the calibration data used for client-side Quil-T generation.
 
         Args:

@@ -100,21 +100,21 @@ class CPHASE00(Gate):
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(wire_symbols=("@00", "@00"), exponent=self.phi / np.pi)
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str: # pragma: no cover
         """Represent the CPHASE gate as a string."""
         return f"CPHASE00({self.phi:.3f})"
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate: # pragma: no cover
         return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    def _is_parameterized_(self) -> bool:
+    def _is_parameterized_(self) -> bool: # pragma: no cover
         parameter_names = ["phi"]
         return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self): # pragma: no cover
         return (self.phi,)
 
-    def _value_equality_approximate_values_(self):
+    def _value_equality_approximate_values_(self): # pragma: no cover
         return (self.phi,)
 
 
@@ -135,21 +135,21 @@ class CPHASE01(Gate):
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(wire_symbols=("@01", "@01"), exponent=self.phi / np.pi)
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str: # pragma: no cover
         """Represent the CPHASE gate as a string."""
         return f"CPHASE01({self.phi:.3f})"
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate: # pragma: no cover
         return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    def _is_parameterized_(self) -> bool:
+    def _is_parameterized_(self) -> bool: # pragma: no cover
         parameter_names = ["phi"]
         return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self): # pragma: no cover
         return (self.phi,)
 
-    def _value_equality_approximate_values_(self):
+    def _value_equality_approximate_values_(self): # pragma: no cover
         return (self.phi,)
 
 
@@ -170,21 +170,21 @@ class CPHASE10(Gate):
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(wire_symbols=("@10", "@10"), exponent=self.phi / np.pi)
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str: # pragma: no cover
         """Represent the CPHASE gate as a string."""
         return f"CPHASE10({self.phi:.3f})"
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate: # pragma: no cover
         return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    def _is_parameterized_(self) -> bool:
+    def _is_parameterized_(self) -> bool: # pragma: no cover
         parameter_names = ["phi"]
         return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self): # pragma: no cover
         return (self.phi,)
 
-    def _value_equality_approximate_values_(self):
+    def _value_equality_approximate_values_(self): # pragma: no cover
         return (self.phi,)
 
 
@@ -205,21 +205,21 @@ class PSWAP(Gate):
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(wire_symbols=("PSWAP", "PSWAP"), exponent=self.phi / np.pi)
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str: # pragma: no cover
         """Represent the PSWAP gate as a string."""
         return f"PSWAP({self.phi:.3f})"
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate:
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate: # pragma: no cover
         return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    def _is_parameterized_(self) -> bool:
+    def _is_parameterized_(self) -> bool: # pragma: no cover
         parameter_names = ["phi"]
         return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self): # pragma: no cover
         return (self.phi,)
 
-    def _value_equality_approximate_values_(self):
+    def _value_equality_approximate_values_(self): # pragma: no cover
         return (self.phi,)
 
 

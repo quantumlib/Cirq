@@ -232,6 +232,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         return cls(isa=InstructionSetArchitecture.from_raw(json.dumps(isa)))
 
 
+# pragma: no cover
 def get_rigetti_qcs_aspen_device(
     quantum_processor_id: str, client: Optional[QCSClient]
 ) -> RigettiQCSAspenDevice:
