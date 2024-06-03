@@ -22,7 +22,6 @@ import sympy
 
 import cirq
 import cirq.testing
-from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
 
 def _make_qubits(n):
@@ -210,16 +209,6 @@ def test_list_op_constructor_matches_mapping(pauli):
     (q0,) = _make_qubits(1)
     op = pauli.on(q0)
     assert cirq.PauliString([op]) == cirq.PauliString({q0: pauli})
-
-
-@pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
-def test_try_interpret_as_pauli_string(pauli):
-    q = cirq.q(0)
-    op_a = pauli(q)
-
-    assert op_a == _try_interpret_as_pauli_string(op_a**3)
-    assert cirq.PauliString() == _try_interpret_as_pauli_string(op_a**2)
-    assert _try_interpret_as_pauli_string(op_a**3.5) is None
 
 
 @pytest.mark.parametrize('pauli1', (cirq.X, cirq.Y, cirq.Z))
