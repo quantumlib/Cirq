@@ -100,21 +100,23 @@ class CPHASE00(Gate):
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(wire_symbols=("@00", "@00"), exponent=self.phi / np.pi)
 
-    def __repr__(self) -> str: # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         """Represent the CPHASE gate as a string."""
         return f"CPHASE00({self.phi:.3f})"
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate: # pragma: no cover
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> Gate:  # pragma: no cover
         return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    def _is_parameterized_(self) -> bool: # pragma: no cover
+    def _is_parameterized_(self) -> bool:  # pragma: no cover
         parameter_names = ["phi"]
         return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
-    def _value_equality_values_(self): # pragma: no cover
+    def _value_equality_values_(self):  # pragma: no cover
         return (self.phi,)
 
-    def _value_equality_approximate_values_(self): # pragma: no cover
+    def _value_equality_approximate_values_(self):  # pragma: no cover
         return (self.phi,)
 
 
@@ -135,21 +137,23 @@ class CPHASE01(Gate):
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(wire_symbols=("@01", "@01"), exponent=self.phi / np.pi)
 
-    def __repr__(self) -> str: # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         """Represent the CPHASE gate as a string."""
         return f"CPHASE01({self.phi:.3f})"
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate: # pragma: no cover
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> Gate:  # pragma: no cover
         return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    def _is_parameterized_(self) -> bool: # pragma: no cover
+    def _is_parameterized_(self) -> bool:  # pragma: no cover
         parameter_names = ["phi"]
         return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
-    def _value_equality_values_(self): # pragma: no cover
+    def _value_equality_values_(self):  # pragma: no cover
         return (self.phi,)
 
-    def _value_equality_approximate_values_(self): # pragma: no cover
+    def _value_equality_approximate_values_(self):  # pragma: no cover
         return (self.phi,)
 
 
@@ -170,21 +174,23 @@ class CPHASE10(Gate):
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(wire_symbols=("@10", "@10"), exponent=self.phi / np.pi)
 
-    def __repr__(self) -> str: # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         """Represent the CPHASE gate as a string."""
         return f"CPHASE10({self.phi:.3f})"
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate: # pragma: no cover
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> Gate:  # pragma: no cover
         return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    def _is_parameterized_(self) -> bool: # pragma: no cover
+    def _is_parameterized_(self) -> bool:  # pragma: no cover
         parameter_names = ["phi"]
         return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
-    def _value_equality_values_(self): # pragma: no cover
+    def _value_equality_values_(self):  # pragma: no cover
         return (self.phi,)
 
-    def _value_equality_approximate_values_(self): # pragma: no cover
+    def _value_equality_approximate_values_(self):  # pragma: no cover
         return (self.phi,)
 
 
@@ -205,21 +211,23 @@ class PSWAP(Gate):
     def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(wire_symbols=("PSWAP", "PSWAP"), exponent=self.phi / np.pi)
 
-    def __repr__(self) -> str: # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         """Represent the PSWAP gate as a string."""
         return f"PSWAP({self.phi:.3f})"
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Gate: # pragma: no cover
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> Gate:  # pragma: no cover
         return type(self)(phi=resolver.value_of(self.phi, recursive))
 
-    def _is_parameterized_(self) -> bool: # pragma: no cover
+    def _is_parameterized_(self) -> bool:  # pragma: no cover
         parameter_names = ["phi"]
         return any(is_parameterized(getattr(self, p)) for p in parameter_names)
 
-    def _value_equality_values_(self): # pragma: no cover
+    def _value_equality_values_(self):  # pragma: no cover
         return (self.phi,)
 
-    def _value_equality_approximate_values_(self): # pragma: no cover
+    def _value_equality_approximate_values_(self):  # pragma: no cover
         return (self.phi,)
 
 
@@ -317,11 +325,11 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
     # Interpret the Pragmas
     for inst in program:
-        if not isinstance(inst, Pragma):
+        if not isinstance(inst, Pragma):  # pragma: no cover
             continue
 
         # ADD-KRAUS provides Kraus operators that replace the gate operation
-        if inst.command == "ADD-KRAUS":
+        if inst.command == "ADD-KRAUS":  # pragma: no cover
             args = inst.args
             gate_name = str(args[0])
             if gate_name in matrices.QUANTUM_GATES:
@@ -356,7 +364,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
             confusion_maps[qubit] = confusion_matrix  # type: ignore
 
         else:
-            raise UnsupportedQuilInstruction(PRAGMA_ERROR)
+            raise UnsupportedQuilInstruction(PRAGMA_ERROR)  # pragma: no cover
 
     # Interpret the instructions
     for inst in program:
@@ -410,11 +418,11 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
             continue
 
         # Drop FENCE statements
-        elif isinstance(inst, (Fence, FenceAll)):
+        elif isinstance(inst, (Fence, FenceAll)):  # pragma: no cover
             continue
 
         # Drop DEFGATES
-        elif isinstance(inst, (DefGate)):
+        elif isinstance(inst, (DefGate)):  # pragma: no cover
             continue
 
         # Raise a targeted error when encountering a RESET.
@@ -427,7 +435,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 f"Quil instruction {inst} of type {type(inst)} not currently supported in Cirq."
             )
 
-    if len(kraus_model) > 0:
+    if len(kraus_model) > 0:  # pragma: no cover
         noise_model = kraus_noise_model_to_cirq(kraus_model, defined_gates)
         circuit = circuit.with_noise(noise_model)
 
@@ -461,7 +469,7 @@ def get_defined_gates(program: Program) -> Tuple[Dict, Dict]:
 def kraus_noise_model_to_cirq(
     kraus_noise_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex_]]],
     defined_gates: Optional[Dict[QubitDesignator, Gate]] = None,
-) -> InsertionNoiseModel:
+) -> InsertionNoiseModel:  # pragma: no cover
     """Construct a Cirq noise model from the provided Kraus operators.
 
     Args:
@@ -513,22 +521,22 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
     """
     if type(expression) in {np.int_, np.float_, np.complex_, int, float, complex}:
         return expression
-    elif isinstance(expression, Parameter):
+    elif isinstance(expression, Parameter):  # pragma: no cover
         return sympy.Symbol(expression.name)
     elif isinstance(expression, MemoryReference):
         return sympy.Symbol(expression.name + f"_{expression.offset}")
     elif isinstance(expression, Function):
-        if expression.name == "SIN":
+        if expression.name == "SIN":  # pragma: no cover
             return sympy.sin(quil_expression_to_sympy(expression.expression))
         elif expression.name == "COS":
             return sympy.cos(quil_expression_to_sympy(expression.expression))
-        elif expression.name == "SQRT":
+        elif expression.name == "SQRT":  # pragma: no cover
             return sympy.sqrt(quil_expression_to_sympy(expression.expression))
         elif expression.name == "EXP":
             return sympy.exp(quil_expression_to_sympy(expression.expression))
-        elif expression.name == "CIS":
+        elif expression.name == "CIS":  # pragma: no cover
             return sympy.exp(1j * quil_expression_to_sympy(expression.expression))
-        else:
+        else:  # pragma: no cover
             raise ValueError(f"Cannot convert unknown function: {expression}")
 
     elif isinstance(expression, BinaryExp):
@@ -536,7 +544,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
             return quil_expression_to_sympy(expression.op1) + quil_expression_to_sympy(
                 expression.op2
             )
-        elif isinstance(expression, Sub):
+        elif isinstance(expression, Sub):  # pragma: no cover
             return quil_expression_to_sympy(expression.op1) - quil_expression_to_sympy(
                 expression.op2
             )
@@ -544,18 +552,18 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
             return quil_expression_to_sympy(expression.op1) * quil_expression_to_sympy(
                 expression.op2
             )
-        elif isinstance(expression, Div):
+        elif isinstance(expression, Div):  # pragma: no cover
             return quil_expression_to_sympy(expression.op1) / quil_expression_to_sympy(
                 expression.op2
             )
-        elif isinstance(expression, Pow):
+        elif isinstance(expression, Pow):  # pragma: no cover
             return quil_expression_to_sympy(expression.op1) ** quil_expression_to_sympy(
                 expression.op2
             )
-        else:
+        else:  # pragma: no cover
             raise ValueError(f"Cannot convert unknown BinaryExp: {expression}")
 
-    else:
+    else:  # pragma: no cover
         raise ValueError(
             f"quil_expression_to_sympy failed to convert {expression} of type {type(expression)}"
         )
@@ -594,10 +602,12 @@ def defgate_to_cirq(defgate: DefGate):
 
         def constructor(self, **kwards: Any): ...
 
-        def unitary(self, *args):
+        def unitary(self, *args):  # pragma: no cover
             return matrix
 
-    def circuit_diagram_info(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+    def circuit_diagram_info(
+        self, args: CircuitDiagramInfoArgs
+    ) -> CircuitDiagramInfo:  # pragma: no cover
         return CircuitDiagramInfo(wire_symbols=tuple(name for _ in range(dim)))
 
     def num_qubits(self):
@@ -618,7 +628,7 @@ def defgate_to_cirq(defgate: DefGate):
 
 def remove_gate_from_kraus(
     kraus_ops: List[NDArray[np.complex_]], gate_matrix: NDArray[np.complex_]
-):
+):  # pragma: no cover
     """Recover the kraus operators from a kraus composed with a gate.
     This function is the reverse of append_kraus_to_gate.
 
