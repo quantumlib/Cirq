@@ -22,6 +22,7 @@ import sympy
 
 import cirq
 import cirq.testing
+from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
 
 def _make_qubits(n):
@@ -216,9 +217,9 @@ def test_try_interpret_as_pauli_string(pauli):
     q = cirq.q(0)
     op_a = pauli(q)
 
-    assert op_a == op_a._try_interpret_as_pauli_string(op_a**3)
-    assert cirq.PauliString() == op_a._try_interpret_as_pauli_string(op_a**2)
-    assert op_a._try_interpret_as_pauli_string(op_a**3.5) is None
+    assert op_a == _try_interpret_as_pauli_string(op_a**3)
+    assert cirq.PauliString() == _try_interpret_as_pauli_string(op_a**2)
+    assert _try_interpret_as_pauli_string(op_a**3.5) is None
 
 
 @pytest.mark.parametrize('pauli1', (cirq.X, cirq.Y, cirq.Z))
