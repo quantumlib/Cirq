@@ -115,12 +115,12 @@ def _add_unit_to_metadata_if_present(k, v):
     import cirq_google
 
     value_unit = str(v).split(" ")
-    value = float(value_unit[0])
+    value = value_unit[0]
     unit = value_unit[1] if len(value_unit) > 1 else None
 
     if unit:
         # Append the unit as metadata so the parameter can be resolved server side during
         # internal use. See https://github.com/qh-lab/pyle/pull/46133.
         descriptor = cirq_google.study.DeviceParameter(path=None, value=value, units=unit)
-        return Points(k, [cast(float, value)], metadata=descriptor)
-    return Points(k, [cast(float, value)])
+        return Points(k, [float(value)], metadata=descriptor)
+    return Points(k, [cast(float, v)])
