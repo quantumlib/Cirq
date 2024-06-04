@@ -102,4 +102,25 @@ def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
     params = resolver.param_dict
     if not params:
         return UnitSweep
-    return Zip(*[Points(key, [cast(float, value)]) for key, value in params.items()])
+
+    return Zip(*[_add_unit_to_metadata_if_present(key, value) for key, value in params.items()])
+
+
+def _add_unit_to_metadata_if_present(k, v):
+    """It is possible for the internal workflow to pass a value with units attached.
+    We want to save the unit so it can be resolved later. We do this by saving the unit
+    in DeviceParameter and attaching the object as metadata. This is a temporary solution
+    until TUnits is implemented.
+    """
+    import cirq_google
+
+    value_unit = str(v).split(" ")
+    value = float(value_unit[0])
+    unit = value_unit[1] if len(value_unit) > 1 else None
+
+    if unit:
+        # Append the unit as metadata so the parameter can be resolved server side during
+        # internal use. See https://github.com/qh-lab/pyle/pull/46133.
+        descriptor = cirq_google.study.DeviceParameter(path=None, value=value, units=unit)
+        return Points(k, [cast(float, value)], metadata=descriptor)
+    return Points(k, [cast(float, value)])

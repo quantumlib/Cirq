@@ -147,3 +147,42 @@ def test_to_sweep_resolver_list(r_list_gen):
 def test_to_sweep_type_error():
     with pytest.raises(TypeError, match='Unexpected sweep'):
         cirq.to_sweep(5)
+
+
+@pytest.mark.parametrize(
+    'sweepables',
+    [
+        [{'a': sympy.Symbol('1 GHZ')}, {'a': sympy.Symbol('1.5 GHZ')}, {'b': 2}],
+        [
+            cirq.ParamResolver({'a': sympy.Symbol('1 GHZ')}),
+            cirq.ParamResolver({'a': sympy.Symbol('1.5 GHZ')}),
+            cirq.ParamResolver({'b': 2}),
+        ],
+    ],
+)
+def test_to_sweeps_resolver_appends_any_units_as_device_parameters(sweepables):
+    import cirq_google
+
+    sweeps = cirq.to_sweeps(sweepables)
+
+    assert list(sweeps) == [
+        cirq.Zip(
+            cirq.Points(
+                'a',
+                [1.0],
+                metadata=cirq_google.study.DeviceParameter(
+                    path=None, idx=None, value=1.0, units='GHZ'
+                ),
+            )
+        ),
+        cirq.Zip(
+            cirq.Points(
+                'a',
+                [1.5],
+                metadata=cirq_google.study.DeviceParameter(
+                    path=None, idx=None, value=1.5, units='GHZ'
+                ),
+            )
+        ),
+        cirq.Zip(cirq.Points('b', [2])),
+    ]
