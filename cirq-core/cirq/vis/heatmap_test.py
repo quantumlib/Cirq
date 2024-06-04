@@ -343,3 +343,89 @@ def test_plot_updates_local_config():
         _, ax = plt.subplots()
         random_heatmap.plot(ax)
         assert ax.get_title() == original_title
+
+
+
+
+
+# Unit tests for new functionalities
+import unittest
+from unittest.mock import MagicMock
+from cirq.devices import GridQubit
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# Assuming Heatmap and TwoQubitInteractionHeatmap classes are defined as per your code
+
+class TestHeatmap(unittest.TestCase):
+    
+    def setUp(self):
+        # Create a simple value map for testing
+        self.qubits = [GridQubit(row, col) for row in range(3) for col in range(3)]
+        self.value_map = {q: float(row + col) for q, (row, col) in zip(self.qubits, [(q.row, q.col) for q in self.qubits])}
+        self.heatmap = Heatmap(self.value_map)
+    
+    def test_initialization(self):
+        self.assertEqual(len(self.heatmap.value_map), 9)
+        self.assertTrue(all(isinstance(key, GridQubit) for key in self.heatmap.value_map.keys()))
+    
+    def test_set_annotation_map(self):
+        annot_map = {(q.row, q.col): 'test' for q in self.qubits}
+        self.heatmap.set_annotation_map(annot_map, fontsize=12, color='red')
+        self.assertEqual(self.heatmap.annot_map, annot_map)
+        self.assertEqual(self.heatmap.annot_kwargs, {'fontsize': 12, 'color': 'red'})
+    
+    def test_set_colorbar(self):
+        self.heatmap.set_colorbar(position='bottom', size='10%', pad='5%')
+        self.assertTrue(self.heatmap._config['plot_colorbar'])
+        self.assertEqual(self.heatmap._config['colorbar_position'], 'bottom')
+        self.assertEqual(self.heatmap._config['colorbar_size'], '10%')
+        self.assertEqual(self.heatmap._config['colorbar_pad'], '5%')
+    
+    def test_plot(self):
+        fig, ax = plt.subplots()
+        ax, mesh, value_table = self.heatmap.plot(ax=ax)
+        self.assertIsNotNone(ax)
+        self.assertIsNotNone(mesh)
+        self.assertIsInstance(value_table, pd.DataFrame)
+        plt.close(fig)
+
+
+class TestTwoQubitInteractionHeatmap(unittest.TestCase):
+    
+    def setUp(self):
+        # Create a simple value map for testing
+        self.qubits = [GridQubit(row, col) for row in range(5) for col in range(5)]
+        self.value_map = {(q1, q2): float(q1.row + q1.col + q2.row + q2.col) for q1 in self.qubits for q2 in self.qubits if q1 != q2}
+        self.heatmap = TwoQubitInteractionHeatmap(self.value_map)
+    
+    def test_initialization(self):
+        self.assertEqual(len(self.heatmap.value_map), 600)
+        self.assertTrue(all(isinstance(key, tuple) and len(key) == 2 for key in self.heatmap.value_map.keys()))
+    
+    def test_set_annotation_map(self):
+        annot_map = {(q1.row, q1.col, q2.row, q2.col): 'test' for q1, q2 in self.value_map.keys()}
+        self.heatmap.set_annotation_map(annot_map, fontsize=12, color='red')
+        self.assertEqual(self.heatmap.annot_map, annot_map)
+        self.assertEqual(self.heatmap.annot_kwargs, {'fontsize': 12, 'color': 'red'})
+    
+    def test_set_colorbar(self):
+        self.heatmap.set_colorbar(position='bottom', size='10%', pad='5%')
+        self.assertTrue(self.heatmap._config['plot_colorbar'])
+        self.assertEqual(self.heatmap._config['colorbar_position'], 'bottom')
+        self.assertEqual(self.heatmap._config['colorbar_size'], '10%')
+        self.assertEqual(self.heatmap._config['colorbar_pad'], '5%')
+    
+    def test_plot(self):
+        fig, ax = plt.subplots()
+        ax, mesh, value_table = self.heatmap.plot(ax=ax)
+        self.assertIsNotNone(ax)
+        self.assertIsNotNone(mesh)
+        self.assertIsInstance(value_table, pd.DataFrame)
+        plt.close(fig)
+
+
+if __name__ == '__main__':
+    unittest.main()
+
