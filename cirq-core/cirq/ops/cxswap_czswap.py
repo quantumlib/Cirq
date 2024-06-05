@@ -18,9 +18,10 @@ import numpy as np
 
 import cirq
 from cirq.ops import gate_features, raw_types
+from cirq.value.value_equality_attr import value_equality
 
 
-@cirq.value_equality()
+@value_equality()
 class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     r"""CZSWAP gate.
 
@@ -38,10 +39,8 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     $$
 
     Up to a global phase, CZSWAP(0,1) is equivalent to applying the following:
-    H(0)
-    CX(0,1)
-    CX(1,0)
-    H(1)
+    SWAP(0,1)
+    CZ(0,1)
 
     """
 
@@ -72,11 +71,14 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
         return 'CZSWAPGate', 'CZSWAPGate'
 
+    def _value_equality_values_(self):
+        return ()
+
     def __repr__(self) -> str:
         return 'cirq.CZSWAPGate()'
 
 
-@cirq.value_equality()
+@value_equality()
 class CXSWAPGate(raw_types.Gate):
     r"""CXSWAP gate.
 
@@ -94,8 +96,8 @@ class CXSWAPGate(raw_types.Gate):
     $$
 
     Up to a global phase, `CXSWAP(0,1)` is equivalent to applying the following:
+    SWAP(0,1)
     CX(0,1)
-    CX(1,0)
 
     """
 
@@ -120,11 +122,14 @@ class CXSWAPGate(raw_types.Gate):
 
     def _decompose_(self, qubits):
         a, b = qubits
-        yield cirq.CNOT(a, b)
         yield cirq.SWAP(a, b)
+        yield cirq.CNOT(a, b)
 
     def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
         return 'CXSWAPGate', 'CXSWAPGate'
+
+    def _value_equality_values_(self):
+        return ()
 
     def __repr__(self) -> str:
         return 'cirq.CXSWAPGate()'
