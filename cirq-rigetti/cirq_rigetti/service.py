@@ -96,7 +96,7 @@ class RigettiQCSService:
         )
 
     @staticmethod
-    def list_quantum_processors(client: Optional[QCSClient]) -> List[str]:  # pragma: no cover
+    def list_quantum_processors(client: Optional[QCSClient] = None) -> List[str]:
         """Retrieve a list of available Rigetti quantum processors.
 
         Args:
