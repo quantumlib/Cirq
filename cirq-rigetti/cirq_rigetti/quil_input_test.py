@@ -141,8 +141,6 @@ def test_circuit_from_quil():
     # build the same Circuit, using Quil
     quil_circuit = circuit_from_quil(Program(QUIL_PROGRAM))
     # test Circuit equivalence
-    print(cirq_circuit)
-    print(quil_circuit)
     assert cirq_circuit == quil_circuit
 
     pyquil_circuit = Program(QUIL_PROGRAM)
@@ -170,7 +168,6 @@ def test_quil_with_defgate():
     """Convert a Quil program with a DefGate."""
     q0 = LineQubit(0)
     cirq_circuit = Circuit([X(q0), Z(q0)])
-    print(Program(QUIL_PROGRAM_WITH_DEFGATE).defined_gates[0].matrix)
     quil_circuit = circuit_from_quil(Program(QUIL_PROGRAM_WITH_DEFGATE))
     assert np.isclose(quil_circuit.unitary(), cirq_circuit.unitary()).all()
 
