@@ -11,7 +11,7 @@ from .scaleway_client import QaaSClient
 _ENDPOINT_URL = "https://api.scaleway.com/qaas/v1alpha1"
 
 
-class ScalewayService():
+class ScalewayService:
     """
     :param project_id: optional UUID of the Scaleway Project, if the provided ``project_id`` is None, the value is loaded from the SCALEWAY_PROJECT_ID variables in the dotenv file or the CIRQ_SCALEWAY_PROJECT_ID environment variables
 
@@ -20,9 +20,7 @@ class ScalewayService():
     :param url: optional value, endpoint URL of the API, if the provided ``url`` is None, the value is loaded from the SCALEWAY_API_URL variables in the dotenv file or the CIRQ_SCALEWAY_API_URL environment variables, if no url is found, then ``_ENDPOINT_URL`` is used.
     """
 
-    def __init__(
-        self, project_id: str = None, secret_key: str = None, url: str = None
-    ) -> None:
+    def __init__(self, project_id: str = None, secret_key: str = None, url: str = None) -> None:
         env_token = dotenv_values().get("CIRQ_SCALEWAY_API_TOKEN") or os.getenv(
             "CIRQ_SCALEWAY_API_TOKEN"
         )
@@ -92,24 +90,18 @@ class ScalewayService():
 
     def _filter_availability(self, operational, availability):
         availabilities = (
-            ["ailability_unknown", "available", "scarce"]
-            if operational
-            else ["shortage"]
+            ["ailability_unknown", "available", "scarce"] if operational else ["shortage"]
         )
 
         return availability in availabilities
 
-    def filters(
-        self, backends: list[ScalewaySampler], filters: dict
-    ) -> list[ScalewaySampler]:
+    def filters(self, backends: list[ScalewaySampler], filters: dict) -> list[ScalewaySampler]:
         operational = filters.get("operational")
         min_num_qubits = filters.get("min_num_qubits")
 
         if operational is not None:
             backends = [
-                b
-                for b in backends
-                if self._filter_availability(operational, b.availability)
+                b for b in backends if self._filter_availability(operational, b.availability)
             ]
 
         if min_num_qubits is not None:
@@ -118,7 +110,9 @@ class ScalewayService():
         return backends
 
 
-def filter_samplers(backends: list[cirq.work.Sampler], filters: Callable = None, **kwargs) -> list[cirq.work.Sampler]:
+def filter_samplers(
+    backends: list[cirq.work.Sampler], filters: Callable = None, **kwargs
+) -> list[cirq.work.Sampler]:
     def _match_all(obj, criteria):
         """Return True if all items in criteria matches items in obj."""
         return all(getattr(obj, key_, None) == value_ for key_, value_ in criteria.items())

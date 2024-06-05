@@ -55,9 +55,7 @@ class QaaSClient:
             "max_idle_duration": max_idle_duration,
         }
 
-        response = http_client.post(
-            self._build_endpoint(_ENDPOINT_SESSION), json=payload
-        )
+        response = http_client.post(self._build_endpoint(_ENDPOINT_SESSION), json=payload)
 
         response.raise_for_status()
         response_dict = response.json()

@@ -17,11 +17,20 @@ import cirq
 import httpx
 
 from cirq.study import ResultDict
-from typing import List, Optional
+from typing import List, Union
+from pytimeparse.timeparse import timeparse
 
 from .scaleway_client import QaaSClient
-from .scaleway_models import JobPayload, ClientPayload, BackendPayload, RunPayload, SerializationType, CircuitPayload
+from .scaleway_models import (
+    JobPayload,
+    ClientPayload,
+    BackendPayload,
+    RunPayload,
+    SerializationType,
+    CircuitPayload,
+)
 from .versions import USER_AGENT
+
 
 class ScalewaySampler(cirq.work.Sampler):
     def __init__(
@@ -43,23 +52,23 @@ class ScalewaySampler(cirq.work.Sampler):
         self._client = client
         self._version = version
         self._num_qubits = num_qubits
+        self._name = name
 
-    # def _serialize_circuit(
-    #     self,
-    #     circuit: cirq.circuits.AbstractCircuit,
-    #     param_resolver: cirq.study.ParamResolverOrSimilarType,
-    # ) -> str:
-    #     """Serialize a given Circuit.
-    #     Args:
-    #         circuit: The circuit to be run
-    #         param_resolver: Param resolver for the
-    #     Returns:
-    #         json serialized string
-    #     """
-    #     circuit = cirq.protocols.resolve_parameters(circuit, param_resolver)
-    #     serialized_circuit = cirq.to_json(circuit)
+    @property
+    def id(self):
+        return self._id
 
-    #     return serialized_circuit
+    @property
+    def availability(self):
+        return self._availability
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def num_qubits(self):
+        return self._num_qubits
 
     def _extract_payload_from_response(self, result_response: dict) -> str:
         result = result_response.get("result", None)
@@ -81,20 +90,20 @@ class ScalewaySampler(cirq.work.Sampler):
         start_time = time.time()
 
         while True:
+            time.sleep(fetch_interval)
+
             elapsed = time.time() - start_time
 
             if timeout is not None and elapsed >= timeout:
                 raise Exception("Timed out waiting for result")
 
-            status = self.status()
+            job = self._client.get_job(self._job_id)
 
-            if status == JobStatus.DONE:
+            if job["status"] == "completed":
                 return self._client.get_job_results(self._job_id)
 
-            if status == JobStatus.ERROR:
-                raise JobError("Job error")
-
-            time.sleep(fetch_interval)
+            if job["status"] in ["error", "unknown_status"]:
+                raise Exception("Job error")
 
     def _to_cirq_result(self, job_results) -> cirq.Result:
         if len(job_results) == 0:
@@ -106,47 +115,62 @@ class ScalewaySampler(cirq.work.Sampler):
 
         return cirq_result
 
-    def _send_serialized_circuit(
-        self, serialization_str: str, repetitions: int = 1
-    ) -> cirq.study.Result:
+    def _submit(self, run_opts: RunPayload, session_id: str) -> cirq.study.Result:
+        backend_opts = BackendPayload(name=self._name, version=self._version, options={})
 
-        run_opts = RunPayload(
-            options={"shots": options.pop("shots")},
-            circuit=CircuitPayload(
-                serialization_type=SerializationType.QASM_V2,
-                circuit_serialization=qasm2.dumps(circuit),
-            ),
-        )
-
-        backend_opts = BackendPayload(
-            name=self.backend().name,
-            version=self.backend().version,
-            options=options,
-        )
-
-        client_opts = ClientPayload(
-            user_agent=USER_AGENT,
-        )
+        client_opts = ClientPayload(user_agent=USER_AGENT)
 
         job_payload = JobPayload.schema().dumps(
-            JobPayload(
-                backend=backend_opts,
-                run=run_opts,
-                client=client_opts,
-            )
+            JobPayload(backend=backend_opts, run=run_opts, client=client_opts)
         )
 
         self._job_id = self._client.create_job(
-            name=self._name,
-            session_id=session_id,
-            circuits=job_payload,
+            name=self._name, session_id=session_id, circuits=job_payload
         )
 
         job_results = self._wait_for_result(None, 2)
-
         result = self._to_cirq_result(job_results)
 
         return result
+
+    def start_session(
+        self,
+        name: str = None,
+        deduplication_id: str = None,
+        max_duration: Union[int, str] = None,
+        max_idle_duration: Union[int, str] = None,
+    ) -> str:
+        if name is None:
+            name = self._options.session_name
+
+        if deduplication_id is None:
+            deduplication_id = self._options.session_deduplication_id
+
+        if max_duration is None:
+            max_duration = self._options.session_max_duration
+
+        if max_idle_duration is None:
+            max_idle_duration = self._options.session_max_idle_duration
+
+        if isinstance(max_duration, str):
+            max_duration = f"{timeparse(max_duration)}s"
+
+        if isinstance(max_idle_duration, str):
+            max_idle_duration = f"{timeparse(max_idle_duration)}s"
+
+        return self._client.create_session(
+            name,
+            platform_id=self.id,
+            deduplication_id=deduplication_id,
+            max_duration=max_duration,
+            max_idle_duration=max_idle_duration,
+        )
+
+    def stop_session(self, session_id: str):
+        self._client.terminate_session(session_id=session_id)
+
+    def delete_session(self, session_id: str):
+        self._client.delete_session(session_id=session_id)
 
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
@@ -165,10 +189,18 @@ class ScalewaySampler(cirq.work.Sampler):
         trial_results = []
 
         for param_resolver in cirq.study.to_resolvers(params):
-            # json_str = self._serialize_circuit(circuit=program, param_resolver=param_resolver)
-            results = self._send_serialized_circuit(
-                serialization_str=json_str, repetitions=repetitions
+            circuit = cirq.protocols.resolve_parameters(program, param_resolver)
+            serialized_circuit = cirq.to_json(circuit)
+
+            run_opts = RunPayload(
+                options={"shots": repetitions},
+                circuit=CircuitPayload(
+                    serialization_type=SerializationType.JSON,
+                    circuit_serialization=serialized_circuit,
+                ),
             )
+
+            results = self._submit(run_opts)
             trial_results.append(results)
 
         return trial_results
