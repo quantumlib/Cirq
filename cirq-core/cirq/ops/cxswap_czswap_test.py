@@ -71,7 +71,7 @@ def test_cswap_circuit():
         c,
         """
 0: ───CXSWAPGate───CZSWAPGate───
-      │                │
+      │            │
 1: ───CXSWAPGate───CZSWAPGate───
     """,
     )

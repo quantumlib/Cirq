@@ -20,6 +20,7 @@ import cirq
 from cirq.ops import gate_features, raw_types
 
 
+@cirq.value_equality()
 class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     r"""CZSWAP gate.
 
@@ -44,9 +45,6 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     """
 
-    def __init__(self) -> None:
-        super(CZSWAPGate, self)
-
     def _num_qubits_(self) -> int:
         return 2
 
@@ -68,10 +66,8 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def _decompose_(self, qubits):
         a, b = qubits
-        yield cirq.H(a)
-        yield cirq.CNOT(a, b)
-        yield cirq.CNOT(b, a)
-        yield cirq.H(b)
+        yield cirq.SWAP(a, b)
+        yield cirq.CZ(a, b)
 
     def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
         return 'CZSWAPGate', 'CZSWAPGate'
@@ -79,12 +75,8 @@ class CZSWAPGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def __repr__(self) -> str:
         return 'cirq.CZSWAPGate()'
 
-    def __eq__(self, other) -> bool:
-        if not isinstance(self, type(other)):
-            return NotImplemented
-        return vars(self) == vars(other)
 
-
+@cirq.value_equality()
 class CXSWAPGate(raw_types.Gate):
     r"""CXSWAP gate.
 
@@ -106,9 +98,6 @@ class CXSWAPGate(raw_types.Gate):
     CX(1,0)
 
     """
-
-    def __init__(self) -> None:
-        super(CXSWAPGate, self)
 
     def _num_qubits_(self) -> int:
         return 2
@@ -132,15 +121,10 @@ class CXSWAPGate(raw_types.Gate):
     def _decompose_(self, qubits):
         a, b = qubits
         yield cirq.CNOT(a, b)
-        yield cirq.CNOT(b, a)
+        yield cirq.SWAP(a, b)
 
     def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
         return 'CXSWAPGate', 'CXSWAPGate'
 
     def __repr__(self) -> str:
         return 'cirq.CXSWAPGate()'
-
-    def __eq__(self, other) -> bool:
-        if not isinstance(self, type(other)):
-            return NotImplemented
-        return vars(self) == vars(other)
