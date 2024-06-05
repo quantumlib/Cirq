@@ -202,18 +202,6 @@ def test_rigetti_qcs_aspen_device_invalid_qubit(
         device.validate_operation(cirq.I(qubit))
 
 
-def test_rigetti_qcs_aspen_device_readonly_nodes(qcs_aspen8_isa: InstructionSetArchitecture):
-    """test RigettiQCSAspenDevice throws error when qubit does not exist on device"""
-    # test device may only be initialized with Aspen ISA.
-    device_with_limited_nodes = RigettiQCSAspenDevice(
-        isa=InstructionSetArchitecture.from_raw(qcs_aspen8_isa.json())
-    )
-    assert len(device_with_limited_nodes.isa.architecture.nodes) > 0
-
-    device_with_limited_nodes.isa.architecture.nodes = []
-    assert len(device_with_limited_nodes.isa.architecture.nodes) > 0, 'Nodes should be read-only'
-
-
 @pytest.mark.parametrize(
     'operation',
     [

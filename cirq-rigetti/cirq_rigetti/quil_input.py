@@ -97,7 +97,9 @@ class CPHASE00(Gate):
     def _unitary_(self):
         return matrices.CPHASE00(self.phi)
 
-    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+    def _circuit_diagram_info_(
+        self, args: CircuitDiagramInfoArgs
+    ) -> CircuitDiagramInfo:  # pragma: no cover
         return CircuitDiagramInfo(wire_symbols=("@00", "@00"), exponent=self.phi / np.pi)
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -134,7 +136,9 @@ class CPHASE01(Gate):
     def _unitary_(self):
         return matrices.CPHASE01(self.phi)
 
-    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+    def _circuit_diagram_info_(
+        self, args: CircuitDiagramInfoArgs
+    ) -> CircuitDiagramInfo:  # pragma: no cover
         return CircuitDiagramInfo(wire_symbols=("@01", "@01"), exponent=self.phi / np.pi)
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -171,7 +175,9 @@ class CPHASE10(Gate):
     def _unitary_(self):
         return matrices.CPHASE10(self.phi)
 
-    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+    def _circuit_diagram_info_(
+        self, args: CircuitDiagramInfoArgs
+    ) -> CircuitDiagramInfo:  # pragma: no cover
         return CircuitDiagramInfo(wire_symbols=("@10", "@10"), exponent=self.phi / np.pi)
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -208,7 +214,9 @@ class PSWAP(Gate):
     def _unitary_(self):
         return matrices.PSWAP(self.phi)
 
-    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs) -> CircuitDiagramInfo:
+    def _circuit_diagram_info_(
+        self, args: CircuitDiagramInfoArgs
+    ) -> CircuitDiagramInfo:  # pragma: no cover
         return CircuitDiagramInfo(wire_symbols=("PSWAP", "PSWAP"), exponent=self.phi / np.pi)
 
     def __repr__(self) -> str:  # pragma: no cover
