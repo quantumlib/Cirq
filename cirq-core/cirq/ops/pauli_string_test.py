@@ -211,6 +211,29 @@ def test_list_op_constructor_matches_mapping(pauli):
     assert cirq.PauliString([op]) == cirq.PauliString({q0: pauli})
 
 
+@pytest.mark.parametrize('pauli1', (cirq.X, cirq.Y, cirq.Z))
+@pytest.mark.parametrize('pauli2', (cirq.X, cirq.Y, cirq.Z))
+def test_exponent_mul_consistency(pauli1, pauli2):
+    a, b = cirq.LineQubit.range(2)
+    op_a, op_b = pauli1(a), pauli2(b)
+
+    assert op_a * op_a * op_a == op_a
+    assert op_a * op_a**2 == op_a
+    assert op_a**2 * op_a == op_a
+    assert op_b * op_a * op_a == op_b
+    assert op_b * op_a**2 == op_b
+    assert op_a**2 * op_b == op_b
+    assert op_a * op_a * op_a * op_a == cirq.PauliString()
+    assert op_a * op_a**3 == cirq.PauliString()
+    assert op_b * op_a * op_a * op_a == op_b * op_a
+    assert op_b * op_a**3 == op_b * op_a
+
+    op_a, op_b = pauli1(a), pauli2(a)
+
+    assert op_a * op_b**3 == op_a * op_b * op_b * op_b
+    assert op_b**3 * op_a == op_b * op_b * op_b * op_a
+
+
 def test_constructor_flexibility():
     a, b = cirq.LineQubit.range(2)
     with pytest.raises(TypeError, match='cirq.PAULI_STRING_LIKE'):
