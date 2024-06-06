@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2024 Scaleway
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@ import time
 import json
 import cirq
 import httpx
+import randomname
 
 from cirq.study import ResultDict
-from typing import List, Union
-from pytimeparse.timeparse import timeparse
+from typing import List, Union, Sequence, Optional
 
 from .scaleway_client import QaaSClient
 from .scaleway_models import (
@@ -34,12 +34,10 @@ from .versions import USER_AGENT
 
 
 class ScalewaySampler(cirq.work.Sampler):
-    def __init__(self, client: QaaSClient) -> None:
-        """Inits ScalewaySampler.
-
-        Args:
-        """
-        self._client = client
+    def __init__(self, client: QaaSClient, device: ScalewayDevice) -> None:
+        self.__client = client
+        self.__device = device
+        self.__session = None
 
     def _extract_payload_from_response(self, result_response: dict) -> str:
         result = result_response.get("result", None)
@@ -68,10 +66,10 @@ class ScalewaySampler(cirq.work.Sampler):
             if timeout is not None and elapsed >= timeout:
                 raise Exception("Timed out waiting for result")
 
-            job = self._client.get_job(self._job_id)
+            job = self.__client.get_job(self._job_id)
 
             if job["status"] == "completed":
-                return self._client.get_job_results(self._job_id)
+                return self.__client.get_job_results(self._job_id)
 
             if job["status"] in ["error", "unknown_status"]:
                 raise Exception("Job error")
@@ -87,7 +85,9 @@ class ScalewaySampler(cirq.work.Sampler):
         return cirq_result
 
     def _submit(self, run_opts: RunPayload, session_id: str) -> cirq.study.Result:
-        backend_opts = BackendPayload(name=self._name, version=self._version, options={})
+        backend_opts = BackendPayload(
+            name=self.__device.name, version=self.__device.version, options={}
+        )
 
         client_opts = ClientPayload(user_agent=USER_AGENT)
 
@@ -95,8 +95,8 @@ class ScalewaySampler(cirq.work.Sampler):
             JobPayload(backend=backend_opts, run=run_opts, client=client_opts)
         )
 
-        self._job_id = self._client.create_job(
-            name=self._name, session_id=session_id, circuits=job_payload
+        self._job_id = self.__client.create_job(
+            name=randomname.get_name(), session_id=session_id, circuits=job_payload
         )
 
         job_results = self._wait_for_result(None, 2)
@@ -104,60 +104,13 @@ class ScalewaySampler(cirq.work.Sampler):
 
         return result
 
-    def start_session(
-        self,
-        name: str = None,
-        deduplication_id: str = None,
-        max_duration: Union[int, str] = None,
-        max_idle_duration: Union[int, str] = None,
-    ) -> str:
-        if name is None:
-            name = self._options.session_name
-
-        if deduplication_id is None:
-            deduplication_id = self._options.session_deduplication_id
-
-        if max_duration is None:
-            max_duration = self._options.session_max_duration
-
-        if max_idle_duration is None:
-            max_idle_duration = self._options.session_max_idle_duration
-
-        if isinstance(max_duration, str):
-            max_duration = f"{timeparse(max_duration)}s"
-
-        if isinstance(max_idle_duration, str):
-            max_idle_duration = f"{timeparse(max_idle_duration)}s"
-
-        return self._client.create_session(
-            name,
-            platform_id=self.id,
-            deduplication_id=deduplication_id,
-            max_duration=max_duration,
-            max_idle_duration=max_idle_duration,
-        )
-
-    def stop_session(self, session_id: str):
-        self._client.terminate_session(session_id=session_id)
-
-    def delete_session(self, session_id: str):
-        self._client.delete_session(session_id=session_id)
-
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
     ) -> List[cirq.study.Result]:
-        """Samples from the given Circuit.
-        In contrast to run, this allows for sweeping over different parameter
-        values.
-        Args:
-            program: The circuit to simulate.
-            params: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-        Returns:
-            Result list for this run; one for each possible parameter
-            resolver.
-        """
         trial_results = []
+
+        if not self.__session:
+            self.__session = self.__device.start_session()
 
         for param_resolver in cirq.study.to_resolvers(params):
             circuit = cirq.protocols.resolve_parameters(program, param_resolver)
@@ -171,7 +124,29 @@ class ScalewaySampler(cirq.work.Sampler):
                 ),
             )
 
-            results = self._submit(run_opts)
+            results = self._submit(run_opts, self.__session.id)
             trial_results.append(results)
 
         return trial_results
+
+
+    def run_batch(
+        self,
+        programs: Sequence[cirq.AbstractCircuit],
+        params_list: Optional[Sequence[cirq.Sweepable]] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
+    ) -> Sequence[Sequence[cirq.Result]]:
+        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
+
+        return [
+            self.run_sweep(circuit, params=params, repetitions=repetitions)
+            for circuit, params, repetitions in zip(programs, params_list, repetitions)
+        ]
+
+    def run(
+        self,
+        program: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        repetitions: int = 1,
+    ) -> cirq.Result:
+        return self.run_sweep(program, param_resolver, repetitions)[0]

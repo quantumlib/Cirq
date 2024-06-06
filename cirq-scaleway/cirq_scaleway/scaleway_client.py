@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2024 Scaleway
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -83,6 +83,15 @@ class QaaSClient:
         session_id = response_dict["id"]
 
         return session_id
+
+    def get_session(self, session_id: str) -> dict:
+        http_client = self._http_client()
+        endpoint = f"{self._build_endpoint(_ENDPOINT_SESSION)}/{session_id}"
+
+        resp = http_client.get(endpoint)
+        resp.raise_for_status()
+
+        return resp.json()
 
     def update_session(
         self, session_id: str, name: str, max_duration: str, max_idle_duration: str

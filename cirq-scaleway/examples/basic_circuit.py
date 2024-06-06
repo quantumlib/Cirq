@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2024 Scaleway
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,17 +13,21 @@
 # limitations under the License.
 import cirq
 
-from cirq_scaleway import ScalewayQuantumService, ScalewaySampler
+from cirq_scaleway import ScalewayQuantumService
 
 service = ScalewayQuantumService(
-    project_id="<your-scaleway-project-id>",
-    secret_key="<your-scaleway-secret-key>",
+    project_id="<your-scaleway-project-id>", secret_key="<your-scaleway-secret-key>"
 )
 
 devices = service.devices()
 
 print(devices)
 
-qsim_device = service.get_device("qsim_simulation_pop_c16m256")
+sampler = service.sampler(device="qsim_simulation_pop_c32m256")
 
-sampler.
+qubit = cirq.GridQubit(0, 0)
+circuit = cirq.Circuit(cirq.X(qubit) ** 0.5, cirq.measure(qubit, key='m'))
+
+result = sampler.run(circuit)
+
+print(result)

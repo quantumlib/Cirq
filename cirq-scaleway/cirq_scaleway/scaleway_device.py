@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2024 Scaleway
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,10 @@
 # limitations under the License.
 import cirq
 
+from typing import List, Union
+from pytimeparse.timeparse import timeparse
+
+from .scaleway_session import ScalewaySession
 from .scaleway_client import QaaSClient
 
 
@@ -20,31 +24,58 @@ class ScalewayDevice(cirq.devices.Device):
     def __init__(
         self, client: QaaSClient, id: str, name: str, version: str, num_qubits: int, metadata: str
     ) -> None:
-        self._id = id
-        self._client = client
-        self._version = version
-        self._num_qubits = num_qubits
-        self._name = name
-        self._metadata = metadata
+        self.__id = id
+        self.__client = client
+        self.__version = version
+        self.__num_qubits = num_qubits
+        self.__name = name
+        self.__metadata = metadata
 
     @property
     def id(self):
-        return self._id
+        return self.__id
 
     @property
     def availability(self):
-        resp = self._client.get_platform(self._id)
+        resp = self.__client.get_platform(self.__id)
 
         return resp.get("availability", None)
 
     @property
     def name(self):
-        return self._name
+        return self.__name
 
     @property
     def num_qubits(self):
-        return self._num_qubits
+        return self.__num_qubits
 
     @property
     def metadata(self):
-        return self._metadata
+        return self.__metadata
+
+    @property
+    def version(self):
+        return self.__version
+
+    def start_session(
+        self,
+        name: str = "qsim-session-from-cirq",
+        deduplication_id: str = "qsim-session-from-cirq",
+        max_duration: Union[int, str] = "1h",
+        max_idle_duration: Union[int, str] = "20m",
+    ) -> str:
+        if isinstance(max_duration, str):
+            max_duration = f"{timeparse(max_duration)}s"
+
+        if isinstance(max_idle_duration, str):
+            max_idle_duration = f"{timeparse(max_idle_duration)}s"
+
+        session_id = self.__client.create_session(
+            name,
+            platform_id=self.id,
+            deduplication_id=deduplication_id,
+            max_duration=max_duration,
+            max_idle_duration=max_idle_duration,
+        )
+
+        return ScalewaySession(client=self.__client, id=session_id, name=name)

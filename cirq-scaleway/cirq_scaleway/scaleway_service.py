@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2024 Scaleway
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import warnings
 
+from typing import Union
 from dotenv import dotenv_values
 
+from .scaleway_sampler import ScalewaySampler
 from .scaleway_device import ScalewayDevice
 from .scaleway_client import QaaSClient
 
@@ -53,6 +56,23 @@ class ScalewayQuantumService:
         api_url = url or env_api_url or _ENDPOINT_URL
 
         self.__client = QaaSClient(url=api_url, token=token, project_id=project_id)
+
+    def sampler(self, device: Union[str, ScalewayDevice], **kwarg) -> ScalewaySampler:
+        if isinstance(device, str):
+            devices = self.devices(device)
+
+            if not devices or len(devices) == 0:
+                raise Exception("no matching device")
+            elif len(device) > 1:
+                warnings.warn("many device matching name", device)
+
+            device = devices[0]
+        elif isinstance(device, ScalewayDevice):
+            pass
+        else:
+            raise Exception("mismatching type", device)
+
+        return ScalewaySampler(self.__client, device=device)
 
     def devices(self, name: str = None, **kwargs) -> list[ScalewayDevice]:
         """Return a list of backends matching the specified filtering.
@@ -99,7 +119,7 @@ class ScalewayQuantumService:
     def filters(backends: list[ScalewayDevice], filters: dict) -> list[ScalewayDevice]:
         def _filter_availability(self, operational, availability):
             availabilities = (
-                ["ailability_unknown", "available", "scarce"] if operational else ["shortage"]
+                ["unknown_availability", "available", "scarce"] if operational else ["shortage"]
             )
 
             return availability in availabilities
