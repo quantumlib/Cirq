@@ -16,8 +16,7 @@ import cirq
 from cirq_scaleway import ScalewayQuantumService
 
 service = ScalewayQuantumService(
-    project_id="<your-scaleway-project-id>",
-    secret_key="<your-scaleway-secret-key>"
+    project_id="<your-scaleway-project-id>", secret_key="<your-scaleway-secret-key>"
 )
 
 # Get and display all provided (real or simulated) devices

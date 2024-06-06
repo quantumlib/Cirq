@@ -22,7 +22,7 @@ exec(open('cirq_scaleway/versions.py').read())
 
 name = 'cirq-scaleway'
 
-description = 'A Cirq package to simulate and connect to Scaleway quantum computers'
+description = 'A Cirq package to simulate and connect to Scaleway Quantum as a Service'
 
 # README file as long_description.
 long_description = io.open('README.rst', encoding='utf-8').read()
