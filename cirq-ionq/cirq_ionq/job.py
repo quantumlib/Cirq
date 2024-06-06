@@ -21,6 +21,7 @@ from cirq_ionq import ionq_exceptions, results
 from cirq._doc import document
 
 import cirq
+import json
 
 if TYPE_CHECKING:
     import cirq_ionq
@@ -154,13 +155,23 @@ class Job:
         self._check_if_unsuccessful()
         return int(self._job['metadata']['shots'])
 
-    def measurement_dict(self) -> Dict[str, Sequence[int]]:
+    def measurement_dict(self, circuit_index=None) -> Dict[str, Sequence[int]]:
         """Returns a dictionary of measurement keys to target qubit index."""
         measurement_dict: Dict[str, Sequence[int]] = {}
         if 'metadata' in self._job:
+            measurement_matadata = None
+            if 'measurements' in self._job['metadata'].keys():
+                measurements = json.loads(self._job['metadata']['measurements'])
+                for index, measurement in enumerate(measurements):
+                    if index == circuit_index:
+                        measurement_matadata = measurement
+                        break
+            else:
+                measurement_matadata = self._job['metadata']
+
             full_str = ''.join(
                 value
-                for key, value in self._job['metadata'].items()
+                for key, value in measurement_matadata.items()
                 if key.startswith('measurement')
             )
             if full_str == '':
@@ -168,6 +179,7 @@ class Job:
             for key_value in full_str.split(chr(30)):
                 key, value = key_value.split(chr(31))
                 measurement_dict[key] = [int(t) for t in value.split(',')]
+
         return measurement_dict
 
     def results(
@@ -218,32 +230,53 @@ class Job:
                 f'Job was not completed successfully. Instead had status: {self.status()}'
             )
 
-        histogram = self._client.get_results(
+        backend_results = self._client.get_results(
             job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
         )
-        # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
-        if self.target().startswith('qpu'):
-            repetitions = self.repetitions()
-            counts = {
-                _little_endian_to_big(int(k), self.num_qubits()): round(repetitions * float(v))
-                for k, v in histogram.items()
-            }
-            return results.QPUResult(
-                counts=counts,
-                num_qubits=self.num_qubits(),
-                measurement_dict=self.measurement_dict(),
-            )
+
+        single_circuit_job = True
+        some_inner_value = next(iter(backend_results.values()))
+        if isinstance(some_inner_value, dict):
+            histograms = backend_results.values()
+            single_circuit_job = False
         else:
-            probabilities = {
-                _little_endian_to_big(int(k), self.num_qubits()): float(v)
-                for k, v in histogram.items()
-            }
-            return results.SimulatorResult(
-                probabilities=probabilities,
-                num_qubits=self.num_qubits(),
-                measurement_dict=self.measurement_dict(),
-                repetitions=self.repetitions(),
-            )
+            histograms = [backend_results]
+
+        # IonQ returns results in little endian, but
+        # Cirq prefers to use big endian, so we convert.
+        big_endian_results = []
+        for circuit_index, histogram in enumerate(histograms):
+            if self.target().startswith('qpu'):
+                repetitions = self.repetitions()
+                counts = {
+                    _little_endian_to_big(int(k), self.num_qubits()): round(repetitions * float(v))
+                    for k, v in histogram.items()
+                }
+                big_endian_results.append(
+                    results.QPUResult(
+                        counts=counts,
+                        num_qubits=self.num_qubits(),
+                        measurement_dict=self.measurement_dict(circuit_index=circuit_index),
+                    )
+                )
+            else:
+                probabilities = {
+                    _little_endian_to_big(int(k), self.num_qubits()): float(v)
+                    for k, v in histogram.items()
+                }
+                big_endian_results.append(
+                    results.SimulatorResult(
+                        probabilities=probabilities,
+                        num_qubits=self.num_qubits(),
+                        measurement_dict=self.measurement_dict(circuit_index=circuit_index),
+                        repetitions=self.repetitions(),
+                    )
+                )
+
+        if single_circuit_job:
+            return big_endian_results[0]
+        else:
+            return big_endian_results
 
     def cancel(self):
         """Cancel the given job.
