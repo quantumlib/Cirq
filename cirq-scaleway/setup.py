@@ -18,7 +18,7 @@ from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
-exec(open('cirq_scaleway/_version.py').read())
+exec(open('cirq_scaleway/versions.py').read())
 
 name = 'cirq-scaleway'
 

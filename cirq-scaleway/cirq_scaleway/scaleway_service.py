@@ -72,7 +72,7 @@ class ScalewayQuantumService:
         else:
             raise Exception("mismatching type", device)
 
-        return ScalewaySampler(self.__client, device=device)
+        return ScalewaySampler(self.__client, device=device, **kwarg)
 
     def devices(self, name: str = None, **kwargs) -> list[ScalewayDevice]:
         """Return a list of backends matching the specified filtering.

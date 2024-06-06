@@ -16,18 +16,20 @@ import cirq
 from cirq_scaleway import ScalewayQuantumService
 
 service = ScalewayQuantumService(
-    project_id="<your-scaleway-project-id>", secret_key="<your-scaleway-secret-key>"
+    project_id="<your-scaleway-project-id>",
+    secret_key="<your-scaleway-secret-key>"
 )
 
+# Get and display all provided (real or simulated) devices
 devices = service.devices()
-
 print(devices)
 
-sampler = service.sampler(device="qsim_simulation_pop_c32m256")
+# Create a sampler from the a device name
+sampler = service.sampler(device="qsim_simulation_local")
 
 qubit = cirq.GridQubit(0, 0)
 circuit = cirq.Circuit(cirq.X(qubit) ** 0.5, cirq.measure(qubit, key='m'))
 
+# Run the circuit on the device
 result = sampler.run(circuit)
-
 print(result)

@@ -29,15 +29,15 @@ from .scaleway_models import (
     SerializationType,
     CircuitPayload,
 )
+from .scaleway_session import ScalewaySession
 from .scaleway_device import ScalewayDevice
 from .versions import USER_AGENT
 
 
 class ScalewaySampler(cirq.work.Sampler):
-    def __init__(self, client: QaaSClient, device: ScalewayDevice) -> None:
+    def __init__(self, client: QaaSClient, device: ScalewayDevice, **kwarg) -> None:
         self.__client = client
         self.__device = device
-        self.__session = None
 
     def _extract_payload_from_response(self, result_response: dict) -> str:
         result = result_response.get("result", None)
@@ -105,12 +105,16 @@ class ScalewaySampler(cirq.work.Sampler):
         return result
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.study.Sweepable,
+        repetitions: int = 1,
+        session: Union[str, ScalewaySession] = None,
     ) -> List[cirq.study.Result]:
         trial_results = []
 
-        if not self.__session:
-            self.__session = self.__device.start_session()
+        if not session:
+            session = self.__device.start_session()
 
         for param_resolver in cirq.study.to_resolvers(params):
             circuit = cirq.protocols.resolve_parameters(program, param_resolver)
@@ -124,22 +128,22 @@ class ScalewaySampler(cirq.work.Sampler):
                 ),
             )
 
-            results = self._submit(run_opts, self.__session.id)
+            results = self._submit(run_opts, session.id)
             trial_results.append(results)
 
         return trial_results
-
 
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: Union[int, Sequence[int]] = 1,
+        session: Union[str, ScalewaySession] = None,
     ) -> Sequence[Sequence[cirq.Result]]:
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
 
         return [
-            self.run_sweep(circuit, params=params, repetitions=repetitions)
+            self.run_sweep(circuit, params=params, repetitions=repetitions, session=session)
             for circuit, params, repetitions in zip(programs, params_list, repetitions)
         ]
 
@@ -148,5 +152,6 @@ class ScalewaySampler(cirq.work.Sampler):
         program: 'cirq.AbstractCircuit',
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         repetitions: int = 1,
+        session: Union[str, ScalewaySession] = None,
     ) -> cirq.Result:
-        return self.run_sweep(program, param_resolver, repetitions)[0]
+        return self.run_sweep(program, param_resolver, repetitions, session)[0]
