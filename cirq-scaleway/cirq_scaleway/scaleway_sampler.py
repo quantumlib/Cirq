@@ -29,46 +29,17 @@ from .scaleway_models import (
     SerializationType,
     CircuitPayload,
 )
+from .scaleway_device import ScalewayDevice
 from .versions import USER_AGENT
 
 
 class ScalewaySampler(cirq.work.Sampler):
-    def __init__(
-        self,
-        client: QaaSClient,
-        sampler_id: str,
-        name: str,
-        availability: str,
-        version: str,
-        num_qubits: int,
-        metadata: str,
-    ) -> None:
+    def __init__(self, client: QaaSClient) -> None:
         """Inits ScalewaySampler.
 
         Args:
         """
-        self._id = sampler_id
-        self._availability = availability
         self._client = client
-        self._version = version
-        self._num_qubits = num_qubits
-        self._name = name
-
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def availability(self):
-        return self._availability
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def num_qubits(self):
-        return self._num_qubits
 
     def _extract_payload_from_response(self, result_response: dict) -> str:
         result = result_response.get("result", None)

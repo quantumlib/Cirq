@@ -1,17 +1,28 @@
+# Copyright 2024 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import os
-import cirq
 
-from collections.abc import Callable
 from dotenv import dotenv_values
 
-from .scaleway_sampler import ScalewaySampler
+from .scaleway_device import ScalewayDevice
 from .scaleway_client import QaaSClient
 
 
 _ENDPOINT_URL = "https://api.scaleway.com/qaas/v1alpha1"
 
 
-class ScalewayService:
+class ScalewayQuantumService:
     """
     :param project_id: optional UUID of the Scaleway Project, if the provided ``project_id`` is None, the value is loaded from the SCALEWAY_PROJECT_ID variables in the dotenv file or the CIRQ_SCALEWAY_PROJECT_ID environment variables
 
@@ -43,7 +54,7 @@ class ScalewayService:
 
         self.__client = QaaSClient(url=api_url, token=token, project_id=project_id)
 
-    def samplers(self, name: str = None, **kwargs) -> list[ScalewaySampler]:
+    def devices(self, name: str = None, **kwargs) -> list[ScalewayDevice]:
         """Return a list of backends matching the specified filtering.
 
         Args:
@@ -68,76 +79,38 @@ class ScalewayService:
         for platform_dict in json_resp["platforms"]:
             name = platform_dict.get("name")
 
-            backend = None
-
             if name.startswith("qsim"):
-                backend = ScalewaySampler(
-                    client=self.__client,
-                    id=platform_dict.get("id"),
-                    name=name,
-                    availability=platform_dict.get("availability"),
-                    version=platform_dict.get("version"),
-                    num_qubits=platform_dict.get("max_qubit_count"),
-                    metadata=platform_dict.get("metadata", None),
+                scaleway_backends.append(
+                    ScalewayDevice(
+                        client=self.__client,
+                        id=platform_dict.get("id"),
+                        name=name,
+                        version=platform_dict.get("version"),
+                        num_qubits=platform_dict.get("max_qubit_count"),
+                        metadata=platform_dict.get("metadata", None),
+                    )
                 )
-
-            scaleway_backends.append(backend)
 
         if filters is not None:
             scaleway_backends = self.filters(scaleway_backends, filters)
 
-        return filter_samplers(scaleway_backends, **kwargs)
+        return scaleway_backends
 
-    def _filter_availability(self, operational, availability):
-        availabilities = (
-            ["ailability_unknown", "available", "scarce"] if operational else ["shortage"]
-        )
+    def filters(backends: list[ScalewayDevice], filters: dict) -> list[ScalewayDevice]:
+        def _filter_availability(self, operational, availability):
+            availabilities = (
+                ["ailability_unknown", "available", "scarce"] if operational else ["shortage"]
+            )
 
-        return availability in availabilities
+            return availability in availabilities
 
-    def filters(self, backends: list[ScalewaySampler], filters: dict) -> list[ScalewaySampler]:
         operational = filters.get("operational")
         min_num_qubits = filters.get("min_num_qubits")
 
         if operational is not None:
-            backends = [
-                b for b in backends if self._filter_availability(operational, b.availability)
-            ]
+            backends = [b for b in backends if _filter_availability(operational, b.availability)]
 
         if min_num_qubits is not None:
             backends = [b for b in backends if b.num_qubits >= min_num_qubits]
 
         return backends
-
-
-def filter_samplers(
-    backends: list[cirq.work.Sampler], filters: Callable = None, **kwargs
-) -> list[cirq.work.Sampler]:
-    def _match_all(obj, criteria):
-        """Return True if all items in criteria matches items in obj."""
-        return all(getattr(obj, key_, None) == value_ for key_, value_ in criteria.items())
-
-    # Inspect the backends to decide which filters belong to
-    # backend.configuration and which ones to backend.status, as it does
-    # not involve querying the API.
-    configuration_filters = {}
-    status_filters = {}
-    for key, value in kwargs.items():
-        if all(key in backend.configuration() for backend in backends):
-            configuration_filters[key] = value
-        else:
-            status_filters[key] = value
-
-    # 1. Apply backend.configuration filtering.
-    if configuration_filters:
-        backends = [b for b in backends if _match_all(b.configuration(), configuration_filters)]
-
-    # 2. Apply backend.status filtering (it involves one API call for
-    # each backend).
-    if status_filters:
-        backends = [b for b in backends if _match_all(b.status(), status_filters)]
-
-    # 3. Apply acceptor filter.
-    backends = list(filter(filters, backends))
-
-    return backends
