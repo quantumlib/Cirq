@@ -13,7 +13,7 @@
 # limitations under the License.
 import cirq
 
-from typing import List, Union
+from typing import Union, Optional
 from pytimeparse.timeparse import timeparse
 
 from .scaleway_session import ScalewaySession
@@ -39,7 +39,7 @@ class ScalewayDevice(cirq.devices.Device):
     def availability(self):
         resp = self.__client.get_platform(self.__id)
 
-        return resp.get("availability", None)
+        return resp.get("availability")
 
     @property
     def name(self):
@@ -59,8 +59,8 @@ class ScalewayDevice(cirq.devices.Device):
 
     def start_session(
         self,
-        name: str = "qsim-session-from-cirq",
-        deduplication_id: str = "qsim-session-from-cirq",
+        name: Optional[str] = "qsim-session-from-cirq",
+        deduplication_id: Optional[str] = "qsim-session-from-cirq",
         max_duration: Union[int, str] = "1h",
         max_idle_duration: Union[int, str] = "20m",
     ) -> str:

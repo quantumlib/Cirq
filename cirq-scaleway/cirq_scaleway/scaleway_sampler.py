@@ -18,7 +18,7 @@ import httpx
 import randomname
 
 from cirq.study import ResultDict
-from typing import List, Union, Sequence, Optional
+from typing import List, Union, Sequence, Optional, Dict
 
 from .scaleway_client import QaaSClient
 from .scaleway_models import (
@@ -35,11 +35,11 @@ from .versions import USER_AGENT
 
 
 class ScalewaySampler(cirq.work.Sampler):
-    def __init__(self, client: QaaSClient, device: ScalewayDevice, **kwarg) -> None:
+    def __init__(self, client: QaaSClient, device: ScalewayDevice):
         self.__client = client
         self.__device = device
 
-    def _extract_payload_from_response(self, result_response: dict) -> str:
+    def _extract_payload_from_response(self, result_response: Dict) -> str:
         result = result_response.get("result", None)
 
         if result is None or result == "":
@@ -55,7 +55,9 @@ class ScalewaySampler(cirq.work.Sampler):
         else:
             return result
 
-    def _wait_for_result(self, timeout=None, fetch_interval: int = 2) -> dict | None:
+    def _wait_for_result(
+        self, timeout: Optional[int] = None, fetch_interval: int = 2
+    ) -> Dict | None:
         start_time = time.time()
 
         while True:
@@ -74,7 +76,7 @@ class ScalewaySampler(cirq.work.Sampler):
             if job["status"] in ["error", "unknown_status"]:
                 raise Exception("Job error")
 
-    def _to_cirq_result(self, job_results) -> cirq.Result:
+    def _to_cirq_result(self, job_results: List) -> cirq.Result:
         if len(job_results) == 0:
             raise Exception("Empty result list")
 
@@ -109,7 +111,7 @@ class ScalewaySampler(cirq.work.Sampler):
         program: cirq.AbstractCircuit,
         params: cirq.study.Sweepable,
         repetitions: int = 1,
-        session: Union[str, ScalewaySession] = None,
+        session: Union[str, ScalewaySession, None] = None,
     ) -> List[cirq.study.Result]:
         trial_results = []
 
@@ -122,10 +124,12 @@ class ScalewaySampler(cirq.work.Sampler):
 
             run_opts = RunPayload(
                 options={"shots": repetitions},
-                circuit=CircuitPayload(
-                    serialization_type=SerializationType.JSON,
-                    circuit_serialization=serialized_circuit,
-                ),
+                circuits=[
+                    CircuitPayload(
+                        serialization_type=SerializationType.JSON,
+                        circuit_serialization=serialized_circuit,
+                    )
+                ],
             )
 
             results = self._submit(run_opts, session.id)
@@ -138,7 +142,7 @@ class ScalewaySampler(cirq.work.Sampler):
         programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: Union[int, Sequence[int]] = 1,
-        session: Union[str, ScalewaySession] = None,
+        session: Union[str, ScalewaySession, None] = None,
     ) -> Sequence[Sequence[cirq.Result]]:
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
 
@@ -152,6 +156,6 @@ class ScalewaySampler(cirq.work.Sampler):
         program: 'cirq.AbstractCircuit',
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         repetitions: int = 1,
-        session: Union[str, ScalewaySession] = None,
+        session: Union[str, ScalewaySession, None] = None,
     ) -> cirq.Result:
         return self.run_sweep(program, param_resolver, repetitions, session)[0]

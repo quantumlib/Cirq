@@ -14,7 +14,7 @@
 import os
 import warnings
 
-from typing import Union
+from typing import Union, Optional, List, Dict
 from dotenv import dotenv_values
 
 from .scaleway_sampler import ScalewaySampler
@@ -70,22 +70,30 @@ class ScalewayQuantumService:
         elif isinstance(device, ScalewayDevice):
             pass
         else:
-            raise Exception("mismatching type", device)
+            raise Exception("mismatching type", type(device))
 
         return ScalewaySampler(self.__client, device=device, **kwarg)
 
-    def devices(self, name: str = None, **kwargs) -> list[ScalewayDevice]:
+    def device(self, name: str) -> ScalewayDevice:
+        devices = self.devices(name)
+
+        if not devices or len(devices) == 0:
+            return None
+
+        return devices[0]
+
+    def devices(self, name: Optional[str] = None, **kwargs) -> List[ScalewayDevice]:
         """Return a list of backends matching the specified filtering.
 
         Args:
             name (str): name of the backend.
 
         Returns:
-            list[ScalewayBackend]: a list of Backends that match the filtering
+            list[ScalewayDevice]: a list of Devices that match the filtering
                 criteria.
         """
 
-        scaleway_backends = []
+        scaleway_platforms = []
         filters = {}
 
         if kwargs.get("operational") is not None:
@@ -100,7 +108,7 @@ class ScalewayQuantumService:
             name = platform_dict.get("name")
 
             if name.startswith("qsim"):
-                scaleway_backends.append(
+                scaleway_platforms.append(
                     ScalewayDevice(
                         client=self.__client,
                         id=platform_dict.get("id"),
@@ -112,11 +120,11 @@ class ScalewayQuantumService:
                 )
 
         if filters is not None:
-            scaleway_backends = self.filters(scaleway_backends, filters)
+            scaleway_platforms = self._filters(scaleway_platforms, filters)
 
-        return scaleway_backends
+        return scaleway_platforms
 
-    def filters(backends: list[ScalewayDevice], filters: dict) -> list[ScalewayDevice]:
+    def _filters(self, backends: List[ScalewayDevice], filters: Dict) -> List[ScalewayDevice]:
         def _filter_availability(self, operational, availability):
             availabilities = (
                 ["unknown_availability", "available", "scarce"] if operational else ["shortage"]

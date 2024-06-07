@@ -13,6 +13,8 @@
 # limitations under the License.
 import httpx
 
+from typing import Optional
+
 _ENDPOINT_PLATFORM = "/platforms"
 _ENDPOINT_SESSION = "/sessions"
 _ENDPOINT_JOB = "/jobs"
@@ -44,7 +46,7 @@ class QaaSClient:
 
         return resp.json()
 
-    def list_platforms(self, name: str) -> dict:
+    def list_platforms(self, name: Optional[str] = None) -> dict:
         filter_by_name = ""
         if name:
             filter_by_name = f"?name={name}"

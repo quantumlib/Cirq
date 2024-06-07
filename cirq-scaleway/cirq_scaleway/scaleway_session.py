@@ -15,27 +15,27 @@ from .scaleway_client import QaaSClient
 
 
 class ScalewaySession:
-    def __init__(self, client: QaaSClient, id: str, name: str) -> None:
+    def __init__(self, client: QaaSClient, id: str, name: str):
         self.__id = id
         self.__client = client
         self.__name = name
 
     @property
-    def status(self):
+    def status(self) -> str:
         dict = self.__client.get_session(session_id=self.__id)
 
         return dict.get("status", "unknown_status")
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self.__id
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__name
 
-    def stop(self):
+    def stop(self) -> None:
         self.__client.terminate_session(session_id=self.__id)
 
-    def delete(self):
+    def delete(self) -> None:
         self.__client.delete_session(session_id=self.__id)
