@@ -37,7 +37,7 @@ In the most simple way, here the code to use **cirq-scaleway**:
     project_id="<your-scaleway-project-id>", secret_key="<your-scaleway-secret-key>"
 )
 
->>> # Get and display all provided (real or simulated) devices
+>>> # Get and display all provided (real or simulated) devices compatible with Cirq
 >>> devices = service.devices(min_num_qubits=34)
 >>> print(devices)
 

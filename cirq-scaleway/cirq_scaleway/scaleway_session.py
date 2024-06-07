@@ -30,7 +30,6 @@ from .scaleway_models import (
     SerializationType,
     CircuitPayload,
 )
-from .scaleway_session import ScalewaySession
 from .versions import USER_AGENT
 
 
@@ -48,9 +47,16 @@ class ScalewaySession(cirq.work.Sampler):
         self.__device = device
         self.__client = client
         self.__name = name
+        self.__deduplication_id = deduplication_id
+
+        if isinstance(max_duration, str):
+            max_duration = f"{timeparse(max_duration)}s"
+
+        if isinstance(max_idle_duration, str):
+            max_idle_duration = f"{timeparse(max_idle_duration)}s"
+
         self.__max_duration = max_duration
         self.__max_idle_duration = max_idle_duration
-        self.__deduplication_id = deduplication_id
 
     def __enter__(self):
         self.start()
@@ -108,12 +114,6 @@ class ScalewaySession(cirq.work.Sampler):
         """
         if self.__id:
             raise Exception("session already started")
-
-        if isinstance(max_duration, str):
-            max_duration = f"{timeparse(max_duration)}s"
-
-        if isinstance(max_idle_duration, str):
-            max_idle_duration = f"{timeparse(max_idle_duration)}s"
 
         self.__id = self.__client.create_session(
             self.__name,
@@ -252,7 +252,7 @@ class ScalewaySession(cirq.work.Sampler):
             name=randomname.get_name(), session_id=session_id, circuits=job_payload
         )
 
-        job_results = self._wait_for_result(job_id, None, 2)
+        job_results = self._wait_for_result(job_id, 60 * 10, 2)
         result = self._to_cirq_result(job_results)
 
         return result
