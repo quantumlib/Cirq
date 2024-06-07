@@ -55,7 +55,7 @@ In the most simple way, here the code to use **cirq-scaleway**:
 >>>   result = sampler.run(circuit)
 >>>   print(result)
 
-Development
-------------
+Reach us
+--------
 
-Please see Cirq `development documentation <../docs/dev/development.md>`_.
+We love feedback. Feel free to reach us on `Scaleway Slack community <https://slack.scaleway.com/>`__, we are waiting for you on #opensource.
