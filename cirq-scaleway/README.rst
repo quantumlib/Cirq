@@ -8,13 +8,15 @@ circuits and running them against quantum computers and simulators.
 
 This module is **cirq-scaleway**, which provides everything you'll need to run Cirq quantum algorithms on Scaleway Quantum as a Service (QaaS).
 
+`Official QaaS web page <https://labs.scaleway.com/en/qaas/>`__
+
 Documentation
 -------------
 
 To get started with Scaleway Quantum as a Service (QaaS), checkout the following guide and tutorial:
 
-- `Access and authentication <https://quantumai.google/cirq/scaleway/access>`__
-- `Getting started guide <https://quantumai.google/cirq/tutorials/scaleway/getting_started>`__
+- You must be have an account and be logged into the `Scaleway console <https://console.scaleway.com/organization>`__
+- You have create an `API key with enough permission <https://www.scaleway.com/en/docs/identity-and-access-management/iam/how-to/create-api-keys/>`__ to use QaaS
 
 Installation
 ------------
