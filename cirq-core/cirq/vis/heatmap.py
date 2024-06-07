@@ -303,24 +303,10 @@ class Heatmap:
 
         selected_qubits = kwargs.get("selected_qubits")
         if selected_qubits is not None:
-            # print(selected_qubits)
-            print([qubit for qubit, _ in self._value_map.items()])
             edgecolors = tuple('red' if qubit[0] in selected_qubits else 'grey' for qubit, _ in sorted(self._value_map.items()))
             linestyles = tuple('solid' if qubit[0] in selected_qubits else 'dashed' for qubit, _ in sorted(self._value_map.items()))
             linewidths = tuple(4 if qubit[0] in selected_qubits else 2 for qubit, _ in sorted(self._value_map.items()))
-            # print(edgecolors)
-            # TODO: Can also use update_config() below.
-            # self.update_config(edecolors=edgecolors, linestyles=linestyles, linewidths=linewidths)
-            print(self._config.get("collection_options"))
-            self._config.update(
-                {
-                    "collection_options": self._config.get("collection_options").update({"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths})
-                    # {
-                    #     # "cmap": "binary",  # TODO: 
-                    #     "edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths
-                    # },
-                }
-            )
+            self._config.get("collection_options").update({"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths})
 
         collection = self._plot_on_axis(ax, selected_qubits=kwargs.get("selected_qubits"))
         if show_plot:
@@ -413,10 +399,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         Heatmap({q: 0.0 for q in qubits}).plot(
             ax=ax,
             collection_options={
-                'cmap': 'binary',
-                'linewidths': 2,
-                'edgecolor': 'lightgrey',
-                'linestyle': 'dashed',
+                'cmap': 'binary'
             },
             plot_colorbar=False,
             annotation_format=None,
