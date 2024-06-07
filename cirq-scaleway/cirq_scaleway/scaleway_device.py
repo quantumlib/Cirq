@@ -36,6 +36,9 @@ class ScalewayDevice(cirq.devices.Device):
         self.__name = name
         self.__metadata = metadata
 
+    def __repr__(self) -> str:
+        return f"<ScalewayDevice(name={self.__name},num_qubits={self.__num_qubits},platform_id={self.id})>"
+
     @property
     def id(self) -> str:
         """The unique identifier of the platform.

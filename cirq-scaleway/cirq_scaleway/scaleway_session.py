@@ -66,6 +66,9 @@ class ScalewaySession(cirq.work.Sampler):
         self.stop()
         return False
 
+    def __repr__(self) -> str:
+        return f"<ScalewaySession(name={self.__name},dedup_id={self.__deduplication_id},id={self.__id}),status={self.status}>"
+
     @property
     def status(self) -> str:
         """Returns the current status of the device session.
@@ -74,7 +77,7 @@ class ScalewaySession(cirq.work.Sampler):
             str: the current status of the session. Can be either: starting, runnng, stopping, stopped
         """
         if not self.__id:
-            raise Exception("session not started")
+            raise "created"
 
         dict = self.__client.get_session(session_id=self.__id)
 
