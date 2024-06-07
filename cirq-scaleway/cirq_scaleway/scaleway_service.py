@@ -26,15 +26,21 @@ _ENDPOINT_URL = "https://api.scaleway.com/qaas/v1alpha1"
 
 
 class ScalewayQuantumService:
-    """
-    :param project_id: optional UUID of the Scaleway Project, if the provided ``project_id`` is None, the value is loaded from the SCALEWAY_PROJECT_ID variables in the dotenv file or the CIRQ_SCALEWAY_PROJECT_ID environment variables
+    def __init__(
+        self,
+        project_id: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        url: Optional[str] = None,
+    ):
+        """Create a new object to interact with the Scaleway quantum service.
 
-    :param secret_key: optional authentication token required to access the Scaleway API, if the provided ``secret_key`` is None, the value is loaded from the SCALEWAY_API_TOKEN variables in the dotenv file or the CIRQ_SCALEWAY_API_TOKEN environment variables
-
-    :param url: optional value, endpoint URL of the API, if the provided ``url`` is None, the value is loaded from the SCALEWAY_API_URL variables in the dotenv file or the CIRQ_SCALEWAY_API_URL environment variables, if no url is found, then ``_ENDPOINT_URL`` is used.
-    """
-
-    def __init__(self, project_id: str = None, secret_key: str = None, url: str = None) -> None:
+        Args:
+            project_id (str): optional UUID of the Scaleway Project, if the provided ``project_id`` is None, the value is loaded from the SCALEWAY_PROJECT_ID variables in the dotenv file or the CIRQ_SCALEWAY_PROJECT_ID environment variables.
+            secret_key (str): optional authentication token required to access the Scaleway API, if the provided ``secret_key`` is None, the value is loaded from the SCALEWAY_API_TOKEN variables in the dotenv file or the CIRQ_SCALEWAY_API_TOKEN environment variables.
+            url (str): optional value, endpoint URL of the API, if the provided ``url`` is None, the value is loaded from the SCALEWAY_API_URL variables in the dotenv file or the CIRQ_SCALEWAY_API_URL environment variables, if no url is found, then ``_ENDPOINT_URL`` is used
+        Returns:
+            ScalewayDevice: The device that match the given name. None if no match.
+        """
         env_token = dotenv_values().get("CIRQ_SCALEWAY_API_TOKEN") or os.getenv(
             "CIRQ_SCALEWAY_API_TOKEN"
         )
@@ -58,6 +64,14 @@ class ScalewayQuantumService:
         self.__client = QaaSClient(url=api_url, token=token, project_id=project_id)
 
     def sampler(self, device: Union[str, ScalewayDevice], **kwarg) -> ScalewaySampler:
+        """Returns a cirq.Sampler to run circuits against a target device.
+
+        Args:
+            device (str, ScalewayDevice): The device (or name of the device) to target to run job against.
+
+        Returns:
+            ScalewaySampler: The sampler object.
+        """
         if isinstance(device, str):
             devices = self.devices(device)
 
@@ -75,6 +89,14 @@ class ScalewayQuantumService:
         return ScalewaySampler(self.__client, device=device, **kwarg)
 
     def device(self, name: str) -> ScalewayDevice:
+        """Returns a device matching the specified name.
+
+        Args:
+            name (str): name of the backend.
+
+        Returns:
+            ScalewayDevice: The device that match the given name. None if no match.
+        """
         devices = self.devices(name)
 
         if not devices or len(devices) == 0:
@@ -83,7 +105,7 @@ class ScalewayQuantumService:
         return devices[0]
 
     def devices(self, name: Optional[str] = None, **kwargs) -> List[ScalewayDevice]:
-        """Return a list of backends matching the specified filtering.
+        """Returns a list of devices matching the specified filtering.
 
         Args:
             name (str): name of the backend.
@@ -125,7 +147,7 @@ class ScalewayQuantumService:
         return scaleway_platforms
 
     def _filters(self, backends: List[ScalewayDevice], filters: Dict) -> List[ScalewayDevice]:
-        def _filter_availability(self, operational, availability):
+        def _filter_availability(operational, availability):
             availabilities = (
                 ["unknown_availability", "available", "scarce"] if operational else ["shortage"]
             )

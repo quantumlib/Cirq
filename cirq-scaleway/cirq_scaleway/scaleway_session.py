@@ -22,20 +22,41 @@ class ScalewaySession:
 
     @property
     def status(self) -> str:
+        """Returns the current status of the device session.
+
+        Returns:
+            str: the current status of the session. Can be either: starting, runnng, stopping, stopped
+        """
         dict = self.__client.get_session(session_id=self.__id)
 
         return dict.get("status", "unknown_status")
 
     @property
     def id(self) -> str:
+        """The unique identifier of the device session.
+
+        Returns:
+            str: The UUID of the current session.
+        """
         return self.__id
 
     @property
     def name(self) -> str:
+        """Name of the device session.
+
+        Returns:
+            str: the name of session.
+        """
         return self.__name
 
     def stop(self) -> None:
+        """Stops to the running device session.
+        All attached jobs and their results will are kept up to 7 days before total deletion.
+        """
         self.__client.terminate_session(session_id=self.__id)
 
     def delete(self) -> None:
+        """Immediately stop and delete to the running device session.
+        All attached jobs and their results will be purged from Scaleway service.
+        """
         self.__client.delete_session(session_id=self.__id)

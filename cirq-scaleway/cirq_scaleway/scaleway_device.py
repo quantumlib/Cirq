@@ -32,26 +32,43 @@ class ScalewayDevice(cirq.devices.Device):
         self.__metadata = metadata
 
     @property
-    def id(self):
+    def id(self) -> str:
+        """The unique identifier of the platform.
+
+        Returns:
+            str: The UUID of the platform.
+        """
         return self.__id
 
     @property
-    def availability(self):
+    def availability(self) -> str:
+        """Returns the current status of the platform.
+
+        Returns:
+            str: the current availability statys of the session. Can be either: available, shortage or scarce
+        """
         resp = self.__client.get_platform(self.__id)
 
         return resp.get("availability")
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """Name of the platform.
+
+        Returns:
+            str: the name of platform.
+        """
         return self.__name
 
     @property
-    def num_qubits(self):
-        return self.__num_qubits
+    def num_qubits(self) -> int:
+        """Estimated maximum number of qubit handle of the platform.
+        Estimation is done by using Quantum Volume benchmark.
 
-    @property
-    def metadata(self):
-        return self.__metadata
+        Returns:
+            int: the name of platform.
+        """
+        return self.__num_qubits
 
     @property
     def version(self):
@@ -63,7 +80,20 @@ class ScalewayDevice(cirq.devices.Device):
         deduplication_id: Optional[str] = "qsim-session-from-cirq",
         max_duration: Union[int, str] = "1h",
         max_idle_duration: Union[int, str] = "20m",
-    ) -> str:
+    ) -> ScalewaySession:
+        """Create and start and new device session to run job against.
+
+        Args:
+            name (str): name of the session. Used only for convenient purpose.
+            deduplication_id (str): an identifier you can use to clearly identify a session.
+                The deduplication_id allows to retrieve a same session and to share it among people
+            max_duration (str, int): the maximum duration before the session is automatically killed.
+                Can be either a string like 1h, 20m15s or an int representing seconds
+            max_idle_duration (str, int): the maximum duration without job before the session is automatically killed.
+                Can be either a string like 1h, 20m15s or an int representing seconds
+        Returns:
+            ScalewaySession: a new freshly starting QPU session
+        """
         if isinstance(max_duration, str):
             max_duration = f"{timeparse(max_duration)}s"
 
