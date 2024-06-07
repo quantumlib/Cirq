@@ -18,7 +18,7 @@ import httpx
 import randomname
 
 from cirq.study import ResultDict
-from typing import List, Union, Optional, Dict
+from typing import Union, Optional, Dict, List
 from pytimeparse.timeparse import timeparse
 
 from .scaleway_client import QaaSClient

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from enum import Enum
-from typing import List
+from typing import List, Dict
 
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
@@ -38,7 +38,7 @@ class CircuitPayload:
 @dataclass
 class RunPayload:
     circuits: List[CircuitPayload]
-    options: dict
+    options: Dict
 
 
 @dataclass_json
@@ -46,7 +46,7 @@ class RunPayload:
 class BackendPayload:
     name: str
     version: str
-    options: dict
+    options: Dict
 
 
 @dataclass_json

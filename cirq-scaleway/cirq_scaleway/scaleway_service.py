@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import warnings
 
-from typing import Union, Optional, List, Dict
+from typing import Optional, List, Dict
 from dotenv import dotenv_values
 
 from .scaleway_device import ScalewayDevice

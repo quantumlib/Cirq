@@ -13,7 +13,7 @@
 # limitations under the License.
 import httpx
 
-from typing import Optional
+from typing import Optional, Dict, List
 
 _ENDPOINT_PLATFORM = "/platforms"
 _ENDPOINT_SESSION = "/sessions"
@@ -31,13 +31,13 @@ class QaaSClient:
             headers=self._api_headers(), base_url=self.__url, timeout=10.0, verify=True
         )
 
-    def _api_headers(self) -> dict:
+    def _api_headers(self) -> Dict:
         return {"X-Auth-Token": self.__token}
 
     def _build_endpoint(self, endpoint: str) -> str:
         return f"{self.__url}{endpoint}"
 
-    def get_platform(self, platform_id: str) -> dict:
+    def get_platform(self, platform_id: str) -> Dict:
         http_client = self._http_client()
         endpoint = f"{self._build_endpoint(_ENDPOINT_PLATFORM)}/{platform_id}"
 
@@ -46,7 +46,7 @@ class QaaSClient:
 
         return resp.json()
 
-    def list_platforms(self, name: Optional[str] = None) -> dict:
+    def list_platforms(self, name: Optional[str] = None) -> Dict:
         filter_by_name = ""
         if name:
             filter_by_name = f"?name={name}"
@@ -86,7 +86,7 @@ class QaaSClient:
 
         return session_id
 
-    def get_session(self, session_id: str) -> dict:
+    def get_session(self, session_id: str) -> Dict:
         http_client = self._http_client()
         endpoint = f"{self._build_endpoint(_ENDPOINT_SESSION)}/{session_id}"
 
@@ -134,7 +134,7 @@ class QaaSClient:
 
         http_client.delete(self._build_endpoint(f"{_ENDPOINT_SESSION}/{session_id}"))
 
-    def create_job(self, name: str, session_id: str, circuits: dict) -> str:
+    def create_job(self, name: str, session_id: str, circuits: Dict) -> str:
         http_client = self._http_client()
 
         payload = {
@@ -150,7 +150,7 @@ class QaaSClient:
 
         return response_dict["id"]
 
-    def get_job(self, job_id: str) -> dict:
+    def get_job(self, job_id: str) -> Dict:
         http_client = self._http_client()
         endpoint = f"{self._build_endpoint(_ENDPOINT_JOB)}/{job_id}"
 
@@ -159,7 +159,7 @@ class QaaSClient:
 
         return resp.json()
 
-    def get_job_results(self, job_id: str) -> list:
+    def get_job_results(self, job_id: str) -> List:
         http_client = self._http_client()
         endpoint = f"{self._build_endpoint(_ENDPOINT_JOB)}/{job_id}/results"
 
