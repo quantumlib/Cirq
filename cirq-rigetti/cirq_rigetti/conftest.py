@@ -89,6 +89,9 @@ class MockCompiler(AbstractCompiler):
     def native_quil_to_executable(self, nq_program: Program, **kwargs: Any) -> QuantumExecutable:
         raise NotImplementedError
 
+    def reset(self) -> None:
+        pass
+
 
 @pytest.fixture
 def qam() -> QAM:
