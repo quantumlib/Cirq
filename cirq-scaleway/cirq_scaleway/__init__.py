@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .scaleway_service import ScalewayQuantumService
-from .scaleway_sampler import ScalewaySampler
+from .scaleway_session import ScalewaySession
 from .scaleway_device import ScalewayDevice

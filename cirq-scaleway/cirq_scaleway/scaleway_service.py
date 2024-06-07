@@ -17,7 +17,6 @@ import warnings
 from typing import Union, Optional, List, Dict
 from dotenv import dotenv_values
 
-from .scaleway_sampler import ScalewaySampler
 from .scaleway_device import ScalewayDevice
 from .scaleway_client import QaaSClient
 
@@ -62,31 +61,6 @@ class ScalewayQuantumService:
         api_url = url or env_api_url or _ENDPOINT_URL
 
         self.__client = QaaSClient(url=api_url, token=token, project_id=project_id)
-
-    def sampler(self, device: Union[str, ScalewayDevice], **kwarg) -> ScalewaySampler:
-        """Returns a cirq.Sampler to run circuits against a target device.
-
-        Args:
-            device (str, ScalewayDevice): The device (or name of the device) to target to run job against.
-
-        Returns:
-            ScalewaySampler: The sampler object.
-        """
-        if isinstance(device, str):
-            devices = self.devices(device)
-
-            if not devices or len(devices) == 0:
-                raise Exception("no matching device")
-            elif len(device) > 1:
-                warnings.warn("many device matching name", device)
-
-            device = devices[0]
-        elif isinstance(device, ScalewayDevice):
-            pass
-        else:
-            raise Exception("mismatching type", type(device))
-
-        return ScalewaySampler(self.__client, device=device, **kwarg)
 
     def device(self, name: str) -> ScalewayDevice:
         """Returns a device matching the specified name.

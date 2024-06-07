@@ -14,7 +14,6 @@
 import cirq
 
 from typing import Union, Optional
-from pytimeparse.timeparse import timeparse
 
 from .scaleway_session import ScalewaySession
 from .scaleway_client import QaaSClient
@@ -22,7 +21,13 @@ from .scaleway_client import QaaSClient
 
 class ScalewayDevice(cirq.devices.Device):
     def __init__(
-        self, client: QaaSClient, id: str, name: str, version: str, num_qubits: int, metadata: str
+        self,
+        client: QaaSClient,
+        id: str,
+        name: str,
+        version: str,
+        num_qubits: int,
+        metadata: Optional[str],
     ) -> None:
         self.__id = id
         self.__client = client
@@ -56,7 +61,7 @@ class ScalewayDevice(cirq.devices.Device):
         """Name of the platform.
 
         Returns:
-            str: the name of platform.
+            str: the name of the platform.
         """
         return self.__name
 
@@ -66,22 +71,27 @@ class ScalewayDevice(cirq.devices.Device):
         Estimation is done by using Quantum Volume benchmark.
 
         Returns:
-            int: the name of platform.
+            int: the estimated amount of maximum number of runnable qubits.
         """
         return self.__num_qubits
 
     @property
     def version(self):
+        """Version of the platform
+
+        Returns:
+            str: the platform's version.
+        """
         return self.__version
 
-    def start_session(
+    def create_session(
         self,
         name: Optional[str] = "qsim-session-from-cirq",
         deduplication_id: Optional[str] = "qsim-session-from-cirq",
         max_duration: Union[int, str] = "1h",
         max_idle_duration: Union[int, str] = "20m",
     ) -> ScalewaySession:
-        """Create and start and new device session to run job against.
+        """Create a new device session to run job against.
 
         Args:
             name (str): name of the session. Used only for convenient purpose.
@@ -94,18 +104,11 @@ class ScalewayDevice(cirq.devices.Device):
         Returns:
             ScalewaySession: a new freshly starting QPU session
         """
-        if isinstance(max_duration, str):
-            max_duration = f"{timeparse(max_duration)}s"
-
-        if isinstance(max_idle_duration, str):
-            max_idle_duration = f"{timeparse(max_idle_duration)}s"
-
-        session_id = self.__client.create_session(
-            name,
-            platform_id=self.id,
+        return ScalewaySession(
+            client=self.__client,
+            device=self,
+            name=name,
             deduplication_id=deduplication_id,
             max_duration=max_duration,
             max_idle_duration=max_idle_duration,
         )
-
-        return ScalewaySession(client=self.__client, id=session_id, name=name)
