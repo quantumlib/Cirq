@@ -244,7 +244,7 @@ class Heatmap:
             text_kwargs.update(self._config.get('annotation_text_kwargs', {}))
             ax.text(x, y, annotation, **text_kwargs)
 
-    def _plot_on_axis(self, ax: plt.Axes, selected_qubits: List | None = None) -> mpl_collections.Collection:
+    def _plot_on_axis(self, ax: plt.Axes) -> mpl_collections.Collection:
         # Step-1: Convert value_map to a list of polygons to plot.
         polygon_list = self._get_polygon_units()
         collection: mpl_collections.Collection = mpl_collections.PolyCollection(
@@ -303,12 +303,23 @@ class Heatmap:
 
         selected_qubits = kwargs.get("selected_qubits")
         if selected_qubits is not None:
-            edgecolors = tuple('red' if qubit[0] in selected_qubits else 'grey' for qubit, _ in sorted(self._value_map.items()))
-            linestyles = tuple('solid' if qubit[0] in selected_qubits else 'dashed' for qubit, _ in sorted(self._value_map.items()))
-            linewidths = tuple(4 if qubit[0] in selected_qubits else 2 for qubit, _ in sorted(self._value_map.items()))
-            self._config.get("collection_options").update({"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths})
+            edgecolors = tuple(
+                'red' if qubit[0] in selected_qubits else 'grey' \
+                for qubit, _ in sorted(self._value_map.items())
+            )
+            linestyles = tuple(
+                'solid' if qubit[0] in selected_qubits else 'dashed' \
+                for qubit, _ in sorted(self._value_map.items())
+            )
+            linewidths = tuple(
+                4 if qubit[0] in selected_qubits else 2 \
+                for qubit, _ in sorted(self._value_map.items())
+            )
+            self._config.get("collection_options").update(
+                {"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths}
+            )
 
-        collection = self._plot_on_axis(ax, selected_qubits=kwargs.get("selected_qubits"))
+        collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
         self._config = original_config
