@@ -419,7 +419,7 @@ def test_heatmap_plot_selected_qubits_two_qubit():
             # Since for two qubit interactions, there are two collections:
             # one to highlight individual qubits and one showing their interaction.
             # Here, the former is required, so the latter is excluded.
-            if artist.get_cmap().name != 'viridis':
+            if artist.get_cmap().name != 'viridis':  # assuming 'viridis' is the default cmap used.
                 assert np.all(artist.get_linewidths() == expected_linewidths)
                 assert np.allclose(artist.get_edgecolors() , expected_edgecolors)
                 assert artist.get_linestyles() == expected_linestyles
