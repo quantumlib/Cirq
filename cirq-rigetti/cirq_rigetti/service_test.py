@@ -17,6 +17,6 @@ def test_get_rigetti_qcs_service():
 def test_list_quantum_processors(mock_list_quantum_processors, MockQCSClient):
     client = MockQCSClient()
 
-    get_rigetti_qcs_service('Aspen-8').list_quantum_processors(client=client)
+    get_rigetti_qcs_service('9q-square').list_quantum_processors(client=client)
 
     mock_list_quantum_processors.assert_called_with(client=client)
