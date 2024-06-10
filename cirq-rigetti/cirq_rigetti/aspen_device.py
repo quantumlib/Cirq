@@ -234,7 +234,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
 
 # pragma: no cover
 def get_rigetti_qcs_aspen_device(
-    quantum_processor_id: str, client: Optional[QCSClient]
+    quantum_processor_id: str, client: Optional[QCSClient] = None
 ) -> RigettiQCSAspenDevice:
     """Retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti
     QCS API and uses it to initialize a RigettiQCSAspenDevice.
