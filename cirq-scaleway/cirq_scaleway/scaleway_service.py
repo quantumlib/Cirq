@@ -120,18 +120,11 @@ class ScalewayQuantumService:
         return scaleway_platforms
 
     def _filters(self, backends: List[ScalewayDevice], filters: Dict) -> List[ScalewayDevice]:
-        def _filter_availability(operational, availability):
-            availabilities = (
-                ["unknown_availability", "available", "scarce"] if operational else ["shortage"]
-            )
-
-            return availability in availabilities
-
         operational = filters.get("operational")
         min_num_qubits = filters.get("min_num_qubits")
 
         if operational is not None:
-            backends = [b for b in backends if _filter_availability(operational, b.availability)]
+            backends = [b for b in backends if b.availability in ["available", "scarce"]]
 
         if min_num_qubits is not None:
             backends = [b for b in backends if b.num_qubits >= min_num_qubits]
