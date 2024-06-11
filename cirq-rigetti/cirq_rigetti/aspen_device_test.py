@@ -265,4 +265,5 @@ def test_get_rigetti_qcs_aspen_device(qcs_aspen8_isa: InstructionSetArchitecture
         mock.return_value = qcs_aspen8_isa
 
         from cirq_rigetti.aspen_device import get_rigetti_qcs_aspen_device
+
         assert get_rigetti_qcs_aspen_device('Aspen-8') == RigettiQCSAspenDevice(isa=qcs_aspen8_isa)
