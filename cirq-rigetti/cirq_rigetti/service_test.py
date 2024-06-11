@@ -12,6 +12,7 @@ def test_get_rigetti_qcs_service():
     assert service._quantum_computer.name == '9q-square-qvm'
 
 
+@pytest.mark.rigetti_integration
 @patch('cirq_rigetti.service.QCSClient')
 @patch('cirq_rigetti.service.list_quantum_processors')
 def test_list_quantum_processors(mock_list_quantum_processors, MockQCSClient):
