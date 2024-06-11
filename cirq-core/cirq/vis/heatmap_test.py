@@ -23,6 +23,7 @@ import pytest
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.colors import to_rgba_array
 
 from cirq.devices import grid_qubit
 from cirq.vis import heatmap
@@ -362,10 +363,10 @@ def test_heatmap_plot_highlighted_qubits():
     expected_linewidths = [2, 4, 2, 4]
     expected_edgecolors = np.array(
         [
-            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
-            [1.0, 0.0, 0.0, 1.0],  # red
-            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
-            [1.0, 0.0, 0.0, 1.0],  # red
+            to_rgba_array('grey'),  # grey
+            to_rgba_array('red'),  # red
+            to_rgba_array('grey'),  # grey
+            to_rgba_array('red'),  # red
         ]
     )
     # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
@@ -398,12 +399,12 @@ def test_heatmap_plot_highlighted_qubits_two_qubit():
     expected_linewidths = [4, 4, 2, 2, 2, 4]
     expected_edgecolors = np.array(
         [
-            [1.0, 0.0, 0.0, 1.0],  # red
-            [1.0, 0.0, 0.0, 1.0],  # red
-            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
-            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
-            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
-            [1.0, 0.0, 0.0, 1.0],  # red
+            to_rgba_array('red'),  # red
+            to_rgba_array('red'),  # red
+            to_rgba_array('grey'),  # grey
+            to_rgba_array('grey'),  # grey
+            to_rgba_array('grey'),  # grey
+            to_rgba_array('red'),  # red
         ]
     )
     # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
