@@ -264,7 +264,7 @@ class Service:
         """Create a new job to run the given circuit.
 
         Args:
-            circuit: The circuit to run.
+            circuits: The circuits to run.
             repetitions: The number of times to repeat the circuit. Defaults to 100.
             name: An optional name for the created job. Different from the `job_id`.
             target: Where to run the job. Can be 'qpu' or 'simulator'.
