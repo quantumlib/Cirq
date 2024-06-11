@@ -322,7 +322,7 @@ class Heatmap:
             linestyles = ('dashed',)
             linewidths = (2,)
 
-        self._config.get("collection_options").update(
+        self._config["collection_options"].update(
             {"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths}
         )
 
