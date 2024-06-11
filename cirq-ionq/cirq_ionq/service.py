@@ -188,10 +188,14 @@ class Service:
         cirq_results = []
         for job_result in job_results:
             if isinstance(job_result, results.QPUResult):
-                cirq_results.append(job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver)))
+                cirq_results.append(
+                    job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
+                )
             else:
                 # pylint: disable=unexpected-keyword-arg
-                cirq_results.append(job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed))
+                cirq_results.append(
+                    job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+                )
                 # pylint: enable=unexpected-keyword-arg
         return cirq_results
 

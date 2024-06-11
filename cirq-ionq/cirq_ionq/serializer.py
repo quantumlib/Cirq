@@ -29,6 +29,7 @@ _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, cirq.MeasurementGate, unroll_circuit_op=False
 )
 
+
 @dataclasses.dataclass
 class SerializedProgram:
     """A container for the serialized portions of a `cirq.Circuit`.
@@ -128,7 +129,7 @@ class Serializer:
         for circuit in circuits:
             self._validate_circuit(circuit)
 
-        num_qubits = max ([self._validate_qubits(circuit.all_qubits()) for circuit in circuits ])
+        num_qubits = max([self._validate_qubits(circuit.all_qubits()) for circuit in circuits])
 
         gateset = None
         for circuit in circuits:
@@ -136,25 +137,27 @@ class Serializer:
             if gateset is None:
                 gateset = current_gateset
             if current_gateset != gateset:
-                raise IonQSerializerException("For batch circuit submit all circuits in a batch must contain the same type of gates, either 'qis' or 'native' gates.")
+                raise IonQSerializerException(
+                    "For batch circuit submit all circuits in a batch must contain the same type of gates, either 'qis' or 'native' gates."
+                )
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
-        body = {
-            'gateset': gateset,
-            'qubits': num_qubits,
-            'circuits': [],
-        }
+        body = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
 
         measurements = []
         for circuit in circuits:
             serialized_ops = self._serialize_circuit(circuit)
-            body['circuits'].append({'circuit': [op for op in serialized_ops if op['gate'] != 'meas']})
-            measurements.append((self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')))
+            body['circuits'].append(
+                {'circuit': [op for op in serialized_ops if op['gate'] != 'meas']}
+            )
+            measurements.append(
+                (self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas'))
+            )
 
         return SerializedProgram(
             body=body,
-            metadata= {"measurements": json.dumps(measurements)},
+            metadata={"measurements": json.dumps(measurements)},
             settings=(job_settings or {}),
             error_mitigation=error_mitigation,
         )

@@ -63,7 +63,9 @@ def test_serialize_settings():
     q0 = cirq.LineQubit(2)
     circuit = cirq.Circuit(cirq.X(q0))
     serializer = ionq.Serializer()
-    result = serializer.serialize_single_circuit(circuit, job_settings={"foo": "bar", "key": "heart"})
+    result = serializer.serialize_single_circuit(
+        circuit, job_settings={"foo": "bar", "key": "heart"}
+    )
     assert result == ionq.SerializedProgram(
         body={'gateset': 'qis', 'qubits': 3, 'circuit': [{'gate': 'x', 'targets': [2]}]},
         metadata={},
@@ -92,7 +94,7 @@ def test_serialize_pow_gates():
     serializer = ionq.Serializer()
     for name, gate in (('rx', cirq.X), ('ry', cirq.Y), ('rz', cirq.Z)):
         for exponent in (1.1, 0.6):
-            circuit = cirq.Circuit((gate**exponent)(q0))
+            circuit = cirq.Circuit((gate ** exponent)(q0))
             result = serializer.serialize_single_circuit(circuit)
             assert result == ionq.SerializedProgram(
                 body={
