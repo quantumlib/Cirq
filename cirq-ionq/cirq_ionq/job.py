@@ -155,7 +155,7 @@ class Job:
         self._check_if_unsuccessful()
         return int(self._job['metadata']['shots'])
 
-    def measurement_dict(self, circuit_index=None) -> Dict[str, Sequence[int]]:
+    def measurement_dict(self, circuit_index=0) -> Dict[str, Sequence[int]]:
         """Returns a dictionary of measurement keys to target qubit index."""
         measurement_dict: Dict[str, Sequence[int]] = {}
         if 'metadata' in self._job:

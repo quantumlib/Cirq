@@ -14,8 +14,9 @@
 
 from unittest import mock
 
-import warnings
+import json
 import pytest
+import warnings
 
 import cirq_ionq as ionq
 
@@ -28,6 +29,27 @@ def test_job_fields():
         'qubits': '5',
         'status': 'completed',
         'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
+    }
+    job = ionq.Job(None, job_dict)
+    assert job.job_id() == 'my_id'
+    assert job.target() == 'qpu'
+    assert job.name() == 'bacon'
+    assert job.num_qubits() == 5
+    assert job.repetitions() == 1000
+    assert job.measurement_dict() == {'a': [0, 1]}
+
+
+def test_job_fields_multiple_circuits():
+    job_dict = {
+        'id': 'my_id',
+        'target': 'qpu',
+        'name': 'bacon',
+        'qubits': '5',
+        'status': 'completed',
+        'metadata': {
+            'shots': 1000,
+            'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
+        },
     }
     job = ionq.Job(None, job_dict)
     assert job.job_id() == 'my_id'
@@ -76,6 +98,37 @@ def test_job_results_qpu():
         assert "bar" in str(w[1].message)
     expected = ionq.QPUResult({0: 600, 1: 400}, 2, {'a': [0, 1]})
     assert results == expected
+
+
+def test_batch_job_results_qpu():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        '0190070f-9691-7000-a1f6-306623179a83': {'0': '0.6', '2': '0.4'},
+        '0190070f-991c-7000-8700-c4b56b30715d': {'1': 1.0},
+    }
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '2',
+        'target': 'qpu',
+        'metadata': {
+            'shots': 1000,
+            'measurements': json.dumps(
+                [{'measurement0': f'a{chr(31)}0,1'}, {'measurement0': f'a{chr(31)}0'}]
+            ),
+        },
+        'warning': {'messages': ['foo', 'bar']},
+    }
+    job = ionq.Job(mock_client, job_dict)
+    with warnings.catch_warnings(record=True) as w:
+        results = job.results()
+        assert len(w) == 2
+        assert "foo" in str(w[0].message)
+        assert "bar" in str(w[1].message)
+    expected_0 = ionq.QPUResult({0: 600, 1: 400}, 2, {'a': [0, 1]})
+    expected_1 = ionq.QPUResult({2: 1000}, 2, {'a': [0]})
+    assert results[0] == expected_0
+    assert results[1] == expected_1
 
 
 def test_job_results_rounding_qpu():
