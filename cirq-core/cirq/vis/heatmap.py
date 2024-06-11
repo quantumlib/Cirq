@@ -316,26 +316,26 @@ class Heatmap:
             edgecolors = tuple(
                 (
                     "red"
-                    if qubit[0] in highlighted_qubits
+                    if any(q in highlighted_qubits for q in qubits)
                     else self._config["collection_options"].get("edgecolors", "grey")
                 )
-                for qubit in sorted(self._value_map.keys())
+                for qubits in sorted(self._value_map.keys())
             )
             linestyles = tuple(
                 (
                     "solid"
-                    if qubit[0] in highlighted_qubits
+                    if any(q in highlighted_qubits for q in qubits)
                     else self._config["collection_options"].get("linestyles", "dashed")
                 )
-                for qubit in sorted(self._value_map.keys())
+                for qubits in sorted(self._value_map.keys())
             )
             linewidths = tuple(
                 (
                     4
-                    if qubit[0] in highlighted_qubits
+                    if any(q in highlighted_qubits for q in qubits)
                     else self._config["collection_options"].get("linewidths", 2)
                 )
-                for qubit in sorted(self._value_map.keys())
+                for qubits in sorted(self._value_map.keys())
             )
         else:
             edgecolors = self._config["collection_options"].get("edgecolors", "grey")
