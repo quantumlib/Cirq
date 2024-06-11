@@ -112,7 +112,7 @@ class Heatmap:
                     This is ignored if annotation_map is explicitly specified.
                 annotation_text_kwargs: Matplotlib Text **kwargs,
                 highlighted_qubits: list, default = None
-                    List of qubits to highlight in the heatmap.
+                    highlighted_qubits: An iterable of qubits to highlight.
 
                 colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
                 colorbar_size: str, default = '5%'
