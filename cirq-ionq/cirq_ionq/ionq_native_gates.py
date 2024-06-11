@@ -177,16 +177,16 @@ document(
 
 @cirq.value.value_equality
 class MSGate(cirq.Gate):
-    r"""The Mølmer–Sørensen (MS) gate is a two qubit gate native to trapped ions.
+    r"""The Mølmer-Sørensen (MS) gate is a two qubit gate native to trapped ions.
 
     The unitary matrix of this gate for parameters $\phi_0$, $\phi_1$ and $\theta$ is
 
     $$
     \begin{bmatrix}
-        \cos\frac{\theta}{2} & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} \\
-        0 & \cos\frac{\theta}{2} & -ie^{-i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & 0 \\
-        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & \cos\frac{\theta}{2} & 0 \\
-        -ie^{i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} & 0 & 0 & \cos\frac{\theta}{2}
+        \cos(\pi\theta) & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin(\pi\theta) \\
+        0 & \cos(\pi\theta) & -ie^{-i2\pi(\phi_0-\phi_1)}\sin(\pi\theta) & 0 \\
+        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin(\pi\theta) & \cos(\pi\theta) & 0 \\
+        -ie^{i2\pi(\phi_0+\phi_1)}\sin(\pi\theta) & 0 & 0 & \cos(\pi\theta)
     \end{bmatrix}
     $$
 
