@@ -346,7 +346,7 @@ def test_plot_updates_local_config():
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_heatmap_plot_selected_qubits():
+def test_heatmap_plot_highlighted_qubits():
     value_map = {
         (grid_qubit.GridQubit(0, 0),): 0.1,
         (grid_qubit.GridQubit(0, 1),): 0.2,
@@ -356,33 +356,33 @@ def test_heatmap_plot_selected_qubits():
     single_qubit_heatmap = heatmap.Heatmap(value_map)
 
     qubits = np.array([k[0] for k, _ in value_map.items()])
-    selected_qubits_indices = [1, 3]
-    selected_qubits = qubits[selected_qubits_indices]
+    highlighted_qubits_indices = [1, 3]
+    highlighted_qubits = qubits[highlighted_qubits_indices]
 
     expected_linewidths = [2, 4, 2, 4]
     expected_edgecolors = np.array(
         [
-            [0.50196078, 0.50196078, 0.50196078, 1.],  # grey
-            [1.,         0.,         0.,         1.],  # red
-            [0.50196078, 0.50196078, 0.50196078, 1.],  # grey
-            [1.,         0.,         0.,         1.]   # red
+            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
+            [1.0, 0.0, 0.0, 1.0],  # red
+            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
+            [1.0, 0.0, 0.0, 1.0],  # red
         ]
     )
     # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
     expected_linestyles = [(0.0, [7.4, 3.2]), (0, None), (0.0, [7.4, 3.2]), (0, None)]
 
     _, ax = plt.subplots()
-    _ = single_qubit_heatmap.plot(ax, selected_qubits=selected_qubits)
+    _ = single_qubit_heatmap.plot(ax, highlighted_qubits=highlighted_qubits)
 
     for artist in ax.get_children():
         if isinstance(artist, mpl.collections.PolyCollection):
             assert np.all(artist.get_linewidths() == expected_linewidths)
-            assert np.allclose(artist.get_edgecolors() , expected_edgecolors)
+            assert np.allclose(artist.get_edgecolors(), expected_edgecolors)
             assert artist.get_linestyles() == expected_linestyles
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_heatmap_plot_selected_qubits_two_qubit():
+def test_heatmap_plot_highlighted_qubits_two_qubit():
     value_map = {
         (grid_qubit.GridQubit(0, 0), grid_qubit.GridQubit(0, 1)): 0.1,
         (grid_qubit.GridQubit(0, 1), grid_qubit.GridQubit(0, 2)): 0.2,
@@ -392,27 +392,32 @@ def test_heatmap_plot_selected_qubits_two_qubit():
     two_qubit_interaction_heatmap = heatmap.TwoQubitInteractionHeatmap(value_map)
 
     qubits = np.array(list(value_map.keys()))
-    selected_qubits_indices = [(0, 1), (2, 1), (3, 0)]
-    selected_qubits = qubits[tuple(np.transpose(selected_qubits_indices))]
+    highlighted_qubits_indices = [(0, 1), (2, 1), (3, 0)]
+    highlighted_qubits = qubits[tuple(np.transpose(highlighted_qubits_indices))]
 
     expected_linewidths = [4, 4, 2, 2, 2, 4]
     expected_edgecolors = np.array(
         [
-            [1.,         0.,         0.,         1.,        ],  # red
-            [1.,         0.,         0.,         1.,        ],  # red
-            [0.50196078, 0.50196078, 0.50196078, 1.,        ],  # grey
-            [0.50196078, 0.50196078, 0.50196078, 1.,        ],  # grey
-            [0.50196078, 0.50196078, 0.50196078, 1.,        ],  # grey
-            [1.,         0.,         0.,         1.,        ]   # red
+            [1.0, 0.0, 0.0, 1.0],  # red
+            [1.0, 0.0, 0.0, 1.0],  # red
+            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
+            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
+            [0.50196078, 0.50196078, 0.50196078, 1.0],  # grey
+            [1.0, 0.0, 0.0, 1.0],  # red
         ]
     )
     # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
     expected_linestyles = [
-        (0, None), (0, None), (0.0, [7.4, 3.2]), (0.0, [7.4, 3.2]), (0.0, [7.4, 3.2]), (0, None)
+        (0, None),
+        (0, None),
+        (0.0, [7.4, 3.2]),
+        (0.0, [7.4, 3.2]),
+        (0.0, [7.4, 3.2]),
+        (0, None),
     ]
 
     _, ax = plt.subplots()
-    _ = two_qubit_interaction_heatmap.plot(ax, selected_qubits=selected_qubits)
+    _ = two_qubit_interaction_heatmap.plot(ax, highlighted_qubits=highlighted_qubits)
 
     for artist in ax.get_children():
         if isinstance(artist, mpl.collections.PolyCollection):
@@ -421,5 +426,5 @@ def test_heatmap_plot_selected_qubits_two_qubit():
             # Here, the former is required, so the latter is excluded.
             if artist.get_cmap().name != 'viridis':  # assuming 'viridis' is the default cmap used.
                 assert np.all(artist.get_linewidths() == expected_linewidths)
-                assert np.allclose(artist.get_edgecolors() , expected_edgecolors)
+                assert np.allclose(artist.get_edgecolors(), expected_edgecolors)
                 assert artist.get_linestyles() == expected_linestyles
