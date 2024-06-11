@@ -20,7 +20,14 @@ from typing_extensions import Protocol
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
-from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip, dict_to_product_sweep
+from cirq.study.sweeps import (
+    ListSweep,
+    Points,
+    Sweep,
+    UnitSweep,
+    Zip,
+    dict_to_product_sweep,
+)
 
 SweepLike = Union[ParamResolverOrSimilarType, Sweep]
 document(SweepLike, """An object similar to an iterable of parameter resolvers.""")
@@ -35,7 +42,9 @@ class _Sweepable(Protocol):
 
 
 Sweepable = Union[SweepLike, _Sweepable]
-document(Sweepable, """An object or collection of objects representing a parameter sweep.""")
+document(
+    Sweepable, """An object or collection of objects representing a parameter sweep."""
+)
 
 
 def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
@@ -66,7 +75,9 @@ def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> List[Swe
         return [_resolver_to_sweep(resolver, metadata) for resolver in product_sweep]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [sweep for item in sweepable for sweep in to_sweeps(item, metadata)]  # type: ignore[arg-type]
-    raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}')
+    raise TypeError(
+        f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}'
+    )
 
 
 def to_sweep(
@@ -104,7 +115,11 @@ def _resolver_to_sweep(resolver: ParamResolver, metadata: Optional[dict]) -> Swe
         return UnitSweep
     return Zip(
         *[
-            Points(key, [cast(float, value)], metadata=metadata.get(key) if metadata else None)
+            Points(
+                key,
+                [cast(float, value)],
+                metadata=metadata.get(key) if metadata else None,
+            )
             for key, value in params.items()
         ]
     )
