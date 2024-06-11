@@ -306,21 +306,33 @@ class Heatmap:
         highlighted_qubits = kwargs.get("highlighted_qubits")
         if highlighted_qubits is not None:
             edgecolors = tuple(
-                "red" if qubit[0] in highlighted_qubits else "grey"
+                (
+                    "red"
+                    if qubit[0] in highlighted_qubits
+                    else self._config["collection_options"].get("edgecolors", "grey")
+                )
                 for qubit in sorted(self._value_map.keys())
             )
             linestyles = tuple(
-                "solid" if qubit[0] in highlighted_qubits else "dashed"
+                (
+                    "solid"
+                    if qubit[0] in highlighted_qubits
+                    else self._config["collection_options"].get("linestyles", "dashed")
+                )
                 for qubit in sorted(self._value_map.keys())
             )
             linewidths = tuple(
-                4 if qubit[0] in highlighted_qubits else 2
+                (
+                    4
+                    if qubit[0] in highlighted_qubits
+                    else self._config["collection_options"].get("linewidths", 2)
+                )
                 for qubit in sorted(self._value_map.keys())
             )
         else:
-            edgecolors = ("grey",)
-            linestyles = ("dashed",)
-            linewidths = (2,)
+            edgecolors = self._config["collection_options"].get("edgecolors", "grey")
+            linestyles = self._config["collection_options"].get("linestyles", "dashed")
+            linewidths = self._config["collection_options"].get("linewidths", 2)
 
         self._config["collection_options"].update(
             {"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths}
@@ -418,7 +430,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         highlighted_qubits = kwargs.get("highlighted_qubits")
         if highlighted_qubits is None:
             collection_options.update(
-                {"linewidths": '2', "edgecolors": "lightgrey", "linestyles": "dashed"}
+                {"linewidths": "2", "edgecolors": "lightgrey", "linestyles": "dashed"}
             )
         Heatmap({q: 0.0 for q in qubits}).plot(
             ax=ax,
