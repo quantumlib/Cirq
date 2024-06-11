@@ -426,11 +426,11 @@ class TwoQubitInteractionHeatmap(Heatmap):
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
-        collection_options = {"cmap": "binary"}
+        collection_options: Dict[str, Any] = {"cmap": "binary"}
         highlighted_qubits = kwargs.get("highlighted_qubits")
         if highlighted_qubits is None:
             collection_options.update(
-                {"linewidths": "2", "edgecolors": "lightgrey", "linestyles": "dashed"}
+                {"linewidths": 2, "edgecolors": "lightgrey", "linestyles": "dashed"}
             )
         Heatmap({q: 0.0 for q in qubits}).plot(
             ax=ax,
