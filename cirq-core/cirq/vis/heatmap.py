@@ -111,8 +111,7 @@ class Heatmap:
                     applying format(value, annotation_format) for each key in value_map.
                     This is ignored if annotation_map is explicitly specified.
                 annotation_text_kwargs: Matplotlib Text **kwargs,
-                highlighted_qubits: list, default = None
-                    highlighted_qubits: An iterable of qubits to highlight.
+                highlighted_qubits: An iterable of qubits to highlight.
 
                 colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
                 colorbar_size: str, default = '5%'
