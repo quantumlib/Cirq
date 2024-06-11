@@ -12,43 +12,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from inspect import signature
+
 import numpy as np
 import pytest
 
-from pyquil import Program
+from pyquil.quil import Program
+from pyquil.quilbase import Parameter, DefGate
+from pyquil.quilatom import quil_cos, quil_sin, quil_exp
+from pyquil.simulation import matrices
 from pyquil.simulation.tools import program_unitary
 
+import sympy
+import cirq
 from cirq import Circuit, LineQubit
+from cirq import Simulator, unitary
+from cirq.linalg.predicates import allclose_up_to_global_phase
 from cirq_rigetti.quil_input import (
     UndefinedQuilGate,
     UnsupportedQuilInstruction,
+    SUPPORTED_GATES,
+    PARAMETRIC_TRANSFORMERS,
+    CPHASE00,
+    CPHASE01,
+    CPHASE10,
+    PSWAP,
     circuit_from_quil,
-    cphase,
-    cphase00,
-    cphase01,
-    cphase10,
-    pswap,
-    xy,
+    defgate_to_cirq,
 )
-from cirq.ops import (
-    CCNOT,
-    CNOT,
-    CSWAP,
-    CZ,
-    H,
-    I,
-    ISWAP,
-    MeasurementGate,
-    S,
-    SWAP,
-    T,
-    X,
-    Y,
-    Z,
-    rx,
-    ry,
-    rz,
-)
+
+from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, ZPowGate, YPowGate, XPowGate
+from cirq.ops.pauli_gates import X, Y, Z
+from cirq.ops.identity import I
+from cirq.ops.measurement_gate import MeasurementGate
+from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
+from cirq.ops.three_qubit_gates import CCNOT, CSWAP
+
+
+def test_gate_conversion():
+    """Check that the gates all convert with matching unitaries."""
+    for quil_gate, cirq_gate in SUPPORTED_GATES.items():
+        if quil_gate in PARAMETRIC_TRANSFORMERS:
+            pyquil_def = getattr(matrices, quil_gate)
+            sig = signature(pyquil_def)
+            num_params = len(sig.parameters)
+            sample_params = list(np.random.random(num_params) * np.pi)
+
+            pyquil_unitary = pyquil_def(*sample_params)
+            cirq_unitary = unitary(cirq_gate(**PARAMETRIC_TRANSFORMERS[quil_gate](*sample_params)))
+            assert np.allclose(pyquil_unitary, cirq_unitary)
+
+        else:
+            assert np.allclose(getattr(matrices, quil_gate), unitary(cirq_gate))
+
 
 QUIL_PROGRAM = """
 DECLARE ro BIT[3]
@@ -86,6 +102,7 @@ MEASURE 2 ro[2]
 
 
 def test_circuit_from_quil():
+    """Convert a test circuit from Quil with a wide range of gates."""
     q0, q1, q2 = LineQubit.range(3)
     cirq_circuit = Circuit(
         [
@@ -98,22 +115,22 @@ def test_circuit_from_quil():
             H(q0),
             S(q1),
             T(q2),
-            Z(q0) ** (1 / 8),
-            Z(q1) ** (1 / 8),
-            Z(q2) ** (1 / 8),
-            rx(np.pi / 2)(q0),
-            ry(np.pi / 2)(q1),
-            rz(np.pi / 2)(q2),
+            ZPowGate(exponent=1 / 8)(q0),
+            ZPowGate(exponent=1 / 8)(q1),
+            ZPowGate(exponent=1 / 8)(q2),
+            XPowGate(exponent=1 / 2, global_shift=-0.5)(q0),
+            YPowGate(exponent=1 / 2, global_shift=-0.5)(q1),
+            ZPowGate(exponent=1 / 2, global_shift=-0.5)(q2),
             CZ(q0, q1),
             CNOT(q1, q2),
-            cphase(np.pi / 2)(q0, q1),
-            cphase00(np.pi / 2)(q1, q2),
-            cphase01(np.pi / 2)(q0, q1),
-            cphase10(np.pi / 2)(q1, q2),
+            CZPowGate(exponent=1 / 2, global_shift=0.0)(q0, q1),
+            CPHASE00(phi=np.pi / 2)(q1, q2),
+            CPHASE01(phi=np.pi / 2)(q0, q1),
+            CPHASE10(phi=np.pi / 2)(q1, q2),
             ISWAP(q0, q1),
-            pswap(np.pi / 2)(q1, q2),
+            PSWAP(phi=np.pi / 2)(q1, q2),
             SWAP(q0, q1),
-            xy(np.pi / 2)(q1, q2),
+            ISwapPowGate(exponent=1 / 2, global_shift=0.0)(q1, q2),
             CCNOT(q0, q1, q2),
             CSWAP(q0, q1, q2),
             MeasurementGate(1, key="ro[0]")(q0),
@@ -122,7 +139,7 @@ def test_circuit_from_quil():
         ]
     )
     # build the same Circuit, using Quil
-    quil_circuit = circuit_from_quil(QUIL_PROGRAM)
+    quil_circuit = circuit_from_quil(Program(QUIL_PROGRAM))
     # test Circuit equivalence
     assert cirq_circuit == quil_circuit
 
@@ -148,9 +165,10 @@ MYZ 0
 
 
 def test_quil_with_defgate():
+    """Convert a Quil program with a DefGate."""
     q0 = LineQubit(0)
     cirq_circuit = Circuit([X(q0), Z(q0)])
-    quil_circuit = circuit_from_quil(QUIL_PROGRAM_WITH_DEFGATE)
+    quil_circuit = circuit_from_quil(Program(QUIL_PROGRAM_WITH_DEFGATE))
     assert np.isclose(quil_circuit.unitary(), cirq_circuit.unitary()).all()
 
 
@@ -160,28 +178,35 @@ DEFGATE MYPHASE(%phi):
     0,EXP(i*%phi)
 
 X 0
-MYPHASE 0
+MYPHASE(pi/2) 0
 """
 
 
+def test_program_with_parameterized_defgate():
+    """Convert a Quil program with a parameterized DefGate."""
+    program = Program(QUIL_PROGRAM_WITH_PARAMETERIZED_DEFGATE)
+    circuit = circuit_from_quil(program)
+
+    pyquil_unitary = np.array([[1, 0], [0, np.exp(1j * np.pi / 2)]]) @ matrices.X
+    cirq_unitary = circuit.unitary()
+
+    assert allclose_up_to_global_phase(pyquil_unitary, cirq_unitary, atol=1e-8)
+
+
 def test_unsupported_quil_instruction():
+    """Convert a program with invalid or unsupported instructions."""
     with pytest.raises(UnsupportedQuilInstruction):
         circuit_from_quil("NOP")
 
     with pytest.raises(UnsupportedQuilInstruction):
-        circuit_from_quil("PRAGMA ADD-KRAUS X 0 \"(0.0 1.0 1.0 0.0)\"")
-
-    with pytest.raises(UnsupportedQuilInstruction):
         circuit_from_quil("RESET")
-
-    with pytest.raises(UnsupportedQuilInstruction):
-        circuit_from_quil(QUIL_PROGRAM_WITH_PARAMETERIZED_DEFGATE)
 
 
 def test_undefined_quil_gate():
     """There are no such things as FREDKIN & TOFFOLI in Quil. The standard
     names for those gates in Quil are CSWAP and CCNOT. Of course, they can
-    be defined via DEFGATE / DEFCIRCUIT."""
+    be defined via DEFGATE / DEFCIRCUIT.
+    """
     with pytest.raises(UndefinedQuilGate):
         circuit_from_quil("FREDKIN 0 1 2")
 
@@ -189,7 +214,113 @@ def test_undefined_quil_gate():
         circuit_from_quil("TOFFOLI 0 1 2")
 
 
+QUIL_PROGRAM_WITH_PARAMETERS = """
+DECLARE theta REAL[4]
+RX(pi) 0
+RX(theta[0]) 1
+RX(2*theta[1]) 3
+RX(2*theta[2] + 1) 2
+RX(2*COS(theta[3])*EXP(i*theta[3])) 4
+"""
+
+
+def test_parametric_quil():
+    """Convert a program which uses parameters and expressions."""
+    program = Program(QUIL_PROGRAM_WITH_PARAMETERS)
+
+    circuit = circuit_from_quil(program)
+
+    q0, q1, q2, q3, q4 = LineQubit.range(5)
+    theta_0, theta_1, theta_2, theta_3 = (
+        sympy.Symbol("theta_0"),
+        sympy.Symbol("theta_1"),
+        sympy.Symbol("theta_2"),
+        sympy.Symbol("theta_3"),
+    )
+    cirq_circuit = Circuit(
+        [
+            XPowGate(exponent=1, global_shift=-0.5)(q0),
+            XPowGate(exponent=theta_0 / np.pi, global_shift=-0.5)(q1),
+            XPowGate(exponent=(2 / np.pi) * theta_1, global_shift=-0.5)(q3),
+            XPowGate(exponent=(2 / np.pi) * theta_2 + 1 / np.pi, global_shift=-0.5)(q2),
+            XPowGate(
+                exponent=(2 / np.pi) * sympy.cos(theta_3) * sympy.exp(1j * theta_3),
+                global_shift=-0.5,
+            )(q4),
+        ]
+    )
+
+    assert cirq_circuit == circuit
+
+
 def test_measurement_without_classical_reg():
     """Measure operations must declare a classical register."""
     with pytest.raises(UnsupportedQuilInstruction):
         circuit_from_quil("MEASURE 0")
+
+
+# Insert a similar test for Kraus ops
+
+
+QUIL_PROGRAM_WITH_READOUT_NOISE = """
+DECLARE ro BIT[1]
+RX(pi) 0
+PRAGMA READOUT-POVM 0 "(0.9 0.050000000000000044 0.09999999999999998 0.95)"
+MEASURE 0 ro[0]
+"""
+
+
+def test_readout_noise():
+    """Convert a program with readout noise."""
+    program = Program(QUIL_PROGRAM_WITH_READOUT_NOISE)
+    circuit = circuit_from_quil(program)
+
+    result = Simulator(seed=0).run(circuit, repetitions=1000)
+    assert result.histogram(key="ro[0]")[1] < 1000
+    assert result.histogram(key="ro[0]")[1] > 900
+
+
+def test_resolve_parameters():
+    """Test that parameters are correctly resolved for defined parametric gate."""
+    theta, beta = Parameter("theta"), Parameter("beta")
+    xy_matrix = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, quil_cos(theta / 2), 1j * quil_sin(theta / 2) * quil_exp(1j * beta), 0],
+            [0, 1j * quil_sin(theta / 2) * quil_exp(1j * beta), 1j * quil_cos(theta / 2), 0],
+            [0, 0, 0, 1],
+        ]
+    )
+
+    defgate = DefGate("PHASEDXY", xy_matrix, parameters=[beta, theta])
+
+    cirq_phased_xy = defgate_to_cirq(defgate)
+
+    op = cirq_phased_xy(beta=sympy.Symbol("beta"), theta=sympy.Symbol("theta"))(
+        cirq.LineQubit(0), cirq.LineQubit(1)
+    )
+
+    op._resolve_parameters_({"beta": 1.0, "theta": 2.0}, True)
+
+
+def test_op_identifier():
+    """Check that converted parametric defgates will be correctly identified."""
+    theta, beta = Parameter("theta"), Parameter("beta")
+    xy_matrix = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, quil_cos(theta / 2), 1j * quil_sin(theta / 2) * quil_exp(1j * beta), 0],
+            [0, 1j * quil_sin(theta / 2) * quil_exp(1j * beta), 1j * quil_cos(theta / 2), 0],
+            [0, 0, 0, 1],
+        ]
+    )
+
+    defgate = DefGate("PHASEDXY", xy_matrix, parameters=[beta, theta])
+
+    gate1 = defgate_to_cirq(defgate)
+    gate2 = defgate_to_cirq(defgate)
+
+    op = gate1(beta=np.pi, theta=np.pi)(cirq.LineQubit(0), cirq.LineQubit(1))
+
+    assert op in cirq.OpIdentifier(gate1)
+    assert op in cirq.OpIdentifier(gate2)

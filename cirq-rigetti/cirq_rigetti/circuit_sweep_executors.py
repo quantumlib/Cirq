@@ -57,21 +57,22 @@ def _execute_and_read_result(
     Raises:
         ValueError: measurement_id_map references an undefined pyQuil readout region.
     """
-    if memory_map is None:
-        memory_map = {}
 
-    for region_name, values in memory_map.items():
-        if isinstance(region_name, str):
-            executable.write_memory(region_name=region_name, value=values)
-        else:
-            raise ValueError(f'Symbols not valid for region name {region_name}')
-    qam_execution_result = quantum_computer.qam.run(executable)
+    # convert all atomic memory values into 1-length lists
+    if memory_map is not None:
+        for region_name, value in memory_map.items():
+            if not isinstance(region_name, str):
+                raise ValueError(f'Symbols not valid for region name {region_name}')
+            value = [value] if not isinstance(value, Sequence) else value
+            memory_map[region_name] = value
+
+    qam_execution_result = quantum_computer.qam.run(executable, memory_map)  # type: ignore
 
     measurements = {}
     # For every key, value in QuilOutput#measurement_id_map, use the value to read
     # Rigetti QCS results and assign to measurements by key.
     for cirq_memory_key, pyquil_region in measurement_id_map.items():
-        readout = qam_execution_result.readout_data.get(pyquil_region)
+        readout = qam_execution_result.get_register_map().get(pyquil_region)
         if readout is None:
             raise ValueError(f'readout data does not have values for region "{pyquil_region}"')
         measurements[cirq_memory_key] = readout
@@ -122,9 +123,7 @@ def _prepend_real_declarations(
         param_dict = _get_param_dict(resolver)
         for key in param_dict.keys():
             declaration = Declare(str(key), "REAL")
-            program._instructions.insert(0, declaration)
-            program._synthesized_instructions = None
-            program.declarations[declaration.name] = declaration
+            program = Program(declaration) + program
             logger.debug(f"prepended declaration {declaration}")
     return program
 
