@@ -11,24 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Optional
+from typing import Optional, List
 import cirq
-import httpx
 
 from pyquil import get_qc
-from qcs_api_client.operations.sync import (
-    get_instruction_set_architecture,
-    get_quilt_calibrations,
-    list_quantum_processors,
-)
-from qcs_api_client.models import (
-    InstructionSetArchitecture,
-    GetQuiltCalibrationsResponse,
-    ListQuantumProcessorsResponse,
-)
+from qcs_sdk.qpu import list_quantum_processors
+from qcs_sdk.qpu.isa import get_instruction_set_architecture, InstructionSetArchitecture
+from qcs_sdk.client import QCSClient
+from qcs_sdk.qpu.translation import get_quilt_calibrations
 from pyquil.api import QuantumComputer
 from cirq_rigetti.sampler import RigettiQCSSampler
-from cirq_rigetti._qcs_api_client_decorator import _provide_default_client
 from cirq_rigetti import circuit_transformers as transformers
 from cirq_rigetti import circuit_sweep_executors as executors
 
@@ -104,14 +96,11 @@ class RigettiQCSService:
         )
 
     @staticmethod
-    @_provide_default_client
-    def list_quantum_processors(
-        client: Optional[httpx.Client],
-    ) -> ListQuantumProcessorsResponse:  # pragma: no cover
+    def list_quantum_processors(client: Optional[QCSClient] = None) -> List[str]:
         """Retrieve a list of available Rigetti quantum processors.
 
         Args:
-            client: Optional; A `httpx.Client` initialized with Rigetti QCS credentials
+            client: Optional; A `QCSClient` initialized with Rigetti QCS credentials
             and configuration. If not provided, `qcs_api_client` will initialize a
             configured client based on configured values in the current user's
             `~/.qcs` directory or default values.
@@ -120,18 +109,17 @@ class RigettiQCSService:
             A qcs_api_client.models.ListQuantumProcessorsResponse containing the identifiers
             of the available quantum processors..
         """
-        return cast(ListQuantumProcessorsResponse, list_quantum_processors(client=client).parsed)
+        return list_quantum_processors(client=client)
 
     @staticmethod
-    @_provide_default_client
     def get_quilt_calibrations(
-        quantum_processor_id: str, client: Optional[httpx.Client]
-    ) -> GetQuiltCalibrationsResponse:
+        quantum_processor_id: str, client: Optional[QCSClient] = None
+    ) -> str:  # pragma: no cover
         """Retrieve the calibration data used for client-side Quil-T generation.
 
         Args:
             quantum_processor_id: The identifier of the Rigetti QCS quantum processor.
-            client: Optional; A `httpx.Client` initialized with Rigetti QCS credentials
+            client: Optional; A `QCSClient` initialized with Rigetti QCS credentials
             and configuration. If not provided, `qcs_api_client` will initialize a
             configured client based on configured values in the current user's
             `~/.qcs` directory or default values.
@@ -140,22 +128,18 @@ class RigettiQCSService:
             A qcs_api_client.models.GetQuiltCalibrationsResponse containing the
             device calibrations.
         """
-        return cast(  # pragma: no cover
-            GetQuiltCalibrationsResponse,
-            get_quilt_calibrations(client=client, quantum_processor_id=quantum_processor_id).parsed,
-        )
+        return get_quilt_calibrations(quantum_processor_id=quantum_processor_id, client=client)
 
     @staticmethod
-    @_provide_default_client
     def get_instruction_set_architecture(
-        quantum_processor_id: str, client: Optional[httpx.Client]
+        quantum_processor_id: str, client: Optional[QCSClient] = None
     ) -> InstructionSetArchitecture:  # pragma: no cover
         """Retrieve the Instruction Set Architecture of a QuantumProcessor by ID. This
         includes site specific operations and native gate capabilities.
 
         Args:
             quantum_processor_id: The identifier of the Rigetti QCS quantum processor.
-            client: Optional; A `httpx.Client` initialized with Rigetti QCS credentials
+            client: Optional; A `QCSClient` initialized with Rigetti QCS credentials
             and configuration. If not provided, `qcs_api_client` will initialize a
             configured client based on configured values in the current user's
             `~/.qcs` directory or default values.
@@ -163,11 +147,8 @@ class RigettiQCSService:
         Returns:
             A qcs_api_client.models.InstructionSetArchitecture containing the device specification.
         """
-        return cast(
-            InstructionSetArchitecture,
-            get_instruction_set_architecture(
-                client=client, quantum_processor_id=quantum_processor_id
-            ).parsed,
+        return get_instruction_set_architecture(
+            quantum_processor_id=quantum_processor_id, client=client
         )
 
 
