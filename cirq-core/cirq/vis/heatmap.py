@@ -20,6 +20,8 @@ from typing import (
     List,
     Mapping,
     Optional,
+    Iterable,
+    FrozenSet,
     overload,
     Sequence,
     SupportsFloat,
@@ -33,6 +35,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits import axes_grid1
 
+import cirq
 from cirq.devices import grid_qubit
 from cirq.vis import vis_utils
 
@@ -48,6 +51,12 @@ class Point:
 
     def __iter__(self):
         return iter(astuple(self))
+
+
+def _as_set(qubits: Iterable['cirq.Qid']) -> FrozenSet['cirq.Qid']:
+    if isinstance(qubits, np.ndarray):
+        return frozenset(qubits.reshape((-1,)).tolist())
+    return frozenset(qubits)
 
 
 @dataclass
@@ -302,8 +311,8 @@ class Heatmap:
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
 
-        highlighted_qubits = kwargs.get("highlighted_qubits")
-        if highlighted_qubits is not None:
+        highlighted_qubits = _as_set(kwargs.get("highlighted_qubits", ()))
+        if highlighted_qubits:
             edgecolors = tuple(
                 (
                     "red"
@@ -426,8 +435,8 @@ class TwoQubitInteractionHeatmap(Heatmap):
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
         collection_options: Dict[str, Any] = {"cmap": "binary"}
-        highlighted_qubits = kwargs.get("highlighted_qubits")
-        if highlighted_qubits is None:
+        highlighted_qubits = _as_set(kwargs.get("highlighted_qubits", ()))
+        if not highlighted_qubits:
             collection_options.update(
                 {"linewidths": 2, "edgecolors": "lightgrey", "linestyles": "dashed"}
             )
