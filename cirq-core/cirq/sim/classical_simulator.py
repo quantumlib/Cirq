@@ -117,12 +117,25 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
         Raises:
             ValueError: If initial_state shape for type np.ndarray is not equal to 1.
-                        If gate is not one of X, CNOT, SWAP, CCNOT, or a measurement.
+                        If gate is not one of X, SWAP, a controlled version of X or SWAP,
+                            or a measurement.
         """
         if isinstance(self._state.basis, np.ndarray) and len(self._state.basis.shape) != 1:
             raise ValueError('initial_state shape for type np.ndarray is not equal to 1')
         gate = action.gate if isinstance(action, ops.Operation) else action
         mapped_qubits = [self.qubit_map[i] for i in qubits]
+
+        if isinstance(gate, ops.ControlledGate):
+            control_qubits = mapped_qubits[: gate.num_controls()]
+            mapped_qubits = mapped_qubits[gate.num_controls() :]
+
+            controls_state = tuple(self._state.basis[c] for c in control_qubits)
+            if controls_state not in gate.control_values.expand():
+                # gate has no effect; controls were off
+                return True
+
+            gate = gate.sub_gate
+
         if _is_identity(gate):
             pass
         elif gate == ops.X:
@@ -138,7 +151,10 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
             c1, c2, q = mapped_qubits
             self._state.basis[q] ^= self._state.basis[c1] & self._state.basis[c2]
         else:
-            raise ValueError(f'{gate} is not one of X, CNOT, SWAP, CCNOT, or a measurement')
+            raise ValueError(
+                f'{gate} is not one of X, SWAP; a controlled version '
+                'of X or SWAP; or a measurement'
+            )
         return True
 
 

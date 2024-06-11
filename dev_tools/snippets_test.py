@@ -54,8 +54,8 @@ In addition to checking that the code executes:
       where pattern is the regex matching pattern (passed to re.compile) and
       substitution is the replacement string.
 """
+
 import inspect
-import sys
 from typing import Any, Dict, List, Optional, Pattern, Tuple, Iterator
 
 import os
@@ -759,16 +759,15 @@ print("abc")
         {},
     )
 
-    if sys.version_info[0] >= 3:  # Our print capture only works in python 3.
-        with pytest.raises(AssertionError):
-            assert_code_snippet_executes_correctly(
-                """
+    with pytest.raises(AssertionError):
+        assert_code_snippet_executes_correctly(
+            """
 print("abc")
 # prints
 # def
                 """,
-                {},
-            )
+            {},
+        )
 
     assert_code_snippet_executes_correctly(
         """
