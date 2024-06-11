@@ -306,20 +306,20 @@ class Heatmap:
         highlighted_qubits = kwargs.get("highlighted_qubits")
         if highlighted_qubits is not None:
             edgecolors = tuple(
-                'red' if qubit[0] in highlighted_qubits else 'grey'
-                for qubit, _ in sorted(self._value_map.items())
+                "red" if qubit[0] in highlighted_qubits else "grey"
+                for qubit in sorted(self._value_map.keys())
             )
             linestyles = tuple(
-                'solid' if qubit[0] in highlighted_qubits else 'dashed'
-                for qubit, _ in sorted(self._value_map.items())
+                "solid" if qubit[0] in highlighted_qubits else "dashed"
+                for qubit in sorted(self._value_map.keys())
             )
             linewidths = tuple(
                 4 if qubit[0] in highlighted_qubits else 2
-                for qubit, _ in sorted(self._value_map.items())
+                for qubit in sorted(self._value_map.keys())
             )
         else:
-            edgecolors = ('grey',)
-            linestyles = ('dashed',)
+            edgecolors = ("grey",)
+            linestyles = ("dashed",)
             linewidths = (2,)
 
         self._config["collection_options"].update(
@@ -414,11 +414,11 @@ class TwoQubitInteractionHeatmap(Heatmap):
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
-        collection_options = {'cmap': 'binary'}
+        collection_options = {"cmap": "binary"}
         highlighted_qubits = kwargs.get("highlighted_qubits")
         if highlighted_qubits is None:
             collection_options.update(
-                {'linewidths': '2', 'edgecolors': 'lightgrey', 'linestyles': 'dashed'}
+                {"linewidths": '2', "edgecolors": "lightgrey", "linestyles": "dashed"}
             )
         Heatmap({q: 0.0 for q in qubits}).plot(
             ax=ax,
