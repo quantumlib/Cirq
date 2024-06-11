@@ -24,6 +24,7 @@ from cirq_ionq.ionq_exceptions import (
     IonQException,
     IonQNotFoundException,
     IonQUnsuccessfulJobException,
+    IonQSerializerException,
 )
 
 from cirq_ionq.job import Job

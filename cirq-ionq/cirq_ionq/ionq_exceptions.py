@@ -46,3 +46,9 @@ class IonQUnsuccessfulJobException(IonQException):
 
     def __init__(self, job_id: str, status: str):
         super().__init__(f'Job {job_id} was {status}.')
+
+class IonQSerializerException(Exception):
+    """An exception for IonQ serializer."""
+
+    def __init__(self, message):
+        super().__init__(f'Message: \'{message}\'')

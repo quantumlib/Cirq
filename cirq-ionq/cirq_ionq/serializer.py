@@ -23,11 +23,11 @@ import cirq
 from cirq.devices import line_qubit
 from cirq.ops import common_gates, parity_gates
 from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
+from cirq_ionq.ionq_exceptions import IonQSerializerException
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, cirq.MeasurementGate, unroll_circuit_op=False
 )
-
 
 @dataclasses.dataclass
 class SerializedProgram:
@@ -120,7 +120,7 @@ class Serializer:
         job_settings: Optional[dict] = None,
         error_mitigation: Optional[dict] = None,
     ) -> SerializedProgram:
-        """Serialize the given circuit.
+        """Serialize the given array of circuits.
 
         Raises:
             ValueError: if the circuit has gates that are not supported or is otherwise invalid.
@@ -130,7 +130,13 @@ class Serializer:
 
         num_qubits = max ([self._validate_qubits(circuit.all_qubits()) for circuit in circuits ])
 
-        gateset = "qis" if not _NATIVE_GATES.validate(circuit) else "native"
+        gateset = None
+        for circuit in circuits:
+            current_gateset = "qis" if not _NATIVE_GATES.validate(circuit) else "native"
+            if gateset is None:
+                gateset = current_gateset
+            if current_gateset != gateset:
+                raise IonQSerializerException("For batch circuit submit all circuits in a batch must contain the same type of gates, either 'qis' or 'native' gates.")
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
