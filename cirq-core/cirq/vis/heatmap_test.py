@@ -35,6 +35,11 @@ def ax():
     return figure.add_subplot(111)
 
 
+def _to_linestyle_tuple(linestyles, linewidths=None):
+    collection = mpl.collections.Collection(linestyles=linestyles, linewidths=linewidths)
+    return collection.get_linestyles()[0]
+
+
 def test_default_ax():
     row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     test_value_map = {
@@ -360,10 +365,15 @@ def test_heatmap_plot_highlighted_qubits():
 
     expected_linewidths = [2, 4, 2, 4]
     expected_edgecolors = np.vstack(
-        (to_rgba_array('grey'), to_rgba_array('red'), to_rgba_array('grey'), to_rgba_array('red'))
+        (to_rgba_array("grey"), to_rgba_array("red"), to_rgba_array("grey"), to_rgba_array("red"))
     )
     # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
-    expected_linestyles = [(0.0, [7.4, 3.2]), (0, None), (0.0, [7.4, 3.2]), (0, None)]
+    expected_linestyles = [
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("solid"),
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("solid"),
+    ]
 
     _, ax = plt.subplots()
     _ = single_qubit_heatmap.plot(ax, highlighted_qubits=highlighted_qubits)
@@ -394,22 +404,22 @@ def test_heatmap_plot_highlighted_qubits_two_qubit():
     expected_linewidths = [4, 4, 2, 2, 2, 4]
     expected_edgecolors = np.vstack(
         (
-            to_rgba_array('red'),
-            to_rgba_array('red'),
-            to_rgba_array('grey'),
-            to_rgba_array('grey'),
-            to_rgba_array('grey'),
-            to_rgba_array('red'),
+            to_rgba_array("red"),
+            to_rgba_array("red"),
+            to_rgba_array("grey"),
+            to_rgba_array("grey"),
+            to_rgba_array("grey"),
+            to_rgba_array("red"),
         )
     )
     # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
     expected_linestyles = [
-        (0, None),
-        (0, None),
-        (0.0, [7.4, 3.2]),
-        (0.0, [7.4, 3.2]),
-        (0.0, [7.4, 3.2]),
-        (0, None),
+        _to_linestyle_tuple("solid"),
+        _to_linestyle_tuple("solid"),
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("solid"),
     ]
 
     _, ax = plt.subplots()
@@ -480,14 +490,14 @@ def test_heatmap_highlighted_init_collection_options_used():
 
     expected_linewidths = [6, 4, 6, 4]
     expected_edgecolors = np.vstack(
-        (to_rgba_array('blue'), to_rgba_array('red'), to_rgba_array('blue'), to_rgba_array('red'))
+        (to_rgba_array("blue"), to_rgba_array("red"), to_rgba_array("blue"), to_rgba_array("red"))
     )
     # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
     expected_linestyles = [
-        (0.0, [22.200000000000003, 9.600000000000001]),
-        (0, None),
-        (0.0, [22.200000000000003, 9.600000000000001]),
-        (0, None),
+        _to_linestyle_tuple("dashed", linewidths=6),
+        _to_linestyle_tuple("solid"),
+        _to_linestyle_tuple("dashed", linewidths=6),
+        _to_linestyle_tuple("solid"),
     ]
 
     _, ax = plt.subplots()
