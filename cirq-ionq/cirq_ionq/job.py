@@ -135,7 +135,7 @@ class Job:
         self._check_if_unsuccessful()
         return self._job['name']
 
-    def num_qubits(self) -> int:
+    def num_qubits(self, circuit_index=None) -> int:
         """Returns the number of qubits for the job.
 
         Raises:
@@ -143,6 +143,13 @@ class Job:
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
+        if 'metadata' in self._job and circuit_index is not None:
+            if 'qubit_numbers' in self._job['metadata'].keys():
+                qubit_numbers = json.loads(self._job['metadata']['qubit_numbers'])
+                for index, qubit_number in enumerate(qubit_numbers):
+                    if index == circuit_index:
+                        return qubit_number
+
         return int(self._job['qubits'])
 
     def repetitions(self) -> int:
@@ -249,25 +256,25 @@ class Job:
             if self.target().startswith('qpu'):
                 repetitions = self.repetitions()
                 counts = {
-                    _little_endian_to_big(int(k), self.num_qubits()): round(repetitions * float(v))
+                    _little_endian_to_big(int(k), self.num_qubits(circuit_index)): round(repetitions * float(v))
                     for k, v in histogram.items()
                 }
                 big_endian_results.append(
                     results.QPUResult(
                         counts=counts,
-                        num_qubits=self.num_qubits(),
+                        num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                     )
                 )
             else:
                 probabilities = {
-                    _little_endian_to_big(int(k), self.num_qubits()): float(v)
+                    _little_endian_to_big(int(k), self.num_qubits(circuit_index)): float(v)
                     for k, v in histogram.items()
                 }
                 big_endian_results.append(
                     results.SimulatorResult(
                         probabilities=probabilities,
-                        num_qubits=self.num_qubits(),
+                        num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                         repetitions=self.repetitions(),
                     )

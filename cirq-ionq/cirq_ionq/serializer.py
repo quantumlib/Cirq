@@ -146,6 +146,7 @@ class Serializer:
         body = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
 
         measurements = []
+        qubit_numbers = []
         for circuit in circuits:
             serialized_ops = self._serialize_circuit(circuit)
             body['circuits'].append(
@@ -154,10 +155,11 @@ class Serializer:
             measurements.append(
                 (self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas'))
             )
+            qubit_numbers.append(cirq.num_qubits(circuit))
 
         return SerializedProgram(
             body=body,
-            metadata={"measurements": json.dumps(measurements)},
+            metadata={"measurements": json.dumps(measurements), "qubit_numbers": json.dumps(qubit_numbers)},
             settings=(job_settings or {}),
             error_mitigation=error_mitigation,
         )
