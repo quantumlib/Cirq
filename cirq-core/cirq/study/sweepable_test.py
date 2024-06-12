@@ -147,3 +147,30 @@ def test_to_sweep_resolver_list(r_list_gen):
 def test_to_sweep_type_error():
     with pytest.raises(TypeError, match='Unexpected sweep'):
         cirq.to_sweep(5)
+
+
+def test_to_sweeps_with_param_dict_appends_metadata():
+    params = {'a': 1, 'b': 2, 'c': 3}
+    unit_map = {'a': 'ns', 'b': 'ns'}
+
+    sweep = cirq.to_sweeps(params, unit_map)
+
+    assert sweep == [
+        cirq.Zip(
+            cirq.Points('a', [1], metadata='ns'),
+            cirq.Points('b', [2], metadata='ns'),
+            cirq.Points('c', [3]),
+        )
+    ]
+
+
+def test_to_sweeps_with_param_list_appends_metadata():
+    resolvers = [cirq.ParamResolver({'a': 2}), cirq.ParamResolver({'a': 1})]
+    unit_map = {'a': 'ns'}
+
+    sweeps = cirq.study.to_sweeps(resolvers, unit_map)
+
+    assert sweeps == [
+        cirq.Zip(cirq.Points('a', [2], metadata='ns')),
+        cirq.Zip(cirq.Points('a', [1], metadata='ns')),
+    ]
