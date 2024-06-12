@@ -337,14 +337,9 @@ class Heatmap:
                 )
                 for qubits in sorted(self._value_map.keys())
             )
-        else:
-            edgecolors = self._config["collection_options"].get("edgecolors", "grey")
-            linestyles = self._config["collection_options"].get("linestyles", "dashed")
-            linewidths = self._config["collection_options"].get("linewidths", 2)
-
-        self._config["collection_options"].update(
-            {"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths}
-        )
+            self._config["collection_options"].update(
+                {"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths}
+            )
 
         collection = self._plot_on_axis(ax)
         if show_plot:
