@@ -20,8 +20,6 @@ from typing import (
     List,
     Mapping,
     Optional,
-    Iterable,
-    FrozenSet,
     overload,
     Sequence,
     SupportsFloat,
@@ -35,7 +33,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits import axes_grid1
 
-import cirq
 from cirq.devices import grid_qubit
 from cirq.vis import vis_utils
 
@@ -51,12 +48,6 @@ class Point:
 
     def __iter__(self):
         return iter(astuple(self))
-
-
-def _as_set(qubits: Iterable['cirq.Qid']) -> FrozenSet['cirq.Qid']:
-    if isinstance(qubits, np.ndarray):
-        return frozenset(qubits.reshape((-1,)).tolist())
-    return frozenset(qubits)
 
 
 @dataclass
