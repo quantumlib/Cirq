@@ -311,12 +311,12 @@ class Heatmap:
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
 
-        highlighted_qubits = _as_set(kwargs.get("highlighted_qubits", ()))
+        highlighted_qubits = frozenset(kwargs.get("highlighted_qubits", ()))
         if highlighted_qubits:
             edgecolors = tuple(
                 (
                     "red"
-                    if any(q in highlighted_qubits for q in qubits)
+                    if not highlighted_qubits.isdisjoint(qubits)
                     else self._config["collection_options"].get("edgecolors", "grey")
                 )
                 for qubits in sorted(self._value_map.keys())
@@ -324,7 +324,7 @@ class Heatmap:
             linestyles = tuple(
                 (
                     "solid"
-                    if any(q in highlighted_qubits for q in qubits)
+                    if not highlighted_qubits.isdisjoint(qubits)
                     else self._config["collection_options"].get("linestyles", "dashed")
                 )
                 for qubits in sorted(self._value_map.keys())
@@ -332,7 +332,7 @@ class Heatmap:
             linewidths = tuple(
                 (
                     4
-                    if any(q in highlighted_qubits for q in qubits)
+                    if not highlighted_qubits.isdisjoint(qubits)
                     else self._config["collection_options"].get("linewidths", 2)
                 )
                 for qubits in sorted(self._value_map.keys())
@@ -435,7 +435,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
         collection_options: Dict[str, Any] = {"cmap": "binary"}
-        highlighted_qubits = _as_set(kwargs.get("highlighted_qubits", ()))
+        highlighted_qubits = frozenset(kwargs.get("highlighted_qubits", ()))
         if not highlighted_qubits:
             collection_options.update(
                 {"linewidths": 2, "edgecolors": "lightgrey", "linestyles": "dashed"}
