@@ -111,6 +111,7 @@ class Heatmap:
                     applying format(value, annotation_format) for each key in value_map.
                     This is ignored if annotation_map is explicitly specified.
                 annotation_text_kwargs: Matplotlib Text **kwargs,
+                highlighted_qubits: An iterable of qubits to highlight.
 
                 colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
                 colorbar_size: str, default = '5%'
@@ -157,6 +158,7 @@ class Heatmap:
             "annotation_map",
             "annotation_text_kwargs",
             "annotation_format",
+            "highlighted_qubits",
         ]
         valid_kwargs = (
             valid_colorbar_kwargs
@@ -299,6 +301,37 @@ class Heatmap:
             ax = cast(plt.Axes, ax)
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
+
+        highlighted_qubits = frozenset(kwargs.get("highlighted_qubits", ()))
+        if highlighted_qubits:
+            edgecolors = tuple(
+                (
+                    "red"
+                    if not highlighted_qubits.isdisjoint(qubits)
+                    else self._config["collection_options"].get("edgecolors", "grey")
+                )
+                for qubits in sorted(self._value_map.keys())
+            )
+            linestyles = tuple(
+                (
+                    "solid"
+                    if not highlighted_qubits.isdisjoint(qubits)
+                    else self._config["collection_options"].get("linestyles", "dashed")
+                )
+                for qubits in sorted(self._value_map.keys())
+            )
+            linewidths = tuple(
+                (
+                    4
+                    if not highlighted_qubits.isdisjoint(qubits)
+                    else self._config["collection_options"].get("linewidths", 2)
+                )
+                for qubits in sorted(self._value_map.keys())
+            )
+            self._config["collection_options"].update(
+                {"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths}
+            )
+
         collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
@@ -387,16 +420,18 @@ class TwoQubitInteractionHeatmap(Heatmap):
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
+        collection_options: Dict[str, Any] = {"cmap": "binary"}
+        highlighted_qubits = frozenset(kwargs.get("highlighted_qubits", ()))
+        if not highlighted_qubits:
+            collection_options.update(
+                {"linewidths": 2, "edgecolors": "lightgrey", "linestyles": "dashed"}
+            )
         Heatmap({q: 0.0 for q in qubits}).plot(
             ax=ax,
-            collection_options={
-                'cmap': 'binary',
-                'linewidths': 2,
-                'edgecolor': 'lightgrey',
-                'linestyle': 'dashed',
-            },
+            collection_options=collection_options,
             plot_colorbar=False,
             annotation_format=None,
+            highlighted_qubits=highlighted_qubits,
         )
         collection = self._plot_on_axis(ax)
         if show_plot:
