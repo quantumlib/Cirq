@@ -3,6 +3,7 @@
 isort:skip_file
 """
 import builtins
+import cirq_google.api.v2.program_pb2
 import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
@@ -25,15 +26,26 @@ class RunContext(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     PARAMETER_SWEEPS_FIELD_NUMBER: builtins.int
+    DEVICE_PARAMETERS_OVERRIDE_FIELD_NUMBER: builtins.int
     @property
     def parameter_sweeps(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ParameterSweep]:
         """The parameters for operations in a program."""
+    @property
+    def device_parameters_override(self) -> global___DeviceParametersDiff:
+        """Optional override of select device parameters before program
+        execution. Note it is permissible to specify the same device parameter
+        here and in a parameter_sweeps, as sweep.single_sweep.parameter.
+        If the same parameter is supplied in both places, the provision here in
+        device_parameters_override will have no effect.
+        """
     def __init__(
         self,
         *,
         parameter_sweeps: collections.abc.Iterable[global___ParameterSweep] | None = ...,
+        device_parameters_override: global___DeviceParametersDiff | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["parameter_sweeps", b"parameter_sweeps"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["device_parameters_override", b"device_parameters_override"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["device_parameters_override", b"device_parameters_override", "parameter_sweeps", b"parameter_sweeps"]) -> None: ...
 
 global___RunContext = RunContext
 
@@ -225,6 +237,94 @@ class DeviceParameter(google.protobuf.message.Message):
     def WhichOneof(self, oneof_group: typing_extensions.Literal["_units", b"_units"]) -> typing_extensions.Literal["units"] | None: ...
 
 global___DeviceParameter = DeviceParameter
+
+@typing_extensions.final
+class DeviceParametersDiff(google.protobuf.message.Message):
+    """A bundle of multiple DeviceParameters and their values.
+    The main use case is to set those parameters with the
+    values from this bundle before executing a circuit sweep.
+    Note multiple device parameters may have common ancestor paths
+    and/or share the same parameter names. A DeviceParametersDiff
+    stores the resource groups hierarchy extracted from the DeviceParameters'
+    paths and maintains a table of strings; thereby storing ancestor resource
+    groups only once, and avoiding repeated storage of common parameter names.
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing_extensions.final
+    class ResourceGroup(google.protobuf.message.Message):
+        """A resource group a device parameter belongs to.
+        The identifier of a resource group is DeviceParameter.path without the
+        last component.
+        """
+
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        PARENT_FIELD_NUMBER: builtins.int
+        NAME_FIELD_NUMBER: builtins.int
+        parent: builtins.int
+        """parent resource group, as an index into the groups repeated field."""
+        name: builtins.int
+        """as index into the strs repeated field."""
+        def __init__(
+            self,
+            *,
+            parent: builtins.int = ...,
+            name: builtins.int = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "parent", b"parent"]) -> None: ...
+
+    @typing_extensions.final
+    class Param(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        RESOURCE_GROUP_FIELD_NUMBER: builtins.int
+        NAME_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        resource_group: builtins.int
+        """the resource group hosting this parameter key, as index into groups
+        repeated field.
+        """
+        name: builtins.int
+        """name of this param, as index into the strs repeated field."""
+        @property
+        def value(self) -> cirq_google.api.v2.program_pb2.ArgValue:
+            """this param's new value, as message ArgValue to allow variant types,
+            including bool, string, double, float and arrays.
+            """
+        def __init__(
+            self,
+            *,
+            resource_group: builtins.int = ...,
+            name: builtins.int = ...,
+            value: cirq_google.api.v2.program_pb2.ArgValue | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "resource_group", b"resource_group", "value", b"value"]) -> None: ...
+
+    GROUPS_FIELD_NUMBER: builtins.int
+    PARAMS_FIELD_NUMBER: builtins.int
+    STRS_FIELD_NUMBER: builtins.int
+    @property
+    def groups(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.ResourceGroup]: ...
+    @property
+    def params(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParametersDiff.Param]: ...
+    @property
+    def strs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
+        """List of all key, dir, and deletion names in these contents.
+        ResourceGroup.name, Param.name, and Deletion.name are indexes into this list.
+        """
+    def __init__(
+        self,
+        *,
+        groups: collections.abc.Iterable[global___DeviceParametersDiff.ResourceGroup] | None = ...,
+        params: collections.abc.Iterable[global___DeviceParametersDiff.Param] | None = ...,
+        strs: collections.abc.Iterable[builtins.str] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["groups", b"groups", "params", b"params", "strs", b"strs"]) -> None: ...
+
+global___DeviceParametersDiff = DeviceParametersDiff
 
 @typing_extensions.final
 class SingleSweep(google.protobuf.message.Message):

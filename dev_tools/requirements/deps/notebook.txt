@@ -1,15 +1,19 @@
 -r ipython.txt
 
-notebook~=7.1
+notebook~=7.0
 
-# https://github.com/nteract/papermill/issues/519
-ipykernel~=6.28
+ipykernel~=6.29
 
 # for executing notebooks in tests
-papermill~=2.4
+papermill~=2.6
 
 # for notebooks that do `pip install cirq-core[contrib]`
 -r ../../../cirq-core/cirq/contrib/requirements.txt
 
 # assumed to be part of colab
 seaborn~=0.12
+
+# TODO(#6281) - remove below after the merge of #6281
+jupyterlab~=4.0.13
+jupyterlab-server~=2.24.0
+nbformat~=5.10.4

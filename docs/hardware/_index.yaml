@@ -4,101 +4,105 @@ title: Hardware
 landing_page:
   nav: left
   rows:
-    - heading: Represent a quantum hardware device
-      description: Define the characteristics and constraints of quantum hardware devices, to support running circuits on those devices.
-      options:
-        - cards
-      items:
-      - heading: Devices
-        description: Represent the constraints a device imposes on runnable circuits with the Device class.
-        path: /cirq/hardware/devices
+  - heading: Represent a quantum hardware device
+    description: Define the characteristics and constraints of quantum hardware devices,
+      to support running circuits on those devices.
+    options:
+    - cards
+    items:
+    - heading: Devices
+      description: Represent the constraints a device imposes on runnable circuits
+        with the Device class.
+      path: /cirq/hardware/devices
 
-    - heading: Run a circuit on a hardware device
-      description: Cirq provides interfaces for running your circuits on quantum hardware provided by many different services.
-      options:
-        - cards
-      items:
-      - heading: Qubit Picking
-        description: Information to help you pick good qubits for running your circuit on a hardware or hardware-like device.
-        path: /cirq/hardware/qubit_picking
+  - heading: Run a circuit on a hardware device
+    description: Cirq provides interfaces for running your circuits on quantum hardware
+      provided by many different services.
+    options:
+    - cards
+    items:
+    - heading: Qubit Picking
+      description: Information to help you pick good qubits for running your circuit
+        on a hardware or hardware-like device.
+      path: /cirq/hardware/qubit_picking
 
-    - heading: AQT hardware
-      description: Cirq's interface with Alpine Quantum Technologies hardware.
-      options:
-        - cards
-      items:
-      - heading: Access and authentication
-        description: How to gain access.
-        path: /cirq/hardware/aqt/access
-      - heading: Getting started with AQT hardware
-        description: How to run your first circuit.
-        path: /cirq/hardware/aqt/getting_started
+  - heading: AQT hardware
+    description: Cirq's interface with Alpine Quantum Technologies hardware.
+    options:
+    - cards
+    items:
+    - heading: Access and authentication
+      description: How to gain access.
+      path: /cirq/hardware/aqt/access
+    - heading: Getting started with AQT hardware
+      description: How to run your first circuit.
+      path: /cirq/hardware/aqt/getting_started
 
-    - heading: Azure Quantum
-      description: Cirq's interface with Microsoft Azure Quantum services.
-      options:
-        - cards
-      items:
-      - heading: Access and authentication
-        description: How to gain access.
-        path: /cirq/hardware/azure-quantum/access
-      - heading: Getting started with Honeywell on AQT hardware
-        description: How to run your first circuit on a Honeywell device.
-        path: /cirq/hardware/azure-quantum/getting_started_honeywell
-      - heading: Getting started with IonQ on AQT hardware
-        description: How to run your first circuit on an IonQ device.
-        path: /cirq/hardware/azure-quantum/getting_started_ionq
+  - heading: Azure Quantum
+    description: Cirq's interface with Microsoft Azure Quantum services.
+    options:
+    - cards
+    items:
+    - heading: Access and authentication
+      description: How to gain access.
+      path: /cirq/hardware/azure-quantum/access
+    - heading: Getting started with Honeywell on AQT hardware
+      description: How to run your first circuit on a Honeywell device.
+      path: /cirq/hardware/azure-quantum/getting_started_honeywell
+    - heading: Getting started with IonQ on AQT hardware
+      description: How to run your first circuit on an IonQ device.
+      path: /cirq/hardware/azure-quantum/getting_started_ionq
 
-    - heading: IonQ hardware
-      description: Cirq's interface with IonQ hardware.
-      options:
-        - cards
-      items:
-      - heading: Access and authentication
-        description: How to gain access.
-        path: /cirq/hardware/ionq/access
-      - heading: Getting started with IonQ hardware
-        description: How to run your first circuit.
-        path: /cirq/hardware/ionq/getting_started
-      - heading: IonQ API Service
-        description: Using the IonQ API.
-        path: /cirq/hardware/ionq/service
-      - heading: IonQ API circuits
-        description: Writing circuits for the IonQ API.
-        path: /cirq/hardware/ionq/circuits
-      - heading: Running IonQ API jobs
-        description: How to run jobs with the IonQ API.
-        path: /cirq/hardware/ionq/jobs
-      - heading: IonQ API calibrations
-        description: How to get hardware device calibration data through the IonQ API.
-        path: /cirq/hardware/ionq/calibrations
+  - heading: IonQ hardware
+    description: Cirq's interface with IonQ hardware.
+    options:
+    - cards
+    items:
+    - heading: Access and authentication
+      description: How to gain access.
+      path: /cirq/hardware/ionq/access
+    - heading: Getting started with IonQ hardware
+      description: How to run your first circuit.
+      path: /cirq/hardware/ionq/getting_started
+    - heading: IonQ API Service
+      description: Using the IonQ API.
+      path: /cirq/hardware/ionq/service
+    - heading: IonQ API circuits
+      description: Writing circuits for the IonQ API.
+      path: /cirq/hardware/ionq/circuits
+    - heading: Running IonQ API jobs
+      description: How to run jobs with the IonQ API.
+      path: /cirq/hardware/ionq/jobs
+    - heading: IonQ API calibrations
+      description: How to get hardware device calibration data through the IonQ API.
+      path: /cirq/hardware/ionq/calibrations
 
-    - heading: Pasqal hardware
-      description: Cirq's interface with Pasqal hardware.
-      options:
-        - cards
-      items:
-      - heading: Access and authentication
-        description: How to gain access.
-        path: /cirq/hardware/pasqal/access
-      - heading: Getting started with Pasqal hardware
-        description: How to run your first circuit.
-        path: /cirq/hardware/pasqal/getting_started
-      - heading: Pasqal devices
-        description: Device objects to specify Pasqal hardware.
-        path: /cirq/hardware/pasqal/devices
-      - heading: Pasqal sampler
-        description: Sampler objects to run on Pasqal hardware.
-        path: /cirq/hardware/pasqal/sampler
+  - heading: Pasqal hardware
+    description: Cirq's interface with Pasqal hardware.
+    options:
+    - cards
+    items:
+    - heading: Access and authentication
+      description: How to gain access.
+      path: /cirq/hardware/pasqal/access
+    - heading: Getting started with Pasqal hardware
+      description: How to run your first circuit.
+      path: /cirq/hardware/pasqal/getting_started
+    - heading: Pasqal devices
+      description: Device objects to specify Pasqal hardware.
+      path: /cirq/hardware/pasqal/devices
+    - heading: Pasqal sampler
+      description: Sampler objects to run on Pasqal hardware.
+      path: /cirq/hardware/pasqal/sampler
 
-    - heading: Rigetti hardware
-      description: Cirq's interface with Rigetti hardware.
-      options:
-        - cards
-      items:
-      - heading: Access and authentication
-        description: How to gain access.
-        path: /cirq/hardware/rigetti/access
-      - heading: Getting started with Rigetti hardware
-        description: How to run your first circuit.
-        path: /cirq/hardware/rigetti/getting_started
+  - heading: Rigetti hardware
+    description: Cirq's interface with Rigetti hardware.
+    options:
+    - cards
+    items:
+    - heading: Access and authentication
+      description: How to gain access.
+      path: /cirq/hardware/rigetti/access
+    - heading: Getting started with Rigetti hardware
+      description: How to run your first circuit.
+      path: /cirq/hardware/rigetti/getting_started
