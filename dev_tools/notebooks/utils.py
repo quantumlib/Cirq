@@ -93,7 +93,7 @@ def rewrite_notebook(notebook_path):
     patterns = []
     notebook_test_path = os.path.splitext(notebook_path)[0] + '.tst'
     if os.path.exists(notebook_test_path):
-        with open(notebook_test_path, 'r') as f:
+        with open(notebook_test_path, 'r', encoding='utf-8') as f:
             pattern_lines = (line for line in f if '->' in line)
             for line in pattern_lines:
                 parts = line.rstrip().split('->')
@@ -101,7 +101,7 @@ def rewrite_notebook(notebook_path):
                 patterns.append((re.compile(parts[0]), parts[1]))
 
     used_patterns = set()
-    with open(notebook_path, 'r') as original_file:
+    with open(notebook_path, 'r', encoding='utf-8') as original_file:
         lines = original_file.readlines()
     for i, line in enumerate(lines):
         for pattern, replacement in patterns:
@@ -116,7 +116,9 @@ def rewrite_notebook(notebook_path):
         f'{set(x for x, _ in patterns) - used_patterns}'
     )
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='-rewrite.ipynb', delete=False) as new_file:
+    with tempfile.NamedTemporaryFile(
+        mode='w', suffix='-rewrite.ipynb', delete=False, encoding='utf-8'
+    ) as new_file:
         new_file.writelines(lines)
 
     return new_file.name
