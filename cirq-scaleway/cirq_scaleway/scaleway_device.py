@@ -105,7 +105,7 @@ class ScalewayDevice(cirq.devices.Device):
             max_idle_duration (str, int): the maximum duration without job before the session is automatically killed.
                 Can be either a string like 1h, 20m15s or an int representing seconds
         Returns:
-            ScalewaySession: a new freshly starting QPU session
+            ScalewaySession: a new QPU session that can be started/stopped once
         """
         return ScalewaySession(
             client=self.__client,
