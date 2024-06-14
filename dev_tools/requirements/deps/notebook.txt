@@ -12,8 +12,3 @@ papermill~=2.6
 
 # assumed to be part of colab
 seaborn~=0.12
-
-# TODO(#6281) - remove below after the merge of #6281
-jupyterlab~=4.0.13
-jupyterlab-server~=2.24.0
-nbformat~=5.10.4
