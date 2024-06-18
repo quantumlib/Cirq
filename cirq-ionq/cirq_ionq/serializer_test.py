@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import numpy as np
 import pytest
 import sympy
@@ -125,7 +126,7 @@ def test_serialize_many_circuits_settings():
             'qubits': 3,
             'circuits': [{'circuit': [{'gate': 'x', 'targets': [2]}]}],
         },
-        metadata={'measurements': '[{}]', 'qubit_numbers': '[1]'},
+        metadata={'measurements': '[{}]', 'qubit_numbers': '[3]'},
         settings={"foo": "bar", "key": "heart"},
     )
 
@@ -564,14 +565,13 @@ def test_serialize_single_circuit_measurement_gate_target_order():
 def test_serialize_many_circuits_measurement_gate_target_order():
     q0, _, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.measure(q2, q0, key='tomyheart'))
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAA", cirq.num_qubits(circuit))
     serializer = ionq.Serializer()
     result = serializer.serialize_many_circuits([circuit])
     assert result == ionq.SerializedProgram(
         body={'gateset': 'native', 'qubits': 3, 'circuits': [{'circuit': []}]},
         metadata={
             'measurements': '[{"measurement0": "tomyheart\\u001f2,0"}]',
-            'qubit_numbers': '[2]', #???????????????????????????
+            'qubit_numbers': '[3]',
         },
         settings={},
     )
@@ -584,6 +584,16 @@ def test_serialize_single_circuit_measurement_gate_split_across_dict():
     result = serializer.serialize_single_circuit(circuit)
     assert result.metadata['measurement0'] == 'a' * 40
     assert result.metadata['measurement1'] == 'a' * 20 + f'{chr(31)}0'
+
+
+def test_serialize_many_circuits_measurement_gate_split_across_dict():
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.measure(q0, key='a' * 60))
+    serializer = ionq.Serializer()
+    result = serializer.serialize_many_circuits([circuit])
+    measurements = json.loads(result.metadata['measurements'])
+    assert measurements[0]['measurement0'] == 'a' * 40
+    assert measurements[0]['measurement1'] == 'a' * 20 + f'{chr(31)}0'
 
 
 def test_serialize_single_circuit_native_gates():
@@ -609,6 +619,33 @@ def test_serialize_single_circuit_native_gates():
     )
 
 
+def test_serialize_many_circuits_native_gates():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    gpi = ionq.GPIGate(phi=0.1).on(q0)
+    gpi2 = ionq.GPI2Gate(phi=0.2).on(q1)
+    ms = ionq.MSGate(phi0=0.3, phi1=0.4).on(q1, q2)
+    circuit = cirq.Circuit([gpi, gpi2, ms])
+    serializer = ionq.Serializer()
+    result = serializer.serialize_many_circuits([circuit])
+    assert result == ionq.SerializedProgram(
+        body={
+            'gateset': 'native',
+            'qubits': 3,
+            'circuits': [
+                {
+                    'circuit': [
+                        {'gate': 'gpi', 'target': 0, 'phase': 0.1},
+                        {'gate': 'gpi2', 'target': 1, 'phase': 0.2},
+                        {'gate': 'ms', 'targets': [1, 2], 'phases': [0.3, 0.4], 'angle': 0.25},
+                    ]
+                }
+            ],
+        },
+        metadata={'measurements': '[{}]', 'qubit_numbers': '[3]'},
+        settings={},
+    )
+
+
 def test_serialize_single_circuit_measurement_gate_multiple_keys():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q1, key='b'))
@@ -617,6 +654,21 @@ def test_serialize_single_circuit_measurement_gate_multiple_keys():
     assert result == ionq.SerializedProgram(
         body={'gateset': 'native', 'qubits': 2, 'circuit': []},
         metadata={'measurement0': f'a{chr(31)}0{chr(30)}b{chr(31)}1'},
+        settings={},
+    )
+
+
+def test_serialize_many_circuits_measurement_gate_multiple_keys():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q1, key='b'))
+    serializer = ionq.Serializer()
+    result = serializer.serialize_many_circuits([circuit])
+    assert result == ionq.SerializedProgram(
+        body={'gateset': 'native', 'qubits': 2, 'circuits': [{'circuit': []}]},
+        metadata={
+            'measurements': '[{"measurement0": "a\\u001f0\\u001eb\\u001f1"}]',
+            'qubit_numbers': '[2]',
+        },
         settings={},
     )
 
@@ -636,6 +688,21 @@ def test_serialize_single_circuit_measurement_string_too_long():
     _ = serializer.serialize_single_circuit(circuit)
 
 
+def test_serialize_many_circuits_measurement_string_too_long():
+    q = cirq.LineQubit(0)
+    # Max limit for metadata is 9 keys of length 40.  Here we create a key of length
+    # 40 * 9 - 1. When combined with one qubit for the qubit, 0, and the deliminator this
+    # is just too big to fix.
+    circuit = cirq.Circuit(cirq.measure(q, key='x' * (40 * 9 - 1)))
+    serializer = ionq.Serializer()
+    with pytest.raises(ValueError, match='too long'):
+        _ = serializer.serialize_many_circuits([circuit])
+    # Check that one fewer character is fine.
+    circuit = cirq.Circuit(cirq.measure(q, key='x' * (40 * 9 - 2)))
+    serializer = ionq.Serializer()
+    _ = serializer.serialize_many_circuits([circuit])
+
+
 def test_serialize_single_circuit_measurement_key_cannot_be_deliminator():
     q0 = cirq.LineQubit(0)
     serializer = ionq.Serializer()
@@ -647,12 +714,31 @@ def test_serialize_single_circuit_measurement_key_cannot_be_deliminator():
         _ = serializer.serialize_single_circuit(circuit)
 
 
+def test_serialize_many_circuits_measurement_key_cannot_be_deliminator():
+    q0 = cirq.LineQubit(0)
+    serializer = ionq.Serializer()
+    circuit = cirq.Circuit(cirq.measure(q0, key=f'ab{chr(30)}'))
+    with pytest.raises(ValueError, match=f'ab{chr(30)}'):
+        _ = serializer.serialize_many_circuits([circuit])
+    circuit = cirq.Circuit(cirq.measure(q0, key=f'ab{chr(31)}'))
+    with pytest.raises(ValueError, match=f'ab{chr(31)}'):
+        _ = serializer.serialize_many_circuits([circuit])
+
+
 def test_serialize_single_circuit_not_serializable():
     q0, q1 = cirq.LineQubit.range(2)
     serializer = ionq.Serializer()
     circuit = cirq.Circuit(cirq.PhasedISwapPowGate()(q0, q1))
     with pytest.raises(ValueError, match='PhasedISWAP'):
         _ = serializer.serialize_single_circuit(circuit)
+
+
+def test_serialize_many_circuits_not_serializable():
+    q0, q1 = cirq.LineQubit.range(2)
+    serializer = ionq.Serializer()
+    circuit = cirq.Circuit(cirq.PhasedISwapPowGate()(q0, q1))
+    with pytest.raises(ValueError, match='PhasedISWAP'):
+        _ = serializer.serialize_many_circuits([circuit])
 
 
 def test_serialize_single_circuit_atol():
@@ -662,3 +748,12 @@ def test_serialize_single_circuit_atol():
     circuit = cirq.Circuit(cirq.X(q0) ** 1.09)
     result = serializer.serialize_single_circuit(circuit)
     assert result.body['circuit'][0]['gate'] == 'x'
+
+
+def test_serialize_many_circuits_atol():
+    q0 = cirq.LineQubit(0)
+    serializer = ionq.Serializer(atol=1e-1)
+    # Within tolerance given above this is an X gate.
+    circuit = cirq.Circuit(cirq.X(q0) ** 1.09)
+    result = serializer.serialize_many_circuits([circuit])
+    assert result.body['circuits'][0]['circuit'][0]['gate'] == 'x'

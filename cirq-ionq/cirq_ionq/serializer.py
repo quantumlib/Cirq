@@ -155,11 +155,14 @@ class Serializer:
             measurements.append(
                 (self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas'))
             )
-            qubit_numbers.append(cirq.num_qubits(circuit))
+            qubit_numbers.append(self._validate_qubits(circuit.all_qubits()))
 
         return SerializedProgram(
             body=body,
-            metadata={"measurements": json.dumps(measurements), "qubit_numbers": json.dumps(qubit_numbers)},
+            metadata={
+                "measurements": json.dumps(measurements),
+                "qubit_numbers": json.dumps(qubit_numbers),
+            },
             settings=(job_settings or {}),
             error_mitigation=error_mitigation,
         )
