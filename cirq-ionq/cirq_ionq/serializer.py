@@ -93,7 +93,8 @@ class Serializer:
             ValueError: if the circuit has gates that are not supported or is otherwise invalid.
         """
         self._validate_circuit(circuit)
-        num_qubits = self._validate_qubits(circuit.all_qubits())
+        self._validate_qubits(circuit.all_qubits())
+        num_qubits = self._num_qubits(circuit)
 
         serialized_ops = self._serialize_circuit(circuit)
 
@@ -128,8 +129,9 @@ class Serializer:
         """
         for circuit in circuits:
             self._validate_circuit(circuit)
+            self._validate_qubits(circuit.all_qubits())
 
-        num_qubits = max([self._validate_qubits(circuit.all_qubits()) for circuit in circuits])
+        num_qubits = max([self._num_qubits(circuit) for circuit in circuits])
 
         gateset = None
         for circuit in circuits:
@@ -155,7 +157,7 @@ class Serializer:
             measurements.append(
                 (self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas'))
             )
-            qubit_numbers.append(self._validate_qubits(circuit.all_qubits()))
+            qubit_numbers.append(self._num_qubits(circuit))
 
         return SerializedProgram(
             body=body,
@@ -173,8 +175,8 @@ class Serializer:
         if not circuit.are_all_measurements_terminal():
             raise ValueError('All measurements in circuit must be at end of circuit.')
 
-    def _validate_qubits(self, all_qubits: Collection['cirq.Qid']) -> int:
-        """Returns the number of qubits while validating qubit types and values."""
+    def _validate_qubits(self, all_qubits: Collection['cirq.Qid']):
+        """Validates qubit types and values."""
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError(
                 f'All qubits must be cirq.LineQubits but were {set(type(q) for q in all_qubits)}'
@@ -184,8 +186,11 @@ class Serializer:
                 'IonQ API must use LineQubits from 0 to number of qubits - 1. Instead found line '
                 f'qubits with indices {all_qubits}.'
             )
-        num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
-        return num_qubits
+
+    def _num_qubits(self, circuit: cirq.AbstractCircuit) -> int:
+        """Returns the number of qubits in a circuit."""
+        all_qubits = circuit.all_qubits()
+        return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
 
     def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list:
         return [self._serialize_op(op) for moment in circuit for op in moment]
