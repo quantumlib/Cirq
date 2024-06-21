@@ -26,20 +26,22 @@ def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor):
     Also tests the non-Sycamore qubits and gates fail."""
     good_qubit = cirq.GridQubit(5, 4)
     circuit = cirq.Circuit(cirq.X(good_qubit), cirq.measure(good_qubit))
-    results = processor.run(circuit, repetitions=100)
+    results = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
     assert np.all(results.measurements[str(good_qubit)] == 1)
     with pytest.raises(RuntimeError, match='requested total repetitions'):
-        _ = processor.run(circuit, repetitions=100_000_000)
+        _ = processor.run(
+            circuit, repetitions=100_000_000, run_name="run", device_config_name="config"
+        )
 
     bad_qubit = cirq.GridQubit(10, 10)
     circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
     with pytest.raises(ValueError, match='Qubit not on device'):
-        _ = processor.run(circuit, repetitions=100)
+        _ = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
     circuit = cirq.Circuit(
         cirq.testing.DoesNotSupportSerializationGate()(good_qubit), cirq.measure(good_qubit)
     )
     with pytest.raises(ValueError, match='Cannot serialize op'):
-        _ = processor.run(circuit, repetitions=100)
+        _ = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
 
 
 def test_create_device_from_processor_id():
@@ -195,13 +197,13 @@ def test_create_default_noisy_quantum_virtual_machine():
         bad_qubit = cirq.GridQubit(10, 10)
         circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
         with pytest.raises(ValueError, match='Qubit not on device'):
-            _ = processor.run(circuit, repetitions=100)
+            _ = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
         good_qubit = cirq.GridQubit(5, 4)
         circuit = cirq.Circuit(
             cirq.testing.DoesNotSupportSerializationGate()(good_qubit), cirq.measure(good_qubit)
         )
         with pytest.raises(ValueError, match='.* contains a gate which is not supported.'):
-            _ = processor.run(circuit, repetitions=100)
+            _ = processor.run(circuit, repetitions=100, run_name="run", device_config_name="config")
         device_specification = processor.get_device_specification()
         expected = factory.create_device_spec_from_processor_id(processor_id)
         assert device_specification is not None

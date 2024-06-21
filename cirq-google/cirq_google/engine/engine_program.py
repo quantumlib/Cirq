@@ -69,8 +69,8 @@ class EngineProgram(abstract_program.AbstractProgram):
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,
-        run_name: str = "",
-        device_config_name: str = "",
+        run_name: str,
+        device_config_name: str,
     ) -> engine_job.EngineJob:
         """Runs the program on the QuantumEngine.
 
@@ -138,8 +138,8 @@ class EngineProgram(abstract_program.AbstractProgram):
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,
-        run_name: str = "",
-        device_config_name: str = "",
+        run_name: str,
+        device_config_name: str,
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
 

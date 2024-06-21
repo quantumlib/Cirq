@@ -64,8 +64,9 @@ class AbstractProcessor(abc.ABC):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
+        *,
+        run_name: str,
+        device_config_name: str,
     ) -> cirq.Result:
         """Runs the supplied Circuit on this processor.
 
@@ -125,8 +126,9 @@ class AbstractProcessor(abc.ABC):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
+        *,
+        run_name: str,
+        device_config_name: str,
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
