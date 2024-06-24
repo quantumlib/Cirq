@@ -78,6 +78,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         does not block until a result is returned.
 
         Args:
+            processor_id: Processor id for running the program.
             job_id: Optional job id to use. If this is not provided, a random id
                 of the format 'job-################YYMMDD' will be generated,
                 where # is alphanumeric and YYMMDD is the current year, month,
@@ -86,15 +87,12 @@ class EngineProgram(abstract_program.AbstractProgram):
             repetitions: The number of circuit repetitions to run.
             description: An optional description to set on the job.
             labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
-                device configurations for a processor. If specified, `processor_id`
-                is required to be set.
+                device configurations for a processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-                If specified, `processor_id` is required to be set.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -144,6 +142,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
+            processor_id: Processor id for running the program.
             job_id: Optional job id to use. If this is not provided, a random id
                 of the format 'job-################YYMMDD' will be generated,
                 where # is alphanumeric and YYMMDD is the current year, month,
@@ -152,15 +151,12 @@ class EngineProgram(abstract_program.AbstractProgram):
             repetitions: The number of repetitions to simulate.
             description: An optional description to set on the job.
             labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
-                device configurations for a processor. If specified, `processor_id`
-                is required to be set.
+                device configurations for a processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-                If specified, `processor_id` is required to be set.
 
         Returns:
             A single Result for this run.
