@@ -63,6 +63,7 @@ class EngineProgram(abstract_program.AbstractProgram):
     async def run_sweep_async(
         self,
         processor_id: str,
+        *,
         run_name: str,
         device_config_name: str,
         job_id: Optional[str] = None,
@@ -128,6 +129,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     async def run_async(
         self,
+        *,
         processor_id: str,
         run_name: str,
         device_config_name: str,

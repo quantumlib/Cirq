@@ -115,6 +115,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
+        *,
+        run_name: str,
+        device_config_name: str,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -123,9 +126,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-        *,
-        run_name: str,
-        device_config_name: str,
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
@@ -135,6 +135,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -150,12 +156,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.

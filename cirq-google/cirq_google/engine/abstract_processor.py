@@ -56,6 +56,7 @@ class AbstractProcessor(abc.ABC):
     async def run_async(
         self,
         program: cirq.Circuit,
+        *,
         run_name: str,
         device_config_name: str,
         program_id: Optional[str] = None,
@@ -118,6 +119,7 @@ class AbstractProcessor(abc.ABC):
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
+        *,
         run_name: str,
         device_config_name: str,
         program_id: Optional[str] = None,
