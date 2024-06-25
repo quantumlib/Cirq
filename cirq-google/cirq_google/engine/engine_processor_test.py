@@ -848,7 +848,10 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=False))
     job = processor.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        run_name="run",
+        device_config_name="config_alias",
     )
     results = job.results()
     assert len(results) == 2
@@ -887,7 +890,10 @@ def test_run_sweep_params_with_stream_rpcs(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=True))
     job = processor.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        run_name="run",
+        device_config_name="config_alias",
     )
     results = job.results()
     assert len(results) == 2
