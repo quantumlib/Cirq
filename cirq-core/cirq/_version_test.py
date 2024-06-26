@@ -3,4 +3,4 @@ import cirq
 
 
 def test_version():
-    assert cirq.__version__ == "1.4.0"
+    assert cirq.__version__ == "1.4.1"
