@@ -316,18 +316,18 @@ class TensoredConfusionMatrices:
         self, qubits: Sequence['cirq.Qid'], measured_bitstrings: np.ndarray
     ) -> tuple[float, float]:
         """Uncorrelated readout error mitigation for a multi-qubit Pauli operator. This function
-        scalably performs readout error mitigation on an arbitrary-length Pauli operator. It is a re-
-        implementation of https://github.com/eliottrosenberg/correlated_SPAM but specialized to the
+        scalably performs readout error mitigation on an arbitrary-length Pauli operator. It is a
+        reimplementation of https://github.com/eliottrosenberg/correlated_SPAM but specialized to the
         case in which readout is uncorrelated.
 
         Args:
             qubits: The qubits on which the Pauli operator acts.
-            measured_bitstrings: The experimentally measured bitstrings in the eigenbasis of the Pauli
-                operator. measured_bitstrings[i,j] is the ith bitstring, qubit j.
+            measured_bitstrings: The experimentally measured bitstrings in the eigenbasis of the
+                Pauli operator. measured_bitstrings[i,j] is the ith bitstring, qubit j.
 
         Returns:
-            The error-mitigated expectation value of the Pauli operator and its statistical uncertainty
-            (not including the uncertainty in the confusion matrices for now).
+            The error-mitigated expectation value of the Pauli operator and its statistical
+            uncertainty (not including the uncertainty in the confusion matrices for now).
 
         Raises:
             NotImplementedError: If the confusion matrix is not a tensor product of single-qubit
@@ -341,7 +341,8 @@ class TensoredConfusionMatrices:
                 idx = self.measure_qubits.index((qubit,))
             except:
                 raise NotImplementedError(
-                    f"The response matrix must be a tensor product of single-qubit response matrices including that of qubit {qubit}"
+                    "The response matrix must be a tensor product of single-qubit response matrices,"
+                    + f" including that of qubit {qubit}."
                 )
             cm_all.append(self.confusion_matrices[idx])
 
