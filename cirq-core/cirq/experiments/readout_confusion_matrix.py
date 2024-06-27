@@ -1,4 +1,4 @@
-# Copyright 2022 The Cirq Developers
+# Copyright 2024 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,12 +26,26 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _mitigate_single_bitstring(z_rinv_all: list[np.ndarray], bitstring: np.ndarray) -> float:
+    """Return the mitigated Pauli expectation value for a single observed bitstring.
+
+    Args:
+        z_rinv_all: A list of single-qubit pauli-Z (as a vector) contracted with the single-qubit
+            inverse response matrix, for each qubit.
+        bitstring: The measured bitstring.
+
+    Returns:
+        The corrected expectation value of ZZZZZ... given the single measured bitstring.
+    """
+    return np.prod([z_rinv[bit] for z_rinv, bit in zip(z_rinv_all, bitstring)])
+
+
 class TensoredConfusionMatrices:
     """Store and use confusion matrices for readout error mitigation on sets of qubits.
 
     The confusion matrix (CM) for one qubit is:
 
-        [ Pr(0|0) Pr(1|0) ]
+        [ Pr(0|0) Pr(0|1) ]
         [ Pr(1|0) Pr(1|1) ]
 
     where Pr(i | j) = Probability of observing state "i" given state "j" was prepared.
@@ -71,7 +85,7 @@ class TensoredConfusionMatrices:
             confusion_matrices: Sequence of confusion matrices, computed for qubit patterns present
                                 in `measure_qubits`. A single confusion matrix is also accepted.
             measure_qubits: Sequence of smaller qubit patterns, for which the confusion matrices
-                            were computed. A single qubit pattern is also accepted. Note that the
+                            were computed. A single qubit pattern is also accepted. Note that
                             each qubit pattern is a sequence of qubits used to label the axes of
                             the corresponding confusion matrix.
             repetitions:    The number of repetitions that were used to estimate the confusion
@@ -297,6 +311,53 @@ class TensoredConfusionMatrices:
                 f"did not converge. Result:\n{res}"  # pragma: no cover
             )  # pragma: no cover
         return res.x
+
+    def readout_mitigation_pauli_uncorrelated(
+        self, qubits: Sequence['cirq.Qid'], measured_bitstrings: np.ndarray
+    ) -> tuple[float, float]:
+        """Uncorrelated readout error mitigation for a multi-qubit Pauli operator. This function
+        scalably performs readout error mitigation on an arbitrary-length Pauli operator. It is a re-
+        implementation of https://github.com/eliottrosenberg/correlated_SPAM but specialized to the
+        case in which readout is uncorrelated.
+
+        Args:
+            qubits: The qubits on which the Pauli operator acts.
+            measured_bitstrings: The experimentally measured bitstrings in the eigenbasis of the Pauli
+                operator. measured_bitstrings[i,j] is the ith bitstring, qubit j.
+
+        Returns:
+            The error-mitigated expectation value of the Pauli operator and its statistical uncertainty
+            (not including the uncertainty in the confusion matrices for now).
+        """
+
+        # first, get all of the confusion matrices
+        cm_all = []
+        for qubit in qubits:
+            try:
+                idx = self.measure_qubits.index((qubit,))
+            except:
+                raise NotImplementedError(
+                    f"The response matrix must be a tensor product of single-qubit response matrices including that of qubit {qubit}"
+                )
+            cm_all.append(self.confusion_matrices[idx])
+
+        # get the correction matrices, assuming uncorrelated readout:
+        cminv_all = [np.linalg.inv(cm) for cm in cm_all]
+
+        # next, contract them with the single-qubit Pauli operators:
+        z = np.array([1, -1])
+        z_cminv_all = [z @ cminv for cminv in cminv_all]
+
+        # finally, mitigate each bitstring:
+        z_mit_all_shots = np.array(
+            [
+                _mitigate_single_bitstring(z_cminv_all, bitstring)
+                for bitstring in measured_bitstrings
+            ]
+        )
+
+        # return mean and statistical uncertainty:
+        return np.mean(z_mit_all_shots), np.std(z_mit_all_shots) / np.sqrt(len(measured_bitstrings))
 
     def __repr__(self) -> str:
         return (
