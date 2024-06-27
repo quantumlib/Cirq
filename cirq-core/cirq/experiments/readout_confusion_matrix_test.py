@@ -212,7 +212,7 @@ def _add_noise_and_mitigate_ghz(
     one_errors: np.ndarray,
     rng: np.random.Generator = np.random.default_rng(),
 ) -> tuple[float, float, float, float]:
-    """Add readout error to GHZ-like bitstrings, add readout errors, and measure <ZZZ...> with and
+    """Add readout error to GHZ-like bitstrings and measure <ZZZ...> with and
     without readout error mitigation.
     Args:
         n: The number of qubits.
