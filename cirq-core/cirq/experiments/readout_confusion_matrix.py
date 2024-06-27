@@ -328,6 +328,10 @@ class TensoredConfusionMatrices:
         Returns:
             The error-mitigated expectation value of the Pauli operator and its statistical uncertainty
             (not including the uncertainty in the confusion matrices for now).
+
+        Raises:
+            NotImplementedError: If the confusion matrix is not a tensor product of single-qubit
+                                 confusion matrices for all of `qubits`.
         """
 
         # first, get all of the confusion matrices
