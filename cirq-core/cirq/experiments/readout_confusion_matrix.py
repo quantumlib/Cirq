@@ -317,8 +317,8 @@ class TensoredConfusionMatrices:
     ) -> tuple[float, float]:
         """Uncorrelated readout error mitigation for a multi-qubit Pauli operator. This function
         scalably performs readout error mitigation on an arbitrary-length Pauli operator. It is a
-        reimplementation of https://github.com/eliottrosenberg/correlated_SPAM but specialized to the
-        case in which readout is uncorrelated.
+        reimplementation of https://github.com/eliottrosenberg/correlated_SPAM but specialized to
+        the case in which readout is uncorrelated.
 
         Args:
             qubits: The qubits on which the Pauli operator acts.
@@ -339,11 +339,11 @@ class TensoredConfusionMatrices:
         for qubit in qubits:
             try:
                 idx = self.measure_qubits.index((qubit,))
-            except:
-                raise NotImplementedError(
-                    "The response matrix must be a tensor product of single-qubit response matrices,"
-                    + f" including that of qubit {qubit}."
-                )
+            except:  # pragma: no cover
+                raise NotImplementedError(  # pragma: no cover
+                    "The response matrix must be a tensor product of single-qu"  # pragma: no cover
+                    + f"bit response matrices, including that of qubit {qubit}."  # pragma: no cover
+                )  # pragma: no cover
             cm_all.append(self.confusion_matrices[idx])
 
         # get the correction matrices, assuming uncorrelated readout:
