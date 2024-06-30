@@ -24,7 +24,7 @@ def add_readout_error(
     measurements: np.ndarray,
     zero_errors: np.ndarray,
     one_errors: np.ndarray,
-    rng: np.random.Generator = np.random.default_rng(),
+    rng: np.random.Generator | None = None,
 ) -> np.ndarray:
     """Add readout errors to measured (or simulated) bitstrings.
 
@@ -38,11 +38,12 @@ def add_readout_error(
     Returns:
         New measurements but with readout errors added.
     """
+    if rng is None:
+        rng = np.random.default_rng()
     num_bitstrs, n = measurements.shape
     assert len(zero_errors) == len(one_errors) == n
-    p1 = np.einsum("ij,j->ij", measurements, 1 - one_errors) + np.einsum(
-        "ij,j->ij", 1 - measurements, zero_errors
-    )
+    # compute the probability that each bit is 1 after adding readout errors:
+    p1 = measurements * (1 - one_errors) + (1 - measurements) * zero_errors
     r = rng.random((num_bitstrs, n))
     noisy_measurements = r < p1
     return noisy_measurements.astype(int)
@@ -190,9 +191,7 @@ def test_readout_confusion_matrix_repr_and_equality():
     eq.add_equality_group(c, c)
 
 
-def _sample_ghz(
-    n: int, repetitions: int, rng: np.random.Generator = np.random.default_rng()
-) -> np.ndarray:
+def _sample_ghz(n: int, repetitions: int, rng: np.random.Generator | None = None) -> np.ndarray:
     """Sample a GHZ state in the z basis.
     Args:
         n: The number of qubits.
@@ -201,7 +200,8 @@ def _sample_ghz(
     Returns:
         An array of the measurement outcomes.
     """
-
+    if rng is None:
+        rng = np.random.default_rng()
     return np.tile(rng.integers(0, 2, size=repetitions), (n, 1)).T
 
 
@@ -210,7 +210,7 @@ def _add_noise_and_mitigate_ghz(
     repetitions: int,
     zero_errors: np.ndarray,
     one_errors: np.ndarray,
-    rng: np.random.Generator = np.random.default_rng(),
+    rng: np.random.Generator | None = None,
 ) -> tuple[float, float, float, float]:
     """Add readout error to GHZ-like bitstrings and measure <ZZZ...> with and
     without readout error mitigation.
@@ -227,7 +227,8 @@ def _add_noise_and_mitigate_ghz(
         - The unmitigated expectation value of <ZZZ...>
         - The statstical uncertainty of the previous output
     """
-
+    if rng is None:
+        rng = np.random.default_rng()
     confusion_matrices = [
         np.array([[1 - e0, e1], [e0, 1 - e1]]) for e0, e1 in zip(zero_errors, one_errors)
     ]

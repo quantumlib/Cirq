@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -318,7 +318,21 @@ class TensoredConfusionMatrices:
         """Uncorrelated readout error mitigation for a multi-qubit Pauli operator. This function
         scalably performs readout error mitigation on an arbitrary-length Pauli operator. It is a
         reimplementation of https://github.com/eliottrosenberg/correlated_SPAM but specialized to
-        the case in which readout is uncorrelated.
+        the case in which readout is uncorrelated. We require that the confusion matrix is a
+        tensor product of single-qubit confusion matrices:
+        $$C = \otimes_q C^{(q)}.$$
+        We then invert the confusion matrix by inverting each of the $C^{(q)}$ Then, in a bit-by-
+        bit fashion, we apply $\left(C^{(q)}\right)^{-1}$ to the bits of the measured bitstring,
+        contract them with the single-site Pauli operator, and take the product over all of the
+        bits. This could be generalized to tensor product spaces that are larger than single
+        qubits, but the essential simplification is that each tensor product space is small,
+        so that none of the response matrices is exponentially large.
+
+        This can result in mitigated Pauli operators that are not in the range [-1, 1], but if
+        the readout error is indeed uncorrelated and well-characterized, then it should converge
+        to being within this range. Results are improved both by a more precise characterization
+        of the response matrices (whose statistical uncertainty is not accounted for in the error
+        propagation here) and by increasing the number of measured bitstrings.
 
         Args:
             qubits: The qubits on which the Pauli operator acts.
