@@ -319,14 +319,13 @@ class TensoredConfusionMatrices:
         scalably performs readout error mitigation on an arbitrary-length Pauli operator. It is a
         reimplementation of https://github.com/eliottrosenberg/correlated_SPAM but specialized to
         the case in which readout is uncorrelated. We require that the confusion matrix is a
-        tensor product of single-qubit confusion matrices:
-        $$C = \otimes_q C^{(q)}.$$
-        We then invert the confusion matrix by inverting each of the $C^{(q)}$ Then, in a bit-by-
-        bit fashion, we apply $\left(C^{(q)}\right)^{-1}$ to the bits of the measured bitstring,
-        contract them with the single-site Pauli operator, and take the product over all of the
-        bits. This could be generalized to tensor product spaces that are larger than single
-        qubits, but the essential simplification is that each tensor product space is small,
-        so that none of the response matrices is exponentially large.
+        tensor product of single-qubit confusion matrices. We then invert the confusion matrix by
+        inverting each of the $C^{(q)}$ Then, in a bit-by-bit fashion, we apply the inverses of the
+        single-site confusion matrices to the bits of the measured bitstring, contract them with
+        the single-site Pauli operator, and take the product over all of the bits. This could be
+        generalized to tensor product spaces that are larger than single qubits, but the essential
+        simplification is that each tensor product space is small, so that none of the response
+        matrices is exponentially large.
 
         This can result in mitigated Pauli operators that are not in the range [-1, 1], but if
         the readout error is indeed uncorrelated and well-characterized, then it should converge

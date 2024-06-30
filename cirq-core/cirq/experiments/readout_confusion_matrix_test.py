@@ -191,7 +191,7 @@ def test_readout_confusion_matrix_repr_and_equality():
     eq.add_equality_group(c, c)
 
 
-def _sample_ghz(n: int, repetitions: int, rng: np.random.Generator | None = None) -> np.ndarray:
+def _sample_ghz(n: int, repetitions: int, rng: np.random.Generator) -> np.ndarray:
     """Sample a GHZ state in the z basis.
     Args:
         n: The number of qubits.
@@ -200,8 +200,6 @@ def _sample_ghz(n: int, repetitions: int, rng: np.random.Generator | None = None
     Returns:
         An array of the measurement outcomes.
     """
-    if rng is None:
-        rng = np.random.default_rng()
     return np.tile(rng.integers(0, 2, size=repetitions), (n, 1)).T
 
 
