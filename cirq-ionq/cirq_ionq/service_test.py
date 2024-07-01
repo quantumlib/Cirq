@@ -46,7 +46,7 @@ def test_service_run(target, expected_results):
 
     a = sympy.Symbol('a')
     q = cirq.LineQubit(0)
-    circuit = cirq.Circuit((cirq.X ** a)(q), cirq.measure(q, key='a'))
+    circuit = cirq.Circuit((cirq.X**a)(q), cirq.measure(q, key='a'))
     params = cirq.ParamResolver({'a': 0.5})
     result = service.run(
         circuit=circuit, repetitions=4, target=target, name='bacon', param_resolver=params, seed=2
@@ -95,8 +95,8 @@ def test_service_run_batch(target, expected_results1, expected_results2):
     b = sympy.Symbol('b')
     q = cirq.LineQubit(0)
     circuits = [
-        cirq.Circuit((cirq.X ** a)(q), cirq.measure(q, key='a')),
-        cirq.Circuit((cirq.X ** b)(q), cirq.measure(q, key='b')),
+        cirq.Circuit((cirq.X**a)(q), cirq.measure(q, key='a')),
+        cirq.Circuit((cirq.X**b)(q), cirq.measure(q, key='b')),
     ]
     params = cirq.ParamResolver({'a': 0.5, 'b': 1})
     result = service.run_batch(

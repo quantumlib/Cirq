@@ -20,6 +20,8 @@ import sympy
 import cirq
 import cirq_ionq as ionq
 
+from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
+
 
 def test_serialize_single_circuit_empty_circuit_invalid():
     empty = cirq.Circuit()
@@ -644,6 +646,20 @@ def test_serialize_many_circuits_native_gates():
         metadata={'measurements': '[{}]', 'qubit_numbers': '[3]'},
         settings={},
     )
+
+
+def test_serialize_many_circuits_raises_exception_on_attempt_to_serialize_both_native_and_qis_gates():
+    (q1,) = cirq.LineQubit.range(1)
+    (q2,) = cirq.LineQubit.range(1)
+    gpi = ionq.GPIGate(phi=0.1).on(q1)
+    x = cirq.X(q2)
+    circuit1 = cirq.Circuit([gpi])
+    circuit2 = cirq.Circuit([x])
+    serializer = ionq.Serializer()
+    with pytest.raises(IonQSerializerMixedGatesetsException) as exc_info:
+        serializer.serialize_many_circuits([circuit1, circuit2])
+    exception_message = "For batch circuit submit all circuits in a batch must contain the same type of gates: either 'qis' or 'native' gates."
+    assert exception_message in str(exc_info.value)
 
 
 def test_serialize_single_circuit_measurement_gate_multiple_keys():

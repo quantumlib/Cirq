@@ -13,7 +13,19 @@
 # limitations under the License.
 """Support for serializing gates supported by IonQ's API."""
 import dataclasses
-from typing import Callable, cast, Collection, Dict, Iterator, List, Optional, Sequence, Type, Union
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Collection,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+)
 
 import json
 import numpy as np
@@ -23,7 +35,7 @@ import cirq
 from cirq.devices import line_qubit
 from cirq.ops import common_gates, parity_gates
 from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
-from cirq_ionq.ionq_exceptions import IonQSerializerException
+from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, cirq.MeasurementGate, unroll_circuit_op=False
@@ -126,6 +138,7 @@ class Serializer:
 
         Raises:
             ValueError: if the circuit has gates that are not supported or is otherwise invalid.
+            IonQSerializerMixedGatesetsException: if not all input circuits have the same type of gates: either 'qis' or 'native' gates.
         """
         for circuit in circuits:
             self._validate_circuit(circuit)
@@ -139,13 +152,13 @@ class Serializer:
             if gateset is None:
                 gateset = current_gateset
             if current_gateset != gateset:
-                raise IonQSerializerException(
-                    "For batch circuit submit all circuits in a batch must contain the same type of gates, either 'qis' or 'native' gates."
+                raise IonQSerializerMixedGatesetsException(
+                    "For batch circuit submit all circuits in a batch must contain the same type of gates: either 'qis' or 'native' gates."
                 )
 
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
-        body = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
+        body: dict[str, Any] = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
 
         measurements = []
         qubit_numbers = []

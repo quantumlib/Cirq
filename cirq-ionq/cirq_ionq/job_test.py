@@ -337,7 +337,7 @@ def test_job_results_simulator_endianness():
     assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
 
 
-def test_job_results_simulator_endianness():
+def test_batch_job_results_simulator_endianness():
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {
         '0190070f-9691-7000-a1f6-306623179a83': {'0': '0.6', '1': '0.4'}

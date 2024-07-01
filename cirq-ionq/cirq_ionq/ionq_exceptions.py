@@ -48,8 +48,10 @@ class IonQUnsuccessfulJobException(IonQException):
         super().__init__(f'Job {job_id} was {status}.')
 
 
-class IonQSerializerException(Exception):
-    """An exception for IonQ serializer."""
+class IonQSerializerMixedGatesetsException(Exception):
+    """An exception for IonQ serializer when attempting to run a batch of circuits
+    that do not have the same type of gates (either 'qis' or 'native' gates).
+    """
 
     def __init__(self, message):
         super().__init__(f'Message: \'{message}\'')
