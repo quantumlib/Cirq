@@ -24,7 +24,7 @@ def add_readout_error(
     measurements: np.ndarray,
     zero_errors: np.ndarray,
     one_errors: np.ndarray,
-    rng: np.random.Generator | None = None,
+    rng: np.random.Generator,
 ) -> np.ndarray:
     """Add readout errors to measured (or simulated) bitstrings.
 
@@ -38,8 +38,6 @@ def add_readout_error(
     Returns:
         New measurements but with readout errors added.
     """
-    if rng is None:
-        rng = np.random.default_rng()
     num_bitstrs, n = measurements.shape
     assert len(zero_errors) == len(one_errors) == n
     # compute the probability that each bit is 1 after adding readout errors:
