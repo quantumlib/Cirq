@@ -226,7 +226,7 @@ def _add_noise_and_mitigate_ghz(
         - The statstical uncertainty of the previous output
     """
     if rng is None:
-        rng = np.random.default_rng()
+        rng = np.random.default_rng(0)
     confusion_matrices = [
         np.array([[1 - e0, e1], [e0, 1 - e1]]) for e0, e1 in zip(zero_errors, one_errors)
     ]
@@ -236,7 +236,7 @@ def _add_noise_and_mitigate_ghz(
     )
 
     measurements = _sample_ghz(n, repetitions, rng)
-    noisy_measurements = add_readout_error(measurements, zero_errors, one_errors)
+    noisy_measurements = add_readout_error(measurements, zero_errors, one_errors, rng)
     # unmitigated:
     p1 = np.mean(np.sum(noisy_measurements, axis=1) % 2)
     z = 1 - 2 * np.mean(p1)
