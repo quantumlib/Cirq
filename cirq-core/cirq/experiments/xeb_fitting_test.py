@@ -415,3 +415,8 @@ def test_phased_fsim_angles_from_gate(gate):
     angles = {k.removesuffix('_default'): v for k, v in angles.items()}
     phasedfsim = cirq.PhasedFSimGate(**angles)
     np.testing.assert_allclose(cirq.unitary(phasedfsim), cirq.unitary(gate), atol=1e-9)
+
+
+def test_phased_fsim_angles_from_gate_unsupporet_gate():
+    with pytest.raises(ValueError, match='Unknown default angles'):
+        _ = phased_fsim_angles_from_gate(cirq.testing.TwoQubitGate())
