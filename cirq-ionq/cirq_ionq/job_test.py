@@ -14,8 +14,9 @@
 
 from unittest import mock
 
-import warnings
+import json
 import pytest
+import warnings
 
 import cirq_ionq as ionq
 
@@ -28,6 +29,27 @@ def test_job_fields():
         'qubits': '5',
         'status': 'completed',
         'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
+    }
+    job = ionq.Job(None, job_dict)
+    assert job.job_id() == 'my_id'
+    assert job.target() == 'qpu'
+    assert job.name() == 'bacon'
+    assert job.num_qubits() == 5
+    assert job.repetitions() == 1000
+    assert job.measurement_dict() == {'a': [0, 1]}
+
+
+def test_job_fields_multiple_circuits():
+    job_dict = {
+        'id': 'my_id',
+        'target': 'qpu',
+        'name': 'bacon',
+        'qubits': '5',
+        'status': 'completed',
+        'metadata': {
+            'shots': 1000,
+            'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
+        },
     }
     job = ionq.Job(None, job_dict)
     assert job.job_id() == 'my_id'
@@ -78,6 +100,38 @@ def test_job_results_qpu():
     assert results == expected
 
 
+def test_batch_job_results_qpu():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        '0190070f-9691-7000-a1f6-306623179a83': {'0': '0.6', '2': '0.4'},
+        '0190070f-991c-7000-8700-c4b56b30715d': {'1': 1.0},
+    }
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '2',
+        'target': 'qpu',
+        'metadata': {
+            'shots': 1000,
+            'measurements': json.dumps(
+                [{'measurement0': f'a{chr(31)}0,1'}, {'measurement0': f'a{chr(31)}0'}]
+            ),
+            'qubit_numbers': json.dumps([2, 1]),
+        },
+        'warning': {'messages': ['foo', 'bar']},
+    }
+    job = ionq.Job(mock_client, job_dict)
+    with warnings.catch_warnings(record=True) as w:
+        results = job.results()
+        assert len(w) == 2
+        assert "foo" in str(w[0].message)
+        assert "bar" in str(w[1].message)
+    expected_0 = ionq.QPUResult({0: 600, 1: 400}, 2, {'a': [0, 1]})
+    expected_1 = ionq.QPUResult({1: 1000}, 1, {'a': [0]})
+    assert results[0] == expected_0
+    assert results[1] == expected_1
+
+
 def test_job_results_rounding_qpu():
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {'0': '0.0006', '2': '0.9994'}
@@ -126,6 +180,27 @@ def test_job_results_qpu_endianness():
     assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
 
+def test_batch_job_results_qpu_endianness():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        '0190070f-9691-7000-a1f6-306623179a83': {'0': '0.6', '1': '0.4'}
+    }
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '2',
+        'target': 'qpu',
+        'metadata': {
+            'shots': 1000,
+            'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
+            'qubit_numbers': json.dumps([2]),
+        },
+    }
+    job = ionq.Job(mock_client, job_dict)
+    results = job.results()
+    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
+
+
 def test_job_results_qpu_target_endianness():
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
@@ -140,6 +215,28 @@ def test_job_results_qpu_target_endianness():
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
     assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
+
+
+def test_batch_job_results_qpu_target_endianness():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        '0190070f-9691-7000-a1f6-306623179a83': {'0': '0.6', '1': '0.4'}
+    }
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '2',
+        'target': 'qpu.target',
+        'metadata': {
+            'shots': 1000,
+            'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
+            'qubit_numbers': json.dumps([2]),
+        },
+        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
+    }
+    job = ionq.Job(mock_client, job_dict)
+    results = job.results()
+    assert results[0] == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={'a': [0, 1]})
 
 
 @mock.patch('time.sleep', return_value=None)
@@ -198,6 +295,33 @@ def test_job_results_simulator():
     assert results == ionq.SimulatorResult({0: 0.6, 1: 0.4}, 1, {}, 100)
 
 
+def test_batch_job_results_simulator():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        '0190070f-9691-7000-a1f6-306623179a83': {'0': '0.6', '2': '0.4'},
+        '0190070f-991c-7000-8700-c4b56b30715d': {'1': 1.0},
+    }
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '2',
+        'target': 'simulator',
+        'metadata': {
+            'shots': 1000,
+            'measurements': json.dumps(
+                [{'measurement0': f'a{chr(31)}0,1'}, {'measurement0': f'a{chr(31)}0'}]
+            ),
+            'qubit_numbers': json.dumps([2, 1]),
+        },
+    }
+    job = ionq.Job(mock_client, job_dict)
+    results = job.results()
+    expected_0 = ionq.SimulatorResult({0: 0.6, 1: 0.4}, 2, {'a': [0, 1]}, repetitions=1000)
+    expected_1 = ionq.SimulatorResult({1: 1}, 1, {'a': [0]}, repetitions=1000)
+    assert results[0] == expected_0
+    assert results[1] == expected_1
+
+
 def test_job_results_simulator_endianness():
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {'0': '0.6', '1': '0.4'}
@@ -211,6 +335,27 @@ def test_job_results_simulator_endianness():
     job = ionq.Job(mock_client, job_dict)
     results = job.results()
     assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
+
+
+def test_batch_job_results_simulator_endianness():
+    mock_client = mock.MagicMock()
+    mock_client.get_results.return_value = {
+        '0190070f-9691-7000-a1f6-306623179a83': {'0': '0.6', '1': '0.4'}
+    }
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '2',
+        'target': 'simulator',
+        'metadata': {
+            'shots': 1000,
+            'measurements': json.dumps([{'measurement0': f'a{chr(31)}0,1'}]),
+            'qubit_numbers': json.dumps([2]),
+        },
+    }
+    job = ionq.Job(mock_client, job_dict)
+    results = job.results()
+    assert results[0] == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {'a': [0, 1]}, 1000)
 
 
 def test_job_sharpen_results():
