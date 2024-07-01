@@ -146,6 +146,47 @@ class XEBCharacterizationOptions(ABC):
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
+def _try_defaults_from_unitary(gate: 'cirq.Gate') -> Optional[Dict[str, 'cirq.TParamVal']]:
+    u = protocols.unitary(gate, default=None)
+    if u is None:
+        return None
+
+    gamma = np.angle(u[1, 1] * u[2, 2] - u[1, 2] * u[2, 1]) / -2
+    phi = -np.angle(u[3, 3]) - 2 * gamma
+    phased_c_theta_2 = u[1, 1] * u[2, 2]
+    if phased_c_theta_2 == 0:
+        # The zeta phase is multiplied with cos(theta),
+        # so if cos(theta) is zero then any value is possible.
+        zeta = 0
+    else:
+        zeta = np.angle(u[2, 2] / u[1, 1]) / 2
+
+    phased_s_theta_2 = u[1, 2] * u[2, 1]
+    if phased_s_theta_2 == 0:
+        # The chi phase is multiplied with sin(theta),
+        # so if sin(theta) is zero then any value is possible.
+        chi = 0
+    else:
+        chi = np.angle(u[1, 2] / u[2, 1]) / 2
+
+    theta = np.angle(np.exp(1j * (gamma + zeta)) * u[1, 1] - np.exp(1j * (gamma + chi)) * u[1, 2])
+
+    if np.allclose(
+        u,
+        protocols.unitary(
+            ops.PhasedFSimGate(theta=theta, phi=phi, chi=chi, zeta=zeta, gamma=gamma)
+        ),
+    ):
+        return {
+            'theta_default': theta,
+            'phi_default': phi,
+            'gamma_default': gamma,
+            'zeta_default': zeta,
+            'chi_default': chi,
+        }
+    return None
+
+
 def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal']:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
@@ -174,6 +215,11 @@ def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal
             'gamma_default': gate.gamma,
             'phi_default': gate.phi,
         }
+
+    # Handle all gates that can be represented using an FSimGate.
+    from_unitary = _try_defaults_from_unitary(gate)
+    if from_unitary is not None:
+        return from_unitary
 
     raise ValueError(f"Unknown default angles for {gate}.")
 
@@ -578,15 +624,6 @@ def _fit_exponential_decay(
 
     a_std, layer_fid_std = np.sqrt(np.diag(pcov))
     return a, layer_fid, a_std, layer_fid_std
-
-
-def _one_unique(df, name, default):
-    """Helper function to assert that there's one unique value in a column and return it."""
-    if name not in df.columns:
-        return default
-    vals = df[name].unique()
-    assert len(vals) == 1, name
-    return vals[0]
 
 
 def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:

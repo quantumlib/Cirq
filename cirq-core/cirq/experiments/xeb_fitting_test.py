@@ -32,6 +32,7 @@ from cirq.experiments.xeb_fitting import (
     fit_exponential_decays,
     before_and_after_characterization,
     XEBPhasedFSimCharacterizationOptions,
+    phased_fsim_angles_from_gate,
 )
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 
@@ -354,7 +355,7 @@ def test_options_with_defaults_from_gate():
     assert options.zeta_default == 0.0
 
     with pytest.raises(ValueError):
-        _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.CZ)
+        _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.XX)
 
 
 def test_options_defaults_set():
@@ -395,3 +396,22 @@ def test_options_defaults_set():
         phi_default=0.0,
     )
     assert o3.defaults_set() is True
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.CZ,
+        cirq.SQRT_ISWAP,
+        cirq.SQRT_ISWAP_INV,
+        cirq.ISWAP,
+        cirq.ISWAP_INV,
+        cirq.cphase(0.1),
+        cirq.CZ**0.2,
+    ],
+)
+def test_phased_fsim_angles_from_gate(gate):
+    angles = phased_fsim_angles_from_gate(gate)
+    angles = {k.removesuffix('_default'): v for k, v in angles.items()}
+    phasedfsim = cirq.PhasedFSimGate(**angles)
+    np.testing.assert_allclose(cirq.unitary(phasedfsim), cirq.unitary(gate), atol=1e-9)
