@@ -316,7 +316,7 @@ class TensoredConfusionMatrices:
         self, qubits: Sequence['cirq.Qid'], measured_bitstrings: np.ndarray
     ) -> tuple[float, float]:
         r"""Uncorrelated readout error mitigation for a multi-qubit Pauli operator.
-        
+
         This function
         scalably performs readout error mitigation on an arbitrary-length Pauli operator. It is a
         reimplementation of https://github.com/eliottrosenberg/correlated_SPAM but specialized to
