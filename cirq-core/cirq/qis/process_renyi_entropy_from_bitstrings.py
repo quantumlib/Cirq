@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import concurrent.futures
 from collections.abc import Mapping, Sequence
 
 import numpy as np
@@ -98,11 +99,14 @@ def process_entropy_from_bitstrings(
 
     if num_shots == 1:
         return 0
-    # if parallelize:
-    #    purity = np.mean(process_pool.map(_compute_bitstring_purity, list(bitstrings)))
 
-    # else:
-    purity = np.mean([_compute_bitstring_purity(bitstring) for bitstring in tqdm(bitstrings)])
+    if parallelize:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            purities = list(executor.map(_compute_bitstring_purity, list(bitstrings)))
+        purity = np.mean(purities)
+
+    else:
+        purity = np.mean([_compute_bitstring_purity(bitstring) for bitstring in tqdm(bitstrings)])
 
     purity_unbiased = purity * num_shots / (num_shots - 1) - (2**num_qubits) / (num_shots - 1)
 

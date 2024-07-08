@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import random
 from collections.abc import Mapping, Sequence
-from typing import Any, Literal, Optional, List, Tuple
+from typing import Any, Literal
 
 import cirq
 import numpy as np
-import numpy.typing as npt
 
 
 class RandomizedMeasurements:
@@ -82,42 +79,6 @@ class RandomizedMeasurements:
 
         return cirq.Moment.from_ops(*op_list)
 
-    def append_randomized_measurements(
-        self, circuit: cirq.Circuit, qubits: Sequence
-    ) -> Sequence[cirq.Circuit]:
-        """Given an input circuit returns a list of circuits with the pre-measurement unitaries.
-
-        Args:
-            circuit: Input circuit
-            qubits: List of qubits in the circuit
-
-        Returns: List of circuits with pre-measurement unitaries and measurements added
-        """
-        if self.num_qubits != len(circuit.all_qubits()) or self.num_qubits != len(qubits):
-            raise ValueError("The number of qubits in the circuit does not match num_qubits")
-
-        circuit_list = []
-
-        for unitaries in self.pre_measurement_unitaries_list:
-            pre_measurement_moment = self._unitaries_to_moment(unitaries, qubits)
-
-            temp_circuit = cirq.Circuit.from_moments(
-                *circuit.moments, pre_measurement_moment, cirq.measure_each(*qubits)
-            )
-
-            circuit_list.append(temp_circuit)
-
-        return circuit_list
-
-    def process_measurements(self, bitstrings: npt.NDArray[np.int8]):
-        """Processes the measurement results.
-
-        To be over-written by the child class
-
-        Args:
-            bitstrings: A list of 0s and 1s resulting from the circuit measurement
-        """
-
 
 @staticmethod
 def _pauli_basis_rotation(basis: Literal["X", "Y", "Z"]) -> cirq.Gate:
@@ -146,8 +107,10 @@ def append_randomized_measurements(
     """Given an input circuit returns a list of circuits with the pre-measurement unitaries.
 
     Args:
-        circuit: Input circuit
-        subsystem: The specific subsystem measured in random basis
+        circuit: The input circuit
+        subsystem: The specific subsystem measured in random basis.
+        qubits: A sequence of qubits to measure in random basis.
+        unitaries: The number of random pre-measurement unitaries to append.
 
     Returns:
         List of circuits with pre-measurement unitaries and measurements added

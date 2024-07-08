@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import cirq
-import cirq.transformers.measure_in_random_bases as mrb
+import cirq.experiments.measure_in_random_bases as mrb
 
 
 def test_append_randomized_measurements_generates_n_circuits():
@@ -90,3 +90,30 @@ def test_append_randomized_measurements_appends_two_moments_to_specified_qubits(
     for circuit in circuits:
         num_moments_post = len(circuit.moments)
         assert num_moments_post == num_moments_pre + 2  # 1 random gate and 1 measurement gate
+
+
+def test_append_randomized_measurements_with_num_unitaries_generates_k_circuits():
+    # Create a 4-qubit
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
+    num_unitaries = 3
+
+    # Append randomized measurements to subsystem
+    circuits = mrb.append_randomized_measurements(circuit, unitaries=num_unitaries)
+
+    assert len(circuits) == num_unitaries
+
+
+def test_append_randomized_measurements_with_num_unitaries_appends_two_moments_on_each_circuit():
+    # Create a 4-qubit
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
+    num_moments_pre = len(circuit.moments)
+    num_unitaries = 3
+
+    # Append randomized measurements to subsystem
+    circuits = mrb.append_randomized_measurements(circuit, unitaries=num_unitaries)
+
+    for circuit in circuits:
+        num_moments_post = len(circuit.moments)
+        assert num_moments_post == num_moments_pre + 2
