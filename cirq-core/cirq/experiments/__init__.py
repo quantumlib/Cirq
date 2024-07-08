@@ -71,3 +71,7 @@ from cirq.experiments.two_qubit_xeb import (
     parallel_two_qubit_xeb,
     run_rb_and_xeb,
 )
+from cirq.experiments.measure_in_random_bases import (
+    RandomizedMeasurements,
+    append_randomized_measurements,
+)
