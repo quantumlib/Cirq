@@ -82,6 +82,33 @@ class RandomizedMeasurements:
 
         return cirq.Moment.from_ops(*op_list)
 
+    def append_randomized_measurements(
+        self, circuit: cirq.Circuit, qubits: Sequence
+    ) -> Sequence[cirq.Circuit]:
+        """Given an input circuit returns a list of circuits with the pre-measurement unitaries.
+
+        Args:
+            circuit: Input circuit
+            qubits: List of qubits in the circuit
+
+        Returns: List of circuits with pre-measurement unitaries and measurements added
+        """
+        if self.num_qubits != len(circuit.all_qubits()) or self.num_qubits != len(qubits):
+            raise ValueError("The number of qubits in the circuit does not match num_qubits")
+
+        circuit_list = []
+
+        for unitaries in self.pre_measurement_unitaries_list:
+            pre_measurement_moment = self._unitaries_to_moment(unitaries, qubits)
+
+            temp_circuit = cirq.Circuit.from_moments(
+                *circuit.moments, pre_measurement_moment, cirq.measure_each(*qubits)
+            )
+
+            circuit_list.append(temp_circuit)
+
+        return circuit_list
+
     def process_measurements(self, bitstrings: npt.NDArray[np.int8]):
         """Processes the measurement results.
 
@@ -109,58 +136,33 @@ def _pauli_basis_rotation(basis: Literal["X", "Y", "Z"]) -> cirq.Gate:
         return cirq.I
 
 
-@staticmethod
-def _random_cue_gates(qubit_locs: List[Tuple[int, int]], clifford: bool = False) -> cirq.Circuit:
-    qubits = [cirq.GridQubit(qubit_locs[i][0], qubit_locs[i][1]) for i in range(len(qubit_locs))]
-    circuit = cirq.Circuit()
-
-    phi_vals = np.linspace(0, 2 * np.pi, 1001)
-    chi_vals = np.linspace(0, 2 * np.pi, 1001)
-    theta_vals = np.linspace(0, 1, 1001)
-    theta_vals = np.arccos(np.sqrt(theta_vals)) * 2
-    nums = np.linspace(-1, 1, 1001)
-
-    for qubit in qubits:
-        if clifford:
-            phi = random.choice(phi_vals)
-            chi = random.choice(chi_vals)
-            theta = random.choice(theta_vals)
-            circuit.append(cirq.Z(qubit) ** ((phi - chi) / np.pi))
-            circuit.append(cirq.X(qubit) ** (theta / np.pi))
-            circuit.append(cirq.Z(qubit) ** ((phi + chi) / np.pi))
-        else:
-            gate = cirq.PhasedXZGate(
-                x_exponent=random.choice(nums),
-                z_exponent=random.choice(nums),
-                axis_phase_exponent=random.choice(nums),
-            )
-            circuit.append(gate(qubit))
-
-    return circuit
-
-
 def append_randomized_measurements(
-    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
+    circuit: 'cirq.AbstractCircuit',
+    *,
+    subsystem: tuple[int] | None = None,
+    qubits: Sequence | None = None,
+    unitaries: int | None = None,
 ) -> Sequence['cirq.Circuit']:
     """Given an input circuit returns a list of circuits with the pre-measurement unitaries.
 
     Args:
         circuit: Input circuit
-        context: `cirq.TransformerContext` storing common configurable options
-            for transformers. The default has `deep=True` to ensure
-            measurements at all levels are dephased.
+        subsystem: The specific subsystem measured in random basis
 
-    Returns: List of circuits with pre-measurement unitaries and measurements added
+    Returns:
+        List of circuits with pre-measurement unitaries and measurements added
     """
-    qubits = circuit.all_qubits()
+    qubits = qubits or list(circuit.all_qubits())
 
-    randomized_measurement_circuits = RandomizedMeasurements(len(qubits), len(qubits))
+    randomized_measurement_circuits = RandomizedMeasurements(
+        len(qubits), unitaries if unitaries else len(qubits), subsystem=subsystem
+    )
 
     circuit_list = []
 
     for unitaries in randomized_measurement_circuits.pre_measurement_unitaries_list:
         pre_measurement_moment = randomized_measurement_circuits.unitaries_to_moment(
-            unitaries, list(qubits)
+            unitaries, qubits
         )
 
         temp_circuit = cirq.Circuit.from_moments(
