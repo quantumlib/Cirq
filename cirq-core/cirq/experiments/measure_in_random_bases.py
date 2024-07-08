@@ -50,7 +50,7 @@ class RandomizedMeasurements:
 
         self.pre_measurement_unitaries_list = self._generate_unitaries_list()
 
-    def _generate_unitaries_list(self) -> Sequence[Sequence[Any]]:
+    def _generate_unitaries_list(self) -> np.ndarray[Any, Any]:
         """Generates a list of pre-measurement unitaries."""
 
         pauli_strings = self.rng.choice(["X", "Y", "Z"], size=(self.num_unitaries, self.num_qubits))
@@ -64,7 +64,7 @@ class RandomizedMeasurements:
 
     def unitaries_to_moment(
         self, unitaries: Sequence[Literal["X", "Y", "Z"]], qubits: Sequence[Any]
-    ) -> cirq.Moment:
+    ) -> 'cirq.Moment':
         """Outputs the cirq moment associated with the pre-measurement rotations.
 
         Args:
@@ -80,8 +80,7 @@ class RandomizedMeasurements:
         return cirq.Moment.from_ops(*op_list)
 
 
-@staticmethod
-def _pauli_basis_rotation(basis: Literal["X", "Y", "Z"]) -> cirq.Gate:
+def _pauli_basis_rotation(basis: Literal["X", "Y", "Z"]) -> 'cirq.Gate':
     """Given a measurement basis returns the associated rotation.
 
     Args:
@@ -102,7 +101,7 @@ def append_randomized_measurements(
     *,
     subsystem: tuple[int] | None = None,
     qubits: Sequence | None = None,
-    unitaries: int | None = None,
+    num_unitaries: int | None = None,
 ) -> Sequence['cirq.Circuit']:
     """Given an input circuit returns a list of circuits with the pre-measurement unitaries.
 
@@ -110,7 +109,7 @@ def append_randomized_measurements(
         circuit: The input circuit
         subsystem: The specific subsystem measured in random basis.
         qubits: A sequence of qubits to measure in random basis.
-        unitaries: The number of random pre-measurement unitaries to append.
+        num_unitaries: The number of random pre-measurement unitaries to append.
 
     Returns:
         List of circuits with pre-measurement unitaries and measurements added
@@ -118,7 +117,7 @@ def append_randomized_measurements(
     qubits = qubits or list(circuit.all_qubits())
 
     randomized_measurement_circuits = RandomizedMeasurements(
-        len(qubits), unitaries if unitaries else len(qubits), subsystem=subsystem
+        len(qubits), num_unitaries if num_unitaries else len(qubits), subsystem=subsystem
     )
 
     circuit_list = []

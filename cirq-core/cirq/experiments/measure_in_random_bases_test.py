@@ -99,7 +99,7 @@ def test_append_randomized_measurements_with_num_unitaries_generates_k_circuits(
     num_unitaries = 3
 
     # Append randomized measurements to subsystem
-    circuits = mrb.append_randomized_measurements(circuit, unitaries=num_unitaries)
+    circuits = mrb.append_randomized_measurements(circuit, num_unitaries=num_unitaries)
 
     assert len(circuits) == num_unitaries
 
@@ -112,7 +112,7 @@ def test_append_randomized_measurements_with_num_unitaries_appends_two_moments_o
     num_unitaries = 3
 
     # Append randomized measurements to subsystem
-    circuits = mrb.append_randomized_measurements(circuit, unitaries=num_unitaries)
+    circuits = mrb.append_randomized_measurements(circuit, num_unitaries=num_unitaries)
 
     for circuit in circuits:
         num_moments_post = len(circuit.moments)
