@@ -85,7 +85,12 @@ def test_run_sweeps_delegation(create_job_async):
     program = cg.EngineProgram('my-proj', 'my-prog', EngineContext())
     param_resolver = cirq.ParamResolver({})
     job = program.run_sweep(
-        job_id='steve', repetitions=10, params=param_resolver, processor_ids=['mine']
+        job_id='steve',
+        repetitions=10,
+        params=param_resolver,
+        processor_id='mine',
+        run_name="run_name",
+        device_config_name="config",
     )
     assert job._job == quantum.QuantumJob()
 
@@ -134,7 +139,12 @@ def test_run_delegation(create_job_async, get_results_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
     param_resolver = cirq.ParamResolver({})
     results = program.run(
-        job_id='steve', repetitions=10, param_resolver=param_resolver, processor_ids=['mine']
+        job_id='steve',
+        repetitions=10,
+        param_resolver=param_resolver,
+        processor_id='mine',
+        run_name="run_name",
+        device_config_name="config",
     )
 
     assert results == cg.EngineResult(

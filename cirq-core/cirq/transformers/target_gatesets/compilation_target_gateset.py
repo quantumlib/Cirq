@@ -76,7 +76,7 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
 class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     """Abstract base class to create gatesets that can be used as targets for compilation.
 
-    An instance of this type can be passed to transformers like `cirq.convert_to_target_gateset`,
+    An instance of this type can be passed to transformers like `cirq.optimize_for_target_gateset`,
     which can transform any given circuit to contain gates accepted by this gateset.
     """
 

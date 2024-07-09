@@ -14,7 +14,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.10', '3.11']
+        python-version: ['3.10', '3.11', '3.12']
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.10', '3.11']
+        python-version: ['3.10', '3.11', '3.12']
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v4
@@ -70,8 +70,9 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.10', '3.11']
-    runs-on: macos-latest
+        python-version: ['3.10', '3.11', '3.12']
+    # TODO(#6577): upgrade to macos-latest when it runs Python 3.10
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

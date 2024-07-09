@@ -37,7 +37,7 @@ def test_modules():
             'url': 'http://github.com/quantumlib/cirq',
             'author': 'The Cirq Developers',
             'author_email': 'cirq-dev@googlegroups.com',
-            'python_requires': '>=3.9.0',
+            'python_requires': '>=3.10.0',
             'install_requires': ['req1', 'req2'],
             'license': 'Apache 2',
             'packages': ['pack1', 'pack1.sub'],
@@ -149,6 +149,7 @@ def test_get_version_on_no_modules():
 def test_get_version_on_inconsistent_version_modules():
     modules.replace_version(search_dir=Path("./mod2"), old="1.2.3.dev", new="1.2.4.dev")
     assert modules.get_version(search_dir=Path("./mod2")) == "1.2.4.dev"
+    assert "1.2.4.dev" in Path("./mod2/pack2/_version_test.py").read_text("UTF-8")
     with pytest.raises(ValueError, match="Versions should be the same, instead:"):
         modules.get_version(search_dir=Path("."))
 
@@ -158,6 +159,8 @@ def test_replace_version(tmpdir_factory):
     assert modules.get_version() == "1.2.3.dev"
     modules.replace_version(old="1.2.3.dev", new="1.2.4.dev")
     assert modules.get_version() == "1.2.4.dev"
+    assert "1.2.4.dev" in Path("./mod1/pack1/_version_test.py").read_text("UTF-8")
+    assert "1.2.4.dev" in Path("./mod2/pack2/_version_test.py").read_text("UTF-8")
 
 
 @chdir(target_dir="dev_tools/modules_test_data")

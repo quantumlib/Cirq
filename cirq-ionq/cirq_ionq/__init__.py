@@ -16,7 +16,7 @@ from cirq_ionq._version import __version__
 
 from cirq_ionq.calibration import Calibration
 
-from cirq_ionq.ionq_devices import IonQAPIDevice, decompose_to_device
+from cirq_ionq.ionq_devices import IonQAPIDevice
 
 from cirq_ionq.ionq_gateset import IonQTargetGateset, decompose_all_to_all_connect_ccz_gate
 

@@ -2,18 +2,16 @@
 
 pytest
 pytest-asyncio
-# pytest-cov 4.1.0 discards line hits in subprocess (coverage failures in #6208)
-pytest-cov~=3.0
+pytest-cov
 pytest-randomly
-# Notebook >=6.4.8 + coverage > 6.2 hangs CI: https://github.com/quantumlib/Cirq/issues/4897
-coverage<=6.2
+coverage~=7.4
 
 # for parallel testing notebooks
-pytest-xdist~=2.2.0
-filelock~=3.0.12
+pytest-xdist
+filelock~=3.1
 
 # For testing time specific logic
-freezegun~=0.3.15
+freezegun
 
 # For test_metadata_distributions_after_deprecated_submodule
 importlib-metadata
@@ -22,5 +20,5 @@ importlib-metadata
 codeowners; platform_system != "Windows"
 
 # for creating isolated environments
-virtualenv
+virtualenv~=20.23
 virtualenv-clone

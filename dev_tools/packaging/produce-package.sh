@@ -36,6 +36,13 @@ out_dir=$(realpath "${1}")
 
 SPECIFIED_VERSION="${2}"
 
+# Helper to run dev_tools/modules.py without CIRQ_PRE_RELEASE_VERSION
+# to avoid environment version override in setup.py.
+my_dev_tools_modules() {
+    env -u CIRQ_PRE_RELEASE_VERSION PYTHONPATH=. \
+        python3 dev_tools/modules.py "$@"
+}
+
 # Get the working directory to the repo root.
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 repo_dir=$(git rev-parse --show-toplevel)
@@ -47,21 +54,18 @@ if [ -n "$(git status --short)" ]; then
 fi
 tmp_git_dir=$(mktemp -d "/tmp/produce-package-git.XXXXXXXXXXXXXXXX")
 trap '{ rm -rf "${tmp_git_dir}"; }' EXIT
+echo "Creating pristine repository clone at ${tmp_git_dir}"
+git clone --shared --quiet "${repo_dir}" "${tmp_git_dir}"
 cd "${tmp_git_dir}"
-git init --quiet
-git fetch "${repo_dir}" HEAD --quiet --depth=1
-git checkout FETCH_HEAD -b work --quiet
 if [ -n "${SPECIFIED_VERSION}" ]; then
-    CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
-    for PROJECT_NAME in $CIRQ_PACKAGES; do
-      echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/${PROJECT_NAME}/_version.py"
-    done
+    CURRENT_VERSION=$(my_dev_tools_modules print_version)
+    my_dev_tools_modules replace_version --old="${CURRENT_VERSION}" --new="${SPECIFIED_VERSION}"
 fi
 
 # Python 3 wheel.
 echo "Producing python 3 package files."
 
-CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder --include-parent)
+CIRQ_MODULES=$(my_dev_tools_modules list --mode folder --include-parent)
 
 for m in $CIRQ_MODULES; do
   echo "processing $m/setup.py..."

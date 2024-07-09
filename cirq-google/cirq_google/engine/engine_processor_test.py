@@ -414,24 +414,6 @@ def test_list_calibrations(list_calibrations):
     list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
-def test_list_calibrations_old_params(list_calibrations):
-    # Disable pylint warnings for use of deprecated parameters
-    # pylint: disable=unexpected-keyword-arg
-    list_calibrations.return_value = [_CALIBRATION]
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    with cirq.testing.assert_deprecated('Change earliest_timestamp_seconds', deadline='v1.0'):
-        assert [
-            c.timestamp for c in processor.list_calibrations(earliest_timestamp_seconds=1562500000)
-        ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-    with cirq.testing.assert_deprecated('Change latest_timestamp_seconds', deadline='v1.0'):
-        assert [
-            c.timestamp for c in processor.list_calibrations(latest_timestamp_seconds=1562600000)
-        ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
-
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
 def test_get_calibration(get_calibration):
     get_calibration.return_value = _CALIBRATION
@@ -866,7 +848,10 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=False))
     job = processor.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        run_name="run",
+        device_config_name="config_alias",
     )
     results = job.results()
     assert len(results) == 2
@@ -905,7 +890,10 @@ def test_run_sweep_params_with_stream_rpcs(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=True))
     job = processor.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        run_name="run",
+        device_config_name="config_alias",
     )
     results = job.results()
     assert len(results) == 2
