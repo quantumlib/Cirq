@@ -27,6 +27,6 @@ def test_process_entropy_from_bitstrings():
             [[1, 0, 1, 1], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
         ]
     )
-    substsytem = [0, 1]
+    substsytem = (0, 1)
     entropy = process_entropy_from_bitstrings(bitstrings, substsytem)
     assert entropy == 0.7

@@ -17,7 +17,6 @@ from collections.abc import Mapping, Sequence
 
 import numpy as np
 import numpy.typing as npt
-from tqdm.notebook import tqdm
 
 
 def _get_hamming_distance(bitstring_1: Sequence[int], bitstring_2: Sequence[int]) -> int:
@@ -91,7 +90,7 @@ def _compute_bitstring_purity(bitstrings: npt.NDArray[np.int8]) -> float:
 def process_entropy_from_bitstrings(
     measured_bitstrings: npt.NDArray[np.int8],
     subsystem: tuple[int] | None = None,
-    parallelize=False,
+    parallelize: bool = False,
 ):
     bitstrings = _bitstring_format_helper(measured_bitstrings, subsystem)
     num_shots = bitstrings.shape[1]
@@ -106,7 +105,7 @@ def process_entropy_from_bitstrings(
         purity = np.mean(purities)
 
     else:
-        purity = np.mean([_compute_bitstring_purity(bitstring) for bitstring in tqdm(bitstrings)])
+        purity = np.mean([_compute_bitstring_purity(bitstring) for bitstring in bitstrings])
 
     purity_unbiased = purity * num_shots / (num_shots - 1) - (2**num_qubits) / (num_shots - 1)
 
