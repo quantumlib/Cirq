@@ -103,6 +103,8 @@ def list_modules(
         for f in search_dir.glob("*")
         if f.is_dir() and (f / "setup.py").is_file()
     )
+    # Temporarily ignore cirq-rigetti (see #6661).
+    relative_folders = [rf for rf in relative_folders if 'cirq-rigetti' not in str(rf)]
     if include_parent:
         parent_setup_py = search_dir / "setup.py"
         if not parent_setup_py.exists():

@@ -38,8 +38,10 @@ import cirq_aqt
 import cirq_google
 import cirq_ionq
 import cirq_pasqal
-import cirq_rigetti
 import cirq_web
+
+# temporary fix for #6661
+import cirq_rigetti  # type: ignore
 
 from cirq import _doc
 

@@ -14,7 +14,7 @@
 
 """Tool to visualize the results of a study."""
 
-from typing import cast, Optional, Sequence, SupportsFloat, Union
+from typing import Optional, Sequence, SupportsFloat, Union
 import collections
 import numpy as np
 import matplotlib.pyplot as plt
@@ -87,7 +87,6 @@ def plot_state_histogram(
     show_fig = not ax
     if not ax:
         fig, ax = plt.subplots(1, 1)
-        ax = cast(plt.Axes, ax)
     if isinstance(data, result.Result):
         values = get_state_histogram(data)
     elif isinstance(data, collections.Counter):

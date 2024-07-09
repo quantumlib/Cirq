@@ -296,7 +296,6 @@ class Heatmap:
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
-            ax = cast(plt.Axes, ax)
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         collection = self._plot_on_axis(ax)
@@ -383,7 +382,6 @@ class TwoQubitInteractionHeatmap(Heatmap):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
-            ax = cast(plt.Axes, ax)
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])

@@ -79,11 +79,11 @@ OPERATIONS = [
         op_proto({'xpowgate': {'exponent': {'float_value': 0.125}}, 'qubit_constant_index': [0]}),
     ),
     (
-        cirq.XPowGate(exponent=np.double(0.125))(Q1),  # type: ignore
+        cirq.XPowGate(exponent=np.double(0.125))(Q1),
         op_proto({'xpowgate': {'exponent': {'float_value': 0.125}}, 'qubit_constant_index': [0]}),
     ),
     (
-        cirq.XPowGate(exponent=np.short(1))(Q1),  # type: ignore
+        cirq.XPowGate(exponent=np.short(1))(Q1),
         op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
     (

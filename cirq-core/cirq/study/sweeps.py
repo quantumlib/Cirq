@@ -591,10 +591,7 @@ def dict_to_product_sweep(factor_dict: ProductOrZipSweepLike) -> Product:
         Cartesian product of the sweeps.
     """
     return Product(
-        *(
-            Points(k, v if isinstance(v, Sequence) else [v])  # type: ignore
-            for k, v in factor_dict.items()
-        )
+        *(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items())
     )
 
 
