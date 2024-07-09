@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import numpy as np
 
 from cirq.qis.process_renyi_entropy_from_bitstrings import process_entropy_from_bitstrings
 
 
-def test_process_entropy_from_bitstrings():
+@pytest.mark.parametrize('parallelize', [True, False])
+def test_process_entropy_from_bitstrings(parallelize):
     bitstrings = np.array(
         [
             [[0, 1, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 1, 1, 1]],
@@ -28,5 +30,12 @@ def test_process_entropy_from_bitstrings():
         ]
     )
     substsytem = (0, 1)
-    entropy = process_entropy_from_bitstrings(bitstrings, substsytem)
+    entropy = process_entropy_from_bitstrings(bitstrings, substsytem, parallelize)
     assert entropy == 0.7
+
+
+def test_process_entropy_from_bitstrings_safeguards_against_divide_by_0_error():
+    bitstrings = np.array([[[0, 1, 1, 0]], [[0, 1, 1, 0]], [[0, 0, 1, 1]]])
+
+    entropy = process_entropy_from_bitstrings(bitstrings)
+    assert entropy == 0

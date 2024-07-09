@@ -17,6 +17,7 @@ from typing import Any, Literal
 
 import cirq
 import numpy as np
+import numpy.typing as npt
 
 
 class RandomizedMeasurements:
@@ -50,7 +51,7 @@ class RandomizedMeasurements:
 
         self.pre_measurement_unitaries_list = self._generate_unitaries_list()
 
-    def _generate_unitaries_list(self) -> np.ndarray[Any, Any]:
+    def _generate_unitaries_list(self) -> npt.NDarray[Any, Any]:
         """Generates a list of pre-measurement unitaries."""
 
         pauli_strings = self.rng.choice(["X", "Y", "Z"], size=(self.num_unitaries, self.num_qubits))
