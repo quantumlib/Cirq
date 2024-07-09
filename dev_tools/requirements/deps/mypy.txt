@@ -1,5 +1,5 @@
 # the mypy dependency file
-mypy~=1.9.0
+mypy~=1.2.0
 
 # packages with stub types for various libraries
 types-backports==0.1.3
