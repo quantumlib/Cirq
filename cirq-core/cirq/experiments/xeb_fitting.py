@@ -169,7 +169,7 @@ def _try_defaults_from_unitary(gate: 'cirq.Gate') -> Optional[Dict[str, 'cirq.TP
     else:
         chi = np.angle(u[1, 2] / u[2, 1]) / 2
 
-    theta = np.angle(np.exp(1j * (gamma + zeta)) * u[1, 1] - np.exp(1j * (gamma + chi)) * u[1, 2])
+    theta = np.angle(np.exp(1j * (gamma + zeta)) * u[1, 1] - np.exp(1j * (gamma - chi)) * u[1, 2])
 
     if np.allclose(
         u,

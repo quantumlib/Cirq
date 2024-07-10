@@ -408,7 +408,8 @@ def test_options_defaults_set():
         cirq.ISWAP_INV,
         cirq.cphase(0.1),
         cirq.CZ**0.2,
-    ],
+    ]
+    + [cirq.PhasedFSimGate(*r) for r in (np.pi * np.random.default_rng(0).random((10, 5)))],
 )
 def test_phased_fsim_angles_from_gate(gate):
     angles = phased_fsim_angles_from_gate(gate)
