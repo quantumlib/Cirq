@@ -441,6 +441,7 @@ def parallel_two_qubit_xeb(
     **plot_kwargs,
 ) -> TwoQubitXEBResult:
     """A convenience method that runs the full XEB workflow.
+
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubits: Qubits under test. If none, uses all qubits on the sampler's device.
