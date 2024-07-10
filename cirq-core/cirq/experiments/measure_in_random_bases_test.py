@@ -17,7 +17,7 @@ import cirq.experiments.measure_in_random_bases as mrb
 
 
 def test_append_randomized_measurements_generates_n_circuits():
-    # Create a 4-qubit
+    # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
 
@@ -28,7 +28,7 @@ def test_append_randomized_measurements_generates_n_circuits():
 
 
 def test_append_randomized_measurements_appends_two_moments_to_end_of_circuit():
-    # Create a 4-qubit
+    # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
 
@@ -43,7 +43,7 @@ def test_append_randomized_measurements_appends_two_moments_to_end_of_circuit():
 
 
 def test_append_randomized_measurements_generates_n_circuits_when_passed_subystem_arg():
-    # Create a 4-qubit
+    # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
 
@@ -54,7 +54,7 @@ def test_append_randomized_measurements_generates_n_circuits_when_passed_subyste
 
 
 def test_append_randomized_measurements_leaves_qubits_not_in_specified_subsystem_unchanged():
-    # Create a 4-qubit
+    # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
 
@@ -68,7 +68,7 @@ def test_append_randomized_measurements_leaves_qubits_not_in_specified_subsystem
 
 
 def test_append_randomized_measurements_generates_circuits_only_for_passed_qubit_mapping():
-    # Create a 4-qubit
+    # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
 
@@ -79,7 +79,7 @@ def test_append_randomized_measurements_generates_circuits_only_for_passed_qubit
 
 
 def test_append_randomized_measurements_appends_two_moments_to_specified_qubits():
-    # Create a 4-qubit
+    # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
     num_moments_pre = len(circuit.moments)
@@ -93,7 +93,7 @@ def test_append_randomized_measurements_appends_two_moments_to_specified_qubits(
 
 
 def test_append_randomized_measurements_with_num_unitaries_generates_k_circuits():
-    # Create a 4-qubit
+    # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
     num_unitaries = 3
@@ -105,7 +105,7 @@ def test_append_randomized_measurements_with_num_unitaries_generates_k_circuits(
 
 
 def test_append_randomized_measurements_with_num_unitaries_appends_two_moments_on_each_circuit():
-    # Create a 4-qubit
+    # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
     num_moments_pre = len(circuit.moments)
