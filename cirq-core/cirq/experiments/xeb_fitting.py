@@ -148,7 +148,7 @@ class XEBCharacterizationOptions(ABC):
 
 def _try_defaults_from_unitary(gate: 'cirq.Gate') -> Optional[Dict[str, 'cirq.TParamVal']]:
     r"""Try to figure out the PhasedFSim angles from the unitary of the gate.
-    
+
     The unitary of a PhasedFSimGate has the form:
     $$
     \begin{bmatrix}
@@ -164,10 +164,10 @@ def _try_defaults_from_unitary(gate: 'cirq.Gate') -> Optional[Dict[str, 'cirq.TP
 
     Args:
         A cirq gate.
-    
+
     Returns:
-        A dictionary mapping angles to values or None if the gate doesn't have a unitary or if it can't
-        be represented by a PhasedFSimGate.
+        A dictionary mapping angles to values or None if the gate doesn't have a unitary or if it
+        can't be represented by a PhasedFSimGate.
     """
     u = protocols.unitary(gate, default=None)
     if u is None:
