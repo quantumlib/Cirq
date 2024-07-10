@@ -147,22 +147,44 @@ class XEBCharacterizationOptions(ABC):
 
 
 def _try_defaults_from_unitary(gate: 'cirq.Gate') -> Optional[Dict[str, 'cirq.TParamVal']]:
+    r"""Try to figure out the PhasedFSim angles from the unitary of the gate.
+    
+    The unitary of a PhasedFSimGate has the form:
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & e^{-i \gamma - i \zeta} \cos(\theta) & -i e^{-i \gamma + i\chi} \sin(\theta) & 0 \\
+        0 & -i e^{-i \gamma - i \chi} \sin(\theta) & e^{-i \gamma + i \zeta} \cos(\theta) & 0 \\
+        0 & 0 & 0 & e^{-2i \gamma - i \phi}
+    \end{bmatrix}
+    $$
+    That's the information about the five angles $\theta, \phi, \gamma, \zeta, \chi$ is encoded in
+    the submatrix unitary[1:3, 1:3] and the element u[3][3]. With some algebra, we can isolate each
+    of the angles as an argument of a combination of those elements (and potentially other angles).
+
+    Args:
+        A cirq gate.
+    
+    Returns:
+        A dictionary mapping angles to values or None if the gate doesn't have a unitary or if it can't
+        be represented by a PhasedFSimGate.
+    """
     u = protocols.unitary(gate, default=None)
     if u is None:
         return None
 
     gamma = np.angle(u[1, 1] * u[2, 2] - u[1, 2] * u[2, 1]) / -2
     phi = -np.angle(u[3, 3]) - 2 * gamma
-    phased_c_theta_2 = u[1, 1] * u[2, 2]
-    if phased_c_theta_2 == 0:
+    phased_cos_theta_2 = u[1, 1] * u[2, 2]
+    if phased_cos_theta_2 == 0:
         # The zeta phase is multiplied with cos(theta),
         # so if cos(theta) is zero then any value is possible.
         zeta = 0
     else:
         zeta = np.angle(u[2, 2] / u[1, 1]) / 2
 
-    phased_s_theta_2 = u[1, 2] * u[2, 1]
-    if phased_s_theta_2 == 0:
+    phased_sin_theta_2 = u[1, 2] * u[2, 1]
+    if phased_sin_theta_2 == 0:
         # The chi phase is multiplied with sin(theta),
         # so if sin(theta) is zero then any value is possible.
         chi = 0
