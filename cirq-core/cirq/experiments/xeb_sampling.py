@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
-import concurrent
 import os
 import time
 import uuid
-from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import (
     Callable,
@@ -276,18 +274,16 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     run_batch = _SampleInBatches(
         sampler=sampler, repetitions=repetitions, combinations_by_layer=combinations_by_layer
     )
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        futures = [pool.submit(run_batch, task_batch) for task_batch in batched_tasks]
 
-        records = []
-        with progress_bar(total=len(batched_tasks) * batch_size) as progress:
-            for future in concurrent.futures.as_completed(futures):
-                new_records = future.result()
-                if dataset_directory is not None:
-                    os.makedirs(f'{dataset_directory}', exist_ok=True)
-                    protocols.to_json(new_records, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
-                records.extend(new_records)
-                progress.update(batch_size)
+    records = []
+    with progress_bar(total=len(batched_tasks) * batch_size) as progress:
+        for task in batched_tasks:
+            new_records = run_batch(task)
+            if dataset_directory is not None:
+                os.makedirs(f'{dataset_directory}', exist_ok=True)
+                protocols.to_json(new_records, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
+            records.extend(new_records)
+            progress.update(batch_size)
     return records
 
 
