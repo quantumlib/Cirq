@@ -498,11 +498,11 @@ def test_simulate_param_resolver(dtype: Type[np.complexfloating], split: bool):
                 (cirq.X ** sympy.Symbol('b0'))(q0), (cirq.X ** sympy.Symbol('b1'))(q1)
             )
             resolver = {'b0': b0, 'b1': b1}
-            result = simulator.simulate(circuit, param_resolver=resolver)  # type: ignore
+            result = simulator.simulate(circuit, param_resolver=resolver)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][b1] = 1.0
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
-            assert result.params == cirq.ParamResolver(resolver)  # type: ignore
+            assert result.params == cirq.ParamResolver(resolver)
             assert len(result.measurements) == 0
 
 

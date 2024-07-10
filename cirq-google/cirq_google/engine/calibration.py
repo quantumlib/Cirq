@@ -277,7 +277,6 @@ class Calibration(abc.Mapping):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1)
-            ax = cast(plt.Axes, ax)
 
         if isinstance(keys, str):
             keys = [keys]
