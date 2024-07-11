@@ -21,12 +21,7 @@ import numpy as np
 
 def _gate_in_moment(gate: ops.Gate, moment: circuits.Moment) -> bool:
     """Check whether `gate` is in `moment`."""
-    target_gate_in_moment = False
-    for op in moment.operations:
-        if op.gate == gate:
-            target_gate_in_moment = True
-            break
-    return target_gate_in_moment
+    return any(op.gate == gate for op in moment)
 
 
 @transformer_api.transformer
@@ -38,24 +33,36 @@ class DepolerizingNoiseTransformer:
     Attrs:
         p: The probability with which to add noise.
         target_gate: Add depolarizing nose after this type of gate
-        rng: The pseudorandom number generator to use.
     """
 
     def __init__(
-        self,
-        p: float | Mapping[tuple[ops.Qid, ops.Qid], float],
-        target_gate: ops.Gate = ops.CZ,
-        rng: np.random.Generator | None = None,
+        self, p: float | Mapping[tuple[ops.Qid, ops.Qid], float], target_gate: ops.Gate = ops.CZ
     ):
-        if rng is None:
-            rng = np.random.default_rng()
+        """Initialize the depolarizing noise transformer with some depolarizing probability and
+        target gate.
+
+        Args:
+            p: The depolarizing probability, either a single float or a mapping from pairs of qubits
+               to floats.
+           target_gate: The gate after which to add depolarizing noise.
+
+        Raises:
+            TypeError: If `p` is not either be a float or a mapping from sorted qubit pairs to
+                       floats.
+        """
+
+        if not (isinstance(p, float) or isinstance(p, Mapping)):
+            raise TypeError(  # pragma: no cover
+                "p must either be a float or a mapping from"  # pragma: no cover
+                + "sorted qubit pairs to floats"  # pragma: no cover
+            )  # pragma: no cover
         self.p = p
         self.target_gate = target_gate
-        self.rng = rng
 
     def __call__(
         self,
         circuit: circuits.AbstractCircuit,
+        rng: np.random.Generator | None = None,
         *,
         context: transformer_api.TransformerContext | None = None,
     ):
@@ -67,14 +74,10 @@ class DepolerizingNoiseTransformer:
 
         Returns:
             The transformed circuit.
-
-        Raises:
-            TypeError: If `p` is not either be a float or a mapping from sorted qubit pairs to
-                       floats.
         """
-
+        if rng is None:
+            rng = np.random.default_rng()
         p = self.p
-        rng = self.rng
         target_gate = self.target_gate
 
         # add random Pauli gates with probability p after each of the specified gate
@@ -95,11 +98,6 @@ class DepolerizingNoiseTransformer:
                     elif isinstance(p, Mapping):
                         pair_sorted_tuple = (pair[0], pair[1])
                         p_i = p[pair_sorted_tuple]
-                    else:  # pragma: no cover
-                        raise TypeError(  # pragma: no cover
-                            "p must either be a float or a mapping from"  # pragma: no cover
-                            + "sorted qubit pairs to floats"  # pragma: no cover
-                        )  # pragma: no cover
                     apply = rng.choice([True, False], p=[p_i, 1 - p_i])
                     if apply:
                         choices = [
