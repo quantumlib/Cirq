@@ -4,6 +4,16 @@ import cirq
 import numpy as np
 
 
+def _gate_in_moment(gate: cirq.Gate, moment: cirq.Moment) -> bool:
+    """Check whether `gate` is in `moment`."""
+    target_gate_in_moment = False
+    for op in moment.operations:
+        if op.gate == gate:
+            target_gate_in_moment = True
+            break
+    return target_gate_in_moment
+
+
 def add_depolarizing_noise_to_two_qubit_gates(
     circuit: cirq.Circuit,
     p: float | Mapping[tuple[cirq.Qid, cirq.Qid], float],
