@@ -32,7 +32,8 @@ def _gate_in_moment(gate: ops.Gate, moment: circuits.Moment) -> bool:
 @transformer_api.transformer
 def add_depolarizing_noise_to_two_qubit_gates(
     circuit: circuits.Circuit,
-    *, p: float | Mapping[tuple[ops.Qid, ops.Qid], float],
+    *,
+    p: float | Mapping[tuple[ops.Qid, ops.Qid], float],
     target_gate: ops.Gate = ops.CZ,
     rng: np.random.Generator | None = None,
     context: transformer_api.TransformerContext | None = None,
