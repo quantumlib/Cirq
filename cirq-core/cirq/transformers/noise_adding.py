@@ -15,6 +15,7 @@
 from collections.abc import Mapping
 
 from cirq import ops, circuits
+from cirq.transformers import transformer_api
 import numpy as np
 
 
@@ -34,6 +35,7 @@ def add_depolarizing_noise_to_two_qubit_gates(
     p: float | Mapping[tuple[ops.Qid, ops.Qid], float],
     target_gate: ops.Gate = ops.CZ,
     rng: np.random.Generator | None = None,
+    context: transformer_api.TransformerContext | None = None,
 ) -> circuits.Circuit:
     """Add local depolarizing noise after two-qubit gates in a specified circuit. More specifically,
     with probability p, append a random non-identity two-qubit Pauli operator after each specified
@@ -44,6 +46,7 @@ def add_depolarizing_noise_to_two_qubit_gates(
         p: The probability with which to add noise.
         target_gate: Add depolarizing nose after this type of gate
         rng: The pseudorandom number generator to use.
+        context: Not used; to satisfy transformer API.
 
     Returns:
         The transformed circuit.
