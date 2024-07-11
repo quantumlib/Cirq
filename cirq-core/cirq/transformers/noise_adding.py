@@ -14,11 +14,11 @@
 
 from collections.abc import Mapping
 
-import cirq
+from cirq import ops, circuits
 import numpy as np
 
 
-def _gate_in_moment(gate: cirq.Gate, moment: cirq.Moment) -> bool:
+def _gate_in_moment(gate: ops.Gate, moment: circuits.Moment) -> bool:
     """Check whether `gate` is in `moment`."""
     target_gate_in_moment = False
     for op in moment.operations:
@@ -28,12 +28,13 @@ def _gate_in_moment(gate: cirq.Gate, moment: cirq.Moment) -> bool:
     return target_gate_in_moment
 
 
+@transformer_api.transformer
 def add_depolarizing_noise_to_two_qubit_gates(
-    circuit: cirq.Circuit,
-    p: float | Mapping[tuple[cirq.Qid, cirq.Qid], float],
-    target_gate: cirq.Gate = cirq.CZ,
+    circuit: circuits.Circuit,
+    p: float | Mapping[tuple[ops.Qid, ops.Qid], float],
+    target_gate: ops.Gate = ops.CZ,
     rng: np.random.Generator | None = None,
-) -> cirq.Circuit:
+) -> circuits.Circuit:
     """Add local depolarizing noise after two-qubit gates in a specified circuit. More specifically,
     with probability p, append a random non-identity two-qubit Pauli operator after each specified
     two-qubit gate.
@@ -46,13 +47,16 @@ def add_depolarizing_noise_to_two_qubit_gates(
 
     Returns:
         The transformed circuit.
+
+    Raises:
+        TypeError: If `p` is not either be a float or a mapping from sorted qubit pairs to floats.
     """
     if rng is None:
         rng = np.random.default_rng()
 
     # add random Pauli gates with probability p after each of the specified gate
     assert target_gate.num_qubits() == 2, "`target_gate` must be a two-qubit gate."
-    paulis = [cirq.I, cirq.X, cirq.Y, cirq.Z]
+    paulis = [ops.I, ops.X, ops.Y, ops.Z]
     new_moments = []
     for moment in circuit:
         new_moments.append(moment)
@@ -82,5 +86,5 @@ def add_depolarizing_noise_to_two_qubit_gates(
                     pauli_to_apply = rng.choice(np.array(choices, dtype=object))
                     added_moment_ops.append(pauli_to_apply)
             if len(added_moment_ops) > 0:
-                new_moments.append(cirq.Moment(*added_moment_ops))
-    return cirq.Circuit.from_moments(*new_moments)
+                new_moments.append(circuits.Moment(*added_moment_ops))
+    return circuits.Circuit.from_moments(*new_moments)
