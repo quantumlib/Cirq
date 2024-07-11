@@ -51,7 +51,7 @@ class DepolerizingNoiseTransformer:
                        floats.
         """
 
-        if not (isinstance(p, float) or isinstance(p, Mapping)):
+        if not isinstance(p, (Mapping, float)):
             raise TypeError(  # pragma: no cover
                 "p must either be a float or a mapping from"  # pragma: no cover
                 + "sorted qubit pairs to floats"  # pragma: no cover
