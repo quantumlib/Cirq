@@ -55,12 +55,11 @@ class DepolerizingNoiseTransformer:
 
     def __call__(
         self,
-        circuit: circuits.Circuit,
+        circuit: circuits.AbstractCircuit,
         *,
         context: transformer_api.TransformerContext | None = None,
     ):
-        """
-        Apply the transformer to the given circuit.
+        """Apply the transformer to the given circuit.
 
         Args:
             circuit: The circuit to add noise to.
@@ -70,7 +69,8 @@ class DepolerizingNoiseTransformer:
             The transformed circuit.
 
         Raises:
-            TypeError: If `p` is not either be a float or a mapping from sorted qubit pairs to floats.
+            TypeError: If `p` is not either be a float or a mapping from sorted qubit pairs to
+                       floats.
         """
 
         p = self.p
@@ -97,7 +97,8 @@ class DepolerizingNoiseTransformer:
                         p_i = p[pair_sorted_tuple]
                     else:  # pragma: no cover
                         raise TypeError(  # pragma: no cover
-                            "p must either be a float or a mapping from sorted qubit pairs to floats"  # pragma: no cover
+                            "p must either be a float or a mapping from"  # pragma: no cover
+                            + "sorted qubit pairs to floats"  # pragma: no cover
                         )  # pragma: no cover
                     apply = rng.choice([True, False], p=[p_i, 1 - p_i])
                     if apply:
