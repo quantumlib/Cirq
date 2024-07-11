@@ -12,21 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Mapping, Sequence
+from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
 
 
-def _get_hamming_distance(bitstring_1: Sequence[int], bitstring_2: Sequence[int]) -> int:
+def _get_hamming_distance(
+    bitstring_1: npt.NDArray[np.int8], bitstring_2: npt.NDArray[np.int8]
+) -> int:
     """Calculates the Hamming distance between two bitstrings.
     Args:
         bitstring_1: Bitstring 1
         bitstring_2: Bitstring 2
     Returns: The Hamming distance
     """
-    return int(np.sum(~(np.array(bitstring_1) == np.array(bitstring_2))))
+    return (bitstring_1 ^ bitstring_2).sum().item()
 
 
 def _bitstrings_to_probs(bitstrings: npt.NDArray[np.int8]) -> Mapping[tuple, float]:
@@ -34,18 +37,17 @@ def _bitstrings_to_probs(bitstrings: npt.NDArray[np.int8]) -> Mapping[tuple, flo
     Args:
         bitstrings: The bitstring
     Returns:
+        Probability dictionary
     """
-    probs_dict: dict[tuple, float] = {}
-
     num_shots = bitstrings.shape[0]
-    for bits in bitstrings:
-        bits_tuple = tuple(bits)
-        if bits_tuple in probs_dict:
-            probs_dict[bits_tuple] += 1 / num_shots
-        else:
-            probs_dict[bits_tuple] = 1 / num_shots
+    unique_bitstrings, counts = np.unique(bitstrings, return_counts=True, axis=0)
+    probs = counts / num_shots
 
-    return probs_dict
+    print(probs)
+
+    # printzip(unique_bitstrings, list(probs))()
+
+    return dict(zip(unique_bitstrings[:, 0], list(probs)))
 
 
 def _bitstring_format_helper(
@@ -82,8 +84,17 @@ def _compute_bitstring_purity(bitstrings: npt.NDArray[np.int8]) -> float:
 def process_entropy_from_bitstrings(
     measured_bitstrings: npt.NDArray[np.int8],
     subsystem: tuple[int] | None = None,
-    parallelize: bool = False,
-):
+    pool: Optional[ThreadPoolExecutor] = None,
+) -> float:
+    """Compute the renyi entropy of an array of bitstrings.
+    Args:
+        measured_bitstrings: List of numpy arrays.
+        subsystem: Subsystem of interest
+        pool: ThreadPoolExecutor used to paralelleize the computation.
+
+    Returns:
+        A float indicating the computed entropy.
+    """
     bitstrings = _bitstring_format_helper(measured_bitstrings, subsystem)
     num_shots = bitstrings.shape[1]
     num_qubits = bitstrings.shape[-1]
@@ -91,8 +102,8 @@ def process_entropy_from_bitstrings(
     if num_shots == 1:
         return 0
 
-    if parallelize:
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+    if pool is not None:
+        with pool as executor:
             purities = list(executor.map(_compute_bitstring_purity, list(bitstrings)))
         purity = np.mean(purities)
 

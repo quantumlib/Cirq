@@ -27,7 +27,7 @@ class RandomizedMeasurements:
         num_unitaries: int,
         subsystem: Sequence[str | int] | None = None,
         qubit_mapping: Mapping[int, str | int] | None = None,
-        rng: np.random.Generator | None = None,
+        rng: np.random.Generator = np.random.default_rng(),
     ):
         """Class structure for performing and analyzing a general randomized measurement protocol.
         For more details on the randomized measurement toolbox see https://arxiv.org/abs/2203.11374
@@ -46,7 +46,7 @@ class RandomizedMeasurements:
             qubit_mapping if qubit_mapping else {i: i for i in range(self.num_qubits)}
         )
 
-        self.rng = rng if rng else np.random.default_rng()
+        self.rng = rng
 
         self.pre_measurement_unitaries_list = self._generate_unitaries_list()
 
@@ -69,6 +69,7 @@ class RandomizedMeasurements:
         Args:
             unitaries: List of pre-measurement unitaries
             qubits: List of qubits
+
         Returns: The cirq moment associated with the pre-measurement rotations
         """
         op_list: list[cirq.Operation] = []
