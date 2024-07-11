@@ -14,7 +14,7 @@
 
 """Defines which types are Sweepable."""
 
-from typing import Iterable, Iterator, List, Sequence, Union, cast
+from typing import Iterable, Iterator, List, Optional, Sequence, Union, cast
 import warnings
 from typing_extensions import Protocol
 
@@ -44,12 +44,12 @@ def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
         yield from sweep
 
 
-def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
+def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> List[Sweep]:
     """Converts a Sweepable to a list of Sweeps."""
     if sweepable is None:
         return [UnitSweep]
     if isinstance(sweepable, ParamResolver):
-        return [_resolver_to_sweep(sweepable)]
+        return [_resolver_to_sweep(sweepable, metadata)]
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
@@ -63,9 +63,9 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
                 stacklevel=2,
             )
         product_sweep = dict_to_product_sweep(sweepable)
-        return [_resolver_to_sweep(resolver) for resolver in product_sweep]
+        return [_resolver_to_sweep(resolver, metadata) for resolver in product_sweep]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
-        return [sweep for item in sweepable for sweep in to_sweeps(item)]  # type: ignore[arg-type]
+        return [sweep for item in sweepable for sweep in to_sweeps(item, metadata)]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}')
 
 
@@ -98,8 +98,13 @@ def to_sweep(
     raise TypeError(f'Unexpected sweep-like value: {sweep_or_resolver_list}')
 
 
-def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
+def _resolver_to_sweep(resolver: ParamResolver, metadata: Optional[dict]) -> Sweep:
     params = resolver.param_dict
     if not params:
         return UnitSweep
-    return Zip(*[Points(key, [cast(float, value)]) for key, value in params.items()])
+    return Zip(
+        *[
+            Points(key, [cast(float, value)], metadata=metadata.get(key) if metadata else None)
+            for key, value in params.items()
+        ]
+    )

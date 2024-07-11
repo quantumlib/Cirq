@@ -533,12 +533,21 @@ def test_run_multiple_times(client):
 
     engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     program = engine.create_program(program=_CIRCUIT)
-    program.run(processor_id='processor0', param_resolver=cirq.ParamResolver({'a': 1}))
+    program.run(
+        processor_id='processor0',
+        param_resolver=cirq.ParamResolver({'a': 1}),
+        run_name="run",
+        device_config_name="config_alias",
+    )
     run_context = v2.run_context_pb2.RunContext()
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps1 = run_context.parameter_sweeps
     job2 = program.run_sweep(
-        processor_id='processor0', repetitions=2, params=cirq.Points('a', [3, 4])
+        processor_id='processor0',
+        repetitions=2,
+        params=cirq.Points('a', [3, 4]),
+        run_name="run",
+        device_config_name="config_alias",
     )
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps2 = run_context.parameter_sweeps
@@ -629,7 +638,9 @@ def test_bad_sweep_proto():
     engine = cg.Engine(project_id='project-id', proto_version=cg.ProtoVersion.UNDEFINED)
     program = cg.EngineProgram('proj', 'prog', engine.context)
     with pytest.raises(ValueError, match='invalid run context proto version'):
-        program.run_sweep(processor_id='processor0')
+        program.run_sweep(
+            processor_id='processor0', run_name="run", device_config_name="config_alias"
+        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -741,9 +752,6 @@ def test_sampler_with_unary_rpcs(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().create_program_async.call_args[0][0] == 'proj'
 
-    with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
-        _ = engine.sampler(processor_id='tmp')
-
     with pytest.raises(ValueError, match='list of processors'):
         _ = engine.get_sampler(['test1', 'test2'])
 
@@ -763,9 +771,6 @@ def test_sampler_with_stream_rpcs(client):
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().run_job_over_stream.call_args[1]['project_id'] == 'proj'
-
-    with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
-        _ = engine.sampler(processor_id='tmp')
 
     with pytest.raises(ValueError, match='list of processors'):
         _ = engine.get_sampler(['test1', 'test2'])

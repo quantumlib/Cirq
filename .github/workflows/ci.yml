@@ -107,7 +107,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
       - name: RST check
-        run: find . -type f -name "*.rst" | xargs rstcheck --report warning --ignore-directives autoclass,automodule
+        run: find . -type f -name "*.rst" | xargs rstcheck
       - name: Doc check
         run: check/doctest -q
   nbformat:
@@ -144,7 +144,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Test each module in isolation
-        run: pytest -n auto -m slow dev_tools/packaging/isolated_packages_test.py
+        run: pytest -n auto --enable-slow-tests dev_tools/packaging/isolated_packages_test.py
   pytest:
     name: Pytest Ubuntu
     strategy:

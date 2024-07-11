@@ -42,16 +42,6 @@ def _date_to_timestamp(
     return None
 
 
-def _fix_deprecated_seconds_kwargs(kwargs):
-    if 'earliest_timestamp_seconds' in kwargs:
-        kwargs['earliest_timestamp'] = kwargs['earliest_timestamp_seconds']
-        del kwargs['earliest_timestamp_seconds']
-    if 'latest_timestamp_seconds' in kwargs:
-        kwargs['latest_timestamp'] = kwargs['latest_timestamp_seconds']
-        del kwargs['latest_timestamp_seconds']
-    return kwargs
-
-
 class EngineProcessor(abstract_processor.AbstractProcessor):
     """A processor available via the Quantum Engine API.
 
@@ -125,6 +115,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
+        *,
+        run_name: str,
+        device_config_name: str,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -133,8 +126,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
@@ -144,6 +135,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -159,12 +156,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.
@@ -238,20 +229,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             raise ValueError('Processor does not have a device specification')
         return grid_device.GridDevice.from_proto(spec)
 
-    @cirq._compat.deprecated_parameter(
-        deadline='v1.0',
-        fix='Change earliest_timestamp_seconds to earliest_timestamp.',
-        parameter_desc='earliest_timestamp_seconds',
-        match=lambda args, kwargs: 'earliest_timestamp_seconds' in kwargs,
-        rewrite=lambda args, kwargs: (args, _fix_deprecated_seconds_kwargs(kwargs)),
-    )
-    @cirq._compat.deprecated_parameter(
-        deadline='v1.0',
-        fix='Change latest_timestamp_seconds to latest_timestamp.',
-        parameter_desc='latest_timestamp_seconds',
-        match=lambda args, kwargs: 'latest_timestamp_seconds' in kwargs,
-        rewrite=lambda args, kwargs: (args, _fix_deprecated_seconds_kwargs(kwargs)),
-    )
     def list_calibrations(
         self,
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
@@ -260,10 +237,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         """Retrieve metadata about a specific calibration run.
 
         Params:
-            earliest_timestamp_seconds: The earliest timestamp of a calibration
-                to return in UTC.
-            latest_timestamp_seconds: The latest timestamp of a calibration to
-                return in UTC.
+            earliest_timestamp: The earliest timestamp of a calibration to return in UTC.
+            latest_timestamp: The latest timestamp of a calibration to return in UTC.
 
         Returns:
             The list of calibration data with the most recent first.
