@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from concurrent.futures import ThreadPoolExecutor
-from collections.abc import Mapping, Sequence
-from typing import Optional
+from collections.abc import Sequence
+from typing import Any, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -32,22 +32,21 @@ def _get_hamming_distance(
     return (bitstring_1 ^ bitstring_2).sum().item()
 
 
-def _bitstrings_to_probs(bitstrings: npt.NDArray[np.int8]) -> Mapping[tuple, float]:
+def _bitstrings_to_probs(
+    bitstrings: npt.NDArray[np.int8],
+) -> tuple[npt.NDArray[np.int8], npt.NDArray[Any]]:
     """Given a list of bitstrings from different measurements returns a probability distribution.
     Args:
         bitstrings: The bitstring
     Returns:
-        Probability dictionary
+        A tuple of bitstrings and their corresponding probabilities.
     """
+
     num_shots = bitstrings.shape[0]
     unique_bitstrings, counts = np.unique(bitstrings, return_counts=True, axis=0)
     probs = counts / num_shots
 
-    print(probs)
-
-    # printzip(unique_bitstrings, list(probs))()
-
-    return dict(zip(unique_bitstrings[:, 0], list(probs)))
+    return (unique_bitstrings, probs)
 
 
 def _bitstring_format_helper(
@@ -72,10 +71,12 @@ def _compute_bitstring_purity(bitstrings: npt.NDArray[np.int8]) -> float:
     Returns: The purity of the bitstring
     """
 
-    probs = _bitstrings_to_probs(bitstrings)
+    bitstrings, probs = _bitstrings_to_probs(bitstrings)
     purity = 0
-    for s, p in probs.items():
-        for s_prime, p_prime in probs.items():
+    for idx, s in enumerate(bitstrings):
+        p = probs[idx]
+        for j, s_prime in enumerate(bitstrings):
+            p_prime = bitstrings[j]
             purity += (-2.0) ** float(-_get_hamming_distance(s, s_prime)) * p * p_prime
 
     return purity * 2 ** (bitstrings.shape[-1])

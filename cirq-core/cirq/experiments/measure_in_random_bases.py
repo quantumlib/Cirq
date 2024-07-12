@@ -95,30 +95,42 @@ def _pauli_basis_rotation(basis: Literal["X", "Y", "Z"]) -> 'cirq.Gate':
 
 def append_randomized_measurements(
     circuit: 'cirq.AbstractCircuit',
+    randomized_measurements_generator: RandomizedMeasurements | None = None,
     *,
     subsystem: tuple[int] | None = None,
     qubits: Sequence | None = None,
     num_unitaries: int | None = None,
+    rng: np.random.Generator = np.random.default_rng(),
 ) -> Sequence['cirq.Circuit']:
     """Given an input circuit returns a list of circuits with the pre-measurement unitaries.
+    If no arguments are specified, it will default to computing the entropy of the entire
+    circuit.
+
     Args:
         circuit: The input circuit
+        randomized_measurements_generator: RandomizedMeasurements class to use for
+        generating random measurements.
         subsystem: The specific subsystem measured in random basis.
         qubits: A sequence of qubits to measure in random basis.
         num_unitaries: The number of random pre-measurement unitaries to append.
+        rng: Random number genergate
     Returns:
         List of circuits with pre-measurement unitaries and measurements added
     """
     qubits = qubits or list(circuit.all_qubits())
 
-    randomized_measurement_circuits = RandomizedMeasurements(
-        len(qubits), num_unitaries if num_unitaries else len(qubits), subsystem=subsystem
-    )
+    if randomized_measurements_generator is None:
+        randomized_measurements_generator = RandomizedMeasurements(
+            len(qubits),
+            num_unitaries if num_unitaries else len(qubits),
+            subsystem=subsystem,
+            rng=rng,
+        )
 
     circuit_list = []
 
-    for unitaries in randomized_measurement_circuits.pre_measurement_unitaries_list:
-        pre_measurement_moment = randomized_measurement_circuits.unitaries_to_moment(
+    for unitaries in randomized_measurements_generator.pre_measurement_unitaries_list:
+        pre_measurement_moment = randomized_measurements_generator.unitaries_to_moment(
             unitaries, qubits
         )
 
