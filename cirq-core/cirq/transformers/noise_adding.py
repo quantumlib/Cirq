@@ -57,7 +57,9 @@ class DepolerizingNoiseTransformer:
                 + "sorted qubit pairs to floats"  # pragma: no cover
             )  # pragma: no cover
         self.p = p
-        self.p_func = lambda _: p if isinstance(p, (int, float)) else lambda pair: p.get(pair, 0.0)
+        self.p_func = (
+            (lambda _: p) if isinstance(p, (int, float)) else (lambda pair: p.get(pair, 0.0))
+        )
         self.target_gate = target_gate
 
     def __call__(
