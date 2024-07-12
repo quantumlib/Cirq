@@ -14,10 +14,10 @@
 
 from collections.abc import Mapping
 
+from typing import cast
 from cirq import ops, circuits
 from cirq.transformers import transformer_api
 import numpy as np
-from typing import cast
 
 
 def _gate_in_moment(gate: ops.Gate, moment: circuits.Moment) -> bool:
