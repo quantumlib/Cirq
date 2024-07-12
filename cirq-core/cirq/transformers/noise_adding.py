@@ -17,6 +17,7 @@ from collections.abc import Mapping
 from cirq import ops, circuits
 from cirq.transformers import transformer_api
 import numpy as np
+from typing import cast
 
 
 def _gate_in_moment(gate: ops.Gate, moment: circuits.Moment) -> bool:
@@ -58,7 +59,9 @@ class DepolerizingNoiseTransformer:
             )  # pragma: no cover
         self.p = p
         self.p_func = (
-            (lambda _: p) if isinstance(p, (int, float)) else (lambda pair: p.get(pair, 0.0))
+            (lambda _: p)
+            if isinstance(p, (int, float))
+            else (lambda pair: cast(Mapping, p).get(pair, 0.0))
         )
         self.target_gate = target_gate
 
