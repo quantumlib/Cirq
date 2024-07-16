@@ -64,8 +64,8 @@ def _bitstring_format_helper(
     return measured_bitstrings[:, :, subsystem]
 
 
-def _compute_bitstring_purity(bitstrings: npt.NDArray[np.int8]) -> float:
-    """Computes the purity of a bitstring.
+def _compute_bitstrings_contribution_to_purity(bitstrings: npt.NDArray[np.int8]) -> float:
+    """Computes the contribution to the purity of the bitstrings.
     Args:
         bitstrings: The bitstrings measured using the same unitary operators
     Returns: The purity of the bitstring
@@ -76,7 +76,7 @@ def _compute_bitstring_purity(bitstrings: npt.NDArray[np.int8]) -> float:
     for idx, s in enumerate(bitstrings):
         p = probs[idx]
         for j, s_prime in enumerate(bitstrings):
-            p_prime = bitstrings[j]
+            p_prime = probs[j]
             purity += (-2.0) ** float(-_get_hamming_distance(s, s_prime)) * p * p_prime
 
     return purity * 2 ** (bitstrings.shape[-1])
@@ -89,7 +89,7 @@ def process_entropy_from_bitstrings(
 ) -> float:
     """Compute the renyi entropy of an array of bitstrings.
     Args:
-        measured_bitstrings: List of numpy arrays.
+        measured_bitstrings: Numpy array.
         subsystem: Subsystem of interest
         pool: ThreadPoolExecutor used to paralelleize the computation.
 
@@ -105,12 +105,16 @@ def process_entropy_from_bitstrings(
 
     if pool is not None:
         with pool as executor:
-            purities = list(executor.map(_compute_bitstring_purity, list(bitstrings)))
+            purities = list(
+                executor.map(_compute_bitstrings_contribution_to_purity, list(bitstrings))
+            )
         purity = np.mean(purities)
 
     else:
-        purity = np.mean([_compute_bitstring_purity(bitstring) for bitstring in bitstrings])
+        purity = np.mean(
+            [_compute_bitstrings_contribution_to_purity(bitstring) for bitstring in bitstrings]
+        )
 
     purity_unbiased = purity * num_shots / (num_shots - 1) - (2**num_qubits) / (num_shots - 1)
 
-    return purity_unbiased
+    return -np.log2(purity_unbiased)

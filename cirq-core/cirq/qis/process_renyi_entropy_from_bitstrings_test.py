@@ -32,7 +32,7 @@ def test_process_entropy_from_bitstrings(pool):
     )
     substsytem = (0, 1)
     entropy = process_entropy_from_bitstrings(bitstrings, substsytem, pool)
-    assert entropy == 0.16666666666666674
+    assert entropy == 0.5145731728297583
 
 
 def test_process_entropy_from_bitstrings_safeguards_against_divide_by_0_error():
