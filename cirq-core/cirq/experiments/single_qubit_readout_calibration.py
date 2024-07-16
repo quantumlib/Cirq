@@ -14,7 +14,7 @@
 """Single qubit readout experiments using parallel or isolated statistics."""
 import dataclasses
 import time
-from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING
+from typing import cast, Any, Dict, Iterable, List, Optional, TYPE_CHECKING
 
 import sympy
 import numpy as np
@@ -77,8 +77,9 @@ class SingleQubitReadoutCalibrationResult:
         """
 
         if axs is None:
-            _, axs = plt.subplots(1, 2, dpi=200, facecolor='white', figsize=(12, 4))
-
+            _, axs_v = plt.subplots(1, 2, dpi=200, facecolor='white', figsize=(12, 4))
+            axs_v = cast(np.ndarray, axs_v)
+            axs = cast(tuple[plt.Axes, plt.Axes], (axs_v[0], axs_v[1]))
         else:
             if (
                 not isinstance(axs, (tuple, list, np.ndarray))
