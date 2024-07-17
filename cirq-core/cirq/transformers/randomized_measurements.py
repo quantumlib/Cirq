@@ -17,7 +17,6 @@ from typing import Any, Literal
 
 import cirq
 import numpy as np
-import numpy.typing as npt
 from cirq.transformers import transformer_api
 
 
@@ -63,20 +62,20 @@ class RandomizedMeasurements:
         pre_measurement_moment = self.unitaries_to_moment(pre_measurement_unitaries_list, qubits)
 
         return cirq.Circuit.from_moments(
-            *circuit.moments, pre_measurement_moment, cirq.measure_each(*qubits)
+            *circuit.moments, pre_measurement_moment, cirq.M(*qubits, key='m')
         )
 
     def _generate_unitaries_list(self, rng: np.random.Generator, num_qubits: int) -> Sequence[Any]:
         """Generates a list of pre-measurement unitaries."""
 
-        pauli_strings = rng.choice(["X", "Y", "Z"], size=(num_qubits))
+        pauli_strings = rng.choice(["X", "Y", "Z"], size=num_qubits)
 
         if self.subsystem is not None:
             for i in range(pauli_strings.shape[0]):
                 if i not in self.subsystem:
                     pauli_strings[i] = np.array("Z")
 
-        return pauli_strings
+        return pauli_strings.tolist()
 
     def unitaries_to_moment(
         self, unitaries: Sequence[Literal["X", "Y", "Z"]], qubits: Sequence[Any]
