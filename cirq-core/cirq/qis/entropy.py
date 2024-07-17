@@ -82,7 +82,7 @@ def _compute_bitstrings_contribution_to_purity(bitstrings: npt.NDArray[np.int8])
     return purity * 2 ** (bitstrings.shape[-1])
 
 
-def process_entropy_from_bitstrings(
+def process_renyi_entropy_from_bitstrings(
     measured_bitstrings: npt.NDArray[np.int8],
     subsystem: tuple[int] | None = None,
     pool: Optional[ThreadPoolExecutor] = None,

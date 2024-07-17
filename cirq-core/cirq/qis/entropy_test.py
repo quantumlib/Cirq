@@ -16,11 +16,11 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 import numpy as np
 
-from cirq.qis.process_renyi_entropy_from_bitstrings import process_entropy_from_bitstrings
+from cirq.qis.entropy import process_renyi_entropy_from_bitstrings
 
 
 @pytest.mark.parametrize('pool', [None, ThreadPoolExecutor(max_workers=1)])
-def test_process_entropy_from_bitstrings(pool):
+def test_process_renyi_entropy_from_bitstrings(pool):
     bitstrings = np.array(
         [
             [[0, 1, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 1, 1, 1]],
@@ -31,12 +31,12 @@ def test_process_entropy_from_bitstrings(pool):
         ]
     )
     substsytem = (0, 1)
-    entropy = process_entropy_from_bitstrings(bitstrings, substsytem, pool)
+    entropy = process_renyi_entropy_from_bitstrings(bitstrings, substsytem, pool)
     assert entropy == 0.5145731728297583
 
 
-def test_process_entropy_from_bitstrings_safeguards_against_divide_by_0_error():
+def test_process_renyi_entropy_from_bitstrings_safeguards_against_divide_by_0_error():
     bitstrings = np.array([[[0, 1, 1, 0]], [[0, 1, 1, 0]], [[0, 0, 1, 1]]])
 
-    entropy = process_entropy_from_bitstrings(bitstrings)
+    entropy = process_renyi_entropy_from_bitstrings(bitstrings)
     assert entropy == 0
