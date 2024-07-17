@@ -23,15 +23,13 @@ from cirq.transformers import transformer_api
 
 @transformer_api.transformer
 class RandomizedMeasurements:
-    def __init__(self, *, num_unitaries: int = 1, subsystem: Sequence[int] | None = None):
+    def __init__(self, *, subsystem: Sequence[int] | None = None):
         """Class structure for performing and analyzing a general randomized measurement protocol.
         For more details on the randomized measurement toolbox see https://arxiv.org/abs/2203.11374
 
         Args:
-            num_unitaries: Number of random pre-measurement unitaries
             subsystem: The specific subsystem (e.g qubit index) to measure in random basis
         """
-        self.num_unitaries = num_unitaries
         self.subsystem = subsystem
 
     def __call__(
@@ -60,29 +58,23 @@ class RandomizedMeasurements:
         num_qubits = len(qubits)
 
         pre_measurement_unitaries_list = self._generate_unitaries_list(rng, num_qubits)
-        circuit_list = []
+        pre_measurement_moment = self.unitaries_to_moment(pre_measurement_unitaries_list, qubits)
 
-        for unitaries in pre_measurement_unitaries_list:
-            pre_measurement_moment = self.unitaries_to_moment(unitaries, qubits)
-            temp_circuit = cirq.Circuit.from_moments(
-                *circuit.moments, pre_measurement_moment, cirq.measure_each(*qubits)
-            )
-
-            circuit_list.append(temp_circuit)
-
-        return circuit_list
+        return cirq.Circuit.from_moments(
+            *circuit.moments, pre_measurement_moment, cirq.measure_each(*qubits)
+        )
 
     def _generate_unitaries_list(
         self, rng: np.random.Generator, num_qubits: int
     ) -> npt.NDArray[Any]:
         """Generates a list of pre-measurement unitaries."""
 
-        pauli_strings = rng.choice(["X", "Y", "Z"], size=(self.num_unitaries, num_qubits))
+        pauli_strings = rng.choice(["X", "Y", "Z"], size=(num_qubits))
 
         if self.subsystem is not None:
-            for i in range(pauli_strings.shape[1]):
+            for i in range(pauli_strings.shape[0]):
                 if i not in self.subsystem:
-                    pauli_strings[:, i] = np.array(["Z"] * self.num_unitaries)
+                    pauli_strings[i] = np.array("Z")
 
         return pauli_strings
 

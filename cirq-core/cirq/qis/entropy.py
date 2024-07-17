@@ -14,6 +14,7 @@
 
 from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Sequence
+from itertools import product
 from typing import Any, Optional
 
 import numpy as np
@@ -73,11 +74,8 @@ def _compute_bitstrings_contribution_to_purity(bitstrings: npt.NDArray[np.int8])
 
     bitstrings, probs = _bitstrings_to_probs(bitstrings)
     purity = 0
-    for idx, s in enumerate(bitstrings):
-        p = probs[idx]
-        for j, s_prime in enumerate(bitstrings):
-            p_prime = probs[j]
-            purity += (-2.0) ** float(-_get_hamming_distance(s, s_prime)) * p * p_prime
+    for (s, p), (s_prime, p_prime) in product(zip(bitstrings, probs), repeat=2):
+        purity += (-2.0) ** float(-_get_hamming_distance(s, s_prime)) * p * p_prime
 
     return purity * 2 ** (bitstrings.shape[-1])
 
