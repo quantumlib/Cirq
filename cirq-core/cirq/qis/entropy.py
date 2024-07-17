@@ -102,7 +102,6 @@ def process_renyi_entropy_from_bitstrings(
         return 0
 
     if pool is not None:
-        with pool as executor:
             purities = list(
                 executor.map(_compute_bitstrings_contribution_to_purity, list(bitstrings))
             )
