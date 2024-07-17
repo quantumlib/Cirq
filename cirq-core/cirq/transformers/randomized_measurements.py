@@ -22,7 +22,8 @@ from cirq.transformers import transformer_api
 
 @transformer_api.transformer
 class RandomizedMeasurements:
-    """A transformer that appends a moment of random rotations to map qubits to random pauli bases."""
+    """A transformer that appends a moment of random rotations to map qubits to
+    random pauli bases."""
 
     def __init__(self, subsystem: Sequence[int] | None = None):
         """Class structure for performing and analyzing a general randomized measurement protocol.
