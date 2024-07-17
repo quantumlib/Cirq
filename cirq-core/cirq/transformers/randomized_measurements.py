@@ -64,9 +64,7 @@ class RandomizedMeasurements:
             *circuit.moments, pre_measurement_moment, cirq.measure_each(*qubits)
         )
 
-    def _generate_unitaries_list(
-        self, rng: np.random.Generator, num_qubits: int
-    ) -> npt.NDArray[Any]:
+    def _generate_unitaries_list(self, rng: np.random.Generator, num_qubits: int) -> Sequence[Any]:
         """Generates a list of pre-measurement unitaries."""
 
         pauli_strings = rng.choice(["X", "Y", "Z"], size=(num_qubits))
