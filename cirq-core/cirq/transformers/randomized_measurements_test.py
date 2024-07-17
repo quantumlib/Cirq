@@ -24,7 +24,6 @@ def test_randomized_measurements_appends_two_moments_on_returned_circuit():
 
     # Append randomized measurements to subsystem
     circuit = rand_meas.RandomizedMeasurements()(circuit)
-    print(circuit)
 
     num_moments_post = len(circuit.moments)
     assert num_moments_post == num_moments_pre + 2
