@@ -60,3 +60,4 @@ from cirq.qis.noise_utils import (
     average_error,
     decoherence_pauli_error,
 )
+from cirq.qis.entropy import process_renyi_entropy_from_bitstrings
