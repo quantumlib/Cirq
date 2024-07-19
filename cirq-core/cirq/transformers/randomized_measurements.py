@@ -52,22 +52,22 @@ class RandomizedMeasurements:
 
         Args:
             circuit: The circuit to add randomized measurements to.
-            rng: Random number generator.
-            unitary_ensemble: Choice of unitary ensemble (pauli/clifford/cue)
+            unitary_ensemble: Choice of unitary ensemble (pauli/clifford/cue(circular unitary ensemble))
             context: Not used; to satisfy transformer API.
-
+            rng: Random number generator.
+            
         Returns:
             A circuit with pre-measurement unitaries and measurements added
         """
-
-        if rng is None:
-            rng = np.random.default_rng()
 
         all_qubits = sorted(circuit.all_qubits())
         if self.subsystem is None:
             subsys_qubits = all_qubits
         else:
             subsys_qubits = [all_qubits[s] for s in self.subsystem]
+        
+        if rng is None:
+            rng = np.random.default_rng()
 
         pre_measurement_moment = self.random_single_qubit_unitary_moment(
             unitary_ensemble, subsys_qubits, rng
@@ -77,17 +77,21 @@ class RandomizedMeasurements:
             *circuit.moments, pre_measurement_moment, cirq.M(*subsys_qubits, key="m")
         )
 
-    def random_single_qubit_unitary_moment(
-        self, unitary_ensemble: str, qubits: Sequence[Any], rng: np.random.Generator | None = None
+    def random_single_qubit_unitary_moment(     
+        self, unitary_ensemble: str, qubits: Sequence[Any], rng: np.random.Generator
     ) -> "cirq.Moment":
         """Outputs the cirq moment associated with the pre-measurement rotations.
 
         Args:
-            unitary_ensemble: clifford, Pauli, cue
+            unitary_ensemble: clifford, pauli, cue
             qubits: List of qubits
+            rng: Random number generator to be used in sampling.
 
         Returns:
             The cirq moment associated with the pre-measurement rotations
+
+        Raises:
+            ValueError: When unitary_ensemble is not one of "cue", "pauli" or "clifford"
         """
 
         if unitary_ensemble == "pauli":
@@ -110,17 +114,15 @@ class RandomizedMeasurements:
         return cirq.Moment.from_ops(*op_list)
 
 
-def _pauli_basis_rotation(rng: np.random.Generator | None = None) -> "cirq.Gate":
+def _pauli_basis_rotation(rng: np.random.Generator) -> "cirq.Gate":
     """Randomly generate a Pauli basis rotation.
 
     Args:
-        rng: numpy random number generator
+        rng: Random number generator
 
     Returns:
         cirq gate
     """
-    if rng is None:
-        rng = np.random.default_rng()
     basis_idx = rng.choice(np.arange(3))
 
     if basis_idx == 0:
@@ -132,17 +134,15 @@ def _pauli_basis_rotation(rng: np.random.Generator | None = None) -> "cirq.Gate"
     return gate
 
 
-def _single_qubit_clifford(rng: np.random.Generator | None = None) -> "cirq.Gate":
+def _single_qubit_clifford(rng: np.random.Generator) -> "cirq.Gate":
     """Randomly generate a single-qubit Clifford rotation.
 
     Args:
-        rng: numpy random number generator
+        rng: Random number generator
 
     Returns:
         cirq gate
     """
-    if rng is None:
-        rng = np.random.default_rng()
 
     # there are 24 distinct single-qubit Clifford gates
     clifford_idx = rng.choice(np.arange(24))
@@ -152,17 +152,15 @@ def _single_qubit_clifford(rng: np.random.Generator | None = None) -> "cirq.Gate
     )
 
 
-def _single_qubit_cue(rng: np.random.Generator | None = None) -> "cirq.Gate":
+def _single_qubit_cue(rng: np.random.Generator) -> "cirq.Gate":
     """Randomly generate a CUE gate.
 
     Args:
-        rng: numpy random number generator
+        rng: Random number generator
 
     Returns:
         cirq gate
     """
-    if rng is None:
-        rng = np.random.default_rng()
 
     # phasedxz parameters are distinct between -1 and +1
     x_exponent, z_exponent, axis_phase_exponent = 1 - 2 * rng.random(size=3)
