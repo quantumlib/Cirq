@@ -402,7 +402,10 @@ def parallel_xeb_workflow(
         ax.plot(**plot_kwargs)
 
     circuit_library = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=n_circuits, two_qubit_gate=entangling_gate, random_state=rs
+        n_library_circuits=n_circuits,
+        two_qubit_gate=entangling_gate,
+        random_state=rs,
+        max_cycle_depth=max(cycle_depths),
     )
 
     combs_by_layer = rqcg.get_random_combinations_for_device(
