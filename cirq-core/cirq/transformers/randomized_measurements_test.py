@@ -19,14 +19,17 @@ import cirq.transformers.randomized_measurements as rand_meas
 def test_randomized_measurements_appends_two_moments_on_returned_circuit():
     # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit([cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)])
-    num_moments_pre = len(circuit.moments)
+    circuit_pre = cirq.Circuit(
+        [cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q1, q2), cirq.CNOT(q2, q3)]
+    )
+    num_moments_pre = len(circuit_pre.moments)
 
     # Append randomized measurements to subsystem
-    circuit = rand_meas.RandomizedMeasurements()(circuit)
-
-    num_moments_post = len(circuit.moments)
-    assert num_moments_post == num_moments_pre + 2
+    unitary_ensembles = ['pauli', 'clifford', 'cue']
+    for u in unitary_ensembles:
+        circuit_post = rand_meas.RandomizedMeasurements()(circuit_pre, unitary_ensemble=u)
+        num_moments_post = len(circuit_post.moments)
+        assert num_moments_post == num_moments_pre + 2
 
 
 def test_append_randomized_measurements_leaves_qubits_not_in_specified_subsystem_unchanged():
@@ -36,10 +39,9 @@ def test_append_randomized_measurements_leaves_qubits_not_in_specified_subsystem
 
     # Append randomized measurements to subsystem
     circuit = rand_meas.RandomizedMeasurements(subsystem=(0, 1))(circuit)
-
     # assert latter subsystems were not changed.
-    assert circuit.operation_at(q2, 4) == cirq.I(q2)
-    assert circuit.operation_at(q3, 4) == cirq.I(q3)
+    assert circuit.operation_at(q2, 4) is None
+    assert circuit.operation_at(q3, 4) is None
 
 
 def test_append_randomized_measurements_leaves_qubits_not_in_noncontinuous_subsystem_unchanged():
@@ -51,5 +53,5 @@ def test_append_randomized_measurements_leaves_qubits_not_in_noncontinuous_subsy
     circuit = rand_meas.RandomizedMeasurements(subsystem=(0, 2))(circuit)
 
     # assert latter subsystems were not changed.
-    assert circuit.operation_at(q1, 4) == cirq.I(q1)
-    assert circuit.operation_at(q3, 4) == cirq.I(q3)
+    assert circuit.operation_at(q1, 4) is None
+    assert circuit.operation_at(q3, 4) is None
