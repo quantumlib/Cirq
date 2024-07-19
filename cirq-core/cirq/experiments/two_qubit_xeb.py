@@ -354,7 +354,7 @@ def parallel_xeb_workflow(
     n_repetitions: int = 10**4,
     n_combinations: int = 10,
     n_circuits: int = 20,
-    cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
+    cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
     **plot_kwargs,
