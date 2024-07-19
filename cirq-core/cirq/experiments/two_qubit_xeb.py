@@ -438,7 +438,7 @@ def parallel_two_qubit_xeb(
     n_repetitions: int = 10**4,
     n_combinations: int = 10,
     n_circuits: int = 20,
-    cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
+    cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
     **plot_kwargs,
@@ -486,7 +486,7 @@ def run_rb_and_xeb(
         np.logspace(np.log10(5), np.log10(1000), 5, dtype=int)
     ),
     entangling_gate: 'cirq.Gate' = ops.CZ,
-    depths_xeb: Sequence[int] = tuple(np.arange(3, 100, 20)),
+    depths_xeb: Sequence[int] = (5, 25, 50, 100, 200, 300),
     xeb_combinations: int = 10,
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> InferredXEBResult:
