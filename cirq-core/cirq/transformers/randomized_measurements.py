@@ -52,7 +52,8 @@ class RandomizedMeasurements:
 
         Args:
             circuit: The circuit to add randomized measurements to.
-            unitary_ensemble: Choice of unitary ensemble (pauli/clifford/cue(circular unitary ensemble))
+            unitary_ensemble: Choice of unitary ensemble (pauli/clifford/cue(circular 
+                unitary ensemble))
             context: Not used; to satisfy transformer API.
             rng: Random number generator.
             
@@ -62,19 +63,19 @@ class RandomizedMeasurements:
 
         all_qubits = sorted(circuit.all_qubits())
         if self.subsystem is None:
-            subsys_qubits = all_qubits
+            subsystem_qubits = all_qubits
         else:
-            subsys_qubits = [all_qubits[s] for s in self.subsystem]
+            subsystem_qubits = [all_qubits[s] for s in self.subsystem]
         
         if rng is None:
             rng = np.random.default_rng()
 
         pre_measurement_moment = self.random_single_qubit_unitary_moment(
-            unitary_ensemble, subsys_qubits, rng
+            unitary_ensemble, subsystem_qubits, rng
         )
 
         return cirq.Circuit.from_moments(
-            *circuit.moments, pre_measurement_moment, cirq.M(*subsys_qubits, key="m")
+            *circuit.moments, pre_measurement_moment, cirq.M(*subsystem_qubits, key="m")
         )
 
     def random_single_qubit_unitary_moment(     
@@ -94,13 +95,13 @@ class RandomizedMeasurements:
             ValueError: When unitary_ensemble is not one of "cue", "pauli" or "clifford"
         """
 
-        if unitary_ensemble == "pauli":
+        if unitary_ensemble.lower() == "pauli":
             unitaries = [_pauli_basis_rotation(rng) for _ in range(len(qubits))]
 
-        elif unitary_ensemble == "clifford":
+        elif unitary_ensemble.lower() == "clifford":
             unitaries = [_single_qubit_clifford(rng) for _ in range(len(qubits))]
 
-        elif unitary_ensemble == "cue":
+        elif unitary_ensemble.lower() == "cue":
             unitaries = [_single_qubit_cue(rng) for _ in range(len(qubits))]
 
         else:
