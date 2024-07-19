@@ -47,7 +47,7 @@ class RandomizedMeasurements:
         """Apply the transformer to the given circuit. Given an input circuit returns
         a new circuit with the pre-measurement unitaries and measurements gates added.
         to the qubits in the subsystem provided.If no subsystem is specified in the
-        construction of this classit defaults to measuring all the qubits in the
+        construction of this class it defaults to measuring all the qubits in the
         randomized bases.
 
         Args:
@@ -66,7 +66,6 @@ class RandomizedMeasurements:
             subsystem_qubits = all_qubits
         else:
             subsystem_qubits = [all_qubits[s] for s in self.subsystem]
-        
         if rng is None:
             rng = np.random.default_rng()
 
@@ -78,7 +77,7 @@ class RandomizedMeasurements:
             *circuit.moments, pre_measurement_moment, cirq.M(*subsystem_qubits, key="m")
         )
 
-    def random_single_qubit_unitary_moment(     
+    def random_single_qubit_unitary_moment(
         self, unitary_ensemble: str, qubits: Sequence[Any], rng: np.random.Generator
     ) -> "cirq.Moment":
         """Outputs the cirq moment associated with the pre-measurement rotations.
