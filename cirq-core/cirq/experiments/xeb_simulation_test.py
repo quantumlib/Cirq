@@ -76,7 +76,7 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
     tcircuit = circuit[:circuit_depth]
     tcircuit = cirq.resolve_parameters_once(tcircuit, param_resolver=param_resolver)
 
-    pure_sim = cirq.Simulator()
+    pure_sim = cirq.Simulator(dtype=np.complex128)
     psi = pure_sim.simulate(tcircuit)
     psi_vector = psi.final_state_vector
     pure_probs = cirq.state_vector_to_probabilities(psi_vector)
