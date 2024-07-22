@@ -143,7 +143,9 @@ class TwoQubitXEBResult:
 
     def xeb_fidelity(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
         """Return the XEB fidelity of a qubit pair."""
-        return self._record(q0, q1).layer_fid
+        return noise_utils.decay_constant_to_xeb_fidelity(
+            self._record(q0, q1).layer_fid, num_qubits=2
+        )
 
     def xeb_error(self, q0: 'cirq.GridQubit', q1: 'cirq.GridQubit') -> float:
         """Return the XEB error of a qubit pair."""
@@ -177,8 +179,7 @@ class TwoQubitXEBResult:
         """Return the Pauli error of all qubit pairs."""
         return {
             pair: noise_utils.decay_constant_to_pauli_error(
-                noise_utils.xeb_fidelity_to_decay_constant(self.xeb_fidelity(*pair), num_qubits=2),
-                num_qubits=2,
+                self._record(*pair).layer_fid, num_qubits=2
             )
             for pair in self.all_qubit_pairs
         }
