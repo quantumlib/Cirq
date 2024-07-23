@@ -52,11 +52,11 @@ class RandomizedMeasurements:
 
         Args:
             circuit: The circuit to add randomized measurements to.
-            unitary_ensemble: Choice of unitary ensemble (pauli/clifford/cue(circular 
+            unitary_ensemble: Choice of unitary ensemble (pauli/clifford/cue(circular
                 unitary ensemble))
             context: Not used; to satisfy transformer API.
             rng: Random number generator.
-            
+
         Returns:
             A circuit with pre-measurement unitaries and measurements added
         """
