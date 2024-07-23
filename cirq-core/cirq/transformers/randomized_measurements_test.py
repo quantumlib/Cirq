@@ -16,6 +16,7 @@ import cirq
 import cirq.transformers.randomized_measurements as rand_meas
 import pytest
 
+
 def test_randomized_measurements_appends_two_moments_on_returned_circuit():
     # Create a 4-qubit circuit
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
@@ -55,6 +56,7 @@ def test_append_randomized_measurements_leaves_qubits_not_in_noncontinuous_subsy
     # assert latter subsystems were not changed.
     assert circuit.operation_at(q1, 4) is None
     assert circuit.operation_at(q3, 4) is None
+
 
 def test_exception():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
