@@ -15,9 +15,10 @@
 """Transformer pass that adds dynamical decoupling operations to a circuit."""
 
 from functools import reduce
-from typing import Dict, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Optional, Sequence, Tuple, Union
 
 from cirq.transformers import transformer_api
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 import cirq
 import numpy as np
 
@@ -83,14 +84,100 @@ def _parse_dd_sequence(schema: Union[str, Sequence['cirq.Gate']]) -> Sequence['c
     return dd_sequence
 
 
+def _is_single_qubit_operation(operation: 'cirq.Gate'):
+    if len(operation.qubits) == 1:
+        return True
+    return False
+
+
+def _is_single_qubit_gate_moment(moment: 'cirq.Moment'):
+    for operation in moment:
+        if not _is_single_qubit_operation(operation):
+            return False
+    return True
+
+
+def _absorb_remaining_gates(
+    base_dd_sequence: list['cirq.Gate'], idx: int, gate: 'cirq.Gate'
+) -> 'cirq.Gate':
+    """Returns an equivlant PhasedXZ gate for [remaining dd gates] + [an existing gate]."""
+    matrices = [cirq.unitary(gate) for gate in base_dd_sequence[idx:]]
+    matrices.append(cirq.unitary(gate))
+    product = reduce(np.matmul, matrices)
+    return single_qubit_decompositions.single_qubit_matrix_to_phxz(product)
+
+
+def _next_gate_id(lst: list[Any], idx: int):
+    return (idx + 1) % len(lst)
+
+
+def _add_dynamical_decoupling_to_single_qubit_gate_moments(
+    circuit: 'cirq.Circuit', base_dd_sequence: list['cirq.Gate']
+) -> Tuple[list[Tuple[int, 'cirq.OP_TREE']], list[Tuple[int, 'cirq.Operation', 'cirq.Operation']]]:
+    insert_into: list[Tuple[int, 'cirq.OP_TREE']] = []
+    batch_replace: list[Tuple[int, 'cirq.Operation', 'cirq.Operation']] = []
+
+    # Iterate over the circuit and fetch single qubit gates moments info.
+    single_qubit_gate_moments: list[int] = []
+    ending_single_qubit_moemnt_by_qubits: Dict['cirq.Qid', int] = {
+        q: -1 for q in circuit.all_qubits()
+    }
+    idle_single_qubit_moments_by_qubits: Dict['cirq.Qid', list[int]] = {
+        q: [] for q in circuit.all_qubits()
+    }
+    for moment_id, moment in enumerate(circuit):
+        if _is_single_qubit_gate_moment(moment):
+            single_qubit_gate_moments.append(moment_id)
+            for q in circuit.all_qubits():
+                if not q in moment.qubits:
+                    idle_single_qubit_moments_by_qubits[q].append(moment_id)
+                else:
+                    ending_single_qubit_moemnt_by_qubits[q] = moment_id
+
+    for q in circuit.all_qubits():
+        first_active_moment = circuit.next_moment_operating_on([q])
+        absorbing_moment = ending_single_qubit_moemnt_by_qubits[q]
+        if absorbing_moment <= first_active_moment:
+            continue
+
+        # For each qubit, iterate over moments in set
+        #  {moment: is_single_qubit_gates_moment, in range (first_active_moment, absorbing_moment)}.
+        # 1. Insert gate operation if idle.
+        # 2. Merge all remaining gates in the base dd sequence to the absorbing_moment.
+        pointer_id_of_dd_sequence = 0
+        for moment_id in idle_single_qubit_moments_by_qubits[q]:
+            # Only insert after the first active moment.
+            if moment_id < first_active_moment:
+                continue
+            # Ignore trailing idle moments.
+            if moment_id > absorbing_moment:
+                break
+            # Insert the next gate in the base_dd_sequence to the idle moment.
+            else:
+                insert_into.append((moment_id, base_dd_sequence[pointer_id_of_dd_sequence].on(q)))
+                pointer_id_of_dd_sequence = _next_gate_id(
+                    base_dd_sequence, pointer_id_of_dd_sequence
+                )
+
+        # Absorb the inverse of all previous gates to the last single qubit gate of this qubit.
+        op = circuit.operation_at(q, absorbing_moment)
+        if pointer_id_of_dd_sequence != 0:  # absorbing if added gates isn't equivalent to identity.
+            absorbed_gate = _absorb_remaining_gates(
+                base_dd_sequence, pointer_id_of_dd_sequence, op.gate
+            )
+            batch_replace.append((absorbing_moment, op, absorbed_gate.on(q)))
+    return insert_into, batch_replace
+
+
 @transformer_api.transformer
 def add_dynamical_decoupling(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
     schema: Union[str, Sequence['cirq.Gate']] = 'X_XINV',
+    single_qubit_gates_moment_only: bool = True,
 ) -> 'cirq.Circuit':
-    """Adds dynamical decoupling gate operations to idle moments of a given circuit.
+    """Adds dynamical decoupling gate operations to a given circuit.
     This transformer preserves the moment structure of the circuit.
 
     Args:
@@ -99,24 +186,37 @@ def add_dynamical_decoupling(
           schema: Dynamical decoupling schema name or a dynamical decoupling sequence.
             If a schema is specified, provided dynamical decouping sequence will be used.
             Otherwise, customized dynamical decoupling sequence will be applied.
+          single_qubit_gates_moment_only: Whether to add gate operations in moments with multiple
+            qubit gates. If set True, dynamical decoupling operation will only be added in single
+            qubit gates moments and the last single qubit gate operation of each qubit will absorb
+            the inverse of all previously added operations.
 
     Returns:
           A copy of the input circuit with dynamical decoupling operations.
     """
-    last_busy_moment_by_qubits: Dict['cirq.Qid', int] = {q: 0 for q in circuit.all_qubits()}
     insert_into: list[Tuple[int, 'cirq.OP_TREE']] = []
+    batch_replace: list[Tuple[int, 'cirq.Operation', 'cirq.Operation']] = []
 
     base_dd_sequence = _parse_dd_sequence(schema)
 
-    for moment_id, moment in enumerate(circuit):
-        for q in moment.qubits:
-            insert_gates = _repeat_sequence(
-                base_dd_sequence, num_idle_moments=moment_id - last_busy_moment_by_qubits[q] - 1
-            )
-            for idx, gate in enumerate(insert_gates):
-                insert_into.append((last_busy_moment_by_qubits[q] + idx + 1, gate.on(q)))
-            last_busy_moment_by_qubits[q] = moment_id
+    if not single_qubit_gates_moment_only:
+        # Fill operations on idle moments with pieces of base_dd_sequence, it's guaranteed that all
+        # inserted gates cancel as each piece of base_dd_sequence is equivalent to identity.
+        last_busy_moment_by_qubits: Dict['cirq.Qid', int] = {q: 0 for q in circuit.all_qubits()}
+        for moment_id, moment in enumerate(circuit):
+            for q in moment.qubits:
+                insert_gates = _repeat_sequence(
+                    base_dd_sequence, num_idle_moments=moment_id - last_busy_moment_by_qubits[q] - 1
+                )
+                for idx, gate in enumerate(insert_gates):
+                    insert_into.append((last_busy_moment_by_qubits[q] + idx + 1, gate.on(q)))
+                last_busy_moment_by_qubits[q] = moment_id
+    else:
+        insert_into, batch_replace = _add_dynamical_decoupling_to_single_qubit_gate_moments(
+            circuit, base_dd_sequence
+        )
 
     updated_circuit = circuit.unfreeze(copy=True)
     updated_circuit.batch_insert_into(insert_into)
+    updated_circuit.batch_replace(batch_replace)
     return updated_circuit

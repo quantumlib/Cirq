@@ -20,11 +20,17 @@ import pytest
 
 def assert_dd(
     input_circuit: cirq.Circuit,
-    expected_circuit: cirq.Circuit,
+    expected_circuit: Union[str, cirq.Circuit],
     schema: Union[str, Sequence['cirq.Gate']],
+    single_qubit_gates_moment_only: bool = True,
 ):
-    updated_circuit = add_dynamical_decoupling(input_circuit, schema=schema)
-    cirq.testing.assert_same_circuits(updated_circuit, expected_circuit)
+    updated_circuit = add_dynamical_decoupling(
+        input_circuit, schema=schema, single_qubit_gates_moment_only=single_qubit_gates_moment_only
+    )
+    if isinstance(expected_circuit, cirq.Circuit):
+        cirq.testing.assert_same_circuits(updated_circuit, expected_circuit)
+    else:
+        cirq.testing.assert_has_diagram(updated_circuit, expected_circuit)
 
 
 def test_no_insert_due_to_no_consecutive_moments():
@@ -40,6 +46,7 @@ def test_no_insert_due_to_no_consecutive_moments():
             cirq.Moment(cirq.H(a)), cirq.Moment(cirq.CNOT(a, b)), cirq.Moment(cirq.H(b))
         ),
         schema='XX_PAIR',
+        single_qubit_gates_moment_only=False,
     )
 
 
@@ -73,7 +80,7 @@ def test_insert_provided_schema(schema: str, inserted_gates: Sequence['cirq.Gate
     )
 
     # Insert one dynamical decoupling sequence in idle moments.
-    assert_dd(input_circuit, expected_circuit, schema=schema)
+    assert_dd(input_circuit, expected_circuit, schema=schema, single_qubit_gates_moment_only=False)
 
 
 def test_insert_by_customized_dd_sequence():
@@ -101,6 +108,7 @@ def test_insert_by_customized_dd_sequence():
             cirq.Moment(cirq.measure_each(a, b, c)),
         ),
         schema=[cirq.X, cirq.X, cirq.Y, cirq.Y],
+        single_qubit_gates_moment_only=False,
     )
 
 
@@ -120,4 +128,59 @@ def test_invalid_dd_schema(schema: Union[str, Sequence['cirq.Gate']], error_msg_
     a = cirq.NamedQubit('a')
     input_circuit = cirq.Circuit(cirq.H(a))
     with pytest.raises(ValueError, match=error_msg_regex):
-        add_dynamical_decoupling(input_circuit, schema=schema)
+        add_dynamical_decoupling(input_circuit, schema=schema, single_qubit_gates_moment_only=False)
+
+
+def test_single_qubit_gates_moment_only_no_updates_succeeds():
+    qubits = cirq.LineQubit.range(9)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CNOT(*qubits[4:6])),
+        cirq.Moment(cirq.CNOT(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]]),
+        cirq.Moment(cirq.CNOT(*qubits[2:4]), cirq.CNOT(*qubits[5:7])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [1, 2, 6, 7]]),
+        cirq.Moment(cirq.CNOT(*qubits[1:3]), cirq.CNOT(*qubits[6:8])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [0, 1, 7, 8]]),
+        cirq.Moment(cirq.CNOT(*qubits[0:2]), cirq.CNOT(*qubits[7:])),
+    )
+    assert_dd(input_circuit, expected_circuit=input_circuit, schema="X_XINV")
+
+
+def test_single_qubit_gates_moment_only_with_updates_succeeds():
+    qubits = cirq.LineQubit.range(9)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CNOT(*qubits[4:6])),
+        cirq.Moment(cirq.CNOT(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]]),
+        cirq.Moment(cirq.CNOT(*qubits[2:4]), cirq.CNOT(*qubits[5:7])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [1, 2, 6, 7]]),
+        cirq.Moment(cirq.CNOT(*qubits[1:3]), cirq.CNOT(*qubits[6:8])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [0, 1, 7, 8]]),
+        cirq.Moment(cirq.CNOT(*qubits[0:2]), cirq.CNOT(*qubits[7:])),
+        cirq.Moment([cirq.H(q) for q in qubits]),
+    )
+    assert_dd(
+        input_circuit,
+        expected_circuit="""
+0: ───────────────────────────────H───@───H───────────────────────
+                                      │
+1: ───────────────────────H───@───H───X───H───────────────────────
+                              │
+2: ───────────────H───@───H───X───X───────PhXZ(a=0.5,x=0.5,z=0)───
+                      │
+3: ───H───────@───H───X───X───────X───────H───────────────────────
+              │
+4: ───H───@───X───X───────X───────X───────PhXZ(a=0.5,x=0.5,z=0)───
+          │
+5: ───H───X───────H───@───X───────X───────H───────────────────────
+                      │
+6: ───────────────H───X───H───@───X───────PhXZ(a=0.5,x=0.5,z=0)───
+                              │
+7: ───────────────────────H───X───H───@───H───────────────────────
+                                      │
+8: ───────────────────────────────H───X───H───────────────────────
+""",
+        schema="X_XINV",
+    )
