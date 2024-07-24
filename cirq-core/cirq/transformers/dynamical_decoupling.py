@@ -15,7 +15,7 @@
 """Transformer pass that adds dynamical decoupling operations to a circuit."""
 
 from functools import reduce
-from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 from cirq.transformers import transformer_api
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
@@ -84,13 +84,13 @@ def _parse_dd_sequence(schema: Union[str, Sequence['cirq.Gate']]) -> Sequence['c
     return dd_sequence
 
 
-def _is_single_qubit_operation(operation: 'cirq.Operation'):
+def _is_single_qubit_operation(operation: 'cirq.Operation') -> bool:
     if len(operation.qubits) == 1:
         return True
     return False
 
 
-def _is_single_qubit_gate_moment(moment: 'cirq.Moment'):
+def _is_single_qubit_gate_moment(moment: 'cirq.Moment') -> bool:
     for operation in moment:
         if not _is_single_qubit_operation(operation):
             return False
@@ -110,7 +110,7 @@ def _absorb_remaining_gates(
     return ret
 
 
-def _next_gate_id(lst: Iterable[Any], idx: int) -> int:
+def _next_gate_id(lst: Sequence['cirq.Gate'], idx: int) -> int:
     return (idx + 1) % len(lst)
 
 
