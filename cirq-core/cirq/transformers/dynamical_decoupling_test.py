@@ -13,6 +13,8 @@
 # limitations under the License.
 
 from typing import Sequence, Union
+from unittest import mock
+import re
 import cirq
 from cirq import add_dynamical_decoupling
 import pytest
@@ -22,10 +24,10 @@ def assert_dd(
     input_circuit: cirq.Circuit,
     expected_circuit: Union[str, cirq.Circuit],
     schema: Union[str, Sequence['cirq.Gate']],
-    single_qubit_gates_moment_only: bool = True,
+    single_qubit_gate_moments_only: bool = True,
 ):
     updated_circuit = add_dynamical_decoupling(
-        input_circuit, schema=schema, single_qubit_gates_moment_only=single_qubit_gates_moment_only
+        input_circuit, schema=schema, single_qubit_gate_moments_only=single_qubit_gate_moments_only
     )
     if isinstance(expected_circuit, cirq.Circuit):
         cirq.testing.assert_same_circuits(updated_circuit, expected_circuit)
@@ -46,7 +48,7 @@ def test_no_insert_due_to_no_consecutive_moments():
             cirq.Moment(cirq.H(a)), cirq.Moment(cirq.CNOT(a, b)), cirq.Moment(cirq.H(b))
         ),
         schema='XX_PAIR',
-        single_qubit_gates_moment_only=False,
+        single_qubit_gate_moments_only=False,
     )
 
 
@@ -80,7 +82,7 @@ def test_insert_provided_schema(schema: str, inserted_gates: Sequence['cirq.Gate
     )
 
     # Insert one dynamical decoupling sequence in idle moments.
-    assert_dd(input_circuit, expected_circuit, schema=schema, single_qubit_gates_moment_only=False)
+    assert_dd(input_circuit, expected_circuit, schema=schema, single_qubit_gate_moments_only=False)
 
 
 def test_insert_by_customized_dd_sequence():
@@ -108,7 +110,7 @@ def test_insert_by_customized_dd_sequence():
             cirq.Moment(cirq.measure_each(a, b, c)),
         ),
         schema=[cirq.X, cirq.X, cirq.Y, cirq.Y],
-        single_qubit_gates_moment_only=False,
+        single_qubit_gate_moments_only=False,
     )
 
 
@@ -128,10 +130,10 @@ def test_invalid_dd_schema(schema: Union[str, Sequence['cirq.Gate']], error_msg_
     a = cirq.NamedQubit('a')
     input_circuit = cirq.Circuit(cirq.H(a))
     with pytest.raises(ValueError, match=error_msg_regex):
-        add_dynamical_decoupling(input_circuit, schema=schema, single_qubit_gates_moment_only=False)
+        add_dynamical_decoupling(input_circuit, schema=schema, single_qubit_gate_moments_only=False)
 
 
-def test_single_qubit_gates_moment_only_no_updates_succeeds():
+def test_single_qubit_gate_moments_only_no_updates_succeeds():
     qubits = cirq.LineQubit.range(9)
     input_circuit = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
@@ -147,7 +149,7 @@ def test_single_qubit_gates_moment_only_no_updates_succeeds():
     assert_dd(input_circuit, expected_circuit=input_circuit, schema="X_XINV")
 
 
-def test_single_qubit_gates_moment_only_with_updates_succeeds():
+def test_single_qubit_gate_moments_only_with_updates_succeeds():
     qubits = cirq.LineQubit.range(9)
     input_circuit = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
@@ -184,3 +186,31 @@ def test_single_qubit_gates_moment_only_with_updates_succeeds():
 """,
         schema="X_XINV",
     )
+
+
+def test_single_qubit_gate_moments_only_exceptions():
+    qubits = cirq.LineQubit.range(9)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CNOT(*qubits[4:6])),
+        cirq.Moment(cirq.CNOT(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]]),
+        cirq.Moment(cirq.CNOT(*qubits[2:4]), cirq.CNOT(*qubits[5:7])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [1, 2, 6, 7]]),
+        cirq.Moment(cirq.CNOT(*qubits[1:3]), cirq.CNOT(*qubits[6:8])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [0, 1, 7, 8]]),
+        cirq.Moment(cirq.CNOT(*qubits[0:2]), cirq.CNOT(*qubits[7:])),
+        cirq.Moment([cirq.H(q) for q in qubits]),
+    )
+    with mock.patch(
+        "cirq.transformers.analytical_decompositions"
+        ".single_qubit_decompositions.single_qubit_matrix_to_phxz",
+        return_value=None,
+    ):
+        with pytest.raises(
+            ValueError, match=re.compile("Can't convert .* to PhasedXZ gate.", re.DOTALL)
+        ):
+            add_dynamical_decoupling(input_circuit)
+
+    with mock.patch('cirq.AbstractCircuit.next_moment_operating_on', return_value=None):
+        assert_dd(input_circuit=input_circuit, expected_circuit=input_circuit, schema="X_XINV")
