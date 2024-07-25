@@ -2,52 +2,52 @@
 # cirq maintainers
 ####################
 
-* @quantumlib/cirq-maintainers @vtomole @cduck
+* @quantumlib/cirq-maintainers @vtomole
 
 ####################
 # vendor maintainers
 ####################
 
-cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @cduck @verult
+cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @verult
 
-cirq-ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @Cynocracy @quantumlib/cirq-maintainers @vtomole @cduck @splch
+cirq-ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
 
-cirq-aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole
 
-cirq-pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole
 
-cirq-rigetti/**/*.* @erichulburd @kalzoo @dbanty @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-rigetti/**/*.* @erichulburd @kalzoo @dbanty @quantumlib/cirq-maintainers @vtomole
 
 ################################################
 # qcvv maintainers @mrwojtek + cirq maintainers
 ################################################
 
-cirq-core/cirq/experiments/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-core/cirq/experiments/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole
 
 #####################################################
 # docs maintainers: maintainers + @aasfaw + @rmlarose
 #####################################################
 
-docs/**/*.* @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/**/*.* @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole
 
 ###################################################################
 # vendor docs maintainers: vendor maintainers + @aasfaw + @rmlarose
 ###################################################################
 
-docs/google/**/*.* @wcourtney @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck @verult
-docs/tutorials/google/**/*.* @wcourtney @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck @verult
+docs/google/**/*.* @wcourtney @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @verult
+docs/tutorials/google/**/*.* @wcourtney @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @verult
 
-docs/hardware/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @aasfaw @rmlarose @Cynocracy @quantumlib/cirq-maintainers @vtomole @cduck @splch
+docs/hardware/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @aasfaw @rmlarose @Cynocracy @quantumlib/cirq-maintainers @vtomole @splch
 
-docs/hardware/aqt/**/*.* @ma5x @pschindler @alfrisch @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/hardware/aqt/**/*.* @ma5x @pschindler @alfrisch @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole
 
-docs/hardware/pasqal/**/*.* @HGSilveri @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/hardware/pasqal/**/*.* @HGSilveri @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole
 
-docs/hardware/rigetti/**/*.* @erichulburd @kalzoo @dbanty @aasfaw @quantumlib/cirq-maintainers @vtomole @cduck
+docs/hardware/rigetti/**/*.* @erichulburd @kalzoo @dbanty @aasfaw @quantumlib/cirq-maintainers @vtomole
 
-docs/hardware/azure-quantum/**/*.* @guenp @anpaz @aasfaw @quantumlib/cirq-maintainers @vtomole @cduck
+docs/hardware/azure-quantum/**/*.* @guenp @anpaz @aasfaw @quantumlib/cirq-maintainers @vtomole
 
 #############################################################
 # qcvv docs maintainers: docs maintainers + mrwojtek + aasfaw
 #############################################################
-docs/noise/qcvv/**/*.* @mrwojtek @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/noise/qcvv/**/*.* @mrwojtek @aasfaw @rmlarose @quantumlib/cirq-maintainers @vtomole
