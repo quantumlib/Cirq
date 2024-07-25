@@ -232,7 +232,6 @@ class QuantumExecutableGroup:
     """
 
     executables: Tuple[QuantumExecutable, ...]
-    _hash: Optional[int] = None
 
     def __init__(self, executables: Sequence[QuantumExecutable]):
         """Initialize and normalize the quantum executable group.
@@ -245,6 +244,8 @@ class QuantumExecutableGroup:
         if not isinstance(executables, tuple):
             executables = tuple(executables)
         object.__setattr__(self, 'executables', executables)
+
+        object.__setattr__(self, '_hash', None)
 
     def __len__(self) -> int:
         return len(self.executables)
@@ -263,7 +264,7 @@ class QuantumExecutableGroup:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
     def __hash__(self) -> int:
-        if self._hash is None:
+        if self._hash is None:  # type: ignore
             object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
         return self._hash  # type: ignore
 
