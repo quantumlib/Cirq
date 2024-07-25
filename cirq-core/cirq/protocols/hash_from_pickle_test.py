@@ -82,7 +82,6 @@ def test_exclude_json_files_has_valid_entries() -> None:
     assert invalid_json_paths == []
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     'json_filename',
     [
