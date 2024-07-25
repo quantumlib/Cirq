@@ -72,7 +72,7 @@ def pool() -> Iterator[multiprocessing.pool.Pool]:
         yield pool
 
 
-def _read_json_on_worker(json_filename: str) -> Any:
+def _read_json(json_filename: str) -> Any:
     return cirq.read_json(json_filename)
 
 
@@ -93,9 +93,9 @@ def test_exclude_json_files_has_valid_entries() -> None:
     ],
 )
 def test_hash_from_pickle(json_filename: str, pool: multiprocessing.pool.Pool):
-    obj_local = cirq.read_json(json_filename)
+    obj_local = _read_json(json_filename)
     if not isinstance(obj_local, Hashable):
         return
-    obj_worker = pool.apply(_read_json_on_worker, [json_filename])
+    obj_worker = pool.apply(_read_json, [json_filename])
     assert obj_worker == obj_local
     assert hash(obj_worker) == hash(obj_local)
