@@ -101,8 +101,10 @@ def _absorb_remaining_gates(
     base_dd_sequence: Sequence['cirq.Gate'], idx: int, gate: 'cirq.Gate'
 ) -> 'cirq.Gate':
     """Returns an equivlant PhasedXZ gate for [remaining dd gates] + [an existing gate]."""
-    matrices = [cirq.unitary(gate) for gate in base_dd_sequence[idx:]]
-    matrices.append(cirq.unitary(gate))
+    # Equivalent matrix is the reverse product of gates.
+    matrices = [cirq.unitary(gate)] + [
+        cirq.unitary(gate) for gate in base_dd_sequence[-1 : idx - 1 : -1]
+    ]
     product = reduce(np.matmul, matrices)
     ret = single_qubit_decompositions.single_qubit_matrix_to_phxz(product)
     if ret is None:
