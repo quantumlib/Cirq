@@ -21,6 +21,7 @@ from cirq_google._version import __version__
 
 from cirq_google.devices import (
     GoogleNoiseProperties,
+    GridCoupler,
     GridDevice,
     NoiseModelFromGoogleNoiseProperties,
     Sycamore,
