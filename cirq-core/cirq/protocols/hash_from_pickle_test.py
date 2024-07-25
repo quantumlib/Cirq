@@ -58,10 +58,6 @@ def _is_included(json_filename: str) -> bool:
         return False
     if not os.path.isfile(json_filename):
         return False
-    # exclude list objects
-    with open(json_filename) as fp:
-        if fp.read(8).startswith("["):
-            return False
     return True
 
 
@@ -73,7 +69,12 @@ def pool() -> Iterator[multiprocessing.pool.Pool]:
 
 
 def _read_json(json_filename: str) -> Any:
-    return cirq.read_json(json_filename)
+    obj = cirq.read_json(json_filename)
+    obj = obj[0] if isinstance(obj, list) else obj
+    # trigger possible caching of the hash value
+    if isinstance(obj, Hashable):
+        _ = hash(obj)
+    return obj
 
 
 def test_exclude_json_files_has_valid_entries() -> None:
