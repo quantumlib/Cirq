@@ -17,7 +17,7 @@ import pytest
 
 CIRQ_MAINTAINERS = ('TEAM', "@quantumlib/cirq-maintainers")
 
-BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")}
+BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole")}
 
 DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('USERNAME', '@aasfaw'), ('USERNAME', '@rmlarose')})
 
