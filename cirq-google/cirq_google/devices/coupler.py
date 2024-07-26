@@ -23,12 +23,12 @@ if TYPE_CHECKING:
 class Coupler(ops.Qid):
     """A Qid representing the coupler between two qubits."""
 
+    _qubit0: ops.Qid
     _qubit1: ops.Qid
-    _qubit2: ops.Qid
     _hash: Optional[int] = None
     _comp_key: Optional[Tuple[Any, Any]] = None
 
-    def __init__(self, qubit1: ops.Qid, qubit2: ops.Qid) -> None:
+    def __init__(self, qubit0: ops.Qid, qubit1: ops.Qid) -> None:
         """Creates a grid coupler between two qubits.
 
         Note that the qubits will be implicitly sorted.
@@ -39,19 +39,19 @@ class Coupler(ops.Qid):
         have an ordering that allows for comparison.
 
         Args:
-            qubit1: The first qubit/Qid of the pair
-            qubit2: The second qubit/Qid of the pair
+            qubit0: The first qubit/Qid of the pair
+            qubit1: The second qubit/Qid of the pair
         """
-        if qubit1 < qubit2:
+        if qubit0 < qubit1:
+            self._qubit0 = qubit0
             self._qubit1 = qubit1
-            self._qubit2 = qubit2
         else:
-            self._qubit1 = qubit2
-            self._qubit2 = qubit1
+            self._qubit0 = qubit1
+            self._qubit1 = qubit0
 
     def __hash__(self) -> int:
         if self._hash is None:
-            self._hash = hash((self._qubit1, self._qubit2))
+            self._hash = hash((self._qubit0, self._qubit1))
         return self._hash
 
     def _comparison_key(self):
@@ -60,12 +60,16 @@ class Coupler(ops.Qid):
         return self._comp_key
 
     @property
+    def qubit0(self) -> ops.Qid:
+        return self._qubit0
+
+    @property
     def qubit1(self) -> ops.Qid:
         return self._qubit1
 
     @property
-    def qubit2(self) -> ops.Qid:
-        return self._qubit2
+    def qubits(self) -> Tuple[ops.Qid, ops.Qid]:
+        return self._qubit0, self._qubit1
 
     @property
     def dimension(self) -> int:
@@ -73,13 +77,13 @@ class Coupler(ops.Qid):
 
     def __getnewargs__(self):
         """Returns a tuple of args to pass to __new__ when unpickling."""
-        return (self._qubit1, self._qubit2)
+        return (self._qubit0, self._qubit1)
 
     def __repr__(self) -> str:
-        return f"cirq_google.Coupler({self._qubit1!r}, {self._qubit2!r})"
+        return f"cirq_google.Coupler({self._qubit0!r}, {self._qubit1!r})"
 
     def __str__(self) -> str:
-        return f"c({self._qubit1},{self._qubit2})"
+        return f"c({self._qubit0},{self._qubit1})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -87,4 +91,4 @@ class Coupler(ops.Qid):
         return protocols.CircuitDiagramInfo(wire_symbols=(str(self),))
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['qubit1', 'qubit2'])
+        return protocols.obj_to_dict_helper(self, ['qubit0', 'qubit1'])
