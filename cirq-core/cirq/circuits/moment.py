@@ -36,11 +36,12 @@ from typing import (
 from typing_extensions import Self
 
 import numpy as np
+from scipy.cluster.hierarchy import DisjointSet
 
 from cirq import protocols, ops, qis, _compat
 from cirq._import import LazyLoader
 from cirq.ops import raw_types, op_tree
-from cirq.protocols import circuit_diagram_info_protocol
+from cirq.protocols import circuit_diagram_info_protocol, apply_unitary, ApplyUnitaryArgs
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -648,10 +649,11 @@ class Moment:
         return diagram.render()
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
-        """Determines whether Moment commutes with the Operation.
+        """Determines whether Moment commutes with either another Moment or
+        an Operation.
 
         Args:
-            other: An Operation object. Other types are not implemented yet.
+            other: An Operation or Moment object. Other types are not implemented yet.
                 In case a different type is specified, NotImplemented is
                 returned.
             atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1
@@ -660,25 +662,92 @@ class Moment:
 
         Returns:
             True: The Moment and Operation commute OR they don't have shared
-            quibits.
+                qubits.
             False: The two values do not commute.
             NotImplemented: In case we don't know how to check this, e.g.
                 the parameter type is not supported yet.
         """
-        if not isinstance(other, ops.Operation):
-            return NotImplemented
+        if isinstance(other, ops.Operation):
+            # If an Operation is provided, convert this to a Moment consisting only
+            # of the given Operation
+            return self._commutes_(Moment(other), atol=atol)
 
-        other_qubits = set(other.qubits)
-        for op in self.operations:
-            if not other_qubits.intersection(set(op.qubits)):
-                continue
+        if isinstance(other, Moment):
+            # Check if sets of qubits overlap. If not, then no need to go any further.
+            if not set(self.qubits) & set(other.qubits):
+                return True
 
-            commutes = protocols.commutes(op, other, atol=atol, default=NotImplemented)
+            # Check pairwise commuting between all pairs of
+            # operations. If they all commute then no
+            # need to go any further
+            if all(
+                cirq.definitely_commutes(op_1, op_2, atol=atol)
+                for op_1, op_2 in itertools.product(self.operations, other.operations)
+            ):
+                return True
 
-            if not commutes or commutes is NotImplemented:
-                return commutes
+            # Decompose into disjoint overlapping sets of qubits
+            qubit_subsets = [list(op.qubits) for op in self.operations + other.operations]
+            disjoint_set = DisjointSet(itertools.chain.from_iterable(qubit_subsets))
+            for subset in qubit_subsets:
+                if len(subset) < 2:
+                    continue
+                for k in range(len(subset) - 1):
+                    disjoint_set.merge(subset[k], subset[k + 1])
+            disjoint_qubit_subsets = disjoint_set.subsets()
 
-        return True
+            # Decompose both moments onto each disjoint set of qubits and
+            # check for commutation using the unitary representation
+            if all(
+                cirq.definitely_commutes(
+                    self._unitary_on_qubits(list(disjoint_set)),
+                    other._unitary_on_qubits(list(disjoint_set)),
+                    atol=atol,
+                )
+                for disjoint_set in disjoint_qubit_subsets
+            ):
+                return True
+
+            return False
+
+        return NotImplemented
+
+    def _unitary_on_qubits(self, target_qubits: list['cirq.Qid']) -> np.ndarray:
+        """Returns the unitary representation of the given moment when acting
+        on the target qubits.
+
+        .. note::
+
+            The :code:`target_qubits` must contain all the qubits that the
+            moment acts on.
+
+        Args:
+            moment: The moment to decompose.
+            target_basis: The target qubits.
+
+        Returns:
+            np.ndarray: The unitary representation of the Moment on the
+                target qubits.
+        """
+        # Check moment has support on subset of target qubits and that there
+        # are no duplicates
+        current_qubits = self.qubits
+        assert all(qubit in target_qubits for qubit in current_qubits)
+        assert len(set(target_qubits)) == len(target_qubits)
+        # Define dims
+        total_qubits = len(target_qubits)
+        dim = 2**total_qubits
+        # Get the indices of the target qubit that the moment has support on
+        qubit_indices = [target_qubits.index(qubit) for qubit in current_qubits]
+
+        # Get the tensor operation corresponding to the moment acting on the
+        # target qubits.
+        id_tensor = cirq.qis.eye_tensor((2,) * total_qubits, dtype=np.complex128)
+        unitary = apply_unitary(
+            self, args=ApplyUnitaryArgs(id_tensor, np.empty_like(id_tensor), qubit_indices)
+        )
+        # Reshape into a square unitary matrix
+        return unitary.reshape(dim, dim)
 
 
 class _SortByValFallbackToType:
