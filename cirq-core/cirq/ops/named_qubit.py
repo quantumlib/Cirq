@@ -37,6 +37,14 @@ class _BaseNamedQid(raw_types.Qid):
             self._hash = hash((self._name, self._dimension))
         return self._hash
 
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        if state["_hash"] is not None:
+            state = state.copy()
+            state["_hash"] = None
+        return state
+
     def __eq__(self, other) -> bool:
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, _BaseNamedQid):
