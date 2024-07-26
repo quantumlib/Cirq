@@ -215,6 +215,19 @@ class QuantumExecutable:
     def __repr__(self):
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
+    def __hash__(self) -> int:
+        if self._hash is None:  # type: ignore
+            object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
+        return self._hash  # type: ignore
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        if state["_hash"] is not None:
+            state = state.copy()
+            state["_hash"] = None
+        return state
+
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
