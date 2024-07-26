@@ -19,13 +19,13 @@ import cirq_google as cg
 def test_grid_coupler():
     q1 = cirq.GridQubit(1, 2)
     q2 = cirq.GridQubit(2, 2)
-    grid_coupler = cg.GridCoupler(q1, q2)
+    grid_coupler = cg.Coupler(q1, q2)
     assert grid_coupler.qubit1 == q1
     assert grid_coupler.qubit2 == q2
 
-    assert str(grid_coupler) == 'c_q1_2_q2_2'
+    assert str(grid_coupler) == 'c(q(1, 2),q(2, 2))'
     assert cirq.circuit_diagram_info(grid_coupler) == cirq.CircuitDiagramInfo(
-        wire_symbols=('c_q1_2_q2_2',)
+        wire_symbols=('c(q(1, 2),q(2, 2))',)
     )
     cirq.testing.assert_equivalent_repr(grid_coupler, global_vals={'cirq_google': cg})
 
@@ -35,6 +35,6 @@ def test_eq():
     q1 = cirq.GridQubit(1, 2)
     q2 = cirq.GridQubit(2, 2)
     q3 = cirq.GridQubit(2, 1)
-    eq.make_equality_group(lambda: cg.GridCoupler(q1, q2), lambda: cg.GridCoupler(q2, q1))
-    eq.make_equality_group(lambda: cg.GridCoupler(q2, q3), lambda: cg.GridCoupler(q3, q2))
-    eq.make_equality_group(lambda: cg.GridCoupler(q1, q3), lambda: cg.GridCoupler(q3, q1))
+    eq.make_equality_group(lambda: cg.Coupler(q1, q2), lambda: cg.Coupler(q2, q1))
+    eq.make_equality_group(lambda: cg.Coupler(q2, q3), lambda: cg.Coupler(q3, q2))
+    eq.make_equality_group(lambda: cg.Coupler(q1, q3), lambda: cg.Coupler(q3, q1))

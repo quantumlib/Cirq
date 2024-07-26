@@ -14,30 +14,33 @@
 
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
 
-from cirq import ops, devices, protocols
+from cirq import ops, protocols
 
 if TYPE_CHECKING:
     import cirq
 
 
-class GridCoupler(ops.Qid):
+class Coupler(ops.Qid):
     """A Qid representing the coupler between two qubits."""
 
-    _qubit1: devices.GridQubit
-    _qubit2: devices.GridQubit
+    _qubit1: ops.Qid
+    _qubit2: ops.Qid
     _hash: Optional[int] = None
     _comp_key: Optional[Tuple[Any, Any]] = None
 
-    def __init__(self, qubit1: devices.GridQubit, qubit2: devices.GridQubit) -> 'GridCoupler':
+    def __init__(self, qubit1: ops.Qid, qubit2: ops.Qid) -> 'GridCoupler':
         """Creates a grid coupler between two qubits.
 
         Note that the qubits will be implicitly sorted.
         ie. `cirq_google.GridCoupler(q1, q2)` will be the same as
         `cirq_google.GridCoupler(q2, q1)`.
 
+        Note that, if using custom Qid objects, the Qid must
+        have an ordering that allows for comparison.
+
         Args:
-            qubit1: The first qubit of the pair
-            qubit2: The second qubit of the pair
+            qubit1: The first qubit/Qid of the pair
+            qubit2: The second qubit/Qid of the pair
         """
         if qubit1 < qubit2:
             self._qubit1 = qubit1
@@ -57,11 +60,11 @@ class GridCoupler(ops.Qid):
         return self._comp_key
 
     @property
-    def qubit1(self) -> devices.GridQubit:
+    def qubit1(self) -> ops.Qid:
         return self._qubit1
 
     @property
-    def qubit2(self) -> devices.GridQubit:
+    def qubit2(self) -> ops.Qid:
         return self._qubit2
 
     @property
@@ -70,15 +73,13 @@ class GridCoupler(ops.Qid):
 
     def __getnewargs__(self):
         """Returns a tuple of args to pass to __new__ when unpickling."""
-        return (self._row, self._col)
+        return (self._qubit1, self._qubit2)
 
     def __repr__(self) -> str:
-        return f"cirq_google.GridCoupler({self._qubit1!r}, {self._qubit2!r})"
+        return f"cirq_google.Coupler({self._qubit1!r}, {self._qubit2!r})"
 
     def __str__(self) -> str:
-        return (
-            f"c_q{self._qubit1.row}_{self._qubit1.col}_" f"q{self._qubit2.row}_{self._qubit2.col}"
-        )
+        return f"c({self._qubit1},{self._qubit2})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
