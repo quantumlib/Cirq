@@ -54,9 +54,17 @@ class Coupler(ops.Qid):
             self._hash = hash((self._qubit0, self._qubit1))
         return self._hash
 
+    def __eq__(self, other) -> bool:
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, Coupler):
+            return self is other or (
+                self._qubit0 == other._qubit0 and self._qubit1 == other._qubit1
+            )
+        return NotImplemented
+
     def _comparison_key(self):
         if self._comp_key is None:
-            self._comp_key = (self._qubit1._comparison_key(), self.qubit2._comparison_key())
+            self._comp_key = (self._qubit0._comparison_key(), self.qubit1._comparison_key())
         return self._comp_key
 
     @property

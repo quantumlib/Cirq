@@ -22,7 +22,8 @@ def test_grid_coupler():
     grid_coupler = cg.Coupler(q1, q2)
     assert grid_coupler.qubit0 == q1
     assert grid_coupler.qubit1 == q2
-    assert grid_coupler.qubits == q1, q2
+    assert grid_coupler.qubits == (q1, q2)
+    assert cg.Coupler(q2, q1).qubits == (q1, q2)
 
     assert str(grid_coupler) == 'c(q(1, 2),q(2, 2))'
     assert cirq.circuit_diagram_info(grid_coupler) == cirq.CircuitDiagramInfo(
