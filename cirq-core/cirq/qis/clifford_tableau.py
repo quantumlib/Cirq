@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import proper_repr, cached_method
+from cirq._compat import proper_repr, _method_cache_name, cached_method
 from cirq.qis import quantum_state_representation
 from cirq.value import big_endian_int_to_digits, linear_dict, random_state
 
@@ -658,3 +658,12 @@ class CliffordTableau(StabilizerState):
     @cached_method
     def __hash__(self) -> int:
         return hash(self.matrix().tobytes() + self.rs.tobytes())
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        hash_cache = _method_cache_name(self.__hash__)
+        if hash_cache in state:
+            state = state.copy()
+            del state[hash_cache]
+        return state
