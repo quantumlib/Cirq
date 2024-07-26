@@ -28,7 +28,7 @@ class Coupler(ops.Qid):
     _hash: Optional[int] = None
     _comp_key: Optional[Tuple[Any, Any]] = None
 
-    def __init__(self, qubit1: ops.Qid, qubit2: ops.Qid) -> 'GridCoupler':
+    def __init__(self, qubit1: ops.Qid, qubit2: ops.Qid) -> None:
         """Creates a grid coupler between two qubits.
 
         Note that the qubits will be implicitly sorted.
