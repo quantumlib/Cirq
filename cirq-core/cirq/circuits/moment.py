@@ -41,7 +41,12 @@ from scipy.cluster.hierarchy import DisjointSet
 from cirq import protocols, ops, qis, _compat
 from cirq._import import LazyLoader
 from cirq.ops import raw_types, op_tree
-from cirq.protocols import circuit_diagram_info_protocol, apply_unitary, ApplyUnitaryArgs
+from cirq.protocols import (
+    circuit_diagram_info_protocol,
+    apply_unitary,
+    ApplyUnitaryArgs,
+    definitely_commutes,
+)
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -681,7 +686,7 @@ class Moment:
             # operations. If they all commute then no
             # need to go any further
             if all(
-                cirq.definitely_commutes(op_1, op_2, atol=atol)
+                definitely_commutes(op_1, op_2, atol=atol)
                 for op_1, op_2 in itertools.product(self.operations, other.operations)
             ):
                 return True
@@ -699,9 +704,9 @@ class Moment:
             # Decompose both moments onto each disjoint set of qubits and
             # check for commutation using the unitary representation
             if all(
-                cirq.definitely_commutes(
-                    self._unitary_on_qubits(list(disjoint_set)),
-                    other._unitary_on_qubits(list(disjoint_set)),
+                definitely_commutes(
+                    self[disjoint_set]._unitary_on_qubits(list(disjoint_set)),
+                    other[disjoint_set]._unitary_on_qubits(list(disjoint_set)),
                     atol=atol,
                 )
                 for disjoint_set in disjoint_qubit_subsets
@@ -742,7 +747,7 @@ class Moment:
 
         # Get the tensor operation corresponding to the moment acting on the
         # target qubits.
-        id_tensor = cirq.qis.eye_tensor((2,) * total_qubits, dtype=np.complex128)
+        id_tensor = qis.eye_tensor((2,) * total_qubits, dtype=np.complex128)
         unitary = apply_unitary(
             self, args=ApplyUnitaryArgs(id_tensor, np.empty_like(id_tensor), qubit_indices)
         )
