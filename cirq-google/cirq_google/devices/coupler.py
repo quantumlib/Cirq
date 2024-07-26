@@ -28,7 +28,7 @@ class Coupler(ops.Qid):
     _hash: Optional[int] = None
     _comp_key: Optional[Tuple[Any, Any]] = None
 
-    def __init__(self, qubit0: ops.Qid, qubit1: ops.Qid) -> None:
+    def __new__(cls, qubit0: ops.Qid, qubit1: ops.Qid) -> 'Coupler':
         """Creates a grid coupler between two qubits.
 
         Note that the qubits will be implicitly sorted.
@@ -42,12 +42,14 @@ class Coupler(ops.Qid):
             qubit0: The first qubit/Qid of the pair
             qubit1: The second qubit/Qid of the pair
         """
+        inst = super().__new__(cls)
         if qubit0 < qubit1:
-            self._qubit0 = qubit0
-            self._qubit1 = qubit1
+            inst._qubit0 = qubit0
+            inst._qubit1 = qubit1
         else:
-            self._qubit0 = qubit1
-            self._qubit1 = qubit0
+            inst._qubit0 = qubit1
+            inst._qubit1 = qubit0
+        return inst
 
     def __hash__(self) -> int:
         if self._hash is None:
@@ -82,10 +84,6 @@ class Coupler(ops.Qid):
     @property
     def dimension(self) -> int:
         return 2
-
-    def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
-        return (self._qubit0, self._qubit1)
 
     def __repr__(self) -> str:
         return f"cirq_google.Coupler({self._qubit0!r}, {self._qubit1!r})"
