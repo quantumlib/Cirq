@@ -1,0 +1,13 @@
+{
+  "cirq_type": "Coupler",
+  "qubit0": {
+    "cirq_type": "GridQubit",
+    "row": 1,
+    "col": 2
+  },
+  "qubit1": {
+    "cirq_type": "GridQubit",
+    "row": 2,
+    "col": 2
+  }
+}
