@@ -61,14 +61,20 @@ def test_grid_qid_pickled_hash():
 def _test_qid_pickled_hash(q: 'cirq.Qid', q_bad: 'cirq.Qid') -> None:
     """Test that hashes are not pickled with Qid instances."""
     assert q_bad is not q
-    _ = hash(q_bad)  # compute hash to ensure it is cached.
+    previous_hash = hash(q_bad)  # compute hash to ensure it is cached.
     q_bad._hash = q_bad._hash + 1  # type: ignore[attr-defined]
     assert q_bad == q
     assert hash(q_bad) != hash(q)
+    # Hash is okay here:
+    assert hash(q) == previous_hash
+
     data = pickle.dumps(q_bad)
     q_ok = pickle.loads(data)
     assert q_ok == q
     assert hash(q_ok) == hash(q)
+
+    # Hash is broken here:
+    assert hash(q) == previous_hash
 
 
 def test_str():
