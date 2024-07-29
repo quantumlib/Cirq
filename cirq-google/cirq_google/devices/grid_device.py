@@ -37,6 +37,7 @@ from cirq_google import ops
 from cirq_google import transformers
 from cirq_google.api import v2
 from cirq_google.devices import known_devices
+from cirq_google.devices.coupler import Coupler
 from cirq_google.experimental import ops as experimental_ops
 
 
@@ -622,7 +623,12 @@ class GridDevice(cirq.Device):
             raise ValueError(f'Operation {operation} contains a gate which is not supported.')
 
         for q in operation.qubits:
-            if q not in self._metadata.qubit_set:
+            if isinstance(q, Coupler):
+                if any(qc not in self._metadata.qubit_set for qc in q.qubits):
+                    raise ValueError(f'Qubits on coupler not on device: {q.qubits}.')
+                if frozenset(q.qubits) not in self._metadata.qubit_pairs:
+                    raise ValueError(f'Coupler pair is not valid on device: {q.qubits}.')
+            elif q not in self._metadata.qubit_set:
                 raise ValueError(f'Qubit not on device: {q!r}.')
 
         if (
