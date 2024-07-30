@@ -135,8 +135,8 @@ class NamedQid(_BaseNamedQid):
         return (self._name, self._dimension)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
-    def __getstate__(self) -> None:
-        return None
+    def __getstate__(self) -> Dict[str, Any]:
+        return {}
 
     def __repr__(self) -> str:
         return f'cirq.NamedQid({self._name!r}, dimension={self._dimension})'
@@ -207,8 +207,8 @@ class NamedQubit(_BaseNamedQid):
         return (self._name,)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
-    def __getstate__(self) -> None:
-        return None
+    def __getstate__(self) -> Dict[str, Any]:
+        return {}
 
     def __str__(self) -> str:
         return self._name

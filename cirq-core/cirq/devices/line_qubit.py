@@ -208,8 +208,8 @@ class LineQid(_BaseLineQid):
         return (self._x, self._dimension)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
-    def __getstate__(self) -> None:
-        return None
+    def __getstate__(self) -> Dict[str, Any]:
+        return {}
 
     def _with_x(self, x: int) -> 'LineQid':
         return LineQid(x, dimension=self._dimension)
@@ -313,8 +313,8 @@ class LineQubit(_BaseLineQid):
         return (self._x,)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
-    def __getstate__(self) -> None:
-        return None
+    def __getstate__(self) -> Dict[str, Any]:
+        return {}
 
     def _with_x(self, x: int) -> 'LineQubit':
         return LineQubit(x)

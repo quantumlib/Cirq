@@ -231,8 +231,8 @@ class GridQid(_BaseGridQid):
         return (self._row, self._col), {"dimension": self._dimension}
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs_ex__
-    def __getstate__(self) -> None:
-        return None
+    def __getstate__(self) -> Dict[str, Any]:
+        return {}
 
     def _with_row_col(self, row: int, col: int) -> 'GridQid':
         return GridQid(row, col, dimension=self._dimension)
@@ -392,8 +392,8 @@ class GridQubit(_BaseGridQid):
         return (self._row, self._col)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
-    def __getstate__(self) -> None:
-        return None
+    def __getstate__(self) -> Dict[str, Any]:
+        return {}
 
     def _with_row_col(self, row: int, col: int) -> 'GridQubit':
         return GridQubit(row, col)
