@@ -17,6 +17,7 @@ from __future__ import annotations
 import multiprocessing
 import os
 import pathlib
+import pickle
 from collections.abc import Iterator
 from typing import Any, Hashable
 
@@ -96,6 +97,10 @@ def test_hash_from_pickle(json_filename: str, pool: multiprocessing.pool.Pool):
     obj_local = _read_json(json_filename)
     if not isinstance(obj_local, Hashable):
         return
+    # check if pickling works in single process for the sake of debugging
+    obj_copy = pickle.loads(pickle.dumps(obj_local))
+    assert obj_copy == obj_local
+    assert hash(obj_copy) == hash(obj_local)
     obj_worker = pool.apply(_read_json, [json_filename])
     assert obj_worker == obj_local
     assert hash(obj_worker) == hash(obj_local)
