@@ -115,15 +115,6 @@ class Qid(metaclass=abc.ABCMeta):
     def __hash__(self) -> int:
         return hash((Qid, self._comparison_key()))
 
-    def __getstate__(self) -> Dict[str, Any]:
-        # clear cached hash value when pickling, see #6674
-        state = self.__dict__
-        hash_cache = _method_cache_name(self.__hash__)
-        if hash_cache in state:
-            state = state.copy()
-            del state[hash_cache]
-        return state
-
     def __eq__(self, other):
         if not isinstance(other, Qid):
             return NotImplemented
