@@ -38,7 +38,11 @@ from cirq.qis import CliffordTableau
 
 
 def _json_format_kwargs() -> Dict[str, bool]:
-    """Determine kwargs to pass to json_format.MessageToDict."""
+    """Determine kwargs to pass to json_format.MessageToDict.
+
+    Protobuf v5 has a different signature for MessageToDict. If we ever move to requiring
+    protobuf >= 5 this can be removed.
+    """
     sig = inspect.signature(json_format.MessageToDict)
     new_arg = "always_print_fields_with_no_presence"
     old_arg = "including_default_value_fields"
