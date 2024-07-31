@@ -55,7 +55,8 @@ _EXCLUDE_JSON_FILES = (
 
 
 def _is_included(json_filename: str) -> bool:
-    if any(json_filename.endswith(t) for t in _EXCLUDE_JSON_FILES):
+    json_posix_path = pathlib.PurePath(json_filename).as_posix()
+    if any(json_posix_path.endswith(t) for t in _EXCLUDE_JSON_FILES):
         return False
     if not os.path.isfile(json_filename):
         return False
