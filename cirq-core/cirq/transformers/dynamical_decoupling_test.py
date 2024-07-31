@@ -18,6 +18,7 @@ import re
 import cirq
 from cirq import add_dynamical_decoupling
 import pytest
+import numpy as np
 
 
 def assert_dd(
@@ -26,10 +27,18 @@ def assert_dd(
     schema: Union[str, Sequence['cirq.Gate']],
     single_qubit_gate_moments_only: bool = True,
 ):
-    updated_circuit = add_dynamical_decoupling(
+    transformed_circuit = add_dynamical_decoupling(
         input_circuit, schema=schema, single_qubit_gate_moments_only=single_qubit_gate_moments_only
     )
-    cirq.testing.assert_same_circuits(updated_circuit, expected_circuit)
+    cirq.testing.assert_same_circuits(transformed_circuit, expected_circuit)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        input_circuit, expected_circuit, {q: q for q in input_circuit.all_qubits()}
+    )
+    # Simulate 2 circuits and compare final states.
+    sampler = cirq.Simulator(dtype=np.complex128)
+    psi0 = sampler.simulate(input_circuit).final_state_vector
+    psi1 = sampler.simulate(transformed_circuit).final_state_vector
+    assert np.isclose(np.abs(np.vdot(psi0, psi1)) ** 2, 1.0)
 
 
 def test_no_insert_due_to_no_consecutive_moments():
@@ -68,14 +77,14 @@ def test_insert_provided_schema(schema: str, inserted_gates: Sequence['cirq.Gate
         cirq.Moment(cirq.CNOT(a, b)),
         cirq.Moment(cirq.CNOT(b, c)),
         cirq.Moment(cirq.CNOT(b, c)),
-        cirq.Moment(cirq.measure_each(a, b, c)),
+        cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
     )
     expected_circuit = cirq.Circuit(
         cirq.Moment(cirq.H(a)),
         cirq.Moment(cirq.CNOT(a, b)),
         cirq.Moment(cirq.CNOT(b, c), inserted_gates[0](a)),
         cirq.Moment(cirq.CNOT(b, c), inserted_gates[1](a)),
-        cirq.Moment(cirq.measure_each(a, b, c)),
+        cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
     )
 
     # Insert one dynamical decoupling sequence in idle moments.
@@ -95,7 +104,7 @@ def test_insert_by_customized_dd_sequence():
             cirq.Moment(cirq.CNOT(b, c)),
             cirq.Moment(cirq.CNOT(b, c)),
             cirq.Moment(cirq.CNOT(b, c)),
-            cirq.Moment(cirq.measure_each(a, b, c)),
+            cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
         ),
         expected_circuit=cirq.Circuit(
             cirq.Moment(cirq.H(a)),
@@ -104,7 +113,7 @@ def test_insert_by_customized_dd_sequence():
             cirq.Moment(cirq.CNOT(b, c), cirq.X(a)),
             cirq.Moment(cirq.CNOT(b, c), cirq.Y(a)),
             cirq.Moment(cirq.CNOT(b, c), cirq.Y(a)),
-            cirq.Moment(cirq.measure_each(a, b, c)),
+            cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
         ),
         schema=[cirq.X, cirq.X, cirq.Y, cirq.Y],
         single_qubit_gate_moments_only=False,
@@ -143,10 +152,10 @@ def test_single_qubit_gate_moments_only_no_updates_succeeds():
         cirq.Moment([cirq.H(qubits[i]) for i in [0, 1, 7, 8]]),
         cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CNOT(*qubits[7:])),
     )
-    assert_dd(input_circuit, expected_circuit=input_circuit, schema="X_XINV")
+    add_dynamical_decoupling(input_circuit, schema="X_XINV", single_qubit_gate_moments_only=True)
 
 
-def test_single_qubit_gate_moments_only_with_updates_succeeds():
+def test_scattered_circuit_with_single_qubit_gates_moment_only_on_and_off_succeeds():
     qubits = cirq.LineQubit.range(9)
     input_circuit = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
@@ -160,7 +169,27 @@ def test_single_qubit_gate_moments_only_with_updates_succeeds():
         cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])),
         cirq.Moment([cirq.H(q) for q in qubits]),
     )
-    expected_circuit = cirq.Circuit(
+    expected_circuit_single_qubit_gates_off = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CZ(*qubits[4:6])),
+        cirq.Moment(cirq.CZ(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]] + [cirq.X(qubits[4])]),
+        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7]), cirq.X(qubits[4])),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.X(qubits[i]) for i in [3, 4, 5]]
+        ),
+        cirq.Moment(
+            [cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])] + [cirq.X(qubits[i]) for i in [3, 4, 5]]
+        ),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 3, 4, 5, 6]]
+        ),
+        cirq.Moment(
+            [cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])] + [cirq.X(qubits[i]) for i in range(2, 7)]
+        ),
+        cirq.Moment([cirq.H(qubits[i]) for i in range(0, 9)]),
+    )
+    expected_circuit_single_qubit_gates_on = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
         cirq.Moment(cirq.CZ(*qubits[4:6])),
         cirq.Moment(cirq.CZ(*qubits[3:5])),
@@ -184,9 +213,17 @@ def test_single_qubit_gate_moments_only_with_updates_succeeds():
             ]
         ),
     )
-    assert_dd(input_circuit, expected_circuit, schema="XX_PAIR")
-    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-        input_circuit, expected_circuit, {q: q for q in input_circuit.all_qubits()}
+    assert_dd(
+        input_circuit,
+        expected_circuit_single_qubit_gates_on,
+        schema="XX_PAIR",
+        single_qubit_gate_moments_only=True,
+    )
+    assert_dd(
+        input_circuit,
+        expected_circuit_single_qubit_gates_off,
+        schema="XX_PAIR",
+        single_qubit_gate_moments_only=False,
     )
 
 
@@ -215,4 +252,6 @@ def test_single_qubit_gate_moments_only_exceptions():
             add_dynamical_decoupling(input_circuit)
 
     with mock.patch('cirq.AbstractCircuit.next_moment_operating_on', return_value=None):
-        assert_dd(input_circuit=input_circuit, expected_circuit=input_circuit, schema="X_XINV")
+        add_dynamical_decoupling(
+            input_circuit, schema="X_XINV", single_qubit_gate_moments_only=True
+        )
