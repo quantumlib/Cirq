@@ -31,6 +31,9 @@ def qubit_to_proto_id(q: cirq.Qid) -> str:
     For `cirq.NamedQubit`s this id is the name.
 
     For `cirq.LineQubit`s this is string of the `x` attribute.
+
+    For `cirq_google.Coupler`s, this id is `c_{qubit0}_{qubit1}` where
+    qubit0 and qubit1 are the ids for the two Qid in the Coupler.
     """
     # Avoid circular import
     from cirq_google.devices.coupler import Coupler
@@ -53,6 +56,15 @@ def qubit_from_proto_id(proto_id: str) -> cirq.Qid:
     Proto IDs of the form {int}_{int} are parsed as GridQubits.
 
     Proto IDs of the form {int} are parsed as LineQubits.
+
+    Proto IDs of the form c_{int}_{int} are parsed as Couplers
+    between two LineQubits.
+
+    Proto IDs of the form c_{int}_{int}_{int}_{int} are parsed as Couplers
+    between two GridQubit.
+
+    Proto IDs of the form c_{name}_{name} are parsed as Couplers
+    between two NamedQubits.
 
     All other proto IDs are parsed as NamedQubits. Note that this will happily
     accept any string; for circuits which explicitly use Grid or LineQubits,
