@@ -465,7 +465,7 @@ def test_grid_device_validate_operations_negative():
         )
 
 
-def test_grid_device_validate_operation_coupler():
+def test_grid_device_validate_operation_coupler_for_horizontal_couplings():
     _, spec = _create_device_spec_with_horizontal_couplings()
     device = cirq_google.GridDevice.from_proto(spec)
 
