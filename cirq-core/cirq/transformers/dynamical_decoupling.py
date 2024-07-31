@@ -210,7 +210,9 @@ def add_dynamical_decoupling(
     if not single_qubit_gate_moments_only:
         # Fill operations on idle moments with pieces of base_dd_sequence, it's guaranteed that all
         # inserted gates cancel as each piece of base_dd_sequence is equivalent to identity.
-        last_busy_moment_by_qubits: Dict['cirq.Qid', Optional[int]] = {q: None for q in circuit.all_qubits()}
+        last_busy_moment_by_qubits: Dict['cirq.Qid', Optional[int]] = {
+            q: None for q in circuit.all_qubits()
+        }
         for moment_id, moment in enumerate(circuit):
             for q in moment.qubits:
                 if not last_busy_moment_by_qubits[q]:  # Insert from the first active moment.
