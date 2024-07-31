@@ -32,7 +32,7 @@ def assert_dd(
     )
     cirq.testing.assert_same_circuits(transformed_circuit, expected_circuit)
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-        input_circuit, expected_circuit, {q: q for q in input_circuit.all_qubits()}
+        input_circuit, transformed_circuit, {q: q for q in input_circuit.all_qubits()}
     )
     # Simulate 2 circuits and compare final states.
     sampler = cirq.Simulator(dtype=np.complex128)
