@@ -109,3 +109,4 @@ def test_generic_qubit_from_proto_id():
     assert v2.qubit_from_proto_id('c_4_5') == line_coupler
     named_coupler = cg.Coupler(cirq.NamedQubit('named1'), cirq.NamedQubit('named2'))
     assert v2.qubit_from_proto_id('c_named1_named2') == named_coupler
+    assert v2.qubit_from_proto_id('c_a_b_c_d') == cirq.NamedQubit('c_a_b_c_d')
