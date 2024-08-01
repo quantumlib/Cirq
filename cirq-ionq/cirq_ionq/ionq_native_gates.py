@@ -31,7 +31,7 @@ class GPIGate(cirq.Gate):
     $$
     \begin{bmatrix}
       0 & e^{-i 2\pi\phi} \\
-      e^{-i2\pi\phi} & 0
+      e^{i 2\pi\phi} & 0
     \end{bmatrix}
     $$
 
@@ -106,8 +106,8 @@ class GPI2Gate(cirq.Gate):
     $$
     \frac{1}{\sqrt{2}}
     \begin{bmatrix}
-        1 & -i e^{-i \phi} \\
-        -i e^{-i \phi} & 1
+        1 & -i e^{-i 2\pi\phi} \\
+        -i e^{i 2\pi\phi} & 1
     \end{bmatrix}
     $$
 

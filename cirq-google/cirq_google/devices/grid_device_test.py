@@ -21,7 +21,7 @@ import pytest
 import cirq
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.devices import grid_device
+from cirq_google.devices import Coupler, grid_device
 
 
 GRID_HEIGHT = 5
@@ -463,6 +463,47 @@ def test_grid_device_validate_operations_negative():
         device.validate_operation(
             cirq.testing.DoesNotSupportSerializationGate()(device_info.grid_qubits[0])
         )
+
+
+def test_grid_device_validate_operation_coupler_for_horizontal_couplings():
+    """Tests coupler device on a device spec that only
+    has horizontal couplings."""
+    _, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+
+    g = cirq_google.InternalGate(
+        gate_name="DetuneCoupler", gate_module='internal_module', num_qubits=1, freq=5.5
+    )
+    for y in range(GRID_HEIGHT):
+        # Valid couplers
+        coupler = Coupler(cirq.GridQubit(y, 0), cirq.GridQubit(y, 1))
+        device.validate_operation(g(coupler))
+        coupler = Coupler(cirq.GridQubit(y, 1), cirq.GridQubit(y, 0))
+        device.validate_operation(g(coupler))
+        # One coupler off grid
+        coupler = Coupler(cirq.GridQubit(y, 1), cirq.GridQubit(y, 2))
+        with pytest.raises(ValueError, match="Qubits on coupler not on device"):
+            device.validate_operation(g(coupler))
+        # Both couplers off grid
+        coupler = Coupler(cirq.GridQubit(y, 2), cirq.GridQubit(y, 3))
+        with pytest.raises(ValueError, match="Qubits on coupler not on device"):
+            device.validate_operation(g(coupler))
+        # Vertical Coupler (not on device)
+        coupler = Coupler(cirq.GridQubit(y, 0), cirq.GridQubit((y + 1) % GRID_HEIGHT, 0))
+        with pytest.raises(ValueError, match="Coupler pair is not valid on device"):
+            device.validate_operation(g(coupler))
+
+
+def test_grid_device_validate_operation_coupler_for_vertical_couplings():
+    gateset = cirq.Gateset(cirq.GateFamily(cirq_google.InternalGate))
+    device = grid_device.GridDevice._from_device_information(
+        qubit_pairs=[(cirq.GridQubit(1, 0), cirq.GridQubit(0, 0))], gateset=gateset
+    )
+    g = cirq_google.InternalGate(
+        gate_name="DetuneCoupler", gate_module='internal_module', num_qubits=1, freq=5.5
+    )
+    coupler = Coupler(cirq.GridQubit(1, 0), cirq.GridQubit(0, 0))
+    device.validate_operation(g(coupler))
 
 
 @pytest.mark.parametrize(
