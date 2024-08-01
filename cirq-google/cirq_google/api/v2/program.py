@@ -86,9 +86,12 @@ def qubit_from_proto_id(proto_id: str) -> cirq.Qid:
             # 2 grid qubits: c_2_1_4_3
             grid_qubit0_str = qubit_field[1] + '_' + qubit_field[2]
             grid_qubit1_str = qubit_field[3] + '_' + qubit_field[4]
-            grid_qubit0 = grid_qubit_from_proto_id(grid_qubit0_str)
-            grid_qubit1 = grid_qubit_from_proto_id(grid_qubit1_str)
-            return Coupler(grid_qubit0, grid_qubit1)
+            try:
+                grid_qubit0 = grid_qubit_from_proto_id(grid_qubit0_str)
+                grid_qubit1 = grid_qubit_from_proto_id(grid_qubit1_str)
+                return Coupler(grid_qubit0, grid_qubit1)
+            except ValueError:
+                pass  # Not valid grid qubits.
         elif num_coords == 3:
             # 2 line qubits: c_2_4
             # Or two named qubits: c_qubita_qubitb
