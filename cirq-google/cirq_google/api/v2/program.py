@@ -71,8 +71,6 @@ def qubit_from_proto_id(proto_id: str) -> cirq.Qid:
     Returns:
         A `cirq.Qid` corresponding to the proto id.
     """
-    # Avoid circular import
-
     qubit_field = proto_id.split('_')
     num_coords = len(qubit_field)
     if proto_id[:2] == 'c_':
