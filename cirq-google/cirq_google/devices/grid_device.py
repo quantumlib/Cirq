@@ -37,8 +37,8 @@ from cirq_google import ops
 from cirq_google import transformers
 from cirq_google.api import v2
 from cirq_google.devices import known_devices
-from cirq_google.devices.coupler import Coupler
 from cirq_google.experimental import ops as experimental_ops
+from cirq_google.ops.coupler import Coupler
 
 
 # Gate family constants used in various parts of GridDevice logic.

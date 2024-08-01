@@ -21,7 +21,8 @@ import pytest
 import cirq
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.devices import Coupler, grid_device
+from cirq_google.devices import grid_device
+from cirq_google.ops import Coupler
 
 
 GRID_HEIGHT = 5

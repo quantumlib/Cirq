@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import re
-from typing import TYPE_CHECKING
 
 import cirq
 
-if TYPE_CHECKING:
-    import cirq
+from cirq_google.ops.coupler import Coupler
 
 GRID_QUBIT_ID_PATTERN = r'^q?(-?\d+)_(-?\d+)$'
 
@@ -35,9 +33,6 @@ def qubit_to_proto_id(q: cirq.Qid) -> str:
     For `cirq_google.Coupler`s, this id is `c_{qubit0}_{qubit1}` where
     qubit0 and qubit1 are the ids for the two Qid in the Coupler.
     """
-    # Avoid circular import
-    from cirq_google.devices.coupler import Coupler
-
     if isinstance(q, cirq.GridQubit):
         return f'{q.row}_{q.col}'
     elif isinstance(q, cirq.NamedQubit):
@@ -77,7 +72,6 @@ def qubit_from_proto_id(proto_id: str) -> cirq.Qid:
         A `cirq.Qid` corresponding to the proto id.
     """
     # Avoid circular import
-    from cirq_google.devices.coupler import Coupler
 
     qubit_field = proto_id.split('_')
     num_coords = len(qubit_field)
