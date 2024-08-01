@@ -313,7 +313,7 @@ class EigenGate(raw_types.Gate):
                 self._canonical_exponent_cached = self._exponent
             elif protocols.is_parameterized(self._exponent):
                 self._canonical_exponent_cached = self._exponent
-                if isinstance(self._exponent, sympy.Expr) and self._exponent.is_constant():
+                if isinstance(self._exponent, sympy.Number):
                     self._canonical_exponent_cached = float(self._exponent)
             else:
                 self._canonical_exponent_cached = self._exponent % period
