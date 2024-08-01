@@ -13,8 +13,21 @@
 # limitations under the License.
 """Support for serializing gates supported by IonQ's API."""
 import dataclasses
-from typing import Callable, cast, Collection, Dict, Iterator, Optional, Sequence, Type, Union
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Collection,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+)
 
+import json
 import numpy as np
 import sympy
 
@@ -22,6 +35,7 @@ import cirq
 from cirq.devices import line_qubit
 from cirq.ops import common_gates, parity_gates
 from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
+from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, cirq.MeasurementGate, unroll_circuit_op=False
@@ -79,7 +93,7 @@ class Serializer:
             MSGate: self._serialize_ms_gate,
         }
 
-    def serialize(
+    def serialize_single_circuit(
         self,
         circuit: cirq.AbstractCircuit,
         job_settings: Optional[dict] = None,
@@ -91,7 +105,8 @@ class Serializer:
             ValueError: if the circuit has gates that are not supported or is otherwise invalid.
         """
         self._validate_circuit(circuit)
-        num_qubits = self._validate_qubits(circuit.all_qubits())
+        self._validate_qubits(circuit.all_qubits())
+        num_qubits = self._num_qubits(circuit)
 
         serialized_ops = self._serialize_circuit(circuit)
 
@@ -113,14 +128,68 @@ class Serializer:
             error_mitigation=error_mitigation,
         )
 
+    def serialize_many_circuits(
+        self,
+        circuits: List[cirq.AbstractCircuit],
+        job_settings: Optional[dict] = None,
+        error_mitigation: Optional[dict] = None,
+    ) -> SerializedProgram:
+        """Serialize the given array of circuits.
+
+        Raises:
+            ValueError: if the circuit has gates that are not supported or is otherwise invalid.
+            IonQSerializerMixedGatesetsException: if not all input circuits have the same type of gates: either 'qis' or 'native' gates.
+        """
+        for circuit in circuits:
+            self._validate_circuit(circuit)
+            self._validate_qubits(circuit.all_qubits())
+
+        num_qubits = max([self._num_qubits(circuit) for circuit in circuits])
+
+        gateset = None
+        for circuit in circuits:
+            current_gateset = "qis" if not _NATIVE_GATES.validate(circuit) else "native"
+            if gateset is None:
+                gateset = current_gateset
+            if current_gateset != gateset:
+                raise IonQSerializerMixedGatesetsException(
+                    "For batch circuit submit all circuits in a batch must contain the same type of gates: either 'qis' or 'native' gates."
+                )
+
+        # IonQ API does not support measurements, so we pass the measurement keys through
+        # the metadata field.  Here we split these out of the serialized ops.
+        body: dict[str, Any] = {'gateset': gateset, 'qubits': num_qubits, 'circuits': []}
+
+        measurements = []
+        qubit_numbers = []
+        for circuit in circuits:
+            serialized_ops = self._serialize_circuit(circuit)
+            body['circuits'].append(
+                {'circuit': [op for op in serialized_ops if op['gate'] != 'meas']}
+            )
+            measurements.append(
+                (self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas'))
+            )
+            qubit_numbers.append(self._num_qubits(circuit))
+
+        return SerializedProgram(
+            body=body,
+            metadata={
+                "measurements": json.dumps(measurements),
+                "qubit_numbers": json.dumps(qubit_numbers),
+            },
+            settings=(job_settings or {}),
+            error_mitigation=error_mitigation,
+        )
+
     def _validate_circuit(self, circuit: cirq.AbstractCircuit):
         if len(circuit) == 0:
             raise ValueError('Cannot serialize empty circuit.')
         if not circuit.are_all_measurements_terminal():
             raise ValueError('All measurements in circuit must be at end of circuit.')
 
-    def _validate_qubits(self, all_qubits: Collection['cirq.Qid']) -> int:
-        """Returns the number of qubits while validating qubit types and values."""
+    def _validate_qubits(self, all_qubits: Collection['cirq.Qid']):
+        """Validates qubit types and values."""
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError(
                 f'All qubits must be cirq.LineQubits but were {set(type(q) for q in all_qubits)}'
@@ -130,8 +199,11 @@ class Serializer:
                 'IonQ API must use LineQubits from 0 to number of qubits - 1. Instead found line '
                 f'qubits with indices {all_qubits}.'
             )
-        num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
-        return num_qubits
+
+    def _num_qubits(self, circuit: cirq.AbstractCircuit) -> int:
+        """Returns the number of qubits in a circuit."""
+        all_qubits = circuit.all_qubits()
+        return cast(line_qubit.LineQubit, max(all_qubits)).x + 1
 
     def _serialize_circuit(self, circuit: cirq.AbstractCircuit) -> list:
         return [self._serialize_op(op) for moment in circuit for op in moment]
