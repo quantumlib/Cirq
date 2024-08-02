@@ -14,7 +14,7 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
@@ -385,7 +385,9 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions
+    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions,     target: Union[ops.GateFamily, ops.Gateset] = ops.Gateset(
+        ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate
+    ),
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
@@ -393,7 +395,7 @@ def parameterize_circuit(
     gate = options.get_parameterized_gate()
     return circuits.Circuit(
         circuits.Moment(
-            gate.on(*op.qubits) if options.should_parameterize(op) else op
+            gate.on(*op.qubits) if op in target else op
             for op in moment.operations
         )
         for moment in circuit.moments
