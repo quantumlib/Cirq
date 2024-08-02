@@ -15,6 +15,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, TYPE_CHECKING, Dict, Any
 
+import tqdm
 import numpy as np
 import pandas as pd
 

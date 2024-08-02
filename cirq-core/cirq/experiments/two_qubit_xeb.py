@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides functions for running and analyzing two-qubit XEB experiments."""
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping, Union
 
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -358,6 +358,7 @@ def parallel_xeb_workflow(
     cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
+    pool: Optional[Union['multiprocessing.Pool', 'concurrent.futures.ThreadPoolExecuter']] = None,
     **plot_kwargs,
 ) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
@@ -426,7 +427,7 @@ def parallel_xeb_workflow(
     )
 
     fids = benchmark_2q_xeb_fidelities(
-        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths
+        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths, pool=pool
     )
 
     return fids, circuit_library, sampled_df

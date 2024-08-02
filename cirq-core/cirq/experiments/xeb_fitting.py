@@ -16,11 +16,13 @@ import dataclasses
 from abc import abstractmethod, ABC
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
+import tqdm
 import numpy as np
 import pandas as pd
 import sympy
 from cirq import circuits, ops, protocols, _import
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
+import concurrent.futures
 
 if TYPE_CHECKING:
     import cirq
@@ -41,7 +43,7 @@ def benchmark_2q_xeb_fidelities(
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Optional[Sequence[int]] = None,
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool: Optional[Union['multiprocessing.pool.Pool', 'concurrent.futurers.ThreadPoolExecuter']] = None,
 ) -> pd.DataFrame:
     """Simulate and benchmark two-qubit XEB circuits.
 
@@ -526,7 +528,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool: Optional[Union['multiprocessing.pool.Pool', 'concurrent.futures.Executer']] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates grouped by pairs.
@@ -563,11 +565,13 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
         fatol=fatol,
     )
     subselected_dfs = [sampled_df[sampled_df['pair'] == pair] for pair in pairs]
+    # if isinstance(pool, concurrent.futures.Executor):
+    #     futures = [pool.submit(closure, df) for df in subselected_dfs]
+    #     results = [r for r in tqdm.tqdm(concurrent.futures.as_completed(futures), desc='Optimize')]
     if pool is not None:
-        results = pool.map(closure, subselected_dfs)
+        results = tqdm.tqdm(pool.map(closure, subselected_dfs), total=len(subselected_dfs), desc='Optimize Parameters')
     else:
         results = [closure(df) for df in subselected_dfs]
-
     optimization_results = {}
     all_final_params = {}
     fid_dfs = []

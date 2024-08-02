@@ -87,6 +87,7 @@ def z_phase_calibration_workflow(
         n_circuits=n_circuits,
         n_combinations=n_combinations,
         random_state=random_state,
+        pool=pool,
     )
 
     if options is None:
