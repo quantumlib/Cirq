@@ -27,7 +27,7 @@ import cirq
 from cirq.protocols.json_serialization_test import MODULE_TEST_SPECS
 
 
-REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
+REPO_ROOT = pathlib.Path(cirq.__file__).parent.parent.parent
 
 _EXCLUDE_JSON_FILES = (
     # sympy - related objects
