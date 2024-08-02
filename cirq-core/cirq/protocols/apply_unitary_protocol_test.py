@@ -714,7 +714,8 @@ def test_cast_to_complex():
     )
 
     with pytest.raises(
-        np.ComplexWarning, match='Casting complex values to real discards the imaginary part'
+        np.exceptions.ComplexWarning,
+        match='Casting complex values to real discards the imaginary part',
     ):
         cirq.apply_unitary(y0, args)
 
