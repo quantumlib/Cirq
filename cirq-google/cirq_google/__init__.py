@@ -20,7 +20,6 @@ from cirq_google import api
 from cirq_google._version import __version__
 
 from cirq_google.devices import (
-    Coupler,
     GoogleNoiseProperties,
     GridDevice,
     NoiseModelFromGoogleNoiseProperties,
@@ -56,6 +55,7 @@ from cirq_google.line import (
 
 from cirq_google.ops import (
     CalibrationTag,
+    Coupler,
     FSimGateFamily,
     FSimViaModelTag,
     InternalGate,
