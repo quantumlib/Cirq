@@ -18,6 +18,8 @@ from cirq_google.ops.analog_detune_gates import AnalogDetuneQubit
 
 from cirq_google.ops.calibration_tag import CalibrationTag
 
+from cirq_google.ops.coupler import Coupler
+
 from cirq_google.ops.fsim_gate_family import FSimGateFamily
 
 from cirq_google.ops.fsim_via_model_tag import FSimViaModelTag
