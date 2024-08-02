@@ -258,7 +258,8 @@ class QuantumExecutableGroup:
             executables = tuple(executables)
         object.__setattr__(self, 'executables', executables)
 
-        object.__setattr__(self, '_hash', None)
+        # Ensure the object is hashable at construction time.
+        object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
 
     def __len__(self) -> int:
         return len(self.executables)
