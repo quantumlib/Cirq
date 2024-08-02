@@ -512,11 +512,11 @@ class CircuitOperation(ops.Operation):
     def __getstate__(self) -> Dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
-        # cached_property stores value in the property name attribute
-        hash_cache = "_hash"
-        if hash_cache in state:
+        # cached_property stores value in the property-named attribute
+        hash_attr = "_hash"
+        if hash_attr in state:
             state = state.copy()
-            del state[hash_cache]
+            del state[hash_attr]
         return state
 
     def _json_dict_(self):

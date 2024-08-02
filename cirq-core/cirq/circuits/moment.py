@@ -368,10 +368,10 @@ class Moment:
     def __getstate__(self) -> Dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
-        hash_cache = _compat._method_cache_name(self.__hash__)
-        if hash_cache in state:
+        hash_attr = _compat._method_cache_name(self.__hash__)
+        if hash_attr in state:
             state = state.copy()
-            del state[hash_cache]
+            del state[hash_attr]
         return state
 
     def __iter__(self) -> Iterator['cirq.Operation']:
