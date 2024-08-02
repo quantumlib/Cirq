@@ -207,7 +207,8 @@ class QuantumExecutable:
         # Hash may be expensive to compute, especially for large circuits.
         # This should be safe since this class should be immutable. This line will
         # also check for hashibility of members at construction time.
-        object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
+        object.__setattr__(self, '_hash', None)
+        _ = hash(self)
 
     def __str__(self):
         return f'QuantumExecutable(spec={self.spec})'
@@ -259,7 +260,8 @@ class QuantumExecutableGroup:
         object.__setattr__(self, 'executables', executables)
 
         # Ensure the object is hashable at construction time.
-        object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
+        object.__setattr__(self, '_hash', None)
+        _ = hash(self)
 
     def __len__(self) -> int:
         return len(self.executables)
