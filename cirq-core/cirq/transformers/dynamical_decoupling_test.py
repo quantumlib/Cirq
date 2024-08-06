@@ -13,18 +13,32 @@
 # limitations under the License.
 
 from typing import Sequence, Union
+from unittest import mock
+import re
 import cirq
 from cirq import add_dynamical_decoupling
 import pytest
+import numpy as np
 
 
 def assert_dd(
     input_circuit: cirq.Circuit,
     expected_circuit: cirq.Circuit,
     schema: Union[str, Sequence['cirq.Gate']],
+    single_qubit_gate_moments_only: bool = True,
 ):
-    updated_circuit = add_dynamical_decoupling(input_circuit, schema=schema)
-    cirq.testing.assert_same_circuits(updated_circuit, expected_circuit)
+    transformed_circuit = add_dynamical_decoupling(
+        input_circuit, schema=schema, single_qubit_gate_moments_only=single_qubit_gate_moments_only
+    )
+    cirq.testing.assert_same_circuits(transformed_circuit, expected_circuit)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        input_circuit, transformed_circuit, {q: q for q in input_circuit.all_qubits()}
+    )
+    # Simulate 2 circuits and compare final states.
+    sampler = cirq.Simulator(dtype=np.complex128)
+    psi0 = sampler.simulate(input_circuit).final_state_vector
+    psi1 = sampler.simulate(transformed_circuit).final_state_vector
+    assert np.isclose(np.abs(np.vdot(psi0, psi1)) ** 2, 1.0)
 
 
 def test_no_insert_due_to_no_consecutive_moments():
@@ -40,6 +54,7 @@ def test_no_insert_due_to_no_consecutive_moments():
             cirq.Moment(cirq.H(a)), cirq.Moment(cirq.CNOT(a, b)), cirq.Moment(cirq.H(b))
         ),
         schema='XX_PAIR',
+        single_qubit_gate_moments_only=False,
     )
 
 
@@ -62,18 +77,18 @@ def test_insert_provided_schema(schema: str, inserted_gates: Sequence['cirq.Gate
         cirq.Moment(cirq.CNOT(a, b)),
         cirq.Moment(cirq.CNOT(b, c)),
         cirq.Moment(cirq.CNOT(b, c)),
-        cirq.Moment(cirq.measure_each(a, b, c)),
+        cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
     )
     expected_circuit = cirq.Circuit(
         cirq.Moment(cirq.H(a)),
         cirq.Moment(cirq.CNOT(a, b)),
         cirq.Moment(cirq.CNOT(b, c), inserted_gates[0](a)),
         cirq.Moment(cirq.CNOT(b, c), inserted_gates[1](a)),
-        cirq.Moment(cirq.measure_each(a, b, c)),
+        cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
     )
 
     # Insert one dynamical decoupling sequence in idle moments.
-    assert_dd(input_circuit, expected_circuit, schema=schema)
+    assert_dd(input_circuit, expected_circuit, schema=schema, single_qubit_gate_moments_only=False)
 
 
 def test_insert_by_customized_dd_sequence():
@@ -89,7 +104,7 @@ def test_insert_by_customized_dd_sequence():
             cirq.Moment(cirq.CNOT(b, c)),
             cirq.Moment(cirq.CNOT(b, c)),
             cirq.Moment(cirq.CNOT(b, c)),
-            cirq.Moment(cirq.measure_each(a, b, c)),
+            cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
         ),
         expected_circuit=cirq.Circuit(
             cirq.Moment(cirq.H(a)),
@@ -98,9 +113,10 @@ def test_insert_by_customized_dd_sequence():
             cirq.Moment(cirq.CNOT(b, c), cirq.X(a)),
             cirq.Moment(cirq.CNOT(b, c), cirq.Y(a)),
             cirq.Moment(cirq.CNOT(b, c), cirq.Y(a)),
-            cirq.Moment(cirq.measure_each(a, b, c)),
+            cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
         ),
         schema=[cirq.X, cirq.X, cirq.Y, cirq.Y],
+        single_qubit_gate_moments_only=False,
     )
 
 
@@ -120,4 +136,122 @@ def test_invalid_dd_schema(schema: Union[str, Sequence['cirq.Gate']], error_msg_
     a = cirq.NamedQubit('a')
     input_circuit = cirq.Circuit(cirq.H(a))
     with pytest.raises(ValueError, match=error_msg_regex):
-        add_dynamical_decoupling(input_circuit, schema=schema)
+        add_dynamical_decoupling(input_circuit, schema=schema, single_qubit_gate_moments_only=False)
+
+
+def test_single_qubit_gate_moments_only_no_updates_succeeds():
+    qubits = cirq.LineQubit.range(9)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CZ(*qubits[4:6])),
+        cirq.Moment(cirq.CZ(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]]),
+        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CNOT(*qubits[5:7])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [1, 2, 6, 7]]),
+        cirq.Moment(cirq.CZ(*qubits[1:3]), cirq.CNOT(*qubits[6:8])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [0, 1, 7, 8]]),
+        cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CNOT(*qubits[7:])),
+    )
+    add_dynamical_decoupling(input_circuit, schema="X_XINV", single_qubit_gate_moments_only=True)
+
+
+def test_scattered_circuit_with_single_qubit_gates_moment_only_on_and_off_succeeds():
+    qubits = cirq.LineQubit.range(9)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CZ(*qubits[4:6])),
+        cirq.Moment(cirq.CZ(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]]),
+        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [1, 2, 6, 7]]),
+        cirq.Moment(cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [0, 1, 7, 8]]),
+        cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])),
+        cirq.Moment([cirq.H(q) for q in qubits]),
+    )
+    expected_circuit_single_qubit_gates_off = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CZ(*qubits[4:6])),
+        cirq.Moment(cirq.CZ(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]] + [cirq.X(qubits[4])]),
+        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7]), cirq.X(qubits[4])),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.X(qubits[i]) for i in [3, 4, 5]]
+        ),
+        cirq.Moment(
+            [cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])] + [cirq.X(qubits[i]) for i in [3, 4, 5]]
+        ),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 3, 4, 5, 6]]
+        ),
+        cirq.Moment(
+            [cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])] + [cirq.X(qubits[i]) for i in range(2, 7)]
+        ),
+        cirq.Moment([cirq.H(qubits[i]) for i in range(0, 9)]),
+    )
+    expected_circuit_single_qubit_gates_on = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CZ(*qubits[4:6])),
+        cirq.Moment(cirq.CZ(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]] + [cirq.X(qubits[4])]),
+        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7])),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.X(qubits[i]) for i in [3, 4, 5]]
+        ),
+        cirq.Moment(cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 3, 4, 5, 6]]
+        ),
+        cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [0, 1, 3, 5, 7, 8]]
+            + [
+                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(
+                    qubits[i]
+                )
+                for i in [2, 4, 6]
+            ]
+        ),
+    )
+    assert_dd(
+        input_circuit,
+        expected_circuit_single_qubit_gates_on,
+        schema="XX_PAIR",
+        single_qubit_gate_moments_only=True,
+    )
+    assert_dd(
+        input_circuit,
+        expected_circuit_single_qubit_gates_off,
+        schema="XX_PAIR",
+        single_qubit_gate_moments_only=False,
+    )
+
+
+def test_single_qubit_gate_moments_only_exceptions():
+    qubits = cirq.LineQubit.range(9)
+    input_circuit = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CZ(*qubits[4:6])),
+        cirq.Moment(cirq.CZ(*qubits[3:5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]]),
+        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [1, 2, 6, 7]]),
+        cirq.Moment(cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [0, 1, 7, 8]]),
+        cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])),
+        cirq.Moment([cirq.H(q) for q in qubits]),
+    )
+    with mock.patch(
+        "cirq.transformers.analytical_decompositions"
+        ".single_qubit_decompositions.single_qubit_matrix_to_phxz",
+        return_value=None,
+    ):
+        with pytest.raises(
+            ValueError, match=re.compile("Can't convert .* to PhasedXZ gate.", re.DOTALL)
+        ):
+            add_dynamical_decoupling(input_circuit)
+
+    with mock.patch('cirq.AbstractCircuit.next_moment_operating_on', return_value=None):
+        add_dynamical_decoupling(
+            input_circuit, schema="X_XINV", single_qubit_gate_moments_only=True
+        )
