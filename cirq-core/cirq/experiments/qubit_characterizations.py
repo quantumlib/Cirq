@@ -105,7 +105,7 @@ class RandomizedBenchMarkResult:
             The plt.Axes containing the plot.
         """
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))  # pragma: no cover
         ax.set_ylim((0.0, 1.0))  # pragma: no cover
         ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro', label='data', **plot_kwargs)

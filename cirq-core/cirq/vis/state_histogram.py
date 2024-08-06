@@ -85,7 +85,7 @@ def plot_state_histogram(
         The axis that was plotted on.
     """
     show_fig = not ax
-    if not ax:
+    if ax is None:
         fig, ax = plt.subplots(1, 1)
     if isinstance(data, result.Result):
         values = get_state_histogram(data)

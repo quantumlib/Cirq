@@ -147,7 +147,7 @@ def sample_heavy_set(
 
     results = results.agg(lambda meas: cirq.value.big_endian_bits_to_int(meas), axis=1)
     # Compute the number of outputs that are in the heavy set.
-    num_in_heavy_set = np.sum(np.in1d(results, heavy_set)).item()
+    num_in_heavy_set = np.sum(np.isin(results, heavy_set)).item()
 
     # Return the number of Heavy outputs over the number of valid runs.
     return num_in_heavy_set / len(results)
