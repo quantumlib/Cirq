@@ -26,31 +26,28 @@ import pytest
 import cirq
 from cirq.protocols.json_serialization_test import MODULE_TEST_SPECS
 
-
-REPO_ROOT = pathlib.Path(cirq.__file__).parent.parent.parent
-
 _EXCLUDE_JSON_FILES = (
     # sympy - related objects
-    "cirq-core/cirq/protocols/json_test_data/sympy.Add.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.E.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.Equality.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.EulerGamma.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.Float.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.GreaterThan.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.Integer.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.LessThan.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.Mul.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.Pow.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.Rational.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.StrictGreaterThan.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.StrictLessThan.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.Symbol.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.Unequality.json",
-    "cirq-core/cirq/protocols/json_test_data/sympy.pi.json",
+    "cirq/protocols/json_test_data/sympy.Add.json",
+    "cirq/protocols/json_test_data/sympy.E.json",
+    "cirq/protocols/json_test_data/sympy.Equality.json",
+    "cirq/protocols/json_test_data/sympy.EulerGamma.json",
+    "cirq/protocols/json_test_data/sympy.Float.json",
+    "cirq/protocols/json_test_data/sympy.GreaterThan.json",
+    "cirq/protocols/json_test_data/sympy.Integer.json",
+    "cirq/protocols/json_test_data/sympy.LessThan.json",
+    "cirq/protocols/json_test_data/sympy.Mul.json",
+    "cirq/protocols/json_test_data/sympy.Pow.json",
+    "cirq/protocols/json_test_data/sympy.Rational.json",
+    "cirq/protocols/json_test_data/sympy.StrictGreaterThan.json",
+    "cirq/protocols/json_test_data/sympy.StrictLessThan.json",
+    "cirq/protocols/json_test_data/sympy.Symbol.json",
+    "cirq/protocols/json_test_data/sympy.Unequality.json",
+    "cirq/protocols/json_test_data/sympy.pi.json",
     # RigettiQCSAspenDevice does not pickle
-    "cirq-rigetti/cirq_rigetti/json_test_data/RigettiQCSAspenDevice.json",
+    "cirq_rigetti/json_test_data/RigettiQCSAspenDevice.json",
     # TODO(#6674,pavoljuhas) - fix pickling of ProjectorSum
-    "cirq-core/cirq/protocols/json_test_data/ProjectorSum.json",
+    "cirq/protocols/json_test_data/ProjectorSum.json",
 )
 
 
@@ -81,7 +78,10 @@ def _read_json(json_filename: str) -> Any:
 
 def test_exclude_json_files_has_valid_entries() -> None:
     """Verify _EXCLUDE_JSON_FILES has valid entries."""
-    invalid_json_paths = [f for f in _EXCLUDE_JSON_FILES if not REPO_ROOT.joinpath(f).is_file()]
+    json_file_exists = lambda f: any(
+        m.test_data_path.joinpath(os.path.basename(f)).is_file() for m in MODULE_TEST_SPECS
+    )
+    invalid_json_paths = [f for f in _EXCLUDE_JSON_FILES if not json_file_exists(f)]
     assert invalid_json_paths == []
 
 
