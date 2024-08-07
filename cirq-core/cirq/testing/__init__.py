@@ -108,6 +108,8 @@ from cirq.testing.repr_pretty_tester import (
     FakePrinter,
 )
 
+from cirq.testing.pytest_randomly_utils import retry_once_with_later_random_values
+
 from cirq.testing.routing_devices import (
     construct_grid_device,
     construct_ring_device,
