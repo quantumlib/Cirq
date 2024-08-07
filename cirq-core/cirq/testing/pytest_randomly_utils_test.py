@@ -13,9 +13,10 @@
 # limitations under the License.
 
 from unittest.mock import Mock
-import cirq
 
 import pytest
+
+import cirq
 
 
 def test_retry_once_with_later_random_values():
