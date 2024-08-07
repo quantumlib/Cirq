@@ -109,6 +109,9 @@ class ObservableMeasuredResult:
     repetitions: int
     circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
 
+    # unhashable because of the mapping-type circuit_params attribute
+    __hash__ = None  # type: ignore
+
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
         # we need to prefix our class name with `cirq.work.`

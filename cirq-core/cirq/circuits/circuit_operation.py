@@ -21,6 +21,7 @@ component operations in order, including any nested CircuitOperations.
 import math
 from functools import cached_property
 from typing import (
+    Any,
     Callable,
     cast,
     Dict,
@@ -507,6 +508,16 @@ class CircuitOperation(ops.Operation):
 
     def __hash__(self) -> int:
         return self._hash
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        # cached_property stores value in the property-named attribute
+        hash_attr = "_hash"
+        if hash_attr in state:
+            state = state.copy()
+            del state[hash_attr]
+        return state
 
     def _json_dict_(self):
         resp = {
