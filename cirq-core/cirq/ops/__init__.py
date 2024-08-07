@@ -78,6 +78,8 @@ from cirq.ops.common_gate_families import (
 
 from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
+from cirq.ops.cxswap_czswap import CXSWAPGate, CZSWAPGate
+
 from cirq.ops.controlled_gate import ControlledGate
 
 from cirq.ops.diagonal_gate import DiagonalGate
