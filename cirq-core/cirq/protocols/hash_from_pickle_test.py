@@ -78,10 +78,12 @@ def _read_json(json_filename: str) -> Any:
 
 def test_exclude_json_files_has_valid_entries() -> None:
     """Verify _EXCLUDE_JSON_FILES has valid entries."""
-    json_file_exists = lambda f: any(
+    # do not check rigetti files if not installed
+    skip_rigetti = all(m.name != "cirq_rigetti" for m in MODULE_TEST_SPECS)
+    json_file_validates = lambda f: any(
         m.test_data_path.joinpath(os.path.basename(f)).is_file() for m in MODULE_TEST_SPECS
-    )
-    invalid_json_paths = [f for f in _EXCLUDE_JSON_FILES if not json_file_exists(f)]
+    ) or (skip_rigetti and f.startswith("cirq_rigetti/"))
+    invalid_json_paths = [f for f in _EXCLUDE_JSON_FILES if not json_file_validates(f)]
     assert invalid_json_paths == []
 
 
