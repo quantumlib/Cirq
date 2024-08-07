@@ -28,11 +28,16 @@ document(
     If an integer, turns into a `np.random.RandomState` seeded with that
     integer.
 
+    If `random_state` is an instance of `np.random.Generator`, returns a
+        `np.random.RandomState` seeded with `random_state.bit_generator`.
+
     If none of the above, it is used unmodified. In this case, it is assumed
     that the object implements whatever methods are required for the use case
     at hand. For example, it might be an existing instance of
     `np.random.RandomState` or a custom pseudorandom number generator
     implementation.
+
+    Note: prefer to use cirq.PRNG_OR_SEED_LIKE.
     """,
 )
 
@@ -41,8 +46,9 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
     """Interpret an object as a pseudorandom number generator.
 
     If `random_state` is None, returns the module `np.random`.
-    If `random_state` is an integer, returns
-    `np.random.RandomState(random_state)`.
+    If `random_state` is an integer, returns `np.random.RandomState(random_state)`.
+    If `random_state` is an instance of `np.random.Generator`, returns a
+        `np.random.RandomState` seeded with `random_state.bit_generator`.
     Otherwise, returns `random_state` unmodified.
 
     Args:
@@ -56,5 +62,7 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
         return cast(np.random.RandomState, np.random)
     elif isinstance(random_state, int):
         return np.random.RandomState(random_state)
+    elif isinstance(random_state, np.random.Generator):
+        return np.random.RandomState(random_state.bit_generator)
     else:
         return cast(np.random.RandomState, random_state)

@@ -42,3 +42,5 @@ def test_parse_random_state():
     vals = [prng.rand() for prng in prngs]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
+
+    eq.add_equality_group(cirq.value.parse_random_state(np.random.default_rng(0)).rand())
