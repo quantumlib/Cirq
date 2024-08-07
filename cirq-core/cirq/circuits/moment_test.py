@@ -693,6 +693,18 @@ def test_commutes():
     assert not cirq.commutes(moment, cirq.X(c))
 
 
+def test_commutes_multiqubit_gates():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit("c")
+
+    moment = cirq.Moment([cirq.Z(a), cirq.Z(b)])
+    assert cirq.commutes(moment, cirq.XXPowGate(exponent=1 / 2)(a, b))
+
+    moment = cirq.Moment([cirq.XXPowGate(exponent=1 / 2)(a, b), cirq.Z(c)])
+    assert not cirq.commutes(moment, cirq.Z(b))
+
+
 def test_transform_qubits():
     a, b = cirq.LineQubit.range(2)
     x, y = cirq.GridQubit.rect(2, 1, 10, 20)
