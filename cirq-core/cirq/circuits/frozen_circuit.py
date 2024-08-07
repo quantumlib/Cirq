@@ -119,10 +119,10 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def __getstate__(self):
         # Don't save hash when pickling; see #3777.
         state = self.__dict__
-        hash_cache = _compat._method_cache_name(self.__hash__)
-        if hash_cache in state:
+        hash_attr = _compat._method_cache_name(self.__hash__)
+        if hash_attr in state:
             state = state.copy()
-            del state[hash_cache]
+            del state[hash_attr]
         return state
 
     @_compat.cached_method
