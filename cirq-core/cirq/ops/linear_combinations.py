@@ -870,7 +870,7 @@ def _projector_string_from_projector_dict(projector_dict, coefficient=1.0):
     return ProjectorString(dict(projector_dict), coefficient)
 
 
-@value.value_equality(approximate=True)
+@value.value_equality(approximate=True, unhashable=True)
 class ProjectorSum:
     """List of mappings representing a sum of projector operators."""
 
