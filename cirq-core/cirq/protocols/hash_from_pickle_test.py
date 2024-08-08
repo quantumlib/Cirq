@@ -46,8 +46,6 @@ _EXCLUDE_JSON_FILES = (
     "cirq/protocols/json_test_data/sympy.pi.json",
     # RigettiQCSAspenDevice does not pickle
     "cirq_rigetti/json_test_data/RigettiQCSAspenDevice.json",
-    # TODO(#6674,pavoljuhas) - fix pickling of ProjectorSum
-    "cirq/protocols/json_test_data/ProjectorSum.json",
 )
 
 
