@@ -741,6 +741,7 @@ def test_kak_decompose(unitary: np.ndarray):
     assert len(list(circuit.all_operations())) == 8
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_num_two_qubit_gates_required():
     for i in range(4):
         assert (

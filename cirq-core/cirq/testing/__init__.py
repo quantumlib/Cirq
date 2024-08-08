@@ -96,6 +96,8 @@ from cirq.testing.op_tree import assert_equivalent_op_tree
 
 from cirq.testing.order_tester import OrderTester
 
+from cirq.testing.pytest_randomly_utils import retry_once_with_later_random_values
+
 from cirq.testing.random_circuit import (
     DEFAULT_GATE_DOMAIN,
     random_circuit,
