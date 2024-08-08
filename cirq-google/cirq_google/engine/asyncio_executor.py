@@ -14,6 +14,7 @@
 
 from typing import Awaitable, Callable, Optional, TypeVar
 import asyncio
+import errno
 import threading
 
 from typing_extensions import ParamSpec
@@ -40,7 +41,15 @@ class AsyncioExecutor:
 
     @staticmethod
     async def _main(loop_future: duet.AwaitableFuture) -> None:
+        def handle_exception(loop, context) -> None:
+            # Ignore PollerCompletionQueue errors (see https://github.com/grpc/grpc/issues/25364)
+            exc = context.get("exception")
+            if exc and isinstance(exc, BlockingIOError) and exc.errno == errno.EAGAIN:
+                return
+            loop.default_exception_handler(context)
+
         loop = asyncio.get_running_loop()
+        loop.set_exception_handler(handle_exception)
         loop_future.set_result(loop)
         while True:
             await asyncio.sleep(1)
