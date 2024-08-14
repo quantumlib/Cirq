@@ -32,7 +32,7 @@ def assert_sim_eq(circuit1: 'cirq.AbstractCircuit', circuit2: 'cirq.AbstractCirc
 def assert_dd(
     input_circuit: 'cirq.AbstractCircuit',
     expected_circuit: 'cirq.AbstractCircuit',
-    schema: Union[str, Tuple['cirq.Gate']] = 'DEFAULT',
+    schema: Union[str, Tuple['cirq.Gate', ...]] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
 ):
     transformed_circuit = add_dynamical_decoupling(
@@ -350,21 +350,35 @@ def test_scattered_circuit():
         cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]] + [cirq.X(qubits[4])]),
         cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7])),
         cirq.Moment(
-            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.X(qubits[i]) for i in [3, 5]] + [cirq.Y(qubits[4])]
+            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]]
+            + [cirq.X(qubits[i]) for i in [3, 5]]
+            + [cirq.Y(qubits[4])]
         ),
         cirq.Moment(cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])),
         cirq.Moment(
-            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 4, 6]] + [cirq.Y(qubits[i]) for i in [3, 5]]
+            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]]
+            + [cirq.X(qubits[i]) for i in [2, 4, 6]]
+            + [cirq.Y(qubits[i]) for i in [3, 5]]
         ),
         cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])),
         cirq.Moment(
             [cirq.H(qubits[i]) for i in [0, 1, 7, 8]]
             + [
-                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(qubits[2]),
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(qubits[3]),
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=-1).on(qubits[4]),
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(qubits[5]),
-                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(qubits[6]),
+                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(
+                    qubits[2]
+                ),
+                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
+                    qubits[3]
+                ),
+                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=-1).on(
+                    qubits[4]
+                ),
+                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
+                    qubits[5]
+                ),
+                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(
+                    qubits[6]
+                ),
             ]
         ),
     )
@@ -375,16 +389,24 @@ def test_scattered_circuit():
         cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]] + [cirq.X(qubits[i]) for i in [4]]),
         cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7]), cirq.Y(qubits[4])),
         cirq.Moment(
-            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.Y(qubits[i]) for i in [3, 5]] + [cirq.X(qubits[4])]
+            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]]
+            + [cirq.Y(qubits[i]) for i in [3, 5]]
+            + [cirq.X(qubits[4])]
         ),
         cirq.Moment(
-            [cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])] + [cirq.X(qubits[i]) for i in [3, 5]] + [cirq.Y(qubits[4])]
+            [cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])]
+            + [cirq.X(qubits[i]) for i in [3, 5]]
+            + [cirq.Y(qubits[4])]
         ),
         cirq.Moment(
-            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 4, 6]] + [cirq.Y(qubits[i]) for i in [3, 5]]
+            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]]
+            + [cirq.X(qubits[i]) for i in [2, 4, 6]]
+            + [cirq.Y(qubits[i]) for i in [3, 5]]
         ),
         cirq.Moment(
-            [cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])] + [cirq.X(qubits[i]) for i in [3, 5]] + [cirq.Y(qubits[i]) for i in [2, 4, 6]]
+            [cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])]
+            + [cirq.X(qubits[i]) for i in [3, 5]]
+            + [cirq.Y(qubits[i]) for i in [2, 4, 6]]
         ),
         cirq.Moment(
             [cirq.H(qubits[i]) for i in [0, 1, 4, 7, 8]]
