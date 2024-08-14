@@ -100,6 +100,8 @@ def _is_single_qubit_gate_moment(moment: 'cirq.Moment') -> bool:
 
 def _is_clifford_moment(moment: 'cirq.Moment') -> bool:
     for op in moment.operations:
+        if op.gate is not None and isinstance(op.gate, cirq.MeasurementGate):
+            return False
         if not cirq.has_stabilizer_effect(op):
             return False
     return True

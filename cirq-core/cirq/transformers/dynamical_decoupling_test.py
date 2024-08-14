@@ -557,6 +557,55 @@ def test_multiple_clifford_pieces():
     )
 
 
+def test_with_non_clifford_measurements():
+    """Test case diagrams.
+    Input:
+    0: ───────────H───@───H───M───
+                      │
+    1: ───H───@───────@───────M───
+              │
+    2: ───H───@───H───@───────M───
+                      │
+    3: ───────────H───@───H───M───
+    Output:
+    0: ───────────H───@───PhXZ(a=0.5,x=0.5,z=0)───M───
+                      │
+    1: ───H───@───X───@───X───────────────────────M───
+              │
+    2: ───H───@───H───@───I───────────────────────M───
+                      │
+    3: ───────────H───@───H───────────────────────M───
+    """
+    qubits = cirq.LineQubit.range(4)
+    assert_dd(
+        input_circuit=cirq.Circuit(
+            cirq.Moment([cirq.H(qubits[i]) for i in [1, 2]]),
+            cirq.Moment(cirq.CZ(*qubits[1:3])),
+            cirq.Moment([cirq.H(qubits[i]) for i in [0, 2, 3]]),
+            cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[2:])),
+            cirq.Moment([cirq.H(qubits[i]) for i in [0, 3]]),
+            cirq.Moment([cirq.M(qubits[i]) for i in [0, 1, 2, 3]]),
+        ),
+        expected_circuit=cirq.Circuit(
+            cirq.Moment([cirq.H(qubits[i]) for i in [1, 2]]),
+            cirq.Moment(cirq.CZ(*qubits[1:3])),
+            cirq.Moment([cirq.H(qubits[i]) for i in [0, 2, 3]] + [cirq.X(qubits[1])]),
+            cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[2:])),
+            cirq.Moment(
+                cirq.H(qubits[3]),
+                cirq.I(qubits[2]),
+                cirq.X(qubits[1]),
+                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
+                    qubits[0]
+                ),
+            ),
+            cirq.Moment([cirq.M(qubits[i]) for i in [0, 1, 2, 3]]),
+        ),
+        schema="XX_PAIR",
+        single_qubit_gate_moments_only=True,
+    )
+
+
 def test_exceptions():
     qubits = cirq.LineQubit.range(9)
     input_circuit = cirq.Circuit(
