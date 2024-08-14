@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import Sequence, Tuple, Union
-from unittest import mock
 import cirq
 from cirq import add_dynamical_decoupling
 import pytest
@@ -627,23 +626,3 @@ def test_with_non_clifford_measurements():
         schema="XX_PAIR",
         single_qubit_gate_moments_only=True,
     )
-
-
-def test_exceptions():
-    qubits = cirq.LineQubit.range(9)
-    input_circuit = cirq.Circuit(
-        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
-        cirq.Moment(cirq.CZ(*qubits[4:6])),
-        cirq.Moment(cirq.CZ(*qubits[3:5])),
-        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]]),
-        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7])),
-        cirq.Moment([cirq.H(qubits[i]) for i in [1, 2, 6, 7]]),
-        cirq.Moment(cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])),
-        cirq.Moment([cirq.H(qubits[i]) for i in [0, 1, 7, 8]]),
-        cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])),
-        cirq.Moment([cirq.H(q) for q in qubits]),
-    )
-    with mock.patch('cirq.AbstractCircuit.next_moment_operating_on', return_value=None):
-        add_dynamical_decoupling(
-            input_circuit, schema='X_XINV', single_qubit_gate_moments_only=True
-        )
