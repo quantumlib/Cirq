@@ -27,19 +27,19 @@ import numpy as np
 
 def _get_dd_sequence_from_schema_name(schema: str) -> Tuple['cirq.Gate', ...]:
     """Gets dynamical decoupling sequence from a schema name."""
-    dd_sequence: list['cirq.Gate'] = []
     match schema:
+        case 'DEFAULT':
+            return (cirq.X, cirq.Y, cirq.X, cirq.Y)
         case 'XX_PAIR':
-            dd_sequence = [cirq.X, cirq.X]
+            return (cirq.X, cirq.X)
         case 'X_XINV':
-            dd_sequence = [cirq.X, cirq.X**-1]
+            return (cirq.X, cirq.X**-1)
         case 'YY_PAIR':
-            dd_sequence = [cirq.Y, cirq.Y]
+            return (cirq.Y, cirq.Y)
         case 'Y_YINV':
-            dd_sequence = [cirq.Y, cirq.Y**-1]
+            return (cirq.Y, cirq.Y**-1)
         case _:
             raise ValueError('Invalid schema name.')
-    return tuple(dd_sequence)
 
 
 def _pauli_up_to_global_phase(gate: 'cirq.Gate') -> Union['cirq.Pauli', None]:
@@ -211,7 +211,7 @@ def add_dynamical_decoupling(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
-    schema: Union[str, Tuple['cirq.Gate', ...]] = 'X_XINV',
+    schema: Union[str, Tuple['cirq.Gate', ...]] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
 ) -> 'cirq.Circuit':
     """Adds dynamical decoupling gate operations to a given circuit.

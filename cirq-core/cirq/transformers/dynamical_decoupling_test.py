@@ -32,7 +32,7 @@ def assert_sim_eq(circuit1: 'cirq.AbstractCircuit', circuit2: 'cirq.AbstractCirc
 def assert_dd(
     input_circuit: 'cirq.AbstractCircuit',
     expected_circuit: 'cirq.AbstractCircuit',
-    schema: Union[str, Tuple['cirq.Gate']],
+    schema: Union[str, Tuple['cirq.Gate']] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
 ):
     transformed_circuit = add_dynamical_decoupling(
@@ -299,11 +299,11 @@ def test_scattered_circuit():
                                   │
     2: ───────────────H───@───H───@───X───────PhXZ(a=-0.5,x=0.5,z=0)───
                           │
-    3: ───H───────@───H───@───X───────X───────H────────────────────────
+    3: ───H───────@───H───@───X───────Y───────PhXZ(a=0.5,x=0.5,z=0)────
                   │
-    4: ───H───@───@───X───────X───────X───────PhXZ(a=-0.5,x=0.5,z=0)───
+    4: ───H───@───@───X───────Y───────X───────PhXZ(a=0.5,x=0.5,z=-1)───
               │
-    5: ───H───@───────H───@───X───────X───────H────────────────────────
+    5: ───H───@───────H───@───X───────Y───────PhXZ(a=0.5,x=0.5,z=0)────
                           │
     6: ───────────────H───@───H───@───X───────PhXZ(a=-0.5,x=0.5,z=0)───
                                   │
@@ -316,15 +316,15 @@ def test_scattered_circuit():
                                           │
     1: ───────────────────────H───@───H───@───H───────────────────────
                                   │
-    2: ───────────────H───@───H───@───X───X───H───────────────────────
+    2: ───────────────H───@───H───@───X───Y───PhXZ(a=0.5,x=0.5,z=0)───
                           │
-    3: ───H───X───@───H───@───X───X───X───X───PhXZ(a=0.5,x=0.5,z=0)───
+    3: ───H───X───@───H───@───Y───X───Y───X───PhXZ(a=0.5,x=0.5,z=0)───
                   │
-    4: ───H───@───@───X───X───X───X───X───X───PhXZ(a=0.5,x=0.5,z=0)───
+    4: ───H───@───@───X───Y───X───Y───X───Y───H───────────────────────
               │
-    5: ───H───@───X───H───@───X───X───X───X───PhXZ(a=0.5,x=0.5,z=0)───
+    5: ───H───@───X───H───@───Y───X───Y───X───PhXZ(a=0.5,x=0.5,z=0)───
                           │
-    6: ───────────────H───@───H───@───X───X───H───────────────────────
+    6: ───────────────H───@───H───@───X───Y───PhXZ(a=0.5,x=0.5,z=0)───
                                   │
     7: ───────────────────────H───@───H───@───H───────────────────────
                                           │
@@ -343,34 +343,6 @@ def test_scattered_circuit():
         cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])),
         cirq.Moment([cirq.H(q) for q in qubits]),
     )
-    expected_circuit_single_qubit_gates_off = cirq.Circuit(
-        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
-        cirq.Moment(cirq.CZ(*qubits[4:6]), cirq.X(qubits[3])),
-        cirq.Moment(cirq.CZ(*qubits[3:5]), cirq.X(qubits[5])),
-        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]] + [cirq.X(qubits[i]) for i in [4]]),
-        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7]), cirq.X(qubits[4])),
-        cirq.Moment(
-            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.X(qubits[i]) for i in [3, 4, 5]]
-        ),
-        cirq.Moment(
-            [cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])] + [cirq.X(qubits[i]) for i in [3, 4, 5]]
-        ),
-        cirq.Moment(
-            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 3, 4, 5, 6]]
-        ),
-        cirq.Moment(
-            [cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])] + [cirq.X(qubits[i]) for i in range(2, 7)]
-        ),
-        cirq.Moment(
-            [cirq.H(qubits[i]) for i in [0, 1, 2, 6, 7, 8]]
-            + [
-                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
-                    qubits[i]
-                )
-                for i in [3, 4, 5]
-            ]
-        ),
-    )
     expected_circuit_single_qubit_gate_on = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
         cirq.Moment(cirq.CZ(*qubits[4:6])),
@@ -378,33 +350,62 @@ def test_scattered_circuit():
         cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]] + [cirq.X(qubits[4])]),
         cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7])),
         cirq.Moment(
-            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.X(qubits[i]) for i in [3, 4, 5]]
+            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.X(qubits[i]) for i in [3, 5]] + [cirq.Y(qubits[4])]
         ),
         cirq.Moment(cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])),
         cirq.Moment(
-            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 3, 4, 5, 6]]
+            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 4, 6]] + [cirq.Y(qubits[i]) for i in [3, 5]]
         ),
         cirq.Moment(cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])),
         cirq.Moment(
-            [cirq.H(qubits[i]) for i in [0, 1, 3, 5, 7, 8]]
+            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]]
             + [
-                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(
+                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(qubits[2]),
+                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(qubits[3]),
+                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=-1).on(qubits[4]),
+                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(qubits[5]),
+                cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(qubits[6]),
+            ]
+        ),
+    )
+    expected_circuit_single_qubit_gates_off = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[i]) for i in [3, 4, 5]]),
+        cirq.Moment(cirq.CZ(*qubits[4:6]), cirq.X(qubits[3])),
+        cirq.Moment(cirq.CZ(*qubits[3:5]), cirq.X(qubits[5])),
+        cirq.Moment([cirq.H(qubits[i]) for i in [2, 3, 5, 6]] + [cirq.X(qubits[i]) for i in [4]]),
+        cirq.Moment(cirq.CZ(*qubits[2:4]), cirq.CZ(*qubits[5:7]), cirq.Y(qubits[4])),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [1, 2, 6, 7]] + [cirq.Y(qubits[i]) for i in [3, 5]] + [cirq.X(qubits[4])]
+        ),
+        cirq.Moment(
+            [cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[6:8])] + [cirq.X(qubits[i]) for i in [3, 5]] + [cirq.Y(qubits[4])]
+        ),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [0, 1, 7, 8]] + [cirq.X(qubits[i]) for i in [2, 4, 6]] + [cirq.Y(qubits[i]) for i in [3, 5]]
+        ),
+        cirq.Moment(
+            [cirq.CZ(*qubits[0:2]), cirq.CZ(*qubits[7:])] + [cirq.X(qubits[i]) for i in [3, 5]] + [cirq.Y(qubits[i]) for i in [2, 4, 6]]
+        ),
+        cirq.Moment(
+            [cirq.H(qubits[i]) for i in [0, 1, 4, 7, 8]]
+            + [
+                cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
                     qubits[i]
                 )
-                for i in [2, 4, 6]
+                for i in [2, 3, 5, 6]
             ]
         ),
     )
     assert_dd(
         input_circuit,
         expected_circuit_single_qubit_gate_on,
-        schema='XX_PAIR',
+        schema='DEFAULT',
         single_qubit_gate_moments_only=True,
     )
     assert_dd(
         input_circuit,
         expected_circuit_single_qubit_gates_off,
-        schema='XX_PAIR',
+        schema='DEFAULT',
         single_qubit_gate_moments_only=False,
     )
 
