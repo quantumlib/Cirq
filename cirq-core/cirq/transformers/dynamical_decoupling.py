@@ -55,11 +55,6 @@ def _validate_dd_sequence(dd_sequence: Tuple['cirq.Gate', ...]) -> None:
     Args:
         dd_sequence: Input dynamical sequence to be validated.
 
-    Returns:
-        A tuple containing:
-            - is_valid (bool): True if the dd sequence is valid, False otherwise.
-            - error_message (str): An error message if the dd sequence is invalid, else None.
-
     Raises:
         ValueError: If dd_sequence is not valid.
     """
