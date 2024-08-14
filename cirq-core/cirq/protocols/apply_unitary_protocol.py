@@ -390,7 +390,7 @@ def apply_unitary(
     # Try each strategy, stopping if one works.
     # Also catch downcasting warnings and throw an error: #2041
     with warnings.catch_warnings():
-        warnings.filterwarnings(action="error", category=np.ComplexWarning)
+        warnings.filterwarnings(action="error", category=np.exceptions.ComplexWarning)
         for strat in strats:
             result = strat(unitary_value, args)
             if result is None:

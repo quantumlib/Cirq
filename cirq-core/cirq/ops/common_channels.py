@@ -131,7 +131,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         return True
 
     def _value_equality_values_(self):
-        return self._num_qubits, hash(tuple(sorted(self._error_probabilities.items())))
+        return self._num_qubits, tuple(sorted(self._error_probabilities.items()))
 
     def __repr__(self) -> str:
         return 'cirq.asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"

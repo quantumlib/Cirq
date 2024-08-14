@@ -55,6 +55,7 @@ from cirq_google.line import (
 
 from cirq_google.ops import (
     CalibrationTag,
+    Coupler,
     FSimGateFamily,
     FSimViaModelTag,
     InternalGate,

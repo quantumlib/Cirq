@@ -328,8 +328,8 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
     defined_gates, parameter_transformers = get_defined_gates(program)
 
-    kraus_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex_]]] = {}
-    confusion_maps: Dict[int, NDArray[np.float_]] = {}
+    kraus_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex128]]] = {}
+    confusion_maps: Dict[int, NDArray[np.float64]] = {}
 
     # Interpret the Pragmas
     for inst in program:
@@ -348,7 +348,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 raise UndefinedQuilGate(f"{gate_name} is not known.")
 
             entries = np.fromstring(
-                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.complex_, sep=" "
+                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.complex128, sep=" "
             )
             dim = int(np.sqrt(len(entries)))
             kraus_gate_op = entries.reshape((dim, dim))
@@ -364,7 +364,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
         elif inst.command == "READOUT-POVM":
             qubit = qubit_index(inst.args[0])
             entries = np.fromstring(
-                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.float_, sep=" "
+                inst.freeform_string.strip("()").replace("i", "j"), dtype=np.float64, sep=" "
             )
             confusion_matrix = entries.reshape((2, 2)).T
 
@@ -408,7 +408,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 )
             quil_memory_reference = inst.classical_reg.out()
             if qubit in confusion_maps:
-                cmap: Dict[Tuple[int, ...], NDArray[np.float_]] = {(qubit,): confusion_maps[qubit]}
+                cmap: Dict[Tuple[int, ...], NDArray[np.float64]] = {(qubit,): confusion_maps[qubit]}
                 """
                 Argument "confusion_map" to "MeasurementGate" has incompatible type
                     "         Dict[Tuple[int],      ndarray[Any, dtype[floating[Any]]]]"
@@ -470,12 +470,14 @@ def get_defined_gates(program: Program) -> Tuple[Dict, Dict]:
                 p.name: a for p, a in zip(defgate.parameters, args)
             }
         else:
-            defined_gates[defgate.name] = MatrixGate(np.asarray(defgate.matrix, dtype=np.complex_))
+            defined_gates[defgate.name] = MatrixGate(
+                np.asarray(defgate.matrix, dtype=np.complex128)
+            )
     return defined_gates, parameter_transformers
 
 
 def kraus_noise_model_to_cirq(
-    kraus_noise_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex_]]],
+    kraus_noise_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex128]]],
     defined_gates: Optional[Dict[QubitDesignator, Gate]] = None,
 ) -> InsertionNoiseModel:  # pragma: no cover
     """Construct a Cirq noise model from the provided Kraus operators.
@@ -527,7 +529,7 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
         ValueError: Connect convert unknown BinaryExp.
         ValueError: Unrecognized expression.
     """
-    if type(expression) in {np.int_, np.float_, np.complex_, int, float, complex}:
+    if type(expression) in {np.int_, np.float64, np.complex128, int, float, complex}:
         return expression
     elif isinstance(expression, Parameter):  # pragma: no cover
         return sympy.Symbol(expression.name)
@@ -635,7 +637,7 @@ def defgate_to_cirq(defgate: DefGate):
 
 
 def remove_gate_from_kraus(
-    kraus_ops: List[NDArray[np.complex_]], gate_matrix: NDArray[np.complex_]
+    kraus_ops: List[NDArray[np.complex128]], gate_matrix: NDArray[np.complex128]
 ):  # pragma: no cover
     """Recover the kraus operators from a kraus composed with a gate.
     This function is the reverse of append_kraus_to_gate.

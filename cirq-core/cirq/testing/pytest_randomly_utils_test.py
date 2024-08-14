@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2024 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Qubit Gates, Operations, and Tags useful for Google devices. """
+from unittest.mock import Mock
 
-from cirq_google.ops.calibration_tag import CalibrationTag
+import pytest
 
-from cirq_google.ops.coupler import Coupler
+import cirq
 
-from cirq_google.ops.fsim_gate_family import FSimGateFamily
 
-from cirq_google.ops.fsim_via_model_tag import FSimViaModelTag
-
-from cirq_google.ops.physical_z_tag import PhysicalZTag
-
-from cirq_google.ops.sycamore_gate import SycamoreGate, SYC
-
-from cirq_google.ops.internal_gate import InternalGate
+def test_retry_once_with_later_random_values():
+    testfunc = Mock(side_effect=[AssertionError("first call fails"), None])
+    decoratedfunc = cirq.testing.retry_once_with_later_random_values(testfunc)
+    with pytest.warns(UserWarning, match="Retrying.*failing seed.*pytest-randomly"):
+        decoratedfunc()
+    assert testfunc.call_count == 2
