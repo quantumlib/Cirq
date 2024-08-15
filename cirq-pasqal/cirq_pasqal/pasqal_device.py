@@ -22,7 +22,7 @@ from cirq.ops import NamedQubit
 from cirq_pasqal import ThreeDQubit, TwoDQubit, PasqalGateset
 
 
-@cirq.value.value_equality
+@cirq.value.value_equality(unhashable=True)
 class PasqalDevice(cirq.devices.Device):
     """A generic Pasqal device.
 

@@ -80,7 +80,7 @@ class BooleanHamiltonianGate(raw_types.Gate):
         return (2,) * len(self._parameter_names)
 
     def _value_equality_values_(self) -> Any:
-        return self._parameter_names, self._boolean_strs, self._theta
+        return tuple(self._parameter_names), tuple(self._boolean_strs), self._theta
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {

@@ -296,7 +296,7 @@ class Heatmap:
             is plotted on. ``collection`` is the collection of paths drawn and filled.
         """
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(figsize=(8, 8))
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
@@ -413,7 +413,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
             is plotted on. ``collection`` is the collection of paths drawn and filled.
         """
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(figsize=(8, 8))
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)

@@ -171,7 +171,7 @@ class Collector(metaclass=abc.ABCMeta):
         job_error = None
         running_jobs = 0
         queued_jobs: List[CircuitSampleJob] = []
-        remaining_samples = np.infty if max_total_samples is None else max_total_samples
+        remaining_samples = np.inf if max_total_samples is None else max_total_samples
 
         async def run_job(job):
             nonlocal job_error

@@ -207,13 +207,27 @@ class QuantumExecutable:
         # Hash may be expensive to compute, especially for large circuits.
         # This should be safe since this class should be immutable. This line will
         # also check for hashibility of members at construction time.
-        object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
+        object.__setattr__(self, '_hash', None)
+        _ = hash(self)
 
     def __str__(self):
         return f'QuantumExecutable(spec={self.spec})'
 
     def __repr__(self):
         return _compat.dataclass_repr(self, namespace='cirq_google')
+
+    def __hash__(self) -> int:
+        if self._hash is None:  # type: ignore
+            object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
+        return self._hash  # type: ignore
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        if state["_hash"] is not None:
+            state = state.copy()
+            state["_hash"] = None
+        return state
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -245,7 +259,9 @@ class QuantumExecutableGroup:
             executables = tuple(executables)
         object.__setattr__(self, 'executables', executables)
 
-        object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
+        # Ensure the object is hashable at construction time.
+        object.__setattr__(self, '_hash', None)
+        _ = hash(self)
 
     def __len__(self) -> int:
         return len(self.executables)
@@ -264,7 +280,17 @@ class QuantumExecutableGroup:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
     def __hash__(self) -> int:
+        if self._hash is None:  # type: ignore
+            object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
         return self._hash  # type: ignore
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        if state["_hash"] is not None:
+            state = state.copy()
+            state["_hash"] = None
+        return state
 
     @classmethod
     def _json_namespace_(cls) -> str:

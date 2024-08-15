@@ -244,6 +244,14 @@ class ParamResolver:
             self._param_hash = hash(frozenset(self._param_dict.items()))
         return self._param_hash
 
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        if state["_param_hash"] is not None:
+            state = state.copy()
+            state["_param_hash"] = None
+        return state
+
     def __eq__(self, other):
         if not isinstance(other, ParamResolver):
             return NotImplemented

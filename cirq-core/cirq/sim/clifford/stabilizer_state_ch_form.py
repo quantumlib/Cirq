@@ -20,7 +20,7 @@ from cirq import protocols, qis, value
 from cirq.value import big_endian_int_to_digits, random_state
 
 
-@value.value_equality
+@value.value_equality(unhashable=True)
 class StabilizerStateChForm(qis.StabilizerState):
     r"""A representation of stabilizer states using the CH form,
 
