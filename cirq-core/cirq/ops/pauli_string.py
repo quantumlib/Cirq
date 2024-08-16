@@ -1395,8 +1395,8 @@ class MutablePauliString(Generic[TKey]):
                     p1 = _INT_TO_PAULI_OR_IDENTITY[ps[1]]
 
                     # Kick across Paulis that anti-commute with the controls.
-                    kickback_0_to_1 = not protocols.commutes(p0, gate.pauli0)
-                    kickback_1_to_0 = not protocols.commutes(p1, gate.pauli1)
+                    kickback_0_to_1 = not (identity.I in [p0, gate.pauli0] or p0 == gate.pauli0)
+                    kickback_1_to_0 = not (identity.I in [p1, gate.pauli1] or p1 == gate.pauli1)
                     kick0 = gate.pauli1 if kickback_0_to_1 else identity.I
                     kick1 = gate.pauli0 if kickback_1_to_0 else identity.I
                     self.__imul__({q0: p0, q1: kick0})
