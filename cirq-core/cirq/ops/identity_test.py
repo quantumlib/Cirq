@@ -212,3 +212,4 @@ def test_identity_short_circuits_act_on():
 
 def test_identity_commutes():
     assert cirq.I._commutes_(cirq.X)
+    assert cirq.I._commutes_("placeholder") is NotImplemented
