@@ -76,7 +76,9 @@ class IdentityGate(raw_types.Gate):
         return NotImplemented
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool:
-        """The identity gate commutes with everything."""
+        """The identity gate commutes with all other gates."""
+        if not isinstance(other, raw_types.Gate):
+            return NotImplemented
         return True
 
     def _has_unitary_(self) -> bool:
