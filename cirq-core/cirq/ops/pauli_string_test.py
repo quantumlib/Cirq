@@ -2023,11 +2023,3 @@ def test_resolve(resolve_fn):
     pst = cirq.PauliString({q: 'x'}, coefficient=t)
     ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
     assert resolve_fn(pst, {'t': 1j}) == ps1
-
-
-def test_paulis_commute():
-    assert all(
-        cirq.ops.pauli_string._paulis_commute(p0, p1) == cirq.commutes(p0, p1)
-        for p0 in [cirq.I, cirq.X, cirq.Y, cirq.Z]
-        for p1 in [cirq.I, cirq.X, cirq.Y, cirq.Z]
-    )

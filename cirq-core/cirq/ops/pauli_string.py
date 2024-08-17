@@ -783,7 +783,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     ) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, PauliString):
             return NotImplemented
-        return sum(not _paulis_commute(p0, p1) for p0, p1 in self.zip_paulis(other)) % 2 == 0
+        return sum(not protocols.commutes(p0, p1) for p0, p1 in self.zip_paulis(other)) % 2 == 0
 
     def __neg__(self) -> 'PauliString':
         return PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=-self._coefficient)
@@ -1078,18 +1078,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     ) -> 'cirq.PauliString':
         coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
         return PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=coefficient)
-
-
-def _paulis_commute(
-    p0: Union['cirq.Pauli', 'cirq.IdentityGate'], p1: Union['cirq.Pauli', 'cirq.IdentityGate']
-) -> bool:
-    """Determines whether two single-qubit Pauli operators commute.
-
-    Args:
-        p0: A single-qubit Pauli operator.
-        p1: A single-qubit Pauli operator.
-    """
-    return p0 == identity.I or p1 == identity.I or p0 == p1
 
 
 def _validate_qubit_mapping(
@@ -1407,8 +1395,8 @@ class MutablePauliString(Generic[TKey]):
                     p1 = _INT_TO_PAULI_OR_IDENTITY[ps[1]]
 
                     # Kick across Paulis that anti-commute with the controls.
-                    kickback_0_to_1 = not _paulis_commute(p0, gate.pauli0)
-                    kickback_1_to_0 = not _paulis_commute(p1, gate.pauli1)
+                    kickback_0_to_1 = not (identity.I in [p0, gate.pauli0] or p0 == gate.pauli0)
+                    kickback_1_to_0 = not (identity.I in [p1, gate.pauli1] or p1 == gate.pauli1)
                     kick0 = gate.pauli1 if kickback_0_to_1 else identity.I
                     kick1 = gate.pauli0 if kickback_1_to_0 else identity.I
                     self.__imul__({q0: p0, q1: kick0})
@@ -1685,11 +1673,11 @@ def _pass_pauli_interaction_gate_over(
         return int(inv) * 2 - 1
 
     quarter_kickback = 0
-    if qubit0 in pauli_map and not _paulis_commute(pauli_map[qubit0], gate.pauli0):
+    if qubit0 in pauli_map and not protocols.commutes(pauli_map[qubit0], gate.pauli0):
         quarter_kickback += merge_and_kickback(
             qubit1, gate.pauli1, pauli_map.get(qubit1), gate.invert1
         )
-    if qubit1 in pauli_map and not _paulis_commute(pauli_map[qubit1], gate.pauli1):
+    if qubit1 in pauli_map and not protocols.commutes(pauli_map[qubit1], gate.pauli1):
         quarter_kickback += merge_and_kickback(
             qubit0, pauli_map.get(qubit0), gate.pauli0, gate.invert0
         )
