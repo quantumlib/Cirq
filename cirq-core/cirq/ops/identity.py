@@ -75,6 +75,9 @@ class IdentityGate(raw_types.Gate):
             return self
         return NotImplemented
 
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool:
+        return True
+
     def _has_unitary_(self) -> bool:
         return True
 
