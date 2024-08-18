@@ -234,7 +234,13 @@ def test_noise_properties_from_calibration():
         syc_angles,
         iswap_angles,
     )
-    prop = cirq_google.noise_properties_from_calibration(calibration)
+    circuit = cirq.Circuit(
+        cirq.H(qubits[0]),
+        cirq.H(qubits[1]),
+        cirq.H(qubits[2]),
+    )
+    compiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
+    prop = cirq_google.noise_properties_from_calibration(calibration, compiled_circuit)
 
     for i, q in enumerate(qubits):
         assert np.isclose(
@@ -313,8 +319,14 @@ def test_zphase_data():
             "gamma": {qubit_pairs[0]: iswap_angles[0].gamma, qubit_pairs[1]: iswap_angles[1].gamma},
         },
     }
+    circuit = cirq.Circuit(
+        cirq.H(qubits[0]),
+        cirq.H(qubits[1]),
+        cirq.H(qubits[2]),
+    )
+    compiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
 
-    prop = cirq_google.noise_properties_from_calibration(calibration, zphase_data)
+    prop = cirq_google.noise_properties_from_calibration(calibration, compiled_circuit, zphase_data)
     for i, qs in enumerate(qubit_pairs):
         for gate, values in [
             (cirq_google.SycamoreGate, syc_angles),
@@ -411,8 +423,21 @@ def test_incomplete_calibration():
 """,
         cirq_google.api.v2.metrics_pb2.MetricsSnapshot(),
     )
+    q0, q1 = cirq.q(4, 1), cirq.q(4, 2)
+    circuit = cirq.Circuit(cirq.CX.on(q0, q1))
+    compiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
 
     # Create NoiseProperties object from Calibration
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     with pytest.raises(ValueError, match='Keys specified for T1 and Tphi are not identical.'):
-        _ = cirq_google.noise_properties_from_calibration(calibration)
+        _ = cirq_google.noise_properties_from_calibration(calibration,compiled_circuit)
+
+def test_validate_gateset():
+
+    # Add various gates to the circuit
+    processor_id = "rainbow"
+    q0, q1 = cirq.q(4, 1), cirq.q(4, 2)
+    cal = cirq_google.engine.load_median_device_calibration(processor_id)
+    circuit = cirq.Circuit(cirq.CX.on(q0, q1))
+    compiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
+    cirq_google.noise_properties_from_calibration(cal, compiled_circuit)
