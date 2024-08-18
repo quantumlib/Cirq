@@ -20,6 +20,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._doc import document
+from cirq.type_workarounds import NotImplementedType
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -75,7 +76,7 @@ class IdentityGate(raw_types.Gate):
             return self
         return NotImplemented
 
-    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
         """The identity gate commutes with all other gates."""
         if not isinstance(other, raw_types.Gate):
             return NotImplemented
