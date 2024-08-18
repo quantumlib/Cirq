@@ -211,5 +211,6 @@ def test_identity_short_circuits_act_on():
 
 
 def test_identity_commutes():
-    assert cirq.I._commutes_(cirq.X)
-    assert cirq.I._commutes_("placeholder") is NotImplemented
+    assert cirq.commutes(cirq.I, cirq.X)
+    with pytest.raises(TypeError):
+        cirq.commutes(cirq.I, "Gate")
