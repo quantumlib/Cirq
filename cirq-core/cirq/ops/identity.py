@@ -13,7 +13,7 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence, Union
 
 import numpy as np
 import sympy
