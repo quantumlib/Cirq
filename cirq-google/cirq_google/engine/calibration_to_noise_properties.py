@@ -20,10 +20,7 @@ calibration using the following pipeline:
 
     >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
     >>> noise_props = cirq_google.engine.noise_properties_from_calibration(cal)
-    >>> q0, q1 = cirq.q(4, 1), cirq.q(4, 2)
-    >>> circuit = cirq.Circuit(cirq.CX.on(q0, q1))
-    >>> compiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
-    >>> noise_model = cirq_google.NoiseModelFromGoogleNoiseProperties(noise_props, compiled_circuit)
+    >>> noise_model = cirq_google.NoiseModelFromGoogleNoiseProperties(noise_props)
     >>> simulator = cirq.Simulator(noise=noise_model)
     >>> circuit = cirq.Circuit(cirq.X(cirq.GridQubit(5, 2)))
     >>> result = simulator.simulate(circuit)
@@ -105,10 +102,7 @@ def noise_properties_from_calibration(
     To manually override noise properties, call `with_params` on the output:
 
         >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
-        >>> q0, q1 = cirq.q(4, 1), cirq.q(4, 2)
-        >>> circuit = cirq.Circuit(cirq.CX.on(q0, q1))
-        >>> compiled_circuit = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
-        >>> noise_props = cirq_google.engine.noise_properties_from_calibration(cal, compiled_circuit).with_params(
+        >>> noise_props = cirq_google.engine.noise_properties_from_calibration(cal).with_params(
         ...     gate_times_ns=37)
 
     See `cirq_google.GoogleNoiseProperties` for details.
