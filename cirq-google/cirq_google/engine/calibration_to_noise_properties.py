@@ -102,6 +102,7 @@ def noise_properties_from_calibration(
     To manually override noise properties, call `with_params` on the output:
 
         >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
+        >>> # noise_props with all gate durations set to 37ns.
         >>> noise_props = cirq_google.engine.noise_properties_from_calibration(cal).with_params(
         ...     gate_times_ns=37)
 
