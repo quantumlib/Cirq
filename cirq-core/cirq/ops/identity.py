@@ -13,13 +13,14 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence, Union
 
 import numpy as np
 import sympy
 
 from cirq import protocols, value
 from cirq._doc import document
+from cirq.type_workarounds import NotImplementedType
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -74,6 +75,12 @@ class IdentityGate(raw_types.Gate):
         if isinstance(power, (int, float, complex, sympy.Basic)):
             return self
         return NotImplemented
+
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
+        """The identity gate commutes with all other gates."""
+        if not isinstance(other, raw_types.Gate):
+            return NotImplemented
+        return True
 
     def _has_unitary_(self) -> bool:
         return True
