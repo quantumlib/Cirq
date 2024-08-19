@@ -267,7 +267,7 @@ class CircuitOperation(ops.Operation):
             'repeat_until': self.repeat_until,
             **changes,
         }
-        return CircuitOperation(**kwargs)  # type: ignore
+        return CircuitOperation(**kwargs)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
@@ -688,7 +688,7 @@ class CircuitOperation(ops.Operation):
         if callable(qubit_map):
             transform = qubit_map
         elif isinstance(qubit_map, dict):
-            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+            transform = lambda q: qubit_map.get(q, q)
         else:
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
         new_map = {}

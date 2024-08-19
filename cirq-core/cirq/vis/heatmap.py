@@ -239,7 +239,7 @@ class Heatmap:
             if not annotation:
                 continue
             x, y = center
-            face_luminance = vis_utils.relative_luminance(facecolor)  # type: ignore
+            face_luminance = vis_utils.relative_luminance(facecolor)
             text_color = 'black' if face_luminance > 0.4 else 'white'
             text_kwargs: Dict[str, Any] = dict(color=text_color, ha="center", va="center")
             text_kwargs.update(self._config.get('annotation_text_kwargs', {}))
