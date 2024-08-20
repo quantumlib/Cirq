@@ -14,7 +14,7 @@
 
 """Transformer pass that pushes 180° rotations around axes in the XY plane later in the circuit."""
 
-from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple, Dict
+from typing import Optional, cast, TYPE_CHECKING, Iterable, Iterator, Tuple, Dict
 import sympy
 import numpy as np
 
@@ -127,7 +127,7 @@ def _absorb_z_into_w(
 
 def _dump_held(
     qubits: Iterable[ops.Qid], held_w_phases: Dict[ops.Qid, value.TParamVal]
-) -> 'cirq.OP_TREE':
+) -> Iterator['cirq.OP_TREE']:
     # Note: sorting is to avoid non-determinism in the insertion order.
     for q in sorted(qubits):
         p = held_w_phases.get(q)
