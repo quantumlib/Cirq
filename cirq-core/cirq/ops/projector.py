@@ -61,7 +61,7 @@ class ProjectorString:
             for qid in projector_qids
         ]
 
-        total_d = np.prod([qid.dimension for qid in projector_qids], dtype=np.int64)
+        total_d = np.prod([qid.dimension for qid in projector_qids], dtype=np.int64).item()
 
         ones_idx = []
         for idx in itertools.product(*idx_to_keep):
