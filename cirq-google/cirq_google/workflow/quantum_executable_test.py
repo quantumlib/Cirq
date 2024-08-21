@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import dataclasses
+import pickle
 
 import cirq
 import cirq_google
@@ -168,6 +169,14 @@ def test_quantum_executable_group_to_tuple():
     eg1 = QuantumExecutableGroup(exes1)
     eg2 = QuantumExecutableGroup(exes2)
     assert hash(eg1) == hash(eg2)
+    assert eg1 == eg2
+
+
+def test_quantum_executable_group_pickle_round_trip():
+    eg1 = QuantumExecutableGroup(_get_quantum_executables())
+    h1 = hash(eg1)
+    eg2 = pickle.loads(pickle.dumps(eg1))
+    assert h1 == hash(eg2)
     assert eg1 == eg2
 
 

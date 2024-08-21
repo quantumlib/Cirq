@@ -34,7 +34,6 @@ import google.auth
 from google.protobuf import any_pb2
 
 import cirq
-from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.engine import (
     abstract_engine,
@@ -563,21 +562,6 @@ class Engine(abstract_engine.AbstractEngine):
             A EngineProcessor for the processor.
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
-
-    @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
-    def sampler(self, processor_id: Union[str, List[str]]) -> 'cirq_google.ProcessorSampler':
-        """Returns a sampler backed by the engine.
-
-        Args:
-            processor_id: String identifier, or list of string identifiers,
-                determining which processors may be used when sampling.
-
-        Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
-            that will send circuits to the Quantum Computing Service
-            when sampled.
-        """
-        return self.get_sampler(processor_id)
 
     def get_sampler(
         self, processor_id: Union[str, List[str]], run_name: str = "", device_config_name: str = ""

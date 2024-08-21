@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import FrozenSet, Mapping, Optional, Tuple
+from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple
 
 import dataclasses
 
@@ -76,6 +76,14 @@ class MeasurementKey:
         if self._hash is None:
             object.__setattr__(self, '_hash', hash(str(self)))
         return self._hash
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        if "_hash" in state:
+            state = state.copy()
+            del state["_hash"]
+        return state
 
     def __lt__(self, other):
         if isinstance(other, MeasurementKey):

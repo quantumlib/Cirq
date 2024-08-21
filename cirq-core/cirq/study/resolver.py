@@ -139,10 +139,10 @@ class ParamResolver:
             if isinstance(param_value, str):
                 param_value = sympy.Symbol(param_value)
             elif not isinstance(param_value, sympy.Basic):
-                return value  # type: ignore[return-value]
+                return value
             if recursive:
                 param_value = self._value_of_recursive(value)
-            return param_value  # type: ignore[return-value]
+            return param_value
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
@@ -207,7 +207,7 @@ class ParamResolver:
 
         # There isn't a full evaluation for 'value' yet. Until it's ready,
         # map value to None to identify loops in component evaluation.
-        self._deep_eval_map[value] = _RECURSION_FLAG  # type: ignore
+        self._deep_eval_map[value] = _RECURSION_FLAG
 
         v = self.value_of(value, recursive=False)
         if v == value:
@@ -220,10 +220,8 @@ class ParamResolver:
         new_dict: Dict['cirq.TParamKey', Union[float, str, sympy.Symbol, sympy.Expr]] = {
             k: k for k in resolver
         }
-        new_dict.update({k: self.value_of(k, recursive) for k in self})  # type: ignore[misc]
-        new_dict.update(
-            {k: resolver.value_of(v, recursive) for k, v in new_dict.items()}  # type: ignore[misc]
-        )
+        new_dict.update({k: self.value_of(k, recursive) for k in self})
+        new_dict.update({k: resolver.value_of(v, recursive) for k, v in new_dict.items()})
         if recursive and self._param_dict:
             new_resolver = ParamResolver(cast(ParamDictType, new_dict))
             # Resolve down to single-step mappings.
@@ -245,6 +243,14 @@ class ParamResolver:
         if self._param_hash is None:
             self._param_hash = hash(frozenset(self._param_dict.items()))
         return self._param_hash
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        if state["_param_hash"] is not None:
+            state = state.copy()
+            state["_param_hash"] = None
+        return state
 
     def __eq__(self, other):
         if not isinstance(other, ParamResolver):

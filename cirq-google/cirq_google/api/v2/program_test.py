@@ -15,6 +15,7 @@
 import pytest
 
 import cirq
+import cirq_google as cg
 import cirq_google.api.v2 as v2
 
 
@@ -26,6 +27,14 @@ def test_qubit_to_proto_id():
     assert v2.qubit_to_proto_id(cirq.LineQubit(10)) == '10'
     assert v2.qubit_to_proto_id(cirq.LineQubit(-1)) == '-1'
     assert v2.qubit_to_proto_id(cirq.NamedQubit('named')) == 'named'
+    grid_coupler = cg.Coupler(cirq.GridQubit(2, 1), cirq.GridQubit(4, 3))
+    assert v2.qubit_to_proto_id(grid_coupler) == 'c_2_1_4_3'
+    grid_coupler = cg.Coupler(cirq.GridQubit(4, 3), cirq.GridQubit(2, 1))
+    assert v2.qubit_to_proto_id(grid_coupler) == 'c_2_1_4_3'
+    line_coupler = cg.Coupler(cirq.LineQubit(4), cirq.LineQubit(5))
+    assert v2.qubit_to_proto_id(line_coupler) == 'c_4_5'
+    named_coupler = cg.Coupler(cirq.NamedQubit('named1'), cirq.NamedQubit('named2'))
+    assert v2.qubit_to_proto_id(named_coupler) == 'c_named1_named2'
 
 
 def test_to_proto_id_unsupport_qid():
@@ -92,3 +101,12 @@ def test_generic_qubit_from_proto_id():
     # All non-int-parseable names are converted to NamedQubits.
     assert v2.qubit_from_proto_id('a') == cirq.NamedQubit('a')
     assert v2.qubit_from_proto_id('1_b') == cirq.NamedQubit('1_b')
+
+    # Test Coupler Qids
+    grid_coupler = cg.Coupler(cirq.GridQubit(2, 1), cirq.GridQubit(4, 3))
+    assert v2.qubit_from_proto_id('c_2_1_4_3') == grid_coupler
+    line_coupler = cg.Coupler(cirq.LineQubit(4), cirq.LineQubit(5))
+    assert v2.qubit_from_proto_id('c_4_5') == line_coupler
+    named_coupler = cg.Coupler(cirq.NamedQubit('named1'), cirq.NamedQubit('named2'))
+    assert v2.qubit_from_proto_id('c_named1_named2') == named_coupler
+    assert v2.qubit_from_proto_id('c_a_b_c_d') == cirq.NamedQubit('c_a_b_c_d')

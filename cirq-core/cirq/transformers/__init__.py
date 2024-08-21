@@ -134,3 +134,5 @@ from cirq.transformers.gauge_compiling import (
     SqrtCZGaugeTransformer,
     SqrtISWAPGaugeTransformer,
 )
+
+from cirq.transformers.randomized_measurements import RandomizedMeasurements
