@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 import abc
+import importlib.metadata
 from typing import Awaitable, Callable, Dict, Optional, Sequence, Union
-import pkg_resources
 
 import google.auth
 import google.api_core
@@ -31,9 +31,9 @@ from google.protobuf import empty_pb2
 
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(
-        gapic_version=pkg_resources.get_distribution('google-cloud-quantum').version
+        gapic_version=importlib.metadata.version("google-cloud-quantum")
     )
-except pkg_resources.DistributionNotFound:
+except ModuleNotFoundError:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo()
 
 

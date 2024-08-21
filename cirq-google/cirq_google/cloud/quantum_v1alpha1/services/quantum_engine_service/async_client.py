@@ -15,6 +15,7 @@
 #
 from collections import OrderedDict
 import functools
+import importlib.metadata
 import re
 from typing import (
     Dict,
@@ -27,7 +28,6 @@ from typing import (
     Type,
     Union,
 )
-import pkg_resources
 
 from google.api_core.client_options import ClientOptions
 from google.api_core import exceptions as core_exceptions
@@ -2079,9 +2079,9 @@ class QuantumEngineServiceAsyncClient:
 
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(
-        gapic_version=pkg_resources.get_distribution("google-cloud-quantum").version
+        gapic_version=importlib.metadata.version("google-cloud-quantum")
     )
-except pkg_resources.DistributionNotFound:
+except ModuleNotFoundError:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo()
 
 

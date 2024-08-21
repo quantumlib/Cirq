@@ -14,10 +14,10 @@
 # limitations under the License.
 #
 from collections import OrderedDict
+import importlib.metadata
 import os
 import re
 from typing import Dict, Optional, Iterable, Iterator, Sequence, Tuple, Type, Union
-import pkg_resources
 
 from google.api_core import client_options as client_options_lib
 from google.api_core import exceptions as core_exceptions
@@ -2311,9 +2311,9 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(
-        gapic_version=pkg_resources.get_distribution("google-cloud-quantum").version
+        gapic_version=importlib.metadata.version("google-cloud-quantum")
     )
-except pkg_resources.DistributionNotFound:
+except ModuleNotFoundError:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo()
 
 
