@@ -13,28 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from collections import OrderedDict
+
 import functools
 import importlib.metadata
-import re
-from typing import (
-    Dict,
-    Optional,
-    AsyncIterable,
-    Awaitable,
-    AsyncIterator,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Optional, AsyncIterable, Awaitable, AsyncIterator, Sequence, Tuple, Union
 
 from google.api_core.client_options import ClientOptions
-from google.api_core import exceptions as core_exceptions
 from google.api_core import gapic_v1
 from google.api_core import retry as retries
 from google.auth import credentials as ga_credentials
-from google.oauth2 import service_account
 
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
@@ -44,11 +31,7 @@ except AttributeError:  # pragma: NO COVER
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
 from cirq_google.cloud.quantum_v1alpha1.types import engine
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from google.protobuf import any_pb2
-from google.protobuf import duration_pb2
-from google.protobuf import timestamp_pb2
 from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
-from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
 from .client import QuantumEngineServiceClient
 
 
