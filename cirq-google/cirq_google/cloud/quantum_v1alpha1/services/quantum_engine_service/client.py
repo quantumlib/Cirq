@@ -27,17 +27,17 @@ from google.auth.transport import mtls
 from google.auth.exceptions import MutualTLSChannelError
 from google.oauth2 import service_account
 
-try:
-    OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
-except AttributeError:  # pragma: NO COVER
-    OptionalRetry = Union[retries.Retry, object]  # type: ignore
-
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
 from cirq_google.cloud.quantum_v1alpha1.types import engine
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
 from .transports.grpc import QuantumEngineServiceGrpcTransport
 from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
+
+try:
+    OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
+except AttributeError:  # pragma: NO COVER
+    OptionalRetry = Union[retries.Retry, object]  # type: ignore
 
 
 class QuantumEngineServiceClientMeta(type):
