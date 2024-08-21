@@ -100,7 +100,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
         m = mtls_endpoint_re.match(api_endpoint)
-        name, mtls, sandbox, googledomain = m.groups()
+        _, mtls, sandbox, googledomain = m.groups()
         if mtls or not googledomain:
             return api_endpoint
 
@@ -2298,7 +2298,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type_, value, traceback):
         """Releases underlying transport's resources.
 
         .. warning::
