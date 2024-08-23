@@ -805,7 +805,7 @@ class PauliSum:
         if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         if isinstance(other, numbers.Complex):
-            self._linear_dict *= other
+            self._linear_dict *= complex(other)
         elif isinstance(other, PauliString):
             temp = PauliSum.from_pauli_strings([term * other for term in self])
             self._linear_dict = temp._linear_dict

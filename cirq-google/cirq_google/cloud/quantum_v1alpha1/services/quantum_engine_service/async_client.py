@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-import functools
 import importlib.metadata
 from typing import Optional, AsyncIterable, Awaitable, AsyncIterator, Sequence, Tuple, Union
 
@@ -148,9 +147,7 @@ class QuantumEngineServiceAsyncClient:
         """
         return self._client.transport
 
-    get_transport_class = functools.partial(
-        type(QuantumEngineServiceClient).get_transport_class, type(QuantumEngineServiceClient)
-    )
+    get_transport_class = QuantumEngineServiceClient.get_transport_class
 
     def __init__(
         self,

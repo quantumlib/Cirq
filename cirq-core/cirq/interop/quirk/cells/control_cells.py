@@ -109,7 +109,7 @@ class ParityControlCell(Cell):
             elif gate is not None:
                 column[i] = gate.controlled_by(self.qubits[0])
 
-    def basis_change(self) -> 'cirq.OP_TREE':
+    def basis_change(self) -> Iterator['cirq.OP_TREE']:
         yield from self._basis_change
 
         # Temporarily move the ZZZ..Z parity observable onto a single qubit.

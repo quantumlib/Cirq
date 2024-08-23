@@ -18,6 +18,7 @@
 import dataclasses
 from functools import cached_property
 from typing import Any, Dict, List, Sequence, Set, Type, TypeVar, Union
+
 import numpy as np
 
 import cirq, cirq_google
@@ -138,7 +139,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             appear in the original object.
 
         """
-        replace_args: Dict[str, Dict[Any, Any]] = {}
+        replace_args: Dict[str, Any] = {}
         if gate_times_ns is not None:
             replace_args['gate_times_ns'] = _with_values(self.gate_times_ns, gate_times_ns)
         if t1_ns is not None:
