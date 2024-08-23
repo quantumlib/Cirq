@@ -14,11 +14,7 @@
 
 """Target gateset used for compiling circuits to IonQ device."""
 
-from typing import Any
-from typing import Dict
-from typing import Iterator
-from typing import List
-from typing import Tuple
+from typing import Any, Dict, Iterator, List, Tuple
 
 import cirq
 
