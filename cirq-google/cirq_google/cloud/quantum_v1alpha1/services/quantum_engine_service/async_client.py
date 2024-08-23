@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+import importlib.metadata
 from typing import Optional, AsyncIterable, Awaitable, AsyncIterator, Sequence, Tuple, Union
-import pkg_resources
 
 from google.api_core.client_options import ClientOptions
 from google.api_core import gapic_v1
@@ -2058,9 +2059,9 @@ class QuantumEngineServiceAsyncClient:
 
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(
-        gapic_version=pkg_resources.get_distribution("google-cloud-quantum").version
+        gapic_version=importlib.metadata.version("google-cloud-quantum")
     )
-except pkg_resources.DistributionNotFound:
+except ModuleNotFoundError:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo()
 
 
