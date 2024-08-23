@@ -18,6 +18,7 @@ from typing import (
     cast,
     Dict,
     Iterable,
+    Iterator,
     Optional,
     Sequence,
     Tuple,
@@ -152,7 +153,7 @@ class SwapPermutationGate(PermutationGate):
     def permutation(self) -> Dict[int, int]:
         return {0: 1, 1: 0}
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         yield self.swap_gate(*qubits)
 
     def __repr__(self) -> str:
@@ -201,7 +202,7 @@ class LinearPermutationGate(PermutationGate):
     def permutation(self) -> Dict[int, int]:
         return self._permutation
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         swap_gate = SwapPermutationGate(self.swap_gate)
         n_qubits = len(qubits)
         mapping = {i: self._permutation.get(i, i) for i in range(n_qubits)}

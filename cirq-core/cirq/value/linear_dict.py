@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Linear combination represented as mapping of things to coefficients."""
-import numbers
+
 from typing import (
     Any,
     Callable,
@@ -34,7 +34,9 @@ from typing import (
 )
 from typing_extensions import Self
 
-Scalar = Union[complex, float, numbers.Complex]
+import numpy as np
+
+Scalar = Union[complex, np.number]
 TVector = TypeVar('TVector')
 
 TDefault = TypeVar('TDefault')
@@ -124,7 +126,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def clean(self, *, atol: float = 1e-9) -> Self:
         """Remove terms with coefficients of absolute value atol or less."""
-        negligible = [v for v, c in self._terms.items() if abs(c) <= atol]  # type: ignore[operator]
+        negligible = [v for v, c in self._terms.items() if abs(complex(c)) <= atol]
         for v in negligible:
             del self._terms[v]
         return self
@@ -245,7 +247,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         result *= a
         return result
 
-    def __rmul__(self, a: Scalar) -> Self:
+    def __rmul__(self, a: Scalar) -> Self:  # type: ignore
         return self.__mul__(a)
 
     def __truediv__(self, a: Scalar) -> Self:
