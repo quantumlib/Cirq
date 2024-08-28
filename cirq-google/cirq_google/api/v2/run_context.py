@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import Sequence
+from typing import Any, Sequence
 from cirq_google.api.v2 import program_pb2
 from cirq_google.api.v2 import run_context_pb2
 
@@ -23,7 +23,12 @@ _EMPTY_RESOURCE_PATH_IDX = -1
 
 
 def to_device_parameters_diff(
-    device_params: Sequence[tuple[run_context_pb2.DeviceParameter, program_pb2.ArgValue]]
+    device_params: Sequence[
+        tuple[
+            run_context_pb2.DeviceParameter,
+            program_pb2.ArgValue | run_context_pb2.DeviceParametersDiff.GenericValue,
+        ]
+    ]
 ) -> run_context_pb2.DeviceParametersDiff:
     """Constructs a DeviceParametersDiff from multiple DeviceParameters and values.
 
@@ -64,6 +69,14 @@ def to_device_parameters_diff(
         resource_path = tuple(device_param.path[:-1])
         param_name = device_param.path[-1]
         path_id = resource_path_id(resource_path)
-        diff.params.add(name=token_id(param_name), resource_group=path_id, value=value)
+        val_kw = {}
+        if isinstance(value, run_context_pb2.DeviceParametersDiff.GenericValue):
+            val_kw["generic_value"] = value
+        elif isinstance(value, program_pb2.ArgValue):
+            val_kw["value"] = value
+        else:
+            raise ValueError(f"a param value is of an unrecognized type {type(value)}")
+
+        diff.params.add(name=token_id(param_name), resource_group=path_id, **val_kw)
 
     return diff
