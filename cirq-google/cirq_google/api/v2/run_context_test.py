@@ -22,7 +22,12 @@ def test_converting_multiple_device_params_to_device_parameters_diff() -> None:
     """Test of converting a list of DeviceParameter's to a DeviceParametersDiff object."""
     readout_paths = (["q3_4", "readout_default"], ["q5_6", "readout_default"])
 
-    device_params = []
+    device_params: list[
+        tuple[
+            run_context_pb2.DeviceParameter,
+            program_pb2.ArgValue | run_context_pb2.DeviceParametersDiff.GenericValue,
+        ]
+    ] = []
     for readout_path in readout_paths:
         device_params.extend(
             [

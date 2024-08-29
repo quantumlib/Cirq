@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import Any, Sequence
+from typing import Sequence
 from cirq_google.api.v2 import program_pb2
 from cirq_google.api.v2 import run_context_pb2
 
@@ -72,10 +72,8 @@ def to_device_parameters_diff(
         val_kw = {}
         if isinstance(value, run_context_pb2.DeviceParametersDiff.GenericValue):
             val_kw["generic_value"] = value
-        elif isinstance(value, program_pb2.ArgValue):
-            val_kw["value"] = value
         else:
-            raise ValueError(f"a param value is of an unrecognized type {type(value)}")
+            val_kw["value"] = value
 
         diff.params.add(name=token_id(param_name), resource_group=path_id, **val_kw)
 
