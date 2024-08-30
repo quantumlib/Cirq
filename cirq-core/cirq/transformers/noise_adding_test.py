@@ -23,16 +23,16 @@ def test_noise_adding():
     circuit = one_layer * 10
 
     # test that p=0 does nothing
-    transformed_circuit_p0 = na.DepolerizingNoiseTransformer(0.0)(circuit)
+    transformed_circuit_p0 = na.DepolarizingNoiseTransformer(0.0)(circuit)
     assert transformed_circuit_p0 == circuit
 
     # test that p=1 doubles the circuit depth
-    transformed_circuit_p1 = na.DepolerizingNoiseTransformer(1.0)(circuit)
+    transformed_circuit_p1 = na.DepolarizingNoiseTransformer(1.0)(circuit)
     assert len(transformed_circuit_p1) == 20
 
     # test that we get a deterministic result when using a specific rng
     rng = np.random.default_rng(0)
-    transformed_circuit_p0_03 = na.DepolerizingNoiseTransformer(0.03)(circuit, rng=rng)
+    transformed_circuit_p0_03 = na.DepolarizingNoiseTransformer(0.03)(circuit, rng=rng)
     expected_circuit = (
         one_layer * 2
         + circuits.Circuit(ops.I(qubits[2]), ops.Z(qubits[3]))
@@ -44,7 +44,7 @@ def test_noise_adding():
     assert transformed_circuit_p0_03 == expected_circuit
 
     # test that supplying a dictionary for p works
-    transformed_circuit_p_dict = na.DepolerizingNoiseTransformer(
+    transformed_circuit_p_dict = na.DepolarizingNoiseTransformer(
         {tuple(qubits[:2]): 1.0, tuple(qubits[2:]): 0.0}
     )(circuit)
     assert len(transformed_circuit_p_dict) == 20  # depth should be doubled
