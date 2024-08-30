@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import itertools
 import multiprocessing
 from typing import Iterable
@@ -35,6 +36,8 @@ from cirq.experiments.xeb_fitting import (
     phased_fsim_angles_from_gate,
 )
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
+
+_POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
 
 
 @pytest.fixture(scope='module')
@@ -229,7 +232,7 @@ def test_characterize_phased_fsim_parameters_with_xeb():
         characterize_phi=False,
     )
     p_circuits = [parameterize_circuit(circuit, options) for circuit in circuits]
-    with multiprocessing.Pool() as pool:
+    with multiprocessing.Pool(_POOL_NUM_PROCESSES) as pool:
         result = characterize_phased_fsim_parameters_with_xeb(
             sampled_df=sampled_df,
             parameterized_circuits=p_circuits,
@@ -270,7 +273,7 @@ def test_parallel_full_workflow(use_pool):
     )
 
     if use_pool:
-        pool = multiprocessing.Pool()
+        pool = multiprocessing.Pool(_POOL_NUM_PROCESSES)
     else:
         pool = None
 
