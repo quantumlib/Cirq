@@ -156,7 +156,7 @@ message DeviceParametersDiff {
 
       // this param's new value, and its type is not among the variants supported
       // by ArgValue.
-      GenericValue generic_value = 5;
+      GenericValue generic_value = 4;
     }
   }
   repeated ResourceGroup groups = 1;
