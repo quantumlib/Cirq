@@ -276,12 +276,40 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "parent", b"parent"]) -> None: ...
 
     @typing_extensions.final
+    class GenericValue(google.protobuf.message.Message):
+        """Param value whose type is not among proto field types supported by
+        ArgValue. In other words, it is the responsibility of the client codes
+        to enforce the validity and type consistency of this param value.
+        """
+
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        TYPE_DESCRIPTOR_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        type_descriptor: builtins.str
+        """Type description of the value representation. Eg. if the following value
+        bytes field is a JSON string, type_descriptor can be its JSON namespace;
+        or if the following value field is a protobuf serialization, type_descriptor
+        can be its protobuf definition URL.
+        """
+        value: builtins.bytes
+        """The value in client's encoding."""
+        def __init__(
+            self,
+            *,
+            type_descriptor: builtins.str = ...,
+            value: builtins.bytes = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["type_descriptor", b"type_descriptor", "value", b"value"]) -> None: ...
+
+    @typing_extensions.final
     class Param(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
         RESOURCE_GROUP_FIELD_NUMBER: builtins.int
         NAME_FIELD_NUMBER: builtins.int
         VALUE_FIELD_NUMBER: builtins.int
+        GENERIC_VALUE_FIELD_NUMBER: builtins.int
         resource_group: builtins.int
         """the resource group hosting this parameter key, as index into groups
         repeated field.
@@ -290,8 +318,13 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         """name of this param, as index into the strs repeated field."""
         @property
         def value(self) -> cirq_google.api.v2.program_pb2.ArgValue:
-            """this param's new value, as message ArgValue to allow variant types,
-            including bool, string, double, float and arrays.
+            """this param's new value, as message ArgValue to allow types of bool,
+            string, double, float and arrays.
+            """
+        @property
+        def generic_value(self) -> global___DeviceParametersDiff.GenericValue:
+            """this param's new value, and its type is not among the variants supported
+            by ArgValue.
             """
         def __init__(
             self,
@@ -299,9 +332,11 @@ class DeviceParametersDiff(google.protobuf.message.Message):
             resource_group: builtins.int = ...,
             name: builtins.int = ...,
             value: cirq_google.api.v2.program_pb2.ArgValue | None = ...,
+            generic_value: global___DeviceParametersDiff.GenericValue | None = ...,
         ) -> None: ...
-        def HasField(self, field_name: typing_extensions.Literal["value", b"value"]) -> builtins.bool: ...
-        def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "resource_group", b"resource_group", "value", b"value"]) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["generic_value", b"generic_value", "param_val", b"param_val", "value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["generic_value", b"generic_value", "name", b"name", "param_val", b"param_val", "resource_group", b"resource_group", "value", b"value"]) -> None: ...
+        def WhichOneof(self, oneof_group: typing_extensions.Literal["param_val", b"param_val"]) -> typing_extensions.Literal["value", "generic_value"] | None: ...
 
     GROUPS_FIELD_NUMBER: builtins.int
     PARAMS_FIELD_NUMBER: builtins.int
