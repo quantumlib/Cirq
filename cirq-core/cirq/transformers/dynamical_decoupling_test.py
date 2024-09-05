@@ -626,3 +626,130 @@ def test_with_non_clifford_measurements():
         schema="XX_PAIR",
         single_qubit_gate_moments_only=True,
     )
+
+
+def test_cross_clifford_pieces_filling_merge():
+    # pylint: disable=line-too-long
+    """Test case diagrams.
+    Input:
+                                                              ┌──┐                           ┌──┐
+    0: ───────────────────────────────PhXZ(a=0.3,x=0.2,z=0)────@─────PhXZ(a=0.3,x=0.2,z=0)────@─────PhXZ(a=0.3,x=0.2,z=0)───H───
+                                                               │                              │
+    1: ───────────────────────────────PhXZ(a=0.3,x=0.2,z=0)────@─────PhXZ(a=0.3,x=0.2,z=0)────@─────PhXZ(a=0.3,x=0.2,z=0)───H───
+
+    2: ───PhXZ(a=0.3,x=0.2,z=0)───@───PhXZ(a=0.3,x=0.2,z=0)────@─────PhXZ(a=0.3,x=0.2,z=0)────@─────────────────────────────H───
+                                  │                            │                              │
+    3: ───────────────────────────┼───PhXZ(a=0.3,x=0.2,z=0)────┼@─────────────────────────────┼@────────────────────────────H───
+                                  │                            ││                             ││
+    4: ───────────────────────────┼────────────────────────────┼@─────────────────────────────┼┼────────────────────────────H───
+                                  │                            │                              ││
+    5: ───PhXZ(a=0.3,x=0.2,z=0)───@───PhXZ(a=0.3,x=0.2,z=0)────@─────PhXZ(a=0.3,x=0.2,z=0)────@┼────PhXZ(a=0.3,x=0.2,z=0)───H───
+                                                                                               │
+    6: ────────────────────────────────────────────────────────────────────────────────────────@────PhXZ(a=0.3,x=0.2,z=0)───H───
+                                                              └──┘                           └──┘
+    Output:
+                                                                 ┌──────────────────────────┐                           ┌──┐
+     0: ───────────────────────────────PhXZ(a=0.3,x=0.2,z=0)────@─────────────────────────────PhXZ(a=0.3,x=0.2,z=0)────@─────PhXZ(a=0.3,x=0.2,z=0)───H────────────────────────
+                                                                │                                                      │
+     1: ───────────────────────────────PhXZ(a=0.3,x=0.2,z=0)────@─────────────────────────────PhXZ(a=0.3,x=0.2,z=0)────@─────PhXZ(a=0.3,x=0.2,z=0)───H────────────────────────
+
+     2: ───PhXZ(a=0.3,x=0.2,z=0)───@───PhXZ(a=0.3,x=0.2,z=0)────@─────────────────────────────PhXZ(a=0.3,x=0.2,z=0)────@─────X───────────────────────PhXZ(a=-0.5,x=0.5,z=0)───
+                                   │                            │                                                      │
+     3: ───────────────────────────┼───PhXZ(a=0.3,x=0.2,z=0)────┼────────────────────────@─────────────────────────────┼@────X───────────────────────PhXZ(a=-0.5,x=0.5,z=0)───
+                                   │                            │                        │                             ││
+     4: ───────────────────────────┼────────────────────────────┼────────────────────────@────X────────────────────────┼┼────Y───────────────────────PhXZ(a=0.5,x=0.5,z=0)────
+                                   │                            │                                                      ││
+     5: ───PhXZ(a=0.3,x=0.2,z=0)───@───PhXZ(a=0.3,x=0.2,z=0)────@─────────────────────────────PhXZ(a=0.3,x=0.2,z=0)────@┼────PhXZ(a=0.3,x=0.2,z=0)───H────────────────────────
+                                                                                                                        │
+     6: ────────────────────────────────────────────────────────PhXZ(a=-0.7,x=0.8,z=-0.6)─────X─────────────────────────@────PhXZ(a=0.3,x=0.2,z=0)───H────────────────────────
+                                                               └──────────────────────────┘                           └──┘
+    """
+    # pylint: enable
+    qubits = cirq.LineQubit.range(7)
+    phased_xz_gate = cirq.PhasedXZGate(axis_phase_exponent=0.3, x_exponent=0.2, z_exponent=0)
+    assert_dd(
+        input_circuit=cirq.Circuit(
+            cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [2, 5]]),
+            cirq.Moment(cirq.CZ(qubits[2], qubits[5])),
+            cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [0, 1, 2, 3, 5]]),
+            cirq.Moment(
+                [cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 5), (3, 4)]]
+                + [phased_xz_gate.on(qubits[6])]
+            ),
+            cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [0, 1, 2, 5]]),
+            cirq.Moment([cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 5), (3, 6)]]),
+            cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [0, 1, 5, 6]]),
+            cirq.Moment([cirq.H.on(q) for q in qubits]),
+        ),
+        expected_circuit=cirq.Circuit(
+            cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [2, 5]]),
+            cirq.Moment(cirq.CZ(qubits[2], qubits[5])),
+            cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [0, 1, 2, 3, 5]]),
+            cirq.Moment(
+                [cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 5), (3, 4)]]
+                + [
+                    cirq.PhasedXZGate(axis_phase_exponent=-0.7, x_exponent=0.8, z_exponent=-0.6).on(
+                        qubits[6]
+                    )
+                ]
+            ),
+            cirq.Moment(
+                [phased_xz_gate.on(qubits[i]) for i in [0, 1, 2, 5]]
+                + [cirq.X(qubits[i]) for i in [4, 6]]
+            ),
+            cirq.Moment([cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 5), (3, 6)]]),
+            cirq.Moment(
+                [phased_xz_gate.on(qubits[i]) for i in [0, 1, 5, 6]]
+                + [cirq.X(qubits[2]), cirq.X(qubits[3]), cirq.Y(qubits[4])]
+            ),
+            cirq.Moment(
+                [cirq.H.on(qubits[i]) for i in [0, 1, 5, 6]]
+                + [
+                    cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(
+                        qubits[2]
+                    ),
+                    cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(
+                        qubits[3]
+                    ),
+                    cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
+                        qubits[4]
+                    ),
+                ]
+            ),
+        ),
+    )
+
+
+def test_cross_clifford_pieces_filling_cannot_merge():
+    """Test case diagrams.
+    Input:
+    a: ───@───PhXZ(a=0.3,x=0.2,z=0)───PhXZ(a=0.3,x=0.2,z=0)───PhXZ(a=0.3,x=0.2,z=0)───@───
+          │                                                                           │
+    b: ───@───────────────────────────────────────────────────────────────────────────@───
+    Output:
+    a: ───@───PhXZ(a=0.3,x=0.2,z=0)───PhXZ(a=0.3,x=0.2,z=0)───PhXZ(a=0.3,x=0.2,z=0)───@───
+          │                                                                           │
+    b: ───@───X───────────────────────X───────────────────────────────────────────────@───
+    """
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    phased_xz_gate = cirq.PhasedXZGate(axis_phase_exponent=0.3, x_exponent=0.2, z_exponent=0)
+
+    assert_dd(
+        input_circuit=cirq.Circuit(
+            cirq.Moment(cirq.CZ(a, b)),
+            cirq.Moment(phased_xz_gate.on(a)),
+            cirq.Moment(phased_xz_gate.on(a)),
+            cirq.Moment(phased_xz_gate.on(a)),
+            cirq.Moment(cirq.CZ(a, b)),
+        ),
+        expected_circuit=cirq.Circuit(
+            cirq.Moment(cirq.CZ(a, b)),
+            cirq.Moment(phased_xz_gate.on(a), cirq.X(b)),
+            cirq.Moment(phased_xz_gate.on(a), cirq.X(b)),
+            cirq.Moment(phased_xz_gate.on(a)),
+            cirq.Moment(cirq.CZ(a, b)),
+        ),
+        schema='XX_PAIR',
+        single_qubit_gate_moments_only=False,
+    )

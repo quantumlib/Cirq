@@ -76,13 +76,25 @@ def _validate_dd_sequence(dd_sequence: Tuple['cirq.Gate', ...]) -> None:
         )
 
 
-def _parse_dd_sequence(schema: Union[str, Tuple['cirq.Gate', ...]]) -> Tuple['cirq.Gate', ...]:
-    """Parses and returns dynamical decoupling sequence from schema."""
+def _parse_dd_sequence(
+    schema: Union[str, Tuple['cirq.Gate', ...]]
+) -> Tuple[Tuple['cirq.Gate', ...], Dict['cirq.Gate', 'cirq.Pauli']]:
+    """Parses and returns dynamical decoupling sequence and its associated pauli map from schema."""
+    dd_sequence = None
     if isinstance(schema, str):
-        return _get_dd_sequence_from_schema_name(schema)
+        dd_sequence = _get_dd_sequence_from_schema_name(schema)
     else:
         _validate_dd_sequence(schema)
-        return schema
+        dd_sequence = schema
+
+    # Map Gate to Puali gate.
+    pauli_map: Dict['cirq.Gate', 'cirq.Pauli'] = {}
+    for gate in dd_sequence:
+        pauli_gate = _pauli_up_to_global_phase(gate)
+        if pauli_gate is not None:
+            pauli_map[gate] = pauli_gate
+
+    return (dd_sequence, pauli_map)
 
 
 def _is_single_qubit_operation(operation: 'cirq.Operation') -> bool:
@@ -108,19 +120,34 @@ def _is_clifford_moment(moment: 'cirq.Moment') -> bool:
 
 
 def _get_clifford_pieces(circuit: 'cirq.AbstractCircuit') -> list[Tuple[int, int]]:
+    """Returns all clifford pieces [l, r] for a Circuit."""
     clifford_pieces: list[Tuple[int, int]] = []
     left = 0
     for moment_id, moment in enumerate(circuit):
         if not _is_clifford_moment(moment):
-            clifford_pieces.append((left, moment_id))
+            if moment_id > left:
+                clifford_pieces.append((left, moment_id - 1))
             left = moment_id + 1
     if left < len(circuit):
-        clifford_pieces.append((left, len(circuit)))
+        clifford_pieces.append((left, len(circuit) - 1))
     return clifford_pieces
 
 
 def _is_insertable_moment(moment: 'cirq.Moment', single_qubit_gate_moments_only: bool) -> bool:
     return _is_single_qubit_gate_moment(moment) or not single_qubit_gate_moments_only
+
+
+def _merge_single_qubit_ops_to_phxz(
+    q: 'cirq.Qid', ops: Tuple['cirq.Operation', ...]
+) -> 'cirq.Operation':
+    """Merges [op1, op2, ...] and returns an equivalent op"""
+    matrices = [cirq.unitary(op) for op in reversed(ops)]
+    product = reduce(np.matmul, matrices)
+    gate: Optional['cirq.Gate'] = single_qubit_decompositions.single_qubit_matrix_to_phxz(product)
+    if gate is None:
+        # gate is close to Identity.
+        gate = cirq.I
+    return gate.on(q)
 
 
 def _calc_pulled_through(
@@ -132,14 +159,14 @@ def _calc_pulled_through(
       decomposing a matrix into Pauli operations on each qubit.
     """
     pulled_through: 'cirq.PauliString' = cirq.PauliString()
-    for affected_q, combined_op_in_pauli in input_pauli_ops.items():
+    for affected_q, combined_gate_in_pauli in input_pauli_ops.items():
         op_at_moment = moment.operation_at(affected_q)
         if op_at_moment is None:
-            pulled_through *= combined_op_in_pauli.on(affected_q)
+            pulled_through *= combined_gate_in_pauli.on(affected_q)
             continue
         prev_circuit = cirq.Circuit(cirq.Moment(op_at_moment))
         new_circuit = cirq.Circuit(
-            cirq.Moment(combined_op_in_pauli.on(affected_q)), cirq.Moment(op_at_moment)
+            cirq.Moment(combined_gate_in_pauli.on(affected_q)), cirq.Moment(op_at_moment)
         )
         qubit_order = op_at_moment.qubits
         pulled_through_pauli_ops = unitary_to_pauli_string(
@@ -152,58 +179,188 @@ def _calc_pulled_through(
     return pulled_through
 
 
-def _merge_pulled_through(
-    mutable_circuit: 'cirq.Circuit',
+def _process_pulled_through(
+    circuit: 'cirq.FrozenCircuit',
     pulled_through: 'cirq.PauliString',
     clifford_piece_range: Tuple[int, int],
     single_qubit_gate_moments_only: bool,
-) -> 'cirq.PauliString':
-    """Merges pulled through Pauli gates into the last single-qubit gate operation or the insert it
+) -> Tuple[
+    'cirq.PauliString',
+    list[Tuple[int, 'cirq.Operation']],
+    list[Tuple[int, 'cirq.Operation', 'cirq.Operation']],
+]:
+    """Merges pulled-through Pauli gates into the last single-qubit gate operation or the insert it
       into the first idle moment if idle moments exist.
+
     Args:
-        mutable_circuit: Mutable circuit to transform.
+        circuit: a frozen circuit where pulled-through gates will be inserted / merged.
         pulled_through: Pauli gates to be merged.
-        clifford_piece_range: Specifies the [l, r) moments within which pulled-through gate merging
+        clifford_piece_range: Specifies the [l, r] moments within which pulled-through gate merging
           is to be performed.
         single_qubit_gate_moments_only: If set True, dynamical decoupling operation will only be
             added in single-qubit gate moments.
 
     Returns:
-        The remaining pulled through operations after merging.
+        The remaining pulled-through operations after merging.
     """
     insert_intos: list[Tuple[int, 'cirq.Operation']] = []
     batch_replaces: list[Tuple[int, 'cirq.Operation', 'cirq.Operation']] = []
     remaining_pulled_through = pulled_through
-    for affected_q, combined_op_in_pauli in pulled_through.items():
-        moment_id = mutable_circuit.prev_moment_operating_on([affected_q], clifford_piece_range[1])
+    for affected_q, combined_gate_in_pauli in pulled_through.items():
+        moment_id = circuit.prev_moment_operating_on([affected_q], clifford_piece_range[1] + 1)
         if moment_id is not None:
-            op = mutable_circuit.operation_at(affected_q, moment_id)
-            # Try to merge op into an existing single-qubit gate operation.
+            op = circuit.operation_at(affected_q, moment_id)
+            # Try to merge op into the last active moment if it is single-qubit gate operation.
             if op is not None and _is_single_qubit_operation(op):
-                updated_gate_mat = cirq.unitary(combined_op_in_pauli) @ cirq.unitary(op)
-                updated_gate: Optional['cirq.Gate'] = (
-                    single_qubit_decompositions.single_qubit_matrix_to_phxz(updated_gate_mat)
+                updated_op = _merge_single_qubit_ops_to_phxz(
+                    affected_q, (op, combined_gate_in_pauli.on(affected_q))
                 )
-                if updated_gate is None:
-                    # updated_gate is close to Identity.
-                    updated_gate = cirq.I
-                batch_replaces.append((moment_id, op, updated_gate.on(affected_q)))
-                remaining_pulled_through *= combined_op_in_pauli.on(affected_q)
+                batch_replaces.append((moment_id, op, updated_op))
+                remaining_pulled_through *= combined_gate_in_pauli.on(affected_q)
                 continue
             # Insert into the first empty moment for the qubit if such moment exists.
-            while moment_id < clifford_piece_range[1]:
-                if affected_q not in mutable_circuit.moments[
-                    moment_id
-                ].qubits and _is_insertable_moment(
-                    mutable_circuit.moments[moment_id], single_qubit_gate_moments_only
+            while moment_id <= clifford_piece_range[1]:
+                if affected_q not in circuit.moments[moment_id].qubits and _is_insertable_moment(
+                    circuit.moments[moment_id], single_qubit_gate_moments_only
                 ):
-                    insert_intos.append((moment_id, combined_op_in_pauli.on(affected_q)))
-                    remaining_pulled_through *= combined_op_in_pauli.on(affected_q)
+                    insert_intos.append((moment_id, combined_gate_in_pauli.on(affected_q)))
+                    remaining_pulled_through *= combined_gate_in_pauli.on(affected_q)
                     break
                 moment_id += 1
+    return remaining_pulled_through, insert_intos, batch_replaces
+
+
+def _fill_for_each_clifford_piece(
+    circuit: 'cirq.FrozenCircuit',
+    base_dd_sequence_info: Tuple[Tuple['cirq.Gate', ...], Dict['cirq.Gate', 'cirq.Pauli']],
+    single_qubit_gate_moments_only: bool,
+) -> 'cirq.Circuit':
+    """For each Clifford piece, insert if idle, pull through if busy.
+    Note cross Clifford pieces dd sequence will not be added in this function."""
+
+    base_dd_sequence, pauli_map = base_dd_sequence_info
+    busy_moment_range_by_qubit: Dict['cirq.Qid', list[int]] = {
+        q: [len(circuit), -1] for q in circuit.all_qubits()
+    }
+    for moment_id, moment in enumerate(circuit):
+        for q in moment.qubits:
+            busy_moment_range_by_qubit[q][0] = min(busy_moment_range_by_qubit[q][0], moment_id)
+            busy_moment_range_by_qubit[q][1] = max(busy_moment_range_by_qubit[q][1], moment_id)
+
+    clifford_pieces = _get_clifford_pieces(circuit)
+    insert_moments = []
+    mutable_circuit = circuit.unfreeze(copy=True)
+    for l, r in clifford_pieces:  # [l, r]
+        # A PauliString stores the result of 'pulling' Pauli gates past each operations
+        # right before the current moment.
+        pulled_through: 'cirq.PauliString' = cirq.PauliString()
+        # Iterator of gate to be used in dd sequence for each qubit.
+        dd_iter_by_qubits = {q: cycle(base_dd_sequence) for q in circuit.all_qubits()}
+        insert_intos: list[Tuple[int, 'cirq.Operation']] = []
+        batch_replaces: list[Tuple[int, 'cirq.Operation', 'cirq.Operation']] = []
+
+        # Iterate over the Clifford piece.
+        for moment_id in range(l, r + 1):
+            moment = circuit.moments[moment_id]
+
+            # Insert
+            if _is_insertable_moment(moment, single_qubit_gate_moments_only):
+                for q in circuit.all_qubits() - moment.qubits:
+                    if (
+                        busy_moment_range_by_qubit[q][0]
+                        < moment_id
+                        < busy_moment_range_by_qubit[q][1]
+                    ):
+                        insert_gate = next(dd_iter_by_qubits[q])
+                        insert_intos.append((moment_id, insert_gate.on(q)))
+                        pulled_through *= pauli_map[insert_gate].on(q)
+
+            # Pull through
+            pulled_through = _calc_pulled_through(moment, pulled_through)
+
+        # Need to insert before processing pulled through.
+        mutable_circuit.batch_insert_into(insert_intos)
+
+        # For the pulled-through gates, fill / merge if possible.
+        remaining_pulled_through, insert_intos, batch_replaces = _process_pulled_through(
+            mutable_circuit.freeze(), pulled_through, (l, r), single_qubit_gate_moments_only
+        )
+        mutable_circuit.batch_insert_into(insert_intos)
+        mutable_circuit.batch_replace(batch_replaces)
+
+        # Insert a new moment if there are remaining pulled-through operations.
+        new_moment_ops = []
+        for affected_q, combined_op_in_pauli in remaining_pulled_through.items():
+            new_moment_ops.append(combined_op_in_pauli.on(affected_q))
+        if len(new_moment_ops) != 0:
+            insert_moments.append((r + 1, cirq.Moment(new_moment_ops)))
+    mutable_circuit.batch_insert(insert_moments)
+    return mutable_circuit
+
+
+def _fill_consecutive_idle_moments_for_each_qubit(
+    circuit: 'cirq.FrozenCircuit',
+    base_dd_sequence_info: Tuple[Tuple['cirq.Gate', ...], Dict['cirq.Gate', 'cirq.Pauli']],
+    single_qubit_gate_moments_only: bool,
+) -> 'cirq.Circuit':
+    insert_intos: list[Tuple[int, 'cirq.Operation']] = []
+    batch_replaces: list[Tuple[int, 'cirq.Operation', 'cirq.Operation']] = []
+    base_dd_sequence, pauli_map = base_dd_sequence_info
+    for q in circuit.all_qubits():
+        prev_moment_id = circuit.next_moment_operating_on([q], 0)
+        next_moment_id = None
+        if prev_moment_id is not None:
+            next_moment_id = circuit.next_moment_operating_on([q], prev_moment_id + 1)
+            prev_op = circuit.operation_at(q, prev_moment_id)
+
+        # Iterate over all idle pieces of this qubit.
+        while prev_moment_id is not None and next_moment_id is not None:
+            next_op = circuit.operation_at(q, next_moment_id)
+            if next_moment_id - prev_moment_id > 1:  # idle operations exist
+                dd_iter = cycle(base_dd_sequence)
+                if prev_op is not None and next_op is not None:
+                    insertable_moment_ids = [
+                        moment_id
+                        for moment_id in range(prev_moment_id + 1, next_moment_id)
+                        if _is_insertable_moment(
+                            circuit.moments[moment_id], single_qubit_gate_moments_only
+                        )
+                    ]
+                    # If the prev op or the next op is single-qubit gate op (mergeable).
+                    #   1. Insert dd sequence into all idle moments.
+                    #   2. Merge the remaining of the dd_sequence into either prev op or next op
+                    #      depends on the availability.
+                    if _is_single_qubit_operation(prev_op) or _is_single_qubit_operation(next_op):
+                        to_be_merged: 'cirq.PauliString' = cirq.PauliString()
+                        for moment_id in insertable_moment_ids:
+                            gate = next(dd_iter)
+                            insert_intos.append((moment_id, gate.on(q)))
+                            to_be_merged *= pauli_map[gate].on(q)
+                        for q, combined_gate_in_pauli in to_be_merged.items():
+                            if _is_single_qubit_operation(next_op):  # Merge into the next op.
+                                updated_op = _merge_single_qubit_ops_to_phxz(
+                                    q, (combined_gate_in_pauli.on(q), next_op)
+                                )
+                                batch_replaces.append((next_moment_id, next_op, updated_op))
+                            else:  # Merge into the prev op.
+                                updated_op = _merge_single_qubit_ops_to_phxz(
+                                    q, (prev_op, combined_gate_in_pauli.on(q))
+                                )
+                                batch_replaces.append((prev_moment_id, prev_op, updated_op))
+                    # Otherwise, insert whole pieces of base_dd_sequence until it is impossible to
+                    # insert one more piece.
+                    else:
+                        for insert_moment_id in insertable_moment_ids[
+                            0 : (len(insertable_moment_ids) // len(base_dd_sequence))
+                            * len(base_dd_sequence)
+                        ]:
+                            insert_intos.append((insert_moment_id, next(dd_iter).on(q)))
+            prev_moment_id, prev_op = next_moment_id, next_op
+            next_moment_id = circuit.next_moment_operating_on([q], prev_moment_id + 1)
+    mutable_circuit = circuit.unfreeze(copy=True)
     mutable_circuit.batch_insert_into(insert_intos)
     mutable_circuit.batch_replace(batch_replaces)
-    return remaining_pulled_through
+    return mutable_circuit
 
 
 @transformer_api.transformer
@@ -230,64 +387,19 @@ def add_dynamical_decoupling(
     Returns:
           A copy of the input circuit with dynamical decoupling operations.
     """
-    base_dd_sequence: Tuple['cirq.Gate', ...] = _parse_dd_sequence(schema)
-    mutable_circuit = circuit.unfreeze(copy=True)
+    base_dd_sequence_info = _parse_dd_sequence(schema)
 
-    pauli_map: Dict['cirq.Gate', 'cirq.Pauli'] = {}
-    for gate in base_dd_sequence:
-        pauli_gate = _pauli_up_to_global_phase(gate)
-        if pauli_gate is not None:
-            pauli_map[gate] = pauli_gate
+    # Step 1: for each Clifford piece, inserting dd sequence for idle operations, pulling through
+    # for non-idle operations. (Note we split the circuit into Clifford pieces as we can pull Pauli
+    # ops from dynamical decoupling base sequence through Clifford ops).
+    updated_circuit = _fill_for_each_clifford_piece(
+        circuit.freeze(), base_dd_sequence_info, single_qubit_gate_moments_only
+    )
 
-    busy_moment_range_by_qubit: Dict['cirq.Qid', list[int]] = {
-        q: [len(circuit), -1] for q in circuit.all_qubits()
-    }
-    for moment_id, moment in enumerate(circuit):
-        for q in moment.qubits:
-            busy_moment_range_by_qubit[q][0] = min(busy_moment_range_by_qubit[q][0], moment_id)
-            busy_moment_range_by_qubit[q][1] = max(busy_moment_range_by_qubit[q][1], moment_id)
-    clifford_pieces = _get_clifford_pieces(circuit)
+    # Step 2, for each qubit, filling consecutive empty ops and merging into single-qubit operations
+    # if possible.
+    updated_circuit = _fill_consecutive_idle_moments_for_each_qubit(
+        updated_circuit.freeze(), base_dd_sequence_info, single_qubit_gate_moments_only
+    )
 
-    insert_intos: list[Tuple[int, 'cirq.Operation']] = []
-    insert_moments: list[Tuple[int, 'cirq.Moment']] = []
-    for l, r in clifford_pieces:  # [l, r)
-        # A PauliString stores the result of 'pulling' Pauli gates past each operations
-        # right before the current moment.
-        pulled_through: 'cirq.PauliString' = cirq.PauliString()
-        iter_by_qubits = {q: cycle(base_dd_sequence) for q in circuit.all_qubits()}
-
-        # Iterate over the Clifford piece.
-        for moment_id in range(l, r):
-            moment = circuit.moments[moment_id]
-
-            # Insert
-            if _is_insertable_moment(moment, single_qubit_gate_moments_only):
-                for q in circuit.all_qubits() - moment.qubits:
-                    if (
-                        busy_moment_range_by_qubit[q][0]
-                        < moment_id
-                        < busy_moment_range_by_qubit[q][1]
-                    ):
-                        insert_gate = next(iter_by_qubits[q])
-                        insert_intos.append((moment_id, insert_gate.on(q)))
-                        pulled_through *= pauli_map[insert_gate].on(q)
-
-            # Pull through
-            pulled_through = _calc_pulled_through(moment, pulled_through)
-
-        mutable_circuit.batch_insert_into(insert_intos)
-        insert_intos.clear()
-
-        pulled_through = _merge_pulled_through(
-            mutable_circuit, pulled_through, (l, r), single_qubit_gate_moments_only
-        )
-
-        # Insert a new moment if there are remaining pulled through operations.
-        new_moment_ops = []
-        for affected_q, combined_op_in_pauli in pulled_through.items():
-            new_moment_ops.append(combined_op_in_pauli.on(affected_q))
-        if len(new_moment_ops) != 0:
-            insert_moments.append((r, cirq.Moment(new_moment_ops)))
-
-    mutable_circuit.batch_insert(insert_moments)
-    return mutable_circuit
+    return updated_circuit
