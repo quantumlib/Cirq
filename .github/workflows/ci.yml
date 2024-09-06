@@ -329,7 +329,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '14.16.1'
+          node-version: '20.17.0'
       - name: Install npm
         run: check/npm ci
       - name: Check build matches the current
@@ -341,7 +341,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '14.16.1'
+          node-version: '20.17.0'
       - name: Install npm
         run: check/npm ci
       - name: Lint
@@ -353,7 +353,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '14.16.1'
+          node-version: '20.17.0'
       - name: Install npm dependencies
         run: check/npm ci
       - name: Unit tests
@@ -367,7 +367,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '14.16.1'
+          node-version: '20.17.0'
       - name: Install npm dependencies
         run: check/npm ci
       - name: Test
