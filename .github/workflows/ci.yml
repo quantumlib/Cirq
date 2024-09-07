@@ -327,10 +327,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Install node and npm
+        uses: actions/setup-node@v4
         with:
           node-version: '20.17.0'
-      - name: Install npm
+      - name: Install node dependencies
         run: check/npm ci
       - name: Check build matches the current
         run: check/ts-build-current
@@ -339,36 +340,39 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Install node and npm
+        uses: actions/setup-node@v4
         with:
           node-version: '20.17.0'
-      - name: Install npm
+      - name: Install node dependencies
         run: check/npm ci
-      - name: Lint
+      - name: Lint Typescript files
         run: check/ts-lint
   ts-test:
     name: Typescript tests
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Install node and npm
+        uses: actions/setup-node@v4
         with:
           node-version: '20.17.0'
-      - name: Install npm dependencies
+      - name: Install node dependencies
         run: check/npm ci
-      - name: Unit tests
+      - name: Run unit tests
         run: check/ts-test
-      - name: End to end tests
+      - name: Run end-to-end tests
         run: check/ts-test-e2e
   ts-coverage:
     name: Typescript tests coverage
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Install node and npm
+        uses: actions/setup-node@v4
         with:
           node-version: '20.17.0'
-      - name: Install npm dependencies
+      - name: Install node dependencies
         run: check/npm ci
-      - name: Test
+      - name: Run coverage test
         run: check/ts-coverage
