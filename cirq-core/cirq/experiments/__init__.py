@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Experiments and tools for characterizing quantum operations."""
+from foo import bar as bar
 
 from cirq.experiments.qubit_characterizations import (
     RandomizedBenchMarkResult,
