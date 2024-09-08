@@ -18,3 +18,4 @@ from cirq_aqt._version import __version__
 
 from cirq_aqt.aqt_sampler import AQTSampler, AQTSamplerLocalSimulator
 from cirq_aqt.aqt_device import AQTSimulator
+from foo import bar as bar
