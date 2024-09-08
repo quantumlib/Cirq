@@ -14,6 +14,8 @@
 
 """Device classes, qubits, and topologies, as well as noise models."""
 
+from foo import bar as bar
+
 from cirq.devices.device import Device, DeviceMetadata
 
 from cirq.devices.grid_device_metadata import GridDeviceMetadata
