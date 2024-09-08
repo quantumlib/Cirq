@@ -17,4 +17,4 @@
 These tools use shell commands, and so are not portable between operating
 systems. Currently they assume that the system is based on Debian Linux.
 """
-from foo import bar as bar
+

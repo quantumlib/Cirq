@@ -17,10 +17,11 @@
 Any contributions not ready for full production can be put in a subdirectory in
 this package.
 """
-from foo import bar as bar
-from cirq.contrib import acquaintance
-from cirq.contrib import graph_device
-from cirq.contrib import quirk
-from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit
-from cirq.contrib import json
-from cirq.contrib.circuitdag import CircuitDag, Unique
+
+from cirq.contrib import acquaintance as acquaintance
+from cirq.contrib import graph_device as graph_device
+from cirq.contrib import quirk as quirk
+from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit as circuit_to_latex_using_qcircuit
+from cirq.contrib import json as json
+from cirq.contrib.circuitdag import CircuitDag as CircuitDag, Unique as Unique
+
