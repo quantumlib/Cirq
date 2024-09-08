@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Circuit classes, mutators, and outputs."""
-
+from foo import bar as bar
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 
 from cirq.circuits.qasm_output import QasmOutput
