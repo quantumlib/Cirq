@@ -17,7 +17,7 @@
 Any contributions not ready for full production can be put in a subdirectory in
 this package.
 """
-
+from foo import bar as bar
 from cirq.contrib import acquaintance
 from cirq.contrib import graph_device
 from cirq.contrib import quirk
