@@ -13,5 +13,7 @@
 # limitations under the License.
 """Methods for interoperating with other quantum software."""
 
-from foo import bar as bar
-from cirq.interop.quirk import quirk_json_to_circuit, quirk_url_to_circuit
+from cirq.interop.quirk import (
+    quirk_json_to_circuit as quirk_json_to_circuit,
+    quirk_url_to_circuit as quirk_url_to_circuit,
+)

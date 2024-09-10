@@ -5,7 +5,7 @@ This module contains example deprecations for modules.
 """
 import logging
 
-from cirq import _compat
+from cirq import _compat as _compat
 
 logging.info("init:compat_test_data")
 

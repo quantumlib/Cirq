@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from collections import OrderedDict
-from typing import Dict, Type
+from collections import OrderedDict as OrderedDict
+from typing import Dict as Dict, Type as Type
 
-from .base import QuantumEngineServiceTransport
-from .grpc import QuantumEngineServiceGrpcTransport
-from .grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
+from .base import QuantumEngineServiceTransport as QuantumEngineServiceTransport
+from .grpc import QuantumEngineServiceGrpcTransport as QuantumEngineServiceGrpcTransport
+from .grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport as QuantumEngineServiceGrpcAsyncIOTransport
 
 
 # Compile a registry of transports.
