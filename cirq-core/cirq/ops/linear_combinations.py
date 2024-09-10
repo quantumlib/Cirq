@@ -805,7 +805,7 @@ class PauliSum:
         if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         if isinstance(other, numbers.Complex):
-            self._linear_dict *= other
+            self._linear_dict *= complex(other)
         elif isinstance(other, PauliString):
             temp = PauliSum.from_pauli_strings([term * other for term in self])
             self._linear_dict = temp._linear_dict
@@ -870,7 +870,7 @@ def _projector_string_from_projector_dict(projector_dict, coefficient=1.0):
     return ProjectorString(dict(projector_dict), coefficient)
 
 
-@value.value_equality(approximate=True)
+@value.value_equality(approximate=True, unhashable=True)
 class ProjectorSum:
     """List of mappings representing a sum of projector operators."""
 

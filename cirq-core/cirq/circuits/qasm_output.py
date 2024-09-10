@@ -14,7 +14,7 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Callable, Dict, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
+from typing import Callable, Dict, Iterator, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
 
 import re
 import numpy as np
@@ -126,7 +126,7 @@ class QasmTwoQubitGate(ops.Gate):
     def _unitary_(self):
         return protocols.unitary(self.kak)
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         q0, q1 = qubits
         x, y, z = self.kak.interaction_coefficients
         a = x * -2 / np.pi + 0.5

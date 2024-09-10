@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterator, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types, swap_gates
@@ -73,7 +73,7 @@ class QubitPermutationGate(raw_types.Gate):
     def _has_unitary_(self):
         return True
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         permutation = [p for p in self.permutation]
 
         for i in range(len(permutation)):

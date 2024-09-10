@@ -275,7 +275,7 @@ class Calibration(abc.Mapping):
             ValueError: If the metric values are not single floats.
         """
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(1, 1)
 
         if isinstance(keys, str):
@@ -320,7 +320,7 @@ class Calibration(abc.Mapping):
             values are not single floats.
         """
         show_plot = not fig
-        if not fig:
+        if fig is None:
             fig = plt.figure()
         axs = cast(List[plt.Axes], fig.subplots(1, 2))
         self.heatmap(key).plot(axs[0])

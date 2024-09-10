@@ -134,6 +134,10 @@ class NamedQid(_BaseNamedQid):
         """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._name, self._dimension)
 
+    # avoid pickling the _hash value, attributes are already stored with __getnewargs__
+    def __getstate__(self) -> Dict[str, Any]:
+        return {}
+
     def __repr__(self) -> str:
         return f'cirq.NamedQid({self._name!r}, dimension={self._dimension})'
 
@@ -201,6 +205,10 @@ class NamedQubit(_BaseNamedQid):
     def __getnewargs__(self):
         """Returns a tuple of args to pass to __new__ when unpickling."""
         return (self._name,)
+
+    # avoid pickling the _hash value, attributes are already stored with __getnewargs__
+    def __getstate__(self) -> Dict[str, Any]:
+        return {}
 
     def __str__(self) -> str:
         return self._name
