@@ -36,5 +36,5 @@ from cirq.interop.quirk.cells.input_rotation_cells import (
     QuirkInputRotationOperation as QuirkInputRotationOperation,
 )
 
-import cirq.interop.quirk.cells.swap_cell as swap_cell
-import cirq.interop.quirk.cells.control_cells as control_cells
+import cirq.interop.quirk.cells.swap_cell
+import cirq.interop.quirk.cells.control_cells

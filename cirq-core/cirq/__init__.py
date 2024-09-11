@@ -14,7 +14,7 @@
 
 """Cirq is a framework for creating, editing, and invoking quantum circuits."""
 
-from cirq import _import as _import
+from cirq import _import
 
 from cirq._compat import __cirq_debug__ as __cirq_debug__, with_debug as with_debug
 
@@ -24,37 +24,37 @@ from cirq._compat import __cirq_debug__ as __cirq_debug__, with_debug as with_de
 # Begin dependency order list of sub-modules.
 from cirq import (
     # Low level
-    _version as _version,
-    _doc as _doc,
-    type_workarounds as type_workarounds,
+    _version,
+    _doc,
+    type_workarounds,
 )
 
 with _import.delay_import('cirq.protocols'):
     from cirq import (
         # Core
-        protocols as protocols,
-        value as value,
-        linalg as linalg,
-        qis as qis,
-        ops as ops,
-        devices as devices,
-        study as study,
+        protocols,
+        value,
+        linalg,
+        qis,
+        ops,
+        devices,
+        study,
     )
 from cirq import (
     # Core
-    circuits as circuits,
+    circuits,
     # Optimize and run
-    work as work,
-    sim as sim,
-    vis as vis,
+    work,
+    sim,
+    vis,
     # Hardware specific
-    ion as ion,
-    neutral_atoms as neutral_atoms,
-    interop as interop,
+    ion,
+    neutral_atoms,
+    interop,
     # Applications
-    experiments as experiments,
+    experiments,
     # Extra (nothing should depend on these)
-    testing as testing,
+    testing,
 )
 
 # End dependency order list of sub-modules
@@ -688,7 +688,7 @@ from cirq.work import (
 
 # Unflattened sub-modules.
 
-from cirq import testing as testing
+from cirq import testing
 
 # Registers cirq-core's public classes for JSON serialization.
 # pylint: disable=wrong-import-position
@@ -700,6 +700,6 @@ _register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-from cirq import contrib as contrib
+from cirq import contrib
 
 # pylint: enable=wrong-import-position

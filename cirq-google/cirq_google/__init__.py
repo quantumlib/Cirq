@@ -15,7 +15,7 @@
 """Classes for working with Google's Quantum Engine API."""
 
 import sys
-from cirq_google import api as api
+from cirq_google import api
 
 from cirq_google._version import __version__ as __version__
 
@@ -104,9 +104,10 @@ from cirq_google.workflow import (
     SimulatedProcessorWithLocalDeviceRecord as SimulatedProcessorWithLocalDeviceRecord,
 )
 
-from cirq_google import study as study
+from cirq_google import study
 
-from cirq_google import experimental as experimental
+from cirq_google import experimental
+
 
 # Register cirq_google's public classes for JSON serialization.
 from cirq.protocols.json_serialization import _register_resolver

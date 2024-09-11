@@ -24,13 +24,8 @@ from cirq_rigetti.service import (
     get_rigetti_qcs_service as get_rigetti_qcs_service,
 )
 
-from cirq_rigetti import (
-    circuit_sweep_executors as circuit_sweep_executors,
-    quil_output as quil_output,
-)
-
-from cirq_rigetti import circuit_transformers as circuit_transformers
-
+from cirq_rigetti import circuit_sweep_executors, quil_output
+from cirq_rigetti import circuit_transformers
 from cirq_rigetti.aspen_device import (
     RigettiQCSAspenDevice as RigettiQCSAspenDevice,
     AspenQubit as AspenQubit,
