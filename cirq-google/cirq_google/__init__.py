@@ -109,8 +109,7 @@ from cirq_google import study as study
 from cirq_google import experimental as experimental
 
 # Register cirq_google's public classes for JSON serialization.
-from cirq.protocols.json_serialization import _register_resolver as _register_resolver
-from cirq_google.json_resolver_cache import _class_resolver_dictionary as _class_resolver_dictionary
-
+from cirq.protocols.json_serialization import _register_resolver
+from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)

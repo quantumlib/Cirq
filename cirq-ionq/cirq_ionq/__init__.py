@@ -41,8 +41,7 @@ from cirq_ionq.service import Service as Service
 
 from cirq_ionq.ionq_native_gates import GPIGate as GPIGate, GPI2Gate as GPI2Gate, MSGate as MSGate
 
-from cirq.protocols.json_serialization import _register_resolver as _register_resolver
-from cirq_ionq.json_resolver_cache import _class_resolver_dictionary as _class_resolver_dictionary
-
+from cirq.protocols.json_serialization import _register_resolver
+from cirq_ionq.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)

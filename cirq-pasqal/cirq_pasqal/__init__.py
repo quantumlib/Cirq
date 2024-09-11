@@ -30,8 +30,7 @@ from cirq_pasqal.pasqal_noise_model import PasqalNoiseModel as PasqalNoiseModel
 from cirq_pasqal.pasqal_sampler import PasqalSampler as PasqalSampler
 
 # Register cirq_pasqal's public classes for JSON serialization.
-from cirq.protocols.json_serialization import _register_resolver as _register_resolver
-from cirq_pasqal.json_resolver_cache import _class_resolver_dictionary as _class_resolver_dictionary
-
+from cirq.protocols.json_serialization import _register_resolver
+from cirq_pasqal.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
