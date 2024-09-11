@@ -26,6 +26,7 @@ messages.
 """
 
 from typing import Any, Dict, Iterable, List, Tuple
+from types import ModuleType
 
 import sys
 import glob
@@ -34,9 +35,6 @@ import doctest
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
-
-# Bug workaround: https://github.com/python/mypy/issues/1498
-ModuleType = Any
 
 
 class Doctest:
