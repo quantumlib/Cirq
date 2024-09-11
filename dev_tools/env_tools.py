@@ -18,7 +18,7 @@ from typing import Optional, Iterable, Callable, cast
 
 from dev_tools import shell_tools, git_env_tools
 from dev_tools.github_repository import GithubRepository
-from dev_tools.prepared_env import PreparedEnv as PreparedEnv
+from dev_tools.prepared_env import PreparedEnv
 
 
 def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:
