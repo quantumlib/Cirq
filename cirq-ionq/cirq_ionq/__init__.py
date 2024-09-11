@@ -18,7 +18,10 @@ from cirq_ionq.calibration import Calibration as Calibration
 
 from cirq_ionq.ionq_devices import IonQAPIDevice as IonQAPIDevice
 
-from cirq_ionq.ionq_gateset import IonQTargetGateset as IonQTargetGateset, decompose_all_to_all_connect_ccz_gate as decompose_all_to_all_connect_ccz_gate
+from cirq_ionq.ionq_gateset import (
+    IonQTargetGateset as IonQTargetGateset,
+    decompose_all_to_all_connect_ccz_gate as decompose_all_to_all_connect_ccz_gate,
+)
 
 from cirq_ionq.ionq_exceptions import (
     IonQException as IonQException,

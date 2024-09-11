@@ -14,11 +14,20 @@
 
 from cirq_rigetti._version import __version__ as __version__
 
-from cirq_rigetti.sampler import RigettiQCSSampler as RigettiQCSSampler, get_rigetti_qcs_sampler as get_rigetti_qcs_sampler
+from cirq_rigetti.sampler import (
+    RigettiQCSSampler as RigettiQCSSampler,
+    get_rigetti_qcs_sampler as get_rigetti_qcs_sampler,
+)
 
-from cirq_rigetti.service import RigettiQCSService as RigettiQCSService, get_rigetti_qcs_service as get_rigetti_qcs_service
+from cirq_rigetti.service import (
+    RigettiQCSService as RigettiQCSService,
+    get_rigetti_qcs_service as get_rigetti_qcs_service,
+)
 
-from cirq_rigetti import circuit_sweep_executors as circuit_sweep_executors, quil_output as quil_output
+from cirq_rigetti import (
+    circuit_sweep_executors as circuit_sweep_executors,
+    quil_output as quil_output,
+)
 
 from cirq_rigetti import circuit_transformers as circuit_transformers
 
@@ -35,7 +44,9 @@ from cirq_rigetti.quil_input import circuit_from_quil as circuit_from_quil
 
 # Registers the cirq_rigetti's public classes for JSON serialization.
 from cirq.protocols.json_serialization import _register_resolver as _register_resolver
-from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary as _class_resolver_dictionary
+from cirq_rigetti.json_resolver_cache import (
+    _class_resolver_dictionary as _class_resolver_dictionary,
+)
 
 
 _register_resolver(_class_resolver_dictionary)

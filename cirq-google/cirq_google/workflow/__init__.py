@@ -31,7 +31,9 @@ from cirq_google.workflow.quantum_runtime import (
     execute as execute,
 )
 
-from cirq_google.workflow.io import ExecutableGroupResultFilesystemRecord as ExecutableGroupResultFilesystemRecord
+from cirq_google.workflow.io import (
+    ExecutableGroupResultFilesystemRecord as ExecutableGroupResultFilesystemRecord,
+)
 
 from cirq_google.workflow.qubit_placement import (
     QubitPlacer as QubitPlacer,

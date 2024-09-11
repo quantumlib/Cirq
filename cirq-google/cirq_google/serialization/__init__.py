@@ -16,7 +16,10 @@
 
 from cirq_google.serialization.arg_func_langs import arg_from_proto as arg_from_proto
 
-from cirq_google.serialization.circuit_serializer import CircuitSerializer as CircuitSerializer, CIRCUIT_SERIALIZER as CIRCUIT_SERIALIZER
+from cirq_google.serialization.circuit_serializer import (
+    CircuitSerializer as CircuitSerializer,
+    CIRCUIT_SERIALIZER as CIRCUIT_SERIALIZER,
+)
 
 from cirq_google.serialization.op_deserializer import CircuitOpDeserializer as CircuitOpDeserializer
 

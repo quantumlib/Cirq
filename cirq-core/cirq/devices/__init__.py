@@ -15,7 +15,6 @@
 """Device classes, qubits, and topologies, as well as noise models."""
 
 
-
 from cirq.devices.device import Device as Device, DeviceMetadata as DeviceMetadata
 
 from cirq.devices.grid_device_metadata import GridDeviceMetadata as GridDeviceMetadata
@@ -26,7 +25,12 @@ from cirq.devices.line_qubit import LineQubit as LineQubit, LineQid as LineQid
 
 from cirq.devices.unconstrained_device import UNCONSTRAINED_DEVICE as UNCONSTRAINED_DEVICE
 
-from cirq.devices.noise_model import NO_NOISE as NO_NOISE, NOISE_MODEL_LIKE as NOISE_MODEL_LIKE, NoiseModel as NoiseModel, ConstantQubitNoiseModel as ConstantQubitNoiseModel
+from cirq.devices.noise_model import (
+    NO_NOISE as NO_NOISE,
+    NOISE_MODEL_LIKE as NOISE_MODEL_LIKE,
+    NoiseModel as NoiseModel,
+    ConstantQubitNoiseModel as ConstantQubitNoiseModel,
+)
 
 from cirq.devices.named_topologies import (
     NamedTopology as NamedTopology,
@@ -42,7 +46,10 @@ from cirq.devices.insertion_noise_model import InsertionNoiseModel as InsertionN
 
 from cirq.devices.thermal_noise_model import ThermalNoiseModel as ThermalNoiseModel
 
-from cirq.devices.noise_properties import NoiseModelFromNoiseProperties as NoiseModelFromNoiseProperties, NoiseProperties as NoiseProperties
+from cirq.devices.noise_properties import (
+    NoiseModelFromNoiseProperties as NoiseModelFromNoiseProperties,
+    NoiseProperties as NoiseProperties,
+)
 
 from cirq.devices.superconducting_qubits_noise_properties import (
     SuperconductingQubitsNoiseProperties as SuperconductingQubitsNoiseProperties,

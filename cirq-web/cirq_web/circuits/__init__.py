@@ -15,4 +15,3 @@
 from cirq_web.circuits.circuit import Circuit3D as Circuit3D
 
 from cirq_web.circuits.symbols import Operation3DSymbol as Operation3DSymbol
-

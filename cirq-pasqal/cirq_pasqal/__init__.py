@@ -20,7 +20,10 @@ from cirq_pasqal.pasqal_qubits import ThreeDQubit as ThreeDQubit, TwoDQubit as T
 
 from cirq_pasqal.pasqal_gateset import PasqalGateset as PasqalGateset
 
-from cirq_pasqal.pasqal_device import PasqalDevice as PasqalDevice, PasqalVirtualDevice as PasqalVirtualDevice
+from cirq_pasqal.pasqal_device import (
+    PasqalDevice as PasqalDevice,
+    PasqalVirtualDevice as PasqalVirtualDevice,
+)
 
 from cirq_pasqal.pasqal_noise_model import PasqalNoiseModel as PasqalNoiseModel
 

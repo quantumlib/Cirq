@@ -27,7 +27,9 @@ from cirq_google.engine.abstract_local_engine import AbstractLocalEngine as Abst
 
 from cirq_google.engine.abstract_local_job import AbstractLocalJob as AbstractLocalJob
 
-from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor as AbstractLocalProcessor
+from cirq_google.engine.abstract_local_processor import (
+    AbstractLocalProcessor as AbstractLocalProcessor,
+)
 
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram as AbstractLocalProgram
 
@@ -35,9 +37,13 @@ from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine as Si
 
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob as SimulatedLocalJob
 
-from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor as SimulatedLocalProcessor
+from cirq_google.engine.simulated_local_processor import (
+    SimulatedLocalProcessor as SimulatedLocalProcessor,
+)
 
-from cirq_google.engine.simulated_local_program import SimulatedLocalProgram as SimulatedLocalProgram
+from cirq_google.engine.simulated_local_program import (
+    SimulatedLocalProgram as SimulatedLocalProgram,
+)
 
 from cirq_google.engine.calibration import Calibration as Calibration
 
@@ -45,7 +51,9 @@ from cirq_google.engine.calibration_layer import CalibrationLayer as Calibration
 
 from cirq_google.engine.calibration_result import CalibrationResult as CalibrationResult
 
-from cirq_google.engine.calibration_to_noise_properties import noise_properties_from_calibration as noise_properties_from_calibration
+from cirq_google.engine.calibration_to_noise_properties import (
+    noise_properties_from_calibration as noise_properties_from_calibration,
+)
 
 from cirq_google.engine.engine import (
     Engine as Engine,

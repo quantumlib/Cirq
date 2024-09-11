@@ -18,4 +18,3 @@ from cirq_google.experimental.noise_models.noise_models import (
     PerQubitDepolarizingWithDampedReadoutNoiseModel as PerQubitDepolarizingWithDampedReadoutNoiseModel,
     simple_noise_from_calibration_metrics as simple_noise_from_calibration_metrics,
 )
-

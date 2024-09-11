@@ -21,7 +21,6 @@ from dev_tools.github_repository import GithubRepository
 from dev_tools.prepared_env import PreparedEnv as PreparedEnv
 
 
-
 def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:
     """Iterates through relevant python files within the given directory.
 

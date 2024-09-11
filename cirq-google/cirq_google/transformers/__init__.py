@@ -19,7 +19,9 @@ from cirq_google.transformers.analytical_decompositions import (
     two_qubit_matrix_to_sycamore_operations as two_qubit_matrix_to_sycamore_operations,
 )
 
-from cirq_google.transformers.target_gatesets import GoogleCZTargetGateset as GoogleCZTargetGateset, SycamoreTargetGateset as SycamoreTargetGateset
+from cirq_google.transformers.target_gatesets import (
+    GoogleCZTargetGateset as GoogleCZTargetGateset,
+    SycamoreTargetGateset as SycamoreTargetGateset,
+)
 
 from cirq_google.transformers.sycamore_gauge import SYCGaugeTransformer as SYCGaugeTransformer
-

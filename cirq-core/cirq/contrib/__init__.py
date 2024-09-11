@@ -24,4 +24,3 @@ from cirq.contrib import quirk as quirk
 from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit as circuit_to_latex_using_qcircuit
 from cirq.contrib import json as json
 from cirq.contrib.circuitdag import CircuitDag as CircuitDag, Unique as Unique
-

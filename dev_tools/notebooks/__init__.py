@@ -17,4 +17,3 @@ from dev_tools.notebooks.utils import (
     list_all_notebooks as list_all_notebooks,
     rewrite_notebook as rewrite_notebook,
 )
-
