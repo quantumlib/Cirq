@@ -122,6 +122,7 @@ from cirq.interop import (
 )
 
 from cirq.linalg import (
+    # pylint: disable=line-too-long
     all_near_zero as all_near_zero,
     all_near_zero_mod as all_near_zero_mod,
     allclose_up_to_global_phase as allclose_up_to_global_phase,
@@ -340,6 +341,7 @@ from cirq.ops import (
 
 
 from cirq.transformers import (
+    # pylint: disable=line-too-long
     AbstractInitialMapper as AbstractInitialMapper,
     add_dynamical_decoupling as add_dynamical_decoupling,
     align_left as align_left,

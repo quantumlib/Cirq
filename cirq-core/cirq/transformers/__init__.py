@@ -15,6 +15,7 @@
 """Classes and methods for transforming circuits."""
 
 from cirq.transformers.analytical_decompositions import (
+    # pylint: disable=line-too-long
     compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,
     decompose_cphase_into_two_fsim as decompose_cphase_into_two_fsim,
     decompose_clifford_tableau_to_operations as decompose_clifford_tableau_to_operations,

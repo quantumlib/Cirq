@@ -26,6 +26,7 @@ from cirq.linalg.combinators import (
 )
 
 from cirq.linalg.decompositions import (
+    # pylint: disable=line-too-long
     axis_angle as axis_angle,
     AxisAngleDecomposition as AxisAngleDecomposition,
     deconstruct_single_qubit_matrix_into_angles as deconstruct_single_qubit_matrix_into_angles,
@@ -43,6 +44,7 @@ from cirq.linalg.decompositions import (
 )
 
 from cirq.linalg.diagonalize import (
+    # pylint: disable=line-too-long
     bidiagonalize_real_matrix_pair_with_symmetric_products as bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals as bidiagonalize_unitary_with_special_orthogonals,
     diagonalize_real_symmetric_and_sorted_diagonal_matrices as diagonalize_real_symmetric_and_sorted_diagonal_matrices,
