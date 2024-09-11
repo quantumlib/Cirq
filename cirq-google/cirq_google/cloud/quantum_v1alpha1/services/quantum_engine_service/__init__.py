@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .client import QuantumEngineServiceClient as QuantumEngineServiceClient
-from .async_client import QuantumEngineServiceAsyncClient as QuantumEngineServiceAsyncClient
+from .client import QuantumEngineServiceClient
+from .async_client import QuantumEngineServiceAsyncClient
 
 __all__ = ('QuantumEngineServiceClient', 'QuantumEngineServiceAsyncClient')
