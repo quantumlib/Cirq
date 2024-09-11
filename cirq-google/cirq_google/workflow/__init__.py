@@ -15,35 +15,37 @@
 """Utilities for running end-to-end experiments using Quantum Computing Service (QCS). """
 
 from cirq_google.workflow.quantum_executable import (
-    ExecutableSpec,
-    KeyValueExecutableSpec,
-    QuantumExecutable,
-    QuantumExecutableGroup,
-    BitstringsMeasurement,
+    ExecutableSpec as ExecutableSpec,
+    KeyValueExecutableSpec as KeyValueExecutableSpec,
+    QuantumExecutable as QuantumExecutable,
+    QuantumExecutableGroup as QuantumExecutableGroup,
+    BitstringsMeasurement as BitstringsMeasurement,
 )
 
 from cirq_google.workflow.quantum_runtime import (
-    SharedRuntimeInfo,
-    RuntimeInfo,
-    ExecutableResult,
-    ExecutableGroupResult,
-    QuantumRuntimeConfiguration,
-    execute,
+    SharedRuntimeInfo as SharedRuntimeInfo,
+    RuntimeInfo as RuntimeInfo,
+    ExecutableResult as ExecutableResult,
+    ExecutableGroupResult as ExecutableGroupResult,
+    QuantumRuntimeConfiguration as QuantumRuntimeConfiguration,
+    execute as execute,
 )
 
-from cirq_google.workflow.io import ExecutableGroupResultFilesystemRecord
+from cirq_google.workflow.io import (
+    ExecutableGroupResultFilesystemRecord as ExecutableGroupResultFilesystemRecord,
+)
 
 from cirq_google.workflow.qubit_placement import (
-    QubitPlacer,
-    CouldNotPlaceError,
-    NaiveQubitPlacer,
-    RandomDevicePlacer,
-    HardcodedQubitPlacer,
+    QubitPlacer as QubitPlacer,
+    CouldNotPlaceError as CouldNotPlaceError,
+    NaiveQubitPlacer as NaiveQubitPlacer,
+    RandomDevicePlacer as RandomDevicePlacer,
+    HardcodedQubitPlacer as HardcodedQubitPlacer,
 )
 
 from cirq_google.workflow.processor_record import (
-    ProcessorRecord,
-    EngineProcessorRecord,
-    SimulatedProcessorRecord,
-    SimulatedProcessorWithLocalDeviceRecord,
+    ProcessorRecord as ProcessorRecord,
+    EngineProcessorRecord as EngineProcessorRecord,
+    SimulatedProcessorRecord as SimulatedProcessorRecord,
+    SimulatedProcessorWithLocalDeviceRecord as SimulatedProcessorWithLocalDeviceRecord,
 )

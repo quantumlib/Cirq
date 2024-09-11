@@ -14,11 +14,11 @@
 """Utilities running the Quantum Volume benchmark on devices"""
 
 from cirq.contrib.quantum_volume.quantum_volume import (
-    generate_model_circuit,
-    compute_heavy_set,
-    sample_heavy_set,
-    compile_circuit,
-    calculate_quantum_volume,
-    QuantumVolumeResult,
-    CompilationResult,
+    generate_model_circuit as generate_model_circuit,
+    compute_heavy_set as compute_heavy_set,
+    sample_heavy_set as sample_heavy_set,
+    compile_circuit as compile_circuit,
+    calculate_quantum_volume as calculate_quantum_volume,
+    QuantumVolumeResult as QuantumVolumeResult,
+    CompilationResult as CompilationResult,
 )

@@ -31,7 +31,8 @@ import sympy.parsing.sympy_parser as sympy_parser
 import cirq
 from cirq import value
 from cirq.ops import raw_types
-from cirq.ops.linear_combinations import PauliSum, PauliString
+from cirq.ops.linear_combinations import PauliSum
+from cirq.ops.pauli_string import PauliString
 
 
 @value.value_equality

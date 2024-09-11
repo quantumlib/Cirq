@@ -14,13 +14,26 @@
 
 
 from cirq.transformers.gauge_compiling.gauge_compiling import (
-    ConstantGauge,
-    Gauge,
-    GaugeSelector,
-    GaugeTransformer,
+    ConstantGauge as ConstantGauge,
+    Gauge as Gauge,
+    GaugeSelector as GaugeSelector,
+    GaugeTransformer as GaugeTransformer,
 )
-from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGaugeTransformer
-from cirq.transformers.gauge_compiling.spin_inversion_gauge import SpinInversionGaugeTransformer
-from cirq.transformers.gauge_compiling.cz_gauge import CZGaugeTransformer
-from cirq.transformers.gauge_compiling.iswap_gauge import ISWAPGaugeTransformer
-from cirq.transformers.gauge_compiling.sqrt_iswap_gauge import SqrtISWAPGaugeTransformer
+
+from cirq.transformers.gauge_compiling.sqrt_cz_gauge import (
+    SqrtCZGaugeTransformer as SqrtCZGaugeTransformer,
+)
+
+from cirq.transformers.gauge_compiling.spin_inversion_gauge import (
+    SpinInversionGaugeTransformer as SpinInversionGaugeTransformer,
+)
+
+from cirq.transformers.gauge_compiling.cz_gauge import CZGaugeTransformer as CZGaugeTransformer
+
+from cirq.transformers.gauge_compiling.iswap_gauge import (
+    ISWAPGaugeTransformer as ISWAPGaugeTransformer,
+)
+
+from cirq.transformers.gauge_compiling.sqrt_iswap_gauge import (
+    SqrtISWAPGaugeTransformer as SqrtISWAPGaugeTransformer,
+)

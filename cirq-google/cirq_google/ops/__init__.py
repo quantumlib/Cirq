@@ -16,16 +16,16 @@
 
 from cirq_google.ops.analog_detune_gates import AnalogDetuneQubit
 
-from cirq_google.ops.calibration_tag import CalibrationTag
+from cirq_google.ops.calibration_tag import CalibrationTag as CalibrationTag
 
-from cirq_google.ops.coupler import Coupler
+from cirq_google.ops.coupler import Coupler as Coupler
 
-from cirq_google.ops.fsim_gate_family import FSimGateFamily
+from cirq_google.ops.fsim_gate_family import FSimGateFamily as FSimGateFamily
 
-from cirq_google.ops.fsim_via_model_tag import FSimViaModelTag
+from cirq_google.ops.fsim_via_model_tag import FSimViaModelTag as FSimViaModelTag
 
-from cirq_google.ops.physical_z_tag import PhysicalZTag
+from cirq_google.ops.physical_z_tag import PhysicalZTag as PhysicalZTag
 
-from cirq_google.ops.sycamore_gate import SycamoreGate, SYC
+from cirq_google.ops.sycamore_gate import SycamoreGate as SycamoreGate, SYC as SYC
 
-from cirq_google.ops.internal_gate import InternalGate
+from cirq_google.ops.internal_gate import InternalGate as InternalGate
