@@ -15,11 +15,13 @@
 """Gatesets which can act as compilation targets in Cirq."""
 
 from cirq.transformers.target_gatesets.compilation_target_gateset import (
-    create_transformer_with_kwargs,
-    CompilationTargetGateset,
-    TwoQubitCompilationTargetGateset,
+    create_transformer_with_kwargs as create_transformer_with_kwargs,
+    CompilationTargetGateset as CompilationTargetGateset,
+    TwoQubitCompilationTargetGateset as TwoQubitCompilationTargetGateset,
 )
 
-from cirq.transformers.target_gatesets.cz_gateset import CZTargetGateset
+from cirq.transformers.target_gatesets.cz_gateset import CZTargetGateset as CZTargetGateset
 
-from cirq.transformers.target_gatesets.sqrt_iswap_gateset import SqrtIswapTargetGateset
+from cirq.transformers.target_gatesets.sqrt_iswap_gateset import (
+    SqrtIswapTargetGateset as SqrtIswapTargetGateset,
+)

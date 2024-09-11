@@ -14,15 +14,21 @@
 
 """Circuit classes, mutators, and outputs."""
 
-from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
+from cirq.circuits.text_diagram_drawer import TextDiagramDrawer as TextDiagramDrawer
+from cirq.circuits.qasm_output import QasmOutput as QasmOutput
 
-from cirq.circuits.qasm_output import QasmOutput
+from cirq.circuits.circuit import (
+    AbstractCircuit as AbstractCircuit,
+    Alignment as Alignment,
+    Circuit as Circuit,
+)
+from cirq.circuits.circuit_operation import CircuitOperation as CircuitOperation
+from cirq.circuits.frozen_circuit import FrozenCircuit as FrozenCircuit
+from cirq.circuits.insert_strategy import InsertStrategy as InsertStrategy
 
-from cirq.circuits.circuit import AbstractCircuit, Alignment, Circuit
-from cirq.circuits.circuit_operation import CircuitOperation
-from cirq.circuits.frozen_circuit import FrozenCircuit
-from cirq.circuits.insert_strategy import InsertStrategy
+from cirq.circuits.moment import Moment as Moment
 
-from cirq.circuits.moment import Moment
-
-from cirq.circuits.optimization_pass import PointOptimizer, PointOptimizationSummary
+from cirq.circuits.optimization_pass import (
+    PointOptimizer as PointOptimizer,
+    PointOptimizationSummary as PointOptimizationSummary,
+)

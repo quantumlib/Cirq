@@ -11,16 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_CHECKING
+
+from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
 
 import functools
 import networkx
 
+import cirq
 from cirq import ops
-from cirq.circuits import circuit
-
-if TYPE_CHECKING:
-    import cirq
 
 T = TypeVar('T')
 
@@ -98,7 +96,7 @@ class CircuitDag(networkx.DiGraph):
 
     @staticmethod
     def from_circuit(
-        circuit: circuit.Circuit,
+        circuit: cirq.Circuit,
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
     ) -> 'CircuitDag':
         return CircuitDag.from_ops(circuit.all_operations(), can_reorder=can_reorder)
@@ -179,8 +177,8 @@ class CircuitDag(networkx.DiGraph):
     def all_qubits(self):
         return frozenset(q for node in self.nodes for q in node.val.qubits)
 
-    def to_circuit(self) -> circuit.Circuit:
-        return circuit.Circuit(self.all_operations(), strategy=circuit.InsertStrategy.EARLIEST)
+    def to_circuit(self) -> cirq.Circuit:
+        return cirq.Circuit(self.all_operations(), strategy=cirq.InsertStrategy.EARLIEST)
 
     def findall_nodes_until_blocked(
         self, is_blocker: Callable[['cirq.Operation'], bool]

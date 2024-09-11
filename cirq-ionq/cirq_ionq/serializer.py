@@ -20,7 +20,6 @@ import sympy
 
 import cirq
 from cirq.devices import line_qubit
-from cirq.ops import common_gates, parity_gates
 from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
 
 _NATIVE_GATES = cirq.Gateset(
@@ -62,16 +61,16 @@ class Serializer:
         """
         self.atol = atol
         self._dispatch: Dict[Type['cirq.Gate'], Callable] = {
-            common_gates.XPowGate: self._serialize_x_pow_gate,
-            common_gates.YPowGate: self._serialize_y_pow_gate,
-            common_gates.ZPowGate: self._serialize_z_pow_gate,
-            parity_gates.XXPowGate: self._serialize_xx_pow_gate,
-            parity_gates.YYPowGate: self._serialize_yy_pow_gate,
-            parity_gates.ZZPowGate: self._serialize_zz_pow_gate,
-            common_gates.CNotPowGate: self._serialize_cnot_pow_gate,
-            common_gates.HPowGate: self._serialize_h_pow_gate,
-            common_gates.SwapPowGate: self._serialize_swap_gate,
-            common_gates.MeasurementGate: self._serialize_measurement_gate,
+            cirq.XPowGate: self._serialize_x_pow_gate,
+            cirq.YPowGate: self._serialize_y_pow_gate,
+            cirq.ZPowGate: self._serialize_z_pow_gate,
+            cirq.XXPowGate: self._serialize_xx_pow_gate,
+            cirq.YYPowGate: self._serialize_yy_pow_gate,
+            cirq.ZZPowGate: self._serialize_zz_pow_gate,
+            cirq.CNotPowGate: self._serialize_cnot_pow_gate,
+            cirq.HPowGate: self._serialize_h_pow_gate,
+            cirq.SwapPowGate: self._serialize_swap_gate,
+            cirq.MeasurementGate: self._serialize_measurement_gate,
             # These gates can't be used with any of the non-measurement gates above
             # Rather than validating this here, we rely on the IonQ API to report failure.
             GPIGate: self._serialize_gpi_gate,

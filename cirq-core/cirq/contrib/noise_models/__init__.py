@@ -11,11 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from cirq.contrib.noise_models.noise_models import (
-    DepolarizingNoiseModel,
-    ReadoutNoiseModel,
-    DampedReadoutNoiseModel,
-    DepolarizingWithReadoutNoiseModel,
-    DepolarizingWithDampedReadoutNoiseModel,
+    DepolarizingNoiseModel as DepolarizingNoiseModel,
+    ReadoutNoiseModel as ReadoutNoiseModel,
+    DampedReadoutNoiseModel as DampedReadoutNoiseModel,
+    DepolarizingWithReadoutNoiseModel as DepolarizingWithReadoutNoiseModel,
+    DepolarizingWithDampedReadoutNoiseModel as DepolarizingWithDampedReadoutNoiseModel,
 )

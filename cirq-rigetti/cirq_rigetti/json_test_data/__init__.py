@@ -17,4 +17,4 @@
 # cirq/protocols/json_serialization_test.py which checks for coverage of
 # public classes and tests the correctness of repr and json results
 
-from cirq_rigetti.json_test_data.spec import TestSpec
+from cirq_rigetti.json_test_data.spec import TestSpec as TestSpec

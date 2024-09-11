@@ -12,5 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_web.circuits.circuit import Circuit3D
-from cirq_web.circuits.symbols import Operation3DSymbol
+from cirq_web.circuits.circuit import Circuit3D as Circuit3D
+
+from cirq_web.circuits.symbols import Operation3DSymbol as Operation3DSymbol
