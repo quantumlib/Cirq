@@ -245,6 +245,8 @@ class CircuitDiagramInfoArgs:
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
+        if isinstance(val, np.number):
+            val = val.item()
         if val == int(val):
             return str(int(val))
         if self.precision is None:

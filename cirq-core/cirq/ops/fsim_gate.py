@@ -23,7 +23,7 @@ applies more generally to fermions, thus the name of the gate.
 
 import cmath
 import math
-from typing import AbstractSet, Any, Dict, Iterator, Optional, Tuple
+from typing import AbstractSet, Any, Dict, Iterator, Optional, Tuple, Union
 
 import numpy as np
 import sympy
@@ -50,6 +50,12 @@ def _zero_mod_pi(param: 'cirq.TParamVal') -> bool:
 def _half_pi_mod_pi(param: 'cirq.TParamVal') -> bool:
     """Returns True iff param, assumed to be in [-pi, pi), is pi/2 (mod pi)."""
     return param in (-np.pi / 2, np.pi / 2, -sympy.pi / 2, sympy.pi / 2)
+
+
+def _plainvalue(value: Union[int, float, complex, np.number]) -> Union[int, float, complex]:
+    """Returns a plain Python number if the given value is a NumPy number.
+    Used to avoid a change in repr behavior introduced in NumPy 2."""
+    return value.item() if isinstance(value, np.number) else value
 
 
 @value.value_equality(approximate=True)
@@ -196,8 +202,8 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         yield cirq.CZ(a, b) ** (-self.phi / np.pi)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
-        t = args.format_radians(self.theta)
-        p = args.format_radians(self.phi)
+        t = args.format_radians(_plainvalue(self.theta))
+        p = args.format_radians(_plainvalue(self.phi))
         return f'FSim({t}, {p})', f'FSim({t}, {p})'
 
     def __pow__(self, power) -> 'FSimGate':
@@ -476,11 +482,11 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         yield cirq.Z(q1) ** to_exponent(after[1])
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
-        theta = args.format_radians(self.theta)
-        zeta = args.format_radians(self.zeta)
-        chi = args.format_radians(self.chi)
-        gamma = args.format_radians(self.gamma)
-        phi = args.format_radians(self.phi)
+        theta = args.format_radians(_plainvalue(self.theta))
+        zeta = args.format_radians(_plainvalue(self.zeta))
+        chi = args.format_radians(_plainvalue(self.chi))
+        gamma = args.format_radians(_plainvalue(self.gamma))
+        phi = args.format_radians(_plainvalue(self.phi))
         return (
             f'PhFSim({theta}, {zeta}, {chi}, {gamma}, {phi})',
             f'PhFSim({theta}, {zeta}, {chi}, {gamma}, {phi})',
