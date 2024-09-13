@@ -14,15 +14,13 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
-import tqdm
 import numpy as np
 import pandas as pd
 import sympy
 from cirq import circuits, ops, protocols, _import
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
-import concurrent.futures
 
 if TYPE_CHECKING:
     import cirq
@@ -43,7 +41,7 @@ def benchmark_2q_xeb_fidelities(
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Optional[Sequence[int]] = None,
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional[Union['multiprocessing.pool.Pool', 'concurrent.futurers.ThreadPoolExecuter']] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> pd.DataFrame:
     """Simulate and benchmark two-qubit XEB circuits.
 
@@ -387,18 +385,21 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions,     target: Union[ops.GateFamily, ops.Gateset] = ops.Gateset(
-        ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate
-    ),
+    circuit: 'cirq.Circuit',
+    options: XEBCharacterizationOptions,
+    target_gatefamily: Optional[ops.GateFamily] = None,
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
+    if isinstance(target_gatefamily, ops.GateFamily):
+        should_parameterize = lambda op: op in target_gatefamily or options.should_parameterize(op)
+    else:
+        should_parameterize = options.should_parameterize
     gate = options.get_parameterized_gate()
     return circuits.Circuit(
         circuits.Moment(
-            gate.on(*op.qubits) if op in target else op
-            for op in moment.operations
+            gate.on(*op.qubits) if should_parameterize(op) else op for op in moment.operations
         )
         for moment in circuit.moments
     )
@@ -528,7 +529,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
-    pool: Optional[Union['multiprocessing.pool.Pool', 'concurrent.futures.Executer']] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates grouped by pairs.
@@ -565,13 +566,11 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
         fatol=fatol,
     )
     subselected_dfs = [sampled_df[sampled_df['pair'] == pair] for pair in pairs]
-    # if isinstance(pool, concurrent.futures.Executor):
-    #     futures = [pool.submit(closure, df) for df in subselected_dfs]
-    #     results = [r for r in tqdm.tqdm(concurrent.futures.as_completed(futures), desc='Optimize')]
     if pool is not None:
-        results = tqdm.tqdm(pool.map(closure, subselected_dfs), total=len(subselected_dfs), desc='Optimize Parameters')
+        results = pool.map(closure, subselected_dfs)
     else:
         results = [closure(df) for df in subselected_dfs]
+
     optimization_results = {}
     all_final_params = {}
     fid_dfs = []

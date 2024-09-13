@@ -13,9 +13,8 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
-from typing import Optional, Sequence, Union, Tuple, Dict, TYPE_CHECKING
 import multiprocessing
-import concurrent.futures
+from typing import Optional, Sequence, Tuple, Dict, TYPE_CHECKING
 
 import numpy as np
 
@@ -30,7 +29,7 @@ if TYPE_CHECKING:
 
 def z_phase_calibration_workflow(
     sampler: 'cirq.Sampler',
-    qubits: Optional['cirq.GridQubit'] = None,
+    qubits: Optional[Sequence['cirq.GridQubit']] = None,
     two_qubit_gate: 'cirq.Gate' = ops.CZ,
     options: Optional[xeb_fitting.XEBPhasedFSimCharacterizationOptions] = None,
     n_repetitions: int = 10**4,
@@ -39,7 +38,7 @@ def z_phase_calibration_workflow(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
-    pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Tuple[xeb_fitting.XEBCharacterizationResult, 'pd.DataFrame']:
     """Perform z-phase calibration for excitation-preserving gates.
 
@@ -91,9 +90,9 @@ def z_phase_calibration_workflow(
     )
 
     if options is None:
-        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(characterize_theta=False, characterize_phi=False).with_defaults_from_gate(
-            two_qubit_gate
-        )
+        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(
+            characterize_theta=False, characterize_phi=False
+        ).with_defaults_from_gate(two_qubit_gate)
 
     p_circuits = [
         xeb_fitting.parameterize_circuit(circuit, options, ops.GateFamily(two_qubit_gate))
@@ -126,8 +125,8 @@ def calibrate_z_phases(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
-    pool: Optional[Union[multiprocessing.Pool, concurrent.futures.ThreadPoolExecutor]] = None,
-) -> Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], 'cirq.PhasedFSimGate']:
+    pool: Optional[multiprocessing.pool.Pool] = None,
+) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate']:
     """Perform z-phase calibration for excitation-preserving gates.
 
     For a given excitation-preserving two-qubit gate we assume an error model that can be described
@@ -165,9 +164,9 @@ def calibrate_z_phases(
     """
 
     if options is None:
-        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(characterize_theta=False, characterize_phi=False).with_defaults_from_gate(
-            two_qubit_gate
-        )
+        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(
+            characterize_theta=False, characterize_phi=False
+        ).with_defaults_from_gate(two_qubit_gate)
 
     result, _ = z_phase_calibration_workflow(
         sampler=sampler,
@@ -184,11 +183,11 @@ def calibrate_z_phases(
     )
 
     gates = {}
-    for qubits, params in result.final_params.items():
-        params['theta'] = params.get('theta', options.theta_default)
-        params['phi'] = params.get('phi', options.phi_default)
-        params['zeta'] = params.get('zeta', options.zeta_default)
-        params['chi'] = params.get('eta', options.chi_default)
-        params['gamma'] = params.get('gamma', options.gamma_default)
-        gates[qubits] = ops.PhasedFSimGate(**params)
+    for pair, params in result.final_params.items():
+        params['theta'] = params.get('theta', options.theta_default or 0)
+        params['phi'] = params.get('phi', options.phi_default or 0)
+        params['zeta'] = params.get('zeta', options.zeta_default or 0)
+        params['chi'] = params.get('eta', options.chi_default or 0)
+        params['gamma'] = params.get('gamma', options.gamma_default or 0)
+        gates[pair] = ops.PhasedFSimGate(**params)
     return gates

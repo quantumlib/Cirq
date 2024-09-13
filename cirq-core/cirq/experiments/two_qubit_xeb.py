@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides functions for running and analyzing two-qubit XEB experiments."""
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping, Union
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
 
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -38,6 +38,7 @@ from cirq.qis import noise_utils
 from cirq._compat import cached_method
 
 if TYPE_CHECKING:
+    import multiprocessing
     import cirq
 
 
@@ -358,7 +359,7 @@ def parallel_xeb_workflow(
     cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
-    pool: Optional[Union['multiprocessing.Pool', 'concurrent.futures.ThreadPoolExecuter']] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
     **plot_kwargs,
 ) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
@@ -374,6 +375,7 @@ def parallel_xeb_workflow(
         random_state: The random state to use.
         ax: the plt.Axes to plot the device layout on. If not given,
             no plot is created.
+        pool: An optional multiprocessing pool.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
     Returns:
