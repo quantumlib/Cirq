@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
-import multiprocessing
 from typing import Optional, Sequence, Tuple, Dict, TYPE_CHECKING
 
 import numpy as np
@@ -25,6 +24,7 @@ from cirq import ops
 if TYPE_CHECKING:
     import cirq
     import pandas as pd
+    import multiprocessing
 
 
 def z_phase_calibration_workflow(
@@ -38,7 +38,7 @@ def z_phase_calibration_workflow(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> Tuple[xeb_fitting.XEBCharacterizationResult, 'pd.DataFrame']:
     """Perform z-phase calibration for excitation-preserving gates.
 
@@ -125,7 +125,7 @@ def calibrate_z_phases(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate']:
     """Perform z-phase calibration for excitation-preserving gates.
 

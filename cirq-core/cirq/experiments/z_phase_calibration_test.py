@@ -17,7 +17,7 @@ import numpy as np
 
 import cirq
 
-from cirq.experiments import calibrate_z_phases
+from cirq.experiments.z_phase_calibration import calibrate_z_phases
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 
 _ANGLES = ['theta', 'phi', 'chi', 'zeta', 'gamma']
