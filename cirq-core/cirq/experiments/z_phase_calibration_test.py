@@ -27,10 +27,10 @@ def _create_tests(n, seed):
     rng = np.random.default_rng(seed)
     angles = (rng.random((n, 5)) * 2 - 1) * np.pi
     # Add errors to the first 2 angles (theta and phi).
-    # The errors for theta and phi are in the union (-1, -0.5) U (0.5, 1).
+    # The errors for theta and phi are in the union (-2, -1) U (1, 2).
     # This is because we run the tests with few repetitions so a small error might not get fixed.
     error = np.concatenate(
-        [(rng.random((n, 2)) * 0.5 + 0.5) * rng.choice([-1, 1], (n, 2)), np.zeros((n, 3))], axis=-1
+        [(rng.random((n, 2)) + 1) * rng.choice([-1, 1], (n, 2)), np.zeros((n, 3))], axis=-1
     )
     return zip(angles, error)
 
@@ -62,7 +62,7 @@ class _TestSimulator(cirq.Simulator):
         yield from super()._core_iterator(new_circuit, sim_state, all_measurements_are_terminal)
 
 
-@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=10, seed=0))
+@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=10, seed=32432432))
 def test_calibrate_z_phases(angles, error):
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
