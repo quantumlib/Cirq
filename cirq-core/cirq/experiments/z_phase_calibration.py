@@ -90,9 +90,9 @@ def z_phase_calibration_workflow(
     )
 
     if options is None:
-        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(
-            characterize_theta=False, characterize_phi=False
-        ).with_defaults_from_gate(two_qubit_gate)
+        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
+            two_qubit_gate
+        )
 
     p_circuits = [
         xeb_fitting.parameterize_circuit(circuit, options, ops.GateFamily(two_qubit_gate))
@@ -164,9 +164,9 @@ def calibrate_z_phases(
     """
 
     if options is None:
-        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(
-            characterize_theta=False, characterize_phi=False
-        ).with_defaults_from_gate(two_qubit_gate)
+        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
+            two_qubit_gate
+        )
 
     result, _ = z_phase_calibration_workflow(
         sampler=sampler,

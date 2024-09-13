@@ -103,3 +103,38 @@ def test_calibrate_z_phases(angles, error):
 
     # Either we reduced the error or the error is small enough.
     assert new_dist < original_dist or new_dist < 1e-6
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=10, seed=32432432))
+def test_calibrate_z_phases_no_options(angles, error):
+
+    original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
+    actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
+
+    sampler = _TestSimulator(original_gate, actual_gate, seed=0)
+    qubits = cirq.q(0, 0), cirq.q(0, 1)
+    calibrated_gate = calibrate_z_phases(
+        sampler,
+        qubits,
+        original_gate,
+        options=None,
+        n_repetitions=10,
+        n_combinations=10,
+        n_circuits=10,
+        cycle_depths=range(3, 10),
+    )[qubits]
+
+    initial_unitary = cirq.unitary(original_gate)
+    final_unitary = cirq.unitary(calibrated_gate)
+    target_unitary = cirq.unitary(actual_gate)
+    maximally_mixed_state = np.eye(4) / 2
+    dm_initial = initial_unitary @ maximally_mixed_state @ initial_unitary.T.conj()
+    dm_final = final_unitary @ maximally_mixed_state @ final_unitary.T.conj()
+    dm_target = target_unitary @ maximally_mixed_state @ target_unitary.T.conj()
+
+    original_dist = _trace_distance(dm_initial, dm_target)
+    new_dist = _trace_distance(dm_final, dm_target)
+
+    # Either we reduced the error or the error is small enough.
+    assert new_dist < original_dist or new_dist < 1e-6
