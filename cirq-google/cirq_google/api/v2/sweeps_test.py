@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import math
 from typing import Iterator
 
 import pytest
@@ -99,6 +99,15 @@ def test_sweep_to_proto_linspace():
     assert v2.sweep_from_proto(proto).metadata == DeviceParameter(
         path=['path', 'to', 'parameter'], idx=2
     )
+
+
+@pytest.mark.parametrize("val", [None, 1, 1.5, 's'])
+def test_build_recover_const(val):
+    val2 = v2.sweeps._recover_sweep_const(v2.sweeps._build_sweep_const(val))
+    if isinstance(val, float):
+        assert math.isclose(val, val2)
+    else:
+        assert val2 == val
 
 
 def test_list_sweep_bad_expression():
