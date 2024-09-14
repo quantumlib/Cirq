@@ -68,6 +68,9 @@ class UnknownSweep(sweeps.SingleSweep):
                 + (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1]))
             )
         ),
+        cirq.Points('a', [None]),
+        cirq.Points('a', [None]) * cirq.Points('b', [1, 2, 3]),
+        cirq.Points('a', [None]) + cirq.Points('b', [2]),
     ],
 )
 def test_sweep_to_proto_roundtrip(sweep):
@@ -111,7 +114,7 @@ def test_symbol_to_string_conversion():
     expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
-    p1.single_sweep.points.points.extend([4.0])
+    p1.single_sweep.const.float_value = 4.0
     assert proto == expected
 
 
@@ -129,6 +132,15 @@ def test_sweep_to_proto_unit():
     assert isinstance(proto, v2.run_context_pb2.Sweep)
     assert not proto.HasField('single_sweep')
     assert not proto.HasField('sweep_function')
+
+
+def test_sweep_to_none_const():
+    proto = v2.sweep_to_proto(cirq.Points('foo', [None]))
+    assert isinstance(proto, v2.run_context_pb2.Sweep)
+    assert proto.HasField('single_sweep')
+    assert proto.single_sweep.parameter_key == 'foo'
+    assert proto.single_sweep.WhichOneof('sweep') == 'const'
+    assert proto.single_sweep.const.is_none
 
 
 def test_sweep_from_proto_unknown_sweep_type():

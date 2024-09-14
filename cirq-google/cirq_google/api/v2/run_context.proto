@@ -179,12 +179,15 @@ message SingleSweep {
     Points points = 2;
     // Uniformly-spaced sampling over a range.
     Linspace linspace = 3;
+    // A constant value.
+    Const const = 5;
   }
 
   // Optional arguments for if this is a device parameter.
   // (as opposed to a circuit symbol)
   DeviceParameter parameter = 4;
 }
+
 
 // A list of explicit values.
 message Points {
@@ -206,4 +209,17 @@ message Linspace {
   // greater than zero. If it is 1, the first_point and last_point must be
   // the same.
   int64 num_points = 3;
+}
+
+// A constant value.
+message Const {
+  // The values.
+  oneof value {
+    // This value should always be true if set, which represent the python None object.
+    bool is_none = 1;
+
+    float float_value = 2;
+    int64 int_value = 3;
+    string string_value = 4;
+  }
 }
