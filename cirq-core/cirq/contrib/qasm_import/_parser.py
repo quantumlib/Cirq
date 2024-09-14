@@ -293,7 +293,7 @@ class QasmParser:
     # circuit : new_reg circuit
     #         | gate_op circuit
     #         | measurement circuit
-    #         | reset
+    #         | reset circuit
     #         | if circuit
     #         | empty
 
@@ -505,7 +505,7 @@ class QasmParser:
     # reset : RESET qarg
 
     def p_reset(self, p):
-        """reset : RESET qarg ';'"""
+        """reset : RESET qreg ';'"""
         qreg = p[2]
 
         p[0] = [ops.ResetChannel().on(qreg[i]) for i in range(len(qreg))]
