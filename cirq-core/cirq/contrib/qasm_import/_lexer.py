@@ -29,6 +29,7 @@ class QasmLexer:
     reserved = {
         'qreg': 'QREG',
         'creg': 'CREG',
+        'reset': 'RESET',
         'measure': 'MEASURE',
         'if': 'IF',
         '->': 'ARROW',
@@ -93,6 +94,10 @@ class QasmLexer:
 
     def t_MEASURE(self, t):
         r"""measure"""
+        return t
+
+    def t_RESET(self, t):
+        r"""reset"""
         return t
 
     def t_IF(self, t):
