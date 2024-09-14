@@ -91,7 +91,7 @@ def sweep_to_proto(
             out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
-        if len(sweep.points) == 1:
+        if len(sweep.points) == 1 and sweep.points[0] is None:
             out.single_sweep.const.MergeFrom(_build_sweep_const(sweep.points[0]))
         else:
             out.single_sweep.points.points.extend(sweep.points)
