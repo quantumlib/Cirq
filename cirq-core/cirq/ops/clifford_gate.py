@@ -673,7 +673,7 @@ class SingleQubitCliffordGate(CliffordGate):
             to = x_to * z_to  # Y = iXZ
             to._coefficient *= 1j
         # pauli_mask returns a value between 0 and 4 for [I, X, Y, Z].
-        to_gate = Pauli._XYZ[to.pauli_mask[0] - 1]
+        to_gate = Pauli._XYZ[to.pauli_mask[0] - np.uint8(1)]
         return (to_gate, bool(to.coefficient != 1.0))
 
     def dense_pauli_string(self, pauli: Pauli) -> 'cirq.DensePauliString':

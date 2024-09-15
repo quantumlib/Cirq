@@ -113,8 +113,8 @@ def big_endian_digits_to_int(digits: Iterable[int], *, base: Union[int, Iterable
     for d, b in zip(digits, base):
         if not (0 <= d < b):
             raise ValueError(f'Out of range digit. Digit: {d!r}, base: {b!r}')
-        result *= b
-        result += d
+        result *= int(b)
+        result += int(d)
     return result
 
 

@@ -86,7 +86,9 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     # The output wave function is a vector from the result value (big-endian) to
     # the probability of that bit-string. Return all of the bit-string
     # values that have a probability greater than the median.
-    return [idx for idx, amp in enumerate(results.state_vector()) if np.abs(amp**2) > median]
+    results_vector = results.state_vector()
+    return [idx for idx, amp in enumerate(results_vector)
+            if np.abs(np.square(amp)) > median]
 
 
 @dataclass

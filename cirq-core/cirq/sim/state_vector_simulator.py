@@ -127,17 +127,22 @@ class StateVectorTrialResult(
     def final_state_vector(self) -> np.ndarray:
         ret = self._get_merged_sim_state().target_tensor.reshape(-1)
         norm = np.linalg.norm(ret)
-        if abs(norm - 1) > np.sqrt(np.finfo(ret.dtype).eps):
+        diff = abs(norm - norm.dtype.type(1))
+        abs_tol = np.sqrt(np.finfo(ret.dtype).eps)
+        if diff > abs_tol:
             warnings.warn(
-                f"final state vector's {norm=} is too far from 1,"
-                f" {abs(norm-1)} > {np.sqrt(np.finfo(ret.dtype).eps)}."
-                "skipping renormalization"
+                f"Final state vector's norm = {norm} is too far from 1."
+                f" (Difference = {diff} > {abs_tol}.) "
+                "Skipping renormalization."
             )
             return ret
-        # normalize only if doing so improves the round-off on total probability
-        ret_norm = ret / norm
-        round_off_change = abs(np.vdot(ret_norm, ret_norm) - 1) - abs(np.vdot(ret, ret) - 1)
-        result = ret_norm if round_off_change < 0 else ret
+        # Normalize only if doing so improves the round-off on total probability.
+        ret_normed = ret / norm
+        dotprod = np.vdot(ret, ret)
+        normed_dotprod = np.vdot(ret_normed, ret_normed)
+        one = ret.flat[0].dtype.type(1)
+        round_off_change = abs(normed_dotprod - one) - abs(dotprod - one)
+        result = ret_normed if round_off_change < 0 else ret
         return result
 
     def state_vector(self, copy: bool = False) -> np.ndarray:
@@ -177,6 +182,7 @@ class StateVectorTrialResult(
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
+
         return self.params, measurements, self.qubit_map, self.final_state_vector.tolist()
 
     def __str__(self) -> str:

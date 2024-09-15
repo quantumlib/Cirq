@@ -234,7 +234,7 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
 def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.ndarray) -> float:
     if state1.ndim == 1 and state2.ndim == 1:
         # Both state vectors
-        return np.abs(np.vdot(state1, state2)) ** 2
+        return np.abs(np.vdot(state1, state2), dtype=float) ** 2
     elif state1.ndim == 1 and state2.ndim == 2:
         # state1 is a state vector and state2 is a density matrix
         return np.real(np.conjugate(state1) @ state2 @ state1)
@@ -245,7 +245,7 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         # Both density matrices
         state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
         eigs = linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
-        trace = np.sum(np.sqrt(np.abs(eigs)))
+        trace = np.sum(np.sqrt(np.abs(eigs, dtype=float)))
         return trace**2
     raise ValueError(
         'The given arrays must be one- or two-dimensional. '

@@ -35,7 +35,7 @@ def _build_by_code(mat: np.ndarray) -> List[str]:
     for i in range(mat.shape[0]):
         ps = ''
         for j in range(n):
-            k = 2 * mat[i, j + n] + mat[i, j]
+            k = np.int8(2) * mat[i, j + n] + mat[i, j]
             ps += "IXZY"[k]
         out.append(ps)
     return out

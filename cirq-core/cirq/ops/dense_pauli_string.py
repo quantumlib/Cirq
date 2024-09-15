@@ -277,7 +277,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if split is not None:
             p, i = split
             mask = np.copy(self.pauli_mask)
-            mask[i] ^= p
+            mask[i] ^= np.int64(p)
             return concrete_class(
                 pauli_mask=mask,
                 coefficient=self.coefficient * _vectorized_pauli_mul_phase(self.pauli_mask[i], p),
@@ -293,7 +293,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if split is not None:
             p, i = split
             mask = np.copy(self.pauli_mask)
-            mask[i] ^= p
+            mask[i] ^= np.int64(p)
             return type(self)(
                 pauli_mask=mask,
                 coefficient=self.coefficient * _vectorized_pauli_mul_phase(p, self.pauli_mask[i]),
@@ -552,7 +552,7 @@ class MutableDensePauliString(BaseDensePauliString):
         if split is not None:
             p, i = split
             self._coefficient *= _vectorized_pauli_mul_phase(self.pauli_mask[i], p)
-            self.pauli_mask[i] ^= p
+            self.pauli_mask[i] ^= np.int64(p)
             return self
 
         return NotImplemented

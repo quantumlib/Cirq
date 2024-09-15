@@ -192,7 +192,8 @@ def xeb_fidelity(
         output_probabilities = state_vector_to_probabilities(output_state)
         bitstring_probabilities = output_probabilities[bitstrings].tolist()
     else:
-        bitstring_probabilities = [abs(amplitudes[bitstring]) ** 2 for bitstring in bitstrings]
+        bitstring_probabilities = [np.abs(amplitudes[bitstring], dtype=float) ** 2
+                                   for bitstring in bitstrings]
     return estimator(dim, bitstring_probabilities)
 
 

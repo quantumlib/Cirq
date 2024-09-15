@@ -92,7 +92,7 @@ def match_global_phase(a: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.nda
         if r == 0:
             return 1j if i < 0 else -1j
 
-        return np.exp(-1j * np.arctan2(i, r))
+        return np.exp(-1j * complex(np.arctan2(i, r)), dtype=v.dtype)
 
     # Zero the phase at this entry in both matrices.
     return a * dephase(a[k]), b * dephase(b[k])
@@ -237,13 +237,14 @@ def _build_from_slices(
     """
     d = len(source.shape)
     out[...] = 0
+    dtype = source.flat[0].dtype
     for arg in args:
         source_slice: List[Any] = [slice(None)] * d
         target_slice: List[Any] = [slice(None)] * d
         for sleis in arg.slices:
             source_slice[sleis.axis] = sleis.source_index
             target_slice[sleis.axis] = sleis.target_index
-        out[tuple(target_slice)] += arg.scale * source[tuple(source_slice)]
+        out[tuple(target_slice)] += dtype.type(arg.scale) * source[tuple(source_slice)]
     return out
 
 
@@ -564,7 +565,8 @@ def sub_state_vector(
     best_candidate = max(candidates, key=lambda c: float(np.linalg.norm(c, 2)))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
-    coherence_measure = sum([abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])
+    coherence_measure = sum([np.abs(np.dot(left, c.reshape((keep_dims,))), dtype=float) ** 2
+                             for c in candidates])
 
     if protocols.approx_eq(coherence_measure, 1, atol=atol):
         return np.exp(2j * np.pi * np.random.random()) * best_candidate.reshape(ret_shape)

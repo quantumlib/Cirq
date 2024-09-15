@@ -138,9 +138,10 @@ class PhaseGradientGate(raw_types.Gate):
             return NotImplemented
 
         n = int(np.prod([args.target_tensor.shape[k] for k in args.axes], dtype=np.int64))
+        dtype = args.target_tensor.flat[0].dtype
         for i in range(n):
             p = 1j ** (4 * i / n * self.exponent)
-            args.target_tensor[args.subspace_index(big_endian_bits_int=i)] *= p
+            args.target_tensor[args.subspace_index(big_endian_bits_int=i)] *= dtype.type(p)
 
         return args.target_tensor
 

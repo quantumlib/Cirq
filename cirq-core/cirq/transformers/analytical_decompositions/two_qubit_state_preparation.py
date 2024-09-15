@@ -63,7 +63,8 @@ def prepare_two_qubit_state_using_sqrt_iswap(
     if np.isclose(s[0], 1):
         # Product state can be prepare with just single qubit unitaries.
         return _1q_matrices_to_ops(u, vh.T, q0, q1, True)
-    alpha = np.arccos(np.sqrt(np.clip(1 - s[0] * 2 * s[1], 0, 1)))
+    alpha = np.arccos(np.sqrt(np.clip(np.float64(1) - s[0] * np.float64(2) * s[1], 0, 1)),
+                      dtype=np.float64)
     sqrt_iswap_gate = ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP
     op_list = [ops.ry(2 * alpha).on(q0), sqrt_iswap_gate.on(q0, q1)]
     intermediate_state = circuits.Circuit(op_list).final_state_vector(
@@ -98,9 +99,9 @@ def prepare_two_qubit_state_using_cz(
         # Product state can be prepare with just single qubit unitaries.
         return _1q_matrices_to_ops(u, vh.T, q0, q1, True)
     alpha = np.arccos(np.clip(s[0], 0, 1))
-    op_list = [ops.ry(2 * alpha).on(q0), ops.H.on(q1), ops.CZ.on(q0, q1)]
+    op_list = [ops.ry(np.float64(2) * alpha).on(q0), ops.H.on(q1), ops.CZ.on(q0, q1)]
     intermediate_state = circuits.Circuit(op_list).final_state_vector(
-        ignore_terminal_measurements=False, dtype=np.complex64
+        ignore_terminal_measurements=False, dtype=complex
     )
     u_CZ, _, vh_CZ = np.linalg.svd(intermediate_state.reshape(2, 2))
     return op_list + _1q_matrices_to_ops(
@@ -133,7 +134,7 @@ def prepare_two_qubit_state_using_iswap(
         return _1q_matrices_to_ops(u, vh.T, q0, q1, True)
     alpha = np.arccos(np.clip(s[0], 0, 1))
     op_list = [
-        ops.ry(2 * alpha).on(q0),
+        ops.ry(np.float64(2) * alpha).on(q0),
         ops.H.on(q1),
         ops.ISWAP_INV.on(q0, q1) if use_iswap_inv else ops.ISWAP.on(q0, q1),
     ]
