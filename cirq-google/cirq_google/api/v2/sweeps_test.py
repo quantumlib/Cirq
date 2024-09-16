@@ -128,7 +128,7 @@ def test_symbol_to_string_conversion():
     expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
-    p1.single_sweep.points.points.extend([4.0])
+    p1.single_sweep.const.float_value = 4.0
     assert proto == expected
 
 
