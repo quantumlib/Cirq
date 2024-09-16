@@ -217,7 +217,6 @@ message Const {
   oneof value {
     // This value should always be true if set, which represent the python None object.
     bool is_none = 1;
-
     float float_value = 2;
     int64 int_value = 3;
     string string_value = 4;

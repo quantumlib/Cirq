@@ -105,7 +105,7 @@ def test_sweep_to_proto_linspace():
 def test_build_recover_const(val):
     val2 = v2.sweeps._recover_sweep_const(v2.sweeps._build_sweep_const(val))
     if isinstance(val, float):
-        assert math.isclose(val, val2)
+        assert math.isclose(val, val2)  # avoid the floating precision issue.
     else:
         assert val2 == val
 
