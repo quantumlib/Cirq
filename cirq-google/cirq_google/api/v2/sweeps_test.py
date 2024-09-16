@@ -110,6 +110,11 @@ def test_build_recover_const(val):
         assert val2 == val
 
 
+def test_build_const_unsupported_type():
+    with pytest.raises(ValueError, match='Unsupported type for serializing const sweep'):
+        v2.sweeps._build_sweep_const((1, 2))
+
+
 def test_list_sweep_bad_expression():
     with pytest.raises(TypeError, match='formula'):
         _ = cirq.ListSweep([cirq.ParamResolver({sympy.Symbol('a') + sympy.Symbol('b'): 4.0})])
