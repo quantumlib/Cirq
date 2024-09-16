@@ -101,7 +101,7 @@ def prepare_two_qubit_state_using_cz(
     alpha = np.arccos(np.clip(s[0], 0, 1))
     op_list = [ops.ry(np.float64(2) * alpha).on(q0), ops.H.on(q1), ops.CZ.on(q0, q1)]
     intermediate_state = circuits.Circuit(op_list).final_state_vector(
-        ignore_terminal_measurements=False, dtype=complex
+        ignore_terminal_measurements=False, dtype=np.complex128
     )
     u_CZ, _, vh_CZ = np.linalg.svd(intermediate_state.reshape(2, 2))
     return op_list + _1q_matrices_to_ops(
