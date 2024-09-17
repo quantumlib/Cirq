@@ -68,9 +68,17 @@ class UnknownSweep(sweeps.SingleSweep):
                 + (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1]))
             )
         ),
+        # Sweep with constant. Type ignore is because cirq.Points type annotated with floats.
         cirq.Points('a', [None]),  # type: ignore[list-item]
         cirq.Points('a', [None]) * cirq.Points('b', [1, 2, 3]),  # type: ignore[list-item]
         cirq.Points('a', [None]) + cirq.Points('b', [2]),  # type: ignore[list-item]
+        cirq.Points('a', [1]),
+        cirq.Points('b', [1.0]),
+        cirq.Points('c', ["abc"]),  # type: ignore[list-item]
+        (
+            (cirq.Points('a', [1]) * cirq.Points('b', [1.0]) + cirq.Points('c', ["abc"]))
+            * cirq.Points("d", [1, 2, 3, 4])  # type: ignore[list-item]
+        ),
     ],
 )
 def test_sweep_to_proto_roundtrip(sweep):
