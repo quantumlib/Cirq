@@ -76,8 +76,8 @@ class UnknownSweep(sweeps.SingleSweep):
         cirq.Points('b', [1.0]),
         cirq.Points('c', ["abc"]),  # type: ignore[list-item]
         (
-            (cirq.Points('a', [1]) * cirq.Points('b', [1.0]) + cirq.Points('c', ["abc"]))  # type: ignore[list-item]
-            * cirq.Points("d", [1, 2, 3, 4])
+            cirq.Points('a', [1]) * cirq.Points('b', [1.0])
+            + cirq.Points('c', ["abc"]) * cirq.Points("d", [1, 2, 3, 4])  # type: ignore[list-item]
         ),
     ],
 )
