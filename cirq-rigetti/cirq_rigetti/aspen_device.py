@@ -66,7 +66,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         else:
             self.isa = InstructionSetArchitecture.from_raw(json.dumps(isa))
 
-        if self.isa.architecture.family != Family.Aspen:
+        if not Family.is_aspen(self.isa.architecture.family):
             raise UnsupportedRigettiQCSQuantumProcessor(
                 'this integration currently only supports Aspen devices, '
                 f'but client provided a {self.isa.architecture.family} device'
