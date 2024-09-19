@@ -208,6 +208,9 @@ def test_format_real():
     assert args.format_real(sympy.Symbol('t')) == 't'
     assert args.format_real(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
 
+    assert args.format_real(np.float64(1.1)) == '1.1'
+    assert args.format_real(np.int32(1)) == '1'
+
     args.precision = None
     assert args.format_real(1) == '1'
     assert args.format_real(1.1) == '1.1'
