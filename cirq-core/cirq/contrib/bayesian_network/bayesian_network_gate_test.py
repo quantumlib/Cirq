@@ -138,7 +138,7 @@ def test_repro_figure_10_of_paper():
     simulate = cirq.Simulator().simulate
     result = simulate(circuit, qubit_order=qubits, initial_state=0).state_vector(copy=True)
 
-    probs = np.square(np.abs(result, dtype=np.float64)).reshape(2, 2, 2, 2)
+    probs = np.square(np.abs(result, dtype=np.float64)).reshape((2, 2, 2, 2))
 
     # p(IR = 0) = 0.7500
     np.testing.assert_almost_equal(np.sum(probs[0, :, :, :]), 0.7500, decimal=6)
