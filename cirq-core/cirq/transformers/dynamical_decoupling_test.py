@@ -30,14 +30,17 @@ def assert_sim_eq(circuit1: 'cirq.AbstractCircuit', circuit2: 'cirq.AbstractCirc
 
 def assert_dd(
     input_circuit: 'cirq.AbstractCircuit',
-    expected_circuit: 'cirq.AbstractCircuit',
+    expected_circuit: Union[str, 'cirq.AbstractCircuit'],
     schema: Union[str, Tuple['cirq.Gate', ...]] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
 ):
     transformed_circuit = add_dynamical_decoupling(
         input_circuit, schema=schema, single_qubit_gate_moments_only=single_qubit_gate_moments_only
     ).freeze()
-    cirq.testing.assert_same_circuits(transformed_circuit, expected_circuit)
+    if isinstance(expected_circuit, str):
+        cirq.testing.assert_has_diagram(transformed_circuit, expected_circuit)
+    else:
+        cirq.testing.assert_same_circuits(transformed_circuit, expected_circuit)
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
         cirq.drop_terminal_measurements(input_circuit),
         cirq.drop_terminal_measurements(transformed_circuit),
@@ -709,90 +712,65 @@ def test_cross_clifford_pieces_filling_merge():
     # pylint: disable=line-too-long
     """Test case diagrams.
     Input:
-                                                              ┌──────────────────────┐                           ┌──┐
-    0: ───────────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────PhXZ(a=0.5,x=0.5,z=0)───H───
-                                                               │                                                  │
-    1: ───────────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────PhXZ(a=0.5,x=0.5,z=0)───H───
+    0: ─────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───H───
+                                                                  │                                                   │
+    1: ─────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───H───
 
-    2: ───PhXZ(a=0.5,x=0.5,z=0)───@───PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────────H───
-                                  │                            │                                                  │
-    3: ───────────────────────────┼───PhXZ(a=0.5,x=0.5,z=0)────┼────────────────────@─────────────────────────────┼@────────────────────────────H───
-                                  │                            │                    │                             ││
-    4: ───────────────────────────┼────────────────────────────┼────────────────────@─────────────────────────────┼┼────────────────────────────H───
-                                  │                            │                                                  ││
-    5: ───PhXZ(a=0.5,x=0.5,z=0)───@───PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@┼────PhXZ(a=0.5,x=0.5,z=0)───H───
-                                                                                                                   │
-    6: ────────────────────────────────────────────────────────PhXZ(a=0.5,x=0.5,z=0)───────────────────────────────@────PhXZ(a=0.5,x=0.5,z=0)───H───
-                                                              └──────────────────────┘                           └──┘
+    2: ───PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────────H───
+                                    │                             │                                                   │
+    3: ─────────────────────────────┼───PhXZ(a=0.2,x=0.2,z=0.1)───@───────────────────────────────────────────────────@─────────────────────────────H───
+                                    │
+    4: ─────────────────────────────┼─────────────────────────────@─────────────────────────────────────────────────────────────────────────────────H───
+                                    │                             │
+    5: ───PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───H───
+                                                                                                                      │
+    6: ───────────────────────────────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)─────────────────────────────@───PhXZ(a=0.2,x=0.2,z=0.1)───H───
     Output:
-                                                              ┌──────────────────────┐                           ┌──┐
-    0: ───────────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────PhXZ(a=0.5,x=0.5,z=0)───H────────────────────────
-                                                               │                                                  │
-    1: ───────────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────PhXZ(a=0.5,x=0.5,z=0)───H────────────────────────
 
-    2: ───PhXZ(a=0.5,x=0.5,z=0)───@───PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@─────X───────────────────────PhXZ(a=-0.5,x=0.5,z=0)───
-                                  │                            │                                                  │
-    3: ───────────────────────────┼───PhXZ(a=0.5,x=0.5,z=0)────┼────────────────────@────X────────────────────────┼@────Y───────────────────────H────────────────────────
-                                  │                            │                    │                             ││
-    4: ───────────────────────────┼────────────────────────────┼────────────────────@────X────────────────────────┼┼────Y───────────────────────PhXZ(a=0.5,x=0.5,z=0)────
-                                  │                            │                                                  ││
-    5: ───PhXZ(a=0.5,x=0.5,z=0)───@───PhXZ(a=0.5,x=0.5,z=0)────@─────────────────────────PhXZ(a=0.5,x=0.5,z=0)────@┼────PhXZ(a=0.5,x=0.5,z=0)───H────────────────────────
-                                                                                                                   │
-    6: ────────────────────────────────────────────────────────PhXZ(a=0.5,x=0.5,z=0)─────X─────────────────────────@────PhXZ(a=0.5,x=0.5,z=0)───PhXZ(a=0.5,x=0.5,z=-1)───
-                                                              └──────────────────────┘                           └──┘
+    0: ─────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)─────H────────────────────────
+                                                                  │                                                   │
+    1: ─────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)─────H────────────────────────
+
+    2: ───PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───X───────────────────────────PhXZ(a=0.5,x=0.5,z=-1)───
+                                    │                             │                                                   │
+    3: ─────────────────────────────┼───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────X─────────────────────────@───Y───────────────────────────PhXZ(a=0.5,x=0.5,z=0)────
+                                    │
+    4: ─────────────────────────────┼─────────────────────────────@─────────────────────────X─────────────────────────────Y───────────────────────────PhXZ(a=0.5,x=0.5,z=0)────
+                                    │                             │
+    5: ───PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=-0.8,x=0.2,z=-0.9)───H────────────────────────
+                                                                                                                      │
+    6: ───────────────────────────────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───X─────────────────────────@───PhXZ(a=0.8,x=0.8,z=0.5)─────H────────────────────────
     """
     # pylint: enable
     qubits = cirq.LineQubit.range(7)
-    phased_xz_gate = cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0)
+    phased_xz_gate = cirq.PhasedXZGate(axis_phase_exponent=0.2, x_exponent=0.2, z_exponent=0.1)
     assert_dd(
         input_circuit=cirq.Circuit(
             cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [2, 5]]),
             cirq.Moment(cirq.CZ(qubits[2], qubits[5])),
             cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [0, 1, 2, 3, 5]]),
             cirq.Moment(
-                [cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 5), (3, 4)]]
+                [cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 3), (4, 5)]]
                 + [phased_xz_gate.on(qubits[6])]
             ),
             cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [0, 1, 2, 5]]),
-            cirq.Moment([cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 5), (3, 6)]]),
+            cirq.Moment([cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 3), (5, 6)]]),
             cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [0, 1, 5, 6]]),
             cirq.Moment([cirq.H.on(q) for q in qubits]),
         ),
-        expected_circuit=cirq.Circuit(
-            cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [2, 5]]),
-            cirq.Moment(cirq.CZ(qubits[2], qubits[5])),
-            cirq.Moment([phased_xz_gate.on(qubits[i]) for i in [0, 1, 2, 3, 5]]),
-            cirq.Moment(
-                [cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 5), (3, 4)]]
-                + [phased_xz_gate.on(qubits[6])]
-            ),
-            cirq.Moment(
-                [phased_xz_gate.on(qubits[i]) for i in [0, 1, 2, 5]]
-                + [cirq.X(qubits[i]) for i in [3, 4, 6]]
-            ),
-            cirq.Moment([cirq.CZ(qubits[i0], qubits[i1]) for i0, i1 in [(0, 1), (2, 5), (3, 6)]]),
-            cirq.Moment(
-                [phased_xz_gate.on(qubits[i]) for i in [0, 1, 5]]
-                + [cirq.X(qubits[2]), cirq.Y(qubits[3]), cirq.Y(qubits[4])]
-                + [
-                    cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
-                        qubits[6]
-                    )
-                ]
-            ),
-            cirq.Moment(
-                [cirq.H.on(qubits[i]) for i in [0, 1, 3, 5]]
-                + [
-                    cirq.PhasedXZGate(axis_phase_exponent=-0.5, x_exponent=0.5, z_exponent=0).on(
-                        qubits[2]
-                    ),
-                    cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=0).on(
-                        qubits[4]
-                    ),
-                    cirq.PhasedXZGate(axis_phase_exponent=0.5, x_exponent=0.5, z_exponent=-1).on(
-                        qubits[6]
-                    ),
-                ]
-            ),
-        ),
+        expected_circuit="""
+0: ─────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)─────H────────────────────────
+                                                              │                                                   │
+1: ─────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)─────H────────────────────────
+
+2: ───PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───X───────────────────────────PhXZ(a=0.5,x=0.5,z=-1)───
+                                │                             │                                                   │
+3: ─────────────────────────────┼───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────X─────────────────────────@───Y───────────────────────────PhXZ(a=0.5,x=0.5,z=0)────
+                                │
+4: ─────────────────────────────┼─────────────────────────────@─────────────────────────X─────────────────────────────Y───────────────────────────PhXZ(a=0.5,x=0.5,z=0)────
+                                │                             │
+5: ───PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=0.2,x=0.2,z=0.1)───@─────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───@───PhXZ(a=-0.8,x=0.2,z=-0.9)───H────────────────────────
+                                                                                                                  │
+6: ───────────────────────────────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───X─────────────────────────@───PhXZ(a=0.8,x=0.8,z=0.5)─────H────────────────────────
+""",
     )
