@@ -14,3 +14,5 @@ markers = [
     "slow: slow tests that should be skipped by default.",
     "weekly: tests to be run only by weekly CI automation.",
 ]
+# Silence deprecation warnings about option "asyncio_default_fixture_loop_scope"
+asyncio_default_fixture_loop_scope = "function"
