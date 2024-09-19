@@ -22,7 +22,7 @@ import google.auth
 from google.auth import credentials as ga_credentials
 from google.auth.transport.grpc import SslCredentials
 
-import grpc  # type: ignore
+import grpc
 
 from cirq_google.cloud.quantum_v1alpha1.types import engine
 from cirq_google.cloud.quantum_v1alpha1.types import quantum

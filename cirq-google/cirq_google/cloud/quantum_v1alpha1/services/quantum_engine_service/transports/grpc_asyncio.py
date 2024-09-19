@@ -21,8 +21,8 @@ from google.api_core import grpc_helpers_async
 from google.auth import credentials as ga_credentials
 from google.auth.transport.grpc import SslCredentials
 
-import grpc  # type: ignore
-from grpc.experimental import aio  # type: ignore
+import grpc
+from grpc.experimental import aio
 
 from cirq_google.cloud.quantum_v1alpha1.types import engine
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
