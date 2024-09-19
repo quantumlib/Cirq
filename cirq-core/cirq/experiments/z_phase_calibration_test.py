@@ -17,7 +17,7 @@ import numpy as np
 
 import cirq
 
-from cirq.experiments.z_phase_calibration import calibrate_z_phases
+from cirq.experiments.z_phase_calibration import calibrate_z_phases, z_phase_calibration_workflow
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 
 _ANGLES = ['theta', 'phi', 'chi', 'zeta', 'gamma']
@@ -137,3 +137,28 @@ def test_calibrate_z_phases_no_options(angles, error):
 
     # Either we reduced the error or the error is small enough.
     assert new_dist < original_dist or new_dist < 1e-6
+
+
+@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=10, seed=32432432))
+def test_calibrate_z_phases_workflow_no_options(angles, error):
+
+    original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
+    actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
+
+    sampler = _TestSimulator(original_gate, actual_gate, seed=0)
+    qubits = cirq.q(0, 0), cirq.q(0, 1)
+    result, _ = z_phase_calibration_workflow(
+        sampler,
+        qubits,
+        original_gate,
+        options=None,
+        n_repetitions=1,
+        n_combinations=1,
+        n_circuits=1,
+        cycle_depths=(1, 2),
+    )
+
+    for params in result.final_params.values():
+        assert 'zeta' not in params
+        assert 'chi' not in params
+        assert 'gamma' not in params
