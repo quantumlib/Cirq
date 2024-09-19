@@ -90,7 +90,7 @@ def z_phase_calibration_workflow(
     )
 
     if options is None:
-        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
+        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(characterize_chi=False, characterize_gamma=False, characterize_zeta=False).with_defaults_from_gate(
             two_qubit_gate
         )
 
@@ -164,7 +164,7 @@ def calibrate_z_phases(
     """
 
     if options is None:
-        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
+        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(characterize_chi=False, characterize_gamma=False, characterize_zeta=False).with_defaults_from_gate(
             two_qubit_gate
         )
 

@@ -105,7 +105,6 @@ def test_calibrate_z_phases(angles, error):
     assert new_dist < original_dist or new_dist < 1e-6
 
 
-@pytest.mark.slow
 @pytest.mark.parametrize(['angles', 'error'], _create_tests(n=10, seed=32432432))
 def test_calibrate_z_phases_no_options(angles, error):
 
