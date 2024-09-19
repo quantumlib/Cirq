@@ -565,8 +565,9 @@ def sub_state_vector(
     best_candidate = max(candidates, key=lambda c: float(np.linalg.norm(c, 2)))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
-    coherence_measure = sum([np.abs(np.dot(left, c.reshape((keep_dims,))), dtype=float) ** 2
-                             for c in candidates])
+    coherence_measure = sum(
+        [np.abs(np.dot(left, c.reshape((keep_dims,))), dtype=float) ** 2 for c in candidates]
+    )
 
     if protocols.approx_eq(coherence_measure, 1, atol=atol):
         return np.exp(2j * np.pi * np.random.random()) * best_candidate.reshape(ret_shape)

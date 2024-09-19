@@ -738,8 +738,9 @@ def dirac_notation(
     ket = "|{}⟩"
     for x in range(len(perm_list)):
         format_str = "({:." + str(decimals) + "g})"
-        val = (round(state_vector[x].real, decimals)
-               + np.complex128(1j) * round(state_vector[x].imag, decimals))
+        val = round(state_vector[x].real, decimals) + np.complex128(1j) * round(
+            state_vector[x].imag, decimals
+        )
 
         if round(val.real, decimals) == 0 and round(val.imag, decimals) != 0:
             val = val.imag

@@ -30,7 +30,7 @@ def pytest_addoption(parser):
         "--warn-numpy-data-promotion",
         action="store_true",
         default=False,
-        help="enable NumPy 2 data type promotion warnings"
+        help="enable NumPy 2 data type promotion warnings",
     )
 
 

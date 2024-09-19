@@ -63,8 +63,9 @@ def prepare_two_qubit_state_using_sqrt_iswap(
     if np.isclose(s[0], 1):
         # Product state can be prepare with just single qubit unitaries.
         return _1q_matrices_to_ops(u, vh.T, q0, q1, True)
-    alpha = np.arccos(np.sqrt(np.clip(np.float64(1) - s[0] * np.float64(2) * s[1], 0, 1)),
-                      dtype=np.float64)
+    alpha = np.arccos(
+        np.sqrt(np.clip(np.float64(1) - s[0] * np.float64(2) * s[1], 0, 1)), dtype=np.float64
+    )
     sqrt_iswap_gate = ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP
     op_list = [ops.ry(2 * alpha).on(q0), sqrt_iswap_gate.on(q0, q1)]
     intermediate_state = circuits.Circuit(op_list).final_state_vector(
