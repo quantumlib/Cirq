@@ -316,6 +316,48 @@ def test_run_circuit_with_stream_rpcs(client):
     )
 
 
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_run_circuit_snapshot_id_with_stream_rpcs(client):
+    setup_run_circuit_with_result_(client, _A_RESULT)
+
+    engine = cg.Engine(
+        project_id='proj',
+        context=EngineContext(service_args={'client_info': 1}, enable_streaming=True),
+    )
+    result = engine.run(
+        program=_CIRCUIT,
+        program_id='prog',
+        job_id='job-id',
+        processor_id='mysim',
+        snapshot_id="123",
+        device_config_name="config",
+    )
+
+    assert result.repetitions == 1
+    assert result.params.param_dict == {'a': 1}
+    assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
+    client.assert_called_with(service_args={'client_info': 1}, verbose=None)
+    client().run_job_over_stream.assert_called_once_with(
+        project_id='proj',
+        program_id='prog',
+        code=mock.ANY,
+        job_id='job-id',
+        run_context=util.pack_any(
+            v2.run_context_pb2.RunContext(
+                parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
+            )
+        ),
+        program_description=None,
+        program_labels=None,
+        job_description=None,
+        job_labels=None,
+        processor_id='mysim',
+        run_name='',
+        snapshot_id="123",
+        device_config_name='config',
+    )
+
+
 def test_no_gate_set():
     engine = cg.Engine(project_id='project-id')
     assert engine.context.serializer == cg.CIRCUIT_SERIALIZER
