@@ -335,8 +335,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if global_phase != 1:
             args.target_tensor *= global_phase
 
-        dtype = args.target_tensor.flat[0].dtype
-        relative_phase = dtype.type(1j ** (2 * self.exponent))
+        relative_phase = 1j ** (2 * self.exponent)
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
         args.target_tensor[oz] *= relative_phase

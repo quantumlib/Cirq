@@ -609,8 +609,8 @@ def bloch_vector_from_state_vector(
     """
     rho = density_matrix_from_state_vector(state_vector, [index], qid_shape=qid_shape)
     v = np.zeros(3, dtype=np.float32)
-    v[0] = np.float32(2) * np.real(rho[0][1])
-    v[1] = np.float32(2) * np.imag(rho[1][0])
+    v[0] = 2 * np.real(rho[0][1])
+    v[1] = 2 * np.imag(rho[1][0])
     v[2] = np.real(rho[0][0] - rho[1][1])
 
     return v
@@ -738,9 +738,7 @@ def dirac_notation(
     ket = "|{}⟩"
     for x in range(len(perm_list)):
         format_str = "({:." + str(decimals) + "g})"
-        val = round(state_vector[x].real, decimals) + np.complex128(1j) * round(
-            state_vector[x].imag, decimals
-        )
+        val = round(state_vector[x].real, decimals) + 1j * round(state_vector[x].imag, decimals)
 
         if round(val.real, decimals) == 0 and round(val.imag, decimals) != 0:
             val = val.imag

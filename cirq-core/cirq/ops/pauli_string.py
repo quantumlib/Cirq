@@ -740,7 +740,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         while any(result.shape):
             result = np.trace(result, axis1=0, axis2=len(result.shape) // 2)
 
-        return float(np.real(result * result.dtype.type(self.coefficient)))
+        return float(np.real(result * self.coefficient))
 
     def zip_items(
         self, other: 'cirq.PauliString[TKey]'

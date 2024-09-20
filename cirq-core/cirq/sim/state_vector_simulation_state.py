@@ -230,7 +230,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
 
         for index in range(len(kraus_tensors)):
             prepare_into_buffer(index)
-            weight = float(np.linalg.norm(self._buffer)) ** 2
+            weight = float(np.linalg.norm(self._buffer) ** 2)
 
             if weight > fallback_weight:
                 fallback_weight_index = index
@@ -248,7 +248,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             weight = fallback_weight
             index = fallback_weight_index
 
-        self._buffer /= np.sqrt(weight, dtype=self._buffer.dtype)
+        self._buffer /= np.sqrt(weight)
         self._swap_target_tensor_for(self._buffer)
         return index
 

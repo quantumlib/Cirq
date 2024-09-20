@@ -980,7 +980,7 @@ def test_expectation_from_state_vector_invalid_input():
     rho_or_wf = 0.5 * np.ones((2, 2), dtype=np.complex64)
     _ = ps.expectation_from_state_vector(rho_or_wf, q_map)
 
-    wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16, dtype=np.complex64))
+    wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
         ps.expectation_from_state_vector(wf.reshape((16, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):

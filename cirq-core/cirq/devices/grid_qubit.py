@@ -152,7 +152,7 @@ class _BaseGridQid(ops.Qid):
                 'Can only add integer tuples of length 2 to '
                 f'{type(self).__name__}. Instead was {other}'
             )
-        return self._with_row_col(row=self._row + int(other[0]), col=self._col + int(other[1]))
+        return self._with_row_col(row=self._row + other[0], col=self._col + other[1])
 
     def __sub__(self, other: Union[Tuple[int, int], Self]) -> Self:
         if isinstance(other, _BaseGridQid):
@@ -171,7 +171,7 @@ class _BaseGridQid(ops.Qid):
                 "Can only subtract integer tuples of length 2 to "
                 f"{type(self).__name__}. Instead was {other}"
             )
-        return self._with_row_col(row=self._row - int(other[0]), col=self._col - int(other[1]))
+        return self._with_row_col(row=self._row - other[0], col=self._col - other[1])
 
     def __radd__(self, other: Tuple[int, int]) -> Self:
         return self + other

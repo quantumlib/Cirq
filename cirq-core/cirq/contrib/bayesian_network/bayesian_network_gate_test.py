@@ -57,10 +57,10 @@ def test_prob_encoding(input_prob):
     q = cirq.NamedQubit('q')
     gate = ccb.BayesianNetworkGate([('q', input_prob)], [])
     circuit = cirq.Circuit(gate.on(q))
-    simulate = cirq.Simulator().simulate
-    phi = simulate(circuit, qubit_order=[q], initial_state=0).state_vector(copy=True)
-
-    actual_probs = np.square(np.abs(phi, dtype=float)).tolist()
+    phi = (
+        cirq.Simulator().simulate(circuit, qubit_order=[q], initial_state=0).state_vector(copy=True)
+    )
+    actual_probs = [abs(x) ** 2 for x in phi]
 
     np.testing.assert_almost_equal(actual_probs[1], input_prob, decimal=4)
 
@@ -87,10 +87,9 @@ def test_initial_probs(p0, p1, p2, expected_probs, decompose):
     else:
         circuit = cirq.Circuit(gate.on(q0, q1, q2))
 
-    simulate = cirq.Simulator().simulate
-    result = simulate(circuit, qubit_order=[q0, q1, q2], initial_state=0).state_vector(copy=True)
+    result = cirq.Simulator().simulate(circuit, qubit_order=[q0, q1, q2], initial_state=0)
 
-    actual_probs = np.square(np.abs(result, dtype=np.float64)).tolist()
+    actual_probs = [abs(x) ** 2 for x in result.state_vector(copy=True)]
 
     np.testing.assert_allclose(actual_probs, expected_probs, atol=1e-6)
 
@@ -111,10 +110,10 @@ def test_arc_probs(input_prob_q0, input_prob_q1, expected_prob_q2, decompose):
     else:
         circuit = cirq.Circuit(gate.on(q0, q1, q2))
 
-    simulate = cirq.Simulator().simulate
-    result = simulate(circuit, qubit_order=[q0, q1, q2], initial_state=0).state_vector(copy=True)
+    result = cirq.Simulator().simulate(circuit, qubit_order=[q0, q1, q2], initial_state=0)
 
-    probs = np.square(np.abs(result, dtype=np.float64)).tolist()
+    probs = [abs(x) ** 2 for x in result.state_vector(copy=True)]
+
     actual_prob_q2_is_one = sum(probs[1::2])
 
     np.testing.assert_almost_equal(actual_prob_q2_is_one, expected_prob_q2, decimal=4)
@@ -135,10 +134,8 @@ def test_repro_figure_10_of_paper():
 
     qubits = [sp, sm, oi, ir]
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits)))
-    simulate = cirq.Simulator().simulate
-    result = simulate(circuit, qubit_order=qubits, initial_state=0).state_vector(copy=True)
-
-    probs = np.square(np.abs(result, dtype=np.float64)).reshape((2, 2, 2, 2))
+    result = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0)
+    probs = np.asarray([abs(x) ** 2 for x in result.state_vector(copy=True)]).reshape(2, 2, 2, 2)
 
     # p(IR = 0) = 0.7500
     np.testing.assert_almost_equal(np.sum(probs[0, :, :, :]), 0.7500, decimal=6)

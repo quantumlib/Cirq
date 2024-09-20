@@ -426,8 +426,8 @@ class YPowGate(eigen_gate.EigenGate):
             return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
-        args.available_buffer[zero] = np.complex128(-1j) * args.target_tensor[one]
-        args.available_buffer[one] = np.complex128(1j) * args.target_tensor[zero]
+        args.available_buffer[zero] = -1j * args.target_tensor[one]
+        args.available_buffer[one] = 1j * args.target_tensor[zero]
         p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:
             args.available_buffer *= p
@@ -542,7 +542,7 @@ class Ry(YPowGate):
             rads: Radians to rotate about the Y axis of the Bloch sphere.
         """
         self._rads = rads
-        super().__init__(exponent=rads / _pi(rads), global_shift=float(-0.5))
+        super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
     def _with_exponent(self, exponent: value.TParamVal) -> 'Ry':
         return Ry(rads=exponent * _pi(exponent))
@@ -638,11 +638,10 @@ class ZPowGate(eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return None
 
-        dtype = args.target_tensor.flat[0].dtype
         for i in range(1, self._dimension):
             subspace = args.subspace_index(i)
             c = 1j ** (self._exponent * 4 * i / self._dimension)
-            args.target_tensor[subspace] *= dtype.type(c)
+            args.target_tensor[subspace] *= c
         p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p
@@ -992,12 +991,11 @@ class HPowGate(eigen_gate.EigenGate):
 
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
-        dtype = args.target_tensor.flat[0].dtype
         args.target_tensor[one] -= args.target_tensor[zero]
-        args.target_tensor[one] *= -dtype.type(0.5)
+        args.target_tensor[one] *= -0.5
         args.target_tensor[zero] -= args.target_tensor[one]
         p = 1j ** (2 * self._exponent * self._global_shift)
-        args.target_tensor *= np.sqrt(2, dtype=dtype) * dtype.type(p)
+        args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
     def _decompose_(self, qubits):
@@ -1007,6 +1005,7 @@ class HPowGate(eigen_gate.EigenGate):
             yield cirq.Y(q) ** 0.5
             yield cirq.XPowGate(global_shift=-0.25 + self.global_shift).on(q)
             return
+
         yield YPowGate(exponent=0.25).on(q)
         yield XPowGate(exponent=self._exponent, global_shift=self.global_shift).on(q)
         yield YPowGate(exponent=-0.25).on(q)
@@ -1098,9 +1097,8 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
 
+        c = 1j ** (2 * self._exponent)
         one_one = args.subspace_index(0b11)
-        dtype = args.target_tensor[one_one].dtype
-        c = dtype.type(1j ** (2 * self._exponent))
         args.target_tensor[one_one] *= c
         p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:

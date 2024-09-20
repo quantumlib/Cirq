@@ -244,8 +244,8 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         args.available_buffer[zo] = args.target_tensor[zo]
         args.target_tensor[zo] = args.target_tensor[oz]
         args.target_tensor[oz] = args.available_buffer[zo]
-        args.target_tensor[zo] *= args.target_tensor[zo].dtype.type(1j)
-        args.target_tensor[oz] *= args.target_tensor[oz].dtype.type(1j)
+        args.target_tensor[zo] *= 1j
+        args.target_tensor[oz] *= 1j
         p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p

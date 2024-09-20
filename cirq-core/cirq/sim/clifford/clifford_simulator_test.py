@@ -23,7 +23,7 @@ def test_run_no_repetitions():
     simulator = cirq.CliffordSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=0)
-    assert sum(result.measurements['q(0)'].astype(np.uint16)) == 0
+    assert sum(result.measurements['q(0)']) == 0
 
 
 def test_run_hadamard():
@@ -31,8 +31,8 @@ def test_run_hadamard():
     simulator = cirq.CliffordSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['q(0)'].astype(np.uint16))[0] < 80
-    assert sum(result.measurements['q(0)'].astype(np.uint16))[0] > 20
+    assert sum(result.measurements['q(0)'])[0] < 80
+    assert sum(result.measurements['q(0)'])[0] > 20
 
 
 def test_run_GHZ():
@@ -40,8 +40,8 @@ def test_run_GHZ():
     simulator = cirq.CliffordSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['q(0)'].astype(np.uint16))[0] < 80
-    assert sum(result.measurements['q(0)'].astype(np.uint16))[0] > 20
+    assert sum(result.measurements['q(0)'])[0] < 80
+    assert sum(result.measurements['q(0)'])[0] > 20
 
 
 def test_run_correlations():
@@ -392,8 +392,8 @@ def test_clifford_circuit_2(qubits, split):
     circuit.append(cirq.measure(qubits[0]))
     result = cirq.CliffordSimulator(split_untangled_states=split).run(circuit, repetitions=100)
 
-    assert sum(result.measurements['q(0)'].astype(np.uint16))[0] < 80
-    assert sum(result.measurements['q(0)'].astype(np.uint16))[0] > 20
+    assert sum(result.measurements['q(0)'])[0] < 80
+    assert sum(result.measurements['q(0)'])[0] > 20
 
 
 @pytest.mark.parametrize('split', [True, False])

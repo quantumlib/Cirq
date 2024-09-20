@@ -418,8 +418,7 @@ def test_assert_has_consistent_apply_unitary():
 
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             i = args.subspace_index(1)
-            dtype = args.target_tensor[i].dtype
-            args.target_tensor[i] *= dtype.type(self.power) * dtype.type(2)
+            args.target_tensor[i] *= self.power * 2
             return args.target_tensor
 
         def _unitary_(self):
