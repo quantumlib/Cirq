@@ -34,6 +34,13 @@ def pytest_addoption(parser):
     )
 
 
+def pytest_configure(config):
+    # If requested, globally enable verbose NumPy 2 warnings about data type
+    # promotion. See https://numpy.org/doc/2.0/numpy_2_0_migration_guide.html.
+    if config.option.warn_numpy_data_promotion:
+        np._set_promotion_state("weak_and_warn")
+
+
 def pytest_collection_modifyitems(config, items):
     # Let pytest handle markexpr if present.  Make an exception for
     # `pytest --co -m skip` so we can check test skipping rules below.
@@ -54,11 +61,6 @@ def pytest_collection_modifyitems(config, items):
     if config.option.enable_slow_tests:
         del skip_marks["slow"]  # pragma: no cover
     skip_keywords = frozenset(skip_marks.keys())
-
-    # If requested, globally enable verbose NumPy 2 warnings about data type
-    # promotion. See https://numpy.org/doc/2.0/numpy_2_0_migration_guide.html.
-    if config.option.warn_numpy_data_promotion:
-        np._set_promotion_state("weak_and_warn")
 
     for item in items:
         for k in skip_keywords.intersection(item.keywords):
