@@ -274,6 +274,7 @@ def test_run_circuit_with_unary_rpcs(client):
         description=None,
         labels=None,
         run_name='',
+        snapshot_id=None,
         device_config_name='',
     )
     client().get_job_async.assert_called_once_with('proj', 'prog', 'job-id', False)
@@ -310,6 +311,7 @@ def test_run_circuit_with_stream_rpcs(client):
         job_labels=None,
         processor_id='mysim',
         run_name='',
+        snapshot_id=None,
         device_config_name='',
     )
 

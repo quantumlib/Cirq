@@ -295,6 +295,7 @@ class Engine(abstract_engine.AbstractEngine):
         job_labels: Optional[Dict[str, str]] = None,
         *,
         run_name: str = "",
+        snapshot_id: str | None = None,
         device_config_name: str = "",
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuit via Quantum Engine.
@@ -325,6 +326,9 @@ class Engine(abstract_engine.AbstractEngine):
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
                 is required to be set.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -360,6 +364,7 @@ class Engine(abstract_engine.AbstractEngine):
                 job_labels=job_labels,
                 processor_id=processor_id,
                 run_name=run_name,
+                snapshot_id=snapshot_id,
                 device_config_name=device_config_name,
             )
             return engine_job.EngineJob(
@@ -381,6 +386,7 @@ class Engine(abstract_engine.AbstractEngine):
             description=job_description,
             labels=job_labels,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
 

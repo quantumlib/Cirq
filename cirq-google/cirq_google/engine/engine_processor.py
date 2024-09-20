@@ -118,6 +118,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         *,
         run_name: str,
         device_config_name: str,
+        snapshot_id: str | None = None,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -141,6 +142,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -178,6 +182,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
             processor_id=self.processor_id,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
 
