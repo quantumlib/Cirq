@@ -245,8 +245,6 @@ class CircuitDiagramInfoArgs:
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
-        if isinstance(val, np.number):
-            val = val.item()
         if val == int(val):
             return str(int(val))
         if self.precision is None:
@@ -279,6 +277,8 @@ class CircuitDiagramInfoArgs:
         if self.precision is not None and not isinstance(radians, sympy.Basic):
             quantity = self.format_real(radians / np.pi)
             return quantity + unit
+        if isinstance(radians, np.number):
+            return str(radians)
         return repr(radians)
 
     def copy(self):
