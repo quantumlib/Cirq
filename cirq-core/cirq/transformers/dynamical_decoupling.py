@@ -99,22 +99,15 @@ def _parse_dd_sequence(
 
 
 def _is_single_qubit_operation(operation: 'cirq.Operation') -> bool:
-    if len(operation.qubits) != 1:
-        return False
-    return True
+    return len(operation.qubits) == 1
 
 
 def _is_single_qubit_gate_moment(moment: 'cirq.Moment') -> bool:
-    for operation in moment:
-        if not _is_single_qubit_operation(operation):
-            return False
-    return True
+    return all([_is_single_qubit_operation(op) for op in moment])
 
 
 def _is_clifford_op(op: 'cirq.Operation') -> bool:
-    if op.gate is not None and isinstance(op.gate, cirq.MeasurementGate):
-        return False
-    return cirq.has_stabilizer_effect(op)
+    return cirq.has_stabilizer_effect(op) and cirq.has_unitary(op)
 
 
 def _calc_busy_moment_range_of_each_qubit(
@@ -153,11 +146,12 @@ def _try_merge_single_qubit_ops_of_two_moments(
     for q in m1.qubits & m2.qubits:
         op1 = m1.operation_at(q)
         op2 = m2.operation_at(q)
-        if op1 is not None and op2 is not None:
-            if any(
-                not (_is_single_qubit_operation(op) and cirq.has_unitary(op)) for op in [op1, op2]
-            ):
-                return (m1, m2)
+        if any(
+            not (_is_single_qubit_operation(op) and cirq.has_unitary(op))
+            for op in [op1, op2]
+            if op is not None
+        ):
+            return (m1, m2)
     ops: set['cirq.Operation'] = set()
     # Merge all operators on q to a single op.
     for q in m1.qubits | m2.qubits:
@@ -193,10 +187,10 @@ def _need_merge_pulled_through(op_at_q: 'cirq.Operation', is_at_last_busy_moment
     """With a pulling through puali gate before op_at_q, need to merge with the
     pauli in the conditions below."""
     # The op must be mergable and single-qubit
-    if not (cirq.has_unitary(op_at_q) and _is_single_qubit_operation(op_at_q)):
+    if not (_is_single_qubit_operation(op_at_q) and cirq.has_unitary(op_at_q)):
         return False
     # Either non-Clifford or at the last busy moment
-    return (not _is_clifford_op(op_at_q)) or is_at_last_busy_moment
+    return is_at_last_busy_moment or not _is_clifford_op(op_at_q)
 
 
 @transformer_api.transformer
