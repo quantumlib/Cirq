@@ -128,7 +128,7 @@ def main(num_qubits=8):
     repetitions = 1
 
     result = cirq.Simulator().run(program=circuit, repetitions=repetitions)
-    result_bitstring = bitstring([int(result.measurements[str(q)]) for q in qubits])
+    result_bitstring = bitstring([result.measurements[str(q)].item() for q in qubits])
 
     # Take only qubits where bases match
     obtained_key = ''.join(
@@ -158,14 +158,14 @@ def main(num_qubits=8):
     # Run simulations.
     repetitions = 1
     result = cirq.Simulator().run(program=alice_eve_circuit, repetitions=repetitions)
-    eve_state = [int(result.measurements[str(q)]) for q in qubits]
+    eve_state = [result.measurements[str(q)].item() for q in qubits]
 
     eve_bob_circuit = make_bb84_circ(num_qubits, eve_basis, bob_basis, eve_state)
 
     # Run simulations.
     repetitions = 1
     result = cirq.Simulator().run(program=eve_bob_circuit, repetitions=repetitions)
-    result_bitstring = bitstring([int(result.measurements[str(q)]) for q in qubits])
+    result_bitstring = bitstring([result.measurements[str(q)].item() for q in qubits])
 
     # Take only qubits where bases match
     obtained_key = ''.join(
