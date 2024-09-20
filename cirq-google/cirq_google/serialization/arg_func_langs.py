@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import builtins
 import math
 import numbers
 from typing import cast, Dict, FrozenSet, Iterable, Iterator, List, Optional, Sequence, Union
@@ -475,9 +474,9 @@ def clifford_tableau_arg_to_proto(
     msg = v2.program_pb2.CliffordTableau() if out is None else out
     msg.num_qubits = value.n
     msg.initial_state = value.initial_state
-    msg.xs.extend(map(builtins.bool, value.xs.flatten()))
-    msg.rs.extend(map(builtins.bool, value.rs.flatten()))
-    msg.zs.extend(map(builtins.bool, value.zs.flatten()))
+    msg.xs.extend(map(bool, value.xs.flatten()))
+    msg.rs.extend(map(bool, value.rs.flatten()))
+    msg.zs.extend(map(bool, value.zs.flatten()))
     return msg
 
 
