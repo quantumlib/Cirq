@@ -193,7 +193,7 @@ def proper_repr(value: Any) -> str:
         return f"{value.__module__}.{value.__qualname__}"
 
     if isinstance(value, np.number):
-        return repr(value.item())
+        return str(value)
 
     return repr(value)
 
