@@ -192,6 +192,9 @@ def proper_repr(value: Any) -> str:
     if hasattr(value, "__qualname__"):
         return f"{value.__module__}.{value.__qualname__}"
 
+    if isinstance(value, np.number):
+        return str(value)
+
     return repr(value)
 
 
