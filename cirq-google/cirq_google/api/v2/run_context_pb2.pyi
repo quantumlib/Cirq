@@ -379,7 +379,7 @@ class SingleSweep(google.protobuf.message.Message):
     PARAMETER_KEY_FIELD_NUMBER: builtins.int
     POINTS_FIELD_NUMBER: builtins.int
     LINSPACE_FIELD_NUMBER: builtins.int
-    CONST_FIELD_NUMBER: builtins.int
+    CONST_VALUE_FIELD_NUMBER: builtins.int
     PARAMETER_FIELD_NUMBER: builtins.int
     parameter_key: builtins.str
     """The parameter key being varied. This cannot be the empty string.
@@ -394,7 +394,7 @@ class SingleSweep(google.protobuf.message.Message):
         """Uniformly-spaced sampling over a range."""
 
     @property
-    def const(self) -> global___Const:
+    def const_value(self) -> global___ConstValue:
         """A constant value."""
 
     @property
@@ -409,12 +409,12 @@ class SingleSweep(google.protobuf.message.Message):
         parameter_key: builtins.str = ...,
         points: global___Points | None = ...,
         linspace: global___Linspace | None = ...,
-        const: global___Const | None = ...,
+        const_value: global___ConstValue | None = ...,
         parameter: global___DeviceParameter | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["const", b"const", "linspace", b"linspace", "parameter", b"parameter", "points", b"points", "sweep", b"sweep"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["const", b"const", "linspace", b"linspace", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "sweep", b"sweep"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace", "const"] | None: ...
+    def HasField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "parameter", b"parameter", "points", b"points", "sweep", b"sweep"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "sweep", b"sweep"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace", "const_value"] | None: ...
 
 global___SingleSweep = SingleSweep
 
@@ -473,7 +473,7 @@ class Linspace(google.protobuf.message.Message):
 global___Linspace = Linspace
 
 @typing.final
-class Const(google.protobuf.message.Message):
+class ConstValue(google.protobuf.message.Message):
     """A constant value."""
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
@@ -499,4 +499,4 @@ class Const(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["float_value", b"float_value", "int_value", b"int_value", "is_none", b"is_none", "string_value", b"string_value", "value", b"value"]) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["value", b"value"]) -> typing.Literal["is_none", "float_value", "int_value", "string_value"] | None: ...
 
-global___Const = Const
+global___ConstValue = ConstValue
