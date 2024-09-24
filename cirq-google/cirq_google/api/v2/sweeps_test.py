@@ -136,7 +136,7 @@ def test_symbol_to_string_conversion():
     expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
-    p1.single_sweep.const.float_value = 4.0
+    p1.single_sweep.const_value.float_value = 4.0
     assert proto == expected
 
 
@@ -161,8 +161,8 @@ def test_sweep_to_none_const():
     assert isinstance(proto, v2.run_context_pb2.Sweep)
     assert proto.HasField('single_sweep')
     assert proto.single_sweep.parameter_key == 'foo'
-    assert proto.single_sweep.WhichOneof('sweep') == 'const'
-    assert proto.single_sweep.const.is_none
+    assert proto.single_sweep.WhichOneof('sweep') == 'const_value'
+    assert proto.single_sweep.const_value.is_none
 
 
 def test_sweep_from_proto_unknown_sweep_type():
