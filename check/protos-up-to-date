@@ -20,8 +20,8 @@ if [[ -n "${git_status}" ]]; then
     exit 2
 fi
 
-echo "Removing generated Python files.  If not restored by this script, use"
-echo 'git restore "*_pb2.py*"    to get them back'
+echo "Removing generated Python files.  If not restored by this script use"
+echo 'git restore "*_pb2.py*"    to recover them back.'
 echo
 
 git rm --quiet "cirq-google/*_pb2.py*"
