@@ -21,20 +21,27 @@ if [[ -n "${git_status}" ]]; then
     exit 2
 fi
 
-# All the protos.
+echo "Removing generated Python files.  If this script does not restore them"
+echo "use  git restore "*_pb2.py*"  to get them back."
+
+git rm --quiet "cirq-google/*_pb2.py*"
+# restore deleted files in git index
+git reset --quiet
+
 echo "Building protos in $PWD"
 
 dev_tools/build-protos.sh
 
-# Filenames with spaces will be ugly (each part will be listed separately)
-# but the error logic will still work.
-uncommitted=$(git status --porcelain 2>/dev/null | grep -E "^[?][?] cirq-google" | cut -d " " -f 3)
+git_status="$(git status --short)"
 
-if [[ -n "$uncommitted" ]]; then
-    echo -e "\033[31mERROR: Uncommitted generated files found! Please generate and commit these files using dev_tools/build-protos.sh:\033[0m"
-    for generated in $uncommitted
-    do
-        echo -e "\033[31m   ${generated}\033[0m"
-    done
+if [[ -n "${git_status}" ]]; then
+    echo -e "\033[31mERROR: dev_tools/build-protos.sh changed generated files!\033[0m"
+    echo -e "\033[31mPlease generate and commit these files using dev_tools/build-protos.sh\033[0m"
+    echo
+    echo "Note in addition to changed files, there may be new files or orphaned old files."
+    echo
+    echo "Output of 'git status':"
+    echo
+    git status
     exit 1
 fi
