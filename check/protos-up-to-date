@@ -7,7 +7,7 @@
 # file will be built.
 #
 # Usage:
-#     check/build-changed-protos [BASE_REVISION]
+#     check/protos-up-to-date [BASE_REVISION]
 #
 # You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a line is considered to have "changed"). For

@@ -252,7 +252,7 @@ jobs:
         run: |
           pip install -r dev_tools/requirements/deps/protos.txt
       - name: Build protos
-        run: check/build-changed-protos
+        run: check/protos-up-to-date
   coverage:
     name: Coverage check
     runs-on: ubuntu-20.04
