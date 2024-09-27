@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package cirq.google.api.v2;
+
+option java_package = "com.google.cirq.google.api.v2";
+option java_outer_classname = "DeviceProto";
+option java_multiple_files = true;
+
+// This contains information about a device that includes the
+// qubits on the device, supported gates, connections, and timing.
+// This message specifies information that is needed when sending a
+// Program message to the device.
+message DeviceSpecification {
+  // A list of allowed gatesets for programs submitted to this processor
+  // Language.gate_set should be one of these values to be valid.
+  repeated GateSet valid_gate_sets = 1 [deprecated = true];
+
+  // The device gateset.
+  // Contains the list of gates allowed in programs submitted to this processor.
+  repeated GateSpecification valid_gates = 5;
+
+  // A list of allowed ids for qubits within the Program.
+  // Any programs with ids not in this list will be rejected.
+  // If empty, all qubit values are allowed (e.g. in a simulator)
+  // Only grid qubits are supported. Strings must be in the form '<int>_<int>'.
+  // Single-qubit gates can be applied to all qubits.
+  // Measurement and wait gates can be applied to all subset of qubits.
+  repeated string valid_qubits = 2;
+
+  // A list of targets that gates can use.
+  repeated TargetSet valid_targets = 3;
+
+  // Additional recommendations, caveats, and soft requirements that
+  // are advice to users of the device, specified in English text
+  // For instance, "All Z gates are converted to VirtualZ gates".
+  string developer_recommendations = 4;
+}
+
+// This contains information about a single device gate.
+// Replaces `GateDefinition`.
+message GateSpecification {
+  // This defines the approximate duration to run the gate on the device,
+  // specified as an integer number of picoseconds.
+  int64 gate_duration_picos = 1;
+
+  // This specifies the gate type and gate parameter constraints for this
+  // device gate.
+  oneof gate {
+    Sycamore syc = 2;
+    SqrtISwap sqrt_iswap = 3;
+    SqrtISwapInv sqrt_iswap_inv = 4;
+    CZ cz = 5;
+    PhasedXZ phased_xz = 6;
+    VirtualZPow virtual_zpow = 7;
+    PhysicalZPow physical_zpow = 8;
+    CouplerPulse coupler_pulse = 9;
+    Measurement meas = 10;
+    Wait wait = 11;
+    FSimViaModel fsim_via_model = 12;
+    CZPowGate cz_pow_gate = 13;
+    InternalGate internal_gate = 14;
+  }
+
+  // Gate types available to Google devices.
+  // Future gates may have parameter constraints that are frequently updated.
+  // In such cases, the gate message will contain additional fields to specify
+  // those constraints.
+  message Sycamore {}
+  message SqrtISwap {}
+  message SqrtISwapInv {}
+  message CZ {}
+  message PhasedXZ {}
+  message VirtualZPow {}
+  message PhysicalZPow {}
+  message CouplerPulse {}
+  message Measurement {}
+  message Wait {}
+  message FSimViaModel {}
+  message CZPowGate {}
+  // This gate gets mapped to the internal representation corresponding
+  // to <gate_module.gate_name>.
+  message InternalGate {}
+}
+
+message GateSet {
+  // The name of the gate set corresponding to Language.gate_set
+  string name = 1;
+
+  // A list of valid gates permitted by this gate set
+  repeated GateDefinition valid_gates = 2;
+}
+
+message GateDefinition {
+  // The name for the gate.  This must match the Gate.id in your program.
+  string id = 1;
+
+  // If unset or set to zero, any number of qubits is allowed.
+  int32 number_of_qubits = 2;
+
+  // The name of the arguments that should be specified for
+  // an operation of this gate
+  repeated ArgDefinition valid_args = 3;
+
+  // This defines the approximate amount of time for each gate,
+  // specified as an integer number of picoseconds.
+  int64 gate_duration_picos = 4;
+
+  // Valid targets that this gate can use.
+  // Values in this list correspond to the name of the TargetSet
+  // If unset, all combinations with number_of_qubits target are allowed.
+  repeated string valid_targets = 5;
+}
+
+// A description of an argument to an operation.
+message ArgDefinition {
+  // Note: This should be kept in sync with the ArgValue proto
+  enum ArgType {
+    UNSPECIFIED = 0;
+    FLOAT = 1;
+    REPEATED_BOOLEAN = 2;
+    STRING = 3;
+  }
+
+  // The name of the argument
+  // This corresponds to the valid key values for the
+  // map value of Operation.args
+  string name = 1;
+
+  // The type of the argument.
+  // This should correspond to the legal assignment
+  // of the Arg.arg oneof for this argument
+  ArgType type = 2;
+
+  // This should only be populated for type FLOAT.
+  // If not set, all float values are allowed.
+  repeated ArgumentRange allowed_ranges = 3;
+}
+
+// Minimum value is inclusive and maximum value is exclusive.
+// If minimum and maximum values are the same, only a single value is allowed.
+message ArgumentRange {
+  float minimum_value = 1;
+  float maximum_value = 2;
+}
+
+// A list of targets that are valid for a set of gates.
+// For instance, all qubit pairs that can be acted on by a 2-qubit gate
+message TargetSet {
+  enum TargetOrdering {
+    UNSPECIFIED = 0;
+
+    // Symmetric gates, any id order within each target is valid.
+    // Two-qubit gates can be applied to all two-element targets in a TargetSet
+    // of this type.
+    SYMMETRIC = 1;
+
+    // Asymmetric gates, the order of ids in each target is important.
+    // Only the order specified in each target is valid.
+    // Deprecated: Unused
+    ASYMMETRIC = 2 [deprecated = true];
+
+    // All targets in this TargetSet should contain only a single qubit id.
+    // Gates using this TargetSet can be applied to any subset of these targets
+    // in any order.
+    // For example, this could be the case for measurement gates that can
+    // measure any subset of qubits at once.
+    // Deprecated: Measurement gate can be applied to all subset of qubits.
+    SUBSET_PERMUTATION = 3 [deprecated = true];
+  }
+
+  // The name of the target list.
+  // This will be referenced in the GateDefinition to denote
+  // which targets are valid.
+  string name = 1;
+
+  // The type of ordering of the ids within each target in this set.
+  // For instance, if the ids within each target are symmetric.
+  TargetOrdering target_ordering = 2;
+
+  // A list of targets that are valid
+  repeated Target targets = 3;
+}
+
+// A description of a valid target of a multi-qubit gate operation
+// For most Google devices, this will be a pair of qubit ids.
+message Target {
+  // A list of qubit ids that form a valid gate target.
+  repeated string ids = 1;
+}
