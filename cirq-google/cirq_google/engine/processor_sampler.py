@@ -28,12 +28,13 @@ class ProcessorSampler(cirq.Sampler):
         self,
         *,
         processor: 'cg.engine.AbstractProcessor',
-        run_name: str = "",
+        run_name: str | None = None,
+        snapshot_id: str | None = None,
         device_config_name: str = "",
     ):
         """Inits ProcessorSampler.
 
-        Either both `run_name` and `device_config_name` must be set, or neither of
+        Either both (`run_name` or `snapshot_id`) and `device_config_name` must be set, or neither of
         them must be set. If none of them are set, a default internal device configuration
         will be used.
 
@@ -42,6 +43,7 @@ class ProcessorSampler(cirq.Sampler):
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -54,6 +56,7 @@ class ProcessorSampler(cirq.Sampler):
 
         self._processor = processor
         self._run_name = run_name
+        self._snapshot_id = snapshot_id
         self._device_config_name = device_config_name
 
     async def run_sweep_async(
@@ -64,6 +67,7 @@ class ProcessorSampler(cirq.Sampler):
             params=params,
             repetitions=repetitions,
             run_name=self._run_name,
+            snapshot_id=self._snapshot_id,
             device_config_name=self._device_config_name,
         )
         return await job.results_async()
@@ -88,8 +92,12 @@ class ProcessorSampler(cirq.Sampler):
         return self._processor
 
     @property
-    def run_name(self) -> str:
+    def run_name(self) -> str | None:
         return self._run_name
+
+    @property
+    def snapshot_id(self) -> str | None:
+        return self._snapshot_id
 
     @property
     def device_config_name(self) -> str:

@@ -387,7 +387,7 @@ class EngineClient:
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,
-        run_name: str = "",
+        run_name: str | None = None,
         snapshot_id: str | None = None,
         device_config_name: str = "",
     ) -> Tuple[str, quantum.QuantumJob]:
