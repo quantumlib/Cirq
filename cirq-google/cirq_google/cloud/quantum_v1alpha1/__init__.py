@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2022 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from google.cloud.quantum_v1alpha1 import gapic_version as package_version
+
+__version__ = package_version.__version__
+
 
 from .services.quantum_engine_service import QuantumEngineServiceClient
 from .services.quantum_engine_service import QuantumEngineServiceAsyncClient
@@ -57,6 +61,7 @@ from .types.engine import StreamError
 from .types.engine import UpdateQuantumJobRequest
 from .types.engine import UpdateQuantumProgramRequest
 from .types.engine import UpdateQuantumReservationRequest
+from .types.quantum import DeviceConfigKey
 from .types.quantum import DeviceConfigSelector
 from .types.quantum import ExecutionStatus
 from .types.quantum import GcsLocation
@@ -73,66 +78,65 @@ from .types.quantum import QuantumReservationGrant
 from .types.quantum import QuantumResult
 from .types.quantum import QuantumTimeSlot
 from .types.quantum import SchedulingConfig
-from .types.quantum import DeviceConfigKey
 
 __all__ = (
     'QuantumEngineServiceAsyncClient',
-    'CancelQuantumJobRequest',
-    'CancelQuantumReservationRequest',
-    'CreateQuantumJobRequest',
-    'CreateQuantumProgramAndJobRequest',
-    'CreateQuantumProgramRequest',
-    'CreateQuantumReservationRequest',
-    'DeleteQuantumJobRequest',
-    'DeleteQuantumProgramRequest',
-    'DeleteQuantumReservationRequest',
-    'DeviceConfigSelector',
-    'ExecutionStatus',
-    'GcsLocation',
-    'GetQuantumCalibrationRequest',
-    'GetQuantumJobRequest',
-    'GetQuantumProcessorRequest',
-    'GetQuantumProgramRequest',
-    'GetQuantumReservationRequest',
-    'GetQuantumResultRequest',
-    'InlineData',
-    'ListQuantumCalibrationsRequest',
-    'ListQuantumCalibrationsResponse',
-    'ListQuantumJobEventsRequest',
-    'ListQuantumJobEventsResponse',
-    'ListQuantumJobsRequest',
-    'ListQuantumJobsResponse',
-    'ListQuantumProcessorsRequest',
-    'ListQuantumProcessorsResponse',
-    'ListQuantumProgramsRequest',
-    'ListQuantumProgramsResponse',
-    'ListQuantumReservationBudgetsRequest',
-    'ListQuantumReservationBudgetsResponse',
-    'ListQuantumReservationGrantsRequest',
-    'ListQuantumReservationGrantsResponse',
-    'ListQuantumReservationsRequest',
-    'ListQuantumReservationsResponse',
-    'ListQuantumTimeSlotsRequest',
-    'ListQuantumTimeSlotsResponse',
-    'OutputConfig',
-    'QuantumCalibration',
-    'QuantumEngineServiceClient',
-    'QuantumJob',
-    'QuantumJobEvent',
-    'QuantumProcessor',
-    'QuantumProgram',
-    'QuantumReservation',
-    'QuantumReservationBudget',
-    'QuantumReservationGrant',
-    'QuantumResult',
-    'QuantumRunStreamRequest',
-    'QuantumRunStreamResponse',
-    'QuantumTimeSlot',
-    'ReallocateQuantumReservationGrantRequest',
-    'SchedulingConfig',
-    'StreamError',
-    'UpdateQuantumJobRequest',
-    'UpdateQuantumProgramRequest',
-    'UpdateQuantumReservationRequest',
-    'DeviceConfigKey',
+'CancelQuantumJobRequest',
+'CancelQuantumReservationRequest',
+'CreateQuantumJobRequest',
+'CreateQuantumProgramAndJobRequest',
+'CreateQuantumProgramRequest',
+'CreateQuantumReservationRequest',
+'DeleteQuantumJobRequest',
+'DeleteQuantumProgramRequest',
+'DeleteQuantumReservationRequest',
+'DeviceConfigKey',
+'DeviceConfigSelector',
+'ExecutionStatus',
+'GcsLocation',
+'GetQuantumCalibrationRequest',
+'GetQuantumJobRequest',
+'GetQuantumProcessorRequest',
+'GetQuantumProgramRequest',
+'GetQuantumReservationRequest',
+'GetQuantumResultRequest',
+'InlineData',
+'ListQuantumCalibrationsRequest',
+'ListQuantumCalibrationsResponse',
+'ListQuantumJobEventsRequest',
+'ListQuantumJobEventsResponse',
+'ListQuantumJobsRequest',
+'ListQuantumJobsResponse',
+'ListQuantumProcessorsRequest',
+'ListQuantumProcessorsResponse',
+'ListQuantumProgramsRequest',
+'ListQuantumProgramsResponse',
+'ListQuantumReservationBudgetsRequest',
+'ListQuantumReservationBudgetsResponse',
+'ListQuantumReservationGrantsRequest',
+'ListQuantumReservationGrantsResponse',
+'ListQuantumReservationsRequest',
+'ListQuantumReservationsResponse',
+'ListQuantumTimeSlotsRequest',
+'ListQuantumTimeSlotsResponse',
+'OutputConfig',
+'QuantumCalibration',
+'QuantumEngineServiceClient',
+'QuantumJob',
+'QuantumJobEvent',
+'QuantumProcessor',
+'QuantumProgram',
+'QuantumReservation',
+'QuantumReservationBudget',
+'QuantumReservationGrant',
+'QuantumResult',
+'QuantumRunStreamRequest',
+'QuantumRunStreamResponse',
+'QuantumTimeSlot',
+'ReallocateQuantumReservationGrantRequest',
+'SchedulingConfig',
+'StreamError',
+'UpdateQuantumJobRequest',
+'UpdateQuantumProgramRequest',
+'UpdateQuantumReservationRequest',
 )
