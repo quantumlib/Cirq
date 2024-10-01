@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
-from google.auth.transport.requests import AuthorizedSession  # type: ignore
-import json  # type: ignore
-import grpc  # type: ignore
-from google.auth.transport.grpc import SslCredentials  # type: ignore
-from google.auth import credentials as ga_credentials  # type: ignore
+from google.auth.transport.requests import AuthorizedSession
+import json
+import grpc
+from google.auth.transport.grpc import SslCredentials
+from google.auth import credentials as ga_credentials
 from google.api_core import exceptions as core_exceptions
 from google.api_core import retry as retries
 from google.api_core import rest_helpers
@@ -36,12 +36,12 @@ import warnings
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault, None]
 except AttributeError:  # pragma: NO COVER
-    OptionalRetry = Union[retries.Retry, object, None]  # type: ignore
+    OptionalRetry = Union[retries.Retry, object, None]
 
 
-from google.cloud.quantum_v1alpha1.types import engine
-from google.cloud.quantum_v1alpha1.types import quantum
-from google.protobuf import empty_pb2  # type: ignore
+from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
+from google.protobuf import empty_pb2
 
 from .base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO as BASE_DEFAULT_CLIENT_INFO
 

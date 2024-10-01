@@ -21,18 +21,18 @@ try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault, None]
     OptionalAsyncRetry = Union[retries_async.AsyncRetry, gapic_v1.method._MethodDefault, None]
 except AttributeError:  # pragma: NO COVER
-    OptionalRetry = Union[retries.Retry, object, None]  # type: ignore
-    OptionalAsyncRetry = Union[retries_async.AsyncRetry, object, None]  # type: ignore
+    OptionalRetry = Union[retries.Retry, object, None]
+    OptionalAsyncRetry = Union[retries_async.AsyncRetry, object, None]
 
-from google.cloud.quantum_v1alpha1.types import engine
-from google.cloud.quantum_v1alpha1.types import quantum
+from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
 
 
 class ListQuantumProgramsPager:
     """A pager for iterating through ``list_quantum_programs`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``programs`` field.
 
@@ -41,7 +41,7 @@ class ListQuantumProgramsPager:
     through the ``programs`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -58,9 +58,9 @@ class ListQuantumProgramsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -98,7 +98,7 @@ class ListQuantumProgramsAsyncPager:
     """A pager for iterating through ``list_quantum_programs`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``programs`` field.
 
@@ -107,7 +107,7 @@ class ListQuantumProgramsAsyncPager:
     through the ``programs`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -124,9 +124,9 @@ class ListQuantumProgramsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
@@ -167,7 +167,7 @@ class ListQuantumJobsPager:
     """A pager for iterating through ``list_quantum_jobs`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``jobs`` field.
 
@@ -176,7 +176,7 @@ class ListQuantumJobsPager:
     through the ``jobs`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -193,9 +193,9 @@ class ListQuantumJobsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -233,7 +233,7 @@ class ListQuantumJobsAsyncPager:
     """A pager for iterating through ``list_quantum_jobs`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``jobs`` field.
 
@@ -242,7 +242,7 @@ class ListQuantumJobsAsyncPager:
     through the ``jobs`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -259,9 +259,9 @@ class ListQuantumJobsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
@@ -302,7 +302,7 @@ class ListQuantumJobEventsPager:
     """A pager for iterating through ``list_quantum_job_events`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``events`` field.
 
@@ -311,7 +311,7 @@ class ListQuantumJobEventsPager:
     through the ``events`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -328,9 +328,9 @@ class ListQuantumJobEventsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -368,7 +368,7 @@ class ListQuantumJobEventsAsyncPager:
     """A pager for iterating through ``list_quantum_job_events`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``events`` field.
 
@@ -377,7 +377,7 @@ class ListQuantumJobEventsAsyncPager:
     through the ``events`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -394,9 +394,9 @@ class ListQuantumJobEventsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
@@ -437,7 +437,7 @@ class ListQuantumProcessorsPager:
     """A pager for iterating through ``list_quantum_processors`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``processors`` field.
 
@@ -446,7 +446,7 @@ class ListQuantumProcessorsPager:
     through the ``processors`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -463,9 +463,9 @@ class ListQuantumProcessorsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -503,7 +503,7 @@ class ListQuantumProcessorsAsyncPager:
     """A pager for iterating through ``list_quantum_processors`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``processors`` field.
 
@@ -512,7 +512,7 @@ class ListQuantumProcessorsAsyncPager:
     through the ``processors`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -529,9 +529,9 @@ class ListQuantumProcessorsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
@@ -572,7 +572,7 @@ class ListQuantumCalibrationsPager:
     """A pager for iterating through ``list_quantum_calibrations`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``calibrations`` field.
 
@@ -581,7 +581,7 @@ class ListQuantumCalibrationsPager:
     through the ``calibrations`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -598,9 +598,9 @@ class ListQuantumCalibrationsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -638,7 +638,7 @@ class ListQuantumCalibrationsAsyncPager:
     """A pager for iterating through ``list_quantum_calibrations`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``calibrations`` field.
 
@@ -647,7 +647,7 @@ class ListQuantumCalibrationsAsyncPager:
     through the ``calibrations`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -664,9 +664,9 @@ class ListQuantumCalibrationsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
@@ -707,7 +707,7 @@ class ListQuantumReservationsPager:
     """A pager for iterating through ``list_quantum_reservations`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``reservations`` field.
 
@@ -716,7 +716,7 @@ class ListQuantumReservationsPager:
     through the ``reservations`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -733,9 +733,9 @@ class ListQuantumReservationsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -773,7 +773,7 @@ class ListQuantumReservationsAsyncPager:
     """A pager for iterating through ``list_quantum_reservations`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``reservations`` field.
 
@@ -782,7 +782,7 @@ class ListQuantumReservationsAsyncPager:
     through the ``reservations`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -799,9 +799,9 @@ class ListQuantumReservationsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
@@ -842,7 +842,7 @@ class ListQuantumReservationGrantsPager:
     """A pager for iterating through ``list_quantum_reservation_grants`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``reservation_grants`` field.
 
@@ -851,7 +851,7 @@ class ListQuantumReservationGrantsPager:
     through the ``reservation_grants`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -868,9 +868,9 @@ class ListQuantumReservationGrantsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -908,7 +908,7 @@ class ListQuantumReservationGrantsAsyncPager:
     """A pager for iterating through ``list_quantum_reservation_grants`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``reservation_grants`` field.
 
@@ -917,7 +917,7 @@ class ListQuantumReservationGrantsAsyncPager:
     through the ``reservation_grants`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -934,9 +934,9 @@ class ListQuantumReservationGrantsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
@@ -977,7 +977,7 @@ class ListQuantumReservationBudgetsPager:
     """A pager for iterating through ``list_quantum_reservation_budgets`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``reservation_budgets`` field.
 
@@ -986,7 +986,7 @@ class ListQuantumReservationBudgetsPager:
     through the ``reservation_budgets`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -1003,9 +1003,9 @@ class ListQuantumReservationBudgetsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -1043,7 +1043,7 @@ class ListQuantumReservationBudgetsAsyncPager:
     """A pager for iterating through ``list_quantum_reservation_budgets`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``reservation_budgets`` field.
 
@@ -1052,7 +1052,7 @@ class ListQuantumReservationBudgetsAsyncPager:
     through the ``reservation_budgets`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -1069,9 +1069,9 @@ class ListQuantumReservationBudgetsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
@@ -1112,7 +1112,7 @@ class ListQuantumTimeSlotsPager:
     """A pager for iterating through ``list_quantum_time_slots`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse` object, and
     provides an ``__iter__`` method to iterate through its
     ``time_slots`` field.
 
@@ -1121,7 +1121,7 @@ class ListQuantumTimeSlotsPager:
     through the ``time_slots`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -1138,9 +1138,9 @@ class ListQuantumTimeSlotsPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
                 The initial response object.
             retry (google.api_core.retry.Retry): Designation of what errors,
                 if any, should be retried.
@@ -1178,7 +1178,7 @@ class ListQuantumTimeSlotsAsyncPager:
     """A pager for iterating through ``list_quantum_time_slots`` requests.
 
     This class thinly wraps an initial
-    :class:`google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse` object, and
+    :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse` object, and
     provides an ``__aiter__`` method to iterate through its
     ``time_slots`` field.
 
@@ -1187,7 +1187,7 @@ class ListQuantumTimeSlotsAsyncPager:
     through the ``time_slots`` field on the
     corresponding responses.
 
-    All the usual :class:`google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse`
+    All the usual :class:`cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse`
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
@@ -1204,9 +1204,9 @@ class ListQuantumTimeSlotsAsyncPager:
         Args:
             method (Callable): The method that was originally called, and
                 which instantiated this pager.
-            request (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest):
+            request (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest):
                 The initial request object.
-            response (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
+            response (cirq_google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
                 The initial response object.
             retry (google.api_core.retry.AsyncRetry): Designation of what errors,
                 if any, should be retried.
