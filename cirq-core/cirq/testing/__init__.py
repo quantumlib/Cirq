@@ -116,6 +116,7 @@ from cirq.testing.op_tree import assert_equivalent_op_tree as assert_equivalent_
 from cirq.testing.order_tester import OrderTester as OrderTester
 
 from cirq.testing.pytest_utils import (
+    retry_once_after_timeout as retry_once_after_timeout,
     retry_once_with_later_random_values as retry_once_with_later_random_values,
 )
 
