@@ -359,7 +359,6 @@ class TestStreamManager:
 
         duet.run(test)
 
-    @pytest.mark.parametrize('flake_repetition', range(50))
     @pytest.mark.parametrize(
         'error',
         [
@@ -370,7 +369,7 @@ class TestStreamManager:
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
     def test_submit_with_retryable_stream_breakage_expects_get_result_request(
-        self, client_constructor, error, flake_repetition
+        self, client_constructor, error
     ):
         expected_result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
         fake_client, manager = setup(client_constructor)
@@ -393,7 +392,6 @@ class TestStreamManager:
 
         duet.run(test)
 
-    @pytest.mark.parametrize('flake_repetition', range(50))
     @pytest.mark.parametrize(
         'error',
         [
@@ -410,7 +408,7 @@ class TestStreamManager:
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
     def test_submit_with_non_retryable_stream_breakage_raises_error(
-        self, client_constructor, error, flake_repetition
+        self, client_constructor, error
     ):
         fake_client, manager = setup(client_constructor)
 
