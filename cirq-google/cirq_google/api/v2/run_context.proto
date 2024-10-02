@@ -180,7 +180,7 @@ message SingleSweep {
     // Uniformly-spaced sampling over a range.
     Linspace linspace = 3;
     // A constant value.
-    Const const = 5;
+    ConstValue const_value = 5;
   }
 
   // Optional arguments for if this is a device parameter.
@@ -212,7 +212,7 @@ message Linspace {
 }
 
 // A constant value.
-message Const {
+message ConstValue {
   // The values.
   oneof value {
     // This value should always be true if set, which represent the python None object.

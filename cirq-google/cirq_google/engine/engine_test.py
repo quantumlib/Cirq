@@ -538,7 +538,7 @@ def test_run_sweep_params_with_unary_rpcs(client):
     assert len(sweeps) == 2
     for i, v in enumerate([1, 2]):
         assert sweeps[i].repetitions == 1
-        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const.int_value == v
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == v
     client().get_job_async.assert_called_once()
     client().get_job_results_async.assert_called_once()
 
@@ -568,7 +568,7 @@ def test_run_sweep_params_with_stream_rpcs(client):
     assert len(sweeps) == 2
     for i, v in enumerate([1, 2]):
         assert sweeps[i].repetitions == 1
-        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const.int_value == v
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == v
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -604,7 +604,7 @@ def test_run_multiple_times(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert len(sweeps1) == 1
     assert sweeps1[0].repetitions == 1
-    assert sweeps1[0].sweep.sweep_function.sweeps[0].single_sweep.const.int_value == 1
+    assert sweeps1[0].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == 1
     assert len(sweeps2) == 1
     assert sweeps2[0].repetitions == 2
     assert sweeps2[0].sweep.single_sweep.points.points == [3, 4]

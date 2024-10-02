@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Verifies that Python files generated from protobuf definitions are up to date.
+#
+# See dev_tools/build-protos.sh for building all protos.
+################################################################################
+
+# Get the working directory to the repo root.
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
+
+git_status="$(git status --short)"
+if [[ -n "${git_status}" ]]; then
+    echo "$0 requires a pristine worktree, but 'git status' shows"
+    echo "some changes or untracked files."
+    echo
+    echo "Please commit or clean these up to try again."
+    exit 2
+fi
+
+echo "Removing generated Python files.  If not restored by this script use"
+echo 'git restore "*_pb2.py*"    to recover them back.'
+echo
+
+git rm --quiet "cirq-google/*_pb2.py*"
+# restore deleted files in git index
+git reset --quiet
+
+echo "Building protos in $PWD"
+echo
+
+dev_tools/build-protos.sh
+
+git_status="$(git status --short)"
+
+if [[ -n "${git_status}" ]]; then
+    echo
+    echo -e "\033[31mERROR: dev_tools/build-protos.sh changed generated files!\033[0m"
+    echo -e "\033[31mPlease update and commit these files using dev_tools/build-protos.sh\033[0m"
+    echo
+    echo "Output of 'git status' (note there may be untracked new files or deleted old ones):"
+    echo
+    git status
+    exit 1
+fi
