@@ -190,7 +190,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --rigetti-integration
+        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --rigetti-integration --randomly-seed=3097567341
       - name: Stop Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
   # TODO(#6706) remove after we start using NumPy 2.0 in regular pytest
@@ -311,7 +311,7 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
+          check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --randomly-seed=3097567341
         shell: bash
   macos:
     name: Pytest MacOS
@@ -338,7 +338,7 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib --randomly-seed=3097567341
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
