@@ -204,6 +204,9 @@ def plot_z_phase_calibration_result(
 ) -> None:
     """A helper method to plot the result of running z-phase calibration.
 
+    Note that the plotted fidelity is a statistical estimate of the true fidelity and as a result
+    may be outside the [0, 1] range.
+
     Args:
         before_after_df: The second return object of running `z_phase_calibration_workflow`.
         axes: And ndarray of the axes to plot on.
