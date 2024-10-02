@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     import cirq
     import pandas as pd
     import multiprocessing
+    import matplotlib.pyplot as plt
 
 
 def z_phase_calibration_workflow(
@@ -109,9 +110,11 @@ def z_phase_calibration_workflow(
         pool=pool,
     )
 
-    return result, xeb_fitting.before_and_after_characterization(
+    before_after = xeb_fitting.before_and_after_characterization(
         fids_df_0, characterization_result=result
     )
+
+    return result, before_after
 
 
 def calibrate_z_phases(
@@ -191,3 +194,39 @@ def calibrate_z_phases(
         params['gamma'] = params.get('gamma', options.gamma_default or 0)
         gates[pair] = ops.PhasedFSimGate(**params)
     return gates
+
+
+def plot_z_phase_calibration_result(
+    before_after_df: 'pd.DataFrame',
+    axes: np.ndarray[Sequence[Sequence['plt.Axes']], np.dtype[np.object_]],
+    *,
+    with_error_bars: bool = False,
+) -> None:
+    """A helper method to plot the result of running z-phase calibration.
+
+    Args:
+        before_after_df: The second return object of running `z_phase_calibration_workflow`.
+        axes: And ndarray of the axes to plot on.
+            The number of axes is expected to be >= number of qubit pairs.
+        with_error_bars: Whether to add error bars or not.
+            The width of the bar is an upper bound on standard variation of the estimated fidelity.
+    """
+    for pair, ax in zip(before_after_df.index, axes.flatten()):
+        row = before_after_df.loc[[pair]].iloc[0]
+        ax.errorbar(
+            row.cycle_depths_0,
+            row.fidelities_0,
+            yerr=row.layer_fid_std_0 * with_error_bars,
+            label='original',
+        )
+        ax.errorbar(
+            row.cycle_depths_0,
+            row.fidelities_c,
+            yerr=row.layer_fid_std_c * with_error_bars,
+            label='calibrated',
+        )
+        ax.axhline(1, linestyle='--')
+        ax.set_xlabel('cycle depth')
+        ax.set_ylabel('fidelity estimate')
+        ax.set_title('-'.join(str(q) for q in pair))
+        ax.legend()
