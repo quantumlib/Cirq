@@ -172,7 +172,8 @@ def test_calibrate_z_phases_workflow_no_options(angles, error):
 
 def test_plot_z_phase_calibration_result():
     df = pd.DataFrame()
-    df.index = [(1, 2), (2, 3)]
+    qs = cirq.q(0, 0), cirq.q(0, 1), cirq.q(0, 2)
+    df.index = [qs[:2], qs[-2:]]
     df['cycle_depths_0'] = [[1, 2, 3]] * 2
     df['fidelities_0'] = [[0.9, 0.8, 0.7], [0.6, 0.4, 0.1]]
     df['layer_fid_std_0'] = [0.1, 0.2]
