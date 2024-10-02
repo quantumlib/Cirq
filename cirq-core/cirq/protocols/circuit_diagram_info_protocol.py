@@ -277,6 +277,8 @@ class CircuitDiagramInfoArgs:
         if self.precision is not None and not isinstance(radians, sympy.Basic):
             quantity = self.format_real(radians / np.pi)
             return quantity + unit
+        if isinstance(radians, np.number):
+            return str(radians)
         return repr(radians)
 
     def copy(self):

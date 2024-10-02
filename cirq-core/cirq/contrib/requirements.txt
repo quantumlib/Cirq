@@ -4,5 +4,5 @@ ply>=3.6
 pylatex~=1.4
 
 # quimb
-quimb~=1.7
+quimb>=1.8
 opt_einsum
