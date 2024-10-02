@@ -681,13 +681,16 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
         a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(
             f1['cycle_depth'], f1['fidelity']
         )
+        fidelity_variance = 0
+        if 'fidelity_variance' in f1:
+            fidelity_variance = f1['fidelity_variance'].values
         record = {
             'a': a,
             'layer_fid': layer_fid,
             'cycle_depths': f1['cycle_depth'].values,
             'fidelities': f1['fidelity'].values,
             'a_std': a_std,
-            'layer_fid_std': np.sqrt(layer_fid_std**2 + f1['fidelity_variance'].values),
+            'layer_fid_std': np.sqrt(layer_fid_std**2 + fidelity_variance),
         }
         return pd.Series(record)
 

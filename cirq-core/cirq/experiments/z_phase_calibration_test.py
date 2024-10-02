@@ -14,10 +14,16 @@
 
 import pytest
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 import cirq
 
-from cirq.experiments.z_phase_calibration import calibrate_z_phases, z_phase_calibration_workflow
+from cirq.experiments.z_phase_calibration import (
+    calibrate_z_phases,
+    z_phase_calibration_workflow,
+    plot_z_phase_calibration_result,
+)
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 
 _ANGLES = ['theta', 'phi', 'chi', 'zeta', 'gamma']
@@ -162,3 +168,24 @@ def test_calibrate_z_phases_workflow_no_options(angles, error):
         assert 'zeta' not in params
         assert 'chi' not in params
         assert 'gamma' not in params
+
+
+def test_plot_z_phase_calibration_result():
+    df = pd.DataFrame()
+    df.index = [(1, 2), (2, 3)]
+    df['cycle_depths_0'] = [[1, 2, 3]] * 2
+    df['fidelities_0'] = [[0.9, 0.8, 0.7], [0.6, 0.4, 0.1]]
+    df['layer_fid_std_0'] = [0.1, 0.2]
+    df['fidelities_c'] = [[0.9, 0.92, 0.93], [0.7, 0.77, 0.8]]
+    df['layer_fid_std_c'] = [0.2, 0.3]
+
+    _, axes = plt.subplots(1, 2)
+    plot_z_phase_calibration_result(before_after_df=df, axes=axes)
+
+    np.testing.assert_allclose(axes[0].lines[0].get_xdata().astype(float), [1, 2, 3])
+    np.testing.assert_allclose(axes[0].lines[0].get_ydata().astype(float), [0.9, 0.8, 0.7])
+    np.testing.assert_allclose(axes[0].lines[1].get_ydata().astype(float), [0.9, 0.92, 0.93])
+
+    np.testing.assert_allclose(axes[1].lines[0].get_xdata().astype(float), [1, 2, 3])
+    np.testing.assert_allclose(axes[1].lines[0].get_ydata().astype(float), [0.6, 0.4, 0.1])
+    np.testing.assert_allclose(axes[1].lines[1].get_ydata().astype(float), [0.7, 0.77, 0.8])
