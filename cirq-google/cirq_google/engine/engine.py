@@ -299,7 +299,7 @@ class Engine(abstract_engine.AbstractEngine):
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
         *,
-        run_name: str = "",
+        run_name: str | None = "",
         snapshot_id: str | None = None,
         device_config_name: str = "",
     ) -> engine_job.EngineJob:

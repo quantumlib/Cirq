@@ -136,7 +136,8 @@ class EngineProgram(abstract_program.AbstractProgram):
         self,
         *,
         processor_id: str,
-        run_name: str,
+        run_name: str | None = "",
+        snapshot_id: str | None = None,
         device_config_name: str,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
@@ -151,6 +152,9 @@ class EngineProgram(abstract_program.AbstractProgram):
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -180,6 +184,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             description=description,
             labels=labels,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
         results = await job.results_async()

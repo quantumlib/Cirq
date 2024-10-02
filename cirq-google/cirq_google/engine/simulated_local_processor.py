@@ -199,6 +199,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
+        *,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,

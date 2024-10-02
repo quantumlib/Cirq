@@ -87,7 +87,10 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self, run_name: str = "", device_config_name: str = ""
+        self,
+        run_name: str | None = "",
+        device_config_name: str = "",
+        snapshot_id: str | None = None,
     ) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
         Args:
@@ -105,11 +108,14 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         processor = self._inner_processor()
         # If a run_name or config_alias is not provided, initialize them
         # to the Processor's default values.
-        if not run_name and not device_config_name:
+        if not run_name and not device_config_name and not snapshot_id:
             run_name = processor.default_device_config_key.run
             device_config_name = processor.default_device_config_key.config_alias
         return processor_sampler.ProcessorSampler(
-            processor=self, run_name=run_name, device_config_name=device_config_name
+            processor=self,
+            run_name=run_name,
+            snapshot_id=snapshot_id,
+            device_config_name=device_config_name,
         )
 
     async def run_sweep_async(

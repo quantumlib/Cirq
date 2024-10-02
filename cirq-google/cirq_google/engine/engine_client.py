@@ -746,7 +746,7 @@ class EngineClient:
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
         processor_id: str = "",
-        run_name: str = "",
+        run_name: str | None = "",
         snapshot_id: str | None = None,
         device_config_name: str = "",
     ) -> duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]:
