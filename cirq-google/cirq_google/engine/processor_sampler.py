@@ -51,7 +51,7 @@ class ProcessorSampler(cirq.Sampler):
         Raises:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
         """
-        if bool(run_name) ^ bool(device_config_name):
+        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
         self._processor = processor
@@ -97,7 +97,7 @@ class ProcessorSampler(cirq.Sampler):
 
     @property
     def snapshot_id(self) -> str | None:
-        return self._snapshot_id
+        return self._snapshot_id  # pragma: no cover
 
     @property
     def device_config_name(self) -> str:

@@ -671,6 +671,8 @@ def test_create_job_with_snapshot_id_and_device_config_name(
                 'priority': 10,
                 'job_description': 'A job',
                 'job_labels': {'hello': 'world'},
+                'snapshot_id': 'SNAPSHOT_ID',
+                'device_config_name': 'CONFIG_NAME',
             },
             [
                 'projects/proj',
@@ -684,7 +686,9 @@ def test_create_job_with_snapshot_id_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_selector=quantum.DeviceConfigSelector(run_name=""),
+                            device_config_selector=quantum.DeviceConfigSelector(
+                                snapshot_id="SNAPSHOT_ID", config_alias="CONFIG_NAME"
+                            ),
                         ),
                     ),
                     description='A job',

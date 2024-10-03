@@ -37,17 +37,26 @@ def test_run_circuit(circuit, run_name, device_config_name):
         program=circuit,
         repetitions=5,
         run_name=run_name,
+        snapshot_id=None,
         device_config_name=device_config_name,
     )
 
 
 @pytest.mark.parametrize(
-    'run_name, device_config_name', [('run_name', 'device_config_alias'), ('', '')]
+    'run_name, device_config_name, snapshot_id',
+    [
+        ('run_name', 'device_config_alias', None),
+        ('', '', None),
+        (None, 'config_name', 'snapshot_id'),
+    ],
 )
-def test_run_batch(run_name, device_config_name):
+def test_run_batch(run_name, device_config_name, snapshot_id):
     processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(
-        processor=processor, run_name=run_name, device_config_name=device_config_name
+        processor=processor,
+        run_name=run_name,
+        snapshot_id=snapshot_id,
+        device_config_name=device_config_name,
     )
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
@@ -63,7 +72,7 @@ def test_run_batch(run_name, device_config_name):
             params=params1,
             repetitions=5,
             run_name=run_name,
-            snapshot_id=None,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         ),
         mock.call().results_async(),
@@ -72,7 +81,7 @@ def test_run_batch(run_name, device_config_name):
             params=params2,
             repetitions=5,
             run_name=run_name,
-            snapshot_id=None,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         ),
         mock.call().results_async(),
@@ -157,6 +166,7 @@ def test_run_batch_differing_repetitions():
         program=circuit2,
         repetitions=2,
         run_name=run_name,
+        snapshot_id=None,
         device_config_name=device_config_name,
     )
 
