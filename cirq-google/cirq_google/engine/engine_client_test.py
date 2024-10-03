@@ -530,12 +530,7 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
 @pytest.mark.parametrize('processor_id', [('processor0'), ('processor0')])
 @pytest.mark.parametrize(
     'run_name, snapshot_id, device_config_name',
-    [
-        ('RUN_NAME', None, 'CONFIG_NAME'),
-        ('', None, ''),
-        (None, 'SNAPSHOT_ID', 'CONFIG_NAME'),
-        ('', '', ''),
-    ],
+    [('RUN_NAME', None, 'CONFIG_NAME'), ('', None, ''), ('', '', '')],
 )
 def test_create_job_with_run_name_and_device_config_name(
     client_constructor, processor_id, run_name, snapshot_id, device_config_name
@@ -577,6 +572,52 @@ def test_create_job_with_run_name_and_device_config_name(
     )
 
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+@pytest.mark.parametrize('processor_id', [('processor0'), ('processor0')])
+@pytest.mark.parametrize(
+    'run_name, snapshot_id, device_config_name', [(None, 'SNAPSHOT_ID', 'CONFIG_NAME')]
+)
+def test_create_job_with_snapshot_id_and_device_config_name(
+    client_constructor, processor_id, run_name, snapshot_id, device_config_name
+):
+    grpc_client = _setup_client_mock(client_constructor)
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+    run_context = any_pb2.Any()
+    client = EngineClient()
+
+    assert client.create_job(
+        project_id='proj',
+        program_id='prog',
+        job_id='job0',
+        processor_id=processor_id,
+        run_name=run_name,
+        snapshot_id=snapshot_id,
+        device_config_name=device_config_name,
+        run_context=run_context,
+        priority=10,
+    ) == ('job0', result)
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                name='projects/proj/programs/prog/jobs/job0',
+                run_context=run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor='projects/proj/processors/processor0',
+                        device_config_selector=quantum.DeviceConfigSelector(
+                            snapshot_id=snapshot_id, config_alias=device_config_name
+                        ),
+                    ),
+                ),
+            ),
+        )
+    )
+
+
 @pytest.mark.parametrize(
     'run_job_kwargs, expected_submit_args',
     [
@@ -609,7 +650,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_selector=quantum.DeviceConfigSelector(),
+                            device_config_selector=quantum.DeviceConfigSelector(run_name=""),
                         ),
                     ),
                     description='A job',
@@ -643,7 +684,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_selector=quantum.DeviceConfigSelector(),
+                            device_config_selector=quantum.DeviceConfigSelector(run_name=""),
                         ),
                     ),
                     description='A job',
@@ -674,7 +715,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_selector=quantum.DeviceConfigSelector(),
+                            device_config_selector=quantum.DeviceConfigSelector(run_name=""),
                         ),
                     ),
                     description='A job',
@@ -711,7 +752,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_selector=quantum.DeviceConfigSelector(),
+                            device_config_selector=quantum.DeviceConfigSelector(run_name=""),
                         ),
                     ),
                     description='A job',
@@ -746,7 +787,7 @@ def test_create_job_with_run_name_and_device_config_name(
                         priority=10,
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_selector=quantum.DeviceConfigSelector(),
+                            device_config_selector=quantum.DeviceConfigSelector(run_name=""),
                         ),
                     ),
                 ),
@@ -778,7 +819,7 @@ def test_create_job_with_run_name_and_device_config_name(
                     scheduling_config=quantum.SchedulingConfig(
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                             processor='projects/proj/processors/processor0',
-                            device_config_selector=quantum.DeviceConfigSelector(),
+                            device_config_selector=quantum.DeviceConfigSelector(run_name=""),
                         )
                     ),
                 ),

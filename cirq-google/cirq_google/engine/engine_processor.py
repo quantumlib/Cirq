@@ -100,6 +100,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service

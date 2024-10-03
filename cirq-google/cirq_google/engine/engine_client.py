@@ -431,7 +431,7 @@ class EngineClient:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
-        if bool(run_name) ^ bool(device_config_name):
+        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
         # Create job.
@@ -793,7 +793,7 @@ class EngineClient:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
-        if bool(run_name) ^ bool(device_config_name):
+        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
         project_name = _project_name(project_id)
