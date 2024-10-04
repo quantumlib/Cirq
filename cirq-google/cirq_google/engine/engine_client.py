@@ -442,11 +442,11 @@ class EngineClient:
         # Create job.
         if snapshot_id:
             selector = quantum.DeviceConfigSelector(
-                snapshot_id=snapshot_id, config_alias=device_config_name
+                snapshot_id=snapshot_id or None, config_alias=device_config_name
             )
         else:
             selector = quantum.DeviceConfigSelector(
-                run_name=run_name, config_alias=device_config_name
+                run_name=run_name or None, config_alias=device_config_name
             )
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
@@ -817,11 +817,11 @@ class EngineClient:
 
         if snapshot_id:
             selector = quantum.DeviceConfigSelector(
-                snapshot_id=snapshot_id, config_alias=device_config_name
+                snapshot_id=snapshot_id or None, config_alias=device_config_name
             )
         else:
             selector = quantum.DeviceConfigSelector(
-                run_name=run_name, config_alias=device_config_name
+                run_name=run_name or None, config_alias=device_config_name
             )
 
         job = quantum.QuantumJob(
