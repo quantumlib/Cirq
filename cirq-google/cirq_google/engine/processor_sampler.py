@@ -28,8 +28,8 @@ class ProcessorSampler(cirq.Sampler):
         self,
         *,
         processor: 'cg.engine.AbstractProcessor',
-        run_name: str | None = None,
-        snapshot_id: str | None = None,
+        run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ):
         """Inits ProcessorSampler.
@@ -92,11 +92,11 @@ class ProcessorSampler(cirq.Sampler):
         return self._processor
 
     @property
-    def run_name(self) -> str | None:
+    def run_name(self) -> str:
         return self._run_name
 
     @property
-    def snapshot_id(self) -> str | None:
+    def snapshot_id(self) -> str:
         return self._snapshot_id  # pragma: no cover
 
     @property

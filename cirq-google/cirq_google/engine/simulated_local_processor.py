@@ -208,8 +208,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-        run_name: str | None = None,
-        snapshot_id: str | None = None,
+        run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> SimulatedLocalJob:
         if program_id is None:

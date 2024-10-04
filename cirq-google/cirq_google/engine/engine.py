@@ -223,7 +223,7 @@ class Engine(abstract_engine.AbstractEngine):
         job_labels: Optional[Dict[str, str]] = None,
         *,
         run_name: str = "",
-        snapshot_id: str | None = None,
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
@@ -299,8 +299,8 @@ class Engine(abstract_engine.AbstractEngine):
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
         *,
-        run_name: str | None = "",
-        snapshot_id: str | None = None,
+        run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuit via Quantum Engine.

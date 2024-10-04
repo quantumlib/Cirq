@@ -489,25 +489,34 @@ def test_create_job(client_constructor):
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize(
-    'processor_id, run_name, device_config_name, error_message',
+    'processor_id, run_name, snapshot_id, device_config_name, error_message',
     [
-        ('', '', '', 'Must specify a processor id when creating a job.'),
+        ('', '', '', '', 'Must specify a processor id when creating a job.'),
         (
             'processor0',
             'RUN_NAME',
             '',
-            'Cannot specify only one of `run_name` and `device_config_name`',
+            '',
+            'Cannot specify only one of top level identifier and `device_config_name`',
         ),
         (
             'processor0',
             '',
+            '',
             'CONFIG_ALIAS',
-            'Cannot specify only one of `run_name` and `device_config_name`',
+            'Cannot specify only one of top level identifier and `device_config_name`',
+        ),
+        (
+            'processor0',
+            'run_name',
+            'snapshot_id',
+            'CONFIG_ALIAS',
+            'Cannot specify both `run_name` and `snapshot_id`',
         ),
     ],
 )
 def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
-    client_constructor, processor_id, run_name, device_config_name, error_message
+    client_constructor, processor_id, run_name, snapshot_id, device_config_name, error_message
 ):
     grpc_client = _setup_client_mock(client_constructor)
     result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
@@ -521,6 +530,7 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
             job_id=None,
             processor_id=processor_id,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
 
@@ -530,7 +540,7 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
 @pytest.mark.parametrize('processor_id', [('processor0'), ('processor0')])
 @pytest.mark.parametrize(
     'run_name, snapshot_id, device_config_name',
-    [('RUN_NAME', None, 'CONFIG_NAME'), ('', None, ''), ('', '', '')],
+    [('RUN_NAME', '', 'CONFIG_NAME'), ('', '', ''), ('', '', '')],
 )
 def test_create_job_with_run_name_and_device_config_name(
     client_constructor, processor_id, run_name, snapshot_id, device_config_name
@@ -576,9 +586,9 @@ def test_create_job_with_run_name_and_device_config_name(
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @pytest.mark.parametrize('processor_id', [('processor0'), ('processor0')])
 @pytest.mark.parametrize(
-    'run_name, snapshot_id, device_config_name', [(None, 'SNAPSHOT_ID', 'CONFIG_NAME')]
+    'run_name, snapshot_id, device_config_name', [('', 'SNAPSHOT_ID', 'CONFIG_NAME')]
 )
-def test_create_job_with_snapshot_id_and_device_config_name(
+def test_create_job_with_snapshot_id_and_device_config_name_succeeds(
     client_constructor, processor_id, run_name, snapshot_id, device_config_name
 ):
     grpc_client = _setup_client_mock(client_constructor)
@@ -880,13 +890,30 @@ def test_run_job_over_stream_processor_unset_raises():
         )
 
 
-@pytest.mark.parametrize('run_name, device_config_name', [('run1', ''), ('', 'device_config1')])
-def test_run_job_over_stream_invalid_device_config_raises(run_name, device_config_name):
+@pytest.mark.parametrize(
+    'run_name, snapshot_id, device_config_name, error_message',
+    [
+        (
+            'run1',
+            '',
+            '',
+            'Cannot specify only one of top level identifier and `device_config_name`',
+        ),
+        (
+            '',
+            '',
+            'device_config1',
+            'Cannot specify only one of top level identifier and `device_config_name`',
+        ),
+        ('run', 'snapshot_id', 'config', 'Cannot specify both `run_name` and `snapshot_id`'),
+    ],
+)
+def test_run_job_over_stream_invalid_device_config_raises(
+    run_name, snapshot_id, device_config_name, error_message
+):
     client = EngineClient()
 
-    with pytest.raises(
-        ValueError, match='Cannot specify only one of `run_name` and `device_config_name`'
-    ):
+    with pytest.raises(ValueError, match=error_message):
         client.run_job_over_stream(
             project_id='proj',
             program_id='prog',
@@ -895,6 +922,7 @@ def test_run_job_over_stream_invalid_device_config_raises(run_name, device_confi
             processor_id='mysim',
             run_context=any_pb2.Any(),
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
 

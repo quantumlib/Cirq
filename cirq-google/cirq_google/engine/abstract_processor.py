@@ -58,8 +58,8 @@ class AbstractProcessor(abc.ABC):
         program: cirq.Circuit,
         *,
         device_config_name: str,
-        run_name: str | None = None,
-        snapshot_id: str | None = None,
+        run_name: str = "",
+        snapshot_id: str = "",
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: Optional[cirq.ParamResolver] = None,
@@ -82,7 +82,7 @@ class AbstractProcessor(abc.ABC):
                 available qubits, couplers, and supported gates in the processor.
             snapshot_id: A unique identifier for an immutable snapshot reference.
                 A snapshot contains a collection of device configurations for the
-                processor.
+                processor. Both `snapshot_id` and `run_name` should not be set.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -126,8 +126,8 @@ class AbstractProcessor(abc.ABC):
         program: cirq.AbstractCircuit,
         *,
         device_config_name: str,
-        run_name: str | None = None,
-        snapshot_id: str | None = None,
+        run_name: str = "",
+        snapshot_id: str = "",
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -152,7 +152,7 @@ class AbstractProcessor(abc.ABC):
                 available qubits, couplers, and supported gates in the processor.
             snapshot_id: A unique identifier for an immutable snapshot reference.
                 A snapshot contains a collection of device configurations for the
-                processor.
+                processor. Both `snapshot_id` and `run_name` should not be set.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format

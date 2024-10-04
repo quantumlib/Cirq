@@ -387,8 +387,8 @@ class EngineClient:
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
         *,
-        run_name: str | None = "",
-        snapshot_id: str | None = None,
+        run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> Tuple[str, quantum.QuantumJob]:
         """Creates and runs a job on Quantum Engine.
@@ -425,14 +425,19 @@ class EngineClient:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
+            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
+        if run_name and snapshot_id:
+            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
+            raise ValueError(
+                'Cannot specify only one of top level identifier and `device_config_name`'
+            )
 
         # Create job.
         if snapshot_id:
@@ -746,8 +751,8 @@ class EngineClient:
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
         processor_id: str = "",
-        run_name: str | None = "",
-        snapshot_id: str | None = None,
+        run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]:
         """Runs a job with the given program and job information over a stream.
@@ -787,14 +792,19 @@ class EngineClient:
             ValueError: If the priority is not between 0 and 1000.
             ValueError: If `processor_id` is not set.
             ValueError: If only one of `run_name` and `device_config_name` are specified.
+            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
+        if run_name and snapshot_id:
+            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
+            raise ValueError(
+                'Cannot specify only one of top level identifier and `device_config_name`'
+            )
 
         project_name = _project_name(project_id)
 
