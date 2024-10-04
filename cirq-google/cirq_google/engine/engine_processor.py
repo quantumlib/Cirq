@@ -87,10 +87,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self,
-        run_name: str = "",
-        device_config_name: str = "",
-        snapshot_id: str = "",
+        self, run_name: str = "", device_config_name: str = "", snapshot_id: str = ""
     ) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
         Args:
