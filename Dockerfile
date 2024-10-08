@@ -3,7 +3,7 @@ FROM python:3.10-slim AS cirq_base
 # Install dependencies.
 # rm -rf /var/lib/apt/lists/* cleans up apt cache. See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-     rustup \
+     cargo \
      python3-pip \
      locales \
      && rm -rf /var/lib/apt/lists/*
@@ -14,9 +14,6 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && loca
 ENV LANG en_US.UTF-8  
 ENV LANGUAGE en_US:en  
 ENV LC_ALL en_US.UTF-8 
-
-# Use the last stable rust
-RUN rustup update
 
 # Make python3 default
 RUN rm -f /usr/bin/python \
