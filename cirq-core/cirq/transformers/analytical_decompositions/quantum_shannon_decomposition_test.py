@@ -34,9 +34,8 @@ def test_random_qsd_n_qubit(n_qubits):
     circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, U))
     # Test return is equal to inital unitary
     assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
-    # Test all operations in gate set
-    gates = (common_gates.Rz, common_gates.Ry, common_gates.ZPowGate, common_gates.CXPowGate)
-    assert all(isinstance(op.gate, gates) for op in circuit.all_operations())
+    # Test all operations have at most 2 qubits.
+    assert all(cirq.num_qubits(op) <= 2 for op in circuit.all_operations())
 
 
 def test_qsd_n_qubit_errors():
@@ -53,9 +52,8 @@ def test_random_single_qubit_decomposition():
     circuit = cirq.Circuit(_single_qubit_decomposition(qubit, U))
     # Test return is equal to inital unitary
     assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
-    # Test all operations in gate set
-    gates = (common_gates.Rz, common_gates.Ry, common_gates.ZPowGate, common_gates.CXPowGate)
-    assert all(isinstance(op.gate, gates) for op in circuit.all_operations())
+    # Test all operations have at most 2 qubits.
+    assert all(cirq.num_qubits(op) <= 2 for op in circuit.all_operations())
 
 
 def test_msb_demuxer():
@@ -66,9 +64,8 @@ def test_msb_demuxer():
     circuit = cirq.Circuit(_msb_demuxer(qubits, U1, U2))
     # Test return is equal to inital unitary
     assert cirq.approx_eq(U_full, circuit.unitary(), atol=1e-9)
-    # Test all operations in gate set
-    gates = (common_gates.Rz, common_gates.Ry, common_gates.ZPowGate, common_gates.CXPowGate)
-    assert all(isinstance(op.gate, gates) for op in circuit.all_operations())
+    # Test all operations have at most 2 qubits.
+    assert all(cirq.num_qubits(op) <= 2 for op in circuit.all_operations())
 
 
 def test_multiplexed_cossin():
@@ -155,9 +152,50 @@ def test_cliffords(gate, num_ops):
 
 
 @pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0.1, 2 * np.pi, 10)))
-@pytest.mark.parametrize('gate', [cirq.I, cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S])
+@pytest.mark.parametrize('gate', [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S])
 def test_cliffords_with_global_phase(gate, global_phase):
     desired_unitary = cirq.unitary(gate) * global_phase
     shannon_circuit = cirq.Circuit(quantum_shannon_decomposition((cirq.q(0),), desired_unitary))
     new_unitary = cirq.unitary(shannon_circuit)
     np.testing.assert_allclose(new_unitary, desired_unitary)
+
+
+@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0.1, 2 * np.pi, 10)))
+def test_global_phase(global_phase):
+    shannon_circuit = cirq.Circuit(
+        quantum_shannon_decomposition((cirq.q(0),), np.eye(2) * global_phase)
+    )
+    new_unitary = cirq.unitary(shannon_circuit)
+    np.testing.assert_allclose(np.diag(new_unitary), global_phase)
+
+
+@pytest.mark.parametrize('gate', [cirq.CZ, cirq.CNOT, cirq.XX, cirq.YY, cirq.ZZ])
+@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0, 2 * np.pi, 10)))
+def test_two_qubit_gate(gate, global_phase):
+    desired_unitary = cirq.unitary(gate) * global_phase
+    shannon_circuit = cirq.Circuit(
+        quantum_shannon_decomposition(cirq.LineQubit.range(2), desired_unitary)
+    )
+    new_unitary = cirq.unitary(shannon_circuit)
+    np.testing.assert_allclose(new_unitary, desired_unitary, atol=1e-6)
+
+
+@pytest.mark.parametrize('gate', [cirq.CCNOT, cirq.qft(*cirq.LineQubit.range(3))])
+@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0, 2 * np.pi, 10)))
+def test_three_qubit_gate(gate, global_phase):
+    desired_unitary = cirq.unitary(gate) * global_phase
+    shannon_circuit = cirq.Circuit(
+        quantum_shannon_decomposition(cirq.LineQubit.range(3), desired_unitary)
+    )
+    new_unitary = cirq.unitary(shannon_circuit)
+    np.testing.assert_allclose(new_unitary, desired_unitary, atol=1e-6)
+
+
+@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0, 2 * np.pi, 4)))
+def test_qft5(global_phase):
+    desired_unitary = cirq.unitary(cirq.qft(*cirq.LineQubit.range(5))) * global_phase
+    shannon_circuit = cirq.Circuit(
+        quantum_shannon_decomposition(cirq.LineQubit.range(5), desired_unitary)
+    )
+    new_unitary = cirq.unitary(shannon_circuit)
+    np.testing.assert_allclose(new_unitary, desired_unitary, atol=1e-6)

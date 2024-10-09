@@ -27,6 +27,14 @@ import numpy as np
 
 from cirq import ops
 from cirq.linalg import decompositions, predicates
+from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
+    two_qubit_matrix_to_cz_operations,
+)
+from cirq.transformers.analytical_decompositions.three_qubit_decomposition import (
+    three_qubit_matrix_to_operations,
+)
+from cirq.protocols import unitary_protocol
+from cirq.circuits.frozen_circuit import FrozenCircuit
 
 if TYPE_CHECKING:
     import cirq
@@ -34,7 +42,9 @@ if TYPE_CHECKING:
 
 
 def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'op_tree.OpTree':
-    """Decomposes n-qubit unitary into CX/YPow/ZPow/CNOT gates, preserving global phase.
+    """Decomposes n-qubit unitary 1-q, 2-q and GlobalPhase gates, preserving global phase.
+
+    The gates used are CX/YPow/ZPow/CNOT/GlobalPhase/CZ/PhasedXZGate/PhasedXPowGate.
 
     The algorithm is described in Shende et al.:
     Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
@@ -83,6 +93,31 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'o
     if n == 2:
         # Yield a single-qubit decomp if u is 2x2
         yield from _single_qubit_decomposition(qubits[0], u)
+        return
+
+    if n == 4:
+        global_phase = np.angle(np.linalg.det(u)) / u.shape[0]
+        operations = tuple(
+            two_qubit_matrix_to_cz_operations(
+                qubits[0], qubits[1], u, allow_partial_czs=True, clean_operations=True
+            )
+        )
+        yield from operations
+        i, j = np.unravel_index(np.argmax(np.abs(u)), u.shape)
+        new_unitary = unitary_protocol.unitary(FrozenCircuit.from_moments(*operations))
+        global_phase = np.angle(u[i, j]) - np.angle(new_unitary[i, j])
+        if np.abs(global_phase) > 1e-9:
+            yield ops.global_phase_operation(np.exp(1j * global_phase))
+        return
+
+    if n == 8:
+        operations = tuple(three_qubit_matrix_to_operations(qubits[0], qubits[1], qubits[2], u))
+        yield from operations
+        i, j = np.unravel_index(np.argmax(np.abs(u)), u.shape)
+        new_unitary = unitary_protocol.unitary(FrozenCircuit.from_moments(*operations))
+        global_phase = np.angle(u[i, j]) - np.angle(new_unitary[i, j])
+        if np.abs(global_phase) > 1e-9:
+            yield ops.global_phase_operation(np.exp(1j * global_phase))
         return
 
     # Perform a cosine-sine (linalg) decomposition on u
@@ -139,10 +174,7 @@ def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> 'op_tree.Op
         yield ops.ZPowGate(exponent=phi_0 / np.pi, global_shift=global_phase / phi_0 - 0.5)(qubit)
     elif np.abs(global_phase) > 1e-18:
         # Global Phase.
-        # We represent a global phase with a pair of ZPowGates that are conjugates of each other
-        # so that the overall effect is a global phase.
-        yield ops.ZPowGate(exponent=-0.5, global_shift=-global_phase / np.pi - 0.5)(qubit)
-        yield ops.ZPowGate(exponent=0.5, global_shift=global_phase / np.pi - 0.5)(qubit)
+        yield ops.global_phase_operation(np.exp(1j * global_phase))
     else:
         # Identity.
         return
@@ -191,6 +223,7 @@ def _msb_demuxer(
     d = np.sqrt(dsquared)
     D = np.diag(d)
     W = D @ V.T.conjugate() @ u2
+
     # Last term is given by ( I ⊗ W ), demultiplexed
     # Remove most-significant (demuxed) control-qubit
     # Yield operations for QSD on W
