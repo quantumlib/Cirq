@@ -194,8 +194,6 @@ def _msb_demuxer(
     # Last term is given by ( I ⊗ W ), demultiplexed
     # Remove most-significant (demuxed) control-qubit
     # Yield operations for QSD on W
-    # Note: Mathematically `W` is a unitary but it might fail `is_unitary`
-    #   check due to numerical precision.
     yield from quantum_shannon_decomposition(demux_qubits[1:], W)
 
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
@@ -204,8 +202,6 @@ def _msb_demuxer(
     yield from _multiplexed_cossin(demux_qubits, -np.angle(d), ops.rz)
 
     # Yield operations for QSD on V
-    # Note: Mathematically `V` is a unitary but it might fail `is_unitary`
-    #   check due to numerical precision.
     yield from quantum_shannon_decomposition(demux_qubits[1:], V)
 
 
