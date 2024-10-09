@@ -110,3 +110,54 @@ def test_multiplexed_cossin():
 )
 def test_nth_gray(n, gray):
     assert _nth_gray(n) == gray
+
+
+def test_ghz_circuit_decomposes():
+    # Test case from #6725
+    ghz_circuit = cirq.Circuit(cirq.H(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)))
+    ghz_unitary = cirq.unitary(ghz_circuit)
+    decomposed_circuit = cirq.Circuit(
+        quantum_shannon_decomposition(cirq.LineQubit.range(2), ghz_unitary)
+    )
+    new_unitary = cirq.unitary(decomposed_circuit)
+    np.testing.assert_allclose(new_unitary, ghz_unitary, atol=1e-6)
+
+
+def test_qft_decomposes():
+    # Test case from #6666
+    qs = cirq.LineQubit.range(4)
+    qft_circuit = cirq.Circuit(cirq.qft(*qs))
+    qft_unitary = cirq.unitary(qft_circuit)
+    decomposed_circuit = cirq.Circuit(quantum_shannon_decomposition(qs, qft_unitary))
+    new_unitary = cirq.unitary(decomposed_circuit)
+    np.testing.assert_allclose(new_unitary, qft_unitary, atol=5e-4)
+
+
+# Cliffords test the different corner cases of the ZYZ decomposition.
+@pytest.mark.parametrize(
+    ['gate', 'num_ops'],
+    [
+        (cirq.I, 0),
+        (cirq.X, 2),  # rz & ry
+        (cirq.Y, 1),  # ry
+        (cirq.Z, 1),  # rz
+        (cirq.H, 2),  # rz & ry
+        (cirq.S, 1),  # rz & ry
+    ],
+)
+def test_cliffords(gate, num_ops):
+    desired_unitary = cirq.unitary(gate)
+    shannon_circuit = cirq.Circuit(quantum_shannon_decomposition((cirq.q(0),), desired_unitary))
+    new_unitary = cirq.unitary(shannon_circuit)
+    assert len([*shannon_circuit.all_operations()]) == num_ops
+    if num_ops:
+        np.testing.assert_allclose(new_unitary, desired_unitary)
+
+
+@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0.1, 2 * np.pi, 10)))
+@pytest.mark.parametrize('gate', [cirq.I, cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S])
+def test_cliffords_with_global_phase(gate, global_phase):
+    desired_unitary = cirq.unitary(gate) * global_phase
+    shannon_circuit = cirq.Circuit(quantum_shannon_decomposition((cirq.q(0),), desired_unitary))
+    new_unitary = cirq.unitary(shannon_circuit)
+    np.testing.assert_allclose(new_unitary, desired_unitary)
