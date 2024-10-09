@@ -153,5 +153,5 @@ class CircuitOpDeserializer(OpDeserializer):
                 )
 
         return cirq.CircuitOperation(
-            circuit, repetitions, qubit_map, measurement_key_map, arg_map, rep_ids  # type: ignore
+            circuit, repetitions, qubit_map, measurement_key_map, arg_map, rep_ids
         )

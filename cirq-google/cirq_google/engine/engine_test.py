@@ -492,9 +492,9 @@ def test_run_sweep_params_with_unary_rpcs(client):
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps = run_context.parameter_sweeps
     assert len(sweeps) == 2
-    for i, v in enumerate([1.0, 2.0]):
+    for i, v in enumerate([1, 2]):
         assert sweeps[i].repetitions == 1
-        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == v
     client().get_job_async.assert_called_once()
     client().get_job_results_async.assert_called_once()
 
@@ -522,9 +522,9 @@ def test_run_sweep_params_with_stream_rpcs(client):
     client().run_job_over_stream.call_args[1]['run_context'].Unpack(run_context)
     sweeps = run_context.parameter_sweeps
     assert len(sweeps) == 2
-    for i, v in enumerate([1.0, 2.0]):
+    for i, v in enumerate([1, 2]):
         assert sweeps[i].repetitions == 1
-        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == v
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -533,12 +533,21 @@ def test_run_multiple_times(client):
 
     engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     program = engine.create_program(program=_CIRCUIT)
-    program.run(processor_id='processor0', param_resolver=cirq.ParamResolver({'a': 1}))
+    program.run(
+        processor_id='processor0',
+        param_resolver=cirq.ParamResolver({'a': 1}),
+        run_name="run",
+        device_config_name="config_alias",
+    )
     run_context = v2.run_context_pb2.RunContext()
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps1 = run_context.parameter_sweeps
     job2 = program.run_sweep(
-        processor_id='processor0', repetitions=2, params=cirq.Points('a', [3, 4])
+        processor_id='processor0',
+        repetitions=2,
+        params=cirq.Points('a', [3, 4]),
+        run_name="run",
+        device_config_name="config_alias",
     )
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps2 = run_context.parameter_sweeps
@@ -551,8 +560,7 @@ def test_run_multiple_times(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert len(sweeps1) == 1
     assert sweeps1[0].repetitions == 1
-    points1 = sweeps1[0].sweep.sweep_function.sweeps[0].single_sweep.points
-    assert points1.points == [1]
+    assert sweeps1[0].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == 1
     assert len(sweeps2) == 1
     assert sweeps2[0].repetitions == 2
     assert sweeps2[0].sweep.single_sweep.points.points == [3, 4]
@@ -629,7 +637,9 @@ def test_bad_sweep_proto():
     engine = cg.Engine(project_id='project-id', proto_version=cg.ProtoVersion.UNDEFINED)
     program = cg.EngineProgram('proj', 'prog', engine.context)
     with pytest.raises(ValueError, match='invalid run context proto version'):
-        program.run_sweep(processor_id='processor0')
+        program.run_sweep(
+            processor_id='processor0', run_name="run", device_config_name="config_alias"
+        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)

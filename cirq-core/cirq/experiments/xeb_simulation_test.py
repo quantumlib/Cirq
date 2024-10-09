@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import multiprocessing
 from typing import Dict, Any, Optional
 from typing import Sequence
@@ -22,6 +23,8 @@ import pytest
 import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
+
+_POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
 
 
 def test_simulate_2q_xeb_circuits():
@@ -42,7 +45,7 @@ def test_simulate_2q_xeb_circuits():
         assert len(row['pure_probs']) == 4
         assert np.isclose(np.sum(row['pure_probs']), 1)
 
-    with multiprocessing.Pool() as pool:
+    with multiprocessing.Pool(_POOL_NUM_PROCESSES) as pool:
         df2 = simulate_2q_xeb_circuits(circuits, cycle_depths, pool=pool)
 
     pd.testing.assert_frame_equal(df, df2)
@@ -76,7 +79,7 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
     tcircuit = circuit[:circuit_depth]
     tcircuit = cirq.resolve_parameters_once(tcircuit, param_resolver=param_resolver)
 
-    pure_sim = cirq.Simulator()
+    pure_sim = cirq.Simulator(dtype=np.complex128)
     psi = pure_sim.simulate(tcircuit)
     psi_vector = psi.final_state_vector
     pure_probs = cirq.state_vector_to_probabilities(psi_vector)
@@ -130,7 +133,7 @@ def test_incremental_simulate(multiprocess):
     cycle_depths = np.arange(3, 100, 9, dtype=np.int64)
 
     if multiprocess:
-        pool = multiprocessing.Pool()
+        pool = multiprocessing.Pool(_POOL_NUM_PROCESSES)
     else:
         pool = None
 

@@ -13,43 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from collections import OrderedDict
-import functools
-import re
-from typing import (
-    Dict,
-    Optional,
-    AsyncIterable,
-    Awaitable,
-    AsyncIterator,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
-import pkg_resources
+
+import importlib.metadata
+from typing import Optional, AsyncIterable, Awaitable, AsyncIterator, Sequence, Tuple, Union
 
 from google.api_core.client_options import ClientOptions
-from google.api_core import exceptions as core_exceptions
 from google.api_core import gapic_v1
 from google.api_core import retry as retries
 from google.auth import credentials as ga_credentials
-from google.oauth2 import service_account  # type: ignore
+
+from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
+from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
+from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
+from .client import QuantumEngineServiceClient
 
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
 except AttributeError:  # pragma: NO COVER
     OptionalRetry = Union[retries.Retry, object]  # type: ignore
-
-from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from google.protobuf import any_pb2
-from google.protobuf import duration_pb2
-from google.protobuf import timestamp_pb2
-from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
-from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
-from .client import QuantumEngineServiceClient
 
 
 class QuantumEngineServiceAsyncClient:
@@ -165,14 +147,12 @@ class QuantumEngineServiceAsyncClient:
         """
         return self._client.transport
 
-    get_transport_class = functools.partial(
-        type(QuantumEngineServiceClient).get_transport_class, type(QuantumEngineServiceClient)
-    )
+    get_transport_class = QuantumEngineServiceClient.get_transport_class
 
     def __init__(
         self,
         *,
-        credentials: ga_credentials.Credentials = None,
+        credentials: Optional[ga_credentials.Credentials] = None,
         transport: Union[str, QuantumEngineServiceTransport] = "grpc_asyncio",
         client_options: Optional[ClientOptions] = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
@@ -2079,9 +2059,9 @@ class QuantumEngineServiceAsyncClient:
 
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(
-        gapic_version=pkg_resources.get_distribution("google-cloud-quantum").version
+        gapic_version=importlib.metadata.version("google-cloud-quantum")
     )
-except pkg_resources.DistributionNotFound:
+except ModuleNotFoundError:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo()
 
 

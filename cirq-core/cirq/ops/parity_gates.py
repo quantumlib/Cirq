@@ -14,7 +14,7 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING, Sequence
+from typing import Any, Dict, List, Iterator, Optional, Tuple, Union, TYPE_CHECKING, Sequence
 from typing_extensions import Self
 
 import numpy as np
@@ -118,7 +118,7 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
 
-    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> Iterator['cirq.OP_TREE']:
         yield common_gates.YPowGate(exponent=-0.5).on_each(*qubits)
         yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
         yield common_gates.YPowGate(exponent=0.5).on_each(*qubits)
@@ -227,7 +227,7 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
 
-    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> Iterator['cirq.OP_TREE']:
         yield common_gates.XPowGate(exponent=0.5).on_each(*qubits)
         yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
         yield common_gates.XPowGate(exponent=-0.5).on_each(*qubits)

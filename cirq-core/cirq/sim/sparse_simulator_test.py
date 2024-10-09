@@ -115,7 +115,7 @@ def test_run_repetitions_terminal_measurement_stochastic():
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.H(q), cirq.measure(q, key='q'))
     results = cirq.Simulator().run(c, repetitions=10000)
-    assert 1000 <= sum(v[0] for v in results.measurements['q']) < 9000
+    assert 1000 <= np.count_nonzero(results.measurements['q']) < 9000
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -255,7 +255,7 @@ def test_run_mixture(dtype: Type[np.complexfloating], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert 20 < sum(result.measurements['q(0)'])[0] < 80
+    assert 20 < np.count_nonzero(result.measurements['q(0)']) < 80
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -265,8 +265,8 @@ def test_run_mixture_with_gates(dtype: Type[np.complexfloating], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split, seed=23)
     circuit = cirq.Circuit(cirq.H(q0), cirq.phase_flip(0.5)(q0), cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['q(0)'])[0] < 80
-    assert sum(result.measurements['q(0)'])[0] > 20
+    assert np.count_nonzero(result.measurements['q(0)']) < 80
+    assert np.count_nonzero(result.measurements['q(0)']) > 20
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -498,11 +498,11 @@ def test_simulate_param_resolver(dtype: Type[np.complexfloating], split: bool):
                 (cirq.X ** sympy.Symbol('b0'))(q0), (cirq.X ** sympy.Symbol('b1'))(q1)
             )
             resolver = {'b0': b0, 'b1': b1}
-            result = simulator.simulate(circuit, param_resolver=resolver)  # type: ignore
+            result = simulator.simulate(circuit, param_resolver=resolver)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][b1] = 1.0
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
-            assert result.params == cirq.ParamResolver(resolver)  # type: ignore
+            assert result.params == cirq.ParamResolver(resolver)
             assert len(result.measurements) == 0
 
 

@@ -208,6 +208,9 @@ def test_format_real():
     assert args.format_real(sympy.Symbol('t')) == 't'
     assert args.format_real(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
 
+    assert args.format_real(np.float64(1.1)) == '1.1'
+    assert args.format_real(np.int32(1)) == '1'
+
     args.precision = None
     assert args.format_real(1) == '1'
     assert args.format_real(1.1) == '1.1'
@@ -252,6 +255,7 @@ def test_format_radians_without_precision():
     assert args.format_radians(-np.pi) == '-pi'
     assert args.format_radians(1.1) == '1.1'
     assert args.format_radians(1.234567) == '1.234567'
+    assert args.format_radians(np.float32(1.234567)) == '1.234567'
     assert args.format_radians(1 / 7) == repr(1 / 7)
     assert args.format_radians(sympy.Symbol('t')) == 't'
     assert args.format_radians(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
@@ -261,6 +265,7 @@ def test_format_radians_without_precision():
     assert args.format_radians(-np.pi) == '-π'
     assert args.format_radians(1.1) == '1.1'
     assert args.format_radians(1.234567) == '1.234567'
+    assert args.format_radians(np.float32(1.234567)) == '1.234567'
     assert args.format_radians(1 / 7) == repr(1 / 7)
     assert args.format_radians(sympy.Symbol('t')) == 't'
     assert args.format_radians(sympy.Symbol('t') * 2 + 1) == '2*t + 1'

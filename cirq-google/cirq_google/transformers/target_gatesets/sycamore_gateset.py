@@ -15,7 +15,7 @@
 """Target gateset used for compiling circuits to Sycamore + 1-q rotations + measurement gates."""
 
 import itertools
-from typing import cast, Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
@@ -93,9 +93,7 @@ def merge_swap_rzz_and_2q_unitaries(
         circuit = cirq.map_operations(
             circuit,
             map_func=lambda op, _: (
-                op
-                if merged_cop_tags.isdisjoint(op.tags)
-                else op.with_tags(cast(str, intermediate_result_tag))
+                op if merged_cop_tags.isdisjoint(op.tags) else op.with_tags(intermediate_result_tag)
             ),
             tags_to_ignore=tags_to_ignore,
             deep=True,

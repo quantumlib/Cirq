@@ -80,6 +80,7 @@ def test_from_moments():
         [cirq.X(c)],
         [],
         cirq.Z(d),
+        None,
         [cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')],
     )
     assert circuit == cirq.Circuit(

@@ -32,7 +32,7 @@ class GPIGate(cirq.Gate):
     $$
     \begin{bmatrix}
       0 & e^{-i 2\pi\phi} \\
-      e^{-i2\pi\phi} & 0
+      e^{i 2\pi\phi} & 0
     \end{bmatrix}
     $$
 
@@ -108,7 +108,7 @@ class GPI2Gate(cirq.Gate):
     \frac{1}{\sqrt{2}}
     \begin{bmatrix}
         1 & -i e^{-i 2\pi\phi} \\
-        -i e^{-i 2\pi\phi} & 1
+        -i e^{i 2\pi\phi} & 1
     \end{bmatrix}
     $$
 
@@ -178,16 +178,16 @@ document(
 
 @cirq.value.value_equality
 class MSGate(cirq.Gate):
-    r"""The Mølmer–Sørensen (MS) gate is a two qubit gate native to trapped ions.
+    r"""The Mølmer-Sørensen (MS) gate is a two qubit gate native to trapped ions.
 
     The unitary matrix of this gate for parameters $\phi_0$, $\phi_1$ and $\theta$ is
 
     $$
     \begin{bmatrix}
-        \cos\pi\theta & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin\pi\theta \\
-        0 & \cos\pi\theta & -ie^{-i2\pi(\phi_0-\phi_1)}\sin\pi\theta & 0 \\
-        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin\pi\theta & \cos\pi\theta & 0 \\
-        -ie^{i2\pi(\phi_0+\phi_1)}\sin\pi\theta & 0 & 0 & \cos\frac{\theta}{2}
+        \cos(\pi \theta) & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin(\pi\theta) \\
+        0 & \cos(\pi\theta) & -ie^{-i2\pi(\phi_0-\phi_1)}\sin(\pi\theta) & 0 \\
+        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin(\pi\theta) & \cos(\pi\theta) & 0 \\
+        -ie^{i2\pi(\phi_0+\phi_1)}\sin(\pi\theta) & 0 & 0 & \cos(\pi\theta)
     \end{bmatrix}
     $$
 

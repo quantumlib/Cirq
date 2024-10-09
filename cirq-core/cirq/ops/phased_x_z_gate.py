@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import AbstractSet, Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
+from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 import numbers
 
 import numpy as np
@@ -188,7 +189,7 @@ class PhasedXZGate(raw_types.Gate):
         z_post = protocols.unitary(ops.Z ** (self._axis_phase_exponent + self._z_exponent))
         return z_post @ x @ z_pre
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         q = qubits[0]
         yield ops.Z(q) ** -self._axis_phase_exponent
         yield ops.X(q) ** self._x_exponent

@@ -912,7 +912,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     def __str__(self) -> str:
         def bitstring(vals):
             separator = ' ' if np.max(vals) >= 10 else ''
-            return separator.join(str(int(v)) for v in vals)
+            return separator.join(str(v.item()) for v in vals)
 
         results = sorted([(key, bitstring(val)) for key, val in self.measurements.items()])
         if not results:

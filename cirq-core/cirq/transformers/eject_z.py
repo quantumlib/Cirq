@@ -14,7 +14,7 @@
 
 """Transformer pass that pushes Z gates later and later in the circuit."""
 
-from typing import Dict, Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Iterable, Iterator, Optional, Tuple, TYPE_CHECKING
 from collections import defaultdict
 import numpy as np
 
@@ -76,7 +76,7 @@ def eject_z(
         lambda: None
     )
 
-    def dump_tracked_phase(qubits: Iterable[ops.Qid]) -> 'cirq.OP_TREE':
+    def dump_tracked_phase(qubits: Iterable[ops.Qid]) -> Iterator['cirq.OP_TREE']:
         """Zeroes qubit_phase entries by emitting Z gates."""
         for q in qubits:
             p, key = qubit_phase[q], last_phased_xz_op[q]

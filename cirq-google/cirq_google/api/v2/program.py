@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import re
-from typing import TYPE_CHECKING
 
 import cirq
 
-if TYPE_CHECKING:
-    import cirq
+from cirq_google.ops.coupler import Coupler
 
 GRID_QUBIT_ID_PATTERN = r'^q?(-?\d+)_(-?\d+)$'
 
@@ -31,6 +29,9 @@ def qubit_to_proto_id(q: cirq.Qid) -> str:
     For `cirq.NamedQubit`s this id is the name.
 
     For `cirq.LineQubit`s this is string of the `x` attribute.
+
+    For `cirq_google.Coupler`s, this id is `c_{qubit0}_{qubit1}` where
+    qubit0 and qubit1 are the ids for the two Qid in the Coupler.
     """
     if isinstance(q, cirq.GridQubit):
         return f'{q.row}_{q.col}'
@@ -38,6 +39,8 @@ def qubit_to_proto_id(q: cirq.Qid) -> str:
         return q.name
     elif isinstance(q, cirq.LineQubit):
         return f'{q.x}'
+    elif isinstance(q, Coupler):
+        return f'c_{qubit_to_proto_id(q.qubit0)}_{qubit_to_proto_id(q.qubit1)}'
     else:
         raise ValueError(f'Qubits of type {type(q)} do not support proto id')
 
@@ -49,6 +52,15 @@ def qubit_from_proto_id(proto_id: str) -> cirq.Qid:
 
     Proto IDs of the form {int} are parsed as LineQubits.
 
+    Proto IDs of the form c_{int}_{int} are parsed as Couplers
+    between two LineQubits.
+
+    Proto IDs of the form c_{int}_{int}_{int}_{int} are parsed as Couplers
+    between two GridQubit.
+
+    Proto IDs of the form c_{name}_{name} are parsed as Couplers
+    between two NamedQubits.
+
     All other proto IDs are parsed as NamedQubits. Note that this will happily
     accept any string; for circuits which explicitly use Grid or LineQubits,
     prefer one of the specialized methods below.
@@ -59,8 +71,26 @@ def qubit_from_proto_id(proto_id: str) -> cirq.Qid:
     Returns:
         A `cirq.Qid` corresponding to the proto id.
     """
-    num_coords = len(proto_id.split('_'))
-    if num_coords == 2:
+    qubit_field = proto_id.split('_')
+    num_coords = len(qubit_field)
+    if proto_id[:2] == 'c_':
+        if num_coords == 5:
+            # 2 grid qubits: c_2_1_4_3
+            grid_qubit0_str = qubit_field[1] + '_' + qubit_field[2]
+            grid_qubit1_str = qubit_field[3] + '_' + qubit_field[4]
+            try:
+                grid_qubit0 = grid_qubit_from_proto_id(grid_qubit0_str)
+                grid_qubit1 = grid_qubit_from_proto_id(grid_qubit1_str)
+                return Coupler(grid_qubit0, grid_qubit1)
+            except ValueError:
+                pass  # Not valid grid qubits.
+        elif num_coords == 3:
+            # 2 line qubits: c_2_4
+            # Or two named qubits: c_qubita_qubitb
+            line_qubit0 = qubit_from_proto_id(qubit_field[1])
+            line_qubit1 = qubit_from_proto_id(qubit_field[2])
+            return Coupler(line_qubit0, line_qubit1)
+    elif num_coords == 2:
         try:
             grid_q = grid_qubit_from_proto_id(proto_id)
             return grid_q

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import itertools
 import multiprocessing
 from typing import Iterable
@@ -32,8 +33,11 @@ from cirq.experiments.xeb_fitting import (
     fit_exponential_decays,
     before_and_after_characterization,
     XEBPhasedFSimCharacterizationOptions,
+    phased_fsim_angles_from_gate,
 )
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
+
+_POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
 
 
 @pytest.fixture(scope='module')
@@ -228,7 +232,7 @@ def test_characterize_phased_fsim_parameters_with_xeb():
         characterize_phi=False,
     )
     p_circuits = [parameterize_circuit(circuit, options) for circuit in circuits]
-    with multiprocessing.Pool() as pool:
+    with multiprocessing.Pool(_POOL_NUM_PROCESSES) as pool:
         result = characterize_phased_fsim_parameters_with_xeb(
             sampled_df=sampled_df,
             parameterized_circuits=p_circuits,
@@ -269,7 +273,7 @@ def test_parallel_full_workflow(use_pool):
     )
 
     if use_pool:
-        pool = multiprocessing.Pool()
+        pool = multiprocessing.Pool(_POOL_NUM_PROCESSES)
     else:
         pool = None
 
@@ -354,7 +358,7 @@ def test_options_with_defaults_from_gate():
     assert options.zeta_default == 0.0
 
     with pytest.raises(ValueError):
-        _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.CZ)
+        _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.XX)
 
 
 def test_options_defaults_set():
@@ -395,3 +399,34 @@ def test_options_defaults_set():
         phi_default=0.0,
     )
     assert o3.defaults_set() is True
+
+
+def _random_angles(n, seed):
+    rng = np.random.default_rng(seed)
+    r = 2 * rng.random((n, 5)) - 1
+    return np.pi * r
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.CZ,
+        cirq.SQRT_ISWAP,
+        cirq.SQRT_ISWAP_INV,
+        cirq.ISWAP,
+        cirq.ISWAP_INV,
+        cirq.cphase(0.1),
+        cirq.CZ**0.2,
+    ]
+    + [cirq.PhasedFSimGate(*r) for r in _random_angles(10, 0)],
+)
+def test_phased_fsim_angles_from_gate(gate):
+    angles = phased_fsim_angles_from_gate(gate)
+    angles = {k.removesuffix('_default'): v for k, v in angles.items()}
+    phasedfsim = cirq.PhasedFSimGate(**angles)
+    np.testing.assert_allclose(cirq.unitary(phasedfsim), cirq.unitary(gate), atol=1e-9)
+
+
+def test_phased_fsim_angles_from_gate_unsupporet_gate():
+    with pytest.raises(ValueError, match='Unknown default angles'):
+        _ = phased_fsim_angles_from_gate(cirq.testing.TwoQubitGate())
