@@ -96,7 +96,6 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'o
         return
 
     if n == 4:
-        global_phase = np.angle(np.linalg.det(u)) / u.shape[0]
         operations = tuple(
             two_qubit_matrix_to_cz_operations(
                 qubits[0], qubits[1], u, allow_partial_czs=True, clean_operations=True
