@@ -41,7 +41,9 @@ if TYPE_CHECKING:
     from cirq.ops import op_tree
 
 
-def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'op_tree.OpTree':
+def quantum_shannon_decomposition(
+    qubits: 'List[cirq.Qid]', u: np.ndarray, atol: float = 1e-8
+) -> 'op_tree.OpTree':
     """Decomposes n-qubit unitary 1-q, 2-q and GlobalPhase gates, preserving global phase.
 
     The gates used are CX/YPow/ZPow/CNOT/GlobalPhase/CZ/PhasedXZGate/PhasedXPowGate.
@@ -58,6 +60,7 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'o
     Args:
         qubits: List of qubits in order of significance
         u: Numpy array for unitary matrix representing gate to be decomposed
+        atol: Absolute tolerance of floating point checks.
 
     Calls:
         (Base Case)
@@ -77,7 +80,7 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'o
         ValueError: If the u matrix is non-unitary
         ValueError: If the u matrix is not of shape (2^n,2^n)
     """
-    if not predicates.is_unitary(u):  # Check that u is unitary
+    if not predicates.is_unitary(u, atol=atol):  # Check that u is unitary
         raise ValueError(
             "Expected input matrix u to be unitary, \
                 but it fails cirq.is_unitary check"
@@ -226,7 +229,7 @@ def _msb_demuxer(
     # Last term is given by ( I ⊗ W ), demultiplexed
     # Remove most-significant (demuxed) control-qubit
     # Yield operations for QSD on W
-    yield from quantum_shannon_decomposition(demux_qubits[1:], W)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], W, atol=1e-6)
 
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
     # Observe that middle part looks like Σ_i( Rz(theta_i)⊗|i><i| )
@@ -234,7 +237,7 @@ def _msb_demuxer(
     yield from _multiplexed_cossin(demux_qubits, -np.angle(d), ops.rz)
 
     # Yield operations for QSD on V
-    yield from quantum_shannon_decomposition(demux_qubits[1:], V)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], V, atol=1e-6)
 
 
 def _nth_gray(n: int) -> int:
