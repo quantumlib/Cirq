@@ -184,7 +184,7 @@ def _msb_demuxer(
         dsquared, V = np.linalg.eigh(u)
     else:
         dsquared, V = np.linalg.eig(u)
-        # Use Gram–Schmidt to optain orthonormal eigenvectors for each of the subspaces.
+        # Use Gram–Schmidt to obtain orthonormal eigenvectors for each of the subspaces.
         for i in range(V.shape[0]):
             for j in range(i):
                 if np.abs(dsquared[i] - dsquared[j]) < 1e-9:
