@@ -706,6 +706,36 @@ def test_measurement_bounds():
         parser.parse(qasm)
 
 
+def test_reset():
+    qasm ="""
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     creg c[1];
+     x q[0];
+     reset q[0];
+     measure q[0] -> c[0];
+     """
+
+    parser = QasmParser()
+
+    q_0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.X(q_0))
+    expected_circuit.append(cirq.ResetChannel().on(q_0))
+    expected_circuit.append(cirq.MeasurementGate(num_qubits=1, key='c_0').on(q_0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}
+    assert parsed_qasm.cregs == {'c': 1}
+
+
 def test_u1_gate():
     qasm = """
      OPENQASM 2.0;
