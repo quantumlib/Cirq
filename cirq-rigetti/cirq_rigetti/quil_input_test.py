@@ -253,6 +253,19 @@ def test_parametric_quil():
     assert cirq_circuit == circuit
 
 
+QUIL_PROGRAM_WITH_SINGLE_PARAMETER = """
+DECLARE theta REAL[1]
+RZ(theta) 0
+"""
+
+
+def test_scalar_param_name_unchanged_by_conversion():
+    """Ensure the name of scalar parameter does not change during conversion."""
+    program = Program(QUIL_PROGRAM_WITH_SINGLE_PARAMETER)
+    circuit = circuit_from_quil(program)
+    assert cirq.parameter_names(circuit) == {"theta"}
+
+
 def test_measurement_without_classical_reg():
     """Measure operations must declare a classical register."""
     with pytest.raises(UnsupportedQuilInstruction):
