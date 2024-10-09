@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 def quantum_shannon_decomposition(
-    qubits: 'List[cirq.Qid]', u: np.ndarray, check_unitary: bool = True
+    qubits: 'List[cirq.Qid]', u: np.ndarray, atol: float = 1e-8
 ) -> 'op_tree.OpTree':
     """Decomposes n-qubit unitary into CX/YPow/ZPow/CNOT gates, preserving global phase.
 
@@ -50,7 +50,7 @@ def quantum_shannon_decomposition(
     Args:
         qubits: List of qubits in order of significance
         u: Numpy array for unitary matrix representing gate to be decomposed
-        check_unitary: Whether to check if the input is a unitary.
+        atol: absolute tolerance for floating point checks.
 
     Calls:
         (Base Case)
@@ -70,7 +70,7 @@ def quantum_shannon_decomposition(
         ValueError: If the u matrix is non-unitary
         ValueError: If the u matrix is not of shape (2^n,2^n)
     """
-    if check_unitary and not predicates.is_unitary(u):  # Check that u is unitary
+    if not predicates.is_unitary(u, atol=atol):  # Check that u is unitary
         raise ValueError(
             "Expected input matrix u to be unitary, \
                 but it fails cirq.is_unitary check"
@@ -189,6 +189,7 @@ def _msb_demuxer(
             for j in range(i):
                 if np.abs(dsquared[i] - dsquared[j]) < 1e-9:
                     V[:, i] -= np.dot(V[:, j].conj(), V[:, i]) * V[:, j]
+            V[:, i] /= np.linalg.norm(V[:, i])  # normalize.
     dsquared = dsquared.astype(np.complex128)
     d = np.sqrt(dsquared)
     D = np.diag(d)
@@ -198,7 +199,7 @@ def _msb_demuxer(
     # Yield operations for QSD on W
     # Note: Mathematically `W` is a unitary but it might fail `is_unitary`
     #   check due to numerical precision.
-    yield from quantum_shannon_decomposition(demux_qubits[1:], W, check_unitary=False)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], W, atol=1e-6)
 
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
     # Observe that middle part looks like Σ_i( Rz(theta_i)⊗|i><i| )
@@ -208,7 +209,7 @@ def _msb_demuxer(
     # Yield operations for QSD on V
     # Note: Mathematically `V` is a unitary but it might fail `is_unitary`
     #   check due to numerical precision.
-    yield from quantum_shannon_decomposition(demux_qubits[1:], V, check_unitary=False)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], V, atol=1e-6)
 
 
 def _nth_gray(n: int) -> int:

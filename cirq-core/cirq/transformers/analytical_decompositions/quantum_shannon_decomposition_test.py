@@ -130,7 +130,7 @@ def test_qft_decomposes():
     qft_unitary = cirq.unitary(qft_circuit)
     decomposed_circuit = cirq.Circuit(quantum_shannon_decomposition(qs, qft_unitary))
     new_unitary = cirq.unitary(decomposed_circuit)
-    np.testing.assert_allclose(new_unitary, qft_unitary, atol=5e-4)
+    np.testing.assert_allclose(new_unitary, qft_unitary, atol=1e-6)
 
 
 # Cliffords test the different corner cases of the ZYZ decomposition.
