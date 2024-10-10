@@ -76,14 +76,15 @@ class AbstractProcessor(abc.ABC):
                 provided, a moment by moment schedule will be used.
             run_name: A unique identifier representing an automation run for the
                 processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
+                configurations for the processor. `snapshot_id` and `run_name`
+                should not both be set. Choose one.
             snapshot_id: A unique identifier for an immutable snapshot reference.
                 A snapshot contains a collection of device configurations for the
                 processor. `snapshot_id` and `run_name` should not both be set.
                 Choose one.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
