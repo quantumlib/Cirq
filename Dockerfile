@@ -19,10 +19,8 @@ RUN rm -f /usr/bin/python \
      && ln -s /usr/bin/python3 /usr/bin/python
 #cirq stable image
 FROM cirq_base AS cirq_stable
-# TODO: #6754 - adjust or remove the quil pin
-RUN pip3 install cirq "quil<0.13.0"
+RUN pip3 install cirq
 
 ##cirq pre_release image
 FROM cirq_base AS cirq_pre_release
-# TODO: #6754 - adjust or remove the quil pin
-RUN pip3 install cirq~=1.0.dev "quil<0.13.0"
+RUN pip3 install cirq~=1.0.dev

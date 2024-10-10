@@ -1,7 +1,4 @@
 pyquil>=4.11.0,<5.0.0
 
-# TODO: #6754 - adjust or remove if binary wheels are provided again
-quil<0.13.0
-
 # TODO - remove once pyquil requires qcs-sdk-python >= 0.20.1
 qcs-sdk-python>=0.20.1
