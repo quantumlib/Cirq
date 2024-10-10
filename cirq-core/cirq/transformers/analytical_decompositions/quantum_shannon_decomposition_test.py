@@ -170,7 +170,7 @@ def test_global_phase():
 
 
 @pytest.mark.parametrize('gate', [cirq.CZ, cirq.CNOT, cirq.XX, cirq.YY, cirq.ZZ])
-def test_two_qubit_gate(gate, global_phase):
+def test_two_qubit_gate(gate):
     global_phase = np.exp(1j * np.random.choice(np.linspace(0, 2 * np.pi, 10)))
     desired_unitary = cirq.unitary(gate) * global_phase
     shannon_circuit = cirq.Circuit(
@@ -181,7 +181,7 @@ def test_two_qubit_gate(gate, global_phase):
 
 
 @pytest.mark.parametrize('gate', [cirq.CCNOT, cirq.qft(*cirq.LineQubit.range(3))])
-def test_three_qubit_gate(gate, global_phase):
+def test_three_qubit_gate(gate):
     global_phase = np.exp(1j * np.random.choice(np.linspace(0, 2 * np.pi, 10)))
     desired_unitary = cirq.unitary(gate) * global_phase
     shannon_circuit = cirq.Circuit(
