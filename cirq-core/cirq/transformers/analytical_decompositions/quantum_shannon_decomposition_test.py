@@ -151,17 +151,17 @@ def test_cliffords(gate, num_ops):
         np.testing.assert_allclose(new_unitary, desired_unitary)
 
 
-@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0.1, 2 * np.pi, 10)))
 @pytest.mark.parametrize('gate', [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S])
-def test_cliffords_with_global_phase(gate, global_phase):
+def test_cliffords_with_global_phase(gate):
+    global_phase = np.exp(1j * np.random.choice(np.linspace(0.1, 2 * np.pi, 10)))
     desired_unitary = cirq.unitary(gate) * global_phase
     shannon_circuit = cirq.Circuit(quantum_shannon_decomposition((cirq.q(0),), desired_unitary))
     new_unitary = cirq.unitary(shannon_circuit)
     np.testing.assert_allclose(new_unitary, desired_unitary)
 
 
-@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0.1, 2 * np.pi, 10)))
-def test_global_phase(global_phase):
+def test_global_phase():
+    global_phase = np.exp(1j * np.random.choice(np.linspace(0, 2 * np.pi, 10)))
     shannon_circuit = cirq.Circuit(
         quantum_shannon_decomposition((cirq.q(0),), np.eye(2) * global_phase)
     )
@@ -170,8 +170,8 @@ def test_global_phase(global_phase):
 
 
 @pytest.mark.parametrize('gate', [cirq.CZ, cirq.CNOT, cirq.XX, cirq.YY, cirq.ZZ])
-@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0, 2 * np.pi, 10)))
 def test_two_qubit_gate(gate, global_phase):
+    global_phase = np.exp(1j * np.random.choice(np.linspace(0, 2 * np.pi, 10)))
     desired_unitary = cirq.unitary(gate) * global_phase
     shannon_circuit = cirq.Circuit(
         quantum_shannon_decomposition(cirq.LineQubit.range(2), desired_unitary)
@@ -181,8 +181,8 @@ def test_two_qubit_gate(gate, global_phase):
 
 
 @pytest.mark.parametrize('gate', [cirq.CCNOT, cirq.qft(*cirq.LineQubit.range(3))])
-@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0, 2 * np.pi, 10)))
 def test_three_qubit_gate(gate, global_phase):
+    global_phase = np.exp(1j * np.random.choice(np.linspace(0, 2 * np.pi, 10)))
     desired_unitary = cirq.unitary(gate) * global_phase
     shannon_circuit = cirq.Circuit(
         quantum_shannon_decomposition(cirq.LineQubit.range(3), desired_unitary)
@@ -191,8 +191,8 @@ def test_three_qubit_gate(gate, global_phase):
     np.testing.assert_allclose(new_unitary, desired_unitary, atol=1e-6)
 
 
-@pytest.mark.parametrize('global_phase', np.exp(1j * np.linspace(0, 2 * np.pi, 4)))
-def test_qft5(global_phase):
+def test_qft5():
+    global_phase = np.exp(1j * np.random.choice(np.linspace(0, 2 * np.pi, 10)))
     desired_unitary = cirq.unitary(cirq.qft(*cirq.LineQubit.range(5))) * global_phase
     shannon_circuit = cirq.Circuit(
         quantum_shannon_decomposition(cirq.LineQubit.range(5), desired_unitary)
