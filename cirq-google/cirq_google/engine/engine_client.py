@@ -436,7 +436,8 @@ class EngineClient:
             raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
         if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError(
-                'Cannot specify only one of top level identifier and `device_config_name`'
+                'Cannot specify only one of top level identifier (e.g `run_name`, `snapshot_id`)'
+                ' and `device_config_name`'
             )
 
         # Create job.

@@ -82,7 +82,8 @@ class AbstractProcessor(abc.ABC):
                 available qubits, couplers, and supported gates in the processor.
             snapshot_id: A unique identifier for an immutable snapshot reference.
                 A snapshot contains a collection of device configurations for the
-                processor. Both `snapshot_id` and `run_name` should not be set.
+                processor. `snapshot_id` and `run_name` should not both be set.
+                Choose one.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
