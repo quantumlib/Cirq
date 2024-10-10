@@ -101,7 +101,7 @@ def quantum_shannon_decomposition(
     if n == 4:
         operations = tuple(
             two_qubit_matrix_to_cz_operations(
-                qubits[0], qubits[1], u, allow_partial_czs=True, clean_operations=True
+                qubits[0], qubits[1], u, allow_partial_czs=True, clean_operations=True, atol=atol
             )
         )
         yield from operations
@@ -113,7 +113,9 @@ def quantum_shannon_decomposition(
         return
 
     if n == 8:
-        operations = tuple(three_qubit_matrix_to_operations(qubits[0], qubits[1], qubits[2], u))
+        operations = tuple(
+            three_qubit_matrix_to_operations(qubits[0], qubits[1], qubits[2], u, atol=atol)
+        )
         yield from operations
         i, j = np.unravel_index(np.argmax(np.abs(u)), u.shape)
         new_unitary = unitary_protocol.unitary(FrozenCircuit.from_moments(*operations))
