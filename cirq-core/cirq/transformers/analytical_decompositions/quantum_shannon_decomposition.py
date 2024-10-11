@@ -161,22 +161,22 @@ def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> 'op_tree.Op
     if np.abs(u[0, 0]) < 1e-9:
         global_phase = np.angle(u[1, 0]) + phi_0 / 2 - phi_2 / 2
 
-    if np.abs(phi_2) > 1e-16:
+    if np.abs(phi_2) > 1e-18:
         # Append first two operations operations
         yield ops.rz(phi_0).on(qubit)
         yield ops.ry(phi_1).on(qubit)
 
         # Append third operation with global phase added
         yield ops.ZPowGate(exponent=phi_2 / np.pi, global_shift=global_phase / phi_2 - 0.5)(qubit)
-    elif np.abs(phi_1) > 1e-16:
+    elif np.abs(phi_1) > 1e-18:
         # Just a Z -> Y rotation so we attach the global phase to the Y rotation.
-        if np.abs(phi_0) > 1e-16:
+        if np.abs(phi_0) > 1e-18:
             yield ops.rz(phi_0)(qubit)
         yield ops.YPowGate(exponent=phi_1 / np.pi, global_shift=global_phase / phi_1 - 0.5)(qubit)
-    elif np.abs(phi_0) > 1e-16:
+    elif np.abs(phi_0) > 1e-18:
         # Just an Rz with a potential global phase.
         yield ops.ZPowGate(exponent=phi_0 / np.pi, global_shift=global_phase / phi_0 - 0.5)(qubit)
-    elif np.abs(global_phase) > 1e-16:
+    elif np.abs(global_phase) > 1e-18:
         # Global Phase.
         yield ops.global_phase_operation(np.exp(1j * global_phase))
     else:
