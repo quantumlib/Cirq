@@ -27,22 +27,40 @@ import numpy as np
 
 from cirq import ops
 from cirq.linalg import decompositions, predicates
+from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
+    two_qubit_matrix_to_cz_operations,
+)
+from cirq.transformers.analytical_decompositions.three_qubit_decomposition import (
+    three_qubit_matrix_to_operations,
+)
+from cirq.protocols import unitary_protocol
+from cirq.circuits.frozen_circuit import FrozenCircuit
 
 if TYPE_CHECKING:
     import cirq
     from cirq.ops import op_tree
 
 
-def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'op_tree.OpTree':
-    """Decomposes n-qubit unitary into CX/YPow/ZPow/CNOT gates, preserving global phase.
+def quantum_shannon_decomposition(
+    qubits: 'List[cirq.Qid]', u: np.ndarray, atol: float = 1e-8
+) -> 'op_tree.OpTree':
+    """Decomposes n-qubit unitary 1-q, 2-q and GlobalPhase gates, preserving global phase.
+
+    The gates used are CX/YPow/ZPow/CNOT/GlobalPhase/CZ/PhasedXZGate/PhasedXPowGate.
 
     The algorithm is described in Shende et al.:
     Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
     https://arxiv.org/abs/quant-ph/0406176
 
+    Note: Shannon decomposition is sensitive to the numerical accuracy of doing eigendecomposition.
+        Eigendecomposition is obtained using `np.linalg.eig` and the resulting difference between
+        the input and output unitary is heavily affected by the accuracy of `np.linalg.eig`.
+
+
     Args:
         qubits: List of qubits in order of significance
         u: Numpy array for unitary matrix representing gate to be decomposed
+        atol: Absolute tolerance of floating point checks.
 
     Calls:
         (Base Case)
@@ -62,7 +80,7 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'o
         ValueError: If the u matrix is non-unitary
         ValueError: If the u matrix is not of shape (2^n,2^n)
     """
-    if not predicates.is_unitary(u):  # Check that u is unitary
+    if not predicates.is_unitary(u, atol=atol):  # Check that u is unitary
         raise ValueError(
             "Expected input matrix u to be unitary, \
                 but it fails cirq.is_unitary check"
@@ -78,6 +96,32 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'o
     if n == 2:
         # Yield a single-qubit decomp if u is 2x2
         yield from _single_qubit_decomposition(qubits[0], u)
+        return
+
+    if n == 4:
+        operations = tuple(
+            two_qubit_matrix_to_cz_operations(
+                qubits[0], qubits[1], u, allow_partial_czs=True, clean_operations=True, atol=atol
+            )
+        )
+        yield from operations
+        i, j = np.unravel_index(np.argmax(np.abs(u)), u.shape)
+        new_unitary = unitary_protocol.unitary(FrozenCircuit.from_moments(*operations))
+        global_phase = np.angle(u[i, j]) - np.angle(new_unitary[i, j])
+        if np.abs(global_phase) > 1e-9:
+            yield ops.global_phase_operation(np.exp(1j * global_phase))
+        return
+
+    if n == 8:
+        operations = tuple(
+            three_qubit_matrix_to_operations(qubits[0], qubits[1], qubits[2], u, atol=atol)
+        )
+        yield from operations
+        i, j = np.unravel_index(np.argmax(np.abs(u)), u.shape)
+        new_unitary = unitary_protocol.unitary(FrozenCircuit.from_moments(*operations))
+        global_phase = np.angle(u[i, j]) - np.angle(new_unitary[i, j])
+        if np.abs(global_phase) > 1e-9:
+            yield ops.global_phase_operation(np.exp(1j * global_phase))
         return
 
     # Perform a cosine-sine (linalg) decomposition on u
@@ -108,17 +152,36 @@ def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> 'op_tree.Op
         A single operation from OP TREE of 3 operations (rz,ry,ZPowGate)
     """
     # Perform native ZYZ decomposition
-    phi_0, phi_1, phi_2 = decompositions.deconstruct_single_qubit_matrix_into_angles(u)
+    phi_0, phi_1, phi_2 = np.array(
+        decompositions.deconstruct_single_qubit_matrix_into_angles(u)
+    ) % (2 * np.pi)
 
     # Determine global phase picked up
-    phase = np.angle(u[0, 0] / (np.exp(-1j * (phi_0) / 2) * np.cos(phi_1 / 2)))
+    global_phase = np.angle(u[0, 0]) + phi_0 / 2 + phi_2 / 2
+    if np.abs(u[0, 0]) < 1e-9:
+        global_phase = np.angle(u[1, 0]) + phi_0 / 2 - phi_2 / 2
 
-    # Append first two operations operations
-    yield ops.rz(phi_0).on(qubit)
-    yield ops.ry(phi_1).on(qubit)
+    if np.abs(phi_2) > 1e-18:
+        # Append first two operations operations
+        yield ops.rz(phi_0).on(qubit)
+        yield ops.ry(phi_1).on(qubit)
 
-    # Append third operation with global phase added
-    yield ops.ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit)
+        # Append third operation with global phase added
+        yield ops.ZPowGate(exponent=phi_2 / np.pi, global_shift=global_phase / phi_2 - 0.5)(qubit)
+    elif np.abs(phi_1) > 1e-18:
+        # Just a Z -> Y rotation so we attach the global phase to the Y rotation.
+        if np.abs(phi_0) > 1e-18:
+            yield ops.rz(phi_0)(qubit)
+        yield ops.YPowGate(exponent=phi_1 / np.pi, global_shift=global_phase / phi_1 - 0.5)(qubit)
+    elif np.abs(phi_0) > 1e-18:
+        # Just an Rz with a potential global phase.
+        yield ops.ZPowGate(exponent=phi_0 / np.pi, global_shift=global_phase / phi_0 - 0.5)(qubit)
+    elif np.abs(global_phase) > 1e-18:
+        # Global Phase.
+        yield ops.global_phase_operation(np.exp(1j * global_phase))
+    else:
+        # Identity.
+        return
 
 
 def _msb_demuxer(
@@ -146,8 +209,21 @@ def _msb_demuxer(
     Yields: Single operation from OP TREE of 2-qubit and 1-qubit operations
     """
     # Perform a diagonalization to find values
+    u1 = u1.astype(np.complex128)
+    u2 = u2.astype(np.complex128)
     u = u1 @ u2.T.conjugate()
-    dsquared, V = np.linalg.eig(u)
+    if predicates.is_hermitian(u):
+        # If `u` is hermitian, use the more accurate `eigh` method.
+        dsquared, V = np.linalg.eigh(u)
+    else:
+        dsquared, V = np.linalg.eig(u)
+        # Use Gram–Schmidt to obtain orthonormal eigenvectors for each of the subspaces.
+        for i in range(V.shape[0]):
+            for j in range(i):
+                if np.abs(dsquared[i] - dsquared[j]) < 1e-9:
+                    V[:, i] -= np.dot(V[:, j].conj(), V[:, i]) * V[:, j]
+            V[:, i] /= np.linalg.norm(V[:, i])  # normalize.
+    dsquared = dsquared.astype(np.complex128)
     d = np.sqrt(dsquared)
     D = np.diag(d)
     W = D @ V.T.conjugate() @ u2
@@ -155,7 +231,7 @@ def _msb_demuxer(
     # Last term is given by ( I ⊗ W ), demultiplexed
     # Remove most-significant (demuxed) control-qubit
     # Yield operations for QSD on W
-    yield from quantum_shannon_decomposition(demux_qubits[1:], W)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], W, atol=1e-6)
 
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
     # Observe that middle part looks like Σ_i( Rz(theta_i)⊗|i><i| )
@@ -163,7 +239,7 @@ def _msb_demuxer(
     yield from _multiplexed_cossin(demux_qubits, -np.angle(d), ops.rz)
 
     # Yield operations for QSD on V
-    yield from quantum_shannon_decomposition(demux_qubits[1:], V)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], V, atol=1e-6)
 
 
 def _nth_gray(n: int) -> int:
@@ -223,8 +299,9 @@ def _multiplexed_cossin(
         #   so introduce max function
         select_qubit = max(-select_qubit - 1, -len(control_qubits))
 
-        # Add a rotation on the main qubit
-        yield rot_func(rotation).on(main_qubit)
+        if np.abs(rotation) > 1e-9:
+            # Add a rotation on the main qubit
+            yield rot_func(rotation).on(main_qubit)
 
         # Add a CNOT from the select qubit to the main qubit
         yield ops.CNOT(control_qubits[select_qubit], main_qubit)
