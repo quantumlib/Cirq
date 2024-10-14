@@ -343,8 +343,22 @@ def test_get_sampler_uses_custom_default_device_configuration_key() -> None:
     assert sampler.device_config_name == "config_alias1"
 
 
-@pytest.mark.parametrize('run, config_alias', [('run', ''), ('', 'config')])
-def test_get_sampler_with_incomplete_device_configuration_uses_defaults(run, config_alias) -> None:
+@pytest.mark.parametrize(
+    'run, snapshot_id, config_alias, error_message',
+    [
+        ('run', '', '', 'Cannot specify only one of top level identifier and `device_config_name`'),
+        (
+            '',
+            '',
+            'config',
+            'Cannot specify only one of top level identifier and `device_config_name`',
+        ),
+        ('run', 'snapshot_id', 'config', 'Cannot specify both `run_name` and `snapshot_id`'),
+    ],
+)
+def test_get_sampler_with_incomplete_device_configuration_errors(
+    run, snapshot_id, config_alias, error_message
+) -> None:
     processor = cg.EngineProcessor(
         'a',
         'p',
@@ -356,10 +370,10 @@ def test_get_sampler_with_incomplete_device_configuration_uses_defaults(run, con
         ),
     )
 
-    with pytest.raises(
-        ValueError, match='Cannot specify only one of `run_name` and `device_config_name`'
-    ):
-        processor.get_sampler(run_name=run, device_config_name=config_alias)
+    with pytest.raises(ValueError, match=error_message):
+        processor.get_sampler(
+            run_name=run, device_config_name=config_alias, snapshot_id=snapshot_id
+        )
 
 
 def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
