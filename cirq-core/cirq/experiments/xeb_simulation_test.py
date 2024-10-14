@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import multiprocessing
-from typing import Dict, Any, Optional
-from typing import Sequence
+from typing import Any, Dict, Iterator, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -27,7 +28,14 @@ from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 _POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
 
 
-def test_simulate_2q_xeb_circuits():
+@pytest.fixture
+def pool() -> Iterator[multiprocessing.pool.Pool]:
+    ctx = multiprocessing.get_context()
+    with ctx.Pool(_POOL_NUM_PROCESSES) as pool:
+        yield pool
+
+
+def test_simulate_2q_xeb_circuits(pool):
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -45,8 +53,7 @@ def test_simulate_2q_xeb_circuits():
         assert len(row['pure_probs']) == 4
         assert np.isclose(np.sum(row['pure_probs']), 1)
 
-    with multiprocessing.Pool(_POOL_NUM_PROCESSES) as pool:
-        df2 = simulate_2q_xeb_circuits(circuits, cycle_depths, pool=pool)
+    df2 = simulate_2q_xeb_circuits(circuits, cycle_depths, pool=pool)
 
     pd.testing.assert_frame_equal(df, df2)
 
@@ -121,8 +128,8 @@ def _ref_simulate_2q_xeb_circuits(
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth']).sort_index()
 
 
-@pytest.mark.parametrize('multiprocess', (True, False))
-def test_incremental_simulate(multiprocess):
+@pytest.mark.parametrize('use_pool', (True, False))
+def test_incremental_simulate(request, use_pool):
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -132,16 +139,12 @@ def test_incremental_simulate(multiprocess):
     ]
     cycle_depths = np.arange(3, 100, 9, dtype=np.int64)
 
-    if multiprocess:
-        pool = multiprocessing.Pool(_POOL_NUM_PROCESSES)
-    else:
-        pool = None
+    # avoid starting worker pool if it is not needed
+    pool = request.getfixturevalue("pool") if use_pool else None
 
     df_ref = _ref_simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
 
     df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
-    if pool is not None:
-        pool.terminate()
     pd.testing.assert_frame_equal(df_ref, df)
 
     # Use below for approximate equality, if e.g. you're using qsim:
