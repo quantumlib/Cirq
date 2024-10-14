@@ -515,13 +515,12 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-@pytest.mark.parametrize('processor_id', [('processor0')])
 @pytest.mark.parametrize(
     'run_name, snapshot_id, device_config_name',
     [('RUN_NAME', '', 'CONFIG_NAME'), ('', '', ''), ('', '', '')],
 )
 def test_create_job_with_run_name_and_device_config_name_succeeds(
-    client_constructor, processor_id, run_name, snapshot_id, device_config_name
+    client_constructor, run_name, snapshot_id, device_config_name
 ):
     grpc_client = _setup_client_mock(client_constructor)
     result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
@@ -533,7 +532,7 @@ def test_create_job_with_run_name_and_device_config_name_succeeds(
         project_id='proj',
         program_id='prog',
         job_id='job0',
-        processor_id=processor_id,
+        processor_id="processor0",
         run_name=run_name,
         snapshot_id=snapshot_id,
         device_config_name=device_config_name,
