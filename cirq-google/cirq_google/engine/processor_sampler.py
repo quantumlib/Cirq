@@ -29,12 +29,13 @@ class ProcessorSampler(cirq.Sampler):
         *,
         processor: 'cg.engine.AbstractProcessor',
         run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ):
         """Inits ProcessorSampler.
 
-        Either both `run_name` and `device_config_name` must be set, or neither of
-        them must be set. If none of them are set, a default internal device configuration
+        Either both (`run_name` or `snapshot_id`) and `device_config_name` must be set, or neither
+        of them must be set. If none of them are set, a default internal device configuration
         will be used.
 
         Args:
@@ -42,6 +43,7 @@ class ProcessorSampler(cirq.Sampler):
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -49,11 +51,12 @@ class ProcessorSampler(cirq.Sampler):
         Raises:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
         """
-        if bool(run_name) ^ bool(device_config_name):
+        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
             raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
 
         self._processor = processor
         self._run_name = run_name
+        self._snapshot_id = snapshot_id
         self._device_config_name = device_config_name
 
     async def run_sweep_async(
@@ -64,6 +67,7 @@ class ProcessorSampler(cirq.Sampler):
             params=params,
             repetitions=repetitions,
             run_name=self._run_name,
+            snapshot_id=self._snapshot_id,
             device_config_name=self._device_config_name,
         )
         return await job.results_async()
@@ -90,6 +94,10 @@ class ProcessorSampler(cirq.Sampler):
     @property
     def run_name(self) -> str:
         return self._run_name
+
+    @property
+    def snapshot_id(self) -> str:
+        return self._snapshot_id  # pragma: no cover
 
     @property
     def device_config_name(self) -> str:
