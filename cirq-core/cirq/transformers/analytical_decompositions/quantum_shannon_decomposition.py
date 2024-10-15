@@ -231,7 +231,7 @@ def _msb_demuxer(
     # Last term is given by ( I ⊗ W ), demultiplexed
     # Remove most-significant (demuxed) control-qubit
     # Yield operations for QSD on W
-    yield from quantum_shannon_decomposition(demux_qubits[1:], W, atol=1e-5)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], W, atol=1e-6)
 
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
     # Observe that middle part looks like Σ_i( Rz(theta_i)⊗|i><i| )
@@ -239,7 +239,7 @@ def _msb_demuxer(
     yield from _multiplexed_cossin(demux_qubits, -np.angle(d), ops.rz)
 
     # Yield operations for QSD on V
-    yield from quantum_shannon_decomposition(demux_qubits[1:], V, atol=1e-5)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], V, atol=1e-6)
 
 
 def _nth_gray(n: int) -> int:
