@@ -303,11 +303,11 @@ class EngineJob(abstract_job.AbstractJob):
         limiter = duet.limiter(10)
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
-                await limiter.wait()  # Enforce rate limit
+                slot = await limiter.acquire()  # Enforce rate limit
                 job = await self._refresh_job_async()
+                slot.release()
                 if job.execution_status.state in TERMINAL_STATES:
                     break
-                await duet.sleep(1)
         _raise_on_failure(job)
         response = await self.context.client.get_job_results_async(
             self.project_id, self.program_id, self.job_id
