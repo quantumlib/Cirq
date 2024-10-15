@@ -301,9 +301,9 @@ class EngineJob(abstract_job.AbstractJob):
 
         # The desired rate limit is 1000 QPM which is ~15 QPS
         limiter = duet.Limiter(15)
-        async with duet.new_scope(timeout=self.context.timeout):  # type: ignore[arg-type]
-            while True:
-                async with limiter:
+        async with duet.new_scope(timeout=self.context.timeout):
+            async with limiter:
+                while True:
                     job = await self._refresh_job_async()
                     if job.execution_status.state in TERMINAL_STATES:
                         break
