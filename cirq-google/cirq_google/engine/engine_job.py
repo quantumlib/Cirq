@@ -299,8 +299,11 @@ class EngineJob(abstract_job.AbstractJob):
                     'Internal error: The job response type is not recognized.'
                 )  # pragma: no cover
 
+        # The desired rate limit is 10 qps
+        limiter = duet.limiter(10)
         async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
+                await limiter.wait()  # Enforce rate limit
                 job = await self._refresh_job_async()
                 if job.execution_status.state in TERMINAL_STATES:
                     break
