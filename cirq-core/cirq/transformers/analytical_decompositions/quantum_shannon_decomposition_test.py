@@ -191,7 +191,7 @@ def test_three_qubit_gate(gate):
     np.testing.assert_allclose(new_unitary, desired_unitary, atol=1e-6)
 
 
-@pytest.mark.xfail('#6765')
+@pytest.mark.xfail(reason='#6765')
 def test_qft5():
     global_phase = np.exp(1j * np.random.choice(np.linspace(0, 2 * np.pi, 10)))
     desired_unitary = cirq.unitary(cirq.qft(*cirq.LineQubit.range(5))) * global_phase
