@@ -388,6 +388,7 @@ class EngineClient:
         labels: Optional[Dict[str, str]] = None,
         *,
         run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> Tuple[str, quantum.QuantumJob]:
         """Creates and runs a job on Quantum Engine.
@@ -409,6 +410,9 @@ class EngineClient:
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
                 is required to be set.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -421,25 +425,37 @@ class EngineClient:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
+            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
-        if bool(run_name) ^ bool(device_config_name):
-            raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
+        if run_name and snapshot_id:
+            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
+        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
+            raise ValueError(
+                'Cannot specify only one of top level identifier (e.g `run_name`, `snapshot_id`)'
+                ' and `device_config_name`'
+            )
 
         # Create job.
+        if snapshot_id:
+            selector = quantum.DeviceConfigSelector(
+                snapshot_id=snapshot_id or None, config_alias=device_config_name
+            )
+        else:
+            selector = quantum.DeviceConfigSelector(
+                run_name=run_name or None, config_alias=device_config_name
+            )
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
             name=job_name,
             scheduling_config=quantum.SchedulingConfig(
                 processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                     processor=_processor_name_from_ids(project_id, processor_id),
-                    device_config_selector=quantum.DeviceConfigSelector(
-                        run_name=run_name, config_alias=device_config_name
-                    ),
+                    device_config_selector=selector,
                 )
             ),
             run_context=run_context,
@@ -737,6 +753,7 @@ class EngineClient:
         job_labels: Optional[Dict[str, str]] = None,
         processor_id: str = "",
         run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]:
         """Runs a job with the given program and job information over a stream.
@@ -761,6 +778,9 @@ class EngineClient:
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
                 is required to be set.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -773,14 +793,19 @@ class EngineClient:
             ValueError: If the priority is not between 0 and 1000.
             ValueError: If `processor_id` is not set.
             ValueError: If only one of `run_name` and `device_config_name` are specified.
+            ValueError: If both `run_name` and `snapshot_id` are specified.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
         if not processor_id:
             raise ValueError('Must specify a processor id when creating a job.')
-        if bool(run_name) ^ bool(device_config_name):
-            raise ValueError('Cannot specify only one of `run_name` and `device_config_name`')
+        if run_name and snapshot_id:
+            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
+        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
+            raise ValueError(
+                'Cannot specify only one of top level identifier and `device_config_name`'
+            )
 
         project_name = _project_name(project_id)
 
@@ -791,14 +816,21 @@ class EngineClient:
         if program_labels:
             program.labels.update(program_labels)
 
+        if snapshot_id:
+            selector = quantum.DeviceConfigSelector(
+                snapshot_id=snapshot_id or None, config_alias=device_config_name
+            )
+        else:
+            selector = quantum.DeviceConfigSelector(
+                run_name=run_name or None, config_alias=device_config_name
+            )
+
         job = quantum.QuantumJob(
             name=_job_name_from_ids(project_id, program_id, job_id),
             scheduling_config=quantum.SchedulingConfig(
                 processor_selector=quantum.SchedulingConfig.ProcessorSelector(
                     processor=_processor_name_from_ids(project_id, processor_id),
-                    device_config_selector=quantum.DeviceConfigSelector(
-                        run_name=run_name, config_alias=device_config_name
-                    ),
+                    device_config_selector=selector,
                 )
             ),
             run_context=run_context,
