@@ -27,6 +27,7 @@ import numpy as np
 from scipy.stats import unitary_group
 
 
+@pytest.mark.xfail(reason='#6765')
 @pytest.mark.parametrize('n_qubits', list(range(1, 8)))
 def test_random_qsd_n_qubit(n_qubits):
     U = unitary_group.rvs(2**n_qubits)
