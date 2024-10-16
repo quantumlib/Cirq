@@ -31,6 +31,7 @@ class ProcessorSampler(cirq.Sampler):
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",
+        limiter: duet.Limiter = duet.Limiter(None),
     ):
         """Inits ProcessorSampler.
 
@@ -47,6 +48,7 @@ class ProcessorSampler(cirq.Sampler):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
+            limiter: Optional limiter which controls the rate of requests to the Quantum Engine.
 
         Raises:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
@@ -58,6 +60,7 @@ class ProcessorSampler(cirq.Sampler):
         self._run_name = run_name
         self._snapshot_id = snapshot_id
         self._device_config_name = device_config_name
+        self._limiter = limiter
 
     async def run_sweep_async(
         self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
@@ -70,6 +73,11 @@ class ProcessorSampler(cirq.Sampler):
             snapshot_id=self._snapshot_id,
             device_config_name=self._device_config_name,
         )
+        # For typechecking
+        import cirq_google as cg
+
+        if isinstance(job, cg.EngineJob):
+            return await job.results_async(self._limiter)
         return await job.results_async()
 
     run_sweep = duet.sync(run_sweep_async)
