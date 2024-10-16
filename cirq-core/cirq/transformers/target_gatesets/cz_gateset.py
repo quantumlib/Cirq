@@ -62,7 +62,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
             preserve_moment_structure: Whether to preserve the moment structure of the
                 circuit during compilation or not.
             reorder_operations: Whether to attempt to reorder the operations in order to reduce
-                circuit depth or not.
+                circuit depth or not (can be True only if preserve_moment_structure=False).
         """
         super().__init__(
             ops.CZPowGate if allow_partial_czs else ops.CZ,

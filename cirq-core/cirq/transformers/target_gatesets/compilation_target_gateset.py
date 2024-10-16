@@ -156,7 +156,9 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations."""
-        rorder_transfomers = [transformers.insertion_sort] if self._reorder_operations else []
+        rorder_transfomers = (
+            [transformers.insertion_sort_transformer] if self._reorder_operations else []
+        )
         return [
             create_transformer_with_kwargs(
                 transformers.expand_composite,
