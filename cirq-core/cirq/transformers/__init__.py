@@ -148,3 +148,6 @@ from cirq.transformers.gauge_compiling import (
 from cirq.transformers.randomized_measurements import (
     RandomizedMeasurements as RandomizedMeasurements,
 )
+
+
+from cirq.transformers.insertion_sort import insertion_sort
