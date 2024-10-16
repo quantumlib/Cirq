@@ -25,9 +25,7 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer(add_deep_support=True)
 def insertion_sort_transformer(
-    circuit: 'cirq.AbstractCircuit',
-    *,
-    context: Optional['cirq.TransformerContext'] = None,
+    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
 ) -> 'cirq.Circuit':
     """Sorts the operations using their `.qubits` property as comparison key.
 
@@ -35,12 +33,16 @@ def insertion_sort_transformer(
 
     Args:
         circuit: input circuit.
-        context: optional TransformerContext (not used),    
+        context: optional TransformerContext (not used),
     """
     final_operations: List['cirq.Operation'] = []
     for op in circuit.all_operations():
         st = []
-        while len(final_operations) and op.qubits < final_operations[-1].qubits and protocols.commutes(final_operations[-1], op, default=None):
+        while (
+            len(final_operations)
+            and op.qubits < final_operations[-1].qubits
+            and protocols.commutes(final_operations[-1], op, default=None)
+        ):
             st.append(final_operations.pop())
         final_operations.append(op)
         final_operations.extend(st[::-1])
