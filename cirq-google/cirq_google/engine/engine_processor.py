@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import datetime
+import duet
 
 from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
@@ -87,7 +88,11 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self, run_name: str = "", device_config_name: str = "", snapshot_id: str = ""
+        self,
+        run_name: str = "",
+        device_config_name: str = "",
+        snapshot_id: str = "",
+        limiter: duet.Limiter = duet.Limiter(None),
     ) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
         Args:
@@ -100,6 +105,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             snapshot_id: A unique identifier for an immutable snapshot reference.
                 A snapshot contains a collection of device configurations for the
                 processor.
+            limiter: Optional limiter which controls the rate of requests to the Quantum Engine.
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
@@ -127,6 +133,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             run_name=run_name,
             snapshot_id=snapshot_id,
             device_config_name=device_config_name,
+            limiter=limiter,
         )
 
     async def run_sweep_async(

@@ -87,6 +87,7 @@ class EngineContext:
         serializer: Serializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
         enable_streaming: bool = True,
+        limiter: duet.Limiter = duet.Limiter(10),
     ) -> None:
         """Context and client for using Quantum Engine.
 
@@ -105,6 +106,7 @@ class EngineContext:
             enable_streaming: Feature gate for making Quantum Engine requests using the stream RPC.
                 If True, the Quantum Engine streaming RPC is used for creating jobs
                 and getting results. Otherwise, unary RPCs are used.
+            limiter: Optional limiter which controls the rate of requests to the Quantum Engine.
 
         Raises:
             ValueError: If either `service_args` and `verbose` were supplied
@@ -123,6 +125,7 @@ class EngineContext:
             client = engine_client.EngineClient(service_args=service_args, verbose=verbose)
         self.client = client
         self.timeout = timeout
+        self.limiter = limiter
 
     def copy(self) -> 'EngineContext':
         return EngineContext(proto_version=self.proto_version, client=self.client)
@@ -203,6 +206,7 @@ class Engine(abstract_engine.AbstractEngine):
                 service_args=service_args,
                 verbose=verbose,
                 timeout=timeout,
+                limiter=duet.Limiter(15),
             )
         self.context = context
 
@@ -603,7 +607,7 @@ class Engine(abstract_engine.AbstractEngine):
                 'you need to specify a list.'
             )
         return self.get_processor(processor_id).get_sampler(
-            run_name=run_name, device_config_name=device_config_name
+            run_name=run_name, device_config_name=device_config_name, limiter=self.context.limiter
         )
 
 
