@@ -534,6 +534,8 @@ def quil_expression_to_sympy(expression: ParameterDesignator):
     elif isinstance(expression, Parameter):  # pragma: no cover
         return sympy.Symbol(expression.name)
     elif isinstance(expression, MemoryReference):
+        if expression.declared_size == 1:
+            return sympy.Symbol(expression.name)
         return sympy.Symbol(expression.name + f"_{expression.offset}")
     elif isinstance(expression, Function):
         if expression.name == "SIN":  # pragma: no cover
