@@ -34,6 +34,7 @@ from cirq_google import engine
 from cirq_google import ops as cg_ops
 from cirq_google.devices import google_noise_properties
 from cirq_google.engine import util
+from cirq.circuits import circuit
 
 if TYPE_CHECKING:
     import cirq
@@ -88,6 +89,7 @@ def _unpack_2q_from_calibration(
 
 def noise_properties_from_calibration(
     calibration: engine.Calibration,
+    cir: circuit.Circuit = None,
     zphase_data: Optional[util.ZPhaseDataType] = None,
     gate_times_ns: Optional[Dict[Type['cirq.Gate'], float]] = None,
 ) -> google_noise_properties.GoogleNoiseProperties:
@@ -203,7 +205,7 @@ def noise_properties_from_calibration(
             fsim_errors[op_id_reverse] = error_gate
 
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
-    return google_noise_properties.GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
+    noise_props = google_noise_properties.GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
         gate_times_ns=gate_times_ns,
         t1_ns=t1_ns,
         tphi_ns=tphi_ns,
@@ -211,3 +213,25 @@ def noise_properties_from_calibration(
         gate_pauli_errors=gate_pauli_errors,
         fsim_errors=fsim_errors,
     )
+    if cir is not None:
+        for qubit in cir.all_qubits():
+            if qubit not in noise_props.qubits:
+                raise ValueError(f"Qubit {qubit} is not part of the system qubits.")
+        known_gates = []
+        unknown_gates = []
+        for gates in cir.all_operations():
+            if not isinstance(gates.gate, ops.PhasedXZGate):
+                known_gates.append(gates.gate)
+        for gates in known_gates:
+            found = False
+            for ex_gate in noise_props.expected_gates():
+                if isinstance(gates, ex_gate):
+                    found = True
+                    break
+            if not found:
+                unknown_gates.append(gates)
+
+        if len(unknown_gates) != 0:
+                raise ValueError(f"these {unknown_gates} does not correspond to compiled target gateset."
+                                 f"Please compile circuit with corresponding target gateset")
+    return noise_props;
