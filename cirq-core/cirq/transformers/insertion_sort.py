@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Transformer that sorts the operations that commute in increasing order using their qubits tuple as comparison key."""
+"""Transformer that sorts commuting operations in increasing order of their `.qubits` tuple."""
 
 from typing import Optional, TYPE_CHECKING, List
 
