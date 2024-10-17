@@ -41,7 +41,7 @@ def insertion_sort_transformer(
         while (
             len(final_operations)
             and op.qubits < final_operations[-1].qubits
-            and protocols.commutes(final_operations[-1], op, default=None)
+            and protocols.commutes(final_operations[-1], op, default=False)
         ):
             st.append(final_operations.pop())
         final_operations.append(op)

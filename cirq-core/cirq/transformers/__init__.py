@@ -150,4 +150,6 @@ from cirq.transformers.randomized_measurements import (
 )
 
 
-from cirq.transformers.insertion_sort import insertion_sort_transformer
+from cirq.transformers.insertion_sort import (
+    insertion_sort_transformer as insertion_sort_transformer,
+)
