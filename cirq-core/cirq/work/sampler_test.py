@@ -13,6 +13,7 @@
 # limitations under the License.
 """Tests for cirq.Sampler."""
 from typing import Sequence
+from unittest import mock
 
 import pytest
 
@@ -264,6 +265,30 @@ def test_sampler_run_batch_bad_input_lengths():
         _ = sampler.run_batch(
             [circuit1, circuit2], params_list=[params1, params2], repetitions=[1, 2, 3]
         )
+
+
+@duet.sync
+@mock.patch('duet.pstarmap_async')
+@pytest.mark.parametrize('call_count', [1, 2, 3])
+async def test_run_batch_async_sends_circuits_in_chunks(mock, call_count):
+    """Test run_batch_async calls run_sweep_async without waiting."""
+
+    class AsyncSampler(cirq.Sampler):
+        CHUNK_SIZE = 3
+
+        async def run_sweep_async(self, _, params, __: int = 1):
+            pass
+
+    sampler = AsyncSampler()
+    a = cirq.LineQubit(0)
+    circuit_list = [cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))] * (
+        sampler.CHUNK_SIZE * call_count
+    )
+    param_list = [cirq.Points('t', [0.3, 0.7])] * (sampler.CHUNK_SIZE * call_count)
+
+    await sampler.run_batch_async(circuit_list, params_list=param_list)
+
+    assert mock.call_count == call_count
 
 
 def test_sampler_simple_sample_expectation_values():

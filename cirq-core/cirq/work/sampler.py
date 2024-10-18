@@ -14,10 +14,12 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import collections
+from itertools import islice
 from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import duet
 import pandas as pd
+
 
 from cirq import ops, protocols, study, value
 from cirq.work.observable_measurement import (
@@ -33,6 +35,8 @@ if TYPE_CHECKING:
 
 class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
+
+    CHUNK_SIZE: int = 16
 
     def run(
         self,
@@ -294,9 +298,26 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         See docs for `cirq.Sampler.run_batch`.
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
-        return await duet.pstarmap_async(
-            self.run_sweep_async, zip(programs, params_list, repetitions)
-        )
+        if len(programs) <= self.CHUNK_SIZE:
+            return await duet.pstarmap_async(
+                self.run_sweep_async, zip(programs, params_list, repetitions)
+            )
+
+        results = []
+        for program_chunk, params_chunk, reps_chunk in zip(
+            _chunked(programs, self.CHUNK_SIZE),
+            _chunked(params_list, self.CHUNK_SIZE),
+            _chunked(repetitions, self.CHUNK_SIZE),
+        ):
+            # Run_sweep_async for the current chunk
+            await duet.sleep(1)  # Delay for 1 second between chunk
+            results.extend(
+                await duet.pstarmap_async(
+                    self.run_sweep_async, zip(program_chunk, params_chunk, reps_chunk)
+                )
+            )
+
+        return results
 
     def _normalize_batch_args(
         self,
@@ -449,3 +470,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
                     )
                 num_instances[key] += 1
         return {k: (num_instances[k], qid_shape) for k, qid_shape in qid_shapes.items()}
+
+
+def _chunked(iterable, n):  # pragma: no cover
+    it = iter(iterable)  # pragma: no cover
+    return iter(lambda: tuple(islice(it, n)), ())  # pragma: no cover
