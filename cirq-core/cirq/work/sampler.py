@@ -15,7 +15,18 @@
 
 import collections
 from itertools import islice
-from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import duet
 import pandas as pd
@@ -36,6 +47,9 @@ if TYPE_CHECKING:
 class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
 
+    # Users have a rate limit of 1000 QPM for read/write requests to
+    # the Quantum Engine. 1000/60 ~= 16 QPS. So requests are sent
+    # in chunks of size 16 per second.
     CHUNK_SIZE: int = 16
 
     def run(
@@ -472,6 +486,6 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         return {k: (num_instances[k], qid_shape) for k, qid_shape in qid_shapes.items()}
 
 
-def _chunked(iterable, n):  # pragma: no cover
+def _chunked(iterable: Sequence[Any], n: int) -> Iterator[tuple[Any, ...]]:  # pragma: no cover
     it = iter(iterable)  # pragma: no cover
     return iter(lambda: tuple(islice(it, n)), ())  # pragma: no cover

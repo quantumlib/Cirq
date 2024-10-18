@@ -270,14 +270,12 @@ def test_sampler_run_batch_bad_input_lengths():
 @duet.sync
 @mock.patch('duet.pstarmap_async')
 @pytest.mark.parametrize('call_count', [1, 2, 3])
-async def test_run_batch_async_sends_circuits_in_chunks(mock, call_count):
-    """Test run_batch_async calls run_sweep_async without waiting."""
-
+async def test_run_batch_async_sends_circuits_in_chunks(spy, call_count):
     class AsyncSampler(cirq.Sampler):
         CHUNK_SIZE = 3
 
         async def run_sweep_async(self, _, params, __: int = 1):
-            pass
+            pass  # pragma: no cover
 
     sampler = AsyncSampler()
     a = cirq.LineQubit(0)
@@ -288,7 +286,34 @@ async def test_run_batch_async_sends_circuits_in_chunks(mock, call_count):
 
     await sampler.run_batch_async(circuit_list, params_list=param_list)
 
-    assert mock.call_count == call_count
+    assert spy.call_count == call_count
+
+
+@duet.sync
+@pytest.mark.parametrize('call_count', [1, 2, 3])
+async def test_run_batch_async_runs_runs_sequentially(call_count):
+    a = cirq.LineQubit(0)
+    finished = []
+    circuit1 = cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
+    circuit2 = cirq.Circuit(cirq.Y(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
+    params1 = cirq.Points('t', [0.3, 0.7])
+    params2 = cirq.Points('t', [0.4, 0.6])
+
+    class AsyncSampler(cirq.Sampler):
+        CHUNK_SIZE = 1
+
+        async def run_sweep_async(self, _, params, __: int = 1):
+            if params == params1:
+                await duet.sleep(0.001)
+
+            finished.append(params)
+
+    sampler = AsyncSampler()
+    circuit_list = [circuit1, circuit2] * call_count
+    param_list = [params1, params2] * call_count
+    await sampler.run_batch_async(circuit_list, params_list=param_list)
+
+    assert finished == param_list
 
 
 def test_sampler_simple_sample_expectation_values():
