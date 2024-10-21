@@ -156,7 +156,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations."""
-        rorder_transfomers = (
+        reorder_transfomers = (
             [transformers.insertion_sort_transformer] if self._reorder_operations else []
         )
         return [
@@ -164,7 +164,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
                 transformers.expand_composite,
                 no_decomp=lambda op: protocols.num_qubits(op) <= self.num_qubits,
             ),
-            *rorder_transfomers,
+            *reorder_transfomers,
             create_transformer_with_kwargs(
                 merge_k_qubit_gates.merge_k_qubit_unitaries,
                 k=self.num_qubits,

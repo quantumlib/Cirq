@@ -334,5 +334,7 @@ def test_with_commutation():
 
 
 def test_reorder_operations_and_preserve_moment_structure_raises():
-    with pytest.raises(ValueError, match='True'):
+    with pytest.raises(
+        ValueError, match='reorder_operations and preserve_moment_structure can not both be True'
+    ):
         _ = cirq.CZTargetGateset(preserve_moment_structure=True, reorder_operations=True)

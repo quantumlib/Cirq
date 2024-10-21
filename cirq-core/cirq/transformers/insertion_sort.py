@@ -14,13 +14,17 @@
 
 """Transformer that sorts commuting operations in increasing order of their `.qubits` tuple."""
 
-from typing import Optional, TYPE_CHECKING, List
+from typing import Optional, TYPE_CHECKING, List, Tuple
 
 from cirq import protocols, circuits
 from cirq.transformers import transformer_api
 
 if TYPE_CHECKING:
     import cirq
+
+
+def _id(op: 'cirq.Operation') -> Tuple['cirq.Qid', ...]:
+    return tuple(sorted(op.qubits))
 
 
 @transformer_api.transformer(add_deep_support=True)
@@ -35,15 +39,18 @@ def insertion_sort_transformer(
         circuit: input circuit.
         context: optional TransformerContext (not used),
     """
-    final_operations: List['cirq.Operation'] = []
+    sorted_operations: List['cirq.Operation'] = []
     for op in circuit.all_operations():
-        st = []
+        sorted_operations.append(op)
+        j = len(sorted_operations) - 1
         while (
-            len(final_operations)
-            and op.qubits < final_operations[-1].qubits
-            and protocols.commutes(final_operations[-1], op, default=False)
+            j
+            and _id(sorted_operations[j]) < _id(sorted_operations[j - 1])
+            and protocols.commutes(sorted_operations[j], sorted_operations[j - 1], default=False)
         ):
-            st.append(final_operations.pop())
-        final_operations.append(op)
-        final_operations.extend(st[::-1])
-    return circuits.Circuit(final_operations)
+            sorted_operations[j], sorted_operations[j - 1] = (
+                sorted_operations[j - 1],
+                sorted_operations[j],
+            )
+            j -= 1
+    return circuits.Circuit(sorted_operations)

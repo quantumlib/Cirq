@@ -23,8 +23,8 @@ def test_insertion_sort():
         cirq.CZ(cirq.q(0), cirq.q(1)),
         cirq.CZ(cirq.q(2), cirq.q(1)),
     )
-    got = cirq.transformers.insertion_sort_transformer(c)
-    assert got == cirq.Circuit(
+    sorted_circuit = cirq.transformers.insertion_sort_transformer(c)
+    assert sorted_circuit == cirq.Circuit(
         cirq.CZ(cirq.q(0), cirq.q(1)),
         cirq.CZ(cirq.q(2), cirq.q(1)),
         cirq.CZ(cirq.q(2), cirq.q(1)),
