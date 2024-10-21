@@ -269,6 +269,7 @@ def test_sampler_run_batch_bad_input_lengths():
 
 @mock.patch('duet.pstarmap_async')
 @pytest.mark.parametrize('call_count', [1, 2, 3])
+@duet.sync
 async def test_run_batch_async_sends_circuits_in_chunks(spy, call_count):
     class AsyncSampler(cirq.Sampler):
         CHUNK_SIZE = 3
@@ -289,6 +290,7 @@ async def test_run_batch_async_sends_circuits_in_chunks(spy, call_count):
 
 
 @pytest.mark.parametrize('call_count', [1, 2, 3])
+@duet.sync
 async def test_run_batch_async_runs_runs_sequentially(call_count):
     a = cirq.LineQubit(0)
     finished = []
