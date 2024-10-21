@@ -16,7 +16,6 @@
 import collections
 from itertools import islice
 from typing import (
-    Any,
     Dict,
     FrozenSet,
     Iterator,
