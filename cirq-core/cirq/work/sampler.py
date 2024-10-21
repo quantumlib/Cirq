@@ -24,6 +24,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    TypeVar,
     TYPE_CHECKING,
     Union,
 )
@@ -42,6 +43,8 @@ from cirq.work.observable_settings import _hashable_param
 
 if TYPE_CHECKING:
     import cirq
+
+T = TypeVar('T')
 
 
 class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
@@ -486,6 +489,6 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         return {k: (num_instances[k], qid_shape) for k, qid_shape in qid_shapes.items()}
 
 
-def _chunked(iterable: Sequence[Any], n: int) -> Iterator[tuple[Any, ...]]:  # pragma: no cover
-    it = iter(iterable)  # pragma: no cover
-    return iter(lambda: tuple(islice(it, n)), ())  # pragma: no cover
+def _chunked(iterable: Sequence[T], n: int) -> Iterator[tuple[T, ...]]:
+    it = iter(iterable)
+    return iter(lambda: tuple(islice(it, n)), ())
