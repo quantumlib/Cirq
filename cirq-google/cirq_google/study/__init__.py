@@ -14,4 +14,4 @@
 
 """Classes for running sweeps particular to Google hardware."""
 
-from cirq_google.study.device_parameter import DeviceParameter
+from cirq_google.study.device_parameter import DeviceParameter as DeviceParameter

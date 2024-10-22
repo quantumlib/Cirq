@@ -14,23 +14,31 @@
 
 """Methods related to optimizing and transforming PauliStrings."""
 
-from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
+from cirq.contrib.paulistring.clifford_target_gateset import (
+    CliffordTargetGateset as CliffordTargetGateset,
+)
 
 from cirq.contrib.paulistring.separate import (
-    convert_and_separate_circuit,
-    pauli_string_half,
-    regular_half,
+    convert_and_separate_circuit as convert_and_separate_circuit,
+    pauli_string_half as pauli_string_half,
+    regular_half as regular_half,
 )
 
 from cirq.contrib.paulistring.pauli_string_dag import (
-    pauli_string_dag_from_circuit,
-    pauli_string_reorder_pred,
+    pauli_string_dag_from_circuit as pauli_string_dag_from_circuit,
+    pauli_string_reorder_pred as pauli_string_reorder_pred,
 )
 
-from cirq.contrib.paulistring.recombine import move_pauli_strings_into_circuit
+from cirq.contrib.paulistring.recombine import (
+    move_pauli_strings_into_circuit as move_pauli_strings_into_circuit,
+)
 
-from cirq.contrib.paulistring.pauli_string_optimize import pauli_string_optimized_circuit
+from cirq.contrib.paulistring.pauli_string_optimize import (
+    pauli_string_optimized_circuit as pauli_string_optimized_circuit,
+)
 
-from cirq.contrib.paulistring.clifford_optimize import clifford_optimized_circuit
+from cirq.contrib.paulistring.clifford_optimize import (
+    clifford_optimized_circuit as clifford_optimized_circuit,
+)
 
-from cirq.contrib.paulistring.optimize import optimized_circuit
+from cirq.contrib.paulistring.optimize import optimized_circuit as optimized_circuit

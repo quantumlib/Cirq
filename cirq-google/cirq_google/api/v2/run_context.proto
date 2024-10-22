@@ -127,15 +127,37 @@ message DeviceParametersDiff {
     // as index into the strs repeated field.
     int32 name = 2;
   }
+
+  // Param value whose type is not among proto field types supported by
+  // ArgValue. In other words, it is the responsibility of the client codes
+  // to enforce the validity and type consistency of this param value.
+  message GenericValue {
+    // Type description of the value representation. Eg. if the following value
+    // bytes field is a JSON string, type_descriptor can be its JSON namespace;
+    // or if the following value field is a protobuf serialization, type_descriptor
+    // can be its protobuf definition URL.
+    string type_descriptor = 1;
+
+    // The value in client's encoding.
+    bytes value = 2;
+  }
+
   message Param {
     // the resource group hosting this parameter key, as index into groups
     // repeated field.
     int32 resource_group = 1;
     // name of this param, as index into the strs repeated field.
     int32 name = 2;
-    // this param's new value, as message ArgValue to allow variant types,
-    // including bool, string, double, float and arrays.
-    ArgValue value = 3;
+
+    oneof param_val {
+      // this param's new value, as message ArgValue to allow types of bool,
+      // string, double, float and arrays.
+      ArgValue value = 3;
+
+      // this param's new value, and its type is not among the variants supported
+      // by ArgValue.
+      GenericValue generic_value = 4;
+    }
   }
   repeated ResourceGroup groups = 1;
   repeated Param params = 2;
@@ -157,12 +179,15 @@ message SingleSweep {
     Points points = 2;
     // Uniformly-spaced sampling over a range.
     Linspace linspace = 3;
+    // A constant value.
+    ConstValue const_value = 5;
   }
 
   // Optional arguments for if this is a device parameter.
   // (as opposed to a circuit symbol)
   DeviceParameter parameter = 4;
 }
+
 
 // A list of explicit values.
 message Points {
@@ -184,4 +209,16 @@ message Linspace {
   // greater than zero. If it is 1, the first_point and last_point must be
   // the same.
   int64 num_points = 3;
+}
+
+// A constant value.
+message ConstValue {
+  // The values.
+  oneof value {
+    // This value should always be true if set, which represent the python None object.
+    bool is_none = 1;
+    float float_value = 2;
+    int64 int_value = 3;
+    string string_value = 4;
+  }
 }

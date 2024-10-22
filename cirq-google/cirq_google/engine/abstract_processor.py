@@ -56,6 +56,10 @@ class AbstractProcessor(abc.ABC):
     async def run_async(
         self,
         program: cirq.Circuit,
+        *,
+        device_config_name: str,
+        run_name: str = "",
+        snapshot_id: str = "",
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: Optional[cirq.ParamResolver] = None,
@@ -64,14 +68,23 @@ class AbstractProcessor(abc.ABC):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
     ) -> cirq.Result:
         """Runs the supplied Circuit on this processor.
 
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor. `snapshot_id` and `run_name`
+                should not both be set. Choose one.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor. `snapshot_id` and `run_name` should not both be set.
+                Choose one.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -87,12 +100,7 @@ class AbstractProcessor(abc.ABC):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
+
         Returns:
             A single Result for this run.
         """
@@ -107,6 +115,7 @@ class AbstractProcessor(abc.ABC):
             job_description=job_description,
             job_labels=job_labels,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
         return job.results()[0]
@@ -117,6 +126,10 @@ class AbstractProcessor(abc.ABC):
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
+        *,
+        device_config_name: str,
+        run_name: str = "",
+        snapshot_id: str = "",
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -125,8 +138,6 @@ class AbstractProcessor(abc.ABC):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
@@ -135,6 +146,15 @@ class AbstractProcessor(abc.ABC):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor. Both `snapshot_id` and `run_name` should not be set.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -150,12 +170,7 @@ class AbstractProcessor(abc.ABC):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
+
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.

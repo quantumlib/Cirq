@@ -14,10 +14,12 @@
 
 """Converts cirq circuits into latex using qcircuit."""
 
-from cirq.contrib.qcircuit.qcircuit_diagram import circuit_to_latex_using_qcircuit
+from cirq.contrib.qcircuit.qcircuit_diagram import (
+    circuit_to_latex_using_qcircuit as circuit_to_latex_using_qcircuit,
+)
 
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
-    escape_text_for_latex,
-    get_multigate_parameters,
-    get_qcircuit_diagram_info,
+    escape_text_for_latex as escape_text_for_latex,
+    get_multigate_parameters as get_multigate_parameters,
+    get_qcircuit_diagram_info as get_qcircuit_diagram_info,
 )

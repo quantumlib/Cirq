@@ -15,8 +15,9 @@
 """Experimental features. Their API can be broken without any warning and might be in a work-in
 progress state"""
 from cirq_google.experimental.noise_models import (
-    PerQubitDepolarizingWithDampedReadoutNoiseModel,
-    simple_noise_from_calibration_metrics,
+    # pylint: disable=line-too-long
+    PerQubitDepolarizingWithDampedReadoutNoiseModel as PerQubitDepolarizingWithDampedReadoutNoiseModel,
+    simple_noise_from_calibration_metrics as simple_noise_from_calibration_metrics,
 )
 
-from cirq_google.experimental.ops import CouplerPulse
+from cirq_google.experimental.ops import CouplerPulse as CouplerPulse

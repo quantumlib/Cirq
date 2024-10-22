@@ -23,7 +23,7 @@ applies more generally to fermions, thus the name of the gate.
 
 import cmath
 import math
-from typing import AbstractSet, Any, Dict, Optional, Tuple
+from typing import AbstractSet, Any, Dict, Iterator, Optional, Tuple
 
 import numpy as np
 import sympy
@@ -187,7 +187,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             out[ii] *= cmath.exp(-1j * self.phi)
         return out
 
-    def _decompose_(self, qubits) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits) -> Iterator['cirq.OP_TREE']:
         a, b = qubits
         xx = cirq.XXPowGate(exponent=self.theta / np.pi, global_shift=-0.5)
         yy = cirq.YYPowGate(exponent=self.theta / np.pi, global_shift=-0.5)
@@ -452,7 +452,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             out[ii] *= f * f
         return out
 
-    def _decompose_(self, qubits) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits) -> Iterator['cirq.OP_TREE']:
         """Decomposes self into Z rotations and FSimGate.
 
         Note that Z rotations returned by this method have unusual global phase

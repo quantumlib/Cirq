@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
+from typing import Iterator, Tuple
 
 from cirq import ops, circuits, transformers
 
@@ -89,7 +89,7 @@ def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
     )
 
 
-def _pull_non_clifford_before(circuit: circuits.Circuit) -> ops.OP_TREE:
+def _pull_non_clifford_before(circuit: circuits.Circuit) -> Iterator[ops.OP_TREE]:
     def _iter_ops_range_reversed(moment_end):
         for i in reversed(range(moment_end)):
             moment = circuit[i]

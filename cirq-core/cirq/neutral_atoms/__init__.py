@@ -15,6 +15,6 @@
 """Neutral atom devices and gates."""
 
 from cirq.neutral_atoms.convert_to_neutral_atom_gates import (
-    is_native_neutral_atom_gate,
-    is_native_neutral_atom_op,
+    is_native_neutral_atom_gate as is_native_neutral_atom_gate,
+    is_native_neutral_atom_op as is_native_neutral_atom_op,
 )

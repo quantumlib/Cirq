@@ -351,7 +351,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         """Returns operations to convert the qubits to the computational basis."""
         return self.dense_pauli_string.on(*qubits).to_z_basis_ops()
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         if len(self.dense_pauli_string) <= 0:
             return
         any_qubit = qubits[0]

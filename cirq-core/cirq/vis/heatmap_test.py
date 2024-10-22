@@ -23,6 +23,7 @@ import pytest
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.colors import to_rgba_array
 
 from cirq.devices import grid_qubit
 from cirq.vis import heatmap
@@ -32,6 +33,11 @@ from cirq.vis import heatmap
 def ax():
     figure = mpl.figure.Figure()
     return figure.add_subplot(111)
+
+
+def _to_linestyle_tuple(linestyles, linewidths=None):
+    collection = mpl.collections.Collection(linestyles=linestyles, linewidths=linewidths)
+    return collection.get_linestyles()[0]
 
 
 def test_default_ax():
@@ -343,3 +349,162 @@ def test_plot_updates_local_config():
         _, ax = plt.subplots()
         random_heatmap.plot(ax)
         assert ax.get_title() == original_title
+
+
+@pytest.mark.usefixtures('closefigures')
+def test_heatmap_plot_highlighted_qubits():
+    value_map = {
+        (grid_qubit.GridQubit(0, 0),): 0.1,
+        (grid_qubit.GridQubit(0, 1),): 0.2,
+        (grid_qubit.GridQubit(0, 2),): 0.3,
+        (grid_qubit.GridQubit(1, 0),): 0.4,
+    }
+    single_qubit_heatmap = heatmap.Heatmap(value_map)
+
+    highlighted_qubits = [grid_qubit.GridQubit(0, 1), grid_qubit.GridQubit(1, 0)]
+
+    expected_linewidths = [2, 4, 2, 4]
+    expected_edgecolors = np.vstack(
+        (to_rgba_array("grey"), to_rgba_array("red"), to_rgba_array("grey"), to_rgba_array("red"))
+    )
+    # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
+    expected_linestyles = [
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("solid"),
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("solid"),
+    ]
+
+    _, ax = plt.subplots()
+    _ = single_qubit_heatmap.plot(ax, highlighted_qubits=highlighted_qubits)
+
+    for artist in ax.get_children():
+        if isinstance(artist, mpl.collections.PolyCollection):
+            assert np.all(artist.get_linewidths() == expected_linewidths)
+            assert np.array_equal(artist.get_edgecolors(), expected_edgecolors)
+            assert artist.get_linestyles() == expected_linestyles
+
+
+@pytest.mark.usefixtures('closefigures')
+def test_heatmap_plot_highlighted_qubits_two_qubit():
+    value_map = {
+        (grid_qubit.GridQubit(0, 0), grid_qubit.GridQubit(0, 1)): 0.1,
+        (grid_qubit.GridQubit(0, 1), grid_qubit.GridQubit(0, 2)): 0.2,
+        (grid_qubit.GridQubit(1, 0), grid_qubit.GridQubit(0, 0)): 0.3,
+        (grid_qubit.GridQubit(3, 3), grid_qubit.GridQubit(3, 2)): 0.9,
+    }
+    two_qubit_interaction_heatmap = heatmap.TwoQubitInteractionHeatmap(value_map)
+
+    highlighted_qubits = [
+        grid_qubit.GridQubit(0, 1),
+        grid_qubit.GridQubit(0, 0),
+        grid_qubit.GridQubit(3, 3),
+    ]
+
+    expected_linewidths = [4, 4, 2, 2, 2, 4]
+    expected_edgecolors = np.vstack(
+        (
+            to_rgba_array("red"),
+            to_rgba_array("red"),
+            to_rgba_array("grey"),
+            to_rgba_array("grey"),
+            to_rgba_array("grey"),
+            to_rgba_array("red"),
+        )
+    )
+    # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
+    expected_linestyles = [
+        _to_linestyle_tuple("solid"),
+        _to_linestyle_tuple("solid"),
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("dashed", linewidths=2),
+        _to_linestyle_tuple("solid"),
+    ]
+
+    _, ax = plt.subplots()
+    _ = two_qubit_interaction_heatmap.plot(ax, highlighted_qubits=highlighted_qubits)
+
+    for artist in ax.get_children():
+        if isinstance(artist, mpl.collections.PolyCollection):
+            # Since for two qubit interactions, there are two collections:
+            # one to highlight individual qubits and one showing their interaction.
+            # Here, the former is required, so the latter is excluded.
+            if artist.get_cmap().name != 'viridis':  # assuming 'viridis' is the default cmap used.
+                assert np.all(artist.get_linewidths() == expected_linewidths)
+                assert np.array_equal(artist.get_edgecolors(), expected_edgecolors)
+                assert artist.get_linestyles() == expected_linestyles
+
+
+@pytest.mark.usefixtures('closefigures')
+def test_heatmap_highlighted_repeat_qubits():
+    value_map = {
+        (grid_qubit.GridQubit(0, 0), grid_qubit.GridQubit(0, 1)): 0.1,
+        (grid_qubit.GridQubit(0, 1), grid_qubit.GridQubit(0, 2)): 0.2,
+        (grid_qubit.GridQubit(1, 0), grid_qubit.GridQubit(0, 0)): 0.3,
+        (grid_qubit.GridQubit(3, 3), grid_qubit.GridQubit(3, 2)): 0.9,
+    }
+    two_qubit_interaction_heatmap = heatmap.TwoQubitInteractionHeatmap(value_map)
+
+    highlighted_qubits_1 = [
+        grid_qubit.GridQubit(0, 1),
+        grid_qubit.GridQubit(0, 0),
+        grid_qubit.GridQubit(3, 3),
+    ]
+    highlighted_qubits_2 = highlighted_qubits_1 + [grid_qubit.GridQubit(0, 0)] * 5
+
+    _, ax1 = plt.subplots()
+    _ = two_qubit_interaction_heatmap.plot(ax1, highlighted_qubits=highlighted_qubits_1)
+    _, ax2 = plt.subplots()
+    _ = two_qubit_interaction_heatmap.plot(ax2, highlighted_qubits=highlighted_qubits_2)
+
+    for artist_1, artist_2 in zip(ax1.get_children(), ax2.get_children()):
+        if isinstance(artist_1, mpl.collections.PolyCollection) and isinstance(
+            artist_2, mpl.collections.PolyCollection
+        ):
+            # Since for two qubit interactions, there are two collections:
+            # one to highlight individual qubits and one showing their interaction.
+            # Here, the former is required, so the latter is excluded.
+            if (
+                artist_1.get_cmap().name != 'viridis' and artist_2.get_cmap().name != 'viridis'
+            ):  # assuming 'viridis' is the default cmap used.
+                assert np.all(artist_1.get_linewidths() == artist_1.get_linewidths())
+                assert np.array_equal(artist_1.get_edgecolors(), artist_2.get_edgecolors())
+                assert artist_1.get_linestyles() == artist_2.get_linestyles()
+
+
+@pytest.mark.usefixtures('closefigures')
+def test_heatmap_highlighted_init_collection_options_used():
+    value_map = {
+        (grid_qubit.GridQubit(0, 0),): 0.1,
+        (grid_qubit.GridQubit(0, 1),): 0.2,
+        (grid_qubit.GridQubit(0, 2),): 0.3,
+        (grid_qubit.GridQubit(1, 0),): 0.4,
+    }
+    single_qubit_heatmap = heatmap.Heatmap(
+        value_map,
+        collection_options={"edgecolors": "blue", "linewidths": 6, "linestyles": "dashed"},
+    )
+
+    highlighted_qubits = [grid_qubit.GridQubit(0, 1), grid_qubit.GridQubit(1, 0)]
+
+    expected_linewidths = [6, 4, 6, 4]
+    expected_edgecolors = np.vstack(
+        (to_rgba_array("blue"), to_rgba_array("red"), to_rgba_array("blue"), to_rgba_array("red"))
+    )
+    # list of tuples: (offset, onoffseq), onoffseq = None for solid line.
+    expected_linestyles = [
+        _to_linestyle_tuple("dashed", linewidths=6),
+        _to_linestyle_tuple("solid"),
+        _to_linestyle_tuple("dashed", linewidths=6),
+        _to_linestyle_tuple("solid"),
+    ]
+
+    _, ax = plt.subplots()
+    _ = single_qubit_heatmap.plot(ax, highlighted_qubits=highlighted_qubits)
+
+    for artist in ax.get_children():
+        if isinstance(artist, mpl.collections.PolyCollection):
+            assert np.all(artist.get_linewidths() == expected_linewidths)
+            assert np.array_equal(artist.get_edgecolors(), expected_edgecolors)
+            assert artist.get_linestyles() == expected_linestyles

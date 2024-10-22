@@ -21,6 +21,7 @@ component operations in order, including any nested CircuitOperations.
 import math
 from functools import cached_property
 from typing import (
+    Any,
     Callable,
     cast,
     Dict,
@@ -266,7 +267,7 @@ class CircuitOperation(ops.Operation):
             'repeat_until': self.repeat_until,
             **changes,
         }
-        return CircuitOperation(**kwargs)  # type: ignore
+        return CircuitOperation(**kwargs)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
@@ -508,6 +509,16 @@ class CircuitOperation(ops.Operation):
     def __hash__(self) -> int:
         return self._hash
 
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        # cached_property stores value in the property-named attribute
+        hash_attr = "_hash"
+        if hash_attr in state:
+            state = state.copy()
+            del state[hash_attr]
+        return state
+
     def _json_dict_(self):
         resp = {
             'circuit': self.circuit,
@@ -677,7 +688,7 @@ class CircuitOperation(ops.Operation):
         if callable(qubit_map):
             transform = qubit_map
         elif isinstance(qubit_map, dict):
-            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+            transform = lambda q: qubit_map.get(q, q)
         else:
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
         new_map = {}

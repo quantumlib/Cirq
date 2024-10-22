@@ -14,6 +14,8 @@
 
 """Trapped ion devices, gates, and compiling utilties."""
 
-from cirq.ops import ms
+from cirq.ops import ms as ms
 
-from cirq.transformers import two_qubit_matrix_to_ion_operations
+from cirq.transformers import (
+    two_qubit_matrix_to_ion_operations as two_qubit_matrix_to_ion_operations,
+)

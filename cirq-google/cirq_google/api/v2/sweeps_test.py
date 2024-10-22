@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import math
 from typing import Iterator
 
 import pytest
@@ -68,6 +68,17 @@ class UnknownSweep(sweeps.SingleSweep):
                 + (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1]))
             )
         ),
+        # Sweep with constant. Type ignore is because cirq.Points type annotated with floats.
+        cirq.Points('a', [None]),  # type: ignore[list-item]
+        cirq.Points('a', [None]) * cirq.Points('b', [1, 2, 3]),  # type: ignore[list-item]
+        cirq.Points('a', [None]) + cirq.Points('b', [2]),  # type: ignore[list-item]
+        cirq.Points('a', [1]),
+        cirq.Points('b', [1.0]),
+        cirq.Points('c', ["abc"]),  # type: ignore[list-item]
+        (
+            cirq.Points('a', [1]) * cirq.Points('b', [1.0])
+            + cirq.Points('c', ["abc"]) * cirq.Points("d", [1, 2, 3, 4])  # type: ignore[list-item]
+        ),
     ],
 )
 def test_sweep_to_proto_roundtrip(sweep):
@@ -98,6 +109,20 @@ def test_sweep_to_proto_linspace():
     )
 
 
+@pytest.mark.parametrize("val", [None, 1, 1.5, 's'])
+def test_build_recover_const(val):
+    val2 = v2.sweeps._recover_sweep_const(v2.sweeps._build_sweep_const(val))
+    if isinstance(val, float):
+        assert math.isclose(val, val2)  # avoid the floating precision issue.
+    else:
+        assert val2 == val
+
+
+def test_build_const_unsupported_type():
+    with pytest.raises(ValueError, match='Unsupported type for serializing const sweep'):
+        v2.sweeps._build_sweep_const((1, 2))
+
+
 def test_list_sweep_bad_expression():
     with pytest.raises(TypeError, match='formula'):
         _ = cirq.ListSweep([cirq.ParamResolver({sympy.Symbol('a') + sympy.Symbol('b'): 4.0})])
@@ -111,7 +136,7 @@ def test_symbol_to_string_conversion():
     expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
-    p1.single_sweep.points.points.extend([4.0])
+    p1.single_sweep.const_value.float_value = 4.0
     assert proto == expected
 
 
@@ -129,6 +154,15 @@ def test_sweep_to_proto_unit():
     assert isinstance(proto, v2.run_context_pb2.Sweep)
     assert not proto.HasField('single_sweep')
     assert not proto.HasField('sweep_function')
+
+
+def test_sweep_to_none_const():
+    proto = v2.sweep_to_proto(cirq.Points('foo', [None]))
+    assert isinstance(proto, v2.run_context_pb2.Sweep)
+    assert proto.HasField('single_sweep')
+    assert proto.single_sweep.parameter_key == 'foo'
+    assert proto.single_sweep.WhichOneof('sweep') == 'const_value'
+    assert proto.single_sweep.const_value.is_none
 
 
 def test_sweep_from_proto_unknown_sweep_type():

@@ -11,17 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, cast, Optional, Union, Dict, Any
+from typing import List, Optional, Union, Dict, Any
 import functools
 from math import sqrt
-import httpx
+import json
 import numpy as np
 import networkx as nx
 import cirq
 from pyquil.quantum_processor import QCSQuantumProcessor
-from qcs_api_client.models import InstructionSetArchitecture
-from qcs_api_client.operations.sync import get_instruction_set_architecture
-from cirq_rigetti._qcs_api_client_decorator import _provide_default_client
+from qcs_sdk.client import QCSClient
+from qcs_sdk.qpu.isa import get_instruction_set_architecture, InstructionSetArchitecture, Family
 
 
 class UnsupportedQubit(ValueError):
@@ -50,6 +49,8 @@ _reverse_line_qubit_mapping = [1, 0, 7, 6]
 class RigettiQCSAspenDevice(cirq.devices.Device):
     """A cirq.Qid supporting Rigetti QCS Aspen device topology."""
 
+    isa: InstructionSetArchitecture
+
     def __init__(self, isa: Union[InstructionSetArchitecture, Dict[str, Any]]) -> None:
         """Initializes a RigettiQCSAspenDevice with its Rigetti QCS `InstructionSetArchitecture`.
 
@@ -63,9 +64,9 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         if isinstance(isa, InstructionSetArchitecture):
             self.isa = isa
         else:
-            self.isa = InstructionSetArchitecture.from_dict(isa)
+            self.isa = InstructionSetArchitecture.from_raw(json.dumps(isa))
 
-        if self.isa.architecture.family.lower() != 'aspen':
+        if not Family.is_aspen(self.isa.architecture.family):
             raise UnsupportedRigettiQCSQuantumProcessor(
                 'this integration currently only supports Aspen devices, '
                 f'but client provided a {self.isa.architecture.family} device'
@@ -224,23 +225,22 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         return f'cirq_rigetti.RigettiQCSAspenDevice(isa={self.isa!r})'
 
     def _json_dict_(self):
-        return {'isa': self.isa.to_dict()}
+        return {'isa': json.loads(self.isa.json())}
 
     @classmethod
     def _from_json_dict_(cls, isa, **kwargs):
-        return cls(isa=InstructionSetArchitecture.from_dict(isa))
+        return cls(isa=InstructionSetArchitecture.from_raw(json.dumps(isa)))
 
 
-@_provide_default_client  # pragma: no cover
 def get_rigetti_qcs_aspen_device(
-    quantum_processor_id: str, client: Optional[httpx.Client]
+    quantum_processor_id: str, client: Optional[QCSClient] = None
 ) -> RigettiQCSAspenDevice:
     """Retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti
     QCS API and uses it to initialize a RigettiQCSAspenDevice.
 
     Args:
         quantum_processor_id: The identifier of the Rigetti QCS quantum processor.
-        client: Optional; A `httpx.Client` initialized with Rigetti QCS credentials
+        client: Optional; A `QCSClient` initialized with Rigetti QCS credentials
         and configuration. If not provided, `qcs_api_client` will initialize a
         configured client based on configured values in the current user's
         `~/.qcs` directory or default values.
@@ -250,12 +250,7 @@ def get_rigetti_qcs_aspen_device(
         set and architecture.
 
     """
-    isa = cast(
-        InstructionSetArchitecture,
-        get_instruction_set_architecture(
-            client=client, quantum_processor_id=quantum_processor_id
-        ).parsed,
-    )
+    isa = get_instruction_set_architecture(client=client, quantum_processor_id=quantum_processor_id)
     return RigettiQCSAspenDevice(isa=isa)
 
 

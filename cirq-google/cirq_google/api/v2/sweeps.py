@@ -12,13 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, List, Optional
+from typing import Any, cast, Dict, List, Optional
 
 import sympy
 
 import cirq
 from cirq_google.api.v2 import run_context_pb2
 from cirq_google.study.device_parameter import DeviceParameter
+
+
+def _build_sweep_const(value: Any) -> run_context_pb2.ConstValue:
+    """Build the sweep const message from a value."""
+    if value is None:
+        return run_context_pb2.ConstValue(is_none=True)
+    elif isinstance(value, float):
+        return run_context_pb2.ConstValue(float_value=value)
+    elif isinstance(value, int):
+        return run_context_pb2.ConstValue(int_value=value)
+    elif isinstance(value, str):
+        return run_context_pb2.ConstValue(string_value=value)
+    else:
+        raise ValueError(
+            f"Unsupported type for serializing const sweep: {value=} and {type(value)=}"
+        )
+
+
+def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
+    """Recover a const value from the sweep const message."""
+    if const_pb.WhichOneof('value') == 'is_none':
+        return None
+    if const_pb.WhichOneof('value') == 'float_value':
+        return const_pb.float_value
+    if const_pb.WhichOneof('value') == 'int_value':
+        return const_pb.int_value
+    if const_pb.WhichOneof('value') == 'string_value':
+        return const_pb.string_value
 
 
 def sweep_to_proto(
@@ -63,7 +91,10 @@ def sweep_to_proto(
             out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
-        out.single_sweep.points.points.extend(sweep.points)
+        if len(sweep.points) == 1:
+            out.single_sweep.const_value.MergeFrom(_build_sweep_const(sweep.points[0]))
+        else:
+            out.single_sweep.points.points.extend(sweep.points)
         # Use duck-typing to support google-internal Parameter objects
         if sweep.metadata and getattr(sweep.metadata, 'path', None):
             out.single_sweep.parameter.path.extend(sweep.metadata.path)
@@ -128,6 +159,12 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
             )
         if msg.single_sweep.WhichOneof('sweep') == 'points':
             return cirq.Points(key=key, points=msg.single_sweep.points.points, metadata=metadata)
+        if msg.single_sweep.WhichOneof('sweep') == 'const_value':
+            return cirq.Points(
+                key=key,
+                points=[_recover_sweep_const(msg.single_sweep.const_value)],
+                metadata=metadata,
+            )
 
         raise ValueError(f'single sweep type not set: {msg}')
 

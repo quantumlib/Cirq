@@ -87,7 +87,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self, run_name: str = "", device_config_name: str = ""
+        self, run_name: str = "", device_config_name: str = "", snapshot_id: str = ""
     ) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
         Args:
@@ -97,24 +97,45 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
+
+        Raises:
+            ValueError: If only one of `run_name` and `device_config_name` are specified.
+            ValueError: If both `run_name` and `snapshot_id` are specified.
+
         """
         processor = self._inner_processor()
-        # If a run_name or config_alias is not provided, initialize them
-        # to the Processor's default values.
-        if not run_name and not device_config_name:
+        if run_name and snapshot_id:
+            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
+        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
+            raise ValueError(
+                'Cannot specify only one of top level identifier and `device_config_name`'
+            )
+        # If not provided, initialize the sampler with the Processor's default values.
+        if not run_name and not device_config_name and not snapshot_id:
             run_name = processor.default_device_config_key.run
             device_config_name = processor.default_device_config_key.config_alias
+            snapshot_id = processor.default_device_config_key.snapshot_id
         return processor_sampler.ProcessorSampler(
-            processor=self, run_name=run_name, device_config_name=device_config_name
+            processor=self,
+            run_name=run_name,
+            snapshot_id=snapshot_id,
+            device_config_name=device_config_name,
         )
 
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
+        *,
+        device_config_name: str,
+        run_name: str = "",
+        snapshot_id: str = "",
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -123,8 +144,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-        run_name: str = "",
-        device_config_name: str = "",
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
@@ -134,6 +153,15 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            run_name: A unique identifier representing an automation run for the
+                processor. An Automation Run contains a collection of device
+                configurations for the processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -149,12 +177,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
         Returns:
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.
@@ -177,6 +199,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
             processor_id=self.processor_id,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
 

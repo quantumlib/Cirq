@@ -19,6 +19,7 @@ from typing import (
     Any,
     Collection,
     Dict,
+    Iterator,
     List,
     Optional,
     Sequence,
@@ -573,7 +574,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def _decompose_inside_control(
         self, target1: 'cirq.Qid', control: 'cirq.Qid', target2: 'cirq.Qid'
-    ) -> 'cirq.OP_TREE':
+    ) -> Iterator['cirq.OP_TREE']:
         """A decomposition assuming the control separates the targets.
 
         target1: ─@─X───────T──────@────────@─────────X───@─────X^-0.5─
@@ -617,7 +618,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def _decompose_outside_control(
         self, control: 'cirq.Qid', near_target: 'cirq.Qid', far_target: 'cirq.Qid'
-    ) -> 'cirq.OP_TREE':
+    ) -> Iterator['cirq.OP_TREE']:
         """A decomposition assuming one of the targets is in the middle.
 
         control: ───T──────@────────@───@────────────@────────────────

@@ -402,10 +402,10 @@ def test_run_param_resolver(dtype: Type[np.complexfloating], split: bool):
                 cirq.measure(q1),
             )
             param_resolver = {'b0': b0, 'b1': b1}
-            result = simulator.run(circuit, param_resolver=param_resolver)  # type: ignore
+            result = simulator.run(circuit, param_resolver=param_resolver)
             np.testing.assert_equal(result.measurements, {'q(0)': [[b0]], 'q(1)': [[b1]]})
             # pylint: disable=line-too-long
-            np.testing.assert_equal(result.params, cirq.ParamResolver(param_resolver))  # type: ignore
+            np.testing.assert_equal(result.params, cirq.ParamResolver(param_resolver))
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

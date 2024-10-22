@@ -21,6 +21,7 @@ from typing import (
     Container,
     Dict,
     Iterable,
+    Iterator,
     List,
     Sequence,
     TYPE_CHECKING,
@@ -691,7 +692,7 @@ def _two_qubit_layer(
     ],
     layer: GridInteractionLayer,
     prng: 'np.random.RandomState',
-) -> 'cirq.OP_TREE':
+) -> Iterator['cirq.OP_TREE']:
     for a, b in coupled_qubit_pairs:
         if (a, b) in layer or (b, a) in layer:
             yield two_qubit_op_factory(a, b, prng)
