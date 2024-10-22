@@ -39,18 +39,21 @@ def insertion_sort_transformer(
         circuit: input circuit.
         context: optional TransformerContext (not used),
     """
-    sorted_operations: List['cirq.Operation'] = []
-    for op in circuit.all_operations():
-        sorted_operations.append(op)
-        j = len(sorted_operations) - 1
+    operations_with_key: List[Tuple[Tuple['cirq.Qid', ...], 'cirq.Operation']] = [
+        (_id(op), op) for op in circuit.all_operations()
+    ]
+    for i in range(len(operations_with_key)):
+        j = i
         while (
             j
-            and _id(sorted_operations[j]) < _id(sorted_operations[j - 1])
-            and protocols.commutes(sorted_operations[j], sorted_operations[j - 1], default=False)
+            and operations_with_key[j][0] < operations_with_key[j - 1][0]
+            and protocols.commutes(
+                operations_with_key[j][1], operations_with_key[j - 1][1], default=False
+            )
         ):
-            sorted_operations[j], sorted_operations[j - 1] = (
-                sorted_operations[j - 1],
-                sorted_operations[j],
+            operations_with_key[j], operations_with_key[j - 1] = (
+                operations_with_key[j - 1],
+                operations_with_key[j],
             )
             j -= 1
-    return circuits.Circuit(sorted_operations)
+    return circuits.Circuit(op for _, op in operations_with_key)
