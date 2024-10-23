@@ -14,10 +14,12 @@
 
 """Target gateset used for compiling circuits to IonQ native gates."""
 
+from types import NotImplementedType
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import cirq
 import numpy as np
@@ -25,17 +27,19 @@ import numpy as np
 from cirq import linalg
 from cirq import ops
 
-from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
+from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
 
 
 class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
-    def __init__(self, *args, atol: float = 1e-8):
+    def __init__(self, *gates, atol: float = 1e-8):
         """Base class for IonQ native gate sets
 
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
+            *gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
+                `cirq.GateFamily` instances.
         """
-        super().__init__(*args, unroll_circuit_op=False)
+        super().__init__(*gates, unroll_circuit_op=False)
         self.atol = atol
 
     def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
@@ -44,8 +48,11 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         yield cirq.global_phase_operation(-1j)
         for gate in self.single_qubit_matrix_to_native_gates(mat):
             yield gate(qubit)
+        return None
 
-    def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+    def _decompose_two_qubit_operation(
+        self, op: cirq.Operation, _
+    ) -> Union[NotImplementedType, cirq.OP_TREE]:
         if not cirq.has_unitary(op):
             return NotImplemented
         mat = cirq.unitary(op)
@@ -69,7 +76,9 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, None)
         ).all_operations()
 
-    def _decompose_multi_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+    def _decompose_multi_qubit_operation(
+        self, op: cirq.Operation, _
+    ) -> Union[NotImplementedType, cirq.OP_TREE]:
         if isinstance(op.gate, cirq.CCZPowGate):
             return self.decompose_all_to_all_connect_ccz_gate(op.gate, op.qubits)
         return NotImplemented
@@ -103,6 +112,9 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def _value_equality_values_(self) -> Any:
         return self.atol
 
+    def _value_equality_values_cls_(self) -> Any:
+        return type(self)
+
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['atol'])
 
@@ -132,9 +144,9 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         gate will be:
 
         0: ──────────────@──────────────────@───@───p──────@───
-                        │                  │   │          │
+                       m │                  │   │          │
         1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
-            │          │       │          │
+              │          │       │          │
         2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
 
         where p = T**ccz_gate._exponent
@@ -197,7 +209,8 @@ class ForteNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
 
     The gates forming this gateset are:
-    GPIGate, GPI2Gate, MSGate, ZZGate
+    GPIGate, GPI2Gate, MSGate
+    Note: in the future ZZGate might be added here.
     """
 
     def __init__(self, *, atol: float = 1e-8):
@@ -206,7 +219,7 @@ class ForteNativeGateset(IonqNativeGatesetBase):
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
         """
-        super().__init__(GPIGate, GPI2Gate, MSGate, ZZGate, ops.MeasurementGate, atol=atol)
+        super().__init__(GPIGate, GPI2Gate, MSGate, ops.MeasurementGate, atol=atol)
 
     def __repr__(self) -> str:
         return f'cirq_ionq.ForteNativeGateset(atol={self.atol})'

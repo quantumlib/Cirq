@@ -278,7 +278,7 @@ class ZZGate(cirq.Gate):
     r"""The ZZ gate is another two qubit gate native to trapped ions. The ZZ gate only
     requires a single parameter, θ, to set the phase of the entanglement.
 
-    The unitary matrix of this gate usinng the parameter $\theta$ is:
+    The unitary matrix of this gate using the parameter $\theta$ is:
 
     $$
     \begin{bmatrix}
