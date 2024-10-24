@@ -14,7 +14,7 @@
 
 """Transformer that sorts commuting operations in increasing order of their `.qubits` tuple."""
 
-from typing import Optional, TYPE_CHECKING, List, Tuple
+from typing import Optional, TYPE_CHECKING, List, Tuple, FrozenSet, Union
 
 from cirq import protocols, circuits
 from cirq.transformers import transformer_api
@@ -22,9 +22,7 @@ from cirq.transformers import transformer_api
 if TYPE_CHECKING:
     import cirq
 
-
-def _id(op: 'cirq.Operation') -> Tuple['cirq.Qid', ...]:
-    return tuple(sorted(op.qubits))
+_MAX_QUBIT_COUNT_FOR_MASK = 64
 
 
 @transformer_api.transformer(add_deep_support=True)
@@ -39,21 +37,46 @@ def insertion_sort_transformer(
         circuit: input circuit.
         context: optional TransformerContext (not used),
     """
-    operations_with_key: List[Tuple[Tuple['cirq.Qid', ...], 'cirq.Operation']] = [
-        (_id(op), op) for op in circuit.all_operations()
-    ]
-    for i in range(len(operations_with_key)):
-        j = i
+    all_operations = [*circuit.all_operations()]
+    relative_order = {
+        qs: i for i, qs in enumerate(sorted(tuple(sorted(op.qubits)) for op in all_operations))
+    }
+    if len(circuit.all_qubits()) <= _MAX_QUBIT_COUNT_FOR_MASK:
+        # use bitmasks.
+        q_index = {q: i for i, q in enumerate(circuit.all_qubits())}
+
+        def _msk(qs: Tuple['cirq.Qid', ...]) -> int:
+            msk = 0
+            for q in qs:
+                msk |= 1 << q_index[q]
+            return msk
+
+        operations_with_info: Union[
+            List[Tuple['cirq.Operation', int, int]], List[Tuple['cirq.Operation', int, FrozenSet]]
+        ] = [
+            (op, relative_order[tuple(sorted(op.qubits))], _msk(op.qubits)) for op in all_operations
+        ]
+    else:
+        # use sets.
+        operations_with_info = [
+            (op, relative_order[tuple(sorted(op.qubits))], frozenset(op.qubits))
+            for op in all_operations
+        ]
+    sorted_info: Union[
+        List[Tuple['cirq.Operation', int, int]], List[Tuple['cirq.Operation', int, FrozenSet]]
+    ] = []
+    for i in range(len(all_operations)):
+        j = len(sorted_info)
         while (
             j
-            and operations_with_key[j][0] < operations_with_key[j - 1][0]
-            and protocols.commutes(
-                operations_with_key[j][1], operations_with_key[j - 1][1], default=False
+            and operations_with_info[i][1] < sorted_info[j - 1][1]
+            and (
+                not (operations_with_info[i][2] & sorted_info[j - 1][2])  # type: ignore[operator]
+                or protocols.commutes(
+                    operations_with_info[i][0], sorted_info[j - 1][0], default=False
+                )
             )
         ):
-            operations_with_key[j], operations_with_key[j - 1] = (
-                operations_with_key[j - 1],
-                operations_with_key[j],
-            )
             j -= 1
-    return circuits.Circuit(op for _, op in operations_with_key)
+        sorted_info.insert(j, operations_with_info[i])  # type: ignore[arg-type]
+    return circuits.Circuit(op for op, _, _ in sorted_info)

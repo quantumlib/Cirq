@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import cirq
 import cirq.transformers
+from cirq.transformers import insertion_sort
 
 
-def test_insertion_sort():
+@pytest.mark.parametrize('qubit_threshold', [1, 64])
+def test_insertion_sort(qubit_threshold):
+    insertion_sort._MAX_QUBIT_COUNT_FOR_MASK = qubit_threshold
     c = cirq.Circuit(
         cirq.CZ(cirq.q(2), cirq.q(1)),
         cirq.CZ(cirq.q(2), cirq.q(4)),
