@@ -19,6 +19,25 @@ import warnings
 from typing import Any, Callable
 
 
+def retry_once_after_timeout(testfunc: Callable) -> Callable:
+    """Marks a test function for one retry if it fails with TimeoutError.
+
+    This decorator is intended for test functions which occasionally fail
+    with TimeoutError.
+    """
+
+    @functools.wraps(testfunc)
+    def wrapped_func(*args, **kwargs) -> Any:
+        try:
+            return testfunc(*args, **kwargs)
+        except TimeoutError:
+            pass
+        warnings.warn("Retrying in case we have a transitive TimeoutError")
+        return testfunc(*args, **kwargs)
+
+    return wrapped_func
+
+
 def retry_once_with_later_random_values(testfunc: Callable) -> Callable:
     """Marks a test function for one retry with later random values.
 

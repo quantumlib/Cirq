@@ -28,7 +28,6 @@ from typing import (
     SupportsFloat,
     Tuple,
     Union,
-    TYPE_CHECKING,
 )
 
 import matplotlib as mpl
@@ -40,8 +39,6 @@ from mpl_toolkits import axes_grid1
 from cirq.devices import grid_qubit
 from cirq.vis import vis_utils
 
-if TYPE_CHECKING:
-    from numpy.typing import ArrayLike
 
 QubitTuple = Tuple[grid_qubit.GridQubit, ...]
 
@@ -240,8 +237,8 @@ class Heatmap:
         ax: plt.Axes,
     ) -> None:
         """Writes annotations to the center of cells. Internal."""
-        facecolor: ArrayLike
-        for (center, annotation), facecolor in zip(centers_and_annot, collection.get_facecolor()):
+        face_colors = cast(np.ndarray, collection.get_facecolor())
+        for (center, annotation), facecolor in zip(centers_and_annot, face_colors):
             # Calculate the center of the cell, assuming that it is a square
             # centered at (x=col, y=row).
             if not annotation:
