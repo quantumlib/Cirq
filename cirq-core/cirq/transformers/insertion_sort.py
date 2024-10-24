@@ -39,7 +39,7 @@ def insertion_sort_transformer(
     """
     all_operations = [*circuit.all_operations()]
     relative_order = {
-        qs: i for i, qs in enumerate(sorted(tuple(sorted(op.qubits)) for op in all_operations))
+        qs: i for i, qs in enumerate(sorted(set(tuple(sorted(op.qubits)) for op in all_operations)))
     }
     if len(circuit.all_qubits()) <= _MAX_QUBIT_COUNT_FOR_MASK:
         # use bitmasks.
