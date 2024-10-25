@@ -15,11 +15,7 @@
 """Target gateset used for compiling circuits to IonQ native gates."""
 
 from types import NotImplementedType
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Tuple
-from typing import Union
+from typing import Any, Dict, List, Tuple, Union
 
 import cirq
 import numpy as np
@@ -35,9 +31,9 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         """Base class for IonQ native gate sets
 
         Args:
-            atol: A limit on the amount of absolute error introduced by the decomposition.
             *gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
                 `cirq.GateFamily` instances.
+            atol: A limit on the amount of absolute error introduced by the decomposition.
         """
         super().__init__(*gates, unroll_circuit_op=False)
         self.atol = atol
@@ -144,7 +140,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         gate will be:
 
         0: ──────────────@──────────────────@───@───p──────@───
-                       m │                  │   │          │
+                         │                  │   │          │
         1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
               │          │       │          │
         2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
