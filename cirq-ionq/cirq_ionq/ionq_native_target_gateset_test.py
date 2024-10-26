@@ -53,30 +53,6 @@ def test_equality_aria():
     eq.add_equality_group(ForteNativeGateset(atol=1e-5))
 
 
-# test _json_dict_ method
-def test_AriaNativeGateset__json_dict_():
-    gateset = AriaNativeGateset(atol=1e-07)
-    assert str(gateset._json_dict_()) == "{'atol': 1e-07}"
-
-
-# test _json_dict_ method
-def test_ForteNativeGateset__json_dict_():
-    gateset = ForteNativeGateset(atol=1e-07)
-    assert str(gateset._json_dict_()) == "{'atol': 1e-07}"
-
-
-# test _from_json_dict_ method
-def test_AriaNativeGateset__from_json_dict():
-    gateset = AriaNativeGateset(atol=1e-07)
-    assert repr(gateset._from_json_dict_(1e-07)) == "cirq_ionq.AriaNativeGateset(atol=1e-07)"
-
-
-# test _from_json_dict_ method
-def test_ForteNativeGateset__from_json_dict():
-    gateset = ForteNativeGateset(atol=1e-07)
-    assert repr(gateset._from_json_dict_(1e-07)) == "cirq_ionq.ForteNativeGateset(atol=1e-07)"
-
-
 # test _decompose_two_qubit_operation on non unitary argument
 def test_AriaNativeGateset_decompose_two_qubit_operation():
     gateset = AriaNativeGateset(atol=1e-07)
