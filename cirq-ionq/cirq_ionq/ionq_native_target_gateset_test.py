@@ -88,123 +88,94 @@ def test_CCZ_gate_not_working_with_1_qubit():
 
 
 # Tests for transpiling one qubit circuits
-oneQubitLine = cirq.LineQubit.range(1)
 
 
 @pytest.mark.parametrize(
     "ideal_results, circuit",
     [
-        ([1, 0], cirq.Circuit(cirq.I(oneQubitLine[0]))),
-        ([0, 1], cirq.Circuit(cirq.X(oneQubitLine[0]))),
-        ([0.5, 0.5], cirq.Circuit(cirq.SingleQubitCliffordGate.X_sqrt(oneQubitLine[0]))),
-        ([0.5, 0.5], cirq.Circuit(cirq.SingleQubitCliffordGate.Y_sqrt(oneQubitLine[0]))),
-        ([0, 1], cirq.Circuit(cirq.Y(oneQubitLine[0]))),
-        ([1, 0], cirq.Circuit(cirq.Z(oneQubitLine[0]))),
-        ([1, 0], cirq.Circuit(cirq.S(oneQubitLine[0]))),
-        ([1, 0], cirq.Circuit(cirq.T(oneQubitLine[0]))),
-        ([0.5, 0.5], cirq.Circuit(cirq.H(oneQubitLine[0]))),
-        ([0.5, 0.5], cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.X(oneQubitLine[0]))),
+        ([1, 0], cirq.Circuit(cirq.I(cirq.q(0)))),
+        ([0, 1], cirq.Circuit(cirq.X(cirq.q(0)))),
+        ([0.5, 0.5], cirq.Circuit(cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)))),
+        ([0.5, 0.5], cirq.Circuit(cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)))),
+        ([0, 1], cirq.Circuit(cirq.Y(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.Z(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.S(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.T(cirq.q(0)))),
+        ([0.5, 0.5], cirq.Circuit(cirq.H(cirq.q(0)))),
+        ([0.5, 0.5], cirq.Circuit(cirq.H(cirq.q(0)), cirq.X(cirq.q(0)))),
+        (
+            [0.5, 0.5],
+            cirq.Circuit(cirq.H(cirq.q(0)), cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0))),
+        ),
+        ([0.5, 0.5], cirq.Circuit(cirq.H(cirq.q(0)), cirq.Y(cirq.q(0)))),
+        ([0, 1], cirq.Circuit(cirq.H(cirq.q(0)), cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)))),
+        ([0.5, 0.5], cirq.Circuit(cirq.H(cirq.q(0)), cirq.Z(cirq.q(0)))),
+        ([0.5, 0.5], cirq.Circuit(cirq.H(cirq.q(0)), cirq.S(cirq.q(0)))),
+        ([0.5, 0.5], cirq.Circuit(cirq.H(cirq.q(0)), cirq.T(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.X(cirq.q(0)), cirq.X(cirq.q(0)))),
+        (
+            [0, 1],
+            cirq.Circuit(
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
+            ),
+        ),
+        (
+            [0, 1],
+            cirq.Circuit(
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)),
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)),
+            ),
+        ),
+        ([1, 0], cirq.Circuit(cirq.Y(cirq.q(0)), cirq.Y(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.Z(cirq.q(0)), cirq.Z(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.H(cirq.q(0)), cirq.H(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.S(cirq.q(0)), cirq.S(cirq.q(0)))),
+        ([0, 1], cirq.Circuit(cirq.X(cirq.q(0)), cirq.X(cirq.q(0)), cirq.X(cirq.q(0)))),
+        ([0, 1], cirq.Circuit(cirq.Y(cirq.q(0)), cirq.Y(cirq.q(0)), cirq.Y(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.Z(cirq.q(0)), cirq.Z(cirq.q(0)), cirq.Z(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.S(cirq.q(0)), cirq.S(cirq.q(0)), cirq.S(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.H(cirq.q(0)), cirq.H(cirq.q(0)), cirq.S(cirq.q(0)))),
+        ([1, 0], cirq.Circuit(cirq.H(cirq.q(0)), cirq.H(cirq.q(0)), cirq.T(cirq.q(0)))),
+        ([0.5, 0.5], cirq.Circuit(cirq.H(cirq.q(0)), cirq.H(cirq.q(0)), cirq.H(cirq.q(0)))),
         (
             [0.5, 0.5],
             cirq.Circuit(
-                cirq.H(oneQubitLine[0]), cirq.SingleQubitCliffordGate.X_sqrt(oneQubitLine[0])
-            ),
-        ),
-        ([0.5, 0.5], cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.Y(oneQubitLine[0]))),
-        (
-            [0, 1],
-            cirq.Circuit(
-                cirq.H(oneQubitLine[0]), cirq.SingleQubitCliffordGate.Y_sqrt(oneQubitLine[0])
-            ),
-        ),
-        ([0.5, 0.5], cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.Z(oneQubitLine[0]))),
-        ([0.5, 0.5], cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.S(oneQubitLine[0]))),
-        ([0.5, 0.5], cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.T(oneQubitLine[0]))),
-        ([1, 0], cirq.Circuit(cirq.X(oneQubitLine[0]), cirq.X(oneQubitLine[0]))),
-        (
-            [0, 1],
-            cirq.Circuit(
-                cirq.SingleQubitCliffordGate.X_sqrt(oneQubitLine[0]),
-                cirq.SingleQubitCliffordGate.X_sqrt(oneQubitLine[0]),
-            ),
-        ),
-        (
-            [0, 1],
-            cirq.Circuit(
-                cirq.SingleQubitCliffordGate.Y_sqrt(oneQubitLine[0]),
-                cirq.SingleQubitCliffordGate.Y_sqrt(oneQubitLine[0]),
-            ),
-        ),
-        ([1, 0], cirq.Circuit(cirq.Y(oneQubitLine[0]), cirq.Y(oneQubitLine[0]))),
-        ([1, 0], cirq.Circuit(cirq.Z(oneQubitLine[0]), cirq.Z(oneQubitLine[0]))),
-        ([1, 0], cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.H(oneQubitLine[0]))),
-        ([1, 0], cirq.Circuit(cirq.S(oneQubitLine[0]), cirq.S(oneQubitLine[0]))),
-        (
-            [0, 1],
-            cirq.Circuit(cirq.X(oneQubitLine[0]), cirq.X(oneQubitLine[0]), cirq.X(oneQubitLine[0])),
-        ),
-        (
-            [0, 1],
-            cirq.Circuit(cirq.Y(oneQubitLine[0]), cirq.Y(oneQubitLine[0]), cirq.Y(oneQubitLine[0])),
-        ),
-        (
-            [1, 0],
-            cirq.Circuit(cirq.Z(oneQubitLine[0]), cirq.Z(oneQubitLine[0]), cirq.Z(oneQubitLine[0])),
-        ),
-        (
-            [1, 0],
-            cirq.Circuit(cirq.S(oneQubitLine[0]), cirq.S(oneQubitLine[0]), cirq.S(oneQubitLine[0])),
-        ),
-        (
-            [1, 0],
-            cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.H(oneQubitLine[0]), cirq.S(oneQubitLine[0])),
-        ),
-        (
-            [1, 0],
-            cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.H(oneQubitLine[0]), cirq.T(oneQubitLine[0])),
-        ),
-        (
-            [0.5, 0.5],
-            cirq.Circuit(cirq.H(oneQubitLine[0]), cirq.H(oneQubitLine[0]), cirq.H(oneQubitLine[0])),
-        ),
-        (
-            [0.5, 0.5],
-            cirq.Circuit(
-                cirq.SingleQubitCliffordGate.X_sqrt(oneQubitLine[0]),
-                cirq.SingleQubitCliffordGate.X_sqrt(oneQubitLine[0]),
-                cirq.SingleQubitCliffordGate.X_sqrt(oneQubitLine[0]),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
             ),
         ),
         (
             [0.5, 0.5],
             cirq.Circuit(
-                cirq.SingleQubitCliffordGate.Y_sqrt(oneQubitLine[0]),
-                cirq.SingleQubitCliffordGate.Y_sqrt(oneQubitLine[0]),
-                cirq.SingleQubitCliffordGate.Y_sqrt(oneQubitLine[0]),
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)),
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)),
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)),
             ),
         ),
         (
             [0.387577, 0.612423],
             cirq.Circuit(
-                cirq.Rx(rads=1)(oneQubitLine[0]),
-                cirq.Circuit(cirq.Ry(rads=2)(oneQubitLine[0])),
-                cirq.Circuit(cirq.Rz(rads=1)(oneQubitLine[0])),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Circuit(cirq.Ry(rads=2)(cirq.q(0))),
+                cirq.Circuit(cirq.Rz(rads=1)(cirq.q(0))),
             ),
         ),
         (
             [0.551923, 0.448077],
             cirq.Circuit(
-                cirq.Rx(rads=1)(oneQubitLine[0]),
-                cirq.Circuit(cirq.Ry(rads=2)(oneQubitLine[0])),
-                cirq.Circuit(cirq.Rx(rads=3)(oneQubitLine[0])),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Circuit(cirq.Ry(rads=2)(cirq.q(0))),
+                cirq.Circuit(cirq.Rx(rads=3)(cirq.q(0))),
             ),
         ),
         (
             [0.257261, 0.742739],
             cirq.Circuit(
-                cirq.Rx(rads=1)(oneQubitLine[0]),
-                cirq.Circuit(cirq.Rz(rads=2)(oneQubitLine[0])),
-                cirq.Circuit(cirq.Rx(rads=3)(oneQubitLine[0])),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Circuit(cirq.Rz(rads=2)(cirq.q(0))),
+                cirq.Circuit(cirq.Rx(rads=3)(cirq.q(0))),
             ),
         ),
     ],
@@ -224,269 +195,204 @@ def test_transpiling_one_qubit_circuits_to_native_gates(ideal_results, circuit):
 
 
 # Tests for transpiling two qubit circuits
-twoQubitsLine = cirq.LineQubit.range(2)
 
 
 @pytest.mark.parametrize(
     "ideal_results, circuit",
     [
-        ([1, 0, 0, 0], cirq.Circuit(cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]))),
-        (
-            [0, 1, 0, 0],
-            cirq.Circuit(cirq.Y(twoQubitsLine[0]), cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1])),
-        ),
-        (
-            [0, 1, 0, 0],
-            cirq.Circuit(cirq.X(twoQubitsLine[0]), cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1])),
-        ),
-        (
-            [1, 0, 0, 0],
-            cirq.Circuit(cirq.Z(twoQubitsLine[0]), cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1])),
-        ),
-        (
-            [0.5, 0.5, 0, 0],
-            cirq.Circuit(cirq.H(twoQubitsLine[0]), cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1])),
-        ),
+        ([1, 0, 0, 0], cirq.Circuit(cirq.SWAP(cirq.q(0), cirq.q(1)))),
+        ([0, 1, 0, 0], cirq.Circuit(cirq.Y(cirq.q(0)), cirq.SWAP(cirq.q(0), cirq.q(1)))),
+        ([0, 1, 0, 0], cirq.Circuit(cirq.X(cirq.q(0)), cirq.SWAP(cirq.q(0), cirq.q(1)))),
+        ([1, 0, 0, 0], cirq.Circuit(cirq.Z(cirq.q(0)), cirq.SWAP(cirq.q(0), cirq.q(1)))),
+        ([0.5, 0.5, 0, 0], cirq.Circuit(cirq.H(cirq.q(0)), cirq.SWAP(cirq.q(0), cirq.q(1)))),
         (
             [0.5, 0.5, 0, 0],
             cirq.Circuit(
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[0]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)), cirq.SWAP(cirq.q(0), cirq.q(1))
             ),
         ),
         (
             [0, 0, 0, 1],
             cirq.Circuit(
-                cirq.X(twoQubitsLine[1]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
+                cirq.X(cirq.q(1)), cirq.SWAP(cirq.q(0), cirq.q(1)), cirq.CNOT(cirq.q(0), cirq.q(1))
             ),
         ),
-        ([0, 0, 0, 1], cirq.Circuit(cirq.X(twoQubitsLine[0]), cirq.X(twoQubitsLine[1]))),
-        ([0, 0, 0, 1], cirq.Circuit(cirq.Y(twoQubitsLine[0]), cirq.Y(twoQubitsLine[1]))),
-        ([1, 0, 0, 0], cirq.Circuit(cirq.Z(twoQubitsLine[0]), cirq.Z(twoQubitsLine[1]))),
+        ([0, 0, 0, 1], cirq.Circuit(cirq.X(cirq.q(0)), cirq.X(cirq.q(1)))),
+        ([0, 0, 0, 1], cirq.Circuit(cirq.Y(cirq.q(0)), cirq.Y(cirq.q(1)))),
+        ([1, 0, 0, 0], cirq.Circuit(cirq.Z(cirq.q(0)), cirq.Z(cirq.q(1)))),
+        ([0, 0, 0, 1], cirq.Circuit(cirq.X(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)))),
+        ([0, 0, 0, 1], cirq.Circuit(cirq.Y(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)))),
+        ([1, 0, 0, 0], cirq.Circuit(cirq.Z(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)))),
+        ([0.5, 0, 0, 0.5], cirq.Circuit(cirq.H(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)))),
         (
-            [0, 0, 0, 1],
-            cirq.Circuit(cirq.X(twoQubitsLine[0]), cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1])),
+            [0.25, 0.25, 0.25, 0.25],
+            cirq.Circuit(cirq.H(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)), cirq.H(cirq.q(0))),
         ),
         (
-            [0, 0, 0, 1],
-            cirq.Circuit(cirq.Y(twoQubitsLine[0]), cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1])),
+            [0, 0.5, 0.5, 0],
+            cirq.Circuit(cirq.H(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)), cirq.X(cirq.q(0))),
         ),
         (
-            [1, 0, 0, 0],
-            cirq.Circuit(cirq.Z(twoQubitsLine[0]), cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1])),
+            [0, 0.5, 0.5, 0],
+            cirq.Circuit(cirq.H(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)), cirq.Y(cirq.q(0))),
         ),
         (
             [0.5, 0, 0, 0.5],
-            cirq.Circuit(cirq.H(twoQubitsLine[0]), cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1])),
+            cirq.Circuit(cirq.H(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)), cirq.Z(cirq.q(0))),
         ),
         (
             [0.25, 0.25, 0.25, 0.25],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.H(twoQubitsLine[0]),
+                cirq.H(cirq.q(0)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
+            ),
+        ),
+        (
+            [0.25, 0.25, 0.25, 0.25],
+            cirq.Circuit(
+                cirq.H(cirq.q(0)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)),
             ),
         ),
         (
             [0, 0.5, 0.5, 0],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.X(twoQubitsLine[0]),
+                cirq.H(cirq.q(0)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(1)),
             ),
         ),
         (
             [0, 0.5, 0.5, 0],
-            cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.Y(twoQubitsLine[0]),
-            ),
+            cirq.Circuit(cirq.H(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)), cirq.X(cirq.q(1))),
         ),
         (
-            [0.5, 0, 0, 0.5],
+            [0.25, 0.25, 0.25, 0.25],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.Z(twoQubitsLine[0]),
+                cirq.H(cirq.q(0)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(1)),
             ),
         ),
         (
             [0.25, 0.25, 0.25, 0.25],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[0]),
+                cirq.H(cirq.q(0)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(1)),
             ),
         ),
-        (
-            [0.25, 0.25, 0.25, 0.25],
-            cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.SingleQubitCliffordGate.Y_sqrt(twoQubitsLine[0]),
-            ),
-        ),
-        (
-            [0, 0.5, 0.5, 0],
-            cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[0]),
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[1]),
-            ),
-        ),
-        (
-            [0, 0.5, 0.5, 0],
-            cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.X(twoQubitsLine[1]),
-            ),
-        ),
-        (
-            [0.25, 0.25, 0.25, 0.25],
-            cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[1]),
-            ),
-        ),
-        (
-            [0.25, 0.25, 0.25, 0.25],
-            cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.SingleQubitCliffordGate.Y_sqrt(twoQubitsLine[1]),
-            ),
-        ),
-        (
-            [0, 0, 1, 0],
-            cirq.Circuit(cirq.X(twoQubitsLine[0]), cirq.CZ(twoQubitsLine[0], twoQubitsLine[1])),
-        ),
+        ([0, 0, 1, 0], cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))),
         (
             [1, 0, 0, 0],
             cirq.Circuit(
-                cirq.X(twoQubitsLine[0]),
-                cirq.CZ(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.Circuit(cirq.X(twoQubitsLine[0])),
+                cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)), cirq.Circuit(cirq.X(cirq.q(0)))
             ),
         ),
-        (
-            [0.5, 0, 0.5, 0],
-            cirq.Circuit(cirq.H(twoQubitsLine[0]), cirq.CZ(twoQubitsLine[0], twoQubitsLine[1])),
-        ),
+        ([0.5, 0, 0.5, 0], cirq.Circuit(cirq.H(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))),
         (
             [0.5, 0, 0.5, 0],
             cirq.Circuit(
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[0]),
-                cirq.CZ(twoQubitsLine[0], twoQubitsLine[1]),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1))
             ),
         ),
         (
             [0, 0, 1, 0],
             cirq.Circuit(
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[0]),
-                cirq.CZ(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[0]),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
+                cirq.CZ(cirq.q(0), cirq.q(1)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
             ),
         ),
         (
             [0, 0, 1, 0],
             cirq.Circuit(
-                cirq.SingleQubitCliffordGate.Y_sqrt(twoQubitsLine[0]),
-                cirq.CZ(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.SingleQubitCliffordGate.Y_sqrt(twoQubitsLine[0]),
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)),
+                cirq.CZ(cirq.q(0), cirq.q(1)),
+                cirq.SingleQubitCliffordGate.Y_sqrt(cirq.q(0)),
             ),
         ),
         (
             [1, 0, 0, 0],
-            cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.CZ(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.H(twoQubitsLine[0]),
-            ),
+            cirq.Circuit(cirq.H(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)), cirq.H(cirq.q(0))),
         ),
         (
             [0, 0, 0.5, 0.5],
-            cirq.Circuit(
-                cirq.X(twoQubitsLine[0]),
-                cirq.CZ(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.H(twoQubitsLine[1]),
-            ),
+            cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)), cirq.H(cirq.q(1))),
         ),
         (
             [0.5, 0, 0.5, 0],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.H(twoQubitsLine[0]),
-                cirq.H(twoQubitsLine[1]),
+                cirq.H(cirq.q(0)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
+                cirq.H(cirq.q(0)),
+                cirq.H(cirq.q(1)),
             ),
         ),
         (
             [0.5, 0.5, 0, 0],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[1]),
+                cirq.H(cirq.q(0)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(1)),
             ),
         ),
         (
             [1, 0, 0.0, 0],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.H(twoQubitsLine[1]),
+                cirq.H(cirq.q(0)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
+                cirq.H(cirq.q(1)),
             ),
         ),
         (
             [0.25, 0.25, 0.25, 0.25],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[1], twoQubitsLine[0]),
-                cirq.SingleQubitCliffordGate.X_sqrt(twoQubitsLine[1]),
+                cirq.H(cirq.q(0)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(1)),
             ),
         ),
         (
             [0, 0.5, 0.5, 0],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[0]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[1], twoQubitsLine[0]),
-                cirq.Y(twoQubitsLine[1]),
+                cirq.H(cirq.q(0)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.Y(cirq.q(1)),
             ),
         ),
         (
             [0, 0.5, 0, 0.5],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[1]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[1], twoQubitsLine[0]),
-                cirq.X(twoQubitsLine[1]),
+                cirq.H(cirq.q(1)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.X(cirq.q(1)),
             ),
         ),
         (
             [0.5, 0.5, 0, 0],
             cirq.Circuit(
-                cirq.H(twoQubitsLine[1]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[1], twoQubitsLine[0]),
-                cirq.SWAP(twoQubitsLine[0], twoQubitsLine[1]),
+                cirq.H(cirq.q(1)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
             ),
         ),
         (
             [0.224828, 0.545324, 0.162750, 0.067099],
             cirq.Circuit(
-                cirq.Rx(rads=1)(twoQubitsLine[0]),
-                cirq.Ry(rads=2)(twoQubitsLine[1]),
-                cirq.CNOT(twoQubitsLine[0], twoQubitsLine[1]),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Ry(rads=2)(cirq.q(1)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
             ),
         ),
     ],
@@ -506,7 +412,6 @@ def test_transpiling_two_qubit_circuits_to_native_gates(ideal_results, circuit):
 
 
 # Tests for transpiling three qubit circuits
-threeQubitsLine = cirq.LineQubit.range(3)
 
 
 @pytest.mark.parametrize(
@@ -515,252 +420,237 @@ threeQubitsLine = cirq.LineQubit.range(3)
         (
             [0.5, 0, 0, 0, 0, 0, 0, 0.5],
             cirq.Circuit(
-                cirq.H(threeQubitsLine[0]),
-                cirq.CNOT(threeQubitsLine[0], threeQubitsLine[1]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.H(cirq.q(0)), cirq.CNOT(cirq.q(0), cirq.q(1)), cirq.CNOT(cirq.q(1), cirq.q(2))
             ),
         ),
         (
             [0.5, 0, 0, 0, 0, 0, 0, 0.5],
             cirq.Circuit(
-                cirq.H(threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[2], threeQubitsLine[1]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[0]),
+                cirq.H(cirq.q(2)), cirq.CNOT(cirq.q(2), cirq.q(1)), cirq.CNOT(cirq.q(1), cirq.q(0))
             ),
         ),
         (
             [0, 1, 0, 0, 0, 0, 0, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[1]),
-                cirq.SWAP(threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)), cirq.SWAP(cirq.q(0), cirq.q(1)), cirq.SWAP(cirq.q(1), cirq.q(2))
             ),
         ),
         (
             [0, 0, 0, 0, 0, 1, 0, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[1]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[0]),
-                cirq.SWAP(threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.SWAP(cirq.q(1), cirq.q(2)),
             ),
         ),
         (
             [0, 0.5, 0, 0, 0, 0.5, 0, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[1]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[0]),
-                cirq.SWAP(threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.SWAP(cirq.q(1), cirq.q(2)),
             ),
         ),
         (
             [0, 0.25, 0, 0.25, 0, 0.25, 0, 0.25],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[1]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[0]),
-                cirq.SWAP(threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.SWAP(cirq.q(0), cirq.q(1)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.SWAP(cirq.q(1), cirq.q(2)),
             ),
         ),
         (
             [0, 0, 0.25, 0.25, 0, 0, 0.25, 0.25],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[0]),
-                cirq.SWAP(threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.SWAP(cirq.q(1), cirq.q(2)),
             ),
         ),
         (
             [0, 0, 0, 0, 0.25, 0.25, 0.25, 0.25],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[2], threeQubitsLine[1]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
+                cirq.CNOT(cirq.q(2), cirq.q(1)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
             ),
         ),
         (
             [0.25, 0.25, 0.25, 0.25, 0, 0, 0, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[2], threeQubitsLine[1]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
-                cirq.Y(threeQubitsLine[0]),
-                cirq.Y(threeQubitsLine[1]),
-                cirq.Y(threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
+                cirq.CNOT(cirq.q(2), cirq.q(1)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
+                cirq.Y(cirq.q(0)),
+                cirq.Y(cirq.q(1)),
+                cirq.Y(cirq.q(2)),
             ),
         ),
         (
             [0, 0, 0.25, 0.25, 0.25, 0.25, 0, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[2], threeQubitsLine[1]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
-                cirq.Y(threeQubitsLine[1]),
-                cirq.Y(threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[0]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
+                cirq.CNOT(cirq.q(2), cirq.q(1)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
+                cirq.Y(cirq.q(1)),
+                cirq.Y(cirq.q(2)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
             ),
         ),
         (
             [0, 0.25, 0.25, 0, 0.25, 0, 0, 0.25],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[0]),
-                cirq.CNOT(threeQubitsLine[2], threeQubitsLine[1]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
+                cirq.CNOT(cirq.q(2), cirq.q(1)),
             ),
         ),
         (
             [0, 0, 0.25, 0.25, 0, 0, 0.25, 0.25],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
+                cirq.SWAP(cirq.q(1), cirq.q(2)),
             ),
         ),
-        (
-            [1, 0, 0, 0, 0, 0, 0, 0],
-            cirq.Circuit(cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2])),
-        ),
+        ([1, 0, 0, 0, 0, 0, 0, 0], cirq.Circuit(cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)))),
         (
             [0, 0, 0, 0, 0, 0, 1, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.X(threeQubitsLine[1]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)), cirq.X(cirq.q(1)), cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2))
             ),
         ),
         (
             [0.25, 0, 0.25, 0, 0.25, 0, 0.25, 0],
             cirq.Circuit(
-                cirq.H(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.H(cirq.q(0)), cirq.H(cirq.q(1)), cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2))
             ),
         ),
         (
             [0.25, 0, 0.25, 0, 0.25, 0, 0.25, 0],
             cirq.Circuit(
-                cirq.SingleQubitCliffordGate.X_sqrt(threeQubitsLine[0]),
-                cirq.SingleQubitCliffordGate.X_sqrt(threeQubitsLine[1]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(0)),
+                cirq.SingleQubitCliffordGate.X_sqrt(cirq.q(1)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
             ),
         ),
         (
             [0.224828, 0, 0.545324, 0, 0.067099, 0, 0.162750, 0],
             cirq.Circuit(
-                cirq.Rx(rads=1)(threeQubitsLine[0]),
-                cirq.Rx(rads=2)(threeQubitsLine[1]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Rx(rads=2)(cirq.q(1)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
             ),
         ),
         (
             [0.003854, 0, 0.766298, 0, 0.001150, 0, 0.228699, 0],
             cirq.Circuit(
-                cirq.Rx(rads=1)(threeQubitsLine[0]),
-                cirq.Ry(rads=3)(threeQubitsLine[1]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Ry(rads=3)(cirq.q(1)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
             ),
         ),
         (
             [0.709106, 0, 0.061046, 0, 0.211630, 0, 0.018219, 0],
             cirq.Circuit(
-                cirq.Rx(rads=1)(threeQubitsLine[0]),
-                cirq.Ry(rads=1)(threeQubitsLine[1]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
-                cirq.H(threeQubitsLine[1]),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Ry(rads=1)(cirq.q(1)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
+                cirq.H(cirq.q(1)),
             ),
         ),
         (
             [0, 0, 0, 0, 0, 0, 0.5, 0.5],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.X(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.X(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
             ),
         ),
         (
             [0, 0, 0, 0.5, 0, 0, 0, 0.5],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.X(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.X(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
             ),
         ),
         (
             [0, 0.5, 0, 0, 0, 0.5, 0, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
-                cirq.SWAP(threeQubitsLine[0], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(2)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
+                cirq.SWAP(cirq.q(0), cirq.q(2)),
             ),
         ),
         (
             [0, 0, 0, 0, 0, 0, 0.5, 0.5],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[0], threeQubitsLine[1]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(2)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
+                cirq.CNOT(cirq.q(0), cirq.q(1)),
             ),
         ),
         (
             [0, 0, 0.25, 0.25, 0.25, 0.25, 0, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.H(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
-                cirq.CNOT(threeQubitsLine[1], threeQubitsLine[0]),
+                cirq.X(cirq.q(0)),
+                cirq.H(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
+                cirq.CNOT(cirq.q(1), cirq.q(0)),
             ),
         ),
         (
             [0, 0, 0, 0, 0, 0, 1, 0],
             cirq.Circuit(
-                cirq.X(threeQubitsLine[0]),
-                cirq.X(threeQubitsLine[1]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.X(cirq.q(0)), cirq.X(cirq.q(1)), cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2))
             ),
         ),
         (
             [0.224828, 0, 0.545324, 0, 0.067099, 0, 0, 0.162750],
             cirq.Circuit(
-                cirq.Rx(rads=1)(threeQubitsLine[0]),
-                cirq.Rx(rads=2)(threeQubitsLine[1]),
-                cirq.H(threeQubitsLine[2]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
-                cirq.H(threeQubitsLine[2]),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Rx(rads=2)(cirq.q(1)),
+                cirq.H(cirq.q(2)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
+                cirq.H(cirq.q(2)),
             ),
         ),
         (
             [0.065633, 0.159194, 0.159194, 0.386129, 0.019588, 0.047511, 0.047511, 0.115239],
             cirq.Circuit(
-                cirq.Rx(rads=1)(threeQubitsLine[0]),
-                cirq.Rx(rads=2)(threeQubitsLine[1]),
-                cirq.Ry(rads=2)(threeQubitsLine[2]),
-                cirq.CCZ(threeQubitsLine[0], threeQubitsLine[1], threeQubitsLine[2]),
+                cirq.Rx(rads=1)(cirq.q(0)),
+                cirq.Rx(rads=2)(cirq.q(1)),
+                cirq.Ry(rads=2)(cirq.q(2)),
+                cirq.CCZ(cirq.q(0), cirq.q(1), cirq.q(2)),
             ),
         ),
     ],
