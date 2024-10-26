@@ -15,7 +15,7 @@
 """Target gateset used for compiling circuits to IonQ native gates."""
 
 from types import NotImplementedType
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, Iterator, List, Tuple, Union
 
 import cirq
 import numpy as np
@@ -38,13 +38,12 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         super().__init__(*gates, unroll_circuit_op=False)
         self.atol = atol
 
-    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> Iterator[cirq.OP_TREE]:
         qubit = op.qubits[0]
         mat = cirq.unitary(op)
         yield cirq.global_phase_operation(-1j)
         for gate in self.single_qubit_matrix_to_native_gates(mat):
             yield gate(qubit)
-        return None
 
     def _decompose_two_qubit_operation(
         self, op: cirq.Operation, _
