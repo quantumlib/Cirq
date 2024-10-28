@@ -20,10 +20,11 @@ import sympy
 
 import cirq
 from cirq.devices import line_qubit
-from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
+from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
+
 
 _NATIVE_GATES = cirq.Gateset(
-    GPIGate, GPI2Gate, MSGate, cirq.MeasurementGate, unroll_circuit_op=False
+    GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
 )
 
 
@@ -76,6 +77,7 @@ class Serializer:
             GPIGate: self._serialize_gpi_gate,
             GPI2Gate: self._serialize_gpi2_gate,
             MSGate: self._serialize_ms_gate,
+            ZZGate: self._serialize_zz_gate,
         }
 
     def serialize(
@@ -219,6 +221,9 @@ class Serializer:
 
     def _serialize_ms_gate(self, gate: MSGate, targets: Sequence[int]) -> Optional[dict]:
         return {'gate': 'ms', 'targets': targets, 'phases': gate.phases, 'angle': gate.theta}
+
+    def _serialize_zz_gate(self, gate: ZZGate, targets: Sequence[int]) -> Optional[dict]:
+        return {'gate': 'zz', 'targets': targets, 'phase': gate.phase}
 
     def _serialize_cnot_pow_gate(
         self, gate: cirq.CNotPowGate, targets: Sequence[int]
