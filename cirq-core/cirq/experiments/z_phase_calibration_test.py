@@ -29,7 +29,7 @@ from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 _ANGLES = ['theta', 'phi', 'chi', 'zeta', 'gamma']
 
 
-def _create_tests(n, seed):
+def _create_tests(n, seed, with_options: bool = False):
     rng = np.random.default_rng(seed)
     angles = (rng.random((n, 5)) * 2 - 1) * np.pi
     # Add errors to the first 2 angles (theta and phi).
@@ -38,6 +38,23 @@ def _create_tests(n, seed):
     error = np.concatenate(
         [(rng.random((n, 2)) + 1) * rng.choice([-1, 1], (n, 2)), np.zeros((n, 3))], axis=-1
     )
+    if with_options:
+        options = []
+        for _ in range(n):
+            v = [False, False, False]
+            # Calibrate only one to keep the run time down.
+            v[rng.integers(0, 3)] = True
+            options.append(
+                {
+                    'characterize_chi': v[0],
+                    'characterize_gamma': v[1],
+                    'characterize_zeta': v[2],
+                    'characterize_phi': False,
+                    'characterize_theta': False,
+                }
+            )
+
+        return zip(angles, error, options)
     return zip(angles, error)
 
 
@@ -68,19 +85,17 @@ class _TestSimulator(cirq.Simulator):
         yield from super()._core_iterator(new_circuit, sim_state, all_measurements_are_terminal)
 
 
-@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=10, seed=32432432))
-def test_calibrate_z_phases(angles, error):
+@pytest.mark.parametrize(
+    ['angles', 'error', 'characterization_flags'],
+    _create_tests(n=10, seed=32432432, with_options=True),
+)
+def test_calibrate_z_phases(angles, error, characterization_flags):
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
     actual_gate = cirq.PhasedFSimGate(**{k: v + e for k, v, e in zip(_ANGLES, angles, error)})
 
     options = XEBPhasedFSimCharacterizationOptions(
-        **{f'{n}_default': t for n, t in zip(_ANGLES, angles)},
-        characterize_chi=False,
-        characterize_gamma=False,
-        characterize_phi=True,
-        characterize_theta=True,
-        characterize_zeta=False,
+        **{f'{n}_default': t for n, t in zip(_ANGLES, angles)}, **characterization_flags
     )
 
     sampler = _TestSimulator(original_gate, actual_gate, seed=0)
@@ -111,7 +126,7 @@ def test_calibrate_z_phases(angles, error):
     assert new_dist < original_dist or new_dist < 1e-6
 
 
-@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=10, seed=32432432))
+@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3, seed=32432432))
 def test_calibrate_z_phases_no_options(angles, error):
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
@@ -145,7 +160,7 @@ def test_calibrate_z_phases_no_options(angles, error):
     assert new_dist < original_dist or new_dist < 1e-6
 
 
-@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=10, seed=32432432))
+@pytest.mark.parametrize(['angles', 'error'], _create_tests(n=3, seed=32432432))
 def test_calibrate_z_phases_workflow_no_options(angles, error):
 
     original_gate = cirq.PhasedFSimGate(**{k: v for k, v in zip(_ANGLES, angles)})
@@ -165,9 +180,11 @@ def test_calibrate_z_phases_workflow_no_options(angles, error):
     )
 
     for params in result.final_params.values():
-        assert 'zeta' not in params
-        assert 'chi' not in params
-        assert 'gamma' not in params
+        assert 'zeta' in params
+        assert 'chi' in params
+        assert 'gamma' in params
+        assert 'phi' not in params
+        assert 'theta' not in params
 
 
 def test_plot_z_phase_calibration_result():
@@ -180,8 +197,7 @@ def test_plot_z_phase_calibration_result():
     df['fidelities_c'] = [[0.9, 0.92, 0.93], [0.7, 0.77, 0.8]]
     df['layer_fid_std_c'] = [0.2, 0.3]
 
-    _, axes = plt.subplots(1, 2)
-    plot_z_phase_calibration_result(before_after_df=df, axes=axes)
+    axes = plot_z_phase_calibration_result(before_after_df=df)
 
     np.testing.assert_allclose(axes[0].lines[0].get_xdata().astype(float), [1, 2, 3])
     np.testing.assert_allclose(axes[0].lines[0].get_ydata().astype(float), [0.9, 0.8, 0.7])

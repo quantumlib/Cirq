@@ -108,7 +108,7 @@ def benchmark_2q_xeb_fidelities(
     def per_cycle_depth(df):
         """This function is applied per cycle_depth in the following groupby aggregation."""
         fid_lsq = df['numerator'].sum() / df['denominator'].sum()
-        # Note: both df['denominator'] an df['x'] are constants.
+        # Note: both df['denominator'] and df['x'] are constants.
         # Var[f] = Var[df['numerator']] / (sum df['denominator'])^2
         #           = sum (df['x']^2 * df['var_m_u']) / (sum df['denominator'])^2
         var_fid = (df['var_m_u'] * df['x'] ** 2).sum() / df['denominator'].sum() ** 2

@@ -13,8 +13,11 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
-from typing import Optional, Sequence, Tuple, Dict, TYPE_CHECKING
+from typing import Callable, Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING
 
+import multiprocessing
+import multiprocessing.pool
+import matplotlib.pyplot as plt
 import numpy as np
 
 from cirq.experiments import xeb_fitting
@@ -24,8 +27,6 @@ from cirq import ops
 if TYPE_CHECKING:
     import cirq
     import pandas as pd
-    import multiprocessing
-    import matplotlib.pyplot as plt
 
 
 def z_phase_calibration_workflow(
@@ -39,7 +40,7 @@ def z_phase_calibration_workflow(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool_or_num_workers: Optional[Union[int, 'multiprocessing.pool.Pool']] = None,
 ) -> Tuple[xeb_fitting.XEBCharacterizationResult, 'pd.DataFrame']:
     """Perform z-phase calibration for excitation-preserving gates.
 
@@ -71,12 +72,22 @@ def z_phase_calibration_workflow(
         cycle_depths: The cycle depths to use.
         random_state: The random state to use.
         atol: Absolute tolerance to be used by the minimizer.
-        pool: Optional multi-threading or multi-processing pool.
-
+        pool_or_num_workers: An optional multi-processing pool or number of workers.
+            A zero value means no multiprocessing.
+            A positivie integer value will create a pool with the given number of workers.
+            A None value will create pool with maximum number of workers.
     Returns:
         - An `XEBCharacterizationResult` object that contains the calibration result.
-        - A `pd.DataFrame` comparing the before and after fidilities.
+        - A `pd.DataFrame` comparing the before and after fidelities.
     """
+
+    pool: Optional['multiprocessing.pool.Pool'] = None
+    local_pool = False
+    if isinstance(pool_or_num_workers, multiprocessing.pool.Pool):
+        pool = pool_or_num_workers  # pragma: no cover
+    elif pool_or_num_workers != 0:
+        pool = multiprocessing.Pool(pool_or_num_workers)
+        local_pool = True
 
     fids_df_0, circuits, sampled_df = parallel_xeb_workflow(
         sampler=sampler,
@@ -92,7 +103,11 @@ def z_phase_calibration_workflow(
 
     if options is None:
         options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(
-            characterize_chi=False, characterize_gamma=False, characterize_zeta=False
+            characterize_chi=True,
+            characterize_gamma=True,
+            characterize_zeta=True,
+            characterize_theta=False,
+            characterize_phi=False,
         ).with_defaults_from_gate(two_qubit_gate)
 
     p_circuits = [
@@ -114,6 +129,8 @@ def z_phase_calibration_workflow(
         fids_df_0, characterization_result=result
     )
 
+    if local_pool:
+        pool.close()
     return result, before_after
 
 
@@ -128,7 +145,7 @@ def calibrate_z_phases(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool_or_num_workers: Optional[Union[int, 'multiprocessing.pool.Pool']] = None,
 ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate']:
     """Perform z-phase calibration for excitation-preserving gates.
 
@@ -160,7 +177,10 @@ def calibrate_z_phases(
         cycle_depths: The cycle depths to use.
         random_state: The random state to use.
         atol: Absolute tolerance to be used by the minimizer.
-        pool: Optional multi-threading or multi-processing pool.
+        pool_or_num_workers: An optional multi-processing pool or number of workers.
+            A zero value means no multiprocessing.
+            A positivie integer value will create a pool with the given number of workers.
+            A None value will create pool with maximum number of workers.
 
     Returns:
         - A dictionary mapping qubit pairs to the calibrated PhasedFSimGates.
@@ -168,7 +188,11 @@ def calibrate_z_phases(
 
     if options is None:
         options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(
-            characterize_chi=False, characterize_gamma=False, characterize_zeta=False
+            characterize_chi=True,
+            characterize_gamma=True,
+            characterize_zeta=True,
+            characterize_theta=False,
+            characterize_phi=False,
         ).with_defaults_from_gate(two_qubit_gate)
 
     result, _ = z_phase_calibration_workflow(
@@ -182,7 +206,7 @@ def calibrate_z_phases(
         cycle_depths=cycle_depths,
         random_state=random_state,
         atol=atol,
-        pool=pool,
+        pool_or_num_workers=pool_or_num_workers,
     )
 
     gates = {}
@@ -198,7 +222,8 @@ def calibrate_z_phases(
 
 def plot_z_phase_calibration_result(
     before_after_df: 'pd.DataFrame',
-    axes: np.ndarray[Sequence[Sequence['plt.Axes']], np.dtype[np.object_]],
+    axes: Optional[Sequence['plt.Axes']] = None,
+    pairs: Optional[Sequence[Tuple['cirq.Qid', 'cirq.Qid']]] = None,
     *,
     with_error_bars: bool = False,
 ) -> None:
@@ -211,10 +236,19 @@ def plot_z_phase_calibration_result(
         before_after_df: The second return object of running `z_phase_calibration_workflow`.
         axes: And ndarray of the axes to plot on.
             The number of axes is expected to be >= number of qubit pairs.
+        pairs: If provided, only the given pairs are plotted.
         with_error_bars: Whether to add error bars or not.
             The width of the bar is an upper bound on standard variation of the estimated fidelity.
     """
-    for pair, ax in zip(before_after_df.index, axes.flatten()):
+    if pairs is None:
+        pairs = before_after_df.index
+    if axes is None:
+        # Create a 16x9 rectangle.
+        ncols = int(np.ceil(np.sqrt(9 / 16 * len(pairs))))
+        nrows = (len(pairs) + ncols - 1) // ncols
+        _, axes = plt.subplots(nrows=nrows, ncols=ncols)
+    axes = axes if isinstance(axes, np.ndarray) else np.array(axes)
+    for pair, ax in zip(pairs, axes.flatten()):
         row = before_after_df.loc[[pair]].iloc[0]
         ax.errorbar(
             row.cycle_depths_0,
@@ -233,3 +267,4 @@ def plot_z_phase_calibration_result(
         ax.set_ylabel('fidelity estimate')
         ax.set_title('-'.join(str(q) for q in pair))
         ax.legend()
+    return axes
