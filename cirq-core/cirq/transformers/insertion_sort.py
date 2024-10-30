@@ -14,7 +14,7 @@
 
 """Transformer that sorts commuting operations in increasing order of their `.qubits` tuple."""
 
-from typing import Optional, TYPE_CHECKING, List, Tuple, FrozenSet, Union
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 from cirq import protocols, circuits
 from cirq.transformers import transformer_api
@@ -22,14 +22,12 @@ from cirq.transformers import transformer_api
 if TYPE_CHECKING:
     import cirq
 
-_MAX_QUBIT_COUNT_FOR_MASK = 64
-
 
 @transformer_api.transformer(add_deep_support=True)
 def insertion_sort_transformer(
     circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
 ) -> 'cirq.Circuit':
-    """Sorts the operations using their `.qubits` property as comparison key.
+    """Sorts the operations using their sorted `.qubits` property as comparison key.
 
     Operations are swapped only if they commute.
 
@@ -37,46 +35,27 @@ def insertion_sort_transformer(
         circuit: input circuit.
         context: optional TransformerContext (not used),
     """
-    all_operations = [*circuit.all_operations()]
-    relative_order = {
-        qs: i for i, qs in enumerate(sorted(set(tuple(sorted(op.qubits)) for op in all_operations)))
+    final_operations: List['cirq.Operation'] = []
+    qubit_index: Dict['cirq.Qid', int] = {
+        q: idx for idx, q in enumerate(sorted(circuit.all_qubits()))
     }
-    if len(circuit.all_qubits()) <= _MAX_QUBIT_COUNT_FOR_MASK:
-        # use bitmasks.
-        q_index = {q: i for i, q in enumerate(circuit.all_qubits())}
-
-        def _msk(qs: Tuple['cirq.Qid', ...]) -> int:
-            msk = 0
-            for q in qs:
-                msk |= 1 << q_index[q]
-            return msk
-
-        operations_with_info: Union[
-            List[Tuple['cirq.Operation', int, int]], List[Tuple['cirq.Operation', int, FrozenSet]]
-        ] = [
-            (op, relative_order[tuple(sorted(op.qubits))], _msk(op.qubits)) for op in all_operations
-        ]
-    else:
-        # use sets.
-        operations_with_info = [
-            (op, relative_order[tuple(sorted(op.qubits))], frozenset(op.qubits))
-            for op in all_operations
-        ]
-    sorted_info: Union[
-        List[Tuple['cirq.Operation', int, int]], List[Tuple['cirq.Operation', int, FrozenSet]]
-    ] = []
-    for i in range(len(all_operations)):
-        j = len(sorted_info)
-        while (
-            j
-            and operations_with_info[i][1] < sorted_info[j - 1][1]
-            and (
-                not (operations_with_info[i][2] & sorted_info[j - 1][2])  # type: ignore[operator]
-                or protocols.commutes(
-                    operations_with_info[i][0], sorted_info[j - 1][0], default=False
-                )
+    cached_qubit_indices: Dict[int, List[int]] = {}
+    for pos, op in enumerate(circuit.all_operations()):
+        if (op_qubit_indices := cached_qubit_indices.get(id(op))) is None:
+            op_qubit_indices = cached_qubit_indices[id(op)] = sorted(
+                qubit_index[q] for q in op.qubits
             )
-        ):
-            j -= 1
-        sorted_info.insert(j, operations_with_info[i])  # type: ignore[arg-type]
-    return circuits.Circuit(op for op, _, _ in sorted_info)
+        for tail_op in reversed(final_operations):
+            tail_qubit_indices = cached_qubit_indices[id(tail_op)]
+            if op_qubit_indices < tail_qubit_indices and (
+                # check if two sorted sequences are disjoint
+                op_qubit_indices[-1] < tail_qubit_indices[0]
+                or set(op_qubit_indices).isdisjoint(tail_qubit_indices)
+                # fallback to more expensive commutation check
+                or protocols.commutes(op, tail_op, default=False)
+            ):
+                pos -= 1
+                continue
+            break
+        final_operations.insert(pos, op)
+    return circuits.Circuit(final_operations)
