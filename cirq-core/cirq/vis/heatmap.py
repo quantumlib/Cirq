@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import copy
 from dataclasses import astuple, dataclass
 from typing import (
@@ -35,6 +38,7 @@ from mpl_toolkits import axes_grid1
 
 from cirq.devices import grid_qubit
 from cirq.vis import vis_utils
+
 
 QubitTuple = Tuple[grid_qubit.GridQubit, ...]
 
@@ -111,6 +115,7 @@ class Heatmap:
                     applying format(value, annotation_format) for each key in value_map.
                     This is ignored if annotation_map is explicitly specified.
                 annotation_text_kwargs: Matplotlib Text **kwargs,
+                highlighted_qubits: An iterable of qubits to highlight.
 
                 colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
                 colorbar_size: str, default = '5%'
@@ -157,6 +162,7 @@ class Heatmap:
             "annotation_map",
             "annotation_text_kwargs",
             "annotation_format",
+            "highlighted_qubits",
         ]
         valid_kwargs = (
             valid_colorbar_kwargs
@@ -231,13 +237,14 @@ class Heatmap:
         ax: plt.Axes,
     ) -> None:
         """Writes annotations to the center of cells. Internal."""
-        for (center, annotation), facecolor in zip(centers_and_annot, collection.get_facecolor()):
+        face_colors = cast(np.ndarray, collection.get_facecolor())
+        for (center, annotation), facecolor in zip(centers_and_annot, face_colors):
             # Calculate the center of the cell, assuming that it is a square
             # centered at (x=col, y=row).
             if not annotation:
                 continue
             x, y = center
-            face_luminance = vis_utils.relative_luminance(facecolor)  # type: ignore
+            face_luminance = vis_utils.relative_luminance(facecolor)
             text_color = 'black' if face_luminance > 0.4 else 'white'
             text_kwargs: Dict[str, Any] = dict(color=text_color, ha="center", va="center")
             text_kwargs.update(self._config.get('annotation_text_kwargs', {}))
@@ -294,11 +301,41 @@ class Heatmap:
             is plotted on. ``collection`` is the collection of paths drawn and filled.
         """
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(figsize=(8, 8))
-            ax = cast(plt.Axes, ax)
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
+
+        highlighted_qubits = frozenset(kwargs.get("highlighted_qubits", ()))
+        if highlighted_qubits:
+            edgecolors = tuple(
+                (
+                    "red"
+                    if not highlighted_qubits.isdisjoint(qubits)
+                    else self._config["collection_options"].get("edgecolors", "grey")
+                )
+                for qubits in sorted(self._value_map.keys())
+            )
+            linestyles = tuple(
+                (
+                    "solid"
+                    if not highlighted_qubits.isdisjoint(qubits)
+                    else self._config["collection_options"].get("linestyles", "dashed")
+                )
+                for qubits in sorted(self._value_map.keys())
+            )
+            linewidths = tuple(
+                (
+                    4
+                    if not highlighted_qubits.isdisjoint(qubits)
+                    else self._config["collection_options"].get("linewidths", 2)
+                )
+                for qubits in sorted(self._value_map.keys())
+            )
+            self._config["collection_options"].update(
+                {"edgecolors": edgecolors, "linestyles": linestyles, "linewidths": linewidths}
+            )
+
         collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
@@ -381,22 +418,23 @@ class TwoQubitInteractionHeatmap(Heatmap):
             is plotted on. ``collection`` is the collection of paths drawn and filled.
         """
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(figsize=(8, 8))
-            ax = cast(plt.Axes, ax)
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
+        collection_options: Dict[str, Any] = {"cmap": "binary"}
+        highlighted_qubits = frozenset(kwargs.get("highlighted_qubits", ()))
+        if not highlighted_qubits:
+            collection_options.update(
+                {"linewidths": 2, "edgecolors": "lightgrey", "linestyles": "dashed"}
+            )
         Heatmap({q: 0.0 for q in qubits}).plot(
             ax=ax,
-            collection_options={
-                'cmap': 'binary',
-                'linewidths': 2,
-                'edgecolor': 'lightgrey',
-                'linestyle': 'dashed',
-            },
+            collection_options=collection_options,
             plot_colorbar=False,
             annotation_format=None,
+            highlighted_qubits=highlighted_qubits,
         )
         collection = self._plot_on_axis(ax)
         if show_plot:

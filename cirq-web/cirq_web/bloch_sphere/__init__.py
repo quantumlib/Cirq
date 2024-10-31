@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_web.bloch_sphere.bloch_sphere import BlochSphere
+from cirq_web.bloch_sphere.bloch_sphere import BlochSphere as BlochSphere

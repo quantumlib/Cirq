@@ -31,7 +31,8 @@ import sympy.parsing.sympy_parser as sympy_parser
 import cirq
 from cirq import value
 from cirq.ops import raw_types
-from cirq.ops.linear_combinations import PauliSum, PauliString
+from cirq.ops.linear_combinations import PauliSum
+from cirq.ops.pauli_string import PauliString
 
 
 @value.value_equality
@@ -80,7 +81,7 @@ class BooleanHamiltonianGate(raw_types.Gate):
         return (2,) * len(self._parameter_names)
 
     def _value_equality_values_(self) -> Any:
-        return self._parameter_names, self._boolean_strs, self._theta
+        return tuple(self._parameter_names), tuple(self._boolean_strs), self._theta
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {

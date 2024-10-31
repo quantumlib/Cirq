@@ -18,7 +18,7 @@ The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Dict, Tuple, Optional, Sequence, TYPE_CHECKING
+from typing import AbstractSet, Any, Dict, Iterator, Tuple, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 import sympy
 
@@ -93,7 +93,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         x0, x1, x2, x3 = self._diag_angles_radians
         q0, q1 = qubits
         yield common_gates.ZPowGate(exponent=x2 / np.pi).on(q0)

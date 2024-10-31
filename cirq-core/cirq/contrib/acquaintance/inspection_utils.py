@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import FrozenSet, Sequence, Set, TYPE_CHECKING
+from typing import FrozenSet, Iterator, Sequence, Set, TYPE_CHECKING
 
 from cirq import devices
 
@@ -46,7 +46,7 @@ class LogicalAnnotator(ExecutionStrategy):
 
     def get_operations(
         self, indices: Sequence[LogicalIndex], qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+    ) -> Iterator['cirq.OP_TREE']:
         yield AcquaintanceOperation(qubits, indices)
 
 

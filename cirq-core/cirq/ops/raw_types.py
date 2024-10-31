@@ -41,7 +41,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
-from cirq._compat import __cirq_debug__, cached_method
+from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
 from cirq.type_workarounds import NotImplementedType
 from cirq.ops import control_values as cv
 
@@ -114,6 +114,15 @@ class Qid(metaclass=abc.ABCMeta):
     @cached_method
     def __hash__(self) -> int:
         return hash((Qid, self._comparison_key()))
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        hash_attr = _method_cache_name(self.__hash__)
+        if hash_attr in state:
+            state = state.copy()
+            del state[hash_attr]
+        return state
 
     def __eq__(self, other):
         if not isinstance(other, Qid):
@@ -571,7 +580,7 @@ class Operation(metaclass=abc.ABCMeta):
         if callable(qubit_map):
             transform = qubit_map
         elif isinstance(qubit_map, dict):
-            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+            transform = lambda q: qubit_map.get(q, q)
         else:
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
         return self.with_qubits(*(transform(q) for q in self.qubits))

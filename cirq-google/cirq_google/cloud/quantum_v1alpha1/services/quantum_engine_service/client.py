@@ -14,35 +14,30 @@
 # limitations under the License.
 #
 from collections import OrderedDict
+import importlib.metadata
 import os
 import re
 from typing import Dict, Optional, Iterable, Iterator, Sequence, Tuple, Type, Union
-import pkg_resources
 
 from google.api_core import client_options as client_options_lib
-from google.api_core import exceptions as core_exceptions
 from google.api_core import gapic_v1
 from google.api_core import retry as retries
 from google.auth import credentials as ga_credentials
 from google.auth.transport import mtls
-from google.auth.transport.grpc import SslCredentials
 from google.auth.exceptions import MutualTLSChannelError
-from google.oauth2 import service_account  # type: ignore
+from google.oauth2 import service_account
+
+from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
+from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import quantum
+from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
+from .transports.grpc import QuantumEngineServiceGrpcTransport
+from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
 
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
 except AttributeError:  # pragma: NO COVER
     OptionalRetry = Union[retries.Retry, object]  # type: ignore
-
-from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from google.protobuf import any_pb2
-from google.protobuf import duration_pb2
-from google.protobuf import timestamp_pb2
-from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
-from .transports.grpc import QuantumEngineServiceGrpcTransport
-from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
 
 
 class QuantumEngineServiceClientMeta(type):
@@ -100,7 +95,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
         )
 
         m = mtls_endpoint_re.match(api_endpoint)
-        name, mtls, sandbox, googledomain = m.groups()
+        _, mtls, sandbox, googledomain = m.groups()
         if mtls or not googledomain:
             return api_endpoint
 
@@ -2298,7 +2293,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type_, value, traceback):
         """Releases underlying transport's resources.
 
         .. warning::
@@ -2311,9 +2306,9 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
 
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(
-        gapic_version=pkg_resources.get_distribution("google-cloud-quantum").version
+        gapic_version=importlib.metadata.version("google-cloud-quantum")
     )
-except pkg_resources.DistributionNotFound:
+except ModuleNotFoundError:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo()
 
 

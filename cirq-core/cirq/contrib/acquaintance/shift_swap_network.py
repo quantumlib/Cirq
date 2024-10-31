@@ -14,7 +14,7 @@
 
 import functools
 import itertools
-from typing import Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Dict, Iterable, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import ops
 from cirq.contrib.acquaintance.gates import acquaint
@@ -65,7 +65,7 @@ class ShiftSwapNetworkGate(PermutationGate):
     def acquaintance_size(self) -> int:
         return sum(max(self.part_lens[side]) for side in ('left', 'right'))
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         part_lens = list(itertools.chain(*(self.part_lens[side] for side in ('left', 'right'))))
 
         n_qubits = 0

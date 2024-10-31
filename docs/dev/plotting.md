@@ -35,7 +35,7 @@ class Foo:
     ...
     def plot(self, ax: Optional[plt.Axes]=None, **plot_kwargs: Any) -> plt.Axes:
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(1, 1)  # or your favorite figure setup
         # Call methods of the ax instance like ax.plot to plot on it.
         ...
@@ -81,7 +81,7 @@ class Foo:
     def plot(self, axes: Optional[List[plt.Axes]]=None,
              **plot_kwargs: Any) -> List[plt.Axes]:
         show_plot = not axes
-        if not axes:
+        if axes is None:
             fig, axes = plt.subplots(1, 2)  # or your favorite figure setup
         elif len(axes) != 2:  # your required number of axes
             raise ValueError('your error message')

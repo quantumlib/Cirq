@@ -76,7 +76,7 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
 class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     """Abstract base class to create gatesets that can be used as targets for compilation.
 
-    An instance of this type can be passed to transformers like `cirq.convert_to_target_gateset`,
+    An instance of this type can be passed to transformers like `cirq.optimize_for_target_gateset`,
     which can transform any given circuit to contain gates accepted by this gateset.
     """
 
@@ -86,6 +86,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         name: Optional[str] = None,
         unroll_circuit_op: bool = True,
         preserve_moment_structure: bool = True,
+        reorder_operations: bool = False,
     ):
         """Initializes CompilationTargetGateset.
 
@@ -97,9 +98,18 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
                 validated by validating the underlying `cirq.Circuit`.
             preserve_moment_structure: Whether to preserve the moment structure of the
                 circuit during compilation or not.
+            reorder_operations: Whether to attempt to reorder the operations in order to reduce
+                circuit depth or not (can be True only if preserve_moment_structure=False).
+        Raises:
+            ValueError: If both reorder_operations and preserve_moment_structure are True.
         """
+        if reorder_operations and preserve_moment_structure:
+            raise ValueError(
+                'reorder_operations and preserve_moment_structure can not both be True'
+            )
         super().__init__(*gates, name=name, unroll_circuit_op=unroll_circuit_op)
         self._preserve_moment_structure = preserve_moment_structure
+        self._reorder_operations = reorder_operations
 
     @property
     @abc.abstractmethod
@@ -146,11 +156,15 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations."""
+        reorder_transfomers = (
+            [transformers.insertion_sort_transformer] if self._reorder_operations else []
+        )
         return [
             create_transformer_with_kwargs(
                 transformers.expand_composite,
                 no_decomp=lambda op: protocols.num_qubits(op) <= self.num_qubits,
             ),
+            *reorder_transfomers,
             create_transformer_with_kwargs(
                 merge_k_qubit_gates.merge_k_qubit_unitaries,
                 k=self.num_qubits,

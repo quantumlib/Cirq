@@ -28,7 +28,7 @@ from cirq.type_workarounds import NotImplementedType
 class GlobalPhaseGate(raw_types.Gate):
     def __init__(self, coefficient: 'cirq.TParamValComplex', atol: float = 1e-8) -> None:
         if not isinstance(coefficient, sympy.Basic):
-            if abs(1 - abs(coefficient)) > atol:  # type: ignore[operator]
+            if abs(1 - abs(coefficient)) > atol:
                 raise ValueError(f'Coefficient is not unitary: {coefficient!r}')
         self._coefficient = coefficient
 

@@ -327,9 +327,9 @@ def test_repeat(add_measurements: bool, use_default_ids_for_initial_rep: bool) -
         _ = op_base.repeat()
 
     with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
-        _ = op_base.repeat(1.3)  # type: ignore[arg-type]
-    assert op_base.repeat(3.00000000001).repetitions == 3  # type: ignore[arg-type]
-    assert op_base.repeat(2.99999999999).repetitions == 3  # type: ignore[arg-type]
+        _ = op_base.repeat(1.3)
+    assert op_base.repeat(3.00000000001).repetitions == 3
+    assert op_base.repeat(2.99999999999).repetitions == 3
 
 
 @pytest.mark.parametrize('add_measurements', [True, False])

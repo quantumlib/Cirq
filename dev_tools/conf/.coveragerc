@@ -4,5 +4,9 @@
 # Failure to do so will result in false positives.
 include = ./*
 
-omit = 
+omit =
     benchmarks/*
+
+[report]
+exclude_also =
+    if TYPE_CHECKING:

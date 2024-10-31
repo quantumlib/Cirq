@@ -17,10 +17,11 @@ from typing import Any, Dict, Sequence, Union
 
 import cmath
 import math
+import numpy as np
+
 import cirq
 from cirq import protocols
 from cirq._doc import document
-import numpy as np
 
 
 @cirq.value.value_equality
@@ -31,7 +32,7 @@ class GPIGate(cirq.Gate):
     $$
     \begin{bmatrix}
       0 & e^{-i 2\pi\phi} \\
-      e^{-i2\pi\phi} & 0
+      e^{i 2\pi\phi} & 0
     \end{bmatrix}
     $$
 
@@ -106,8 +107,8 @@ class GPI2Gate(cirq.Gate):
     $$
     \frac{1}{\sqrt{2}}
     \begin{bmatrix}
-        1 & -i e^{-i \phi} \\
-        -i e^{-i \phi} & 1
+        1 & -i e^{-i 2\pi\phi} \\
+        -i e^{i 2\pi\phi} & 1
     \end{bmatrix}
     $$
 
@@ -177,16 +178,16 @@ document(
 
 @cirq.value.value_equality
 class MSGate(cirq.Gate):
-    r"""The Mølmer–Sørensen (MS) gate is a two qubit gate native to trapped ions.
+    r"""The Mølmer-Sørensen (MS) gate is a two qubit gate native to trapped ions.
 
     The unitary matrix of this gate for parameters $\phi_0$, $\phi_1$ and $\theta$ is
 
     $$
     \begin{bmatrix}
-        \cos\frac{\theta}{2} & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} \\
-        0 & \cos\frac{\theta}{2} & -ie^{-i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & 0 \\
-        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & \cos\frac{\theta}{2} & 0 \\
-        -ie^{i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} & 0 & 0 & \cos\frac{\theta}{2}
+        \cos(\pi \theta) & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin(\pi\theta) \\
+        0 & \cos(\pi\theta) & -ie^{-i2\pi(\phi_0-\phi_1)}\sin(\pi\theta) & 0 \\
+        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin(\pi\theta) & \cos(\pi\theta) & 0 \\
+        -ie^{i2\pi(\phi_0+\phi_1)}\sin(\pi\theta) & 0 & 0 & \cos(\pi\theta)
     \end{bmatrix}
     $$
 
@@ -264,6 +265,95 @@ document(
         0 & 1 & -i & 0 \\
         0 & -i & 1 & 0 \\
         -i & 0 & 0 & 1 \\
+    \end{bmatrix}
+    $$
+
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    """,
+)
+
+
+@cirq.value.value_equality
+class ZZGate(cirq.Gate):
+    r"""The ZZ gate is another two qubit gate native to trapped ions. The ZZ gate only
+    requires a single parameter, θ, to set the phase of the entanglement.
+
+    The unitary matrix of this gate using the parameter $\theta$ is:
+
+    $$
+    \begin{bmatrix}
+        e{-i\pi\theta} & 0 & 0 & 0 \\
+        0 & e{i\pi\theta} & 0 & 0 \\
+        0 & 0 & e{i\pi\theta} & 0 \\
+        0 & 0 & 0 & e{-i\pi\theta}
+    \end{bmatrix}
+    $$
+
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    """
+
+    def __init__(self, *, theta):
+        self.theta = theta
+
+    def _unitary_(self) -> np.ndarray:
+        theta = self.theta
+
+        return np.array(
+            [
+                [cmath.exp(-1j * theta * math.pi), 0, 0, 0],
+                [0, cmath.exp(1j * theta * math.pi), 0, 0],
+                [0, 0, cmath.exp(1j * theta * math.pi), 0],
+                [0, 0, 0, cmath.exp(-1j * theta * math.pi)],
+            ]
+        )
+
+    @property
+    def phase(self) -> float:
+        return self.theta
+
+    def __str__(self) -> str:
+        return 'ZZ'
+
+    def _num_qubits_(self) -> int:
+        return 2
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        return protocols.CircuitDiagramInfo(wire_symbols=(f'ZZ({self.theta!r})', 'ZZ'))
+
+    def __repr__(self) -> str:
+        return f'cirq_ionq.ZZGate(theta={self.theta!r})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ['theta'])
+
+    def _value_equality_values_(self) -> Any:
+        return self.theta
+
+    def __pow__(self, power):
+        if power == 1:
+            return self
+
+        if power == -1:
+            return ZZGate(theta=-self.theta)
+
+        return NotImplemented
+
+
+ZZ = ZZGate(theta=0)
+document(
+    ZZ,
+    r"""An instance of the two qubit ZZ gate with no phase.
+
+    The unitary matrix of this gate for parameters $\theta$ is
+
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & 1 \\
     \end{bmatrix}
     $$
 

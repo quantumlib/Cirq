@@ -304,7 +304,7 @@ class EngineJob(abstract_job.AbstractJob):
                 job = await self._refresh_job_async()
                 if job.execution_status.state in TERMINAL_STATES:
                     break
-                await duet.sleep(0.5)
+                await duet.sleep(1)
         _raise_on_failure(job)
         response = await self.context.client.get_job_results_async(
             self.project_id, self.program_id, self.job_id

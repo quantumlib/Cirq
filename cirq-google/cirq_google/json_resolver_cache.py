@@ -44,6 +44,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
+        'Coupler': cirq_google.Coupler,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.

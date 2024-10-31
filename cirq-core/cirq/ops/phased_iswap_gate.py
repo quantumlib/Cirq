@@ -13,7 +13,7 @@
 # limitations under the License.
 """ISWAPPowGate conjugated by tensor product Rz(phi) and Rz(-phi)."""
 
-from typing import AbstractSet, Any, cast, Dict, List, Optional, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
@@ -157,7 +157,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         )
         return args.available_buffer
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         if len(qubits) != 2:
             raise ValueError(f'Expected two qubits, got {len(qubits)}')
         a, b = qubits

@@ -1,5 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
+import math
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Union
 
 import numpy as np
@@ -61,7 +62,7 @@ class ProjectorString:
             for qid in projector_qids
         ]
 
-        total_d = np.prod([qid.dimension for qid in projector_qids], dtype=np.int64)
+        total_d = math.prod(qid.dimension for qid in projector_qids)
 
         ones_idx = []
         for idx in itertools.product(*idx_to_keep):

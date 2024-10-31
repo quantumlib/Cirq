@@ -629,7 +629,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         >>> plt.show()
     """
     show_plot = not ax
-    if not ax:
+    if ax is None:
         fig = plt.figure()
         ax = cast(mplot3d.axes3d.Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
