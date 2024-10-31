@@ -15,7 +15,6 @@
 import pytest
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 import cirq
 
@@ -32,11 +31,11 @@ _ANGLES = ['theta', 'phi', 'chi', 'zeta', 'gamma']
 def _create_tests(n, seed, with_options: bool = False):
     rng = np.random.default_rng(seed)
     angles = (rng.random((n, 5)) * 2 - 1) * np.pi
-    # Add errors to the first 2 angles (theta and phi).
-    # The errors for theta and phi are in the union (-2, -1) U (1, 2).
+    # Add errors to the last 3 angles (chi, zeta, gamma).
+    # The errors are in the union (-2, -1) U (1, 2).
     # This is because we run the tests with few repetitions so a small error might not get fixed.
     error = np.concatenate(
-        [(rng.random((n, 2)) + 1) * rng.choice([-1, 1], (n, 2)), np.zeros((n, 3))], axis=-1
+        [np.zeros((n, 2)), (rng.random((n, 3)) + 1) * rng.choice([-1, 1], (n, 3))], axis=-1
     )
     if with_options:
         options = []

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
-from typing import Callable, Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING
+from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING
 
 import multiprocessing
 import multiprocessing.pool
@@ -130,6 +130,7 @@ def z_phase_calibration_workflow(
     )
 
     if local_pool:
+        assert isinstance(pool, multiprocessing.pool.Pool)
         pool.close()
     return result, before_after
 
@@ -222,11 +223,11 @@ def calibrate_z_phases(
 
 def plot_z_phase_calibration_result(
     before_after_df: 'pd.DataFrame',
-    axes: Optional[Sequence['plt.Axes']] = None,
+    axes: Optional[np.ndarray[Sequence[Sequence['plt.Axes']], np.dtype[np.object_]]] = None,
     pairs: Optional[Sequence[Tuple['cirq.Qid', 'cirq.Qid']]] = None,
     *,
     with_error_bars: bool = False,
-) -> None:
+) -> np.ndarray[Sequence[Sequence['plt.Axes']], np.dtype[np.object_]]:
     """A helper method to plot the result of running z-phase calibration.
 
     Note that the plotted fidelity is a statistical estimate of the true fidelity and as a result
