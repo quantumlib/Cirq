@@ -50,9 +50,12 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
 
     # Users have a rate limit of 1000 QPM for read/write requests to
-    # the Quantum Engine. 1000/60 ~= 16 QPS. So requests are sent
-    # in chunks of size 16 per second.
-    CHUNK_SIZE: int = 16
+    # the Quantum Engine. The sampler will poll from the DB every 1s
+    # for inflight requests for results. Empirically, for circuits
+    # sent in run_batch, sending circuits in CHUNK_SIZE=5 for large
+    # number of circuits (> 200) with large depths (100 layers)
+    # does not encounter quota exceeded issues for non-streaming cases.
+    CHUNK_SIZE: int = 5
 
     def run(
         self,
