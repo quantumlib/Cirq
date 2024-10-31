@@ -79,7 +79,9 @@ def test_service_run_batch(target, expected_results1, expected_results2):
         'target': target,
         'metadata': {
             'shots': '4',
-            'measurements': "[{\"measurement0\": \"a\\u001f0\"}, {\"measurement0\": \"b\\u001f0\"}]",
+            'measurements': (
+                "[{\"measurement0\": \"a\\u001f0\"}, {\"measurement0\": \"b\\u001f0\"}]"
+            ),
             'qubit_numbers': '[1, 1]',
         },
         'qubits': '1',

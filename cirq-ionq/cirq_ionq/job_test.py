@@ -15,8 +15,8 @@
 from unittest import mock
 
 import json
-import pytest
 import warnings
+import pytest
 
 import cirq_ionq as ionq
 

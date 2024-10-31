@@ -33,7 +33,6 @@ import sympy
 
 import cirq
 from cirq.devices import line_qubit
-from cirq.ops import common_gates, parity_gates
 from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
 from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
 
@@ -139,7 +138,8 @@ class Serializer:
 
         Raises:
             ValueError: if the circuit has gates that are not supported or is otherwise invalid.
-            IonQSerializerMixedGatesetsException: if not all input circuits have the same type of gates: either 'qis' or 'native' gates.
+            IonQSerializerMixedGatesetsException: if not all input circuits have the same type
+            of gates: either 'qis' or 'native' gates.
         """
         for circuit in circuits:
             self._validate_circuit(circuit)
@@ -154,7 +154,8 @@ class Serializer:
                 gateset = current_gateset
             if current_gateset != gateset:
                 raise IonQSerializerMixedGatesetsException(
-                    "For batch circuit submit all circuits in a batch must contain the same type of gates: either 'qis' or 'native' gates."
+                    "For batch circuit submission, all circuits in a batch must contain"
+                    " the same type of gates: either 'qis' or 'native' gates."
                 )
 
         # IonQ API does not support measurements, so we pass the measurement keys through

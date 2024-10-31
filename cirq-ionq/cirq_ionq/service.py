@@ -258,7 +258,7 @@ class Service:
 
     def create_batch_job(
         self,
-        circuits: List[cirq.AbstractCircuit],
+        circuits: Sequence[cirq.AbstractCircuit],
         repetitions: int = 100,
         name: Optional[str] = None,
         target: Optional[str] = None,

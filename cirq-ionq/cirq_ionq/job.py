@@ -13,6 +13,7 @@
 # limitations under the License.
 """Represents a job created via the IonQ API."""
 
+import json
 import time
 import warnings
 from typing import Dict, Sequence, Union, Optional, TYPE_CHECKING
@@ -21,7 +22,6 @@ from cirq_ionq import ionq_exceptions, results
 from cirq._doc import document
 
 import cirq
-import json
 
 if TYPE_CHECKING:
     import cirq_ionq
@@ -176,16 +176,17 @@ class Job:
             else:
                 measurement_matadata = self._job['metadata']
 
-            full_str = ''.join(
-                value
-                for key, value in measurement_matadata.items()
-                if key.startswith('measurement')
-            )
-            if full_str == '':
-                return measurement_dict
-            for key_value in full_str.split(chr(30)):
-                key, value = key_value.split(chr(31))
-                measurement_dict[key] = [int(t) for t in value.split(',')]
+            if measurement_matadata is not None:
+                full_str = ''.join(
+                    value
+                    for key, value in measurement_matadata.items()
+                    if key.startswith('measurement')
+                )
+                if full_str == '':
+                    return measurement_dict
+                for key_value in full_str.split(chr(30)):
+                    key, value = key_value.split(chr(31))
+                    measurement_dict[key] = [int(t) for t in value.split(',')]
 
         return measurement_dict
 
@@ -195,7 +196,12 @@ class Job:
         polling_seconds: int = 1,
         sharpen: Optional[bool] = None,
         extra_query_params: Optional[dict] = None,
-    ) -> Union[results.QPUResult, results.SimulatorResult]:
+    ) -> Union[
+            results.QPUResult,
+            results.SimulatorResult,
+            list[results.QPUResult],
+            list[results.SimulatorResult]
+        ]:
         """Polls the IonQ api for results.
 
         Args:
@@ -251,9 +257,10 @@ class Job:
 
         # IonQ returns results in little endian, but
         # Cirq prefers to use big endian, so we convert.
-        big_endian_results = []
-        for circuit_index, histogram in enumerate(histograms):
-            if self.target().startswith('qpu'):
+
+        if self.target().startswith('qpu'):
+            big_endian_results_qpu: list[results.QPUResult] = []
+            for circuit_index, histogram in enumerate(histograms):
                 repetitions = self.repetitions()
                 counts = {
                     _little_endian_to_big(int(k), self.num_qubits(circuit_index)): round(
@@ -261,19 +268,25 @@ class Job:
                     )
                     for k, v in histogram.items()
                 }
-                big_endian_results.append(
+                big_endian_results_qpu.append(
                     results.QPUResult(
                         counts=counts,
                         num_qubits=self.num_qubits(circuit_index),
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                     )
                 )
+            if single_circuit_job:
+                return big_endian_results_qpu[0]
             else:
+                return big_endian_results_qpu
+        else:
+            big_endian_results_sim: list[results.SimulatorResult] = []
+            for circuit_index, histogram in enumerate(histograms):
                 probabilities = {
                     _little_endian_to_big(int(k), self.num_qubits(circuit_index)): float(v)
                     for k, v in histogram.items()
                 }
-                big_endian_results.append(
+                big_endian_results_sim.append(
                     results.SimulatorResult(
                         probabilities=probabilities,
                         num_qubits=self.num_qubits(circuit_index),
@@ -281,11 +294,10 @@ class Job:
                         repetitions=self.repetitions(),
                     )
                 )
-
-        if single_circuit_job:
-            return big_endian_results[0]
-        else:
-            return big_endian_results
+            if single_circuit_job:
+                return big_endian_results_sim[0]
+            else:
+                return big_endian_results_sim
 
     def cancel(self):
         """Cancel the given job.

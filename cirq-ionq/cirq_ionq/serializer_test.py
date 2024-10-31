@@ -170,7 +170,7 @@ def test_serialize_single_circuit_pow_gates():
     serializer = ionq.Serializer()
     for name, gate in (('rx', cirq.X), ('ry', cirq.Y), ('rz', cirq.Z)):
         for exponent in (1.1, 0.6):
-            circuit = cirq.Circuit((gate ** exponent)(q0))
+            circuit = cirq.Circuit((gate**exponent)(q0))
             result = serializer.serialize_single_circuit(circuit)
             assert result == ionq.SerializedProgram(
                 body={
@@ -188,7 +188,7 @@ def test_serialize_many_circuits_pow_gates():
     serializer = ionq.Serializer()
     for name, gate in (('rx', cirq.X), ('ry', cirq.Y), ('rz', cirq.Z)):
         for exponent in (1.1, 0.6):
-            circuit = cirq.Circuit((gate ** exponent)(q0))
+            circuit = cirq.Circuit((gate**exponent)(q0))
             result = serializer.serialize_many_circuits([circuit])
             assert result == ionq.SerializedProgram(
                 body={
@@ -650,7 +650,7 @@ def test_serialize_many_circuits_native_gates():
     )
 
 
-def test_serialize_many_circuits_raises_exception_on_attempt_to_serialize_both_native_and_qis_gates():
+def test_serialize_many_circuits_raises_exception_on_mixed_native_and_qis_gates():
     (q1,) = cirq.LineQubit.range(1)
     (q2,) = cirq.LineQubit.range(1)
     gpi = ionq.GPIGate(phi=0.1).on(q1)
@@ -660,7 +660,11 @@ def test_serialize_many_circuits_raises_exception_on_attempt_to_serialize_both_n
     serializer = ionq.Serializer()
     with pytest.raises(IonQSerializerMixedGatesetsException) as exc_info:
         serializer.serialize_many_circuits([circuit1, circuit2])
-    exception_message = "For batch circuit submit all circuits in a batch must contain the same type of gates: either 'qis' or 'native' gates."
+    exception_message = (
+        "For batch circuit submission, all circuits in a batch must "
+        "contain the same type of gates: either 'qis' or 'native' gates."
+    )
+
     assert exception_message in str(exc_info.value)
 
 
