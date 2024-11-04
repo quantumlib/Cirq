@@ -124,7 +124,7 @@ class Service:
             A `cirq.Result` for running the circuit.
         """
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
-        result = self.create_job(
+        job_results = self.create_job(
             circuit=resolved_circuit,
             repetitions=repetitions,
             name=name,
@@ -132,10 +132,10 @@ class Service:
             error_mitigation=error_mitigation,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
-        if isinstance(result, results.QPUResult):
-            return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
+        if isinstance(job_results[0], results.QPUResult):
+            return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver))
         # pylint: disable=unexpected-keyword-arg
-        return result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+        return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
         # pylint: enable=unexpected-keyword-arg
 
     def run_batch(
@@ -149,7 +149,7 @@ class Service:
         error_mitigation: Optional[dict] = None,
         sharpen: Optional[bool] = None,
         extra_query_params: Optional[dict] = None,
-    ) -> cirq.Result:
+    ) -> List[cirq.Result]:
         """Run the given circuits on the IonQ API.
 
         Args:
@@ -170,7 +170,7 @@ class Service:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            A `cirq.Result` for running the circuit.
+            A `a list of cirq.Result` for running the circuit.
         """
         resolved_circuits = []
         for circuit in circuits:

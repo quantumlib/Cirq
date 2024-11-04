@@ -196,12 +196,7 @@ class Job:
         polling_seconds: int = 1,
         sharpen: Optional[bool] = None,
         extra_query_params: Optional[dict] = None,
-    ) -> Union[
-        results.QPUResult,
-        results.SimulatorResult,
-        list[results.QPUResult],
-        list[results.SimulatorResult],
-    ]:
+    ) -> Union[list[results.QPUResult], list[results.SimulatorResult]]:
         """Polls the IonQ api for results.
 
         Args:
@@ -212,8 +207,9 @@ class Job:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            Either a `cirq_ionq.QPUResults` or `cirq_ionq.SimulatorResults` depending on whether
-            the job was running on an actual quantum processor or a simulator.
+            Either a list of `cirq_ionq.QPUResult` or a list of `cirq_ionq.SimulatorResult`
+            depending on whether the job was running on an actual quantum processor or a
+            simulator.
 
         Raises:
             IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
@@ -247,11 +243,9 @@ class Job:
             job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
         )
 
-        single_circuit_job = True
         some_inner_value = next(iter(backend_results.values()))
         if isinstance(some_inner_value, dict):
             histograms = backend_results.values()
-            single_circuit_job = False
         else:
             histograms = [backend_results]
 
@@ -274,10 +268,7 @@ class Job:
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                     )
                 )
-            if single_circuit_job:
-                return big_endian_results_qpu[0]
-            else:
-                return big_endian_results_qpu
+            return big_endian_results_qpu
         else:
             big_endian_results_sim: list[results.SimulatorResult] = []
             for circuit_index, histogram in enumerate(histograms):
@@ -293,10 +284,7 @@ class Job:
                         repetitions=self.repetitions(),
                     )
                 )
-            if single_circuit_job:
-                return big_endian_results_sim[0]
-            else:
-                return big_endian_results_sim
+            return big_endian_results_sim
 
     def cancel(self):
         """Cancel the given job.
