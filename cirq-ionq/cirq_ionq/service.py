@@ -140,7 +140,7 @@ class Service:
 
     def run_batch(
         self,
-        circuits: List[cirq.Circuit],
+        circuits: List[cirq.AbstractCircuit],
         repetitions: int,
         name: Optional[str] = None,
         target: Optional[str] = None,
@@ -258,7 +258,7 @@ class Service:
 
     def create_batch_job(
         self,
-        circuits: Sequence[cirq.AbstractCircuit],
+        circuits: List[cirq.AbstractCircuit],
         repetitions: int = 100,
         name: Optional[str] = None,
         target: Optional[str] = None,

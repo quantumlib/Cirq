@@ -197,11 +197,11 @@ class Job:
         sharpen: Optional[bool] = None,
         extra_query_params: Optional[dict] = None,
     ) -> Union[
-            results.QPUResult,
-            results.SimulatorResult,
-            list[results.QPUResult],
-            list[results.SimulatorResult]
-        ]:
+        results.QPUResult,
+        results.SimulatorResult,
+        list[results.QPUResult],
+        list[results.SimulatorResult],
+    ]:
         """Polls the IonQ api for results.
 
         Args:
@@ -257,7 +257,6 @@ class Job:
 
         # IonQ returns results in little endian, but
         # Cirq prefers to use big endian, so we convert.
-
         if self.target().startswith('qpu'):
             big_endian_results_qpu: list[results.QPUResult] = []
             for circuit_index, histogram in enumerate(histograms):
