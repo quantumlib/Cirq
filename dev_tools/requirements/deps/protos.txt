@@ -4,3 +4,5 @@
 grpcio-tools~=1.59.0
 
 mypy-protobuf~=3.4
+
+typedunits

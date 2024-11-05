@@ -20,6 +20,7 @@ import sympy
 from cirq_google.api import v2
 from cirq_google.ops import InternalGate
 from cirq.qis import CliffordTableau
+import tunits
 
 SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     '': frozenset(),
@@ -33,8 +34,10 @@ MOST_PERMISSIVE_LANGUAGE = 'exp'
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
-ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr]
-ARG_RETURN_LIKE = Union[float, int, str, List[bool], List[int], List[float], List[str], sympy.Expr]
+ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr, tunits.Value]
+ARG_RETURN_LIKE = Union[
+    float, int, str, List[bool], List[int], List[float], List[str], sympy.Expr, tunits.Value
+]
 FLOAT_ARG_LIKE = Union[float, sympy.Expr]
 
 # Types for comparing floats
@@ -182,6 +185,8 @@ def arg_to_proto(
                     )
                 field, types_tuple = numerical_fields[cur_index]
                 field.extend(types_tuple[0](x) for x in value)
+    elif isinstance(value, tunits.Value):
+        msg.arg_value.value_with_unit.MergeFrom(value.to_proto())
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
 
@@ -329,6 +334,8 @@ def arg_from_proto(
             return [float(v) for v in arg_value.double_values.values]
         if which_val == 'string_values':
             return [str(v) for v in arg_value.string_values.values]
+        if which_val == 'value_with_unit':
+            return tunits.Value.from_proto(arg_value.value_with_unit)
         raise ValueError(f'Unrecognized value type: {which_val!r}')
 
     if which == 'symbol':

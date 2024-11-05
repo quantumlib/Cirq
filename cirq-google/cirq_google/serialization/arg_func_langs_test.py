@@ -15,6 +15,8 @@
 import inspect
 from typing import Dict
 
+import tunits.units
+
 import numpy as np
 import pytest
 import sympy
@@ -291,3 +293,13 @@ def test_clifford_tableau(lang):
         proto = clifford_tableau_arg_to_proto(ct)
         tableau = clifford_tableau_from_proto(proto, lang)
         assert tableau == ct
+
+
+@pytest.mark.parametrize('lang', LANGUAGE_ORDER)
+def test_serialize_with_units(lang):
+    g = cirq_google.InternalGate(
+        gate_name='test', gate_module='test', parameter_with_unit=3.14 * tunits.units.ns
+    )
+    msg = internal_gate_arg_to_proto(g)
+    v = internal_gate_from_proto(msg, lang)
+    assert g == v
