@@ -14,7 +14,6 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import collections
-from email.policy import default
 from itertools import islice
 from typing import (
     Dict,
@@ -482,7 +481,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         qid_shapes: Dict[str, Tuple[int, ...]] = {}
         num_instances: Dict[str, int] = collections.Counter()
         for op in circuit.all_operations():
-            key = protocols.measurement_key_name(op, None)
+            key = protocols.measurement_key_name(op, default=None)
             if key is not None:
                 qid_shape = protocols.qid_shape(op)
                 prev_qid_shape = qid_shapes.setdefault(key, qid_shape)

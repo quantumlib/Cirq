@@ -291,7 +291,7 @@ async def test_run_batch_async_sends_circuits_in_chunks(spy, call_count):
     assert spy.call_count == call_count
 
 
-@pytest.mark.parametrize('call_count', [1])
+@pytest.mark.parametrize('call_count', [1, 2, 3])
 @duet.sync
 async def test_run_batch_async_runs_runs_sequentially(call_count):
     a = cirq.LineQubit(0)

@@ -16,6 +16,7 @@ from typing import Optional, Sequence, TYPE_CHECKING, Union, cast
 
 import cirq
 import duet
+from cirq_google.engine.engine_job import EngineJob
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -75,7 +76,6 @@ class ProcessorSampler(cirq.Sampler):
             snapshot_id=self._snapshot_id,
             device_config_name=self._device_config_name,
         )
-        from cirq_google.engine.engine_job import EngineJob  # Remove circular imports
 
         if isinstance(job, EngineJob):
             print("calling...")
