@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 import attrs
 
-from typing import Optional
 import cirq_google.api.v2.program_pb2 as v2
 
 
@@ -23,7 +24,7 @@ SUPPORTED_DD_PROTOCOLS = frozenset(["X", "Y"])
 
 @attrs.frozen
 class DynamicalDecouplingTag:
-    "A tag to indicate using DD to fill qubit time."
+    """A tag to indicate using DD to fill qubit time."""
 
     protocol: str = attrs.field()  # Which DD protocol to use.
 
