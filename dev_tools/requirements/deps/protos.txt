@@ -5,4 +5,4 @@ grpcio-tools~=1.59.0
 
 mypy-protobuf~=3.4
 
-tunits>=0.0.1.dev20241105180513
+tunits
