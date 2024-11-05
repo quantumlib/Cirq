@@ -170,7 +170,7 @@ class Service:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            A `a list of cirq.Result` for running the circuit.
+            A a list of `cirq.Result` for running the circuit.
         """
         resolved_circuits = []
         for circuit in circuits:

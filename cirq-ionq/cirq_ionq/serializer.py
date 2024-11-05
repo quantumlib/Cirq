@@ -13,6 +13,7 @@
 # limitations under the License.
 """Support for serializing gates supported by IonQ's API."""
 import dataclasses
+import json
 from typing import (
     Any,
     Callable,
@@ -27,7 +28,6 @@ from typing import (
     Union,
 )
 
-import json
 import numpy as np
 import sympy
 
@@ -154,8 +154,8 @@ class Serializer:
                 gateset = current_gateset
             if current_gateset != gateset:
                 raise IonQSerializerMixedGatesetsException(
-                    "For batch circuit submission, all circuits in a batch must contain"
-                    " the same type of gates: either 'qis' or 'native' gates."
+                    "For batch circuit submission, all circuits in a batch must contain "
+                    "the same type of gates: either 'qis' or 'native' gates."
                 )
 
         # IonQ API does not support measurements, so we pass the measurement keys through
