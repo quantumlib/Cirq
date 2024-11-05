@@ -79,8 +79,6 @@ message Moment {
   repeated CircuitOperation circuit_operations = 2;
 }
 
-
-
 // The quantum circuit, specified as a series of operations at specific
 // start times.
 message Schedule {
