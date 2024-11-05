@@ -14,6 +14,7 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import collections
+from email.policy import default
 from itertools import islice
 from typing import (
     Dict,
@@ -311,6 +312,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[Sequence['cirq.Sweepable']] = None,
         repetitions: Union[int, Sequence[int]] = 1,
+        limiter: duet.Limiter = duet.Limiter(10),
     ) -> Sequence[Sequence['cirq.Result']]:
         """Runs the supplied circuits asynchronously.
 
@@ -319,7 +321,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         if len(programs) <= self.CHUNK_SIZE:
             return await duet.pstarmap_async(
-                self.run_sweep_async, zip(programs, params_list, repetitions)
+                self.run_sweep_async,
+                zip(programs, params_list, repetitions, [limiter] * len(programs)),
             )
 
         results = []
@@ -332,7 +335,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             await duet.sleep(1)  # Delay for 1 second between chunk
             results.extend(
                 await duet.pstarmap_async(
-                    self.run_sweep_async, zip(program_chunk, params_chunk, reps_chunk)
+                    self.run_sweep_async,
+                    zip(program_chunk, params_chunk, reps_chunk, [limiter] * len(program_chunk)),
                 )
             )
 
@@ -478,7 +482,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         qid_shapes: Dict[str, Tuple[int, ...]] = {}
         num_instances: Dict[str, int] = collections.Counter()
         for op in circuit.all_operations():
-            key = protocols.measurement_key_name(op, default=None)
+            key = protocols.measurement_key_name(op, None)
             if key is not None:
                 qid_shape = protocols.qid_shape(op)
                 prev_qid_shape = qid_shapes.setdefault(key, qid_shape)
