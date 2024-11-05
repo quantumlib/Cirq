@@ -17,11 +17,9 @@ from unittest import mock
 import pytest
 
 import cirq
-import duet
 import cirq_google as cg
 from cirq_google.engine.abstract_processor import AbstractProcessor
 from cirq_google.engine.engine_job import EngineJob
-from cirq_google.engine.engine import EngineContext
 
 
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])

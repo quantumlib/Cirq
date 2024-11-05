@@ -15,18 +15,7 @@
 
 import collections
 from itertools import islice
-from typing import (
-    Dict,
-    FrozenSet,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TypeVar,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TypeVar, TYPE_CHECKING, Union
 
 import duet
 import pandas as pd
@@ -48,14 +37,6 @@ T = TypeVar('T')
 
 class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
-
-    # Users have a rate limit of 1000 QPM for read/write requests to
-    # the Quantum Engine. The sampler will poll from the DB every 1s
-    # for inflight requests for results. Empirically, for circuits
-    # sent in run_batch, sending circuits in CHUNK_SIZE=5 for large
-    # number of circuits (> 200) with large depths (100 layers)
-    # does not encounter quota exceeded issues for non-streaming cases.
-    CHUNK_SIZE: int = 5
 
     def run(
         self,
@@ -318,28 +299,9 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         See docs for `cirq.Sampler.run_batch`.
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
-        if len(programs) <= self.CHUNK_SIZE:
-            return await duet.pstarmap_async(
-                self.run_sweep_async,
-                zip(programs, params_list, repetitions, [limiter] * len(programs)),
-            )
-
-        results = []
-        for program_chunk, params_chunk, reps_chunk in zip(
-            _chunked(programs, self.CHUNK_SIZE),
-            _chunked(params_list, self.CHUNK_SIZE),
-            _chunked(repetitions, self.CHUNK_SIZE),
-        ):
-            # Run_sweep_async for the current chunk
-            await duet.sleep(1)  # Delay for 1 second between chunk
-            results.extend(
-                await duet.pstarmap_async(
-                    self.run_sweep_async,
-                    zip(program_chunk, params_chunk, reps_chunk, [limiter] * len(program_chunk)),
-                )
-            )
-
-        return results
+        return await duet.pstarmap_async(
+            self.run_sweep_async, zip(programs, params_list, repetitions, [limiter] * len(programs))
+        )
 
     def _normalize_batch_args(
         self,
@@ -492,8 +454,3 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
                     )
                 num_instances[key] += 1
         return {k: (num_instances[k], qid_shape) for k, qid_shape in qid_shapes.items()}
-
-
-def _chunked(iterable: Sequence[T], n: int) -> Iterator[tuple[T, ...]]:
-    it = iter(iterable)
-    return iter(lambda: tuple(islice(it, n)), ())
