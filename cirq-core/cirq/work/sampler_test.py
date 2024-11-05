@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests for cirq.Sampler."""
 from typing import Sequence
-from unittest import mock
 
 import pytest
 

@@ -14,7 +14,6 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import collections
-from itertools import islice
 from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TypeVar, TYPE_CHECKING, Union
 
 import duet
