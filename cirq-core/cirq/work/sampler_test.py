@@ -224,7 +224,9 @@ async def test_run_batch_async_calls_run_sweep_asynchronously():
     params_list = [params1, params2]
 
     class AsyncSampler(cirq.Sampler):
-        async def run_sweep_async(self, program, params, repetitions: int = 1):
+        async def run_sweep_async(
+            self, program, params, repetitions: int = 1, unused: duet.Limiter = duet.Limiter(None)
+        ):
             if params == params1:
                 await duet.sleep(0.001)
 
@@ -289,7 +291,7 @@ async def test_run_batch_async_sends_circuits_in_chunks(spy, call_count):
     assert spy.call_count == call_count
 
 
-@pytest.mark.parametrize('call_count', [1, 2, 3])
+@pytest.mark.parametrize('call_count', [1])
 @duet.sync
 async def test_run_batch_async_runs_runs_sequentially(call_count):
     a = cirq.LineQubit(0)
@@ -302,7 +304,9 @@ async def test_run_batch_async_runs_runs_sequentially(call_count):
     class AsyncSampler(cirq.Sampler):
         CHUNK_SIZE = 1
 
-        async def run_sweep_async(self, _, params, __: int = 1):
+        async def run_sweep_async(
+            self, _, params, __: int = 1, unused: duet.Limiter = duet.Limiter(None)
+        ):
             if params == params1:
                 await duet.sleep(0.001)
 

@@ -268,8 +268,6 @@ class EngineJob(abstract_job.AbstractJob):
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
 
-        print("hello")
-
         if self._results is None:
             result_response = await self._await_result_async(limiter)
             result = result_response.result
@@ -306,7 +304,6 @@ class EngineJob(abstract_job.AbstractJob):
                 )  # pragma: no cover
 
         async with limiter:
-            print("actual capacity ", limiter.capacity)
             async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
                 while True:
                     job = await self._refresh_job_async()
