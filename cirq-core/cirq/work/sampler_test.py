@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests for cirq.Sampler."""
 from typing import Sequence
-from unittest import mock
 
 import pytest
 
@@ -224,7 +223,9 @@ async def test_run_batch_async_calls_run_sweep_asynchronously():
     params_list = [params1, params2]
 
     class AsyncSampler(cirq.Sampler):
-        async def run_sweep_async(self, program, params, repetitions: int = 1):
+        async def run_sweep_async(
+            self, program, params, repetitions: int = 1, unused: duet.Limiter = duet.Limiter(None)
+        ):
             if params == params1:
                 await duet.sleep(0.001)
 
@@ -265,55 +266,6 @@ def test_sampler_run_batch_bad_input_lengths():
         _ = sampler.run_batch(
             [circuit1, circuit2], params_list=[params1, params2], repetitions=[1, 2, 3]
         )
-
-
-@mock.patch('duet.pstarmap_async')
-@pytest.mark.parametrize('call_count', [1, 2, 3])
-@duet.sync
-async def test_run_batch_async_sends_circuits_in_chunks(spy, call_count):
-    class AsyncSampler(cirq.Sampler):
-        CHUNK_SIZE = 3
-
-        async def run_sweep_async(self, _, params, __: int = 1):
-            pass  # pragma: no cover
-
-    sampler = AsyncSampler()
-    a = cirq.LineQubit(0)
-    circuit_list = [cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))] * (
-        sampler.CHUNK_SIZE * call_count
-    )
-    param_list = [cirq.Points('t', [0.3, 0.7])] * (sampler.CHUNK_SIZE * call_count)
-
-    await sampler.run_batch_async(circuit_list, params_list=param_list)
-
-    assert spy.call_count == call_count
-
-
-@pytest.mark.parametrize('call_count', [1, 2, 3])
-@duet.sync
-async def test_run_batch_async_runs_runs_sequentially(call_count):
-    a = cirq.LineQubit(0)
-    finished = []
-    circuit1 = cirq.Circuit(cirq.X(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
-    circuit2 = cirq.Circuit(cirq.Y(a) ** sympy.Symbol('t'), cirq.measure(a, key='m'))
-    params1 = cirq.Points('t', [0.3, 0.7])
-    params2 = cirq.Points('t', [0.4, 0.6])
-
-    class AsyncSampler(cirq.Sampler):
-        CHUNK_SIZE = 1
-
-        async def run_sweep_async(self, _, params, __: int = 1):
-            if params == params1:
-                await duet.sleep(0.001)
-
-            finished.append(params)
-
-    sampler = AsyncSampler()
-    circuit_list = [circuit1, circuit2] * call_count
-    param_list = [params1, params2] * call_count
-    await sampler.run_batch_async(circuit_list, params_list=param_list)
-
-    assert finished == param_list
 
 
 def test_sampler_simple_sample_expectation_values():

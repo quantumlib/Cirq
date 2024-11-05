@@ -16,6 +16,7 @@ from typing import Optional, Sequence, TYPE_CHECKING, Union, cast
 
 import cirq
 import duet
+from cirq_google.engine.engine_job import EngineJob
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -58,9 +59,14 @@ class ProcessorSampler(cirq.Sampler):
         self._run_name = run_name
         self._snapshot_id = snapshot_id
         self._device_config_name = device_config_name
+        self._result_limiter = duet.Limiter(None)
 
     async def run_sweep_async(
-        self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: 'cirq.AbstractCircuit',
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        limiter: duet.Limiter = duet.Limiter(None),
     ) -> Sequence['cg.EngineResult']:
         job = await self._processor.run_sweep_async(
             program=program,
@@ -70,6 +76,10 @@ class ProcessorSampler(cirq.Sampler):
             snapshot_id=self._snapshot_id,
             device_config_name=self._device_config_name,
         )
+
+        if isinstance(job, EngineJob):
+            return await job.results_async(limiter)
+
         return await job.results_async()
 
     run_sweep = duet.sync(run_sweep_async)
@@ -79,10 +89,13 @@ class ProcessorSampler(cirq.Sampler):
         programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: Union[int, Sequence[int]] = 1,
+        limiter: duet.Limiter = duet.Limiter(10),
     ) -> Sequence[Sequence['cg.EngineResult']]:
+        print("processor sampler run batch async")
+        self._result_limiter = limiter
         return cast(
             Sequence[Sequence['cg.EngineResult']],
-            await super().run_batch_async(programs, params_list, repetitions),
+            await super().run_batch_async(programs, params_list, repetitions, self._result_limiter),
         )
 
     run_batch = duet.sync(run_batch_async)
@@ -102,3 +115,7 @@ class ProcessorSampler(cirq.Sampler):
     @property
     def device_config_name(self) -> str:
         return self._device_config_name
+
+    @property
+    def result_limiter(self) -> duet.Limiter:
+        return self._result_limiter
