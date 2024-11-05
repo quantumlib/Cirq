@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "tunits/proto/tunits.proto";
+
 package cirq.google.api.v2;
 
 option java_package = "com.google.cirq.google.api.v2";
@@ -76,6 +78,8 @@ message Moment {
   // operation must act on different qubits.
   repeated CircuitOperation circuit_operations = 2;
 }
+
+
 
 // The quantum circuit, specified as a series of operations at specific
 // start times.
@@ -296,6 +300,7 @@ message ArgValue {
     RepeatedInt64 int64_values = 5;
     RepeatedDouble double_values = 6;
     RepeatedString string_values = 7;
+    tunits.Value value_with_unit = 8;
   }
 }
 
