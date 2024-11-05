@@ -78,7 +78,6 @@ class ProcessorSampler(cirq.Sampler):
         )
 
         if isinstance(job, EngineJob):
-            print("calling...")
             return await job.results_async(limiter)
 
         return await job.results_async()
