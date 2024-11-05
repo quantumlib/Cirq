@@ -35,7 +35,7 @@ TUNITS_PROTO_PATH=$(python -c "import importlib.resources; print(importlib.resou
 # Build protos for each protobuf package.
 for package in cirq_google/api/v1 cirq_google/api/v2
 do
-  python -m grpc_tools.protoc --proto_path=$TUNITS_PROTO_PATH -I=. --python_out=. --mypy_out=. ${package}/*.proto
+  python -m grpc_tools.protoc --proto_path="$TUNITS_PROTO_PATH" -I=. --python_out=. --mypy_out=. ${package}/*.proto
 done
 
 # until this is not merged https://github.com/protocolbuffers/protobuf/pull/7470
