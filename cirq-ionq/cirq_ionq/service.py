@@ -134,9 +134,11 @@ class Service:
         ).results(sharpen=sharpen)
         if isinstance(job_results[0], results.QPUResult):
             return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver))
-        # pylint: disable=unexpected-keyword-arg
-        return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
-        # pylint: enable=unexpected-keyword-arg
+        if isinstance(job_results[0], results.SimulatorResult):
+            return job_results[0].to_cirq_result(
+                params=cirq.ParamResolver(param_resolver), seed=seed
+            )
+        raise NotImplementedError(f"Unrecognized job result type '{type(job_results[0])}'.")
 
     def run_batch(
         self,
@@ -191,12 +193,12 @@ class Service:
                 cirq_results.append(
                     job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
                 )
-            else:
-                # pylint: disable=unexpected-keyword-arg
+            elif isinstance(job_result, results.SimulatorResult):
                 cirq_results.append(
                     job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
                 )
-                # pylint: enable=unexpected-keyword-arg
+            else:
+                raise NotImplementedError(f"Unrecognized job result type '{type(job_result)}'.")
         return cirq_results
 
     def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
