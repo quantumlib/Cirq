@@ -91,7 +91,6 @@ class ProcessorSampler(cirq.Sampler):
         repetitions: Union[int, Sequence[int]] = 1,
         limiter: duet.Limiter = duet.Limiter(10),
     ) -> Sequence[Sequence['cg.EngineResult']]:
-        print("processor sampler run batch async")
         self._result_limiter = limiter
         return cast(
             Sequence[Sequence['cg.EngineResult']],
