@@ -32,6 +32,7 @@ class ProcessorSampler(cirq.Sampler):
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",
+        max_concurrent_jobs: int = 10,
     ):
         """Inits ProcessorSampler.
 
@@ -48,6 +49,10 @@ class ProcessorSampler(cirq.Sampler):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
+            max_concurrent_jobs: The maximum number of jobs to be sent 
+                simultaneously to the Engine. This client-side throttle can be
+                used to proactively reduce load to the backends and avoid quota
+                violations.
 
         Raises:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
@@ -59,6 +64,7 @@ class ProcessorSampler(cirq.Sampler):
         self._run_name = run_name
         self._snapshot_id = snapshot_id
         self._device_config_name = device_config_name
+        self._concurrent_job_limiter = duet.Limiter(max_concurrent_jobs)
 
     async def run_sweep_async(
         self,
@@ -66,16 +72,17 @@ class ProcessorSampler(cirq.Sampler):
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> Sequence['cg.EngineResult']:
-        job = await self._processor.run_sweep_async(
-            program=program,
-            params=params,
-            repetitions=repetitions,
-            run_name=self._run_name,
-            snapshot_id=self._snapshot_id,
-            device_config_name=self._device_config_name,
-        )
+        async with self._concurrent_job_limiter:
+            job = await self._processor.run_sweep_async(
+                program=program,
+                params=params,
+                repetitions=repetitions,
+                run_name=self._run_name,
+                snapshot_id=self._snapshot_id,
+                device_config_name=self._device_config_name,
+            )
 
-        return await job.results_async()
+            return await job.results_async()
 
     run_sweep = duet.sync(run_sweep_async)
 
@@ -84,11 +91,10 @@ class ProcessorSampler(cirq.Sampler):
         programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: Union[int, Sequence[int]] = 1,
-        max_concurrent_jobs: int = 10,
     ) -> Sequence[Sequence['cg.EngineResult']]:
         return cast(
             Sequence[Sequence['cg.EngineResult']],
-            await super().run_batch_async(programs, params_list, repetitions, max_concurrent_jobs),
+            await super().run_batch_async(programs, params_list, repetitions),
         )
 
     run_batch = duet.sync(run_batch_async)
