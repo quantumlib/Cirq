@@ -1144,6 +1144,52 @@ class ArgMapping(google.protobuf.message.Message):
 global___ArgMapping = ArgMapping
 
 @typing.final
+class FunctionInterpolationData(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    X_FIELD_NUMBER: builtins.int
+    Y_FIELD_NUMBER: builtins.int
+    METHOD_FIELD_NUMBER: builtins.int
+    method: builtins.str
+    """The interpolation method."""
+    @property
+    def x(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+        """The independent variable."""
+
+    @property
+    def y(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+        """The dependent variable."""
+
+    def __init__(
+        self,
+        *,
+        x: collections.abc.Iterable[builtins.float] | None = ...,
+        y: collections.abc.Iterable[builtins.float] | None = ...,
+        method: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["method", b"method", "x", b"x", "y", b"y"]) -> None: ...
+
+global___FunctionInterpolationData = FunctionInterpolationData
+
+@typing.final
+class CustomArg(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    FUNCTION_INTERPOLATION_DATA_FIELD_NUMBER: builtins.int
+    @property
+    def function_interpolation_data(self) -> global___FunctionInterpolationData: ...
+    def __init__(
+        self,
+        *,
+        function_interpolation_data: global___FunctionInterpolationData | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["custom_arg", b"custom_arg", "function_interpolation_data", b"function_interpolation_data"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["custom_arg", b"custom_arg", "function_interpolation_data", b"function_interpolation_data"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["custom_arg", b"custom_arg"]) -> typing.Literal["function_interpolation_data"] | None: ...
+
+global___CustomArg = CustomArg
+
+@typing.final
 class InternalGate(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -1165,10 +1211,29 @@ class InternalGate(google.protobuf.message.Message):
         def HasField(self, field_name: typing.Literal["value", b"value"]) -> builtins.bool: ...
         def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
 
+    @typing.final
+    class CustomArgsEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        @property
+        def value(self) -> global___CustomArg: ...
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: global___CustomArg | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+
     NAME_FIELD_NUMBER: builtins.int
     MODULE_FIELD_NUMBER: builtins.int
     NUM_QUBITS_FIELD_NUMBER: builtins.int
     GATE_ARGS_FIELD_NUMBER: builtins.int
+    CUSTOM_ARGS_FIELD_NUMBER: builtins.int
     name: builtins.str
     """Gate name."""
     module: builtins.str
@@ -1179,6 +1244,10 @@ class InternalGate(google.protobuf.message.Message):
     def gate_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
         """Gate args."""
 
+    @property
+    def custom_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___CustomArg]:
+        """Custom args."""
+
     def __init__(
         self,
         *,
@@ -1186,8 +1255,9 @@ class InternalGate(google.protobuf.message.Message):
         module: builtins.str = ...,
         num_qubits: builtins.int = ...,
         gate_args: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
+        custom_args: collections.abc.Mapping[builtins.str, global___CustomArg] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["gate_args", b"gate_args", "module", b"module", "name", b"name", "num_qubits", b"num_qubits"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["custom_args", b"custom_args", "gate_args", b"gate_args", "module", b"module", "name", b"name", "num_qubits", b"num_qubits"]) -> None: ...
 
 global___InternalGate = InternalGate
 

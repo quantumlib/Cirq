@@ -432,6 +432,7 @@ def internal_gate_arg_to_proto(
     msg.name = value.gate_name
     msg.module = value.gate_module
     msg.num_qubits = value.num_qubits()
+    msg.custom_args = value.custom_args
     for k, v in value.gate_args.items():
         arg_to_proto(value=v, out=msg.gate_args[k])
 
@@ -461,6 +462,7 @@ def internal_gate_from_proto(
         gate_name=str(msg.name),
         gate_module=str(msg.module),
         num_qubits=int(msg.num_qubits),
+        custom_args=msg.custom_args,
         **gate_args,
     )
 
