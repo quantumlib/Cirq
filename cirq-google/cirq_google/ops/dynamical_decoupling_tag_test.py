@@ -15,10 +15,11 @@
 import pytest
 from cirq_google.ops.dynamical_decoupling_tag import DynamicalDecouplingTag
 
+
 def test_invalid_value():
     with pytest.raises(AssertionError):
         _ = DynamicalDecouplingTag('_Z')
-    
+
 
 def test_proto_serialization():
     tag = DynamicalDecouplingTag('X')

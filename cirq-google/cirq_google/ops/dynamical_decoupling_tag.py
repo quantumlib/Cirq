@@ -19,7 +19,14 @@ import attrs
 import cirq_google.api.v2.program_pb2 as v2
 
 
-SUPPORTED_DD_PROTOCOLS = frozenset(["X", "Y"])
+SUPPORTED_DD_PROTOCOLS = frozenset(
+    [
+        "X",  # An even number of X
+        "Y",  # An even number of Y
+        "XY4",  # Repititions of XYXY blocks.
+        "XY8",  # Reptitions of XYXYYXYX blocks.
+    ]
+)
 
 
 @attrs.frozen
