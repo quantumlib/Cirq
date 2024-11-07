@@ -19,6 +19,8 @@ import numpy as np
 import sympy
 from google.protobuf import json_format
 
+import tunits.units
+
 import cirq
 import cirq_google as cg
 from cirq_google.api import v2
@@ -750,3 +752,13 @@ def test_circuit_with_dd_tag():
     nc = cg.CIRCUIT_SERIALIZER.deserialize(msg)
     assert c == nc
     assert nc[0].operations[0].tags == (tag,)
+
+
+def test_circuit_with_units():
+    c = cirq.Circuit(
+        cg.InternalGate(
+            gate_module='test', gate_name='test', parameter_with_unit=3.14 * tunits.units.ns
+        )(cirq.q(0, 0))
+    )
+    msg = cg.CIRCUIT_SERIALIZER.serialize(c)
+    assert c == cg.CIRCUIT_SERIALIZER.deserialize(msg)
