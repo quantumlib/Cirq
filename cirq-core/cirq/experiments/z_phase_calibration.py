@@ -73,7 +73,7 @@ def z_phase_calibration_workflow(
         cycle_depths: The cycle depths to use.
         random_state: The random state to use.
         atol: Absolute tolerance to be used by the minimizer.
-        pool_or_num_workers: An optional multi-processing pool or number of workers.
+        num_workers_or_pool: An optional multi-processing pool or number of workers.
             A zero value means no multiprocessing.
             A positivie integer value will create a pool with the given number of workers.
             A negative value will create pool with maximum number of workers.
@@ -209,7 +209,7 @@ def calibrate_z_phases(
         cycle_depths=cycle_depths,
         random_state=random_state,
         atol=atol,
-        pool_or_num_workers=num_workers_or_pool,
+        num_workers_or_pool=num_workers_or_pool,
     )
 
     gates = {}
