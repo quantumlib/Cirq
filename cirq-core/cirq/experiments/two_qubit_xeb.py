@@ -359,7 +359,6 @@ def parallel_xeb_workflow(
     cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
     **plot_kwargs,
 ) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
@@ -376,7 +375,6 @@ def parallel_xeb_workflow(
         random_state: The random state to use.
         ax: the plt.Axes to plot the device layout on. If not given,
             no plot is created.
-        pool: An optional multiprocessing pool.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
     Returns:
@@ -440,7 +438,7 @@ def parallel_xeb_workflow(
     )
 
     fids = benchmark_2q_xeb_fidelities(
-        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths, pool=pool
+        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths
     )
 
     return fids, circuit_library, sampled_df
