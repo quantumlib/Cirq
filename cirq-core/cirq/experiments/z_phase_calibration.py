@@ -75,7 +75,7 @@ def z_phase_calibration_workflow(
         atol: Absolute tolerance to be used by the minimizer.
         num_workers_or_pool: An optional multi-processing pool or number of workers.
             A zero value means no multiprocessing.
-            A positivie integer value will create a pool with the given number of workers.
+            A positive integer value will create a pool with the given number of workers.
             A negative value will create pool with maximum number of workers.
     Returns:
         - An `XEBCharacterizationResult` object that contains the calibration result.
