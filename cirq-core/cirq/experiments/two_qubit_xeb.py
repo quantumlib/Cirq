@@ -351,6 +351,7 @@ class InferredXEBResult:
 def parallel_xeb_workflow(
     sampler: 'cirq.Sampler',
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
     entangling_gate: 'cirq.Gate' = ops.CZ,
     n_repetitions: int = 10**4,
     n_combinations: int = 10,
@@ -358,6 +359,7 @@ def parallel_xeb_workflow(
     cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
     **plot_kwargs,
 ) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
@@ -365,6 +367,7 @@ def parallel_xeb_workflow(
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
         entangling_gate: The entangling gate to use.
         n_repetitions: The number of repetitions to use.
         n_combinations: The number of combinations to generate.
@@ -373,6 +376,7 @@ def parallel_xeb_workflow(
         random_state: The random state to use.
         ax: the plt.Axes to plot the device layout on. If not given,
             no plot is created.
+        pool: An optional multiprocessing pool.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
     Returns:
@@ -389,13 +393,23 @@ def parallel_xeb_workflow(
     rs = value.parse_random_state(random_state)
 
     if qubits is None:
-        qubits = _grid_qubits_for_sampler(sampler)
-        if qubits is None:
-            raise ValueError("Couldn't determine qubits from sampler. Please specify them.")
+        if pairs is None:
+            qubits = _grid_qubits_for_sampler(sampler)
+            if qubits is None:
+                raise ValueError("Couldn't determine qubits from sampler. Please specify them.")
+        else:
+            qubits_set = set()
+            for pair in pairs:
+                qubits_set.add(pair[0])
+                qubits_set.add(pair[1])
+            qubits = list(qubits_set)
 
-    graph = nx.Graph(
-        pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
-    )
+    if pairs is None:
+        pairs = [
+            pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
+        ]
+
+    graph = nx.Graph(pairs)
 
     if ax is not None:
         nx.draw_networkx(graph, pos={q: (q.row, q.col) for q in qubits}, ax=ax)
@@ -426,7 +440,7 @@ def parallel_xeb_workflow(
     )
 
     fids = benchmark_2q_xeb_fidelities(
-        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths
+        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths, pool=pool
     )
 
     return fids, circuit_library, sampled_df
@@ -435,6 +449,7 @@ def parallel_xeb_workflow(
 def parallel_two_qubit_xeb(
     sampler: 'cirq.Sampler',
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
     entangling_gate: 'cirq.Gate' = ops.CZ,
     n_repetitions: int = 10**4,
     n_combinations: int = 10,
@@ -449,6 +464,7 @@ def parallel_two_qubit_xeb(
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
         entangling_gate: The entangling gate to use.
         n_repetitions: The number of repetitions to use.
         n_combinations: The number of combinations to generate.
@@ -466,6 +482,7 @@ def parallel_two_qubit_xeb(
     fids, *_ = parallel_xeb_workflow(
         sampler=sampler,
         qubits=qubits,
+        pairs=pairs,
         entangling_gate=entangling_gate,
         n_repetitions=n_repetitions,
         n_combinations=n_combinations,
@@ -481,6 +498,7 @@ def parallel_two_qubit_xeb(
 def run_rb_and_xeb(
     sampler: 'cirq.Sampler',
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
     repetitions: int = 10**3,
     num_circuits: int = 20,
     num_clifford_range: Sequence[int] = tuple(
@@ -496,6 +514,7 @@ def run_rb_and_xeb(
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
         repetitions: The number of repetitions to use for RB and XEB.
         num_circuits: The number of circuits to generate for RB and XEB.
         num_clifford_range: The different numbers of Cliffords in the RB study.
@@ -527,6 +546,7 @@ def run_rb_and_xeb(
     xeb = parallel_two_qubit_xeb(
         sampler=sampler,
         qubits=qubits,
+        pairs=pairs,
         entangling_gate=entangling_gate,
         n_repetitions=repetitions,
         n_circuits=num_circuits,
