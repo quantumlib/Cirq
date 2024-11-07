@@ -748,7 +748,7 @@ class CircuitSerializer(serializer.Serializer):
         which = msg.WhichOneof('tag')
         if which == 'dynamical_decoupling':
             return DynamicalDecouplingTag.from_proto(msg.dynamical_decoupling)
-        raise ValueError(f'unsupported tag {msg=}')
+        raise ValueError(f'unsupported tag {msg=}')  # pragma: no cover
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer()
