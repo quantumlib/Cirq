@@ -64,7 +64,7 @@ def z_phase_calibration_workflow(
         sampler: The quantum engine or simulator to run the circuits.
         qubits: Qubits to use. If none, use all qubits on the sampler's device.
         two_qubit_gate: The entangling gate to use.
-        options: The XEB-fitting options. If None, calibrate all only the three phase angles
+        options: The XEB-fitting options. If None, calibrate only the three phase angles
             (chi, gamma, zeta) using the representation of a two-qubit gate as an FSimGate
             for the initial guess.
         n_repetitions: The number of repetitions to use.
