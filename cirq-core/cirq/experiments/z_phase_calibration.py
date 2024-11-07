@@ -14,9 +14,9 @@
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
 from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING
-
 import multiprocessing
 import multiprocessing.pool
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -40,7 +40,7 @@ def z_phase_calibration_workflow(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
-    pool_or_num_workers: Optional[Union[int, 'multiprocessing.pool.Pool']] = None,
+    num_workers_or_pool: Union[int, 'multiprocessing.pool.Pool'] = -1,
 ) -> Tuple[xeb_fitting.XEBCharacterizationResult, 'pd.DataFrame']:
     """Perform z-phase calibration for excitation-preserving gates.
 
@@ -64,8 +64,9 @@ def z_phase_calibration_workflow(
         sampler: The quantum engine or simulator to run the circuits.
         qubits: Qubits to use. If none, use all qubits on the sampler's device.
         two_qubit_gate: The entangling gate to use.
-        options: The XEB-fitting options. If None, calibrate all 5 PhasedFSimGate parameters,
-            using the representation of a two-qubit gate as an FSimGate for the initial guess.
+        options: The XEB-fitting options. If None, calibrate all only the three phase angles
+            (chi, gamma, zeta) using the representation of a two-qubit gate as an FSimGate
+            for the initial guess.
         n_repetitions: The number of repetitions to use.
         n_combinations: The number of combinations to generate.
         n_circuits: The number of circuits to generate.
@@ -75,7 +76,7 @@ def z_phase_calibration_workflow(
         pool_or_num_workers: An optional multi-processing pool or number of workers.
             A zero value means no multiprocessing.
             A positivie integer value will create a pool with the given number of workers.
-            A None value will create pool with maximum number of workers.
+            A negative value will create pool with maximum number of workers.
     Returns:
         - An `XEBCharacterizationResult` object that contains the calibration result.
         - A `pd.DataFrame` comparing the before and after fidelities.
@@ -83,10 +84,10 @@ def z_phase_calibration_workflow(
 
     pool: Optional['multiprocessing.pool.Pool'] = None
     local_pool = False
-    if isinstance(pool_or_num_workers, multiprocessing.pool.Pool):
-        pool = pool_or_num_workers  # pragma: no cover
-    elif pool_or_num_workers != 0:
-        pool = multiprocessing.Pool(pool_or_num_workers)
+    if isinstance(num_workers_or_pool, multiprocessing.pool.Pool):
+        pool = num_workers_or_pool  # pragma: no cover
+    elif num_workers_or_pool != 0:
+        pool = multiprocessing.Pool(num_workers_or_pool if num_workers_or_pool > 0 else None)
         local_pool = True
 
     fids_df_0, circuits, sampled_df = parallel_xeb_workflow(
@@ -146,7 +147,7 @@ def calibrate_z_phases(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
-    pool_or_num_workers: Optional[Union[int, 'multiprocessing.pool.Pool']] = None,
+    num_workers_or_pool: Union[int, 'multiprocessing.pool.Pool'] = -1,
 ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate']:
     """Perform z-phase calibration for excitation-preserving gates.
 
@@ -170,18 +171,19 @@ def calibrate_z_phases(
         sampler: The quantum engine or simulator to run the circuits.
         qubits: Qubits to use. If none, use all qubits on the sampler's device.
         two_qubit_gate: The entangling gate to use.
-        options: The XEB-fitting options. If None, calibrate all 5 PhasedFSimGate parameters,
-            using the representation of a two-qubit gate as an FSimGate for the initial guess.
+        options: The XEB-fitting options. If None, calibrate all only the three phase angles
+            (chi, gamma, zeta) using the representation of a two-qubit gate as an FSimGate
+            for the initial guess.
         n_repetitions: The number of repetitions to use.
         n_combinations: The number of combinations to generate.
         n_circuits: The number of circuits to generate.
         cycle_depths: The cycle depths to use.
         random_state: The random state to use.
         atol: Absolute tolerance to be used by the minimizer.
-        pool_or_num_workers: An optional multi-processing pool or number of workers.
+        num_workers_or_pool: An optional multi-processing pool or number of workers.
             A zero value means no multiprocessing.
             A positivie integer value will create a pool with the given number of workers.
-            A None value will create pool with maximum number of workers.
+            A negative value will create pool with maximum number of workers.
 
     Returns:
         - A dictionary mapping qubit pairs to the calibrated PhasedFSimGates.
@@ -207,7 +209,7 @@ def calibrate_z_phases(
         cycle_depths=cycle_depths,
         random_state=random_state,
         atol=atol,
-        pool_or_num_workers=pool_or_num_workers,
+        pool_or_num_workers=num_workers_or_pool,
     )
 
     gates = {}
