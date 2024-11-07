@@ -262,12 +262,14 @@ class EngineJob(abstract_job.AbstractJob):
         """Deletes the job and result, if any."""
         self.context.client.delete_job(self.project_id, self.program_id, self.job_id)
 
-    async def results_async(self) -> Sequence[EngineResult]:
+    async def results_async(
+        self, limiter: duet.Limiter = duet.Limiter(None)
+    ) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
 
         if self._results is None:
-            result_response = await self._await_result_async()
+            result_response = await self._await_result_async(limiter)
             result = result_response.result
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if (
@@ -286,7 +288,9 @@ class EngineJob(abstract_job.AbstractJob):
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
 
-    async def _await_result_async(self) -> quantum.QuantumResult:
+    async def _await_result_async(
+        self, limiter: duet.Limiter = duet.Limiter(None)
+    ) -> quantum.QuantumResult:
         if self._job_result_future is not None:
             response = await self._job_result_future
             if isinstance(response, quantum.QuantumResult):
@@ -299,12 +303,13 @@ class EngineJob(abstract_job.AbstractJob):
                     'Internal error: The job response type is not recognized.'
                 )  # pragma: no cover
 
-        async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
-            while True:
-                job = await self._refresh_job_async()
-                if job.execution_status.state in TERMINAL_STATES:
-                    break
-                await duet.sleep(1)
+        async with limiter:
+            async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
+                while True:
+                    job = await self._refresh_job_async()
+                    if job.execution_status.state in TERMINAL_STATES:
+                        break
+                    await duet.sleep(1)
         _raise_on_failure(job)
         response = await self.context.client.get_job_results_async(
             self.project_id, self.program_id, self.job_id
