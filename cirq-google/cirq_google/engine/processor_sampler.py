@@ -66,7 +66,8 @@ class ProcessorSampler(cirq.Sampler):
         self._device_config_name = device_config_name
         self._concurrent_job_limiter = duet.Limiter(max_concurrent_jobs)
 
-    async def run_sweep_async(self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
+    async def run_sweep_async(
+        self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence['cg.EngineResult']:
         async with self._concurrent_job_limiter:
             job = await self._processor.run_sweep_async(

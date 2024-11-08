@@ -186,7 +186,7 @@ async def test_sampler_with_full_job_queue_blocks():
     params = [cirq.ParamResolver({'t': 1})]
 
     with pytest.raises(TimeoutError):
-        async with duet.timeout_scope(.01):
+        async with duet.timeout_scope(0.01):
             await sampler.run_batch_async([circuit] * 3)
 
     assert processor.run_sweep_async.call_count == 2
@@ -207,7 +207,7 @@ async def test_sampler_with_job_queue_availability_runs_all():
     params = [cirq.ParamResolver({'t': 1})]
 
     with pytest.raises(TimeoutError):
-        async with duet.timeout_scope(.01):
+        async with duet.timeout_scope(0.01):
             await sampler.run_batch_async([circuit] * 3)
 
     assert processor.run_sweep_async.call_count == 3
