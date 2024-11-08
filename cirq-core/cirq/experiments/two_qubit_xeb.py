@@ -53,7 +53,7 @@ def _manhattan_distance(qubit1: 'cirq.GridQubit', qubit2: 'cirq.GridQubit') -> i
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
-def _qubits_and_pairs(
+def qubits_and_pairs(
     sampler: 'cirq.Sampler',
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
     pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
