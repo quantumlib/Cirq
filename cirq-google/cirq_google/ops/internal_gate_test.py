@@ -143,10 +143,11 @@ def test_encode_function_mutli_dim():
     D = 3
     n = 4
     x = np.random.random(n * D).reshape((n, D))
-    y = x + 1
+    y = np.random.random(n)
 
     msg = internal_gate.encode_function(x, y)
 
     np.testing.assert_allclose(msg.function_interpolation_data.x, x.flatten())
+    np.testing.assert_allclose(msg.function_interpolation_data.y, y)
 
     assert len(msg.function_interpolation_data.x) == D * len(msg.function_interpolation_data.y)
