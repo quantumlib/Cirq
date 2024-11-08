@@ -38,6 +38,7 @@ from cirq.qis import noise_utils
 from cirq._compat import cached_method
 
 if TYPE_CHECKING:
+    import multiprocessing
     import cirq
 
 
@@ -399,6 +400,7 @@ def parallel_xeb_workflow(
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ax: Optional[plt.Axes] = None,
     pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
     **plot_kwargs,
 ) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
@@ -415,6 +417,7 @@ def parallel_xeb_workflow(
         ax: the plt.Axes to plot the device layout on. If not given,
             no plot is created.
         pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
+        pool: An optional multiprocessing pool.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
     Returns:
@@ -462,7 +465,7 @@ def parallel_xeb_workflow(
     )
 
     fids = benchmark_2q_xeb_fidelities(
-        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths
+        sampled_df=sampled_df, circuits=circuit_library, cycle_depths=cycle_depths, pool=pool
     )
 
     return fids, circuit_library, sampled_df
