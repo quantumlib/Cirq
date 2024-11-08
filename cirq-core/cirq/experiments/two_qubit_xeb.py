@@ -433,7 +433,7 @@ def parallel_xeb_workflow(
     """
     rs = value.parse_random_state(random_state)
 
-    qubits, pairs = _qubits_and_pairs(sampler, qubits, pairs)
+    qubits, pairs = qubits_and_pairs(sampler, qubits, pairs)
     graph = nx.Graph(pairs)
 
     if ax is not None:
@@ -555,7 +555,7 @@ def run_rb_and_xeb(
         ValueError: If qubits are not specified and the sampler has no device.
     """
 
-    qubits, pairs = _qubits_and_pairs(sampler, qubits, pairs)
+    qubits, pairs = qubits_and_pairs(sampler, qubits, pairs)
 
     rb = parallel_single_qubit_randomized_benchmarking(
         sampler=sampler,
