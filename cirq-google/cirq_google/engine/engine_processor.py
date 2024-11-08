@@ -104,10 +104,10 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             snapshot_id: A unique identifier for an immutable snapshot reference.
                 A snapshot contains a collection of device configurations for the
                 processor.
-            max_concurrent_jobs: The maximum number of jobs to be sent 
+            max_concurrent_jobs: The maximum number of jobs to be sent
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
-                violations.
+                violations when pipelining circuit executions.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`

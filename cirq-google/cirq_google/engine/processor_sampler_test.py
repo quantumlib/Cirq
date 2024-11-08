@@ -174,13 +174,11 @@ def test_run_batch_differing_repetitions():
 @duet.sync
 async def test_sampler_with_full_job_queue_blocks():
     processor = mock.create_autospec(AbstractProcessor)
-    sampler = cg.ProcessorSampler(
-        processor=processor,
-        max_concurrent_jobs=2,
-    )
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
 
     async def wait_forever(**kwargs):
-      await duet.AwaitableFuture[None]()
+        await duet.AwaitableFuture[None]()
+
     processor.run_sweep_async.side_effect = wait_forever
 
     a = cirq.LineQubit(0)
@@ -188,21 +186,20 @@ async def test_sampler_with_full_job_queue_blocks():
     params = [cirq.ParamResolver({'t': 1})]
 
     with pytest.raises(TimeoutError):
-      async with duet.timeout_scope(.01):
-        await sampler.run_batch_async([circuit] * 3)
+        async with duet.timeout_scope(.01):
+            await sampler.run_batch_async([circuit] * 3)
 
     assert processor.run_sweep_async.call_count == 2
+
 
 @duet.sync
 async def test_sampler_with_job_queue_availability_runs_all():
     processor = mock.create_autospec(AbstractProcessor)
-    sampler = cg.ProcessorSampler(
-        processor=processor,
-        max_concurrent_jobs=3,
-    )
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=3)
 
     async def wait_forever(**kwargs):
-      await duet.AwaitableFuture[None]()
+        await duet.AwaitableFuture[None]()
+
     processor.run_sweep_async.side_effect = wait_forever
 
     a = cirq.LineQubit(0)
@@ -210,18 +207,16 @@ async def test_sampler_with_job_queue_availability_runs_all():
     params = [cirq.ParamResolver({'t': 1})]
 
     with pytest.raises(TimeoutError):
-      async with duet.timeout_scope(.01):
-        await sampler.run_batch_async([circuit] * 3)
+        async with duet.timeout_scope(.01):
+            await sampler.run_batch_async([circuit] * 3)
 
     assert processor.run_sweep_async.call_count == 3
+
 
 @duet.sync
 async def test_sampler_with_full_job_queue_unblocks_when_available():
     processor = mock.create_autospec(AbstractProcessor)
-    sampler = cg.ProcessorSampler(
-        processor=processor,
-        max_concurrent_jobs=2,
-    )
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
 
     job = mock.AsyncMock(EngineJob)
     processor.run_sweep_async.return_value = job
@@ -233,6 +228,7 @@ async def test_sampler_with_full_job_queue_unblocks_when_available():
     await sampler.run_batch_async([circuit] * 3)
 
     assert processor.run_sweep_async.call_count == 3
+
 
 def test_processor_sampler_processor_property():
     processor = mock.create_autospec(AbstractProcessor)

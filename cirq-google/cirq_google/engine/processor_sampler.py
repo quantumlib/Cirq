@@ -49,10 +49,10 @@ class ProcessorSampler(cirq.Sampler):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-            max_concurrent_jobs: The maximum number of jobs to be sent 
-                simultaneously to the Engine. This client-side throttle can be
+            max_concurrent_jobs: The maximum number of jobs to be sent
+                concurrently to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
-                violations.
+                violations when pipelining circuit executions.
 
         Raises:
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
@@ -66,11 +66,7 @@ class ProcessorSampler(cirq.Sampler):
         self._device_config_name = device_config_name
         self._concurrent_job_limiter = duet.Limiter(max_concurrent_jobs)
 
-    async def run_sweep_async(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: cirq.Sweepable,
-        repetitions: int = 1,
+    async def run_sweep_async(self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence['cg.EngineResult']:
         async with self._concurrent_job_limiter:
             job = await self._processor.run_sweep_async(
