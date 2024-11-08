@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Callable, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence, Union
 from collections.abc import Mapping
 
 import numpy as np
@@ -21,14 +21,7 @@ from cirq import ops, value
 from cirq_google.api.v2 import program_pb2
 
 
-SUPPORTED_INTERPOLATION_METHODS = frozenset(
-    [
-        'interp',  # np.interp
-        'CubicSpline',  # scipy.interpolate.CubicSpline
-        'PchipInterpolator',  # scipy.interpolate.PchipInterpolator
-        'Akima1DInterpolator',  # scipy.interpolate.Akima1DInterpolator
-    ]
-)
+SUPPORTED_INTERPOLATION_METHODS = frozenset(['interp'])  # np.interp
 
 
 @value.value_equality
@@ -45,7 +38,7 @@ class InternalGate(ops.Gate):
         gate_name: str,
         gate_module: str,
         num_qubits: int = 1,
-        custom_args: Mapping[program_pb2.CustomArg, Any] = None,
+        custom_args: Optional[Mapping[program_pb2.CustomArg, Any]] = None,
         **kwargs,
     ):
         """Instatiates an InternalGate.
@@ -60,33 +53,39 @@ class InternalGate(ops.Gate):
         self.gate_name = gate_name
         self._num_qubits = num_qubits
         self.gate_args = kwargs
-        self.custom_args = custom_args
+        self.custom_args = custom_args or {}
 
     def _num_qubits_(self) -> int:
         return self._num_qubits
 
     def __str__(self):
-        gate_args = ', '.join(f'{k}={v}' for k, v in self.gate_args.items())
+        gate_args = ', '.join(f'{k}={v}' for k, v in (self.gate_args | self.custom_args).items())
         return f'{self.gate_module}.{self.gate_name}({gate_args})'
 
     def __repr__(self) -> str:
         gate_args = ', '.join(f'{k}={repr(v)}' for k, v in self.gate_args.items())
         if gate_args != '':
             gate_args = ', ' + gate_args
+
+        custom_args = ''
+        if self.custom_args:
+            custom_args = f", custom_args={self.custom_args}"
+
         return (
             f"cirq_google.InternalGate(gate_name='{self.gate_name}', "
             f"gate_module='{self.gate_module}', "
-            f"num_qubits={self._num_qubits},"
-            f"custom_args={self.custom_args}"
+            f"num_qubits={self._num_qubits}"
+            f"{custom_args}"
             f"{gate_args})"
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
+        if self.custom_args:
+            raise ValueError('InternalGate with custom args are not json serializable')
         return dict(
             gate_name=self.gate_name,
             gate_module=self.gate_module,
             num_qubits=self._num_qubits,
-            custom_args=self.custom_args,
             **self.gate_args,
         )
 
@@ -105,58 +104,50 @@ class InternalGate(ops.Gate):
         )
 
 
-def encode_1dfunction(
-    x: Optional[Sequence[float]] = None,
-    y: Optional[Sequence[float]] = None,
+def encode_function(
+    x: Union[Sequence[float], np.ndarray],
+    y: Sequence[float],
     method: str = 'interp',
-    *,
-    f: Optional[Callable[[float], float]] = None,
-    x_low: float = 0,
-    x_high: float = 1,
-    num_points: int = 100,
+    msg: Optional[program_pb2.CustomArg] = None,
 ) -> program_pb2.CustomArg:
-    """Encodes a general 1D-function as a list of evaluations.
+    """Encodes a general function as a list of evaluations.
 
     This method discretizes a function into a list of point evaluations. Evaluating the
     function on general points is then done by interpolating the function using the given
     method.
 
     Args:
-        x: Optional list of values of the free variable.
-            If not given, then np.linspace(x_low, x_high, num_points) is used.
-        y: Optional list of values of the dependent variable.
-            If not given, then evaluations of f(x) are used.
+        x: Sequence of values of the free variable.
+            For 1D functions, this input is assumed to be given in increasing order.
+        y: Sequence of values of the dependent variable.
+            Where y[i] = func(x[i]) where `func` is the function being encoded.
         method: The method used to interpolate the function.
-
-        f: A callable to populate `y` if `y` is not given.
-        x_low: Smallest value of the free variable. Only used if `x` is not given.
-        x_high: Largest value of the free variable. Only used if `x` is not given.
-        num_points: Number of points to use if `x` is not given.
+            Currently, only `interp` (i.e. numpy.interp) is supported.
+        msg: Optional CustomArg to serialize to.
+            If not provided a CustomArg is created.
 
     Returns:
         A CustomArg encoding the function.
 
     Raises:
         ValueError: If
-            - neigther `y` nor `y` is given.
+            - `x` is 1D and not sorted in increasing order.
             - `method` is not supported.
     """
 
+    x = np.array(x)
+    if len(x.shape) == 1 and not np.all(np.diff(x) > 0):
+        raise ValueError('The free variable must be sorted in increasing order')
+
     if method not in SUPPORTED_INTERPOLATION_METHODS:
         raise ValueError(
-            f'Method {method} is not supported. The supported methods are {SUPPORTED_INTERPOLATION_METHODS}'
+            f'Method {method} is not supported. '
+            f'The supported methods are {SUPPORTED_INTERPOLATION_METHODS}'
         )
 
-    if x is None:
-        x = np.linspace(x_low, x_high, num_points)
-
-    if y is None:
-        if f is None:
-            raise ValueError(f'At least one of y and f must be given.')
-        y = [f(v) for v in x]
-
-    msg = program_pb2.CustomArg()
-    msg.function_interpolation_data.x.extend(x)
+    if msg is None:
+        msg = program_pb2.CustomArg()
+    msg.function_interpolation_data.x.extend(x.flatten())
     msg.function_interpolation_data.y.extend(y)
     msg.function_interpolation_data.method = method
     return msg

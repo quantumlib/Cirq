@@ -1151,10 +1151,14 @@ class FunctionInterpolationData(google.protobuf.message.Message):
     Y_FIELD_NUMBER: builtins.int
     METHOD_FIELD_NUMBER: builtins.int
     method: builtins.str
-    """The interpolation method."""
+    """The interpolation method.
+    Currently only "interp" (i.e numpy.interp) is supported.
+    """
     @property
     def x(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
-        """The independent variable."""
+        """If the function encoded has dimension `d`, then |x| = d |y|. Where |x| the length of `x`.
+        The independent variable.
+        """
 
     @property
     def y(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
@@ -1246,7 +1250,9 @@ class InternalGate(google.protobuf.message.Message):
 
     @property
     def custom_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___CustomArg]:
-        """Custom args."""
+        """Custom args are arguments that need require special processing during
+        deserialization.
+        """
 
     def __init__(
         self,

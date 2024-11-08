@@ -432,10 +432,13 @@ message ArgMapping {
 }
 
 message FunctionInterpolationData {
-  repeated float x = 1;  // The independent variable.
-  repeated float y = 2;  // The dependent variable.
+  // If the function encoded has dimension `d`, then |x| = d |y|. Where |x| the length of `x`.
+  repeated float x = 1 [packed = true];  // The independent variable.
+  repeated float y = 2 [packed = true];  // The dependent variable.
 
-  string method = 3;  // The interpolation method.
+  // The interpolation method.
+  // Currently only "interp" (i.e numpy.interp) is supported.
+  string method = 3;
 }
 
 message CustomArg {
@@ -450,7 +453,9 @@ message InternalGate{
   int32 num_qubits = 3;  // Number of qubits. Required during deserialization.
   map<string, Arg> gate_args = 4;  // Gate args.
 
-  map<string, CustomArg> custom_args = 5;  // Custom args.
+  // Custom args are arguments that need require special processing during
+  // deserialization.
+  map<string, CustomArg> custom_args = 5;
 }
 
 message CouplerPulseGate{

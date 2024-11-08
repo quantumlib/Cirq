@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 import cirq
 import cirq_google
 import pytest
+from cirq_google.ops import internal_gate
+from cirq_google.serialization import arg_func_langs
 
 
 def test_internal_gate():
@@ -67,3 +71,82 @@ def test_internal_gate_with_hashable_args_is_hashable():
     )
     with pytest.raises(TypeError, match="unhashable"):
         _ = hash(unhashable)
+
+
+def test_internal_gate_with_custom_function_repr():
+    original_func = lambda x: x**2
+    x = np.linspace(-1, 1, 10)
+    y = original_func(x)
+    encoded_func = internal_gate.encode_1dfunction(x=x, y=y, method='interp')
+
+    gate = internal_gate.InternalGate(
+        gate_name='GateWithFunction',
+        gate_module='test',
+        num_qubits=2,
+        custom_args={'func': encoded_func},
+    )
+
+    assert repr(gate) == (
+        "cirq_google.InternalGate(gate_name='GateWithFunction', "
+        f"gate_module='test', num_qubits=2, custom_args={str(gate.custom_args)})"
+    )
+
+    assert str(gate) == (f"test.GateWithFunction(func={encoded_func})")
+
+    with pytest.raises(ValueError):
+        _ = cirq.to_json(gate)
+
+
+def test_internal_gate_with_custom_function_round_trip():
+    original_func = lambda x: x**2
+    x = np.linspace(-1, 1, 10)
+    y = original_func(x)
+    encoded_func = internal_gate.encode_function(x=x, y=y, method='interp')
+
+    gate = internal_gate.InternalGate(
+        gate_name='GateWithFunction',
+        gate_module='test',
+        num_qubits=2,
+        custom_args={'func': encoded_func},
+    )
+
+    msg = arg_func_langs.internal_gate_arg_to_proto(gate)
+
+    new_gate = arg_func_langs.internal_gate_from_proto(msg, arg_func_langs.MOST_PERMISSIVE_LANGUAGE)
+
+    func_proto = new_gate.custom_args['func'].function_interpolation_data
+
+    decoded_func = lambda x: np.interp(x, func_proto.x, func_proto.y)
+
+    # Test original points evaluate to same value.
+    np.testing.assert_allclose(decoded_func(x), y)
+
+    # Test interpolation is close enough
+    eps = 1e-3
+    x_new = x[:-1] + eps
+    np.testing.assert_allclose(decoded_func(x_new), original_func(x_new), atol=2 * eps)
+
+
+def test_encode_function_invalid_args_raise():
+    x = np.linspace(-1, 1, 10)
+    y = x + 1
+
+    with pytest.raises(ValueError, match='not supported'):
+        _ = internal_gate.encode_function(x, y, method='_test')
+
+    x = x[::-1]
+    with pytest.raises(ValueError, match='sorted in increasing order'):
+        _ = internal_gate.encode_function(x, y)
+
+
+def test_encode_function_mutli_dim():
+    D = 3
+    n = 4
+    x = np.random.random(n * D).reshape((n, D))
+    y = x + 1
+
+    msg = internal_gate.encode_function(x, y)
+
+    np.testing.assert_allclose(msg.function_interpolation_data.x, x.flatten())
+
+    assert len(msg.function_interpolation_data.x) == D * len(msg.function_interpolation_data.y)
