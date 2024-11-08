@@ -261,26 +261,43 @@ def test_inferred_plots(ax, target_error, kind):
 
 
 @pytest.mark.parametrize(
-    'sampler,qubits',
+    'sampler,qubits,pairs',
     [
         (
             cirq.DensityMatrixSimulator(
                 seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
             ),
             cirq.GridQubit.rect(3, 2, 4, 3),
+            None,
+        ),
+        (
+            cirq.DensityMatrixSimulator(
+                seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
+            ),
+            None,
+            [
+                (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
+                (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
+            ],
         ),
         (
             DensityMatrixSimulatorWithProcessor(
                 seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
             ),
             None,
+            None,
         ),
     ],
 )
-def test_run_rb_and_xeb(sampler: cirq.Sampler, qubits: Optional[Sequence[cirq.GridQubit]]):
+def test_run_rb_and_xeb(
+    sampler: cirq.Sampler,
+    qubits: Optional[Sequence[cirq.GridQubit]],
+    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]],
+):
     res = cirq.experiments.run_rb_and_xeb(
         sampler=sampler,
         qubits=qubits,
+        pairs=pairs,
         repetitions=100,
         num_clifford_range=tuple(np.arange(3, 10, 1)),
         xeb_combinations=1,
