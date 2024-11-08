@@ -95,6 +95,11 @@ def benchmark_2q_xeb_fidelities(
     df['e_u'] = np.sum(pure_probs**2, axis=1)
     df['u_u'] = np.sum(pure_probs, axis=1) / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
+    # Var[m_u] = Var[sum p(x) * p_sampled(x)]
+    #           = sum p(x)^2 Var[p_sampled(x)]
+    #           = sum p(x)^2 p(x) (1 - p(x))
+    #           = sum p(x)^3 (1 - p(x))
+    df['var_m_u'] = np.sum(pure_probs**3 * (1 - pure_probs), axis=1)
     df['y'] = df['m_u'] - df['u_u']
     df['x'] = df['e_u'] - df['u_u']
     df['numerator'] = df['x'] * df['y']
@@ -103,7 +108,11 @@ def benchmark_2q_xeb_fidelities(
     def per_cycle_depth(df):
         """This function is applied per cycle_depth in the following groupby aggregation."""
         fid_lsq = df['numerator'].sum() / df['denominator'].sum()
-        ret = {'fidelity': fid_lsq}
+        # Note: both df['denominator'] and df['x'] are constants.
+        # Var[f] = Var[df['numerator']] / (sum df['denominator'])^2
+        #           = sum (df['x']^2 * df['var_m_u']) / (sum df['denominator'])^2
+        var_fid = (df['var_m_u'] * df['x'] ** 2).sum() / df['denominator'].sum() ** 2
+        ret = {'fidelity': fid_lsq, 'fidelity_variance': var_fid}
 
         def _try_keep(k):
             """If all the values for a key `k` are the same in this group, we can keep it."""
@@ -385,16 +394,21 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions
+    circuit: 'cirq.Circuit',
+    options: XEBCharacterizationOptions,
+    target_gatefamily: Optional[ops.GateFamily] = None,
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
+    if isinstance(target_gatefamily, ops.GateFamily):
+        should_parameterize = lambda op: op in target_gatefamily or options.should_parameterize(op)
+    else:
+        should_parameterize = options.should_parameterize
     gate = options.get_parameterized_gate()
     return circuits.Circuit(
         circuits.Moment(
-            gate.on(*op.qubits) if options.should_parameterize(op) else op
-            for op in moment.operations
+            gate.on(*op.qubits) if should_parameterize(op) else op for op in moment.operations
         )
         for moment in circuit.moments
     )
@@ -667,13 +681,16 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
         a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(
             f1['cycle_depth'], f1['fidelity']
         )
+        fidelity_variance = 0
+        if 'fidelity_variance' in f1:
+            fidelity_variance = f1['fidelity_variance'].values
         record = {
             'a': a,
             'layer_fid': layer_fid,
             'cycle_depths': f1['cycle_depth'].values,
             'fidelities': f1['fidelity'].values,
             'a_std': a_std,
-            'layer_fid_std': layer_fid_std,
+            'layer_fid_std': np.sqrt(layer_fid_std**2 + fidelity_variance),
         }
         return pd.Series(record)
 
