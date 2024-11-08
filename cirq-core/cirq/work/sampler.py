@@ -291,7 +291,6 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[Sequence['cirq.Sweepable']] = None,
         repetitions: Union[int, Sequence[int]] = 1,
-        limiter: duet.Limiter = duet.Limiter(10),
     ) -> Sequence[Sequence['cirq.Result']]:
         """Runs the supplied circuits asynchronously.
 
@@ -299,7 +298,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         return await duet.pstarmap_async(
-            self.run_sweep_async, zip(programs, params_list, repetitions, [limiter] * len(programs))
+            self.run_sweep_async, zip(programs, params_list, repetitions)
         )
 
     def _normalize_batch_args(
