@@ -77,7 +77,7 @@ def test_internal_gate_with_custom_function_repr():
     original_func = lambda x: x**2
     x = np.linspace(-1, 1, 10)
     y = original_func(x)
-    encoded_func = internal_gate.encode_1dfunction(x=x, y=y, method='interp')
+    encoded_func = internal_gate.encode_function(x=x, y=y, method='interp')
 
     gate = internal_gate.InternalGate(
         gate_name='GateWithFunction',
