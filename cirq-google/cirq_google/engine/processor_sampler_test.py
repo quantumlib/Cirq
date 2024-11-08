@@ -14,14 +14,12 @@
 
 from unittest import mock
 
-import concurrent.futures
 import pytest
 import duet
 
 import cirq
 import cirq_google as cg
 from cirq_google.engine.abstract_processor import AbstractProcessor
-from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine.engine_job import EngineJob
 
 
