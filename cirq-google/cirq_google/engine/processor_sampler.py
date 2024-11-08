@@ -16,7 +16,6 @@ from typing import Optional, Sequence, TYPE_CHECKING, Union, cast
 
 import cirq
 import duet
-from cirq_google.engine.engine_job import EngineJob
 
 if TYPE_CHECKING:
     import cirq_google as cg
