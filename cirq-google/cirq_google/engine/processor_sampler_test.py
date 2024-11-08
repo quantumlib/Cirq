@@ -15,6 +15,7 @@
 from unittest import mock
 
 import pytest
+import duet
 
 import cirq
 import cirq_google as cg
@@ -170,29 +171,60 @@ def test_run_batch_differing_repetitions():
     )
 
 
-def test_run_batch_receives_results_using_limiter():
+@duet.sync
+async def test_sampler_with_full_job_queue_blocks():
     processor = mock.create_autospec(AbstractProcessor)
-    run_name = "RUN_NAME"
-    device_config_name = "DEVICE_CONFIG_NAME"
-    sampler = cg.ProcessorSampler(
-        processor=processor, run_name=run_name, device_config_name=device_config_name
-    )
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
+
+    async def wait_forever(**kwargs):
+        await duet.AwaitableFuture[None]()
+
+    processor.run_sweep_async.side_effect = wait_forever
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+
+    with pytest.raises(TimeoutError):
+        async with duet.timeout_scope(0.01):
+            await sampler.run_batch_async([circuit] * 3)
+
+    assert processor.run_sweep_async.call_count == 2
+
+
+@duet.sync
+async def test_sampler_with_job_queue_availability_runs_all():
+    processor = mock.create_autospec(AbstractProcessor)
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=3)
+
+    async def wait_forever(**kwargs):
+        await duet.AwaitableFuture[None]()
+
+    processor.run_sweep_async.side_effect = wait_forever
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+
+    with pytest.raises(TimeoutError):
+        async with duet.timeout_scope(0.01):
+            await sampler.run_batch_async([circuit] * 3)
+
+    assert processor.run_sweep_async.call_count == 3
+
+
+@duet.sync
+async def test_sampler_with_full_job_queue_unblocks_when_available():
+    processor = mock.create_autospec(AbstractProcessor)
+    sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
 
     job = mock.AsyncMock(EngineJob)
-
     processor.run_sweep_async.return_value = job
+
     a = cirq.LineQubit(0)
-    circuit1 = cirq.Circuit(cirq.X(a))
-    circuit2 = cirq.Circuit(cirq.Y(a))
-    params1 = [cirq.ParamResolver({'t': 1})]
-    params2 = [cirq.ParamResolver({'t': 2})]
-    circuits = [circuit1, circuit2]
-    params_list = [params1, params2]
-    repetitions = [1, 2]
+    circuit = cirq.Circuit(cirq.X(a))
 
-    sampler.run_batch(circuits, params_list, repetitions)
+    await sampler.run_batch_async([circuit] * 3)
 
-    job.results_async.assert_called_with(sampler.result_limiter)
+    assert processor.run_sweep_async.call_count == 3
 
 
 def test_processor_sampler_processor_property():
