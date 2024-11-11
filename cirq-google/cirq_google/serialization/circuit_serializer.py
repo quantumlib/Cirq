@@ -113,10 +113,6 @@ class CircuitSerializer(serializer.Serializer):
                         constants=constants,
                         raw_constants=raw_constants,
                     )
-                # for tag in op.tags:
-                #     msg = self._serialize_tag(tag)
-                #     if msg is not None:
-                #         op_pb.tags.append(msg)
 
     def _serialize_gate_op(
         self,

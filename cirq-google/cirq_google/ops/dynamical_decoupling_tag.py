@@ -16,22 +16,26 @@ from typing import Optional
 
 import attrs
 
-import cirq_google.api.v2.program_pb2 as v2
+from cirq_google.api.v2 import program_pb2
 
 
 SUPPORTED_DD_PROTOCOLS = frozenset(
     [
         "X",  # An even number of X
         "Y",  # An even number of Y
-        "XY4",  # Repititions of XYXY blocks.
-        "XY8",  # Reptitions of XYXYYXYX blocks.
+        "XY4",  # Repetitions of XYXY blocks.
+        "XY8",  # Repetitions of XYXYYXYX blocks.
     ]
 )
 
 
 @attrs.frozen
 class DynamicalDecouplingTag:
-    """A tag to indicate using DD to fill qubit time."""
+    """A tag to indicate using DD to fill qubit time.
+
+    Attributes:
+        protocol: The name of the decoupling protocol (eg 'X', 'XY4').
+    """
 
     protocol: str = attrs.field()  # Which DD protocol to use.
 
@@ -40,13 +44,13 @@ class DynamicalDecouplingTag:
         assert value in SUPPORTED_DD_PROTOCOLS
 
     def to_proto(
-        self, msg: Optional[v2.DynamicalDecouplingTag] = None
-    ) -> v2.DynamicalDecouplingTag:
+        self, msg: Optional[program_pb2.DynamicalDecouplingTag] = None
+    ) -> program_pb2.DynamicalDecouplingTag:
         if msg is None:
-            msg = v2.DynamicalDecouplingTag()
+            msg = program_pb2.DynamicalDecouplingTag()
         msg.protocol = self.protocol
         return msg
 
     @staticmethod
-    def from_proto(msg: v2.DynamicalDecouplingTag) -> 'DynamicalDecouplingTag':
+    def from_proto(msg: program_pb2.DynamicalDecouplingTag) -> 'DynamicalDecouplingTag':
         return DynamicalDecouplingTag(protocol=msg.protocol)

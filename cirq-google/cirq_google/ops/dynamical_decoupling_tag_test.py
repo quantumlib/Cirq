@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+
 from cirq_google.ops.dynamical_decoupling_tag import DynamicalDecouplingTag
 
 
