@@ -21,9 +21,6 @@ from cirq import ops, value
 from cirq_google.api.v2 import program_pb2
 
 
-SUPPORTED_INTERPOLATION_METHODS = frozenset(['interp'])  # np.interp
-
-
 @value.value_equality
 class InternalGate(ops.Gate):
     """InternalGate is a placeholder gate for internal gates.
@@ -107,7 +104,6 @@ class InternalGate(ops.Gate):
 def encode_function(
     x: Union[Sequence[float], np.ndarray],
     y: Sequence[float],
-    method: str = 'interp',
     msg: Optional[program_pb2.CustomArg] = None,
 ) -> program_pb2.CustomArg:
     """Encodes a general function as a list of evaluations.
@@ -121,8 +117,6 @@ def encode_function(
             For 1D functions, this input is assumed to be given in increasing order.
         y: Sequence of values of the dependent variable.
             Where y[i] = func(x[i]) where `func` is the function being encoded.
-        method: The method used to interpolate the function.
-            Currently, only `interp` (i.e. numpy.interp) is supported.
         msg: Optional CustomArg to serialize to.
             If not provided a CustomArg is created.
 
@@ -136,18 +130,15 @@ def encode_function(
     """
 
     x = np.array(x)
+
+    if len(x.shape) > 1:
+        raise ValueError('Multidimensional inputs are not supported')
+
     if len(x.shape) == 1 and not np.all(np.diff(x) > 0):
         raise ValueError('The free variable must be sorted in increasing order')
 
-    if method not in SUPPORTED_INTERPOLATION_METHODS:
-        raise ValueError(
-            f'Method {method} is not supported. '
-            f'The supported methods are {SUPPORTED_INTERPOLATION_METHODS}'
-        )
-
     if msg is None:
         msg = program_pb2.CustomArg()
-    msg.function_interpolation_data.x.extend(x.flatten())
-    msg.function_interpolation_data.y.extend(y)
-    msg.function_interpolation_data.method = method
+    msg.function_interpolation_data.independent_var.extend(x.flatten())
+    msg.function_interpolation_data.dependent_var.extend(y)
     return msg

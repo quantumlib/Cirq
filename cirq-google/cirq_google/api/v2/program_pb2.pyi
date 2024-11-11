@@ -1144,36 +1144,31 @@ class ArgMapping(google.protobuf.message.Message):
 global___ArgMapping = ArgMapping
 
 @typing.final
-class FunctionInterpolationData(google.protobuf.message.Message):
+class FunctionInterpolation(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    X_FIELD_NUMBER: builtins.int
-    Y_FIELD_NUMBER: builtins.int
-    METHOD_FIELD_NUMBER: builtins.int
-    method: builtins.str
-    """The interpolation method.
-    Currently only "interp" (i.e numpy.interp) is supported.
-    """
+    INDEPENDENT_VAR_FIELD_NUMBER: builtins.int
+    DEPENDENT_VAR_FIELD_NUMBER: builtins.int
     @property
-    def x(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
-        """If the function encoded has dimension `d`, then |x| = d |y|. Where |x| the length of `x`.
+    def independent_var(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+        """The independent_var must be sorted in ascending order.
+        The independent_var and dependent_var must be of the same length.
         The independent variable.
         """
 
     @property
-    def y(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+    def dependent_var(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The dependent variable."""
 
     def __init__(
         self,
         *,
-        x: collections.abc.Iterable[builtins.float] | None = ...,
-        y: collections.abc.Iterable[builtins.float] | None = ...,
-        method: builtins.str = ...,
+        independent_var: collections.abc.Iterable[builtins.float] | None = ...,
+        dependent_var: collections.abc.Iterable[builtins.float] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["method", b"method", "x", b"x", "y", b"y"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["dependent_var", b"dependent_var", "independent_var", b"independent_var"]) -> None: ...
 
-global___FunctionInterpolationData = FunctionInterpolationData
+global___FunctionInterpolation = FunctionInterpolation
 
 @typing.final
 class CustomArg(google.protobuf.message.Message):
@@ -1181,11 +1176,11 @@ class CustomArg(google.protobuf.message.Message):
 
     FUNCTION_INTERPOLATION_DATA_FIELD_NUMBER: builtins.int
     @property
-    def function_interpolation_data(self) -> global___FunctionInterpolationData: ...
+    def function_interpolation_data(self) -> global___FunctionInterpolation: ...
     def __init__(
         self,
         *,
-        function_interpolation_data: global___FunctionInterpolationData | None = ...,
+        function_interpolation_data: global___FunctionInterpolation | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["custom_arg", b"custom_arg", "function_interpolation_data", b"function_interpolation_data"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing.Literal["custom_arg", b"custom_arg", "function_interpolation_data", b"function_interpolation_data"]) -> None: ...
@@ -1250,8 +1245,9 @@ class InternalGate(google.protobuf.message.Message):
 
     @property
     def custom_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___CustomArg]:
-        """Custom args are arguments that need require special processing during
-        deserialization.
+        """Custom args are arguments that require special processing during deserialization.
+        The `key` is the argument in the internal class's constructor, the `value`
+        is a reperesentation from which an internal object can be constructed.
         """
 
     def __init__(

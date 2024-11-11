@@ -431,19 +431,19 @@ message ArgMapping {
   repeated ArgEntry entries = 1;
 }
 
-message FunctionInterpolationData {
-  // If the function encoded has dimension `d`, then |x| = d |y|. Where |x| the length of `x`.
-  repeated float x = 1 [packed = true];  // The independent variable.
-  repeated float y = 2 [packed = true];  // The dependent variable.
+message FunctionInterpolation {
+  // The independent_var must be sorted in ascending order.
+  // The independent_var and dependent_var must be of the same length.
+  repeated float independent_var = 1 [packed = true];  // The independent variable.
+  repeated float dependent_var = 2 [packed = true];  // The dependent variable.
 
-  // The interpolation method.
-  // Currently only "interp" (i.e numpy.interp) is supported.
-  string method = 3;
+  // Currently only piecewise linear interpolation (i.e. np.interp) is supported.
+  // That's we connect (x[i], y[i]) to (x[i+1], y[i+1]))
 }
 
 message CustomArg {
   oneof custom_arg {
-    FunctionInterpolationData function_interpolation_data = 1;
+    FunctionInterpolation function_interpolation_data = 1;
   }
 }
 
@@ -453,8 +453,9 @@ message InternalGate{
   int32 num_qubits = 3;  // Number of qubits. Required during deserialization.
   map<string, Arg> gate_args = 4;  // Gate args.
 
-  // Custom args are arguments that need require special processing during
-  // deserialization.
+  // Custom args are arguments that require special processing during deserialization.
+  // The `key` is the argument in the internal class's constructor, the `value`
+  // is a reperesentation from which an internal object can be constructed.
   map<string, CustomArg> custom_args = 5;
 }
 

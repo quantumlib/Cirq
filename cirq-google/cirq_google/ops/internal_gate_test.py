@@ -77,7 +77,7 @@ def test_internal_gate_with_custom_function_repr():
     original_func = lambda x: x**2
     x = np.linspace(-1, 1, 10)
     y = original_func(x)
-    encoded_func = internal_gate.encode_function(x=x, y=y, method='interp')
+    encoded_func = internal_gate.encode_function(x=x, y=y)
 
     gate = internal_gate.InternalGate(
         gate_name='GateWithFunction',
@@ -101,7 +101,7 @@ def test_internal_gate_with_custom_function_round_trip():
     original_func = lambda x: x**2
     x = np.linspace(-1, 1, 10)
     y = original_func(x)
-    encoded_func = internal_gate.encode_function(x=x, y=y, method='interp')
+    encoded_func = internal_gate.encode_function(x=x, y=y)
 
     gate = internal_gate.InternalGate(
         gate_name='GateWithFunction',
@@ -116,7 +116,7 @@ def test_internal_gate_with_custom_function_round_trip():
 
     func_proto = new_gate.custom_args['func'].function_interpolation_data
 
-    decoded_func = lambda x: np.interp(x, func_proto.x, func_proto.y)
+    decoded_func = lambda x: np.interp(x, func_proto.independent_var, func_proto.dependent_var)
 
     # Test original points evaluate to same value.
     np.testing.assert_allclose(decoded_func(x), y)
@@ -131,23 +131,9 @@ def test_encode_function_invalid_args_raise():
     x = np.linspace(-1, 1, 10)
     y = x + 1
 
-    with pytest.raises(ValueError, match='not supported'):
-        _ = internal_gate.encode_function(x, y, method='_test')
+    with pytest.raises(ValueError, match='Multidimensional inputs are not supported'):
+        _ = internal_gate.encode_function(np.zeros((10, 2)), y)
 
     x = x[::-1]
     with pytest.raises(ValueError, match='sorted in increasing order'):
         _ = internal_gate.encode_function(x, y)
-
-
-def test_encode_function_mutli_dim():
-    D = 3
-    n = 4
-    x = np.random.random(n * D).reshape((n, D))
-    y = np.random.random(n)
-
-    msg = internal_gate.encode_function(x, y)
-
-    np.testing.assert_allclose(msg.function_interpolation_data.x, x.flatten())
-    np.testing.assert_allclose(msg.function_interpolation_data.y, y)
-
-    assert len(msg.function_interpolation_data.x) == D * len(msg.function_interpolation_data.y)
