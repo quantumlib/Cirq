@@ -243,6 +243,18 @@ message Operation {
     string token_value = 4;
     int32 token_constant_index = 5;
   }
+
+  repeated Tag tags = 22;
+}
+
+message DynamicalDecouplingTag {
+  optional string protocol = 1;
+}
+
+message Tag {
+  oneof tag {
+    DynamicalDecouplingTag dynamical_decoupling = 1;
+  }
 }
 
 // The instruction identifying the action taken on the quantum computer.

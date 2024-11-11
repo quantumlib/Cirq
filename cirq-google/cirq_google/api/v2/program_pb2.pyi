@@ -573,6 +573,7 @@ class Operation(google.protobuf.message.Message):
     QUBIT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     TOKEN_VALUE_FIELD_NUMBER: builtins.int
     TOKEN_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
+    TAGS_FIELD_NUMBER: builtins.int
     token_value: builtins.str
     token_constant_index: builtins.int
     @property
@@ -629,6 +630,8 @@ class Operation(google.protobuf.message.Message):
 
     @property
     def qubit_constant_index(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    @property
+    def tags(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Tag]: ...
     def __init__(
         self,
         *,
@@ -653,15 +656,51 @@ class Operation(google.protobuf.message.Message):
         qubit_constant_index: collections.abc.Iterable[builtins.int] | None = ...,
         token_value: builtins.str = ...,
         token_constant_index: builtins.int = ...,
+        tags: collections.abc.Iterable[global___Tag] | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["args", b"args", "couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["args", b"args", "couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "singlequbitcliffordgate", b"singlequbitcliffordgate", "tags", b"tags", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["gate_value", b"gate_value"]) -> typing.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "couplerpulsegate", "identitygate", "hpowgate", "singlequbitcliffordgate"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["token", b"token"]) -> typing.Literal["token_value", "token_constant_index"] | None: ...
 
 global___Operation = Operation
+
+@typing.final
+class DynamicalDecouplingTag(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    PROTOCOL_FIELD_NUMBER: builtins.int
+    protocol: builtins.str
+    def __init__(
+        self,
+        *,
+        protocol: builtins.str | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["_protocol", b"_protocol", "protocol", b"protocol"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["_protocol", b"_protocol", "protocol", b"protocol"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_protocol", b"_protocol"]) -> typing.Literal["protocol"] | None: ...
+
+global___DynamicalDecouplingTag = DynamicalDecouplingTag
+
+@typing.final
+class Tag(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    DYNAMICAL_DECOUPLING_FIELD_NUMBER: builtins.int
+    @property
+    def dynamical_decoupling(self) -> global___DynamicalDecouplingTag: ...
+    def __init__(
+        self,
+        *,
+        dynamical_decoupling: global___DynamicalDecouplingTag | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["dynamical_decoupling", b"dynamical_decoupling", "tag", b"tag"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["dynamical_decoupling", b"dynamical_decoupling", "tag", b"tag"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling"] | None: ...
+
+global___Tag = Tag
 
 @typing.final
 class Gate(google.protobuf.message.Message):
