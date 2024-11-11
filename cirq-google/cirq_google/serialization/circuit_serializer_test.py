@@ -745,6 +745,15 @@ def test_circuit_with_couplerpulse():
     assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
 
 
+def test_circuit_with_dd_tag():
+    tag = cg.ops.DynamicalDecouplingTag('X')
+    c = cirq.Circuit(cirq.X(cirq.q(0)).with_tags(tag))
+    msg = cg.CIRCUIT_SERIALIZER.serialize(c)
+    nc = cg.CIRCUIT_SERIALIZER.deserialize(msg)
+    assert c == nc
+    assert nc[0].operations[0].tags == (tag,)
+
+
 def test_circuit_with_units():
     c = cirq.Circuit(
         cg.InternalGate(
