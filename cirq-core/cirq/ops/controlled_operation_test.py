@@ -26,7 +26,6 @@ import cirq
 from cirq import protocols
 
 
-
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         args.available_buffer[...] = args.target_tensor

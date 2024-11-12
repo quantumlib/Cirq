@@ -27,9 +27,6 @@ from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and
 from cirq.protocols.mixture_protocol import has_mixture
 
 
-
-
-
 # This is a special indicator value used by the channel method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
 # Sequence[np.ndarray] to ensure the method has the correct type signature in

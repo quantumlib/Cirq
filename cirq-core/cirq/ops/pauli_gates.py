@@ -21,7 +21,6 @@ from cirq._import import LazyLoader
 from cirq.ops import common_gates, raw_types, identity
 
 
-
 if TYPE_CHECKING:
     import cirq
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation

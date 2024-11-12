@@ -25,7 +25,6 @@ from cirq import value, protocols
 from cirq.ops import raw_types, controlled_gate, control_values as cv
 
 
-
 @value.value_equality(approximate=True)
 class GlobalPhaseGate(raw_types.Gate):
     def __init__(self, coefficient: 'cirq.TParamValComplex', atol: float = 1e-8) -> None:

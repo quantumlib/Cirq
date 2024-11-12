@@ -25,7 +25,7 @@ from cirq._compat import __cirq_debug__ as __cirq_debug__, with_debug as with_de
 from cirq import (
     # Low level
     _version,
-    _doc
+    _doc,
 )
 
 with _import.delay_import('cirq.protocols'):

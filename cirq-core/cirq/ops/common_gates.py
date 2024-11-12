@@ -50,7 +50,6 @@ from cirq._doc import document
 from cirq.ops import controlled_gate, eigen_gate, gate_features, raw_types, control_values as cv
 
 
-
 from cirq.ops.swap_gates import ISWAP, SWAP, ISwapPowGate, SwapPowGate
 from cirq.ops.measurement_gate import MeasurementGate
 

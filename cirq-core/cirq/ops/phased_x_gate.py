@@ -28,7 +28,6 @@ from cirq._compat import proper_repr
 from cirq.ops import common_gates, raw_types
 
 
-
 @value.value_equality(manual_cls=True, approximate=True)
 class PhasedXPowGate(raw_types.Gate):
     r"""A gate equivalent to $Z^{-p} X^t Z^{p}$ (in time order).

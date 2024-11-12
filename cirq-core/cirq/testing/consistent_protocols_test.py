@@ -21,7 +21,6 @@ import numpy as np
 import sympy
 
 
-
 import cirq
 from cirq._compat import proper_repr
 
