@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import abc
+from types import NotImplementedType
 from typing import (
     Any,
     cast,
@@ -28,7 +29,7 @@ from typing import (
 )
 
 from cirq import circuits, ops, protocols, transformers, value
-from types import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq

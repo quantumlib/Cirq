@@ -12,18 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import NotImplementedType
 from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import functools
 from dataclasses import dataclass
 import numpy as np
 
+
 from cirq import protocols, value, linalg, qis
 from cirq._import import LazyLoader
 from cirq._compat import cached_method
 from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
-from types import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq
