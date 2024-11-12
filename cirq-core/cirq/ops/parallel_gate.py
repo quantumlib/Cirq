@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+from types import NotImplementedType
 from typing import AbstractSet, Union, Any, Optional, Tuple, TYPE_CHECKING, Dict
+
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types
-from types import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq

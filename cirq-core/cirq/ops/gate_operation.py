@@ -16,6 +16,7 @@
 
 import re
 import warnings
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -34,11 +35,12 @@ from typing import (
 )
 from typing_extensions import Self
 
+
 import numpy as np
 
 from cirq import ops, protocols, value
 from cirq.ops import raw_types, gate_features, control_values as cv
-from types import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq

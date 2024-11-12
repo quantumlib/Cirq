@@ -13,6 +13,7 @@
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
 from functools import cached_property
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     FrozenSet,
@@ -30,7 +31,6 @@ import numpy as np
 from cirq import protocols, _compat
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
-from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

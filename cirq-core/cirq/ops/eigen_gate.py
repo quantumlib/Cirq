@@ -15,6 +15,7 @@ import abc
 import fractions
 import math
 import numbers
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -29,13 +30,14 @@ from typing import (
     Union,
 )
 
+
 import numpy as np
 import sympy
 
 from cirq import value, protocols
 from cirq.linalg import tolerance
 from cirq.ops import raw_types
-from types import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq

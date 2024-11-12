@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -25,6 +26,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
+
 import numpy as np
 
 from cirq import protocols, value, _import
@@ -35,7 +37,7 @@ from cirq.ops import (
     matrix_gates,
     control_values as cv,
 )
-from types import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq

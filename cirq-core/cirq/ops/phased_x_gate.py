@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An `XPowGate` conjugated by `ZPowGate`s."""
+
+from types import NotImplementedType
 from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
+
 
 import math
 import numbers
@@ -23,7 +26,7 @@ import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.ops import common_gates, raw_types
-from types import NotImplementedType
+
 
 
 @value.value_equality(manual_cls=True, approximate=True)

@@ -25,6 +25,7 @@ Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
 
+from types import NotImplementedType
 from typing import (
     Any,
     cast,
@@ -38,6 +39,7 @@ from typing import (
     Union,
 )
 
+
 import numpy as np
 import sympy
 
@@ -47,7 +49,7 @@ from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import controlled_gate, eigen_gate, gate_features, raw_types, control_values as cv
 
-from types import NotImplementedType
+
 
 from cirq.ops.swap_gates import ISWAP, SWAP, ISwapPowGate, SwapPowGate
 from cirq.ops.measurement_gate import MeasurementGate

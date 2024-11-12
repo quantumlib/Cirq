@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -24,6 +25,7 @@ from typing import (
     Union,
     TYPE_CHECKING,
 )
+
 
 import numpy as np
 
@@ -38,7 +40,7 @@ from cirq.ops import (
     raw_types,
     control_values as cv,
 )
-from types import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq

@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import NotImplementedType
 from typing import List, Union, Type, cast, TYPE_CHECKING
 from enum import Enum
+
 import numpy as np
 
 from cirq import ops, transformers, protocols, linalg
-from types import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq

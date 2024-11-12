@@ -14,10 +14,12 @@
 
 """A protocol for implementing high performance mixture evolutions."""
 
+from types import NotImplementedType
 from typing import Any, cast, Iterable, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
+
 
 from cirq import linalg
 from cirq._doc import doc_private
@@ -25,7 +27,7 @@ from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArg
 
 from cirq.protocols.mixture_protocol import mixture
 from cirq.protocols import qid_shape_protocol
-from types import NotImplementedType
+
 
 # This is a special indicator value used by the apply_mixture method
 # to determine whether or not the caller provided a 'default' argument. It must

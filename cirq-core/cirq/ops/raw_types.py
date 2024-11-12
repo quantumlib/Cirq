@@ -16,6 +16,7 @@
 
 import abc
 import functools
+from types import NotImplementedType
 from typing import (
     cast,
     AbstractSet,
@@ -36,13 +37,14 @@ from typing import (
 )
 from typing_extensions import Self
 
+
 import numpy as np
 import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
-from types import NotImplementedType
+
 from cirq.ops import control_values as cv
 
 # Lazy imports to break circular dependencies.

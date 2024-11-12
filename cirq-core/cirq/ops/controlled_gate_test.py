@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import NotImplementedType
 from typing import Union, Tuple, cast
+
 
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from types import NotImplementedType
+
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):

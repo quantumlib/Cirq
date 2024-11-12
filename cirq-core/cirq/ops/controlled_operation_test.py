@@ -14,7 +14,9 @@
 
 import itertools
 import re
+from types import NotImplementedType
 from typing import cast, Tuple, Union
+
 
 import numpy as np
 import pytest
@@ -22,7 +24,7 @@ import sympy
 
 import cirq
 from cirq import protocols
-from types import NotImplementedType
+
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):

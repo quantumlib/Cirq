@@ -14,17 +14,19 @@
 
 """A protocol for implementing high performance channel evolutions."""
 
+from types import NotImplementedType
 from typing import Any, Iterable, Optional, Sequence, TypeVar, Tuple, Union
 
 import numpy as np
 from typing_extensions import Protocol
+
 
 from cirq import linalg
 from cirq._doc import doc_private
 from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
 from cirq.protocols.kraus_protocol import kraus
 from cirq.protocols import qid_shape_protocol
-from types import NotImplementedType
+
 
 # This is a special indicator value used by the apply_channel method
 # to determine whether or not the caller provided a 'default' argument. It must
