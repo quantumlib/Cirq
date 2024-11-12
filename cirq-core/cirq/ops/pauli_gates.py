@@ -17,7 +17,7 @@ from typing import Any, cast, Tuple, TYPE_CHECKING, Union, Dict
 from cirq._doc import document
 from cirq._import import LazyLoader
 from cirq.ops import common_gates, raw_types, identity
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 
 if TYPE_CHECKING:

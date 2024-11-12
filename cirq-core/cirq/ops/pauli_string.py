@@ -56,7 +56,7 @@ from cirq.ops import (
     pauli_interaction_gate,
     raw_types,
 )
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

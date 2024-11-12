@@ -23,7 +23,7 @@ from cirq._import import LazyLoader
 from cirq._compat import cached_method
 from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

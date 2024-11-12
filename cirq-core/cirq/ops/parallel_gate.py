@@ -19,7 +19,7 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

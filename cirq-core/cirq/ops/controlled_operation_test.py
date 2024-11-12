@@ -22,7 +22,7 @@ import sympy
 
 import cirq
 from cirq import protocols
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):

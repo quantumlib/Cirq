@@ -18,7 +18,7 @@ from typing_extensions import Protocol
 
 from cirq import ops
 from cirq._doc import document, doc_private
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 # This is a special indicator value used by the methods to determine whether or
 # not the caller provided a 'default' argument. It must be of type

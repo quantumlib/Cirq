@@ -20,7 +20,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._doc import document
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:

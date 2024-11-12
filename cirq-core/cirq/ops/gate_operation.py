@@ -38,7 +38,7 @@ import numpy as np
 
 from cirq import ops, protocols, value
 from cirq.ops import raw_types, gate_features, control_values as cv
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

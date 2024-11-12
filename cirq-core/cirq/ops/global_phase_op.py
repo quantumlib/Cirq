@@ -21,7 +21,7 @@ import sympy
 import cirq
 from cirq import value, protocols
 from cirq.ops import raw_types, controlled_gate, control_values as cv
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 
 @value.value_equality(approximate=True)

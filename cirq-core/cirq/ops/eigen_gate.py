@@ -35,7 +35,7 @@ import sympy
 from cirq import value, protocols
 from cirq.linalg import tolerance
 from cirq.ops import raw_types
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

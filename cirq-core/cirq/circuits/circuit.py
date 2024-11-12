@@ -62,7 +62,7 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.protocols import circuit_diagram_info_protocol
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

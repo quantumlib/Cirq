@@ -41,7 +41,7 @@ from cirq import protocols, ops, qis, _compat
 from cirq._import import LazyLoader
 from cirq.ops import raw_types, op_tree
 from cirq.protocols import circuit_diagram_info_protocol
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

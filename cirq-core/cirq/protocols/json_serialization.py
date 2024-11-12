@@ -39,7 +39,7 @@ import sympy
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 ObjectFactory = Union[Type, Callable[..., Any]]
 

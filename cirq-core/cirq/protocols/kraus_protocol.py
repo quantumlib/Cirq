@@ -25,7 +25,7 @@ from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and
 from cirq.protocols.mixture_protocol import has_mixture
 
 
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 
 # This is a special indicator value used by the channel method to determine

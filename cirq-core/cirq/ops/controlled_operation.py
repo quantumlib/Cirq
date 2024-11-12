@@ -38,7 +38,7 @@ from cirq.ops import (
     raw_types,
     control_values as cv,
 )
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

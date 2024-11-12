@@ -21,7 +21,7 @@ import sympy
 
 import cirq
 from cirq._compat import proper_repr
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 import cirq.testing.consistent_controlled_gate_op_test as controlled_gate_op_test
 
 

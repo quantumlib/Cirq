@@ -23,7 +23,7 @@ from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.simulation_state import SimulationState
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

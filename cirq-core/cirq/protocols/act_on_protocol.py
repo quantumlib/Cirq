@@ -18,7 +18,7 @@ from typing_extensions import Protocol
 
 from cirq import ops
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

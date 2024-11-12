@@ -25,7 +25,7 @@ from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArg
 
 from cirq.protocols.mixture_protocol import mixture
 from cirq.protocols import qid_shape_protocol
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 # This is a special indicator value used by the apply_mixture method
 # to determine whether or not the caller provided a 'default' argument. It must

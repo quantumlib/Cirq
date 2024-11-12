@@ -19,7 +19,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.type_workarounds import NotImplementedType
+from types import NotImplementedType
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
