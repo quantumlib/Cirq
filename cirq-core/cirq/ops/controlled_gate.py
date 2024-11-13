@@ -257,7 +257,7 @@ class ControlledGate(raw_types.Gate):
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.sub_gate)
 
-    def _mixture_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _mixture_(self) -> Union[Sequence[tuple[float, np.ndarray]], NotImplementedType]:
         qubits = line_qubit.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)

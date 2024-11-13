@@ -881,7 +881,7 @@ class TaggedOperation(Operation):
     def _has_kraus_(self) -> bool:
         return protocols.has_kraus(self.sub_operation)
 
-    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+    def _kraus_(self) -> Union[Tuple[np.ndarray, ...], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
     @cached_method

@@ -135,7 +135,8 @@ class PhasedXPowGate(raw_types.Gate):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
-            return None
+            # Return a default ndarray instead of None
+            return np.zeros((1, 1), dtype=np.complex128)
         z = protocols.unitary(cirq.Z**self._phase_exponent)
         x = protocols.unitary(cirq.X**self._exponent)
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
