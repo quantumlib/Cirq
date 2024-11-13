@@ -26,7 +26,6 @@ from cirq import (
     # Low level
     _version,
     _doc,
-    type_workarounds,
 )
 
 with _import.delay_import('cirq.protocols'):

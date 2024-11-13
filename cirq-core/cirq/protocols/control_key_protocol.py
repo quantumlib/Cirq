@@ -13,13 +13,13 @@
 # limitations under the License.
 """Protocol for object that have control keys."""
 
+from types import NotImplementedType
 from typing import Any, FrozenSet, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 from cirq.protocols import measurement_key_protocol
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

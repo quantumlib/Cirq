@@ -25,6 +25,7 @@ import html
 import itertools
 import math
 from collections import defaultdict
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -62,7 +63,6 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.protocols import circuit_diagram_info_protocol
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

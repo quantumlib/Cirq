@@ -14,6 +14,7 @@
 
 """Protocol and methods for obtaining Kraus representation of quantum channels."""
 
+from types import NotImplementedType
 from typing import Any, Sequence, Tuple, TypeVar, Union
 import warnings
 
@@ -23,9 +24,6 @@ from typing_extensions import Protocol
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols.mixture_protocol import has_mixture
-
-
-from cirq.type_workarounds import NotImplementedType
 
 
 # This is a special indicator value used by the channel method to determine
