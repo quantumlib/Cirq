@@ -126,6 +126,9 @@ def encode_function(
     Raises:
         ValueError: If
             - `x` is 1D and not sorted in increasing order.
+            - `x` and `y` don't have the same number of points.
+            - `y` is multidimensional.
+            - `x` is multidimensional.
     """
 
     x = np.asarray(x)
