@@ -103,7 +103,7 @@ class InternalGate(ops.Gate):
 
 def encode_function(
     x: Union[Sequence[float], np.ndarray],
-    y: Sequence[float],
+    y: Union[Sequence[float], np.ndarray],
     msg: Optional[program_pb2.CustomArg] = None,
 ) -> program_pb2.CustomArg:
     """Encodes a general function as a list of evaluations.
