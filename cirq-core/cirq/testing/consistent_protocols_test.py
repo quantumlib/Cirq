@@ -20,10 +20,8 @@ import pytest
 import numpy as np
 import sympy
 
-
 import cirq
 from cirq._compat import proper_repr
-
 import cirq.testing.consistent_controlled_gate_op_test as controlled_gate_op_test
 
 

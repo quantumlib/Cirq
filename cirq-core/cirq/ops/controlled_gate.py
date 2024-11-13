@@ -26,7 +26,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-
 import numpy as np
 
 from cirq import protocols, value, _import
@@ -37,7 +36,6 @@ from cirq.ops import (
     matrix_gates,
     control_values as cv,
 )
-
 
 if TYPE_CHECKING:
     import cirq

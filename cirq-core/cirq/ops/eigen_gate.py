@@ -30,14 +30,12 @@ from typing import (
     Union,
 )
 
-
 import numpy as np
 import sympy
 
 from cirq import value, protocols
 from cirq.linalg import tolerance
 from cirq.ops import raw_types
-
 
 if TYPE_CHECKING:
     import cirq

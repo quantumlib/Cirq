@@ -15,7 +15,6 @@
 from types import NotImplementedType
 from typing import Any, TypeVar, Union, Optional
 
-
 import numpy as np
 from typing_extensions import Protocol
 
@@ -23,7 +22,6 @@ from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs, apply_unitaries
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
-
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type

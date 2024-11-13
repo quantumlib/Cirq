@@ -20,7 +20,6 @@ import numpy as np
 
 from cirq import ops, transformers, protocols, linalg
 
-
 if TYPE_CHECKING:
     import cirq
 

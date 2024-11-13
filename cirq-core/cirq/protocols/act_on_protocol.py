@@ -17,10 +17,8 @@ from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
-
 from cirq import ops
 from cirq._doc import doc_private
-
 
 if TYPE_CHECKING:
     import cirq

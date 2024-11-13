@@ -30,11 +30,9 @@ from typing import (
 )
 from typing_extensions import Self
 
-
 import numpy as np
 
 from cirq import protocols, value
-
 
 if TYPE_CHECKING:
     import cirq

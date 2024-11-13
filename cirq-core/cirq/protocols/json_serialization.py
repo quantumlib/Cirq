@@ -34,14 +34,12 @@ from typing import (
     Union,
 )
 
-
 import numpy as np
 import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-
 
 ObjectFactory = Union[Type, Callable[..., Any]]
 

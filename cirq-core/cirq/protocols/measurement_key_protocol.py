@@ -18,10 +18,8 @@ from typing import Any, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING, Unio
 
 from typing_extensions import Protocol
 
-
 from cirq import value
 from cirq._doc import doc_private
-
 
 if TYPE_CHECKING:
     import cirq

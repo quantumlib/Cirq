@@ -15,7 +15,6 @@
 from types import NotImplementedType
 from typing import Union, Tuple, cast
 
-
 import numpy as np
 import pytest
 import sympy

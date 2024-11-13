@@ -30,7 +30,6 @@ from typing import (
 
 from cirq import circuits, ops, protocols, transformers, value
 
-
 if TYPE_CHECKING:
     import cirq
 

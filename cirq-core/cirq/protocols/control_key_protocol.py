@@ -18,10 +18,8 @@ from typing import Any, FrozenSet, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
-
 from cirq._doc import doc_private
 from cirq.protocols import measurement_key_protocol
-
 
 if TYPE_CHECKING:
     import cirq

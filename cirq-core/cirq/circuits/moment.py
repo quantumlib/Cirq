@@ -44,7 +44,6 @@ from cirq._import import LazyLoader
 from cirq.ops import raw_types, op_tree
 from cirq.protocols import circuit_diagram_info_protocol
 
-
 if TYPE_CHECKING:
     import cirq
 

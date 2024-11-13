@@ -16,7 +16,6 @@
 from types import NotImplementedType
 from typing import AbstractSet, Any, cast, Dict, Sequence, Tuple, Union, Optional, Collection
 
-
 import numpy as np
 import sympy
 

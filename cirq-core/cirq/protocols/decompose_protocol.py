@@ -35,11 +35,9 @@ from typing_extensions import runtime_checkable
 
 from typing_extensions import Protocol
 
-
 from cirq import devices, ops
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
-
 
 if TYPE_CHECKING:
     import cirq

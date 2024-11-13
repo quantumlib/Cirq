@@ -16,13 +16,11 @@
 from types import NotImplementedType
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence, Union
 
-
 import numpy as np
 import sympy
 
 from cirq import protocols, value
 from cirq._doc import document
-
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:

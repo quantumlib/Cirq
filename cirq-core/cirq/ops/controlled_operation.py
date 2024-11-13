@@ -26,7 +26,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-
 import numpy as np
 
 from cirq import protocols, qis, value
@@ -40,7 +39,6 @@ from cirq.ops import (
     raw_types,
     control_values as cv,
 )
-
 
 if TYPE_CHECKING:
     import cirq

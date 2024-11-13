@@ -33,14 +33,12 @@ from typing import (
 )
 from typing_extensions import Self
 
-
 import numpy as np
 import sympy
 
 from cirq import protocols, linalg, value
 from cirq._compat import proper_repr
 from cirq.ops import raw_types, identity, pauli_gates, global_phase_op, pauli_string
-
 
 if TYPE_CHECKING:
     import cirq

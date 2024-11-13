@@ -21,12 +21,10 @@ from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
 from typing_extensions import Protocol
 
-
 from cirq import linalg, qis
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
-
 
 if TYPE_CHECKING:
     import cirq

@@ -39,7 +39,6 @@ from typing import (
     Generic,
 )
 
-
 import numpy as np
 import sympy
 
@@ -58,7 +57,6 @@ from cirq.ops import (
     pauli_interaction_gate,
     raw_types,
 )
-
 
 if TYPE_CHECKING:
     import cirq

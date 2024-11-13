@@ -15,12 +15,10 @@
 from types import NotImplementedType
 from typing import AbstractSet, Union, Any, Optional, Tuple, TYPE_CHECKING, Dict
 
-
 import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types
-
 
 if TYPE_CHECKING:
     import cirq

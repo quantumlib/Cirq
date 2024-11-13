@@ -16,7 +16,6 @@
 
 from types import NotImplementedType
 from typing import Any, Sequence, Tuple, TypeVar, Union
-
 import warnings
 
 import numpy as np
