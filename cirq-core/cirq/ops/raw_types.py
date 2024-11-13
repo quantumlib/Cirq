@@ -16,6 +16,7 @@
 
 import abc
 import functools
+from types import NotImplementedType
 from typing import (
     cast,
     AbstractSet,
@@ -42,7 +43,6 @@ import sympy
 from cirq import protocols, value
 from cirq._import import LazyLoader
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
-from cirq.type_workarounds import NotImplementedType
 from cirq.ops import control_values as cv
 
 # Lazy imports to break circular dependencies.
@@ -879,7 +879,7 @@ class TaggedOperation(Operation):
     def _has_kraus_(self) -> bool:
         return protocols.has_kraus(self.sub_operation)
 
-    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+    def _kraus_(self) -> Union[Tuple[np.ndarray, ...], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
     @cached_method

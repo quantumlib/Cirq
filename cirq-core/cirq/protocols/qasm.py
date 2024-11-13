@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import string
+from types import NotImplementedType
 from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, Iterable
 
 from typing_extensions import Protocol
 
 from cirq import ops
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

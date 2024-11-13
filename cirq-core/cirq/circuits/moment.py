@@ -15,6 +15,7 @@
 """A simplified time-slice of operations within a sequenced circuit."""
 
 import itertools
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -33,6 +34,7 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
+
 from typing_extensions import Self
 
 import numpy as np
@@ -41,7 +43,6 @@ from cirq import protocols, ops, qis, _compat
 from cirq._import import LazyLoader
 from cirq.ops import raw_types, op_tree
 from cirq.protocols import circuit_diagram_info_protocol
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
