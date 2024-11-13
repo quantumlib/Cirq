@@ -35,7 +35,7 @@ class InternalGate(ops.Gate):
         gate_name: str,
         gate_module: str,
         num_qubits: int = 1,
-        custom_args: Optional[Mapping[program_pb2.CustomArg, Any]] = None,
+        custom_args: Optional[Mapping[str, program_pb2.CustomArg]] = None,
         **kwargs,
     ):
         """Instatiates an InternalGate.
@@ -44,6 +44,8 @@ class InternalGate(ops.Gate):
             gate_name: Gate class name.
             gate_module: The module of the gate.
             num_qubits: Number of qubits that the gate acts on.
+            custom_args: A mapping from argument name to `CustomArg`.
+                This is to support argument that require special processing.
             **kwargs: The named arguments to be passed to the gate constructor.
         """
         self.gate_module = gate_module
