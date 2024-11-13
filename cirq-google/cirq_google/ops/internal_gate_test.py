@@ -134,6 +134,11 @@ def test_encode_function_invalid_args_raise():
     with pytest.raises(ValueError, match='Multidimensional inputs are not supported'):
         _ = internal_gate.encode_function(np.zeros((10, 2)), y)
 
-    x = x[::-1]
     with pytest.raises(ValueError, match='sorted in increasing order'):
-        _ = internal_gate.encode_function(x, y)
+        _ = internal_gate.encode_function(x[::-1], y)
+
+    with pytest.raises(ValueError, match='Mismatch between number of points'):
+        _ = internal_gate.encode_function(x, np.linspace(-1, 1, 40))
+
+    with pytest.raises(ValueError, match='The independent variable must be one dimensional'):
+        _ = internal_gate.encode_function(x, np.zeros((10, 2)))

@@ -126,10 +126,10 @@ def encode_function(
     Raises:
         ValueError: If
             - `x` is 1D and not sorted in increasing order.
-            - `method` is not supported.
     """
 
-    x = np.array(x)
+    x = np.asarray(x)
+    y = np.asarray(y)
 
     if len(x.shape) > 1:
         raise ValueError('Multidimensional inputs are not supported')
@@ -137,8 +137,14 @@ def encode_function(
     if len(x.shape) == 1 and not np.all(np.diff(x) > 0):
         raise ValueError('The free variable must be sorted in increasing order')
 
+    if len(y.shape) != 1:
+        raise ValueError('The independent variable must be one dimensional')
+
+    if x.shape[0] != y.shape[0]:
+        raise ValueError('Mismatch between number of points in x and y')
+
     if msg is None:
         msg = program_pb2.CustomArg()
-    msg.function_interpolation_data.independent_var.extend(x.flatten())
+    msg.function_interpolation_data.independent_var.extend(x.flat)
     msg.function_interpolation_data.dependent_var.extend(y)
     return msg
