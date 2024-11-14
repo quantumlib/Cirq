@@ -136,8 +136,8 @@ def encode_function(
     x = np.asarray(x)
     y = np.asarray(y)
 
-    if len(x.shape) > 1:
-        raise ValueError('Multidimensional inputs are not supported')
+    if len(x.shape) != 1:
+        raise ValueError('The free variable must be one dimensional')
 
     if len(x.shape) == 1 and not np.all(np.diff(x) > 0):
         raise ValueError('The free variable must be sorted in increasing order')
