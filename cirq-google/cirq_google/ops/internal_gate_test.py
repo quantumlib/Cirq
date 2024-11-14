@@ -76,7 +76,7 @@ def test_internal_gate_with_hashable_args_is_hashable():
 def test_internal_gate_with_custom_function_repr():
     original_func = lambda x: x**2
     x = np.linspace(-1, 1, 10)
-    y = original_func(x)
+    y = x ** 2
     encoded_func = internal_gate.encode_function(x=x, y=y)
 
     gate = internal_gate.InternalGate(
