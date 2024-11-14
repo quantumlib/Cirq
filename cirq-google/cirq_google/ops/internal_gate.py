@@ -110,9 +110,7 @@ def encode_function(
 ) -> program_pb2.CustomArg:
     """Encodes a general function as a list of evaluations.
 
-    This method discretizes a function into a list of point evaluations. Evaluating the
-    function on general points is then done by interpolating the function using the given
-    method.
+    This method discretizes a function into a list of point evaluations.
 
     Args:
         x: Sequence of values of the free variable.
