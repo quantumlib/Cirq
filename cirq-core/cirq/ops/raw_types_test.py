@@ -662,6 +662,7 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.commutes(tagged_x, clifford_x)
     assert cirq.commutes(clifford_x, tagged_x)
     assert cirq.commutes(tagged_x, tagged_x)
+    assert cirq.phase_by(tagged_x, 0.125, 1, default=None) is None
 
     assert cirq.trace_distance_bound(y**0.001) == cirq.trace_distance_bound(
         (y**0.001).with_tags(tag)
