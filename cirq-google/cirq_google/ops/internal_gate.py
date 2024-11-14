@@ -108,7 +108,7 @@ def encode_function(
     y: Union[Sequence[float], np.ndarray],
     msg: Optional[program_pb2.CustomArg] = None,
 ) -> program_pb2.CustomArg:
-    """Encodes a general function as a list of evaluations.
+    """Return CustomArg that expresses a function through its x and y values.
 
     This method discretizes a function into a list of point evaluations.
 
