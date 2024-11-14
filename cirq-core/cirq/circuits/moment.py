@@ -275,7 +275,7 @@ class Moment:
         resolved_ops: List['cirq.Operation'] = []
         for op in self:
             resolved_op = protocols.resolve_parameters(op, resolver, recursive)
-            if resolved_op != op:
+            if resolved_op is not op:
                 changed = True
             resolved_ops.append(resolved_op)
         if not changed:
