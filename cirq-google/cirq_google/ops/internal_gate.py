@@ -143,7 +143,7 @@ def encode_function(
         raise ValueError('The free variable must be sorted in increasing order')
 
     if len(y.shape) != 1:
-        raise ValueError('The independent variable must be one dimensional')
+        raise ValueError('The dependent variable must be one dimensional')
 
     if x.shape[0] != y.shape[0]:
         raise ValueError('Mismatch between number of points in x and y')
