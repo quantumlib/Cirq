@@ -88,7 +88,7 @@ def test_internal_gate_with_custom_function_repr():
 
     assert repr(gate) == (
         "cirq_google.InternalGate(gate_name='GateWithFunction', "
-        f"gate_module='test', num_qubits=2, custom_args={str(gate.custom_args)})"
+        f"gate_module='test', num_qubits=2, custom_args={gate.custom_args})"
     )
 
     assert str(gate) == (f"test.GateWithFunction(func={encoded_func})")
