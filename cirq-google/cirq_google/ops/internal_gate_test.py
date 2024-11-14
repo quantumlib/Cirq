@@ -116,15 +116,8 @@ def test_internal_gate_with_custom_function_round_trip():
 
     func_proto = new_gate.custom_args['func'].function_interpolation_data
 
-    decoded_func = lambda x: np.interp(x, func_proto.independent_var, func_proto.dependent_var)
-
-    # Test original points evaluate to same value.
-    np.testing.assert_allclose(decoded_func(x), y)
-
-    # Test interpolation is close enough
-    eps = 1e-3
-    x_new = x[:-1] + eps
-    np.testing.assert_allclose(decoded_func(x_new), original_func(x_new), atol=2 * eps)
+    np.testing.assert_allclose(x, func_proto.independent_var)
+    np.testing.assert_allclose(y, func_proto.dependent_var)
 
 
 def test_encode_function_invalid_args_raise():
