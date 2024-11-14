@@ -150,6 +150,6 @@ def encode_function(
 
     if msg is None:
         msg = program_pb2.CustomArg()
-    msg.function_interpolation_data.independent_var.extend(x.flat)
-    msg.function_interpolation_data.dependent_var.extend(y)
+    msg.function_interpolation_data.independent_var[:] = x
+    msg.function_interpolation_data.dependent_var[:] = y
     return msg
