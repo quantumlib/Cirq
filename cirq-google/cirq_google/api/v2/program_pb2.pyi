@@ -1186,26 +1186,26 @@ global___ArgMapping = ArgMapping
 class FunctionInterpolation(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    INDEPENDENT_VAR_FIELD_NUMBER: builtins.int
-    DEPENDENT_VAR_FIELD_NUMBER: builtins.int
+    X_VALUES_FIELD_NUMBER: builtins.int
+    Y_VALUES_FIELD_NUMBER: builtins.int
     @property
-    def independent_var(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
-        """The independent_var must be sorted in ascending order.
-        The independent_var and dependent_var must be of the same length.
+    def x_values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+        """The x_values must be sorted in ascending order.
+        The x_values and y_values must be of the same length.
         The independent variable.
         """
 
     @property
-    def dependent_var(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
+    def y_values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]:
         """The dependent variable."""
 
     def __init__(
         self,
         *,
-        independent_var: collections.abc.Iterable[builtins.float] | None = ...,
-        dependent_var: collections.abc.Iterable[builtins.float] | None = ...,
+        x_values: collections.abc.Iterable[builtins.float] | None = ...,
+        y_values: collections.abc.Iterable[builtins.float] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["dependent_var", b"dependent_var", "independent_var", b"independent_var"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["x_values", b"x_values", "y_values", b"y_values"]) -> None: ...
 
 global___FunctionInterpolation = FunctionInterpolation
 
@@ -1286,7 +1286,7 @@ class InternalGate(google.protobuf.message.Message):
     def custom_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___CustomArg]:
         """Custom args are arguments that require special processing during deserialization.
         The `key` is the argument in the internal class's constructor, the `value`
-        is a reperesentation from which an internal object can be constructed.
+        is a representation from which an internal object can be constructed.
         """
 
     def __init__(

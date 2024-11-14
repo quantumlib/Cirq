@@ -74,10 +74,9 @@ def test_internal_gate_with_hashable_args_is_hashable():
 
 
 def test_internal_gate_with_custom_function_repr():
-    original_func = lambda x: x**2
     x = np.linspace(-1, 1, 10)
-    y = x ** 2
-    encoded_func = internal_gate.encode_function(x=x, y=y)
+    y = x**2
+    encoded_func = internal_gate.function_points_to_proto(x=x, y=y)
 
     gate = internal_gate.InternalGate(
         gate_name='GateWithFunction',
@@ -101,7 +100,7 @@ def test_internal_gate_with_custom_function_round_trip():
     original_func = lambda x: x**2
     x = np.linspace(-1, 1, 10)
     y = original_func(x)
-    encoded_func = internal_gate.encode_function(x=x, y=y)
+    encoded_func = internal_gate.function_points_to_proto(x=x, y=y)
 
     gate = internal_gate.InternalGate(
         gate_name='GateWithFunction',
@@ -116,22 +115,22 @@ def test_internal_gate_with_custom_function_round_trip():
 
     func_proto = new_gate.custom_args['func'].function_interpolation_data
 
-    np.testing.assert_allclose(x, func_proto.independent_var)
-    np.testing.assert_allclose(y, func_proto.dependent_var)
+    np.testing.assert_allclose(x, func_proto.x_values)
+    np.testing.assert_allclose(y, func_proto.y_values)
 
 
-def test_encode_function_invalid_args_raise():
+def test_function_points_to_proto_invalid_args_raise():
     x = np.linspace(-1, 1, 10)
     y = x + 1
 
-    with pytest.raises(ValueError, match='Multidimensional inputs are not supported'):
-        _ = internal_gate.encode_function(np.zeros((10, 2)), y)
+    with pytest.raises(ValueError, match='The free variable must be one dimensional'):
+        _ = internal_gate.function_points_to_proto(np.zeros((10, 2)), y)
 
     with pytest.raises(ValueError, match='sorted in increasing order'):
-        _ = internal_gate.encode_function(x[::-1], y)
+        _ = internal_gate.function_points_to_proto(x[::-1], y)
 
-    with pytest.raises(ValueError, match='Mismatch between number of points'):
-        _ = internal_gate.encode_function(x, np.linspace(-1, 1, 40))
+    with pytest.raises(ValueError, match='Mismatch between number of points in x and y'):
+        _ = internal_gate.function_points_to_proto(x, np.linspace(-1, 1, 40))
 
-    with pytest.raises(ValueError, match='The independent variable must be one dimensional'):
-        _ = internal_gate.encode_function(x, np.zeros((10, 2)))
+    with pytest.raises(ValueError, match='The dependent variable must be one dimensional'):
+        _ = internal_gate.function_points_to_proto(x, np.zeros((10, 2)))

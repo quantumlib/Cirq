@@ -103,14 +103,12 @@ class InternalGate(ops.Gate):
         )
 
 
-def encode_function(
+def function_points_to_proto(
     x: Union[Sequence[float], np.ndarray],
     y: Union[Sequence[float], np.ndarray],
     msg: Optional[program_pb2.CustomArg] = None,
 ) -> program_pb2.CustomArg:
     """Return CustomArg that expresses a function through its x and y values.
-
-    This method discretizes a function into a list of point evaluations.
 
     Args:
         x: Sequence of values of the free variable.
@@ -148,6 +146,6 @@ def encode_function(
 
     if msg is None:
         msg = program_pb2.CustomArg()
-    msg.function_interpolation_data.independent_var[:] = x
-    msg.function_interpolation_data.dependent_var[:] = y
+    msg.function_interpolation_data.x_values[:] = x
+    msg.function_interpolation_data.y_values[:] = y
     return msg

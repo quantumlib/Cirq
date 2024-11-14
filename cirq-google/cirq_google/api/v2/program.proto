@@ -444,10 +444,10 @@ message ArgMapping {
 }
 
 message FunctionInterpolation {
-  // The independent_var must be sorted in ascending order.
-  // The independent_var and dependent_var must be of the same length.
-  repeated float independent_var = 1 [packed = true];  // The independent variable.
-  repeated float dependent_var = 2 [packed = true];  // The dependent variable.
+  // The x_values must be sorted in ascending order.
+  // The x_values and y_values must be of the same length.
+  repeated float x_values = 1 [packed = true];  // The independent variable.
+  repeated float y_values = 2 [packed = true];  // The dependent variable.
 
   // Currently only piecewise linear interpolation (i.e. np.interp) is supported.
   // That's we connect (x[i], y[i]) to (x[i+1], y[i+1]))
