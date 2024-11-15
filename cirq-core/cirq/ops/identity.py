@@ -138,7 +138,7 @@ class IdentityGate(raw_types.Gate):
         return ('I',) * self.num_qubits()
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
 
     @classmethod

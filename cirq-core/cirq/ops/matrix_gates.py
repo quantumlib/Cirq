@@ -181,7 +181,7 @@ class MatrixGate(raw_types.Gate):
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         if self._qid_shape == (2,):
             return protocols.qasm(
                 phased_x_z_gate.PhasedXZGate.from_matrix(self._matrix), args=args, qubits=qubits
