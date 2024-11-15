@@ -294,6 +294,11 @@ def test_resolve_parameters():
     moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
     resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
     assert resolved_moment == cirq.Moment(cirq.X(a) ** 0.1, cirq.Y(b) ** 0.2)
+    # New test for empty resolver dictionary
+    empty_moment = cirq.Moment(cirq.X(a))
+    resolved_empty_moment = cirq.resolve_parameters(empty_moment, {})
+    assert resolved_empty_moment == empty_moment
+
 
 
 def test_resolve_parameters_no_change():
