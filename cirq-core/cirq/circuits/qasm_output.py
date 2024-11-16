@@ -297,7 +297,7 @@ class QasmOutput:
             already_output_keys.add(key)
             meas_id = self.args.meas_key_id_map[key]
             if self.meas_comments[key] is not None:
-                comment = f'  // Measurement: self.meas_comments[key]'
+                comment = f'  // Measurement: {self.meas_comments[key]}'
             else:
                 comment = ''
 
