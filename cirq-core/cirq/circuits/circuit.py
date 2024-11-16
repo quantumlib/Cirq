@@ -1318,15 +1318,19 @@ class AbstractCircuit(abc.ABC):
             return self
         return self._from_moments(resolved_moments)
 
-    def _qasm_(self, args: Optional['cirq.QasmArgs']=None) -> str:
-        return self.to_qasm(args=args)
+    def _qasm_(self, args: Optional['cirq.QasmArgs'] = None) -> str:
+        if args is None:
+            output = self._to_qasm_output()
+        else:
+            output = self._to_qasm_output(precision=args.precision, version=args.version)
+        return str(output)
 
     def _to_qasm_output(
         self,
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-        version: str = '2.0'
+        version: str = '2.0',
     ) -> 'cirq.QasmOutput':
         """Returns a QASM object equivalent to the circuit.
 
@@ -1353,7 +1357,7 @@ class AbstractCircuit(abc.ABC):
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-        args: Optional['cirq.QasmArgs']=None,
+        version: str = '2.0',
     ) -> str:
         """Returns QASM equivalent to the circuit.
 
@@ -1364,10 +1368,8 @@ class AbstractCircuit(abc.ABC):
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
         """
-        output_precision = args.precision if args else precision
-        output_version = args.version if args else '2.0'
 
-        return str(self._to_qasm_output(header, output_precision, qubit_order, output_version))
+        return str(self._to_qasm_output(header, precision, qubit_order, version))
 
     def save_qasm(
         self,

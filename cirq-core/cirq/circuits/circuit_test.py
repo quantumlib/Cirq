@@ -3598,9 +3598,8 @@ x q[0];
 measure q[0] -> m_mmm[0];
 """
     )
-    qasm3_args = cirq.QasmArgs(version='3.0')
     assert (
-        circuit.to_qasm(args=qasm3_args)
+        circuit.to_qasm(version="3.0")
         == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 3.0;
@@ -3615,8 +3614,7 @@ bit[1] m_mmm;
 x q[0];
 m_mmm[0] = measure q[0];
 """
-)
-
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])

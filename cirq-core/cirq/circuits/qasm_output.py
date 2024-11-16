@@ -268,7 +268,7 @@ class QasmOutput:
 
         # Version
         output(f'OPENQASM {self.args.version};\n')
-        if self.args.version=='2.0':
+        if self.args.version == '2.0':
             output('include "qelib1.inc";\n')
         else:
             output('include "stdgates.inc";\n')
@@ -280,7 +280,7 @@ class QasmOutput:
 
         # Register definitions
         # Qubit registers
-        
+
         output(f"// Qubits: [{', '.join(map(str, self.qubits))}]\n")
         if len(self.qubits) > 0:
             if self.args.version == '2.0':
