@@ -3598,6 +3598,7 @@ x q[0];
 measure q[0] -> m_mmm[0];
 """
     )
+    assert circuit.to_qasm(version="3.0") == cirq.qasm(circuit, args=cirq.QasmArgs(version="3.0"))
     assert (
         circuit.to_qasm(version="3.0")
         == f"""// Generated from Cirq v{cirq.__version__}
