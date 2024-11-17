@@ -1367,6 +1367,8 @@ class AbstractCircuit(abc.ABC):
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
+            version: Version of OpenQASM to output.  Defaults to OpenQASM 2.0.
+                Specify '3.0' if OpenQASM 3.0 is desired.
         """
 
         return str(self._to_qasm_output(header, precision, qubit_order, version))
