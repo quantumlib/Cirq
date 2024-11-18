@@ -1340,6 +1340,8 @@ class AbstractCircuit(abc.ABC):
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
+            version:  Version of OpenQASM to render as output.  Defaults
+                to OpenQASM 2.0.  For OpenQASM 3.0, set this to '3.0'.
         """
         if header is None:
             header = f'Generated from Cirq v{cirq._version.__version__}'
