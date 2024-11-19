@@ -1081,3 +1081,27 @@ def test_openqasm_3_0_qubits():
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
+
+
+def test_openqasm_3_0_scalar_qubit():
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qubit q;
+     bit b;
+
+     x q;
+
+     b = measure q;
+    """
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0')])
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}

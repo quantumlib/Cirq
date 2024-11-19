@@ -323,13 +323,22 @@ class QasmParser:
     def p_new_reg(self, p):
         """new_reg : QREG ID '[' NATURAL_NUMBER ']' ';'
         | QUBIT '[' NATURAL_NUMBER ']' ID ';'
+        | QUBIT ID ';'
         | CREG ID '[' NATURAL_NUMBER ']' ';'
         | BIT '[' NATURAL_NUMBER ']' ID ';'
+        | BIT ID ';'
         """
         if p[1] == "qreg" or p[1] == "creg":
+            # QREG ID '[' NATURAL_NUMBER ']' ';'
             name, length = p[2], p[4]
         else:
-            name, length = p[5], p[3]
+            if len(p) < 5:
+                # QUBIT ID ';'
+                name = p[2]
+                length = 1
+            else:
+                # QUBIT '[' NATURAL_NUMBER ']' ID ';'
+                name, length = p[5], p[3]
         if name in self.qregs.keys() or name in self.cregs.keys():
             raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
         if length == 0:
