@@ -3579,7 +3579,7 @@ def test_insert_operations_errors():
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_qasm(circuit_cls):
     q0 = cirq.NamedQubit('q0')
-    circuit = circuit_cls(cirq.X(q0))
+    circuit = circuit_cls(cirq.X(q0), cirq.measure(q0, key='mmm'))
     assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (
         circuit.to_qasm()
@@ -3591,9 +3591,29 @@ include "qelib1.inc";
 
 // Qubits: [q0]
 qreg q[1];
+creg m_mmm[1];
 
 
 x q[0];
+measure q[0] -> m_mmm[0];
+"""
+    )
+    assert circuit.to_qasm(version="3.0") == cirq.qasm(circuit, args=cirq.QasmArgs(version="3.0"))
+    assert (
+        circuit.to_qasm(version="3.0")
+        == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 3.0;
+include "stdgates.inc";
+
+
+// Qubits: [q0]
+qubit[1] q;
+bit[1] m_mmm;
+
+
+x q[0];
+m_mmm[0] = measure q[0];
 """
     )
 

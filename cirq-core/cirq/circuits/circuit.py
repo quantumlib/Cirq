@@ -1318,14 +1318,19 @@ class AbstractCircuit(abc.ABC):
             return self
         return self._from_moments(resolved_moments)
 
-    def _qasm_(self) -> str:
-        return self.to_qasm()
+    def _qasm_(self, args: Optional['cirq.QasmArgs'] = None) -> str:
+        if args is None:
+            output = self._to_qasm_output()
+        else:
+            output = self._to_qasm_output(precision=args.precision, version=args.version)
+        return str(output)
 
     def _to_qasm_output(
         self,
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        version: str = '2.0',
     ) -> 'cirq.QasmOutput':
         """Returns a QASM object equivalent to the circuit.
 
@@ -1335,6 +1340,8 @@ class AbstractCircuit(abc.ABC):
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
+            version:  Version of OpenQASM to render as output.  Defaults
+                to OpenQASM 2.0.  For OpenQASM 3.0, set this to '3.0'.
         """
         if header is None:
             header = f'Generated from Cirq v{cirq._version.__version__}'
@@ -1344,7 +1351,7 @@ class AbstractCircuit(abc.ABC):
             qubits=qubits,
             header=header,
             precision=precision,
-            version='2.0',
+            version=version,
         )
 
     def to_qasm(
@@ -1352,6 +1359,7 @@ class AbstractCircuit(abc.ABC):
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        version: str = '2.0',
     ) -> str:
         """Returns QASM equivalent to the circuit.
 
@@ -1361,9 +1369,11 @@ class AbstractCircuit(abc.ABC):
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
+            version: Version of OpenQASM to output.  Defaults to OpenQASM 2.0.
+                Specify '3.0' if OpenQASM 3.0 is desired.
         """
 
-        return str(self._to_qasm_output(header, precision, qubit_order))
+        return str(self._to_qasm_output(header, precision, qubit_order, version))
 
     def save_qasm(
         self,
