@@ -294,13 +294,12 @@ class QasmOutput:
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
             meas_id = self.args.meas_key_id_map[key]
-            
+
             if self.meas_comments[key] is not None:
                 comment = f'  // Measurement: {self.meas_comments[key]}'
             else:
                 comment = ''
-                
-            comment = self.meas_comments[key]
+
             if meas_id not in cregs or cregs[meas_id][0] < len(meas.qubits):
                 cregs[meas_id] = (len(meas.qubits), comment)
         for meas_id in cregs:
