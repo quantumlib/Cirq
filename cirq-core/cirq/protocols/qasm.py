@@ -61,7 +61,7 @@ class QasmArgs(string.Formatter):
             f'{value}'
             if self.version != '2.0'
             or isinstance(value, int)
-            or value > 1e-5
+            or abs(value) > 1e-5
             or self.precision <= 5
             else f'{value:.{self.precision-5}E}'
         )
