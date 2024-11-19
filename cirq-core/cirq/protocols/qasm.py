@@ -55,14 +55,27 @@ class QasmArgs(string.Formatter):
         self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
         self.meas_key_id_map = {} if meas_key_id_map is None else meas_key_id_map
 
+    def _format_number(self, value) -> str:
+        """OpenQASM 2.0 does not support '1e-5' and wants '1.0e-5'"""
+        return (
+            f'{value}'
+            if self.version != '2.0'
+            or isinstance(value, int)
+            or value > 1e-5
+            or self.precision <= 5
+            else f'{value:.{self.precision-5}E}'
+        )
+
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
         if isinstance(value, (float, int)):
             if isinstance(value, float):
                 value = round(value, self.precision)
             if spec == 'half_turns':
-                value = f'pi*{value}' if value != 0 else '0'
+                value = f'pi*{self._format_number(value)}' if value != 0 else '0'
                 spec = ''
+            else:
+                value = self._format_number(value)
         elif isinstance(value, ops.Qid):
             value = self.qubit_id_map[value]
         elif isinstance(value, str) and spec == 'meas':
