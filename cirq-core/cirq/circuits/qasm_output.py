@@ -14,7 +14,7 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Callable, Dict, Iterator, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
+from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import re
 import numpy as np
@@ -281,18 +281,22 @@ class QasmOutput:
             output(f'qreg q[{len(self.qubits)}];\n')
         # Classical registers
         # Pick an id for the creg that will store each measurement
-        already_output_keys: Set[str] = set()
+        # cregs will store key -> (#qubits, comment)
+        cregs: Dict[str, tuple[int, str]] = {}
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
-            if key in already_output_keys:
-                continue
-            already_output_keys.add(key)
             meas_id = self.args.meas_key_id_map[key]
             comment = self.meas_comments[key]
-            if comment is None:
-                output(f'creg {meas_id}[{len(meas.qubits)}];\n')
+            if meas_id not in cregs or cregs[meas_id][0] < len(meas.qubits):
+                cregs[meas_id] = (len(meas.qubits), comment)
+        for meas_id in cregs:
+            if cregs[meas_id][1] is None:
+                output(f'creg {meas_id}[{cregs[meas_id][0]}];\n')
             else:
-                output(f'creg {meas_id}[{len(meas.qubits)}];  // Measurement: {comment}\n')
+                output(
+                    f'creg {meas_id}[{cregs[meas_id][0]}];'
+                    f'  // Measurement: {cregs[meas_id][1]}\n'
+                )
         # In OpenQASM 2.0, the transformation of global phase gates is ignored.
         # Therefore, no newline is created when the operations contained in
         # a circuit consist only of global phase gates.

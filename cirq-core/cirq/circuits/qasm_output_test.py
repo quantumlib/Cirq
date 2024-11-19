@@ -590,3 +590,30 @@ reset q[0];
 reset q[1];
     """.strip()
     )
+
+
+def test_different_sized_registers():
+    qubits = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(qubits[0], key='c'), cirq.measure(qubits, key='c'))
+    output = cirq.QasmOutput(
+        c.all_operations(), tuple(sorted(c.all_qubits())), header='Generated from Cirq!'
+    )
+    assert (
+        str(output).strip()
+        == """// Generated from Cirq!
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0), q(1)]
+qreg q[2];
+creg m_c[2];
+
+
+measure q[0] -> m_c[0];
+
+// Gate: cirq.MeasurementGate(2, cirq.MeasurementKey(name='c'), ())
+measure q[0] -> m_c[0];
+measure q[1] -> m_c[1];"""
+    )
