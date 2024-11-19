@@ -102,7 +102,6 @@ Please read our `code of conduct <https://github.com/quantumlib/cirq/blob/main/C
 **Cirq Cynque** is our weekly meeting for contributors to discuss upcoming features, designs, issues, community and status of different efforts.
 To get an invitation please join the `cirq-dev email list <https://groups.google.com/forum/#!forum/cirq-dev>`__ which also serves as yet another platform to discuss contributions and design ideas.
 
-
 See Also
 --------
 
@@ -117,5 +116,11 @@ For machine learning enthusiasts, `Tensorflow Quantum <https://github.com/tensor
 For a powerful quantum circuit simulator that integrates well with Cirq, we recommend looking at `qsim <https://github.com/quantumlib/qsim>`__.
 
 Finally, `ReCirq <https://github.com/quantumlib/ReCirq>`__ contains real world experiments using Cirq.
+
+Contact
+-------
+
+For any questions or concerns not addressed here, please feel free to reach out to
+quantumai-oss-maintainers@googlegroups.com.
 
 Cirq is not an official Google product. Copyright 2019 The Cirq Developers
