@@ -275,8 +275,11 @@ class Moment:
         resolved_ops: List['cirq.Operation'] = []
         for op in self:
             resolved_op = protocols.resolve_parameters(op, resolver, recursive)
-            if resolved_op != op:
-                changed = True
+            changed = (
+                changed
+                or resolved_op != op
+                or (protocols.is_parameterized(op) and not protocols.is_parameterized(resolved_op))
+            )
             resolved_ops.append(resolved_op)
         if not changed:
             return self
