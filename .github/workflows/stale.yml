@@ -14,5 +14,6 @@ jobs:
         days-before-stale: 30
         days-before-close: 30
         close-issue-message: 'Issue closed due to inactivity.'
-        stale-issue-label: 'triage/stale'
+        stale-issue-label: 'status/stale'
+        stale-pr-label: 'status/stale'
         exempt-issue-labels: 'triage/accepted,triage/discuss,kind/design-issue,kind/health,kind/roadmap-item,kind/task'

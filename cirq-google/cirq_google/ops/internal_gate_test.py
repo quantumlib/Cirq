@@ -134,3 +134,14 @@ def test_function_points_to_proto_invalid_args_raise():
 
     with pytest.raises(ValueError, match='The dependent variable must be one dimensional'):
         _ = internal_gate.function_points_to_proto(x, np.zeros((10, 2)))
+
+
+def test_custom_gates_are_taken_into_equality():
+    msg1 = internal_gate.function_points_to_proto(x=np.linspace(0, 1, 10), y=np.random.random(10))
+    msg2 = internal_gate.function_points_to_proto(x=np.linspace(-1, 0, 10), y=np.random.random(10))
+    g1 = internal_gate.InternalGate('test', 'test', custom_args={'f1': msg1})
+    g2 = internal_gate.InternalGate('test', 'test', custom_args={'f1': msg1})
+    g3 = internal_gate.InternalGate('test', 'test', custom_args={'f1': msg2})
+
+    assert g1 == g2
+    assert g1 != g3

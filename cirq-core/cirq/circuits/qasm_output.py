@@ -54,7 +54,7 @@ class QasmUGate(ops.Gate):
         return True
 
     def _qasm_(self, qubits: Tuple['cirq.Qid', ...], args: 'cirq.QasmArgs') -> str:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
             self.theta,
@@ -246,7 +246,7 @@ class QasmOutput:
         return ''.join(output)
 
     def _write_qasm(self, output_func: Callable[[str], None]) -> None:
-        self.args.validate_version('2.0')
+        self.args.validate_version('2.0', '3.0')
 
         # Generate nice line spacing
         line_gap = [0]
@@ -267,8 +267,12 @@ class QasmOutput:
             output('\n')
 
         # Version
-        output('OPENQASM 2.0;\n')
-        output('include "qelib1.inc";\n')
+        output(f'OPENQASM {self.args.version};\n')
+        if self.args.version == '2.0':
+            output('include "qelib1.inc";\n')
+        else:
+            output('include "stdgates.inc";\n')
+
         output_line_gap(2)
 
         # Function definitions
@@ -276,9 +280,13 @@ class QasmOutput:
 
         # Register definitions
         # Qubit registers
+
         output(f"// Qubits: [{', '.join(map(str, self.qubits))}]\n")
         if len(self.qubits) > 0:
-            output(f'qreg q[{len(self.qubits)}];\n')
+            if self.args.version == '2.0':
+                output(f'qreg q[{len(self.qubits)}];\n')
+            else:
+                output(f'qubit[{len(self.qubits)}] q;\n')
         # Classical registers
         # Pick an id for the creg that will store each measurement
         # cregs will store key -> (#qubits, comment)
@@ -286,17 +294,21 @@ class QasmOutput:
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
             meas_id = self.args.meas_key_id_map[key]
+            
+            if self.meas_comments[key] is not None:
+                comment = f'  // Measurement: {self.meas_comments[key]}'
+            else:
+                comment = ''
+                
             comment = self.meas_comments[key]
             if meas_id not in cregs or cregs[meas_id][0] < len(meas.qubits):
                 cregs[meas_id] = (len(meas.qubits), comment)
         for meas_id in cregs:
-            if cregs[meas_id][1] is None:
-                output(f'creg {meas_id}[{cregs[meas_id][0]}];\n')
+            if self.args.version == '2.0':
+                output(f'creg {meas_id}[{cregs[meas_id][0]}];{cregs[meas_id][1]}\n')
             else:
-                output(
-                    f'creg {meas_id}[{cregs[meas_id][0]}];'
-                    f'  // Measurement: {cregs[meas_id][1]}\n'
-                )
+                output(f'bit[{cregs[meas_id][0]}] {meas_id};{cregs[meas_id][1]}\n')
+
         # In OpenQASM 2.0, the transformation of global phase gates is ignored.
         # Therefore, no newline is created when the operations contained in
         # a circuit consist only of global phase gates.
