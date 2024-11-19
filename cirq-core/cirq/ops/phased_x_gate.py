@@ -69,7 +69,7 @@ class PhasedXPowGate(raw_types.Gate):
         if cirq.is_parameterized(self):
             return None
 
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
 
         e = cast(float, value.canonicalize_half_turns(self._exponent))
         p = cast(float, self.phase_exponent)
