@@ -279,6 +279,9 @@ class Moment:
                 changed = True
             resolved_ops.append(resolved_op)
         if not changed:
+            # this should get covered by
+            # pytest cirq-core/cirq/study/flatten_expressions_test.py::test_flatten_circuit
+            assert False, "temporary debugging assertion to check pytest coverage"
             return self
         return Moment(resolved_ops)
 
