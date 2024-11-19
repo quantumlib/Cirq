@@ -121,6 +121,6 @@ Contact
 -------
 
 For any questions or concerns not addressed here, please feel free to reach out to
-`quantumai-oss-maintainers@googlegroups.com <mailto:quantumai-oss-maintainers@googlegroups.com>`__
+quantumai-oss-maintainers@googlegroups.com.
 
 Cirq is not an official Google product. Copyright 2019 The Cirq Developers
