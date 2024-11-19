@@ -100,6 +100,7 @@ class InternalGate(ops.Gate):
             self.gate_name,
             self._num_qubits,
             frozenset(self.gate_args.items()) if hashable else self.gate_args,
+            frozenset((k, v.SerializeToString()) for k, v in self.custom_args.items()),
         )
 
 

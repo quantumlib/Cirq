@@ -702,7 +702,7 @@ class ResetChannel(raw_types.Gate):
         return True
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('reset {0};\n', qubits[0])
 
     def _qid_shape_(self):
