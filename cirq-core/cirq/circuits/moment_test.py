@@ -294,6 +294,14 @@ def test_resolve_parameters():
     moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
     resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
     assert resolved_moment == cirq.Moment(cirq.X(a) ** 0.1, cirq.Y(b) ** 0.2)
+    # sympy constant is resolved to a Python number
+    moment = cirq.Moment(cirq.Rz(rads=sympy.pi).on(a))
+    resolved_moment = cirq.resolve_parameters(moment, {'pi': np.pi})
+    assert resolved_moment == cirq.Moment(cirq.Rz(rads=np.pi).on(a))
+    resolved_gate = resolved_moment.operations[0].gate
+    assert not isinstance(resolved_gate.exponent, sympy.Basic)
+    assert isinstance(resolved_gate.exponent, float)
+    assert not cirq.is_parameterized(resolved_moment)
 
 
 def test_resolve_parameters_no_change():
