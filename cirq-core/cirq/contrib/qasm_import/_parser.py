@@ -333,7 +333,7 @@ class QasmParser:
             name, length = p[2], p[4]
         else:
             if len(p) < 5:
-                # QUBIT ID ';'
+                # QUBIT ID ';' | BIT ID ';'
                 name = p[2]
                 length = 1
             else:
