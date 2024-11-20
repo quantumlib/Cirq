@@ -57,14 +57,9 @@ class QasmArgs(string.Formatter):
 
     def _format_number(self, value) -> str:
         """OpenQASM 2.0 does not support '1e-5' and wants '1.0e-5'"""
-        return (
-            f'{value}'
-            if self.version != '2.0'
-            or isinstance(value, int)
-            or abs(value) > 1e-5
-            or self.precision <= 5
-            else f'{value:.{self.precision-5}E}'
-        )
+        s = f'{value}'
+        if 'e' in s and not '.' in s:
+            s = s.replace('e', '.0e')
 
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
