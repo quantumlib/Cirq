@@ -59,7 +59,8 @@ class QasmArgs(string.Formatter):
         """OpenQASM 2.0 does not support '1e-5' and wants '1.0e-5'"""
         s = f'{value}'
         if 'e' in s and not '.' in s:
-            s = s.replace('e', '.0e')
+            return s.replace('e', '.0e')
+        return s
 
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
