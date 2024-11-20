@@ -225,7 +225,7 @@ rx(pi*0.123) q[0];
 def test_version():
     (q0,) = _make_qubits(1)
     with pytest.raises(ValueError):
-        output = cirq.QasmOutput((), (q0,), version='3.0')
+        output = cirq.QasmOutput((), (q0,), version='4.0')
         _ = str(output)
 
 
