@@ -15,7 +15,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Summary: Dependabot config file, to adjust things for the Cirq project.
 #
-# By default, Dependabot raises all pull requests with the dependencies label.
+# By default, Dependabot labels all pull requests with label 'dependencies'.
 # We prefer `area/dependencies`, so have to configure Dependabot appropriately.
 # ─────────────────────────────────────────────────────────────────────────────
 
