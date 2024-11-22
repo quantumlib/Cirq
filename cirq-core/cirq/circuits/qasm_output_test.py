@@ -599,7 +599,7 @@ def test_different_sized_registers():
         c.all_operations(), tuple(sorted(c.all_qubits())), header='Generated from Cirq!'
     )
     assert (
-        str(output).strip()
+        str(output)
         == """// Generated from Cirq!
 
 OPENQASM 2.0;
