@@ -615,7 +615,8 @@ measure q[0] -> m_c[0];
 
 // Gate: cirq.MeasurementGate(2, cirq.MeasurementKey(name='c'), ())
 measure q[0] -> m_c[0];
-measure q[1] -> m_c[1];"""
+measure q[1] -> m_c[1];
+"""
     )
     # OPENQASM 3.0
     output3 = cirq.QasmOutput(
