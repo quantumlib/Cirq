@@ -52,3 +52,15 @@ def test_qasm():
 
     assert cirq.qasm(ExpectsArgs(), args=cirq.QasmArgs()) == 'text'
     assert cirq.qasm(ExpectsArgsQubits(), args=cirq.QasmArgs(), qubits=()) == 'text'
+
+
+def test_qasm_args_formatting():
+    args = cirq.QasmArgs()
+    assert args.format_field(0.01, '') == '0.01'
+    assert args.format_field(0.01, 'half_turns') == 'pi*0.01'
+    assert args.format_field(0.00001, '') == '1.0e-05'
+    assert args.format_field(0.00001, 'half_turns') == 'pi*1.0e-05'
+    assert args.format_field(1e-10, 'half_turns') == 'pi*1.0e-10'
+    args = cirq.QasmArgs(precision=6)
+    assert args.format_field(0.00001234, '') == '1.2e-05'
+    assert args.format_field(0.00001234, 'half_turns') == 'pi*1.2e-05'
