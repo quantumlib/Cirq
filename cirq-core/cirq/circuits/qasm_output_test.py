@@ -617,3 +617,30 @@ measure q[0] -> m_c[0];
 measure q[0] -> m_c[0];
 measure q[1] -> m_c[1];"""
     )
+    # OPENQASM 3.0
+    output3 = cirq.QasmOutput(
+        c.all_operations(),
+        tuple(sorted(c.all_qubits())),
+        header='Generated from Cirq!',
+        version='3.0',
+    )
+    assert (
+        str(output3)
+        == """// Generated from Cirq!
+
+OPENQASM 3.0;
+include "stdgates.inc";
+
+
+// Qubits: [q(0), q(1)]
+qubit[2] q;
+bit[2] m_c;
+
+
+m_c[0] = measure q[0];
+
+// Gate: cirq.MeasurementGate(2, cirq.MeasurementKey(name='c'), ())
+m_c[0] = measure q[0];
+m_c[1] = measure q[1];
+"""
+    )
