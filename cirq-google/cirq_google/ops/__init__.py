@@ -27,3 +27,7 @@ from cirq_google.ops.physical_z_tag import PhysicalZTag as PhysicalZTag
 from cirq_google.ops.sycamore_gate import SycamoreGate as SycamoreGate, SYC as SYC
 
 from cirq_google.ops.internal_gate import InternalGate as InternalGate
+
+from cirq_google.ops.dynamical_decoupling_tag import (
+    DynamicalDecouplingTag as DynamicalDecouplingTag,
+)

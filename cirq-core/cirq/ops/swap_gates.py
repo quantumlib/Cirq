@@ -148,7 +148,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
 
     def __str__(self) -> str:
