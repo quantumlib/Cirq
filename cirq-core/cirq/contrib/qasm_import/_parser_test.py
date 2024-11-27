@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
 from typing import Callable
 
 import numpy as np
@@ -707,15 +708,17 @@ def test_measurement_bounds():
 
 
 def test_reset():
-    qasm ="""
-     OPENQASM 2.0;
-     include "qelib1.inc";
-     qreg q[1];
-     creg c[1];
-     x q[0];
-     reset q[0];
-     measure q[0] -> c[0];
-     """
+    qasm = textwrap.dedent(
+        """\
+        OPENQASM 2.0;
+        include "qelib1.inc";
+        qreg q[1];
+        creg c[1];
+        x q[0];
+        reset q[0];
+        measure q[0] -> c[0];
+        """
+    )
 
     parser = QasmParser()
 
