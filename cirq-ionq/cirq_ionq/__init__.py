@@ -23,10 +23,16 @@ from cirq_ionq.ionq_gateset import (
     decompose_all_to_all_connect_ccz_gate as decompose_all_to_all_connect_ccz_gate,
 )
 
+from cirq_ionq.ionq_native_target_gateset import (
+    AriaNativeGateset as AriaNativeGateset,
+    ForteNativeGateset as ForteNativeGateset,
+)
+
 from cirq_ionq.ionq_exceptions import (
     IonQException as IonQException,
     IonQNotFoundException as IonQNotFoundException,
     IonQUnsuccessfulJobException as IonQUnsuccessfulJobException,
+    IonQSerializerMixedGatesetsException as IonQSerializerMixedGatesetsException,
 )
 
 from cirq_ionq.job import Job as Job
@@ -39,7 +45,12 @@ from cirq_ionq.serializer import Serializer as Serializer, SerializedProgram as 
 
 from cirq_ionq.service import Service as Service
 
-from cirq_ionq.ionq_native_gates import GPIGate as GPIGate, GPI2Gate as GPI2Gate, MSGate as MSGate
+from cirq_ionq.ionq_native_gates import (
+    GPIGate as GPIGate,
+    GPI2Gate as GPI2Gate,
+    MSGate as MSGate,
+    ZZGate as ZZGate,
+)
 
 from cirq.protocols.json_serialization import _register_resolver
 from cirq_ionq.json_resolver_cache import _class_resolver_dictionary

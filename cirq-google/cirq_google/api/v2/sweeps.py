@@ -21,23 +21,23 @@ from cirq_google.api.v2 import run_context_pb2
 from cirq_google.study.device_parameter import DeviceParameter
 
 
-def _build_sweep_const(value: Any) -> run_context_pb2.Const:
+def _build_sweep_const(value: Any) -> run_context_pb2.ConstValue:
     """Build the sweep const message from a value."""
     if value is None:
-        return run_context_pb2.Const(is_none=True)
+        return run_context_pb2.ConstValue(is_none=True)
     elif isinstance(value, float):
-        return run_context_pb2.Const(float_value=value)
+        return run_context_pb2.ConstValue(float_value=value)
     elif isinstance(value, int):
-        return run_context_pb2.Const(int_value=value)
+        return run_context_pb2.ConstValue(int_value=value)
     elif isinstance(value, str):
-        return run_context_pb2.Const(string_value=value)
+        return run_context_pb2.ConstValue(string_value=value)
     else:
         raise ValueError(
             f"Unsupported type for serializing const sweep: {value=} and {type(value)=}"
         )
 
 
-def _recover_sweep_const(const_pb: run_context_pb2.Const) -> Any:
+def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
     """Recover a const value from the sweep const message."""
     if const_pb.WhichOneof('value') == 'is_none':
         return None
@@ -92,7 +92,7 @@ def sweep_to_proto(
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
         if len(sweep.points) == 1:
-            out.single_sweep.const.MergeFrom(_build_sweep_const(sweep.points[0]))
+            out.single_sweep.const_value.MergeFrom(_build_sweep_const(sweep.points[0]))
         else:
             out.single_sweep.points.points.extend(sweep.points)
         # Use duck-typing to support google-internal Parameter objects
@@ -159,9 +159,11 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
             )
         if msg.single_sweep.WhichOneof('sweep') == 'points':
             return cirq.Points(key=key, points=msg.single_sweep.points.points, metadata=metadata)
-        if msg.single_sweep.WhichOneof('sweep') == 'const':
+        if msg.single_sweep.WhichOneof('sweep') == 'const_value':
             return cirq.Points(
-                key=key, points=[_recover_sweep_const(msg.single_sweep.const)], metadata=metadata
+                key=key,
+                points=[_recover_sweep_const(msg.single_sweep.const_value)],
+                metadata=metadata,
             )
 
         raise ValueError(f'single sweep type not set: {msg}')

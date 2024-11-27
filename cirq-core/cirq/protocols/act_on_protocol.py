@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import NotImplementedType
 from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
 from cirq import ops
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

@@ -13,6 +13,7 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
+import itertools
 from typing import Optional, Sequence, TYPE_CHECKING
 
 from cirq_ionq import results
@@ -68,14 +69,27 @@ class Sampler(cirq.Sampler):
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence[cirq.Result]:
-        """Runs a sweep for the given Circuit.
+        """Samples from the given Circuit.
+
+        This allows for sweeping over different parameter values,
+        unlike the `run` method.  The `params` argument will provide a
+        mapping from `sympy.Symbol`s used within the circuit to a set of
+        values.  Unlike the `run` method, which specifies a single
+        mapping from symbol to value, this method allows a "sweep" of
+        values.  This allows a user to specify execution of a family of
+        related circuits efficiently.
 
         Note that this creates jobs for each of the sweeps in the given sweepable, and then
         blocks until all of the jobs are complete.
 
-        See `cirq.Sampler` for documentation on args.
+        Args:
+            program: The circuit to sample from.
+            params: Parameters to run with the program.
+            repetitions: The number of times to sample.
 
-        For use of the `sample` method, see the documentation of `cirq.Sampler`.
+        Returns:
+            Either a list of `cirq_ionq.QPUResult` or a list of `cirq_ionq.SimulatorResult`
+            depending on whether the job was running on an actual quantum processor or a simulator.
         """
         resolvers = [r for r in cirq.to_resolvers(params)]
         jobs = [
@@ -90,10 +104,11 @@ class Sampler(cirq.Sampler):
             job_results = [job.results(timeout_seconds=self._timeout_seconds) for job in jobs]
         else:
             job_results = [job.results() for job in jobs]
+        flattened_job_results = list(itertools.chain.from_iterable(job_results))
         cirq_results = []
-        for result, params in zip(job_results, resolvers):
+        for result, params in zip(flattened_job_results, resolvers):
             if isinstance(result, results.QPUResult):
                 cirq_results.append(result.to_cirq_result(params=params))
-            else:
+            elif isinstance(result, results.SimulatorResult):
                 cirq_results.append(result.to_cirq_result(params=params, seed=self._seed))
         return cirq_results

@@ -17,6 +17,7 @@ import gzip
 import json
 import numbers
 import pathlib
+from types import NotImplementedType
 from typing import (
     Any,
     Callable,
@@ -39,7 +40,6 @@ import sympy
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
 
 ObjectFactory = Union[Type, Callable[..., Any]]
 
