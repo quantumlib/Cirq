@@ -505,7 +505,7 @@ class QasmParser:
     # reset : RESET qarg
 
     def p_reset(self, p):
-        """reset : RESET qreg ';'"""
+        """reset : RESET qarg ';'"""
         qreg = p[2]
 
         p[0] = [ops.ResetChannel().on(qreg[i]) for i in range(len(qreg))]
