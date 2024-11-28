@@ -724,10 +724,7 @@ def test_reset():
 
     q_0 = cirq.NamedQubit('q_0')
 
-    expected_circuit = Circuit()
-    expected_circuit.append(cirq.X(q_0))
-    expected_circuit.append(cirq.ResetChannel().on(q_0))
-    expected_circuit.append(cirq.MeasurementGate(num_qubits=1, key='c_0').on(q_0))
+    expected_circuit = Circuit([cirq.X(q_0), cirq.reset(q_0), cirq.measure(q_0, key='c_0')])
 
     parsed_qasm = parser.parse(qasm)
 
