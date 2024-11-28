@@ -1101,12 +1101,13 @@ def test_openqasm_3_0_qubits():
      x q[0];
 
      b[0] = measure q[0];
+     reset q[0];
     """
     parser = QasmParser()
 
     q0 = cirq.NamedQubit('q_0')
 
-    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0')])
+    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0'), cirq.reset(q0)])
 
     parsed_qasm = parser.parse(qasm)
 
@@ -1125,12 +1126,13 @@ def test_openqasm_3_0_scalar_qubit():
      x q;
 
      b = measure q;
+     reset q;
     """
     parser = QasmParser()
 
     q0 = cirq.NamedQubit('q_0')
 
-    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0')])
+    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0'), cirq.reset(q0)])
 
     parsed_qasm = parser.parse(qasm)
 
