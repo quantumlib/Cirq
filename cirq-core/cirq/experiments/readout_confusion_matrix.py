@@ -26,20 +26,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _mitigate_single_bitstring(z_rinv_all: list[np.ndarray], bitstring: np.ndarray) -> float:
-    """Return the mitigated Pauli expectation value for a single observed bitstring.
-
-    Args:
-        z_rinv_all: A list of single-qubit pauli-Z (as a vector) contracted with the single-qubit
-            inverse response matrix, for each qubit.
-        bitstring: The measured bitstring.
-
-    Returns:
-        The corrected expectation value of ZZZZZ... given the single measured bitstring.
-    """
-    return np.prod([z_rinv[bit] for z_rinv, bit in zip(z_rinv_all, bitstring)])
-
-
 class TensoredConfusionMatrices:
     """Store and use confusion matrices for readout error mitigation on sets of qubits.
 
@@ -348,7 +334,10 @@ class TensoredConfusionMatrices:
                                  confusion matrices for all of `qubits`.
         """
 
-        # first, get all of the confusion matrices
+        # in case given as an array of bools, convert to an array of ints:
+        measured_bitstrings = measured_bitstrings.astype(int)
+
+        # get all of the confusion matrices
         cm_all = []
         for qubit in qubits:
             try:
@@ -365,15 +354,10 @@ class TensoredConfusionMatrices:
 
         # next, contract them with the single-qubit Pauli operators:
         z = np.array([1, -1])
-        z_cminv_all = [z @ cminv for cminv in cminv_all]
+        z_cminv_all = np.array([z @ cminv for cminv in cminv_all])
 
         # finally, mitigate each bitstring:
-        z_mit_all_shots = np.array(
-            [
-                _mitigate_single_bitstring(z_cminv_all, bitstring)
-                for bitstring in measured_bitstrings
-            ]
-        )
+        z_mit_all_shots = np.prod(np.einsum("iji->ij", z_cminv_all[:, measured_bitstrings]), axis=0)
 
         # return mean and statistical uncertainty:
         return np.mean(z_mit_all_shots), np.std(z_mit_all_shots) / np.sqrt(len(measured_bitstrings))
