@@ -32,6 +32,7 @@ class QasmLexer:
         'bit': 'BIT',
         'creg': 'CREG',
         'measure': 'MEASURE',
+        'reset': 'RESET',
         'if': 'IF',
         '->': 'ARROW',
         '==': 'EQ',
@@ -113,6 +114,10 @@ class QasmLexer:
 
     def t_MEASURE(self, t):
         r"""measure"""
+        return t
+
+    def t_RESET(self, t):
+        r"""reset"""
         return t
 
     def t_IF(self, t):
