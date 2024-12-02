@@ -236,13 +236,13 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         raise NotImplementedError
 
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence['cirq.AbstractCircuit'],
         params_list: Optional[Sequence['cirq.Sweepable']] = None,
         repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence['cirq.Result']]:
-        """Runs the supplied circuits.
+        """Runs the supplied circuits asynchronously.
 
         Each circuit provided in `programs` will pair with the optional
         associated parameter sweep provided in the `params_list`, and be run
@@ -281,25 +281,11 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
                 of `params_list` or the length of `repetitions`.
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
-        return [
-            self.run_sweep(circuit, params=params, repetitions=repetitions)
-            for circuit, params, repetitions in zip(programs, params_list, repetitions)
-        ]
-
-    async def run_batch_async(
-        self,
-        programs: Sequence['cirq.AbstractCircuit'],
-        params_list: Optional[Sequence['cirq.Sweepable']] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
-    ) -> Sequence[Sequence['cirq.Result']]:
-        """Runs the supplied circuits asynchronously.
-
-        See docs for `cirq.Sampler.run_batch`.
-        """
-        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         return await duet.pstarmap_async(
             self.run_sweep_async, zip(programs, params_list, repetitions)
         )
+
+    run_batch = duet.sync(run_batch_async)
 
     def _normalize_batch_args(
         self,
