@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import textwrap
 from typing import Callable
 
 import numpy as np
@@ -706,6 +707,35 @@ def test_measurement_bounds():
         parser.parse(qasm)
 
 
+def test_reset():
+    qasm = textwrap.dedent(
+        """\
+        OPENQASM 2.0;
+        include "qelib1.inc";
+        qreg q[1];
+        creg c[1];
+        x q[0];
+        reset q[0];
+        measure q[0] -> c[0];
+        """
+    )
+
+    parser = QasmParser()
+
+    q_0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit([cirq.X(q_0), cirq.reset(q_0), cirq.measure(q_0, key='c_0')])
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}
+    assert parsed_qasm.cregs == {'c': 1}
+
+
 def test_u1_gate():
     qasm = """
      OPENQASM 2.0;
@@ -1068,12 +1098,13 @@ def test_openqasm_3_0_qubits():
      x q[0];
 
      b[0] = measure q[0];
+     reset q[0];
     """
     parser = QasmParser()
 
     q0 = cirq.NamedQubit('q_0')
 
-    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0')])
+    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0'), cirq.reset(q0)])
 
     parsed_qasm = parser.parse(qasm)
 
@@ -1092,12 +1123,13 @@ def test_openqasm_3_0_scalar_qubit():
      x q;
 
      b = measure q;
+     reset q;
     """
     parser = QasmParser()
 
     q0 = cirq.NamedQubit('q_0')
 
-    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0')])
+    expected_circuit = Circuit([cirq.X.on(q0), cirq.measure(q0, key='b_0'), cirq.reset(q0)])
 
     parsed_qasm = parser.parse(qasm)
 
