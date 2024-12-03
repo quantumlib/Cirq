@@ -177,6 +177,7 @@ def test_sweep_from_proto_sweep_function_not_set():
     with pytest.raises(ValueError, match='invalid sweep function type'):
         v2.sweep_from_proto(proto)
 
+
 def test_sweep_from_proto_single_sweep_type_not_set():
     proto = v2.run_context_pb2.Sweep()
     proto.single_sweep.parameter_key = 'foo'
