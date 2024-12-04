@@ -46,3 +46,8 @@ docs/api_docs
 
 # notebook test output
 out
+
+# Ignore formatted preview output during Markdown file editing.
+**/README.html
+**/CODE_OF_CONDUCT.html
+**/CONTRIBUTING.html
