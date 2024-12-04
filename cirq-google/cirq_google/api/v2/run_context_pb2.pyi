@@ -159,9 +159,9 @@ class SweepFunction(google.protobuf.message.Message):
         ZIP_LONGEST: SweepFunction._FunctionType.ValueType  # 3
         """A zip product of parameter sweeps with length as the longest one.
 
-        Suppose we zip_longest([sweep.points(a, [1,2]), sweep.points(b, [3])]),
-        the iterator will produce: {a: 1, b: 3} and {a: 2, b: 3}. The
-        shorter sweeps will be filled by repeating their last value.
+        Suppose we zip_longest([sweep.points(a, [1, 2]), sweep.points(b, [3])]),
+        the iterator will produce: {a: 1, b: 3} and {a: 2, b: 3}.
+        The shorter sweeps will be filled by repeating their last value.
         """
 
     class FunctionType(_FunctionType, metaclass=_FunctionTypeEnumTypeWrapper):
@@ -203,9 +203,9 @@ class SweepFunction(google.protobuf.message.Message):
     ZIP_LONGEST: SweepFunction.FunctionType.ValueType  # 3
     """A zip product of parameter sweeps with length as the longest one.
 
-    Suppose we zip_longest([sweep.points(a, [1,2]), sweep.points(b, [3])]),
-    the iterator will produce: {a: 1, b: 3} and {a: 2, b: 3}. The
-    shorter sweeps will be filled by repeating their last value.
+    Suppose we zip_longest([sweep.points(a, [1, 2]), sweep.points(b, [3])]),
+    the iterator will produce: {a: 1, b: 3} and {a: 2, b: 3}.
+    The shorter sweeps will be filled by repeating their last value.
     """
 
     FUNCTION_TYPE_FIELD_NUMBER: builtins.int
