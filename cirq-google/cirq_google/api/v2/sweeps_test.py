@@ -68,6 +68,7 @@ class UnknownSweep(sweeps.SingleSweep):
                 + (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1]))
             )
         ),
+        cirq.ZipLongest(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('b', [1.0])),
         # Sweep with constant. Type ignore is because cirq.Points type annotated with floats.
         cirq.Points('a', [None]),  # type: ignore[list-item]
         cirq.Points('a', [None]) * cirq.Points('b', [1, 2, 3]),  # type: ignore[list-item]

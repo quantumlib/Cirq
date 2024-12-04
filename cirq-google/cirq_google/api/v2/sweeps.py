@@ -73,6 +73,10 @@ def sweep_to_proto(
         out.sweep_function.function_type = run_context_pb2.SweepFunction.PRODUCT
         for factor in sweep.factors:
             sweep_to_proto(factor, out=out.sweep_function.sweeps.add())
+    elif isinstance(sweep, cirq.ZipLongest):
+        out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP_LONGEST
+        for s in sweep.sweeps:
+            sweep_to_proto(s, out=out.sweep_function.sweeps.add())
     elif isinstance(sweep, cirq.Zip):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for s in sweep.sweeps:
@@ -129,6 +133,8 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
             return cirq.Product(*factors)
         if func_type == run_context_pb2.SweepFunction.ZIP:
             return cirq.Zip(*factors)
+        if func_type == run_context_pb2.SweepFunction.ZIP_LONGEST:
+            return cirq.ZipLongest(*factors)
 
         raise ValueError(f'invalid sweep function type: {func_type}')
     if which == 'single_sweep':
