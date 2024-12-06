@@ -474,3 +474,9 @@ def test_concat_different_keys_raises():
 
     with pytest.raises(ValueError, match="All sweeps must have the same descriptors."):
         _ = cirq.Concat(sweep1, sweep2)
+
+
+def test_concat_empty_sweep_raises():
+    with pytest.raises(ValueError, match="Concat requires at least one sweep."):
+        _ = cirq.Concat()
+        _ = cirq.Concat([])

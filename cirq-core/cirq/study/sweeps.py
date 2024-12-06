@@ -308,7 +308,7 @@ class Concat(Sweep):
 
     @property
     def keys(self) -> List['cirq.TParamKey']:
-        return self.sweeps[0].keys if self.sweeps else []
+        return self.sweeps[0].keys
 
     def __len__(self) -> int:
         return sum(len(sweep) for sweep in self.sweeps)
