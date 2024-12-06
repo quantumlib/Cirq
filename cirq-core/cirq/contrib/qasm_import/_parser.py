@@ -247,17 +247,13 @@ class QasmParser:
             qasm_gate="cu1",
             num_params=1,
             num_args=2,
-            cirq_gate=(
-                lambda params: ops.ControlledGate(QasmUGate(0, 0, params[0] / np.pi))
-            ),
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(0, 0, params[0] / np.pi))),
         ),
         "cu3": QasmGateStatement(
             qasm_gate="cu3",
             num_params=3,
             num_args=2,
-            cirq_gate=(
-                lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))
-            ),
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))),
         ),
         "crz": QasmGateStatement(
             qasm_gate="crz",
