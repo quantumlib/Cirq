@@ -279,8 +279,7 @@ class Product(Sweep):
 class Concat(Sweep):
     """Concatenates multiple sweeps along a new axis.
 
-    All sweeps must share the same descriptors, and sweeps in the same
-    position must match in Var/Const type, label, and unit (for Var).
+    All sweeps must share the same descriptors.
 
     If one sweep assigns 'a' to the values 0, 1, 2, and another sweep assigns
     'a' to the values 3, 4, 5, the concatenation produces a sweep assigning
@@ -293,7 +292,7 @@ class Concat(Sweep):
 
         # Validate consistency across sweeps
         first_sweep = sweeps[0]
-        for sweep in sweeps:
+        for sweep in sweeps[1:]:
             if sweep.keys != first_sweep.keys:
                 raise ValueError("All sweeps must have the same descriptors.")
 

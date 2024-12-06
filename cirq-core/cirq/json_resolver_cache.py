@@ -120,6 +120,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CliffordState': cirq.CliffordState,
         'CliffordTableau': cirq.CliffordTableau,
         'CNotPowGate': cirq.CNotPowGate,
+        'Concat': cirq.Concat,
         'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
         'ControlledGate': cirq.ControlledGate,
         'ControlledOperation': cirq.ControlledOperation,
