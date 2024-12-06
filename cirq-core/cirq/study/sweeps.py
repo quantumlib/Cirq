@@ -277,7 +277,7 @@ class Product(Sweep):
 
 
 class Concat(Sweep):
-    """Concatenates multiple sweeps along a new axis.
+    """Concatenates multiple to a new sweep.
 
     All sweeps must share the same descriptors.
 
@@ -322,9 +322,8 @@ class Concat(Sweep):
         return f'cirq.Concat({sweeps_repr})'
 
     def __str__(self) -> str:
-        if not self.sweeps:
-            return 'Concat()'
-        return ' + '.join(str(sweep) for sweep in self.sweeps)
+        sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
+        return f'Concat({sweeps_repr})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sweeps'])

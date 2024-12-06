@@ -246,6 +246,8 @@ def test_equality():
     et.make_equality_group(lambda: cirq.Linspace('b', 0, 10, 11))
     et.make_equality_group(lambda: cirq.Points('a', list(range(11))))
     et.make_equality_group(lambda: cirq.Points('b', list(range(11))))
+    et.make_equality_group(lambda: cirq.Concat(cirq.Linspace('a', 0, 10, 11)))
+    et.make_equality_group(lambda: cirq.Concat(cirq.Linspace('b', 0, 10, 11)))
 
     # Product and Zip sweeps can also be equated.
     et.make_equality_group(lambda: cirq.Linspace('a', 0, 5, 6) * cirq.Linspace('b', 10, 15, 6))
@@ -424,11 +426,9 @@ def test_concat_mixed():
 def test_concat_inconsistent_keys():
     sweep1 = cirq.Linspace('a', 0, 1, 3)
     sweep2 = cirq.Points('b', [2, 3])
-    try:
+
+    with pytest.raises(ValueError, match="All sweeps must have the same descriptors"):
         cirq.Concat(sweep1, sweep2)
-        assert False, "Expected ValueError for inconsistent keys"
-    except ValueError as e:
-        assert str(e) == "All sweeps must have the same descriptors."
 
 
 def test_concat_sympy_symbol():
@@ -449,12 +449,8 @@ def test_concat_repr_and_str():
     expected_repr = (
         "cirq.Concat(cirq.Linspace('a', start=0, stop=1, length=3), cirq.Points('a', [2, 3]))"
     )
-    expected_str = '''Sweep:
-{'a': 0.0}
-{'a': 0.5}
-{'a': 1.0} + Sweep:
-{'a': 2}
-{'a': 3}'''
+    expected_str = "Concat(cirq.Linspace('a', start=0, stop=1, length=3), cirq.Points('a', [2, 3]))"
+
     assert repr(concat_sweep) == expected_repr
     assert str(concat_sweep) == expected_str
 
@@ -479,4 +475,3 @@ def test_concat_different_keys_raises():
 def test_concat_empty_sweep_raises():
     with pytest.raises(ValueError, match="Concat requires at least one sweep."):
         _ = cirq.Concat()
-        _ = cirq.Concat([])
