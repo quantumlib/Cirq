@@ -261,9 +261,6 @@ class QasmParser:
             num_args=2,
             cirq_gate=(lambda params: ops.ControlledGate(ops.rz(params[0]))),
         ),
-        "reset": QasmGateStatement(
-            qasm_gate="reset", num_params=0, num_args=1, cirq_gate=ops.ResetChannel()
-        ),
         'swap': QasmGateStatement(qasm_gate='swap', cirq_gate=ops.SWAP, num_params=0, num_args=2),
         'cswap': QasmGateStatement(
             qasm_gate='cswap', num_params=0, num_args=3, cirq_gate=ops.CSWAP
