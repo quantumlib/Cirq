@@ -86,7 +86,8 @@ class EngineContext:
         timeout: Optional[int] = None,
         serializer: Serializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
-        enable_streaming: bool = True,
+        # TODO(#6817): Reenable streaming by default once there's a fix.
+        enable_streaming: bool = False,
     ) -> None:
         """Context and client for using Quantum Engine.
 
