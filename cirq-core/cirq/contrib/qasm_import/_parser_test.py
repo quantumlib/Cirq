@@ -840,6 +840,7 @@ def test_u3_gate():
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
+
 def test_r_gate():
     qasm = """
      OPENQASM 2.0;
