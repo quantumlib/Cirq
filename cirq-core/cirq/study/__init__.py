@@ -36,6 +36,7 @@ from cirq.study.sweepable import (
 )
 
 from cirq.study.sweeps import (
+    Concat as Concat,
     Linspace as Linspace,
     ListSweep as ListSweep,
     Points as Points,
