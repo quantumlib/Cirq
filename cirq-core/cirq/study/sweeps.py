@@ -276,6 +276,63 @@ class Product(Sweep):
         return Product(*factors)
 
 
+class Concat(Sweep):
+    """Concatenates multiple to a new sweep.
+
+    All sweeps must share the same descriptors.
+
+    If one sweep assigns 'a' to the values 0, 1, 2, and another sweep assigns
+    'a' to the values 3, 4, 5, the concatenation produces a sweep assigning
+    'a' to the values 0, 1, 2, 3, 4, 5 in sequence.
+    """
+
+    def __init__(self, *sweeps: Sweep) -> None:
+        if not sweeps:
+            raise ValueError("Concat requires at least one sweep.")
+
+        # Validate consistency across sweeps
+        first_sweep = sweeps[0]
+        for sweep in sweeps[1:]:
+            if sweep.keys != first_sweep.keys:
+                raise ValueError("All sweeps must have the same descriptors.")
+
+        self.sweeps = sweeps
+
+    def __eq__(self, other):
+        if not isinstance(other, Concat):
+            return NotImplemented
+        return self.sweeps == other.sweeps
+
+    def __hash__(self):
+        return hash(tuple(self.sweeps))
+
+    @property
+    def keys(self) -> List['cirq.TParamKey']:
+        return self.sweeps[0].keys
+
+    def __len__(self) -> int:
+        return sum(len(sweep) for sweep in self.sweeps)
+
+    def param_tuples(self) -> Iterator[Params]:
+        for sweep in self.sweeps:
+            yield from sweep.param_tuples()
+
+    def __repr__(self) -> str:
+        sweeps_repr = ', '.join(repr(sweep) for sweep in self.sweeps)
+        return f'cirq.Concat({sweeps_repr})'
+
+    def __str__(self) -> str:
+        sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
+        return f'Concat({sweeps_repr})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['sweeps'])
+
+    @classmethod
+    def _from_json_dict_(cls, sweeps, **kwargs):
+        return Concat(*sweeps)
+
+
 class Zip(Sweep):
     """Zip product (direct sum) of one or more sweeps.
 
