@@ -383,6 +383,7 @@ def test_concat_linspace():
     concat_sweep = cirq.Concat(sweep1, sweep2)
 
     assert len(concat_sweep) == 8
+    assert concat_sweep.keys == ['a']
     params = list(concat_sweep.param_tuples())
     assert len(params) == 8
     assert params[0] == (('a', 0.34),)
@@ -396,6 +397,7 @@ def test_concat_points():
     sweep2 = cirq.Points('a', [3, 4, 5])
     concat_sweep = cirq.Concat(sweep1, sweep2)
 
+    assert concat_sweep.keys == ['a']
     assert len(concat_sweep) == 5
     params = list(concat_sweep)
     assert len(params) == 5
