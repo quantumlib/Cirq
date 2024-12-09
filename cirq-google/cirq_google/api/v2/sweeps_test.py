@@ -69,7 +69,6 @@ class UnknownSweep(sweeps.SingleSweep):
             )
         ),
         cirq.ZipLongest(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('b', [1.0])),
-        cirq.Concat(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('a', [4.0])),
         # Sweep with constant. Type ignore is because cirq.Points type annotated with floats.
         cirq.Points('a', [None]),  # type: ignore[list-item]
         cirq.Points('a', [None]) * cirq.Points('b', [1, 2, 3]),  # type: ignore[list-item]
@@ -81,6 +80,7 @@ class UnknownSweep(sweeps.SingleSweep):
             cirq.Points('a', [1]) * cirq.Points('b', [1.0])
             + cirq.Points('c', ["abc"]) * cirq.Points("d", [1, 2, 3, 4])  # type: ignore[list-item]
         ),
+        cirq.Concat(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('a', [4.0])),
     ],
 )
 def test_sweep_to_proto_roundtrip(sweep):

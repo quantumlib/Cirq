@@ -140,7 +140,7 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
         if func_type == run_context_pb2.SweepFunction.ZIP_LONGEST:
             return cirq.ZipLongest(*factors)
         if func_type == run_context_pb2.SweepFunction.CONCAT:
-            return cirq.ZipLongest(*factors)
+            return cirq.Concat(*factors)
 
         raise ValueError(f'invalid sweep function type: {func_type}')
     if which == 'single_sweep':
