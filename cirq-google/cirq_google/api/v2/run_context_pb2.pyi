@@ -163,6 +163,15 @@ class SweepFunction(google.protobuf.message.Message):
         the iterator will produce: {a: 1, b: 3} and {a: 2, b: 3}.
         The shorter sweeps will be filled by repeating their last value.
         """
+        CONCAT: SweepFunction._FunctionType.ValueType  # 4
+        """Concatenates multiple sweeps to a new sweep.
+        All sweeps must share the same descriptors.
+
+        Example of concat:
+        If one sweep assigns 'a' to the values 0, 1, 2, and another sweep assigns
+        'a' to the values 3, 4, 5, the concatenation produces a sweep assigning
+        'a' to the values 0, 1, 2, 3, 4, 5 in sequence.
+        """
 
     class FunctionType(_FunctionType, metaclass=_FunctionTypeEnumTypeWrapper):
         """The type of sweep function."""
@@ -206,6 +215,15 @@ class SweepFunction(google.protobuf.message.Message):
     Suppose we zip_longest([sweep.points(a, [1, 2]), sweep.points(b, [3])]),
     the iterator will produce: {a: 1, b: 3} and {a: 2, b: 3}.
     The shorter sweeps will be filled by repeating their last value.
+    """
+    CONCAT: SweepFunction.FunctionType.ValueType  # 4
+    """Concatenates multiple sweeps to a new sweep.
+    All sweeps must share the same descriptors.
+
+    Example of concat:
+    If one sweep assigns 'a' to the values 0, 1, 2, and another sweep assigns
+    'a' to the values 3, 4, 5, the concatenation produces a sweep assigning
+    'a' to the values 0, 1, 2, 3, 4, 5 in sequence.
     """
 
     FUNCTION_TYPE_FIELD_NUMBER: builtins.int
