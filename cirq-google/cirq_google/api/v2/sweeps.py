@@ -81,6 +81,10 @@ def sweep_to_proto(
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for s in sweep.sweeps:
             sweep_to_proto(s, out=out.sweep_function.sweeps.add())
+    elif isinstance(sweep, cirq.Concat):
+        out.sweep_function.function_type = run_context_pb2.SweepFunction.CONCAT
+        for s in sweep.sweeps:
+            sweep_to_proto(s, out=out.sweep_function.sweeps.add())
     elif isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
         out.single_sweep.linspace.first_point = sweep.start
@@ -134,6 +138,8 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
         if func_type == run_context_pb2.SweepFunction.ZIP:
             return cirq.Zip(*factors)
         if func_type == run_context_pb2.SweepFunction.ZIP_LONGEST:
+            return cirq.ZipLongest(*factors)
+        if func_type == run_context_pb2.SweepFunction.CONCAT:
             return cirq.ZipLongest(*factors)
 
         raise ValueError(f'invalid sweep function type: {func_type}')
