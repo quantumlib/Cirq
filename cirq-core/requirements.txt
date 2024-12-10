@@ -6,7 +6,7 @@ matplotlib~=3.0
 networkx>=2.4
 numpy>=1.24
 pandas
-sortedcontainers~=2.0
+sortedcontainers~=2.4
 scipy~=1.8
 sympy
 typing_extensions>=4.2
