@@ -17,6 +17,8 @@ from typing import Iterator
 import pytest
 import sympy
 
+import tunits
+
 import cirq
 from cirq.study import sweeps
 from cirq_google.study import DeviceParameter
@@ -233,3 +235,17 @@ def test_run_context_to_proto(pass_out: bool) -> None:
     assert len(out.parameter_sweeps) == 1
     assert v2.sweep_from_proto(out.parameter_sweeps[0].sweep) == sweep
     assert out.parameter_sweeps[0].repetitions == 100
+
+
+@pytest.mark.parametrize(
+    'sweep',
+    [
+        (cirq.Linspace('tunits_linspace', tunits.ns, 10 * tunits.ns, 15)),
+        (cirq.Points('tunits_points', [tunits.uV, tunits.mV])),
+        (cirq.Points('tunits_const', [tunits.MHz])),
+    ],
+)
+def test_tunits_round_trip(sweep):
+    msg = v2.sweep_to_proto(sweep)
+    recovered = v2.sweep_from_proto(msg)
+    assert sweep == recovered
