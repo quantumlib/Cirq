@@ -184,13 +184,13 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> cirq.Sweep:
                 unit = tunits.Value.from_proto(msg.single_sweep.linspace.unit)
             return cirq.Linspace(
                 key=key,
-                start=msg.single_sweep.linspace.first_point * unit,
-                stop=msg.single_sweep.linspace.last_point * unit,
+                start=msg.single_sweep.linspace.first_point * unit,  # type: ignore[arg-type]
+                stop=msg.single_sweep.linspace.last_point * unit,  # type: ignore[arg-type]
                 length=msg.single_sweep.linspace.num_points,
                 metadata=metadata,
             )
         if msg.single_sweep.WhichOneof('sweep') == 'points':
-            unit: float | tunits.Value = 1.0
+            unit = 1.0
             if msg.single_sweep.points.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.points.unit)
             return cirq.Points(

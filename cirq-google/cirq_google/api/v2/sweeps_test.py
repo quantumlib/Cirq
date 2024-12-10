@@ -240,9 +240,9 @@ def test_run_context_to_proto(pass_out: bool) -> None:
 @pytest.mark.parametrize(
     'sweep',
     [
-        (cirq.Linspace('tunits_linspace', tunits.ns, 10 * tunits.ns, 15)),
-        (cirq.Points('tunits_points', [tunits.uV, tunits.mV])),
-        (cirq.Points('tunits_const', [tunits.MHz])),
+        (cirq.Linspace('tunits_linspace', tunits.ns, 10 * tunits.ns, 15)),  # type: ignore[arg-type]
+        (cirq.Points('tunits_points', [tunits.uV, tunits.mV])),  # type: ignore[arg-type]
+        (cirq.Points('tunits_const', [tunits.MHz])),  # type: ignore[arg-type]
     ],
 )
 def test_tunits_round_trip(sweep):
