@@ -19,8 +19,6 @@
 # We prefer `area/dependencies`, so have to configure Dependabot appropriately.
 # ─────────────────────────────────────────────────────────────────────────────
 
-name: Dependabot for Cirq
-
 version: 2
 updates:
   - package-ecosystem: "docker"
