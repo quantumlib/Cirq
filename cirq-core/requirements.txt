@@ -2,7 +2,7 @@
 
 attrs>=21.3.0
 duet>=0.2.8
-matplotlib~=3.0
+matplotlib~=3.9
 networkx>=2.4
 numpy>=1.24
 pandas
