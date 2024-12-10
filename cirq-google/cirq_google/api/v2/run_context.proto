@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "cirq_google/api/v2/program.proto";
+import "tunits/proto/tunits.proto";
 
 package cirq.google.api.v2;
 
@@ -209,6 +210,8 @@ message SingleSweep {
 message Points {
   // The values.
   repeated float points = 1;
+
+  tunits.Value unit = 2;
 }
 
 // A range of evenly-spaced values.
@@ -225,6 +228,8 @@ message Linspace {
   // greater than zero. If it is 1, the first_point and last_point must be
   // the same.
   int64 num_points = 3;
+
+  tunits.Value unit = 4;
 }
 
 // A constant value.
@@ -236,5 +241,6 @@ message ConstValue {
     float float_value = 2;
     int64 int_value = 3;
     string string_value = 4;
+    tunits.Value with_unit_value = 5;
   }
 }
