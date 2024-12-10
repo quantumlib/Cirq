@@ -24,7 +24,7 @@ name = 'cirq-web'
 description = 'Web-based 3D visualization tools for Cirq.'
 
 # README file as long_description.
-long_description = open('README.rst', encoding='utf-8').read()
+long_description = open('README.md', encoding='utf-8').read()
 
 # If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
 # It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
