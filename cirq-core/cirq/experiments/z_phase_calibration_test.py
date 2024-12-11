@@ -22,6 +22,7 @@ from cirq.experiments.z_phase_calibration import (
     calibrate_z_phases,
     z_phase_calibration_workflow,
     plot_z_phase_calibration_result,
+    transform_circuit,
 )
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 
@@ -205,3 +206,10 @@ def test_plot_z_phase_calibration_result():
     np.testing.assert_allclose(axes[1].lines[0].get_xdata().astype(float), [1, 2, 3])
     np.testing.assert_allclose(axes[1].lines[0].get_ydata().astype(float), [0.6, 0.4, 0.1])
     np.testing.assert_allclose(axes[1].lines[1].get_ydata().astype(float), [0.7, 0.77, 0.8])
+
+
+def test_transform_circuit():
+    c = cirq.Circuit(cirq.CZ(cirq.q(0), cirq.q(1)))
+    replacement_map = {(cirq.q(1), cirq.q(0)): cirq.PhasedFSimGate(0, 1, 2, 3, 4)}
+    new_circuit = transform_circuit(circuit=c, target=cirq.CZ, replacement_map=replacement_map)
+    assert new_circuit == cirq.Circuit(cirq.PhasedFSimGate(0, 1, 2, 3, 4).on(cirq.q(0), cirq.q(1)))
