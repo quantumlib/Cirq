@@ -457,3 +457,21 @@ def _coupled_qubit_pairs(
         add_pair(cirq.GridQubit(qubit.row + 1, qubit.col))
 
     return pairs
+
+
+def test_generate_library_of_2q_circuits_with_tags():
+    circuits = generate_library_of_2q_circuits(
+        n_library_circuits=5,
+        two_qubit_gate=cirq.FSimGate(3, 4),
+        max_cycle_depth=13,
+        random_state=9,
+        tags=('test_tag'),
+    )
+    assert len(circuits) == 5
+    for circuit in circuits:
+        for op in circuit.all_operations():
+            if cirq.num_qubits(op):
+                continue
+            assert isinstance(op, cirq.TaggedOperation)
+            assert op.tags == ('test_tag',)
+            assert op.gate == cirq.FSimGate(3, 4)
