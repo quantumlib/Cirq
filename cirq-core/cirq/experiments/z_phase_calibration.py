@@ -277,9 +277,9 @@ def plot_z_phase_calibration_result(
 @transformer_api.transformer
 def transform_circuit(
     circuit: 'cirq.AbstractCircuit',
+    *,
     target: Union['cirq.Gate', 'cirq.GateFamily', 'cirq.Gateset'],
     replacement_map: Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate'],
-    *,
     context: Optional[transformer_api.TransformerContext] = None,
 ) -> 'cirq.Circuit':
     """Replace every occurance of a calibrated gate with a proper replacement.
