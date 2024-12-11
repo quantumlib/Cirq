@@ -58,6 +58,7 @@ updates:
     # Cirq has requirements.txt files in multiple places. N.b. the use of
     # attribute "directories" instead of "directory" here.
     directories:
+      - "/"
       - "/cirq-aqt"
       - "/cirq-core"
       - "/cirq-google"
