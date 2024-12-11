@@ -275,46 +275,56 @@ def plot_z_phase_calibration_result(
 
 
 @transformer_api.transformer
-def transform_circuit(
-    circuit: 'cirq.AbstractCircuit',
-    *,
-    target: Union['cirq.Gate', 'cirq.GateFamily', 'cirq.Gateset'],
-    replacement_map: Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate'],
-    context: Optional[transformer_api.TransformerContext] = None,
-) -> 'cirq.Circuit':
-    """Replace every occurance of a calibrated gate with a proper replacement.
+class CalibrationTransformer:
 
-    Args:
-        circuit: Circuit to transform.
-        target: The target gate, GateFamily or Gateset. Any gate matching this
-            will be replaced based on the content of `replacement_map`.
-        replacement_map:
-            A map mapping qubit pairs to calibrated gates. This is the output of
-            calling `calibrate_z_phases`.
-        context: Optional transformer context (not used).
+    def __init__(
+        self,
+        target: Union['cirq.Gate', 'cirq.GateFamily', 'cirq.Gateset'],
+        replacement_map: Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate'],
+    ):
+        """Create a CalibrationTransformer that replaces gates matching `target`.
 
-    Returns:
-        New circuit with each gate matching `target` and acting on a pair
-            in `replacement_map` replaced by the gate pointed to by `replacement_map`.
-    """
-    if isinstance(target, ops.Gate):
-        target = ops.GateFamily(target)
+        Args:
+            target: The target gate, GateFamily or Gateset. Any gate matching this
+                will be replaced based on the content of `replacement_map`.
+            replacement_map:
+                A map mapping qubit pairs to calibrated gates. This is the output of
+                calling `calibrate_z_phases`.
+        """
+        self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
+        self.replacement_map = replacement_map
 
-    new_moments = []
-    for moment in circuit:
-        new_moment = []
-        for op in moment:
-            if op not in target:
-                # not a target.
-                new_moment.append(op)
-                continue
-            gate = replacement_map.get(op.qubits, None) or replacement_map.get(
-                op.qubits[::-1], None
-            )
-            if gate is None:
-                # no calibrated version exist
-                new_moment.append(op)
-                continue
-            new_moment.append(gate(*op.qubits))
-        new_moments.append(new_moment)
-    return circuits.Circuit.from_moments(*new_moments)
+    def __call__(
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        *,
+        context: Optional[transformer_api.TransformerContext] = None,
+    ) -> 'cirq.Circuit':
+        """Replace every occurance of a calibrated gate with a proper replacement.
+
+        Args:
+            circuit: Circuit to transform.
+            context: Optional transformer context (not used).
+
+        Returns:
+            New circuit with each gate matching `target` and acting on a pair
+                in `replacement_map` replaced by the gate pointed to by `replacement_map`.
+        """
+        new_moments = []
+        for moment in circuit:
+            new_moment = []
+            for op in moment:
+                if op not in self.target:
+                    # not a target.
+                    new_moment.append(op)
+                    continue
+                gate = self.replacement_map.get(op.qubits, None) or self.replacement_map.get(
+                    op.qubits[::-1], None
+                )
+                if gate is None:
+                    # no calibrated version exist
+                    new_moment.append(op)
+                    continue
+                new_moment.append(gate(*op.qubits))
+            new_moments.append(new_moment)
+        return circuits.Circuit.from_moments(*new_moments)
