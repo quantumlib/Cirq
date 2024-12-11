@@ -985,6 +985,7 @@ class _InverseCompositeGate(Gate):
 
     def __init__(self, original: Gate) -> None:
         self._original = original
+        self.val = original
 
     def _qid_shape_(self):
         return protocols.qid_shape(self._original)
@@ -1045,6 +1046,9 @@ class _InverseCompositeGate(Gate):
 
     def __str__(self) -> str:
         return f'{self._original!s}†'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, attribute_names=["val"])
 
 
 def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
