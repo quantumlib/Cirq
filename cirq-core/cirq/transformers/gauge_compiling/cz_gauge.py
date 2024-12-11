@@ -14,6 +14,8 @@
 
 """A Gauge Transformer for the CZ gate."""
 
+from typing import Dict, List
+
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeTransformer,
     GaugeSelector,
@@ -22,24 +24,31 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
 from cirq.ops.common_gates import CZ
 from cirq import ops
 
+_gauge_parameters: List[Dict[str, ops.Gate]] = [
+    {"pre_q0": ops.I, "pre_q1": ops.I, "post_q0": ops.I, "post_q1": ops.I},
+    {"pre_q0": ops.I, "pre_q1": ops.X, "post_q0": ops.Z, "post_q1": ops.X},
+    {"pre_q0": ops.I, "pre_q1": ops.Y, "post_q0": ops.Z, "post_q1": ops.Y},
+    {"pre_q0": ops.I, "pre_q1": ops.Z, "post_q0": ops.I, "post_q1": ops.Z},
+    {"pre_q0": ops.X, "pre_q1": ops.I, "post_q0": ops.X, "post_q1": ops.Z},
+    {"pre_q0": ops.X, "pre_q1": ops.X, "post_q0": ops.Y, "post_q1": ops.Y},
+    {"pre_q0": ops.X, "pre_q1": ops.Y, "post_q0": ops.Y, "post_q1": ops.X},
+    {"pre_q0": ops.X, "pre_q1": ops.Z, "post_q0": ops.X, "post_q1": ops.I},
+    {"pre_q0": ops.Y, "pre_q1": ops.I, "post_q0": ops.Y, "post_q1": ops.Z},
+    {"pre_q0": ops.Y, "pre_q1": ops.X, "post_q0": ops.X, "post_q1": ops.Y},
+    {"pre_q0": ops.Y, "pre_q1": ops.Y, "post_q0": ops.X, "post_q1": ops.X},
+    {"pre_q0": ops.Y, "pre_q1": ops.Z, "post_q0": ops.Y, "post_q1": ops.I},
+    {"pre_q0": ops.Z, "pre_q1": ops.I, "post_q0": ops.Z, "post_q1": ops.I},
+    {"pre_q0": ops.Z, "pre_q1": ops.X, "post_q0": ops.I, "post_q1": ops.X},
+    {"pre_q0": ops.Z, "pre_q1": ops.Y, "post_q0": ops.I, "post_q1": ops.Y},
+    {"pre_q0": ops.Z, "pre_q1": ops.Z, "post_q0": ops.Z, "post_q1": ops.Z},
+]
+
 CZGaugeSelector = GaugeSelector(
     gauges=[
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.I, pre_q1=ops.I, post_q0=ops.I, post_q1=ops.I),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.I, pre_q1=ops.X, post_q0=ops.Z, post_q1=ops.X),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.I, pre_q1=ops.Y, post_q0=ops.Z, post_q1=ops.Y),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.I, pre_q1=ops.Z, post_q0=ops.I, post_q1=ops.Z),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.X, pre_q1=ops.I, post_q0=ops.X, post_q1=ops.Z),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.X, pre_q1=ops.X, post_q0=ops.Y, post_q1=ops.Y),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.X, pre_q1=ops.Y, post_q0=ops.Y, post_q1=ops.X),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.X, pre_q1=ops.Z, post_q0=ops.X, post_q1=ops.I),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.Y, pre_q1=ops.I, post_q0=ops.Y, post_q1=ops.Z),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.Y, pre_q1=ops.X, post_q0=ops.X, post_q1=ops.Y),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.Y, pre_q1=ops.Y, post_q0=ops.X, post_q1=ops.X),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.Y, pre_q1=ops.Z, post_q0=ops.Y, post_q1=ops.I),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.Z, pre_q1=ops.I, post_q0=ops.Z, post_q1=ops.I),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.Z, pre_q1=ops.X, post_q0=ops.I, post_q1=ops.X),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.Z, pre_q1=ops.Y, post_q0=ops.I, post_q1=ops.Y),
-        ConstantGauge(two_qubit_gate=CZ, pre_q0=ops.Z, pre_q1=ops.Z, post_q0=ops.Z, post_q1=ops.Z),
+        ConstantGauge(
+            two_qubit_gate=CZ, **params, swap_qubits=False, support_randomized_compiling=True
+        )
+        for params in _gauge_parameters
     ]
 )
 
