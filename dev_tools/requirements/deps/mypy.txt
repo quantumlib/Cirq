@@ -1,5 +1,5 @@
 # the mypy dependency file
-mypy==1.11.1
+mypy==1.13.0
 
 # packages with stub types for various libraries
 types-protobuf>=3.20.0
