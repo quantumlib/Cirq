@@ -291,7 +291,7 @@ class CalibrationTransformer:
 
     def __init__(
         self,
-        target: 'Cirq.Gate',
+        target: 'cirq.Gate',
         calibration_map: Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate'],
     ):
         """Create a CalibrationTransformer that replaces gates matching `target`.
