@@ -212,4 +212,6 @@ def test_transform_circuit():
     c = cirq.Circuit(cirq.CZ(cirq.q(0), cirq.q(1)))
     replacement_map = {(cirq.q(1), cirq.q(0)): cirq.PhasedFSimGate(0, 1, 2, 3, 4)}
     new_circuit = CalibrationTransformer(cirq.CZ, replacement_map)(c)
-    assert new_circuit == cirq.Circuit(cirq.PhasedFSimGate(0, 1, 2, 3, 4).on(cirq.q(0), cirq.q(1)))
+    assert new_circuit == cirq.Circuit(
+        cirq.PhasedFSimGate(0, -1, -2, -3, 2 * np.pi - 4).on(cirq.q(0), cirq.q(1))
+    )

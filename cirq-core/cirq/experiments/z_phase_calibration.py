@@ -23,7 +23,7 @@ import numpy as np
 from cirq.experiments import xeb_fitting
 from cirq.experiments.two_qubit_xeb import parallel_xeb_workflow
 from cirq.transformers import transformer_api
-from cirq import ops, circuits
+from cirq import ops, circuits, protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -279,20 +279,27 @@ class CalibrationTransformer:
 
     def __init__(
         self,
-        target: Union['cirq.Gate', 'cirq.GateFamily', 'cirq.Gateset'],
-        replacement_map: Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate'],
+        target: 'Cirq.Gate',
+        calibration_map: Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate'],
     ):
         """Create a CalibrationTransformer that replaces gates matching `target`.
 
         Args:
-            target: The target gate, GateFamily or Gateset. Any gate matching this
-                will be replaced based on the content of `replacement_map`.
-            replacement_map:
+            target: The target gate. Any gate matching this
+                will be replaced based on the content of `calibration_map`.
+            calibration_map:
                 A map mapping qubit pairs to calibrated gates. This is the output of
                 calling `calibrate_z_phases`.
         """
-        self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
-        self.replacement_map = replacement_map
+        self.target = target
+        self.target_as_fsim = (
+            target
+            if isinstance(target, ops.PhasedFSimGate)
+            else ops.PhasedFSimGate.from_matrix(protocols.unitary(target))
+        )
+        if self.target is None:
+            raise ValueError(f"{target} is not equivalent to a PhasedFSimGate")
+        self.calibration_map = calibration_map
 
     def __call__(
         self,
@@ -308,23 +315,35 @@ class CalibrationTransformer:
 
         Returns:
             New circuit with each gate matching `target` and acting on a pair
-                in `replacement_map` replaced by the gate pointed to by `replacement_map`.
+                in `calibration_map` replaced by the gate that cancels the effect of z-phases.
         """
         new_moments = []
         for moment in circuit:
             new_moment = []
             for op in moment:
-                if op not in self.target:
+                if op.gate != self.target:
                     # not a target.
                     new_moment.append(op)
                     continue
-                gate = self.replacement_map.get(op.qubits, None) or self.replacement_map.get(
+                gate = self.calibration_map.get(op.qubits, None) or self.calibration_map.get(
                     op.qubits[::-1], None
                 )
                 if gate is None:
                     # no calibrated version exist
                     new_moment.append(op)
                     continue
-                new_moment.append(gate(*op.qubits))
+                delta_theta = gate.theta - self.target_as_fsim.theta
+                delta_phi = gate.phi - self.target_as_fsim.phi
+                delta_chi = gate.chi - self.target_as_fsim.chi
+                delta_zeta = gate.zeta - self.target_as_fsim.zeta
+                delta_gamma = gate.gamma - self.target_as_fsim.gamma
+                new_gate = ops.PhasedFSimGate(
+                    theta=self.target_as_fsim.theta - delta_theta,
+                    gamma=self.target_as_fsim.gamma - delta_gamma,
+                    phi=self.target_as_fsim.phi - delta_phi,
+                    zeta=self.target_as_fsim.zeta - delta_zeta,
+                    chi=self.target_as_fsim.chi - delta_chi,
+                )
+                new_moment.append(new_gate(*op.qubits))
             new_moments.append(new_moment)
         return circuits.Circuit.from_moments(*new_moments)
