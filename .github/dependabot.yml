@@ -22,6 +22,8 @@
 version: 2
 updates:
   - package-ecosystem: "docker"
+    # The "docker" ecosystem directive makes Dependabot look for a Dockerfile
+    # in the specified directory.
     directory: "/"
     schedule:
       interval: "weekly"
@@ -31,6 +33,8 @@ updates:
       - "kind/health"
 
   - package-ecosystem: "github-actions"
+    # The "github-actions" code explicitly looks in /.github/workflows if the
+    # value "/" is given for the directory attribute. Yes, that's confusing.
     directory: "/"
     schedule:
       interval: "weekly"
@@ -40,7 +44,9 @@ updates:
       - "kind/health"
 
   - package-ecosystem: "npm"
-    directory: "/"
+    # The "npm" ecosystem directive makes Dependabot look for package.json in
+    # the specified directory.
+    directory: "/cirq-web/cirq_ts/"
     schedule:
       interval: "weekly"
     labels:
@@ -49,9 +55,21 @@ updates:
       - "kind/health"
 
   - package-ecosystem: "pip"
-    directory: "/"
+    # Cirq has requirements.txt files in multiple places. N.b. the use of
+    # attribute "directories" instead of "directory" here.
+    directories:
+      - "/"
+      - "/cirq-aqt"
+      - "/cirq-core"
+      - "/cirq-google"
+      - "/cirq-ionq"
+      - "/cirq-pasqal"
+      - "/cirq-rigetti"
+      - "/cirq-web"
+      - "/dev_tools/requirements"
     schedule:
       interval: "weekly"
+    versioning-strategy: "increase-if-necessary"
     labels:
       - "area/dependencies"
       - "area/python"
