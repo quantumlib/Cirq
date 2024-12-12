@@ -304,12 +304,11 @@ class CalibrationTransformer:
                 calling `calibrate_z_phases`.
         """
         self.target = target
-        self.target_as_fsim = (
-            target
-            if isinstance(target, ops.PhasedFSimGate)
-            else ops.PhasedFSimGate.from_matrix(protocols.unitary(target))
-        )
-        if self.target is None:
+        if isinstance(target, ops.PhasedFSimGate):
+            self.target_as_fsim = target
+        elif (gate := ops.PhasedFSimGate.from_matrix(protocols.unitary(target))) is not None:
+            self.target_as_fsim = gate
+        else:
             raise ValueError(f"{target} is not equivalent to a PhasedFSimGate")
         self.calibration_map = calibration_map
 
