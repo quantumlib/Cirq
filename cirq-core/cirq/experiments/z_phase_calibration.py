@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
-from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING
+from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING, Any
 import multiprocessing
 import multiprocessing.pool
 
@@ -42,6 +42,8 @@ def z_phase_calibration_workflow(
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
     num_workers_or_pool: Union[int, 'multiprocessing.pool.Pool'] = -1,
+    pairs: Optional[Sequence[Tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
+    tags: Sequence[Any] = (),
 ) -> Tuple[xeb_fitting.XEBCharacterizationResult, 'pd.DataFrame']:
     """Perform z-phase calibration for excitation-preserving gates.
 
@@ -78,6 +80,8 @@ def z_phase_calibration_workflow(
             A zero value means no multiprocessing.
             A positive integer value will create a pool with the given number of workers.
             A negative value will create pool with maximum number of workers.
+        pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
+        tags: Tags to add to two qubit operations.
     Returns:
         - An `XEBCharacterizationResult` object that contains the calibration result.
         - A `pd.DataFrame` comparing the before and after fidelities.
@@ -101,6 +105,8 @@ def z_phase_calibration_workflow(
         n_combinations=n_combinations,
         random_state=random_state,
         pool=pool,
+        tags=tags,
+        pairs=pairs,
     )
 
     if options is None:
@@ -149,6 +155,8 @@ def calibrate_z_phases(
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     atol: float = 1e-3,
     num_workers_or_pool: Union[int, 'multiprocessing.pool.Pool'] = -1,
+    pairs: Optional[Sequence[Tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
+    tags: Sequence[Any] = (),
 ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate']:
     """Perform z-phase calibration for excitation-preserving gates.
 
@@ -185,6 +193,8 @@ def calibrate_z_phases(
             A zero value means no multiprocessing.
             A positive integer value will create a pool with the given number of workers.
             A negative value will create pool with maximum number of workers.
+        pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
+        tags: Tags to add to two qubit operations.
 
     Returns:
         - A dictionary mapping qubit pairs to the calibrated PhasedFSimGates.
@@ -211,6 +221,8 @@ def calibrate_z_phases(
         random_state=random_state,
         atol=atol,
         num_workers_or_pool=num_workers_or_pool,
+        tags=tags,
+        pairs=pairs,
     )
 
     gates = {}
