@@ -325,6 +325,7 @@ class CalibrationTransformer:
                     # not a target.
                     new_moment.append(op)
                     continue
+                assert len(op.qubits) == 2
                 gate = self.calibration_map.get(op.qubits, None) or self.calibration_map.get(
                     op.qubits[::-1], None
                 )
