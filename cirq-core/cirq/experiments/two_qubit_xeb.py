@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides functions for running and analyzing two-qubit XEB experiments."""
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping, Any
 
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -402,6 +402,7 @@ def parallel_xeb_workflow(
     pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
     batch_size: int = 9,
+    tags: Sequence[Any] = (),
     **plot_kwargs,
 ) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
@@ -422,6 +423,7 @@ def parallel_xeb_workflow(
         batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
+        tags: Tags to add to two qubit operations.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
     Returns:
@@ -450,6 +452,7 @@ def parallel_xeb_workflow(
         two_qubit_gate=entangling_gate,
         random_state=rs,
         max_cycle_depth=max(cycle_depths),
+        tags=tags,
     )
 
     combs_by_layer = rqcg.get_random_combinations_for_device(
@@ -488,6 +491,7 @@ def parallel_two_qubit_xeb(
     ax: Optional[plt.Axes] = None,
     pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
     batch_size: int = 9,
+    tags: Sequence[Any] = (),
     **plot_kwargs,
 ) -> TwoQubitXEBResult:
     """A convenience method that runs the full XEB workflow.
@@ -507,6 +511,7 @@ def parallel_two_qubit_xeb(
         batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
+        tags: Tags to add to two qubit operations.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
     Returns:
         A TwoQubitXEBResult object representing the results of the experiment.
@@ -525,6 +530,7 @@ def parallel_two_qubit_xeb(
         random_state=random_state,
         ax=ax,
         batch_size=batch_size,
+        tags=tags,
         **plot_kwargs,
     )
     return TwoQubitXEBResult(fit_exponential_decays(fids))
@@ -544,6 +550,7 @@ def run_rb_and_xeb(
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
     batch_size: int = 9,
+    tags: Sequence[Any] = (),
 ) -> InferredXEBResult:
     """A convenience method that runs both RB and XEB workflows.
 
@@ -561,6 +568,7 @@ def run_rb_and_xeb(
         batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
+        tags: Tags to add to two qubit operations.
 
     Returns:
         An InferredXEBResult object representing the results of the experiment.
@@ -590,6 +598,7 @@ def run_rb_and_xeb(
         n_combinations=xeb_combinations,
         random_state=random_state,
         batch_size=batch_size,
+        tags=tags,
     )
 
     return InferredXEBResult(rb, xeb)
