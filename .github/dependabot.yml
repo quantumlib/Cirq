@@ -69,7 +69,7 @@ updates:
       - "/dev_tools/requirements"
     schedule:
       interval: "weekly"
-    versioning-strategy: "widen"
+    versioning-strategy: "increase-if-necessary"
     labels:
       - "area/dependencies"
       - "area/python"
