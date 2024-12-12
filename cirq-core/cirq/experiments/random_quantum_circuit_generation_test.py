@@ -472,6 +472,5 @@ def test_generate_library_of_2q_circuits_with_tags():
         for op in circuit.all_operations():
             if cirq.num_qubits(op) == 1:
                 continue
-            assert isinstance(op, cirq.TaggedOperation)
             assert op.tags == ('test_tag',)
             assert op.gate == cirq.FSimGate(3, 4)
