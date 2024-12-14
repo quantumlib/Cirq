@@ -286,6 +286,15 @@ def plot_z_phase_calibration_result(
     return axes
 
 
+def _z_angles(old: ops.PhasedFSimGate, new: ops.PhasedFSimGate) -> Tuple[float, float, float]:
+    """Computes a set of possible 3 z-phases that result in the change in gamma, zeta, and chi."""
+    # This procedure is the inverse of PhasedFSimGate.from_fsim_rz
+    delta_gamma = new.gamma - old.gamma
+    delta_zeta = new.zeta - old.zeta
+    delta_chi = new.chi - old.chi
+    return (-delta_gamma + delta_chi, -delta_gamma - delta_zeta, delta_zeta - delta_chi)
+
+
 @transformer_api.transformer
 class CalibrationTransformer:
 
@@ -294,7 +303,10 @@ class CalibrationTransformer:
         target: 'cirq.Gate',
         calibration_map: Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate'],
     ):
-        """Create a CalibrationTransformer that replaces gates matching `target`.
+        """Create a CalibrationTransformer.
+
+        The transformer adds 3 ZPowGates around each calibrated gate to cancel the
+        effect of z-phases.
 
         Args:
             target: The target gate. Any gate matching this
@@ -318,44 +330,38 @@ class CalibrationTransformer:
         *,
         context: Optional[transformer_api.TransformerContext] = None,
     ) -> 'cirq.Circuit':
-        """Replace every occurance of a calibrated gate with a proper replacement.
+        """Adds 3 ZPowGates around each calibrated gate to cancel the effect of Z phases.
 
         Args:
             circuit: Circuit to transform.
             context: Optional transformer context (not used).
 
         Returns:
-            New circuit with each gate matching `target` and acting on a pair
-                in `calibration_map` replaced by the gate that cancels the effect of z-phases.
+            New circuit with the extra ZPowGates.
         """
         new_moments = []
         for moment in circuit:
-            new_moment = []
+            before = []
+            after = []
             for op in moment:
                 if op.gate != self.target:
                     # not a target.
-                    new_moment.append(op)
                     continue
                 assert len(op.qubits) == 2
                 gate = self.calibration_map.get(op.qubits, None) or self.calibration_map.get(
                     op.qubits[::-1], None
                 )
                 if gate is None:
-                    # no calibrated version exist
-                    new_moment.append(op)
+                    # no calibration available.
                     continue
-                delta_theta = gate.theta - self.target_as_fsim.theta
-                delta_phi = gate.phi - self.target_as_fsim.phi
-                delta_chi = gate.chi - self.target_as_fsim.chi
-                delta_zeta = gate.zeta - self.target_as_fsim.zeta
-                delta_gamma = gate.gamma - self.target_as_fsim.gamma
-                new_gate = ops.PhasedFSimGate(
-                    theta=self.target_as_fsim.theta - delta_theta,
-                    gamma=self.target_as_fsim.gamma - delta_gamma,
-                    phi=self.target_as_fsim.phi - delta_phi,
-                    zeta=self.target_as_fsim.zeta - delta_zeta,
-                    chi=self.target_as_fsim.chi - delta_chi,
-                )
-                new_moment.append(new_gate(*op.qubits))
-            new_moments.append(new_moment)
+                angles = np.array(_z_angles(self.target_as_fsim, gate)) / np.pi
+                angles = -angles  # Take the negative to cancel the effect.
+                before.append(ops.Z(op.qubits[0]) ** angles[0])
+                before.append(ops.Z(op.qubits[1]) ** angles[1])
+                after.append(ops.Z(op.qubits[0]) ** angles[2])
+            if before:
+                new_moments.append(before)
+            new_moments.append(moment)
+            if after:
+                new_moments.append(after)
         return circuits.Circuit.from_moments(*new_moments)
