@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
 import shutil
 import sys
@@ -18,12 +19,21 @@ import tempfile
 import uuid
 from pathlib import Path
 from typing import Tuple
+from unittest import mock
 
 import pytest
 from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_local_gcloud_credentials(tmp_path_factory):
+    # Ensure tests cannot authenticate to production servers with user credentials
+    empty_dir = tmp_path_factory.mktemp("empty_gcloud_config", numbered=False)
+    with mock.patch.dict(os.environ, {"CLOUDSDK_CONFIG": str(empty_dir)}):
+        yield
 
 
 @pytest.fixture(scope="session")
