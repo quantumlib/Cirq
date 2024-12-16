@@ -161,7 +161,6 @@ def measure_density_matrix(
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(density_matrix, indices, qid_shape)
-    probs = np.clip(probs, 0, 1)
     result = prng.choice(len(probs), p=probs)
     measurement_bits = value.big_endian_int_to_digits(result, base=meas_shape)
 
