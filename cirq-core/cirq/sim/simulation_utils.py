@@ -56,4 +56,6 @@ def state_probabilities_by_indices(
         probs = np.sum(probs, axis=-1)
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    return np.clip(probs / np.sum(probs), 0, 1)
+    probs.clip(0, None, out=probs)
+    probs /= probs.sum()
+    return probs
