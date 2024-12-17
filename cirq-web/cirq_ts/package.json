@@ -8,7 +8,7 @@
     "@types/looks-same": "^4.1.0",
     "gts": "^3.1.1",
     "live-server": "^1.2.2",
-    "tsc-watch": "^4.2.9",
+    "tsc-watch": "^6.2.1",
     "typescript": "^4.2.4"
   },
   "devDependencies": {
