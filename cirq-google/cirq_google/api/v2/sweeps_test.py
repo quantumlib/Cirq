@@ -272,6 +272,8 @@ def test_sweep_from_proto_with_func_succeeds(sweep):
         for idx, point in enumerate(sweep.points):
             sweep.points[idx] = point * tunits.ns
 
+        return sweep
+
     msg = v2.sweep_to_proto(sweep)
     sweep = v2.sweep_from_proto(msg, func=add_tunit_func)
 
