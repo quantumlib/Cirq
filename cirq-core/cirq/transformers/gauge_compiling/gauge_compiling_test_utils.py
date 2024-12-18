@@ -26,8 +26,8 @@ class GaugeTester:
 
     two_qubit_gate: cirq.Gate
     gauge_transformer: GaugeTransformer
-    test_randomized_compiling: bool = False
     must_fail: bool = False
+    enable_test_sweep: bool = False
 
     @pytest.mark.parametrize(
         ['generation_seed', 'transformation_seed'],
@@ -55,27 +55,6 @@ class GaugeTester:
                 nc, c, qubit_map={q: q for q in c.all_qubits()}
             )
 
-        # Test randomized compiling
-        if self.test_randomized_compiling:
-            c.append(cirq.Moment([cirq.measure(q) for q in c.all_qubits()]))
-            N_samples = 5
-            randomized_compiled_circuit, N_params = self.gauge_transformer.randomized_compiling(
-                c, N=N_samples, prng=np.random.default_rng(transformation_seed)
-            )
-            # Check the randomized compiling returns a parameterized circuit and N set of
-            # parameters.
-            assert cirq.is_parameterized(randomized_compiled_circuit)
-            simulator = cirq.Simulator()
-            results = simulator.run_sweep(randomized_compiled_circuit, N_params)
-            assert len(results) == N_samples
-
-            # Check compilied circuits have the same unitary as the orig circuit.
-            for params in N_params:
-                nc = cirq.resolve_parameters(randomized_compiled_circuit, params)
-                cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-                    nc[:-1], c[:-1], qubit_map={q: q for q in c.all_qubits()}
-                )
-
     @patch('cirq.transformers.gauge_compiling.gauge_compiling._select', autospec=True)
     @pytest.mark.parametrize('seed', range(5))
     def test_all_gauges(self, mock_select, seed):
@@ -94,6 +73,45 @@ class GaugeTester:
                     _check_equivalent_with_error_message(c, nc, gauge)
             else:
                 _check_equivalent_with_error_message(c, nc, gauge)
+
+    def test_sweep(self):
+        a = cirq.NamedQubit('a')
+        b = cirq.NamedQubit('b')
+        c = cirq.NamedQubit('c')
+
+        input_circuit = cirq.Circuit(
+            cirq.Moment(cirq.H(a)),
+            cirq.Moment(self.two_qubit_gate(a, b)),
+            cirq.Moment(self.two_qubit_gate(b, c)),
+            cirq.Moment(self.two_qubit_gate(a, c)),
+            cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
+            cirq.Moment([cirq.measure(q) for q in [a, b, c]]),
+        )
+
+        supported_gates: set[cirq.Gate] = {cirq.CZ}
+
+        if self.two_qubit_gate not in supported_gates:
+            with pytest.raises(NotImplementedError):
+                self.gauge_transformer.as_sweep(input_circuit, N=1)
+            return
+
+        n_samples = 5
+        parameterized_circuit, sweeps = self.gauge_transformer.as_sweep(input_circuit, N=n_samples)
+
+        # Check the parameterized circuit and N set of parameters.
+        assert cirq.is_parameterized(parameterized_circuit)
+        simulator = cirq.Simulator()
+        results = simulator.run_sweep(parameterized_circuit, sweeps)
+        assert len(results) == n_samples
+
+        # Check compilied circuits have the same unitary as the orig circuit.
+        for params in sweeps:
+            compiled_circuit = cirq.resolve_parameters(parameterized_circuit, params)
+            cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                input_circuit[:-1],
+                compiled_circuit[:-1],
+                qubit_map={q: q for q in input_circuit.all_qubits()},
+            )
 
 
 def _check_equivalent_with_error_message(c: cirq.AbstractCircuit, nc: cirq.AbstractCircuit, gauge):
