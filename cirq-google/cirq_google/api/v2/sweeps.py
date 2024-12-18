@@ -98,7 +98,7 @@ def sweep_to_proto(
     elif isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
         if func:
             try:
-                copied_linspace = func(copy.deepcopy(sweep))
+                copied_linspace: cirq.Linspace = func(copy.deepcopy(sweep))
                 sweep = copied_linspace
             except Exception as e:
                 print(
@@ -127,7 +127,7 @@ def sweep_to_proto(
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         if func:
             try:
-                copied_points = func(copy.deepcopy(sweep))
+                copied_points: cirq.Points = func(copy.deepcopy(sweep))
                 sweep = copied_points
             except Exception as e:
                 print(
@@ -242,8 +242,7 @@ def sweep_from_proto(
         # no exceptions cirq.Point is modified.
         try:
             if func and sweep:
-                copied_sweep = copy.deepcopy(sweep)
-                func(copied_sweep)
+                copied_sweep = func(copy.deepcopy(sweep))
                 return copied_sweep
         except Exception as e:
             print(
