@@ -99,14 +99,14 @@ def sweep_to_proto(
         if func:
             try:
                 copied_linspace: cirq.Sweep = func(copy.deepcopy(sweep))
-                sweep = copied_linspace
+                sweep = cast(cirq.Linspace, copied_linspace)
             except Exception as e:
                 print(
                     f"The function {func} was not applied to {sweep}."
                     f" because there was an exception thrown: {str(e)}."
                 )
 
-        out.single_sweep.parameter_key = sweep.key  # type: ignore[attr-defined]
+        out.single_sweep.parameter_key = sweep.key
         if isinstance(sweep.start, tunits.Value):
             unit = sweep.start.unit
             out.single_sweep.linspace.first_point = sweep.start[unit]
@@ -128,7 +128,7 @@ def sweep_to_proto(
         if func:
             try:
                 copied_points: cirq.Sweep = func(copy.deepcopy(sweep))
-                sweep = copied_points
+                sweep = cast(cirq.Points, copied_points)
             except Exception as e:
                 print(
                     f"The function {func} was not applied to {sweep}."

@@ -155,8 +155,8 @@ def test_sweep_to_proto_points():
 
 def test_sweep_to_proto_with_simple_func_succeeds():
     def func(sweep: cirq.Sweep):
-        for idx, point in enumerate(sweep.points):
-            sweep.points[idx] = point + 3
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point + 3 for point in sweep.points]
 
         return sweep
 
@@ -168,7 +168,7 @@ def test_sweep_to_proto_with_simple_func_succeeds():
 
 def test_sweep_to_proto_with_func_linspace():
     def func(sweep: cirq.Sweep):
-        return cirq.Linspace('foo', 3 * tunits.ns, 6 * tunits.ns, 3)
+        return cirq.Linspace('foo', 3 * tunits.ns, 6 * tunits.ns, 3)  # type: ignore[arg-type]
 
     sweep = cirq.Linspace('foo', start=1, stop=3, length=3)
     proto = v2.sweep_to_proto(sweep, func=func)
@@ -180,8 +180,9 @@ def test_sweep_to_proto_with_func_linspace():
 
 def test_sweep_to_proto_with_func_const_value():
     def func(sweep: cirq.Sweep):
-        for idx, point in enumerate(sweep.points):
-            sweep.points[idx] = int(point + 3)
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point + 3 for point in sweep.points]
+
         return sweep
 
     sweep = cirq.Points('foo', points=[1])
@@ -193,8 +194,8 @@ def test_sweep_to_proto_with_func_const_value():
 @pytest.mark.parametrize('sweep', [(cirq.Points('foo', [1, 2, 3])), (cirq.Points('foo', [1]))])
 def test_sweep_to_proto_with_func_round_trip(sweep):
     def add_tunit_func(sweep: cirq.Sweep):
-        for idx, point in enumerate(sweep.points):
-            sweep.points[idx] = point * tunits.ns
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point * tunits.ns for point in sweep.points]  # type: ignore[misc]
 
         return sweep
 
@@ -269,8 +270,8 @@ def test_sweep_from_proto_single_sweep_type_not_set():
 @pytest.mark.parametrize('sweep', [cirq.Points('foo', [1, 2, 3]), cirq.Points('foo', [1])])
 def test_sweep_from_proto_with_func_succeeds(sweep):
     def add_tunit_func(sweep: cirq.Sweep):
-        for idx, point in enumerate(sweep.points):
-            sweep.points[idx] = point * tunits.ns
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point * tunits.ns for point in sweep.points]  # type: ignore[misc]
 
         return sweep
 
