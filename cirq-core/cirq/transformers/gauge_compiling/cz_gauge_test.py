@@ -21,4 +21,4 @@ from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTe
 class TestCZGauge(GaugeTester):
     two_qubit_gate = cirq.CZ
     gauge_transformer = CZGaugeTransformer
-    test_randomized_compiling = True
+    enable_test_sweep = True

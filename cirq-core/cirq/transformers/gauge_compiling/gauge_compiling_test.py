@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest.mock
 import pytest
 import numpy as np
 import cirq
@@ -21,6 +22,7 @@ from cirq.transformers.gauge_compiling import (
     ConstantGauge,
     GaugeSelector,
 )
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 
 def test_deep_transformation_not_supported():
@@ -31,7 +33,7 @@ def test_deep_transformation_not_supported():
         )
 
     with pytest.raises(ValueError, match="cannot be used with deep=True"):
-        _ = GaugeTransformer(target=cirq.CZ, gauge_selector=lambda _: None).randomized_compiling(
+        _ = GaugeTransformer(target=cirq.CZ, gauge_selector=lambda _: None).as_sweep(
             cirq.Circuit(), context=cirq.TransformerContext(deep=True), N=1
         )
 
@@ -39,7 +41,7 @@ def test_deep_transformation_not_supported():
 def test_ignore_tags():
     c = cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2)).with_tags('foo'))
     assert c == CZGaugeTransformer(c, context=cirq.TransformerContext(tags_to_ignore={"foo"}))
-    parameterized_circuit, _ = CZGaugeTransformer.randomized_compiling(
+    parameterized_circuit, _ = CZGaugeTransformer.as_sweep(
         c, context=cirq.TransformerContext(tags_to_ignore={"foo"}), N=1
     )
     assert c == parameterized_circuit
@@ -55,15 +57,42 @@ def test_target_can_be_gateset():
     assert transformer(c, prng=np.random.default_rng(0)) == want
 
 
-def test_randomized_compiling_multi_pre_or_multi_post_moments_not_supported():
-    unsupported_transfomer = GaugeTransformer(
+def test_as_sweep_multi_pre_or_multi_post():
+    transformer = GaugeTransformer(
         target=cirq.CZ,
         gauge_selector=GaugeSelector(
             gauges=[
                 ConstantGauge(
                     two_qubit_gate=cirq.CZ,
-                    support_randomized_compiling=True,
-                    pre_q0=[cirq.X, cirq.Y],
+                    support_sweep=True,
+                    pre_q0=[cirq.X, cirq.X],
+                    post_q0=[cirq.Z],
+                    pre_q1=[cirq.Y],
+                    post_q1=[cirq.Y, cirq.Y, cirq.Y],
+                )
+            ]
+        ),
+    )
+    qs = cirq.LineQubit.range(2)
+    input_circuit = cirq.Circuit(cirq.CZ(*qs))
+    parameterized_circuit, sweeps = transformer.as_sweep(input_circuit, N=1)
+
+    for params in sweeps:
+        compiled_circuit = cirq.resolve_parameters(parameterized_circuit, params)
+        cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+            input_circuit, compiled_circuit, qubit_map={q: q for q in input_circuit.all_qubits()}
+        )
+
+
+def test_as_sweep_invalid_gauge_sequence():
+    transfomer = GaugeTransformer(
+        target=cirq.CZ,
+        gauge_selector=GaugeSelector(
+            gauges=[
+                ConstantGauge(
+                    two_qubit_gate=cirq.CZ,
+                    support_sweep=True,
+                    pre_q0=[cirq.measure],
                     post_q0=[cirq.Z],
                     pre_q1=[cirq.X],
                     post_q1=[cirq.Z],
@@ -73,34 +102,24 @@ def test_randomized_compiling_multi_pre_or_multi_post_moments_not_supported():
     )
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZ(*qs))
-    with pytest.raises(ValueError, match="generated more than 1 pre_q0 gates. Expect 1."):
-        unsupported_transfomer.randomized_compiling(c, N=1)
+    with pytest.raises(ValueError, match="Invalid gate sequence to be converted to PhasedXZGate."):
+        transfomer.as_sweep(c, N=1)
 
 
-def test_randomized_compiling_unsupported_parameterization():
-    unsupported_gates = cirq.measure, cirq.CZ
-    transfomers = [
-        GaugeTransformer(
-            target=cirq.CZ,
-            gauge_selector=GaugeSelector(
-                gauges=[
-                    ConstantGauge(
-                        two_qubit_gate=cirq.CZ,
-                        support_randomized_compiling=True,
-                        pre_q0=[unsupported_gate],
-                        post_q0=[cirq.Z],
-                        pre_q1=[cirq.X],
-                        post_q1=[cirq.Z],
-                    )
-                ]
-            ),
-        )
-        for unsupported_gate in unsupported_gates
-    ]
+def test_as_sweep_convert_to_phxz_failed():
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZ(*qs))
-    for unsupported_gate, transfomer in zip(unsupported_gates, transfomers):
+
+    def mock_single_qubit_matrix_to_phxz(*args, **kwargs):
+        # Return an non PhasedXZ gate, so we expect errors from as_sweep().
+        return cirq.X
+
+    with unittest.mock.patch.object(
+        single_qubit_decompositions,
+        "single_qubit_matrix_to_phxz",
+        new=mock_single_qubit_matrix_to_phxz,
+    ):
         with pytest.raises(
-            ValueError, match=f"Can't convert gate {unsupported_gate} to PhasedXZGate."
+            ValueError, match="Failed to convert the gate sequence to a PhasedXZ gate."
         ):
-            transfomer.randomized_compiling(c, N=1)
+            _ = CZGaugeTransformer.as_sweep(c, context=cirq.TransformerContext(), N=1)
