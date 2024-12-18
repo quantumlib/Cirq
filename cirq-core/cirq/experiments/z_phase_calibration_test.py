@@ -226,3 +226,13 @@ def test_transform_circuit(angles):
         op if op.gate != gate else fsim(*op.qubits) for op in new_circuit.all_operations()
     )
     np.testing.assert_allclose(cirq.unitary(circuit_with_replacement_gate), cirq.unitary(gate))
+
+
+def test_transform_circuit_invalid_gate_raises():
+    with pytest.raises(ValueError, match="is not equivalent to a PhasedFSimGate"):
+        _ = CalibrationTransformer(cirq.XX, {})
+
+
+def test_transform_circuit_uncalibrated_gates_pass():
+    c = cirq.Circuit(cirq.CZ(cirq.q(0), cirq.q(1)), cirq.measure(cirq.q(0)))
+    assert c == CalibrationTransformer(cirq.CZ, {})(c)

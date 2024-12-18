@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
-from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING, Any
+from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING, Any, List
 import multiprocessing
 import multiprocessing.pool
 
@@ -339,7 +339,7 @@ class CalibrationTransformer:
         Returns:
             New circuit with the extra ZPowGates.
         """
-        new_moments = []
+        new_moments: List[Union[List[cirq.Operation], 'cirq.Moment']] = []
         for moment in circuit:
             before = []
             after = []

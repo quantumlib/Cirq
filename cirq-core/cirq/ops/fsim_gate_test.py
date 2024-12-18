@@ -814,3 +814,7 @@ def test_phased_fsim_json_dict():
 def test_phase_fsim_from_matrix(gate):
     u = cirq.unitary(gate)
     np.testing.assert_allclose(cirq.unitary(cirq.PhasedFSimGate.from_matrix(u)), u, atol=1e-8)
+
+
+def test_phase_fsim_from_matrix_not_fsim_returns_none():
+    assert cirq.PhasedFSimGate.from_matrix(np.ones((4, 4))) is None
