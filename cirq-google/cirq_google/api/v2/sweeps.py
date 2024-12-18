@@ -106,7 +106,7 @@ def sweep_to_proto(
                     f" because there was an exception thrown: {str(e)}."
                 )
 
-        out.single_sweep.parameter_key = sweep.key
+        out.single_sweep.parameter_key = sweep.key  # type: ignore[attr-defined]
         if isinstance(sweep.start, tunits.Value):
             unit = sweep.start.unit
             out.single_sweep.linspace.first_point = sweep.start[unit]
@@ -210,73 +210,49 @@ def sweep_from_proto(
             )
         else:
             metadata = None
+
+        sweep: cirq.Sweep | None = None
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
             unit: float | tunits.Value = 1.0
             if msg.single_sweep.linspace.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.linspace.unit)
-            sweep_linspace = cirq.Linspace(
+            sweep = cirq.Linspace(
                 key=key,
                 start=msg.single_sweep.linspace.first_point * unit,  # type: ignore[arg-type]
                 stop=msg.single_sweep.linspace.last_point * unit,  # type: ignore[arg-type]
                 length=msg.single_sweep.linspace.num_points,
                 metadata=metadata,
             )
-            try:
-                # Allow for a function to modify a copy of the the sweep. If there are
-                # no exceptions cirq.Point is modified.
-                if func:
-                    copied_linspace = copy.deepcopy(sweep_linspace)
-                    func(copied_linspace)
-                    return copied_linspace
-            except Exception as e:
-                print(
-                    f"The function {func} was not applied to {sweep_linspace}."
-                    f" because there was an exception thrown: {str(e)}."
-                )
-            return sweep_linspace
-
         if msg.single_sweep.WhichOneof('sweep') == 'points':
             unit = 1.0
             if msg.single_sweep.points.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.points.unit)
-            sweep_points = cirq.Points(
+            sweep = cirq.Points(
                 key=key,
                 points=[p * unit for p in msg.single_sweep.points.points],
                 metadata=metadata,
             )
-            try:
-                # Allow for a function to modify a copy of the the sweep. If there are
-                # no exceptions cirq.Point is modified.
-                if func:
-                    copied_points = copy.deepcopy(sweep_points)
-                    func(copied_points)
-                    return copied_points
-            except Exception as e:
-                print(
-                    f"The function {func} was not applied to {sweep_points}."
-                    f" because there was an exception thrown: {str(e)}."
-                )
-            return sweep_points
-
         if msg.single_sweep.WhichOneof('sweep') == 'const_value':
-            sweep_const = cirq.Points(
+            sweep = cirq.Points(
                 key=key,
                 points=[_recover_sweep_const(msg.single_sweep.const_value)],
                 metadata=metadata,
             )
-            try:
-                # Allow for a function to modify a copy of the the sweep. If there are
-                # no exceptions cirq.Point is modified.
-                if func:
-                    copied_const = copy.deepcopy(sweep_const)
-                    func(copied_const)
-                    return copied_const
-            except Exception as e:
-                print(
-                    f"The function {func} was not applied to {sweep_const}."
-                    f" because there was an exception thrown: {str(e)}."
-                )
-            return sweep_const
+        # Allow for a function to modify a copy of the the sweep. If there are
+        # no exceptions cirq.Point is modified.
+        try:
+            if func and sweep:
+                copied_sweep = copy.deepcopy(sweep)
+                func(copied_sweep)
+                return copied_sweep
+        except Exception as e:
+            print(
+                f"The function {func} was not applied to {sweep}."
+                f" because there was an exception thrown: {str(e)}."
+            )
+
+        if sweep:
+            return sweep
 
         raise ValueError(f'single sweep type not set: {msg}')
 

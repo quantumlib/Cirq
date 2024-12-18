@@ -266,29 +266,43 @@ def test_sweep_from_proto_single_sweep_type_not_set():
         v2.sweep_from_proto(proto)
 
 
-def test_sweep_from_proto_with_func_succeeds():
+@pytest.mark.parametrize('sweep', [cirq.Points('foo', [1, 2, 3]), cirq.Points('foo', [1])])
+def test_sweep_from_proto_with_func_succeeds(sweep):
     def add_tunit_func(sweep: cirq.Sweep):
         for idx, point in enumerate(sweep.points):
             sweep.points[idx] = point * tunits.ns
 
-    sweep = cirq.Points('foo', [1, 2, 3])
     msg = v2.sweep_to_proto(sweep)
     sweep = v2.sweep_from_proto(msg, func=add_tunit_func)
 
-    assert list(sweep.points) == [1.0 * tunits.ns, 2.0 * tunits.ns, 3.0 * tunits.ns]
+    assert list(sweep.points)[0] == [1.0 * tunits.ns]
 
 
-def test_sweep_from_proto_with_invalid_func_round_trip():
+@pytest.mark.parametrize(
+    ('sweep', 'expected_points'),
+    [(cirq.Points('foo', [1, 2, 3]), [1, 2, 3]), (cirq.Points('foo', [1]), [1])],
+)
+def test_sweep_from_proto_with_invalid_func_round_trip(sweep, expected_points):
     def raise_error_func(sweep: cirq.Sweep):
-        for idx, point in enumerate(sweep.points):
-            sweep.points[idx] = point * tunits.ns
         raise ValueError("err")
 
-    sweep = cirq.Points('foo', [1, 2, 3])
     proto = v2.sweep_to_proto(sweep)
     recovered = v2.sweep_from_proto(proto, func=raise_error_func)
 
-    assert list(recovered.points) == [1, 2, 3]
+    assert list(recovered.points) == expected_points
+
+
+def test_sweep_from_proto_linspace_with_invalid_func_round_trip():
+    def raise_error_func(sweep: cirq.Sweep):
+        raise ValueError("err")
+
+    sweep = cirq.Linspace('foo', start=0, stop=3, length=3)
+    proto = v2.sweep_to_proto(sweep)
+    recovered = v2.sweep_from_proto(proto, func=raise_error_func)
+
+    assert recovered.start == 0.0
+    assert recovered.stop == 3.0
+    assert recovered.length == 3.0
 
 
 def test_sweep_with_list_sweep():
