@@ -59,7 +59,7 @@ def sweep_to_proto(
     sweep: cirq.Sweep,
     *,
     out: Optional[run_context_pb2.Sweep] = None,
-    func: Callable[..., cirq.Sweep] | None = None,
+    sweep_transformer: Callable[[cirq.Points | cirq.Linspace], cirq.Sweep] = lambda x: x,
 ) -> run_context_pb2.Sweep:
     """Converts a Sweep to v2 protobuf message.
 
@@ -67,7 +67,7 @@ def sweep_to_proto(
         sweep: The sweep to convert.
         out: Optional message to be populated. If not given, a new message will
             be created.
-        func: A function called on Linspace, Points.
+        sweep_transformer: A function called on Linspace, Points.
 
     Returns:
         Populated sweep protobuf message.
@@ -96,15 +96,7 @@ def sweep_to_proto(
         for s in sweep.sweeps:
             sweep_to_proto(s, out=out.sweep_function.sweeps.add())
     elif isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
-        if func:
-            try:
-                copied_linspace: cirq.Sweep = func(copy.deepcopy(sweep))
-                sweep = cast(cirq.Linspace, copied_linspace)
-            except Exception as e:
-                print(
-                    f"The function {func} was not applied to {sweep}."
-                    f" because there was an exception thrown: {str(e)}."
-                )
+        sweep = cast(cirq.Linspace, sweep_transformer(sweep))
 
         out.single_sweep.parameter_key = sweep.key
         if isinstance(sweep.start, tunits.Value):
@@ -125,15 +117,7 @@ def sweep_to_proto(
         if sweep.metadata and getattr(sweep.metadata, 'units', None):
             out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
-        if func:
-            try:
-                copied_points: cirq.Sweep = func(copy.deepcopy(sweep))
-                sweep = cast(cirq.Points, copied_points)
-            except Exception as e:
-                print(
-                    f"The function {func} was not applied to {sweep}."
-                    f" because there was an exception thrown: {str(e)}."
-                )
+        sweep = cast(cirq.Points, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
         if len(sweep.points) == 1:
             out.single_sweep.const_value.MergeFrom(_build_sweep_const(sweep.points[0]))
@@ -167,13 +151,14 @@ def sweep_to_proto(
 
 
 def sweep_from_proto(
-    msg: run_context_pb2.Sweep, func: Callable[..., cirq.Sweep] | None = None
+    msg: run_context_pb2.Sweep,
+    sweep_transformer: Callable[[cirq.Points | cirq.Linspace], cirq.Sweep] = lambda x: x,
 ) -> cirq.Sweep:
     """Creates a Sweep from a v2 protobuf message.
 
     Args:
         msg: Serialized sweep message.
-        func: A function called on Linspace, Point, and ConstValue.
+        sweep_transformer: A function called on Linspace, Point, and ConstValue.
 
     """
     which = msg.WhichOneof('sweep')
@@ -211,48 +196,38 @@ def sweep_from_proto(
         else:
             metadata = None
 
-        sweep: cirq.Sweep | None = None
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
             unit: float | tunits.Value = 1.0
             if msg.single_sweep.linspace.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.linspace.unit)
-            sweep = cirq.Linspace(
-                key=key,
-                start=msg.single_sweep.linspace.first_point * unit,  # type: ignore[arg-type]
-                stop=msg.single_sweep.linspace.last_point * unit,  # type: ignore[arg-type]
-                length=msg.single_sweep.linspace.num_points,
-                metadata=metadata,
+            return sweep_transformer(
+                cirq.Linspace(
+                    key=key,
+                    start=msg.single_sweep.linspace.first_point * unit,  # type: ignore[arg-type]
+                    stop=msg.single_sweep.linspace.last_point * unit,  # type: ignore[arg-type]
+                    length=msg.single_sweep.linspace.num_points,
+                    metadata=metadata,
+                )
             )
         if msg.single_sweep.WhichOneof('sweep') == 'points':
             unit = 1.0
             if msg.single_sweep.points.HasField('unit'):
                 unit = tunits.Value.from_proto(msg.single_sweep.points.unit)
-            sweep = cirq.Points(
-                key=key,
-                points=[p * unit for p in msg.single_sweep.points.points],
-                metadata=metadata,
+            return sweep_transformer(
+                cirq.Points(
+                    key=key,
+                    points=[p * unit for p in msg.single_sweep.points.points],
+                    metadata=metadata,
+                )
             )
         if msg.single_sweep.WhichOneof('sweep') == 'const_value':
-            sweep = cirq.Points(
-                key=key,
-                points=[_recover_sweep_const(msg.single_sweep.const_value)],
-                metadata=metadata,
+            return sweep_transformer(
+                cirq.Points(
+                    key=key,
+                    points=[_recover_sweep_const(msg.single_sweep.const_value)],
+                    metadata=metadata,
+                )
             )
-        # Allow for a function to modify a copy of the the sweep. If there are
-        # no exceptions cirq.Point is modified.
-        try:
-            if func and sweep:
-                copied_sweep: cirq.Sweep = func(copy.deepcopy(sweep))
-                return copied_sweep
-        except Exception as e:
-            print(
-                f"The function {func} was not applied to {sweep}."
-                f" because there was an exception thrown: {str(e)}."
-            )
-
-        print(sweep)
-        if sweep:
-            return sweep
 
         raise ValueError(f'single sweep type not set: {msg}')
 
