@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Dict, List, Optional, Callable
+from typing import Any, cast, Callable, Dict, List, Optional
 
-import copy
 import sympy
 import tunits
 
 import cirq
+from cirq.study import sweeps
 from cirq_google.api.v2 import run_context_pb2
 from cirq_google.study.device_parameter import DeviceParameter
 
@@ -59,7 +59,7 @@ def sweep_to_proto(
     sweep: cirq.Sweep,
     *,
     out: Optional[run_context_pb2.Sweep] = None,
-    sweep_transformer: Callable[[cirq.Points | cirq.Linspace], cirq.Sweep] = lambda x: x,
+    sweep_transformer: Callable[[sweeps.SingleSweep], sweeps.SingleSweep] = lambda x: x,
 ) -> run_context_pb2.Sweep:
     """Converts a Sweep to v2 protobuf message.
 
@@ -97,7 +97,6 @@ def sweep_to_proto(
             sweep_to_proto(s, out=out.sweep_function.sweeps.add())
     elif isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
         sweep = cast(cirq.Linspace, sweep_transformer(sweep))
-
         out.single_sweep.parameter_key = sweep.key
         if isinstance(sweep.start, tunits.Value):
             unit = sweep.start.unit
@@ -152,7 +151,7 @@ def sweep_to_proto(
 
 def sweep_from_proto(
     msg: run_context_pb2.Sweep,
-    sweep_transformer: Callable[[cirq.Points | cirq.Linspace], cirq.Sweep] = lambda x: x,
+    sweep_transformer: Callable[[sweeps.SingleSweep], sweeps.SingleSweep] = lambda x: x,
 ) -> cirq.Sweep:
     """Creates a Sweep from a v2 protobuf message.
 
