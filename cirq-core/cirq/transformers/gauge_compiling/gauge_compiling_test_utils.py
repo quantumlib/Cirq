@@ -27,6 +27,7 @@ class GaugeTester:
     two_qubit_gate: cirq.Gate
     gauge_transformer: GaugeTransformer
     must_fail: bool = False
+    enable_test_sweep: bool = False
 
     @pytest.mark.parametrize(
         ['generation_seed', 'transformation_seed'],
@@ -72,6 +73,45 @@ class GaugeTester:
                     _check_equivalent_with_error_message(c, nc, gauge)
             else:
                 _check_equivalent_with_error_message(c, nc, gauge)
+
+    def test_sweep(self):
+        a = cirq.NamedQubit('a')
+        b = cirq.NamedQubit('b')
+        c = cirq.NamedQubit('c')
+
+        input_circuit = cirq.Circuit(
+            cirq.Moment(cirq.H(a)),
+            cirq.Moment(self.two_qubit_gate(a, b)),
+            cirq.Moment(self.two_qubit_gate(b, c)),
+            cirq.Moment(self.two_qubit_gate(a, c)),
+            cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
+            cirq.Moment([cirq.measure(q) for q in [a, b, c]]),
+        )
+
+        supported_gates: set[cirq.Gate] = {cirq.CZ}
+
+        if self.two_qubit_gate not in supported_gates:
+            with pytest.raises(NotImplementedError):
+                self.gauge_transformer.as_sweep(input_circuit, N=1)
+            return
+
+        n_samples = 5
+        parameterized_circuit, sweeps = self.gauge_transformer.as_sweep(input_circuit, N=n_samples)
+
+        # Check the parameterized circuit and N set of parameters.
+        assert cirq.is_parameterized(parameterized_circuit)
+        simulator = cirq.Simulator()
+        results = simulator.run_sweep(parameterized_circuit, sweeps)
+        assert len(results) == n_samples
+
+        # Check compilied circuits have the same unitary as the orig circuit.
+        for params in sweeps:
+            compiled_circuit = cirq.resolve_parameters(parameterized_circuit, params)
+            cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                input_circuit[:-1],
+                compiled_circuit[:-1],
+                qubit_map={q: q for q in input_circuit.all_qubits()},
+            )
 
 
 def _check_equivalent_with_error_message(c: cirq.AbstractCircuit, nc: cirq.AbstractCircuit, gauge):
