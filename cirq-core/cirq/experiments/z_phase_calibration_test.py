@@ -22,6 +22,7 @@ from cirq.experiments.z_phase_calibration import (
     calibrate_z_phases,
     z_phase_calibration_workflow,
     plot_z_phase_calibration_result,
+    CalibrationTransformer,
 )
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 
@@ -205,3 +206,33 @@ def test_plot_z_phase_calibration_result():
     np.testing.assert_allclose(axes[1].lines[0].get_xdata().astype(float), [1, 2, 3])
     np.testing.assert_allclose(axes[1].lines[0].get_ydata().astype(float), [0.6, 0.4, 0.1])
     np.testing.assert_allclose(axes[1].lines[1].get_ydata().astype(float), [0.7, 0.77, 0.8])
+
+
+@pytest.mark.parametrize('angles', 2 * np.pi * np.random.random((10, 10)))
+def test_transform_circuit(angles):
+    theta, phi = angles[:2]
+    old_zs = angles[2:6]
+    new_zs = angles[6:]
+    gate = cirq.PhasedFSimGate.from_fsim_rz(theta, phi, old_zs[:2], old_zs[2:])
+    fsim = cirq.PhasedFSimGate.from_fsim_rz(theta, phi, new_zs[:2], new_zs[2:])
+    c = cirq.Circuit(gate(cirq.q(0), cirq.q(1)))
+    replacement_map = {(cirq.q(1), cirq.q(0)): fsim}
+
+    new_circuit = CalibrationTransformer(gate, replacement_map)(c)
+
+    # we replace the old gate with the `fsim` gate the result should be that the overall
+    # unitary equals the unitary of the original (ideal) gate.
+    circuit_with_replacement_gate = cirq.Circuit(
+        op if op.gate != gate else fsim(*op.qubits) for op in new_circuit.all_operations()
+    )
+    np.testing.assert_allclose(cirq.unitary(circuit_with_replacement_gate), cirq.unitary(c))
+
+
+def test_transform_circuit_invalid_gate_raises():
+    with pytest.raises(ValueError, match="is not equivalent to a PhasedFSimGate"):
+        _ = CalibrationTransformer(cirq.XX, {})
+
+
+def test_transform_circuit_uncalibrated_gates_pass():
+    c = cirq.Circuit(cirq.CZ(cirq.q(0), cirq.q(1)), cirq.measure(cirq.q(0)))
+    assert c == CalibrationTransformer(cirq.CZ, {})(c)
