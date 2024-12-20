@@ -208,7 +208,7 @@ def test_plot_z_phase_calibration_result():
     np.testing.assert_allclose(axes[1].lines[1].get_ydata().astype(float), [0.7, 0.77, 0.8])
 
 
-@pytest.mark.parametrize('angles', np.random.random((10, 10)))
+@pytest.mark.parametrize('angles', 2 * np.pi * np.random.random((10, 10)))
 def test_transform_circuit(angles):
     theta, phi = angles[:2]
     old_zs = angles[2:6]
@@ -225,7 +225,7 @@ def test_transform_circuit(angles):
     circuit_with_replacement_gate = cirq.Circuit(
         op if op.gate != gate else fsim(*op.qubits) for op in new_circuit.all_operations()
     )
-    np.testing.assert_allclose(cirq.unitary(circuit_with_replacement_gate), cirq.unitary(gate))
+    np.testing.assert_allclose(cirq.unitary(circuit_with_replacement_gate), cirq.unitary(c))
 
 
 def test_transform_circuit_invalid_gate_raises():

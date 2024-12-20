@@ -349,6 +349,16 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     @staticmethod
     def from_matrix(u: np.ndarray) -> Optional['PhasedFSimGate']:
+        """Contruct a PhasedFSimGate from unitary.
+
+        Args:
+            u: A unitary matrix representing a PhasedFSimGate.
+
+        Returns:
+            - Either PhasedFSimGate with the given unitary or None if
+                the matrix is not unitary or if doesn't represent a PhasedFSimGate.
+        """
+
         gamma = np.angle(u[1, 1] * u[2, 2] - u[1, 2] * u[2, 1]) / -2
         phi = -np.angle(u[3, 3]) - 2 * gamma
         phased_cos_theta_2 = u[1, 1] * u[2, 2]
