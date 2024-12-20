@@ -70,7 +70,7 @@ class PhasedXZGate(raw_types.Gate):
 
     @classmethod
     def from_zyz_angles(cls, z0_rad: float, y_rad: float, z1_rad: float) -> 'cirq.PhasedXZGate':
-        """Create a PhasedXZGate from ZYZ angles.
+        r"""Create a PhasedXZGate from ZYZ angles.
 
         The returned gate is equivalent to $Rz(z0\_rad) Ry(y\_rad) Rz(z1\_rad)$ (in time order).
         """
