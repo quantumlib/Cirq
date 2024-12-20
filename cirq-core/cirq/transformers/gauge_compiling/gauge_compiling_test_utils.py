@@ -27,7 +27,7 @@ class GaugeTester:
     two_qubit_gate: cirq.Gate
     gauge_transformer: GaugeTransformer
     must_fail: bool = False
-    enable_test_sweep: bool = False
+    sweep_must_pass: bool = False
 
     @pytest.mark.parametrize(
         ['generation_seed', 'transformation_seed'],
@@ -88,9 +88,7 @@ class GaugeTester:
             cirq.Moment([cirq.measure(q) for q in [a, b, c]]),
         )
 
-        supported_gates: set[cirq.Gate] = {cirq.CZ}
-
-        if self.two_qubit_gate not in supported_gates:
+        if not self.sweep_must_pass:
             with pytest.raises(NotImplementedError):
                 self.gauge_transformer.as_sweep(input_circuit, N=1)
             return
