@@ -4,6 +4,10 @@ on:
   schedule:
     # Checks out main by default.
     - cron: '0 0 * * *'
+  # FIXME - for PR testing only, remove before merge
+  pull_request:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}
@@ -71,8 +75,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
-    # TODO(#6577): upgrade to macos-latest when it runs Python 3.10
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
