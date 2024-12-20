@@ -75,23 +75,22 @@ class GaugeTester:
                 _check_equivalent_with_error_message(c, nc, gauge)
 
     def test_sweep(self):
-        a = cirq.NamedQubit('a')
-        b = cirq.NamedQubit('b')
-        c = cirq.NamedQubit('c')
-
-        input_circuit = cirq.Circuit(
-            cirq.Moment(cirq.H(a)),
-            cirq.Moment(self.two_qubit_gate(a, b)),
-            cirq.Moment(self.two_qubit_gate(b, c)),
-            cirq.Moment(self.two_qubit_gate(a, c)),
-            cirq.Moment([cirq.H(qubit) for qubit in [a, b, c]]),
-            cirq.Moment([cirq.measure(q) for q in [a, b, c]]),
-        )
+        qubits = cirq.LineQubit.range(3)
 
         if not self.sweep_must_pass:
             with pytest.raises(NotImplementedError):
-                self.gauge_transformer.as_sweep(input_circuit, N=1)
+                self.gauge_transformer.as_sweep(
+                    cirq.Circuit(cirq.Moment(self.two_qubit_gate(*qubits[:2]))), N=1
+                )
             return
+
+        input_circuit = cirq.Circuit(
+            cirq.Moment(cirq.H(qubits[0])),
+            cirq.Moment(self.two_qubit_gate(*qubits[:2])),
+            cirq.Moment(self.two_qubit_gate(*qubits[1:])),
+            cirq.Moment([cirq.H(q) for q in qubits]),
+            cirq.Moment([cirq.measure(q) for q in qubits]),
+        )
 
         n_samples = 5
         parameterized_circuit, sweeps = self.gauge_transformer.as_sweep(input_circuit, N=n_samples)
