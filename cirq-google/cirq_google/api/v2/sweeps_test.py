@@ -153,6 +153,58 @@ def test_sweep_to_proto_points():
     assert list(proto.single_sweep.points.points) == [-1, 0, 1, 1.5]
 
 
+def test_sweep_to_proto_with_simple_func_succeeds():
+    def func(sweep: sweeps.SingleSweep):
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point + 3 for point in sweep.points]
+
+        return sweep
+
+    sweep = cirq.Points('foo', [1, 2, 3])
+    proto = v2.sweep_to_proto(sweep, sweep_transformer=func)
+
+    assert list(proto.single_sweep.points.points) == [4.0, 5.0, 6.0]
+
+
+def test_sweep_to_proto_with_func_linspace():
+    def func(sweep: sweeps.SingleSweep):
+        return cirq.Linspace('foo', 3 * tunits.ns, 6 * tunits.ns, 3)  # type: ignore[arg-type]
+
+    sweep = cirq.Linspace('foo', start=1, stop=3, length=3)
+    proto = v2.sweep_to_proto(sweep, sweep_transformer=func)
+
+    assert proto.single_sweep.linspace.first_point == 3.0
+    assert proto.single_sweep.linspace.last_point == 6.0
+    assert tunits.Value.from_proto(proto.single_sweep.linspace.unit) == tunits.ns
+
+
+def test_sweep_to_proto_with_func_const_value():
+    def func(sweep: sweeps.SingleSweep):
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point + 3 for point in sweep.points]
+
+        return sweep
+
+    sweep = cirq.Points('foo', points=[1])
+    proto = v2.sweep_to_proto(sweep, sweep_transformer=func)
+
+    assert proto.single_sweep.const_value.int_value == 4
+
+
+@pytest.mark.parametrize('sweep', [(cirq.Points('foo', [1, 2, 3])), (cirq.Points('foo', [1]))])
+def test_sweep_to_proto_with_func_round_trip(sweep):
+    def add_tunit_func(sweep: sweeps.SingleSweep):
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point * tunits.ns for point in sweep.points]  # type: ignore[misc]
+
+        return sweep
+
+    proto = v2.sweep_to_proto(sweep, sweep_transformer=add_tunit_func)
+    recovered = v2.sweep_from_proto(proto)
+
+    assert list(recovered.points)[0] == 1 * tunits.ns
+
+
 def test_sweep_to_proto_unit():
     proto = v2.sweep_to_proto(cirq.UnitSweep)
     assert isinstance(proto, v2.run_context_pb2.Sweep)
@@ -186,6 +238,41 @@ def test_sweep_from_proto_single_sweep_type_not_set():
     proto.single_sweep.parameter_key = 'foo'
     with pytest.raises(ValueError, match='single sweep type not set'):
         v2.sweep_from_proto(proto)
+
+
+@pytest.mark.parametrize('sweep', [cirq.Points('foo', [1, 2, 3]), cirq.Points('foo', [1])])
+def test_sweep_from_proto_with_func_succeeds(sweep):
+    def add_tunit_func(sweep: sweeps.SingleSweep):
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point * tunits.ns for point in sweep.points]  # type: ignore[misc]
+
+        return sweep
+
+    msg = v2.sweep_to_proto(sweep)
+    sweep = v2.sweep_from_proto(msg, sweep_transformer=add_tunit_func)
+
+    assert list(sweep.points)[0] == [1.0 * tunits.ns]
+
+
+@pytest.mark.parametrize('sweep', [cirq.Points('foo', [1, 2, 3]), cirq.Points('foo', [1])])
+def test_sweep_from_proto_with_func_round_trip(sweep):
+    def add_tunit_func(sweep: sweeps.SingleSweep):
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point * tunits.ns for point in sweep.points]  # type: ignore[misc]
+
+        return sweep
+
+    def strip_tunit_func(sweep: sweeps.SingleSweep):
+        if isinstance(sweep, cirq.Points):
+            if isinstance(sweep.points[0], tunits.Value):
+                sweep.points = [point[point.unit] for point in sweep.points]
+
+        return sweep
+
+    msg = v2.sweep_to_proto(sweep, sweep_transformer=add_tunit_func)
+    sweep = v2.sweep_from_proto(msg, sweep_transformer=strip_tunit_func)
+
+    assert list(sweep.points)[0] == 1.0
 
 
 def test_sweep_with_list_sweep():
