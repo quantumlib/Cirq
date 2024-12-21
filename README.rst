@@ -35,6 +35,8 @@ For a comprehensive list all of the interactive Jupyter Notebooks in our repo (i
 
 For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
 
+**Note:** `cirq-ft` is no longer maintained. Please use `Qualtran` as an alternative for similar functionalities.
+
 
 Hello Qubit
 -----------
