@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class AsymmetricDepolarizingChannel(raw_types.Gate):
     r"""A channel that depolarizes asymmetrically along different directions.
 
@@ -196,11 +196,6 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['error_probabilities'])
 
-    def _approx_eq_(self, other: Any, atol: float) -> bool:
-        self_keys, self_values = zip(*sorted(self.error_probabilities.items()))
-        other_keys, other_values = zip(*sorted(other.error_probabilities.items()))
-        return self_keys == other_keys and protocols.approx_eq(self_values, other_values, atol=atol)
-
 
 def asymmetric_depolarize(
     p_x: Optional[float] = None,
@@ -246,7 +241,7 @@ def asymmetric_depolarize(
     return AsymmetricDepolarizingChannel(p_x, p_y, p_z, error_probabilities, tol)
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class DepolarizingChannel(raw_types.Gate):
     r"""A channel that depolarizes one or several qubits.
 
@@ -306,7 +301,7 @@ class DepolarizingChannel(raw_types.Gate):
         return True
 
     def _value_equality_values_(self):
-        return self._p
+        return self._p, self._n_qubits
 
     def __repr__(self) -> str:
         if self._n_qubits == 1:
@@ -347,9 +342,6 @@ class DepolarizingChannel(raw_types.Gate):
             return protocols.obj_to_dict_helper(self, ['p'])
         return protocols.obj_to_dict_helper(self, ['p', 'n_qubits'])
 
-    def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self.p, other.p, atol=atol).item() and self.n_qubits == other.n_qubits
-
 
 def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     r"""Returns a DepolarizingChannel with given probability of error.
@@ -381,7 +373,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     return DepolarizingChannel(p, n_qubits)
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
     r"""Dampen qubit amplitudes through non ideal dissipation.
 
@@ -489,12 +481,6 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
 
-    def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return (
-            np.isclose(self.gamma, other.gamma, atol=atol).item()
-            and np.isclose(self.p, other.p, atol=atol).item()
-        )
-
 
 def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDampingChannel:
     r"""Returns a GeneralizedAmplitudeDampingChannel with probabilities gamma and p.
@@ -542,7 +528,7 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class AmplitudeDampingChannel(raw_types.Gate):
     r"""Dampen qubit amplitudes through dissipation.
 
@@ -618,9 +604,6 @@ class AmplitudeDampingChannel(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gamma'])
-
-    def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self.gamma, other.gamma, atol=atol).item()
 
 
 def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
@@ -787,7 +770,7 @@ def reset_each(*qubits: 'cirq.Qid') -> List[raw_types.Operation]:
     return [ResetChannel(q.dimension).on(q) for q in qubits]
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class PhaseDampingChannel(raw_types.Gate):
     r"""Dampen qubit phase.
 
@@ -881,9 +864,6 @@ class PhaseDampingChannel(raw_types.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
-    def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self._gamma, other._gamma, atol=atol).item()
-
 
 def phase_damp(gamma: float) -> PhaseDampingChannel:
     r"""Creates a PhaseDampingChannel with damping constant gamma.
@@ -919,7 +899,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
     return PhaseDampingChannel(gamma)
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class PhaseFlipChannel(raw_types.Gate):
     r"""Probabilistically flip the sign of the phase of a qubit.
 
@@ -990,9 +970,6 @@ class PhaseFlipChannel(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p'])
-
-    def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self.p, other.p, atol=atol).item()
 
 
 def _phase_flip_Z() -> common_gates.ZPowGate:
@@ -1073,7 +1050,7 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
     return _phase_flip(p)
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class BitFlipChannel(raw_types.Gate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa.
 
@@ -1147,9 +1124,6 @@ class BitFlipChannel(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p'])
-
-    def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self._p, other._p, atol=atol).item()
 
 
 def _bit_flip(p: float) -> BitFlipChannel:
