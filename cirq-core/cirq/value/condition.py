@@ -14,7 +14,7 @@
 
 import abc
 import dataclasses
-from typing import Mapping, Tuple, TYPE_CHECKING, FrozenSet
+from typing import Mapping, Tuple, TYPE_CHECKING, FrozenSet, Optional
 
 import sympy
 
@@ -46,6 +46,9 @@ class Condition(abc.ABC):
     @abc.abstractmethod
     def qasm(self):
         """Returns the qasm of this condition."""
+
+    def _qasm_(self, **kwargs) -> Optional[str]:
+        return self.qasm
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'cirq.Condition':
         condition = self
@@ -114,6 +117,17 @@ class KeyCondition(Condition):
     @property
     def qasm(self):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
+
+    def _qasm_(self, args: 'cirq.QasmArgs', **kwargs) -> Optional[str]:
+        key_str = str(self.key)
+        if key_str not in args.meas_key_id_map:
+            raise ValueError(f'Key "{key_str}" not in QasmArgs.meas_key_id_map.')
+        key = args.meas_key_id_map[key_str]
+        if key not in args.meas_key_bitcount:
+            raise ValueError(f'Key "{key}" not in QasmArgs.meas_key_bitcount.')
+        if args.meas_key_bitcount[str(key)] != 1:
+            raise ValueError('QASM is defined only for single-bit classical conditions.')
+        return f'{key}==1'
 
 
 @dataclasses.dataclass(frozen=True)

@@ -71,6 +71,28 @@ def test_key_condition_qasm():
         _ = cirq.KeyCondition(cirq.MeasurementKey('a')).qasm
 
 
+def test_key_condition_qasm_protocol():
+    cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
+    args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'}, meas_key_bitcount={'m_a': 1})
+    qasm = cirq.qasm(cond, args=args)
+    assert qasm == 'm_a==1'
+
+
+def test_key_condition_qasm_protocol_invalid_args():
+    cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
+    args = cirq.QasmArgs()
+    with pytest.raises(ValueError, match='Key "a" not in QasmArgs.meas_key_id_map.'):
+        _ = cirq.qasm(cond, args=args)
+    args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'})
+    with pytest.raises(ValueError, match='Key "m_a" not in QasmArgs.meas_key_bitcount.'):
+        _ = cirq.qasm(cond, args=args)
+    args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'}, meas_key_bitcount={'m_a': 2})
+    with pytest.raises(
+        ValueError, match='QASM is defined only for single-bit classical conditions.'
+    ):
+        _ = cirq.qasm(cond, args=args)
+
+
 def test_sympy_condition_with_keys():
     c = init_sympy_condition.replace_key(key_a, key_b)
     assert c.keys == (key_b,)

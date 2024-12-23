@@ -197,13 +197,14 @@ class QasmOutput:
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
         qubit_id_map = self._generate_qubit_ids()
+        self.cregs = self._generate_cregs(meas_key_id_map)
         self.args = protocols.QasmArgs(
             precision=precision,
             version=version,
             qubit_id_map=qubit_id_map,
             meas_key_id_map=meas_key_id_map,
+            meas_key_bitcount={k: v[0] for k, v in self.cregs.items()},
         )
-        self.cregs = self._generate_cregs()
 
     def _generate_measurement_ids(self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
@@ -227,7 +228,7 @@ class QasmOutput:
     def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
         return {qubit: f'q[{i}]' for i, qubit in enumerate(self.qubits)}
 
-    def _generate_cregs(self) -> Dict[str, tuple[int, str]]:
+    def _generate_cregs(self, meas_key_id_map: Dict[str, str]) -> Dict[str, tuple[int, str]]:
         """Pick an id for the creg that will store each measurement
 
         This function finds the largest measurement using each key.
@@ -239,7 +240,7 @@ class QasmOutput:
         cregs: Dict[str, tuple[int, str]] = {}
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
-            meas_id = self.args.meas_key_id_map[key]
+            meas_id = meas_key_id_map[key]
 
             if self.meas_comments[key] is not None:
                 comment = f'  // Measurement: {self.meas_comments[key]}'
