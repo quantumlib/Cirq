@@ -78,6 +78,13 @@ def test_key_condition_qasm_protocol():
     assert qasm == 'm_a==1'
 
 
+def test_key_condition_qasm_protocol_v3():
+    cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
+    args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'}, version='3.0')
+    qasm = cirq.qasm(cond, args=args)
+    assert qasm == 'm_a!=0'
+
+
 def test_key_condition_qasm_protocol_invalid_args():
     cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
     args = cirq.QasmArgs()

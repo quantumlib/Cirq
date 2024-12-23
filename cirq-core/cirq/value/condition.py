@@ -47,7 +47,7 @@ class Condition(abc.ABC):
     def qasm(self):
         """Returns the qasm of this condition."""
 
-    def _qasm_(self, **kwargs) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs', **kwargs) -> Optional[str]:
         return self.qasm
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'cirq.Condition':
@@ -119,10 +119,13 @@ class KeyCondition(Condition):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
     def _qasm_(self, args: 'cirq.QasmArgs', **kwargs) -> Optional[str]:
+        args.validate_version('2.0', '3.0')
         key_str = str(self.key)
         if key_str not in args.meas_key_id_map:
             raise ValueError(f'Key "{key_str}" not in QasmArgs.meas_key_id_map.')
         key = args.meas_key_id_map[key_str]
+        if args.version == '3.0':
+            return f'{key}!=0'
         if key not in args.meas_key_bitcount:
             raise ValueError(f'Key "{key}" not in QasmArgs.meas_key_bitcount.')
         if args.meas_key_bitcount[str(key)] != 1:
