@@ -402,10 +402,7 @@ def test_sample_repeated_measurement_keys():
 def test_simulate_empty_subcircuit_with_classical_control():
     subcircuit = cirq.CircuitOperation(cirq.FrozenCircuit())
     q = cirq.LineQubit(0)
-    circuit = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        subcircuit.with_classical_controls('a'),
-    )
+    circuit = cirq.Circuit(cirq.measure(q, key='a'), subcircuit.with_classical_controls('a'))
     simulator = cirq.Simulator()
     simulator.run(circuit)
 
