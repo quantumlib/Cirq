@@ -196,7 +196,7 @@ a: ═══@═══╩══════════════════�
     )
 
 
-def test_qasm():
+def test_qasm_sympy_condition():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
@@ -218,6 +218,29 @@ creg m_a[1];
 
 measure q[0] -> m_a[0];
 if (m_a==0) x q[1];
+"""
+    )
+
+
+def test_qasm_key_condition():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
+    qasm = cirq.qasm(circuit)
+    assert (
+        qasm
+        == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0), q(1)]
+qreg q[2];
+creg m_a[1];
+
+
+measure q[0] -> m_a[0];
+if (m_a==1) x q[1];
 """
     )
 

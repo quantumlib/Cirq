@@ -38,6 +38,7 @@ class QasmArgs(string.Formatter):
         version: str = '2.0',
         qubit_id_map: Optional[Dict['cirq.Qid', str]] = None,
         meas_key_id_map: Optional[Dict[str, str]] = None,
+        meas_key_bitcount: Optional[Dict[str, int]] = None,
     ) -> None:
         """Inits QasmArgs.
 
@@ -49,11 +50,14 @@ class QasmArgs(string.Formatter):
             qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
             meas_key_id_map: A dictionary mapping measurement keys to creg QASM
                 identifiers.
+            meas_key_bitcount: A dictionary with of bits for each measurement
+                key.
         """
         self.precision = precision
         self.version = version
         self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
         self.meas_key_id_map = {} if meas_key_id_map is None else meas_key_id_map
+        self.meas_key_bitcount = {} if meas_key_bitcount is None else meas_key_bitcount
 
     def _format_number(self, value) -> str:
         """OpenQASM 2.0 does not support '1e-5' and wants '1.0e-5'"""

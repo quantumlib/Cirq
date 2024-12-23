@@ -222,4 +222,4 @@ class ClassicallyControlledOperation(raw_types.Operation):
         subop_qasm = protocols.qasm(self._sub_operation, args=args)
         if not self._conditions:
             return subop_qasm
-        return f'if ({self._conditions[0].qasm}) {subop_qasm}'
+        return f'if ({protocols.qasm(self._conditions[0], args=args)}) {subop_qasm}'
