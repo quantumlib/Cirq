@@ -124,8 +124,10 @@ class KeyCondition(Condition):
         if key_str not in args.meas_key_id_map:
             raise ValueError(f'Key "{key_str}" not in QasmArgs.meas_key_id_map.')
         key = args.meas_key_id_map[key_str]
+        # QASM 3.0 supports !=, so we return it directly.
         if args.version == '3.0':
             return f'{key}!=0'
+        # QASM 2.0 only has == operator, so we must limit to single-bit measurement keys == 1.
         if key not in args.meas_key_bitcount:
             raise ValueError(f'Key "{key}" not in QasmArgs.meas_key_bitcount.')
         if args.meas_key_bitcount[str(key)] != 1:
