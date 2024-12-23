@@ -399,6 +399,17 @@ def test_sample_repeated_measurement_keys():
     assert len(result.records['b'][0]) == 2
 
 
+def test_simulate_empty_subcircuit_with_classical_control():
+    subcircuit = cirq.CircuitOperation(cirq.FrozenCircuit())
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        subcircuit.with_classical_controls('a'),
+    )
+    simulator = cirq.Simulator()
+    simulator.run(circuit)
+
+
 def test_simulate_with_invert_mask():
     q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
     c = cirq.Circuit(
