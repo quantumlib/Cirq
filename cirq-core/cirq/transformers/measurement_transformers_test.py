@@ -753,9 +753,7 @@ def test_drop_terminal():
     dropped = cirq.drop_terminal_measurements(circuit)
     cirq.testing.assert_same_circuits(
         dropped,
-        cirq.Circuit(
-            cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.I(q0), cirq.X(q1)))
-        ),
+        cirq.Circuit(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.X(q1)))),
     )
 
 
