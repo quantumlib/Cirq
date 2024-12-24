@@ -1204,4 +1204,44 @@ def test_repeat_until_error():
         )
 
 
+def test_repeat_until_protocols():
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.H(q), cirq.measure(q, key='a')),
+        use_repetition_ids=False,
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 0)),
+    )
+    scoped = cirq.with_rescoped_keys(op, ('0',))
+    assert not cirq.control_keys(scoped)
+    assert cirq.measurement_key_objs(scoped) == {cirq.MeasurementKey('a', ('0',))}
+    mapped = cirq.with_measurement_key_mapping(scoped, {'a': 'b'})
+    assert not cirq.control_keys(mapped)
+    assert cirq.measurement_key_objs(mapped) == {cirq.MeasurementKey('b', ('0',))}
+    prefixed = cirq.with_key_path_prefix(mapped, ('1',))
+    assert not cirq.control_keys(prefixed)
+    assert cirq.measurement_key_objs(prefixed) == {cirq.MeasurementKey('b', ('1', '0'))}
+    setpath = cirq.with_key_path(prefixed, ('2',))
+    assert not cirq.control_keys(setpath)
+    assert cirq.measurement_key_objs(setpath) == {cirq.MeasurementKey('b', ('2',))}
+
+
+def test_inner_repeat_until_simulate():
+    sim = cirq.Simulator()
+    q = cirq.LineQubit(0)
+    inner_loop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.H(q), cirq.measure(q, key="inner_loop")),
+        use_repetition_ids=False,
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol("inner_loop"), 0)),
+    )
+    outer_loop = cirq.Circuit(inner_loop, cirq.X(q), cirq.measure(q, key="outer_loop"))
+    circuit = cirq.Circuit(cirq.CircuitOperation(cirq.FrozenCircuit(outer_loop), repetitions=2))
+    result = sim.run(circuit, repetitions=1)
+    assert all(len(v) == 1 and v[0] == 1 for v in result.records['0:inner_loop'][0][:-1])
+    assert result.records['0:inner_loop'][0][-1] == [0]
+    assert result.records['0:outer_loop'] == [[[1]]]
+    assert all(len(v) == 1 and v[0] == 1 for v in result.records['1:inner_loop'][0][:-1])
+    assert result.records['1:inner_loop'][0][-1] == [0]
+    assert result.records['1:outer_loop'] == [[[1]]]
+
+
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?
