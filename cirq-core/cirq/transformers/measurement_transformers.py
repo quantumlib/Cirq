@@ -291,9 +291,7 @@ def drop_terminal_measurements(
 
     def flip_inversion(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if isinstance(op.gate, ops.MeasurementGate):
-            return [
-                ops.X(q) if b else ops.I(q) for q, b in zip(op.qubits, op.gate.full_invert_mask())
-            ]
+            return [ops.X(q) for q, b in zip(op.qubits, op.gate.invert_mask) if b]
         return op
 
     ignored = () if context is None else context.tags_to_ignore
