@@ -1223,6 +1223,9 @@ def test_repeat_until_protocols():
     setpath = cirq.with_key_path(prefixed, ('2',))
     assert not cirq.control_keys(setpath)
     assert cirq.measurement_key_objs(setpath) == {cirq.MeasurementKey('b', ('2',))}
+    resolved = cirq.resolve_parameters(setpath, {})
+    assert not cirq.control_keys(resolved)
+    assert cirq.measurement_key_objs(resolved) == {cirq.MeasurementKey('b', ('2',))}
 
 
 def test_inner_repeat_until_simulate():
