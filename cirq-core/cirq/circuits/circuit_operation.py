@@ -397,10 +397,6 @@ class CircuitOperation(ops.Operation):
             repeat_until = protocols.with_measurement_key_mapping(
                 repeat_until, self.measurement_key_map
             )
-        if self.param_resolver:
-            repeat_until = protocols.resolve_parameters(
-                repeat_until, self.param_resolver, recursive=False
-            )
         return protocols.with_rescoped_keys(
             repeat_until,
             self.parent_path,
