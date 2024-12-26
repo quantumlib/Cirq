@@ -1673,6 +1673,39 @@ def _concat_ragged_helper(
     return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
+class _CircuitLoader:
+    """Maintains qubit and cbit indices for quick op placement.
+
+    Here, we instead keep track of the greatest moment that contains each
+    qubit, measurement key, and control key, and append the operation to
+    the moment after the maximum of these. This avoids having to check each
+    moment.
+    """
+
+    def __init__(self) -> None:
+        # These are dicts from the qubit/key to the greatest moment index that has it.
+        self._qubit_indices: Dict['cirq.Qid', int] = {}
+        self._mkey_indices: Dict['cirq.MeasurementKey', int] = {}
+        self._ckey_indices: Dict['cirq.MeasurementKey', int] = {}
+
+        # For keeping track of length of the circuit thus far.
+        self._length = 0
+
+    def get_earliest_accommodating_moment_index(
+        self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation']
+    ):
+        # Identify the index of the moment to place this into.
+        index = get_earliest_accommodating_moment_index(
+            moment_or_operation,
+            self._qubit_indices,
+            self._mkey_indices,
+            self._ckey_indices,
+            self._length,
+        )
+        self._length = max(self._length, index + 1)
+        return index
+
+
 class Circuit(AbstractCircuit):
     """A mutable list of groups of operations to apply to some qubits.
 
@@ -1769,6 +1802,7 @@ class Circuit(AbstractCircuit):
                 together. This option does not affect later insertions into the
                 circuit.
         """
+        self._loader: Optional[_CircuitLoader] = _CircuitLoader()
         self._moments: List['cirq.Moment'] = []
 
         # Implementation note: the following cached properties are set lazily and then
@@ -1779,9 +1813,11 @@ class Circuit(AbstractCircuit):
         self._is_measurement: Optional[bool] = None
         self._is_parameterized: Optional[bool] = None
         self._parameter_names: Optional[AbstractSet[str]] = None
-
+        if not contents:
+            return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
         if all(isinstance(c, Moment) for c in flattened_contents):
+            self._loader = None
             self._moments[:] = cast(Iterable[Moment], flattened_contents)
             return
         with _compat.block_overlapping_deprecation('.*'):
@@ -1790,13 +1826,15 @@ class Circuit(AbstractCircuit):
             else:
                 self.append(flattened_contents, strategy=strategy)
 
-    def _mutated(self) -> None:
+    def _mutated(self, preserve_loader=False) -> None:
         """Clear cached properties in response to this circuit being mutated."""
         self._all_qubits = None
         self._frozen = None
         self._is_measurement = None
         self._is_parameterized = None
         self._parameter_names = None
+        if not preserve_loader:
+            self._loader = None
 
     @classmethod
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
@@ -1823,27 +1861,16 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        # These are dicts from the qubit/key to the greatest moment index that has it.
-        qubit_indices: Dict['cirq.Qid', int] = {}
-        mkey_indices: Dict['cirq.MeasurementKey', int] = {}
-        ckey_indices: Dict['cirq.MeasurementKey', int] = {}
-
-        # We also maintain the dict from moment index to moments/ops that go into it, for use when
+        # We maintain the dict from moment index to moments/ops that go into it, for use when
         # building the actual moments at the end.
         op_lists_by_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
         moments_by_index: Dict[int, 'cirq.Moment'] = {}
-
-        # For keeping track of length of the circuit thus far.
-        length = 0
+        loader = cast(_CircuitLoader, self._loader)
 
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
             # Identify the index of the moment to place this `mop` into.
-            placement_index = get_earliest_accommodating_moment_index(
-                mop, qubit_indices, mkey_indices, ckey_indices, length
-            )
-            length = max(length, placement_index + 1)  # update the length of the circuit thus far
-
+            placement_index = loader.get_earliest_accommodating_moment_index(mop)
             if isinstance(mop, Moment):
                 moments_by_index[placement_index] = mop
             else:
@@ -1851,7 +1878,7 @@ class Circuit(AbstractCircuit):
 
         # Finally, once everything is placed, we can construct and append the actual moments for
         # each index.
-        for i in range(length):
+        for i in range(loader._length):
             if i in moments_by_index:
                 self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
             else:
@@ -2154,20 +2181,38 @@ class Circuit(AbstractCircuit):
         """
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
-        for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
-            if isinstance(moment_or_op, Moment):
-                self._moments.insert(k, moment_or_op)
-                k += 1
-            else:
-                op = moment_or_op
-                p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
-                while p >= len(self._moments):
-                    self._moments.append(Moment())
-                self._moments[p] = self._moments[p].with_operation(op)
+        moments_or_ops = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
+        if self._loader and strategy == InsertStrategy.EARLIEST and index == len(self._moments):
+            # Use `loader` to get placement indices quickly.
+            for moment_or_op in moments_or_ops:
+                p = self._loader.get_earliest_accommodating_moment_index(moment_or_op)
+                if isinstance(moment_or_op, Moment):
+                    self._moments.append(moment_or_op)
+                else:
+                    if p >= len(self._moments):
+                        self._moments.append(Moment(moment_or_op))
+                    else:
+                        self._moments[p] = self._moments[p].with_operation(moment_or_op)
                 k = max(k, p + 1)
-                if strategy is InsertStrategy.NEW_THEN_INLINE:
-                    strategy = InsertStrategy.INLINE
-        self._mutated()
+            self._mutated(preserve_loader=True)
+        else:
+            # Default algorithm. Same behavior as above, but has to search for placement indices.
+            # First invalidate the loader due to unsupported insertion.
+            self._loader = None
+            for moment_or_op in moments_or_ops:
+                if isinstance(moment_or_op, Moment):
+                    self._moments.insert(k, moment_or_op)
+                    k += 1
+                else:
+                    op = moment_or_op
+                    p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
+                    while p >= len(self._moments):
+                        self._moments.append(Moment())
+                    self._moments[p] = self._moments[p].with_operation(op)
+                    k = max(k, p + 1)
+                    if strategy is InsertStrategy.NEW_THEN_INLINE:
+                        strategy = InsertStrategy.INLINE
+            self._mutated()
         return k
 
     def insert_into_range(self, operations: 'cirq.OP_TREE', start: int, end: int) -> int:

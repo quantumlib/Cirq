@@ -4845,18 +4845,35 @@ global phase:   0.5π
 def test_create_speed():
     # Added in https://github.com/quantumlib/Cirq/pull/5332
     # Previously this took ~30s to run. Now it should take ~150ms. However the coverage test can
-    # run this slowly, so allowing 2 sec to account for things like that. Feel free to increase the
+    # run this slowly, so allowing 4 sec to account for things like that. Feel free to increase the
     # buffer time or delete the test entirely if it ends up causing flakes.
-    #
-    # Updated in https://github.com/quantumlib/Cirq/pull/5756
-    # After several tiny overtime failures of the GitHub CI Pytest MacOS (3.7)
-    # the timeout was increased to 4 sec.  A more thorough investigation or test
-    # removal should be considered if this continues to time out.
     qs = 100
     moments = 500
     xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
-    opa = [xs[i] for i in range(qs) for _ in range(moments)]
+    ops = [xs[i] for i in range(qs) for _ in range(moments)]
     t = time.perf_counter()
-    c = cirq.Circuit(opa)
+    c = cirq.Circuit(ops)
     assert len(c) == moments
     assert time.perf_counter() - t < 4
+
+
+def test_append_speed():
+    # Previously this took ~17s to run. Now it should take ~150ms. However the coverage test can
+    # run this slowly, so allowing 4 sec to account for things like that. Feel free to increase the
+    # buffer time or delete the test entirely if it ends up causing flakes.
+    #
+    # The `append` improvement mainly helps for deep circuits. It is less useful for wide circuits
+    # because the Moment (immutable) needs verified and reconstructed each time an op is added to it.
+    qs = 2
+    moments = 10000
+    xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
+    c = cirq.Circuit()
+    t = time.perf_counter()
+    # Iterating with the moments in the inner loop highlights the improvement: when filling in the
+    # second qubit, we no longer have to search backwards for a placement index.
+    for q in range(qs):
+        for _ in range(moments):
+            c.append(xs[q])
+    duration = time.perf_counter() - t
+    assert len(c) == moments
+    assert duration < 4
