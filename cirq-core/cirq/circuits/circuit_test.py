@@ -4870,7 +4870,7 @@ def test_append_speed():
     c = cirq.Circuit()
     t = time.perf_counter()
     # Iterating with the moments in the inner loop highlights the improvement: when filling in the
-    # second qubit, we no longer have to search backwards for a placement index.
+    # second qubit, we no longer have to search backwards from moment 10000 for a placement index.
     for q in range(qs):
         for _ in range(moments):
             c.append(xs[q])
