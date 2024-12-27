@@ -351,7 +351,7 @@ def test_delete_program(client_constructor):
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_create_job(client_constructor):
+def test_create_job_with_all_parameters(client_constructor):
     grpc_client = _setup_client_mock(client_constructor)
 
     result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
@@ -382,6 +382,17 @@ def test_create_job(client_constructor):
         )
     )
 
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_without_labels(client_constructor):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+
+    run_context = any_pb2.Any()
+    client = EngineClient()
     assert client.create_job('proj', 'prog', 'job0', 'processor0', run_context, 10, 'A job') == (
         'job0',
         result,
@@ -404,6 +415,18 @@ def test_create_job(client_constructor):
         )
     )
 
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_without_description(client_constructor):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+
+    run_context = any_pb2.Any()
+    labels = {'hello': 'world'}
+    client = EngineClient()
     assert client.create_job(
         'proj', 'prog', 'job0', 'processor0', run_context, 10, labels=labels
     ) == ('job0', result)
@@ -425,27 +448,17 @@ def test_create_job(client_constructor):
         )
     )
 
-    assert client.create_job('proj', 'prog', 'job0', 'processor0', run_context, 10) == (
-        'job0',
-        result,
-    )
-    grpc_client.create_quantum_job.assert_called_with(
-        quantum.CreateQuantumJobRequest(
-            parent='projects/proj/programs/prog',
-            quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
-                run_context=run_context,
-                scheduling_config=quantum.SchedulingConfig(
-                    priority=10,
-                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
-                        processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
-                    ),
-                ),
-            ),
-        )
-    )
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_without_job_id(client_constructor):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+
+    run_context = any_pb2.Any()
+    client = EngineClient()
     assert client.create_job(
         'proj', 'prog', job_id=None, processor_id='processor0', run_context=run_context, priority=10
     ) == ('job0', result)
@@ -465,6 +478,17 @@ def test_create_job(client_constructor):
         )
     )
 
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_with_invalid_priority(client_constructor):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    grpc_client.create_quantum_job.return_value = result
+
+    run_context = any_pb2.Any()
+    client = EngineClient()
     with pytest.raises(ValueError, match='priority must be between 0 and 1000'):
         client.create_job(
             'proj',
