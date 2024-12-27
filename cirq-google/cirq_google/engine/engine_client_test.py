@@ -28,6 +28,16 @@ from cirq_google.engine.engine_client import EngineClient, EngineException
 import cirq_google.engine.stream_manager as engine_stream_manager
 from cirq_google.cloud import quantum
 
+# JOB_PATH represents the path to a specific job.
+JOB_PATH = 'projects/proj/programs/prog/jobs/job0'
+
+@pytest.fixture
+def default_run_context():
+    return any_pb2.Any()
+
+@pytest.fixture
+def default_engine_client():
+    return EngineClient()
 
 def _setup_client_mock(client_constructor):
     grpc_client = mock.AsyncMock()
@@ -334,10 +344,10 @@ def test_remove_program_labels(client_constructor):
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_delete_program(client_constructor):
+def test_delete_program(client_constructor, default_engine_client):
     grpc_client = _setup_client_mock(client_constructor)
 
-    client = EngineClient()
+    client = default_engine_client
     assert not client.delete_program('proj', 'prog')
     grpc_client.delete_quantum_program.assert_called_with(
         quantum.DeleteQuantumProgramRequest(name='projects/proj/programs/prog', delete_jobs=False)
@@ -351,67 +361,114 @@ def test_delete_program(client_constructor):
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-def test_create_job(client_constructor):
+def test_create_job_with_all_parameters(
+    client_constructor,
+    default_run_context,
+    default_engine_client
+):
     grpc_client = _setup_client_mock(client_constructor)
 
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
+    grpc_client.create_quantum_job.return_value = result
+
+    labels = {'hello': 'world'}
+    client = default_engine_client
+    assert client.create_job(
+        project_id='proj',
+        program_id='prog',
+        job_id='job0',
+        processor_id='processor0',
+        run_context=default_run_context,
+        priority=10,
+        description='A job',
+        labels=labels
+    ) == ('job0', result)
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                name=JOB_PATH,
+                run_context=default_run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor='projects/proj/processors/processor0',
+                        device_config_selector=quantum.DeviceConfigSelector(),
+                    ),
+                ),
+                description='A job',
+                labels=labels,
+            ),
+        )
+    )
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_without_labels(client_constructor):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    result = quantum.QuantumJob(name=JOB_PATH)
+    grpc_client.create_quantum_job.return_value = result
+
+    run_context = any_pb2.Any()
+    client = EngineClient()
+    assert client.create_job(
+        project_id='proj',
+        program_id='prog',
+        job_id='job0',
+        processor_id='processor0',
+        run_context=run_context,
+        priority=10,
+        description='A job'
+    ) == (
+        'job0',
+        result,
+    )
+    grpc_client.create_quantum_job.assert_called_with(
+        quantum.CreateQuantumJobRequest(
+            parent='projects/proj/programs/prog',
+            quantum_job=quantum.QuantumJob(
+                name=JOB_PATH,
+                run_context=run_context,
+                scheduling_config=quantum.SchedulingConfig(
+                    priority=10,
+                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                        processor='projects/proj/processors/processor0',
+                        device_config_selector=quantum.DeviceConfigSelector(),
+                    ),
+                ),
+                description='A job',
+            ),
+        )
+    )
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_without_description(client_constructor):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.create_quantum_job.return_value = result
 
     run_context = any_pb2.Any()
     labels = {'hello': 'world'}
     client = EngineClient()
     assert client.create_job(
-        'proj', 'prog', 'job0', 'processor0', run_context, 10, 'A job', labels
+        project_id='proj',
+        program_id='prog',
+        job_id='job0',
+        processor_id='processor0',
+        run_context=run_context,
+        priority=10,
+        labels=labels
     ) == ('job0', result)
     grpc_client.create_quantum_job.assert_called_with(
         quantum.CreateQuantumJobRequest(
             parent='projects/proj/programs/prog',
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
-                run_context=run_context,
-                scheduling_config=quantum.SchedulingConfig(
-                    priority=10,
-                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
-                        processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
-                    ),
-                ),
-                description='A job',
-                labels=labels,
-            ),
-        )
-    )
-
-    assert client.create_job('proj', 'prog', 'job0', 'processor0', run_context, 10, 'A job') == (
-        'job0',
-        result,
-    )
-    grpc_client.create_quantum_job.assert_called_with(
-        quantum.CreateQuantumJobRequest(
-            parent='projects/proj/programs/prog',
-            quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
-                run_context=run_context,
-                scheduling_config=quantum.SchedulingConfig(
-                    priority=10,
-                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
-                        processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
-                    ),
-                ),
-                description='A job',
-            ),
-        )
-    )
-
-    assert client.create_job(
-        'proj', 'prog', 'job0', 'processor0', run_context, 10, labels=labels
-    ) == ('job0', result)
-    grpc_client.create_quantum_job.assert_called_with(
-        quantum.CreateQuantumJobRequest(
-            parent='projects/proj/programs/prog',
-            quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
+                name=JOB_PATH,
                 run_context=run_context,
                 scheduling_config=quantum.SchedulingConfig(
                     priority=10,
@@ -425,27 +482,17 @@ def test_create_job(client_constructor):
         )
     )
 
-    assert client.create_job('proj', 'prog', 'job0', 'processor0', run_context, 10) == (
-        'job0',
-        result,
-    )
-    grpc_client.create_quantum_job.assert_called_with(
-        quantum.CreateQuantumJobRequest(
-            parent='projects/proj/programs/prog',
-            quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
-                run_context=run_context,
-                scheduling_config=quantum.SchedulingConfig(
-                    priority=10,
-                    processor_selector=quantum.SchedulingConfig.ProcessorSelector(
-                        processor='projects/proj/processors/processor0',
-                        device_config_selector=quantum.DeviceConfigSelector(),
-                    ),
-                ),
-            ),
-        )
-    )
 
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_without_job_id(client_constructor):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    result = quantum.QuantumJob(name=JOB_PATH)
+    grpc_client.create_quantum_job.return_value = result
+
+    run_context = any_pb2.Any()
+    client = EngineClient()
     assert client.create_job(
         'proj', 'prog', job_id=None, processor_id='processor0', run_context=run_context, priority=10
     ) == ('job0', result)
@@ -465,14 +512,28 @@ def test_create_job(client_constructor):
         )
     )
 
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_create_job_with_invalid_priority(
+    client_constructor,
+    default_run_context,
+    default_engine_client
+):
+    grpc_client = _setup_client_mock(client_constructor)
+
+    result = quantum.QuantumJob(name=JOB_PATH)
+    grpc_client.create_quantum_job.return_value = result
+
+    client = default_engine_client
     with pytest.raises(ValueError, match='priority must be between 0 and 1000'):
         client.create_job(
-            'proj',
-            'prog',
+            project_id='proj',
+            program_id='prog',
             job_id=None,
             processor_id='processor0',
-            run_context=run_context,
-            priority=5000,
+            run_context=default_run_context,
+            priority=5000
         )
 
 
@@ -497,7 +558,7 @@ def test_create_job_with_invalid_processor_and_device_config_arguments_throws(
     client_constructor, processor_id, run_name, snapshot_id, device_config_name, error_message
 ):
     grpc_client = _setup_client_mock(client_constructor)
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.create_quantum_job.return_value = result
     client = EngineClient()
 
@@ -523,7 +584,7 @@ def test_create_job_with_run_name_and_device_config_name_succeeds(
     client_constructor, run_name, snapshot_id, device_config_name
 ):
     grpc_client = _setup_client_mock(client_constructor)
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.create_quantum_job.return_value = result
     run_context = any_pb2.Any()
     client = EngineClient()
@@ -543,7 +604,7 @@ def test_create_job_with_run_name_and_device_config_name_succeeds(
         quantum.CreateQuantumJobRequest(
             parent='projects/proj/programs/prog',
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
+                name=JOB_PATH,
                 run_context=run_context,
                 scheduling_config=quantum.SchedulingConfig(
                     priority=10,
@@ -565,7 +626,7 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
     client_constructor,
 ):
     grpc_client = _setup_client_mock(client_constructor)
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.create_quantum_job.return_value = result
     run_context = any_pb2.Any()
     processor_id = "processor0"
@@ -618,7 +679,7 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
                     labels={'hello': 'world'},
                 ),
                 quantum.QuantumJob(
-                    name='projects/proj/programs/prog/jobs/job0',
+                    name=JOB_PATH,
                     run_context=any_pb2.Any(),
                     scheduling_config=quantum.SchedulingConfig(
                         priority=10,
@@ -652,7 +713,7 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
                     name='projects/proj/programs/prog', code=any_pb2.Any(), description='A program'
                 ),
                 quantum.QuantumJob(
-                    name='projects/proj/programs/prog/jobs/job0',
+                    name=JOB_PATH,
                     run_context=any_pb2.Any(),
                     scheduling_config=quantum.SchedulingConfig(
                         priority=10,
@@ -683,7 +744,7 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
                 'projects/proj',
                 quantum.QuantumProgram(name='projects/proj/programs/prog', code=any_pb2.Any()),
                 quantum.QuantumJob(
-                    name='projects/proj/programs/prog/jobs/job0',
+                    name=JOB_PATH,
                     run_context=any_pb2.Any(),
                     scheduling_config=quantum.SchedulingConfig(
                         priority=10,
@@ -720,7 +781,7 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
                     labels={'hello': 'world'},
                 ),
                 quantum.QuantumJob(
-                    name='projects/proj/programs/prog/jobs/job0',
+                    name=JOB_PATH,
                     run_context=any_pb2.Any(),
                     scheduling_config=quantum.SchedulingConfig(
                         priority=10,
@@ -755,7 +816,7 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
                     labels={'hello': 'world'},
                 ),
                 quantum.QuantumJob(
-                    name='projects/proj/programs/prog/jobs/job0',
+                    name=JOB_PATH,
                     run_context=any_pb2.Any(),
                     scheduling_config=quantum.SchedulingConfig(
                         priority=10,
@@ -788,7 +849,7 @@ def test_create_job_with_snapshot_id_and_config_successfully_passes_device_confi
                     labels={'hello': 'world'},
                 ),
                 quantum.QuantumJob(
-                    name='projects/proj/programs/prog/jobs/job0',
+                    name=JOB_PATH,
                     run_context=any_pb2.Any(),
                     scheduling_config=quantum.SchedulingConfig(
                         processor_selector=quantum.SchedulingConfig.ProcessorSelector(
@@ -842,7 +903,7 @@ def test_run_job_over_stream_with_snapshot_id_returns_correct_future(
     )
 
     expected_future = duet.futuretools.completed_future(
-        quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
+        quantum.QuantumResult(parent=JOB_PATH)
     )
     stream_manager.submit.return_value = expected_future
     stream_manager.submit.return_value = expected_future
@@ -877,7 +938,7 @@ def test_run_job_over_stream_with_snapshot_id_propogates_snapshot_id(
             'projects/proj',
             quantum.QuantumProgram(name='projects/proj/programs/prog', code=any_pb2.Any()),
             quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
+                name=JOB_PATH,
                 run_context=any_pb2.Any(),
                 scheduling_config=quantum.SchedulingConfig(
                     processor_selector=quantum.SchedulingConfig.ProcessorSelector(
@@ -960,21 +1021,21 @@ def test_run_job_over_stream_invalid_device_config_raises(
 def test_get_job(client_constructor):
     grpc_client = _setup_client_mock(client_constructor)
 
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.get_quantum_job.return_value = result
 
     client = EngineClient()
     assert client.get_job('proj', 'prog', 'job0', False) == result
     grpc_client.get_quantum_job.assert_called_with(
         quantum.GetQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0', return_run_context=False
+            name=JOB_PATH, return_run_context=False
         )
     )
 
     assert client.get_job('proj', 'prog', 'job0', True) == result
     grpc_client.get_quantum_job.assert_called_with(
         quantum.GetQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0', return_run_context=True
+            name=JOB_PATH, return_run_context=True
         )
     )
 
@@ -983,16 +1044,16 @@ def test_get_job(client_constructor):
 def test_set_job_description(client_constructor):
     grpc_client = _setup_client_mock(client_constructor)
 
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
     assert client.set_job_description('proj', 'prog', 'job0', 'A job') == result
     grpc_client.update_quantum_job.assert_called_with(
         quantum.UpdateQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
+            name=JOB_PATH,
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0', description='A job'
+                name=JOB_PATH, description='A job'
             ),
             update_mask=FieldMask(paths=['description']),
         )
@@ -1001,8 +1062,8 @@ def test_set_job_description(client_constructor):
     assert client.set_job_description('proj', 'prog', 'job0', '') == result
     grpc_client.update_quantum_job.assert_called_with(
         quantum.UpdateQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
-            quantum_job=quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0'),
+            name=JOB_PATH,
+            quantum_job=quantum.QuantumJob(name=JOB_PATH),
             update_mask=FieldMask(paths=['description']),
         )
     )
@@ -1015,7 +1076,7 @@ def test_set_job_labels(client_constructor):
     grpc_client.get_quantum_job.return_value = quantum.QuantumJob(
         labels={'color': 'red', 'weather': 'sun', 'run': '1'}, label_fingerprint='hash'
     )
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
@@ -1023,9 +1084,9 @@ def test_set_job_labels(client_constructor):
     assert client.set_job_labels('proj', 'prog', 'job0', labels) == result
     grpc_client.update_quantum_job.assert_called_with(
         quantum.UpdateQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
+            name=JOB_PATH,
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
+                name=JOB_PATH,
                 labels=labels,
                 label_fingerprint='hash',
             ),
@@ -1036,9 +1097,9 @@ def test_set_job_labels(client_constructor):
     assert client.set_job_labels('proj', 'prog', 'job0', {}) == result
     grpc_client.update_quantum_job.assert_called_with(
         quantum.UpdateQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
+            name=JOB_PATH,
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0', label_fingerprint='hash'
+                name=JOB_PATH, label_fingerprint='hash'
             ),
             update_mask=FieldMask(paths=['labels']),
         )
@@ -1053,7 +1114,7 @@ def test_add_job_labels(client_constructor):
         labels={'color': 'red', 'weather': 'sun', 'run': '1'}, label_fingerprint='hash'
     )
     grpc_client.get_quantum_job.return_value = existing
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
@@ -1063,9 +1124,9 @@ def test_add_job_labels(client_constructor):
     assert client.add_job_labels('proj', 'prog', 'job0', {'hello': 'world'}) == result
     grpc_client.update_quantum_job.assert_called_with(
         quantum.UpdateQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
+            name=JOB_PATH,
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
+                name=JOB_PATH,
                 labels={'color': 'red', 'weather': 'sun', 'run': '1', 'hello': 'world'},
                 label_fingerprint='hash',
             ),
@@ -1078,9 +1139,9 @@ def test_add_job_labels(client_constructor):
     )
     grpc_client.update_quantum_job.assert_called_with(
         quantum.UpdateQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
+            name=JOB_PATH,
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
+                name=JOB_PATH,
                 labels={'color': 'blue', 'weather': 'sun', 'run': '1', 'hello': 'world'},
                 label_fingerprint='hash',
             ),
@@ -1097,7 +1158,7 @@ def test_remove_job_labels(client_constructor):
         labels={'color': 'red', 'weather': 'sun', 'run': '1'}, label_fingerprint='hash'
     )
     grpc_client.get_quantum_job.return_value = existing
-    result = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumJob(name=JOB_PATH)
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
@@ -1107,9 +1168,9 @@ def test_remove_job_labels(client_constructor):
     assert client.remove_job_labels('proj', 'prog', 'job0', ['hello', 'weather']) == result
     grpc_client.update_quantum_job.assert_called_with(
         quantum.UpdateQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
+            name=JOB_PATH,
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
+                name=JOB_PATH,
                 labels={'color': 'red', 'run': '1'},
                 label_fingerprint='hash',
             ),
@@ -1120,9 +1181,9 @@ def test_remove_job_labels(client_constructor):
     assert client.remove_job_labels('proj', 'prog', 'job0', ['color', 'weather', 'run']) == result
     grpc_client.update_quantum_job.assert_called_with(
         quantum.UpdateQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
+            name=JOB_PATH,
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0', label_fingerprint='hash'
+                name=JOB_PATH, label_fingerprint='hash'
             ),
             update_mask=FieldMask(paths=['labels']),
         )
@@ -1136,7 +1197,7 @@ def test_delete_job(client_constructor):
     client = EngineClient()
     assert not client.delete_job('proj', 'prog', 'job0')
     grpc_client.delete_quantum_job.assert_called_with(
-        quantum.DeleteQuantumJobRequest(name='projects/proj/programs/prog/jobs/job0')
+        quantum.DeleteQuantumJobRequest(name=JOB_PATH)
     )
 
 
@@ -1147,7 +1208,7 @@ def test_cancel_job(client_constructor):
     client = EngineClient()
     assert not client.cancel_job('proj', 'prog', 'job0')
     grpc_client.cancel_quantum_job.assert_called_with(
-        quantum.CancelQuantumJobRequest(name='projects/proj/programs/prog/jobs/job0')
+        quantum.CancelQuantumJobRequest(name=JOB_PATH)
     )
 
 
@@ -1155,13 +1216,13 @@ def test_cancel_job(client_constructor):
 def test_job_results(client_constructor):
     grpc_client = _setup_client_mock(client_constructor)
 
-    result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
+    result = quantum.QuantumResult(parent=JOB_PATH)
     grpc_client.get_quantum_result.return_value = result
 
     client = EngineClient()
     assert client.get_job_results('proj', 'prog', 'job0') == result
     grpc_client.get_quantum_result.assert_called_with(
-        quantum.GetQuantumResultRequest(parent='projects/proj/programs/prog/jobs/job0')
+        quantum.GetQuantumResultRequest(parent=JOB_PATH)
     )
 
 
