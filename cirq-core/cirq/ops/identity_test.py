@@ -32,6 +32,8 @@ def test_identity_init(num_qubits):
         cirq.IdentityGate(5, qid_shape=(1, 2))
     with pytest.raises(ValueError, match='Specify either'):
         cirq.IdentityGate()
+    with pytest.raises(ValueError, match='Cannot create an identity gate on 0 qubits.'):
+        cirq.IdentityGate(0)
 
 
 def test_identity_on_each():
