@@ -64,9 +64,11 @@ Here is a summary of the examples found in this directory:
 
 To learn more about the examples in this directory, look inside the Python
 `.py` files for a [docstring](https://en.wikipedia.org/wiki/Docstring) comment
-near the top of the file. (You can ignore the `_test.py` files; those are [unit
-tests](https://en.wikipedia.org/wiki/Unit_testing) for the example files.)
+near the top of the file. (You can ignore the files whose names end in
+`_test.py`; those are [unit tests](https://en.wikipedia.org/wiki/Unit_testing)
+for the example files.)
 
 The [_Experiments_ page on the Cirq documentation
 site](https://quantumai.google/cirq/experiments/qcqmc/high_level) has more
-examples 
+examples, including examples drawn from the
+[ReCirq](https://github.com/quantumlib/recirq) project.
