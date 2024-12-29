@@ -1,0 +1,20 @@
+# Summary: Cirq configuration for using @prantlf/jsonlint
+#
+# Note: there are multiple programs programs named "jsonlint". The one you get
+# using "brew install jsonlint" (as of late 2024) is NOT the preferred one for
+# Cirq. We use https://github.com/prantlf/jsonlint. The latter is installed
+# using "npm install -g @prantlf/jsonlint". The version is 16.0.0 (Aug. 2024).
+
+comments: false
+continue: true
+duplicate-keys: false
+log-files: true
+patterns:
+  - "**/*.json"
+  - "!**/.git"
+  - "!**/.mypy_cache"
+  - "!**/.pytest_cache"
+  - "!**/node_modules"
+quiet: true
+trailing-commas: false
+trailing-newline: true
