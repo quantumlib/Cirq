@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Runs jsonlint recursively from the top of the source tree.
 #
 # Note: there are multiple programs programs named "jsonlint". The one we
@@ -9,6 +11,7 @@
 #
 # This script assumes the jsonlint configuration file .jsonlintrc.yaml is
 # located at the top of the Cirq source tree.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Get the working directory to the repo root.
 thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
