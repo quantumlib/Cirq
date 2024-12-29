@@ -753,7 +753,29 @@ def test_drop_terminal():
     dropped = cirq.drop_terminal_measurements(circuit)
     cirq.testing.assert_same_circuits(
         dropped,
-        cirq.Circuit(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.X(q1)))),
+        cirq.Circuit(
+            cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.I(q0), cirq.X(q1)))
+        ),
+    )
+
+
+def test_drop_terminal_qudit():
+    q0, q1 = cirq.LineQid.range(2, dimension=3)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]))
+        )
+    )
+    dropped = cirq.drop_terminal_measurements(circuit)
+    cirq.testing.assert_same_circuits(
+        dropped,
+        cirq.Circuit(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(
+                    cirq.IdentityGate(qid_shape=(3,)).on(q0), cirq.XPowGate(dimension=3).on(q1)
+                )
+            )
+        ),
     )
 
 
