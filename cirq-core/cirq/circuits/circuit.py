@@ -1840,6 +1840,7 @@ class Circuit(AbstractCircuit):
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
         new_circuit = Circuit()
         new_circuit._moments[:] = moments
+        new_circuit._loader = None
         return new_circuit
 
     def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
@@ -1926,6 +1927,7 @@ class Circuit(AbstractCircuit):
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
+        copied_circuit._loader = None
         return copied_circuit
 
     # pylint: disable=function-redefined
