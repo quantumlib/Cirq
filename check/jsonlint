@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Runs jsonlint recursively from the top of the source tree.
+#
+# Note: there are multiple programs programs named "jsonlint". The one we
+# use is https://github.com/prantlf/jsonlint.
+#
+# Usage:
+#     check/jsonlint [--flags for jsonlint]
+#
+# This script assumes the jsonlint configuration file .jsonlintrc.yaml is
+# located at the top of the Cirq source tree.
+
+# Get the working directory to the repo root.
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
+
+# Note: we cannot use check/npx here, because check/npx unconditionally
+# changes the current working directory into cirq-web/cirq_ts before it
+# actually invokes npx. While it's possible to use jsonlint command-line args
+# to supply the config file and the directory from which to start checking,
+# the resulting jsonlint behavior is still different with respect to
+# interpreting the "patterns" option in the config file. It has so far been
+# impossible to find a pattern definition that would make it exclude the
+# .mypy_cache and other directories from checking.
+npx @prantlf/jsonlint "$@"
