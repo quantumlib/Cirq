@@ -71,4 +71,18 @@ setup(
     long_description=long_description,
     packages=cirq_packages,
     package_data={'cirq': ['py.typed'], 'cirq.protocols.json_test_data': ['*']},
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Typing :: Typed",
+    ],
 )
