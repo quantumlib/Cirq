@@ -1,0 +1,18 @@
+# Summary: markdownlint-cli config file for Cirq
+#
+# Note: there are multiple programs programs named "markdownlint". For Cirq,
+# we use https://github.com/igorshubovych/markdownlint-cli/, which is the one
+# you get with "brew install markdownlint" on MacOS.
+
+# For a list of configuration options, see the following page:
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+# (Beware that the above looks similar but is NOT the same as the page
+# https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md.)
+
+# Make exception to the line-length limit of 80 chars in code blocks & tables.
+line-length:
+  code_blocks: false
+  tables: false
+
+# Raw HTML is allowed in Markdown, and supported by GitHub.
+no-inline-html: false
