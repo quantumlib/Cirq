@@ -73,4 +73,11 @@ def align_right(
     """
     if context is not None and context.deep is True:
         context = dataclasses.replace(context, deep=False)
-    return align_left(circuit[::-1], context=context)[::-1]
+    backwards = []
+    for moment in circuit[::-1]:
+        backwards.append(circuits.Moment(reversed(moment.operations)))
+    aligned_backwards = align_left(circuits.Circuit(backwards), context=context)
+    forwards = []
+    for moment in aligned_backwards[::-1]:
+        forwards.append(circuits.Moment(reversed(moment.operations)))
+    return circuits.Circuit(forwards)
