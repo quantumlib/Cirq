@@ -293,18 +293,18 @@ def drop_terminal_measurements(
         if isinstance(op.gate, ops.MeasurementGate):
             return [
                 (
-                    ops.IdentityGate(qid_shape=(q.dimension,)).on(q)
-                    if not b
+                    (ops.X if b else ops.I)
+                    if q.dimension == 2
                     else (
-                        ops.X(q)
-                        if q.dimension == 2
-                        else ops.MatrixGate(
+                        ops.MatrixGate(
                             np.identity(q.dimension)
                             + np.pad([[-1, 1], [1, -1]], (0, q.dimension - 2)),
                             qid_shape=(q.dimension,),
-                        ).on(q)
+                        )
+                        if b
+                        else ops.IdentityGate(qid_shape=(q.dimension,))
                     )
-                )
+                ).on(q)
                 for q, b in zip(op.qubits, op.gate.full_invert_mask())
             ]
         return op
