@@ -772,7 +772,10 @@ def test_drop_terminal_qudit():
         cirq.Circuit(
             cirq.CircuitOperation(
                 cirq.FrozenCircuit(
-                    cirq.IdentityGate(qid_shape=(3,)).on(q0), cirq.XPowGate(dimension=3).on(q1)
+                    cirq.IdentityGate(qid_shape=(3,)).on(q0),
+                    cirq.MatrixGate(np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]]), qid_shape=(3,)).on(
+                        q1
+                    ),
                 )
             )
         ),
