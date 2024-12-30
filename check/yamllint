@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Runs yamllint recursively from the top of the source tree.
+#
+# Usage:
+#     check/yamllint [--flags for yamllint]
+#
+# This script assumes the yamllint configuration file .yamllint.yaml is
+# located at the top of the Cirq source tree. For more info about yamllint,
+# please visit https://yamllint.readthedocs.io/.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Get the working directory to the repo root.
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
+
+# If no options are given when this script is invoked, supply "." because
+# yamllint needs to be given files or directories as the final argument(s).
+yamllint "${@:-.}"
