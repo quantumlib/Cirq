@@ -16,3 +16,6 @@ line-length:
 
 # Raw HTML is allowed in Markdown, and supported by GitHub.
 no-inline-html: false
+
+# Bare URLs are allowed in GitHub-flavored Markdown.
+no-bare-urls: false
