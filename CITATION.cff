@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+authors:
+  - name: Cirq Developers
+    website: https://github.com/quantumlib/Cirq/graphs/contributors
+title: Cirq
+abstract: Python package for writing, manipulating, and running quantum circuits on quantum computers and simulators.
+version: 1.4.1
+date-released: 2024-06-26
+url: https://quantumai.google/cirq
+repository-code: https://github.com/quantumlib/cirq
+license: Apache-2.0
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.4062499
+    description: Archival DOI for Cirq software releases.
+type: software
+keywords:
+  - api
+  - nisq
+  - noisy intermediate-scale quantum
+  - python
+  - quantum algorithms
+  - quantum circuit simulation
+  - quantum circuits
+  - quantum computing
+  - quantum programming
+  - quantum programming languages
+  - quantum simulation
+  - sdk
+  - simulation
+  - software
