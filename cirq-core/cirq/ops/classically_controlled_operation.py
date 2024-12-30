@@ -169,10 +169,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 + ', '.join(str(c) for c in self._conditions)
                 + '])',
             ) + wire_symbols[1:]
+        exp_index = sub_info.exponent_qubit_index
+        if exp_index is None:
+            # None means at bottom, which means the last of the original wire symbols
+            exp_index = len(sub_info.wire_symbols) - 1
         return protocols.CircuitDiagramInfo(
-            wire_symbols=wire_symbols,
-            exponent=sub_info.exponent,
-            exponent_qubit_index=sub_info.exponent_qubit_index or len(sub_info.wire_symbols) - 1,
+            wire_symbols=wire_symbols, exponent=sub_info.exponent, exponent_qubit_index=exp_index
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
