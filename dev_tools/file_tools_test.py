@@ -12,22 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import tempfile
 
 import pytest
 
-from .file_tools import read_file_filtered
+from dev_tools.file_tools import read_file_filtered
 
-start_skip = '.. ▶︎─── start github-only'
-end_skip = '.. ▶︎─── end github-only'
+START_SKIP = '.. ▶︎─── start github-only'
+END_SKIP = '.. ▶︎─── end github-only'
 
 
 def output_from_read_file_filtered(content):
     """Call `read_file_filtered` using a temp file to store `content`."""
-    with tempfile.NamedTemporaryFile(mode='w+', encoding='utf-8') as tf:
-        tf.write(content)
-        tf.seek(0)
-        return read_file_filtered(tf.name, start_skip, end_skip)
+    # On Windows, can't read from a temp file while it's open, so we can't use
+    # the context handler "with tempfile...".
+    tf = tempfile.NamedTemporaryFile(mode='w+', encoding='utf-8', delete=False)
+    tf.write(content)
+    tf.close()
+    ex_raised = None
+    output = ''
+    try:
+        output = read_file_filtered(tf.name, START_SKIP, END_SKIP)
+    except Exception as ex:
+        os.unlink(tf.name)
+        ex_raised = ex
+    if ex_raised:
+        raise ex_raised
+    return output
 
 
 def test_valid():
