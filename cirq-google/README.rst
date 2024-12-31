@@ -17,9 +17,6 @@
 .. |cirq-github| replace:: Cirq GitHub repository
 .. _cirq-github: https://github.com/quantumlib/Cirq
 
-.. |cirq-releases| replace:: Cirq releases page
-.. _cirq-releases: https://github.com/quantumlib/Cirq/releases
-
 .. |cirq-google| replace:: ``cirq-google``
 .. |cirq-core| replace:: ``cirq-core``
 
@@ -65,7 +62,7 @@ installation options for the |cirq-google| module:
 * To install the pre-release version of |cirq-google|, use ``pip install
   cirq-google~=1.0.dev``. (The ``~=`` has a special meaning to ``pip`` of
   selecting the latest version compatible with the ``1.*`` and ``dev`` in the
-  name. Despite apperances, this will not install an old version 1.0 release!)
+  name. Despite appearances, this will not install an old version 1.0 release!)
 
 If you would like to install Cirq with all the optional modules, not just
 |cirq-google|, then instead of the above commands, use ``pip install cirq`` for

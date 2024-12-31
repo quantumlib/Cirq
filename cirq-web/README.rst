@@ -12,9 +12,6 @@
 .. |cirq-github| replace:: Cirq GitHub repository
 .. _cirq-github: https://github.com/quantumlib/Cirq
 
-.. |cirq-releases| replace:: Cirq releases page
-.. _cirq-releases: https://github.com/quantumlib/Cirq/releases
-
 .. |cirq-web| replace:: ``cirq-web``
 .. |cirq-core| replace:: ``cirq-core``
 
@@ -42,7 +39,7 @@ Installation
 |cirq-web| is currently in development, and therefore is only available in
 pre-release form. To install it use ``pip install cirq-web~=1.0.dev``. (The
 ``~=`` has a special meaning to ``pip`` of selecting the latest version
-compatible with the ``1.*`` and ``dev`` in the name. Despite apperances, this
+compatible with the ``1.*`` and ``dev`` in the name. Despite appearances, this
 will not install an old version 1.0 release!) This will also install
 |cirq-core| automatically.
 
