@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
 import os
 from setuptools import setup
 
@@ -20,6 +19,7 @@ from setuptools import setup
 __version__ = ''
 
 from dev_tools import modules
+from dev_tools.file_tools import read_file_filtered
 from dev_tools.requirements import explode
 
 exec(open('cirq-core/cirq/_version.py').read())
@@ -28,16 +28,21 @@ name = 'cirq'
 
 description = (
     'A framework for creating, editing, and invoking '
-    'Noisy Intermediate Scale Quantum (NISQ) circuits.'
+    'Noisy Intermediate-Scale Quantum (NISQ) circuits.'
 )
 
-# README file as long_description.
-long_description = io.open('README.rst', encoding='utf-8').read()
+# Read README.rst for the long_description, skipping parts that contain rST
+# constructs that are disallowed by PyPI.
+long_description = read_file_filtered(
+    "README.rst",
+    ".. ▶︎─── start github-only",
+    ".. ▶︎─── end github-only"
+)
 
 # If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
-# It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
-# it will be a pre-release version on PyPi. See
-# https://packaging.python.org/guides/distributing-packages-using-setuptools/#pre-release-versioning
+# The value is assumed to end with one of `.devN`, `.aN`, `.bN`, `.rcN`, which
+# means this will be a pre-release version put on PyPI. See
+# https://packaging.python.org/specifications/version-specifiers/#pre-releases
 # for more details.
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
