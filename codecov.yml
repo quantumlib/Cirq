@@ -1,3 +1,7 @@
+# Summary: configuration for codecov/codecov-action used in ci.yml.
+# See https://github.com/codecov/codecov-action for info about the GitHub Action.
+# See https://app.codecov.io/gh/quantumlib/Cirq for the results dashboard.
+
 coverage:
   status:
     project:
