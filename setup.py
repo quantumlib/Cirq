@@ -34,9 +34,7 @@ description = (
 # Read README.rst for the long_description, skipping parts that contain rST
 # constructs that are disallowed by PyPI.
 long_description = read_file_filtered(
-    "README.rst",
-    ".. ▶︎─── start github-only",
-    ".. ▶︎─── end github-only"
+    "README.rst", ".. ▶︎─── start github-only", ".. ▶︎─── end github-only"
 )
 
 # If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.

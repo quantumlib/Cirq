@@ -14,6 +14,7 @@
 
 """Helper utilities for working with text files."""
 
+
 def read_file_filtered(filename, begin_skip, end_skip):
     """Return lines from a file, skipping lines between markers.
 
@@ -43,13 +44,16 @@ def read_file_filtered(filename, begin_skip, end_skip):
     for line_num, line in enumerate(file_lines, start=1):
         if line.startswith(begin_skip):
             if skip:
-                raise ValueError(f"[Line {line_num}] Encountered"
-                                 f" '{begin_skip}' while already skipping.")
+                raise ValueError(
+                    f"[Line {line_num}] Encountered '{begin_skip}' while already skipping."
+                )
             skip = True
         elif line.startswith(end_skip):
             if not skip:
-                raise ValueError(f"[Line {line_num}] Encountered '{end_skip}'"
-                                 f" without a matching '{begin_skip}'.")
+                raise ValueError(
+                    f"[Line {line_num}] Encountered '{end_skip}'"
+                    f" without a matching '{begin_skip}'."
+                )
             skip = False
         elif not skip:
             content += line
