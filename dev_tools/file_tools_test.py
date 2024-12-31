@@ -24,7 +24,7 @@ end_skip = '.. ▶︎─── end github-only'
 
 def output_from_read_file_filtered(content):
     """Call `read_file_filtered` using a temp file to store `content`."""
-    with tempfile.NamedTemporaryFile(mode='w+') as tf:
+    with tempfile.NamedTemporaryFile(mode='w+', encoding='utf-8') as tf:
         tf.write(content)
         tf.seek(0)
         return read_file_filtered(tf.name, start_skip, end_skip)
