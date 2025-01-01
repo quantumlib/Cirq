@@ -33,8 +33,12 @@ class _BaseLineQid(ops.Qid):
     _hash: Optional[int] = None
 
     def __hash__(self) -> int:
+        # This approach seems to perform better than traditional "random" hash in `Set`
+        # operations for typical circuits, as it reduces bucket collisions. Caveat: it does not
+        # include dimension, so sets with qudits of different dimensions but same location will
+        # have degenerate performance.
         if self._hash is None:
-            self._hash = hash((self._x, self._dimension))
+            self._hash = hash(self._x) # hash(i) returns i except for huge numbers
         return self._hash
 
     def __eq__(self, other) -> bool:
