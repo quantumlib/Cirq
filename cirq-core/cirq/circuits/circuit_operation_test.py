@@ -1212,20 +1212,28 @@ def test_repeat_until_protocols():
         repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 0)),
     )
     scoped = cirq.with_rescoped_keys(op, ('0',))
-    assert not cirq.control_keys(scoped)
+    # Ensure the _repeat_until has been mapped, the measurement has been mapped to the same key,
+    # and the control keys of the subcircuit is empty (because the control key of the condition is
+    # bound to the measurement).
+    assert scoped._mapped_repeat_until.keys == (cirq.MeasurementKey('a', ('0',)),)
     assert cirq.measurement_key_objs(scoped) == {cirq.MeasurementKey('a', ('0',))}
+    assert not cirq.control_keys(scoped)
     mapped = cirq.with_measurement_key_mapping(scoped, {'a': 'b'})
-    assert not cirq.control_keys(mapped)
+    assert mapped._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('0',)),)
     assert cirq.measurement_key_objs(mapped) == {cirq.MeasurementKey('b', ('0',))}
+    assert not cirq.control_keys(mapped)
     prefixed = cirq.with_key_path_prefix(mapped, ('1',))
-    assert not cirq.control_keys(prefixed)
+    assert prefixed._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('1', '0')),)
     assert cirq.measurement_key_objs(prefixed) == {cirq.MeasurementKey('b', ('1', '0'))}
+    assert not cirq.control_keys(prefixed)
     setpath = cirq.with_key_path(prefixed, ('2',))
-    assert not cirq.control_keys(setpath)
+    assert setpath._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
     assert cirq.measurement_key_objs(setpath) == {cirq.MeasurementKey('b', ('2',))}
+    assert not cirq.control_keys(setpath)
     resolved = cirq.resolve_parameters(setpath, {})
-    assert not cirq.control_keys(resolved)
+    assert resolved._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
     assert cirq.measurement_key_objs(resolved) == {cirq.MeasurementKey('b', ('2',))}
+    assert not cirq.control_keys(resolved)
 
 
 def test_inner_repeat_until_simulate():
