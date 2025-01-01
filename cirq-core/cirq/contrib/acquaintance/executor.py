@@ -75,7 +75,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         strategy = StrategyExecutorTransformer(self)
         final_circuit = strategy(input_circuit, **kwargs)
         input_circuit._moments = final_circuit._moments
-        input_circuit._loader = final_circuit._loader
+        input_circuit._placer = final_circuit._placer
         return strategy.mapping
 
 

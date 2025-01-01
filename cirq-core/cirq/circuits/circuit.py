@@ -1673,7 +1673,7 @@ def _concat_ragged_helper(
     return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
-class _CircuitLoader:
+class _OpPlacer:
     """Maintains qubit and cbit indices for quick op placement.
 
     Here, we instead keep track of the greatest moment that contains each
@@ -1802,7 +1802,7 @@ class Circuit(AbstractCircuit):
                 together. This option does not affect later insertions into the
                 circuit.
         """
-        self._loader: Optional[_CircuitLoader] = _CircuitLoader()
+        self._placer: Optional[_OpPlacer] = _OpPlacer()
         self._moments: List['cirq.Moment'] = []
 
         # Implementation note: the following cached properties are set lazily and then
@@ -1817,7 +1817,7 @@ class Circuit(AbstractCircuit):
             return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
         if all(isinstance(c, Moment) for c in flattened_contents):
-            self._loader = None
+            self._placer = None
             self._moments[:] = cast(Iterable[Moment], flattened_contents)
             return
         with _compat.block_overlapping_deprecation('.*'):
@@ -1826,21 +1826,21 @@ class Circuit(AbstractCircuit):
             else:
                 self.append(flattened_contents, strategy=strategy)
 
-    def _mutated(self, preserve_loader=False) -> None:
+    def _mutated(self, preserve_placer=False) -> None:
         """Clear cached properties in response to this circuit being mutated."""
         self._all_qubits = None
         self._frozen = None
         self._is_measurement = None
         self._is_parameterized = None
         self._parameter_names = None
-        if not preserve_loader:
-            self._loader = None
+        if not preserve_placer:
+            self._placer = None
 
     @classmethod
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
         new_circuit = Circuit()
         new_circuit._moments[:] = moments
-        new_circuit._loader = None
+        new_circuit._placer = None
         return new_circuit
 
     def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
@@ -1866,12 +1866,12 @@ class Circuit(AbstractCircuit):
         # building the actual moments at the end.
         op_lists_by_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
         moments_by_index: Dict[int, 'cirq.Moment'] = {}
-        loader = cast(_CircuitLoader, self._loader)
+        placer = cast(_OpPlacer, self._placer)
 
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
             # Identify the index of the moment to place this `mop` into.
-            placement_index = loader.get_earliest_accommodating_moment_index(mop)
+            placement_index = placer.get_earliest_accommodating_moment_index(mop)
             if isinstance(mop, Moment):
                 moments_by_index[placement_index] = mop
             else:
@@ -1879,7 +1879,7 @@ class Circuit(AbstractCircuit):
 
         # Finally, once everything is placed, we can construct and append the actual moments for
         # each index.
-        for i in range(loader._length):
+        for i in range(placer._length):
             if i in moments_by_index:
                 self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
             else:
@@ -1927,7 +1927,7 @@ class Circuit(AbstractCircuit):
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
-        copied_circuit._loader = None
+        copied_circuit._placer = None
         return copied_circuit
 
     # pylint: disable=function-redefined
@@ -2184,10 +2184,10 @@ class Circuit(AbstractCircuit):
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
         moments_or_ops = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
-        if self._loader and strategy == InsertStrategy.EARLIEST and index == len(self._moments):
-            # Use `loader` to get placement indices quickly.
+        if self._placer and strategy == InsertStrategy.EARLIEST and index == len(self._moments):
+            # Use `placer` to get placement indices quickly.
             for moment_or_op in moments_or_ops:
-                p = self._loader.get_earliest_accommodating_moment_index(moment_or_op)
+                p = self._placer.get_earliest_accommodating_moment_index(moment_or_op)
                 if isinstance(moment_or_op, Moment):
                     self._moments.append(moment_or_op)
                 else:
@@ -2196,11 +2196,11 @@ class Circuit(AbstractCircuit):
                     else:
                         self._moments[p] = self._moments[p].with_operation(moment_or_op)
                 k = max(k, p + 1)
-            self._mutated(preserve_loader=True)
+            self._mutated(preserve_placer=True)
         else:
             # Default algorithm. Same behavior as above, but has to search for placement indices.
-            # First invalidate the loader due to unsupported insertion.
-            self._loader = None
+            # First invalidate the placer due to unsupported insertion.
+            self._placer = None
             for moment_or_op in moments_or_ops:
                 if isinstance(moment_or_op, Moment):
                     self._moments.insert(k, moment_or_op)
