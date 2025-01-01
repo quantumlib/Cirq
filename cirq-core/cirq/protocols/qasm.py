@@ -147,7 +147,7 @@ def qasm(
             involving qubits that the operation wouldn't otherwise know about.
         qubits: A list of qubits that the value is being applied to. This is
             needed for `cirq.Gate` values, which otherwise wouldn't know what
-            qubits to talk about.
+            qubits to talk about.  It should generally not be specified otherwise.
         default: A default result to use if the value doesn't have a
             `_qasm_` method or that method returns `NotImplemented` or `None`.
             If not specified, non-decomposable values cause a `TypeError`.
@@ -168,10 +168,16 @@ def qasm(
         kwargs: Dict[str, Any] = {}
         if args is not None:
             kwargs['args'] = args
+        # pylint: disable=not-callable
         if qubits is not None:
             kwargs['qubits'] = tuple(qubits)
-        # pylint: disable=not-callable
-        result = method(**kwargs)
+        try:
+            result = method(**kwargs)
+        except TypeError as error:
+            raise TypeError(
+                "cirq.qasm does not expect qubits or args to be specified"
+                f"for the given value of type {type(val)}."
+            ) from error
         # pylint: enable=not-callable
     if result is not None and result is not NotImplemented:
         return result
