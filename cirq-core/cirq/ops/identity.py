@@ -48,10 +48,14 @@ class IdentityGate(raw_types.Gate):
                 applies to.  The default is 2 for every qubit.
 
         Raises:
-            ValueError: If the length of qid_shape doesn't equal num_qubits, or
-                neither `num_qubits` or `qid_shape` is supplied.
+            ValueError: If any of the following conditions are met:
+                - The length of `qid_shape` does not equal `num_qubits`.
+                - Neither `num_qubits` nor `qid_shape` is provided.
+                - `num_qubits` is 0.
 
         """
+        if num_qubits == 0:
+            raise ValueError('Cannot create an identity gate on 0 qubits.')
         if qid_shape is None:
             if num_qubits is None:
                 raise ValueError('Specify either the num_qubits or qid_shape argument.')
