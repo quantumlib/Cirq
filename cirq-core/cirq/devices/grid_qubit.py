@@ -60,7 +60,7 @@ class _BaseGridQid(ops.Qid):
             square_index = max(abs_row, abs_col)
             inner_square_side_len = square_index * 2 - 1
             outer_square_side_len = inner_square_side_len + 2
-            inner_square_area = inner_square_side_len ** 2
+            inner_square_area = inner_square_side_len**2
             if abs_row == square_index:
                 offset = 0 if row < 0 else outer_square_side_len
                 i = inner_square_area + offset + (col + square_index)

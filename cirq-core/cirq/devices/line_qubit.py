@@ -38,7 +38,7 @@ class _BaseLineQid(ops.Qid):
         # include dimension, so sets with qudits of different dimensions but same location will
         # have degenerate performance.
         if self._hash is None:
-            self._hash = hash(self._x) # hash(i) returns i except for huge numbers
+            self._hash = hash(self._x)  # hash(i) returns i except for huge numbers
         return self._hash
 
     def __eq__(self, other) -> bool:
