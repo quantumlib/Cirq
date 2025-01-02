@@ -430,7 +430,7 @@ class GridDevice(cirq.Device):
 
     For Google devices, the
     [DeviceSpecification proto](
-        https://github.com/quantumlib/Cirq/blob/master/cirq-google/cirq_google/api/v2/device.proto
+        https://github.com/quantumlib/Cirq/blob/main/cirq-google/cirq_google/api/v2/device.proto
     )
     is the main specification for device information surfaced by the Quantum Computing Service.
     Thus, this class should typically be instantiated using a `DeviceSpecification` proto via the
