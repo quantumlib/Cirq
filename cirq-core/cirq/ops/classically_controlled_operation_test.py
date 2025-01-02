@@ -1056,3 +1056,64 @@ def test_moment_diagram():
   │
     """.strip()
     )
+
+
+def test_diagram_exponents():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='m'), (cirq.X(q1) ** 0.5).with_classical_controls('m')
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M───────────
+      ║
+1: ───╫───X^0.5───
+      ║   ║
+m: ═══@═══^═══════
+""",
+    )
+
+
+def test_diagram_exponents_cx():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='m'), (cirq.CX(q2, q1) ** 0.5).with_classical_controls('m')
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M───────────
+      ║
+1: ───╫───X^0.5───
+      ║   ║
+2: ───╫───@───────
+      ║   ║
+m: ═══@═══^═══════
+""",
+    )
+
+
+def test_diagram_exponents_multiple_keys():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, key='m1'),
+        (cirq.X(q2) ** 0.5).with_classical_controls('m0', 'm1'),
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+       ┌──┐
+0: ─────M─────────────
+        ║
+1: ─────╫M────────────
+        ║║
+2: ─────╫╫────X^0.5───
+        ║║    ║
+m0: ════@╬════^═══════
+         ║    ║
+m1: ═════@════^═══════
+       └──┘
+""",
+    )
