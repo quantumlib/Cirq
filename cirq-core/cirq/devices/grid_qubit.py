@@ -42,32 +42,37 @@ class _BaseGridQid(ops.Qid):
             # operations for typical circuits, as it reduces bucket collisions. Caveat: it does not
             # include dimension, so sets with qudits of different dimensions but same location will
             # have degenerate performance.
-            # Indexes the plane by squares around the origin.
+            # Indexes the plane by concentric squares around the origin.
             #    | -2 -1  0  1  2
             # ---+---------------
             # -2 |  9 10 11 12 13
-            # -1 | 19  1  2  3 22
-            #  0 | 20  7  0  8 23
-            #  1 | 21  4  5  6 24
-            #  2 | 14 15 16 17 18
+            # -1 | 24  1  2  3 14
+            #  0 | 23  8  0  4 15
+            #  1 | 22  7  6  5 16
+            #  2 | 21 20 19 18 17
             row = self._row
             col = self._col
             if row == 0 and col == 0:
                 self._hash = 0
                 return 0
-            abs_row = abs(row)
-            abs_col = abs(col)
-            square_index = max(abs_row, abs_col)
-            inner_square_side_len = square_index * 2 - 1
-            outer_square_side_len = inner_square_side_len + 2
-            inner_square_area = inner_square_side_len**2
-            if abs_row == square_index:
-                offset = 0 if row < 0 else outer_square_side_len
-                i = inner_square_area + offset + (col + square_index)
-            else:
-                offset = (2 * outer_square_side_len) + (0 if col < 0 else inner_square_side_len)
-                i = inner_square_area + offset + (row + (square_index - 1))
-            self._hash = hash(i)
+
+            # The index of the square containing this point
+            n = max(abs(row), abs(col))
+
+            # Determine the area of the inner square
+            start = (2 * n - 1)**2 if n > 0 else 0
+
+            # Determine the offset within the outer square
+            if row == -n:  # Top edge
+                offset = n + col
+            elif col == n:  # Right edge
+                offset = 3 * n + row
+            elif row == n:  # Bottom edge
+                offset = 5 * n - col
+            else:  # Left edge
+                offset = 7 * n - row
+
+            self._hash = hash(start + offset)
         return self._hash
 
     def __eq__(self, other) -> bool:
