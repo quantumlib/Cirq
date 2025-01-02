@@ -38,7 +38,41 @@ class _BaseGridQid(ops.Qid):
 
     def __hash__(self) -> int:
         if self._hash is None:
-            self._hash = hash((self._row, self._col, self._dimension))
+            # This approach seems to perform better than traditional "random" hash in `Set`
+            # operations for typical circuits, as it reduces bucket collisions. Caveat: it does not
+            # include dimension, so sets with qudits of different dimensions but same location will
+            # have degenerate performance.
+            # Indexes the plane by concentric squares around the origin.
+            #    | -2 -1  0  1  2
+            # ---+---------------
+            # -2 |  9 10 11 12 13
+            # -1 | 24  1  2  3 14
+            #  0 | 23  8  0  4 15
+            #  1 | 22  7  6  5 16
+            #  2 | 21 20 19 18 17
+            row = self._row
+            col = self._col
+
+            # The index of the square containing this point
+            n = max(abs(row), abs(col))
+            if n == 0:
+                self._hash = 0
+                return 0
+
+            # Determine the area of the inner square
+            start = (2 * n - 1) ** 2
+
+            # Determine the offset within the outer square
+            if row == -n:  # Top edge
+                offset = n + col
+            elif col == n:  # Right edge
+                offset = 3 * n + row
+            elif row == n:  # Bottom edge
+                offset = 5 * n - col
+            else:  # Left edge
+                offset = 7 * n - row
+
+            self._hash = hash(start + offset)
         return self._hash
 
     def __eq__(self, other) -> bool:
