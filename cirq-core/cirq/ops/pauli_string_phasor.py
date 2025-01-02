@@ -189,6 +189,8 @@ class PauliStringPhasor(gate_operation.GateOperation):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
+        if not qubits:
+            return NotImplemented
 
         def sym(qubit):
             if qubit in self.pauli_string:
