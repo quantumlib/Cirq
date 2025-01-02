@@ -243,6 +243,24 @@ class QasmParser:
         'ch': QasmGateStatement(
             qasm_gate='ch', cirq_gate=ops.ControlledGate(ops.H), num_params=0, num_args=2
         ),
+        'cu1': QasmGateStatement(
+            qasm_gate='cu1',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(0, 0, params[0] / np.pi))),
+        ),
+        'cu3': QasmGateStatement(
+            qasm_gate='cu3',
+            num_params=3,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))),
+        ),
+        'crz': QasmGateStatement(
+            qasm_gate='crz',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.rz(params[0]))),
+        ),
         'swap': QasmGateStatement(qasm_gate='swap', cirq_gate=ops.SWAP, num_params=0, num_args=2),
         'cswap': QasmGateStatement(
             qasm_gate='cswap', num_params=0, num_args=3, cirq_gate=ops.CSWAP
@@ -270,6 +288,7 @@ class QasmParser:
 
     def p_qasm_no_format_specified_error(self, p):
         """qasm : QELIBINC
+        | STDGATESINC
         | circuit"""
         if self.supported_format is False:
             raise QasmException("Missing 'OPENQASM 2.0;' statement")
@@ -279,20 +298,27 @@ class QasmParser:
         self.qelibinc = True
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
 
+    def p_qasm_include_stdgates(self, p):
+        """qasm : qasm STDGATESINC"""
+        self.qelibinc = True
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
+
     def p_qasm_circuit(self, p):
         """qasm : qasm circuit"""
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, p[2])
 
     def p_format(self, p):
         """format : FORMAT_SPEC"""
-        if p[1] != "2.0":
+        if p[1] not in ["2.0", "3.0"]:
             raise QasmException(
-                f"Unsupported OpenQASM version: {p[1]}, only 2.0 is supported currently by Cirq"
+                f"Unsupported OpenQASM version: {p[1]}, "
+                "only 2.0 and 3.0 are supported currently by Cirq"
             )
 
     # circuit : new_reg circuit
     #         | gate_op circuit
     #         | measurement circuit
+    #         | reset circuit
     #         | if circuit
     #         | empty
 
@@ -303,6 +329,7 @@ class QasmParser:
     def p_circuit_gate_or_measurement_or_if(self, p):
         """circuit :  circuit gate_op
         |  circuit measurement
+        |  circuit reset
         |  circuit if"""
         self.circuit.append(p[2])
         p[0] = self.circuit
@@ -315,13 +342,28 @@ class QasmParser:
 
     def p_new_reg(self, p):
         """new_reg : QREG ID '[' NATURAL_NUMBER ']' ';'
-        | CREG ID '[' NATURAL_NUMBER ']' ';'"""
-        name, length = p[2], p[4]
+        | QUBIT '[' NATURAL_NUMBER ']' ID ';'
+        | QUBIT ID ';'
+        | CREG ID '[' NATURAL_NUMBER ']' ';'
+        | BIT '[' NATURAL_NUMBER ']' ID ';'
+        | BIT ID ';'
+        """
+        if p[1] == "qreg" or p[1] == "creg":
+            # QREG ID '[' NATURAL_NUMBER ']' ';'
+            name, length = p[2], p[4]
+        else:
+            if len(p) < 5:
+                # QUBIT ID ';' | BIT ID ';'
+                name = p[2]
+                length = 1
+            else:
+                # QUBIT '[' NATURAL_NUMBER ']' ID ';'
+                name, length = p[5], p[3]
         if name in self.qregs.keys() or name in self.cregs.keys():
             raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
         if length == 0:
             raise QasmException(f"Illegal, zero-length register '{name}' at line {p.lineno(4)}")
-        if p[1] == "qreg":
+        if p[1] == "qreg" or p[1] == "qubit":
             self.qregs[name] = length
         else:
             self.cregs[name] = length
@@ -485,9 +527,14 @@ class QasmParser:
     # measurement : MEASURE qarg ARROW carg
 
     def p_measurement(self, p):
-        """measurement : MEASURE qarg ARROW carg ';'"""
-        qreg = p[2]
-        creg = p[4]
+        """measurement : MEASURE qarg ARROW carg ';'
+        | carg '=' MEASURE qarg ';'"""
+        if p[1] == 'measure':
+            qreg = p[2]
+            creg = p[4]
+        else:
+            qreg = p[4]
+            creg = p[1]
 
         if len(qreg) != len(creg):
             raise QasmException(
@@ -498,6 +545,15 @@ class QasmParser:
         p[0] = [
             ops.MeasurementGate(num_qubits=1, key=creg[i]).on(qreg[i]) for i in range(len(qreg))
         ]
+
+    # reset operations
+    # reset : RESET qarg
+
+    def p_reset(self, p):
+        """reset : RESET qarg ';'"""
+        qreg = p[2]
+
+        p[0] = [ops.ResetChannel().on(qreg[i]) for i in range(len(qreg))]
 
     # if operations
     # if : IF '(' carg EQ NATURAL_NUMBER ')' ID qargs

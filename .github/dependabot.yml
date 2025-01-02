@@ -1,0 +1,76 @@
+# Copyright 2024 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Summary: Dependabot config file, to adjust things for the Cirq project.
+#
+# By default, Dependabot labels all pull requests with label 'dependencies'.
+# We prefer `area/dependencies`, so have to configure Dependabot appropriately.
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    # The "docker" ecosystem directive makes Dependabot look for a Dockerfile
+    # in the specified directory.
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "area/dependencies"
+      - "area/docker"
+      - "kind/health"
+
+  - package-ecosystem: "github-actions"
+    # The "github-actions" code explicitly looks in /.github/workflows if the
+    # value "/" is given for the directory attribute. Yes, that's confusing.
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "area/dependencies"
+      - "area/github"
+      - "kind/health"
+
+  - package-ecosystem: "npm"
+    # The "npm" ecosystem directive makes Dependabot look for package.json in
+    # the specified directory.
+    directory: "/cirq-web/cirq_ts/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "area/dependencies"
+      - "area/javascript"
+      - "kind/health"
+
+  - package-ecosystem: "pip"
+    # Cirq has requirements.txt files in multiple places. N.b. the use of
+    # attribute "directories" instead of "directory" here.
+    directories:
+      - "/"
+      - "/cirq-aqt"
+      - "/cirq-core"
+      - "/cirq-google"
+      - "/cirq-ionq"
+      - "/cirq-pasqal"
+      - "/cirq-rigetti"
+      - "/cirq-web"
+      - "/dev_tools/requirements"
+    schedule:
+      interval: "weekly"
+    versioning-strategy: "increase-if-necessary"
+    labels:
+      - "area/dependencies"
+      - "area/python"
+      - "kind/health"

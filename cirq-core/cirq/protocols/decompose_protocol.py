@@ -15,6 +15,7 @@ import itertools
 import dataclasses
 import inspect
 from collections import defaultdict
+from types import NotImplementedType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -37,7 +38,6 @@ from typing_extensions import Protocol
 from cirq import devices, ops
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

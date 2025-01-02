@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 import cirq
 import cirq_google
 import pytest
+from cirq_google.ops import internal_gate
+from cirq_google.serialization import arg_func_langs
 
 
 def test_internal_gate():
@@ -67,3 +71,77 @@ def test_internal_gate_with_hashable_args_is_hashable():
     )
     with pytest.raises(TypeError, match="unhashable"):
         _ = hash(unhashable)
+
+
+def test_internal_gate_with_custom_function_repr():
+    x = np.linspace(-1, 1, 10)
+    y = x**2
+    encoded_func = internal_gate.function_points_to_proto(x=x, y=y)
+
+    gate = internal_gate.InternalGate(
+        gate_name='GateWithFunction',
+        gate_module='test',
+        num_qubits=2,
+        custom_args={'func': encoded_func},
+    )
+
+    assert repr(gate) == (
+        "cirq_google.InternalGate(gate_name='GateWithFunction', "
+        f"gate_module='test', num_qubits=2, custom_args={gate.custom_args})"
+    )
+
+    assert str(gate) == (f"test.GateWithFunction(func={encoded_func})")
+
+    with pytest.raises(ValueError):
+        _ = cirq.to_json(gate)
+
+
+def test_internal_gate_with_custom_function_round_trip():
+    original_func = lambda x: x**2
+    x = np.linspace(-1, 1, 10)
+    y = original_func(x)
+    encoded_func = internal_gate.function_points_to_proto(x=x, y=y)
+
+    gate = internal_gate.InternalGate(
+        gate_name='GateWithFunction',
+        gate_module='test',
+        num_qubits=2,
+        custom_args={'func': encoded_func},
+    )
+
+    msg = arg_func_langs.internal_gate_arg_to_proto(gate)
+
+    new_gate = arg_func_langs.internal_gate_from_proto(msg, arg_func_langs.MOST_PERMISSIVE_LANGUAGE)
+
+    func_proto = new_gate.custom_args['func'].function_interpolation_data
+
+    np.testing.assert_allclose(x, func_proto.x_values)
+    np.testing.assert_allclose(y, func_proto.y_values)
+
+
+def test_function_points_to_proto_invalid_args_raise():
+    x = np.linspace(-1, 1, 10)
+    y = x + 1
+
+    with pytest.raises(ValueError, match='The free variable must be one dimensional'):
+        _ = internal_gate.function_points_to_proto(np.zeros((10, 2)), y)
+
+    with pytest.raises(ValueError, match='sorted in increasing order'):
+        _ = internal_gate.function_points_to_proto(x[::-1], y)
+
+    with pytest.raises(ValueError, match='Mismatch between number of points in x and y'):
+        _ = internal_gate.function_points_to_proto(x, np.linspace(-1, 1, 40))
+
+    with pytest.raises(ValueError, match='The dependent variable must be one dimensional'):
+        _ = internal_gate.function_points_to_proto(x, np.zeros((10, 2)))
+
+
+def test_custom_gates_are_taken_into_equality():
+    msg1 = internal_gate.function_points_to_proto(x=np.linspace(0, 1, 10), y=np.random.random(10))
+    msg2 = internal_gate.function_points_to_proto(x=np.linspace(-1, 0, 10), y=np.random.random(10))
+    g1 = internal_gate.InternalGate('test', 'test', custom_args={'f1': msg1})
+    g2 = internal_gate.InternalGate('test', 'test', custom_args={'f1': msg1})
+    g3 = internal_gate.InternalGate('test', 'test', custom_args={'f1': msg2})
+
+    assert g1 == g2
+    assert g1 != g3

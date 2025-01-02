@@ -14,18 +14,20 @@
 
 """Devices, qubits, and sampler for Pasqal's neutral atom device."""
 
-from cirq_pasqal._version import __version__
+from cirq_pasqal._version import __version__ as __version__
 
-from cirq_pasqal.pasqal_qubits import ThreeDQubit, TwoDQubit
+from cirq_pasqal.pasqal_qubits import ThreeDQubit as ThreeDQubit, TwoDQubit as TwoDQubit
 
-from cirq_pasqal.pasqal_gateset import PasqalGateset
+from cirq_pasqal.pasqal_gateset import PasqalGateset as PasqalGateset
 
-from cirq_pasqal.pasqal_device import PasqalDevice, PasqalVirtualDevice
+from cirq_pasqal.pasqal_device import (
+    PasqalDevice as PasqalDevice,
+    PasqalVirtualDevice as PasqalVirtualDevice,
+)
 
-from cirq_pasqal.pasqal_noise_model import PasqalNoiseModel
+from cirq_pasqal.pasqal_noise_model import PasqalNoiseModel as PasqalNoiseModel
 
-from cirq_pasqal.pasqal_sampler import PasqalSampler
-
+from cirq_pasqal.pasqal_sampler import PasqalSampler as PasqalSampler
 
 # Register cirq_pasqal's public classes for JSON serialization.
 from cirq.protocols.json_serialization import _register_resolver

@@ -14,6 +14,7 @@
 import cmath
 import math
 import numbers
+from types import NotImplementedType
 from typing import (
     Any,
     cast,
@@ -56,7 +57,6 @@ from cirq.ops import (
     pauli_interaction_gate,
     raw_types,
 )
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

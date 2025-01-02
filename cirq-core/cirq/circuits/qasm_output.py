@@ -14,7 +14,7 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Callable, Dict, Iterator, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
+from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import re
 import numpy as np
@@ -54,7 +54,7 @@ class QasmUGate(ops.Gate):
         return True
 
     def _qasm_(self, qubits: Tuple['cirq.Qid', ...], args: 'cirq.QasmArgs') -> str:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
             self.theta,
@@ -203,6 +203,7 @@ class QasmOutput:
             qubit_id_map=qubit_id_map,
             meas_key_id_map=meas_key_id_map,
         )
+        self.cregs = self._generate_cregs()
 
     def _generate_measurement_ids(self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
@@ -226,6 +227,30 @@ class QasmOutput:
     def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
         return {qubit: f'q[{i}]' for i, qubit in enumerate(self.qubits)}
 
+    def _generate_cregs(self) -> Dict[str, tuple[int, str]]:
+        """Pick an id for the creg that will store each measurement
+
+        This function finds the largest measurement using each key.
+        That is, if multiple measurements are made with the same key,
+        it will use the key with the most number of qubits.
+
+        Returns: dictionary with key of measurement id and value of (#qubits, comment).
+        """
+        cregs: Dict[str, tuple[int, str]] = {}
+        for meas in self.measurements:
+            key = protocols.measurement_key_name(meas)
+            meas_id = self.args.meas_key_id_map[key]
+
+            if self.meas_comments[key] is not None:
+                comment = f'  // Measurement: {self.meas_comments[key]}'
+            else:
+                comment = ''
+
+            if meas_id not in cregs or cregs[meas_id][0] < len(meas.qubits):
+                cregs[meas_id] = (len(meas.qubits), comment)
+
+        return cregs
+
     def is_valid_qasm_id(self, id_str: str) -> bool:
         """Test if id_str is a valid id in QASM grammar."""
         return self.valid_id_re.match(id_str) is not None
@@ -246,7 +271,7 @@ class QasmOutput:
         return ''.join(output)
 
     def _write_qasm(self, output_func: Callable[[str], None]) -> None:
-        self.args.validate_version('2.0')
+        self.args.validate_version('2.0', '3.0')
 
         # Generate nice line spacing
         line_gap = [0]
@@ -267,8 +292,12 @@ class QasmOutput:
             output('\n')
 
         # Version
-        output('OPENQASM 2.0;\n')
-        output('include "qelib1.inc";\n')
+        output(f'OPENQASM {self.args.version};\n')
+        if self.args.version == '2.0':
+            output('include "qelib1.inc";\n')
+        else:
+            output('include "stdgates.inc";\n')
+
         output_line_gap(2)
 
         # Function definitions
@@ -276,23 +305,22 @@ class QasmOutput:
 
         # Register definitions
         # Qubit registers
+
         output(f"// Qubits: [{', '.join(map(str, self.qubits))}]\n")
         if len(self.qubits) > 0:
-            output(f'qreg q[{len(self.qubits)}];\n')
-        # Classical registers
-        # Pick an id for the creg that will store each measurement
-        already_output_keys: Set[str] = set()
-        for meas in self.measurements:
-            key = protocols.measurement_key_name(meas)
-            if key in already_output_keys:
-                continue
-            already_output_keys.add(key)
-            meas_id = self.args.meas_key_id_map[key]
-            comment = self.meas_comments[key]
-            if comment is None:
-                output(f'creg {meas_id}[{len(meas.qubits)}];\n')
+            if self.args.version == '2.0':
+                output(f'qreg q[{len(self.qubits)}];\n')
             else:
-                output(f'creg {meas_id}[{len(meas.qubits)}];  // Measurement: {comment}\n')
+                output(f'qubit[{len(self.qubits)}] q;\n')
+
+        # Classical registers
+        for meas_id in self.cregs:
+            length, comment = self.cregs[meas_id]
+            if self.args.version == '2.0':
+                output(f'creg {meas_id}[{length}];{comment}\n')
+            else:
+                output(f'bit[{length}] {meas_id};{comment}\n')
+
         # In OpenQASM 2.0, the transformation of global phase gates is ignored.
         # Therefore, no newline is created when the operations contained in
         # a circuit consist only of global phase gates.

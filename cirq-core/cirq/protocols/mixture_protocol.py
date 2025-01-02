@@ -13,6 +13,8 @@
 # limitations under the License.
 
 """Protocol for objects that are mixtures (probabilistic combinations)."""
+
+from types import NotImplementedType
 from typing import Any, Sequence, Tuple, Union
 
 import numpy as np
@@ -21,7 +23,6 @@ from typing_extensions import Protocol
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols.has_unitary_protocol import has_unitary
-from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.

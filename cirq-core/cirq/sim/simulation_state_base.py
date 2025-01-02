@@ -13,6 +13,7 @@
 # limitations under the License.
 """An interface for quantum states as targets for operations."""
 import abc
+from types import NotImplementedType
 from typing import (
     Any,
     Dict,
@@ -32,7 +33,6 @@ from typing_extensions import Self
 import numpy as np
 
 from cirq import protocols, value
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq

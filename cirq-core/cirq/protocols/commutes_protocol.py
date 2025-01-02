@@ -13,6 +13,7 @@
 # limitations under the License.
 """Protocol for determining commutativity."""
 
+from types import NotImplementedType
 from typing import Any, overload, TypeVar, Union
 
 import numpy as np
@@ -20,7 +21,6 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument.

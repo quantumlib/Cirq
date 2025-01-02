@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -35,7 +36,6 @@ from cirq.ops import (
     matrix_gates,
     control_values as cv,
 )
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -255,7 +255,7 @@ class ControlledGate(raw_types.Gate):
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.sub_gate)
 
-    def _mixture_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _mixture_(self) -> Union[Sequence[tuple[float, np.ndarray]], NotImplementedType]:
         qubits = line_qubit.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
