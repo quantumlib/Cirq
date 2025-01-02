@@ -201,11 +201,12 @@ class CircuitOperation(ops.Operation):
                 )
 
         self._repeat_until = repeat_until
-        if self._repeat_until:
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until:
             if self._use_repetition_ids or self._repetitions != 1:
                 raise ValueError('Cannot use repetitions with repeat_until')
             if protocols.measurement_key_objs(self._mapped_single_loop()).isdisjoint(
-                self._repeat_until.keys
+                mapped_repeat_until.keys
             ):
                 raise ValueError('Infinite loop: condition is not modified in subcircuit.')
 
@@ -344,8 +345,9 @@ class CircuitOperation(ops.Operation):
             if not protocols.control_keys(self.circuit)
             else protocols.control_keys(self._mapped_single_loop())
         )
-        if self.repeat_until is not None:
-            keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until is not None:
+            keys |= frozenset(mapped_repeat_until.keys) - self._measurement_key_objs_()
         return keys
 
     def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
@@ -386,6 +388,25 @@ class CircuitOperation(ops.Operation):
             circuit, self.parent_path, bindable_keys=self._extern_keys
         )
 
+    @cached_property
+    def _mapped_repeat_until(self) -> Optional['cirq.Condition']:
+        repeat_until = self.repeat_until
+        if not repeat_until:
+            return repeat_until
+        if self.measurement_key_map:
+            repeat_until = protocols.with_measurement_key_mapping(
+                repeat_until, self.measurement_key_map
+            )
+        if self.param_resolver:
+            repeat_until = protocols.resolve_parameters(
+                repeat_until, self.param_resolver, recursive=False
+            )
+        return protocols.with_rescoped_keys(
+            repeat_until,
+            self.parent_path,
+            bindable_keys=self._extern_keys | self._measurement_key_objs,
+        )
+
     def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
         """Applies all maps to the contained circuit and returns the result.
 
@@ -422,12 +443,13 @@ class CircuitOperation(ops.Operation):
         return self.mapped_circuit(deep=False).all_operations()
 
     def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
-        if self.repeat_until:
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until:
             circuit = self._mapped_single_loop()
             while True:
                 for op in circuit.all_operations():
                     protocols.act_on(op, sim_state)
-                if self.repeat_until.resolve(sim_state.classical_data):
+                if mapped_repeat_until.resolve(sim_state.classical_data):
                     break
         else:
             for op in self._decompose_():
