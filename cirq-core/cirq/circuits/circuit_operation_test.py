@@ -1207,7 +1207,7 @@ def test_repeat_until_error():
 def test_repeat_until_protocols():
     q = cirq.LineQubit(0)
     op = cirq.CircuitOperation(
-        cirq.FrozenCircuit(cirq.H(q), cirq.measure(q, key='a')),
+        cirq.FrozenCircuit(cirq.H(q) ** sympy.Symbol('p'), cirq.measure(q, key='a')),
         use_repetition_ids=False,
         repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 0)),
     )
@@ -1230,7 +1230,7 @@ def test_repeat_until_protocols():
     assert setpath._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
     assert cirq.measurement_key_objs(setpath) == {cirq.MeasurementKey('b', ('2',))}
     assert not cirq.control_keys(setpath)
-    resolved = cirq.resolve_parameters(setpath, {})
+    resolved = cirq.resolve_parameters(setpath, {'p': 1})
     assert resolved._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
     assert cirq.measurement_key_objs(resolved) == {cirq.MeasurementKey('b', ('2',))}
     assert not cirq.control_keys(resolved)
