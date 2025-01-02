@@ -1,4 +1,4 @@
-[MASTER]
+[MAIN]
 load-plugins=pylint.extensions.docstyle,pylint.extensions.docparams,pylint_copyright_checker
 max-line-length=100
 disable=all

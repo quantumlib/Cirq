@@ -2,7 +2,7 @@
 
 Google's Quantum Computing Service provides the Quantum Engine API to execute
 circuits on Google's quantum processor or simulator backends and
-to access or manage the jobs, programs, reservations and calibrations. As of Cirq is
+to access or manage the jobs, programs, reservations and calibrations. Cirq is
 the only supported client for this API, using the `cirq_google.Engine` class.
 For other use cases (e.g. from a different language), contact
 [cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com)
@@ -13,7 +13,7 @@ Note: the Quantum Engine API is not yet open for public access.
 ## Authenticating to Google Cloud
 
 Before you begin, you will need to create a Google Cloud project with the API
-enabled and billing enabled.  You will then to create credentials in order to
+enabled and billing enabled.  You will then need to create credentials in order to
 access the API.
 
 You can create application default credentials from the command line using the

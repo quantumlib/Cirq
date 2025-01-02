@@ -422,6 +422,13 @@ q2: ────────────────────[Z]───[X]^
     )
 
 
+def test_empty_phasor_diagram():
+    q = cirq.LineQubit(0)
+    op = cirq.PauliSumExponential(cirq.I(q))
+    circuit = cirq.Circuit(op)
+    cirq.testing.assert_has_diagram(circuit, '    (I)**-0.6366197723675815')
+
+
 def test_repr():
     q0, q1, q2 = _make_qubits(3)
     cirq.testing.assert_equivalent_repr(

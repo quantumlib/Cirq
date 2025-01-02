@@ -58,7 +58,7 @@ We use github's release system for creating releases.  Release are listed
 [on the Cirq release page](https://github.com/quantumlib/Cirq/releases).
 
 Our development process uses the `main` branch for development.
-Master will always use the next unreleased minor version with the suffix
+Main will always use the next unreleased minor version with the suffix
 of ".dev".  When a release is performed, the ".dev" will be removed and tagged
 in a release branch with a version tag (vX.X.X).  Then, main will be updated
 to the next minor version.  This can always be found in the
@@ -158,7 +158,7 @@ git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "version_bump_${NEXT_VER}"
 ```
 
-Master branch should never see a non-dev version specifier.
+The main branch should never see a non-dev version specifier.
 
 ### Create distribution wheel
 
