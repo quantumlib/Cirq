@@ -404,7 +404,7 @@ def test_classical_controls_go_to_suffix_if_corresponding_measurement_does():
     m = cirq.measure(cirq.LineQubit(0), key='a')
     circuit = cirq.Circuit(m, subcircuit)
     prefix, suffix = cirq.sim.simulator.split_into_matching_protocol_then_general(
-        circuit, lambda op : op != m # any op but m goes into prefix
+        circuit, lambda op: op != m  # any op but m goes into prefix
     )
     assert not prefix
     assert suffix == circuit
