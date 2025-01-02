@@ -4863,7 +4863,7 @@ def test_append_speed():
     # buffer time or delete the test entirely if it ends up causing flakes.
     #
     # The `append` improvement mainly helps for deep circuits. It is less useful for wide circuits
-    # because the Moment (immutable) needs verified and reconstructed each time an op is added to it.
+    # because the Moment (immutable) needs verified and reconstructed each time an op is added.
     qs = 2
     moments = 10000
     xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
