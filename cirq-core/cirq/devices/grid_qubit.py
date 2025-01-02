@@ -52,15 +52,15 @@ class _BaseGridQid(ops.Qid):
             #  2 | 21 20 19 18 17
             row = self._row
             col = self._col
-            if row == 0 and col == 0:
-                self._hash = 0
-                return 0
 
             # The index of the square containing this point
             n = max(abs(row), abs(col))
+            if n == 0:
+                self._hash = 0
+                return 0
 
             # Determine the area of the inner square
-            start = (2 * n - 1)**2 if n > 0 else 0
+            start = (2 * n - 1) ** 2
 
             # Determine the offset within the outer square
             if row == -n:  # Top edge
