@@ -45,6 +45,22 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     This object is typically created via
      `operation.with_classical_controls(*conditions)`.
+
+    Examples:
+        q0, q1, q2 = cirq.LineQubit.range(3)
+
+        # Apply X if measurement was non-zero (single condition)
+        circuit = cirq.Circuit(
+            cirq.measure(q0, key='control_key'),
+            cirq.X(q1).with_classical_controls('control_key')
+        )
+
+        # Apply X if both measurements were non-zero (multiple conditions)
+        circuit = cirq.Circuit([
+            cirq.measure(q0, key='control_key1'),
+            cirq.measure(q1, key='control_key2'),
+            cirq.X(q2).with_classical_controls('control_key1', 'control_key2')  
+        ])
     """
 
     def __init__(
