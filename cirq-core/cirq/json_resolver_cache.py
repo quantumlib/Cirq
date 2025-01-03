@@ -287,4 +287,5 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
         'complex': complex,
         'datetime.datetime': _datetime,
+        '_InverseCompositeGate': cirq.inverse,
     }
