@@ -59,7 +59,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         circuit = cirq.Circuit([
             cirq.measure(q0, key='control_key1'),
             cirq.measure(q1, key='control_key2'),
-            cirq.X(q2).with_classical_controls('control_key1', 'control_key2')  
+            cirq.X(q2).with_classical_controls('control_key1', 'control_key2')
         ])
     """
 
