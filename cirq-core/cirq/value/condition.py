@@ -14,7 +14,7 @@
 
 import abc
 import dataclasses
-from typing import Mapping, Tuple, TYPE_CHECKING, FrozenSet, Optional
+from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING
 
 import sympy
 
@@ -142,6 +142,12 @@ class SympyCondition(Condition):
     This condition resolves to True iff the sympy expression resolves to a
     truthy value (i.e. `bool(x) == True`) when the measurement keys are
     substituted in as the free variables.
+
+    `sympy.IndexedBase` can be used for bitwise conditions. For example, the
+    following will create a condition that is controlled by the XOR of the
+    first two bits (big-endian) of measurement 'a'.
+    >>> a = sympy.IndexedBase('a')
+    >>> cond = cirq.SympyCondition(sympy.Xor(a[0], a[1]))
     """
 
     expr: sympy.Basic
@@ -151,6 +157,9 @@ class SympyCondition(Condition):
         return tuple(
             measurement_key.MeasurementKey.parse_serialized(symbol.name)
             for symbol in self.expr.free_symbols
+            if isinstance(symbol, sympy.Symbol)
+            # For bitwise ops, both Symbol ('a') and Indexed ('a[0]') are returned. We only want to
+            # keep the former here.
         )
 
     def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
@@ -167,8 +176,19 @@ class SympyCondition(Condition):
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
-        replacements = {str(k): classical_data.get_int(k) for k in self.keys}
-        return bool(self.expr.subs(replacements))
+        replacements: Dict[str, Any] = {}
+        for symbol in self.expr.free_symbols:
+            if isinstance(symbol, sympy.Symbol):
+                name = symbol.name
+                key = measurement_key.MeasurementKey.parse_serialized(name)
+                replacements[str(key)] = classical_data.get_int(key)
+        for symbol in self.expr.free_symbols:
+            if isinstance(symbol, sympy.Indexed):
+                name = symbol.base.name
+                key = measurement_key.MeasurementKey.parse_serialized(name)
+                replacements[str(key)] = tuple(classical_data.get_digits(key))
+        value = self.expr.subs(replacements)
+        return bool(value)
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
