@@ -140,6 +140,58 @@ def test_sympy_condition_resolve():
         _ = resolve({'0:b': [[1]]})
 
 
+def test_sympy_indexed_condition():
+    a = sympy.IndexedBase('a')
+    cond = cirq.SympyCondition(sympy.Xor(a[0], a[1]))
+    assert cond.keys == (cirq.MeasurementKey('a'),)
+    assert str(cond) == 'a[0] ^ a[1]'
+    # pylint: disable=line-too-long
+    assert (
+        repr(cond)
+        == "cirq.SympyCondition(Xor(Indexed(IndexedBase(sympy.Symbol('a')), sympy.Integer(0)), Indexed(IndexedBase(sympy.Symbol('a')), sympy.Integer(1))))"
+    )
+    # pylint: enable=line-too-long
+
+    def resolve(records):
+        classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
+        return cond.resolve(classical_data)
+
+    assert not resolve({'a': [(0, 0)]})
+    assert resolve({'a': [(1, 0)]})
+    assert resolve({'a': [(0, 1)]})
+    assert not resolve({'a': [(1, 1)]})
+    assert resolve({'a': [(0, 1, 0)]})
+    assert resolve({'a': [(0, 1, 1)]})
+    assert not resolve({'a': [(1, 1, 0)]})
+    assert not resolve({'a': [(1, 1, 1)]})
+    with pytest.raises(IndexError):
+        assert resolve({'a': [()]})
+    with pytest.raises(IndexError):
+        assert resolve({'a': [(0,)]})
+    with pytest.raises(IndexError):
+        assert resolve({'a': [(1,)]})
+
+
+def test_sympy_indexed_condition_qudits():
+    a = sympy.IndexedBase('a')
+    cond = cirq.SympyCondition(sympy.And(a[1] >= 2, a[2] <= 3))
+    assert cond.keys == (cirq.MeasurementKey('a'),)
+    assert str(cond) == '(a[1] >= 2) & (a[2] <= 3)'
+
+    def resolve(records):
+        classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
+        return cond.resolve(classical_data)
+
+    assert not resolve({'a': [(0, 0, 0)]})
+    assert not resolve({'a': [(0, 1, 0)]})
+    assert resolve({'a': [(0, 2, 0)]})
+    assert resolve({'a': [(0, 3, 0)]})
+    assert not resolve({'a': [(0, 0, 4)]})
+    assert not resolve({'a': [(0, 1, 4)]})
+    assert not resolve({'a': [(0, 2, 4)]})
+    assert not resolve({'a': [(0, 3, 4)]})
+
+
 def test_sympy_condition_qasm():
     # Measurements get prepended with "m_", so the condition needs to be too.
     assert cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 2)).qasm == 'm_a==2'
