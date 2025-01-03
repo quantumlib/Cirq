@@ -133,7 +133,8 @@
     "parent_path": [],
     "repetition_ids": [
       "0"
-    ]
+    ],
+    "use_repetition_ids": true
   },
   {
     "cirq_type": "CircuitOperation",
@@ -187,7 +188,8 @@
     "repetition_ids": [
       "a",
       "b"
-    ]
+    ],
+    "use_repetition_ids": true
   },
   {
     "cirq_type": "CircuitOperation",
@@ -217,7 +219,8 @@
     "repetition_ids": [
       "a",
       "b"
-    ]
+    ],
+    "use_repetition_ids": true
   },
   {
     "cirq_type": "CircuitOperation",
