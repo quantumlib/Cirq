@@ -1066,7 +1066,7 @@ class _InverseCompositeGate(Gate):
 
     def __str__(self) -> str:
         return f'{self._original!s}†'
-    
+
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["val"])
 
