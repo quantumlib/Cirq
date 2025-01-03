@@ -624,7 +624,6 @@ class CircuitOperation(ops.Operation):
 
         # The eventual number of repetitions of the returned CircuitOperation.
         final_repetitions = protocols.mul(self.repetitions, repetitions)
-        print(f"repeat: {repetitions=}. {repetition_ids=}, {use_repetition_ids=}")
         return self.replace(
             repetitions=final_repetitions,
             repetition_ids=repetition_ids,
