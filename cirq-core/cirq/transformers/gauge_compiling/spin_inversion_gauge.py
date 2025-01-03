@@ -23,8 +23,8 @@ from cirq import ops
 
 SpinInversionGaugeSelector = GaugeSelector(
     gauges=[
-        SameGateGauge(pre_q0=ops.X, post_q0=ops.X, pre_q1=ops.X, post_q1=ops.X),
-        SameGateGauge(),
+        SameGateGauge(pre_q0=ops.X, post_q0=ops.X, pre_q1=ops.X, post_q1=ops.X, support_sweep=True),
+        SameGateGauge(support_sweep=True),
     ]
 )
 
