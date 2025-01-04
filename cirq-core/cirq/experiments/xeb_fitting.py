@@ -655,7 +655,7 @@ def _fit_exponential_decay(
             cycle_depths,
             fidelities,
             p0=(a_0, layer_fid_0),
-            bounds=((0, 0), (1, 1))
+            bounds=((0, 0), (1, 1)),
         )
         try:
             return curve_fit()
