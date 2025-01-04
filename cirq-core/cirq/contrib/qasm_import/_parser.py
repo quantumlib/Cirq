@@ -458,7 +458,6 @@ class QasmParser:
 
     def p_expr_identifier(self, p):
         """expr : ID"""
-        # expression params are only allowed inside custom gate definitions.
         if not self.in_custom_gate_scope:
             raise QasmException(f'Parameter "{p[1]}" in line {p.lineno(1)} not supported')
         if p[1] not in self.custom_gate_scoped_params:
