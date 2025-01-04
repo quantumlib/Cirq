@@ -181,7 +181,7 @@ class QasmParser:
         self.circuit = Circuit()
         self.qregs: Dict[str, int] = {}
         self.cregs: Dict[str, int] = {}
-        self.gate_set: Dict[str, Union[CustomGate, QasmGateStatement]] = {**self.basic_gates}
+        self.all_gates: Dict[str, Union[CustomGate, QasmGateStatement]] = {**self.basic_gates}
         self.custom_gate_scoped_params: Set[str] = set()
         self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
         self.custom_gate_scope = False
@@ -333,13 +333,13 @@ class QasmParser:
     def p_qasm_include(self, p):
         """qasm : qasm QELIBINC"""
         self.qelibinc = True
-        self.gate_set |= self.qelib_gates
+        self.all_gates |= self.qelib_gates
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
 
     def p_qasm_include_stdgates(self, p):
         """qasm : qasm STDGATESINC"""
         self.qelibinc = True
-        self.gate_set |= self.qelib_gates
+        self.all_gates |= self.qelib_gates
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
 
     def p_qasm_circuit(self, p):
@@ -427,11 +427,12 @@ class QasmParser:
     def _resolve_gate_operation(
         self, args: List[List[ops.Qid]], gate: str, p: Any, params: List[value.TParamVal]
     ):
-        if gate not in self.gate_set.keys():
+        gate_set = self.all_gates
+        if gate not in gate_set.keys():
             tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
             msg = f'Unknown gate "{gate}" at line {p.lineno(1)}{tip}'
             raise QasmException(msg)
-        p[0] = self.gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
+        p[0] = gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
     # params : parameter ',' params
     #        | parameter
@@ -674,9 +675,9 @@ class QasmParser:
         gate_ops = p[5 + offset]
         circuit = Circuit(gate_ops).freeze()
         gate_def = CustomGate(name, circuit, gate_params, gate_qubits)
+        self.all_gates[gate_def.name] = gate_def
         self.custom_gate_scoped_params.clear()
         self.custom_gate_scoped_qubits.clear()
-        self.gate_set[gate_def.name] = gate_def
         self.custom_gate_scope = False
         p[0] = gate_def
 
