@@ -298,8 +298,7 @@ def drop_terminal_measurements(
                     else (
                         ops.MatrixGate(
                             # Per SimulationState.measure(), swap 0,1 but leave other dims alone
-                            np.identity(q.dimension)
-                            + np.pad([[-1, 1], [1, -1]], (0, q.dimension - 2)),
+                            np.eye(q.dimension)[[1, 0, *range(2, q.dimension)]],
                             qid_shape=(q.dimension,),
                         )
                         if b
