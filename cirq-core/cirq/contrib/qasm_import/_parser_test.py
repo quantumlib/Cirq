@@ -1233,31 +1233,35 @@ def test_custom_gate():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qreg q[2];
-     gate g(p1, p2) q0, q1 {
-        rx(p1) q0;
-        ry(p1+p2+3) q0;
-        rz(p2) q1;
+     gate g(p0, p1) q0, q1 {
+        rx(p0) q0;
+        ry(p0+p1+3) q0;
+        rz(p1) q1;
      }
      g(1,2) q;
      g(0,4) q[1], q[0];
     """
 
+    # The gate definition should translate to this
+    p0, p1 = sympy.symbols('p0, p1')
     q0, q1 = cirq.NamedQubit.range(2, prefix='q')
-    p1, p2 = sympy.symbols('p1, p2')
     g = cirq.FrozenCircuit(
-        cirq.Rx(rads=p1).on(q0), cirq.Ry(rads=p1 + p2 + 3).on(q0), cirq.Rz(rads=p2).on(q1)
-    )
-    q_0, q_1 = cirq.NamedQubit.range(2, prefix='q_')
-    expected = cirq.Circuit(
-        cirq.CircuitOperation(g, qubit_map={q0: q_0, q1: q_1}, param_resolver={'p1': 1, 'p2': 2}),
-        cirq.CircuitOperation(g, qubit_map={q0: q_1, q1: q_0}, param_resolver={'p1': 0, 'p2': 4}),
+        cirq.Rx(rads=p0).on(q0), cirq.Ry(rads=p0 + p1 + 3).on(q0), cirq.Rz(rads=p1).on(q1)
     )
 
+    # The outer circuit should then translate to this
+    q_0, q_1 = cirq.NamedQubit.range(2, prefix='q_')  # The outer qreg array
+    expected = cirq.Circuit(
+        cirq.CircuitOperation(g, qubit_map={q0: q_0, q1: q_1}, param_resolver={'p0': 1, 'p1': 2}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_1, q1: q_0}, param_resolver={'p0': 0, 'p1': 4}),
+    )
+
+    # Verify
     parser = QasmParser()
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
 
-    # sanity check that this unrolls to a valid circuit
+    # Sanity check that this unrolls to a valid circuit
     unrolled_expected = cirq.Circuit(
         cirq.Rx(rads=1).on(q_0),
         cirq.Ry(rads=6).on(q_0),
@@ -1275,10 +1279,10 @@ def test_custom_gate_undefined_qubit_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qubit q;
-     gate g q1 { x q2; }
+     gate g q0 { x q1; }
      g q
     """
-    with pytest.raises(QasmException, match='Undefined quantum register "q2" at line 4'):
+    with pytest.raises(QasmException, match='Undefined quantum register "q1" at line 4'):
         parser.parse(qasm)
 
 
@@ -1287,7 +1291,7 @@ def test_custom_gate_qubit_scope_closure_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qubit q;
-     gate g q1 { x q; }
+     gate g q0 { x q; }
      g q
     """
     with pytest.raises(QasmException, match='Undefined quantum register "q" at line 4'):
@@ -1299,11 +1303,11 @@ def test_custom_gate_qubit_index_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qreg q[1];
-     gate g q1 { x q1[0]; }  // QASM does not support indexed qregs in custom gates
+     gate g q0 { x q0[0]; }  // QASM does not support indexed qregs in custom gates
      g q
     """
     with pytest.raises(
-        QasmException, match=re.escape('Unsupported indexed qreg "q1[0]" at line 4')
+        QasmException, match=re.escape('Unsupported indexed qreg "q0[0]" at line 4')
     ):
         parser.parse(qasm)
 
@@ -1313,7 +1317,7 @@ def test_custom_gate_qreg_count_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qreg q[2];
-     gate g q1 { x q1; }
+     gate g q0 { x q0; }
      g q;
     """
     with pytest.raises(QasmException, match='Wrong number of qregs for "g" at line 5'):
@@ -1325,7 +1329,7 @@ def test_custom_gate_missing_param_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qubit q;
-     gate g(p) q1 { x q1; }
+     gate g(p) q0 { x q0; }
      g q;
     """
     with pytest.raises(QasmException, match='Wrong number of params for "g" at line 5'):
@@ -1337,7 +1341,7 @@ def test_custom_gate_extra_param_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qubit q;
-     gate g q1 { x q1; }
+     gate g q0 { x q0; }
      g(3) q;
     """
     with pytest.raises(QasmException, match='Wrong number of params for "g" at line 5'):
@@ -1349,7 +1353,7 @@ def test_custom_gate_undefined_param_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qubit q;
-     gate g q1 { rx(p) q1; }
+     gate g q0 { rx(p) q0; }
      g q;
     """
     with pytest.raises(QasmException, match='Undefined parameter "p" in line 4'):
