@@ -765,15 +765,14 @@ def test_drop_terminal_qudit():
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(q0, q1, key='m', invert_mask=[0, 1])))
     )
     dropped = cirq.drop_terminal_measurements(circuit)
+    expected_inversion_matrix = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
     cirq.testing.assert_same_circuits(
         dropped,
         cirq.Circuit(
             cirq.CircuitOperation(
                 cirq.FrozenCircuit(
                     cirq.IdentityGate(qid_shape=(3,)).on(q0),
-                    cirq.MatrixGate(np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]]), qid_shape=(3,)).on(
-                        q1
-                    ),
+                    cirq.MatrixGate(expected_inversion_matrix, qid_shape=(3,)).on(q1),
                 )
             )
         ),
