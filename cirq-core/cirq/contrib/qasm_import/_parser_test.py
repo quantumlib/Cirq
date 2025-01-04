@@ -1227,3 +1227,74 @@ def test_openqasm_3_0_scalar_qubit():
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
+
+
+def test_custom_gate():
+    # pylint: disable=line-too-long
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qreg q[2];
+     gate g(p1, p2) q1, q2
+     {
+        rx(p1) q1;
+        ry(p1+p2+3) q1;
+        rz(p2) q2;
+     }
+     g(1,2) q;
+     g(0,3) q[1], q[0];
+    """
+    parser = QasmParser()
+
+    parsed_qasm = parser.parse(qasm)
+    circuit = parsed_qasm.circuit
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+        [ q1: ───Rx(p1)───Ry(p1 + p2 + 3)─── ]
+q_0: ───[                                    ]────────────────────────────────────────────────────────────#2────────────────────────────────────────────────────────────────────────────────────────────────
+        [ q2: ───Rz(p2)───────────────────── ](qubit_map={q1: q_0, q2: q_1}, params={'p1': 1, 'p2': 2})   │
+        │                                                                                                 │
+        │                                                                                                 [ q1: ───Rx(p1)───Ry(p1 + p2 + 3)─── ]
+q_1: ───#2────────────────────────────────────────────────────────────────────────────────────────────────[                                    ]────────────────────────────────────────────────────────────
+                                                                                                          [ q2: ───Rz(p2)───────────────────── ](qubit_map={q1: q_1, q2: q_0}, params={'p1': 0, 'p2': 3})
+""",
+    )
+
+    cirq.testing.assert_has_diagram(
+        cirq.unroll_circuit_op(circuit, tags_to_check=None),
+        """
+q_0: ───Rx(0.318π)───Ry(1.91π)───Rz(0.955π)───────────────
+
+q_1: ───Rz(0.637π)───────────────Rx(0)────────Ry(1.91π)───
+""",
+    )
+
+    expected_generated_qasm = (
+        f"// Generated from Cirq v{cirq.__version__}"
+        + """
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q_0, q_1]
+qreg q[2];
+
+
+// Operation: [ q1: ───Rx(p1)───Ry(p1 + p2 + 3)─── ]
+//            [                                    ]
+//            [ q2: ───Rz(p2)───────────────────── ](qubit_map={q1: q_0, q2: q_1}, params={'p1': 1, 'p2': 2})
+rx(pi*0.3183098862) q[0];
+rz(pi*0.6366197724) q[1];
+ry(pi*1.9098593171) q[0];
+
+// Operation: [ q1: ───Rx(p1)───Ry(p1 + p2 + 3)─── ]
+//            [                                    ]
+//            [ q2: ───Rz(p2)───────────────────── ](qubit_map={q1: q_1, q2: q_0}, params={'p1': 0, 'p2': 3})
+rx(0) q[1];
+rz(pi*0.9549296586) q[0];
+ry(pi*1.9098593171) q[1];
+"""
+    )
+    assert cirq.qasm(parsed_qasm.circuit) == expected_generated_qasm
+    # pylint: enable=line-too-long

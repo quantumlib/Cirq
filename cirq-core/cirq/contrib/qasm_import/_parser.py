@@ -11,16 +11,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import dataclasses
 import functools
 import operator
-from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Union, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    TYPE_CHECKING,
+)
 
 import numpy as np
 import sympy
 from ply import yacc
 
-from cirq import ops, Circuit, NamedQubit, CX
+from cirq import ops, value, Circuit, NamedQubit, CX, CircuitOperation, FrozenCircuit
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
@@ -87,7 +100,7 @@ class QasmGateStatement:
                 f"got: {len(args)}, at line {lineno}"
             )
 
-    def _validate_params(self, params: List[float], lineno: int):
+    def _validate_params(self, params: List[value.TParamVal], lineno: int):
         if len(params) != self.num_params:
             raise QasmException(
                 f"{self.qasm_gate} takes {self.num_params} parameter(s), "
@@ -95,7 +108,7 @@ class QasmGateStatement:
             )
 
     def on(
-        self, params: List[float], args: List[List[ops.Qid]], lineno: int
+        self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
     ) -> Iterable[ops.Operation]:
         self._validate_args(args, lineno)
         self._validate_params(params, lineno)
@@ -132,6 +145,22 @@ class QasmGateStatement:
                 yield final_gate.on(*qubits)
 
 
+@dataclasses.dataclass
+class CustomGate:
+    circuit: FrozenCircuit
+    params: Tuple[str, ...]
+    qubits: Tuple[ops.Qid, ...]
+
+    def on(
+        self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
+    ) -> ops.Operation:
+        return CircuitOperation(
+            self.circuit,
+            param_resolver={k: v for k, v in zip(self.params, params)},
+            qubit_map={k: v for k, v in zip(self.qubits, [q for qs in args for q in qs])},
+        )
+
+
 class QasmParser:
     """Parser for QASM strings.
 
@@ -146,6 +175,9 @@ class QasmParser:
         self.circuit = Circuit()
         self.qregs: Dict[str, int] = {}
         self.cregs: Dict[str, int] = {}
+        self.custom_gate_definitions: Dict[str, CustomGate] = {}
+        self.custom_gate_scoped_params: Set[str] = set()
+        self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
@@ -338,6 +370,10 @@ class QasmParser:
         """circuit : empty"""
         p[0] = self.circuit
 
+    def p_circuit_gate_def(self, p):
+        """circuit : gate_def"""
+        p[0] = self.circuit
+
     # qreg and creg
 
     def p_new_reg(self, p):
@@ -382,14 +418,18 @@ class QasmParser:
         self._resolve_gate_operation(args=p[5], gate=p[1], p=p, params=p[3])
 
     def _resolve_gate_operation(
-        self, args: List[List[ops.Qid]], gate: str, p: Any, params: List[float]
+        self, args: List[List[ops.Qid]], gate: str, p: Any, params: List[value.TParamVal]
     ):
         gate_set = self.basic_gates if not self.qelibinc else self.all_gates
-        if gate not in gate_set.keys():
+        full_gate_set: Mapping[str, Union[QasmGateStatement, CustomGate]] = {
+            **gate_set,
+            **self.custom_gate_definitions,
+        }
+        if gate not in full_gate_set.keys():
             tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
             msg = f'Unknown gate "{gate}" at line {p.lineno(1)}{tip}'
             raise QasmException(msg)
-        p[0] = gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
+        p[0] = full_gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
     # params : parameter ',' params
     #        | parameter
@@ -404,6 +444,7 @@ class QasmParser:
         p[0] = [p[1]]
 
     # expr : term
+    #            | ID
     #            | func '(' expression ')' """
     #            | binary_op
     #            | unary_op
@@ -411,6 +452,10 @@ class QasmParser:
     def p_expr_term(self, p):
         """expr : term"""
         p[0] = p[1]
+
+    def p_expr_identifier(self, p):
+        """expr : ID"""
+        p[0] = sympy.Symbol(p[1])
 
     def p_expr_parens(self, p):
         """expr : '(' expr ')'"""
@@ -464,6 +509,9 @@ class QasmParser:
     def p_quantum_arg_register(self, p):
         """qarg : ID"""
         reg = p[1]
+        if reg in self.custom_gate_scoped_qubits:
+            p[0] = [self.custom_gate_scoped_qubits[reg]]
+            return
         if reg not in self.qregs.keys():
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
         qubits = []
@@ -569,6 +617,50 @@ class QasmParser:
         p[0] = [
             ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[7])[0])
         ]
+
+    def p_gate_params_multiple(self, p):
+        """gate_params : ID ',' gate_params"""
+        self.custom_gate_scoped_params.add(p[1])
+        p[3].insert(0, p[1])
+        p[0] = p[3]
+
+    def p_gate_params_single(self, p):
+        """gate_params : ID"""
+        self.custom_gate_scoped_params.add(p[1])
+        p[0] = [p[1]]
+
+    def p_gate_qubits_multiple(self, p):
+        """gate_qubits : ID ',' gate_qubits"""
+        self.custom_gate_scoped_qubits[p[1]] = NamedQubit(p[1])
+        p[3].insert(0, p[1])
+        p[0] = p[3]
+
+    def p_gate_qubits_single(self, p):
+        """gate_qubits : ID"""
+        self.custom_gate_scoped_qubits[p[1]] = NamedQubit(p[1])
+        p[0] = [p[1]]
+
+    def p_gate_ops_multiple(self, p):
+        """gate_ops : gate_op gate_ops"""
+        p[2].insert(0, p[1])
+        p[0] = p[2]
+
+    def p_gate_ops_single(self, p):
+        """gate_ops : gate_op"""
+        p[0] = [p[1]]
+
+    def p_gate_def(self, p):
+        """gate_def : GATE ID '(' gate_params ')' gate_qubits '{' gate_ops '}'"""
+        gate_params = tuple(p[4])
+        gate_qubits = tuple(NamedQubit(name) for name in p[6])
+        gate_ops = p[8]
+        circuit = Circuit(gate_ops).freeze()
+        gate_def = CustomGate(circuit, gate_params, gate_qubits)
+
+        self.custom_gate_scoped_params.clear()
+        self.custom_gate_scoped_qubits.clear()
+        self.custom_gate_definitions[p[2]] = gate_def
+        p[0] = [gate_def]
 
     def p_error(self, p):
         if p is None:
