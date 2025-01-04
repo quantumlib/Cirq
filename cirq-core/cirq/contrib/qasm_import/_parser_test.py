@@ -1298,3 +1298,63 @@ ry(pi*1.9098593171) q[1];
     )
     assert cirq.qasm(parsed_qasm.circuit) == expected_generated_qasm
     # pylint: enable=line-too-long
+
+
+def test_custom_gate_qubit_scope_error():
+    parser = QasmParser()
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qubit q;
+     gate g q1
+     {
+        x q;
+     }
+     g q
+    """
+    with pytest.raises(QasmException, match='"q" not in gate block scope at line 6'):
+        parser.parse(qasm)
+
+
+def test_custom_gate_qreg_count_error():
+    parser = QasmParser()
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qreg q[2];
+     gate g q1
+     {
+        x q1;
+     }
+     g q;
+    """
+    with pytest.raises(QasmException, match='Wrong number of qregs for "g" at line 8'):
+        parser.parse(qasm)
+
+
+def test_custom_gate_missing_param_error():
+    parser = QasmParser()
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qubit q;
+     gate g(p) q1
+     {
+        x q1;
+     }
+     g q;
+    """
+    with pytest.raises(QasmException, match='Wrong number of params for "g" at line 8'):
+        parser.parse(qasm)
+
+
+def test_custom_gate_extra_param():
+    parser = QasmParser()
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qubit q;
+     gate g q1
+     {
+        x q1;
+     }
+     g(3) q;
+    """
+    with pytest.raises(QasmException, match='Wrong number of params for "g" at line 8'):
+        parser.parse(qasm)
