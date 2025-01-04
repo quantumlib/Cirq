@@ -17,8 +17,8 @@ from typing import Callable
 
 import numpy as np
 import pytest
+import re
 import sympy
-
 
 import cirq
 import cirq.testing as ct
@@ -1234,8 +1234,7 @@ def test_custom_gate():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qreg q[2];
-     gate g(p1, p2) q1, q2
-     {
+     gate g(p1, p2) q1, q2 {
         rx(p1) q1;
         ry(p1+p2+3) q1;
         rz(p2) q2;
@@ -1300,18 +1299,41 @@ ry(pi*1.9098593171) q[1];
     # pylint: enable=line-too-long
 
 
-def test_custom_gate_qubit_scope_error():
+def test_custom_gate_undefined_qubit_error():
     parser = QasmParser()
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qubit q;
-     gate g q1
-     {
-        x q;
-     }
+     gate g q1 { x q2; }
      g q
     """
-    with pytest.raises(QasmException, match='"q" not in gate block scope at line 6'):
+    with pytest.raises(QasmException, match='Undefined quantum register "q2" at line 4'):
+        parser.parse(qasm)
+
+
+def test_custom_gate_qubit_scope_closure_error():
+    parser = QasmParser()
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qubit q;
+     gate g q1 { x q; }
+     g q
+    """
+    with pytest.raises(QasmException, match='Undefined quantum register "q" at line 4'):
+        parser.parse(qasm)
+
+
+def test_custom_gate_qubit_index_error():
+    parser = QasmParser()
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qreg q[1];
+     gate g q1 { x q1[0]; }  // QASM does not support indexed qregs in custom gates
+     g q
+    """
+    with pytest.raises(
+        QasmException, match=re.escape('Unsupported indexed qreg "q1[0]" at line 4')
+    ):
         parser.parse(qasm)
 
 
@@ -1320,13 +1342,10 @@ def test_custom_gate_qreg_count_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qreg q[2];
-     gate g q1
-     {
-        x q1;
-     }
+     gate g q1 { x q1; }
      g q;
     """
-    with pytest.raises(QasmException, match='Wrong number of qregs for "g" at line 8'):
+    with pytest.raises(QasmException, match='Wrong number of qregs for "g" at line 5'):
         parser.parse(qasm)
 
 
@@ -1335,26 +1354,32 @@ def test_custom_gate_missing_param_error():
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qubit q;
-     gate g(p) q1
-     {
-        x q1;
-     }
+     gate g(p) q1 { x q1; }
      g q;
     """
-    with pytest.raises(QasmException, match='Wrong number of params for "g" at line 8'):
+    with pytest.raises(QasmException, match='Wrong number of params for "g" at line 5'):
         parser.parse(qasm)
 
 
-def test_custom_gate_extra_param():
+def test_custom_gate_extra_param_error():
     parser = QasmParser()
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qubit q;
-     gate g q1
-     {
-        x q1;
-     }
+     gate g q1 { x q1; }
      g(3) q;
     """
-    with pytest.raises(QasmException, match='Wrong number of params for "g" at line 8'):
+    with pytest.raises(QasmException, match='Wrong number of params for "g" at line 5'):
+        parser.parse(qasm)
+
+
+def test_custom_gate_undefined_param_error():
+    parser = QasmParser()
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qubit q;
+     gate g q1 { rx(p) q1; }
+     g q;
+    """
+    with pytest.raises(QasmException, match='Undefined parameter "p" in line 4'):
         parser.parse(qasm)

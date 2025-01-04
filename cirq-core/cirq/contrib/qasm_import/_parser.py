@@ -22,7 +22,6 @@ from typing import (
     Dict,
     Iterable,
     List,
-    Mapping,
     Optional,
     Set,
     Tuple,
@@ -458,6 +457,8 @@ class QasmParser:
 
     def p_expr_identifier(self, p):
         """expr : ID"""
+        if p[1] not in self.custom_gate_scoped_params:
+            raise QasmException(f'Undefined parameter "{p[1]}" in line {p.lineno(1)}')
         p[0] = sympy.Symbol(p[1])
 
     def p_expr_parens(self, p):
@@ -514,7 +515,7 @@ class QasmParser:
         reg = p[1]
         if self.custom_gate_scope:
             if reg not in self.custom_gate_scoped_qubits:
-                raise QasmException(f'"{reg}" not in gate block scope at line {p.lineno(1)}')
+                raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
             p[0] = [self.custom_gate_scoped_qubits[reg]]
             return
         if reg not in self.qregs.keys():
@@ -545,6 +546,8 @@ class QasmParser:
         """qarg : ID '[' NATURAL_NUMBER ']'"""
         reg = p[1]
         idx = p[3]
+        if self.custom_gate_scope:
+            raise QasmException(f'Unsupported indexed qreg "{reg}[{idx}]" at line {p.lineno(1)}')
         arg_name = self.make_name(idx, reg)
         if reg not in self.qregs.keys():
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
