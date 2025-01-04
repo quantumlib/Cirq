@@ -219,6 +219,8 @@ def test_pow():
     assert cirq.SingleQubitCliffordGate.Y_nsqrt == cirq.SingleQubitCliffordGate.Y**-0.5
     assert cirq.SingleQubitCliffordGate.Z_nsqrt == cirq.SingleQubitCliffordGate.Z**-0.5
     assert cirq.SingleQubitCliffordGate.X_sqrt**-1 == cirq.SingleQubitCliffordGate.X_nsqrt
+    assert cirq.SingleQubitCliffordGate.X_sqrt**3 == cirq.SingleQubitCliffordGate.X**1.5
+    assert cirq.SingleQubitCliffordGate.Z**2.0 == cirq.SingleQubitCliffordGate.I
     assert cirq.inverse(cirq.SingleQubitCliffordGate.X_nsqrt) == (
         cirq.SingleQubitCliffordGate.X_sqrt
     )
