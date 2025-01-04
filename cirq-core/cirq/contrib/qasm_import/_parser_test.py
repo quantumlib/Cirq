@@ -186,7 +186,7 @@ def test_CX_gate():
      qreg q2[2];
      CX q1[0], q1[1];
      CX q1, q2[0];
-     CX q2, q1;      
+     CX q2, q1;
 """
     parser = QasmParser()
 
@@ -390,7 +390,7 @@ def test_U_angles():
 
 def test_U_gate_zero_params_error():
     qasm = """OPENQASM 2.0;
-     qreg q[2];     
+     qreg q[2];
      U q[1];"""
 
     parser = QasmParser()
@@ -401,7 +401,7 @@ def test_U_gate_zero_params_error():
 
 def test_U_gate_too_much_params_error():
     qasm = """OPENQASM 2.0;
-     qreg q[2];     
+     qreg q[2];
      U(pi, pi, pi, pi) q[1];"""
 
     parser = QasmParser()
@@ -520,9 +520,9 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: Callable[[float], cirq.Gate])
 def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
     qasm = f"""
      OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate}(pi) q[0], q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate}(pi) q[0], q[1];
 """
 
     parser = QasmParser()
@@ -534,9 +534,9 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in rotation_gates])
 def test_rotation_gates_zero_params_error(qasm_gate: str):
     qasm = f"""OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate} q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate} q[1];
 """
 
     parser = QasmParser()
@@ -584,7 +584,7 @@ def test_measure_individual_bits():
          OPENQASM 2.0;
          include "qelib1.inc";
          qreg q1[2];
-         creg c1[2];                        
+         creg c1[2];
          measure q1[0] -> c1[0];
          measure q1[1] -> c1[1];
     """
@@ -612,8 +612,8 @@ def test_measure_registers():
     qasm = """OPENQASM 2.0;
          include "qelib1.inc";
          qreg q1[3];
-         creg c1[3];                        
-         measure q1 -> c1;       
+         creg c1[3];
+         measure q1 -> c1;
     """
     parser = QasmParser()
 
@@ -639,10 +639,10 @@ def test_measure_registers():
 
 def test_measure_mismatched_register_size():
     qasm = """OPENQASM 2.0;
-         include "qelib1.inc";       
+         include "qelib1.inc";
          qreg q1[2];
-         creg c1[3];                        
-         measure q1 -> c1;       
+         creg c1[3];
+         measure q1 -> c1;
     """
 
     parser = QasmParser()
@@ -653,11 +653,11 @@ def test_measure_mismatched_register_size():
 
 def test_measure_to_quantum_register():
     qasm = """OPENQASM 2.0;
-         include "qelib1.inc";       
+         include "qelib1.inc";
          qreg q1[3];
          qreg q2[3];
-         creg c1[3];                        
-         measure q2 -> q1;       
+         creg c1[3];
+         measure q2 -> q1;
     """
 
     parser = QasmParser()
@@ -668,10 +668,10 @@ def test_measure_to_quantum_register():
 
 def test_measure_undefined_classical_bit():
     qasm = """OPENQASM 2.0;
-         include "qelib1.inc";       
-         qreg q1[3];    
-         creg c1[3];                        
-         measure q1[1] -> c2[1];       
+         include "qelib1.inc";
+         qreg q1[3];
+         creg c1[3];
+         measure q1[1] -> c2[1];
     """
 
     parser = QasmParser()
@@ -682,11 +682,11 @@ def test_measure_undefined_classical_bit():
 
 def test_measure_from_classical_register():
     qasm = """OPENQASM 2.0;
-         include "qelib1.inc";       
+         include "qelib1.inc";
          qreg q1[2];
-         creg c1[3];                        
-         creg c2[3];                        
-         measure c1 -> c2;       
+         creg c1[3];
+         creg c2[3];
+         measure c1 -> c2;
     """
 
     parser = QasmParser()
@@ -698,8 +698,8 @@ def test_measure_from_classical_register():
 def test_measurement_bounds():
     qasm = """OPENQASM 2.0;
      qreg q1[3];
-     creg c1[3];                        
-     measure q1[0] -> c1[4];  
+     creg c1[3];
+     measure q1[0] -> c1[4];
 """
     parser = QasmParser()
 
@@ -741,7 +741,7 @@ def test_u1_gate():
      OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[1];
-     u1(pi / 3.0) q[0];    
+     u1(pi / 3.0) q[0];
 """
     parser = QasmParser()
 
@@ -764,7 +764,7 @@ def test_u2_gate():
      OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[1];
-     u2(2 * pi, pi / 3.0) q[0];    
+     u2(2 * pi, pi / 3.0) q[0];
 """
     parser = QasmParser()
 
@@ -787,7 +787,7 @@ def test_id_gate():
      OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
-     id q;           
+     id q;
 """
     parser = QasmParser()
 
@@ -846,7 +846,7 @@ def test_r_gate():
      OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[1];
-     r(pi, pi / 2.0) q[0];    
+     r(pi, pi / 2.0) q[0];
 """
     parser = QasmParser()
 
@@ -871,9 +871,9 @@ def test_r_gate():
 def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
     qasm = f"""
      OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate} q[0], q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate} q[0], q[1];
 """
 
     parser = QasmParser()
@@ -889,9 +889,9 @@ def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
 )
 def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
     qasm = f"""OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate}(pi, 2*pi, 3*pi, 4*pi, 5*pi) q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate}(pi, 2*pi, 3*pi, 4*pi, 5*pi) q[1];
 """
 
     parser = QasmParser()
@@ -903,9 +903,9 @@ def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
         return
 
     qasm = f"""OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate} q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate} q[1];
     """
 
     parser = QasmParser()
