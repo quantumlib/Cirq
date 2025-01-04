@@ -159,6 +159,74 @@ def test_creg():
     assert token.value == ";"
 
 
+def test_custom_gate():
+    lexer = QasmLexer()
+    lexer.input('gate name(param1,param2) q1, q2 {X(q1)}')
+    token = lexer.token()
+    assert token.type == "GATE"
+    assert token.value == "gate"
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "name"
+
+    token = lexer.token()
+    assert token.type == "("
+    assert token.value == "("
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "param1"
+
+    token = lexer.token()
+    assert token.type == ","
+    assert token.value == ","
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "param2"
+
+    token = lexer.token()
+    assert token.type == ")"
+    assert token.value == ")"
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "q1"
+
+    token = lexer.token()
+    assert token.type == ","
+    assert token.value == ","
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "q2"
+
+    token = lexer.token()
+    assert token.type == "{"
+    assert token.value == "{"
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "X"
+
+    token = lexer.token()
+    assert token.type == "("
+    assert token.value == "("
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "q1"
+
+    token = lexer.token()
+    assert token.type == ")"
+    assert token.value == ")"
+
+    token = lexer.token()
+    assert token.type == "}"
+    assert token.value == "}"
+
+
 def test_error():
     lexer = QasmLexer()
     lexer.input('θ')
