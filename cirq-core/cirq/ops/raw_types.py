@@ -566,6 +566,26 @@ class Operation(metaclass=abc.ABCMeta):
     ) -> Self:
         """Returns the same operation, but with different qubits.
 
+        This function will return a new operation with the same gate but
+        with qubits mapped according to the argument.
+
+        For example, the following will translate LineQubits to GridQubits
+        using a grid with 4 columns:
+
+        >>> op = cirq.CZ(cirq.LineQubit(5), cirq.LineQubit(9))
+        >>> op.transform_qubits(lambda q: cirq.GridQubit(q.x // 4, q.x % 4))
+        cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 1))
+
+        This can also be used with a dictionary that has a mapping, such
+        as the following which maps named qubits to line qubits:
+
+        >>> a = cirq.NamedQubit('alice')
+        >>> b = cirq.NamedQubit('bob')
+        >>> d = {a: cirq.LineQubit(4), b: cirq.LineQubit(5)}
+        >>> op = cirq.CNOT(a, b)
+        >>> op.transform_qubits(d)
+        cirq.CNOT(cirq.LineQubit(4), cirq.LineQubit(5))
+
         Args:
             qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
