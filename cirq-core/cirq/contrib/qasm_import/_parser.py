@@ -182,7 +182,7 @@ class QasmParser:
         self.circuit = Circuit()
         self.qregs: Dict[str, int] = {}
         self.cregs: Dict[str, int] = {}
-        self.custom_gate_definitions: Dict[str, CustomGate] = {}
+        self.gate_set: Dict[str, Union[CustomGate, QasmGateStatement]] = {**self.basic_gates}
         self.custom_gate_scoped_params: Set[str] = set()
         self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
         self.custom_gate_scope = False
@@ -310,8 +310,6 @@ class QasmParser:
         'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
     }
 
-    all_gates = {**basic_gates, **qelib_gates}
-
     tokens = QasmLexer.tokens
     start = 'start'
 
@@ -336,11 +334,13 @@ class QasmParser:
     def p_qasm_include(self, p):
         """qasm : qasm QELIBINC"""
         self.qelibinc = True
+        self.gate_set |= self.qelib_gates
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
 
     def p_qasm_include_stdgates(self, p):
         """qasm : qasm STDGATESINC"""
         self.qelibinc = True
+        self.gate_set |= self.qelib_gates
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
 
     def p_qasm_circuit(self, p):
@@ -428,16 +428,11 @@ class QasmParser:
     def _resolve_gate_operation(
         self, args: List[List[ops.Qid]], gate: str, p: Any, params: List[value.TParamVal]
     ):
-        gate_set = self.basic_gates if not self.qelibinc else self.all_gates
-        full_gate_set: Mapping[str, Union[QasmGateStatement, CustomGate]] = {
-            **gate_set,
-            **self.custom_gate_definitions,
-        }
-        if gate not in full_gate_set.keys():
+        if gate not in self.gate_set.keys():
             tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
             msg = f'Unknown gate "{gate}" at line {p.lineno(1)}{tip}'
             raise QasmException(msg)
-        p[0] = full_gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
+        p[0] = self.gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
     # params : parameter ',' params
     #        | parameter
@@ -678,7 +673,7 @@ class QasmParser:
         gate_def = CustomGate(name, circuit, gate_params, gate_qubits)
         self.custom_gate_scoped_params.clear()
         self.custom_gate_scoped_qubits.clear()
-        self.custom_gate_definitions[gate_def.name] = gate_def
+        self.gate_set[gate_def.name] = gate_def
         self.custom_gate_scope = False
         p[0] = gate_def
 
