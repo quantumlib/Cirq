@@ -678,7 +678,7 @@ class QasmParser:
         gate_ops = p[5 + offset]
         circuit = Circuit(gate_ops).freeze()
         gate_def = CustomGate(name, circuit, gate_params, gate_qubits)
-        self.all_gates[gate_def.name] = gate_def
+        self.all_gates[name] = gate_def
         self.custom_gate_scoped_params.clear()
         self.custom_gate_scoped_qubits.clear()
         self.in_custom_gate_scope = False
