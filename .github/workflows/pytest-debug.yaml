@@ -118,7 +118,7 @@ jobs:
       - name: Run pytest
         run: |
           # Configure flags for pytest.
-          flags="--durations=20 --ignore=cirq-core/cirq/contrib"
+          flags="--durations=20 --strict-config --ignore=cirq-core/cirq/contrib"
           workers="-n auto"
           if [[ -n "${{github.event.inputs.random-seed}}" ]]; then
             flags=" --randomly-seed=${{github.event.inputs.random-seed}}"
@@ -127,7 +127,7 @@ jobs:
             workers="-n0"
           fi
           if [[ "${{github.event.inputs.verbose}}" == "true" ]]; then
-            flags+="-vv --trace-config --full-trace --setup-show"
+            flags+="-vv --full-trace --setup-show"
             # Save Python info to the run log, in case it's useful.
             which python
             pip list
