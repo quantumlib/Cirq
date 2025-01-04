@@ -297,6 +297,7 @@ def drop_terminal_measurements(
                     if q.dimension == 2
                     else (
                         ops.MatrixGate(
+                            # Per SimulationState.measure(), swap 0,1 but leave other dims alone
                             np.identity(q.dimension)
                             + np.pad([[-1, 1], [1, -1]], (0, q.dimension - 2)),
                             qid_shape=(q.dimension,),
