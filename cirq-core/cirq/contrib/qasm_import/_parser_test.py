@@ -1230,73 +1230,44 @@ def test_openqasm_3_0_scalar_qubit():
 
 
 def test_custom_gate():
-    # pylint: disable=line-too-long
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
      qreg q[2];
-     gate g(p1, p2) q1, q2 {
-        rx(p1) q1;
-        ry(p1+p2+3) q1;
-        rz(p2) q2;
+     gate g(p1, p2) q0, q1 {
+        rx(p1) q0;
+        ry(p1+p2+3) q0;
+        rz(p2) q1;
      }
      g(1,2) q;
-     g(0,3) q[1], q[0];
+     g(0,4) q[1], q[0];
     """
+
+    q0, q1 = cirq.NamedQubit.range(2, prefix='q')
+    p1, p2 = sympy.symbols('p1, p2')
+    g = cirq.FrozenCircuit(
+        cirq.Rx(rads=p1).on(q0), cirq.Ry(rads=p1 + p2 + 3).on(q0), cirq.Rz(rads=p2).on(q1)
+    )
+    q_0, q_1 = cirq.NamedQubit.range(2, prefix='q_')
+    expected = cirq.Circuit(
+        cirq.CircuitOperation(g, qubit_map={q0: q_0, q1: q_1}, param_resolver={'p1': 1, 'p2': 2}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_1, q1: q_0}, param_resolver={'p1': 0, 'p2': 4}),
+    )
+
     parser = QasmParser()
-
     parsed_qasm = parser.parse(qasm)
-    circuit = parsed_qasm.circuit
-    cirq.testing.assert_has_diagram(
-        circuit,
-        """
-        [ q1: ───Rx(p1)───Ry(p1 + p2 + 3)─── ]
-q_0: ───[                                    ]────────────────────────────────────────────────────────────#2────────────────────────────────────────────────────────────────────────────────────────────────
-        [ q2: ───Rz(p2)───────────────────── ](qubit_map={q1: q_0, q2: q_1}, params={'p1': 1, 'p2': 2})   │
-        │                                                                                                 │
-        │                                                                                                 [ q1: ───Rx(p1)───Ry(p1 + p2 + 3)─── ]
-q_1: ───#2────────────────────────────────────────────────────────────────────────────────────────────────[                                    ]────────────────────────────────────────────────────────────
-                                                                                                          [ q2: ───Rz(p2)───────────────────── ](qubit_map={q1: q_1, q2: q_0}, params={'p1': 0, 'p2': 3})
-""",
+    assert parsed_qasm.circuit == expected
+
+    # sanity check that this unrolls to a valid circuit
+    unrolled_expected = cirq.Circuit(
+        cirq.Rx(rads=1).on(q_0),
+        cirq.Ry(rads=6).on(q_0),
+        cirq.Rz(rads=2).on(q_1),
+        cirq.Rx(rads=0).on(q_1),
+        cirq.Ry(rads=7).on(q_1),
+        cirq.Rz(rads=4).on(q_0),
     )
-
-    cirq.testing.assert_has_diagram(
-        cirq.unroll_circuit_op(circuit, tags_to_check=None),
-        """
-q_0: ───Rx(0.318π)───Ry(1.91π)───Rz(0.955π)───────────────
-
-q_1: ───Rz(0.637π)───────────────Rx(0)────────Ry(1.91π)───
-""",
-    )
-
-    expected_generated_qasm = (
-        f"// Generated from Cirq v{cirq.__version__}"
-        + """
-
-OPENQASM 2.0;
-include "qelib1.inc";
-
-
-// Qubits: [q_0, q_1]
-qreg q[2];
-
-
-// Operation: [ q1: ───Rx(p1)───Ry(p1 + p2 + 3)─── ]
-//            [                                    ]
-//            [ q2: ───Rz(p2)───────────────────── ](qubit_map={q1: q_0, q2: q_1}, params={'p1': 1, 'p2': 2})
-rx(pi*0.3183098862) q[0];
-rz(pi*0.6366197724) q[1];
-ry(pi*1.9098593171) q[0];
-
-// Operation: [ q1: ───Rx(p1)───Ry(p1 + p2 + 3)─── ]
-//            [                                    ]
-//            [ q2: ───Rz(p2)───────────────────── ](qubit_map={q1: q_1, q2: q_0}, params={'p1': 0, 'p2': 3})
-rx(0) q[1];
-rz(pi*0.9549296586) q[0];
-ry(pi*1.9098593171) q[1];
-"""
-    )
-    assert cirq.qasm(parsed_qasm.circuit) == expected_generated_qasm
-    # pylint: enable=line-too-long
+    unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
+    assert unrolled == unrolled_expected
 
 
 def test_custom_gate_undefined_qubit_error():
@@ -1385,7 +1356,7 @@ def test_custom_gate_undefined_param_error():
         parser.parse(qasm)
 
 
-def test_custom_gate_undefined_param_error():
+def test_top_level_param_error():
     parser = QasmParser()
     qasm = """OPENQASM 3.0;
      include "stdgates.inc";
