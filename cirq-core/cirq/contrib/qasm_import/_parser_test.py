@@ -1383,3 +1383,14 @@ def test_custom_gate_undefined_param_error():
     """
     with pytest.raises(QasmException, match='Undefined parameter "p" in line 4'):
         parser.parse(qasm)
+
+
+def test_custom_gate_undefined_param_error():
+    parser = QasmParser()
+    qasm = """OPENQASM 3.0;
+     include "stdgates.inc";
+     qubit q;
+     rx(p) q;
+    """
+    with pytest.raises(QasmException, match='Parameter "p" in line 4 not supported'):
+        parser.parse(qasm)

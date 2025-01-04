@@ -184,7 +184,7 @@ class QasmParser:
         self.all_gates: Dict[str, Union[CustomGate, QasmGateStatement]] = {**self.basic_gates}
         self.custom_gate_scoped_params: Set[str] = set()
         self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
-        self.custom_gate_scope = False
+        self.in_custom_gate_scope = False
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
@@ -458,6 +458,9 @@ class QasmParser:
 
     def p_expr_identifier(self, p):
         """expr : ID"""
+        # expression params are only allowed inside custom gate definitions.
+        if not self.in_custom_gate_scope:
+            raise QasmException(f'Parameter "{p[1]}" in line {p.lineno(1)} not supported')
         if p[1] not in self.custom_gate_scoped_params:
             raise QasmException(f'Undefined parameter "{p[1]}" in line {p.lineno(1)}')
         p[0] = sympy.Symbol(p[1])
@@ -514,7 +517,7 @@ class QasmParser:
     def p_quantum_arg_register(self, p):
         """qarg : ID"""
         reg = p[1]
-        if self.custom_gate_scope:
+        if self.in_custom_gate_scope:
             if reg not in self.custom_gate_scoped_qubits:
                 raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
             p[0] = [self.custom_gate_scoped_qubits[reg]]
@@ -547,7 +550,7 @@ class QasmParser:
         """qarg : ID '[' NATURAL_NUMBER ']'"""
         reg = p[1]
         idx = p[3]
-        if self.custom_gate_scope:
+        if self.in_custom_gate_scope:
             raise QasmException(f'Unsupported indexed qreg "{reg}[{idx}]" at line {p.lineno(1)}')
         arg_name = self.make_name(idx, reg)
         if reg not in self.qregs.keys():
@@ -634,7 +637,7 @@ class QasmParser:
 
     def p_gate_params_single(self, p):
         """gate_params : ID"""
-        self.custom_gate_scope = True
+        self.in_custom_gate_scope = True
         self.custom_gate_scoped_params.add(p[1])
         p[0] = [p[1]]
 
@@ -645,7 +648,7 @@ class QasmParser:
 
     def p_gate_qubits_single(self, p):
         """gate_qubits : ID"""
-        self.custom_gate_scope = True
+        self.in_custom_gate_scope = True
         q = NamedQubit(p[1])
         self.custom_gate_scoped_qubits[p[1]] = q
         p[0] = [q]
@@ -656,7 +659,7 @@ class QasmParser:
 
     def p_gate_ops_empty(self, p):
         """gate_ops : empty"""
-        self.custom_gate_scope = True
+        self.in_custom_gate_scope = True
         p[0] = []
 
     def p_gate_def_parameterized(self, p):
@@ -678,7 +681,7 @@ class QasmParser:
         self.all_gates[gate_def.name] = gate_def
         self.custom_gate_scoped_params.clear()
         self.custom_gate_scoped_qubits.clear()
-        self.custom_gate_scope = False
+        self.in_custom_gate_scope = False
         p[0] = gate_def
 
     def p_error(self, p):
