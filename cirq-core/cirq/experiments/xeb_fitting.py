@@ -14,6 +14,7 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
+from functools import partial
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -647,14 +648,24 @@ def _fit_exponential_decay(
     layer_fid_0 = np.clip(np.exp(slope), 0, 1)
     a_0 = np.clip(np.exp(intercept), 0, 1)
 
-    try:
-        (a, layer_fid), pcov = optimize.curve_fit(
+    def do_curve_fit():
+        curve_fit = partial(
+            optimize.curve_fit,
             exponential_decay,
             cycle_depths,
             fidelities,
             p0=(a_0, layer_fid_0),
-            bounds=((0, 0), (1, 1)),
+            bounds=((0, 0), (1, 1))
         )
+        try:
+            return curve_fit()
+        except RuntimeError:  # pragma: no cover
+            # Curve_fit didn't find a solution. Try once more w/ higher maxfev.
+            # Default (in SciPy v.1.14) is 100*(1+len(p0)) = 300 for our p0.
+            return curve_fit(maxfev=1000)
+
+    try:
+        (a, layer_fid), pcov = do_curve_fit()
     except ValueError:  # pragma: no cover
         return 0, 0, np.inf, np.inf
 
