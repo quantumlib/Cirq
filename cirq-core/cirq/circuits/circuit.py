@@ -2019,10 +2019,14 @@ class Circuit(AbstractCircuit):
         >>> line_qubits = cirq.LineQubit.range(4)
         >>> circuit = cirq.Circuit([cirq.H(q) for q in line_qubits])
         >>> circuit.transform_qubits(lambda q : grid_qubits[q.x])
-        (0, 0): ───H───
-        (0, 1): ───H───
-        (1, 0): ───H───
-        (1, 1): ───H───
+        cirq.Circuit([
+            cirq.Moment(
+                cirq.H(cirq.GridQubit(0, 0)),
+                cirq.H(cirq.GridQubit(0, 1)),
+                cirq.H(cirq.GridQubit(1, 0)),
+                cirq.H(cirq.GridQubit(1, 1)),
+            ),
+        ])
 
         Args:
             qubit_map: A function or a dict mapping each current qubit into a desired
