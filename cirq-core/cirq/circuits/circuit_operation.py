@@ -485,7 +485,7 @@ class CircuitOperation(ops.Operation):
                 # Default repetition_ids need not be specified.
                 args.append(f'loops={self.repetitions}, use_repetition_ids=True')
         elif self.repetitions != 1:
-            # Only add loops if we haven't added repetition_ids.
+            # Add loops if not using repetition_ids.
             args.append(f'loops={self.repetitions}')
         if self.repeat_until:
             args.append(f'until={self.repeat_until}')
