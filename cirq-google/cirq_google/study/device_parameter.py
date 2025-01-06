@@ -57,19 +57,48 @@ class DeviceParameter(SupportsDeviceParameter):
 
     def __repr__(self) -> str:
         return (
-            'cirq_google.study.DeviceParameter('
-            f'path={self.path!r}, idx={self.idx}, value={self.value!r}, units={self.units!r})'
+            "cirq_google.study.DeviceParameter("
+            f"path={self.path!r}, idx={self.idx}, value={self.value!r}, units={self.units!r})"
         )
 
     @classmethod
     def _json_namespace_(cls) -> str:
-        return 'cirq.google'
+        return "cirq.google"
 
     @classmethod
     def _from_json_dict_(cls, path, idx, value, **kwargs):
         return DeviceParameter(
-            path=path, idx=idx, value=value, units=kwargs['units'] if 'units' in kwargs else None
+            path=path, idx=idx, value=value, units=kwargs["units"] if "units" in kwargs else None
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ["path", "idx", "value", "units"])
+
+
+@dataclasses.dataclass
+class Metadata:
+    device_parameters: Optional[Sequence[DeviceParameter]] = None
+    as_parameter: bool = False
+    label: Optional[str] = None
+
+    def __repr__(self) -> str:
+        return (
+            "cirq_google.study.Metadata("
+            f"device_parameters={self.device_parameters!r}, as_parameter={self.as_parameter}, label={self.label!r})"
+        )
+
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return "cirq.google"
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        device_parameters: Optional[Sequence[DeviceParameter]] = None,
+        as_parameter: bool = False,
+        label: Optional[str] = None,
+    ):
+        return Metadata(device_parameters=device_parameters, as_parameter=as_parameter, label=label)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ["device_parameters", "as_parameter", "label"])

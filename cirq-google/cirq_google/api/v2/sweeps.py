@@ -20,7 +20,7 @@ import tunits
 import cirq
 from cirq.study import sweeps
 from cirq_google.api.v2 import run_context_pb2
-from cirq_google.study.device_parameter import DeviceParameter
+from cirq_google.study.device_parameter import DeviceParameter, Metadata
 
 
 def _build_sweep_const(value: Any) -> run_context_pb2.ConstValue:
@@ -108,13 +108,17 @@ def sweep_to_proto(
             out.single_sweep.linspace.first_point = sweep.start
             out.single_sweep.linspace.last_point = sweep.stop
             out.single_sweep.linspace.num_points = sweep.length
-        # Use duck-typing to support google-internal Parameter objects
-        if sweep.metadata and getattr(sweep.metadata, 'path', None):
-            out.single_sweep.parameter.path.extend(sweep.metadata.path)
-        if sweep.metadata and getattr(sweep.metadata, 'idx', None):
-            out.single_sweep.parameter.idx = sweep.metadata.idx
-        if sweep.metadata and getattr(sweep.metadata, 'units', None):
-            out.single_sweep.parameter.units = sweep.metadata.units
+        # Encode the metadata if presents
+        if isinstance(sweep.metadata, Metadata):
+            out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
+        else:
+            # Use duck-typing to support google-internal Parameter objects
+            if sweep.metadata and getattr(sweep.metadata, 'path', None):
+                out.single_sweep.parameter.path.extend(sweep.metadata.path)
+            if sweep.metadata and getattr(sweep.metadata, 'idx', None):
+                out.single_sweep.parameter.idx = sweep.metadata.idx
+            if sweep.metadata and getattr(sweep.metadata, 'units', None):
+                out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         sweep = cast(cirq.Points, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
@@ -127,13 +131,17 @@ def sweep_to_proto(
                 unit.to_proto(out.single_sweep.points.unit)
             else:
                 out.single_sweep.points.points.extend(sweep.points)
-        # Use duck-typing to support google-internal Parameter objects
-        if sweep.metadata and getattr(sweep.metadata, 'path', None):
-            out.single_sweep.parameter.path.extend(sweep.metadata.path)
-        if sweep.metadata and getattr(sweep.metadata, 'idx', None):
-            out.single_sweep.parameter.idx = sweep.metadata.idx
-        if sweep.metadata and getattr(sweep.metadata, 'units', None):
-            out.single_sweep.parameter.units = sweep.metadata.units
+        # Encode the metadata if presents
+        if isinstance(sweep.metadata, Metadata):
+            out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
+        else:
+            # Use duck-typing to support google-internal Parameter objects
+            if sweep.metadata and getattr(sweep.metadata, 'path', None):
+                out.single_sweep.parameter.path.extend(sweep.metadata.path)
+            if sweep.metadata and getattr(sweep.metadata, 'idx', None):
+                out.single_sweep.parameter.idx = sweep.metadata.idx
+            if sweep.metadata and getattr(sweep.metadata, 'units', None):
+                out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.ListSweep):
         sweep_dict: Dict[str, List[float]] = {}
         for param_resolver in sweep:
@@ -192,6 +200,8 @@ def sweep_from_proto(
                     else None
                 ),
             )
+        elif msg.single_sweep.HasField("metadata"):
+            metadata = metadata_from_proto(msg.single_sweep.metadata)
         else:
             metadata = None
 
@@ -231,6 +241,34 @@ def sweep_from_proto(
         raise ValueError(f'single sweep type not set: {msg}')
 
     raise ValueError(f'sweep type not set: {msg}')  # pragma: no cover
+
+
+def metadata_to_proto(metadata: Metadata) -> run_context_pb2.Metadata:
+    device_parameters: list[run_context_pb2.DeviceParameter] = []
+    if params := getattr(metadata, "device_parameters", None):
+        for param in params:
+            path = getattr(param, "path", None)
+            idx = getattr(param, "idx", None)
+            device_parameters.append(run_context_pb2.DeviceParameter(path=path, idx=idx))
+
+    return run_context_pb2.Metadata(
+        device_parameters=device_parameters or None,  # If empty set this field as None.
+        label=getattr(metadata, "label", None),
+        as_parameter=getattr(metadata, "as_parameter", False),
+    )
+
+
+def metadata_from_proto(metadata: run_context_pb2.Metadata) -> Metadata:
+    device_parameters: list[DeviceParameter] = []
+    for param in metadata.device_parameters:
+        device_parameters.append(
+            DeviceParameter(path=param.path, idx=param.idx if param.HasField("idx") else None)
+        )
+    return Metadata(
+        device_parameters=device_parameters,
+        label=metadata.label if metadata.HasField("label") else None,
+        as_parameter=metadata.as_parameter,
+    )
 
 
 def run_context_to_proto(

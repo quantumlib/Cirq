@@ -20,3 +20,11 @@ def test_parameters():
         path=('test', 'subdir'), idx=2, value='tmp', units='GHz'
     )
     cirq.testing.assert_equivalent_repr(param, global_vals={'cirq_google': cirq_google})
+
+
+def test_metadata():
+    param = cirq_google.study.DeviceParameter(path=('test', 'subdir'), idx=2, value='tmp')
+    metadata = cirq_google.study.Metadata(
+        device_parameters=[param], as_parameter=True, label="fake_label"
+    )
+    cirq.testing.assert_equivalent_repr(metadata, global_vals={'cirq_google': cirq_google})
