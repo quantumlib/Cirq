@@ -15,7 +15,7 @@
     "@types/chai": "^4.2.18",
     "@types/jsdom": "^16.2.11",
     "@types/mocha": "^8.2.2",
-    "@types/node": "^14.11.2",
+    "@types/node": "^22.10.5",
     "@types/pixelmatch": "^5.2.3",
     "@types/pngjs": "^6.0.0",
     "@types/puppeteer": "^5.4.3",
