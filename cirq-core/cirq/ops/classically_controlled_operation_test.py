@@ -503,15 +503,17 @@ def test_scope_local():
     assert internal_control_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
     assert not cirq.control_keys(outer_subcircuit)
     assert not cirq.control_keys(circuit)
+    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [       [ 0: ───M───X─── ]                               ]
-0: ───[ 0: ───[       ║   ║    ]────────────────────────────── ]──────────────────────────────
-      [       [ a: ═══@═══^═══ ](repetition_ids=['0', '1'])    ](repetition_ids=['0', '1'])
+      [       [ 0: ───M───X─── ]                                      ]
+0: ───[ 0: ───[       ║   ║    ]───────────────────────────────────── ]─────────────────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2, use_repetition_ids=True)    ](loops=2, use_repetition_ids=True)
 """,
         use_unicode_characters=True,
     )
+    # pylint: enable=line-too-long
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -584,8 +586,8 @@ def test_scope_flatten_inner():
         cirq.Circuit(outer_subcircuit),
         """
       [       [ 0: ───M───X─── ]             ]
-0: ───[ 0: ───[       ║   ║    ]──────────── ]──────────────────────────────
-      [       [ a: ═══@═══^═══ ](loops=2)    ](repetition_ids=['0', '1'])
+0: ───[ 0: ───[       ║   ║    ]──────────── ]─────────────────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2, use_repetition_ids=True)
 """,
         use_unicode_characters=True,
     )
@@ -619,9 +621,9 @@ def test_scope_flatten_outer():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [       [ 0: ───M───X─── ]                               ]
-0: ───[ 0: ───[       ║   ║    ]────────────────────────────── ]────────────
-      [       [ a: ═══@═══^═══ ](repetition_ids=['0', '1'])    ](loops=2)
+      [       [ 0: ───M───X─── ]                                      ]
+0: ───[ 0: ───[       ║   ║    ]───────────────────────────────────── ]────────────
+      [       [ a: ═══@═══^═══ ](loops=2, use_repetition_ids=True)    ](loops=2)
 """,
         use_unicode_characters=True,
     )
@@ -659,11 +661,11 @@ def test_scope_extern():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [           [ 0: ───M('a')───X─── ]                               ]
-      [ 0: ───M───[                ║    ]────────────────────────────── ]
-0: ───[       ║   [ b: ════════════^═══ ](repetition_ids=['0', '1'])    ]──────────────────────────────
-      [       ║   ║                                                     ]
-      [ b: ═══@═══╩════════════════════════════════════════════════════ ](repetition_ids=['0', '1'])
+      [           [ 0: ───M('a')───X─── ]                                      ]
+      [ 0: ───M───[                ║    ]───────────────────────────────────── ]
+0: ───[       ║   [ b: ════════════^═══ ](loops=2, use_repetition_ids=True)    ]─────────────────────────────────────
+      [       ║   ║                                                            ]
+      [ b: ═══@═══╩═══════════════════════════════════════════════════════════ ](loops=2, use_repetition_ids=True)
 """,
         use_unicode_characters=True,
     )
@@ -780,13 +782,13 @@ def test_scope_extern_mismatch():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [                  [ 0: ───M('a')───X─── ]                               ]
-      [ 0: ───M('0:b')───[                ║    ]────────────────────────────── ]
-0: ───[                  [ b: ════════════^═══ ](repetition_ids=['0', '1'])    ]──────────────────────────────
-      [                  ║                                                     ]
-      [ b: ══════════════╩════════════════════════════════════════════════════ ](repetition_ids=['0', '1'])
+      [                  [ 0: ───M('a')───X─── ]                                      ]
+      [ 0: ───M('0:b')───[                ║    ]───────────────────────────────────── ]
+0: ───[                  [ b: ════════════^═══ ](loops=2, use_repetition_ids=True)    ]─────────────────────────────────────
+      [                  ║                                                            ]
+      [ b: ══════════════╩═══════════════════════════════════════════════════════════ ](loops=2, use_repetition_ids=True)
       ║
-b: ═══╩═══════════════════════════════════════════════════════════════════════════════════════════════════════
+b: ═══╩═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 """,
         use_unicode_characters=True,
     )

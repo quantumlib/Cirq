@@ -120,7 +120,8 @@ class CircuitOperation(ops.Operation):
             use_repetition_ids: When True, any measurement key in the subcircuit
                 will have its path prepended with the repetition id for each
                 repetition. When False, this will not happen and the measurement
-                key will be repeated.
+                key will be repeated. When None, default to False unless the caller
+                passes `repetition_ids` explicitly.
             repeat_until: A condition that will be tested after each iteration of
                 the subcircuit. The subcircuit will repeat until condition returns
                 True, but will always run at least once, and the measurement key
@@ -478,8 +479,11 @@ class CircuitOperation(ops.Operation):
         if self.parent_path:
             args.append(f'parent_path={self.parent_path}')
         if self.use_repetition_ids:
-            # Default repetition_ids need not be specified.
-            args.append(f'repetition_ids={self.repetition_ids}')
+            if self.repetition_ids != self._default_repetition_ids():
+                args.append(f'repetition_ids={self.repetition_ids}')
+            else:
+                # Default repetition_ids need not be specified.
+                args.append(f'loops={self.repetitions}, use_repetition_ids=True')
         elif self.repetitions != 1:
             # Only add loops if we haven't added repetition_ids.
             args.append(f'loops={self.repetitions}')
@@ -578,8 +582,8 @@ class CircuitOperation(ops.Operation):
             repetition_ids: List of IDs, one for each repetition. If unset,
                 defaults to `default_repetition_ids(repetitions)`.
             use_repetition_ids: If given, this specifies the value for `use_repetition_ids`
-                of the resulting circuit operation. If the not given, we enable
-                ids if `repetition_ids` is not None, and otherwise fall back to
+                of the resulting circuit operation. If not given, we enable ids if
+                `repetition_ids` is not None, and otherwise fall back to
                 `self.use_repetition_ids`.
 
         Returns:
