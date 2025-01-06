@@ -3,6 +3,12 @@ name: "Label and close stale issues & PRs"
 on:
   schedule:
   - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: "Run in debug mode (dry run)"
+        type: boolean
+        default: true
 
 jobs:
   stale:
@@ -10,7 +16,8 @@ jobs:
     steps:
     - uses: actions/stale@v9
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        repo-token: ${{secrets.GITHUB_TOKEN}}
+        debug-only: ${{inputs.debug || false}}
         days-before-stale: 90
         days-before-close: 60
         stale-issue-label: 'status/stale'
