@@ -285,7 +285,7 @@ class Metadata(google.protobuf.message.Message):
     LABEL_FIELD_NUMBER: builtins.int
     AS_PARAMETER_FIELD_NUMBER: builtins.int
     label: builtins.str
-    """If specified, use this label instead of pameter_key as the independent
+    """If specified, use this label instead of parameter_key as the independent
     column name in returned dataset.
     """
     as_parameter: builtins.bool
@@ -293,7 +293,7 @@ class Metadata(google.protobuf.message.Message):
     @property
     def device_parameters(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParameter]:
         """Optional arguments for if this is a device parameter.
-        Note one single_sweep may associated with multiple device parameters.
+        Note one single_sweep may be associated with multiple device parameters.
         """
 
     def __init__(

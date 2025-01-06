@@ -128,10 +128,10 @@ message DeviceParameter {
 
 message Metadata {
     // Optional arguments for if this is a device parameter.
-    // Note one single_sweep may associated with multiple device parameters.
+    // Note one single_sweep may be associated with multiple device parameters.
     repeated DeviceParameter device_parameters = 1;
 
-    // If specified, use this label instead of pameter_key as the independent
+    // If specified, use this label instead of parameter_key as the independent
     // column name in returned dataset.
     optional string label = 2;
 
