@@ -78,9 +78,10 @@ qreg q[{num_qubits}];
     try:
         qiskit_version = qiskit.version.get_version_info()
         if qiskit_version.startswith('1.'):
-            qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
-            qc.remove_final_measurements()  # no measurements allowed
-            qasm_unitary = qiskit.quantum_info.Operator(qc).data
+            # CI is not testing with qiskit 1.0 yet
+            qc = qiskit.QuantumCircuit.from_qasm_str(qasm)  # pragma: no cover
+            qc.remove_final_measurements()  # pragma: no cover
+            qasm_unitary = qiskit.quantum_info.Operator(qc).data  # pragma: no cover
         else:
             result = qiskit.execute(
                 qiskit.QuantumCircuit.from_qasm_str(qasm),
