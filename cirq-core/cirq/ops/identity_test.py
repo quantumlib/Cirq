@@ -218,7 +218,7 @@ def test_identity_commutes():
 
 def test_identity_diagram():
     assert (
-        str(cirq.Circuit(cirq.IdentityGate(3).on_each([cirq.LineQubit.range(3)])))
+        str(cirq.Circuit(cirq.IdentityGate(3).on_each(cirq.LineQubit.range(3))))
         == """
 0: ───I───
       │
