@@ -89,7 +89,7 @@ class CircuitOperation(ops.Operation):
         repetition_ids: Optional[Sequence[str]] = None,
         parent_path: Tuple[str, ...] = (),
         extern_keys: FrozenSet['cirq.MeasurementKey'] = frozenset(),
-        use_repetition_ids: bool = True,
+        use_repetition_ids: Optional[bool] = None,
         repeat_until: Optional['cirq.Condition'] = None,
     ):
         """Initializes a CircuitOperation.
@@ -120,7 +120,8 @@ class CircuitOperation(ops.Operation):
             use_repetition_ids: When True, any measurement key in the subcircuit
                 will have its path prepended with the repetition id for each
                 repetition. When False, this will not happen and the measurement
-                key will be repeated.
+                key will be repeated. When None, default to False unless the caller
+                passes `repetition_ids` explicitly.
             repeat_until: A condition that will be tested after each iteration of
                 the subcircuit. The subcircuit will repeat until condition returns
                 True, but will always run at least once, and the measurement key
@@ -156,6 +157,8 @@ class CircuitOperation(ops.Operation):
         # Ensure that the circuit is invertible if the repetitions are negative.
         self._repetitions = repetitions
         self._repetition_ids = None if repetition_ids is None else list(repetition_ids)
+        if use_repetition_ids is None:
+            use_repetition_ids = repetition_ids is not None
         self._use_repetition_ids = use_repetition_ids
         if isinstance(self._repetitions, float):
             if math.isclose(self._repetitions, round(self._repetitions)):
@@ -263,7 +266,7 @@ class CircuitOperation(ops.Operation):
             'repetition_ids': self.repetition_ids,
             'parent_path': self.parent_path,
             'extern_keys': self._extern_keys,
-            'use_repetition_ids': self.use_repetition_ids,
+            'use_repetition_ids': True if 'repetition_ids' in changes else self.use_repetition_ids,
             'repeat_until': self.repeat_until,
             **changes,
         }
@@ -448,11 +451,9 @@ class CircuitOperation(ops.Operation):
             args += f'param_resolver={proper_repr(self.param_resolver)},\n'
         if self.parent_path:
             args += f'parent_path={proper_repr(self.parent_path)},\n'
-        if self.repetition_ids != self._default_repetition_ids():
+        if self.use_repetition_ids:
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
-        if not self.use_repetition_ids:
-            args += 'use_repetition_ids=False,\n'
         if self.repeat_until:
             args += f'repeat_until={self.repeat_until!r},\n'
         indented_args = args.replace('\n', '\n    ')
@@ -477,14 +478,15 @@ class CircuitOperation(ops.Operation):
             args.append(f'params={self.param_resolver.param_dict}')
         if self.parent_path:
             args.append(f'parent_path={self.parent_path}')
-        if self.repetition_ids != self._default_repetition_ids():
-            # Default repetition_ids need not be specified.
-            args.append(f'repetition_ids={self.repetition_ids}')
+        if self.use_repetition_ids:
+            if self.repetition_ids != self._default_repetition_ids():
+                args.append(f'repetition_ids={self.repetition_ids}')
+            else:
+                # Default repetition_ids need not be specified.
+                args.append(f'loops={self.repetitions}, use_repetition_ids=True')
         elif self.repetitions != 1:
-            # Only add loops if we haven't added repetition_ids.
+            # Add loops if not using repetition_ids.
             args.append(f'loops={self.repetitions}')
-        if not self.use_repetition_ids:
-            args.append('no_rep_ids')
         if self.repeat_until:
             args.append(f'until={self.repeat_until}')
         if not args:
@@ -529,10 +531,9 @@ class CircuitOperation(ops.Operation):
             'measurement_key_map': self.measurement_key_map,
             'param_resolver': self.param_resolver,
             'repetition_ids': self.repetition_ids,
+            'use_repetition_ids': self.use_repetition_ids,
             'parent_path': self.parent_path,
         }
-        if not self.use_repetition_ids:
-            resp['use_repetition_ids'] = False
         if self.repeat_until:
             resp['repeat_until'] = self.repeat_until
         return resp
@@ -566,7 +567,10 @@ class CircuitOperation(ops.Operation):
     # Methods for constructing a similar object with one field modified.
 
     def repeat(
-        self, repetitions: Optional[IntParam] = None, repetition_ids: Optional[Sequence[str]] = None
+        self,
+        repetitions: Optional[IntParam] = None,
+        repetition_ids: Optional[Sequence[str]] = None,
+        use_repetition_ids: Optional[bool] = None,
     ) -> 'CircuitOperation':
         """Returns a copy of this operation repeated 'repetitions' times.
          Each repetition instance will be identified by a single repetition_id.
@@ -577,6 +581,10 @@ class CircuitOperation(ops.Operation):
                 defaults to the length of `repetition_ids`.
             repetition_ids: List of IDs, one for each repetition. If unset,
                 defaults to `default_repetition_ids(repetitions)`.
+            use_repetition_ids: If given, this specifies the value for `use_repetition_ids`
+                of the resulting circuit operation. If not given, we enable ids if
+                `repetition_ids` is not None, and otherwise fall back to
+                `self.use_repetition_ids`.
 
         Returns:
             A copy of this operation repeated `repetitions` times with the
@@ -591,6 +599,9 @@ class CircuitOperation(ops.Operation):
             ValueError: Unexpected length of `repetition_ids`.
             ValueError: Both `repetitions` and `repetition_ids` are None.
         """
+        if use_repetition_ids is None:
+            use_repetition_ids = True if repetition_ids is not None else self.use_repetition_ids
+
         if repetitions is None:
             if repetition_ids is None:
                 raise ValueError('At least one of repetitions and repetition_ids must be set')
@@ -604,7 +615,7 @@ class CircuitOperation(ops.Operation):
             expected_repetition_id_length: int = np.abs(repetitions)
 
             if repetition_ids is None:
-                if self.use_repetition_ids:
+                if use_repetition_ids:
                     repetition_ids = default_repetition_ids(expected_repetition_id_length)
             elif len(repetition_ids) != expected_repetition_id_length:
                 raise ValueError(
@@ -617,7 +628,11 @@ class CircuitOperation(ops.Operation):
 
         # The eventual number of repetitions of the returned CircuitOperation.
         final_repetitions = protocols.mul(self.repetitions, repetitions)
-        return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
+        return self.replace(
+            repetitions=final_repetitions,
+            repetition_ids=repetition_ids,
+            use_repetition_ids=use_repetition_ids,
+        )
 
     def __pow__(self, power: IntParam) -> 'cirq.CircuitOperation':
         return self.repeat(power)
