@@ -186,6 +186,7 @@ def sweep_from_proto(
         raise ValueError(f'invalid sweep function type: {func_type}')
     if which == 'single_sweep':
         key = msg.single_sweep.parameter_key
+        metadata: DeviceParameter | Metadata | None
         if msg.single_sweep.HasField("parameter"):
             metadata = DeviceParameter(
                 path=msg.single_sweep.parameter.path,
