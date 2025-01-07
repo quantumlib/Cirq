@@ -1,3 +1,6 @@
+# Summary: perform stale issue & PR handling on a schedule
+# For more info, see https://github.com/actions/stale/
+
 name: "Label and close stale issues & PRs"
 
 on:
@@ -6,6 +9,11 @@ on:
   workflow_dispatch:
     inputs:
       debug:
+        # Note: the job body sets `debug-only` to false by default. The value
+        # of inputs.debug is an empty string unless this workflow is invoked
+        # manually. When it's invoked manually, GitHub's GUI presents the user
+        # with a checkbox for this flag; we default that checkbox to true
+        # because the most likely reason for a manual run is debugging.
         description: "Run in debug mode (dry run)"
         type: boolean
         default: true
