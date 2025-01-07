@@ -12,6 +12,7 @@ on:
 
 jobs:
   stale:
+    name: Label and/or close stale issues and PRs
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/stale@v9
