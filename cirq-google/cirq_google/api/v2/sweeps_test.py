@@ -74,6 +74,7 @@ class UnknownSweep(sweeps.SingleSweep):
                 as_parameter=True,
             ),
         ),
+        cirq.Linspace('a', 0, 10, 100, metadata=Metadata(as_parameter=True)),
         cirq.Points(
             'b',
             [1, 1.5, 2, 2.5, 3],

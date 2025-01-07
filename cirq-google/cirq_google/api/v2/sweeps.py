@@ -266,7 +266,7 @@ def metadata_from_proto(metadata: run_context_pb2.Metadata) -> Metadata:
             DeviceParameter(path=param.path, idx=param.idx if param.HasField("idx") else None)
         )
     return Metadata(
-        device_parameters=device_parameters,
+        device_parameters=device_parameters or None,
         label=metadata.label if metadata.HasField("label") else None,
         as_parameter=metadata.as_parameter,
     )

@@ -84,7 +84,8 @@ class Metadata:
     def __repr__(self) -> str:
         return (
             "cirq_google.study.Metadata("
-            f"device_parameters={self.device_parameters!r}, as_parameter={self.as_parameter}, label={self.label!r})"
+            f"device_parameters={self.device_parameters!r}, as_parameter={self.as_parameter}, "
+            f"label={self.label!r})"
         )
 
     @classmethod
@@ -97,6 +98,7 @@ class Metadata:
         device_parameters: Optional[Sequence[DeviceParameter]] = None,
         as_parameter: bool = False,
         label: Optional[str] = None,
+        **kwargs,
     ):
         return Metadata(device_parameters=device_parameters, as_parameter=as_parameter, label=label)
 
