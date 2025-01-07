@@ -217,18 +217,14 @@ def test_identity_commutes():
 
 
 def test_identity_diagram():
-    assert (
-        str(cirq.Circuit(cirq.IdentityGate(3).on_each([cirq.LineQubit.range(3)])))
-        == """
+    cirq.testing.assert_has_diagram(
+            cirq.Circuit(cirq.IdentityGate(3).on_each([cirq.LineQubit.range(3)])),"""
 0: ───I───
       │
 1: ───I───
       │
 2: ───I───
-""".strip()
-    )
-    assert (
-        str(cirq.Circuit(cirq.IdentityGate(0)()))
-        == """
-    I(0)"""
-    )
+""")
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.IdentityGate(0)()), """
+    I(0)""")
