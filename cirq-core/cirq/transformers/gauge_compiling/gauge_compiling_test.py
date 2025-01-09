@@ -66,7 +66,6 @@ def test_as_sweep_multi_pre_or_multi_post():
             gauges=[
                 ConstantGauge(
                     two_qubit_gate=cirq.CZ,
-                    support_sweep=True,
                     pre_q0=[cirq.X, cirq.X],
                     post_q0=[cirq.Z],
                     pre_q1=[cirq.Y],
@@ -93,7 +92,6 @@ def test_as_sweep_invalid_gauge_sequence():
             gauges=[
                 ConstantGauge(
                     two_qubit_gate=cirq.CZ,
-                    support_sweep=True,
                     pre_q0=[cirq.measure],
                     post_q0=[cirq.Z],
                     pre_q1=[cirq.X],

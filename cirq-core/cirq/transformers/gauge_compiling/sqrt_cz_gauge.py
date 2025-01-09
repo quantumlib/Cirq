@@ -42,7 +42,7 @@ class SqrtCZGauge(Gauge):
 
     def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
-            return ConstantGauge(two_qubit_gate=gate, support_sweep=True)
+            return ConstantGauge(two_qubit_gate=gate)
         swap_qubits = prng.choice([True, False])
         if swap_qubits:
             return ConstantGauge(
@@ -51,7 +51,6 @@ class SqrtCZGauge(Gauge):
                 post_q0=S if gate == _SQRT_CZ else _ADJ_S,
                 two_qubit_gate=gate**-1,
                 swap_qubits=True,
-                support_sweep=True,
             )
         else:
             return ConstantGauge(
@@ -59,7 +58,6 @@ class SqrtCZGauge(Gauge):
                 post_q0=X,
                 post_q1=S if gate == _SQRT_CZ else _ADJ_S,
                 two_qubit_gate=gate**-1,
-                support_sweep=True,
             )
 
 

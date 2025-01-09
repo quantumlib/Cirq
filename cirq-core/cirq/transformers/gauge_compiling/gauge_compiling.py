@@ -79,7 +79,6 @@ class ConstantGauge(Gauge):
         default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
     )
     swap_qubits: bool = False
-    support_sweep: bool = False
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> "ConstantGauge":
         return self
@@ -118,7 +117,6 @@ class SameGateGauge(Gauge):
         default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
     )
     swap_qubits: bool = False
-    support_sweep: bool = False
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         return ConstantGauge(
@@ -128,7 +126,6 @@ class SameGateGauge(Gauge):
             post_q0=self.post_q0,
             post_q1=self.post_q1,
             swap_qubits=self.swap_qubits,
-            support_sweep=self.support_sweep,
         )
 
 
@@ -321,10 +318,6 @@ class GaugeTransformer:
                         continue
                     if op.gate is not None and len(op.qubits) == 2 and op in self.target:
                         gauge = self.gauge_selector(rng).sample(op.gate, rng)
-                        if not gauge.support_sweep:
-                            raise NotImplementedError(
-                                f"as_sweep isn't supported for {gauge.two_qubit_gate} gauge"
-                            )
 
                         # Get the params for 2 qubit gates.
                         if self.symbolize_2_qubit_gate_fn is not None:
