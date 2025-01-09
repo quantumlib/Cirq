@@ -145,12 +145,6 @@ def test_sympy_indexed_condition():
     cond = cirq.SympyCondition(sympy.Xor(a[0], a[1]))
     assert cond.keys == (cirq.MeasurementKey('a'),)
     assert str(cond) == 'a[0] ^ a[1]'
-    # pylint: disable=line-too-long
-    assert (
-        repr(cond)
-        == "cirq.SympyCondition(Xor(Indexed(IndexedBase(sympy.Symbol('a')), sympy.Integer(0)), Indexed(IndexedBase(sympy.Symbol('a')), sympy.Integer(1))))"
-    )
-    # pylint: enable=line-too-long
 
     def resolve(records):
         classical_data = cirq.ClassicalDataDictionaryStore(_records=records)

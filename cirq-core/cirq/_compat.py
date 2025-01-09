@@ -151,6 +151,12 @@ def proper_repr(value: Any) -> str:
             'StrictLessThan',
             'Equality',
             'Unequality',
+            'And',
+            'Or',
+            'Not',
+            'Xor',
+            'Indexed',
+            'IndexedBase',
         ]
 
         class Printer(sympy.printing.repr.ReprPrinter):
