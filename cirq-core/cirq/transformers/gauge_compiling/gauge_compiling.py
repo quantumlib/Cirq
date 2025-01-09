@@ -118,6 +118,7 @@ class SameGateGauge(Gauge):
         default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
     )
     swap_qubits: bool = False
+    support_sweep: bool = False
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         return ConstantGauge(
@@ -127,6 +128,7 @@ class SameGateGauge(Gauge):
             post_q0=self.post_q0,
             post_q1=self.post_q1,
             swap_qubits=self.swap_qubits,
+            support_sweep=self.support_sweep,
         )
 
 
@@ -332,6 +334,13 @@ def _parameterize(num_qubits: int, symbol_id: int) -> Dict[str, sympy.Symbol]:
 def _gate_sequence_to_phxz_params(
     gates: Tuple[ops.Gate, ...], xza_by_symbols: Dict[str, sympy.Symbol]
 ) -> Dict[str, float]:
+    identity_gate_in_phxz = {
+        str(xza_by_symbols["x_exponent"]): 0.0,
+        str(xza_by_symbols["z_exponent"]): 0.0,
+        str(xza_by_symbols["axis_phase_exponent"]): 0.0,
+    }
+    if not gates:
+        return identity_gate_in_phxz
     for gate in gates:
         if not has_unitary(gate) or gate.num_qubits() != 1:
             raise ValueError(
@@ -347,11 +356,7 @@ def _gate_sequence_to_phxz_params(
         or ops.I
     )
     if phxz is ops.I:  # Identity gate
-        return {
-            str(xza_by_symbols["x_exponent"]): 0.0,
-            str(xza_by_symbols["z_exponent"]): 0.0,
-            str(xza_by_symbols["axis_phase_exponent"]): 0.0,
-        }
+        return identity_gate_in_phxz
     # Check the gate type, needs to be a PhasedXZ gate.
     if not isinstance(phxz, ops.PhasedXZGate):
         raise ValueError("Failed to convert the gate sequence to a PhasedXZ gate.")

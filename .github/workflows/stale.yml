@@ -1,19 +1,57 @@
-name: "Mark and close stale issues"
+# Summary: perform stale issue & PR handling on a schedule
+# For more info, see https://github.com/actions/stale/
+
+name: "Label and close stale issues & PRs"
+
 on:
   schedule:
   - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      debug:
+        # Note: the job body sets `debug-only` to false by default. The value
+        # of inputs.debug is an empty string unless this workflow is invoked
+        # manually. When it's invoked manually, GitHub's GUI presents the user
+        # with a checkbox for this flag; we default that checkbox to true
+        # because the most likely reason for a manual run is debugging.
+        description: "Run in debug mode (dry run)"
+        type: boolean
+        default: true
 
 jobs:
   stale:
+    name: Label and/or close stale issues and PRs
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/stale@v9
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'This issue is stale because it has been open 30 days with no activity. Remove stale label or comment or this will be closed in 30 days'
-        days-before-stale: 30
-        days-before-close: 30
-        close-issue-message: 'Issue closed due to inactivity.'
+        repo-token: ${{secrets.GITHUB_TOKEN}}
+        debug-only: ${{inputs.debug || false}}
+        days-before-stale: 90
+        days-before-close: 60
         stale-issue-label: 'status/stale'
         stale-pr-label: 'status/stale'
         exempt-issue-labels: 'triage/accepted,triage/discuss,kind/design-issue,kind/health,kind/roadmap-item,kind/task'
+        stale-issue-message: >
+          This issue has been automatically labeled as stale because 90 days
+          have passed without comments or other activity. If no further
+          activity occurs and the `status/stale` label is not removed within
+          60 days, it will be closed. If you believe this is in error or would
+          like to discuss it further, please leave a comment here.
+        stale-pr-message: >
+          This pull request has been automatically labeled as stale because 90
+          days have passed without comments or other activity. If no further
+          activity occurs and the `status/stale` label is not removed within 60
+          days, it will be closed. If you believe this is in error or would
+          like to discuss it further, please leave a comment here.
+        close-issue-message: >
+          This issue has been closed due to inactivity for 60 days since the
+          time the stale label was applied. If you believe this is in error or
+          would like to discuss it further, please either open a new issue
+          (and reference this one in it, for continuity) or reach out to the
+          Cirq project maintainers at quantum-oss-maintainers@google.com.
+        close-pr-message: >
+          This pull-request has been closed due to inactivity for 60 days
+          since the time the stale label was applied. If you believe this is
+          in error or would like to discuss it further, please reach out to
+          the Cirq project maintainers at quantum-oss-maintainers@google.com.
