@@ -21,8 +21,13 @@ def test_qubit_extraction():
     circuits+= [cirq.Circuit(cirq.I(qubits[1]))]
     circuits+= [cirq.Circuit(cirq.H(qubits[2]))]
     circuits+= [cirq.Circuit(cirq.CNOT(qubits[3], qubits[4]))]
+    num_random_bitstrings = 5
     result = cirq.experiments.run_shuffled_with_readout_benchmarking(
-        circuits=circuits
+        circuits=circuits, num_random_bitstrings=num_random_bitstrings
     )
-    assert result == qubits[:5]
-
+    # Check that the number of circuits is correct
+    assert len(result) == 5
+    # Check that the number of qubits and gates in each circuit is correct
+    for res_circuit in result:
+        assert res_circuit.all_qubits() == set(qubits[:5]) # All circuits operate on the expected qubits
+        assert len(res_circuit) == 2  # Each circuit has the correct number of moments (X/I gates + measurement)
