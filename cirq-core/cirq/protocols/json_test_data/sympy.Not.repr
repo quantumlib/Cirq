@@ -1,0 +1,1 @@
+sympy.Not(sympy.Symbol('s'))
