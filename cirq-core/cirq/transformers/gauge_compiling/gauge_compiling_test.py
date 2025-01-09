@@ -19,9 +19,11 @@ import cirq
 from cirq.transformers.gauge_compiling import (
     GaugeTransformer,
     CZGaugeTransformer,
+    SqrtCZGaugeTransformer,
     ConstantGauge,
     GaugeSelector,
 )
+from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGauge
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 
@@ -110,16 +112,27 @@ def test_as_sweep_convert_to_phxz_failed():
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZ(*qs))
 
-    def mock_single_qubit_matrix_to_phxz(*args, **kwargs):
-        # Return an non PhasedXZ gate, so we expect errors from as_sweep().
-        return cirq.X
-
     with unittest.mock.patch.object(
         single_qubit_decompositions,
         "single_qubit_matrix_to_phxz",
-        new=mock_single_qubit_matrix_to_phxz,
+        # Return an non PhasedXZ gate, so we expect errors from as_sweep().
+        return_value=cirq.X,
     ):
         with pytest.raises(
             ValueError, match="Failed to convert the gate sequence to a PhasedXZ gate."
         ):
             _ = CZGaugeTransformer.as_sweep(c, context=cirq.TransformerContext(), N=1)
+
+
+def test_symbolize_2_qubits_gate_failed():
+    qs = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.CZPowGate(exponent=0.5).on(*qs))
+
+    with unittest.mock.patch.object(
+        SqrtCZGauge,
+        "sample",
+        # ISWAP gate is not a CZPowGate; errors are expected when symbolizing the 2-qubit gate.
+        return_value=ConstantGauge(two_qubit_gate=cirq.ISWAP),
+    ):
+        with pytest.raises(ValueError, match="Can't symbolize non-CZPowGate as CZ\\*\\*symbol."):
+            _ = SqrtCZGaugeTransformer.as_sweep(c, N=1)

@@ -15,8 +15,9 @@
 """A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 import numpy as np
+import sympy
 
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeTransformer,
@@ -24,7 +25,8 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
     Gauge,
 )
-from cirq.ops import CZ, S, X, Gateset
+from cirq.ops import CZ, S, X, Gateset, Gate, CZPowGate
+
 
 if TYPE_CHECKING:
     import cirq
@@ -40,7 +42,7 @@ class SqrtCZGauge(Gauge):
 
     def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
-            return ConstantGauge(two_qubit_gate=gate)
+            return ConstantGauge(two_qubit_gate=gate, support_sweep=True)
         swap_qubits = prng.choice([True, False])
         if swap_qubits:
             return ConstantGauge(
@@ -49,6 +51,7 @@ class SqrtCZGauge(Gauge):
                 post_q0=S if gate == _SQRT_CZ else _ADJ_S,
                 two_qubit_gate=gate**-1,
                 swap_qubits=True,
+                support_sweep=True,
             )
         else:
             return ConstantGauge(
@@ -56,9 +59,19 @@ class SqrtCZGauge(Gauge):
                 post_q0=X,
                 post_q1=S if gate == _SQRT_CZ else _ADJ_S,
                 two_qubit_gate=gate**-1,
+                support_sweep=True,
             )
 
 
+def _symbolize_as_cz_pow(gauge: ConstantGauge, symbol: sympy.Symbol) -> Tuple[Gate, float]:
+    if not isinstance(gauge.two_qubit_gate, CZPowGate):
+        raise ValueError("Can't symbolize non-CZPowGate as CZ**symbol.")
+    gate: CZPowGate = gauge.two_qubit_gate
+    return CZ**symbol, gate.exponent
+
+
 SqrtCZGaugeTransformer = GaugeTransformer(
-    target=Gateset(_SQRT_CZ, _SQRT_CZ**-1), gauge_selector=GaugeSelector(gauges=[SqrtCZGauge()])
+    target=Gateset(_SQRT_CZ, _SQRT_CZ**-1),
+    gauge_selector=GaugeSelector(gauges=[SqrtCZGauge()]),
+    symbolize_2_qubit_gate_fn=_symbolize_as_cz_pow,
 )
