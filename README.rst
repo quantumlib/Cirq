@@ -263,11 +263,13 @@ develop quantum programs for a variety of applications.
 +-------------------------------------------------+----------------------+
 | Your interests                                  | Software to explore  |
 +=================================================+======================+
-| Large circuits and/or a lot of simulations?     | * |qsim|_            |
-|                                                 | * |stim|_            |
-+-------------------------------------------------+----------------------+
 | | Quantum algorithms?                           | * |qualtran|_        |
 | | Fault-tolerant quantum computing (FTQC)?      |                      |
++-------------------------------------------------+----------------------+
+| Large circuits and/or a lot of simulations?     | * |qsim|_            |
++-------------------------------------------------+----------------------+
+| Circuits with thousands of qubits and millions  | * |stim|_            |
+| of Clifford operations?                         |                      |
 +-------------------------------------------------+----------------------+
 | Quantum error correction (QEC)?                 | * |stim|_            |
 +-------------------------------------------------+----------------------+
