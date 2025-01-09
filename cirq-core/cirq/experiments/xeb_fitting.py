@@ -654,6 +654,7 @@ def _fit_exponential_decay(
             fidelities,
             p0=(a_0, layer_fid_0),
             bounds=((0, 0), (1, 1)),
+            maxfev=1000,
         )
     except ValueError:  # pragma: no cover
         return 0, 0, np.inf, np.inf
