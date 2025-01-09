@@ -27,7 +27,7 @@ The following document provides an ecosystem overview of how the various tools c
 
 |Name|Main sponsor|Description|
 |--- |--- |--- |
-|[MITIQ](https://github.com/unitaryfund/mitiq)|Unitary Fund|An open-source library for error mitigation|
+|[Mitiq](https://github.com/unitaryfund/mitiq)|Unitary Foundation|An open-source library for error mitigation|
 |[Orquestra](https://www.zapatacomputing.com/orquestra/)|Zapata|A proprietary workflow management tool for quantum computing|
 |[pyGSTi](https://www.pygsti.info/)|Sandia National Labs|An open-source library for modeling and characterizing noisy quantum information processors|
 |[QUEKO](https://github.com/UCLA-VAST/QUEKO-benchmark)|UCLA|An open-source tool to generate benchmarks with the known optimal solutions|
