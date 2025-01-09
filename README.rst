@@ -121,12 +121,6 @@ on quantum computers and simulators.
 Features
 --------
 
-.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/quantum-computer-200px.svg
-   :alt: Google's quantum computer
-   :align: right
-   :width: 200px
-   :height: 267px
-
 Cirq provides useful abstractions for dealing with today’s `noisy
 intermediate-scale quantum <https://arxiv.org/abs/1801.00862>`__ (NISQ)
 computers, where the details of quantum hardware are vital to achieving
