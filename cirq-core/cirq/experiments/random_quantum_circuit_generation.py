@@ -336,13 +336,18 @@ def generate_library_of_2q_circuits_for_circuit_op(
         q1: The second qubit to use when constructing the circuits
         random_state: A random state or seed used to deterministically sample the random circuits.
         tags: Tags to add to the two qubit operations.
+
+    Raises:
+        ValueError: If tags are provided and a circuit_or_op is a circuit.
     """
     if isinstance(circuit_or_op, ops.Operation):
         op = circuit_or_op.with_tags(*tags)
         two_qubit_op_factory = lambda a, b, _: op.with_qubits(a, b)
     else:
+        if tags:
+            raise ValueError(f"Tags are not supported for {type(circuit_or_op)}")
         cop = circuits.CircuitOperation(circuit_or_op.freeze())
-        two_qubit_op_factory = lambda a, b, _: cop.with_qubits(a, b).mapped_op().with_tags(*tags)
+        two_qubit_op_factory = lambda a, b, _: cop.with_qubits(a, b).mapped_op()
 
     return _generate_library_of_2q_circuits(
         n_library_circuits=n_library_circuits,

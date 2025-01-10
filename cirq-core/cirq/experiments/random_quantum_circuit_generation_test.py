@@ -509,3 +509,14 @@ def test_generate_library_of_2q_circuits_with_tags():
                 continue
             assert op.tags == ('test_tag',)
             assert op.gate == cirq.FSimGate(3, 4)
+
+
+def test_generate_library_of_2q_circuits_with_tags_and_circuit_raises():
+    with pytest.raises(ValueError, match='Tags are not supported'):
+        _ = generate_library_of_2q_circuits_for_circuit_op(
+            n_library_circuits=5,
+            circuit_or_op=cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2))),
+            max_cycle_depth=13,
+            random_state=9,
+            tags=('test_tag',),
+        )
