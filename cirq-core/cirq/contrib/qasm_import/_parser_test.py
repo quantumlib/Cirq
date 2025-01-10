@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import textwrap
 from typing import Callable
 
 import numpy as np
 import pytest
-import re
 import sympy
 
 import cirq
