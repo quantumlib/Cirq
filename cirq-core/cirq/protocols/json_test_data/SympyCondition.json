@@ -1,17 +1,62 @@
-{
-  "cirq_type": "SympyCondition",
-  "expr":
+[
   {
-    "cirq_type": "sympy.GreaterThan",
-    "args": [
-      {
-        "cirq_type": "sympy.Symbol",
-        "name": "a"
-      },
-      {
-        "cirq_type": "sympy.Symbol",
-        "name": "b"
-      }
-    ]
+    "cirq_type": "SympyCondition",
+    "expr": {
+      "cirq_type": "sympy.GreaterThan",
+      "args": [
+        {
+          "cirq_type": "sympy.Symbol",
+          "name": "a"
+        },
+        {
+          "cirq_type": "sympy.Symbol",
+          "name": "b"
+        }
+      ]
+    }
+  },
+  {
+    "cirq_type": "SympyCondition",
+    "expr": {
+      "cirq_type": "sympy.Xor",
+      "args": [
+        {
+          "cirq_type": "sympy.Indexed",
+          "args": [
+            {
+              "cirq_type": "sympy.IndexedBase",
+              "args": [
+                {
+                  "cirq_type": "sympy.Symbol",
+                  "name": "a"
+                }
+              ]
+            },
+            {
+              "cirq_type": "sympy.Integer",
+              "i": 0
+            }
+          ]
+        },
+        {
+          "cirq_type": "sympy.Indexed",
+          "args": [
+            {
+              "cirq_type": "sympy.IndexedBase",
+              "args": [
+                {
+                  "cirq_type": "sympy.Symbol",
+                  "name": "a"
+                }
+              ]
+            },
+            {
+              "cirq_type": "sympy.Integer",
+              "i": 1
+            }
+          ]
+        }
+      ]
+    }
   }
-}
+]
