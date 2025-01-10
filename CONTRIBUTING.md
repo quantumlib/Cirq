@@ -3,8 +3,7 @@
 We'd love to accept your patches and contributions to this project.
 We do have some guidelines to follow, covered in this document, but don't
 worry about (or expect to) get everything right the first time!
-Create a [pull request](https://en.wikipedia.org/wiki/Fork_and_pull_model)
-and we'll nudge you in the right direction. Please also
+Create a pull request and we'll nudge you in the right direction. Please also
 note that we have a [code of conduct](CODE_OF_CONDUCT.md) to make Cirq an
 open and welcoming community environment.
 
@@ -14,7 +13,7 @@ Contributions to this project must be accompanied by a [Contributor License
 Agreement](https://cla.developers.google.com/about) (CLA). You
 (or your employer) retain the copyright to your contribution;
 this simply gives us permission to use and redistribute your contributions as
-part of the project. Head over to <https://cla.developers.google.com/> to see
+part of the project. Head over to https://cla.developers.google.com/ to see
 your current agreements on file or to sign a new one.
 
 You generally only need to submit a CLA once, so if you've already submitted one
@@ -28,17 +27,16 @@ use GitHub pull requests for this purpose.
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) has
 information on using pull requests.
 
-The preferred manner for submitting pull requests is for developers to
-[fork](https://docs.github.com/articles/working-with-forks)
+The preferred manner for submitting pull requests is for developers to fork
 the Cirq [repository](https://github.com/quantumlib/Cirq) and then use a [git
 branch](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell)
 from this fork to create a pull request to the main Cirq repo. The basic process for setting
 up a fork is as follows:
 
 1. Fork the Cirq repository (you can use the _Fork_ button in upper right
-corner of the [repo home page](https://github.com/quantumlib/Cirq)).
+corner of the [repository page](https://github.com/quantumlib/Cirq)).
 Forking creates a new GitHub repo at the location
-`https://github.com/USERNAME/cirq`, where `USERNAME` is
+`https://github.com/USERNAME/Cirq`, where `USERNAME` is
 your GitHub user name. Use the instructions on the
 [development page](docs/dev/development.md) to download a copy to
 your local machine. You need only do this once.
@@ -49,7 +47,7 @@ your local machine. You need only do this once.
     where `new_branch_name` is the name of your new branch.
 1. Do your work and commit your changes to this branch.
 1. If your local copy has drifted out of sync with the `main` branch of the
-the main Cirq repo, you may need to merge in the latest changes.  To do this,
+main Cirq repo, you may need to merge in the latest changes.  To do this,
 first update your local `main` and then merge your local `main`
 into your branch:
     ```shell
@@ -64,15 +62,15 @@ into your branch:
     git checkout new_branch_name
     git merge main
     ```
-    You may need to fix [merge
-    conflicts](https://docs.github.com/articles/about-merge-conflicts)
+    You may need to fix [merge conflicts](
+    https://docs.github.com/articles/about-merge-conflicts)
     during one or both of these merge processes.
 1. Finally, push your changes to your forked copy of the Cirq repo on GitHub:
     ```shell
     git push origin new_branch_name
     ```
 1. Now when you navigate to the Cirq repository on GitHub
-([https://github.com/quantumlib/cirq](https://github.com/quantumlib/cirq)),
+(https://github.com/quantumlib/Cirq),
 you should see the option to create a new pull request from
 your clone repository.  Alternatively, you can create the pull request
 by navigating to the "Pull requests" tab in the page, and selecting
@@ -101,11 +99,11 @@ new changes.
 
 - **Tests**.
 Existing tests must continue to pass (or be updated) when new changes are
-introduced. We use [pytest](https://docs.pytest.org/en/latest/) to run our
+introduced. We use [pytest](https://docs.pytest.org) to run our
 tests.
 - **Coverage**.
 Code should be covered by tests.
-We use [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) to compute
+We use [pytest-cov](https://pytest-cov.readthedocs.io) to compute
 coverage, and custom tooling to filter down the output to only include new or
 changed code. We don't require 100% coverage, but any uncovered code must
 be annotated with `# pragma: no cover`. To ignore coverage of a single line,
@@ -124,7 +122,7 @@ an unused import.
 Code should have [type annotations](https://www.python.org/dev/peps/pep-0484/).
 We use [mypy](http://mypy-lang.org/) to check that type annotations are correct.
 When type checking produces a false positive, it can be silenced with
-annotations such like `# type: ignore`.
+annotations such as `# type: ignore`.
 
 ## Request For Comment Process for New Major Features
 
