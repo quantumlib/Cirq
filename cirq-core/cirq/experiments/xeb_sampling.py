@@ -34,7 +34,7 @@ import pandas as pd
 import tqdm
 
 from cirq import ops, devices, value, protocols
-from cirq.circuits import Circuit, Moment
+from cirq.circuits import Circuit, Moment, CircuitOperation
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
 
 if TYPE_CHECKING:
@@ -184,7 +184,9 @@ def _get_combinations_by_layer_for_isolated_xeb(
     """
     q0, q1 = _verify_and_get_two_qubits_from_circuits(circuits)
     circuits = [
-        circuit.transform_qubits(lambda q: {q0: devices.LineQubit(0), q1: devices.LineQubit(1)}[q])
+        circuit.transform_qubits(
+            lambda q: {q0: devices.LineQubit(0), q1: devices.LineQubit(1)}[q]
+        ).map_operations(lambda op: op.mapped_op() if isinstance(op, CircuitOperation) else op)
         for circuit in circuits
     ]
     return [
@@ -215,7 +217,11 @@ def _zip_circuits(
         for combination_i, combination in enumerate(layer_combinations.combinations):
             wide_circuit = Circuit.zip(
                 *(
-                    circuits[i].transform_qubits(lambda q: pair[q.x])
+                    circuits[i]
+                    .transform_qubits(lambda q: pair[q.x])
+                    .map_operations(
+                        lambda op: op.mapped_op() if isinstance(op, CircuitOperation) else op
+                    )
                     for i, pair in zip(combination, layer_combinations.pairs)
                 )
             )
