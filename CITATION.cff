@@ -8,7 +8,7 @@ abstract: Python package for writing, manipulating, and running quantum circuits
 version: 1.4.1
 date-released: 2024-06-26
 url: https://quantumai.google/cirq
-repository-code: https://github.com/quantumlib/cirq
+repository-code: https://github.com/quantumlib/Cirq
 license: Apache-2.0
 identifiers:
   - type: doi
