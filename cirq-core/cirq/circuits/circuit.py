@@ -1695,9 +1695,7 @@ class _OpPlacer:
         # For keeping track of length of the circuit thus far.
         self._length = 0
 
-    def get_earliest_accommodating_moment_index(
-        self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation']
-    ):
+    def place(self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation']) -> int:
         # Identify the index of the moment to place this into.
         index = get_earliest_accommodating_moment_index(
             moment_or_operation,
@@ -1875,7 +1873,7 @@ class Circuit(AbstractCircuit):
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
             # Identify the index of the moment to place this `mop` into.
-            placement_index = placer.get_earliest_accommodating_moment_index(mop)
+            placement_index = placer.place(mop)
             if isinstance(mop, Moment):
                 moments_by_index[placement_index] = mop
             else:
@@ -2191,7 +2189,7 @@ class Circuit(AbstractCircuit):
         if self._placer and strategy == InsertStrategy.EARLIEST and index == len(self._moments):
             # Use `placer` to get placement indices quickly.
             for moment_or_op in moments_or_ops:
-                p = self._placer.get_earliest_accommodating_moment_index(moment_or_op)
+                p = self._placer.place(moment_or_op)
                 if isinstance(moment_or_op, Moment):
                     self._moments.append(moment_or_op)
                 else:
