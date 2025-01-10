@@ -341,8 +341,8 @@ def generate_library_of_2q_circuits_for_circuit_op(
         op = circuit_or_op.with_tags(*tags)
         two_qubit_op_factory = lambda a, b, _: op.with_qubits(a, b)
     else:
-        op = circuits.CircuitOperation(circuit_or_op.freeze()).with_tags(*tags)
-        two_qubit_op_factory = lambda a, b, _: op.with_qubits(a, b).mapped_op()
+        cop = circuits.CircuitOperation(circuit_or_op.freeze())
+        two_qubit_op_factory = lambda a, b, _: cop.with_qubits(a, b).mapped_op().with_tags(*tags)
 
     return _generate_library_of_2q_circuits(
         n_library_circuits=n_library_circuits,
