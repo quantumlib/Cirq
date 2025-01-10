@@ -42,6 +42,9 @@ message Constant {
 
     // Qubits used within the circuit (only populated in v2.5+)
     Qubit qubit = 3;
+
+    // Moments used multiple times in a circuit
+    Moment moment_value = 4;
   }
 }
 
@@ -70,6 +73,13 @@ message Circuit {
 // on a disjoint set of qubits. Conceptually, a moment represents operations
 // that all occur in the same finite period of time.
 message Moment {
+  // The index of the moment in the top-level constant table.
+  // If this field is populated, the other fields should be ignored
+  // in favor using the constant table lookup.
+  // This field is used to reduce size of circuits that contain many
+  // repeated moments.
+  int32 moment_constant_index = 3;
+
   // All of the gate operations in the moment. Each operation and circuit
   // operation must act on different qubits.
   repeated Operation operations = 1;

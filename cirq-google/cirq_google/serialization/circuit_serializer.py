@@ -39,11 +39,18 @@ class CircuitSerializer(serializer.Serializer):
     to the `serialize()` method of the class, which will produce a
     `Program` proto.  Likewise, the `deserialize` method will produce
     a `cirq.Circuit` object from a `Program` proto.
+
+    Args:
+        USE_CONSTANTS_TABLE_FOR_MOMENTS: Temporary feature flag to enable
+            serialization of duplicate moments as entries in the constant table.
+            This flag will soon become the default and disappear as soon as
+            deserialization of this field is deployed.
     """
 
-    def __init__(self):
+    def __init__(self, USE_CONSTANTS_TABLE_FOR_MOMENTS=False):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)
+        self.use_constants_table_for_moments = USE_CONSTANTS_TABLE_FOR_MOMENTS
 
     def serialize(
         self,
@@ -93,7 +100,20 @@ class CircuitSerializer(serializer.Serializer):
     ) -> None:
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
-            moment_proto = msg.moments.add()
+            if self.use_constants_table_for_moments:
+                if moment_index := raw_constants.get(moment, None):
+                    # Moment is already in the constants table
+                    moment_proto = msg.moments.add()
+                    moment_proto.moment_constant_index = moment_index
+                    continue
+                else:
+                    # Moment is not yet in the constants table
+                    # Create it and we will add it to the table at the end
+                    moment_proto = v2.program_pb2.Moment()
+            else:
+                # Constants table for moments disabled
+                moment_proto = msg.moments.add()
+
             for op in moment:
                 if isinstance(op.untagged, cirq.CircuitOperation):
                     op_pb = moment_proto.circuit_operations.add()
@@ -113,6 +133,13 @@ class CircuitSerializer(serializer.Serializer):
                         constants=constants,
                         raw_constants=raw_constants,
                     )
+
+            if self.use_constants_table_for_moments:
+                # Add this moment to the constants table
+                constants.append(v2.program_pb2.Constant(moment_value=moment_proto))
+                raw_constants[moment] = len(constants) - 1
+                moment_proto = msg.moments.add()
+                moment_proto.moment_constant_index = raw_constants[moment]
 
     def _serialize_gate_op(
         self,
@@ -416,7 +443,15 @@ class CircuitSerializer(serializer.Serializer):
         deserialized_constants: List[Any],
     ) -> cirq.Circuit:
         moments = []
+        constant_moments = {}
         for moment_proto in circuit_proto.moments:
+            if moment_proto.moment_constant_index:
+                if moment := constant_moments.get(moment_proto.moment_constant_index, None):
+                    # This moment is in the constants table and has already been constructed.
+                    moments.append(moment)
+                    continue
+                # Moment is in the constants table but has not been constructed.
+                moment_proto = constants[moment_proto.moment_constant_index].moment_value
             moment_ops = []
             for op in moment_proto.operations:
                 tags = [self._deserialize_tag(tag) for tag in op.tags]
@@ -437,7 +472,11 @@ class CircuitSerializer(serializer.Serializer):
                         deserialized_constants=deserialized_constants,
                     )
                 )
-            moments.append(cirq.Moment(moment_ops))
+            moment = cirq.Moment(moment_ops)
+            if moment_proto.moment_constant_index:
+                # Store constant moments for later so we only construct each moment once
+                constant_moments[moment_proto.moment_constant_index] = moment
+            moments.append(moment)
         return cirq.Circuit(moments)
 
     def _deserialize_gate_op(
