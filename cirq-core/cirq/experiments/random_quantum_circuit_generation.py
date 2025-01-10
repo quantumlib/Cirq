@@ -339,10 +339,11 @@ def generate_library_of_2q_circuits_for_circuit_op(
     """
     if isinstance(circuit_or_op, ops.Operation):
         op = circuit_or_op.with_tags(*tags)
+        two_qubit_op_factory = lambda a, b, _: op.with_qubits(a, b)
     else:
         op = circuits.CircuitOperation(circuit_or_op.freeze()).with_tags(*tags)
+        two_qubit_op_factory = lambda a, b, _: op.with_qubits(a, b).mapped_op()
 
-    two_qubit_op_factory = lambda a, b, _: op.with_qubits(a, b).mapped_op()
     return _generate_library_of_2q_circuits(
         n_library_circuits=n_library_circuits,
         two_qubit_op_factory=two_qubit_op_factory,
