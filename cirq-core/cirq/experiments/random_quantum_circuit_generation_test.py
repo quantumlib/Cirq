@@ -30,6 +30,7 @@ from cirq.experiments.random_quantum_circuit_generation import (
     get_random_combinations_for_pairs,
     get_random_combinations_for_layer_circuit,
     get_grid_interaction_layer_circuit,
+    generate_library_of_2q_circuits_for_circuit_op,
 )
 
 SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]
@@ -84,6 +85,40 @@ def test_generate_library_of_2q_circuits():
             assert len(m1.operations) == 2  # single qubit layer
             assert len(m2.operations) == 1
             assert m2.operations[0].gate == cirq.CNOT
+
+
+def test_generate_library_of_2q_circuits_for_circuit_op_with_operation():
+    circuits = generate_library_of_2q_circuits_for_circuit_op(
+        n_library_circuits=5,
+        circuit_or_op=cirq.CNOT(cirq.q(0), cirq.q(1)),
+        max_cycle_depth=13,
+        random_state=9,
+    )
+    assert len(circuits) == 5
+    for circuit in circuits:
+        assert len(circuit.all_qubits()) == 2
+        assert sorted(circuit.all_qubits()) == cirq.LineQubit.range(2)
+        for m1, m2 in zip(circuit.moments[::2], circuit.moments[1::2]):
+            assert len(m1.operations) == 2  # single qubit layer
+            assert len(m2.operations) == 1
+            assert m2.operations[0].gate == cirq.CNOT
+
+
+def test_generate_library_of_2q_circuits_for_circuit_op_with_circuit():
+    circuits = generate_library_of_2q_circuits_for_circuit_op(
+        n_library_circuits=5,
+        circuit_or_op=cirq.Circuit(cirq.CNOT(cirq.q(0), cirq.q(1))),
+        max_cycle_depth=13,
+        random_state=9,
+    )
+    assert len(circuits) == 5
+    for circuit in circuits:
+        assert len(circuit.all_qubits()) == 2
+        assert sorted(circuit.all_qubits()) == cirq.LineQubit.range(2)
+        for m1, m2 in zip(circuit.moments[::2], circuit.moments[1::2]):
+            assert len(m1.operations) == 2  # single qubit layer
+            assert len(m2.operations) == 1
+            assert isinstance(m2.operations[0], cirq.CircuitOperation)
 
 
 def test_generate_library_of_2q_circuits_custom_qubits():
