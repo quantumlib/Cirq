@@ -1676,10 +1676,14 @@ def _concat_ragged_helper(
 class _OpPlacer:
     """Maintains qubit and cbit indices for quick op placement.
 
-    Here, we instead keep track of the greatest moment that contains each
-    qubit, measurement key, and control key, and append the operation to
-    the moment after the maximum of these. This avoids having to check each
-    moment.
+    Here, we keep track of the greatest moment that contains each qubit,
+    measurement key, and control key, and append operations to the moment after
+    the maximum of these. This avoids having to iterate backwards, checking
+    each moment one at a time.
+
+    It is only valid for `append` operations, and if any other insert strategy
+    is used, the placer must be invalidated for the circuit or rebuilt from
+    scratch. Future improvements may ease this restriction.
     """
 
     def __init__(self) -> None:
