@@ -172,6 +172,12 @@ class _ZippedCircuit:
     combination_i: int
 
 
+def _map_circuit(circuit):
+    """Calls .mapped_op on all CircuitOperations within the circuit."""
+    op_fn = lambda op: op.mapped_op() if isinstance(op, CircuitOperation) else op
+    return Circuit.from_moments(*[[op_fn(op) for op in m] for m in circuit])
+
+
 def _get_combinations_by_layer_for_isolated_xeb(
     circuits: Sequence['cirq.Circuit'],
 ) -> Tuple[List[CircuitLibraryCombination], List['cirq.Circuit']]:
@@ -184,9 +190,11 @@ def _get_combinations_by_layer_for_isolated_xeb(
     """
     q0, q1 = _verify_and_get_two_qubits_from_circuits(circuits)
     circuits = [
-        circuit.transform_qubits(
-            lambda q: {q0: devices.LineQubit(0), q1: devices.LineQubit(1)}[q]
-        ).map_operations(lambda op: op.mapped_op() if isinstance(op, CircuitOperation) else op)
+        _map_circuit(
+            circuit.transform_qubits(
+                lambda q: {q0: devices.LineQubit(0), q1: devices.LineQubit(1)}[q]
+            )
+        )
         for circuit in circuits
     ]
     return [
@@ -217,11 +225,7 @@ def _zip_circuits(
         for combination_i, combination in enumerate(layer_combinations.combinations):
             wide_circuit = Circuit.zip(
                 *(
-                    circuits[i]
-                    .transform_qubits(lambda q: pair[q.x])
-                    .map_operations(
-                        lambda op: op.mapped_op() if isinstance(op, CircuitOperation) else op
-                    )
+                    _map_circuit(circuits[i].transform_qubits(lambda q: pair[q.x]))
                     for i, pair in zip(combination, layer_combinations.pairs)
                 )
             )
