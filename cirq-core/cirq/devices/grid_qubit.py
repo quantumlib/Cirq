@@ -14,6 +14,7 @@
 
 import abc
 import functools
+import sys
 import weakref
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TYPE_CHECKING, Union
 from typing_extensions import Self
@@ -38,41 +39,12 @@ class _BaseGridQid(ops.Qid):
 
     def __hash__(self) -> int:
         if self._hash is None:
-            # This approach seems to perform better than traditional "random" hash in `Set`
-            # operations for typical circuits, as it reduces bucket collisions. Caveat: it does not
-            # include dimension, so sets with qudits of different dimensions but same location will
-            # have degenerate performance.
-            # Indexes the plane by concentric squares around the origin.
-            #    | -2 -1  0  1  2
-            # ---+---------------
-            # -2 |  9 10 11 12 13
-            # -1 | 24  1  2  3 14
-            #  0 | 23  8  0  4 15
-            #  1 | 22  7  6  5 16
-            #  2 | 21 20 19 18 17
-            row = self._row
-            col = self._col
-
-            # The index of the square containing this point
-            n = max(abs(row), abs(col))
-            if n == 0:
-                self._hash = 0
-                return 0
-
-            # Determine the area of the inner square
-            start = (2 * n - 1) ** 2
-
-            # Determine the offset within the outer square
-            if row == -n:  # Top edge
-                offset = n + col
-            elif col == n:  # Right edge
-                offset = 3 * n + row
-            elif row == n:  # Bottom edge
-                offset = 5 * n - col
-            else:  # Left edge
-                offset = 7 * n - row
-
-            self._hash = hash(start + offset)
+            # Use the same hash algorithm as complex numbers, which performs better than a tuple
+            # hash. Note this does not include dimension, so sets with qubits at the same grid
+            # position but different dimensions will have poor performance, but such use cases are
+            # not anticipated. (Similarly, sets with grid qubits and raw complex numbers will
+            # perform poorly, but are not anticipated.)
+            self._hash = hash(self._row + self._col * sys.hash_info.imag)
         return self._hash
 
     def __eq__(self, other) -> bool:
