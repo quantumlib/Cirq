@@ -1,6 +1,6 @@
 {
     "cirq_type": "_InverseCompositeGate",
-    "val": {
+    "original": {
         "cirq_type": "QubitPermutationGate",
         "permutation": [
         0,

@@ -150,6 +150,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'IdentityGate': cirq.IdentityGate,
         'InitObsSetting': cirq.work.InitObsSetting,
         'InsertionNoiseModel': InsertionNoiseModel,
+        '_InverseCompositeGate': raw_types._InverseCompositeGate,
         'KeyCondition': cirq.KeyCondition,
         'KrausChannel': cirq.KrausChannel,
         'LinearDict': cirq.LinearDict,
@@ -287,5 +288,4 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
         'complex': complex,
         'datetime.datetime': _datetime,
-        '_InverseCompositeGate': cirq.inverse,
     }
