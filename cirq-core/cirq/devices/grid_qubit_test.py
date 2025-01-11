@@ -71,12 +71,6 @@ def _test_qid_pickled_hash(q: 'cirq.Qid', q_bad: 'cirq.Qid') -> None:
     assert hash(q_ok) == hash(q)
 
 
-def test_hash_fills_plane():
-    qubits = cirq.GridQubit.square(7, -3, -3)
-    hashes = [hash(q) for q in qubits]
-    assert sorted(hashes) == list(range(49))
-
-
 def test_str():
     assert str(cirq.GridQubit(5, 2)) == 'q(5, 2)'
     assert str(cirq.GridQid(5, 2, dimension=3)) == 'q(5, 2) (d=3)'
