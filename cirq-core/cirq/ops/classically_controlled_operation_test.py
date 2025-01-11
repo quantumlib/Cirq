@@ -1127,3 +1127,65 @@ m1: ═════@════^═══════
        └──┘
 """,
     )
+
+
+def test_sympy_indexed_condition_circuit():
+    a = sympy.IndexedBase('a')
+    # XOR the 2nd and 3rd bits of the measurement (big-endian)
+    cond = cirq.SympyCondition(sympy.Xor(a[1], a[2]))
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    sim = cirq.Simulator()
+    circuit = cirq.Circuit(
+        cirq.measure(q0, q1, q2, key='a'),
+        cirq.X(q3).with_classical_controls(cond),
+        cirq.measure(q3, key='b'),
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M──────────────────────────────────────────
+      ║
+1: ───M──────────────────────────────────────────
+      ║
+2: ───M──────────────────────────────────────────
+      ║
+3: ───╫───X(conditions=[a[1] ^ a[2]])───M('b')───
+      ║   ║
+a: ═══@═══^══════════════════════════════════════
+""",
+    )
+    result = sim.sample(circuit)
+    assert result['a'][0] == 0b000
+    assert result['b'][0] == 0
+    circuit.insert(0, cirq.X(q2))
+    result = sim.sample(circuit)
+    assert result['a'][0] == 0b001
+    assert result['b'][0] == 1
+    circuit.insert(0, cirq.X(q1))
+    circuit.insert(0, cirq.X(q2))
+    result = sim.sample(circuit)
+    assert result['a'][0] == 0b010
+    assert result['b'][0] == 1
+    circuit.insert(0, cirq.X(q2))
+    result = sim.sample(circuit)
+    assert result['a'][0] == 0b011
+    assert result['b'][0] == 0
+    circuit.insert(0, cirq.X(q0))
+    circuit.insert(0, cirq.X(q1))
+    circuit.insert(0, cirq.X(q2))
+    result = sim.sample(circuit)
+    assert result['a'][0] == 0b100
+    assert result['b'][0] == 0
+    circuit.insert(0, cirq.X(q2))
+    result = sim.sample(circuit)
+    assert result['a'][0] == 0b101
+    assert result['b'][0] == 1
+    circuit.insert(0, cirq.X(q1))
+    circuit.insert(0, cirq.X(q2))
+    result = sim.sample(circuit)
+    assert result['a'][0] == 0b110
+    assert result['b'][0] == 1
+    circuit.insert(0, cirq.X(q2))
+    result = sim.sample(circuit)
+    assert result['a'][0] == 0b111
+    assert result['b'][0] == 0
