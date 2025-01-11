@@ -449,8 +449,8 @@ def test_serialize_deserialize_circuit_with_duplicate_moments():
     proto = serializer.serialize(circuit)
     deserialized_circuit = serializer.deserialize(proto)
     assert deserialized_circuit == circuit
-    assert circuit[0] == circuit[2]
-    assert circuit[1] == circuit[3]
+    assert deserialized_circuit[0] is deserialized_circuit[2]
+    assert deserialized_circuit[1] is deserialized_circuit[3]
 
 
 def test_serialize_deserialize_circuit_with_tokens():
