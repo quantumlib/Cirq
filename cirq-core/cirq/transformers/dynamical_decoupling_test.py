@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -773,4 +773,62 @@ def test_cross_clifford_pieces_filling_merge():
                                                                                                                   │
 6: ───────────────────────────────────────────────────────────PhXZ(a=0.2,x=0.2,z=0.1)───X─────────────────────────@───PhXZ(a=0.8,x=0.8,z=0.5)─────H────────────────────────
 """,
+    )
+
+
+def test_pull_through_phxz_gate_case1():
+    """Test case diagrams.
+        Input:
+    a: ───H───────PhXZ(a=0.25,x=-1,z=0)───────@───
+                                              │
+    b: ───H───H───H───────────────────────H───X───
+        Output: expected circuit diagram below.
+    """
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    phxz = cirq.PhasedXZGate(axis_phase_exponent=0.25, x_exponent=-1, z_exponent=0)
+    assert_dd(
+        input_circuit=cirq.Circuit(
+            cirq.Moment(cirq.H(a), cirq.H(b)),
+            cirq.Moment(cirq.H(b)),
+            cirq.Moment(phxz(a), cirq.H(b)),
+            cirq.Moment(cirq.H(b)),
+            cirq.Moment(cirq.CNOT(a, b)),
+        ),
+        expected_circuit="""
+a: ───H───X───PhXZ(a=0.25,x=-1,z=0)───X───@───Z───
+                                          │
+b: ───H───H───H───────────────────────H───X───────
+""",
+        schema="XX_PAIR",
+    )
+
+
+def test_pull_through_phxz_gate_case2():
+    """Test case diagrams.
+        Input:
+    a: ───H───────PhXZ(a=0.2,x=-1,z=0)───────@───
+                                              │
+    b: ───H───H───H───────────────────────H───X───
+        Output: expected circuit diagram below.
+    """
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    phxz = cirq.PhasedXZGate(axis_phase_exponent=0.2, x_exponent=-1, z_exponent=0)
+    assert_dd(
+        input_circuit=cirq.Circuit(
+            cirq.Moment(cirq.H(a), cirq.H(b)),
+            cirq.Moment(cirq.H(b)),
+            cirq.Moment(phxz(a), cirq.H(b)),
+            cirq.Moment(cirq.H(b)),
+            cirq.Moment(cirq.CNOT(a, b)),
+        ),
+        expected_circuit="""
+a: ───H───X───PhXZ(a=0.1,x=0,z=0.4)───X───@───X───
+                                          │
+b: ───H───H───H───────────────────────H───X───X───
+""",
+        schema="XX_PAIR",
     )
