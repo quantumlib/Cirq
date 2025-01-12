@@ -39,12 +39,7 @@ class _BaseGridQid(ops.Qid):
 
     def __hash__(self) -> int:
         if self._hash is None:
-            # Use the same hash algorithm as complex numbers, which performs better than a tuple
-            # hash. Note this does not include dimension, so sets with qubits at the same grid
-            # position but different dimensions will have poor performance, but such use cases are
-            # not anticipated. (Similarly, sets with grid qubits and raw complex numbers will
-            # perform poorly, but are not anticipated.)
-            self._hash = hash(self._row + self._col * sys.hash_info.imag)
+            self._hash = ((self._dimension - 2) * 1_000_003 + self._col) * 1_000_003 + self._row
         return self._hash
 
     def __eq__(self, other) -> bool:

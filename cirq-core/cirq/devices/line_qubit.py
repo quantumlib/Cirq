@@ -34,12 +34,7 @@ class _BaseLineQid(ops.Qid):
 
     def __hash__(self) -> int:
         if self._hash is None:
-            # Use the line index integer itself as the hash. This performs better than a tuple
-            # hash. Note this does not include dimension, so sets with qubits at the same line
-            # index but different dimensions will have poor performance, but such use cases are
-            # not anticipated. (Similarly, sets with line qubits and raw integers will perform
-            # poorly, but are not anticipated.)
-            self._hash = hash(self._x)  # hash(i) returns i except for huge numbers
+            self._hash = (self._dimension - 2) * 1_000_003 + self._x
         return self._hash
 
     def __eq__(self, other) -> bool:
