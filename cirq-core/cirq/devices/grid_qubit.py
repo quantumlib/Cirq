@@ -14,7 +14,6 @@
 
 import abc
 import functools
-import sys
 import weakref
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TYPE_CHECKING, Union
 from typing_extensions import Self
