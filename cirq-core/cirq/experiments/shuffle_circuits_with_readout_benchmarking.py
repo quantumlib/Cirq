@@ -13,7 +13,7 @@
 # limitations under the License.
 """Tools for running circuits in a shuffled order with readout error benchmarking."""
 
-from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING
+from typing import Iterable, Optional
 
 import numpy as np
 
