@@ -787,6 +787,8 @@ class TaggedOperation(Operation):
     def __init__(self, sub_operation: 'cirq.Operation', *tags: Hashable):
         self._sub_operation = sub_operation
         self._tags = tuple(tags)
+        if any(isinstance(tag, type) for tag in tags):
+            raise ValueError('Tags cannot be types.  Did you forget to instantiate the tag type?')
 
     @property
     def sub_operation(self) -> 'cirq.Operation':
