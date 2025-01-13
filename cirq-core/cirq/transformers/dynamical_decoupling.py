@@ -1,4 +1,4 @@
-# Copyright 2025 The Cirq Developers
+# Copyright 2024 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -177,17 +177,13 @@ def _calc_pulled_through(
     clifford_ops_in_moment: list[ops.Operation] = [
         op for op in moment.operations if _is_clifford_op(op)
     ]
-    ps_after: ops.PauliString = ops.PauliString()
-    try:
-        ps_after = input_pauli_ops.after(clifford_ops_in_moment)
-    except TypeError:
-        # PauliString.after might fail due to a known decomposition issue.
-        # TODO(#): remove the except handling after # is dixed.
-        def _as_clifford(op):  # Force convert the input op to CliffordGate op.
-            return ops.CliffordGate.from_op_list([op], op.qubits)(*op.qubits)
-
-        ps_after = input_pauli_ops.after(map(_as_clifford, clifford_ops_in_moment))
-    return ps_after
+    # TODO(#6946): directly pass clifford_ops_in_moment to input_pauli_ops.after() after #6946 is
+    # fixed.
+    affected_qubits = [q for op in clifford_ops_in_moment for q in op.qubits]
+    all_cliffords_in_gate: ops.CliffordGate = ops.CliffordGate.from_op_list(
+        clifford_ops_in_moment, affected_qubits
+    )
+    return input_pauli_ops.after(all_cliffords_in_gate.on(*affected_qubits))
 
 
 def _get_stop_qubits(moment: circuits.Moment) -> set[ops.Qid]:
