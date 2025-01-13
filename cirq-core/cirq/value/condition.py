@@ -14,7 +14,7 @@
 
 import abc
 import dataclasses
-from typing import Mapping, Tuple, TYPE_CHECKING, FrozenSet
+from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING
 
 import sympy
 
@@ -46,6 +46,9 @@ class Condition(abc.ABC):
     @abc.abstractmethod
     def qasm(self):
         """Returns the qasm of this condition."""
+
+    def _qasm_(self, args: 'cirq.QasmArgs', **kwargs) -> Optional[str]:
+        return self.qasm
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'cirq.Condition':
         condition = self
@@ -115,6 +118,22 @@ class KeyCondition(Condition):
     def qasm(self):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
+    def _qasm_(self, args: 'cirq.QasmArgs', **kwargs) -> Optional[str]:
+        args.validate_version('2.0', '3.0')
+        key_str = str(self.key)
+        if key_str not in args.meas_key_id_map:
+            raise ValueError(f'Key "{key_str}" not in QasmArgs.meas_key_id_map.')
+        key = args.meas_key_id_map[key_str]
+        # QASM 3.0 supports !=, so we return it directly.
+        if args.version == '3.0':
+            return f'{key}!=0'
+        # QASM 2.0 only has == operator, so we must limit to single-bit measurement keys == 1.
+        if key not in args.meas_key_bitcount:
+            raise ValueError(f'Key "{key}" not in QasmArgs.meas_key_bitcount.')
+        if args.meas_key_bitcount[str(key)] != 1:
+            raise ValueError('QASM is defined only for single-bit classical conditions.')
+        return f'{key}==1'
+
 
 @dataclasses.dataclass(frozen=True)
 class SympyCondition(Condition):
@@ -123,6 +142,12 @@ class SympyCondition(Condition):
     This condition resolves to True iff the sympy expression resolves to a
     truthy value (i.e. `bool(x) == True`) when the measurement keys are
     substituted in as the free variables.
+
+    `sympy.IndexedBase` can be used for bitwise conditions. For example, the
+    following will create a condition that is controlled by the XOR of the
+    first two bits (big-endian) of measurement 'a'.
+    >>> a = sympy.IndexedBase('a')
+    >>> cond = cirq.SympyCondition(sympy.Xor(a[0], a[1]))
     """
 
     expr: sympy.Basic
@@ -132,6 +157,9 @@ class SympyCondition(Condition):
         return tuple(
             measurement_key.MeasurementKey.parse_serialized(symbol.name)
             for symbol in self.expr.free_symbols
+            if isinstance(symbol, sympy.Symbol)
+            # For bitwise ops, both Symbol ('a') and Indexed ('a[0]') are returned. We only want to
+            # keep the former here.
         )
 
     def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
@@ -148,8 +176,19 @@ class SympyCondition(Condition):
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
-        replacements = {str(k): classical_data.get_int(k) for k in self.keys}
-        return bool(self.expr.subs(replacements))
+        replacements: Dict[str, Any] = {}
+        for symbol in self.expr.free_symbols:
+            if isinstance(symbol, sympy.Symbol):
+                name = symbol.name
+                key = measurement_key.MeasurementKey.parse_serialized(name)
+                replacements[str(key)] = classical_data.get_int(key)
+        for symbol in self.expr.free_symbols:
+            if isinstance(symbol, sympy.Indexed):
+                name = symbol.base.name
+                key = measurement_key.MeasurementKey.parse_serialized(name)
+                replacements[str(key)] = tuple(classical_data.get_digits(key))
+        value = self.expr.subs(replacements)
+        return bool(value)
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)

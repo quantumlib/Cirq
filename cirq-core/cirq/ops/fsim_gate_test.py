@@ -797,3 +797,24 @@ def test_phased_fsim_json_dict():
     assert cirq.PhasedFSimGate(
         theta=0.12, zeta=0.34, chi=0.56, gamma=0.78, phi=0.9
     )._json_dict_() == {'theta': 0.12, 'zeta': 0.34, 'chi': 0.56, 'gamma': 0.78, 'phi': 0.9}
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.CZ,
+        cirq.SQRT_ISWAP,
+        cirq.SQRT_ISWAP_INV,
+        cirq.ISWAP,
+        cirq.ISWAP_INV,
+        cirq.cphase(0.1),
+        cirq.CZ**0.2,
+    ],
+)
+def test_phase_fsim_from_matrix(gate):
+    u = cirq.unitary(gate)
+    np.testing.assert_allclose(cirq.unitary(cirq.PhasedFSimGate.from_matrix(u)), u, atol=1e-8)
+
+
+def test_phase_fsim_from_matrix_not_fsim_returns_none():
+    assert cirq.PhasedFSimGate.from_matrix(np.ones((4, 4))) is None

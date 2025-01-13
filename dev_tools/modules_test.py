@@ -37,6 +37,8 @@ def test_modules():
             'url': 'http://github.com/quantumlib/cirq',
             'author': 'The Cirq Developers',
             'author_email': 'cirq-dev@googlegroups.com',
+            'maintainer': 'The Quantum AI open-source software maintainers',
+            'maintainer_email': 'quantum-oss-maintainers@google.com',
             'python_requires': '>=3.10.0',
             'install_requires': ['req1', 'req2'],
             'license': 'Apache 2',

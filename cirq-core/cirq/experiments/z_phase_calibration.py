@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
-from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING, Any
+from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING, Any, List
 import multiprocessing
 import multiprocessing.pool
 
@@ -22,7 +22,8 @@ import numpy as np
 
 from cirq.experiments import xeb_fitting
 from cirq.experiments.two_qubit_xeb import parallel_xeb_workflow
-from cirq import ops
+from cirq.transformers import transformer_api
+from cirq import ops, circuits, protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -283,3 +284,84 @@ def plot_z_phase_calibration_result(
         ax.set_title('-'.join(str(q) for q in pair))
         ax.legend()
     return axes
+
+
+def _z_angles(old: ops.PhasedFSimGate, new: ops.PhasedFSimGate) -> Tuple[float, float, float]:
+    """Computes a set of possible 3 z-phases that result in the change in gamma, zeta, and chi."""
+    # This procedure is the inverse of PhasedFSimGate.from_fsim_rz
+    delta_gamma = new.gamma - old.gamma
+    delta_zeta = new.zeta - old.zeta
+    delta_chi = new.chi - old.chi
+    return (-delta_gamma + delta_chi, -delta_gamma - delta_zeta, delta_zeta - delta_chi)
+
+
+@transformer_api.transformer
+class CalibrationTransformer:
+
+    def __init__(
+        self,
+        target: 'cirq.Gate',
+        calibration_map: Dict[Tuple['cirq.Qid', 'cirq.Qid'], 'cirq.PhasedFSimGate'],
+    ):
+        """Create a CalibrationTransformer.
+
+        The transformer adds 3 ZPowGates around each calibrated gate to cancel the
+        effect of z-phases.
+
+        Args:
+            target: The target gate. Any gate matching this
+                will be replaced based on the content of `calibration_map`.
+            calibration_map:
+                A map mapping qubit pairs to calibrated gates. This is the output of
+                calling `calibrate_z_phases`.
+        """
+        self.target = target
+        if isinstance(target, ops.PhasedFSimGate):
+            self.target_as_fsim = target
+        elif (gate := ops.PhasedFSimGate.from_matrix(protocols.unitary(target))) is not None:
+            self.target_as_fsim = gate
+        else:
+            raise ValueError(f"{target} is not equivalent to a PhasedFSimGate")
+        self.calibration_map = calibration_map
+
+    def __call__(
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        *,
+        context: Optional[transformer_api.TransformerContext] = None,
+    ) -> 'cirq.Circuit':
+        """Adds 3 ZPowGates around each calibrated gate to cancel the effect of Z phases.
+
+        Args:
+            circuit: Circuit to transform.
+            context: Optional transformer context (not used).
+
+        Returns:
+            New circuit with the extra ZPowGates.
+        """
+        new_moments: List[Union[List[cirq.Operation], 'cirq.Moment']] = []
+        for moment in circuit:
+            before = []
+            after = []
+            for op in moment:
+                if op.gate != self.target:
+                    # not a target.
+                    continue
+                assert len(op.qubits) == 2
+                gate = self.calibration_map.get(op.qubits, None) or self.calibration_map.get(
+                    op.qubits[::-1], None
+                )
+                if gate is None:
+                    # no calibration available.
+                    continue
+                angles = np.array(_z_angles(self.target_as_fsim, gate)) / np.pi
+                angles = -angles  # Take the negative to cancel the effect.
+                before.append(ops.Z(op.qubits[0]) ** angles[0])
+                before.append(ops.Z(op.qubits[1]) ** angles[1])
+                after.append(ops.Z(op.qubits[0]) ** angles[2])
+            if before:
+                new_moments.append(before)
+            new_moments.append(moment)
+            if after:
+                new_moments.append(after)
+        return circuits.Circuit.from_moments(*new_moments)
