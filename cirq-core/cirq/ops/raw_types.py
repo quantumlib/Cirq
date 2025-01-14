@@ -554,6 +554,9 @@ class Operation(metaclass=abc.ABCMeta):
         resulting operation to be eventually serialized into JSON, you should
         also restrict the operation to be JSON serializable.
 
+        Please note that tags should be instantiated if classes are
+        used.  Raw types are not allowed.
+
         Args:
             *new_tags: The tags to wrap this operation in.
         """
@@ -779,7 +782,8 @@ class TaggedOperation(Operation):
     Tags added can be of any type, but they should be Hashable in order
     to allow equality checking.  If you wish to serialize operations into
     JSON, you should restrict yourself to only use objects that have a JSON
-    serialization.
+    serialization.  Tags cannot be raw types and should be instantiated
+    if classes are used.
 
     See `Operation.with_tags()` for more information on intended usage.
     """
@@ -787,6 +791,8 @@ class TaggedOperation(Operation):
     def __init__(self, sub_operation: 'cirq.Operation', *tags: Hashable):
         self._sub_operation = sub_operation
         self._tags = tuple(tags)
+        if any(isinstance(tag, type) for tag in tags):
+            raise ValueError('Tags cannot be types.  Did you forget to instantiate the tag type?')
 
     @property
     def sub_operation(self) -> 'cirq.Operation':
@@ -836,6 +842,9 @@ class TaggedOperation(Operation):
         Overloads Operation.with_tags to create a new TaggedOperation
         that has the tags of this operation combined with the new_tags
         specified as the parameter.
+
+        Please note that tags should be instantiated if classes are
+        used.  Raw types are not allowed.
         """
         if not new_tags:
             return self
