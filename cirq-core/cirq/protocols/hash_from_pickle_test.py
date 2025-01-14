@@ -43,6 +43,12 @@ _EXCLUDE_JSON_FILES = (
     "cirq/protocols/json_test_data/sympy.StrictLessThan.json",
     "cirq/protocols/json_test_data/sympy.Symbol.json",
     "cirq/protocols/json_test_data/sympy.Unequality.json",
+    "cirq/protocols/json_test_data/sympy.And.json",
+    "cirq/protocols/json_test_data/sympy.Not.json",
+    "cirq/protocols/json_test_data/sympy.Or.json",
+    "cirq/protocols/json_test_data/sympy.Xor.json",
+    "cirq/protocols/json_test_data/sympy.Indexed.json",
+    "cirq/protocols/json_test_data/sympy.IndexedBase.json",
     "cirq/protocols/json_test_data/sympy.pi.json",
     # RigettiQCSAspenDevice does not pickle
     "cirq_rigetti/json_test_data/RigettiQCSAspenDevice.json",
