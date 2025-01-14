@@ -10,12 +10,12 @@
 # https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md.)
 
 # Make exception to the line-length limit of 80 chars in code blocks & tables.
-line-length:
-  code_blocks: false
-  tables: false
+[line-length]
+code_blocks = false
+tables = false
 
 # Raw HTML is allowed in Markdown, and supported by GitHub.
-no-inline-html: false
+no-inline-html = false
 
 # Bare URLs are allowed in GitHub-flavored Markdown.
-no-bare-urls: false
+no-bare-urls = false
