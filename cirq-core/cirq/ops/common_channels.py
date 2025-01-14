@@ -333,7 +333,7 @@ class DepolarizingChannel(raw_types.Gate):
         """The probability that one of the Pauli gates is applied.
 
         Each of the Pauli gates is applied independently with probability
-        $p / (4^n_qubits - 1)$.
+        $p / (4^n - 1)$, where $n$ is `n_qubits`.
         """
         return self._p
 
@@ -372,7 +372,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     Args:
         p: The probability that one of the Pauli gates is applied. Each of
             the Pauli gates is applied independently with probability
-            $p / (4^n - 1)$.
+            $p / (4^n - 1)$, where $n$ is n_qubits.
         n_qubits: The number of qubits.
 
     Raises:
