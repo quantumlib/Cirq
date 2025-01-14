@@ -80,7 +80,7 @@ class PhasedXZGate(raw_types.Gate):
     def from_zyz_exponents(cls, z0: float, y: float, z1: float) -> 'cirq.PhasedXZGate':
         """Create a PhasedXZGate from ZYZ exponents.
 
-        The returned gate is equivalent to $Z^z0 Y^y Z^z1$ (in time order).
+        The returned gate is equivalent to $Z^{z0} Y^y Z^{z1}$ (in time order).
         """
         return PhasedXZGate(axis_phase_exponent=-z0 + 0.5, x_exponent=y, z_exponent=z0 + z1)
 
