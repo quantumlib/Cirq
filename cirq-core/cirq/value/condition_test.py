@@ -71,6 +71,35 @@ def test_key_condition_qasm():
         _ = cirq.KeyCondition(cirq.MeasurementKey('a')).qasm
 
 
+def test_key_condition_qasm_protocol():
+    cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
+    args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'}, meas_key_bitcount={'m_a': 1})
+    qasm = cirq.qasm(cond, args=args)
+    assert qasm == 'm_a==1'
+
+
+def test_key_condition_qasm_protocol_v3():
+    cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
+    args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'}, version='3.0')
+    qasm = cirq.qasm(cond, args=args)
+    assert qasm == 'm_a!=0'
+
+
+def test_key_condition_qasm_protocol_invalid_args():
+    cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
+    args = cirq.QasmArgs()
+    with pytest.raises(ValueError, match='Key "a" not in QasmArgs.meas_key_id_map.'):
+        _ = cirq.qasm(cond, args=args)
+    args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'})
+    with pytest.raises(ValueError, match='Key "m_a" not in QasmArgs.meas_key_bitcount.'):
+        _ = cirq.qasm(cond, args=args)
+    args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'}, meas_key_bitcount={'m_a': 2})
+    with pytest.raises(
+        ValueError, match='QASM is defined only for single-bit classical conditions.'
+    ):
+        _ = cirq.qasm(cond, args=args)
+
+
 def test_sympy_condition_with_keys():
     c = init_sympy_condition.replace_key(key_a, key_b)
     assert c.keys == (key_b,)
@@ -109,6 +138,52 @@ def test_sympy_condition_resolve():
         match=re.escape("Measurement keys ['0:a'] missing when testing classical control"),
     ):
         _ = resolve({'0:b': [[1]]})
+
+
+def test_sympy_indexed_condition():
+    a = sympy.IndexedBase('a')
+    cond = cirq.SympyCondition(sympy.Xor(a[0], a[1]))
+    assert cond.keys == (cirq.MeasurementKey('a'),)
+    assert str(cond) == 'a[0] ^ a[1]'
+
+    def resolve(records):
+        classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
+        return cond.resolve(classical_data)
+
+    assert not resolve({'a': [(0, 0)]})
+    assert resolve({'a': [(1, 0)]})
+    assert resolve({'a': [(0, 1)]})
+    assert not resolve({'a': [(1, 1)]})
+    assert resolve({'a': [(0, 1, 0)]})
+    assert resolve({'a': [(0, 1, 1)]})
+    assert not resolve({'a': [(1, 1, 0)]})
+    assert not resolve({'a': [(1, 1, 1)]})
+    with pytest.raises(IndexError):
+        assert resolve({'a': [()]})
+    with pytest.raises(IndexError):
+        assert resolve({'a': [(0,)]})
+    with pytest.raises(IndexError):
+        assert resolve({'a': [(1,)]})
+
+
+def test_sympy_indexed_condition_qudits():
+    a = sympy.IndexedBase('a')
+    cond = cirq.SympyCondition(sympy.And(a[1] >= 2, a[2] <= 3))
+    assert cond.keys == (cirq.MeasurementKey('a'),)
+    assert str(cond) == '(a[1] >= 2) & (a[2] <= 3)'
+
+    def resolve(records):
+        classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
+        return cond.resolve(classical_data)
+
+    assert not resolve({'a': [(0, 0, 0)]})
+    assert not resolve({'a': [(0, 1, 0)]})
+    assert resolve({'a': [(0, 2, 0)]})
+    assert resolve({'a': [(0, 3, 0)]})
+    assert not resolve({'a': [(0, 0, 4)]})
+    assert not resolve({'a': [(0, 1, 4)]})
+    assert not resolve({'a': [(0, 2, 4)]})
+    assert not resolve({'a': [(0, 3, 4)]})
 
 
 def test_sympy_condition_qasm():
