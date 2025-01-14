@@ -49,6 +49,7 @@ updates:
     directory: "/cirq-web/cirq_ts/"
     schedule:
       interval: "weekly"
+    versioning-strategy: "widen"
     labels:
       - "area/dependencies"
       - "area/javascript"

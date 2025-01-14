@@ -130,7 +130,7 @@ class RandomizedBenchMarkResult:
 
         $$r_p = (1 - 1/d^2) * (1 - p),$$
 
-        where $d = 2^N_Q$ is the Hilbert space dimension and $N_Q$ is the number of qubits.
+        where $d = 2^{N_Q}$ is the Hilbert space dimension and $N_Q$ is the number of qubits.
         """
         opt_params, _ = self._fit_exponential()
         p = opt_params[2]
