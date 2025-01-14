@@ -458,6 +458,12 @@ def test_tagged_operation():
     assert op.with_qubits(q2).qubits == (q2,)
     assert not cirq.is_measurement(op)
 
+    # Tags can't be types
+    # This is to prevent typos of cirq.X(q1).with_tags(TagType)
+    # when you meant cirq.X(q1).with_tags(TagType())
+    with pytest.raises(ValueError, match="cannot be types"):
+        _ = cirq.X(q1).with_tags(cirq.Circuit)
+
 
 def test_with_tags_returns_same_instance_if_possible():
     untagged = cirq.X(cirq.GridQubit(1, 1))
