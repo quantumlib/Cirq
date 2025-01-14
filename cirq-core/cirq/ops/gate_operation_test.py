@@ -506,7 +506,6 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.transformers.measurement_transformers._ConfusionChannel,
         cirq.transformers.measurement_transformers._ModAdd,
         cirq.transformers.routing.visualize_routed_circuit._SwapPrintGate,
-        cirq.ops.raw_types._InverseCompositeGate,
         cirq.circuits.qasm_output.QasmTwoQubitGate,
         cirq.ops.MSGate,
         # Interop gates
