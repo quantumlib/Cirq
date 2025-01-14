@@ -255,6 +255,12 @@ class CirqEncoder(json.JSONEncoder):
                 sympy.StrictLessThan,
                 sympy.Equality,
                 sympy.Unequality,
+                sympy.And,
+                sympy.Or,
+                sympy.Not,
+                sympy.Xor,
+                sympy.Indexed,
+                sympy.IndexedBase,
             ),
         ):
             return {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args}

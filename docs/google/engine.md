@@ -41,10 +41,6 @@ You can use this instance to run quantum circuits or sweeps (parameterized
 variants of a general circuit).
 
 <!---test_substitution
-# Add each circuit to the batch.*
-class MockEngine:\n  def run_batch(self, *args, **kwargs):\n    pass
---->
-<!---test_substitution
 results = job.results.*
 results = None
 --->
@@ -129,91 +125,14 @@ See the [Calibration Metrics](calibration.md) page for more information.
 
 ## Running circuits in batch
 
-Circuits can be batched together for improved performance.  The engine object
-has a method `run_batch()` that functions similar to `run()` but accepts a
-list of circuits and parameter sweeps.  Each circuit must have a corresponding
-parameter sweep.  If the circuit does not use a sweep, pass in `None`.
+Circuits can be batched together.  This may improve performance in certain
+instances (when circuits measure the same qubits and have the same number
+of repetitions).  However, performance is implementation dependant and may
+change as the underlying server infrastructure evolves.
 
-There are some restrictions on the circuits that can be batched together:
-
-*   **Same qubits**: All circuits in the same batch must measure the same
-set of qubits.
-*   **Same repetitions**: All circuits in the same batch must have the same
-number of repetitions.
-
-Batching circuits together that do not follow these restrictions may not
-cause an error, but your performance will not be significantly improved.
-
-Results can be retrieved in two different forms:
-
-*    `EngineJob.results()` will return a single `List` object,
-with all the sweeps of the first circuit in the batch
-followed by all the sweeps in the second circuit, and so on.
-*     EngineJob.batched_results()` will return a `List` of `List`s.
-The first index will refer to the circuit run, and the second index
-will refer to the sweep result in that circuit.
-
-If the circuits are not parameterized, there will only be one `Result`
-per circuit using either variant.
-
-The following code shows an example of batching together parameterized
-circuits, each of which is a sweep.
-
-```python
-import sympy
-import cirq
-
-q = cirq.GridQubit(5, 2)
-
-# Create a list of example circuits
-circuit_list = []
-param_list = []
-
-# Create a list of 5 circuits with 10 sweeps each
-num_circuits_in_batch = 5
-num_sweeps_in_circuit = 10
-
-# Add each circuit to the batch
-for circuit_num in range(num_circuits_in_batch):
-  # Example circuit
-  circuit = cirq.Circuit(
-      cirq.YPowGate(exponent=circuit_num / 10.0)(q),
-      cirq.XPowGate(exponent=sympy.Symbol('t'))(q),
-      cirq.measure(q, key='m', invert_mask=(True,)))
-  # add a sweep for each circuit
-  param_sweep = cirq.Linspace('t', start=0, stop=1, length=num_sweeps_in_circuit)
-  # Add the circuit/sweep pair to the list
-  circuit_list.append(circuit)
-  param_list.append(param_sweep)
-
-# Create an Engine object.
-# Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
-
-# Create a sampler from the engine
-job = engine.run_batch(circuit_list,
-                       processor_id='PROCESSOR_ID',
-                       repetitions=1000,
-                       params_list=param_list)
-results = job.results()
-
-# The results will be flattened into one list
-# You will need to iterate through each circuit and each sweep value
-idx = 0
-for b in range(num_circuits_in_batch):
-  for s in range(num_sweeps_in_circuit):
-     print(f'Batch #{b}, Sweep #{s}')
-     print(results[idx].histogram(key='m'))
-     idx+=1
-
-# Alternative way of getting results.
-# Results will be nested in Lists
-batch_results = job.batched_results()
-for batch_idx, batch in enumerate(batch_results):
-  for sweep_idx, result in enumerate(batch):
-     print(f'Batch #{batch_idx}, Sweep #{sweep_idx}')
-     print(result.histogram(key='m'))
-```
+To use this functionality, use the `run_batch()` method of the sampler
+associated with the processor.  This will return a Sequence of Sequences
+of `cirq.Result` objects.
 
 ## Downloading historical results
 
