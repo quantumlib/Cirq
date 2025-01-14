@@ -1,0 +1,11 @@
+# Summary: configuration for codecov/codecov-action used in ci.yml.
+# See https://github.com/codecov/codecov-action for info about the GitHub Action.
+
+coverage:
+  status:
+    project:
+      default:
+        threshold: 0.1%
+
+ignore:
+  - "**/*_pb2.py"
