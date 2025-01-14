@@ -464,6 +464,14 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         raise NotImplementedError
 
+    def _equal_up_to_global_phase_(
+        self, other: Any, atol: Union[int, float] = 1e-8
+    ) -> Union[NotImplementedType, bool]:
+        """Default fallback for gates that do not implement this protocol."""
+        return protocols.equal_up_to_global_phase(
+            protocols.unitary(self), protocols.unitary(other), atol=atol
+        )
+
     def _commutes_on_qids_(
         self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
