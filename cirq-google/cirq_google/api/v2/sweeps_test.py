@@ -330,7 +330,6 @@ def test_sweep_from_proto_with_func_on_resursive_sweep_succeeds(expected_sweep):
 
     msg = v2.sweep_to_proto(expected_sweep, sweep_transformer=add_tunit_func)
     round_trip_sweep = v2.sweep_from_proto(msg, strip_tunit_func)
-    print(round_trip_sweep)
 
     assert round_trip_sweep == expected_sweep
 
