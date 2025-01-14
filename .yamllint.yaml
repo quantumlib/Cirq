@@ -4,7 +4,7 @@
 rules:
   line-length:
     # YAML files (especially GitHub Actions workflows) tend to end up with
-    # long lines. The deafult of 80 is pretty limiting, and besides, in Python
+    # long lines. The default of 80 is pretty limiting, and besides, in Python
     # code linting, we set line lengths to 100. May as well follow suit here.
     max: 100
     # Another common occurrence in YAML files is long URLs. The next two
