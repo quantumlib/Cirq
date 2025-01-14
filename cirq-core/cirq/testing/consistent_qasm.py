@@ -126,13 +126,13 @@ def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):  # pragma:
     if qiskit_version.startswith('1.'):
         qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
         qc.remove_final_measurements()  # no measurements allowed
-        result = qiskit.quantum_info.Operator(qc).data
+        qiskit_unitary = qiskit.quantum_info.Operator(qc).data
     else:
         result = qiskit.execute(
             qiskit.QuantumCircuit.from_qasm_str(qasm),
             backend=qiskit.Aer.get_backend('unitary_simulator'),
         )
-    qiskit_unitary = result.result().get_unitary()
+        qiskit_unitary = result.result().get_unitary()
     qiskit_unitary = _reorder_indices_of_matrix(qiskit_unitary, list(reversed(range(num_qubits))))
 
     lin_alg_utils.assert_allclose_up_to_global_phase(unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
