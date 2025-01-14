@@ -25,11 +25,18 @@
 
 |cirqlogo|                  |qailogo|
 
-This Python module is |cirq-google|, which provides everything you'll need to
-run |cirq|_ quantum algorithms on the Google `Quantum Computing Service
-<https://quantumai.google/cirq/google/concepts>`__. It also contains
-additional tools for calibration and characterization of Google's quantum
-devices.
+This Python module is |cirq-google|. It provides an interface to Google's
+`Quantum Computing Service <https://quantumai.google/cirq/google/concepts>`__,
+and also contains additional tools for calibration and characterization of
+Google's quantum hardware devices.
+
++----------------------------------------------------------------------+
+| Please note                                                          |
++======================================================================+
+|*Access to Google quantum hardware is currently restricted to         |
+|authorized partners only. In order to use the devices, you will need  |
+|to apply for access, typically in partnership with a Google sponsor.* |
++----------------------------------------------------------------------+
 
 |cirq|_ is a Python package for writing, manipulating, and running `quantum
 circuits <https://en.wikipedia.org/wiki/Quantum_circuit>`__ on quantum
@@ -39,15 +46,6 @@ today’s `noisy intermediate-scale quantum <https://arxiv.org/abs/1801.00862>`_
 state-of-the-art results. For more information about Cirq, please visit the
 |cirq-docs|_.
 
-
-+----------------------------------------------------------------------+
-| Note                                                                 |
-+======================================================================+
-|*Access to Google quantum hardware is currently restricted to those in|
-|an approved group. In order to use the devices, you will need to apply|
-|for access, typically in partnership with a Google sponsor.*          |
-|                                                                      |
-+----------------------------------------------------------------------+
 
 
 Installation
