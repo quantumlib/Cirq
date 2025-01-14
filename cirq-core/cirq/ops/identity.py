@@ -135,6 +135,8 @@ class IdentityGate(raw_types.Gate):
     _rmul_with_qubits = _mul_with_qubits
 
     def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
+        if self.num_qubits() <= 0:
+            return NotImplemented
         return ('I',) * self.num_qubits()
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
