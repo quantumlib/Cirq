@@ -73,7 +73,9 @@ def align_right(
     """
     if context is not None and context.deep is True:
         context = dataclasses.replace(context, deep=False)
-    # Reverse the circuit, align left, and reverse again.
+    # Reverse the circuit, align left, and reverse again. Note each moment also has to have its ops
+    # reversed internally, to avoid edge conditions where non-commuting but can-be-in-same-moment
+    # ops (measurements and classical controls, particularly) could end up getting swapped.
     backwards = []
     for moment in circuit[::-1]:
         backwards.append(circuits.Moment(reversed(moment.operations)))
