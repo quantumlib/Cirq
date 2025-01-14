@@ -12,23 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from astroid import nodes
+from pylint.checkers import BaseRawFileChecker
 
-from pylint.checkers import BaseChecker
-from pylint.interfaces import IRawChecker
+if TYPE_CHECKING:
+    from pylint.lint import PyLinter
 
 
-class CopyrightChecker(BaseChecker):
-    r"""Check for the copyright notices at the beginning of a Python source file.
+class CopyrightChecker(BaseRawFileChecker):
+    """Check for the copyright notices at the beginning of a Python source file.
 
     This checker can be disabled by putting `# pylint: disable=wrong-or-nonexistent-copyright-notice`
     at the beginning of a file.
     """
-
-    __implements__ = IRawChecker
-
-    # The priority must be negtive. Pylint runs plugins with smaller priorities first.
-    priority = -1
 
     name = "copyright-notice"
     msgs = {
@@ -41,7 +41,7 @@ class CopyrightChecker(BaseChecker):
     options = ()
 
     def process_module(self, node: nodes.Module) -> None:
-        r"""Check whether the copyright notice is correctly placed in the source file of a module.
+        """Check whether the copyright notice is correctly placed in the source file of a module.
 
         Compare the first lines of a source file against the standard copyright notice (i.e., the
         `golden` variable below). Suffix whitespace (including newline symbols) is not considered
@@ -109,8 +109,8 @@ class CopyrightChecker(BaseChecker):
                     return
 
 
-def register(linter):
-    r"""Register this checker to pylint.
+def register(linter: PyLinter):
+    """Register this checker to pylint.
 
     The registration is done automatically if this file is in $PYTHONPATH.
     """

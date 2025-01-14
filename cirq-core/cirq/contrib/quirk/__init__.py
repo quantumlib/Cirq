@@ -14,4 +14,4 @@
 
 """Converts cirq circuits into quirk circuits."""
 
-from cirq.contrib.quirk.export_to_quirk import circuit_to_quirk_url
+from cirq.contrib.quirk.export_to_quirk import circuit_to_quirk_url as circuit_to_quirk_url

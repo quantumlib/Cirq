@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import inspect
+from typing import Dict
+
+import tunits.units
+
 import numpy as np
 import pytest
 import sympy
-
 from google.protobuf import json_format
 
 import cirq_google
@@ -33,6 +37,19 @@ from cirq_google.serialization.arg_func_langs import (
 )
 from cirq_google.api import v2
 from cirq.qis import CliffordTableau
+
+
+def _json_format_kwargs() -> Dict[str, bool]:
+    """Determine kwargs to pass to json_format.MessageToDict.
+
+    Protobuf v5 has a different signature for MessageToDict. If we ever move to requiring
+    protobuf >= 5 this can be removed.
+    """
+    sig = inspect.signature(json_format.MessageToDict)
+    new_arg = "always_print_fields_with_no_presence"
+    old_arg = "including_default_value_fields"
+    arg = new_arg if new_arg in sig.parameters else old_arg
+    return {arg: True}
 
 
 @pytest.mark.parametrize(
@@ -85,7 +102,7 @@ def test_correspondence(min_lang: str, value: ARG_LIKE, proto: v2.program_pb2.Ar
             parsed = arg_from_proto(msg, arg_function_language=lang)
             packed = json_format.MessageToDict(
                 arg_to_proto(value, arg_function_language=lang),
-                including_default_value_fields=True,
+                **_json_format_kwargs(),
                 preserving_proto_field_name=True,
                 use_integers_for_enums=True,
             )
@@ -109,7 +126,7 @@ def test_serialize_sympy_constants():
     proto = arg_to_proto(sympy.pi, arg_function_language='')
     packed = json_format.MessageToDict(
         proto,
-        including_default_value_fields=True,
+        **_json_format_kwargs(),
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
@@ -153,7 +170,7 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     json_format.ParseDict(proto, msg)
     packed = json_format.MessageToDict(
         arg_to_proto(value, arg_function_language=''),
-        including_default_value_fields=True,
+        **_json_format_kwargs(),
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
@@ -276,3 +293,13 @@ def test_clifford_tableau(lang):
         proto = clifford_tableau_arg_to_proto(ct)
         tableau = clifford_tableau_from_proto(proto, lang)
         assert tableau == ct
+
+
+@pytest.mark.parametrize('lang', LANGUAGE_ORDER)
+def test_serialize_with_units(lang):
+    g = cirq_google.InternalGate(
+        gate_name='test', gate_module='test', parameter_with_unit=3.14 * tunits.units.ns
+    )
+    msg = internal_gate_arg_to_proto(g)
+    v = internal_gate_from_proto(msg, lang)
+    assert g == v

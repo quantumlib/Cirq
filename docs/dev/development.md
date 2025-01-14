@@ -71,7 +71,7 @@ This remote can be used to merge changes from Cirq's main repository into your l
     ```
    
     You can check the branches that are on the ```upstream``` remote by
-    running ```git remote -va``` or ```git branch -r```.
+    running `git ls-remote --heads upstream` or `git branch -r`.
 Most importantly you should see ```upstream/main``` listed.
 1. Merge the upstream main into your local main so that it is up to date.
     
@@ -121,6 +121,9 @@ See the previous section for instructions.
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
+
+    **Note:** Some highly managed or customized devices have configurations that interfere with `virtualenv`.
+    In that case, [anaconda](https://www.anaconda.com/) environments may be a better choice.
 
 3. Check that the tests pass.
 

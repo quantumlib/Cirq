@@ -170,8 +170,15 @@ def tensor_expectation_value(
         )
     else:
         tn.rank_simplify(inplace=True)
-    path_info = tn.contract(get='path-info')
-    ram_gb = path_info.largest_intermediate * 128 / 8 / 1024 / 1024 / 1024
+    # TODO(#6586): revert when our minimum quimb version has bugfix for quimb#231
+    # Skip path-info evaluation when TensorNetwork consists of scalar Tensors.
+    # Avoid bug in quimb-1.8.0.
+    # Ref: https://github.com/jcmgray/quimb/issues/231
+    if tn.ind_map:
+        path_info = tn.contract(get='path-info')
+        ram_gb = path_info.largest_intermediate * 128 / 8 / 1024 / 1024 / 1024
+    else:
+        ram_gb = 0
     if ram_gb > max_ram_gb:
         raise MemoryError(f"We estimate that this contraction will take too much RAM! {ram_gb} GB")
     e_val = tn.contract(inplace=True)

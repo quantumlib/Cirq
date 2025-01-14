@@ -15,15 +15,18 @@
 
 from cirq_google.api.v1 import operations_pb2, params_pb2, program_pb2
 
-from cirq_google.api.v1.params import sweep_from_proto, sweep_to_proto
+from cirq_google.api.v1.params import (
+    sweep_from_proto as sweep_from_proto,
+    sweep_to_proto as sweep_to_proto,
+)
 
 from cirq_google.api.v1.programs import (
-    gate_to_proto,
-    is_native_xmon_gate,
-    is_native_xmon_op,
-    pack_results,
-    circuit_as_schedule_to_protos,
-    circuit_from_schedule_from_protos,
-    unpack_results,
-    xmon_op_from_proto,
+    gate_to_proto as gate_to_proto,
+    is_native_xmon_gate as is_native_xmon_gate,
+    is_native_xmon_op as is_native_xmon_op,
+    pack_results as pack_results,
+    circuit_as_schedule_to_protos as circuit_as_schedule_to_protos,
+    circuit_from_schedule_from_protos as circuit_from_schedule_from_protos,
+    unpack_results as unpack_results,
+    xmon_op_from_proto as xmon_op_from_proto,
 )

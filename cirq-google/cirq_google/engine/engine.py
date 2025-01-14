@@ -34,7 +34,6 @@ import google.auth
 from google.protobuf import any_pb2
 
 import cirq
-from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.engine import (
     abstract_engine,
@@ -224,6 +223,7 @@ class Engine(abstract_engine.AbstractEngine):
         job_labels: Optional[Dict[str, str]] = None,
         *,
         run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
@@ -251,6 +251,9 @@ class Engine(abstract_engine.AbstractEngine):
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
                 is required to be set.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -278,6 +281,7 @@ class Engine(abstract_engine.AbstractEngine):
                 job_description=job_description,
                 job_labels=job_labels,
                 run_name=run_name,
+                snapshot_id=snapshot_id,
                 device_config_name=device_config_name,
             )
         )[0]
@@ -296,6 +300,7 @@ class Engine(abstract_engine.AbstractEngine):
         job_labels: Optional[Dict[str, str]] = None,
         *,
         run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuit via Quantum Engine.
@@ -326,6 +331,9 @@ class Engine(abstract_engine.AbstractEngine):
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
                 is required to be set.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -361,6 +369,7 @@ class Engine(abstract_engine.AbstractEngine):
                 job_labels=job_labels,
                 processor_id=processor_id,
                 run_name=run_name,
+                snapshot_id=snapshot_id,
                 device_config_name=device_config_name,
             )
             return engine_job.EngineJob(
@@ -382,6 +391,7 @@ class Engine(abstract_engine.AbstractEngine):
             description=job_description,
             labels=job_labels,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
 
@@ -563,21 +573,6 @@ class Engine(abstract_engine.AbstractEngine):
             A EngineProcessor for the processor.
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
-
-    @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
-    def sampler(self, processor_id: Union[str, List[str]]) -> 'cirq_google.ProcessorSampler':
-        """Returns a sampler backed by the engine.
-
-        Args:
-            processor_id: String identifier, or list of string identifiers,
-                determining which processors may be used when sampling.
-
-        Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
-            that will send circuits to the Quantum Computing Service
-            when sampled.
-        """
-        return self.get_sampler(processor_id)
 
     def get_sampler(
         self, processor_id: Union[str, List[str]], run_name: str = "", device_config_name: str = ""

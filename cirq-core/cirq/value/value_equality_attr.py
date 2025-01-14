@@ -13,7 +13,7 @@
 # limitations under the License.
 """Defines `@cirq.value_equality`, for easy __eq__/__hash__ methods."""
 
-from typing import Any, Callable, Optional, overload, Union
+from typing import Any, Callable, Dict, Optional, overload, Union
 
 from typing_extensions import Protocol
 
@@ -108,6 +108,16 @@ def _value_equality_approx_eq(
         other._value_equality_approximate_values_(),
         atol=atol,
     )
+
+
+def _value_equality_getstate(self: _SupportsValueEquality) -> Dict[str, Any]:
+    # clear cached hash value when pickling, see #6674
+    state = self.__dict__
+    hash_attr = _compat._method_cache_name(self.__hash__)
+    if hash_attr in state:
+        state = state.copy()
+        del state[hash_attr]
+    return state
 
 
 # pylint: disable=function-redefined
@@ -228,6 +238,8 @@ def value_equality(
     cached_values_getter = values_getter if unhashable else _compat.cached_method(values_getter)
     setattr(cls, '_value_equality_values_', cached_values_getter)
     setattr(cls, '__hash__', None if unhashable else _compat.cached_method(_value_equality_hash))
+    if not unhashable:
+        setattr(cls, '__getstate__', _value_equality_getstate)
     setattr(cls, '__eq__', _value_equality_eq)
     setattr(cls, '__ne__', _value_equality_ne)
 

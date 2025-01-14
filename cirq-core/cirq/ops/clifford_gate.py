@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
-
 import functools
 from dataclasses import dataclass
+from types import NotImplementedType
+from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
 import numpy as np
 
 from cirq import protocols, value, linalg, qis
@@ -23,7 +24,6 @@ from cirq._import import LazyLoader
 from cirq._compat import cached_method
 from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -400,7 +400,11 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # By definition, Clifford Gate should always return True.
         return True
 
-    def __pow__(self, exponent) -> 'CliffordGate':
+    def __pow__(self, exponent: float) -> 'CliffordGate':
+        if exponent != int(exponent):
+            return NotImplemented
+        exponent = int(exponent)
+
         if exponent == -1:
             return CliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
         if exponent == 0:
@@ -409,18 +413,24 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             )
         if exponent == 1:
             return self
-        if exponent > 0 and int(exponent) == exponent:
-            base_tableau = self.clifford_tableau.copy()
-            for _ in range(int(exponent) - 1):
-                base_tableau = base_tableau.then(self.clifford_tableau)
-            return CliffordGate.from_clifford_tableau(base_tableau)
-        if exponent < 0 and int(exponent) == exponent:
-            base_tableau = self.clifford_tableau.copy()
-            for _ in range(int(-exponent) - 1):
-                base_tableau = base_tableau.then(self.clifford_tableau)
-            return CliffordGate.from_clifford_tableau(base_tableau.inverse())
 
-        return NotImplemented
+        base_tableau = self.clifford_tableau.copy()
+        if exponent < 0:
+            base_tableau = base_tableau.inverse()
+            exponent = abs(exponent)
+
+        # https://cp-algorithms.com/algebra/binary-exp.html
+        aux = qis.CliffordTableau(
+            num_qubits=self.clifford_tableau.n
+        )  # this tableau collects the odd terms
+        while exponent > 1:
+            if exponent & 1:
+                aux = aux.then(base_tableau)
+            base_tableau = base_tableau.then(base_tableau)
+            exponent >>= 1
+
+        base_tableau = base_tableau.then(aux)
+        return CliffordGate.from_clifford_tableau(base_tableau)
 
     def __repr__(self) -> str:
         return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"

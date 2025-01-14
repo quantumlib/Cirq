@@ -188,7 +188,7 @@ class CliffordSimulatorStepResult(
         return self._clifford_state
 
 
-@value.value_equality
+@value.value_equality(unhashable=True)
 class CliffordState:
     """A state of the Clifford simulation.
 

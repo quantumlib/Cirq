@@ -15,6 +15,7 @@ import abc
 import fractions
 import math
 import numbers
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -35,7 +36,6 @@ import sympy
 from cirq import value, protocols
 from cirq.linalg import tolerance
 from cirq.ops import raw_types
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -309,8 +309,12 @@ class EigenGate(raw_types.Gate):
     def _canonical_exponent(self):
         if self._canonical_exponent_cached is None:
             period = self._period()
-            if not period or protocols.is_parameterized(self._exponent):
+            if not period:
                 self._canonical_exponent_cached = self._exponent
+            elif protocols.is_parameterized(self._exponent):
+                self._canonical_exponent_cached = self._exponent
+                if isinstance(self._exponent, sympy.Number):
+                    self._canonical_exponent_cached = float(self._exponent)
             else:
                 self._canonical_exponent_cached = self._exponent % period
         return self._canonical_exponent_cached

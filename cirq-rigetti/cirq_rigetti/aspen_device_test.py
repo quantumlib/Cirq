@@ -3,7 +3,6 @@ import os
 from unittest.mock import patch, PropertyMock
 from math import sqrt
 import pathlib
-import json
 import pytest
 import cirq
 from cirq_rigetti import (
@@ -12,9 +11,8 @@ from cirq_rigetti import (
     RigettiQCSAspenDevice,
     UnsupportedQubit,
     UnsupportedRigettiQCSOperation,
-    UnsupportedRigettiQCSQuantumProcessor,
 )
-from qcs_api_client.models import InstructionSetArchitecture, Node
+from qcs_sdk.qpu.isa import InstructionSetArchitecture, Family
 import numpy as np
 
 dir_path = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
@@ -24,7 +22,7 @@ fixture_path = dir_path / '__fixtures__'
 @pytest.fixture
 def qcs_aspen8_isa() -> InstructionSetArchitecture:
     with open(fixture_path / 'QCS-Aspen-8-ISA.json', 'r') as f:
-        return InstructionSetArchitecture.from_dict(json.load(f))
+        return InstructionSetArchitecture.from_raw(f.read())
 
 
 def test_octagonal_qubit_index():
@@ -204,17 +202,6 @@ def test_rigetti_qcs_aspen_device_invalid_qubit(
         device.validate_operation(cirq.I(qubit))
 
 
-def test_rigetti_qcs_aspen_device_non_existent_qubit(qcs_aspen8_isa: InstructionSetArchitecture):
-    """test RigettiQCSAspenDevice throws error when qubit does not exist on device"""
-    # test device may only be initialized with Aspen ISA.
-    device_with_limited_nodes = RigettiQCSAspenDevice(
-        isa=InstructionSetArchitecture.from_dict(qcs_aspen8_isa.to_dict())
-    )
-    device_with_limited_nodes.isa.architecture.nodes = [Node(node_id=10)]
-    with pytest.raises(UnsupportedQubit):
-        device_with_limited_nodes.validate_qubit(cirq.GridQubit(0, 0))
-
-
 @pytest.mark.parametrize(
     'operation',
     [
@@ -265,7 +252,18 @@ def test_rigetti_qcs_aspen_device_repr(qcs_aspen8_isa: InstructionSetArchitectur
 
 def test_rigetti_qcs_aspen_device_family_validation(qcs_aspen8_isa: InstructionSetArchitecture):
     """test RigettiQCSAspenDevice validates architecture family on initialization"""
-    non_aspen_isa = InstructionSetArchitecture.from_dict(qcs_aspen8_isa.to_dict())
-    non_aspen_isa.architecture.family = "not-aspen"  # type: ignore
-    with pytest.raises(UnsupportedRigettiQCSQuantumProcessor):
-        RigettiQCSAspenDevice(isa=non_aspen_isa)
+    non_aspen_isa = InstructionSetArchitecture.from_raw(qcs_aspen8_isa.json())
+    non_aspen_isa.architecture.family = Family.new_none()
+
+    assert Family.is_aspen(
+        non_aspen_isa.architecture.family
+    ), 'ISA family is read-only and should still be Aspen'
+
+
+def test_get_rigetti_qcs_aspen_device(qcs_aspen8_isa: InstructionSetArchitecture):
+    with patch('cirq_rigetti.aspen_device.get_instruction_set_architecture') as mock:
+        mock.return_value = qcs_aspen8_isa
+
+        from cirq_rigetti.aspen_device import get_rigetti_qcs_aspen_device
+
+        assert get_rigetti_qcs_aspen_device('Aspen-8') == RigettiQCSAspenDevice(isa=qcs_aspen8_isa)

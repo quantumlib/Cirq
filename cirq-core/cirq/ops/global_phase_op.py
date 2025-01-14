@@ -13,6 +13,7 @@
 # limitations under the License.
 """A no-qubit global phase operation."""
 
+from types import NotImplementedType
 from typing import AbstractSet, Any, cast, Dict, Sequence, Tuple, Union, Optional, Collection
 
 import numpy as np
@@ -21,14 +22,13 @@ import sympy
 import cirq
 from cirq import value, protocols
 from cirq.ops import raw_types, controlled_gate, control_values as cv
-from cirq.type_workarounds import NotImplementedType
 
 
 @value.value_equality(approximate=True)
 class GlobalPhaseGate(raw_types.Gate):
     def __init__(self, coefficient: 'cirq.TParamValComplex', atol: float = 1e-8) -> None:
         if not isinstance(coefficient, sympy.Basic):
-            if abs(1 - abs(coefficient)) > atol:  # type: ignore[operator]
+            if abs(1 - abs(coefficient)) > atol:
                 raise ValueError(f'Coefficient is not unitary: {coefficient!r}')
         self._coefficient = coefficient
 

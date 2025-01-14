@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An `XPowGate` conjugated by `ZPowGate`s."""
+
+from types import NotImplementedType
 from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
 
 import math
 import numbers
+
 import numpy as np
 import sympy
 
@@ -23,12 +26,11 @@ import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.ops import common_gates, raw_types
-from cirq.type_workarounds import NotImplementedType
 
 
 @value.value_equality(manual_cls=True, approximate=True)
 class PhasedXPowGate(raw_types.Gate):
-    r"""A gate equivalent to $Z^{p} X^t Z^{-p}$.
+    r"""A gate equivalent to $Z^{-p} X^t Z^{p}$ (in time order).
 
     The unitary matrix of `cirq.PhasedXPowGate(exponent=t, phase_exponent=p)` is:
     $$
@@ -67,7 +69,7 @@ class PhasedXPowGate(raw_types.Gate):
         if cirq.is_parameterized(self):
             return None
 
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
 
         e = cast(float, value.canonicalize_half_turns(self._exponent))
         p = cast(float, self.phase_exponent)
@@ -130,7 +132,7 @@ class PhasedXPowGate(raw_types.Gate):
     def _has_unitary_(self):
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> Optional[Union[np.ndarray, NotImplementedType]]:
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None

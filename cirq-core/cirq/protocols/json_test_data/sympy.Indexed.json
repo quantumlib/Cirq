@@ -1,0 +1,18 @@
+{
+  "cirq_type": "sympy.Indexed",
+  "args": [
+    {
+      "cirq_type": "sympy.IndexedBase",
+      "args": [
+        {
+          "cirq_type": "sympy.Symbol",
+          "name": "s"
+        }
+      ]
+    },
+    {
+      "cirq_type": "sympy.Integer",
+      "i": 1
+    }
+  ]
+}

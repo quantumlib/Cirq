@@ -15,93 +15,93 @@
 """Classes for working with Google's Quantum Engine API."""
 
 import sys
-from cirq import _compat
 from cirq_google import api
 
-from cirq_google._version import __version__
+from cirq_google._version import __version__ as __version__
 
 from cirq_google.devices import (
-    GoogleNoiseProperties,
-    GridDevice,
-    NoiseModelFromGoogleNoiseProperties,
-    Sycamore,
-    Sycamore23,
+    GoogleNoiseProperties as GoogleNoiseProperties,
+    GridDevice as GridDevice,
+    NoiseModelFromGoogleNoiseProperties as NoiseModelFromGoogleNoiseProperties,
+    Sycamore as Sycamore,
+    Sycamore23 as Sycamore23,
 )
 
 from cirq_google.engine import (
-    Calibration,
-    CalibrationLayer,
-    CalibrationResult,
-    Engine,
-    EngineJob,
-    EngineProgram,
-    EngineProcessor,
-    EngineResult,
-    ProtoVersion,
-    ProcessorSampler,
-    ValidatingSampler,
-    get_engine,
-    get_engine_calibration,
-    get_engine_device,
-    get_engine_sampler,
-    noise_properties_from_calibration,
+    Calibration as Calibration,
+    CalibrationLayer as CalibrationLayer,
+    CalibrationResult as CalibrationResult,
+    Engine as Engine,
+    EngineJob as EngineJob,
+    EngineProgram as EngineProgram,
+    EngineProcessor as EngineProcessor,
+    EngineResult as EngineResult,
+    ProtoVersion as ProtoVersion,
+    ProcessorSampler as ProcessorSampler,
+    ValidatingSampler as ValidatingSampler,
+    get_engine as get_engine,
+    get_engine_calibration as get_engine_calibration,
+    get_engine_device as get_engine_device,
+    get_engine_sampler as get_engine_sampler,
+    noise_properties_from_calibration as noise_properties_from_calibration,
 )
 
 from cirq_google.line import (
-    AnnealSequenceSearchStrategy,
-    GreedySequenceSearchStrategy,
-    line_on_device,
-    LinePlacementStrategy,
+    AnnealSequenceSearchStrategy as AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy as GreedySequenceSearchStrategy,
+    line_on_device as line_on_device,
+    LinePlacementStrategy as LinePlacementStrategy,
 )
 
 from cirq_google.ops import (
-    CalibrationTag,
-    FSimGateFamily,
-    FSimViaModelTag,
-    InternalGate,
-    PhysicalZTag,
-    SYC,
-    SycamoreGate,
+    CalibrationTag as CalibrationTag,
+    Coupler as Coupler,
+    FSimGateFamily as FSimGateFamily,
+    FSimViaModelTag as FSimViaModelTag,
+    InternalGate as InternalGate,
+    PhysicalZTag as PhysicalZTag,
+    SYC as SYC,
+    SycamoreGate as SycamoreGate,
 )
 
 from cirq_google.transformers import (
-    known_2q_op_to_sycamore_operations,
-    two_qubit_matrix_to_sycamore_operations,
-    GoogleCZTargetGateset,
-    SycamoreTargetGateset,
+    known_2q_op_to_sycamore_operations as known_2q_op_to_sycamore_operations,
+    two_qubit_matrix_to_sycamore_operations as two_qubit_matrix_to_sycamore_operations,
+    GoogleCZTargetGateset as GoogleCZTargetGateset,
+    SycamoreTargetGateset as SycamoreTargetGateset,
 )
 
 from cirq_google.serialization import (
-    arg_from_proto,
-    CIRCUIT_SERIALIZER,
-    CircuitSerializer,
-    CircuitOpDeserializer,
-    CircuitOpSerializer,
-    Serializer,
+    arg_from_proto as arg_from_proto,
+    CIRCUIT_SERIALIZER as CIRCUIT_SERIALIZER,
+    CircuitSerializer as CircuitSerializer,
+    CircuitOpDeserializer as CircuitOpDeserializer,
+    CircuitOpSerializer as CircuitOpSerializer,
+    Serializer as Serializer,
 )
 
 from cirq_google.workflow import (
-    ExecutableSpec,
-    KeyValueExecutableSpec,
-    QuantumExecutable,
-    QuantumExecutableGroup,
-    BitstringsMeasurement,
-    SharedRuntimeInfo,
-    RuntimeInfo,
-    ExecutableResult,
-    ExecutableGroupResult,
-    ExecutableGroupResultFilesystemRecord,
-    QuantumRuntimeConfiguration,
-    execute,
-    QubitPlacer,
-    CouldNotPlaceError,
-    NaiveQubitPlacer,
-    RandomDevicePlacer,
-    HardcodedQubitPlacer,
-    ProcessorRecord,
-    EngineProcessorRecord,
-    SimulatedProcessorRecord,
-    SimulatedProcessorWithLocalDeviceRecord,
+    ExecutableSpec as ExecutableSpec,
+    KeyValueExecutableSpec as KeyValueExecutableSpec,
+    QuantumExecutable as QuantumExecutable,
+    QuantumExecutableGroup as QuantumExecutableGroup,
+    BitstringsMeasurement as BitstringsMeasurement,
+    SharedRuntimeInfo as SharedRuntimeInfo,
+    RuntimeInfo as RuntimeInfo,
+    ExecutableResult as ExecutableResult,
+    ExecutableGroupResult as ExecutableGroupResult,
+    ExecutableGroupResultFilesystemRecord as ExecutableGroupResultFilesystemRecord,
+    QuantumRuntimeConfiguration as QuantumRuntimeConfiguration,
+    execute as execute,
+    QubitPlacer as QubitPlacer,
+    CouldNotPlaceError as CouldNotPlaceError,
+    NaiveQubitPlacer as NaiveQubitPlacer,
+    RandomDevicePlacer as RandomDevicePlacer,
+    HardcodedQubitPlacer as HardcodedQubitPlacer,
+    ProcessorRecord as ProcessorRecord,
+    EngineProcessorRecord as EngineProcessorRecord,
+    SimulatedProcessorRecord as SimulatedProcessorRecord,
+    SimulatedProcessorWithLocalDeviceRecord as SimulatedProcessorWithLocalDeviceRecord,
 )
 
 from cirq_google import study
@@ -114,26 +114,3 @@ from cirq.protocols.json_serialization import _register_resolver
 from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
-
-
-_SERIALIZABLE_GATESET_DEPRECATION_MESSAGE = (
-    'SerializableGateSet and associated classes (GateOpSerializer, GateOpDeserializer,'
-    ' SerializingArgs, DeserializingArgs) will no longer be supported.'
-    ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of a device'
-    ' is represented as a cirq.Gateset and is available as'
-    ' GridDevice.metadata.gateset.'
-    ' Engine methods no longer require gate sets to be passed in.'
-    ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.'
-)
-
-
-_compat.deprecate_attributes(
-    __name__,
-    {
-        'XMON': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-        'FSIM_GATESET': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-        'SQRT_ISWAP_GATESET': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-        'SYC_GATESET': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-        'NAMED_GATESETS': ('v0.16', _SERIALIZABLE_GATESET_DEPRECATION_MESSAGE),
-    },
-)

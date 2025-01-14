@@ -131,7 +131,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         return True
 
     def _value_equality_values_(self):
-        return self._num_qubits, hash(tuple(sorted(self._error_probabilities.items())))
+        return self._num_qubits, tuple(sorted(self._error_probabilities.items()))
 
     def __repr__(self) -> str:
         return 'cirq.asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"
@@ -333,7 +333,7 @@ class DepolarizingChannel(raw_types.Gate):
         """The probability that one of the Pauli gates is applied.
 
         Each of the Pauli gates is applied independently with probability
-        $p / (4^n_qubits - 1)$.
+        $p / (4^n - 1)$, where $n$ is `n_qubits`.
         """
         return self._p
 
@@ -372,7 +372,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     Args:
         p: The probability that one of the Pauli gates is applied. Each of
             the Pauli gates is applied independently with probability
-            $p / (4^n - 1)$.
+            $p / (4^n - 1)$, where $n$ is n_qubits.
         n_qubits: The number of qubits.
 
     Raises:
@@ -702,7 +702,7 @@ class ResetChannel(raw_types.Gate):
         return True
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('reset {0};\n', qubits[0])
 
     def _qid_shape_(self):

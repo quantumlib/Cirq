@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import proper_repr, cached_method
+from cirq._compat import proper_repr, _method_cache_name, cached_method
 from cirq.qis import quantum_state_representation
 from cirq.value import big_endian_int_to_digits, linear_dict, random_state
 
@@ -129,7 +129,9 @@ class StabilizerState(
 
 class CliffordTableau(StabilizerState):
     """Tableau representation of a stabilizer state
-    (based on Aaronson and Gottesman 2006).
+
+    References:
+        - [Aaronson and Gottesman](https://arxiv.org/abs/quant-ph/0406196)
 
     The tableau stores the stabilizer generators of
     the state using three binary arrays: xs, zs, and rs.
@@ -656,3 +658,12 @@ class CliffordTableau(StabilizerState):
     @cached_method
     def __hash__(self) -> int:
         return hash(self.matrix().tobytes() + self.rs.tobytes())
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        hash_attr = _method_cache_name(self.__hash__)
+        if hash_attr in state:
+            state = state.copy()
+            del state[hash_attr]
+        return state

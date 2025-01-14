@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
+from types import NotImplementedType
 from typing import Any, cast, Tuple, TYPE_CHECKING, Union, Dict
 
 from cirq._doc import document
 from cirq._import import LazyLoader
 from cirq.ops import common_gates, raw_types, identity
-from cirq.type_workarounds import NotImplementedType
 
 
 if TYPE_CHECKING:

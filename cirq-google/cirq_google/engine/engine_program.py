@@ -63,14 +63,15 @@ class EngineProgram(abstract_program.AbstractProgram):
     async def run_sweep_async(
         self,
         processor_id: str,
+        *,
+        device_config_name: str,
+        run_name: str = "",
+        snapshot_id: str = "",
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
-        *,
-        run_name: str = "",
-        device_config_name: str = "",
     ) -> engine_job.EngineJob:
         """Runs the program on the QuantumEngine.
 
@@ -78,6 +79,16 @@ class EngineProgram(abstract_program.AbstractProgram):
         does not block until a result is returned.
 
         Args:
+            processor_id: Processor id for running the program.
+            run_name: A unique identifier representing an automation run for the
+                specified processor. An Automation Run contains a collection of
+                device configurations for a processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
             job_id: Optional job id to use. If this is not provided, a random id
                 of the format 'job-################YYMMDD' will be generated,
                 where # is alphanumeric and YYMMDD is the current year, month,
@@ -86,15 +97,6 @@ class EngineProgram(abstract_program.AbstractProgram):
             repetitions: The number of circuit repetitions to run.
             description: An optional description to set on the job.
             labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program.
-            run_name: A unique identifier representing an automation run for the
-                specified processor. An Automation Run contains a collection of
-                device configurations for a processor. If specified, `processor_id`
-                is required to be set.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-                If specified, `processor_id` is required to be set.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -121,6 +123,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             description=description,
             labels=labels,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
         return engine_job.EngineJob(
@@ -131,19 +134,30 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     async def run_async(
         self,
+        *,
         processor_id: str,
+        run_name: str = "",
+        snapshot_id: str = "",
+        device_config_name: str,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
-        *,
-        run_name: str = "",
-        device_config_name: str = "",
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
+            processor_id: Processor id for running the program.
+            run_name: A unique identifier representing an automation run for the
+                specified processor. An Automation Run contains a collection of
+                device configurations for a processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
+            device_config_name: An identifier used to select the processor configuration
+                utilized to run the job. A configuration identifies the set of
+                available qubits, couplers, and supported gates in the processor.
             job_id: Optional job id to use. If this is not provided, a random id
                 of the format 'job-################YYMMDD' will be generated,
                 where # is alphanumeric and YYMMDD is the current year, month,
@@ -152,15 +166,6 @@ class EngineProgram(abstract_program.AbstractProgram):
             repetitions: The number of repetitions to simulate.
             description: An optional description to set on the job.
             labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program.
-            run_name: A unique identifier representing an automation run for the
-                specified processor. An Automation Run contains a collection of
-                device configurations for a processor. If specified, `processor_id`
-                is required to be set.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-                If specified, `processor_id` is required to be set.
 
         Returns:
             A single Result for this run.
@@ -179,6 +184,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             description=description,
             labels=labels,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
         results = await job.results_async()

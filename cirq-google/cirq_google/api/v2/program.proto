@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "tunits/proto/tunits.proto";
+
 package cirq.google.api.v2;
 
 option java_package = "com.google.cirq.google.api.v2";
@@ -241,6 +243,18 @@ message Operation {
     string token_value = 4;
     int32 token_constant_index = 5;
   }
+
+  repeated Tag tags = 22;
+}
+
+message DynamicalDecouplingTag {
+  optional string protocol = 1;
+}
+
+message Tag {
+  oneof tag {
+    DynamicalDecouplingTag dynamical_decoupling = 1;
+  }
 }
 
 // The instruction identifying the action taken on the quantum computer.
@@ -296,6 +310,7 @@ message ArgValue {
     RepeatedInt64 int64_values = 5;
     RepeatedDouble double_values = 6;
     RepeatedString string_values = 7;
+    tunits.Value value_with_unit = 8;
   }
 }
 
@@ -428,11 +443,32 @@ message ArgMapping {
   repeated ArgEntry entries = 1;
 }
 
+message FunctionInterpolation {
+  // The x_values must be sorted in ascending order.
+  // The x_values and y_values must be of the same length.
+  repeated float x_values = 1 [packed = true];  // The independent variable.
+  repeated float y_values = 2 [packed = true];  // The dependent variable.
+
+  // Currently only piecewise linear interpolation (i.e. np.interp) is supported.
+  // That's we connect (x[i], y[i]) to (x[i+1], y[i+1]))
+}
+
+message CustomArg {
+  oneof custom_arg {
+    FunctionInterpolation function_interpolation_data = 1;
+  }
+}
+
 message InternalGate{
   string name = 1;  // Gate name.
   string module = 2;  // Gate module. 
   int32 num_qubits = 3;  // Number of qubits. Required during deserialization.
   map<string, Arg> gate_args = 4;  // Gate args.
+
+  // Custom args are arguments that require special processing during deserialization.
+  // The `key` is the argument in the internal class's constructor, the `value`
+  // is a representation from which an internal object can be constructed.
+  map<string, CustomArg> custom_args = 5;
 }
 
 message CouplerPulseGate{

@@ -14,6 +14,7 @@
 import cmath
 import math
 import numbers
+from types import NotImplementedType
 from typing import (
     Any,
     cast,
@@ -56,7 +57,6 @@ from cirq.ops import (
     pauli_interaction_gate,
     raw_types,
 )
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -1120,6 +1120,23 @@ def _validate_qubit_mapping(
         )
 
 
+def _try_interpret_as_pauli_string(op: Any):
+    """Return a reprepresentation of an operation as a pauli string, if it is possible."""
+    if isinstance(op, gate_operation.GateOperation):
+        gates = {
+            common_gates.XPowGate: pauli_gates.X,
+            common_gates.YPowGate: pauli_gates.Y,
+            common_gates.ZPowGate: pauli_gates.Z,
+        }
+        if (pauli := gates.get(type(op.gate), None)) is not None:
+            exponent = op.gate.exponent  # type: ignore
+            if exponent % 2 == 0:
+                return cirq.PauliString()
+            if exponent % 2 == 1:
+                return pauli.on(op.qubits[0])
+    return None
+
+
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
 class SingleQubitPauliStringGateOperation(  # type: ignore
     gate_operation.GateOperation, PauliString
@@ -1159,11 +1176,15 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
             return self._as_pauli_string() * other._as_pauli_string()
         if isinstance(other, (PauliString, complex, float, int)):
             return self._as_pauli_string() * other
+        if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
+            return self * as_pauli_string
         return NotImplemented
 
     def __rmul__(self, other):
         if isinstance(other, (PauliString, complex, float, int)):
             return other * self._as_pauli_string()
+        if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
+            return as_pauli_string * self
         return NotImplemented
 
     def __neg__(self):

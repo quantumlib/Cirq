@@ -319,3 +319,22 @@ def test_unsupported_gate():
 )
 def test_repr(gateset):
     cirq.testing.assert_equivalent_repr(gateset)
+
+
+def test_with_commutation():
+    c = cirq.Circuit(
+        cirq.CZ(cirq.q(0), cirq.q(1)), cirq.CZ(cirq.q(1), cirq.q(2)), cirq.CZ(cirq.q(0), cirq.q(1))
+    )
+    got = cirq.optimize_for_target_gateset(
+        c,
+        gateset=cirq.CZTargetGateset(preserve_moment_structure=False, reorder_operations=True),
+        max_num_passes=1,
+    )
+    assert got == cirq.Circuit(cirq.CZ(cirq.q(1), cirq.q(2)))
+
+
+def test_reorder_operations_and_preserve_moment_structure_raises():
+    with pytest.raises(
+        ValueError, match='reorder_operations and preserve_moment_structure can not both be True'
+    ):
+        _ = cirq.CZTargetGateset(preserve_moment_structure=True, reorder_operations=True)

@@ -343,8 +343,22 @@ def test_get_sampler_uses_custom_default_device_configuration_key() -> None:
     assert sampler.device_config_name == "config_alias1"
 
 
-@pytest.mark.parametrize('run, config_alias', [('run', ''), ('', 'config')])
-def test_get_sampler_with_incomplete_device_configuration_uses_defaults(run, config_alias) -> None:
+@pytest.mark.parametrize(
+    'run, snapshot_id, config_alias, error_message',
+    [
+        ('run', '', '', 'Cannot specify only one of top level identifier and `device_config_name`'),
+        (
+            '',
+            '',
+            'config',
+            'Cannot specify only one of top level identifier and `device_config_name`',
+        ),
+        ('run', 'snapshot_id', 'config', 'Cannot specify both `run_name` and `snapshot_id`'),
+    ],
+)
+def test_get_sampler_with_incomplete_device_configuration_errors(
+    run, snapshot_id, config_alias, error_message
+) -> None:
     processor = cg.EngineProcessor(
         'a',
         'p',
@@ -356,10 +370,10 @@ def test_get_sampler_with_incomplete_device_configuration_uses_defaults(run, con
         ),
     )
 
-    with pytest.raises(
-        ValueError, match='Cannot specify only one of `run_name` and `device_config_name`'
-    ):
-        processor.get_sampler(run_name=run, device_config_name=config_alias)
+    with pytest.raises(ValueError, match=error_message):
+        processor.get_sampler(
+            run_name=run, device_config_name=config_alias, snapshot_id=snapshot_id
+        )
 
 
 def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
@@ -412,24 +426,6 @@ def test_list_calibrations(list_calibrations):
         1562544000021
     ]
     list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
-def test_list_calibrations_old_params(list_calibrations):
-    # Disable pylint warnings for use of deprecated parameters
-    # pylint: disable=unexpected-keyword-arg
-    list_calibrations.return_value = [_CALIBRATION]
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    with cirq.testing.assert_deprecated('Change earliest_timestamp_seconds', deadline='v1.0'):
-        assert [
-            c.timestamp for c in processor.list_calibrations(earliest_timestamp_seconds=1562500000)
-        ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-    with cirq.testing.assert_deprecated('Change latest_timestamp_seconds', deadline='v1.0'):
-        assert [
-            c.timestamp for c in processor.list_calibrations(latest_timestamp_seconds=1562600000)
-        ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
@@ -866,7 +862,10 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=False))
     job = processor.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        run_name="run",
+        device_config_name="config_alias",
     )
     results = job.results()
     assert len(results) == 2
@@ -886,9 +885,9 @@ def test_run_sweep_params_with_unary_rpcs(client):
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps = run_context.parameter_sweeps
     assert len(sweeps) == 2
-    for i, v in enumerate([1.0, 2.0]):
+    for i, v in enumerate([1, 2]):
         assert sweeps[i].repetitions == 1
-        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == v
     client().get_job_async.assert_called_once()
     client().get_job_results_async.assert_called_once()
 
@@ -905,7 +904,10 @@ def test_run_sweep_params_with_stream_rpcs(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=True))
     job = processor.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        run_name="run",
+        device_config_name="config_alias",
     )
     results = job.results()
     assert len(results) == 2
@@ -924,9 +926,9 @@ def test_run_sweep_params_with_stream_rpcs(client):
     client().run_job_over_stream.call_args[1]['run_context'].Unpack(run_context)
     sweeps = run_context.parameter_sweeps
     assert len(sweeps) == 2
-    for i, v in enumerate([1.0, 2.0]):
+    for i, v in enumerate([1, 2]):
         assert sweeps[i].repetitions == 1
-        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == v
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)

@@ -169,15 +169,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 + ', '.join(str(c) for c in self._conditions)
                 + '])',
             ) + wire_symbols[1:]
-        exponent_qubit_index = None
-        if sub_info.exponent_qubit_index is not None:
-            exponent_qubit_index = sub_info.exponent_qubit_index + control_label_count
-        elif sub_info.exponent is not None:
-            exponent_qubit_index = control_label_count
+        exp_index = sub_info.exponent_qubit_index
+        if exp_index is None:
+            # None means at bottom, which means the last of the original wire symbols
+            exp_index = len(sub_info.wire_symbols) - 1
         return protocols.CircuitDiagramInfo(
-            wire_symbols=wire_symbols,
-            exponent=sub_info.exponent,
-            exponent_qubit_index=exponent_qubit_index,
+            wire_symbols=wire_symbols, exponent=sub_info.exponent, exponent_qubit_index=exp_index
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -216,10 +213,10 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return local_keys.union(protocols.control_keys(self._sub_operation))
 
     def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         if len(self._conditions) > 1:
             raise ValueError('QASM does not support multiple conditions.')
         subop_qasm = protocols.qasm(self._sub_operation, args=args)
         if not self._conditions:
             return subop_qasm
-        return f'if ({self._conditions[0].qasm}) {subop_qasm}'
+        return f'if ({protocols.qasm(self._conditions[0], args=args)}) {subop_qasm}'

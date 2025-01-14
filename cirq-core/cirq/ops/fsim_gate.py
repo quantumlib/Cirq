@@ -23,7 +23,7 @@ applies more generally to fermions, thus the name of the gate.
 
 import cmath
 import math
-from typing import AbstractSet, Any, Dict, Optional, Tuple
+from typing import AbstractSet, Any, Dict, Iterator, Optional, Tuple
 
 import numpy as np
 import sympy
@@ -187,7 +187,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             out[ii] *= cmath.exp(-1j * self.phi)
         return out
 
-    def _decompose_(self, qubits) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits) -> Iterator['cirq.OP_TREE']:
         a, b = qubits
         xx = cirq.XXPowGate(exponent=self.theta / np.pi, global_shift=-0.5)
         yy = cirq.YYPowGate(exponent=self.theta / np.pi, global_shift=-0.5)
@@ -347,6 +347,45 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         chi = (b0 - b1 - a0 + a1) / 2.0
         return PhasedFSimGate(theta, zeta, chi, gamma, phi)
 
+    @staticmethod
+    def from_matrix(u: np.ndarray) -> Optional['PhasedFSimGate']:
+        """Contruct a PhasedFSimGate from unitary.
+
+        Args:
+            u: A unitary matrix representing a PhasedFSimGate.
+
+        Returns:
+            - Either PhasedFSimGate with the given unitary or None if
+                the matrix is not unitary or if doesn't represent a PhasedFSimGate.
+        """
+
+        gamma = np.angle(u[1, 1] * u[2, 2] - u[1, 2] * u[2, 1]) / -2
+        phi = -np.angle(u[3, 3]) - 2 * gamma
+        phased_cos_theta_2 = u[1, 1] * u[2, 2]
+        if phased_cos_theta_2 == 0:
+            # The zeta phase is multiplied with cos(theta),
+            # so if cos(theta) is zero then any value is possible.
+            zeta = 0
+        else:
+            zeta = np.angle(u[2, 2] / u[1, 1]) / 2
+
+        phased_sin_theta_2 = u[1, 2] * u[2, 1]
+        if phased_sin_theta_2 == 0:
+            # The chi phase is multiplied with sin(theta),
+            # so if sin(theta) is zero then any value is possible.
+            chi = 0
+        else:
+            chi = np.angle(u[1, 2] / u[2, 1]) / 2
+
+        theta = np.angle(
+            np.exp(1j * (gamma + zeta)) * u[1, 1] - np.exp(1j * (gamma - chi)) * u[1, 2]
+        )
+
+        gate = PhasedFSimGate(theta=theta, phi=phi, chi=chi, zeta=zeta, gamma=gamma)
+        if np.allclose(u, protocols.unitary(gate)):
+            return gate
+        return None
+
     @property
     def rz_angles_before(self) -> Tuple['cirq.TParamVal', 'cirq.TParamVal']:
         """Returns 2-tuple of phase angles applied to qubits before FSimGate."""
@@ -452,7 +491,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             out[ii] *= f * f
         return out
 
-    def _decompose_(self, qubits) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits) -> Iterator['cirq.OP_TREE']:
         """Decomposes self into Z rotations and FSimGate.
 
         Note that Z rotations returned by this method have unusual global phase

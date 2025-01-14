@@ -164,6 +164,9 @@ _GATES: List[_GateRepresentations] = [
         gate_spec_name='fsim_via_model',
         supported_gates=[cirq.GateFamily(cirq.FSimGate, tags_to_accept=[ops.FSimViaModelTag()])],
     ),
+    _GateRepresentations(
+        gate_spec_name='internal_gate', supported_gates=[cirq.GateFamily(ops.InternalGate)]
+    ),
 ]
 
 
@@ -427,7 +430,7 @@ class GridDevice(cirq.Device):
 
     For Google devices, the
     [DeviceSpecification proto](
-        https://github.com/quantumlib/Cirq/blob/master/cirq-google/cirq_google/api/v2/device.proto
+        https://github.com/quantumlib/Cirq/blob/main/cirq-google/cirq_google/api/v2/device.proto
     )
     is the main specification for device information surfaced by the Quantum Computing Service.
     Thus, this class should typically be instantiated using a `DeviceSpecification` proto via the
@@ -619,7 +622,12 @@ class GridDevice(cirq.Device):
             raise ValueError(f'Operation {operation} contains a gate which is not supported.')
 
         for q in operation.qubits:
-            if q not in self._metadata.qubit_set:
+            if isinstance(q, ops.Coupler):
+                if any(qc not in self._metadata.qubit_set for qc in q.qubits):
+                    raise ValueError(f'Qubits on coupler not on device: {q.qubits}.')
+                if frozenset(q.qubits) not in self._metadata.qubit_pairs:
+                    raise ValueError(f'Coupler pair is not valid on device: {q.qubits}.')
+            elif q not in self._metadata.qubit_set:
                 raise ValueError(f'Qubit not on device: {q!r}.')
 
         if (

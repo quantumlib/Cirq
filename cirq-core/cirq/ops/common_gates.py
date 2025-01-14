@@ -25,6 +25,7 @@ Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
 
+from types import NotImplementedType
 from typing import (
     Any,
     cast,
@@ -46,9 +47,6 @@ from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import controlled_gate, eigen_gate, gate_features, raw_types, control_values as cv
-
-from cirq.type_workarounds import NotImplementedType
-
 from cirq.ops.swap_gates import ISWAP, SWAP, ISwapPowGate, SwapPowGate
 from cirq.ops.measurement_gate import MeasurementGate
 
@@ -274,7 +272,7 @@ class XPowGate(eigen_gate.EigenGate):
         )
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         if self._global_shift == 0:
             if self._exponent == 1:
                 return args.format('x {0};\n', qubits[0])
@@ -376,7 +374,7 @@ class Rx(XPowGate):
         return f'cirq.Rx(rads={proper_repr(self._rads)})'
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -480,7 +478,7 @@ class YPowGate(eigen_gate.EigenGate):
         )
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         if self._exponent == 1 and self.global_shift != -0.5:
             return args.format('y {0};\n', qubits[0])
 
@@ -562,7 +560,7 @@ class Ry(YPowGate):
         return f'cirq.Ry(rads={proper_repr(self._rads)})'
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('ry({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -793,7 +791,7 @@ class ZPowGate(eigen_gate.EigenGate):
         return protocols.CircuitDiagramInfo(wire_symbols=('Z',), exponent=e)
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
 
         if self.global_shift == 0:
             if self._exponent == 1:
@@ -912,7 +910,7 @@ class Rz(ZPowGate):
         return f'cirq.Rz(rads={proper_repr(self._rads)})'
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('rz({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -1018,7 +1016,7 @@ class HPowGate(eigen_gate.EigenGate):
         )
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         if self._exponent == 0:
             return args.format('id {0};\n', qubits[0])
         elif self._exponent == 1 and self._global_shift == 0:
@@ -1206,7 +1204,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
@@ -1407,7 +1405,7 @@ class CXPowGate(eigen_gate.EigenGate):
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:

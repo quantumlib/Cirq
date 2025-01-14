@@ -458,6 +458,12 @@ def test_tagged_operation():
     assert op.with_qubits(q2).qubits == (q2,)
     assert not cirq.is_measurement(op)
 
+    # Tags can't be types
+    # This is to prevent typos of cirq.X(q1).with_tags(TagType)
+    # when you meant cirq.X(q1).with_tags(TagType())
+    with pytest.raises(ValueError, match="cannot be types"):
+        _ = cirq.X(q1).with_tags(cirq.Circuit)
+
 
 def test_with_tags_returns_same_instance_if_possible():
     untagged = cirq.X(cirq.GridQubit(1, 1))
@@ -662,6 +668,8 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.commutes(tagged_x, clifford_x)
     assert cirq.commutes(clifford_x, tagged_x)
     assert cirq.commutes(tagged_x, tagged_x)
+    assert cirq.phase_by(clifford_x, 0.125, 0, default=None) is None
+    assert cirq.phase_by(tagged_x, 0.125, 0, default=None) is None
 
     assert cirq.trace_distance_bound(y**0.001) == cirq.trace_distance_bound(
         (y**0.001).with_tags(tag)
@@ -759,6 +767,7 @@ def test_inverse_composite_standards():
     assert cirq.parameter_names(g) == {'a'}
     assert cirq.resolve_parameters(g, {a: 0}) == Gate(0) ** -1
     cirq.testing.assert_implements_consistent_protocols(g, global_vals={'C': Gate, 'a': a})
+    assert str(g) == 'C(a)†'
 
 
 def test_tagged_act_on():

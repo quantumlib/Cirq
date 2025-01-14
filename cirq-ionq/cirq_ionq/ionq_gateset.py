@@ -13,10 +13,8 @@
 # limitations under the License.
 
 """Target gateset used for compiling circuits to IonQ device."""
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Tuple
+
+from typing import Any, Dict, Iterator, List, Tuple
 
 import cirq
 
@@ -57,7 +55,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         )
         self.atol = atol
 
-    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> Iterator[cirq.OP_TREE]:
         qubit = op.qubits[0]
         mat = cirq.unitary(op)
         for gate in cirq.single_qubit_matrix_to_gates(mat, self.atol):

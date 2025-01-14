@@ -15,6 +15,7 @@
 """A protocol for implementing high performance unitary left-multiplies."""
 
 import warnings
+from types import NotImplementedType
 from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
@@ -24,7 +25,6 @@ from cirq import linalg, qis
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -390,7 +390,7 @@ def apply_unitary(
     # Try each strategy, stopping if one works.
     # Also catch downcasting warnings and throw an error: #2041
     with warnings.catch_warnings():
-        warnings.filterwarnings(action="error", category=np.ComplexWarning)
+        warnings.filterwarnings(action="error", category=np.exceptions.ComplexWarning)
         for strat in strats:
             result = strat(unitary_value, args)
             if result is None:

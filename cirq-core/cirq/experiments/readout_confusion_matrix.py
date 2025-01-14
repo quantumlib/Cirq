@@ -31,7 +31,7 @@ class TensoredConfusionMatrices:
 
     The confusion matrix (CM) for one qubit is:
 
-        [ Pr(0|0) Pr(1|0) ]
+        [ Pr(0|0) Pr(0|1) ]
         [ Pr(1|0) Pr(1|1) ]
 
     where Pr(i | j) = Probability of observing state "i" given state "j" was prepared.
@@ -71,7 +71,7 @@ class TensoredConfusionMatrices:
             confusion_matrices: Sequence of confusion matrices, computed for qubit patterns present
                                 in `measure_qubits`. A single confusion matrix is also accepted.
             measure_qubits: Sequence of smaller qubit patterns, for which the confusion matrices
-                            were computed. A single qubit pattern is also accepted. Note that the
+                            were computed. A single qubit pattern is also accepted. Note that
                             each qubit pattern is a sequence of qubits used to label the axes of
                             the corresponding confusion matrix.
             repetitions:    The number of repetitions that were used to estimate the confusion
@@ -297,6 +297,70 @@ class TensoredConfusionMatrices:
                 f"did not converge. Result:\n{res}"  # pragma: no cover
             )  # pragma: no cover
         return res.x
+
+    def readout_mitigation_pauli_uncorrelated(
+        self, qubits: Sequence['cirq.Qid'], measured_bitstrings: np.ndarray
+    ) -> tuple[float, float]:
+        r"""Uncorrelated readout error mitigation for a multi-qubit Pauli operator.
+
+        This function scalably performs readout error mitigation on an arbitrary-length Pauli
+        operator. It is a reimplementation of https://github.com/eliottrosenberg/correlated_SPAM
+        but specialized to the case in which readout is uncorrelated. We require that the confusion
+        matrix is a tensor product of single-qubit confusion matrices. We then invert the confusion
+        matrix by inverting each of the $C^{(q)}$ Then, in a bit-by-bit fashion, we apply the
+        inverses of the single-site confusion matrices to the bits of the measured bitstring,
+        contract them with the single-site Pauli operator, and take the product over all of the
+        bits. This could be generalized to tensor product spaces that are larger than single qubits,
+        but the essential simplification is that each tensor product space is small, so that none of
+        the response matrices is exponentially large.
+
+        This can result in mitigated Pauli operators that are not in the range [-1, 1], but if
+        the readout error is indeed uncorrelated and well-characterized, then it should converge
+        to being within this range. Results are improved both by a more precise characterization
+        of the response matrices (whose statistical uncertainty is not accounted for in the error
+        propagation here) and by increasing the number of measured bitstrings.
+
+        Args:
+            qubits: The qubits on which the Pauli operator acts.
+            measured_bitstrings: The experimentally measured bitstrings in the eigenbasis of the
+                Pauli operator. measured_bitstrings[i,j] is the ith bitstring, qubit j.
+
+        Returns:
+            The error-mitigated expectation value of the Pauli operator and its statistical
+            uncertainty (not including the uncertainty in the confusion matrices for now).
+
+        Raises:
+            NotImplementedError: If the confusion matrix is not a tensor product of single-qubit
+                                 confusion matrices for all of `qubits`.
+        """
+
+        # in case given as an array of bools, convert to an array of ints:
+        measured_bitstrings = measured_bitstrings.astype(int)
+
+        # get all of the confusion matrices
+        cm_all = []
+        for qubit in qubits:
+            try:
+                idx = self.measure_qubits.index((qubit,))
+            except:  # pragma: no cover
+                raise NotImplementedError(  # pragma: no cover
+                    "The response matrix must be a tensor product of single-qu"  # pragma: no cover
+                    + f"bit response matrices, including that of qubit {qubit}."  # pragma: no cover
+                )  # pragma: no cover
+            cm_all.append(self.confusion_matrices[idx])
+
+        # get the correction matrices, assuming uncorrelated readout:
+        cminv_all = [np.linalg.inv(cm) for cm in cm_all]
+
+        # next, contract them with the single-qubit Pauli operators:
+        z = np.array([1, -1])
+        z_cminv_all = np.array([z @ cminv for cminv in cminv_all])
+
+        # finally, mitigate each bitstring:
+        z_mit_all_shots = np.prod(np.einsum("iji->ij", z_cminv_all[:, measured_bitstrings]), axis=0)
+
+        # return mean and statistical uncertainty:
+        return np.mean(z_mit_all_shots), np.std(z_mit_all_shots) / np.sqrt(len(measured_bitstrings))
 
     def __repr__(self) -> str:
         return (

@@ -222,8 +222,9 @@ def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[complex, np.ndarray, np
             f2[(a & 1) ^ i, (b & 1) ^ j] = matrix[a ^ i, b ^ j]
 
     # Rescale factors to have unit determinants.
-    f1 /= np.sqrt(np.linalg.det(f1)) or 1
-    f2 /= np.sqrt(np.linalg.det(f2)) or 1
+    with np.errstate(divide="ignore", invalid="ignore"):
+        f1 /= np.sqrt(np.linalg.det(f1)) or 1
+        f2 /= np.sqrt(np.linalg.det(f2)) or 1
 
     # Determine global phase.
     g = matrix[a, b] / (f1[a >> 1, b >> 1] * f2[a & 1, b & 1])
@@ -628,7 +629,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         >>> plt.show()
     """
     show_plot = not ax
-    if not ax:
+    if ax is None:
         fig = plt.figure()
         ax = cast(mplot3d.axes3d.Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
@@ -965,7 +966,8 @@ def kak_vector(
     # The algorithm in the appendix mentioned above is slightly incorrect in
     # that it only works for elements of SU(4). A phase correction must be
     # added to deal with U(4).
-    phases = np.log(-1j * np.linalg.det(unitary)).imag + np.pi / 2
+    with np.errstate(divide="ignore", invalid="ignore"):
+        phases = np.log(-1j * np.linalg.det(unitary)).imag + np.pi / 2
     evals *= np.exp(-1j * phases / 2)[..., np.newaxis]
 
     # The following steps follow the appendix exactly.

@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.qasm_import.exception import QasmException
-from cirq.contrib.qasm_import.qasm import circuit_from_qasm
+from cirq.contrib.qasm_import.exception import QasmException as QasmException
+from cirq.contrib.qasm_import.qasm import circuit_from_qasm as circuit_from_qasm

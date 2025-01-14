@@ -25,6 +25,7 @@ import html
 import itertools
 import math
 from collections import defaultdict
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -62,7 +63,6 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.protocols import circuit_diagram_info_protocol
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -145,29 +145,31 @@ class AbstractCircuit(abc.ABC):
     """
 
     @classmethod
-    def from_moments(cls: Type[CIRCUIT_TYPE], *moments: 'cirq.OP_TREE') -> CIRCUIT_TYPE:
+    def from_moments(cls: Type[CIRCUIT_TYPE], *moments: Optional['cirq.OP_TREE']) -> CIRCUIT_TYPE:
         """Create a circuit from moment op trees.
 
         Args:
-            *moments: Op tree for each moment. If an op tree is a moment, it
-                will be included directly in the new circuit. If an op tree is
-                a circuit, it will be frozen, wrapped in a CircuitOperation, and
-                included in its own moment in the new circuit. Otherwise, the
-                op tree will be passed to `cirq.Moment` to create a new moment
-                which is then included in the new circuit. Note that in the
-                latter case we have the normal restriction that operations in a
-                moment must be applied to disjoint sets of qubits.
+            *moments: Op trees for each moment, which can be one of the following:
+                - Moment: will be included directly in the new circuit.
+                - AbstractCircuit: will be frozen, wrapped in a CircuitOperation,
+                    and included in its own moment in the new circuit.
+                - None: will be skipped and omitted from the circuit. This can be
+                    used to include or skip a moment based on a conditional, for example.
+                - Other OP_TREE: will be passed to `cirq.Moment` to create a new moment
+                    which is then included in the new circuit. Note that in this
+                    case we have the normal restriction that operations in a
+                    moment must be applied to disjoint sets of qubits.
         """
         return cls._from_moments(cls._make_moments(moments))
 
     @staticmethod
-    def _make_moments(moments: Iterable['cirq.OP_TREE']) -> Iterator['cirq.Moment']:
+    def _make_moments(moments: Iterable[Optional['cirq.OP_TREE']]) -> Iterator['cirq.Moment']:
         for m in moments:
             if isinstance(m, Moment):
                 yield m
             elif isinstance(m, AbstractCircuit):
                 yield Moment(m.freeze().to_op())
-            else:
+            elif m is not None:
                 yield Moment(m)
 
     @classmethod
@@ -1316,14 +1318,19 @@ class AbstractCircuit(abc.ABC):
             return self
         return self._from_moments(resolved_moments)
 
-    def _qasm_(self) -> str:
-        return self.to_qasm()
+    def _qasm_(self, args: Optional['cirq.QasmArgs'] = None) -> str:
+        if args is None:
+            output = self._to_qasm_output()
+        else:
+            output = self._to_qasm_output(precision=args.precision, version=args.version)
+        return str(output)
 
     def _to_qasm_output(
         self,
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        version: str = '2.0',
     ) -> 'cirq.QasmOutput':
         """Returns a QASM object equivalent to the circuit.
 
@@ -1333,6 +1340,8 @@ class AbstractCircuit(abc.ABC):
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
+            version:  Version of OpenQASM to render as output.  Defaults
+                to OpenQASM 2.0.  For OpenQASM 3.0, set this to '3.0'.
         """
         if header is None:
             header = f'Generated from Cirq v{cirq._version.__version__}'
@@ -1342,7 +1351,7 @@ class AbstractCircuit(abc.ABC):
             qubits=qubits,
             header=header,
             precision=precision,
-            version='2.0',
+            version=version,
         )
 
     def to_qasm(
@@ -1350,6 +1359,7 @@ class AbstractCircuit(abc.ABC):
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        version: str = '2.0',
     ) -> str:
         """Returns QASM equivalent to the circuit.
 
@@ -1359,9 +1369,11 @@ class AbstractCircuit(abc.ABC):
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
+            version: Version of OpenQASM to output.  Defaults to OpenQASM 2.0.
+                Specify '3.0' if OpenQASM 3.0 is desired.
         """
 
-        return str(self._to_qasm_output(header, precision, qubit_order))
+        return str(self._to_qasm_output(header, precision, qubit_order, version))
 
     def save_qasm(
         self,
@@ -1998,6 +2010,24 @@ class Circuit(AbstractCircuit):
     ) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
+        This function will return a new `Circuit` with the same gates but
+        with qubits mapped according to the argument.
+
+        For example, the following will translate LineQubits to GridQubits:
+
+        >>> grid_qubits = cirq.GridQubit.square(2)
+        >>> line_qubits = cirq.LineQubit.range(4)
+        >>> circuit = cirq.Circuit([cirq.H(q) for q in line_qubits])
+        >>> circuit.transform_qubits(lambda q : grid_qubits[q.x])
+        cirq.Circuit([
+            cirq.Moment(
+                cirq.H(cirq.GridQubit(0, 0)),
+                cirq.H(cirq.GridQubit(0, 1)),
+                cirq.H(cirq.GridQubit(1, 0)),
+                cirq.H(cirq.GridQubit(1, 1)),
+            ),
+        ])
+
         Args:
             qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
@@ -2012,7 +2042,7 @@ class Circuit(AbstractCircuit):
         if callable(qubit_map):
             transform = qubit_map
         elif isinstance(qubit_map, dict):
-            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+            transform = lambda q: qubit_map.get(q, q)
         else:
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
 

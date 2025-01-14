@@ -160,14 +160,22 @@ def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old: str, new: st
 
     for m in list_modules(search_dir=search_dir, include_parent=True):
         version_file = _find_version_file(search_dir / m.root)
-        content = version_file.read_text("UTF-8")
-        new_content = content.replace(old, new)
-        version_file.write_text(new_content)
+        _rewrite_version(version_file, old, new)
+        version_test = version_file.parent / "_version_test.py"
+        _rewrite_version(version_test, old, new)
 
 
 def _validate_version(new_version: str):
     if not re.match(r"\d+\.\d+\.\d+(\.dev)?", new_version):
         raise ValueError(f"{new_version} is not a valid version number.")
+
+
+def _rewrite_version(version_file: Path, old: str, new: str) -> None:
+    pattern = f"(^[^#]*__version__ ==? )(['\"])({re.escape(old)})(\\2)"
+    repl = f"\\1\\g<2>{new}\\4"
+    content = version_file.read_text("UTF-8")
+    new_content = re.sub(pattern, repl, content, flags=re.MULTILINE)
+    version_file.write_text(new_content)
 
 
 def _find_version_file(top: Path) -> Path:

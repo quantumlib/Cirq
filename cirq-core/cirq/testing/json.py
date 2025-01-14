@@ -11,18 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import dataclasses
 import inspect
 import io
 import pathlib
 from dataclasses import dataclass
+from types import ModuleType
 from typing import List, Type, Dict, Iterator, Tuple, Set
 
 import numpy as np
 import pandas as pd
 
 import cirq
-from cirq._import import ModuleType
 
 # This is the testing framework for json serialization
 # The actual tests live in cirq.protocols.json_serialization_test.py.
