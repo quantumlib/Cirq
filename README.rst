@@ -329,13 +329,14 @@ Questions and Discussions
 
 * Do you have questions about using Cirq? Post them to the `Quantum Computing
   Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ and tag them
-  with the |cirq|_ tag.
+  with the |cirq|_ tag. You can also search past questions using that tag –
+  it's a great way to learn!
 
-* Would you like to get more involved? *Cirq Cynq* is our biweekly virtual
-  meeting of contributors to discuss everything from issues to ongoing
-  efforts, as well as to ask questions. Join the `cirq-dev Google Group
+* Would you like to get more involved in Cirq development? *Cirq Cynq* is our
+  biweekly virtual meeting of contributors to discuss everything from issues to
+  ongoing efforts, as well as to ask questions. Become a member of `cirq-dev
   <https://groups.google.com/forum/#!forum/cirq-dev>`__ to get an automatic
-  meeting invitation.
+  meeting invitation!
 
 
 Issues and Pull Requests
