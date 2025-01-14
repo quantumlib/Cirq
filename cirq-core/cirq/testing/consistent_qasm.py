@@ -76,18 +76,9 @@ qreg q[{num_qubits}];
 
     qasm_unitary = None
     try:
-        qiskit_version = qiskit.version.get_version_info()
-        if qiskit_version.startswith('1.'):
-            # CI is not testing with qiskit 1.0 yet
-            qc = qiskit.QuantumCircuit.from_qasm_str(qasm)  # pragma: no cover
-            qc.remove_final_measurements()  # pragma: no cover
-            qasm_unitary = qiskit.quantum_info.Operator(qc).data  # pragma: no cover
-        else:
-            result = qiskit.execute(
-                qiskit.QuantumCircuit.from_qasm_str(qasm),
-                backend=qiskit.Aer.get_backend('unitary_simulator'),
-            )
-            qasm_unitary = result.result().get_unitary()
+        qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
+        qc.remove_final_measurements()
+        qasm_unitary = qiskit.quantum_info.Operator(qc).data
         qasm_unitary = _reorder_indices_of_matrix(qasm_unitary, list(reversed(range(num_qubits))))
 
         lin_alg_utils.assert_allclose_up_to_global_phase(
@@ -122,17 +113,9 @@ def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):  # pragma:
         return
 
     num_qubits = int(np.log2(len(unitary)))
-    qiskit_version = qiskit.version.get_version_info()
-    if qiskit_version.startswith('1.'):
-        qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
-        qc.remove_final_measurements()  # no measurements allowed
-        qiskit_unitary = qiskit.quantum_info.Operator(qc).data
-    else:
-        result = qiskit.execute(
-            qiskit.QuantumCircuit.from_qasm_str(qasm),
-            backend=qiskit.Aer.get_backend('unitary_simulator'),
-        )
-        qiskit_unitary = result.result().get_unitary()
+    qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
+    qc.remove_final_measurements()  # no measurements allowed
+    qiskit_unitary = qiskit.quantum_info.Operator(qc).data
     qiskit_unitary = _reorder_indices_of_matrix(qiskit_unitary, list(reversed(range(num_qubits))))
 
     lin_alg_utils.assert_allclose_up_to_global_phase(unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
