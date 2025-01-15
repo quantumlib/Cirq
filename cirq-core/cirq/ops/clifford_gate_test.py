@@ -919,3 +919,37 @@ def test_all_single_qubit_clifford_unitaries():
     assert cirq.equal_up_to_global_phase(cs[21], (i - 1j * (-x + y - z)) / 2)
     assert cirq.equal_up_to_global_phase(cs[22], (i - 1j * (-x - y + z)) / 2)
     assert cirq.equal_up_to_global_phase(cs[23], (i - 1j * (-x - y - z)) / 2)
+
+
+def test_single_qubit_clifford_gate_repr():
+    assert repr(cirq.ops.SingleQubitCliffordGate.X) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+    assert repr(cirq.ops.SingleQubitCliffordGate.Y) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([True, True]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+    assert repr(cirq.ops.SingleQubitCliffordGate.Z) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([True, False]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+    assert repr(cirq.ops.SingleQubitCliffordGate.I) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, False]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+    assert repr(cirq.ops.SingleQubitCliffordGate.X_sqrt) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, True]), xs=np.array([[True], [True]]), '
+        'zs=np.array([[False], [True]])))'
+    )
+
+    assert str(cirq.ops.SingleQubitCliffordGate.X) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[False], [True]])))'
+    )
