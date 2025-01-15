@@ -445,13 +445,16 @@ class CircuitSerializer(serializer.Serializer):
         moments = []
         constant_moments: dict[int, cirq.Moment] = {}
         for moment_proto in circuit_proto.moments:
-            if constant_index := moment_proto.moment_constant_index:
+            if moment_proto.HasField('moment_constant_index'):
+                constant_index = moment_proto.moment_constant_index
                 if moment := constant_moments.get(constant_index, None):
                     # This moment is in the constants table and has already been constructed.
                     moments.append(moment)
                     continue
                 # Moment is in the constants table but has not been constructed.
                 moment_proto = constants[constant_index].moment_value
+            else:
+                constant_index = None
             moment_ops = []
             for op in moment_proto.operations:
                 tags = [self._deserialize_tag(tag) for tag in op.tags]
@@ -473,7 +476,7 @@ class CircuitSerializer(serializer.Serializer):
                     )
                 )
             moment = cirq.Moment(moment_ops)
-            if constant_index:
+            if constant_index is not None:
                 # Store constant moments for later so we only construct each moment once
                 constant_moments[constant_index] = moment
             moments.append(moment)

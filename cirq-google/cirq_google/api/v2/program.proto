@@ -78,7 +78,7 @@ message Moment {
   // in favor using the constant table lookup.
   // This field is used to reduce size of circuits that contain many
   // repeated moments.
-  int32 moment_constant_index = 3;
+  optional int32 moment_constant_index = 3;
 
   // All of the gate operations in the moment. Each operation and circuit
   // operation must act on different qubits.
