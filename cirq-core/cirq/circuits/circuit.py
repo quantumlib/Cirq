@@ -1699,6 +1699,8 @@ class _OpPlacer:
     def place(
         self,
         moment_or_operation: Union['cirq.Moment', 'cirq.Operation'],
+        *,
+        min_index: int = 0,
         target: Optional[List['cirq.Moment']] = None,
     ) -> int:
         """Find placement for moment/operation and update cache.
@@ -1711,6 +1713,7 @@ class _OpPlacer:
 
         Args:
             moment_or_operation: The moment or operation to append.
+            min_index: The minimum index at which to place the moment/op.
             target: The optional list of Moments in which to place the
                 operation, if provided.
 
@@ -1725,6 +1728,7 @@ class _OpPlacer:
             self._mkey_indices,
             self._ckey_indices,
             self._length,
+            min_index=min_index,
         )
         self._length = max(self._length, index + 1)
         if target is not None:
@@ -2239,7 +2243,7 @@ class Circuit(AbstractCircuit):
         if self._placer and strategy == InsertStrategy.EARLIEST and index == len(self._moments):
             # Use `placer` to get placement indices quickly.
             for moment_or_op in moments_or_ops:
-                p = self._placer.place(moment_or_op, self._moments)
+                p = self._placer.place(moment_or_op, target=self._moments)
                 k = max(k, p + 1)
             self._mutated(preserve_placer=True)
         else:
@@ -2918,6 +2922,8 @@ def get_earliest_accommodating_moment_index(
     mkey_indices: Dict['cirq.MeasurementKey', int],
     ckey_indices: Dict['cirq.MeasurementKey', int],
     length: Optional[int] = None,
+    *,
+    min_index: int = 0,
 ) -> int:
     """Get the index of the earliest moment that can accommodate the given moment or operation.
 
@@ -2932,6 +2938,7 @@ def get_earliest_accommodating_moment_index(
         length: The length of the circuit that we are trying to insert a moment or operation into.
             Should probably be equal to the maximum of the values in `qubit_indices`,
             `mkey_indices`, and `ckey_indices`.
+        min_index: The minimum index at which to place the op/moment.
 
     Returns:
         The integer index of the earliest moment that can accommodate the given moment or operation.
@@ -2971,8 +2978,8 @@ def get_earliest_accommodating_moment_index(
         if mop_ckeys:
             last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_ckeys])
 
-    # The index of the moment to place this moment or operaton ("mop") into.
-    mop_index = last_conflict + 1
+    # The index of the moment to place this moment or operation ("mop") into.
+    mop_index = max(min_index, last_conflict + 1)
 
     # Update our dicts with data from this `mop` placement. Note `mop_index` will always be greater
     # than the existing value for all of these, by construction.
