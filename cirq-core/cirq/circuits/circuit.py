@@ -1682,7 +1682,8 @@ class _OpPlacer:
     each moment one at a time.
 
     It is only valid for `append` operations, and if any other insert strategy
-    is used, the placer must be invalidated for the circuit or rebuilt from
+    is used, or if any operation is added to the circuit without notifying the
+    placer, then the placer must be invalidated for the circuit or rebuilt from
     scratch. Future improvements may ease this restriction.
     """
 
@@ -1695,7 +1696,28 @@ class _OpPlacer:
         # For keeping track of length of the circuit thus far.
         self._length = 0
 
-    def place(self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation']) -> int:
+    def place(
+        self,
+        moment_or_operation: Union['cirq.Moment', 'cirq.Operation'],
+        target: Optional[List['cirq.Moment']] = None,
+    ) -> int:
+        """Find placement for moment/operation and update cache.
+
+        Determines the placement index of the provided operation, assuming
+        EARLIEST (append) strategy, and assuming that the internal cache
+        correctly represents the circuit. It then updates the cache and, if the
+        target moment list is provided, adds the operation/moment to the
+        corresponding location in the moment list.
+
+        Args:
+            moment_or_operation: The moment or operation to append.
+            target: The optional list of Moments in which to place the
+                operation, if provided.
+
+        Returns:
+            The index at which the moment/operation should be (or has been, if
+            'target' was provided) placed.
+        """
         # Identify the index of the moment to place this into.
         index = get_earliest_accommodating_moment_index(
             moment_or_operation,
@@ -1705,6 +1727,14 @@ class _OpPlacer:
             self._length,
         )
         self._length = max(self._length, index + 1)
+        if target is not None:
+            if isinstance(moment_or_operation, Moment):
+                target.append(moment_or_operation)
+            else:
+                if index >= len(target):
+                    target.append(Moment(moment_or_operation))
+                else:
+                    target[index] = target[index].with_operation(moment_or_operation)
         return index
 
 
@@ -2207,14 +2237,7 @@ class Circuit(AbstractCircuit):
         if self._placer and strategy == InsertStrategy.EARLIEST and index == len(self._moments):
             # Use `placer` to get placement indices quickly.
             for moment_or_op in moments_or_ops:
-                p = self._placer.place(moment_or_op)
-                if isinstance(moment_or_op, Moment):
-                    self._moments.append(moment_or_op)
-                else:
-                    if p >= len(self._moments):
-                        self._moments.append(Moment(moment_or_op))
-                    else:
-                        self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                p = self._placer.place(moment_or_op, self._moments)
                 k = max(k, p + 1)
             self._mutated(preserve_placer=True)
         else:

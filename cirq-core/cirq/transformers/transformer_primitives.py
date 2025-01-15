@@ -198,9 +198,7 @@ def _map_operations_impl(
     new_moments: List[List['cirq.Operation']] = []
 
     # Keep track of the latest time index for each qubit, measurement key, and control key.
-    qubit_time_index: Dict['cirq.Qid', int] = {}
-    measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
-    control_time_index: Dict['cirq.MeasurementKey', int] = {}
+    placer = circuits.circuit._OpPlacer()
 
     # New mapped operations in the current moment should be inserted after `last_moment_time_index`.
     last_moment_time_index = -1
@@ -213,18 +211,9 @@ def _map_operations_impl(
 
             for mapped_op in mapped_ops:
                 # Identify the earliest moment that can accommodate this op.
-                placement_index = circuits.circuit.get_earliest_accommodating_moment_index(
-                    mapped_op, qubit_time_index, measurement_time_index, control_time_index
-                )
-                placement_index = max(placement_index, last_moment_time_index + 1)
+                placement_index = max(placer.place(mapped_op), last_moment_time_index + 1)
                 new_moments.extend([[] for _ in range(placement_index - len(new_moments) + 1)])
                 new_moments[placement_index].append(mapped_op)
-                for qubit in mapped_op.qubits:
-                    qubit_time_index[qubit] = placement_index
-                for key in protocols.measurement_key_objs(mapped_op):
-                    measurement_time_index[key] = placement_index
-                for key in protocols.control_keys(mapped_op):
-                    control_time_index[key] = placement_index
 
         last_moment_time_index = len(new_moments) - 1
 
