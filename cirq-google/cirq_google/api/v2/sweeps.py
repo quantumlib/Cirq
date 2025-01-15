@@ -82,19 +82,27 @@ def sweep_to_proto(
     elif isinstance(sweep, cirq.Product):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.PRODUCT
         for factor in sweep.factors:
-            sweep_to_proto(factor, out=out.sweep_function.sweeps.add())
+            sweep_to_proto(
+                factor, out=out.sweep_function.sweeps.add(), sweep_transformer=sweep_transformer
+            )
     elif isinstance(sweep, cirq.ZipLongest):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP_LONGEST
         for s in sweep.sweeps:
-            sweep_to_proto(s, out=out.sweep_function.sweeps.add())
+            sweep_to_proto(
+                s, out=out.sweep_function.sweeps.add(), sweep_transformer=sweep_transformer
+            )
     elif isinstance(sweep, cirq.Zip):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for s in sweep.sweeps:
-            sweep_to_proto(s, out=out.sweep_function.sweeps.add())
+            sweep_to_proto(
+                s, out=out.sweep_function.sweeps.add(), sweep_transformer=sweep_transformer
+            )
     elif isinstance(sweep, cirq.Concat):
         out.sweep_function.function_type = run_context_pb2.SweepFunction.CONCAT
         for s in sweep.sweeps:
-            sweep_to_proto(s, out=out.sweep_function.sweeps.add())
+            sweep_to_proto(
+                s, out=out.sweep_function.sweeps.add(), sweep_transformer=sweep_transformer
+            )
     elif isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
         sweep = cast(cirq.Linspace, sweep_transformer(sweep))
         out.single_sweep.parameter_key = sweep.key
@@ -143,7 +151,11 @@ def sweep_to_proto(
                 sweep_dict[cast(str, key)].append(cast(float, param_resolver.value_of(key)))
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for key in sweep_dict:
-            sweep_to_proto(cirq.Points(key, sweep_dict[key]), out=out.sweep_function.sweeps.add())
+            sweep_to_proto(
+                cirq.Points(key, sweep_dict[key]),
+                out=out.sweep_function.sweeps.add(),
+                sweep_transformer=sweep_transformer,
+            )
     else:
         raise ValueError(f'cannot convert to v2 Sweep proto: {sweep}')
     return out
@@ -164,7 +176,7 @@ def sweep_from_proto(
     if which is None:
         return cirq.UnitSweep
     if which == 'sweep_function':
-        factors = [sweep_from_proto(m) for m in msg.sweep_function.sweeps]
+        factors = [sweep_from_proto(m, sweep_transformer) for m in msg.sweep_function.sweeps]
         func_type = msg.sweep_function.function_type
         if func_type == run_context_pb2.SweepFunction.PRODUCT:
             return cirq.Product(*factors)

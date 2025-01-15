@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
+from copy import deepcopy
 from typing import Iterator
 
 import pytest
@@ -273,6 +274,64 @@ def test_sweep_from_proto_with_func_round_trip(sweep):
     sweep = v2.sweep_from_proto(msg, sweep_transformer=strip_tunit_func)
 
     assert list(sweep.points)[0] == 1.0
+
+
+@pytest.mark.parametrize(
+    'sweep',
+    [
+        cirq.Concat(cirq.Points('a', [1, 2, 3]), cirq.Points('a', [4])),
+        cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6]),
+        cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [1])),
+        cirq.Zip(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6])),
+    ],
+)
+def test_sweep_to_proto_with_func_on_resursive_sweep_succeeds(sweep):
+    def add_tunit_func(sweep: sweeps.SingleSweep):
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point * tunits.ns for point in sweep.points]  # type: ignore[misc]
+
+        return sweep
+
+    msg = v2.sweep_to_proto(sweep, sweep_transformer=add_tunit_func)
+
+    assert msg.sweep_function.sweeps[0].single_sweep.points.unit == tunits.ns.to_proto()
+
+
+@pytest.mark.parametrize(
+    'expected_sweep',
+    [
+        cirq.Concat(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('a', [4.0])),
+        cirq.Points('a', [1.0, 2.0, 3.0]) * cirq.Points('b', [4.0, 5.0, 6.0]),
+        cirq.ZipLongest(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('b', [1.0])),
+        cirq.Zip(cirq.Points('a', [1.0, 2.0, 3.0]), cirq.Points('b', [4.0, 5.0, 6.0])),
+        cirq.Points('a', [1, 2, 3])
+        + cirq.Points(
+            'b',
+            [4, 5, 6],
+            metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=2, units='GHz'),
+        ),
+    ],
+)
+def test_sweep_from_proto_with_func_on_resursive_sweep_succeeds(expected_sweep):
+    def add_tunit_func(sweep_to_transform: sweeps.SingleSweep):
+        sweep = deepcopy(sweep_to_transform)
+        if isinstance(sweep, cirq.Points):
+            sweep.points = [point * tunits.ns for point in sweep.points]  # type: ignore[misc]
+
+        return sweep
+
+    def strip_tunit_func(sweep_to_transform: sweeps.SingleSweep):
+        sweep = deepcopy(sweep_to_transform)
+        if isinstance(sweep, cirq.Points):
+            if isinstance(sweep.points[0], tunits.Value):
+                sweep.points = [point[point.unit] for point in sweep.points]
+
+        return sweep
+
+    msg = v2.sweep_to_proto(expected_sweep, sweep_transformer=add_tunit_func)
+    round_trip_sweep = v2.sweep_from_proto(msg, strip_tunit_func)
+
+    assert round_trip_sweep == expected_sweep
 
 
 def test_sweep_with_list_sweep():
