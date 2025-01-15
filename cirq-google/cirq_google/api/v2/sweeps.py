@@ -108,7 +108,7 @@ def sweep_to_proto(
             out.single_sweep.linspace.first_point = sweep.start
             out.single_sweep.linspace.last_point = sweep.stop
             out.single_sweep.linspace.num_points = sweep.length
-        # Encode the metadata if presents
+        # Encode the metadata if present
         if isinstance(sweep.metadata, Metadata):
             out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
         else:
@@ -131,7 +131,7 @@ def sweep_to_proto(
                 unit.to_proto(out.single_sweep.points.unit)
             else:
                 out.single_sweep.points.points.extend(sweep.points)
-        # Encode the metadata if presents
+        # Encode the metadata if present
         if isinstance(sweep.metadata, Metadata):
             out.single_sweep.metadata.MergeFrom(metadata_to_proto(sweep.metadata))
         else:
@@ -245,6 +245,7 @@ def sweep_from_proto(
 
 
 def metadata_to_proto(metadata: Metadata) -> run_context_pb2.Metadata:
+    """Convert the metadata dataclass to the metadata proto."""
     device_parameters: list[run_context_pb2.DeviceParameter] = []
     if params := getattr(metadata, "device_parameters", None):
         for param in params:
@@ -261,6 +262,7 @@ def metadata_to_proto(metadata: Metadata) -> run_context_pb2.Metadata:
 
 
 def metadata_from_proto(metadata_pb: run_context_pb2.Metadata) -> Metadata:
+    """Convert the metadata proto to the metadata dataclass."""
     device_parameters: list[DeviceParameter] = []
     for param in metadata_pb.device_parameters:
         device_parameters.append(
