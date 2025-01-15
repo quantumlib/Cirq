@@ -198,7 +198,7 @@ def _map_operations_impl(
     new_moments: List[List['cirq.Operation']] = []
 
     # Keep track of the latest time index for each qubit, measurement key, and control key.
-    placer = circuits.circuit._OpPlacer()
+    placer = circuits.circuit._PlacementCache()
 
     # New mapped operations in the current moment should be inserted after those of previous
     # moments.

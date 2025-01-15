@@ -1673,7 +1673,7 @@ def _concat_ragged_helper(
     return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
-class _OpPlacer:
+class _PlacementCache:
     """Maintains qubit and cbit indices for quick op placement.
 
     Here, we keep track of the greatest moment that contains each qubit,
@@ -1838,7 +1838,7 @@ class Circuit(AbstractCircuit):
                 together. This option does not affect later insertions into the
                 circuit.
         """
-        self._placer: Optional[_OpPlacer] = _OpPlacer()
+        self._placer: Optional[_PlacementCache] = _PlacementCache()
         self._moments: List['cirq.Moment'] = []
 
         # Implementation note: the following cached properties are set lazily and then
@@ -1898,8 +1898,8 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        # OpPlacer holds dicts from the qubit/key to the greatest moment index that has it.
-        placer = cast(_OpPlacer, self._placer)
+        # PlacementCache holds dicts from the qubit/key to the greatest moment index that has it.
+        placer = cast(_PlacementCache, self._placer)
 
         # We also maintain the dict from moment index to moments/ops that go into it, for use when
         # building the actual moments at the end.
