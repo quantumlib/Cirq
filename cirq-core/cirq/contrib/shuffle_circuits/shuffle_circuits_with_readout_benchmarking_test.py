@@ -58,7 +58,7 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_no_noise():
     circuit_repetitions = 1
     rng = np.random.default_rng()
 
-    measurements, error_rates = cirq.experiments.run_shuffled_with_readout_benchmarking(
+    measurements, error_rates = cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
         input_circuits, sampler, circuit_repetitions, rng, num_random_bitstrings=100,
         readout_repetitions=1000
     )
@@ -114,7 +114,7 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise():
     circuit_repetitions = 1
     rng = np.random.default_rng()
 
-    measurements, error_rates = cirq.experiments.run_shuffled_with_readout_benchmarking(
+    measurements, error_rates = cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
         input_circuits, sampler, circuit_repetitions, rng, num_random_bitstrings=100,
         readout_repetitions=1000
     )
@@ -171,7 +171,7 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise_and_input
     circuit_repetitions = 1
     rng = np.random.default_rng()
 
-    measurements, error_rates = cirq.experiments.run_shuffled_with_readout_benchmarking(
+    measurements, error_rates = cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
         input_circuits, sampler, circuit_repetitions, rng, num_random_bitstrings=100,
         readout_repetitions=1000, qubits=readout_qubits
     )
@@ -187,7 +187,7 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise_and_input
 def test_empty_input_circuits():
     """Test that the input circuits are empty."""
     with pytest.raises(ValueError, match="Input circuits must not be empty."):
-        cirq.experiments.run_shuffled_with_readout_benchmarking([], cirq.ZerosSampler(
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking([], cirq.ZerosSampler(
         ), circuit_repetitions=10, rng=np.random.default_rng(456), num_random_bitstrings=5,
             readout_repetitions=100)
 
@@ -196,7 +196,7 @@ def test_non_circuit_input():
     """Test that the input circuits are not of type cirq.Circuit."""
     q = cirq.LineQubit(0)
     with pytest.raises(ValueError, match="Input circuits must be of type cirq.Circuit."):
-        cirq.experiments.run_shuffled_with_readout_benchmarking([q], cirq.ZerosSampler(
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking([q], cirq.ZerosSampler(
         ), circuit_repetitions=10, rng=np.random.default_rng(456), num_random_bitstrings=5,
             readout_repetitions=100)
 
@@ -206,7 +206,7 @@ def test_no_measurements():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q))
     with pytest.raises(ValueError, match="Input circuits must have measurements."):
-        cirq.experiments.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
         ), circuit_repetitions=10, rng=np.random.default_rng(456), num_random_bitstrings=5,
             readout_repetitions=100)
 
@@ -216,7 +216,7 @@ def test_zero_circuit_repetitions():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     with pytest.raises(ValueError, match="Must provide non-zero circuit_repetitions."):
-        cirq.experiments.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
         ), circuit_repetitions=0, rng=np.random.default_rng(456), num_random_bitstrings=5,
             readout_repetitions=100)
 
@@ -227,7 +227,7 @@ def test_mismatch_circuit_repetitions():
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     with pytest.raises(ValueError, match="Number of circuit_repetitions must match the number of"
                        + " input circuits."):
-        cirq.experiments.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
         ), circuit_repetitions=[10, 20], rng=np.random.default_rng(456), num_random_bitstrings=5,
             readout_repetitions=100)
 
@@ -237,7 +237,7 @@ def test_zero_num_random_bitstrings():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     with pytest.raises(ValueError, match="Must provide non-zero num_random_bitstrings."):
-        cirq.experiments.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
         ), circuit_repetitions=10, rng=np.random.default_rng(456), num_random_bitstrings=0,
             readout_repetitions=100)
 
@@ -248,6 +248,6 @@ def test_zero_readout_repetitions():
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     with pytest.raises(ValueError, match="Must provide non-zero readout_repetitions for readout"
                        + " calibration."):
-        cirq.experiments.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking([circuit], cirq.ZerosSampler(
         ), circuit_repetitions=10, rng=np.random.default_rng(456), num_random_bitstrings=5,
             readout_repetitions=0)
