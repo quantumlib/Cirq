@@ -88,7 +88,3 @@ from cirq.experiments.z_phase_calibration import (
     z_phase_calibration_workflow as z_phase_calibration_workflow,
     calibrate_z_phases as calibrate_z_phases,
 )
-
-from cirq.experiments.shuffle_circuits_with_readout_benchmarking import (
-    run_shuffled_with_readout_benchmarking as run_shuffled_with_readout_benchmarking,
-)
