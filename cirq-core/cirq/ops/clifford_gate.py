@@ -902,7 +902,12 @@ class SingleQubitCliffordGate(CliffordGate):
         return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
-        return f'cirq.CliffordGate.from_clifford_tableau({self.clifford_tableau!r})'
+        return (
+            f'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+            f'rs=np.array({self._clifford_tableau.rs.tolist()!r}), '
+            f'xs=np.array({self._clifford_tableau.xs.tolist()!r}), '
+            f'zs=np.array({self._clifford_tableau.zs.tolist()!r})))'
+        )
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

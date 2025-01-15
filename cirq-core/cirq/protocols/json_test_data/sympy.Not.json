@@ -1,0 +1,9 @@
+{
+  "cirq_type": "sympy.Not",
+  "args": [
+    {
+      "cirq_type": "sympy.Symbol",
+      "name": "s"
+    }
+  ]
+}

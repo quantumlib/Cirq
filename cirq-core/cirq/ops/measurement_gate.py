@@ -273,7 +273,7 @@ class MeasurementGate(raw_types.Gate):
             (idxs, tuple(v for _, v in np.ndenumerate(cmap)))
             for idxs, cmap in self._confusion_map.items()
         )
-        return self.key, self.invert_mask, self._qid_shape, hashable_cmap
+        return self.key, self.full_invert_mask(), self._qid_shape, hashable_cmap
 
     def _json_dict_(self) -> Dict[str, Any]:
         other: Dict[str, Any] = {}
