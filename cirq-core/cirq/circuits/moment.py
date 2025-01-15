@@ -15,6 +15,8 @@
 """A simplified time-slice of operations within a sequenced circuit."""
 
 import itertools
+from functools import cached_property
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -33,6 +35,7 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
+
 from typing_extensions import Self
 
 import numpy as np
@@ -41,7 +44,6 @@ from cirq import protocols, ops, qis, _compat
 from cirq._import import LazyLoader
 from cirq.ops import raw_types, op_tree
 from cirq.protocols import circuit_diagram_info_protocol
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -112,7 +114,6 @@ class Moment:
                     raise ValueError(f'Overlapping operations: {self.operations}')
                 self._qubit_to_op[q] = op
 
-        self._qubits = frozenset(self._qubit_to_op.keys())
         self._measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = None
         self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
 
@@ -134,9 +135,9 @@ class Moment:
     def operations(self) -> Tuple['cirq.Operation', ...]:
         return self._operations
 
-    @property
+    @cached_property
     def qubits(self) -> FrozenSet['cirq.Qid']:
-        return self._qubits
+        return frozenset(self._qubit_to_op)
 
     def operates_on_single_qubit(self, qubit: 'cirq.Qid') -> bool:
         """Determines if the moment has operations touching the given qubit.
@@ -156,7 +157,7 @@ class Moment:
         Returns:
             Whether this moment has operations involving the qubits.
         """
-        return not self._qubits.isdisjoint(qubits)
+        return not self._qubit_to_op.keys().isdisjoint(qubits)
 
     def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
         """Returns the operation on a certain qubit for the moment.
@@ -184,14 +185,13 @@ class Moment:
         Raises:
             ValueError: If the operation given overlaps a current operation in the moment.
         """
-        if any(q in self._qubits for q in operation.qubits):
+        if any(q in self._qubit_to_op for q in operation.qubits):
             raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
         m = Moment(_flatten_contents=False)
         m._operations = self._operations + (operation,)
         m._sorted_operations = None
-        m._qubits = self._qubits.union(operation.qubits)
         m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
 
         m._measurement_key_objs = self._measurement_key_objs_().union(
@@ -221,14 +221,11 @@ class Moment:
         m = Moment(_flatten_contents=False)
         # Use private variables to facilitate a quick copy.
         m._qubit_to_op = self._qubit_to_op.copy()
-        qubits = set(self._qubits)
         for op in flattened_contents:
-            if any(q in qubits for q in op.qubits):
+            if any(q in m._qubit_to_op for q in op.qubits):
                 raise ValueError(f'Overlapping operations: {op}')
-            qubits.update(op.qubits)
             for q in op.qubits:
                 m._qubit_to_op[q] = op
-        m._qubits = frozenset(qubits)
 
         m._operations = self._operations + flattened_contents
         m._sorted_operations = None
@@ -274,8 +271,11 @@ class Moment:
         resolved_ops: List['cirq.Operation'] = []
         for op in self:
             resolved_op = protocols.resolve_parameters(op, resolver, recursive)
-            if resolved_op != op:
-                changed = True
+            changed = (
+                changed
+                or resolved_op != op
+                or (protocols.is_parameterized(op) and not protocols.is_parameterized(resolved_op))
+            )
             resolved_ops.append(resolved_op)
         if not changed:
             return self
@@ -446,7 +446,9 @@ class Moment:
     @_compat.cached_method()
     def _has_kraus_(self) -> bool:
         """Returns True if self has a Kraus representation and self uses <= 10 qubits."""
-        return all(protocols.has_kraus(op) for op in self.operations) and len(self.qubits) <= 10
+        return (
+            all(protocols.has_kraus(op) for op in self.operations) and len(self._qubit_to_op) <= 10
+        )
 
     def _kraus_(self) -> Sequence[np.ndarray]:
         r"""Returns Kraus representation of self.
@@ -471,7 +473,7 @@ class Moment:
         if not self._has_kraus_():
             return NotImplemented
 
-        qubits = sorted(self.qubits)
+        qubits = sorted(self._qubit_to_op)
         n = len(qubits)
         if n < 1:
             return (np.array([[1 + 0j]]),)
@@ -598,7 +600,7 @@ class Moment:
         """
 
         # Figure out where to place everything.
-        qs = set(self.qubits) | set(extra_qubits)
+        qs = self._qubit_to_op.keys() | set(extra_qubits)
         points = {xy_breakdown_func(q) for q in qs}
         x_keys = sorted({pt[0] for pt in points}, key=_SortByValFallbackToType)
         y_keys = sorted({pt[1] for pt in points}, key=_SortByValFallbackToType)

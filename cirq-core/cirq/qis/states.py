@@ -264,7 +264,7 @@ def quantum_state(
             dtype = DEFAULT_COMPLEX_DTYPE
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
     else:
-        data = np.array(state, copy=False)
+        data = np.asarray(state)
         if qid_shape is None:
             qid_shape = infer_qid_shape(state)
         if data.ndim == 1 and data.dtype.kind != 'c':

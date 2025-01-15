@@ -15,7 +15,7 @@
 
 import datetime
 import os
-from typing import Optional, Sequence
+from typing import Optional, Sequence, List
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
@@ -124,7 +124,7 @@ class Service:
             A `cirq.Result` for running the circuit.
         """
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
-        result = self.create_job(
+        job_results = self.create_job(
             circuit=resolved_circuit,
             repetitions=repetitions,
             name=name,
@@ -132,11 +132,74 @@ class Service:
             error_mitigation=error_mitigation,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
-        if isinstance(result, results.QPUResult):
-            return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
-        # pylint: disable=unexpected-keyword-arg
-        return result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
-        # pylint: enable=unexpected-keyword-arg
+        if isinstance(job_results[0], results.QPUResult):
+            return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver))
+        if isinstance(job_results[0], results.SimulatorResult):
+            return job_results[0].to_cirq_result(
+                params=cirq.ParamResolver(param_resolver), seed=seed
+            )
+        raise NotImplementedError(f"Unrecognized job result type '{type(job_results[0])}'.")
+
+    def run_batch(
+        self,
+        circuits: List[cirq.AbstractCircuit],
+        repetitions: int,
+        name: Optional[str] = None,
+        target: Optional[str] = None,
+        param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        error_mitigation: Optional[dict] = None,
+        sharpen: Optional[bool] = None,
+        extra_query_params: Optional[dict] = None,
+    ) -> List[cirq.Result]:
+        """Run the given circuits on the IonQ API.
+
+        Args:
+            circuits: The circuits to run.
+            repetitions: The number of times to run each circuits.
+            name: An optional name for the created job. Different from the `job_id`.
+            target: Where to run the job. Can be 'qpu' or 'simulator'.
+            param_resolver: A `cirq.ParamResolver` to resolve parameters in  `circuit`.
+            seed: If the target is `simulation` the seed for generating results. If None, this
+                will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
+                must be a modulate similar to `np.random`.
+            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
+                - 'debias': A boolean indicating whether to use the debiasing technique for
+                  aggregating results. This technique is used to reduce the bias in the results
+                  caused by measurement error and can improve the accuracy of the output.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation.
+            extra_query_params: Specify any parameters to include in the request.
+
+        Returns:
+            A a list of `cirq.Result` for running the circuit.
+        """
+        resolved_circuits = []
+        for circuit in circuits:
+            resolved_circuits.append(cirq.resolve_parameters(circuit, param_resolver))
+
+        job_results = self.create_batch_job(
+            circuits=resolved_circuits,
+            repetitions=repetitions,
+            name=name,
+            target=target,
+            error_mitigation=error_mitigation,
+            extra_query_params=extra_query_params,
+        ).results(sharpen=sharpen)
+
+        cirq_results = []
+        for job_result in job_results:
+            if isinstance(job_result, results.QPUResult):
+                cirq_results.append(
+                    job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
+                )
+            elif isinstance(job_result, results.SimulatorResult):
+                cirq_results.append(
+                    job_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+                )
+            else:
+                raise NotImplementedError(f"Unrecognized job result type '{type(job_result)}'.")
+        return cirq_results
 
     def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.
@@ -181,8 +244,50 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        serialized_program = serializer.Serializer().serialize(
+        serialized_program = serializer.Serializer().serialize_single_circuit(
             circuit, job_settings=self.job_settings, error_mitigation=error_mitigation
+        )
+        result = self._client.create_job(
+            serialized_program=serialized_program,
+            repetitions=repetitions,
+            target=target,
+            name=name,
+            extra_query_params=extra_query_params,
+        )
+        # The returned job does not have fully populated fields, so make
+        # a second call and return the results of the fully filled out job.
+        return self.get_job(result['id'])
+
+    def create_batch_job(
+        self,
+        circuits: List[cirq.AbstractCircuit],
+        repetitions: int = 100,
+        name: Optional[str] = None,
+        target: Optional[str] = None,
+        error_mitigation: Optional[dict] = None,
+        extra_query_params: Optional[dict] = None,
+    ) -> job.Job:
+        """Create a new job to run the given circuit.
+
+        Args:
+            circuits: The circuits to run.
+            repetitions: The number of times to repeat the circuit. Defaults to 100.
+            name: An optional name for the created job. Different from the `job_id`.
+            target: Where to run the job. Can be 'qpu' or 'simulator'.
+            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
+                - 'debias': A boolean indicating whether to use the debiasing technique for
+                  aggregating results. This technique is used to reduce the bias in the results
+                  caused by measurement error and can improve the accuracy of the output.
+            extra_query_params: Specify any parameters to include in the request.
+
+        Returns:
+            A `cirq_ionq.IonQJob` which can be queried for status or results.
+
+        Raises:
+            IonQException: If there was an error accessing the API.
+        """
+        serialized_program = serializer.Serializer().serialize_many_circuits(
+            circuits, job_settings=self.job_settings, error_mitigation=error_mitigation
         )
         result = self._client.create_job(
             serialized_program=serialized_program,

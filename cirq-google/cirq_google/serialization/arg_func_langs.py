@@ -20,6 +20,7 @@ import sympy
 from cirq_google.api import v2
 from cirq_google.ops import InternalGate
 from cirq.qis import CliffordTableau
+import tunits
 
 SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     '': frozenset(),
@@ -33,8 +34,10 @@ MOST_PERMISSIVE_LANGUAGE = 'exp'
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
-ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr]
-ARG_RETURN_LIKE = Union[float, int, str, List[bool], List[int], List[float], List[str], sympy.Expr]
+ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr, tunits.Value]
+ARG_RETURN_LIKE = Union[
+    float, int, str, List[bool], List[int], List[float], List[str], sympy.Expr, tunits.Value
+]
 FLOAT_ARG_LIKE = Union[float, sympy.Expr]
 
 # Types for comparing floats
@@ -182,6 +185,8 @@ def arg_to_proto(
                     )
                 field, types_tuple = numerical_fields[cur_index]
                 field.extend(types_tuple[0](x) for x in value)
+    elif isinstance(value, tunits.Value):
+        msg.arg_value.value_with_unit.MergeFrom(value.to_proto())
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
 
@@ -329,6 +334,8 @@ def arg_from_proto(
             return [float(v) for v in arg_value.double_values.values]
         if which_val == 'string_values':
             return [str(v) for v in arg_value.string_values.values]
+        if which_val == 'value_with_unit':
+            return tunits.Value.from_proto(arg_value.value_with_unit)
         raise ValueError(f'Unrecognized value type: {which_val!r}')
 
     if which == 'symbol':
@@ -425,8 +432,12 @@ def internal_gate_arg_to_proto(
     msg.name = value.gate_name
     msg.module = value.gate_module
     msg.num_qubits = value.num_qubits()
+
     for k, v in value.gate_args.items():
         arg_to_proto(value=v, out=msg.gate_args[k])
+
+    for ck, cv in value.custom_args.items():
+        msg.custom_args[ck].MergeFrom(cv)
 
     return msg
 
@@ -454,6 +465,7 @@ def internal_gate_from_proto(
         gate_name=str(msg.name),
         gate_module=str(msg.module),
         num_qubits=int(msg.num_qubits),
+        custom_args=msg.custom_args,
         **gate_args,
     )
 
@@ -474,9 +486,9 @@ def clifford_tableau_arg_to_proto(
     msg = v2.program_pb2.CliffordTableau() if out is None else out
     msg.num_qubits = value.n
     msg.initial_state = value.initial_state
-    msg.xs.extend(value.xs.flatten())
-    msg.rs.extend(value.rs.flatten())
-    msg.zs.extend(value.zs.flatten())
+    msg.xs.extend(map(bool, value.xs.flatten()))
+    msg.rs.extend(map(bool, value.rs.flatten()))
+    msg.zs.extend(map(bool, value.zs.flatten()))
     return msg
 
 

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "cirq_google/api/v2/program.proto";
+import "tunits/proto/tunits.proto";
 
 package cirq.google.api.v2;
 
@@ -85,6 +86,22 @@ message SweepFunction {
     // "a": 1.0, "b": 3.0
     // Note: if one sweep is shorter, the others will be truncated.
     ZIP = 2;
+
+    // A zip product of parameter sweeps with length as the longest one.
+    //
+    // Suppose we zip_longest([sweep.points(a, [1, 2]), sweep.points(b, [3])]),
+    // the iterator will produce: {a: 1, b: 3} and {a: 2, b: 3}.
+    // The shorter sweeps will be filled by repeating their last value.
+    ZIP_LONGEST = 3;
+
+    // Concatenates multiple sweeps to a new sweep.
+    // All sweeps must share the same descriptors.
+    //
+    // Example of concat:
+    // If one sweep assigns 'a' to the values 0, 1, 2, and another sweep assigns
+    // 'a' to the values 3, 4, 5, the concatenation produces a sweep assigning
+    // 'a' to the values 0, 1, 2, 3, 4, 5 in sequence.
+    CONCAT = 4;
   }
 
   FunctionType function_type = 1;
@@ -109,6 +126,19 @@ message DeviceParameter {
     // by the sweep values themselves.
 }
 
+message Metadata {
+    // Optional arguments for if this is a device parameter.
+    // Note one single_sweep may be associated with multiple device parameters.
+    repeated DeviceParameter device_parameters = 1;
+
+    // If specified, use this label instead of parameter_key as the independent
+    // column name in returned dataset.
+    optional string label = 2;
+
+    // If true, store this sweep as parameters instead of the independent axes.
+    optional bool as_parameter = 3;
+}
+
 // A bundle of multiple DeviceParameters and their values.
 // The main use case is to set those parameters with the
 // values from this bundle before executing a circuit sweep.
@@ -127,15 +157,37 @@ message DeviceParametersDiff {
     // as index into the strs repeated field.
     int32 name = 2;
   }
+
+  // Param value whose type is not among proto field types supported by
+  // ArgValue. In other words, it is the responsibility of the client codes
+  // to enforce the validity and type consistency of this param value.
+  message GenericValue {
+    // Type description of the value representation. Eg. if the following value
+    // bytes field is a JSON string, type_descriptor can be its JSON namespace;
+    // or if the following value field is a protobuf serialization, type_descriptor
+    // can be its protobuf definition URL.
+    string type_descriptor = 1;
+
+    // The value in client's encoding.
+    bytes value = 2;
+  }
+
   message Param {
     // the resource group hosting this parameter key, as index into groups
     // repeated field.
     int32 resource_group = 1;
     // name of this param, as index into the strs repeated field.
     int32 name = 2;
-    // this param's new value, as message ArgValue to allow variant types,
-    // including bool, string, double, float and arrays.
-    ArgValue value = 3;
+
+    oneof param_val {
+      // this param's new value, as message ArgValue to allow types of bool,
+      // string, double, float and arrays.
+      ArgValue value = 3;
+
+      // this param's new value, and its type is not among the variants supported
+      // by ArgValue.
+      GenericValue generic_value = 4;
+    }
   }
   repeated ResourceGroup groups = 1;
   repeated Param params = 2;
@@ -157,17 +209,25 @@ message SingleSweep {
     Points points = 2;
     // Uniformly-spaced sampling over a range.
     Linspace linspace = 3;
+    // A constant value.
+    ConstValue const_value = 5;
   }
 
   // Optional arguments for if this is a device parameter.
   // (as opposed to a circuit symbol)
   DeviceParameter parameter = 4;
+
+  // Optional arguments for storing extra metadata information.
+  Metadata metadata = 6;
 }
+
 
 // A list of explicit values.
 message Points {
   // The values.
   repeated float points = 1;
+
+  tunits.Value unit = 2;
 }
 
 // A range of evenly-spaced values.
@@ -184,4 +244,19 @@ message Linspace {
   // greater than zero. If it is 1, the first_point and last_point must be
   // the same.
   int64 num_points = 3;
+
+  tunits.Value unit = 4;
+}
+
+// A constant value.
+message ConstValue {
+  // The values.
+  oneof value {
+    // This value should always be true if set, which represent the python None object.
+    bool is_none = 1;
+    float float_value = 2;
+    int64 int_value = 3;
+    string string_value = 4;
+    tunits.Value with_unit_value = 5;
+  }
 }

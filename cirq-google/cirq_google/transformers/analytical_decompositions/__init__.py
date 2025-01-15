@@ -13,6 +13,6 @@
 # limitations under the License.
 
 from cirq_google.transformers.analytical_decompositions.two_qubit_to_sycamore import (
-    known_2q_op_to_sycamore_operations,
-    two_qubit_matrix_to_sycamore_operations,
+    known_2q_op_to_sycamore_operations as known_2q_op_to_sycamore_operations,
+    two_qubit_matrix_to_sycamore_operations as two_qubit_matrix_to_sycamore_operations,
 )

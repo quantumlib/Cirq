@@ -191,7 +191,9 @@ def _parse_formula_using_token_map(
             elif token.unary_action is not None:
                 burn_ops(token.priority)
                 vals.append(None)
-                ops.append(_HangingNode(func=lambda _, b: token.unary_action(b), weight=np.inf))
+                # this avoids mypy complaint about None not being callable
+                token_unary_action = token.unary_action
+                ops.append(_HangingNode(func=lambda _, b: token_unary_action(b), weight=np.inf))
             elif token.binary_action is not None:
                 raise ValueError("Bad expression: binary op in bad spot.\ntext={text!r}")
 

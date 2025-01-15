@@ -166,7 +166,7 @@ class DiagonalGate(raw_types.Gate):
         self, index: int, bit_flip: int, theta: 'cirq.TParamVal', qubits: Sequence['cirq.Qid']
     ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
         if index == 0:
-            return []
+            return
         largest_digit = self._num_qubits_() - (len(bin(index)) - 2)
         yield common_gates.rz(2 * theta)(qubits[largest_digit])
         _flip_bit = self._num_qubits_() - bit_flip - 1

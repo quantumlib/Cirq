@@ -27,6 +27,7 @@ class GaugeTester:
     two_qubit_gate: cirq.Gate
     gauge_transformer: GaugeTransformer
     must_fail: bool = False
+    sweep_must_pass: bool = False
 
     @pytest.mark.parametrize(
         ['generation_seed', 'transformation_seed'],
@@ -72,6 +73,42 @@ class GaugeTester:
                     _check_equivalent_with_error_message(c, nc, gauge)
             else:
                 _check_equivalent_with_error_message(c, nc, gauge)
+
+    def test_sweep(self):
+        qubits = cirq.LineQubit.range(3)
+
+        if not self.sweep_must_pass:
+            with pytest.raises(NotImplementedError):
+                self.gauge_transformer.as_sweep(
+                    cirq.Circuit(cirq.Moment(self.two_qubit_gate(*qubits[:2]))), N=1
+                )
+            return
+
+        input_circuit = cirq.Circuit(
+            cirq.Moment(cirq.H(qubits[0])),
+            cirq.Moment(self.two_qubit_gate(*qubits[:2])),
+            cirq.Moment(self.two_qubit_gate(*qubits[1:])),
+            cirq.Moment([cirq.H(q) for q in qubits]),
+            cirq.Moment([cirq.measure(q) for q in qubits]),
+        )
+
+        n_samples = 5
+        parameterized_circuit, sweeps = self.gauge_transformer.as_sweep(input_circuit, N=n_samples)
+
+        # Check the parameterized circuit and N set of parameters.
+        assert cirq.is_parameterized(parameterized_circuit)
+        simulator = cirq.Simulator()
+        results = simulator.run_sweep(parameterized_circuit, sweeps)
+        assert len(results) == n_samples
+
+        # Check compilied circuits have the same unitary as the orig circuit.
+        for params in sweeps:
+            compiled_circuit = cirq.resolve_parameters(parameterized_circuit, params)
+            cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                input_circuit[:-1],
+                compiled_circuit[:-1],
+                qubit_map={q: q for q in input_circuit.all_qubits()},
+            )
 
 
 def _check_equivalent_with_error_message(c: cirq.AbstractCircuit, nc: cirq.AbstractCircuit, gauge):

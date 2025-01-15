@@ -15,10 +15,10 @@
 """Devices and Noise models for publicly known Google devices."""
 
 from cirq_google.devices.google_noise_properties import (
-    GoogleNoiseProperties,
-    NoiseModelFromGoogleNoiseProperties,
+    GoogleNoiseProperties as GoogleNoiseProperties,
+    NoiseModelFromGoogleNoiseProperties as NoiseModelFromGoogleNoiseProperties,
 )
 
-from cirq_google.devices.known_devices import Sycamore, Sycamore23
+from cirq_google.devices.known_devices import Sycamore as Sycamore, Sycamore23 as Sycamore23
 
-from cirq_google.devices.grid_device import GridDevice
+from cirq_google.devices.grid_device import GridDevice as GridDevice

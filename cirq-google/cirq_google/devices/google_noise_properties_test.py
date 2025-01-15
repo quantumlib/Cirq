@@ -204,7 +204,7 @@ def test_with_params_opid_with_gate():
 @pytest.mark.parametrize(
     'op',
     [
-        (cirq.Z(cirq.LineQubit(0)) ** 0.3).with_tags(cirq_google.PhysicalZTag),
+        (cirq.Z(cirq.LineQubit(0)) ** 0.3).with_tags(cirq_google.PhysicalZTag()),
         cirq.PhasedXZGate(x_exponent=0.8, z_exponent=0.2, axis_phase_exponent=0.1).on(
             cirq.LineQubit(0)
         ),

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List
+from typing import Iterator, List, Optional
 import pytest
 
 import cirq
@@ -64,7 +64,7 @@ def test_map_operations_does_not_insert_too_many_moments():
     q = cirq.LineQubit.range(5)
     c_orig = cirq.Circuit(cirq.CX(q[0], q[1]), cirq.CX(q[3], q[2]), cirq.CX(q[3], q[4]))
 
-    def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
+    def map_func(op: cirq.Operation, _: int) -> Iterator[cirq.OP_TREE]:
         yield cirq.Z.on_each(*op.qubits)
         yield cirq.CX(*op.qubits)
         yield cirq.Z.on_each(*op.qubits)
@@ -130,7 +130,7 @@ def test_map_operations_deep_subcircuits():
         .with_tags("external")
     )
 
-    def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
+    def map_func(op: cirq.Operation, _: int) -> Iterator[cirq.OP_TREE]:
         yield (
             [cirq.Z.on_each(*op.qubits), cirq.CX(*op.qubits), cirq.Z.on_each(*op.qubits)]
             if op.gate == cirq.CX

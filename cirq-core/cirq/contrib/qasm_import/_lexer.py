@@ -24,20 +24,29 @@ class QasmLexer:
     def __init__(self):
         self.lex = lex.lex(object=self, debug=False)
 
-    literals = "{}[]();,+/*-^"
+    literals = "{}[]();,+/*-^="
 
     reserved = {
+        'qubit': 'QUBIT',
         'qreg': 'QREG',
+        'bit': 'BIT',
         'creg': 'CREG',
         'measure': 'MEASURE',
+        'reset': 'RESET',
         'if': 'IF',
         '->': 'ARROW',
         '==': 'EQ',
     }
 
-    tokens = ['FORMAT_SPEC', 'NUMBER', 'NATURAL_NUMBER', 'QELIBINC', 'ID', 'PI'] + list(
-        reserved.values()
-    )
+    tokens = [
+        'FORMAT_SPEC',
+        'NUMBER',
+        'NATURAL_NUMBER',
+        'STDGATESINC',
+        'QELIBINC',
+        'ID',
+        'PI',
+    ] + list(reserved.values())
 
     def t_newline(self, t):
         r"""\n+"""
@@ -83,16 +92,32 @@ class QasmLexer:
         r"""include(\s+)"qelib1.inc";"""
         return t
 
+    def t_STDGATESINC(self, t):
+        r"""include(\s+)"stdgates.inc";"""
+        return t
+
     def t_QREG(self, t):
         r"""qreg"""
+        return t
+
+    def t_QUBIT(self, t):
+        r"""qubit"""
         return t
 
     def t_CREG(self, t):
         r"""creg"""
         return t
 
+    def t_BIT(self, t):
+        r"""bit"""
+        return t
+
     def t_MEASURE(self, t):
         r"""measure"""
+        return t
+
+    def t_RESET(self, t):
+        r"""reset"""
         return t
 
     def t_IF(self, t):

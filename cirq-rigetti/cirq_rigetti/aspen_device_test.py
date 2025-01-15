@@ -253,10 +253,10 @@ def test_rigetti_qcs_aspen_device_repr(qcs_aspen8_isa: InstructionSetArchitectur
 def test_rigetti_qcs_aspen_device_family_validation(qcs_aspen8_isa: InstructionSetArchitecture):
     """test RigettiQCSAspenDevice validates architecture family on initialization"""
     non_aspen_isa = InstructionSetArchitecture.from_raw(qcs_aspen8_isa.json())
-    non_aspen_isa.architecture.family = Family.NONE
+    non_aspen_isa.architecture.family = Family.new_none()
 
-    assert (
-        non_aspen_isa.architecture.family == Family.Aspen
+    assert Family.is_aspen(
+        non_aspen_isa.architecture.family
     ), 'ISA family is read-only and should still be Aspen'
 
 

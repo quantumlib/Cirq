@@ -90,7 +90,8 @@ def plot_state_histogram(
     if isinstance(data, result.Result):
         values = get_state_histogram(data)
     elif isinstance(data, collections.Counter):
-        tick_label, values = zip(*sorted(data.items()))
+        tick_label, counts = zip(*sorted(data.items()))
+        values = np.asarray(counts)
     else:
         values = np.array(data)
     if tick_label is None:

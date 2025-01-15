@@ -26,7 +26,7 @@ def _gate_in_moment(gate: ops.Gate, moment: circuits.Moment) -> bool:
 
 
 @transformer_api.transformer
-class DepolerizingNoiseTransformer:
+class DepolarizingNoiseTransformer:
     """Add local depolarizing noise after two-qubit gates in a specified circuit. More specifically,
     with probability p, append a random non-identity two-qubit Pauli operator after each specified
     two-qubit gate.

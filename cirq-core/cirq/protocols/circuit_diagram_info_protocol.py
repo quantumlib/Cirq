@@ -277,6 +277,8 @@ class CircuitDiagramInfoArgs:
         if self.precision is not None and not isinstance(radians, sympy.Basic):
             quantity = self.format_real(radians / np.pi)
             return quantity + unit
+        if isinstance(radians, np.number):
+            return str(radians)
         return repr(radians)
 
     def copy(self):
@@ -340,7 +342,7 @@ def _op_info_with_fallback(
     rows: List[LabelEntity] = list(op.qubits)
     if args.label_map is not None:
         rows += protocols.measurement_keys_touched(op) & args.label_map.keys()
-    if info is not None:
+    if info is not None and info.wire_symbols:
         if max(1, len(rows)) != len(info.wire_symbols):
             raise ValueError(f'Wanted diagram info from {op!r} for {rows!r}) but got {info!r}')
         return info

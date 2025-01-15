@@ -151,6 +151,12 @@ def proper_repr(value: Any) -> str:
             'StrictLessThan',
             'Equality',
             'Unequality',
+            'And',
+            'Or',
+            'Not',
+            'Xor',
+            'Indexed',
+            'IndexedBase',
         ]
 
         class Printer(sympy.printing.repr.ReprPrinter):
@@ -191,6 +197,9 @@ def proper_repr(value: Any) -> str:
 
     if hasattr(value, "__qualname__"):
         return f"{value.__module__}.{value.__qualname__}"
+
+    if isinstance(value, np.number):
+        return str(value)
 
     return repr(value)
 

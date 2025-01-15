@@ -227,7 +227,7 @@ class MeasurementGate(raw_types.Gate):
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self.confusion_map or not all(d == 2 for d in self._qid_shape):
             return NotImplemented
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         invert_mask = self.invert_mask
         if len(invert_mask) < len(qubits):
             invert_mask = invert_mask + (False,) * (len(qubits) - len(invert_mask))
@@ -235,7 +235,10 @@ class MeasurementGate(raw_types.Gate):
         for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
             if inv:
                 lines.append(args.format('x {0};  // Invert the following measurement\n', qubit))
-            lines.append(args.format('measure {0} -> {1:meas}[{2}];\n', qubit, self.key, i))
+            if args.version == '2.0':
+                lines.append(args.format('measure {0} -> {1:meas}[{2}];\n', qubit, self.key, i))
+            else:
+                lines.append(args.format('{1:meas}[{2}] = measure {0};\n', qubit, self.key, i))
             if inv:
                 lines.append(args.format('x {0};  // Undo the inversion\n', qubit))
         return ''.join(lines)
@@ -270,7 +273,7 @@ class MeasurementGate(raw_types.Gate):
             (idxs, tuple(v for _, v in np.ndenumerate(cmap)))
             for idxs, cmap in self._confusion_map.items()
         )
-        return self.key, self.invert_mask, self._qid_shape, hashable_cmap
+        return self.key, self.full_invert_mask(), self._qid_shape, hashable_cmap
 
     def _json_dict_(self) -> Dict[str, Any]:
         other: Dict[str, Any] = {}
