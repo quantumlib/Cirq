@@ -22,6 +22,7 @@ import sympy
 
 import cirq
 import cirq.testing as ct
+from cirq.testing import consistent_qasm as cq
 from cirq import Circuit
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
@@ -1230,15 +1231,15 @@ def test_openqasm_3_0_scalar_qubit():
 
 
 def test_custom_gate():
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
      qreg q[2];
      gate g(p0, p1) q0, q1 {
         rx(p0) q0;
         ry(p0+p1+3) q0;
         rz(p1) q1;
      }
-     g(1,2) q;
+     g(1,2) q[0], q[1];
      g(0,4) q[1], q[0];
     """
 
@@ -1272,6 +1273,10 @@ def test_custom_gate():
     )
     unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
     assert unrolled == unrolled_expected
+
+    # Sanity check that these have the same unitaries as the QASM.
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
 
 
 def test_custom_gate_undefined_qubit_error():
