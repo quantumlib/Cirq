@@ -1894,11 +1894,13 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        # We maintain the dict from moment index to moments/ops that go into it, for use when
+        # OpPlacer holds dicts from the qubit/key to the greatest moment index that has it.
+        placer = cast(_OpPlacer, self._placer)
+
+        # We also maintain the dict from moment index to moments/ops that go into it, for use when
         # building the actual moments at the end.
         op_lists_by_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
         moments_by_index: Dict[int, 'cirq.Moment'] = {}
-        placer = cast(_OpPlacer, self._placer)
 
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
