@@ -25,15 +25,16 @@ def test_parameters():
 def test_metadata():
     param = cirq_google.study.DeviceParameter(path=('test', 'subdir'), idx=2, value='tmp')
     metadata = cirq_google.study.Metadata(
-        device_parameters=[param], as_parameter=True, label="fake_label"
+        device_parameters=[param], is_const=True, label="fake_label"
     )
     cirq.testing.assert_equivalent_repr(metadata, global_vals={'cirq_google': cirq_google})
 
 
 def test_metadata_json_roundtrip():
     metadata = cirq_google.study.Metadata(
-        device_parameters=[cirq_google.study.DeviceParameter(path=('test', 'subdir'))],
-        as_parameter=True,
+        device_parameters=[cirq_google.study.DeviceParameter(path=['test', 'subdir'])],
+        is_const=True,
         label="fake_label",
     )
     metadata_reconstruct = cirq.read_json(json_text=cirq.to_json(metadata))
+    assert metadata_reconstruct == metadata

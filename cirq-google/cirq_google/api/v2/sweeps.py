@@ -254,21 +254,23 @@ def metadata_to_proto(metadata: Metadata) -> run_context_pb2.Metadata:
 
     return run_context_pb2.Metadata(
         device_parameters=device_parameters or None,  # If empty set this field as None.
-        label=getattr(metadata, "label", None),
-        as_parameter=getattr(metadata, "as_parameter", False),
+        label=metadata.label,
+        is_const=metadata.is_const,
+        unit=metadata.unit,
     )
 
 
-def metadata_from_proto(metadata: run_context_pb2.Metadata) -> Metadata:
+def metadata_from_proto(metadata_pb: run_context_pb2.Metadata) -> Metadata:
     device_parameters: list[DeviceParameter] = []
-    for param in metadata.device_parameters:
+    for param in metadata_pb.device_parameters:
         device_parameters.append(
             DeviceParameter(path=param.path, idx=param.idx if param.HasField("idx") else None)
         )
     return Metadata(
         device_parameters=device_parameters or None,
-        label=metadata.label if metadata.HasField("label") else None,
-        as_parameter=metadata.as_parameter,
+        label=metadata_pb.label if metadata_pb.HasField("label") else None,
+        is_const=metadata_pb.is_const,
+        unit=metadata_pb.unit if metadata_pb.HasField("unit") else None,
     )
 
 

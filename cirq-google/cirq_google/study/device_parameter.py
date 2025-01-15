@@ -78,14 +78,15 @@ class DeviceParameter(SupportsDeviceParameter):
 @dataclasses.dataclass
 class Metadata:
     device_parameters: Optional[Sequence[DeviceParameter]] = None
-    as_parameter: bool = False
+    is_const: bool = False
     label: Optional[str] = None
+    unit: Optional[str] = None
 
     def __repr__(self) -> str:
         return (
             "cirq_google.study.Metadata("
-            f"device_parameters={self.device_parameters!r}, as_parameter={self.as_parameter}, "
-            f"label={self.label!r})"
+            f"device_parameters={self.device_parameters!r}, is_const={self.is_const}, "
+            f"label={self.label!r}, unit={self.unit})"
         )
 
     @classmethod
@@ -96,11 +97,12 @@ class Metadata:
     def _from_json_dict_(
         cls,
         device_parameters: Optional[Sequence[DeviceParameter]] = None,
-        as_parameter: bool = False,
+        is_const: bool = False,
         label: Optional[str] = None,
+        unit: Optional[str] = None,
         **kwargs,
     ):
-        return Metadata(device_parameters=device_parameters, as_parameter=as_parameter, label=label)
+        return Metadata(device_parameters=device_parameters, is_const=is_const, label=label)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ["device_parameters", "as_parameter", "label"])
+        return cirq.obj_to_dict_helper(self, ["device_parameters", "is_const", "label", "unit"])

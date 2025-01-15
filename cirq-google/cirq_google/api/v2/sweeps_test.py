@@ -71,10 +71,10 @@ class UnknownSweep(sweeps.SingleSweep):
                     DeviceParameter(path=['path', 'to', 'parameter2']),
                 ],
                 label="bb",
-                as_parameter=True,
+                is_const=True,
             ),
         ),
-        cirq.Linspace('a', 0, 10, 100, metadata=Metadata(as_parameter=True)),
+        cirq.Linspace('a', 0, 10, 100, metadata=Metadata(is_const=True)),
         cirq.Points(
             'b',
             [1, 1.5, 2, 2.5, 3],
