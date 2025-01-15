@@ -47,20 +47,29 @@ class ClassicallyControlledOperation(raw_types.Operation):
      `operation.with_classical_controls(*conditions)`.
 
     Examples:
-        q0, q1, q2 = cirq.LineQubit.range(3)
 
-        # Apply X if measurement was non-zero (single condition)
-        circuit = cirq.Circuit(
-            cirq.measure(q0, key='control_key'),
-            cirq.X(q1).with_classical_controls('control_key')
-        )
-
-        # Apply X if both measurements were non-zero (multiple conditions)
-        circuit = cirq.Circuit([
-            cirq.measure(q0, key='control_key1'),
-            cirq.measure(q1, key='control_key2'),
-            cirq.X(q2).with_classical_controls('control_key1', 'control_key2')
-        ])
+    >>> import cirq
+    >>> a, b, c = cirq.LineQubit.range(3)
+    >>> circuit1 = cirq.Circuit(cirq.measure(a, key='control_key'), cirq.X(b).with_classical_controls('control_key'))
+    >>> print(circuit1)
+    0: ─────────────M───────
+                    ║
+    1: ─────────────╫───X───
+                    ║   ║
+    control_key: ═══@═══^═══
+    >>> circuit2 = cirq.Circuit([cirq.measure(a, key='control_key1'), cirq.measure(b, key='control_key2'), cirq.X(c).with_classical_controls('control_key1', 'control_key2')])
+    >>> print(circuit2)
+                     ┌──┐
+    0: ───────────────M─────────
+                      ║
+    1: ───────────────╫M────────
+                      ║║
+    2: ───────────────╫╫────X───
+                      ║║    ║
+    control_key1: ════@╬════^═══
+                       ║    ║
+    control_key2: ═════@════^═══
+                     └──┘
     """
 
     def __init__(
