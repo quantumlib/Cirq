@@ -1,1 +1,4 @@
-cirq.SympyCondition(sympy.GreaterThan(sympy.Symbol('a'), sympy.Symbol('b')))
+[
+cirq.SympyCondition(sympy.GreaterThan(sympy.Symbol('a'), sympy.Symbol('b'))),
+cirq.SympyCondition(sympy.Xor(sympy.Indexed(sympy.IndexedBase(sympy.Symbol('a')), sympy.Integer(0)), sympy.Indexed(sympy.IndexedBase(sympy.Symbol('a')), sympy.Integer(1))))
+]

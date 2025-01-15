@@ -44,9 +44,9 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     # Requires pinned quimb from #6438
     'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
+    # Requires OpenQASM 3.0 support from cirq 1.6
+    'docs/build/interop.ipynb',
     # get_qcs_objects_for_notebook
-    'docs/noise/calibration_api.ipynb',
-    'docs/noise/floquet_calibration_example.ipynb',
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
 ]
 

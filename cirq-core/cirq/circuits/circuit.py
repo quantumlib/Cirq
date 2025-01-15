@@ -2041,6 +2041,24 @@ class Circuit(AbstractCircuit):
     ) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
+        This function will return a new `Circuit` with the same gates but
+        with qubits mapped according to the argument.
+
+        For example, the following will translate LineQubits to GridQubits:
+
+        >>> grid_qubits = cirq.GridQubit.square(2)
+        >>> line_qubits = cirq.LineQubit.range(4)
+        >>> circuit = cirq.Circuit([cirq.H(q) for q in line_qubits])
+        >>> circuit.transform_qubits(lambda q : grid_qubits[q.x])
+        cirq.Circuit([
+            cirq.Moment(
+                cirq.H(cirq.GridQubit(0, 0)),
+                cirq.H(cirq.GridQubit(0, 1)),
+                cirq.H(cirq.GridQubit(1, 0)),
+                cirq.H(cirq.GridQubit(1, 1)),
+            ),
+        ])
+
         Args:
             qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
