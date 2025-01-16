@@ -1683,7 +1683,7 @@ class _PlacementCache:
 
     It is only valid for `append` operations, and if any other insert strategy
     is used, or if any operation is added to the circuit without notifying the
-    placer, then the placer must be invalidated for the circuit or rebuilt from
+    cache, then the cache must be invalidated for the circuit or rebuilt from
     scratch. Future improvements may ease this restriction.
     """
 
@@ -1696,7 +1696,7 @@ class _PlacementCache:
         # For keeping track of length of the circuit thus far.
         self._length = 0
 
-    def place(
+    def append(
         self,
         moment_or_operation: Union['cirq.Moment', 'cirq.Operation'],
         *,
@@ -1838,7 +1838,7 @@ class Circuit(AbstractCircuit):
                 together. This option does not affect later insertions into the
                 circuit.
         """
-        self._placer: Optional[_PlacementCache] = _PlacementCache()
+        self._placement_cache: Optional[_PlacementCache] = _PlacementCache()
         self._moments: List['cirq.Moment'] = []
 
         # Implementation note: the following cached properties are set lazily and then
@@ -1853,7 +1853,7 @@ class Circuit(AbstractCircuit):
             return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
         if all(isinstance(c, Moment) for c in flattened_contents):
-            self._placer = None
+            self._placement_cache = None
             self._moments[:] = cast(Iterable[Moment], flattened_contents)
             return
         with _compat.block_overlapping_deprecation('.*'):
@@ -1862,21 +1862,21 @@ class Circuit(AbstractCircuit):
             else:
                 self.append(flattened_contents, strategy=strategy)
 
-    def _mutated(self, preserve_placer=False) -> None:
+    def _mutated(self, *, preserve_placement_cache=False) -> None:
         """Clear cached properties in response to this circuit being mutated."""
         self._all_qubits = None
         self._frozen = None
         self._is_measurement = None
         self._is_parameterized = None
         self._parameter_names = None
-        if not preserve_placer:
-            self._placer = None
+        if not preserve_placement_cache:
+            self._placement_cache = None
 
     @classmethod
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
         new_circuit = Circuit()
         new_circuit._moments[:] = moments
-        new_circuit._placer = None
+        new_circuit._placement_cache = None
         return new_circuit
 
     def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
@@ -1899,7 +1899,7 @@ class Circuit(AbstractCircuit):
                 insertion strategy.
         """
         # PlacementCache holds dicts from the qubit/key to the greatest moment index that has it.
-        placer = cast(_PlacementCache, self._placer)
+        placement_cache = cast(_PlacementCache, self._placement_cache)
 
         # We also maintain the dict from moment index to moments/ops that go into it, for use when
         # building the actual moments at the end.
@@ -1909,7 +1909,7 @@ class Circuit(AbstractCircuit):
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
             # Identify the index of the moment to place this `mop` into.
-            placement_index = placer.place(mop)
+            placement_index = placement_cache.append(mop)
             if isinstance(mop, Moment):
                 moments_by_index[placement_index] = mop
             else:
@@ -1917,7 +1917,7 @@ class Circuit(AbstractCircuit):
 
         # Finally, once everything is placed, we can construct and append the actual moments for
         # each index.
-        for i in range(placer._length):
+        for i in range(placement_cache._length):
             if i in moments_by_index:
                 self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
             else:
@@ -1965,7 +1965,7 @@ class Circuit(AbstractCircuit):
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
-        copied_circuit._placer = None
+        copied_circuit._placement_cache = None
         return copied_circuit
 
     # pylint: disable=function-redefined
@@ -2240,16 +2240,18 @@ class Circuit(AbstractCircuit):
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
         moments_or_ops = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
-        if self._placer and strategy == InsertStrategy.EARLIEST and index == len(self._moments):
-            # Use `placer` to get placement indices quickly.
+        if strategy != InsertStrategy.EARLIEST or index != len(self._moments):
+            self._placement_cache = None
+        if self._placement_cache:
+            # Use placement cache to get placement indices quickly.
             for moment_or_op in moments_or_ops:
-                p = self._placer.place(moment_or_op, target=self._moments)
+                p = self._placement_cache.append(moment_or_op, target=self._moments)
                 k = max(k, p + 1)
-            self._mutated(preserve_placer=True)
+            self._mutated(preserve_placement_cache=True)
         else:
             # Default algorithm. Same behavior as above, but has to search for placement indices.
-            # First invalidate the placer due to unsupported insertion.
-            self._placer = None
+            # First invalidate the placement cache due to unsupported insertion.
+            self._placement_cache = None
             for moment_or_op in moments_or_ops:
                 if isinstance(moment_or_op, Moment):
                     self._moments.insert(k, moment_or_op)
