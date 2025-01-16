@@ -2250,8 +2250,6 @@ class Circuit(AbstractCircuit):
             self._mutated(preserve_placement_cache=True)
         else:
             # Default algorithm. Same behavior as above, but has to search for placement indices.
-            # First invalidate the placement cache due to unsupported insertion.
-            self._placement_cache = None
             for moment_or_op in moments_or_ops:
                 if isinstance(moment_or_op, Moment):
                     self._moments.insert(k, moment_or_op)
