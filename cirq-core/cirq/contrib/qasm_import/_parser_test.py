@@ -14,6 +14,7 @@
 
 import re
 import textwrap
+import warnings
 from typing import Callable
 
 import numpy as np
@@ -1234,6 +1235,47 @@ def test_custom_gate():
     qasm = """OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
+     gate g q0, q1 {
+        x q0;
+        y q0;
+        z q1;
+     }
+     g q[0], q[1];
+     g q[1], q[0];
+    """
+
+    # The gate definition should translate to this
+    q0, q1 = cirq.NamedQubit.range(2, prefix='q')
+    g = cirq.FrozenCircuit(cirq.X(q0), cirq.Y(q0), cirq.Z(q1))
+
+    # The outer circuit should then translate to this
+    q_0, q_1 = cirq.NamedQubit.range(2, prefix='q_')  # The outer qreg array
+    expected = cirq.Circuit(
+        cirq.CircuitOperation(g, qubit_map={q0: q_0, q1: q_1}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_1, q1: q_0}),
+    )
+
+    # Verify
+    parser = QasmParser()
+    parsed_qasm = parser.parse(qasm)
+    assert parsed_qasm.circuit == expected
+
+    # Sanity check that this unrolls to a valid circuit
+    unrolled_expected = cirq.Circuit(
+        cirq.X(q_0), cirq.Y(q_0), cirq.Z(q_1), cirq.X(q_1), cirq.Y(q_1), cirq.Z(q_0)
+    )
+    unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
+    assert unrolled == unrolled_expected
+
+    # Sanity check that these have the same unitaries as the QASM.
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
+
+
+def test_custom_gate_parameterized():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
      gate g(p0, p1) q0, q1 {
         rx(p0) q0;
         ry(p0+p1+3) q0;
@@ -1279,98 +1321,181 @@ def test_custom_gate():
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
 
 
-def test_custom_gate_undefined_qubit_error():
+def test_custom_gate_broadcast():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[3];
+     gate g q0 {
+        x q0;
+        y q0;
+        z q0;
+     }
+     g q; // broadcast to all qubits in register
+    """
+
+    # The gate definition should translate to this
+    q0 = cirq.NamedQubit('q0')
+    g = cirq.FrozenCircuit(cirq.X(q0), cirq.Y(q0), cirq.Z(q0))
+
+    # The outer circuit should then translate to this
+    q_0, q_1, q_2 = cirq.NamedQubit.range(3, prefix='q_')  # The outer qreg array
+    expected = cirq.Circuit(
+        # It is broadcast to all qubits in the qreg
+        cirq.CircuitOperation(g, qubit_map={q0: q_0}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_1}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_2}),
+    )
+
+    # Verify
     parser = QasmParser()
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
-     qubit q;
+    parsed_qasm = parser.parse(qasm)
+    assert parsed_qasm.circuit == expected
+
+    # Sanity check that this unrolls to a valid circuit
+    unrolled_expected = cirq.Circuit(
+        cirq.X(q_0),
+        cirq.Y(q_0),
+        cirq.Z(q_0),
+        cirq.X(q_1),
+        cirq.Y(q_1),
+        cirq.Z(q_1),
+        cirq.X(q_2),
+        cirq.Y(q_2),
+        cirq.Z(q_2),
+    )
+    unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
+    assert unrolled == unrolled_expected
+
+    # Sanity check that these have the same unitaries as the QASM.
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
+
+
+def test_custom_gate_undefined_qubit_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
      gate g q0 { x q1; }
      g q
     """
-    with pytest.raises(QasmException, match='Undefined quantum register "q1" at line 4'):
-        parser.parse(qasm)
+    _test_parse_exception(
+        qasm,
+        cirq_err="Undefined quantum register 'q1' at line 4",
+        qiskit_err="4,19: 'q1' is not defined in this scope",
+    )
 
 
 def test_custom_gate_qubit_scope_closure_error():
-    parser = QasmParser()
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
-     qubit q;
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
      gate g q0 { x q; }
      g q
     """
-    with pytest.raises(QasmException, match='Undefined quantum register "q" at line 4'):
-        parser.parse(qasm)
+    _test_parse_exception(
+        qasm,
+        cirq_err="Undefined quantum register 'q' at line 4",
+        qiskit_err="4,19: 'q' is a quantum register, not a qubit",
+    )
 
 
 def test_custom_gate_qubit_index_error():
-    parser = QasmParser()
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
      qreg q[1];
-     gate g q0 { x q0[0]; }  // QASM does not support indexed qregs in custom gates
+     gate g q0 { x q0[0]; }
      g q
     """
-    with pytest.raises(
-        QasmException, match=re.escape('Unsupported indexed qreg "q0[0]" at line 4')
-    ):
-        parser.parse(qasm)
+    _test_parse_exception(
+        qasm,
+        cirq_err="Unsupported indexed qreg 'q0[0]' at line 4",
+        qiskit_err="4,21: needed ';', but instead saw [",
+    )
 
 
 def test_custom_gate_qreg_count_error():
-    parser = QasmParser()
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
      qreg q[2];
      gate g q0 { x q0; }
-     g q;
+     g q[0], q[1];
     """
-    with pytest.raises(QasmException, match='Wrong number of qregs for "g" at line 5'):
-        parser.parse(qasm)
+    _test_parse_exception(
+        qasm,
+        cirq_err="Wrong number of qregs for 'g' at line 5",
+        qiskit_err="5,5: 'g' takes 1 quantum argument, but got 2",
+    )
 
 
 def test_custom_gate_missing_param_error():
-    parser = QasmParser()
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
-     qubit q;
-     gate g(p) q0 { x q0; }
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gate g(p) q0 { rx(p) q0; }
      g q;
     """
-    with pytest.raises(QasmException, match='Wrong number of params for "g" at line 5'):
-        parser.parse(qasm)
+    _test_parse_exception(
+        qasm,
+        cirq_err="Wrong number of params for 'g' at line 5",
+        qiskit_err=None,  # Qiskit bug? It's an invalid circuit that won't simulate.
+    )
 
 
 def test_custom_gate_extra_param_error():
-    parser = QasmParser()
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
-     qubit q;
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
      gate g q0 { x q0; }
      g(3) q;
     """
-    with pytest.raises(QasmException, match='Wrong number of params for "g" at line 5'):
-        parser.parse(qasm)
+    _test_parse_exception(
+        qasm,
+        cirq_err="Wrong number of params for 'g' at line 5",
+        qiskit_err="5,5: 'g' takes 0 parameters, but got 1",
+    )
 
 
 def test_custom_gate_undefined_param_error():
-    parser = QasmParser()
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
-     qubit q;
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
      gate g q0 { rx(p) q0; }
      g q;
     """
-    with pytest.raises(QasmException, match='Undefined parameter "p" in line 4'):
-        parser.parse(qasm)
+    _test_parse_exception(
+        qasm,
+        cirq_err="Undefined parameter 'p' in line 4",
+        qiskit_err="4,20: 'p' is not a parameter",
+    )
 
 
 def test_top_level_param_error():
-    parser = QasmParser()
-    qasm = """OPENQASM 3.0;
-     include "stdgates.inc";
-     qubit q;
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
      rx(p) q;
     """
-    with pytest.raises(QasmException, match='Parameter "p" in line 4 not supported'):
+    _test_parse_exception(
+        qasm,
+        cirq_err="Parameter 'p' in line 4 not supported",
+        qiskit_err="4,8: 'p' is not a parameter",
+    )
+
+
+def _test_parse_exception(qasm: str, cirq_err: str, qiskit_err: str | None):
+    parser = QasmParser()
+    with pytest.raises(QasmException, match=re.escape(cirq_err)):
         parser.parse(qasm)
+    try:
+        import qiskit
+
+        if qiskit_err is None:
+            qiskit.QuantumCircuit.from_qasm_str(qasm)
+            return
+        with pytest.raises(qiskit.qasm2.exceptions.QASM2ParseError, match=re.escape(qiskit_err)):
+            qiskit.QuantumCircuit.from_qasm_str(qasm)
+    except ImportError:  # pragma: no cover
+        warnings.warn(
+            "Skipped _test_qiskit_parse_exception because "
+            "qiskit isn't installed to verify against."
+        )

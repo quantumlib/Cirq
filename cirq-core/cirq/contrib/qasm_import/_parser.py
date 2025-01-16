@@ -60,6 +60,29 @@ class Qasm:
         self.circuit = c
 
 
+def _generate_op_qubits(args: List[List[ops.Qid]], lineno: int) -> List[List[ops.Qid]]:
+    # OpenQASM gates can be applied on single qubits and qubit registers.
+    # We represent single qubits as registers of size 1.
+    # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
+    # single qubit arguments can be mixed with qubit registers.
+    # Given quantum registers of length reg_size and single qubits are both
+    # used as arguments, we generate reg_size GateOperations via iterating
+    # through each qubit of the registers 0 to n-1 and use the same one
+    # qubit from the "single-qubit registers" for each operation.
+    reg_sizes = np.unique([len(reg) for reg in args])
+    if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
+        raise QasmException(
+            f"Non matching quantum registers of length {reg_sizes} at line {lineno}"
+        )
+    op_qubits_gen = functools.reduce(
+        cast(Callable[[List['cirq.Qid'], List['cirq.Qid']], List['cirq.Qid']], np.broadcast), args
+    )
+    op_qubits = [[q] if isinstance(q, ops.Qid) else q for q in op_qubits_gen]
+    if any(len(set(q)) < len(q) for q in op_qubits):
+        raise QasmException(f"Overlapping qubits in arguments at line {lineno}")
+    return op_qubits
+
+
 class QasmGateStatement:
     """Specifies how to convert a call to an OpenQASM gate
     to a list of `cirq.GateOperation`s.
@@ -113,36 +136,13 @@ class QasmGateStatement:
         self._validate_args(args, lineno)
         self._validate_params(params, lineno)
 
-        reg_sizes = np.unique([len(reg) for reg in args])
-        if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
-            raise QasmException(
-                f"Non matching quantum registers of length {reg_sizes} at line {lineno}"
-            )
-
         # the actual gate we'll apply the arguments to might be a parameterized
         # or non-parameterized gate
         final_gate: ops.Gate = (
             self.cirq_gate if isinstance(self.cirq_gate, ops.Gate) else self.cirq_gate(params)
         )
-        # OpenQASM gates can be applied on single qubits and qubit registers.
-        # We represent single qubits as registers of size 1.
-        # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
-        # single qubit arguments can be mixed with qubit registers.
-        # Given quantum registers of length reg_size and single qubits are both
-        # used as arguments, we generate reg_size GateOperations via iterating
-        # through each qubit of the registers 0 to n-1 and use the same one
-        # qubit from the "single-qubit registers" for each operation.
-        op_qubits = functools.reduce(
-            cast(Callable[[List['cirq.Qid'], List['cirq.Qid']], List['cirq.Qid']], np.broadcast),
-            args,
-        )
-        for qubits in op_qubits:
-            if isinstance(qubits, ops.Qid):
-                yield final_gate.on(qubits)
-            elif len(np.unique(qubits)) < len(qubits):
-                raise QasmException(f"Overlapping qubits in arguments at line {lineno}")
-            else:
-                yield final_gate.on(*qubits)
+        for qubits in _generate_op_qubits(args, lineno):
+            yield final_gate.on(*qubits)
 
 
 @dataclasses.dataclass
@@ -154,17 +154,17 @@ class CustomGate:
 
     def on(
         self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
-    ) -> ops.Operation:
+    ) -> Iterable[ops.Operation]:
         if len(params) != len(self.params):
-            raise QasmException(f'Wrong number of params for "{self.name}" at line {lineno}')
-        qubits = [q for qs in args for q in qs]
-        if len(qubits) != len(self.qubits):
-            raise QasmException(f'Wrong number of qregs for "{self.name}" at line {lineno}')
-        return CircuitOperation(
-            self.circuit,
-            param_resolver={k: v for k, v in zip(self.params, params)},
-            qubit_map={k: v for k, v in zip(self.qubits, qubits)},
-        )
+            raise QasmException(f"Wrong number of params for '{self.name}' at line {lineno}")
+        if len(args) != len(self.qubits):
+            raise QasmException(f"Wrong number of qregs for '{self.name}' at line {lineno}")
+        for qubits in _generate_op_qubits(args, lineno):
+            yield CircuitOperation(
+                self.circuit,
+                param_resolver={k: v for k, v in zip(self.params, params)},
+                qubit_map={k: v for k, v in zip(self.qubits, qubits)},
+            )
 
 
 class QasmParser:
@@ -459,9 +459,9 @@ class QasmParser:
     def p_expr_identifier(self, p):
         """expr : ID"""
         if not self.in_custom_gate_scope:
-            raise QasmException(f'Parameter "{p[1]}" in line {p.lineno(1)} not supported')
+            raise QasmException(f"Parameter '{p[1]}' in line {p.lineno(1)} not supported")
         if p[1] not in self.custom_gate_scoped_params:
-            raise QasmException(f'Undefined parameter "{p[1]}" in line {p.lineno(1)}')
+            raise QasmException(f"Undefined parameter '{p[1]}' in line {p.lineno(1)}'")
         p[0] = sympy.Symbol(p[1])
 
     def p_expr_parens(self, p):
@@ -518,7 +518,7 @@ class QasmParser:
         reg = p[1]
         if self.in_custom_gate_scope:
             if reg not in self.custom_gate_scoped_qubits:
-                raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
+                raise QasmException(f"Undefined quantum register '{reg}' at line {p.lineno(1)}")
             p[0] = [self.custom_gate_scoped_qubits[reg]]
             return
         if reg not in self.qregs.keys():
@@ -550,7 +550,7 @@ class QasmParser:
         reg = p[1]
         idx = p[3]
         if self.in_custom_gate_scope:
-            raise QasmException(f'Unsupported indexed qreg "{reg}[{idx}]" at line {p.lineno(1)}')
+            raise QasmException(f"Unsupported indexed qreg '{reg}[{idx}]' at line {p.lineno(1)}")
         arg_name = self.make_name(idx, reg)
         if reg not in self.qregs.keys():
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
