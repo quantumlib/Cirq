@@ -1697,11 +1697,7 @@ class _PlacementCache:
         self._length = 0
 
     def append(
-        self,
-        moment_or_operation: Union['cirq.Moment', 'cirq.Operation'],
-        *,
-        min_index: int = 0,
-        target: Optional[List['cirq.Moment']] = None,
+        self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation'], *, min_index: int = 0
     ) -> int:
         """Find placement for moment/operation and update cache.
 
@@ -1714,12 +1710,9 @@ class _PlacementCache:
         Args:
             moment_or_operation: The moment or operation to append.
             min_index: The minimum index at which to place the moment/op.
-            target: The optional list of Moments in which to place the
-                operation, if provided.
 
         Returns:
-            The index at which the moment/operation should be (or has been, if
-            'target' was provided) placed.
+            The index at which the moment/operation should be placed.
         """
         # Identify the index of the moment to place this into.
         index = get_earliest_accommodating_moment_index(
@@ -1731,14 +1724,6 @@ class _PlacementCache:
             min_index=min_index,
         )
         self._length = max(self._length, index + 1)
-        if target is not None:
-            if isinstance(moment_or_operation, Moment):
-                target.append(moment_or_operation)
-            else:
-                if index >= len(target):
-                    target.append(Moment(moment_or_operation))
-                else:
-                    target[index] = target[index].with_operation(moment_or_operation)
         return index
 
 
@@ -2239,31 +2224,26 @@ class Circuit(AbstractCircuit):
         """
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
-        moments_or_ops = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
         if strategy != InsertStrategy.EARLIEST or index != len(self._moments):
             self._placement_cache = None
-        if self._placement_cache:
-            # Use placement cache to get placement indices quickly.
-            for moment_or_op in moments_or_ops:
-                p = self._placement_cache.append(moment_or_op, target=self._moments)
-                k = max(k, p + 1)
-            self._mutated(preserve_placement_cache=True)
-        else:
-            # Default algorithm. Same behavior as above, but has to search for placement indices.
-            for moment_or_op in moments_or_ops:
+        for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
+            if self._placement_cache:
+                p = self._placement_cache.append(moment_or_op)
+            else:
                 if isinstance(moment_or_op, Moment):
-                    self._moments.insert(k, moment_or_op)
-                    k += 1
+                    p = k
                 else:
-                    op = moment_or_op
-                    p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
-                    while p >= len(self._moments):
-                        self._moments.append(Moment())
-                    self._moments[p] = self._moments[p].with_operation(op)
-                    k = max(k, p + 1)
-                    if strategy is InsertStrategy.NEW_THEN_INLINE:
-                        strategy = InsertStrategy.INLINE
-            self._mutated()
+                    p = self._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
+            if isinstance(moment_or_op, Moment):
+                self._moments.insert(p, moment_or_op)
+            elif p == len(self._moments):
+                self._moments.append(Moment(moment_or_op))
+            else:
+                self._moments[p] = self._moments[p].with_operation(moment_or_op)
+            k = max(k, p + 1)
+            if strategy is InsertStrategy.NEW_THEN_INLINE:
+                strategy = InsertStrategy.INLINE
+        self._mutated(preserve_placement_cache=True)
         return k
 
     def insert_into_range(self, operations: 'cirq.OP_TREE', start: int, end: int) -> int:
