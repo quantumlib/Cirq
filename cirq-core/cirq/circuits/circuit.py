@@ -2226,13 +2226,15 @@ class Circuit(AbstractCircuit):
         if strategy != InsertStrategy.EARLIEST or index != len(self._moments):
             self._placement_cache = None
         for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
-            if self._placement_cache:
-                p = self._placement_cache.append(moment_or_op)
-            else:
-                if isinstance(moment_or_op, Moment):
-                    p = k
-                else:
-                    p = self._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
+            p = (
+                self._placement_cache.append(moment_or_op)
+                if self._placement_cache
+                else (
+                    k
+                    if isinstance(moment_or_op, Moment)
+                    else self._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
+                )
+            )
             if isinstance(moment_or_op, Moment):
                 self._moments.insert(p, moment_or_op)
             elif p == len(self._moments):
