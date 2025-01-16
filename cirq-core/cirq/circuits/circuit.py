@@ -1703,9 +1703,8 @@ class _PlacementCache:
 
         Determines the placement index of the provided operation, assuming
         EARLIEST (append) strategy, and assuming that the internal cache
-        correctly represents the circuit. It then updates the cache and, if the
-        target moment list is provided, adds the operation/moment to the
-        corresponding location in the moment list.
+        correctly represents the circuit. It then updates the cache and returns
+        the placement index.
 
         Args:
             moment_or_operation: The moment or operation to append.
