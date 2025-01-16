@@ -517,7 +517,11 @@ class QasmParser:
         reg = p[1]
         if self.in_custom_gate_scope:
             if reg not in self.custom_gate_scoped_qubits:
-                raise QasmException(f"Undefined quantum register '{reg}' at line {p.lineno(1)}")
+                if reg not in self.qregs:
+                    msg = f"Undefined qubit '{reg}'"
+                else:
+                    msg = f"'{reg}' is a register, not a qubit"
+                raise QasmException(f"{msg} at line {p.lineno(1)}")
             p[0] = [self.custom_gate_scoped_qubits[reg]]
             return
         if reg not in self.qregs.keys():

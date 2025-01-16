@@ -1380,7 +1380,7 @@ def test_custom_gate_undefined_qubit_error():
     """
     _test_parse_exception(
         qasm,
-        cirq_err="Undefined quantum register 'q1' at line 4",
+        cirq_err="Undefined qubit 'q1' at line 4",
         qiskit_err="4,19: 'q1' is not defined in this scope",
     )
 
@@ -1394,7 +1394,7 @@ def test_custom_gate_qubit_scope_closure_error():
     """
     _test_parse_exception(
         qasm,
-        cirq_err="Undefined quantum register 'q' at line 4",
+        cirq_err="'q' is a register, not a qubit at line 4",
         qiskit_err="4,19: 'q' is a quantum register, not a qubit",
     )
 
