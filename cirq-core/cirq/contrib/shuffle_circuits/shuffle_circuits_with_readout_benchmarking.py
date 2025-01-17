@@ -83,7 +83,7 @@ def _shuffle_circuits(all_circuits: list[circuits.Circuit], all_repetitions: lis
                                                          list[int], np.ndarray]:
     """Shuffles the input circuits and readout calibration circuits."""
     shuf_order = rng.permutation(len(all_circuits))
-    unshuf_order = np.zeros_like(shuf_order)
+    unshuf_order = np.zeros_like(shuf_order)    # Inverse permutation
     unshuf_order[shuf_order] = np.arange(len(all_circuits))
     shuffled_circuits = [all_circuits[i] for i in shuf_order]
     all_repetitions = [all_repetitions[i] for i in shuf_order]
