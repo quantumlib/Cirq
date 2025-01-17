@@ -22,7 +22,7 @@ import tunits
 
 import cirq
 from cirq.study import sweeps
-from cirq_google.study import DeviceParameter
+from cirq_google.study import DeviceParameter, Metadata
 from cirq_google.api import v2
 
 
@@ -55,6 +55,27 @@ class UnknownSweep(sweeps.SingleSweep):
             [1, 1.5, 2, 2.5, 3],
             metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=2, units='GHz'),
         ),
+        cirq.Points(
+            'a',
+            [1, 1.5, 2, 2.5, 3],
+            metadata=Metadata(
+                device_parameters=[DeviceParameter(path=['path', 'to', 'parameter'], idx=2)],
+                label="bb",
+            ),
+        ),
+        cirq.Points(
+            'a',
+            [1],
+            metadata=Metadata(
+                device_parameters=[
+                    DeviceParameter(path=['path', 'to', 'parameter']),
+                    DeviceParameter(path=['path', 'to', 'parameter2']),
+                ],
+                label="bb",
+                is_const=True,
+            ),
+        ),
+        cirq.Linspace('a', 0, 10, 100, metadata=Metadata(is_const=True)),
         cirq.Points(
             'b',
             [1, 1.5, 2, 2.5, 3],
