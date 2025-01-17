@@ -15,8 +15,8 @@
 """Creates the abstraction for gauge compiling as a cirq transformer."""
 
 from typing import Callable, Dict, Tuple, Optional, Sequence, Union, List
-from itertools import count
 from dataclasses import dataclass
+from numbers import Real
 import abc
 import itertools
 import functools
@@ -140,14 +140,12 @@ class TwoQubitGateSymbolizer:
         n_symbols: The number of symbols to use for parameterization.
     """
 
-    symbolizer_fn: Callable[
-        [ops.Gate, Sequence[sympy.Symbol]], Tuple[ops.Gate, Dict[str, Union[float, int]]]
-    ]
+    symbolizer_fn: Callable[[ops.Gate, Sequence[sympy.Symbol]], Tuple[ops.Gate, Dict[str, Real]]]
     n_symbols: int
 
     def __call__(
         self, two_qubit_gate: ops.Gate, symbols: Sequence[sympy.Symbol]
-    ) -> Tuple[ops.Gate, Dict[str, Union[float, int]]]:
+    ) -> Tuple[ops.Gate, Dict[str, Real]]:
         """Symbolizes a two qubit gate to a parameterized gate.
 
         Args:
@@ -157,6 +155,9 @@ class TwoQubitGateSymbolizer:
         Returns:
             A tuple containing the parameterized gate and a dictionary mapping
             symbol names to their values.
+
+        Raises:
+            ValueError: If the provided symbols do not match the expected number.
         """
         if len(symbols) != self.n_symbols:
             raise ValueError(
@@ -272,8 +273,8 @@ class GaugeTransformer:
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
         new_moments: List[List[ops.Operation]] = []  # Store parameterized circuits.
-        phxz_sid = count()
-        two_qubit_gate_sid = count()
+        phxz_sid = itertools.count()
+        two_qubit_gate_sid = itertools.count()
         # Map from "((pre|post),$qid,$moment_id)" to gate parameters.
         # E.g., {(post,q1,2): {"x_exponent": "x1", "z_exponent": "z1", "axis_phase": "a1"}}
         phxz_symbols_by_locs: Dict[Tuple[str, ops.Qid, int], Dict[str, sympy.Symbol]] = {}
@@ -372,7 +373,7 @@ class GaugeTransformer:
                                 ],
                             )
                             for symbol_str, val in vals_by_symbols.items():
-                                values_by_params[symbol_str].append(val)
+                                values_by_params[symbol_str].append(float(val))
 
                         # Get the params of pre/post q0/q1 gates.
                         for pre_or_post, idx in itertools.product(["pre", "post"], [0, 1]):
@@ -382,7 +383,7 @@ class GaugeTransformer:
                                 phxz_symbols_by_locs[(pre_or_post, op.qubits[idx], moment_id)],
                             )
                             for key, value in phxz_params.items():
-                                values_by_params[key].append(value)
+                                values_by_params[key].append(float(value))
 
         sweeps: List[Points] = [
             Points(key=key, points=values) for key, values in values_by_params.items()

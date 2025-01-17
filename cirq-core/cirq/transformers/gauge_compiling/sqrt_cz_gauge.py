@@ -15,7 +15,8 @@
 """A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
 
-from typing import TYPE_CHECKING, Dict, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Sequence, Tuple
+from numbers import Real
 import numpy as np
 import sympy
 
@@ -64,10 +65,10 @@ class SqrtCZGauge(Gauge):
 
 def _symbolize_as_cz_pow(
     two_qubit_gate: Gate, symbols: Sequence[sympy.Symbol]
-) -> Tuple[Gate, Dict[str, Union[int, float]]]:
+) -> Tuple[Gate, Dict[str, Real]]:
     """Symbolizes a CZPowGate to a parameterized CZPowGate."""
 
-    if not isinstance(two_qubit_gate, CZPowGate):
+    if not isinstance(two_qubit_gate, CZPowGate) or not isinstance(two_qubit_gate.exponent, Real):
         raise ValueError("Can't symbolize non-CZPowGate as CZ**symbol.")
     return (CZ ** symbols[0], {str(symbols[0]): two_qubit_gate.exponent})
 
