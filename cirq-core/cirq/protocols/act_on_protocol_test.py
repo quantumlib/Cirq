@@ -30,7 +30,7 @@ class ExampleQuantumState(cirq.QuantumStateRepresentation):
 
 class ExampleSimulationState(cirq.SimulationState):
     def __init__(self, fallback_result: Any = NotImplemented):
-        super().__init__(prng=np.random.RandomState(), state=ExampleQuantumState())
+        super().__init__(prng=np.random.default_rng(), state=ExampleQuantumState())
         self.fallback_result = fallback_result
 
     def _act_on_fallback_(

@@ -110,7 +110,7 @@ class SimulatorBase(
         self._dtype = dtype
         if isinstance(seed, np.random.RandomState):
             # Convert RandomState to Generator for backward compatibility
-            self._prng = np.random.default_rng(seed.get_state()[1][0])
+            self._prng = np.random.Generator(seed._bit_generator)
         elif isinstance(seed, np.random.Generator):
             self._prng = seed
         else:
@@ -409,7 +409,7 @@ class StepResultBase(
         seed: Optional[Union[int, np.random.Generator, np.random.RandomState]] = None,
     ) -> np.ndarray:
         if isinstance(seed, np.random.RandomState):
-            rng = np.random.default_rng(seed.get_state()[1][0])
+            rng = np.random.Generator(seed._bit_generator)
         elif isinstance(seed, np.random.Generator):
             rng = seed
         else:

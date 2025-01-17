@@ -37,7 +37,7 @@ document(
 )
 
 
-def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:
+def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Generator:
     """Interpret an object as a pseudorandom number generator.
 
     If `random_state` is None, returns the module `np.random`.
@@ -53,8 +53,12 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
         The pseudorandom number generator object.
     """
     if random_state is None:
-        return cast(np.random.RandomState, np.random)
+        return np.random.default_rng()
     elif isinstance(random_state, int):
-        return np.random.RandomState(random_state)
+        return np.random.default_rng(random_state)
+    elif isinstance(random_state, np.random.RandomState):
+        return np.random.default_rng(random_state.get_state()[1][0]) # type: ignore[index]
+    elif isinstance(random_state, np.random.Generator):
+        return random_state
     else:
-        return cast(np.random.RandomState, random_state)
+        return np.random.default_rng()
