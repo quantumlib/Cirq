@@ -19,6 +19,8 @@ import numpy as np
 
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 from cirq.experiments import random_quantum_circuit_generation as rqcg
+from cirq.experiments import SingleQubitReadoutCalibrationResult
+from cirq.study import ResultDict
 
 
 def test_shuffled_circuits_with_readout_benchmarking_errors_no_noise():
@@ -46,25 +48,28 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_no_noise():
     circuit_repetitions = 1
     # allow passing a seed
     rng = 123
+    readout_repetitions = 1000
 
-    measurements, error_rates = (
+    measurements, readout_calibration_results = (
         cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
             input_circuits,
             sampler,
             circuit_repetitions,
             rng,
             num_random_bitstrings=100,
-            readout_repetitions=1000,
+            readout_repetitions=readout_repetitions,
         )
     )
 
     for measurement in measurements:
-        # Five qubits
-        assert measurement.shape[1] == 5
+        assert isinstance(measurement, ResultDict)
 
-    for _, (e1, e2) in error_rates.items():
-        assert e1 == 0
-        assert e2 == 0
+    assert isinstance(readout_calibration_results, SingleQubitReadoutCalibrationResult)
+
+    assert readout_calibration_results.zero_state_errors == {q: 0 for q in qubits}
+    assert readout_calibration_results.one_state_errors == {q: 0 for q in qubits}
+    assert readout_calibration_results.repetitions == readout_repetitions
+    assert isinstance(readout_calibration_results.timestamp, float)
 
 
 def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise():
@@ -94,24 +99,30 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise():
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
     circuit_repetitions = 1
     rng = np.random.default_rng()
+    readout_repetitions = 1000
 
-    measurements, error_rates = (
+    measurements, readout_calibration_results = (
         cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
             input_circuits,
             sampler,
             circuit_repetitions,
             rng,
             num_random_bitstrings=100,
-            readout_repetitions=1000,
+            readout_repetitions=readout_repetitions,
         )
     )
-    for measurement in measurements:
-        # Six qubits
-        assert measurement.shape[1] == 6
 
-    for _, (e1, e2) in error_rates.items():
-        assert 0.08 < e1 < 0.12
-        assert 0.18 < e2 < 0.22
+    for measurement in measurements:
+        assert isinstance(measurement, ResultDict)
+
+    assert isinstance(readout_calibration_results, SingleQubitReadoutCalibrationResult)
+
+    for error in readout_calibration_results.zero_state_errors.values():
+        assert 0.08 < error < 0.12
+    for error in readout_calibration_results.one_state_errors.values():
+        assert 0.18 < error < 0.22
+    assert readout_calibration_results.repetitions == readout_repetitions
+    assert isinstance(readout_calibration_results.timestamp, float)
 
 
 def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise_and_input_qubits():
@@ -142,25 +153,31 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise_and_input
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.3, seed=1234)
     circuit_repetitions = 1
     rng = np.random.default_rng()
+    readout_repetitions = 1000
 
-    measurements, error_rates = (
+    measurements, readout_calibration_results = (
         cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
             input_circuits,
             sampler,
             circuit_repetitions,
             rng,
             num_random_bitstrings=100,
-            readout_repetitions=1000,
+            readout_repetitions=readout_repetitions,
             qubits=readout_qubits,
         )
     )
-    for measurement in measurements:
-        # Readout measurement has 4 qubits while input circuits measurement have 6 qubits
-        assert measurement.shape[1] == 4 or measurement.shape[1] == 6
 
-    for _, (e1, e2) in error_rates.items():
-        assert 0.08 < e1 < 0.12
-        assert 0.28 < e2 < 0.32
+    for measurement in measurements:
+        assert isinstance(measurement, ResultDict)
+
+    assert isinstance(readout_calibration_results, SingleQubitReadoutCalibrationResult)
+
+    for error in readout_calibration_results.zero_state_errors.values():
+        assert 0.08 < error < 0.12
+    for error in readout_calibration_results.one_state_errors.values():
+        assert 0.28 < error < 0.32
+    assert readout_calibration_results.repetitions == readout_repetitions
+    assert isinstance(readout_calibration_results.timestamp, float)
 
 
 def test_empty_input_circuits():
