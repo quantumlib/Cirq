@@ -18,6 +18,7 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
     Gauge as Gauge,
     GaugeSelector as GaugeSelector,
     GaugeTransformer as GaugeTransformer,
+    TwoQubitGateSymbolizer as TwoQubitGateSymbolizer,
 )
 
 from cirq.transformers.gauge_compiling.sqrt_cz_gauge import (

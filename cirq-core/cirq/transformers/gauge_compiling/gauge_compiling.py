@@ -18,7 +18,6 @@ from typing import Callable, Dict, Tuple, Optional, Sequence, Union, List
 from itertools import count
 from dataclasses import dataclass
 import abc
-import inspect
 import itertools
 import functools
 import sympy
@@ -130,6 +129,42 @@ class SameGateGauge(Gauge):
         )
 
 
+@frozen
+class TwoQubitGateSymbolizer:
+    """Parameterizes two qubit gates with symbols.
+
+    Attributes:
+        symbolizer: A callable that takes a two-qubit gate and a sequence of symbols,
+            and returns a tuple containing the parameterized gate and a dictionary
+            mapping symbol names to their values.
+        n_symbols: The number of symbols to use for parameterization.
+    """
+
+    symbolizer_fn: Callable[
+        [ops.Gate, Sequence[sympy.Symbol]], Tuple[ops.Gate, Dict[str, Union[float, int]]]
+    ]
+    n_symbols: int
+
+    def __call__(
+        self, two_qubit_gate: ops.Gate, symbols: Sequence[sympy.Symbol]
+    ) -> Tuple[ops.Gate, Dict[str, Union[float, int]]]:
+        """Symbolizes a two qubit gate to a parameterized gate.
+
+        Args:
+            two_qubit_gate: The 2 qubit gate to be symbolized.
+            symbols: A sequence of sympy symbols to use for parameterization.
+
+        Returns:
+            A tuple containing the parameterized gate and a dictionary mapping
+            symbol names to their values.
+        """
+        if len(symbols) != self.n_symbols:
+            raise ValueError(
+                f"Expect {self.n_symbols} symbols, but got {len(symbols)} symbols in {symbols}"
+            )
+        return self.symbolizer_fn(two_qubit_gate, symbols)
+
+
 def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
     return choices[prng.choice(len(choices), p=probabilites)]
 
@@ -159,11 +194,7 @@ class GaugeTransformer:
         # which allows matching parametric gates.
         target: Union[ops.Gate, ops.Gateset, ops.GateFamily],
         gauge_selector: Callable[[np.random.Generator], Gauge],
-        symbolize_2_qubit_gate_fn: Optional[
-            Callable[
-                [ConstantGauge, Tuple[sympy.Symbol]], Tuple[ops.Gate, Dict[str, Union[float, int]]]
-            ]
-        ] = None,
+        two_qubit_gate_symbolizer: Optional[TwoQubitGateSymbolizer] = None,
     ) -> None:
         """Constructs a GaugeTransformer.
 
@@ -171,22 +202,11 @@ class GaugeTransformer:
             target: Target two-qubit gate, a gate-family or a gate-set of two-qubit gates.
             gauge_selector: A callable that takes a numpy random number generator
                 as an argument and returns a Gauge.
-            symbolize_2_qubit_gate_fn: A callable that accepts a ConstantGauge and a tuple of
-              Symbol objects, returning a tuple containing the symbolized gate and a dictionary
-              mapping symbol names to their corresponding parameter values. This function is
-              used to parameterize two-qubit gates within the as_sweep method. If no function
-              is provided, no parameterization occurs. It's assumed that all gauges associated
-              with a given transformer employ the same symbolization function for their respective
-              two-qubit gates.
+            two_qubit_gate_symbolizer: A symbolizer to symbolize 2 qubit gates.
         """
         self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
         self.gauge_selector = gauge_selector
-        self.symbolize_2_qubit_gate_fn = symbolize_2_qubit_gate_fn
-        self.n_2_qubit_gate_symbols = (
-            len(inspect.signature(self.symbolize_2_qubit_gate_fn).parameters) - 1
-            if self.symbolize_2_qubit_gate_fn
-            else 0
-        )
+        self.two_qubit_gate_symbolizer = two_qubit_gate_symbolizer
 
     def __call__(
         self,
@@ -265,8 +285,8 @@ class GaugeTransformer:
             sid = next(phxz_sid)
             return _parameterize_to_phxz(sid)
 
-        # Returns a single symbol for 2 qubit gate parameterization.
         def two_qubit_gate_next_symbol_list(n: int) -> List[sympy.Symbol]:
+            """Returns symbols for 2 qubit gate parameterization."""
             sid = next(two_qubit_gate_sid)
             symbols: List[sympy.Symbol] = [sympy.Symbol(f"s{sid}_{sub}") for sub in range(n)]
             return symbols
@@ -286,15 +306,15 @@ class GaugeTransformer:
                     random_gauge = self.gauge_selector(rng).sample(op.gate, rng)
                     # Build symbols for 2-qubit-gates if the transformer might transform it,
                     # otherwise, keep it as it is.
-                    if self.symbolize_2_qubit_gate_fn is not None:
+                    if self.two_qubit_gate_symbolizer is not None:
                         symbols: list[sympy.Symbol] = two_qubit_gate_next_symbol_list(
-                            self.n_2_qubit_gate_symbols
+                            self.two_qubit_gate_symbolizer.n_symbols
                         )
                         two_qubit_gate_symbols_by_locs[(op.qubits[0], op.qubits[1], moment_id)] = (
                             symbols
                         )
-                        parameterized_2_qubit_gate, _ = self.symbolize_2_qubit_gate_fn(
-                            random_gauge, *symbols
+                        parameterized_2_qubit_gate, _ = self.two_qubit_gate_symbolizer(
+                            random_gauge.two_qubit_gate, symbols
                         )
                         center_moment.append(parameterized_2_qubit_gate.on(*op.qubits))
                     else:
@@ -342,11 +362,13 @@ class GaugeTransformer:
                         gauge = self.gauge_selector(rng).sample(op.gate, rng)
 
                         # Get the params for 2 qubit gates.
-                        if self.symbolize_2_qubit_gate_fn is not None:
-                            _, vals_by_symbols = self.symbolize_2_qubit_gate_fn(
-                                gauge,
-                                *two_qubit_gate_symbols_by_locs[
-                                    (op.qubits[0], op.qubits[1], moment_id)
+                        if self.two_qubit_gate_symbolizer is not None:
+                            _, vals_by_symbols = self.two_qubit_gate_symbolizer(
+                                gauge.two_qubit_gate,
+                                [
+                                    *two_qubit_gate_symbols_by_locs[
+                                        (op.qubits[0], op.qubits[1], moment_id)
+                                    ]
                                 ],
                             )
                             for symbol_str, val in vals_by_symbols.items():

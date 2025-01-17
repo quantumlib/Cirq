@@ -16,12 +16,14 @@ import unittest.mock
 import pytest
 import numpy as np
 import cirq
+import sympy
 from cirq.transformers.gauge_compiling import (
     GaugeTransformer,
     CZGaugeTransformer,
     SqrtCZGaugeTransformer,
     ConstantGauge,
     GaugeSelector,
+    TwoQubitGateSymbolizer,
 )
 from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGauge
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
@@ -134,3 +136,9 @@ def test_symbolize_2_qubits_gate_failed():
     ):
         with pytest.raises(ValueError, match="Can't symbolize non-CZPowGate as CZ\\*\\*symbol."):
             _ = SqrtCZGaugeTransformer.as_sweep(c, N=1)
+
+
+def test_symbolize_2_qubits_gate_failed_unmatched_symbol_length():
+    symbolizer = TwoQubitGateSymbolizer(symbolizer_fn=lambda gate, _: (gate, {}), n_symbols=2)
+    with pytest.raises(ValueError, match="Expect 2 symbols, but got 1 symbols"):
+        symbolizer(cirq.CZ, [sympy.Symbol('x')])
