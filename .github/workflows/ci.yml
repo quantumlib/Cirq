@@ -336,6 +336,10 @@ jobs:
         run: |
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+      - name: tmp - install and import qsimcirq
+        run: |
+          pip install qsimcirq
+          python -c "import qsimcirq"
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
