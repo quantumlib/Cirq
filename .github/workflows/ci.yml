@@ -318,7 +318,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.12']
-    runs-on: macos-14
+    runs-on: macos-13
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
