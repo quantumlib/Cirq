@@ -317,7 +317,8 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.12']
+        python-version: ['3.10', '3.11', '3.12']
+    # TODO(#6577): upgrade to macos-latest when it runs Python 3.10
     runs-on: macos-13
     steps:
       - name: Check out source repository
@@ -336,10 +337,6 @@ jobs:
         run: |
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
-      - name: tmp - install and import qsimcirq
-        run: |
-          pip install qsimcirq
-          python -c "import qsimcirq"
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
