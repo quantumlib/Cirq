@@ -147,7 +147,7 @@ def run_shuffled_with_readout_benchmarking(
         num_random_bitstrings: The number of random bitstrings for measuring readout.
         readout_repetitions: The number of repetitions for each readout bitstring.
         qubits: The qubits to benchmark readout errors. If None, all qubits in the 
-        input_circuits are used.
+                input_circuits are used.
 
     Returns:
         The unshuffled measurements and a dictionary from qubits to the corresponding
