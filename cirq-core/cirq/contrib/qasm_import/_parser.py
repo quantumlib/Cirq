@@ -61,14 +61,16 @@ class Qasm:
 
 
 def _generate_op_qubits(args: List[List[ops.Qid]], lineno: int) -> List[List[ops.Qid]]:
-    # OpenQASM gates can be applied on single qubits and qubit registers.
-    # We represent single qubits as registers of size 1.
-    # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
-    # single qubit arguments can be mixed with qubit registers.
-    # Given quantum registers of length reg_size and single qubits are both
-    # used as arguments, we generate reg_size GateOperations via iterating
-    # through each qubit of the registers 0 to n-1 and use the same one
-    # qubit from the "single-qubit registers" for each operation.
+    """Generates the Cirq qubits for an operation from the OpenQASM qregs.
+
+    OpenQASM gates can be applied on single qubits and qubit registers.
+    We represent single qubits as registers of size 1.
+    Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
+    single qubit arguments can be mixed with qubit registers.
+    Given quantum registers of length reg_size and single qubits are both
+    used as arguments, we generate reg_size GateOperations via iterating
+    through each qubit of the registers 0 to n-1 and use the same one
+    qubit from the "single-qubit registers" for each operation."""
     reg_sizes = np.unique([len(reg) for reg in args])
     if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
         raise QasmException(
@@ -147,6 +149,13 @@ class QasmGateStatement:
 
 @dataclasses.dataclass
 class CustomGate:
+    """Represents an invocation of a user-defined gate.
+
+    The custom gate definition is encoded here as a `FrozenCircuit`, and the
+    arguments (params and qubits) of the specific invocation of that gate are
+    stored here too. When `on` is called, we create a CircuitOperation, mapping
+    the qubits and params to the values provided."""
+
     name: str
     circuit: FrozenCircuit
     params: Tuple[str, ...]
@@ -182,9 +191,17 @@ class QasmParser:
         self.qregs: Dict[str, int] = {}
         self.cregs: Dict[str, int] = {}
         self.gate_set: Dict[str, Union[CustomGate, QasmGateStatement]] = {**self.basic_gates}
-        self.custom_gate_scoped_params: Set[str] = set()
-        self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
+        """The gates available to use in the circuit, including those from libraries, and
+         user-defined ones."""
         self.in_custom_gate_scope = False
+        """This is set to True when the parser is in the middle of parsing a custom gate
+         definition."""
+        self.custom_gate_scoped_params: Set[str] = set()
+        """The params declared within the current custom gate definition. Empty if not in
+         custom gate scope."""
+        self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
+        """The qubits declared within the current custom gate definition. Empty if not in
+         custom gate scope."""
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
