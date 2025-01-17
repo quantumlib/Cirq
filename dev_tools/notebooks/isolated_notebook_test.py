@@ -88,7 +88,6 @@ PACKAGES = [
 ]
 
 
-# TODO(3577): extract these out to common utilities when we rewrite bash scripts in python
 def _find_base_revision():
     for rev in ['upstream/main', 'origin/main', 'main']:
         try:
