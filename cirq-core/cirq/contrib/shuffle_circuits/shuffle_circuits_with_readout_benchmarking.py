@@ -44,7 +44,8 @@ def _validate_input(
         if circuit_repetitions <= 0:
             raise ValueError("Must provide non-zero circuit_repetitions.")
     if isinstance(circuit_repetitions, list) and len(circuit_repetitions) != len(input_circuits):
-        raise ValueError("Number of circuit_repetitions must match the number of input circuits.")
+        raise ValueError(
+            "Number of circuit_repetitions must match the number of input circuits.")
 
     # Check rng is a numpy random generator
     if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
@@ -56,7 +57,8 @@ def _validate_input(
 
     # Check readout_repetitions is bigger than 0
     if readout_repetitions <= 0:
-        raise ValueError("Must provide non-zero readout_repetitions for readout calibration.")
+        raise ValueError(
+            "Must provide non-zero readout_repetitions for readout calibration.")
 
 
 def _generate_readout_calibration_circuits(
@@ -65,7 +67,8 @@ def _generate_readout_calibration_circuits(
     """Generates the readout calibration circuits with random bitstrings."""
     bit_to_gate = (ops.I, ops.X)
 
-    random_bitstrings = rng.integers(0, 2, size=(num_random_bitstrings, len(qubits)))
+    random_bitstrings = rng.integers(
+        0, 2, size=(num_random_bitstrings, len(qubits)))
 
     readout_calibration_circuits = []
     for bitstr in random_bitstrings:
@@ -97,7 +100,20 @@ def _analyze_readout_results(
     qubits: list["cirq.Qid"],
     timestamp: float,
 ) -> SingleQubitReadoutCalibrationResult:
-    """Analyzes the readout error rates from the unshuffled measurements."""
+    """Analyzes the readout error rates from the unshuffled measurements.
+
+    Args:
+        readout_measurements: A list of dictionaries containing the measurement results 
+                              for each readout calibration circuit.
+        random_bitstrings: A numpy array of random bitstrings used for measuring readout.
+        readout_repetitions: The number of repetitions for each readout bitstring.
+        qubits: The list of qubits for which the readout error rates are to be calculated.
+
+    Returns:
+        A dictionary mapping each qubit to a tuple of readout error rates(e0 and e1),
+        where e0 is the 0->1 readout error rate and e1 is the 1->0 readout error rate.
+    """
+
     zero_state_trials = np.zeros((1, len(qubits)), dtype=np.int64)
     one_state_trials = np.zeros((1, len(qubits)), dtype=np.int64)
     zero_state_totals = np.zeros((1, len(qubits)), dtype=np.int64)
@@ -108,10 +124,14 @@ def _analyze_readout_results(
             trial_result = trial_result.astype(np.int64)  # Cast to int64
             sample_counts = np.sum(trial_result, axis=0)
 
-            zero_state_trials += sample_counts * (1 - random_bitstrings[trial_idx])
-            zero_state_totals += readout_repetitions * (1 - random_bitstrings[trial_idx])
-            one_state_trials += (readout_repetitions - sample_counts) * random_bitstrings[trial_idx]
-            one_state_totals += readout_repetitions * random_bitstrings[trial_idx]
+            zero_state_trials += sample_counts * \
+                (1 - random_bitstrings[trial_idx])
+            zero_state_totals += readout_repetitions * \
+                (1 - random_bitstrings[trial_idx])
+            one_state_trials += (readout_repetitions -
+                                 sample_counts) * random_bitstrings[trial_idx]
+            one_state_totals += readout_repetitions * \
+                random_bitstrings[trial_idx]
 
             trial_idx += 1
 
@@ -144,7 +164,7 @@ def run_shuffled_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
     sampler: work.Sampler,
     circuit_repetitions: Union[int, list[int]],
-    rng_or_seed: Union[np.random.Generator, int] = None,
+    rng_or_seed: Union[np.random.Generator, int],
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
     qubits: Optional[list["cirq.Qid"]] = None,
@@ -163,9 +183,10 @@ def run_shuffled_with_readout_benchmarking(
                 input_circuits are used.
 
     Returns:
-        The unshuffled measurements of input circuits and a dictionary from qubits
-        to the corresponding readout error rates (e0 and e1, where e0 is the 0->1 
-        readout error rate and e1 is the 1->0 readout error rate).
+        A tuple containing:
+        - A list of dictionaries with the unshuffled measurement results.
+        - A dictionary mapping each qubit to a tuple of readout error rates(e0 and e1),
+          where e0 is the 0->1 readout error rate and e1 is the 1->0 readout error rate.
 
     """
 
@@ -175,10 +196,10 @@ def run_shuffled_with_readout_benchmarking(
 
     # If input qubits is None, extract qubits from input circuits
     if qubits is None:
-        qubits = set()
+        qubits_set = set()
         for circuit in input_circuits:
-            qubits.update(circuit.all_qubits())
-        qubits = sorted(qubits)
+            qubits_set.update(circuit.all_qubits())
+        qubits = sorted(qubits_set)
 
     # Generate the readout calibration circuits
     rng = (
@@ -207,8 +228,10 @@ def run_shuffled_with_readout_benchmarking(
     shuffled_measurements = [res[0] for res in results]
     unshuffled_measurements = [shuffled_measurements[i] for i in unshuf_order]
 
-    unshuffled_input_circuits_measiurements = unshuffled_measurements[: len(input_circuits)]
-    unshuffled_readout_measurements = unshuffled_measurements[len(input_circuits) :]
+    unshuffled_input_circuits_measiurements = unshuffled_measurements[: len(
+        input_circuits)]
+    unshuffled_readout_measurements = unshuffled_measurements[len(
+        input_circuits):]
 
     # Analyze results
     readout_calibration_results = _analyze_readout_results(

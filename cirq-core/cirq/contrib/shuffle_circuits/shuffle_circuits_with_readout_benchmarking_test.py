@@ -285,3 +285,18 @@ def test_zero_readout_repetitions():
             num_random_bitstrings=5,
             readout_repetitions=0,
         )
+
+
+def test_rng_type_mismatch():
+    """Test that the rng is not a numpy random generator or a seed."""
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
+    with pytest.raises(ValueError, match="Must provide a numpy random generator or a seed"):
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+            [circuit],
+            cirq.ZerosSampler(),
+            circuit_repetitions=10,
+            rng_or_seed="not a random generator or seed",
+            num_random_bitstrings=5,
+            readout_repetitions=100,
+        )
