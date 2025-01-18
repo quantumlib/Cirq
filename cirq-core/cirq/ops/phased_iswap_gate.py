@@ -102,6 +102,11 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             return self._iswap._value_equality_values_()
         return (self.phase_exponent, *self._iswap._value_equality_values_())
 
+    def _value_equality_approximate_values_(self):
+        if self.phase_exponent == 0:
+            return self._iswap._value_equality_approximate_values_()
+        return (self.phase_exponent, *self._iswap._value_equality_approximate_values_())
+
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._iswap) or protocols.is_parameterized(
             self._phase_exponent
