@@ -16,7 +16,6 @@
 """
 
 from typing import Callable, Iterable, Iterator, NoReturn, Union, TYPE_CHECKING
-from typing_extensions import Protocol
 
 from cirq._doc import document
 from cirq._import import LazyLoader
