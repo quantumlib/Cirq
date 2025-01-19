@@ -366,10 +366,10 @@ class QasmOutput:
             if should_annotate:
                 output_line_gap(1)
                 if isinstance(main_op, ops.GateOperation):
-                    x = str(main_op.gate).replace('\n', '\n //')
+                    x = str(main_op.gate).replace('\n', '\n//       ')
                     output(f'// Gate: {x!s}\n')
                 else:
-                    x = str(main_op).replace('\n', '\n //')
+                    x = str(main_op).replace('\n', '\n//            ')
                     output(f'// Operation: {x!s}\n')
 
             for qasm in qasms:

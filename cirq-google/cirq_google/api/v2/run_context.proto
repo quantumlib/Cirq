@@ -136,7 +136,10 @@ message Metadata {
     optional string label = 2;
 
     // If true, store this sweep as parameters instead of the independent axes.
-    optional bool as_parameter = 3;
+    optional bool is_const = 3;
+
+    // A temporary solution that we store the unit information here.
+    optional string unit = 4;
 }
 
 // A bundle of multiple DeviceParameters and their values.
