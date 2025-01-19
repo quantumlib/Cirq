@@ -1688,12 +1688,8 @@ class _PlacementCache:
     """
 
     def __init__(self) -> None:
-        # These are dicts from the qubit/key to the greatest moment index that has it.
-        self._qubit_indices: Dict['cirq.Qid', int] = {}
-        self._mkey_indices: Dict['cirq.MeasurementKey', int] = {}
-        self._ckey_indices: Dict['cirq.MeasurementKey', int] = {}
-
-        # For keeping track of length of the circuit thus far.
+        self._dag: CDag = CDag()
+        self._node_indices: Dict[MopNode, int] = {}
         self._length = 0
 
     def append(
@@ -1714,15 +1710,10 @@ class _PlacementCache:
             The index at which the moment/operation should be placed.
         """
         # Identify the index of the moment to place this into.
-        index = get_earliest_accommodating_moment_index(
-            moment_or_operation,
-            self._qubit_indices,
-            self._mkey_indices,
-            self._ckey_indices,
-            self._length,
-            min_index=min_index,
-        )
+        node = self._dag.append(moment_or_operation)
+        index = max([min_index] + [self._node_indices[parent] + 1 for parent in node.parents])
         self._length = max(self._length, index + 1)
+        self._node_indices[node] = index
         return index
 
 
@@ -1882,30 +1873,22 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        # PlacementCache holds dicts from the qubit/key to the greatest moment index that has it.
-        placement_cache = cast(_PlacementCache, self._placement_cache)
-
-        # We also maintain the dict from moment index to moments/ops that go into it, for use when
-        # building the actual moments at the end.
-        op_lists_by_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
-        moments_by_index: Dict[int, 'cirq.Moment'] = {}
+        dag = CDag()
 
         # "mop" means current moment-or-operation
-        for mop in ops.flatten_to_ops_or_moments(contents):
-            # Identify the index of the moment to place this `mop` into.
-            placement_index = placement_cache.append(mop)
-            if isinstance(mop, Moment):
-                moments_by_index[placement_index] = mop
-            else:
-                op_lists_by_index[placement_index].append(mop)
+        for mop in contents:
+            dag.append(mop)
 
-        # Finally, once everything is placed, we can construct and append the actual moments for
-        # each index.
-        for i in range(placement_cache._length):
-            if i in moments_by_index:
-                self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
+        while(dag.head()):
+            head = list(dag.head())
+            if len(head) == 1 and isinstance(head[0].mop, Moment):
+                self._moments.append(head[0].mop)
             else:
-                self._moments.append(Moment(op_lists_by_index[i]))
+                self._moments.append(Moment([node.mop for node in head]))
+            for node in head:
+                dag.pop(node)
+        placement_cache = cast(_PlacementCache, self._placement_cache)
+        placement_cache.dag = dag
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
@@ -2894,78 +2877,73 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
     return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))
 
 
-def get_earliest_accommodating_moment_index(
-    moment_or_operation: Union['cirq.Moment', 'cirq.Operation'],
-    qubit_indices: Dict['cirq.Qid', int],
-    mkey_indices: Dict['cirq.MeasurementKey', int],
-    ckey_indices: Dict['cirq.MeasurementKey', int],
-    length: Optional[int] = None,
-    *,
-    min_index: int = 0,
-) -> int:
-    """Get the index of the earliest moment that can accommodate the given moment or operation.
+Mop = Union['cirq.Moment', 'cirq.Operation']
+class MopNode:
+    def __init__(self, mop: Mop):
+        self.mop = mop
+        self.parents = set()
+        self.children = set()
 
-    Updates the dictionaries keeping track of the last moment index addressing a given qubit,
-    measurement key, and control key.
 
-    Args:
-        moment_or_operation: The moment operation in question.
-        qubit_indices: A dictionary mapping qubits to the latest moments that address them.
-        mkey_indices: A dictionary mapping measureent keys to the latest moments that address them.
-        ckey_indices: A dictionary mapping control keys to the latest moments that address them.
-        length: The length of the circuit that we are trying to insert a moment or operation into.
-            Should probably be equal to the maximum of the values in `qubit_indices`,
-            `mkey_indices`, and `ckey_indices`.
-        min_index: The minimum index at which to place the op/moment.
+class CDag:
+    def __init__(self) -> None:
+        self._qubit_indices: Dict['cirq.Qid', MopNode] = {}
+        self._mkey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
+        self._ckey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
+        self._mops: Set[MopNode] = set()
+        self._head: List[MopNode] = []
 
-    Returns:
-        The integer index of the earliest moment that can accommodate the given moment or operation.
-    """
-    mop_qubits = moment_or_operation.qubits
-    mop_mkeys = protocols.measurement_key_objs(moment_or_operation)
-    mop_ckeys = protocols.control_keys(moment_or_operation)
+    def head(self):
+        return list(self._head)
 
-    if isinstance(moment_or_operation, Moment):
-        # For consistency with `Circuit.append`, moments always get placed at the end of a circuit.
-        if length is not None:
-            last_conflict = length - 1
-        else:
-            last_conflict = max(
-                [*qubit_indices.values(), *mkey_indices.values(), *ckey_indices.values(), -1]
-            )
+    def pop(self, node: MopNode):
+        self._head.remove(node)
+        for child in node.children:
+            child.parents.remove(node)
+            if not child.parents:
+                self._head.append(child)
+        return node
 
-    else:
-        # We start by searching for the `latest_conflict` moment index, which we will increment by
-        # `1` to identify the earliest moment that *does not* conflict with the given operation.
-        # The `latest_conflict` is initialized to `-1` before searching for later conflicting
-        # moments.
-        last_conflict = -1
-
-        # Look for the maximum conflict; i.e. a moment that has a qubit the same as one of this op's
-        # qubits, that has a measurement or control key the same as one of this op's measurement
-        # keys, or that has a measurement key the same as one of this op's control keys. (Control
-        # keys alone can commute past each other). The `ifs` are logically unnecessary but seem to
-        # make this slightly faster.
-        if mop_qubits:
-            last_conflict = max(
-                last_conflict, *[qubit_indices.get(qubit, -1) for qubit in mop_qubits]
-            )
-        if mop_mkeys:
-            last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_mkeys])
-            last_conflict = max(last_conflict, *[ckey_indices.get(key, -1) for key in mop_mkeys])
-        if mop_ckeys:
-            last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_ckeys])
-
-    # The index of the moment to place this moment or operation ("mop") into.
-    mop_index = max(min_index, last_conflict + 1)
-
-    # Update our dicts with data from this `mop` placement. Note `mop_index` will always be greater
-    # than the existing value for all of these, by construction.
-    for qubit in mop_qubits:
-        qubit_indices[qubit] = mop_index
-    for key in mop_mkeys:
-        mkey_indices[key] = mop_index
-    for key in mop_ckeys:
-        ckey_indices[key] = mop_index
-
-    return mop_index
+    def append(self, mop: Mop) -> MopNode:
+        node = MopNode(mop)
+        mop_qubits = mop.qubits
+        mop_mkeys = protocols.measurement_key_objs(mop)
+        mop_ckeys = protocols.control_keys(mop)
+        if isinstance(mop, Moment):
+            for q in self._qubit_indices.keys():
+                parent = self._qubit_indices[q]
+                node.parents.add(parent)
+                parent.children.add(node)
+            for mkey in self._mkey_indices.keys():
+                parent = self._mkey_indices[mkey]
+                node.parents.add(parent)
+                parent.children.add(node)
+            for ckey in self._ckey_indices.keys():
+                parent = self._ckey_indices[ckey]
+                node.parents.add(parent)
+                parent.children.add(node)
+        for q in mop_qubits:
+            if q in self._qubit_indices:
+                parent = self._qubit_indices[q]
+                node.parents.add(parent)
+                parent.children.add(node)
+            self._qubit_indices[q] = node
+        for mkey in mop_mkeys:
+            if mkey in self._mkey_indices:
+                parent = self._mkey_indices[mkey]
+                node.parents.add(parent)
+                parent.children.add(node)
+            if mkey in self._ckey_indices:
+                parent = self._ckey_indices[mkey]
+                node.parents.add(parent)
+                parent.children.add(node)
+            self._mkey_indices[mkey] = node
+        for ckey in mop_ckeys:
+            if ckey in self._mkey_indices:
+                parent = self._mkey_indices[ckey]
+                node.parents.add(parent)
+                parent.children.add(node)
+            self._ckey_indices[ckey] = node
+        if not node.parents:
+            self._head.append(node)
+        return node

@@ -116,59 +116,27 @@ def _stratify_circuit(
     """
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
     new_moments: List[List['cirq.Operation']] = []
+    klass = 0
+    dag = circuits.circuit.CDag()
+    for op in circuit.all_operations():
+        dag.append(op)
 
-    # Keep track of the latest time index for each qubit, measurement key, and control key.
-    qubit_time_index: Dict['cirq.Qid', int] = {}
-    measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
-    control_time_index: Dict['cirq.MeasurementKey', int] = {}
-
-    # The minimum time index for operations with a tag in context.tags_to_ignore.
-    last_ignored_ops_time_index = 0
-
-    for moment in circuit:
-        # Identify the new time indices that operations should be moved into.
-        ignored_ops = []
-        op_time_indices = {}
-        for op in moment:
-            # Identify the earliest moment that can accommodate this op.
-            min_time_index_for_op = circuits.circuit.get_earliest_accommodating_moment_index(
-                op, qubit_time_index, measurement_time_index, control_time_index
-            )
-
+    while dag.head():
+        head = dag.head()
+        new_moment = []
+        for node in head:
+            op = node.mop
             # Identify the "class" of this operation (by index).
             ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
             if not ignored_op:
                 op_class = _get_op_class(op, classifiers)
             else:
                 op_class = len(classifiers)
-                ignored_ops.append(op)
-                min_time_index_for_op = max(min_time_index_for_op, last_ignored_ops_time_index + 1)
-
-            # Identify the time index to place this operation into.
-            time_index = (min_time_index_for_op // num_classes) * num_classes + op_class
-            if time_index < min_time_index_for_op:
-                time_index += num_classes
-            op_time_indices[op] = time_index
-
-        # Assign ignored operations to the same moment.
-        if ignored_ops:
-            last_ignored_ops_time_index = max(op_time_indices[op] for op in ignored_ops)
-            for op in ignored_ops:
-                op_time_indices[op] = last_ignored_ops_time_index
-
-        # Move the operations into their assigned moments.
-        for op, time_index in op_time_indices.items():
-            if time_index >= len(new_moments):
-                new_moments += [[] for _ in range(num_classes)]
-            new_moments[time_index].append(op)
-
-            # Update qubit, measurment key, and control key moments.
-            for qubit in op.qubits:
-                qubit_time_index[qubit] = time_index
-            for key in protocols.measurement_key_objs(op):
-                measurement_time_index[key] = time_index
-            for key in protocols.control_keys(op):
-                control_time_index[key] = time_index
+            if op_class == klass:
+                dag.pop(node)
+                new_moment.append(op)
+        new_moments.append(new_moment)
+        klass = (klass + 1) % num_classes
 
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
 
