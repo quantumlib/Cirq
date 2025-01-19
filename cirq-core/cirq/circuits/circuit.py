@@ -1874,11 +1874,11 @@ class Circuit(AbstractCircuit):
                 insertion strategy.
         """
         dag = CDag()
-
-        # "mop" means current moment-or-operation
         for mop in contents:
             dag.append(mop)
 
+        placement_cache = cast(_PlacementCache, self._placement_cache)
+        placement_cache._dag = dag
         while(dag.head()):
             head = list(dag.head())
             if len(head) == 1 and isinstance(head[0].mop, Moment):
@@ -1887,8 +1887,8 @@ class Circuit(AbstractCircuit):
                 self._moments.append(Moment([node.mop for node in head]))
             for node in head:
                 dag.pop(node)
-        placement_cache = cast(_PlacementCache, self._placement_cache)
-        placement_cache.dag = dag
+                placement_cache._node_indices[node] = len(self._moments) - 1
+        placement_cache._length = len(self._moments)
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
