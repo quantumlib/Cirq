@@ -1673,59 +1673,6 @@ def _concat_ragged_helper(
     return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
-class _PlacementCache:
-    """Maintains qubit and cbit indices for quick op placement.
-
-    Here, we keep track of the greatest moment that contains each qubit,
-    measurement key, and control key, and append operations to the moment after
-    the maximum of these. This avoids having to iterate backwards, checking
-    each moment one at a time.
-
-    It is only valid for `append` operations, and if any other insert strategy
-    is used, or if any operation is added to the circuit without notifying the
-    cache, then the cache must be invalidated for the circuit or rebuilt from
-    scratch. Future improvements may ease this restriction.
-    """
-
-    def __init__(self) -> None:
-        # These are dicts from the qubit/key to the greatest moment index that has it.
-        self._qubit_indices: Dict['cirq.Qid', int] = {}
-        self._mkey_indices: Dict['cirq.MeasurementKey', int] = {}
-        self._ckey_indices: Dict['cirq.MeasurementKey', int] = {}
-
-        # For keeping track of length of the circuit thus far.
-        self._length = 0
-
-    def append(
-        self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation'], *, min_index: int = 0
-    ) -> int:
-        """Find placement for moment/operation and update cache.
-
-        Determines the placement index of the provided operation, assuming
-        EARLIEST (append) strategy, and assuming that the internal cache
-        correctly represents the circuit. It then updates the cache and returns
-        the placement index.
-
-        Args:
-            moment_or_operation: The moment or operation to append.
-            min_index: The minimum index at which to place the moment/op.
-
-        Returns:
-            The index at which the moment/operation should be placed.
-        """
-        # Identify the index of the moment to place this into.
-        index = get_earliest_accommodating_moment_index(
-            moment_or_operation,
-            self._qubit_indices,
-            self._mkey_indices,
-            self._ckey_indices,
-            self._length,
-            min_index=min_index,
-        )
-        self._length = max(self._length, index + 1)
-        return index
-
-
 class Circuit(AbstractCircuit):
     """A mutable list of groups of operations to apply to some qubits.
 
@@ -2969,3 +2916,56 @@ def get_earliest_accommodating_moment_index(
         ckey_indices[key] = mop_index
 
     return mop_index
+
+
+class _PlacementCache:
+    """Maintains qubit and cbit indices for quick op placement.
+
+    Here, we keep track of the greatest moment that contains each qubit,
+    measurement key, and control key, and append operations to the moment after
+    the maximum of these. This avoids having to iterate backwards, checking
+    each moment one at a time.
+
+    It is only valid for `append` operations, and if any other insert strategy
+    is used, or if any operation is added to the circuit without notifying the
+    cache, then the cache must be invalidated for the circuit or rebuilt from
+    scratch. Future improvements may ease this restriction.
+    """
+
+    def __init__(self) -> None:
+        # These are dicts from the qubit/key to the greatest moment index that has it.
+        self._qubit_indices: Dict['cirq.Qid', int] = {}
+        self._mkey_indices: Dict['cirq.MeasurementKey', int] = {}
+        self._ckey_indices: Dict['cirq.MeasurementKey', int] = {}
+
+        # For keeping track of length of the circuit thus far.
+        self._length = 0
+
+    def append(
+        self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation'], *, min_index: int = 0
+    ) -> int:
+        """Find placement for moment/operation and update cache.
+
+        Determines the placement index of the provided operation, assuming
+        EARLIEST (append) strategy, and assuming that the internal cache
+        correctly represents the circuit. It then updates the cache and returns
+        the placement index.
+
+        Args:
+            moment_or_operation: The moment or operation to append.
+            min_index: The minimum index at which to place the moment/op.
+
+        Returns:
+            The index at which the moment/operation should be placed.
+        """
+        # Identify the index of the moment to place this into.
+        index = get_earliest_accommodating_moment_index(
+            moment_or_operation,
+            self._qubit_indices,
+            self._mkey_indices,
+            self._ckey_indices,
+            self._length,
+            min_index=min_index,
+        )
+        self._length = max(self._length, index + 1)
+        return index
