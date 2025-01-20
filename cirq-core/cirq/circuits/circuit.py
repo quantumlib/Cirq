@@ -1673,52 +1673,6 @@ def _concat_ragged_helper(
     return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
-Mop = Union['cirq.Moment', 'cirq.Operation']
-class MopNode:
-    def __init__(self, mop: Mop):
-        self.mop = mop
-        self.parents = set()
-        self.children = set()
-
-
-class _PlacementCache:
-    """Maintains qubit and cbit indices for quick op placement.
-
-    Here, we keep track of the greatest moment that contains each qubit,
-    measurement key, and control key, and append operations to the moment after
-    the maximum of these. This avoids having to iterate backwards, checking
-    each moment one at a time.
-
-    It is only valid for `append` operations, and if any other insert strategy
-    is used, or if any operation is added to the circuit without notifying the
-    cache, then the cache must be invalidated for the circuit or rebuilt from
-    scratch. Future improvements may ease this restriction.
-    """
-
-    def __init__(self) -> None:
-        self._op_heap: OpHeap = OpHeap()
-        self._nodes: List[List[MopNode]] = []
-        self._node_indices: Dict[MopNode, int] = {}
-
-    def append(
-        self, moment_or_operation: Mop, *, min_index: int = 0
-    ) -> int:
-        node = self._op_heap.append(moment_or_operation)
-        index = max([min_index] + [self._node_indices[parent] + 1 for parent in node.parents])
-        while index >= len(self._nodes):
-            self._nodes.append([])
-        self._nodes[index].append(node)
-        self._node_indices[node] = index
-        return index
-
-    def append_range(self, mops: Iterable[Mop]):
-        for mop in mops:
-            self.append(mop)
-
-    def nodes(self) -> List[List[MopNode]]:
-        return self._nodes
-
-
 class Circuit(AbstractCircuit):
     """A mutable list of groups of operations to apply to some qubits.
 
@@ -2870,6 +2824,14 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
     return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))
 
 
+Mop = Union['cirq.Moment', 'cirq.Operation']
+class MopNode:
+    def __init__(self, mop: Mop):
+        self.mop = mop
+        self.parents = set()
+        self.children = set()
+
+
 class OpHeap:
     def __init__(self) -> None:
         self._qubit_indices: Dict['cirq.Qid', MopNode] = {}
@@ -2935,3 +2897,41 @@ class OpHeap:
 
     def __bool__(self):
         return bool(self._head)
+
+
+class _PlacementCache:
+    """Maintains qubit and cbit indices for quick op placement.
+
+    Here, we keep track of the greatest moment that contains each qubit,
+    measurement key, and control key, and append operations to the moment after
+    the maximum of these. This avoids having to iterate backwards, checking
+    each moment one at a time.
+
+    It is only valid for `append` operations, and if any other insert strategy
+    is used, or if any operation is added to the circuit without notifying the
+    cache, then the cache must be invalidated for the circuit or rebuilt from
+    scratch. Future improvements may ease this restriction.
+    """
+
+    def __init__(self) -> None:
+        self._op_heap: OpHeap = OpHeap()
+        self._nodes: List[List[MopNode]] = []
+        self._node_indices: Dict[MopNode, int] = {}
+
+    def append(
+        self, moment_or_operation: Mop, *, min_index: int = 0
+    ) -> int:
+        node = self._op_heap.append(moment_or_operation)
+        index = max([min_index] + [self._node_indices[parent] + 1 for parent in node.parents])
+        while index >= len(self._nodes):
+            self._nodes.append([])
+        self._nodes[index].append(node)
+        self._node_indices[node] = index
+        return index
+
+    def append_range(self, mops: Iterable[Mop]):
+        for mop in mops:
+            self.append(mop)
+
+    def nodes(self) -> List[List[MopNode]]:
+        return self._nodes
