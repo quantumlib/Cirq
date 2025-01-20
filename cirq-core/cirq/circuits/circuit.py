@@ -2825,6 +2825,8 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
 
 
 Mop = Union['cirq.Moment', 'cirq.Operation']
+
+
 class MopNode:
     def __init__(self, mop: Mop):
         self.mop = mop
@@ -2918,9 +2920,7 @@ class _PlacementCache:
         self._nodes: List[List[MopNode]] = []
         self._node_indices: Dict[MopNode, int] = {}
 
-    def append(
-        self, moment_or_operation: Mop, *, min_index: int = 0
-    ) -> int:
+    def append(self, moment_or_operation: Mop, *, min_index: int = 0) -> int:
         node = self._op_heap.append(moment_or_operation)
         index = max([min_index] + [self._node_indices[parent] + 1 for parent in node.parents])
         while index >= len(self._nodes):
