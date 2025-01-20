@@ -116,27 +116,24 @@ def _stratify_circuit(
     """
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
     new_moments: List[List['cirq.Operation']] = []
-    klass = 0
-    dag = circuits.circuit.CDag()
+    current_class = 0
+    op_heap = circuits.circuit.OpHeap()
     for op in circuit.all_operations():
-        dag.append(op)
+        op_heap.append(op)
 
-    while dag.head():
-        head = dag.head()
+    while op_heap:
+        head = op_heap.head()
         new_moment = []
         for node in head:
             op = node.mop
             # Identify the "class" of this operation (by index).
             ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
-            if not ignored_op:
-                op_class = _get_op_class(op, classifiers)
-            else:
-                op_class = len(classifiers)
-            if op_class == klass:
-                dag.pop(node)
+            op_class = _get_op_class(op, classifiers) if not ignored_op else len(classifiers)
+            if op_class == current_class:
+                op_heap.pop(node)
                 new_moment.append(op)
         new_moments.append(new_moment)
-        klass = (klass + 1) % num_classes
+        current_class = (current_class + 1) % num_classes
 
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
 

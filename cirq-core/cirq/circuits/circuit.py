@@ -1673,6 +1673,14 @@ def _concat_ragged_helper(
     return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
+Mop = Union['cirq.Moment', 'cirq.Operation']
+class MopNode:
+    def __init__(self, mop: Mop):
+        self.mop = mop
+        self.parents = set()
+        self.children = set()
+
+
 class _PlacementCache:
     """Maintains qubit and cbit indices for quick op placement.
 
@@ -1688,33 +1696,27 @@ class _PlacementCache:
     """
 
     def __init__(self) -> None:
-        self._dag: CDag = CDag()
+        self._op_heap: OpHeap = OpHeap()
+        self._nodes: List[List[MopNode]] = []
         self._node_indices: Dict[MopNode, int] = {}
-        self._length = 0
 
     def append(
-        self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation'], *, min_index: int = 0
+        self, moment_or_operation: Mop, *, min_index: int = 0
     ) -> int:
-        """Find placement for moment/operation and update cache.
-
-        Determines the placement index of the provided operation, assuming
-        EARLIEST (append) strategy, and assuming that the internal cache
-        correctly represents the circuit. It then updates the cache and returns
-        the placement index.
-
-        Args:
-            moment_or_operation: The moment or operation to append.
-            min_index: The minimum index at which to place the moment/op.
-
-        Returns:
-            The index at which the moment/operation should be placed.
-        """
-        # Identify the index of the moment to place this into.
-        node = self._dag.append(moment_or_operation)
+        node = self._op_heap.append(moment_or_operation)
         index = max([min_index] + [self._node_indices[parent] + 1 for parent in node.parents])
-        self._length = max(self._length, index + 1)
+        while index >= len(self._nodes):
+            self._nodes.append([])
+        self._nodes[index].append(node)
         self._node_indices[node] = index
         return index
+
+    def append_range(self, mops: Iterable[Mop]):
+        for mop in mops:
+            self.append(mop)
+
+    def nodes(self) -> List[List[MopNode]]:
+        return self._nodes
 
 
 class Circuit(AbstractCircuit):
@@ -1873,22 +1875,13 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        dag = CDag()
-        for mop in contents:
-            dag.append(mop)
-
         placement_cache = cast(_PlacementCache, self._placement_cache)
-        placement_cache._dag = dag
-        while(dag.head()):
-            head = list(dag.head())
-            if len(head) == 1 and isinstance(head[0].mop, Moment):
-                self._moments.append(head[0].mop)
+        placement_cache.append_range(contents)
+        for nodes in placement_cache.nodes():
+            if len(nodes) == 1 and isinstance(nodes[0].mop, Moment):
+                self._moments.append(nodes[0].mop)
             else:
-                self._moments.append(Moment([node.mop for node in head]))
-            for node in head:
-                dag.pop(node)
-                placement_cache._node_indices[node] = len(self._moments) - 1
-        placement_cache._length = len(self._moments)
+                self._moments.append(Moment([node.mop for node in nodes]))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
@@ -2877,31 +2870,23 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
     return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))
 
 
-Mop = Union['cirq.Moment', 'cirq.Operation']
-class MopNode:
-    def __init__(self, mop: Mop):
-        self.mop = mop
-        self.parents = set()
-        self.children = set()
-
-
-class CDag:
+class OpHeap:
     def __init__(self) -> None:
         self._qubit_indices: Dict['cirq.Qid', MopNode] = {}
         self._mkey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
         self._ckey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
-        self._mops: Set[MopNode] = set()
-        self._head: List[MopNode] = []
+        self._mops: Dict[MopNode, int] = {}
+        self._head: Dict[MopNode, int] = {}
 
     def head(self):
-        return list(self._head)
+        return list(self._head.keys())
 
     def pop(self, node: MopNode):
-        self._head.remove(node)
+        self._head.pop(node)
         for child in node.children:
             child.parents.remove(node)
             if not child.parents:
-                self._head.append(child)
+                self._head[child] = 0
         return node
 
     def append(self, mop: Mop) -> MopNode:
@@ -2945,5 +2930,8 @@ class CDag:
                 parent.children.add(node)
             self._ckey_indices[ckey] = node
         if not node.parents:
-            self._head.append(node)
+            self._head[node] = 0
         return node
+
+    def __bool__(self):
+        return bool(self._head)
