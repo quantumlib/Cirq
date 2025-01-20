@@ -115,26 +115,20 @@ def _stratify_circuit(
         The stratified circuit.
     """
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
+    all_ops = list(circuit.all_operations())
+
+    def class_index(op):
+        ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
+        return _get_op_class(op, classifiers) if not ignored_op else len(classifiers)
+
+    op_classes = {op: class_index(op) for op in all_ops}
+    op_heap = circuits.circuit.OpHeap(*all_ops)
     new_moments: List[List['cirq.Operation']] = []
     current_class = 0
-    op_heap = circuits.circuit.OpHeap()
-    for op in circuit.all_operations():
-        op_heap.append(op)
-
     while op_heap:
-        head = op_heap.head()
-        new_moment = []
-        for node in head:
-            op = node.mop
-            # Identify the "class" of this operation (by index).
-            ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
-            op_class = _get_op_class(op, classifiers) if not ignored_op else len(classifiers)
-            if op_class == current_class:
-                op_heap.pop(node)
-                new_moment.append(op)
+        new_moment = op_heap.pop(lambda op: op_classes[op] == current_class)
         new_moments.append(new_moment)
         current_class = (current_class + 1) % num_classes
-
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
 
 

@@ -1829,13 +1829,12 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        placement_cache = cast(_PlacementCache, self._placement_cache)
-        placement_cache.append_range(contents)
-        for nodes in placement_cache.nodes():
-            if len(nodes) == 1 and isinstance(nodes[0].mop, Moment):
-                self._moments.append(nodes[0].mop)
+        self._placement_cache = _PlacementCache(*contents)
+        for nodes in self._placement_cache.nodes():
+            if len(nodes) == 1 and isinstance(nodes[0], Moment):
+                self._moments.append(nodes[0])
             else:
-                self._moments.append(Moment([node.mop for node in nodes]))
+                self._moments.append(Moment([node for node in nodes]))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
@@ -2835,23 +2834,24 @@ class MopNode:
 
 
 class OpHeap:
-    def __init__(self) -> None:
+    def __init__(self, *mops: Mop) -> None:
         self._qubit_indices: Dict['cirq.Qid', MopNode] = {}
         self._mkey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
         self._ckey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
         self._mops: Dict[MopNode, int] = {}
         self._head: Dict[MopNode, int] = {}
+        for mop in mops:
+            self.append(mop)
 
-    def head(self):
-        return list(self._head.keys())
-
-    def pop(self, node: MopNode):
-        self._head.pop(node)
-        for child in node.children:
-            child.parents.remove(node)
-            if not child.parents:
-                self._head[child] = 0
-        return node
+    def pop(self, predicate: Callable[[Mop], bool]) -> List[Mop]:
+        matches = [node for node in self._head if predicate(node.mop)]
+        for node in matches:
+            self._head.pop(node)
+            for child in node.children:
+                child.parents.remove(node)
+                if not child.parents:
+                    self._head[child] = 0
+        return [node.mop for node in matches]
 
     def append(self, mop: Mop) -> MopNode:
         node = MopNode(mop)
@@ -2915,23 +2915,23 @@ class _PlacementCache:
     scratch. Future improvements may ease this restriction.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *mops: Mop) -> None:
         self._op_heap: OpHeap = OpHeap()
         self._nodes: List[List[MopNode]] = []
         self._node_indices: Dict[MopNode, int] = {}
+        self.append(*mops)
 
-    def append(self, moment_or_operation: Mop, *, min_index: int = 0) -> int:
-        node = self._op_heap.append(moment_or_operation)
-        index = max([min_index] + [self._node_indices[parent] + 1 for parent in node.parents])
-        while index >= len(self._nodes):
-            self._nodes.append([])
-        self._nodes[index].append(node)
-        self._node_indices[node] = index
+    def append(self, *mops: Mop, min_index: int = 0) -> int:
+        index = min_index
+        for mop in mops:
+            node = self._op_heap.append(mop)
+            index = max([min_index] + [self._node_indices[parent] + 1 for parent in node.parents])
+            while index >= len(self._nodes):
+                self._nodes.append([])
+            self._nodes[index].append(node)
+            self._node_indices[node] = index
         return index
 
-    def append_range(self, mops: Iterable[Mop]):
-        for mop in mops:
-            self.append(mop)
-
-    def nodes(self) -> List[List[MopNode]]:
-        return self._nodes
+    def nodes(self) -> List[List[Mop]]:
+        for node in self._nodes:
+            yield tuple(n.mop for n in node)
