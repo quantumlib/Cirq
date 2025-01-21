@@ -197,7 +197,7 @@ def _map_operations_impl(
 
     all_moments: List[List['cirq.Operation']] = []
     for idx, moment in enumerate(circuit):
-        new_moments: List[List['cirq.Operation']] = [[]]
+        new_moments: List[List['cirq.Operation']] = [[]] if wrap_in_circuit_op else []
         placement_cache = circuits.circuit._PlacementCache()
         for op in moment:
             mapped_ops = apply_map_func(op, idx)
