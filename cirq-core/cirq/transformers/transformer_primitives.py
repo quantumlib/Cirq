@@ -195,7 +195,7 @@ def _map_operations_impl(
             ]
         return mapped_ops
 
-    final_moments: List[List['cirq.Operation']] = []
+    all_moments: List[List['cirq.Operation']] = []
     for idx, moment in enumerate(circuit):
         new_moments: List[List['cirq.Operation']] = [[]]
         placement_cache = circuits.circuit._PlacementCache()
@@ -205,11 +205,9 @@ def _map_operations_impl(
                 placement_index = placement_cache.append(mapped_op)
                 new_moments.extend([[] for _ in range(placement_index - len(new_moments) + 1)])
                 new_moments[placement_index].append(mapped_op)
-        final_moments.extend(new_moments)
+        all_moments.extend(new_moments)
 
-    return _create_target_circuit_type(
-        [circuits.Moment(moment) for moment in final_moments], circuit
-    )
+    return _create_target_circuit_type([circuits.Moment(moment) for moment in all_moments], circuit)
 
 
 def map_operations(
