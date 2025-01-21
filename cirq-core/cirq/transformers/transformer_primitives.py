@@ -205,8 +205,7 @@ def _map_operations_impl(
     min_index = 0
 
     for idx, moment in enumerate(circuit):
-        if wrap_in_circuit_op:
-            new_moments.append([])
+        new_moments.append([])
         for op in moment:
             mapped_ops = apply_map_func(op, idx)
 

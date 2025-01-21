@@ -4853,8 +4853,9 @@ def test_create_speed():
     ops = [xs[i] for i in range(qs) for _ in range(moments)]
     t = time.perf_counter()
     c = cirq.Circuit(ops)
+    duration = time.perf_counter() - t
     assert len(c) == moments
-    assert time.perf_counter() - t < 4
+    assert duration < 4
 
 
 def test_append_speed():
