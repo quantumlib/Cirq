@@ -27,7 +27,6 @@ class GaugeTester:
     two_qubit_gate: cirq.Gate
     gauge_transformer: GaugeTransformer
     must_fail: bool = False
-    sweep_must_pass: bool = False
 
     @pytest.mark.parametrize(
         ['generation_seed', 'transformation_seed'],
@@ -77,13 +76,6 @@ class GaugeTester:
     def test_sweep(self):
         qubits = cirq.LineQubit.range(3)
 
-        if not self.sweep_must_pass:
-            with pytest.raises(NotImplementedError):
-                self.gauge_transformer.as_sweep(
-                    cirq.Circuit(cirq.Moment(self.two_qubit_gate(*qubits[:2]))), N=1
-                )
-            return
-
         input_circuit = cirq.Circuit(
             cirq.Moment(cirq.H(qubits[0])),
             cirq.Moment(self.two_qubit_gate(*qubits[:2])),
@@ -104,6 +96,14 @@ class GaugeTester:
         # Check compilied circuits have the same unitary as the orig circuit.
         for params in sweeps:
             compiled_circuit = cirq.resolve_parameters(parameterized_circuit, params)
+            if self.must_fail:
+                with pytest.raises(AssertionError):
+                    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+                        input_circuit[:-1],
+                        compiled_circuit[:-1],
+                        qubit_map={q: q for q in input_circuit.all_qubits()},
+                    )
+                break
             cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
                 input_circuit[:-1],
                 compiled_circuit[:-1],
