@@ -2835,6 +2835,7 @@ class MopNode:
 
 class OpHeap:
     def __init__(self, *mops: Mop) -> None:
+        self._last_moment: Optional[MopNode] = None
         self._qubit_indices: Dict['cirq.Qid', MopNode] = {}
         self._mkey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
         self._ckey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
@@ -2871,6 +2872,11 @@ class OpHeap:
                 parent = self._ckey_indices[ckey]
                 node.parents.add(parent)
                 parent.children.add(node)
+            if self._last_moment:
+                parent = self._last_moment
+                node.parents.add(parent)
+                parent.children.add(node)
+            self._last_moment = node
         for q in mop_qubits:
             if q in self._qubit_indices:
                 parent = self._qubit_indices[q]
