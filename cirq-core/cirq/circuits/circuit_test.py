@@ -4860,7 +4860,7 @@ def test_create_speed():
 
 def test_append_speed():
     # Previously this took ~17s to run. Now it should take ~150ms. However the coverage test can
-    # run this slowly, so allowing 4 sec to account for things like that. Feel free to increase the
+    # run this slowly, so allowing 5 sec to account for things like that. Feel free to increase the
     # buffer time or delete the test entirely if it ends up causing flakes.
     #
     # The `append` improvement mainly helps for deep circuits. It is less useful for wide circuits
@@ -4877,4 +4877,4 @@ def test_append_speed():
             c.append(xs[q])
     duration = time.perf_counter() - t
     assert len(c) == moments
-    assert duration < 4
+    assert duration < 5
