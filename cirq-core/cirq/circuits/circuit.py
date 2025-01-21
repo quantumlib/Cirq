@@ -2847,8 +2847,6 @@ def get_earliest_accommodating_moment_index(
     mkey_indices: Dict['cirq.MeasurementKey', int],
     ckey_indices: Dict['cirq.MeasurementKey', int],
     length: Optional[int] = None,
-    *,
-    min_index: int = 0,
 ) -> int:
     """Get the index of the earliest moment that can accommodate the given moment or operation.
 
@@ -2858,12 +2856,11 @@ def get_earliest_accommodating_moment_index(
     Args:
         moment_or_operation: The moment operation in question.
         qubit_indices: A dictionary mapping qubits to the latest moments that address them.
-        mkey_indices: A dictionary mapping measureent keys to the latest moments that address them.
+        mkey_indices: A dictionary mapping measurement keys to the latest moments that address them.
         ckey_indices: A dictionary mapping control keys to the latest moments that address them.
         length: The length of the circuit that we are trying to insert a moment or operation into.
             Should probably be equal to the maximum of the values in `qubit_indices`,
             `mkey_indices`, and `ckey_indices`.
-        min_index: The minimum index at which to place the op/moment.
 
     Returns:
         The integer index of the earliest moment that can accommodate the given moment or operation.
@@ -2904,7 +2901,7 @@ def get_earliest_accommodating_moment_index(
             last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_ckeys])
 
     # The index of the moment to place this moment or operation ("mop") into.
-    mop_index = max(min_index, last_conflict + 1)
+    mop_index = last_conflict + 1
 
     # Update our dicts with data from this `mop` placement. Note `mop_index` will always be greater
     # than the existing value for all of these, by construction.
@@ -2941,9 +2938,7 @@ class _PlacementCache:
         # For keeping track of length of the circuit thus far.
         self._length = 0
 
-    def append(
-        self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation'], *, min_index: int = 0
-    ) -> int:
+    def append(self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation']) -> int:
         """Find placement for moment/operation and update cache.
 
         Determines the placement index of the provided operation, assuming
@@ -2953,7 +2948,6 @@ class _PlacementCache:
 
         Args:
             moment_or_operation: The moment or operation to append.
-            min_index: The minimum index at which to place the moment/op.
 
         Returns:
             The index at which the moment/operation should be placed.
@@ -2965,7 +2959,6 @@ class _PlacementCache:
             self._mkey_indices,
             self._ckey_indices,
             self._length,
-            min_index=min_index,
         )
         self._length = max(self._length, index + 1)
         return index

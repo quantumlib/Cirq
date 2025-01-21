@@ -195,29 +195,22 @@ def _map_operations_impl(
             ]
         return mapped_ops
 
-    new_moments: List[List['cirq.Operation']] = []
-
-    # Keep track of the latest time index for each qubit, measurement key, and control key.
-    placement_cache = circuits.circuit._PlacementCache()
-
-    # New mapped operations in the current moment should be inserted after those of previous
-    # moments.
-    min_index = 0
-
+    final_moments: List[List[List['cirq.Operation']]] = []
     for idx, moment in enumerate(circuit):
-        new_moments.append([])
+        new_moments: List[List['cirq.Operation']] = [[]]
+        placement_cache = circuits.circuit._PlacementCache()
         for op in moment:
             mapped_ops = apply_map_func(op, idx)
-
             for mapped_op in mapped_ops:
-                # Identify the earliest moment that can accommodate this op.
-                placement_index = placement_cache.append(mapped_op, min_index=min_index)
+                placement_index = placement_cache.append(mapped_op)
                 new_moments.extend([[] for _ in range(placement_index - len(new_moments) + 1)])
                 new_moments[placement_index].append(mapped_op)
+        final_moments.append(new_moments)
 
-        min_index = len(new_moments)
-
-    return _create_target_circuit_type([circuits.Moment(moment) for moment in new_moments], circuit)
+    return _create_target_circuit_type(
+        [circuits.Moment(moment) for new_moments in final_moments for moment in new_moments],
+        circuit,
+    )
 
 
 def map_operations(
