@@ -278,6 +278,47 @@ class DeviceParameter(google.protobuf.message.Message):
 global___DeviceParameter = DeviceParameter
 
 @typing.final
+class Metadata(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    DEVICE_PARAMETERS_FIELD_NUMBER: builtins.int
+    LABEL_FIELD_NUMBER: builtins.int
+    IS_CONST_FIELD_NUMBER: builtins.int
+    UNIT_FIELD_NUMBER: builtins.int
+    label: builtins.str
+    """If specified, use this label instead of parameter_key as the independent
+    column name in returned dataset.
+    """
+    is_const: builtins.bool
+    """If true, store this sweep as parameters instead of the independent axes."""
+    unit: builtins.str
+    """A temporary solution that we store the unit information here."""
+    @property
+    def device_parameters(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParameter]:
+        """Optional arguments for if this is a device parameter.
+        Note one single_sweep may be associated with multiple device parameters.
+        """
+
+    def __init__(
+        self,
+        *,
+        device_parameters: collections.abc.Iterable[global___DeviceParameter] | None = ...,
+        label: builtins.str | None = ...,
+        is_const: builtins.bool | None = ...,
+        unit: builtins.str | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["_is_const", b"_is_const", "_label", b"_label", "_unit", b"_unit", "is_const", b"is_const", "label", b"label", "unit", b"unit"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["_is_const", b"_is_const", "_label", b"_label", "_unit", b"_unit", "device_parameters", b"device_parameters", "is_const", b"is_const", "label", b"label", "unit", b"unit"]) -> None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing.Literal["_is_const", b"_is_const"]) -> typing.Literal["is_const"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing.Literal["_label", b"_label"]) -> typing.Literal["label"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing.Literal["_unit", b"_unit"]) -> typing.Literal["unit"] | None: ...
+
+global___Metadata = Metadata
+
+@typing.final
 class DeviceParametersDiff(google.protobuf.message.Message):
     """A bundle of multiple DeviceParameters and their values.
     The main use case is to set those parameters with the
@@ -414,6 +455,7 @@ class SingleSweep(google.protobuf.message.Message):
     LINSPACE_FIELD_NUMBER: builtins.int
     CONST_VALUE_FIELD_NUMBER: builtins.int
     PARAMETER_FIELD_NUMBER: builtins.int
+    METADATA_FIELD_NUMBER: builtins.int
     parameter_key: builtins.str
     """The parameter key being varied. This cannot be the empty string.
     These are must appear as string Args in the quantum program.
@@ -436,6 +478,10 @@ class SingleSweep(google.protobuf.message.Message):
         (as opposed to a circuit symbol)
         """
 
+    @property
+    def metadata(self) -> global___Metadata:
+        """Optional arguments for storing extra metadata information."""
+
     def __init__(
         self,
         *,
@@ -444,9 +490,10 @@ class SingleSweep(google.protobuf.message.Message):
         linspace: global___Linspace | None = ...,
         const_value: global___ConstValue | None = ...,
         parameter: global___DeviceParameter | None = ...,
+        metadata: global___Metadata | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "parameter", b"parameter", "points", b"points", "sweep", b"sweep"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "sweep", b"sweep"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "points", b"points", "sweep", b"sweep"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["const_value", b"const_value", "linspace", b"linspace", "metadata", b"metadata", "parameter", b"parameter", "parameter_key", b"parameter_key", "points", b"points", "sweep", b"sweep"]) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["sweep", b"sweep"]) -> typing.Literal["points", "linspace", "const_value"] | None: ...
 
 global___SingleSweep = SingleSweep

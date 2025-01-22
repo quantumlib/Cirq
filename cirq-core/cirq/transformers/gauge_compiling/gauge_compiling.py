@@ -15,8 +15,8 @@
 """Creates the abstraction for gauge compiling as a cirq transformer."""
 
 from typing import Callable, Dict, Tuple, Optional, Sequence, Union, List
-from itertools import count
 from dataclasses import dataclass
+from numbers import Real
 import abc
 import itertools
 import functools
@@ -79,7 +79,6 @@ class ConstantGauge(Gauge):
         default=(), converter=lambda g: (g,) if isinstance(g, ops.Gate) else tuple(g)
     )
     swap_qubits: bool = False
-    support_sweep: bool = False
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> "ConstantGauge":
         return self
@@ -130,6 +129,43 @@ class SameGateGauge(Gauge):
         )
 
 
+@frozen
+class TwoQubitGateSymbolizer:
+    """Parameterizes two qubit gates with symbols.
+
+    Attributes:
+        symbolizer: A callable that takes a two-qubit gate and a sequence of symbols,
+            and returns a tuple containing the parameterized gate and a dictionary
+            mapping symbol names to their values.
+        n_symbols: The number of symbols to use for parameterization.
+    """
+
+    symbolizer_fn: Callable[[ops.Gate, Sequence[sympy.Symbol]], Tuple[ops.Gate, Dict[str, Real]]]
+    n_symbols: int
+
+    def __call__(
+        self, two_qubit_gate: ops.Gate, symbols: Sequence[sympy.Symbol]
+    ) -> Tuple[ops.Gate, Dict[str, Real]]:
+        """Symbolizes a two qubit gate to a parameterized gate.
+
+        Args:
+            two_qubit_gate: The 2 qubit gate to be symbolized.
+            symbols: A sequence of sympy symbols to use for parameterization.
+
+        Returns:
+            A tuple containing the parameterized gate and a dictionary mapping
+            symbol names to their values.
+
+        Raises:
+            ValueError: If the provided symbols do not match the expected number.
+        """
+        if len(symbols) != self.n_symbols:
+            raise ValueError(
+                f"Expect {self.n_symbols} symbols, but got {len(symbols)} symbols in {symbols}"
+            )
+        return self.symbolizer_fn(two_qubit_gate, symbols)
+
+
 def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
     return choices[prng.choice(len(choices), p=probabilites)]
 
@@ -152,12 +188,14 @@ class GaugeSelector:
 
 @transformer_api.transformer
 class GaugeTransformer:
+
     def __init__(
         self,
         # target can be either a specific gate, gatefamily or gateset
         # which allows matching parametric gates.
         target: Union[ops.Gate, ops.Gateset, ops.GateFamily],
         gauge_selector: Callable[[np.random.Generator], Gauge],
+        two_qubit_gate_symbolizer: Optional[TwoQubitGateSymbolizer] = None,
     ) -> None:
         """Constructs a GaugeTransformer.
 
@@ -165,9 +203,11 @@ class GaugeTransformer:
             target: Target two-qubit gate, a gate-family or a gate-set of two-qubit gates.
             gauge_selector: A callable that takes a numpy random number generator
                 as an argument and returns a Gauge.
+            two_qubit_gate_symbolizer: A symbolizer to symbolize 2 qubit gates.
         """
         self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
         self.gauge_selector = gauge_selector
+        self.two_qubit_gate_symbolizer = two_qubit_gate_symbolizer
 
     def __call__(
         self,
@@ -233,15 +273,24 @@ class GaugeTransformer:
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
         new_moments: List[List[ops.Operation]] = []  # Store parameterized circuits.
-        values_by_params: Dict[str, List[float]] = {}  # map from symbol name to N values.
-        symbol_count = count()
+        phxz_sid = itertools.count()
+        two_qubit_gate_sid = itertools.count()
         # Map from "((pre|post),$qid,$moment_id)" to gate parameters.
-        # E.g. {(post,q1,2): {"x_exponent": "x1", "z_exponent": "z1", "axis_phase": "a1"}}
-        symbols_by_loc: Dict[Tuple[str, ops.Qid, int], Dict[str, sympy.Symbol]] = {}
+        # E.g., {(post,q1,2): {"x_exponent": "x1", "z_exponent": "z1", "axis_phase": "a1"}}
+        phxz_symbols_by_locs: Dict[Tuple[str, ops.Qid, int], Dict[str, sympy.Symbol]] = {}
+        # Map from "($q0,$q1,$moment_id)" to gate parameters.
+        # E.g., {(q0,q1,0): ["s0"]}.
+        two_qubit_gate_symbols_by_locs: Dict[Tuple[ops.Qid, ops.Qid, int], List[sympy.Symbol]] = {}
 
         def single_qubit_next_symbol() -> Dict[str, sympy.Symbol]:
-            sid = next(symbol_count)
-            return _parameterize(1, sid)
+            sid = next(phxz_sid)
+            return _parameterize_to_phxz(sid)
+
+        def two_qubit_gate_next_symbol_list(n: int) -> List[sympy.Symbol]:
+            """Returns symbols for 2 qubit gate parameterization."""
+            sid = next(two_qubit_gate_sid)
+            symbols: List[sympy.Symbol] = [sympy.Symbol(f"s{sid}_{sub}") for sub in range(n)]
+            return symbols
 
         # Build parameterized circuit.
         for moment_id, moment in enumerate(circuit):
@@ -255,17 +304,29 @@ class GaugeTransformer:
                     center_moment.append(op)
                     continue
                 if op.gate is not None and op in self.target:
+                    random_gauge = self.gauge_selector(rng).sample(op.gate, rng)
+                    # Build symbols for 2-qubit-gates if the transformer might transform it,
+                    # otherwise, keep it as it is.
+                    if self.two_qubit_gate_symbolizer is not None:
+                        symbols: list[sympy.Symbol] = two_qubit_gate_next_symbol_list(
+                            self.two_qubit_gate_symbolizer.n_symbols
+                        )
+                        two_qubit_gate_symbols_by_locs[(op.qubits[0], op.qubits[1], moment_id)] = (
+                            symbols
+                        )
+                        parameterized_2_qubit_gate, _ = self.two_qubit_gate_symbolizer(
+                            random_gauge.two_qubit_gate, symbols
+                        )
+                        center_moment.append(parameterized_2_qubit_gate.on(*op.qubits))
+                    else:
+                        center_moment.append(op)
                     # Build symbols for the gauge, for a 2-qubit gauge, symbols will be built for
                     # pre/post q0/q1 and the new 2-qubit gate if the 2-qubit gate is updated in
                     # the gauge compiling.
-                    center_moment.append(op)
                     for prefix, q in itertools.product(["pre", "post"], op.qubits):
                         xza_by_symbols = single_qubit_next_symbol()  # xza in phased xz gate.
-                        loc = (prefix, q, moment_id)
-                        symbols_by_loc[loc] = xza_by_symbols
+                        phxz_symbols_by_locs[(prefix, q, moment_id)] = xza_by_symbols
                         new_op = ops.PhasedXZGate(**xza_by_symbols).on(q)
-                        for symbol in xza_by_symbols.values():
-                            values_by_params.update({str(symbol): []})
                         if prefix == "pre":
                             left_moment.append(new_op)
                         else:
@@ -275,6 +336,20 @@ class GaugeTransformer:
             new_moments.extend(
                 [moment for moment in [left_moment, center_moment, right_moment] if moment]
             )
+
+        # Initialize the map from symbol names to their N values.
+        values_by_params: Dict[str, List[float]] = {
+            **{
+                str(symbol): []
+                for symbols_by_names in phxz_symbols_by_locs.values()
+                for symbol in symbols_by_names.values()
+            },
+            **{
+                str(symbol): []
+                for symbols in two_qubit_gate_symbols_by_locs.values()
+                for symbol in symbols
+            },
+        }
 
         # Assign values for parameters via randomly chosen GaugeSelector.
         for _ in range(N):
@@ -286,17 +361,30 @@ class GaugeTransformer:
                         continue
                     if op.gate is not None and len(op.qubits) == 2 and op in self.target:
                         gauge = self.gauge_selector(rng).sample(op.gate, rng)
-                        if not gauge.support_sweep:
-                            raise NotImplementedError(
-                                f"as_sweep isn't supported for {gauge.two_qubit_gate} gauge"
+
+                        # Get the params for 2 qubit gates.
+                        if self.two_qubit_gate_symbolizer is not None:
+                            _, vals_by_symbols = self.two_qubit_gate_symbolizer(
+                                gauge.two_qubit_gate,
+                                [
+                                    *two_qubit_gate_symbols_by_locs[
+                                        (op.qubits[0], op.qubits[1], moment_id)
+                                    ]
+                                ],
                             )
+                            for symbol_str, val in vals_by_symbols.items():
+                                values_by_params[symbol_str].append(float(val))
+
                         # Get the params of pre/post q0/q1 gates.
                         for pre_or_post, idx in itertools.product(["pre", "post"], [0, 1]):
-                            symbols = symbols_by_loc[(pre_or_post, op.qubits[idx], moment_id)]
                             gates = getattr(gauge, f"{pre_or_post}_q{idx}")
-                            phxz_params = _gate_sequence_to_phxz_params(gates, symbols)
+                            phxz_params = _gate_sequence_to_phxz_params(
+                                gates,
+                                phxz_symbols_by_locs[(pre_or_post, op.qubits[idx], moment_id)],
+                            )
                             for key, value in phxz_params.items():
-                                values_by_params[key].append(value)
+                                values_by_params[key].append(float(value))
+
         sweeps: List[Points] = [
             Points(key=key, points=values) for key, values in values_by_params.items()
         ]
@@ -316,22 +404,28 @@ def _build_moments(operation_by_qubits: List[List[ops.Operation]]) -> List[List[
     return moments
 
 
-def _parameterize(num_qubits: int, symbol_id: int) -> Dict[str, sympy.Symbol]:
+def _parameterize_to_phxz(symbol_id: int) -> Dict[str, sympy.Symbol]:
     """Returns symbolized parameters for the gate."""
 
-    if num_qubits == 1:  # Convert single qubit gate to parameterized PhasedXZGate.
-        phased_xz_params = {
-            "x_exponent": sympy.Symbol(f"x{symbol_id}"),
-            "z_exponent": sympy.Symbol(f"z{symbol_id}"),
-            "axis_phase_exponent": sympy.Symbol(f"a{symbol_id}"),
-        }
-        return phased_xz_params
-    raise NotImplementedError("parameterization for non single qubit gates is not supported yet")
+    # Parameterize single qubit gate to parameterized PhasedXZGate.
+    phased_xz_params = {
+        "x_exponent": sympy.Symbol(f"x{symbol_id}"),
+        "z_exponent": sympy.Symbol(f"z{symbol_id}"),
+        "axis_phase_exponent": sympy.Symbol(f"a{symbol_id}"),
+    }
+    return phased_xz_params
 
 
 def _gate_sequence_to_phxz_params(
     gates: Tuple[ops.Gate, ...], xza_by_symbols: Dict[str, sympy.Symbol]
 ) -> Dict[str, float]:
+    identity_gate_in_phxz = {
+        str(xza_by_symbols["x_exponent"]): 0.0,
+        str(xza_by_symbols["z_exponent"]): 0.0,
+        str(xza_by_symbols["axis_phase_exponent"]): 0.0,
+    }
+    if not gates:
+        return identity_gate_in_phxz
     for gate in gates:
         if not has_unitary(gate) or gate.num_qubits() != 1:
             raise ValueError(
@@ -347,11 +441,7 @@ def _gate_sequence_to_phxz_params(
         or ops.I
     )
     if phxz is ops.I:  # Identity gate
-        return {
-            str(xza_by_symbols["x_exponent"]): 0.0,
-            str(xza_by_symbols["z_exponent"]): 0.0,
-            str(xza_by_symbols["axis_phase_exponent"]): 0.0,
-        }
+        return identity_gate_in_phxz
     # Check the gate type, needs to be a PhasedXZ gate.
     if not isinstance(phxz, ops.PhasedXZGate):
         raise ValueError("Failed to convert the gate sequence to a PhasedXZ gate.")

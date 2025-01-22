@@ -20,8 +20,10 @@ from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTe
 class TestSqrtCZGauge(GaugeTester):
     two_qubit_gate = cirq.CZ**0.5
     gauge_transformer = SqrtCZGaugeTransformer
+    sweep_must_pass = True
 
 
 class TestAdjointSqrtCZGauge(GaugeTester):
     two_qubit_gate = cirq.CZ**-0.5
     gauge_transformer = SqrtCZGaugeTransformer
+    sweep_must_pass = True

@@ -743,16 +743,21 @@ class SingleQubitCliffordGate(CliffordGate):
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     def __pow__(self, exponent: Union[float, int]) -> 'SingleQubitCliffordGate':
-        # First to check if we can get the sqrt and negative sqrt Clifford.
-        if self._get_sqrt_map().get(exponent, None):
-            pow_gate = self._get_sqrt_map()[exponent].get(self, None)
+        if int(exponent) == exponent:
+            # The single qubit Clifford gates are a group of size 24
+            ret_gate = super().__pow__(int(exponent) % 24)
+            return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
+        elif int(2 * exponent) == 2 * exponent:
+            # If exponent = k/2 for integer k, then we compute the k-th power of the square root
+            if exponent < 0:
+                sqrt_exp = -0.5
+            else:
+                sqrt_exp = 0.5
+            pow_gate = self._get_sqrt_map()[sqrt_exp].get(self, None)
             if pow_gate:
-                return pow_gate
-        # If not, we try the Clifford Tableau based method.
-        ret_gate = super().__pow__(exponent)
-        if ret_gate is NotImplemented:
-            return NotImplemented
-        return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
+                return pow_gate ** (abs(2 * exponent))
+
+        return NotImplemented
 
     def _act_on_(
         self,
@@ -897,7 +902,12 @@ class SingleQubitCliffordGate(CliffordGate):
         return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
-        return f'cirq.CliffordGate.from_clifford_tableau({self.clifford_tableau!r})'
+        return (
+            f'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+            f'rs=np.array({self._clifford_tableau.rs.tolist()!r}), '
+            f'xs=np.array({self._clifford_tableau.xs.tolist()!r}), '
+            f'zs=np.array({self._clifford_tableau.zs.tolist()!r})))'
+        )
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
