@@ -34,11 +34,10 @@ def test_phased_iswap_init():
 
 def test_phased_iswap_equality():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4), cirq.ISWAP**0.4)
-    eq.add_equality_group(
-        cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4, global_shift=0.3),
-        cirq.ISwapPowGate(global_shift=0.3) ** 0.4,
-    )
+    eq.add_equality_group(cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4))
+    eq.add_equality_group(cirq.ISWAP**0.4)
+    eq.add_equality_group(cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4, global_shift=0.3))
+    eq.add_equality_group(cirq.ISwapPowGate(global_shift=0.3) ** 0.4)
 
 
 def test_repr():
@@ -214,10 +213,10 @@ def test_approx_eq():
     gate4 = cirq.ISwapPowGate()
 
     assert cirq.approx_eq(gate1, gate2)
-    assert not cirq.approx_eq(gate1, gate0)  # not approx eq because gate0 has class ISwapPowGate
+    assert cirq.approx_eq(gate1, gate0)
     assert not cirq.approx_eq(gate1, gate3)
-    assert cirq.approx_eq(gate0, gate4)
+    assert not cirq.approx_eq(gate0, gate4)
 
     assert cirq.equal_up_to_global_phase(gate1, gate2)
-    assert not cirq.equal_up_to_global_phase(gate1, gate0)
+    assert cirq.equal_up_to_global_phase(gate1, gate0)
     assert not cirq.equal_up_to_global_phase(gate1, gate3)
