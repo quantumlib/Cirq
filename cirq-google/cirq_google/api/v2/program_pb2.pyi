@@ -78,6 +78,7 @@ class Constant(google.protobuf.message.Message):
     STRING_VALUE_FIELD_NUMBER: builtins.int
     CIRCUIT_VALUE_FIELD_NUMBER: builtins.int
     QUBIT_FIELD_NUMBER: builtins.int
+    MOMENT_VALUE_FIELD_NUMBER: builtins.int
     string_value: builtins.str
     """String value used throughout the circuit, such as for token values"""
     @property
@@ -88,16 +89,21 @@ class Constant(google.protobuf.message.Message):
     def qubit(self) -> global___Qubit:
         """Qubits used within the circuit (only populated in v2.5+)"""
 
+    @property
+    def moment_value(self) -> global___Moment:
+        """Moments used multiple times in a circuit"""
+
     def __init__(
         self,
         *,
         string_value: builtins.str = ...,
         circuit_value: global___Circuit | None = ...,
         qubit: global___Qubit | None = ...,
+        moment_value: global___Moment | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "qubit", b"qubit", "string_value", b"string_value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "qubit", b"qubit", "string_value", b"string_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["const_value", b"const_value"]) -> typing.Literal["string_value", "circuit_value", "qubit"] | None: ...
+    def HasField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "qubit", b"qubit", "string_value", b"string_value"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "qubit", b"qubit", "string_value", b"string_value"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["const_value", b"const_value"]) -> typing.Literal["string_value", "circuit_value", "qubit", "moment_value"] | None: ...
 
 global___Constant = Constant
 
@@ -162,8 +168,16 @@ class Moment(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+    MOMENT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     OPERATIONS_FIELD_NUMBER: builtins.int
     CIRCUIT_OPERATIONS_FIELD_NUMBER: builtins.int
+    moment_constant_index: builtins.int
+    """The index of the moment in the top-level constant table.
+    If this field is populated, the other fields should be ignored
+    in favor using the constant table lookup.
+    This field is used to reduce size of circuits that contain many
+    repeated moments.
+    """
     @property
     def operations(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Operation]:
         """All of the gate operations in the moment. Each operation and circuit
@@ -179,10 +193,13 @@ class Moment(google.protobuf.message.Message):
     def __init__(
         self,
         *,
+        moment_constant_index: builtins.int | None = ...,
         operations: collections.abc.Iterable[global___Operation] | None = ...,
         circuit_operations: collections.abc.Iterable[global___CircuitOperation] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["circuit_operations", b"circuit_operations", "operations", b"operations"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["_moment_constant_index", b"_moment_constant_index", "moment_constant_index", b"moment_constant_index"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["_moment_constant_index", b"_moment_constant_index", "circuit_operations", b"circuit_operations", "moment_constant_index", b"moment_constant_index", "operations", b"operations"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_moment_constant_index", b"_moment_constant_index"]) -> typing.Literal["moment_constant_index"] | None: ...
 
 global___Moment = Moment
 

@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import textwrap
+import warnings
 from typing import Callable
 
 import numpy as np
 import pytest
 import sympy
 
-
 import cirq
 import cirq.testing as ct
+from cirq.testing import consistent_qasm as cq
 from cirq import Circuit
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
@@ -186,7 +188,7 @@ def test_CX_gate():
      qreg q2[2];
      CX q1[0], q1[1];
      CX q1, q2[0];
-     CX q2, q1;      
+     CX q2, q1;
 """
     parser = QasmParser()
 
@@ -390,7 +392,7 @@ def test_U_angles():
 
 def test_U_gate_zero_params_error():
     qasm = """OPENQASM 2.0;
-     qreg q[2];     
+     qreg q[2];
      U q[1];"""
 
     parser = QasmParser()
@@ -401,7 +403,7 @@ def test_U_gate_zero_params_error():
 
 def test_U_gate_too_much_params_error():
     qasm = """OPENQASM 2.0;
-     qreg q[2];     
+     qreg q[2];
      U(pi, pi, pi, pi) q[1];"""
 
     parser = QasmParser()
@@ -520,9 +522,9 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: Callable[[float], cirq.Gate])
 def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
     qasm = f"""
      OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate}(pi) q[0], q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate}(pi) q[0], q[1];
 """
 
     parser = QasmParser()
@@ -534,9 +536,9 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in rotation_gates])
 def test_rotation_gates_zero_params_error(qasm_gate: str):
     qasm = f"""OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate} q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate} q[1];
 """
 
     parser = QasmParser()
@@ -584,7 +586,7 @@ def test_measure_individual_bits():
          OPENQASM 2.0;
          include "qelib1.inc";
          qreg q1[2];
-         creg c1[2];                        
+         creg c1[2];
          measure q1[0] -> c1[0];
          measure q1[1] -> c1[1];
     """
@@ -612,8 +614,8 @@ def test_measure_registers():
     qasm = """OPENQASM 2.0;
          include "qelib1.inc";
          qreg q1[3];
-         creg c1[3];                        
-         measure q1 -> c1;       
+         creg c1[3];
+         measure q1 -> c1;
     """
     parser = QasmParser()
 
@@ -639,10 +641,10 @@ def test_measure_registers():
 
 def test_measure_mismatched_register_size():
     qasm = """OPENQASM 2.0;
-         include "qelib1.inc";       
+         include "qelib1.inc";
          qreg q1[2];
-         creg c1[3];                        
-         measure q1 -> c1;       
+         creg c1[3];
+         measure q1 -> c1;
     """
 
     parser = QasmParser()
@@ -653,11 +655,11 @@ def test_measure_mismatched_register_size():
 
 def test_measure_to_quantum_register():
     qasm = """OPENQASM 2.0;
-         include "qelib1.inc";       
+         include "qelib1.inc";
          qreg q1[3];
          qreg q2[3];
-         creg c1[3];                        
-         measure q2 -> q1;       
+         creg c1[3];
+         measure q2 -> q1;
     """
 
     parser = QasmParser()
@@ -668,10 +670,10 @@ def test_measure_to_quantum_register():
 
 def test_measure_undefined_classical_bit():
     qasm = """OPENQASM 2.0;
-         include "qelib1.inc";       
-         qreg q1[3];    
-         creg c1[3];                        
-         measure q1[1] -> c2[1];       
+         include "qelib1.inc";
+         qreg q1[3];
+         creg c1[3];
+         measure q1[1] -> c2[1];
     """
 
     parser = QasmParser()
@@ -682,11 +684,11 @@ def test_measure_undefined_classical_bit():
 
 def test_measure_from_classical_register():
     qasm = """OPENQASM 2.0;
-         include "qelib1.inc";       
+         include "qelib1.inc";
          qreg q1[2];
-         creg c1[3];                        
-         creg c2[3];                        
-         measure c1 -> c2;       
+         creg c1[3];
+         creg c2[3];
+         measure c1 -> c2;
     """
 
     parser = QasmParser()
@@ -698,8 +700,8 @@ def test_measure_from_classical_register():
 def test_measurement_bounds():
     qasm = """OPENQASM 2.0;
      qreg q1[3];
-     creg c1[3];                        
-     measure q1[0] -> c1[4];  
+     creg c1[3];
+     measure q1[0] -> c1[4];
 """
     parser = QasmParser()
 
@@ -741,7 +743,7 @@ def test_u1_gate():
      OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[1];
-     u1(pi / 3.0) q[0];    
+     u1(pi / 3.0) q[0];
 """
     parser = QasmParser()
 
@@ -764,7 +766,7 @@ def test_u2_gate():
      OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[1];
-     u2(2 * pi, pi / 3.0) q[0];    
+     u2(2 * pi, pi / 3.0) q[0];
 """
     parser = QasmParser()
 
@@ -787,7 +789,7 @@ def test_id_gate():
      OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
-     id q;           
+     id q;
 """
     parser = QasmParser()
 
@@ -846,7 +848,7 @@ def test_r_gate():
      OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[1];
-     r(pi, pi / 2.0) q[0];    
+     r(pi, pi / 2.0) q[0];
 """
     parser = QasmParser()
 
@@ -871,9 +873,9 @@ def test_r_gate():
 def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
     qasm = f"""
      OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate} q[0], q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate} q[0], q[1];
 """
 
     parser = QasmParser()
@@ -889,9 +891,9 @@ def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
 )
 def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
     qasm = f"""OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate}(pi, 2*pi, 3*pi, 4*pi, 5*pi) q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate}(pi, 2*pi, 3*pi, 4*pi, 5*pi) q[1];
 """
 
     parser = QasmParser()
@@ -903,9 +905,9 @@ def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
         return
 
     qasm = f"""OPENQASM 2.0;
-     include "qelib1.inc";             
-     qreg q[2];     
-     {qasm_gate} q[1];     
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate} q[1];
     """
 
     parser = QasmParser()
@@ -1227,3 +1229,273 @@ def test_openqasm_3_0_scalar_qubit():
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
+
+
+def test_custom_gate():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     gate g q0, q1 {
+        x q0;
+        y q0;
+        z q1;
+     }
+     g q[0], q[1];
+     g q[1], q[0];
+    """
+
+    # The gate definition should translate to this
+    q0, q1 = cirq.NamedQubit.range(2, prefix='q')
+    g = cirq.FrozenCircuit(cirq.X(q0), cirq.Y(q0), cirq.Z(q1))
+
+    # The outer circuit should then translate to this
+    q_0, q_1 = cirq.NamedQubit.range(2, prefix='q_')  # The outer qreg array
+    expected = cirq.Circuit(
+        cirq.CircuitOperation(g, qubit_map={q0: q_0, q1: q_1}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_1, q1: q_0}),
+    )
+
+    # Verify
+    parser = QasmParser()
+    parsed_qasm = parser.parse(qasm)
+    assert parsed_qasm.circuit == expected
+
+    # Sanity check that this unrolls to a valid circuit
+    unrolled_expected = cirq.Circuit(
+        cirq.X(q_0), cirq.Y(q_0), cirq.Z(q_1), cirq.X(q_1), cirq.Y(q_1), cirq.Z(q_0)
+    )
+    unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
+    assert unrolled == unrolled_expected
+
+    # Sanity check that these have the same unitaries as the QASM.
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
+
+
+def test_custom_gate_parameterized():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     gate g(p0, p1) q0, q1 {
+        rx(p0) q0;
+        ry(p0+p1+3) q0;
+        rz(p1) q1;
+     }
+     g(1,2) q[0], q[1];
+     g(0,4) q[1], q[0];
+    """
+
+    # The gate definition should translate to this
+    p0, p1 = sympy.symbols('p0, p1')
+    q0, q1 = cirq.NamedQubit.range(2, prefix='q')
+    g = cirq.FrozenCircuit(
+        cirq.Rx(rads=p0).on(q0), cirq.Ry(rads=p0 + p1 + 3).on(q0), cirq.Rz(rads=p1).on(q1)
+    )
+
+    # The outer circuit should then translate to this
+    q_0, q_1 = cirq.NamedQubit.range(2, prefix='q_')  # The outer qreg array
+    expected = cirq.Circuit(
+        cirq.CircuitOperation(g, qubit_map={q0: q_0, q1: q_1}, param_resolver={'p0': 1, 'p1': 2}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_1, q1: q_0}, param_resolver={'p0': 0, 'p1': 4}),
+    )
+
+    # Verify
+    parser = QasmParser()
+    parsed_qasm = parser.parse(qasm)
+    assert parsed_qasm.circuit == expected
+
+    # Sanity check that this unrolls to a valid circuit
+    unrolled_expected = cirq.Circuit(
+        cirq.Rx(rads=1).on(q_0),
+        cirq.Ry(rads=6).on(q_0),
+        cirq.Rz(rads=2).on(q_1),
+        cirq.Rx(rads=0).on(q_1),
+        cirq.Ry(rads=7).on(q_1),
+        cirq.Rz(rads=4).on(q_0),
+    )
+    unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
+    assert unrolled == unrolled_expected
+
+    # Sanity check that these have the same unitaries as the QASM.
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
+
+
+def test_custom_gate_broadcast():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[3];
+     gate g q0 {
+        x q0;
+        y q0;
+        z q0;
+     }
+     g q; // broadcast to all qubits in register
+    """
+
+    # The gate definition should translate to this
+    q0 = cirq.NamedQubit('q0')
+    g = cirq.FrozenCircuit(cirq.X(q0), cirq.Y(q0), cirq.Z(q0))
+
+    # The outer circuit should then translate to this
+    q_0, q_1, q_2 = cirq.NamedQubit.range(3, prefix='q_')  # The outer qreg array
+    expected = cirq.Circuit(
+        # It is broadcast to all qubits in the qreg
+        cirq.CircuitOperation(g, qubit_map={q0: q_0}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_1}),
+        cirq.CircuitOperation(g, qubit_map={q0: q_2}),
+    )
+
+    # Verify
+    parser = QasmParser()
+    parsed_qasm = parser.parse(qasm)
+    assert parsed_qasm.circuit == expected
+
+    # Sanity check that this unrolls to a valid circuit
+    unrolled_expected = cirq.Circuit(
+        cirq.X(q_0),
+        cirq.Y(q_0),
+        cirq.Z(q_0),
+        cirq.X(q_1),
+        cirq.Y(q_1),
+        cirq.Z(q_1),
+        cirq.X(q_2),
+        cirq.Y(q_2),
+        cirq.Z(q_2),
+    )
+    unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
+    assert unrolled == unrolled_expected
+
+    # Sanity check that these have the same unitaries as the QASM.
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
+
+
+def test_custom_gate_undefined_qubit_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gate g q0 { x q1; }
+     g q
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Undefined qubit 'q1' at line 4",
+        qiskit_err="4,19: 'q1' is not defined in this scope",
+    )
+
+
+def test_custom_gate_qubit_scope_closure_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gate g q0 { x q; }
+     g q
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="'q' is a register, not a qubit at line 4",
+        qiskit_err="4,19: 'q' is a quantum register, not a qubit",
+    )
+
+
+def test_custom_gate_qubit_index_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gate g q0 { x q0[0]; }
+     g q
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Unsupported indexed qreg 'q0[0]' at line 4",
+        qiskit_err="4,21: needed ';', but instead saw [",
+    )
+
+
+def test_custom_gate_qreg_count_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     gate g q0 { x q0; }
+     g q[0], q[1];
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Wrong number of qregs for 'g' at line 5",
+        qiskit_err="5,5: 'g' takes 1 quantum argument, but got 2",
+    )
+
+
+def test_custom_gate_missing_param_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gate g(p) q0 { rx(p) q0; }
+     g q;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Wrong number of params for 'g' at line 5",
+        qiskit_err=None,  # Qiskit bug? It's an invalid circuit that won't simulate.
+    )
+
+
+def test_custom_gate_extra_param_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gate g q0 { x q0; }
+     g(3) q;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Wrong number of params for 'g' at line 5",
+        qiskit_err="5,5: 'g' takes 0 parameters, but got 1",
+    )
+
+
+def test_custom_gate_undefined_param_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gate g q0 { rx(p) q0; }
+     g q;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Undefined parameter 'p' in line 4",
+        qiskit_err="4,20: 'p' is not a parameter",
+    )
+
+
+def test_top_level_param_error():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     rx(p) q;
+    """
+    _test_parse_exception(
+        qasm,
+        cirq_err="Parameter 'p' in line 4 not supported",
+        qiskit_err="4,8: 'p' is not a parameter",
+    )
+
+
+def _test_parse_exception(qasm: str, cirq_err: str, qiskit_err: str | None):
+    parser = QasmParser()
+    with pytest.raises(QasmException, match=re.escape(cirq_err)):
+        parser.parse(qasm)
+    try:
+        import qiskit
+
+        if qiskit_err is None:
+            qiskit.QuantumCircuit.from_qasm_str(qasm)
+            return
+        with pytest.raises(qiskit.qasm2.exceptions.QASM2ParseError, match=re.escape(qiskit_err)):
+            qiskit.QuantumCircuit.from_qasm_str(qasm)
+    except ImportError:  # pragma: no cover
+        warnings.warn(
+            "Skipped _test_qiskit_parse_exception because "
+            "qiskit isn't installed to verify against."
+        )
