@@ -189,7 +189,7 @@ def run_shuffled_with_readout_benchmarking(
 
     # If input qubits is None, extract qubits from input circuits
     if qubits is None:
-        qubits_set = set()
+        qubits_set: set[ops.Qid] = set()
         for circuit in input_circuits:
             qubits_set.update(circuit.all_qubits())
         qubits = sorted(qubits_set)
