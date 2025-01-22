@@ -25,7 +25,7 @@ raised to a power (i.e. SQRT_ISWAP_INV=cirq.ISWAP**-0.5). See the definition in
 EigenGate.
 """
 
-from typing import Optional, Tuple, TYPE_CHECKING, List
+from typing import cast, Optional, Tuple, TYPE_CHECKING, List
 
 import numpy as np
 import sympy
@@ -294,7 +294,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
 def riswap(rads: value.TParamVal) -> ISwapPowGate:
     """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
-    return ISwapPowGate() ** (2 * rads / pi)
+    return cast(ISwapPowGate, ISwapPowGate() ** (2 * rads / pi))
 
 
 SWAP = SwapPowGate()
