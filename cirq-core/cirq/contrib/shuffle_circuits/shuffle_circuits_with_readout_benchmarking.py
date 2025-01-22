@@ -115,7 +115,6 @@ def _analyze_readout_results(
     one_state_trials = np.zeros((1, len(qubits)), dtype=np.int64)
     zero_state_totals = np.zeros((1, len(qubits)), dtype=np.int64)
     one_state_totals = np.zeros((1, len(qubits)), dtype=np.int64)
-    trial_idx = 0
     for measurement_result, bitstr in zip(unshuffled_readout_measurements, random_bitstrings):
         for _, trial_result in measurement_result.measurements.items():
             trial_result = trial_result.astype(np.int64)  # Cast to int64
@@ -125,8 +124,6 @@ def _analyze_readout_results(
             zero_state_totals += readout_repetitions * (1 - bitstr)
             one_state_trials += (readout_repetitions - sample_counts) * bitstr
             one_state_totals += readout_repetitions * bitstr
-
-            trial_idx += 1
 
     zero_state_errors = {
         q: (
