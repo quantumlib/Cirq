@@ -399,6 +399,17 @@ def test_sample_repeated_measurement_keys():
     assert len(result.records['b'][0]) == 2
 
 
+def test_classical_controls_go_to_suffix_if_corresponding_measurement_does():
+    subcircuit = cirq.CircuitOperation(cirq.FrozenCircuit()).with_classical_controls('a')
+    m = cirq.measure(cirq.LineQubit(0), key='a')
+    circuit = cirq.Circuit(m, subcircuit)
+    prefix, suffix = cirq.sim.simulator.split_into_matching_protocol_then_general(
+        circuit, lambda op: op != m  # any op but m goes into prefix
+    )
+    assert not prefix
+    assert suffix == circuit
+
+
 def test_simulate_with_invert_mask():
     q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
     c = cirq.Circuit(
