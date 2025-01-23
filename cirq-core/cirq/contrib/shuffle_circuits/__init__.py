@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,19 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Utility for shuffling circuits and do readout error benchmarking."""
 
-import cirq
-from cirq.transformers.gauge_compiling import SqrtCZGaugeTransformer
-from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
-
-
-class TestSqrtCZGauge(GaugeTester):
-    two_qubit_gate = cirq.CZ**0.5
-    gauge_transformer = SqrtCZGaugeTransformer
-    sweep_must_pass = True
-
-
-class TestAdjointSqrtCZGauge(GaugeTester):
-    two_qubit_gate = cirq.CZ**-0.5
-    gauge_transformer = SqrtCZGaugeTransformer
-    sweep_must_pass = True
+from cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking import (
+    run_shuffled_with_readout_benchmarking as run_shuffled_with_readout_benchmarking,
+)

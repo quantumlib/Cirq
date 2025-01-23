@@ -253,4 +253,4 @@ def givens(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
         A phased iswap gate for the given rotation.
     """
     pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
-    return PhasedISwapPowGate() ** (2 * angle_rads / pi)
+    return cast(PhasedISwapPowGate, PhasedISwapPowGate() ** (2 * angle_rads / pi))
