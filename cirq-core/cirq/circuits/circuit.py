@@ -2925,11 +2925,11 @@ class _PlacementCache:
         self._node_indices: Dict[MopNode, int] = {}
         self.append(*mops)
 
-    def append(self, *mops: Union['cirq.Moment', 'cirq.Operation'], min_index: int = 0) -> int:
-        index = min_index
+    def append(self, *mops: Union['cirq.Moment', 'cirq.Operation']) -> int:
+        index = 0
         for mop in mops:
             node = self._op_heap.append(mop)
-            index = max([min_index] + [self._node_indices[parent] + 1 for parent in node.parents])
+            index = max([self._node_indices[parent] + 1 for parent in node.parents], default=0)
             while index >= len(self._nodes):
                 self._nodes.append([])
             self._nodes[index].append(node)
