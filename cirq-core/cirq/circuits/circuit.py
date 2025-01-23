@@ -2836,12 +2836,13 @@ class OpHeap:
         self._qubit_indices: Dict['cirq.Qid', MopNode] = {}
         self._mkey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
         self._ckey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
-        self._mops: Dict[MopNode, int] = {}
         self._head: Dict[MopNode, int] = {}
         for mop in mops:
             self.append(mop)
 
-    def pop(self, predicate: Callable[[Mop], bool]) -> List[Mop]:
+    def pop(
+        self, predicate: Callable[[Union['cirq.Moment', 'cirq.Operation']], bool]
+    ) -> List[Union['cirq.Moment', 'cirq.Operation']]:
         matches = [node for node in self._head if predicate(node.mop)]
         for node in matches:
             self._head.pop(node)
@@ -2935,6 +2936,6 @@ class _PlacementCache:
             self._node_indices[node] = index
         return index
 
-    def nodes(self) -> Iterable[Tuple[Mop, ...]]:
+    def nodes(self) -> Iterable[Tuple[Union['cirq.Moment', 'cirq.Operation'], ...]]:
         for node in self._nodes:
             yield tuple(n.mop for n in node)
