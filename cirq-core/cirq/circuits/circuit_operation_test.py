@@ -1258,7 +1258,11 @@ def test_inner_repeat_until_simulate():
         repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol("inner_loop"), 0)),
     )
     outer_loop = cirq.Circuit(inner_loop, cirq.X(q), cirq.measure(q, key="outer_loop"))
-    circuit = cirq.Circuit(cirq.CircuitOperation(cirq.FrozenCircuit(outer_loop), repetitions=2))
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(outer_loop), repetitions=2, use_repetition_ids=True
+        )
+    )
     result = sim.run(circuit, repetitions=1)
     assert all(len(v) == 1 and v[0] == 1 for v in result.records['0:inner_loop'][0][:-1])
     assert result.records['0:inner_loop'][0][-1] == [0]
