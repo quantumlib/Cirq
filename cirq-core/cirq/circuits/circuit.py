@@ -1789,7 +1789,7 @@ class Circuit(AbstractCircuit):
             return
         with _compat.block_overlapping_deprecation('.*'):
             if strategy == InsertStrategy.EARLIEST:
-                self._load_contents_with_earliest_strategy(flattened_contents)
+                self._load_contents_with_earliest_strategy(*flattened_contents)
             else:
                 self.append(flattened_contents, strategy=strategy)
 
@@ -1810,9 +1810,7 @@ class Circuit(AbstractCircuit):
         new_circuit._placement_cache = None
         return new_circuit
 
-    def _load_contents_with_earliest_strategy(
-        self, contents: Iterable[Union['cirq.Operation', 'cirq.Moment']]
-    ):
+    def _load_contents_with_earliest_strategy(self, *mops: Union['cirq.Operation', 'cirq.Moment']):
         """Optimized algorithm to load contents quickly.
 
         The default algorithm appends operations one-at-a-time, letting them
@@ -1825,18 +1823,18 @@ class Circuit(AbstractCircuit):
         moment.
 
         Args:
-            contents: The initial list of moments and operations defining the
+            mops: The initial list of moments and operations defining the
                 circuit. You can also pass in operations, lists of operations,
                 or generally anything meeting the `cirq.OP_TREE` contract.
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        self._placement_cache = _PlacementCache(*contents)
+        self._placement_cache = _PlacementCache(*mops)
         for nodes in self._placement_cache.nodes():
-            if len(nodes) == 1 and isinstance(nodes[0], Moment):
-                self._moments.append(nodes[0])
+            if isinstance(nodes[0], Moment):
+                self._moments.append(nodes[0].with_operations(*nodes[1:]))
             else:
-                self._moments.append(Moment([node for node in nodes]))
+                self._moments.append(Moment(nodes))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
@@ -2825,18 +2823,15 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
     return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))
 
 
-Mop = Union['cirq.Moment', 'cirq.Operation']
-
-
 class MopNode:
-    def __init__(self, mop: Mop):
+    def __init__(self, mop: Union['cirq.Moment', 'cirq.Operation']):
         self.mop = mop
         self.parents: Set[MopNode] = set()
         self.children: Set[MopNode] = set()
 
 
 class OpHeap:
-    def __init__(self, *mops: Mop) -> None:
+    def __init__(self, *mops: Union['cirq.Moment', 'cirq.Operation']) -> None:
         self._last_moment: Optional[MopNode] = None
         self._qubit_indices: Dict['cirq.Qid', MopNode] = {}
         self._mkey_indices: Dict['cirq.MeasurementKey', MopNode] = {}
@@ -2856,7 +2851,7 @@ class OpHeap:
                     self._head[child] = 0
         return [node.mop for node in matches]
 
-    def append(self, mop: Mop) -> MopNode:
+    def append(self, mop: Union['cirq.Moment', 'cirq.Operation']) -> MopNode:
         node = MopNode(mop)
         mop_qubits = mop.qubits
         mop_mkeys = protocols.measurement_key_objs(mop)
@@ -2923,13 +2918,13 @@ class _PlacementCache:
     scratch. Future improvements may ease this restriction.
     """
 
-    def __init__(self, *mops: Mop) -> None:
+    def __init__(self, *mops: Union['cirq.Moment', 'cirq.Operation']) -> None:
         self._op_heap: OpHeap = OpHeap()
         self._nodes: List[List[MopNode]] = []
         self._node_indices: Dict[MopNode, int] = {}
         self.append(*mops)
 
-    def append(self, *mops: Mop, min_index: int = 0) -> int:
+    def append(self, *mops: Union['cirq.Moment', 'cirq.Operation'], min_index: int = 0) -> int:
         index = min_index
         for mop in mops:
             node = self._op_heap.append(mop)
