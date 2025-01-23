@@ -15,7 +15,7 @@
 """Transformer pass to repack circuits avoiding simultaneous operations with different classes."""
 
 import itertools
-from typing import TYPE_CHECKING, Type, Callable, Optional, Union, Iterable, Sequence, List
+from typing import cast, TYPE_CHECKING, Type, Callable, Optional, Union, Iterable, Sequence, List
 
 from cirq import ops, circuits, protocols, _import
 from cirq.transformers import transformer_api
@@ -126,8 +126,8 @@ def _stratify_circuit(
     new_moments: List[List['cirq.Operation']] = []
     current_class = 0
     while op_heap:
-        new_moment = op_heap.pop(lambda op: op_classes[op] == current_class)
-        new_moments.append(new_moment)
+        new_moment = op_heap.pop(lambda op: op_classes[cast(ops.Operation, op)] == current_class)
+        new_moments.append(cast(List[ops.Operation], new_moment))
         current_class = (current_class + 1) % num_classes
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
 

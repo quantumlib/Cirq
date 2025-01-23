@@ -1810,7 +1810,9 @@ class Circuit(AbstractCircuit):
         new_circuit._placement_cache = None
         return new_circuit
 
-    def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
+    def _load_contents_with_earliest_strategy(
+        self, contents: Iterable[Union['cirq.Operation', 'cirq.Moment']]
+    ):
         """Optimized algorithm to load contents quickly.
 
         The default algorithm appends operations one-at-a-time, letting them
@@ -2829,8 +2831,8 @@ Mop = Union['cirq.Moment', 'cirq.Operation']
 class MopNode:
     def __init__(self, mop: Mop):
         self.mop = mop
-        self.parents = set()
-        self.children = set()
+        self.parents: Set[MopNode] = set()
+        self.children: Set[MopNode] = set()
 
 
 class OpHeap:
@@ -2938,6 +2940,6 @@ class _PlacementCache:
             self._node_indices[node] = index
         return index
 
-    def nodes(self) -> List[List[Mop]]:
+    def nodes(self) -> Iterable[Tuple[Mop, ...]]:
         for node in self._nodes:
             yield tuple(n.mop for n in node)

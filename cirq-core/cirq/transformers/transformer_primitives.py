@@ -195,16 +195,13 @@ def _map_operations_impl(
             ]
         return mapped_ops
 
-    new_moments: List[List['cirq.Operation']] = []
+    new_moments: List['cirq.Moment'] = []
     for idx, moment in enumerate(circuit):
-        curr_moments: List[List['cirq.Operation']] = [[]] if wrap_in_circuit_op else []
-        placement_cache = circuits.circuit._PlacementCache()
-        for op in moment:
-            mapped_ops = apply_map_func(op, idx)
-            for mapped_op in mapped_ops:
-                placement_index = placement_cache.append(mapped_op)
-                curr_moments.extend([[] for _ in range(placement_index - len(curr_moments) + 1)])
-                curr_moments[placement_index].append(mapped_op)
+        mapped_ops = [mapped_op for op in moment for mapped_op in apply_map_func(op, idx)]
+        placer = circuits.circuit._PlacementCache(*mapped_ops)
+        curr_moments = [circuits.Moment(nodes) for nodes in placer.nodes()]
+        if wrap_in_circuit_op and not curr_moments:
+            curr_moments = [circuits.Moment()]
         new_moments.extend(curr_moments)
 
     return _create_target_circuit_type([circuits.Moment(moment) for moment in new_moments], circuit)
