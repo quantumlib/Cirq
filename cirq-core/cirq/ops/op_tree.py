@@ -16,7 +16,6 @@
 """
 
 from typing import Callable, Iterable, Iterator, NoReturn, Union, TYPE_CHECKING
-from typing_extensions import Protocol
 
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -28,32 +27,7 @@ if TYPE_CHECKING:
 moment = LazyLoader("moment", globals(), "cirq.circuits.moment")
 
 
-class OpTree(Protocol):
-    """The recursive type consumed by circuit builder methods.
-
-    An OpTree is a type protocol, satisfied by anything that can be recursively
-    flattened into Operations. We also define the Union type OP_TREE which
-    can be an OpTree or just a single Operation.
-
-    For example:
-    - An Operation is an OP_TREE all by itself.
-    - A list of operations is an OP_TREE.
-    - A list of tuples of operations is an OP_TREE.
-    - A list with a mix of operations and lists of operations is an OP_TREE.
-    - A generator yielding operations is an OP_TREE.
-
-    Note: once mypy supports recursive types this could be defined as an alias:
-
-    OP_TREE = Union[Operation, Iterable['OP_TREE']]
-
-    See: https://github.com/python/mypy/issues/731
-    """
-
-    def __iter__(self) -> Iterator[Union[Operation, 'OpTree']]:
-        pass
-
-
-OP_TREE = Union[Operation, OpTree]
+OP_TREE = Union[Operation, Iterable['OP_TREE']]
 document(
     OP_TREE,
     """An operation or nested collections of operations.
