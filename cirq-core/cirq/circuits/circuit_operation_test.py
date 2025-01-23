@@ -1221,7 +1221,6 @@ def test_repeat_until_protocols():
     q = cirq.LineQubit(0)
     op = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.H(q) ** sympy.Symbol('p'), cirq.measure(q, key='a')),
-        use_repetition_ids=False,
         repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 0)),
     )
     scoped = cirq.with_rescoped_keys(op, ('0',))
@@ -1254,7 +1253,6 @@ def test_inner_repeat_until_simulate():
     q = cirq.LineQubit(0)
     inner_loop = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.H(q), cirq.measure(q, key="inner_loop")),
-        use_repetition_ids=False,
         repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol("inner_loop"), 0)),
     )
     outer_loop = cirq.Circuit(inner_loop, cirq.X(q), cirq.measure(q, key="outer_loop"))

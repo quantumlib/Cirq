@@ -364,11 +364,8 @@ class CircuitOperation(ops.Operation):
 
     def _parameter_names_generator(self) -> Iterator[str]:
         yield from protocols.parameter_names(self.repetitions)
-        for symbol in protocols.parameter_symbols(self.circuit):
-            for name in protocols.parameter_names(
-                protocols.resolve_parameters(symbol, self.param_resolver, recursive=False)
-            ):
-                yield name
+        yield from protocols.parameter_names(self._mapped_repeat_until)
+        yield from protocols.parameter_names(self._mapped_any_loop)
 
     @cached_property
     def _mapped_any_loop(self) -> 'cirq.Circuit':
@@ -828,7 +825,9 @@ class CircuitOperation(ops.Operation):
                 by param_values.
         """
         new_params = {}
-        for k in protocols.parameter_symbols(self.circuit):
+        for k in protocols.parameter_symbols(self.circuit) | protocols.parameter_symbols(
+            self.repeat_until
+        ):
             v = self.param_resolver.value_of(k, recursive=False)
             v = protocols.resolve_parameters(v, param_values, recursive=recursive)
             if v != k:
