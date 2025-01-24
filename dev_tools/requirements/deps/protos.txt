@@ -3,6 +3,6 @@
 # This bundles the protoc tool for generating proto code.
 grpcio-tools~=1.62.3
 
-mypy-protobuf~=3.4
+mypy-protobuf~=3.6
 
 typedunits
