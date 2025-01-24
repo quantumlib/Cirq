@@ -7,7 +7,7 @@ networkx>=2.4
 numpy>=1.25
 pandas
 sortedcontainers~=2.0
-scipy~=1.8
+scipy~=1.11
 sympy
 typing_extensions>=4.2
 tqdm
