@@ -196,37 +196,16 @@ def _map_operations_impl(
         return mapped_ops
 
     new_moments: List[List['cirq.Operation']] = []
-
-    # Keep track of the latest time index for each qubit, measurement key, and control key.
-    qubit_time_index: Dict['cirq.Qid', int] = {}
-    measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
-    control_time_index: Dict['cirq.MeasurementKey', int] = {}
-
-    # New mapped operations in the current moment should be inserted after `last_moment_time_index`.
-    last_moment_time_index = -1
-
     for idx, moment in enumerate(circuit):
-        if wrap_in_circuit_op:
-            new_moments.append([])
+        curr_moments: List[List['cirq.Operation']] = [[]] if wrap_in_circuit_op else []
+        placement_cache = circuits.circuit._PlacementCache()
         for op in moment:
             mapped_ops = apply_map_func(op, idx)
-
             for mapped_op in mapped_ops:
-                # Identify the earliest moment that can accommodate this op.
-                placement_index = circuits.circuit.get_earliest_accommodating_moment_index(
-                    mapped_op, qubit_time_index, measurement_time_index, control_time_index
-                )
-                placement_index = max(placement_index, last_moment_time_index + 1)
-                new_moments.extend([[] for _ in range(placement_index - len(new_moments) + 1)])
-                new_moments[placement_index].append(mapped_op)
-                for qubit in mapped_op.qubits:
-                    qubit_time_index[qubit] = placement_index
-                for key in protocols.measurement_key_objs(mapped_op):
-                    measurement_time_index[key] = placement_index
-                for key in protocols.control_keys(mapped_op):
-                    control_time_index[key] = placement_index
-
-        last_moment_time_index = len(new_moments) - 1
+                placement_index = placement_cache.append(mapped_op)
+                curr_moments.extend([[] for _ in range(placement_index - len(curr_moments) + 1)])
+                curr_moments[placement_index].append(mapped_op)
+        new_moments.extend(curr_moments)
 
     return _create_target_circuit_type([circuits.Moment(moment) for moment in new_moments], circuit)
 
