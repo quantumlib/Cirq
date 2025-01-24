@@ -15,16 +15,20 @@
 """A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Sequence, Tuple
+from numbers import Real
 import numpy as np
+import sympy
 
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeTransformer,
     GaugeSelector,
     ConstantGauge,
     Gauge,
+    TwoQubitGateSymbolizer,
 )
-from cirq.ops import CZ, S, X, Gateset
+from cirq.ops import CZ, S, X, Gateset, Gate, CZPowGate
+
 
 if TYPE_CHECKING:
     import cirq
@@ -59,6 +63,20 @@ class SqrtCZGauge(Gauge):
             )
 
 
+def _symbolize_as_cz_pow(
+    two_qubit_gate: Gate, symbols: Sequence[sympy.Symbol]
+) -> Tuple[Gate, Dict[str, Real]]:
+    """Symbolizes a CZPowGate to a parameterized CZPowGate."""
+
+    if not isinstance(two_qubit_gate, CZPowGate) or not isinstance(two_qubit_gate.exponent, Real):
+        raise ValueError("Can't symbolize non-CZPowGate as CZ**symbol.")
+    return (CZ ** symbols[0], {str(symbols[0]): two_qubit_gate.exponent})
+
+
 SqrtCZGaugeTransformer = GaugeTransformer(
-    target=Gateset(_SQRT_CZ, _SQRT_CZ**-1), gauge_selector=GaugeSelector(gauges=[SqrtCZGauge()])
+    target=Gateset(_SQRT_CZ, _SQRT_CZ**-1),
+    gauge_selector=GaugeSelector(gauges=[SqrtCZGauge()]),
+    two_qubit_gate_symbolizer=TwoQubitGateSymbolizer(
+        symbolizer_fn=_symbolize_as_cz_pow, n_symbols=1
+    ),
 )
