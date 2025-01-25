@@ -69,6 +69,35 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     implemented via this class.
     """
 
+    def __init__(self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0) -> None:
+        """Initialize an XXPowGate.
+
+        Args:
+            exponent: The t in gate**t. Determines how much the eigenvalues of
+                the gate are phased by. For example, eigenvectors phased by -1
+                when `gate**1` is applied will gain a relative phase of
+                e^{i pi exponent} when `gate**exponent` is applied (relative to
+                eigenvectors unaffected by `gate**1`).
+            global_shift: Offsets the eigenvalues of the gate at exponent=1.
+                In effect, this controls a global phase factor on the gate's
+                unitary matrix. The factor is:
+
+                    exp(i * pi * global_shift * exponent)
+
+                For example, `cirq.X**t` uses a `global_shift` of 0 but
+                `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
+                `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
+
+        Raises:
+            ValueError: If the supplied exponent is a complex number with an
+                imaginary component or global_shift is out of range.
+        """
+        super().__init__(exponent=exponent, global_shift=global_shift)
+        if global_shift <= -2.0 or global_shift >= 2.0:
+            raise ValueError(
+                f"Gate global shift must be in the range (-2,2). Invalid Value: {global_shift}"
+            )
+
     def _num_qubits_(self) -> int:
         return 2
 
