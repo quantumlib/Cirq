@@ -2198,7 +2198,7 @@ class Circuit(AbstractCircuit):
                 and not isinstance(batch[0], Moment)
                 and not all(
                     self._can_add_op_at(k, op) or k > 0 and self._can_add_op_at(k - 1, op)
-                    for op in batch
+                    for op in cast(List['cirq.Operation'], batch)
                 )
             ):
                 self._moments.insert(k, Moment())
