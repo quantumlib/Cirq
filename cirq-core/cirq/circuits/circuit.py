@@ -2175,8 +2175,8 @@ class Circuit(AbstractCircuit):
         stuff = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
         i = 0
         while i < len(stuff):
-            batch = []
-            batch_qubits = set()
+            batch: List[Union['cirq.Moment', 'cirq.Operation']] = []
+            batch_qubits: Set['cirq.Qid'] = set()
             while i < len(stuff):
                 thing = stuff[i]
                 if isinstance(thing, Moment):
