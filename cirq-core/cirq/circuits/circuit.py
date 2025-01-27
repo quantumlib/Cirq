@@ -2172,30 +2172,28 @@ class Circuit(AbstractCircuit):
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
         if strategy != InsertStrategy.EARLIEST or k != len(self._moments):
             self._placement_cache = None
-        if k != len(self._moments):
-            prefix = Circuit.from_moments(self._moments[:k])
-        else:
-            prefix = self
-        suffix = self._moments[k:]
-        for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
-            if self._placement_cache:
-                p = self._placement_cache.append(moment_or_op)
-            elif isinstance(moment_or_op, Moment):
-                p = k
-            else:
-                p = prefix._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
-            if isinstance(moment_or_op, Moment):
-                prefix._moments.insert(p, moment_or_op)
-            elif p == len(prefix._moments):
-                prefix._moments.append(Moment(moment_or_op))
-            else:
-                prefix._moments[p] = prefix._moments[p].with_operation(moment_or_op)
-            k = max(k, p + 1)
-            if strategy is InsertStrategy.NEW_THEN_INLINE:
-                strategy = InsertStrategy.INLINE
-        if suffix:
-            circuit = prefix.concat_ragged(Circuit.from_moments(suffix))
-            self._moments = circuit._moments
+        circuit = Circuit(moment_or_operation_tree)
+        for moment in circuit:
+            if strategy is InsertStrategy.EARLIEST and not all(self._can_add_op_at(k, op) or self._can_add_op_at(k-1, op) for op in moment.operations):
+                self._moments.insert(k, Moment())
+            elif strategy is InsertStrategy.INLINE and not all(self._can_add_op_at(k-1, op) for op in moment.operations):
+                self._moments.insert(k-1, Moment())
+            for moment_or_op in moment:
+                if self._placement_cache:
+                    p = self._placement_cache.append(moment_or_op)
+                elif isinstance(moment_or_op, Moment):
+                    p = k
+                else:
+                    p = self._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
+                if isinstance(moment_or_op, Moment):
+                    self._moments.insert(p, moment_or_op)
+                elif p == len(self._moments):
+                    self._moments.append(Moment(moment_or_op))
+                else:
+                    self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                k = max(k, p + 1)
+                if strategy is InsertStrategy.NEW_THEN_INLINE:
+                    strategy = InsertStrategy.INLINE
         self._mutated(preserve_placement_cache=True)
         return k
 
