@@ -332,6 +332,28 @@ def test_repeat(add_measurements: bool, use_default_ids_for_initial_rep: bool) -
     assert op_base.repeat(2.99999999999).repetitions == 3
 
 
+def test_replace_repetition_ids() -> None:
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b), cirq.M(b, key='mb'), cirq.M(a, key='ma'))
+    op = cirq.CircuitOperation(circuit.freeze())
+    assert op.repetitions == 1
+    assert not op.use_repetition_ids
+
+    op2 = op.replace(repetitions=2)
+    assert op2.repetitions == 2
+    assert not op2.use_repetition_ids
+
+    op3 = op.replace(repetitions=3, repetition_ids=None)
+    assert op3.repetitions == 3
+    assert not op3.use_repetition_ids
+
+    # Passing `repetition_ids` will also enable `use_repetition_ids`
+    op4 = op.replace(repetitions=4, repetition_ids=['a', 'b', 'c', 'd'])
+    assert op4.repetitions == 4
+    assert op4.use_repetition_ids
+    assert op4.repetition_ids == ['a', 'b', 'c', 'd']
+
+
 @pytest.mark.parametrize('add_measurements', [True, False])
 @pytest.mark.parametrize('use_repetition_ids', [True, False])
 @pytest.mark.parametrize('initial_reps', [0, 1, 2, 3])
