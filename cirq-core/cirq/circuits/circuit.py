@@ -2169,9 +2169,9 @@ class Circuit(AbstractCircuit):
             ValueError: Bad insertion strategy.
         """
         # limit index to 0..len(self._moments), also deal with indices smaller 0
-        k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
+        k = index % (len(self._moments) + 1)
         qks: Dict['cirq.Qid', int] = {}
-        if strategy != InsertStrategy.EARLIEST or index != len(self._moments):
+        if strategy != InsertStrategy.EARLIEST or k != len(self._moments):
             self._placement_cache = None
         for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
             if self._placement_cache:
