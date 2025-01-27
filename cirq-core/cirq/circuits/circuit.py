@@ -2190,11 +2190,12 @@ class Circuit(AbstractCircuit):
                 prefix._moments.append(Moment(moment_or_op))
             else:
                 prefix._moments[p] = prefix._moments[p].with_operation(moment_or_op)
+            k = max(k, p + 1)
             if strategy is InsertStrategy.NEW_THEN_INLINE:
                 strategy = InsertStrategy.INLINE
-            k = max(k, p + 1)
         if suffix:
-            prefix.concat_ragged(Circuit.from_moments(suffix))
+            circuit = prefix.concat_ragged(Circuit.from_moments(suffix))
+            self._moments = circuit._moments
         self._mutated(preserve_placement_cache=True)
         return k
 
