@@ -2169,31 +2169,34 @@ class Circuit(AbstractCircuit):
             ValueError: Bad insertion strategy.
         """
         # limit index to 0..len(self._moments), also deal with indices smaller 0
-        k = index % (len(self._moments) + 1)
-        qks: Dict['cirq.Qid', int] = {}
+        k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
         if strategy != InsertStrategy.EARLIEST or k != len(self._moments):
             self._placement_cache = None
+        if k != len(self._moments):
+            prefix = Circuit.from_moments(self._moments[:k])
+        else:
+            prefix = self
+        suffix = self._moments[k:]
         for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
             if self._placement_cache:
                 p = self._placement_cache.append(moment_or_op)
+            elif isinstance(moment_or_op, Moment):
+                p = k
             else:
-                qk = max(k, max((qks[q] for q in moment_or_op.qubits if q in qks), default=0))
-                if isinstance(moment_or_op, Moment):
-                    p = qk
-                else:
-                    p = self._pick_or_create_inserted_op_moment_index(qk, moment_or_op, strategy)
-                for q in moment_or_op.qubits:
-                    qks[q] = p + 1
+                p = prefix._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
             if isinstance(moment_or_op, Moment):
-                self._moments.insert(p, moment_or_op)
-            elif p == len(self._moments):
-                self._moments.append(Moment(moment_or_op))
+                prefix._moments.insert(p, moment_or_op)
+            elif p == len(prefix._moments):
+                prefix._moments.append(Moment(moment_or_op))
             else:
-                self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                prefix._moments[p] = prefix._moments[p].with_operation(moment_or_op)
             if strategy is InsertStrategy.NEW_THEN_INLINE:
                 strategy = InsertStrategy.INLINE
+            k = max(k, p + 1)
+        if suffix:
+            prefix.concat_ragged(Circuit.from_moments(suffix))
         self._mutated(preserve_placement_cache=True)
-        return max(k, max(qks.values(), default=0))
+        return k
 
     def insert_into_range(self, operations: 'cirq.OP_TREE', start: int, end: int) -> int:
         """Writes operations inline into an area of the circuit.
