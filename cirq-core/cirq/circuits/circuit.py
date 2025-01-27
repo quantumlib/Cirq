@@ -2194,19 +2194,12 @@ class Circuit(AbstractCircuit):
                 else:
                     break
             if (
-                strategy is InsertStrategy.EARLIEST
+                strategy in [InsertStrategy.INLINE, InsertStrategy.EARLIEST]
                 and not isinstance(batch[0], Moment)
                 and not all(
                     self._can_add_op_at(k, op) or k > 0 and self._can_add_op_at(k - 1, op)
                     for op in batch
                 )
-            ):
-                self._moments.insert(k, Moment())
-            elif (
-                strategy is InsertStrategy.INLINE
-                and k > 0
-                and not isinstance(batch[0], Moment)
-                and not all(self._can_add_op_at(k, op) for op in batch)
             ):
                 self._moments.insert(k, Moment())
             for moment_or_op in batch:
