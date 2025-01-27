@@ -49,6 +49,10 @@ def test_equality_aria():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(AriaNativeGateset(atol=1e-6))
     eq.add_equality_group(AriaNativeGateset(atol=1e-5))
+
+
+def test_equality_forte():
+    eq = cirq.testing.EqualsTester()
     eq.add_equality_group(ForteNativeGateset(atol=1e-6))
     eq.add_equality_group(ForteNativeGateset(atol=1e-5))
 
