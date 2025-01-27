@@ -2204,10 +2204,11 @@ class Circuit(AbstractCircuit):
                 self._moments.insert(k, Moment())
             elif (
                 strategy is InsertStrategy.INLINE
+                and k > 0
                 and not isinstance(batch[0], Moment)
-                and not all(k > 0 and self._can_add_op_at(k - 1, op) for op in batch)
+                and not all(self._can_add_op_at(k, op) for op in batch)
             ):
-                self._moments.insert(k - 1, Moment())
+                self._moments.insert(k, Moment())
             for moment_or_op in batch:
                 if self._placement_cache:
                     p = self._placement_cache.append(moment_or_op)
