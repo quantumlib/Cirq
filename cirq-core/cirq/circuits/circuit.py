@@ -2170,26 +2170,30 @@ class Circuit(AbstractCircuit):
         """
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
+        qks: Dict['cirq.Qid', int] = {}
         if strategy != InsertStrategy.EARLIEST or index != len(self._moments):
             self._placement_cache = None
         for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
             if self._placement_cache:
                 p = self._placement_cache.append(moment_or_op)
-            elif isinstance(moment_or_op, Moment):
-                p = k
             else:
-                p = self._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
+                qk = max(k, max((qks[q] for q in moment_or_op.qubits if q in qks), default=0))
+                if isinstance(moment_or_op, Moment):
+                    p = qk
+                else:
+                    p = self._pick_or_create_inserted_op_moment_index(qk, moment_or_op, strategy)
+                for q in moment_or_op.qubits:
+                    qks[q] = p + 1
             if isinstance(moment_or_op, Moment):
                 self._moments.insert(p, moment_or_op)
             elif p == len(self._moments):
                 self._moments.append(Moment(moment_or_op))
             else:
                 self._moments[p] = self._moments[p].with_operation(moment_or_op)
-            k = max(k, p + 1)
             if strategy is InsertStrategy.NEW_THEN_INLINE:
                 strategy = InsertStrategy.INLINE
         self._mutated(preserve_placement_cache=True)
-        return k
+        return max(k, max(qks.values(), default=0))
 
     def insert_into_range(self, operations: 'cirq.OP_TREE', start: int, end: int) -> int:
         """Writes operations inline into an area of the circuit.
