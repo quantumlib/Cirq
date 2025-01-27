@@ -2172,13 +2172,43 @@ class Circuit(AbstractCircuit):
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
         if strategy != InsertStrategy.EARLIEST or k != len(self._moments):
             self._placement_cache = None
-        circuit = Circuit(moment_or_operation_tree)
-        for moment in circuit:
-            if strategy is InsertStrategy.EARLIEST and not all(self._can_add_op_at(k, op) or self._can_add_op_at(k-1, op) for op in moment.operations):
+        stuff = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
+        i = 0
+        while i < len(stuff):
+            batch = []
+            batch_qubits = set()
+            while i < len(stuff):
+                thing = stuff[i]
+                if isinstance(thing, Moment):
+                    if batch:
+                        break
+                    else:
+                        batch.append(thing)
+                        i += 1
+                        break
+                qs = thing.qubits
+                if batch_qubits.isdisjoint(qs):
+                    batch.append(thing)
+                    batch_qubits.update(qs)
+                    i += 1
+                else:
+                    break
+            if (
+                strategy is InsertStrategy.EARLIEST
+                and not isinstance(batch[0], Moment)
+                and not all(
+                    self._can_add_op_at(k, op) or k > 0 and self._can_add_op_at(k - 1, op)
+                    for op in batch
+                )
+            ):
                 self._moments.insert(k, Moment())
-            elif strategy is InsertStrategy.INLINE and not all(self._can_add_op_at(k-1, op) for op in moment.operations):
-                self._moments.insert(k-1, Moment())
-            for moment_or_op in moment:
+            elif (
+                strategy is InsertStrategy.INLINE
+                and not isinstance(batch[0], Moment)
+                and not all(k > 0 and self._can_add_op_at(k - 1, op) for op in batch)
+            ):
+                self._moments.insert(k - 1, Moment())
+            for moment_or_op in batch:
                 if self._placement_cache:
                     p = self._placement_cache.append(moment_or_op)
                 elif isinstance(moment_or_op, Moment):

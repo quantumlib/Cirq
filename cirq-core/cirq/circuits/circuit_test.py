@@ -3562,7 +3562,27 @@ def test_insert_qubit_order():
     c1 = cirq.Circuit(cirq.X(q0))
     c1.insert(0, cirq.Y.on_each(q1, q0))
     assert c0 == c1
-    cirq.testing.assert_has_diagram(c0,'')
+    cirq.testing.assert_has_diagram(c0, '')
+
+
+def test_insert_qubit_order2():
+    q0, q1 = cirq.LineQubit.range(2)
+    c0 = cirq.Circuit(cirq.X(q0))
+    c0.insert(0, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c1 = cirq.Circuit(cirq.X(q0))
+    c1.insert(0, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    assert c0 == c1
+    cirq.testing.assert_has_diagram(c0, '')
+
+
+def test_insert_qubit_order3():
+    q0, q1 = cirq.LineQubit.range(2)
+    c0 = cirq.Circuit(cirq.X(q0))
+    c0.insert(1, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c1 = cirq.Circuit(cirq.X(q0))
+    c1.insert(1, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    assert c0 == c1
+    cirq.testing.assert_has_diagram(c0, '')
 
 
 def test_insert_operations_errors():
