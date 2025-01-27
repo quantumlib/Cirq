@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Provides functions for running and analyzing two-qubit XEB experiments."""
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping, Any
+from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping, Any, Union
 
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -403,6 +403,7 @@ def parallel_xeb_workflow(
     pool: Optional['multiprocessing.pool.Pool'] = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
+    entangling_circuit_or_op: Optional[Union['cirq.AbstractCircuit', 'cirq.Operation']] = None,
     **plot_kwargs,
 ) -> Tuple[pd.DataFrame, Sequence['cirq.Circuit'], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
@@ -424,6 +425,8 @@ def parallel_xeb_workflow(
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
         tags: Tags to add to two qubit operations.
+        entangling_circuit_or_op: Optional operation or circuit for XEB.
+            When provided it overrides `entangling_gate`.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
     Returns:
@@ -447,13 +450,22 @@ def parallel_xeb_workflow(
         ax.set_title('device layout')
         ax.plot(**plot_kwargs)
 
-    circuit_library = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=n_circuits,
-        two_qubit_gate=entangling_gate,
-        random_state=rs,
-        max_cycle_depth=max(cycle_depths),
-        tags=tags,
-    )
+    if entangling_circuit_or_op is not None:
+        circuit_library = rqcg.generate_library_of_2q_circuits_for_circuit_op(
+            n_library_circuits=n_circuits,
+            circuit_or_op=entangling_circuit_or_op,
+            random_state=rs,
+            max_cycle_depth=max(cycle_depths),
+            tags=tags,
+        )
+    else:
+        circuit_library = rqcg.generate_library_of_2q_circuits(
+            n_library_circuits=n_circuits,
+            two_qubit_gate=entangling_gate,
+            random_state=rs,
+            max_cycle_depth=max(cycle_depths),
+            tags=tags,
+        )
 
     combs_by_layer = rqcg.get_random_combinations_for_device(
         n_library_circuits=len(circuit_library),
@@ -492,6 +504,7 @@ def parallel_two_qubit_xeb(
     pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
+    entangling_circuit_or_op: Optional[Union['cirq.AbstractCircuit', 'cirq.Operation']] = None,
     **plot_kwargs,
 ) -> TwoQubitXEBResult:
     """A convenience method that runs the full XEB workflow.
@@ -512,6 +525,8 @@ def parallel_two_qubit_xeb(
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
         tags: Tags to add to two qubit operations.
+        entangling_circuit_or_op: Optional operation or circuit for XEB.
+            When provided it overrides `entangling_gate`.
         **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
     Returns:
         A TwoQubitXEBResult object representing the results of the experiment.
@@ -531,6 +546,7 @@ def parallel_two_qubit_xeb(
         ax=ax,
         batch_size=batch_size,
         tags=tags,
+        entangling_circuit_or_op=entangling_circuit_or_op,
         **plot_kwargs,
     )
     return TwoQubitXEBResult(fit_exponential_decays(fids))
@@ -551,6 +567,7 @@ def run_rb_and_xeb(
     pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
+    entangling_circuit_or_op: Optional[Union['cirq.AbstractCircuit', 'cirq.Operation']] = None,
 ) -> InferredXEBResult:
     """A convenience method that runs both RB and XEB workflows.
 
@@ -569,6 +586,8 @@ def run_rb_and_xeb(
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
         tags: Tags to add to two qubit operations.
+        entangling_circuit_or_op: Optional operation or circuit for XEB.
+            When provided it overrides `entangling_gate`.
 
     Returns:
         An InferredXEBResult object representing the results of the experiment.
@@ -599,6 +618,7 @@ def run_rb_and_xeb(
         random_state=random_state,
         batch_size=batch_size,
         tags=tags,
+        entangling_circuit_or_op=entangling_circuit_or_op,
     )
 
     return InferredXEBResult(rb, xeb)
