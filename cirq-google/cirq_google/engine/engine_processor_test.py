@@ -376,12 +376,12 @@ def test_get_sampler_with_incomplete_device_configuration_errors(
         )
 
 
-def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
-    client = mock.Mock(engine_client.EngineClient)
-    client.get_processor.return_value = quantum.QuantumProcessor(
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
+def test_get_sampler_loads_processor_with_default_device_configuration(get_processor) -> None:
+    get_processor.return_value = quantum.QuantumProcessor(
         default_device_config_key=quantum.DeviceConfigKey(run="run", config_alias="config_alias")
     )
-
+    client = engine_client.EngineClient()
     processor = cg.EngineProcessor('a', 'p', FakeEngineContext(client=client))
     sampler = processor.get_sampler()
 
