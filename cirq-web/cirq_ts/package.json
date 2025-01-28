@@ -21,7 +21,7 @@
     "@types/puppeteer": "^5.4.3",
     "@types/temp": "^0.9.0",
     "@types/three": "^0.172.0",
-    "canvas": "^2.8.0",
+    "canvas": "^3.1.0",
     "chai": "^4.3.4",
     "concurrently": "^9.1.2",
     "gts": "^5.3.1",
