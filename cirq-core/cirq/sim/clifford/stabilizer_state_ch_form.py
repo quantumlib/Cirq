@@ -236,7 +236,7 @@ class StabilizerStateChForm(qis.StabilizerState):
 
         return arr
 
-    def _measure(self, q, prng: np.random.RandomState) -> int:
+    def _measure(self, q, prng: np.random.Generator) -> int:
         """Measures the q'th qubit.
 
         Reference: Section 4.1 "Simulating measurements"
@@ -246,7 +246,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         w = self.s.copy()
         for i, v_i in enumerate(self.v):
             if v_i == 1:
-                w[i] = bool(prng.randint(2))
+                w[i] = bool(prng.integers(2))
         x_i = sum(w & self.G[q, :]) % 2
         # Project the state to the above measurement outcome.
         self.project_Z(q, x_i)
