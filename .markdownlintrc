@@ -1,5 +1,4 @@
-{
-  // Summary: markdownlint config file for Cirq                    -*- jsonc -*-
+{ // Summary: markdownlint config file for Cirq                    -*- jsonc -*-
   //
   // Note: there are multiple programs programs named "markdownlint". For
   // Cirq, we use https://github.com/igorshubovych/markdownlint-cli/, which is
