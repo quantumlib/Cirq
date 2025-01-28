@@ -13,6 +13,7 @@
     "outDir": "build"
   },
   "include": [
+    "e2e/**/*.ts",
     "src/**/*.ts"
   ]
 }
