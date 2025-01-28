@@ -13,7 +13,7 @@ cirq-example
 │       ├── __init__.py
 │       └── spec.py
 ├── LICENSE
-├── README.rst
+├── README.md
 ├── requirements.txt
 ├── setup.cfg
 └── setup.py
@@ -42,7 +42,7 @@ To setup a new module follow these steps:
 
 1. Create the folder structure above, copy the files based on an existing module
     1. LICENSE should be the same
-    2. README.rst will be the documentation that appears in PyPi
+    2. README.md will be the documentation that appears in PyPi
     3. setup.py should specify an `install_requires` configuration that has `cirq-core=={module.version}` at the minimum
 2. Setup JSON serialization for each top level python package
 
