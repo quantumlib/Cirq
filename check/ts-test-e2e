@@ -29,3 +29,25 @@ topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
 check/npm run test-e2e "$@"
+
+echo "%git status%"
+git status
+echo "%done git status%"
+
+f="bloch_sphere_actual.png"
+md5sum $f
+echo "%BEGIN $f"
+base64 -i $f
+echo "%END $f"
+
+f="bloch_sphere_vec_actual.png"
+md5sum $f
+echo "%BEGIN $f"
+base64 -i $f
+echo "%END $f"
+
+f="circuit_actual.png"
+md5sum $f
+echo "%BEGIN $f"
+base64 -i $f
+echo "%END $f"
