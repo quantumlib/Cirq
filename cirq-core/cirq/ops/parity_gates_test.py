@@ -28,8 +28,11 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
 
 def test_xx_init():
     assert cirq.XXPowGate(exponent=1).exponent == 1
-    v = cirq.XXPowGate(exponent=0.5)
+    v = cirq.XXPowGate(exponent=0.5, global_shift=-0.5)
     assert v.exponent == 0.5
+    assert v.global_shift == -0.5
+    with pytest.raises(ValueError, match="in the range"):
+        assert cirq.XXPowGate(exponent=0.5, global_shift=4)
 
 
 def test_xx_eq():
