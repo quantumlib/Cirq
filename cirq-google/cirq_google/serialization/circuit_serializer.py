@@ -481,7 +481,7 @@ class CircuitSerializer(serializer.Serializer):
     ) -> cirq.Circuit:
         moments = []
         constant_moments: dict[int, cirq.Moment] = {}
-        constant_ops: dict[int, cirq.Operations] = {}
+        constant_ops: dict[int, cirq.Operation] = {}
         for moment_proto in circuit_proto.moments:
             if moment_proto.HasField('moment_constant_index'):
                 constant_index = moment_proto.moment_constant_index
