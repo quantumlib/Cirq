@@ -20,6 +20,20 @@
     "style": "atx"
   },
 
+  // Google style does not require that the first line of a file is a heading
+  // for the title; it only states that the first heading should be a level 1.
+  // https://google.github.io/styleguide/docguide/style.html#document-layout
+  "first-line-heading": false,
+
+  // The Google style does not define what to do about trailing punctuation in
+  // headings. The markdownlint default disallows exclamation points, which
+  // seems likely to be more annoying than useful – I have definitely seen
+  // people use exclamation points in headings in README files on GitHub.
+  // This setting removes exclamation point from the banned characters.
+  "no-trailing-punctuation": {
+    "punctuation": ".,;:。，；："
+  },
+
   // No trailing spaces.
   // https://google.github.io/styleguide/docguide/style.html#trailing-whitespace
   "whitespace": {
@@ -37,17 +51,8 @@
   // Bare URLs are allowed in GitHub-flavored Markdown and in Google’s style.
   "no-bare-urls": false,
 
-  // The Google style does not define what to do about trailing punctuation in
-  // headings. The markdownlint default disallows exclamation points, which
-  // seems likely to be more annoying than useful – I have definitely seen
-  // people use exclamation points in headings in README files on GitHub.
-  // This setting removes exclamation point from the banned characters.
-  "no-trailing-punctuation": {
-    "punctuation": ".,;:。，；："
-  },
-
   // Basic Markdown allows raw HTML. Both GitHub & PyPI support subsets of
-  // HTML, though it's unclear what those subset are for each. Google's style
+  // HTML, though it's unclear what subset PyPI supports. Google's style
   // guide doesn't disallow using HTML, although it recommends against it. (C.f.
   // the bottom of https://google.github.io/styleguide/docguide/style.html)
   // It's worth noting, though, that Google's guidance has Google's internal
