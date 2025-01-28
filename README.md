@@ -102,30 +102,32 @@ documentation for Cirq is available.
 
 ### Tutorials
 
-* [Video
-   tutorials](https://www.youtube.com/playlist?list=PLpO2pyKisOjLVt_tDJ2K6ZTapZtHXPLB4)
-   on YouTube are an engaging way to learn Cirq.
-* [Jupyter notebook-based
-  tutorials](https://colab.research.google.com/github/quantumlib/Cirq) let you
-  learn Cirq from your browser – no installation needed.
-* [Text-based tutorials](https://quantumai.google/cirq) on the Cirq home page
-  are great when combined with a local
-  [installation](https://quantumai.google/cirq/start/install) of Cirq on your
-  computer. After starting with the
-  [basics](https://quantumai.google/cirq/start/basics), you'll be ready to dive
-  into tutorials on circuit building and circuit simulation under the
-  [Build](https://quantumai.google/cirq/build) and
-  [Simulate](https://quantumai.google/cirq/simula) tabs, respectively. Check
+* [Video tutorials] on YouTube are an engaging way to learn Cirq.
+* [Jupyter notebook-based tutorials] let you learn Cirq from your browser – no
+  installation needed.
+* [Text-based tutorials] on the Cirq home page are great when combined with a
+  local [installation] of Cirq on your computer. After starting with the
+  [basics], you'll be ready to dive into tutorials on circuit building and
+  circuit simulation under the [Build] and [Simulate] tabs, respectively. Check
   out the other tabs for more!
+
+[Video tutorials]: https://www.youtube.com/playlist?list=PLpO2pyKisOjLVt_tDJ2K6ZTapZtHXPLB4
+[Jupyter notebook-based tutorials]: https://colab.research.google.com/github/quantumlib/Cirq
+[Text-based tutorials]: https://quantumai.google/cirq
+[installation]: https://quantumai.google/cirq/start/install
+[basics]: https://quantumai.google/cirq/start/basics
+[Build]: https://quantumai.google/cirq/build
+[Simulate]: https://quantumai.google/cirq/simula
 
 ### Reference Documentation
 
-* Docs for the [current stable
-  release](https://quantumai.google/reference/python/cirq/all_symbols)
-  correspond to what you get with `pip install cirq`.
-* Docs for the
-  [pre-release](https://quantumai.google/reference/python/cirq/all_symbols?version=nightly)
-  correspond to what you get with `pip install cirq~=1.0.dev`.
+* Docs for the [current stable release] correspond to what you get with
+  `pip install cirq`.
+* Docs for the [pre-release] correspond to what you get with
+  `pip install cirq~=1.0.dev`.
+
+[current stable release]: https://quantumai.google/reference/python/cirq/all_symbols
+[pre-release]: https://quantumai.google/reference/python/cirq/all_symbols?version=nightly
 
 ### Examples
 
@@ -151,15 +153,25 @@ develop quantum programs for a variety of applications.
 
 | Your interests                                  | Software to explore  |
 |-------------------------------------------------|----------------------|
-| Quantum algorithms?<br>Fault-tolerant quantum computing (FTQC)? | [Qualtran](https://github.com/quantumlib/qualtran) |
-| Large circuits and/or a lot of simulations?     | [qsim](https://github.com/quantumlib/qsim) |
-| Circuits with thousands of qubits and millions of Clifford operations? | [Stim](https://github.com/quantumlib/ssim) |
-| Quantum error correction (QEC)?                 | [Stim](https://github.com/quantumlib/ssim) |
-| Chemistry and/or material science?              | [OpenFermion](https://github.com/quantumlib/openfermion)<br>[OpenFermion-FQE](https://github.com/quantumlib/OpenFermion-FQE)<br>[OpenFermion-PySCF](https://github.com/quantumlib/OpenFermion-PySCF)<br>[OpenFermion-Psi4](https://github.com/quantumlib/OpenFermion-Psi4) |
-| Quantum machine learning (QML)?                 | [TensorFlow Quantum](https://github.com/tensorflow/quantum) |
-| Real experiments using Cirq?                    | [ReCirq](https://github.com/quantumlib/ReCirq) |
+| Quantum algorithms?<br>Fault-tolerant quantum computing (FTQC)? | [Qualtran] |
+| Large circuits and/or a lot of simulations?     | [qsim] |
+| Circuits with thousands of qubits and millions of Clifford operations? | [Stim] |
+| Quantum error correction (QEC)?                 | [Stim] |
+| Chemistry and/or material science?              | [OpenFermion]<br>[OpenFermion-FQE]<br>[OpenFermion-PySCF]<br>[OpenFermion-Psi4] |
+| Quantum machine learning (QML)?                 | [TensorFlow Quantum] |
+| Real experiments using Cirq?                    | [ReCirq] |
 
 </div>
+
+[Qualtran]: https://github.com/quantumlib/qualtran
+[qsim]: https://github.com/quantumlib/qsim
+[Stim]: https://github.com/quantumlib/ssim
+[OpenFermion]: https://github.com/quantumlib/openfermion
+[OpenFermion-FQE]: https://github.com/quantumlib/OpenFermion-FQE
+[OpenFermion-PySCF]: https://github.com/quantumlib/OpenFermion-PySCF
+[OpenFermion-Psi4]: https://github.com/quantumlib/OpenFermion-Psi4
+[TensorFlow Quantum]: https://github.com/tensorflow/quantum
+[ReCirq]: https://github.com/quantumlib/ReCirq
 
 ## Community
 
@@ -167,52 +179,56 @@ develop quantum programs for a variety of applications.
 align="right" width="160em" alt="Total number of contributors to Cirq"
 src="https://img.shields.io/github/contributors/quantumlib/cirq?label=Contributors&logoColor=white&logo=github&color=cccccc&style=flat-square"/></a>
 
-Cirq has benefited from [open-source
-contributions](https://github.com/quantumlib/Cirq/graphs/contributors) by over
-200 people and counting. We are dedicated to cultivating an open and inclusive
-community to build software for quantum computers, and have a [code of
-conduct](https://github.com/quantumlib/cirq/blob/main/CODE_OF_CONDUCT.md) for
-our community.
+Cirq has benefited from [open-source contributions] by over 200 people and
+counting. We are dedicated to cultivating an open and inclusive community to
+build software for quantum computers, and have a [code of conduct] for our
+community.
+
+[open-source contributions]: https://github.com/quantumlib/Cirq/graphs/contributors
+[code of conduct]: https://github.com/quantumlib/cirq/blob/main/CODE_OF_CONDUCT.md
 
 ### Announcements
 
 Stay on top of Cirq developments using the approach that best suits your needs:
 
 * For releases and major announcements: sign up to the low-volume mailing list
-  [`cirq-announce`](https://groups.google.com/forum/#!forum/cirq-announce).
+  [`cirq-announce`].
 * For releases only:
-  * Via GitHub notifications: configure [GitHub repository
-    notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/configuring-notifications)
-    for the Cirq repository.
-  * Via Atom/RSS from GitHub: subscribe to the GitHub [Cirq releases Atom
-    feed](https://github.com/quantumlib/Cirq/releases.atom).
-  * Via RSS from PyPI: subscribe to the [PyPI releases RSS
-    feed](https://pypi.org/rss/project/cirq/releases.xml) for Cirq.
+  * Via GitHub notifications: configure [repository notifications] for Cirq.
+  * Via Atom/RSS from GitHub: subscribe to the GitHub [Cirq releases Atom feed].
+  * Via RSS from PyPI: subscribe to the [PyPI releases RSS feed] for Cirq.
 
 Cirq releases take place approximately every quarter.
+
+[`cirq-announce`]: https://groups.google.com/forum/#!forum/cirq-announce
+[repository notifications]: https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/configuring-notifications
+[Cirq releases Atom feed]: https://github.com/quantumlib/Cirq/releases.atom
+[PyPI releases RSS feed]: https://pypi.org/rss/project/cirq/releases.xml
 
 ### Questions and Discussions
 
 * Do you have questions about using Cirq? Post them to the [Quantum Computing
-   Stack Exchange](https://quantumcomputing.stackexchange.com/) and tag them
-   with the
-   [`cirq`](https://quantumcomputing.stackexchange.com/questions/tagged/cirq)
-   tag. You can also search past questions using that tag – it's a great way to
-   learn!
+  Stack Exchange] and tag them with the [`cirq`] tag. You can also search past
+  questions using that tag – it's a great way to learn!
 * Would you like to get more involved in Cirq development? _Cirq Cynq_ is our
   biweekly virtual meeting of contributors to discuss everything from issues to
   ongoing efforts, as well as to ask questions. Become a member of
   [_cirq-dev_](https://groups.google.com/forum/#!forum/cirq-dev) to get an
   automatic meeting invitation!
 
+[Quantum Computing Stack Exchange]: https://quantumcomputing.stackexchange.com
+[`cirq`]: https://quantumcomputing.stackexchange.com/questions/tagged/cirq
+
 ### Issues and Pull Requests
 
 * Do you have a feature request or want to report a bug? [Open an issue on
-  GitHub](https://github.com/quantumlib/Cirq/issues/new/choose) to report it!
-* Do you have a code contribution? Read our [contribution
-  guidelines](https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md),
-  then open a [pull
-  request](https://help.github.com/articles/about-pull-requests)!
+  GitHub] to report it!
+* Do you have a code contribution? Read our [contribution guidelines], then
+  open a [pull request]!
+
+[Open an issue on GitHub]: https://github.com/quantumlib/Cirq/issues/new/choose
+[contribution guidelines]: https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md
+[pull request]: https://help.github.com/articles/about-pull-requests
 
 ## Citing Cirq
 
