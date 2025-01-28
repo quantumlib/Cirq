@@ -428,7 +428,6 @@ def test_serialize_deserialize_circuit_with_constants_table():
             v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[1])),
         ],
     )
-    print(serializer.serialize(circuit))
     assert proto == serializer.serialize(circuit)
     assert serializer.deserialize(proto) == circuit
 
@@ -436,8 +435,11 @@ def test_serialize_deserialize_circuit_with_constants_table():
 def test_serialize_deserialize_circuit_with_duplicate_moments():
     q = cirq.GridQubit(4, 3)
     circuit = cirq.Circuit(cirq.X(q), cirq.Z(q), cirq.X(q), cirq.Z(q))
-    serializer = cg.CircuitSerializer(USE_CONSTANTS_TABLE_FOR_MOMENTS=True)
+    serializer = cg.CircuitSerializer(
+        USE_CONSTANTS_TABLE_FOR_MOMENTS=True, USE_CONSTANTS_TABLE_FOR_OPERATIONS=True
+    )
     proto = serializer.serialize(circuit)
+    print(proto)
     deserialized_circuit = serializer.deserialize(proto)
     assert deserialized_circuit == circuit
     assert deserialized_circuit[0] is deserialized_circuit[2]

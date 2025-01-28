@@ -15,6 +15,7 @@
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
 from typing import Any, Dict, List, Optional
+import warnings
 import sympy
 
 import cirq
@@ -459,6 +460,9 @@ class CircuitSerializer(serializer.Serializer):
                     # For now, just put in a place holder, since moments
                     # will be deserialized later.
                     deserialized_constants.append(None)
+                else:
+                    warnings.warn(f'Unrecognized constant type {which_const}, ignoring.')
+                    deserialized_constants.append(None)
             circuit = self._deserialize_circuit(
                 proto.circuit,
                 arg_function_language=arg_func_language,
@@ -513,14 +517,14 @@ class CircuitSerializer(serializer.Serializer):
                         deserialized_constants=deserialized_constants,
                     )
                 )
-            for constant_index in moment_proto.operation_indices:
-                if op := constant_ops.get(constant_index, None):
+            for operation_index in moment_proto.operation_indices:
+                if op := constant_ops.get(operation_index, None):
                     # This operation is in the constants table and has already been constructed.
                     moment_ops.append(op)
                 else:
-                    op = deserialized_constants[constant_index]
+                    op = deserialized_constants[operation_index]
                     moment_ops.append(op)
-                    constant_ops[constant_index] = op
+                    constant_ops[operation_index] = op
             moment = cirq.Moment(moment_ops)
             if constant_index is not None:
                 # Store constant moments for later so we only construct each moment once
