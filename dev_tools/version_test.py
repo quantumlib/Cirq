@@ -25,7 +25,8 @@ def test_versions_are_the_same():
 def _get_version(package: str):
     version_file = f'{package}/_version.py'
     resulting_locals: Dict[str, Any] = {}
-    exec(open(version_file).read(), globals(), resulting_locals)
+    with open(version_file, encoding="utf8") as file:
+        exec(file.read(), globals(), resulting_locals)
     __version__ = resulting_locals['__version__']
     assert __version__, f"__version__ should be defined in {version_file}"
     return __version__

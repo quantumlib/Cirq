@@ -176,7 +176,7 @@ def test_replace_version_errors():
 
 @chdir(target_dir=None)
 def test_error():
-    f = open("setup.py", mode='w')
+    f = open("setup.py", mode='w', encoding="utf8")
     f.write('name="test"')
     f.close()
 

@@ -152,13 +152,13 @@ def get_incremental_uncovered_lines(
 
     touched_lines = diff_to_new_interesting_lines(unified_diff_lines)
 
-    with open(abs_path, 'r') as actual_file:
+    with open(abs_path, 'r', encoding="utf8") as actual_file:
         ignored_lines = determine_ignored_lines(actual_file.read())
 
     cover_path = abs_path + ',cover'
     has_cover_file = os.path.isfile(cover_path)
     content_file = cover_path if has_cover_file else abs_path
-    with open(content_file, 'r') as annotated_coverage_file:
+    with open(content_file, 'r', encoding="utf8") as annotated_coverage_file:
         return [
             (i, fix_line_from_coverage_file(line), touched_lines[i])
             for i, line in enumerate(annotated_coverage_file, start=1)
