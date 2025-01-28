@@ -30,11 +30,9 @@ class _BaseLineQid(ops.Qid):
 
     _x: int
     _dimension: int
-    _hash: Optional[int] = None
+    _hash: int
 
     def __hash__(self) -> int:
-        if self._hash is None:
-            self._hash = (self._dimension - 2) * 1_000_003 + self._x
         return self._hash
 
     def __eq__(self, other) -> bool:
@@ -193,6 +191,8 @@ class LineQid(_BaseLineQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
+        x = int(x)
+        dimension = int(dimension)
         key = (x, dimension)
         inst = cls._cache.get(key)
         if inst is None:
@@ -200,6 +200,7 @@ class LineQid(_BaseLineQid):
             inst = super().__new__(cls)
             inst._x = x
             inst._dimension = dimension
+            inst._hash = (dimension - 2) * 1_000_003 + x
             cls._cache[key] = inst
         return inst
 
@@ -301,10 +302,12 @@ class LineQubit(_BaseLineQid):
         Args:
             x: The x coordinate.
         """
+        x = int(x)
         inst = cls._cache.get(x)
         if inst is None:
             inst = super().__new__(cls)
             inst._x = x
+            inst._hash = x
             cls._cache[x] = inst
         return inst
 
