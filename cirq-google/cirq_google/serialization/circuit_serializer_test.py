@@ -389,8 +389,10 @@ def test_serialize_deserialize_circuit():
     assert serializer.deserialize(proto) == circuit
 
 
-def test_serialize_deserialize_circuit_with_moments_table():
-    serializer = cg.CircuitSerializer(USE_CONSTANTS_TABLE_FOR_MOMENTS=True)
+def test_serialize_deserialize_circuit_with_constants_table():
+    serializer = cg.CircuitSerializer(
+        USE_CONSTANTS_TABLE_FOR_MOMENTS=True, USE_CONSTANTS_TABLE_FOR_OPERATIONS=True
+    )
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
@@ -399,45 +401,34 @@ def test_serialize_deserialize_circuit_with_moments_table():
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
-                v2.program_pb2.Moment(moment_constant_index=2),
-                v2.program_pb2.Moment(moment_constant_index=3),
+                v2.program_pb2.Moment(moment_constant_index=4),
+                v2.program_pb2.Moment(moment_constant_index=5),
             ],
         ),
         constants=[
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1')),
+            v2.program_pb2.Constant(
+                operation_value=v2.program_pb2.Operation(
+                    xpowgate=v2.program_pb2.XPowGate(
+                        exponent=v2.program_pb2.FloatArg(float_value=1.0)
+                    ),
+                    qubit_constant_index=[0],
+                )
+            ),
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_2')),
             v2.program_pb2.Constant(
-                moment_value=v2.program_pb2.Moment(
-                    operations=[
-                        v2.program_pb2.Operation(
-                            xpowgate=v2.program_pb2.XPowGate(
-                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
-                            ),
-                            qubit_constant_index=[0],
-                        ),
-                        v2.program_pb2.Operation(
-                            xpowgate=v2.program_pb2.XPowGate(
-                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
-                            ),
-                            qubit_constant_index=[1],
-                        ),
-                    ]
+                operation_value=v2.program_pb2.Operation(
+                    xpowgate=v2.program_pb2.XPowGate(
+                        exponent=v2.program_pb2.FloatArg(float_value=1.0)
+                    ),
+                    qubit_constant_index=[2],
                 )
             ),
-            v2.program_pb2.Constant(
-                moment_value=v2.program_pb2.Moment(
-                    operations=[
-                        v2.program_pb2.Operation(
-                            xpowgate=v2.program_pb2.XPowGate(
-                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
-                            ),
-                            qubit_constant_index=[0],
-                        )
-                    ]
-                )
-            ),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[1, 3])),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[1])),
         ],
     )
+    print(serializer.serialize(circuit))
     assert proto == serializer.serialize(circuit)
     assert serializer.deserialize(proto) == circuit
 

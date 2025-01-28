@@ -45,12 +45,19 @@ class CircuitSerializer(serializer.Serializer):
             serialization of duplicate moments as entries in the constant table.
             This flag will soon become the default and disappear as soon as
             deserialization of this field is deployed.
+        USE_CONSTANTS_TABLE_FOR_MOMENTS: Temporary feature flag to enable
+            serialization of duplicate operations as entries in the constant table.
+            This flag will soon become the default and disappear as soon as
+            deserialization of this field is deployed.
     """
 
-    def __init__(self, USE_CONSTANTS_TABLE_FOR_MOMENTS=False):
+    def __init__(
+        self, USE_CONSTANTS_TABLE_FOR_MOMENTS=False, USE_CONSTANTS_TABLE_FOR_OPERATIONS=False
+    ):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)
         self.use_constants_table_for_moments = USE_CONSTANTS_TABLE_FOR_MOMENTS
+        self.use_constants_table_for_operations = USE_CONSTANTS_TABLE_FOR_OPERATIONS
 
     def serialize(
         self,
@@ -124,6 +131,23 @@ class CircuitSerializer(serializer.Serializer):
                         constants=constants,
                         raw_constants=raw_constants,
                     )
+                elif self.use_constants_table_for_operations:
+                    if op_index := raw_constants.get(op, None):
+                        # Operation is already in the constants table
+                        moment_proto.operation_indices.append(op_index)
+                    else:
+                        op_pb = v2.program_pb2.Operation()
+                        self._serialize_gate_op(
+                            op,
+                            op_pb,
+                            arg_function_language=arg_function_language,
+                            constants=constants,
+                            raw_constants=raw_constants,
+                        )
+                        constants.append(v2.program_pb2.Constant(operation_value=op_pb))
+                        op_index = len(constants) - 1
+                        raw_constants[op] = op_index
+                        moment_proto.operation_indices.append(op_index)
                 else:
                     op_pb = moment_proto.operations.add()
                     self._serialize_gate_op(
@@ -422,6 +446,19 @@ class CircuitSerializer(serializer.Serializer):
                     deserialized_constants.append(circuit.freeze())
                 elif which_const == 'qubit':
                     deserialized_constants.append(v2.qubit_from_proto_id(constant.qubit.id))
+                elif which_const == 'operation_value':
+                    deserialized_constants.append(
+                        self._deserialize_gate_op(
+                            constant.operation_value,
+                            arg_function_language=arg_func_language,
+                            constants=proto.constants,
+                            deserialized_constants=deserialized_constants,
+                        )
+                    )
+                elif which_const == 'moment_value':
+                    # For now, just put in a place holder, since moments
+                    # will be deserialized later.
+                    deserialized_constants.append(None)
             circuit = self._deserialize_circuit(
                 proto.circuit,
                 arg_function_language=arg_func_language,
@@ -444,6 +481,7 @@ class CircuitSerializer(serializer.Serializer):
     ) -> cirq.Circuit:
         moments = []
         constant_moments: dict[int, cirq.Moment] = {}
+        constant_ops: dict[int, cirq.Operations] = {}
         for moment_proto in circuit_proto.moments:
             if moment_proto.HasField('moment_constant_index'):
                 constant_index = moment_proto.moment_constant_index
@@ -475,6 +513,14 @@ class CircuitSerializer(serializer.Serializer):
                         deserialized_constants=deserialized_constants,
                     )
                 )
+            for constant_index in moment_proto.operation_indices:
+                if op := constant_ops.get(constant_index, None):
+                    # This operation is in the constants table and has already been constructed.
+                    moment_ops.append(op)
+                else:
+                    op = deserialized_constants[constant_index]
+                    moment_ops.append(op)
+                    constant_ops[constant_index] = op
             moment = cirq.Moment(moment_ops)
             if constant_index is not None:
                 # Store constant moments for later so we only construct each moment once
