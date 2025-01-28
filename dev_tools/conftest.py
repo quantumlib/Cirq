@@ -92,7 +92,7 @@ def cloned_env(testrun_uid, worker_id):
     def _check_for_reuse_or_recreate(env_dir: Path):
         reuse = False
         if env_dir.is_dir() and (env_dir / "testrun.uid").is_file():
-            uid = open(env_dir / "testrun.uid").readlines()[0]
+            uid = open(env_dir / "testrun.uid", encoding="utf8").readlines()[0]
             # if the dir is from this test session, let's reuse it
             if uid == testrun_uid:
                 reuse = True
@@ -104,7 +104,7 @@ def cloned_env(testrun_uid, worker_id):
     def _create_base_env(base_dir: Path, pip_install_args: Tuple[str, ...]):
         try:
             create_virtual_env(str(base_dir), [], sys.executable, True)
-            with open(base_dir / "testrun.uid", mode="w") as f:
+            with open(base_dir / "testrun.uid", mode="w", encoding="utf8") as f:
                 f.write(testrun_uid)
             if pip_install_args:
                 shell_tools.run([f"{base_dir}/bin/pip", "install", *pip_install_args])
