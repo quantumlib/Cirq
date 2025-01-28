@@ -49,6 +49,20 @@
     "tables": false
   },
 
+  // Google Markdown style specifies 2 spaces after item numbers, 3 spaces
+  // after bullets, so that the text itself is consistently indented 4 spaces.
+  // https://google.github.io/styleguide/docguide/style.html#nested-list-spacing
+  "list-marker-space": {
+    "ol_multi": 2,
+    "ol_single": 2,
+    "ul_multi": 3,
+    "ul_single": 3
+  },
+
+  "ul-indent": {
+    "indent": 4
+  },
+
   // Bare URLs are allowed in GitHub-flavored Markdown and in Google’s style.
   "no-bare-urls": false,
 
