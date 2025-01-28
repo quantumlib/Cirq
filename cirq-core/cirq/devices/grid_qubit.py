@@ -34,11 +34,9 @@ class _BaseGridQid(ops.Qid):
     _col: int
     _dimension: int
     _comp_key: Optional[Tuple[int, int]] = None
-    _hash: Optional[int] = None
+    _hash: int
 
     def __hash__(self) -> int:
-        if self._hash is None:
-            self._hash = ((self._dimension - 2) * 1_000_003 + self._col) * 1_000_003 + self._row
         return self._hash
 
     def __eq__(self, other) -> bool:
@@ -215,6 +213,9 @@ class GridQid(_BaseGridQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
+        row = int(row)
+        col = int(col)
+        dimension = int(dimension)
         key = (row, col, dimension)
         inst = cls._cache.get(key)
         if inst is None:
@@ -223,6 +224,7 @@ class GridQid(_BaseGridQid):
             inst._row = row
             inst._col = col
             inst._dimension = dimension
+            inst._hash = ((dimension - 2) * 1_000_003 + col) * 1_000_003 + row
             cls._cache[key] = inst
         return inst
 
@@ -378,12 +380,15 @@ class GridQubit(_BaseGridQid):
             row: the row coordinate
             col: the column coordinate
         """
+        row = int(row)
+        col = int(col)
         key = (row, col)
         inst = cls._cache.get(key)
         if inst is None:
             inst = super().__new__(cls)
             inst._row = row
             inst._col = col
+            inst._hash = col * 1_000_003 + row
             cls._cache[key] = inst
         return inst
 
