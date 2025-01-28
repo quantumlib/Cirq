@@ -33,8 +33,6 @@ class _BaseLineQid(ops.Qid):
     _hash: int
 
     def __hash__(self) -> int:
-        if self._hash is None:
-            self._hash = (self._dimension - 2) * 1_000_003 + self._x
         return self._hash
 
     def __eq__(self, other) -> bool:
