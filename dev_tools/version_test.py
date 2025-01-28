@@ -19,5 +19,4 @@ def test_versions_are_the_same():
     """Test for consistent version number across all modules."""
     mods = modules.list_modules(include_parent=True)
     versions = {m.name: m.version for m in mods}
-    assert len(set(versions.values())) == 1, \
-        f"Versions should be the same, instead: \n{versions}"
+    assert len(set(versions.values())) == 1, f"Versions should be the same, instead: \n{versions}"
