@@ -14,6 +14,8 @@
   // https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md.)
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/main/schema/markdownlint-config-schema.json",
+
   // Require ATX-style headings.
   // https://google.github.io/styleguide/docguide/style.html#atx-style-headings
   "headings": {
