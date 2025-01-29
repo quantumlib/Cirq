@@ -2171,7 +2171,7 @@ class Circuit(AbstractCircuit):
                     self._moments.append(Moment(moment_or_op))
                 else:
                     self._moments[p] = self._moments[p].with_operation(moment_or_op)
-                # Cleanup
+                # Iterate
                 max_p = max(p, max_p)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
                     strategy = InsertStrategy.INLINE
