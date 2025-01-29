@@ -35,17 +35,17 @@ intermediate-scale quantum](https://arxiv.org/abs/1801.00862) (NISQ) computers,
 where the details of quantum hardware are vital to achieving state-of-the-art
 results. Some of its features include:
 
-* Flexible gate definitions and custom gates
-* Parameterized circuits with symbolic variables
-* Circuit transformation, compilation and optimization
-* Hardware device modeling
-* Noise modeling
-* Multiple built-in quantum circuit simulators
-* Integration with [qsim](https://github.com/quantumlib/qsim) for
-   high-performance simulation
-* Interoperability with [NumPy](https://numpy.org) and
-  [SciPy](https://scipy.org)
-* Cross-platform compatibility
+*   Flexible gate definitions and custom gates
+*   Parameterized circuits with symbolic variables
+*   Circuit transformation, compilation and optimization
+*   Hardware device modeling
+*   Noise modeling
+*   Multiple built-in quantum circuit simulators
+*   Integration with [qsim](https://github.com/quantumlib/qsim) for
+    high-performance simulation
+*   Interoperability with [NumPy](https://numpy.org) and
+    [SciPy](https://scipy.org)
+*   Cross-platform compatibility
 
 ## Installation
 
@@ -102,14 +102,14 @@ documentation for Cirq is available.
 
 ### Tutorials
 
-* [Video tutorials] on YouTube are an engaging way to learn Cirq.
-* [Jupyter notebook-based tutorials] let you learn Cirq from your browser – no
-  installation needed.
-* [Text-based tutorials] on the Cirq home page are great when combined with a
-  local [installation] of Cirq on your computer. After starting with the
-  [basics], you'll be ready to dive into tutorials on circuit building and
-  circuit simulation under the [Build] and [Simulate] tabs, respectively. Check
-  out the other tabs for more!
+*   [Video tutorials] on YouTube are an engaging way to learn Cirq.
+*   [Jupyter notebook-based tutorials] let you learn Cirq from your browser – no
+    installation needed.
+*   [Text-based tutorials] on the Cirq home page are great when combined with a
+    local [installation] of Cirq on your computer. After starting with the
+    [basics], you'll be ready to dive into tutorials on circuit building and
+    circuit simulation under the [Build] and [Simulate] tabs, respectively. Check
+    out the other tabs for more!
 
 [Video tutorials]: https://www.youtube.com/playlist?list=PLpO2pyKisOjLVt_tDJ2K6ZTapZtHXPLB4
 [Jupyter notebook-based tutorials]: https://colab.research.google.com/github/quantumlib/Cirq
@@ -121,26 +121,26 @@ documentation for Cirq is available.
 
 ### Reference Documentation
 
-* Docs for the [current stable release] correspond to what you get with
-  `pip install cirq`.
-* Docs for the [pre-release] correspond to what you get with
-  `pip install cirq~=1.0.dev`.
+*   Docs for the [current stable release] correspond to what you get with
+    `pip install cirq`.
+*   Docs for the [pre-release] correspond to what you get with
+    `pip install cirq~=1.0.dev`.
 
 [current stable release]: https://quantumai.google/reference/python/cirq/all_symbols
 [pre-release]: https://quantumai.google/reference/python/cirq/all_symbols?version=nightly
 
 ### Examples
 
-* The [examples subdirectory](./examples/) of the Cirq GitHub repo has many
-  programs illustrating the application of Cirq to everything from common
-  textbook algorithms to more advanced methods.
-* The [Experiments page](https://quantumai.google/cirq/experiments/) on the
-  Cirq documentation site has yet more examples, from simple to advanced.
+*   The [examples subdirectory](./examples/) of the Cirq GitHub repo has many
+    programs illustrating the application of Cirq to everything from common
+    textbook algorithms to more advanced methods.
+*   The [Experiments page](https://quantumai.google/cirq/experiments/) on the
+    Cirq documentation site has yet more examples, from simple to advanced.
 
 ### Change log
 
-* The [Cirq releases](https://github.com/quantumlib/cirq/releases) page on
-  GitHub lists the changes in each release.
+*   The [Cirq releases](https://github.com/quantumlib/cirq/releases) page on
+    GitHub lists the changes in each release.
 
 ## Integrations
 
@@ -191,12 +191,12 @@ community.
 
 Stay on top of Cirq developments using the approach that best suits your needs:
 
-* For releases and major announcements: sign up to the low-volume mailing list
-  [`cirq-announce`].
-* For releases only:
-  * Via GitHub notifications: configure [repository notifications] for Cirq.
-  * Via Atom/RSS from GitHub: subscribe to the GitHub [Cirq releases Atom feed].
-  * Via RSS from PyPI: subscribe to the [PyPI releases RSS feed] for Cirq.
+*   For releases and major announcements: sign up to the low-volume mailing list
+    [`cirq-announce`].
+*   For releases only:
+    *   Via GitHub notifications: configure [repository notifications] for Cirq.
+    *   Via Atom/RSS from GitHub: subscribe to the GitHub [Cirq releases Atom feed].
+    *   Via RSS from PyPI: subscribe to the [PyPI releases RSS feed] for Cirq.
 
 Cirq releases take place approximately every quarter.
 
@@ -207,24 +207,24 @@ Cirq releases take place approximately every quarter.
 
 ### Questions and Discussions
 
-* Do you have questions about using Cirq? Post them to the [Quantum Computing
-  Stack Exchange] and tag them with the [`cirq`] tag. You can also search past
-  questions using that tag – it's a great way to learn!
-* Would you like to get more involved in Cirq development? _Cirq Cynq_ is our
-  biweekly virtual meeting of contributors to discuss everything from issues to
-  ongoing efforts, as well as to ask questions. Become a member of
-  [_cirq-dev_](https://groups.google.com/forum/#!forum/cirq-dev) to get an
-  automatic meeting invitation!
+*   Do you have questions about using Cirq? Post them to the [Quantum Computing
+    Stack Exchange] and tag them with the [`cirq`] tag. You can also search past
+    questions using that tag – it's a great way to learn!
+*   Would you like to get more involved in Cirq development? _Cirq Cynq_ is our
+    biweekly virtual meeting of contributors to discuss everything from issues to
+    ongoing efforts, as well as to ask questions. Become a member of
+    [_cirq-dev_](https://groups.google.com/forum/#!forum/cirq-dev) to get an
+    automatic meeting invitation!
 
 [Quantum Computing Stack Exchange]: https://quantumcomputing.stackexchange.com
 [`cirq`]: https://quantumcomputing.stackexchange.com/questions/tagged/cirq
 
 ### Issues and Pull Requests
 
-* Do you have a feature request or want to report a bug? [Open an issue on
-  GitHub] to report it!
-* Do you have a code contribution? Read our [contribution guidelines], then
-  open a [pull request]!
+*   Do you have a feature request or want to report a bug? [Open an issue on
+    GitHub] to report it!
+*   Do you have a code contribution? Read our [contribution guidelines], then
+    open a [pull request]!
 
 [Open an issue on GitHub]: https://github.com/quantumlib/Cirq/issues/new/choose
 [contribution guidelines]: https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md
