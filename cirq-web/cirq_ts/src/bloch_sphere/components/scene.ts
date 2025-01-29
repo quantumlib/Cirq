@@ -44,7 +44,7 @@ export class BlochSphereScene extends Scene {
     fov = 75,
     aspect: number = BlochSphereScene.VIZ_HEIGHT / BlochSphereScene.VIZ_WIDTH,
     near = 0.1,
-    far = 1000
+    far = 1000,
   ) {
     super();
 
@@ -52,7 +52,7 @@ export class BlochSphereScene extends Scene {
     this.renderer = new WebGLRenderer({alpha: true});
     this.renderer.setSize(
       BlochSphereScene.VIZ_WIDTH,
-      BlochSphereScene.VIZ_HEIGHT
+      BlochSphereScene.VIZ_HEIGHT,
     );
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 

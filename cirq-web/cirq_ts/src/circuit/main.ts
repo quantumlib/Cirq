@@ -58,7 +58,7 @@ class CircuitScene extends Scene {
       75,
       this.WIDTH / this.HEIGHT,
       0.1,
-      1000
+      1000,
     );
 
     this.orthographicCamera = new OrthographicCamera(
@@ -67,7 +67,7 @@ class CircuitScene extends Scene {
       this.HEIGHT / this.WIDTH / 2,
       this.HEIGHT / this.WIDTH / -2,
       0.1,
-      100
+      100,
     );
     this.orthographicCamera.zoom = 0.1;
     // The default camera is the Perspective camera
@@ -75,11 +75,11 @@ class CircuitScene extends Scene {
 
     this.perspectiveControls = new OrbitControls(
       this.perspectiveCamera,
-      this.renderer.domElement
+      this.renderer.domElement,
     );
     this.orthographicControls = new OrbitControls(
       this.orthographicCamera,
-      this.renderer.domElement
+      this.renderer.domElement,
     );
     // The default controls are the Orbit controls for the Perspective camera
     this.controls = this.perspectiveControls;
@@ -181,7 +181,7 @@ export function createGridCircuit(
   symbol_info: SymbolInformation[],
   numMoments: number,
   sceneId: string,
-  padding_factor = 1
+  padding_factor = 1,
 ): {circuit: GridCircuit; scene: CircuitScene} {
   const scene = new CircuitScene(sceneId);
 

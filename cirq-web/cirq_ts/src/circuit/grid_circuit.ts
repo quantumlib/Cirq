@@ -36,7 +36,7 @@ export class GridCircuit extends Group {
   constructor(
     initial_num_moments: number,
     symbols: SymbolInformation[],
-    padding_factor = 1
+    padding_factor = 1,
   ) {
     super();
     this.padding_factor = padding_factor;
@@ -59,7 +59,7 @@ export class GridCircuit extends Group {
 
   private addSymbol(
     symbolInfo: SymbolInformation,
-    initial_num_moments: number
+    initial_num_moments: number,
   ) {
     const symbol = new Symbol3D(symbolInfo, this.padding_factor);
 
@@ -68,13 +68,13 @@ export class GridCircuit extends Group {
     // these checks will be useful.
     if (symbolInfo.moment < 0 || symbolInfo.moment > initial_num_moments) {
       throw new Error(
-        `The SymbolInformation object ${symbolInfo} has an invalid moment ${symbolInfo.moment}`
+        `The SymbolInformation object ${symbolInfo} has an invalid moment ${symbolInfo.moment}`,
       );
     }
 
     const qubit = this.getQubit(
       symbolInfo.location_info[0].row,
-      symbolInfo.location_info[0].col
+      symbolInfo.location_info[0].col,
     )!;
     qubit.addSymbol(symbol);
   }
@@ -84,7 +84,7 @@ export class GridCircuit extends Group {
       row,
       col,
       initial_num_moments,
-      this.padding_factor
+      this.padding_factor,
     );
     this.setQubit(row, col, qubit);
     this.add(qubit);
