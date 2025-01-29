@@ -2138,7 +2138,7 @@ class Circuit(AbstractCircuit):
         else:
             batches = list(_group_into_moment_compatible(mops))
         for batch in batches:
-            # Insert a moment if inline/earliest are occupied for any op in batch
+            # Insert a moment if inline/earliest and _any_ op in the batch requires it.
             if (
                 not self._placement_cache
                 and not isinstance(batch[0], Moment)
