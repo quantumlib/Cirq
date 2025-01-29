@@ -15,6 +15,7 @@
 """Linear combination represented as mapping of things to coefficients."""
 
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -28,6 +29,7 @@ from typing import (
     Optional,
     overload,
     Tuple,
+    TYPE_CHECKING,
     TypeVar,
     Union,
     ValuesView,
@@ -37,6 +39,9 @@ from typing_extensions import Self
 import sympy
 from cirq.value import type_alias
 from cirq import protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 Scalar = type_alias.TParamValComplex
 TVector = TypeVar('TVector')
@@ -359,5 +364,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'LinearDict':
         result = self.copy()
-        result.update({k: protocols.resolve_parameters(v) for k, v in self._terms})
+        result.update(
+            {k: protocols.resolve_parameters(v, resolver, recursive) for k, v in self._terms}
+        )
         return result
