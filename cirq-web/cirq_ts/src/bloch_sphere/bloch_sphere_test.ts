@@ -40,27 +40,27 @@ describe('BlochSphere (with empty constructor)', () => {
   const children = bloch_sphere.children;
 
   const sphere = children.find(
-    child => child.constructor.name === 'Sphere'
+    child => child.constructor.name === 'Sphere',
   ) as Sphere;
 
   const meridians = children.filter(
-    child => child.constructor.name === 'Meridians'
+    child => child.constructor.name === 'Meridians',
   ) as Meridians[];
 
   const horizontalMeridians = meridians.find(
-    child => child.orientation === Orientation.HORIZONTAL
+    child => child.orientation === Orientation.HORIZONTAL,
   ) as Meridians;
 
   const verticalMeridians = meridians.find(
-    child => child.orientation === Orientation.VERTICAL
+    child => child.orientation === Orientation.VERTICAL,
   ) as Meridians;
 
   const axes = children.find(
-    child => child.constructor.name === 'Axes'
+    child => child.constructor.name === 'Axes',
   ) as Axes;
 
   const labels = children.find(
-    child => child.constructor.name === 'Labels'
+    child => child.constructor.name === 'Labels',
   ) as Labels;
 
   it('adds a single BlochSphere of type Group', () => {
@@ -74,28 +74,28 @@ describe('BlochSphere (with empty constructor)', () => {
   describe('child group (Sphere, Meridians, etc.)', () => {
     it('Sphere contains the correct number of components', () => {
       const sphereExists = children.find(
-        child => child.constructor.name === 'Sphere'
+        child => child.constructor.name === 'Sphere',
       );
       expect(sphereExists).to.not.equal(undefined);
     });
 
     it('Meridians appear in 2 sets', () => {
       const numOfMeridians = children.filter(
-        child => child.constructor.name === 'Meridians'
+        child => child.constructor.name === 'Meridians',
       ).length;
       expect(numOfMeridians).to.equal(2);
     });
 
     it('Axes exist', () => {
       const axesExists = children.some(
-        child => child.constructor.name === 'Axes'
+        child => child.constructor.name === 'Axes',
       );
       expect(axesExists).to.equal(true);
     });
 
     it('Labels exist', () => {
       const labelsExists = children.some(
-        child => child.constructor.name === 'Labels'
+        child => child.constructor.name === 'Labels',
       );
       expect(labelsExists).to.equal(true);
     });
@@ -163,19 +163,19 @@ describe('BlochSphere (with valid custom constructor values)', () => {
   const children = bloch_sphere.children;
 
   const sphere = children.find(
-    child => child.constructor.name === 'Sphere'
+    child => child.constructor.name === 'Sphere',
   ) as Sphere;
 
   const meridians = children.filter(
-    child => child.constructor.name === 'Meridians'
+    child => child.constructor.name === 'Meridians',
   ) as Meridians[];
 
   const horizontalMeridians = meridians.find(
-    child => child.orientation === Orientation.HORIZONTAL
+    child => child.orientation === Orientation.HORIZONTAL,
   ) as Meridians;
 
   const verticalMeridians = meridians.find(
-    child => child.orientation === Orientation.VERTICAL
+    child => child.orientation === Orientation.VERTICAL,
   ) as Meridians;
 
   describe('has a child group Sphere', () => {
@@ -209,7 +209,7 @@ describe('BlochSphere (with valid custom constructor values)', () => {
       bloch_sphere.addVector(3, 4, 5);
 
       const vectors = children.filter(
-        child => child.constructor.name === 'Vector'
+        child => child.constructor.name === 'Vector',
       ) as StateVector[];
 
       const expectedVectorX = [1, 1, 3];

@@ -76,7 +76,7 @@ describe('GridCircuit', () => {
       // it has to be the first element in the list
       const qubit = circuit.children[0];
       const symbol = qubit.children.find(
-        child => child.constructor.name === 'Symbol3D'
+        child => child.constructor.name === 'Symbol3D',
       ) as Symbol3D;
       expect(symbol.moment).to.equal(1);
     });
@@ -86,7 +86,7 @@ describe('GridCircuit', () => {
 
       const qubit = circuit.children[0];
       const symbol = qubit.children.filter(
-        child => child.constructor.name === 'Symbol3D'
+        child => child.constructor.name === 'Symbol3D',
       ) as Symbol3D[];
       expect(symbol[0].moment).to.equal(1);
       expect(symbol[1].moment).to.equal(2);
@@ -94,11 +94,11 @@ describe('GridCircuit', () => {
 
     it('throws an error if given a valid symbol at the wrong moments', () => {
       expect(() => new GridCircuit(moments, [symbols[3]])).to.throw(
-        `The SymbolInformation object ${symbols[3]} has an invalid moment 3`
+        `The SymbolInformation object ${symbols[3]} has an invalid moment 3`,
       );
 
       expect(() => new GridCircuit(moments, [symbols[4]])).to.throw(
-        `The SymbolInformation object ${symbols[4]} has an invalid moment -1`
+        `The SymbolInformation object ${symbols[4]} has an invalid moment -1`,
       );
     });
 
