@@ -124,7 +124,7 @@ export class Meridians extends Group {
         curve,
         Math.PI / 2,
         Orientation.HORIZONTAL,
-        position
+        position,
       );
       this.add(meridianLine);
     }
@@ -157,7 +157,7 @@ export class Meridians extends Group {
       const meridianLine = this.createMeridianLine(
         curve,
         i,
-        Orientation.VERTICAL
+        Orientation.VERTICAL,
       );
       this.add(meridianLine);
     }
@@ -177,7 +177,7 @@ export class Meridians extends Group {
     curve: EllipseCurve,
     rotationAngle: number,
     orientation: Orientation,
-    yPosition?: number
+    yPosition?: number,
   ): Line {
     const points = curve.getSpacedPoints(128);
     const meridianGeom = new BufferGeometry().setFromPoints(points);
@@ -197,7 +197,7 @@ export class Meridians extends Group {
 
     const meridianLine = new Line(
       meridianGeom,
-      new LineBasicMaterial({color: 'gray'})
+      new LineBasicMaterial({color: 'gray'}),
     );
     if (yPosition) {
       meridianLine.position.y = yPosition;
@@ -220,7 +220,7 @@ export class Meridians extends Group {
       curveData.startAngle,
       curveData.endAngle,
       curveData.isClockwise,
-      curveData.rotation
+      curveData.rotation,
     );
   }
 

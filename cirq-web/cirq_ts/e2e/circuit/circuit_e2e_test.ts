@@ -81,7 +81,7 @@ describe('Circuit', () => {
             },
         ], 5, 'mycircuitdiv'
         );
-      `)
+      `),
       );
       await page.screenshot({path: outputPath});
       await browser.close();
@@ -89,7 +89,7 @@ describe('Circuit', () => {
 
     it('with limited gates matches the gold copy', () => {
       const expected = PNG.PNG.sync.read(
-        readFileSync('e2e/circuit/circuit_expected.png')
+        readFileSync('e2e/circuit/circuit_expected.png'),
       );
       const actual = PNG.PNG.sync.read(readFileSync(outputPath));
       const {width, height} = expected;
@@ -101,7 +101,7 @@ describe('Circuit', () => {
         diff.data,
         width,
         height,
-        {threshold: 0.1}
+        {threshold: 0.1},
       );
 
       expect(pixels).to.equal(0);

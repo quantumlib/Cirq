@@ -158,7 +158,7 @@ export class X3DSymbol extends Group {
       1,
       true,
       0,
-      2 * Math.PI
+      2 * Math.PI,
     );
     const hollowCylinder = new Mesh(geometry, material);
     this.add(hollowCylinder);
@@ -244,7 +244,7 @@ export class BoxGate3DSymbol extends Mesh {
     context.fillText(
       label,
       canvas.width / 2 - textWidth / 2,
-      canvas.height / 2 + fontSize / 2
+      canvas.height / 2 + fontSize / 2,
     );
 
     const map = new Texture(canvas);
