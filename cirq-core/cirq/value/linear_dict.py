@@ -365,6 +365,9 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'LinearDict':
         result = self.copy()
         result.update(
-            {k: protocols.resolve_parameters(v, resolver, recursive) for k, v in self._terms.items()}
+            {
+                k: protocols.resolve_parameters(v, resolver, recursive)
+                for k, v in self._terms.items()
+            }
         )
         return result
