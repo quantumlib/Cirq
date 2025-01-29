@@ -36,11 +36,13 @@ from typing_extensions import Self
 
 import sympy
 from cirq.value import type_alias
+from cirq import protocols
 
 Scalar = type_alias.TParamValComplex
 TVector = TypeVar('TVector')
 
 TDefault = TypeVar('TDefault')
+
 
 class _SympyPrinter(sympy.printing.str.StrPrinter):
     def __init__(self, format_spec: str):
@@ -348,3 +350,14 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     @classmethod
     def _from_json_dict_(cls, keys, values, **kwargs):
         return cls(terms=dict(zip(keys, values)))
+
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._terms.values())
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self._terms.values())
+
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'LinearDict':
+        result = self.copy()
+        result.update({k: protocols.resolve_parameters(v) for k, v in self._terms})
+        return result
