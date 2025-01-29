@@ -1,21 +1,152 @@
-# Summary: markdownlint-cli config file for Cirq
-#
-# Note: there are multiple programs programs named "markdownlint". For Cirq,
-# we use https://github.com/igorshubovych/markdownlint-cli/, which is the one
-# you get with "brew install markdownlint" on MacOS.
+{ // Summary: markdownlint config file for Cirq                    -*- jsonc -*-
+  //
+  // Note: there are multiple programs programs named "markdownlint". For
+  // Cirq, we use https://github.com/igorshubovych/markdownlint-cli/, which is
+  // the one you get with "brew install markdownlint" on MacOS.
+  //
+  // These settings try to stay close to the Google Markdown Style as
+  // described at https://google.github.io/styleguide/docguide/style.html
+  //
+  // For a list of configuration options, see the following page:
+  // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+  // (Beware that the above looks similar but is NOT the same as the page
+  // https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md.)
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# For a list of configuration options, see the following page:
-# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
-# (Beware that the above looks similar but is NOT the same as the page
-# https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md.)
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/main/schema/markdownlint-config-schema.json",
 
-# Make exception to the line-length limit of 80 chars in code blocks & tables.
-[line-length]
-code_blocks = false
-tables = false
+  // Require ATX-style headings.
+  // https://google.github.io/styleguide/docguide/style.html#atx-style-headings
+  "headings": {
+    "style": "atx"
+  },
 
-# Raw HTML is allowed in Markdown, and supported by GitHub.
-no-inline-html = false
+  // Google style does not require that the first line of a file is a heading
+  // for the title; it only states that the first heading should be a level 1.
+  // https://google.github.io/styleguide/docguide/style.html#document-layout
+  "first-line-heading": false,
 
-# Bare URLs are allowed in GitHub-flavored Markdown.
-no-bare-urls = false
+  // The Google style does not define what to do about trailing punctuation in
+  // headings. The markdownlint default disallows exclamation points, which
+  // seems likely to be more annoying than useful – I have definitely seen
+  // people use exclamation points in headings in README files on GitHub.
+  // This setting removes exclamation point from the banned characters.
+  "no-trailing-punctuation": {
+    "punctuation": ".,;:。，；："
+  },
+
+  // No trailing spaces.
+  // https://google.github.io/styleguide/docguide/style.html#trailing-whitespace
+  "whitespace": {
+    "br_spaces": 0
+  },
+
+  // Google style exempts some constructs from the line-length limit of 80 chars.
+  // https://google.github.io/styleguide/docguide/style.html#exceptions
+  "line-length": {
+    "code_blocks": false,
+    "headings": false,
+    "tables": false
+  },
+
+  // Google Markdown style specifies 2 spaces after item numbers, 3 spaces
+  // after bullets, so that the text itself is consistently indented 4 spaces.
+  // https://google.github.io/styleguide/docguide/style.html#nested-list-spacing
+  "list-marker-space": {
+    "ol_multi": 2,
+    "ol_single": 2,
+    "ul_multi": 3,
+    "ul_single": 3
+  },
+
+  "ul-indent": {
+    "indent": 4
+  },
+
+  // Bare URLs are allowed in GitHub-flavored Markdown and in Google’s style.
+  "no-bare-urls": false,
+
+  // Basic Markdown allows raw HTML. Both GitHub & PyPI support subsets of
+  // HTML, though it's unclear what subset PyPI supports. Google's style
+  // guide doesn't disallow using HTML, although it recommends against it. (C.f.
+  // the bottom of https://google.github.io/styleguide/docguide/style.html)
+  // It's worth noting, though, that Google's guidance has Google's internal
+  // documentation system in mind, and that system extends Markdown with
+  // constructs that make it possible to accomplish things you can't do in
+  // Markdown. Those extensions are also not available outside Google's system.
+  // Thus, although a goal of this markdownlint configuration is to match
+  // Google's style guide as closely as possible, these various factors suggest
+  // it's reasonable to relax the HTML limitation. The list below is based on
+  // https://github.com/github/markup/issues/245#issuecomment-682231577 plus
+  // some things found elsewhere after that was written.
+  "html": {
+    "allowed_elements": [
+      "a",
+      "abbr",
+      "b",
+      "bdo",
+      "blockquote",
+      "br",
+      "caption",
+      "cite",
+      "code",
+      "dd",
+      "del",
+      "details",
+      "dfn",
+      "div",
+      "dl",
+      "dt",
+      "em",
+      "figcaption",
+      "figure",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "h7",
+      "h8",
+      "hr",
+      "i",
+      "img",
+      "ins",
+      "kbd",
+      "li",
+      "mark",
+      "ol",
+      "p",
+      "picture",
+      "pre",
+      "q",
+      "rp",
+      "rt",
+      "ruby",
+      "s",
+      "samp",
+      "small",
+      "source",
+      "span",
+      "span",
+      "strike",
+      "strong",
+      "sub",
+      "summary",
+      "sup",
+      "table",
+      "tbody",
+      "td",
+      "tfoot",
+      "th",
+      "thead",
+      "time",
+      "tr",
+      "tt",
+      "ul",
+      "var",
+      "video",
+      "wbr"
+    ]
+  }
+}
