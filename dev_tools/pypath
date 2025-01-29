@@ -36,10 +36,11 @@ if ! python --version | grep -q -F "Python 3."; then
 fi
 
 _PYPATH_PREFIX="${_PYPATH_BASE_DIR}$(
+    set -o pipefail
     cd "${_PYPATH_BASE_DIR}" &&
         env PYTHONPATH=. python dev_tools/modules.py list --mode folder |
         xargs printf ":${_PYPATH_BASE_DIR}/%s"
-)"
+)" || return $?
 
 [[ $PYTHONPATH == ${_PYPATH_PREFIX}* ]] ||
     export PYTHONPATH="${_PYPATH_PREFIX}${PYTHONPATH:+:}${PYTHONPATH}"
