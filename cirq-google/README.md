@@ -1,8 +1,6 @@
 <div align="center">
-<img width="160px" height="70px" alt="Cirq logo"
-src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg"
-><img width="50px" height="0" alt=""><img width="400px" alt="Google Quantum AI logo"
-src="https://www.gstatic.com/devrel-devsite/prod/v0113b933d5c9ba4165415ef34b487d624de9fe7d51074fd538a31c5fc879d909/quantum/images/lockup.svg">
+<img width="220px" alt="Cirq logo"
+src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
 </div>
 
 # cirq-google
