@@ -357,14 +357,14 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         return cls(terms=dict(zip(keys, values)))
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self._terms.values())
+        return any(protocols.is_parameterized(v) for v in self._terms.values())
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(self._terms.values())
+        return set(protocols.parameter_names(v) for v in self._terms.values())
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'LinearDict':
         result = self.copy()
         result.update(
-            {k: protocols.resolve_parameters(v, resolver, recursive) for k, v in self._terms}
+            {k: protocols.resolve_parameters(v, resolver, recursive) for k, v in self._terms.items()}
         )
         return result
