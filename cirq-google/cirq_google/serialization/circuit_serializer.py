@@ -461,8 +461,9 @@ class CircuitSerializer(serializer.Serializer):
                     # will be deserialized later.
                     deserialized_constants.append(None)
                 else:
-                    warnings.warn(f'Unrecognized constant type {which_const}, ignoring.')
-                    deserialized_constants.append(None)
+                    msg = f'Unrecognized constant type {which_const}, ignoring.'  # pragma: no cover
+                    warnings.warn(msg)  # pragma: no cover
+                    deserialized_constants.append(None)  # pragma: no cover
             circuit = self._deserialize_circuit(
                 proto.circuit,
                 arg_function_language=arg_func_language,
