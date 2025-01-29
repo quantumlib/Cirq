@@ -800,7 +800,7 @@ def test_insert_op_tree_inline():
     op_tree_list = [
         (1, 1, [cirq.H(a), cirq.X(b)], [a, b]),
         (0, 0, [cirq.X(b)], [b]),
-        (4, 3, [cirq.H(b)], [b]),
+        (4, 2, [cirq.H(b)], [b]),
         (5, 3, [cirq.H(a)], [a]),
         (-2, 0, [cirq.X(b)], [b]),
         (-5, 0, [cirq.CZ(a, b)], [a]),
@@ -865,20 +865,13 @@ def test_insert_inline_near_start():
     c = cirq.Circuit([cirq.Moment(), cirq.Moment()])
 
     c.insert(1, cirq.X(a), strategy=cirq.InsertStrategy.INLINE)
-    assert c == cirq.Circuit([cirq.Moment([cirq.X(a)]), cirq.Moment()])
+    assert c == cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.X(a)))
 
     c.insert(1, cirq.Y(a), strategy=cirq.InsertStrategy.INLINE)
-    assert c == cirq.Circuit([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(a)]), cirq.Moment()])
+    assert c == cirq.Circuit(cirq.Moment(cirq.Y(a)), cirq.Moment(cirq.X(a)))
 
     c.insert(0, cirq.Z(b), strategy=cirq.InsertStrategy.INLINE)
-    assert c == cirq.Circuit(
-        [
-            cirq.Moment([cirq.Z(b)]),
-            cirq.Moment([cirq.X(a)]),
-            cirq.Moment([cirq.Y(a)]),
-            cirq.Moment(),
-        ]
-    )
+    assert c == cirq.Circuit([cirq.Moment(cirq.Z(b), cirq.Y(a)), cirq.Moment(cirq.X(a))])
 
 
 def test_insert_at_frontier_init():
@@ -3553,6 +3546,74 @@ def test_insert_operations_random_circuits(circuit):
     other_circuit = cirq.Circuit([cirq.Moment() for _ in range(n_moments)])
     other_circuit._insert_operations(operations, insert_indices)
     assert circuit == other_circuit
+
+
+def test_insert_zero_index():
+    # Should always go to moment[0], independent of qubit order or earliest/inline strategy.
+    q0, q1 = cirq.LineQubit.range(2)
+    c0 = cirq.Circuit(cirq.X(q0))
+    c0.insert(0, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.EARLIEST)
+    c1 = cirq.Circuit(cirq.X(q0))
+    c1.insert(0, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.EARLIEST)
+    c2 = cirq.Circuit(cirq.X(q0))
+    c2.insert(0, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c3 = cirq.Circuit(cirq.X(q0))
+    c3.insert(0, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    expected = cirq.Circuit(cirq.Moment(cirq.Y(q0), cirq.Y(q1)), cirq.Moment(cirq.X(q0)))
+    assert c0 == expected
+    assert c1 == expected
+    assert c2 == expected
+    assert c3 == expected
+
+
+def test_insert_to_open_moment():
+    # If moment is open, the insert should place it there without creating new moment.
+    q = cirq.LineQubit(0)
+    c0 = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(cirq.Z(q)))
+    c0.insert(1, cirq.Y(q), strategy=cirq.InsertStrategy.EARLIEST)
+    c1 = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(cirq.Z(q)))
+    c1.insert(1, cirq.Y(q), strategy=cirq.InsertStrategy.INLINE)
+    expected = cirq.Circuit(cirq.X(q), cirq.Y(q), cirq.Z(q))
+    assert c0 == expected
+    assert c1 == expected
+
+
+def test_insert_inline_when_requested_and_previous_moment_free():
+    # If requested and previous moment are both free, it should be placed in requested one.
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(), cirq.Moment(cirq.Z(q)))
+    c.insert(2, cirq.Y(q), strategy=cirq.InsertStrategy.INLINE)
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(cirq.Y(q)), cirq.Moment(cirq.Z(q))
+    )
+
+
+def test_insert_earliest_on_previous_moment():
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(), cirq.Moment(cirq.Z(q)))
+    c.insert(3, cirq.Y(q), strategy=cirq.InsertStrategy.EARLIEST)
+    # Should fall back to moment[1] since EARLIEST
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q)), cirq.Moment(cirq.Y(q)), cirq.Moment(), cirq.Moment(cirq.Z(q))
+    )
+
+
+def test_insert_inline_end_of_circuit():
+    # If end index is specified, INLINE should place all ops there independent of qubit order.
+    q0, q1 = cirq.LineQubit.range(2)
+    c0 = cirq.Circuit(cirq.X(q0))
+    c0.insert(1, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c1 = cirq.Circuit(cirq.X(q0))
+    c1.insert(1, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    c2 = cirq.Circuit(cirq.X(q0))
+    c2.insert(5, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c3 = cirq.Circuit(cirq.X(q0))
+    c3.insert(5, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    expected = cirq.Circuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.Y(q0), cirq.Y(q1)))
+    assert c0 == expected
+    assert c1 == expected
+    assert c2 == expected
+    assert c3 == expected
 
 
 def test_insert_operations_errors():
