@@ -2132,9 +2132,9 @@ class Circuit(AbstractCircuit):
             self._placement_cache = None
         mops = list(ops.flatten_to_ops_or_moments(moment_or_operation_tree))
         if self._placement_cache:
-            batches = [mops]
+            batches = [mops]  # Any grouping would work here; this just happens to be the fastest.
         elif strategy is InsertStrategy.NEW:
-            batches = [[mop] for mop in mops]
+            batches = [[mop] for mop in mops]  # Each op goes into its own moment.
         else:
             batches = list(_group_into_moment_compatible(mops))
         for batch in batches:
