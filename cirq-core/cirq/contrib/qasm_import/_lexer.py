@@ -33,6 +33,7 @@ class QasmLexer:
         'creg': 'CREG',
         'measure': 'MEASURE',
         'reset': 'RESET',
+        'gate': 'GATE',
         'if': 'IF',
         '->': 'ARROW',
         '==': 'EQ',
@@ -118,6 +119,10 @@ class QasmLexer:
 
     def t_RESET(self, t):
         r"""reset"""
+        return t
+
+    def t_GATE(self, t):
+        r"""gate"""
         return t
 
     def t_IF(self, t):

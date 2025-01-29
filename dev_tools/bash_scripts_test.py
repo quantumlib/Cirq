@@ -32,7 +32,7 @@ def run(
 ) -> subprocess.CompletedProcess:
     """Invokes the given script within a temporary test environment."""
 
-    with open(script_file) as f:
+    with open(script_file, encoding="utf8") as f:
         script_lines = f.readlines()
 
     # Create a unique temporary directory
@@ -53,7 +53,7 @@ def run(
     for e in intercepted:
         script_lines.insert(1, e + '() {\n  echo INTERCEPTED ' + e + ' $@\n}\n')
 
-    with open(file_path, 'w') as f:
+    with open(file_path, 'w', encoding="utf8") as f:
         f.writelines(script_lines)
 
     cmd = f"""

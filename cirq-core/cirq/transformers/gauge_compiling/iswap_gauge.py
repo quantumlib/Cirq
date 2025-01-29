@@ -56,7 +56,6 @@ class RZRotation(Gauge):
             pre_q1=n_rz if flip_diangonal else rz,
             post_q0=rz if flip_diangonal else n_rz,
             post_q1=n_rz,
-            support_sweep=True,
         )
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
@@ -89,12 +88,7 @@ class XYRotation(Gauge):
         xy_a = self._xy(a)
         xy_b = self._xy(b)
         return ConstantGauge(
-            two_qubit_gate=ops.ISWAP,
-            pre_q0=xy_a,
-            pre_q1=xy_b,
-            post_q0=xy_b,
-            post_q1=xy_a,
-            support_sweep=True,
+            two_qubit_gate=ops.ISWAP, pre_q0=xy_a, pre_q1=xy_b, post_q0=xy_b, post_q1=xy_a
         )
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:

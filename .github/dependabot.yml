@@ -50,6 +50,15 @@ updates:
     schedule:
       interval: "weekly"
     versioning-strategy: "widen"
+    groups:
+      # Group non-security version minor & patch updates into one PR.
+      # Security and major update versions will be done as individual PRs.
+      non-security:
+        applies-to: "version-updates"
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
     labels:
       - "area/dependencies"
       - "area/javascript"

@@ -93,14 +93,13 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         }
 
     def _value_equality_values_cls_(self):
-        if self.phase_exponent == 0:
-            return swap_gates.ISwapPowGate
         return PhasedISwapPowGate
 
     def _value_equality_values_(self):
-        if self.phase_exponent == 0:
-            return self._iswap._value_equality_values_()
         return (self.phase_exponent, *self._iswap._value_equality_values_())
+
+    def _value_equality_approximate_values_(self):
+        return (self.phase_exponent, *self._iswap._value_equality_approximate_values_())
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._iswap) or protocols.is_parameterized(
@@ -253,4 +252,4 @@ def givens(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
         A phased iswap gate for the given rotation.
     """
     pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
-    return PhasedISwapPowGate() ** (2 * angle_rads / pi)
+    return cast(PhasedISwapPowGate, PhasedISwapPowGate() ** (2 * angle_rads / pi))
