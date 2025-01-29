@@ -258,11 +258,12 @@ class XPowGate(eigen_gate.EigenGate):
         return result
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        if protocols.is_parameterized(self) or self._dimension != 2:
+        if self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict({'I': phase * np.cos(angle), 'X': -1j * phase * np.sin(angle)})
+        lib = sympy if protocols.is_parameterized(self) else np
+        return value.LinearDict({'I': phase * lib.cos(angle), 'X': -1j * phase * lib.sin(angle)})
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

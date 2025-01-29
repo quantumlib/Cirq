@@ -34,15 +34,30 @@ from typing import (
 )
 from typing_extensions import Self
 
-import numpy as np
+import sympy
+from cirq.value import type_alias
 
-Scalar = Union[complex, np.number]
+Scalar = type_alias.TParamValComplex
 TVector = TypeVar('TVector')
 
 TDefault = TypeVar('TDefault')
 
+class _SympyPrinter(sympy.printing.str.StrPrinter):
+    def __init__(self, format_spec: str):
+        super().__init__()
+        self._format_spec = format_spec
+
+    def _print(self, expr, **kwargs):
+        if expr.is_complex:
+            coefficient = complex(expr)
+            return _format_coefficient(self._format_spec, coefficient)
+        return super()._print(expr, **kwargs)
+
 
 def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
+    if isinstance(coefficient, sympy.Basic):
+        printer = _SympyPrinter(format_spec)
+        return printer.doprint(coefficient)
     coefficient = complex(coefficient)
     real_str = f'{coefficient.real:{format_spec}}'
     imag_str = f'{coefficient.imag:{format_spec}}'
@@ -118,7 +133,12 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     @classmethod
     def fromkeys(cls, vectors, coefficient=0):
-        return LinearDict(dict.fromkeys(vectors, complex(coefficient)))
+        return LinearDict(
+            dict.fromkeys(
+                vectors,
+                coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient),
+            )
+        )
 
     def _check_vector_valid(self, vector: TVector) -> None:
         if not self._is_valid(vector):
@@ -126,7 +146,11 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def clean(self, *, atol: float = 1e-9) -> Self:
         """Remove terms with coefficients of absolute value atol or less."""
-        negligible = [v for v, c in self._terms.items() if abs(complex(c)) <= atol]
+        negligible = [
+            v
+            for v, c in self._terms.items()
+            if not isinstance(c, sympy.Basic) and abs(complex(c)) <= atol
+        ]
         for v in negligible:
             del self._terms[v]
         return self
@@ -164,6 +188,10 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         terms = dict()
         terms.update(*args, **kwargs)
         for vector, coefficient in terms.items():
+            if isinstance(coefficient, sympy.Basic):
+                coefficient = sympy.simplify(coefficient)
+                if coefficient.is_complex:
+                    coefficient = complex(coefficient)
             self[vector] = coefficient
         self.clean(atol=0)
 
