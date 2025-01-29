@@ -23,11 +23,25 @@ own visualizations to the module.
 
 ## Installation
 
-`cirq-web` is currently in development, and therefore is only available in
-pre-release form. To install it use `pip install cirq-web~=1.0.dev`. (The `~=`
-has a special meaning to `pip` of selecting the latest version compatible with
-the `1.*` and `dev` in the name. Despite appearances, this will not install an
-old version 1.0 release!) This will also install `cirq-core` automatically.
+This module is built on top of [Cirq]; installing this module will
+automatically install the `cirq-core` module and other dependencies. There are
+two installation options for the `cirq-web` module:
+
+*   To install the stable version of `cirq-web`, use
+
+    ```shell
+    pip install cirq-web
+    ```
+
+*   To install the latest pre-release version of `cirq-web`, use
+
+    ```shell
+    pip install cirq-web~=1.0.dev
+    ```
+
+    (The `~=` has a special meaning to `pip` of selecting the latest version
+    compatible with the `1.*` and `dev` in the name. Despite appearances,
+    this will not install an old version 1.0 release!)
 
 If you would like to install Cirq with all the optional modules, not just
 `cirq-web`, then instead of the above commands, use `pip install cirq` for the

@@ -13,7 +13,7 @@ computers, where the details of quantum hardware are vital to achieving
 state-of-the-art results. For more information about Cirq, please visit the
 [Cirq documentation site].
 
-This Python module is `cirq-core`, which contains everything you'd need to
+This Python module is `cirq-core`, which contains all the code you need to
 write quantum algorithms for NISQ devices and run them on the built-in Cirq
 simulators.
 
@@ -30,11 +30,21 @@ hardware interface modules currently available.
 
 There are two installation options for the `cirq-core` module:
 
-* To install the stable version of `cirq-core`, use `pip install cirq-core`.
-* To install the pre-release version of `cirq-core`, use `pip install
-  cirq-core~=1.0.dev`. (The `~=` has a special meaning to `pip` of
-  selecting the latest version compatible with the `1.*` and `dev` in the
-  name. Despite appearances, this will not install an old version 1.0 release!)
+*   To install the stable version of `cirq-core`, use
+
+    ```shell
+    pip install cirq-core
+    ```
+
+*   To install the latest pre-release version of `cirq-core`, use
+
+    ```shell
+    pip install cirq-core~=1.0.dev
+    ```
+
+    (The `~=` has a special meaning to `pip` of selecting the latest version
+    compatible with the `1.*` and `dev` in the name. Despite appearances,
+    this will not install an old version 1.0 release!)
 
 If you would like to install Cirq with all the optional modules, not just
 `cirq-core`, then instead of the above commands, use `pip install cirq` for the

@@ -1,14 +1,16 @@
 <div align="center">
 <img width="190px" alt="Cirq logo"
-src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img width="200px" alt="IonQ logo" src="https://ionq.com/images/ionq-logo-dark.svg">
+src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg"
+><img width="50px" height="0" alt=""><img width="200px" alt="IonQ logo"
+src="https://ionq.com/images/ionq-logo-dark.svg">
 </div>
 
 # cirq-ionq
 
-This is the Python Cirq-IonQ integration module, which provides everything
-you'll need to run [Cirq] quantum algorithms on quantum computers made by
-[IonQ Inc.](https://ionq.com/).
+This is the Cirq-IonQ integration module. It provides an interface that allows
+[Cirq] quantum algorithms to run on quantum computers made by [IonQ
+Inc.](https://ionq.com/). (See the [Documentation](#documentation) section
+below for information about getting access to IonQ devices.)
 
 [Cirq] is a Python package for writing, manipulating, and running [quantum
 circuits](https://en.wikipedia.org/wiki/Quantum_circuit) on quantum computers
@@ -27,11 +29,21 @@ This module is built on top of [Cirq]; installing this module will
 automatically install the `cirq-core` module and other dependencies. There are
 two installation options for the `cirq-ionq` module:
 
-* To install the stable version of `cirq-ionq`, use `pip install cirq-ionq`.
-* To install the latest pre-release version of |cirq-ionq|, use `pip install
-  cirq-ionq~=1.0.dev`. (The `~=` has a special meaning to `pip` of selecting the
-  latest version compatible with the `1.*` and `dev` in the name. Despite
-  appearances, this will not install an old version 1.0 release!)
+*   To install the stable version of `cirq-ionq`, use
+
+    ```shell
+    pip install cirq-ionq
+    ```
+
+*   To install the latest pre-release version of `cirq-ionq`, use
+
+    ```shell
+    pip install cirq-ionq~=1.0.dev
+    ```
+
+    (The `~=` has a special meaning to `pip` of selecting the latest version
+    compatible with the `1.*` and `dev` in the name. Despite appearances,
+    this will not install an old version 1.0 release!)
 
 If you would like to install Cirq with all the optional modules, not just
 `cirq-ionq`, then instead of the above commands, use `pip install cirq` for the
@@ -43,8 +55,9 @@ version.
 To get started with using IonQ quantum computers through Cirq, please refer to
 the following documentation:
 
-* [Access and authentication](https://quantumai.google/cirq/ionq/access).
-* [Getting started guide](https://quantumai.google/cirq/tutorials/ionq/getting_started).
+*   [Access and authentication](https://quantumai.google/cirq/ionq/access).
+*   [Getting started
+    guide](https://quantumai.google/cirq/tutorials/ionq/getting_started).
 
 To get started with using Cirq in general, please refer to the [Cirq
 documentation site].
