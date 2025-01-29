@@ -1,10 +1,10 @@
 ## Cirq Typescript Development
 
-This directory contains the code and instructions for visualization tools in
+_This directory contains the code and instructions for visualization tools in
 a web browser or Colab/Juptyer notebooks. We do this using Typescript. While
 necessary, this is only half of the code needed to run the `cirq-web` project.
 For information on how to integrate projects here with Python and the wider
-Cirq package, please see the [`cirq_web` directory](../cirq_web/).
+Cirq package, please see the [`cirq_web` directory](../cirq_web/)._
 
 Visualizations run on [NodeJS](https://nodejs.org/en/), and we use
 [npm](https://www.npmjs.com/) for package management. To start developing,
