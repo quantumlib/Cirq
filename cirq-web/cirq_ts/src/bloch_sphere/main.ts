@@ -30,7 +30,7 @@ export function renderBlochSphere(
   containerId: string,
   radius = 5,
   hMeridians = 7,
-  vMeridians = 4
+  vMeridians = 4,
 ) {
   const scene = new BlochSphereScene();
   scene.addSceneToHTMLContainer(containerId);

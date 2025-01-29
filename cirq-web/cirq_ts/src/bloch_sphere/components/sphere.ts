@@ -31,7 +31,7 @@ export class Sphere extends Group {
 
     if (radius < 1) {
       throw new Error(
-        'The radius of a Sphere must be greater than or equal to 1'
+        'The radius of a Sphere must be greater than or equal to 1',
       );
     } else {
       this.radius = radius;
