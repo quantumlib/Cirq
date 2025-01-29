@@ -266,7 +266,9 @@ class CircuitOperation(ops.Operation):
             'repetition_ids': self.repetition_ids,
             'parent_path': self.parent_path,
             'extern_keys': self._extern_keys,
-            'use_repetition_ids': True if changes.get('repetition_ids') is not None else self.use_repetition_ids,
+            'use_repetition_ids': (
+                True if changes.get('repetition_ids') is not None else self.use_repetition_ids
+            ),
             'repeat_until': self.repeat_until,
             **changes,
         }
