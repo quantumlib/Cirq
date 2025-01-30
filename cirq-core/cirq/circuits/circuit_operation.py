@@ -390,6 +390,7 @@ class CircuitOperation(ops.Operation):
 
     @cached_property
     def _mapped_repeat_until(self) -> Optional['cirq.Condition']:
+        """Applies measurement_key_map, param_resolver, and current scope to repeat_until."""
         repeat_until = self.repeat_until
         if not repeat_until:
             return repeat_until
