@@ -1239,4 +1239,57 @@ def test_repeat_until_error():
         )
 
 
+def test_repeat_until_protocols():
+    q = cirq.LineQubit(0)
+    op = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.H(q) ** sympy.Symbol('p'), cirq.measure(q, key='a')),
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 0)),
+    )
+    scoped = cirq.with_rescoped_keys(op, ('0',))
+    # Ensure the _repeat_until has been mapped, the measurement has been mapped to the same key,
+    # and the control keys of the subcircuit is empty (because the control key of the condition is
+    # bound to the measurement).
+    assert scoped._mapped_repeat_until.keys == (cirq.MeasurementKey('a', ('0',)),)
+    assert cirq.measurement_key_objs(scoped) == {cirq.MeasurementKey('a', ('0',))}
+    assert not cirq.control_keys(scoped)
+    mapped = cirq.with_measurement_key_mapping(scoped, {'a': 'b'})
+    assert mapped._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('0',)),)
+    assert cirq.measurement_key_objs(mapped) == {cirq.MeasurementKey('b', ('0',))}
+    assert not cirq.control_keys(mapped)
+    prefixed = cirq.with_key_path_prefix(mapped, ('1',))
+    assert prefixed._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('1', '0')),)
+    assert cirq.measurement_key_objs(prefixed) == {cirq.MeasurementKey('b', ('1', '0'))}
+    assert not cirq.control_keys(prefixed)
+    setpath = cirq.with_key_path(prefixed, ('2',))
+    assert setpath._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
+    assert cirq.measurement_key_objs(setpath) == {cirq.MeasurementKey('b', ('2',))}
+    assert not cirq.control_keys(setpath)
+    resolved = cirq.resolve_parameters(setpath, {'p': 1})
+    assert resolved._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
+    assert cirq.measurement_key_objs(resolved) == {cirq.MeasurementKey('b', ('2',))}
+    assert not cirq.control_keys(resolved)
+
+
+def test_inner_repeat_until_simulate():
+    sim = cirq.Simulator()
+    q = cirq.LineQubit(0)
+    inner_loop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.H(q), cirq.measure(q, key="inner_loop")),
+        repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol("inner_loop"), 0)),
+    )
+    outer_loop = cirq.Circuit(inner_loop, cirq.X(q), cirq.measure(q, key="outer_loop"))
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(outer_loop), repetitions=2, use_repetition_ids=True
+        )
+    )
+    result = sim.run(circuit, repetitions=1)
+    assert all(len(v) == 1 and v[0] == 1 for v in result.records['0:inner_loop'][0][:-1])
+    assert result.records['0:inner_loop'][0][-1] == [0]
+    assert result.records['0:outer_loop'] == [[[1]]]
+    assert all(len(v) == 1 and v[0] == 1 for v in result.records['1:inner_loop'][0][:-1])
+    assert result.records['1:inner_loop'][0][-1] == [0]
+    assert result.records['1:outer_loop'] == [[[1]]]
+
+
 # TODO: Operation has a "gate" property. What is this for a CircuitOperation?
