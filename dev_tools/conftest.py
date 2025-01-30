@@ -104,7 +104,7 @@ def cloned_env(testrun_uid, worker_id):
     def _create_base_env(base_dir: Path, pip_install_args: Tuple[str, ...]):
         try:
             create_virtual_env(str(base_dir), [], sys.executable, True)
-            with open(base_dir / "testrun.uid", mode="w") as f:
+            with open(base_dir / "testrun.uid", mode="w", encoding="utf8") as f:
                 f.write(testrun_uid)
             if pip_install_args:
                 shell_tools.run([f"{base_dir}/bin/pip", "install", *pip_install_args])
