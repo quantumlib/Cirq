@@ -206,7 +206,11 @@ def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
 
 @pytest.mark.parametrize(
     'terms, is_parameterized, parameter_names',
-    [({cirq.H: 1}, False, set()), ({cirq.X ** sympy.Symbol('t'): 1}, True, {'t'})],
+    [
+        ({cirq.H: 1}, False, set()),
+        ({cirq.X ** sympy.Symbol('t'): 1}, True, {'t'}),
+        ({cirq.X: sympy.Symbol('t')}, True, {'t'}),
+    ],
 )
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameterized_linear_combination_of_gates(
