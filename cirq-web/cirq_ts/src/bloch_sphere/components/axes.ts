@@ -95,7 +95,7 @@ export class Axes extends Group {
         scale: 1,
         dashSize: 0.1,
         gapSize: 0.1,
-      })
+      }),
     ).computeLineDistances();
   }
 }

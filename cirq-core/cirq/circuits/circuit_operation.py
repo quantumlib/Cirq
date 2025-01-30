@@ -204,11 +204,12 @@ class CircuitOperation(ops.Operation):
                 )
 
         self._repeat_until = repeat_until
-        if self._repeat_until:
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until:
             if self._use_repetition_ids or self._repetitions != 1:
                 raise ValueError('Cannot use repetitions with repeat_until')
             if protocols.measurement_key_objs(self._mapped_single_loop()).isdisjoint(
-                self._repeat_until.keys
+                mapped_repeat_until.keys
             ):
                 raise ValueError('Infinite loop: condition is not modified in subcircuit.')
 
@@ -266,7 +267,9 @@ class CircuitOperation(ops.Operation):
             'repetition_ids': self.repetition_ids,
             'parent_path': self.parent_path,
             'extern_keys': self._extern_keys,
-            'use_repetition_ids': True if 'repetition_ids' in changes else self.use_repetition_ids,
+            'use_repetition_ids': (
+                True if changes.get('repetition_ids') is not None else self.use_repetition_ids
+            ),
             'repeat_until': self.repeat_until,
             **changes,
         }
@@ -347,8 +350,9 @@ class CircuitOperation(ops.Operation):
             if not protocols.control_keys(self.circuit)
             else protocols.control_keys(self._mapped_single_loop())
         )
-        if self.repeat_until is not None:
-            keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until is not None:
+            keys |= frozenset(mapped_repeat_until.keys) - self._measurement_key_objs_()
         return keys
 
     def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
@@ -362,11 +366,8 @@ class CircuitOperation(ops.Operation):
 
     def _parameter_names_generator(self) -> Iterator[str]:
         yield from protocols.parameter_names(self.repetitions)
-        for symbol in protocols.parameter_symbols(self.circuit):
-            for name in protocols.parameter_names(
-                protocols.resolve_parameters(symbol, self.param_resolver, recursive=False)
-            ):
-                yield name
+        yield from protocols.parameter_names(self._mapped_repeat_until)
+        yield from protocols.parameter_names(self._mapped_any_loop)
 
     @cached_property
     def _mapped_any_loop(self) -> 'cirq.Circuit':
@@ -387,6 +388,26 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_rescoped_keys(circuit, (repetition_id,))
         return protocols.with_rescoped_keys(
             circuit, self.parent_path, bindable_keys=self._extern_keys
+        )
+
+    @cached_property
+    def _mapped_repeat_until(self) -> Optional['cirq.Condition']:
+        """Applies measurement_key_map, param_resolver, and current scope to repeat_until."""
+        repeat_until = self.repeat_until
+        if not repeat_until:
+            return repeat_until
+        if self.measurement_key_map:
+            repeat_until = protocols.with_measurement_key_mapping(
+                repeat_until, self.measurement_key_map
+            )
+        if self.param_resolver:
+            repeat_until = protocols.resolve_parameters(
+                repeat_until, self.param_resolver, recursive=False
+            )
+        return protocols.with_rescoped_keys(
+            repeat_until,
+            self.parent_path,
+            bindable_keys=self._extern_keys | self._measurement_key_objs,
         )
 
     def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
@@ -425,12 +446,13 @@ class CircuitOperation(ops.Operation):
         return self.mapped_circuit(deep=False).all_operations()
 
     def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
-        if self.repeat_until:
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until:
             circuit = self._mapped_single_loop()
             while True:
                 for op in circuit.all_operations():
                     protocols.act_on(op, sim_state)
-                if self.repeat_until.resolve(sim_state.classical_data):
+                if mapped_repeat_until.resolve(sim_state.classical_data):
                     break
         else:
             for op in self._decompose_():
@@ -806,7 +828,9 @@ class CircuitOperation(ops.Operation):
                 by param_values.
         """
         new_params = {}
-        for k in protocols.parameter_symbols(self.circuit):
+        for k in protocols.parameter_symbols(self.circuit) | protocols.parameter_symbols(
+            self.repeat_until
+        ):
             v = self.param_resolver.value_of(k, recursive=False)
             v = protocols.resolve_parameters(v, param_values, recursive=recursive)
             if v != k:

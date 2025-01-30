@@ -28,7 +28,7 @@ describe('Meridians', () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         DEFAULT_H_MERIDIANS,
-        Orientation.HORIZONTAL
+        Orientation.HORIZONTAL,
       );
       expect(meridians.children.length).to.equal(DEFAULT_H_MERIDIANS);
     });
@@ -38,7 +38,7 @@ describe('Meridians', () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         DEFAULT_V_MERIDIANS,
-        Orientation.VERTICAL
+        Orientation.VERTICAL,
       );
       expect(meridians.children.length).to.equal(DEFAULT_V_MERIDIANS);
     });
@@ -48,7 +48,7 @@ describe('Meridians', () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         DEFAULT_H_MERIDIANS,
-        Orientation.HORIZONTAL
+        Orientation.HORIZONTAL,
       );
 
       const positions = [
@@ -78,7 +78,7 @@ describe('Meridians', () => {
         const meridians = new Meridians(
           DEFAULT_RADIUS,
           el,
-          Orientation.HORIZONTAL
+          Orientation.HORIZONTAL,
         );
         expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
       });
@@ -91,7 +91,7 @@ describe('Meridians', () => {
         const meridians = new Meridians(
           DEFAULT_RADIUS,
           el,
-          Orientation.VERTICAL
+          Orientation.VERTICAL,
         );
         expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
       });
@@ -101,7 +101,7 @@ describe('Meridians', () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         9,
-        Orientation.HORIZONTAL
+        Orientation.HORIZONTAL,
       );
 
       const positions = [

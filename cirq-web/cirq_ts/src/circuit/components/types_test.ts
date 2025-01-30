@@ -115,7 +115,7 @@ describe('Symbol3D', () => {
       const symbolObj = new Symbol3D(symbols[0]);
 
       const ctrlSymbol = symbolObj.children.find(
-        child => child.constructor.name === 'Control3DSymbol'
+        child => child.constructor.name === 'Control3DSymbol',
       );
       expect(ctrlSymbol).to.not.equal(undefined);
       expect(ctrlSymbol?.position.x).to.equal(0);
@@ -123,7 +123,7 @@ describe('Symbol3D', () => {
       expect(ctrlSymbol?.position.y).to.equal(1);
 
       const xSymbol = symbolObj.children.find(
-        child => child.constructor.name === 'X3DSymbol'
+        child => child.constructor.name === 'X3DSymbol',
       );
       expect(xSymbol).to.not.equal(undefined);
       expect(xSymbol?.position.x).to.equal(0);
@@ -131,7 +131,7 @@ describe('Symbol3D', () => {
       expect(xSymbol?.position.y).to.equal(1);
 
       const connectionLine = symbolObj.children.find(
-        child => child.constructor.name === 'ConnectionLine'
+        child => child.constructor.name === 'ConnectionLine',
       );
 
       expect(connectionLine).to.not.equal(undefined);
@@ -141,7 +141,7 @@ describe('Symbol3D', () => {
       const symbolObj = new Symbol3D(symbols[1]);
 
       const boxSymbols = symbolObj.children.filter(
-        child => child.constructor.name === 'Swap3DSymbol'
+        child => child.constructor.name === 'Swap3DSymbol',
       );
       expect(boxSymbols.length).to.equal(2);
 
@@ -154,7 +154,7 @@ describe('Symbol3D', () => {
       });
 
       const connectionLine = symbolObj.children.find(
-        child => child.constructor.name === 'ConnectionLine'
+        child => child.constructor.name === 'ConnectionLine',
       );
       expect(connectionLine).to.not.equal(undefined);
     });
@@ -163,7 +163,7 @@ describe('Symbol3D', () => {
       const symbolObj = new Symbol3D(symbols[2]);
 
       const boxSymbols = symbolObj.children.filter(
-        child => child.constructor.name === 'BoxGate3DSymbol'
+        child => child.constructor.name === 'BoxGate3DSymbol',
       );
       expect(boxSymbols.length).to.equal(2);
 
@@ -176,7 +176,7 @@ describe('Symbol3D', () => {
       });
 
       const connectionLine = symbolObj.children.find(
-        child => child.constructor.name === 'ConnectionLine'
+        child => child.constructor.name === 'ConnectionLine',
       );
       expect(connectionLine).to.not.equal(undefined);
     });
@@ -185,12 +185,12 @@ describe('Symbol3D', () => {
       const symbolObj = new Symbol3D(symbols[3]);
 
       const boxSymbols = symbolObj.children.filter(
-        child => child.constructor.name === 'Control3DSymbol'
+        child => child.constructor.name === 'Control3DSymbol',
       );
       expect(boxSymbols.length).to.equal(2);
 
       const xSymbol = symbolObj.children.find(
-        child => child.constructor.name === 'X3DSymbol'
+        child => child.constructor.name === 'X3DSymbol',
       );
       expect(xSymbol).to.not.equal(undefined);
 
@@ -203,7 +203,7 @@ describe('Symbol3D', () => {
       });
 
       const connectionLines = symbolObj.children.filter(
-        child => child.constructor.name === 'ConnectionLine'
+        child => child.constructor.name === 'ConnectionLine',
       );
       expect(connectionLines.length).to.equal(2);
     });
