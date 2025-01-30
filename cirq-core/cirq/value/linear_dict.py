@@ -283,7 +283,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         result *= a
         return result.copy()
 
-    def __rmul__(self, a: Scalar) -> Self:  # type: ignore
+    def __rmul__(self, a: Scalar) -> Self:
         return self.__mul__(a)
 
     def __truediv__(self, a: Scalar) -> Self:
@@ -361,7 +361,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         return any(protocols.is_parameterized(v) for v in self._terms.values())
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return set(protocols.parameter_names(v) for v in self._terms.values())
+        return set(name for v in self._terms.values() for name in protocols.parameter_names(v))
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'LinearDict':
         result = self.copy()
