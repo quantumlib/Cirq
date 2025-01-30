@@ -176,8 +176,8 @@ develop quantum programs for a variety of applications.
 ## Community
 
 <a href="https://github.com/quantumlib/Cirq/graphs/contributors"><img
-align="right" width="160em" alt="Total number of contributors to Cirq"
-src="https://img.shields.io/github/contributors/quantumlib/cirq?label=Contributors&logoColor=white&logo=github&color=cccccc&style=flat-square"/></a>
+width="160em" alt="Total number of contributors to Cirq"
+src="https://img.shields.io/github/contributors/quantumlib/cirq?label=Contributors&logo=github&color=ccc&style=flat-square"/></a>
 
 Cirq has benefited from [open-source contributions] by over 200 people and
 counting. We are dedicated to cultivating an open and inclusive community to
@@ -235,21 +235,19 @@ Cirq releases take place approximately every quarter.
 When publishing articles or otherwise writing about Cirq, please cite the Cirq
 version you use – it will help others reproduce your results. We use Zenodo to
 preserve releases. The following links let you download the bibliographic
-record for the latest stable release of Cirq in various popular formats:
+record for the latest stable release of Cirq in some popular formats:
 
 <div align="center">
 
 [![Download BibTeX bibliography record for latest Cirq
-release](https://img.shields.io/badge/Download%20record-e0e0e0.svg?style=flat-square&logo=LaTeX&label=BibTeX&labelColor=106f6e)](https://zenodo.org/records/8161252/export/bibtex)&nbsp;&nbsp;
-[![Download MARCXML bibliography record for latest Cirq
-release](https://img.shields.io/badge/Download%20record-e0e0e0.svg?style=flat-square&label=MARCXML&labelColor=2f00cd&logo=xml)](https://zenodo.org/records/8161252/export/marcxml)&nbsp;&nbsp;
+release](https://img.shields.io/badge/Download%20record-e0e0e0.svg?style=flat-square&logo=LaTeX&label=BibTeX&labelColor=106f6e)](https://citation.doi.org/format?doi=10.5281/zenodo.4062499&style=bibtex)&nbsp;&nbsp;
 [![Download CSL JSON bibliography record for latest Cirq
-release](https://img.shields.io/badge/Download%20record-e0e0e0.svg?style=flat-square&label=CSL&labelColor=2d98e0&logo=json)](https://zenodo.org/records/8161252/export/csl)
+release](https://img.shields.io/badge/Download%20record-e0e0e0.svg?style=flat-square&label=CSL&labelColor=2d98e0&logo=json)](https://citation.doi.org/metadata?doi=10.5281/zenodo.4062499)
 
 </div>
 
 For formatted citations and records in other formats, as well as records for
-all releases of Cirq past and present, visit the [Cirq page on
+all releases of Cirq past and present, please visit the [Cirq page on
 Zenodo](https://doi.org/10.5281/zenodo.4062499).
 
 ## Contact
