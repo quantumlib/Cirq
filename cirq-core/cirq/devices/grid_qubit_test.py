@@ -391,3 +391,24 @@ def test_immutable():
 def test_complex():
     assert complex(cirq.GridQubit(row=1, col=2)) == 2 + 1j
     assert isinstance(complex(cirq.GridQubit(row=1, col=2)), complex)
+
+
+def test_numpy_index():
+    np5, np6, np3 = [np.int64(i) for i in [5, 6, 3]]
+    q = cirq.GridQubit(np5, np6)
+    hash(q)  # doesn't throw
+    assert q.row == 5
+    assert q.col == 6
+    assert q.dimension == 2
+    assert isinstance(q.row, int)
+    assert isinstance(q.col, int)
+    assert isinstance(q.dimension, int)
+
+    q = cirq.GridQid(np5, np6, dimension=np3)
+    hash(q)  # doesn't throw
+    assert q.row == 5
+    assert q.col == 6
+    assert q.dimension == 3
+    assert isinstance(q.row, int)
+    assert isinstance(q.col, int)
+    assert isinstance(q.dimension, int)
