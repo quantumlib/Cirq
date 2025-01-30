@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -24,6 +25,12 @@ def test_empty_init():
     assert not v
 
 
+sym = sympy.Symbol('sym')
+expr = sym * -(2 + 3j)
+symval = expr.subs({'sym': 5})
+symvalresolved = -10 - 15j
+
+
 @pytest.mark.parametrize(
     'keys, coefficient, terms_expected',
     (
@@ -31,6 +38,9 @@ def test_empty_init():
         (('X',), 2, {'X': 2}),
         (('a', 'b', 'c', 'd'), 0.5, {'a': 0.5, 'b': 0.5, 'c': 0.5, 'd': 0.5}),
         (('b', 'c', 'd', 'e'), -2j, {'b': -2j, 'c': -2j, 'd': -2j, 'e': -2j}),
+        (('b', 'c'), sym, {'b': sym, 'c': sym}),
+        (('b', 'c'), expr, {'b': expr, 'c': expr}),
+        (('b', 'c'), symval, {'b': symvalresolved, 'c': symvalresolved}),
     ),
 )
 def test_fromkeys(keys, coefficient, terms_expected):
@@ -273,6 +283,9 @@ def test_len(terms, expected_length):
         ({'X': 1}, {'Y': 2}, {'X': 1, 'Y': 2}),
         ({'X': 1}, {'X': 1}, {'X': 2}),
         ({'X': 1, 'Y': 2}, {'Y': -2}, {'X': 1}),
+        ({'X': 1}, {'X': sym}, {'X': sym + 1}),
+        ({'X': 1}, {'X': expr}, {'X': expr + 1}),
+        ({'X': 1}, {'X': symval}, {'X': symvalresolved + 1}),
     ),
 )
 def test_vector_addition(terms_1, terms_2, terms_expected):
@@ -297,6 +310,9 @@ def test_vector_addition(terms_1, terms_2, terms_expected):
         ({'X': 1}, {'X': 1}, {}),
         ({'X': 1, 'Y': 2}, {'Y': 2}, {'X': 1}),
         ({'X': 1, 'Y': 2}, {'Y': 3}, {'X': 1, 'Y': -1}),
+        ({'X': 1}, {'X': sym}, {'X': 1 - sym}),
+        ({'X': 1}, {'X': expr}, {'X': 1 - expr}),
+        ({'X': 1}, {'X': symval}, {'X': 1 - symvalresolved}),
     ),
 )
 def test_vector_subtraction(terms_1, terms_2, terms_expected):
@@ -313,7 +329,14 @@ def test_vector_subtraction(terms_1, terms_2, terms_expected):
 
 @pytest.mark.parametrize(
     'terms, terms_expected',
-    (({}, {}), ({'key': 1}, {'key': -1}), ({'1': 10, '2': -20}, {'1': -10, '2': 20})),
+    (
+        ({}, {}),
+        ({'key': 1}, {'key': -1}),
+        ({'1': 10, '2': -20}, {'1': -10, '2': 20}),
+        ({'key': sym}, {'key': -sym}),
+        ({'key': expr}, {'key': -expr}),
+        ({'key': symval}, {'key': -symvalresolved}),
+    ),
 )
 def test_vector_negation(terms, terms_expected):
     linear_dict = cirq.LinearDict(terms)
@@ -331,6 +354,12 @@ def test_vector_negation(terms, terms_expected):
         (0, {'abc': 10, 'def': 20}, {}),
         (1j, {'X': 4j}, {'X': -4}),
         (-1, {'a': 10, 'b': -20}, {'a': -10, 'b': 20}),
+        (2, {'X': sym}, {'X': 2 * sym}),
+        (2, {'X': expr}, {'X': 2 * expr}),
+        (2, {'X': symval}, {'X': 2 * symvalresolved}),
+        (sym, {'X': 2}, {'X': 2 * sym}),
+        (expr, {'X': 2}, {'X': 2 * expr}),
+        (symval, {'X': 2}, {'X': 2 * symvalresolved}),
     ),
 )
 def test_scalar_multiplication(scalar, terms, terms_expected):
@@ -350,6 +379,12 @@ def test_scalar_multiplication(scalar, terms, terms_expected):
         (2, {'X': 6, 'Y': -2}, {'X': 3, 'Y': -1}),
         (1j, {'X': 1, 'Y': 1j}, {'X': -1j, 'Y': 1}),
         (-1, {'a': 10, 'b': -20}, {'a': -10, 'b': 20}),
+        (2, {'X': sym}, {'X': 0.5 * sym}),
+        (2, {'X': expr}, {'X': 0.5 * expr}),
+        (2, {'X': symval}, {'X': 0.5 * symvalresolved}),
+        (sym, {'X': 2}, {'X': 2 / sym}),
+        (expr, {'X': 2}, {'X': 2 / expr}),
+        (symval, {'X': 2}, {'X': 2 / symvalresolved}),
     ),
 )
 def test_scalar_division(scalar, terms, terms_expected):
@@ -387,7 +422,13 @@ def test_bool(terms, bool_value):
 
 @pytest.mark.parametrize(
     'terms_1, terms_2',
-    (({}, {}), ({}, {'X': 0}), ({'X': 0.0}, {'Y': 0.0}), ({'a': 1}, {'a': 1, 'b': 0})),
+    (
+        ({}, {}),
+        ({}, {'X': 0}),
+        ({'X': 0.0}, {'Y': 0.0}),
+        ({'a': 1}, {'a': 1, 'b': 0}),
+        ({'X': sym}, {'X': sym}),
+    ),
 )
 def test_equal(terms_1, terms_2):
     linear_dict_1 = cirq.LinearDict(terms_1)
@@ -405,6 +446,7 @@ def test_equal(terms_1, terms_2):
         ({'X': 1e-12}, {'X': 0}),
         ({'X': 0.0}, {'Y': 0.1}),
         ({'X': 1}, {'X': 1, 'Z': 1e-12}),
+        ({'X': sym + 0.1}, {'X': sym}),
     ),
 )
 def test_unequal(terms_1, terms_2):
@@ -423,6 +465,7 @@ def test_unequal(terms_1, terms_2):
         ({'X': 1e-12}, {'X': 0}),
         ({'X': 5e-10}, {'Y': 2e-11}),
         ({'X': 1.000000001}, {'X': 1, 'Z': 0}),
+        ({'X': sym + 0.000000001}, {'X': sym}),
     ),
 )
 def test_approximately_equal(terms_1, terms_2):
@@ -476,7 +519,20 @@ def test_format(terms, fmt, expected_string):
     assert actual_string.replace(' ', '') == expected_string.replace(' ', '')
 
 
-@pytest.mark.parametrize('terms', (({}, {'X': 1}, {'X': 2, 'Y': 3}, {'X': 1.23456789e-12})))
+@pytest.mark.parametrize(
+    'terms',
+    (
+        (
+            {},
+            {'X': 1},
+            {'X': 2, 'Y': 3},
+            {'X': 1.23456789e-12},
+            {'X': sym},
+            ({'X': sym * 2}),
+            {'X': symval},
+        )
+    ),
+)
 def test_repr(terms):
     original = cirq.LinearDict(terms)
     recovered = eval(repr(original))
@@ -502,6 +558,10 @@ def test_repr(terms):
         ({'X': -2, 'Y': -3}, '-2.000*X-3.000*Y'),
         ({'X': -2j, 'Y': -3}, '-2.000j*X-3.000*Y'),
         ({'X': -2j, 'Y': -3j}, '-2.000j*X-3.000j*Y'),
+        ({'X': sym}, 'sym*X'),
+        ({'X': sym * 2}, '2.000*sym*X'),
+        ({'X': expr}, '-sym*(2.000+3.000j)*X'),
+        ({'X': symval}, '-(10.000+15.000j)*X'),
     ),
 )
 def test_str(terms, string):

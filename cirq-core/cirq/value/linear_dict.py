@@ -57,7 +57,8 @@ class _SympyPrinter(sympy.printing.str.StrPrinter):
     def _print(self, expr, **kwargs):
         if expr.is_complex:
             coefficient = complex(expr)
-            return _format_coefficient(self._format_spec, coefficient)
+            s = _format_coefficient(self._format_spec, coefficient)
+            return s[1:-1] if s[0] == '(' else s
         return super()._print(expr, **kwargs)
 
 
@@ -280,7 +281,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     def __mul__(self, a: Scalar) -> Self:
         result = self.copy()
         result *= a
-        return result
+        return result.copy()
 
     def __rmul__(self, a: Scalar) -> Self:  # type: ignore
         return self.__mul__(a)
