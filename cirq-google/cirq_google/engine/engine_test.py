@@ -282,6 +282,24 @@ def test_run_circuit_with_unary_rpcs(client):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_get_sampler_with_snapshot_id_passes_to_unary_rpc(client):
+    setup_run_circuit_with_result_(client, _A_RESULT)
+    engine = cg.Engine(
+        project_id='proj',
+        context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
+    )
+    sampler = engine.get_sampler('mysim', snapshot_id="123", device_config_name="config")
+    _ = sampler.run_sweep(_CIRCUIT, params=[cirq.ParamResolver({'a': 1})])
+
+    kwargs = client().create_job_async.call_args_list[0].kwargs
+
+    # We care about asserting that the snapshot_id is correctly passed.
+    assert kwargs["snapshot_id"] == "123"
+    assert kwargs["run_name"] == ""
+    assert kwargs["device_config_name"] == "config"
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit_with_stream_rpcs_passes(client):
     setup_run_circuit_with_result_(client, _A_RESULT)
 
