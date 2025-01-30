@@ -399,11 +399,7 @@ def test_serialize_deserialize_circuit_with_constants_table():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
         circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(moment_constant_index=4),
-                v2.program_pb2.Moment(moment_constant_index=5),
-            ],
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moment_indices=[4, 5]
         ),
         constants=[
             v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1')),
@@ -439,7 +435,6 @@ def test_serialize_deserialize_circuit_with_duplicate_moments():
         USE_CONSTANTS_TABLE_FOR_MOMENTS=True, USE_CONSTANTS_TABLE_FOR_OPERATIONS=True
     )
     proto = serializer.serialize(circuit)
-    print(proto)
     deserialized_circuit = serializer.deserialize(proto)
     assert deserialized_circuit == circuit
     assert deserialized_circuit[0] is deserialized_circuit[2]

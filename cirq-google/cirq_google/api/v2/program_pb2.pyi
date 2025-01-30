@@ -148,6 +148,7 @@ class Circuit(google.protobuf.message.Message):
 
     SCHEDULING_STRATEGY_FIELD_NUMBER: builtins.int
     MOMENTS_FIELD_NUMBER: builtins.int
+    MOMENT_INDICES_FIELD_NUMBER: builtins.int
     scheduling_strategy: global___Circuit.SchedulingStrategy.ValueType
     @property
     def moments(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Moment]:
@@ -155,13 +156,23 @@ class Circuit(google.protobuf.message.Message):
         first set of operations to apply, etc.
         """
 
+    @property
+    def moment_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]:
+        """The index of the moment in the top-level constant table.
+        In order to preserve ordering, either this field should be populated
+        or the moments field, but not both.
+        This field is used to reduce size of circuits that contain many
+        repeated moments.
+        """
+
     def __init__(
         self,
         *,
         scheduling_strategy: global___Circuit.SchedulingStrategy.ValueType = ...,
         moments: collections.abc.Iterable[global___Moment] | None = ...,
+        moment_indices: collections.abc.Iterable[builtins.int] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["moments", b"moments", "scheduling_strategy", b"scheduling_strategy"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["moment_indices", b"moment_indices", "moments", b"moments", "scheduling_strategy", b"scheduling_strategy"]) -> None: ...
 
 global___Circuit = Circuit
 
@@ -174,17 +185,9 @@ class Moment(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    MOMENT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     OPERATIONS_FIELD_NUMBER: builtins.int
     CIRCUIT_OPERATIONS_FIELD_NUMBER: builtins.int
     OPERATION_INDICES_FIELD_NUMBER: builtins.int
-    moment_constant_index: builtins.int
-    """The index of the moment in the top-level constant table.
-    If this field is populated, the other fields should be ignored
-    in favor using the constant table lookup.
-    This field is used to reduce size of circuits that contain many
-    repeated moments.
-    """
     @property
     def operations(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Operation]:
         """All of the gate operations in the moment. Each operation and circuit
@@ -209,14 +212,11 @@ class Moment(google.protobuf.message.Message):
     def __init__(
         self,
         *,
-        moment_constant_index: builtins.int | None = ...,
         operations: collections.abc.Iterable[global___Operation] | None = ...,
         circuit_operations: collections.abc.Iterable[global___CircuitOperation] | None = ...,
         operation_indices: collections.abc.Iterable[builtins.int] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["_moment_constant_index", b"_moment_constant_index", "moment_constant_index", b"moment_constant_index"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_moment_constant_index", b"_moment_constant_index", "circuit_operations", b"circuit_operations", "moment_constant_index", b"moment_constant_index", "operation_indices", b"operation_indices", "operations", b"operations"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["_moment_constant_index", b"_moment_constant_index"]) -> typing.Literal["moment_constant_index"] | None: ...
+    def ClearField(self, field_name: typing.Literal["circuit_operations", b"circuit_operations", "operation_indices", b"operation_indices", "operations", b"operations"]) -> None: ...
 
 global___Moment = Moment
 
