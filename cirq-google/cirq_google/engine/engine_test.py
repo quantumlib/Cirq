@@ -288,7 +288,7 @@ def test_engine_get_sampler_with_snapshot_id_passes_to_unary_rpc(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
     )
-    sampler = engine.get_sampler('mysim', snapshot_id="123", device_config_name="config")
+    sampler = engine.get_sampler('mysim', device_config_name="config", snapshot_id="123")
     _ = sampler.run_sweep(_CIRCUIT, params=[cirq.ParamResolver({'a': 1})])
 
     kwargs = client().create_job_async.call_args_list[0].kwargs

@@ -578,8 +578,8 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         processor_id: Union[str, List[str]],
         run_name: str = "",
-        snapshot_id: str = "",
         device_config_name: str = "",
+        snapshot_id: str = "",
     ) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
