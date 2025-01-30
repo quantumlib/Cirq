@@ -607,3 +607,34 @@ def test_repr_pretty(terms):
 def test_json_fails_with_validator():
     with pytest.raises(ValueError, match='not json serializable'):
         _ = cirq.to_json(cirq.LinearDict({}, validator=lambda: True))
+
+
+@pytest.mark.parametrize(
+    'terms, names',
+    (
+        ({'X': sym}, {'sym'}),
+        ({'X': sym * sympy.Symbol('a')}, {'sym', 'a'}),
+        ({'X': expr}, {'sym'}),
+        ({'X': sym, 'Y': sympy.Symbol('a')}, {'sym', 'a'}),
+        ({'X': symval}, set()),
+    ),
+)
+def test_parameter_names(terms, names):
+    linear_dict = cirq.LinearDict(terms)
+    assert cirq.parameter_names(linear_dict) == names
+
+
+@pytest.mark.parametrize(
+    'terms, expected',
+    (
+        ({'X': sym}, {'X': 2}),
+        ({'X': sym * sympy.Symbol('a')}, {'X': 6}),
+        ({'X': expr}, {'X': -4 - 6j}),
+        ({'X': sym, 'Y': sympy.Symbol('a')}, {'X': 2, 'Y': 3}),
+        ({'X': symval}, {'X': symvalresolved}),
+    ),
+)
+def test_resolve_parameters(terms, expected):
+    linear_dict = cirq.LinearDict(terms)
+    expected_dict = cirq.LinearDict(expected)
+    assert cirq.resolve_parameters(linear_dict, {'sym': 2, 'a': 3}) == expected_dict
