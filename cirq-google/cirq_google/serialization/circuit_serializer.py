@@ -507,8 +507,8 @@ class CircuitSerializer(serializer.Serializer):
         moment_proto: v2.program_pb2.Moment,
         *,
         arg_function_language: str = '',
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        deserialized_constants: Optional[List[Any]] = None,
+        constants: List[v2.program_pb2.Constant]],
+        deserialized_constants: List[Any],
     ) -> cirq.Moment:
         moment_ops = []
         for op in moment_proto.operations:
