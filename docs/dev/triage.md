@@ -209,7 +209,7 @@ Pull requests:
 
 **When:**
 
-* 10:00AM-11:00PM PST Wednesdays 
+* 10:00AM-11:00PM Pacific Time Wednesdays
 
 **What:**
 
