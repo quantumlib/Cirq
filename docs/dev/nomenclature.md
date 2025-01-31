@@ -16,14 +16,14 @@ to modify this list or open an issue.
 (given by an `int`), use `state_rep` or, if it is the initial state of 
 a system `initial_state`.
 *    A function argument (`state_vector`, `state_rep`, or `initial_state`)
-should permit any of the possible representations of a state: A NumPY
-array, a NumPY tensor, an integer representing a qubit-system's computational
+should permit any of the possible representations of a state: A NumPy
+array, a NumPy tensor, an integer representing a qubit-system's computational
 basis state, a sequence of n integers representing a qudit's basis state,
 or a `cirq.ProductState`. The type annotation should be
 `cirq.STATE_VECTOR_LIKE` and you should use `cirq.to_valid_state_vector`
-to canonicalize as a NumPY array of amplitudes.
-If a function expects a NumPY array of amplitudes, its type annotation
+to canonicalize as a NumPy array of amplitudes.
+If a function expects a NumPy array of amplitudes, its type annotation
 should be `np.ndarray`.
-*    Use `density_matrix` to describe a mixed state that is passed in as a NumPY
-matrix or NumPY tensor.  **Do not** used `mixed_state`, `density_operator`, or
+*    Use `density_matrix` to describe a mixed state that is passed in as a NumPy
+matrix or NumPy tensor.  **Do not** used `mixed_state`, `density_operator`, or
 `state`.

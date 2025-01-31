@@ -59,7 +59,7 @@ print(deserialized_obj)
 When writing JSON, Cirq checks if the given object has a `_json_dict_` method.
 If it does, the object is replaced by the output of that method.
 Otherwise, there are a series of several hardcoded cases for complex numbers,
-NumPY arrays, SymPy expressions, and a few others.
+NumPy arrays, SymPy expressions, and a few others.
 The process of replacing an object by JSON proceeds recursively.
 For example, the `_json_dict_` method may return a dictionary that contains a
 value that is not JSON.
