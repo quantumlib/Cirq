@@ -9,7 +9,7 @@ Note that all commands assume a Debian environment, and all commands (except the
 The simplest way to get a local copy of Cirq that you can edit is by cloning Cirq's GitHub repository:
 
 ```bash
-git clone git@github.com:quantumlib/cirq.git
+git clone https://github.com/quantumlib/Cirq.git
 cd Cirq
 ```
 
@@ -49,44 +49,44 @@ https://github.com/USERNAME/cirq where `USERNAME` is
 your GitHub id.
 1. Clone the fork you created to your local machine at the directory
 where you would like to store your local copy of the code, and `cd` into the newly created directory.
-    
+
    ```bash
-    git clone git@github.com:USERNAME/cirq.git
+    git clone https://github.com/USERNAME/Cirq.git
     cd Cirq
    ```
    (Alternatively, you can clone the repository using the URL provided on your repo page under the green "Clone or Download" button)
 1. Add a remote called ```upstream``` to git.
-This remote will represent the main git repo for Cirq (as opposed to the clone, which you just created, which will be the ```origin``` remote). 
+This remote will represent the main git repo for Cirq (as opposed to the clone, which you just created, which will be the ```origin``` remote).
 This remote can be used to merge changes from Cirq's main repository into your local development copy.
-   
+
     ```shell
-    git remote add upstream https://github.com/quantumlib/cirq.git
+    git remote add upstream https://github.com/quantumlib/Cirq.git
     ```
-   
+
     To verify the remote, run ```git remote -v```. You should see both the ```origin``` and ```upstream``` remotes.
 1. Sync up your local git with the ```upstream``` remote:
-   
+
     ```shell
     git fetch upstream
     ```
-   
+
     You can check the branches that are on the ```upstream``` remote by
     running `git ls-remote --heads upstream` or `git branch -r`.
 Most importantly you should see ```upstream/main``` listed.
 1. Merge the upstream main into your local main so that it is up to date.
-    
+
    ```shell
     git checkout main
     git merge upstream/main
    ```
-    
+
 At this point your local git main should be synced with the main from the main Cirq repo.
 
 
 ## Setting up an environment
 
 These instructions are primarily for Linux-based environments that use the `apt`
-package manager. 
+package manager.
 
 0. First clone the repository, if you have not already done so.
 See the previous section for instructions.
@@ -116,7 +116,7 @@ See the previous section for instructions.
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
     workon cirq-py3
-    python -m pip install --upgrade pip    
+    python -m pip install --upgrade pip
     python -m pip install -r dev_tools/requirements/dev.env.txt
     ```
 
@@ -136,11 +136,11 @@ See the previous section for instructions.
     ```bash
     source dev_tools/pypath
     ```
-    
+
     or add it to the Python path, but only in the virtualenv by first listing the modules
-    
+
     ```bash
-    python dev_tools/modules.py list 
+    python dev_tools/modules.py list
     ```
     and then adding these to the virtualenv:
     ```bash
@@ -148,16 +148,16 @@ See the previous section for instructions.
     ```
     (Typically `add2virtualenv` is not executable using xargs, so this two step process is necessary.)
 
-## Editable installs 
+## Editable installs
 
-If you want to pip install Cirq in an editable fashion, you'll have to install it per module, e.g.: 
+If you want to pip install Cirq in an editable fashion, you'll have to install it per module, e.g.:
 
 ```
 pip install -e ./cirq-core -e ./cirq-google -e ./cirq-ionq -e ./cirq-aqt
 ```
 
-Note that `pip install -e .` will install the `cirq` metapackage only, and your code changes won't 
-get picked up! 
+Note that `pip install -e .` will install the `cirq` metapackage only, and your code changes won't
+get picked up!
 
 ## Protocol buffers
 
@@ -165,7 +165,7 @@ get picked up!
 Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
 If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/main/dev_tools).
-This script uses `grpcio-tools` and protobuf version 4.25 to generate the Python proto API.
+This script uses `grpcio-tools` and protobuf version 3.8.0 to generate the Python proto API.
 
 ## Continuous integration and local testing
 
@@ -309,29 +309,29 @@ def some_method(a: int, b: str) -> float:
     """
 ```
 
-## Dependencies 
+## Dependencies
 
-### Production dependencies 
+### Production dependencies
 
 Cirq follows a modular design. Each module should specify their dependencies in files within their folder. See, for example, the files `cirq-core/requirements.txt` and `cirq-google/requirements.txt`.
-In general, we should try to keep dependencies as minimal as possible and if we have to add them, keep them as relaxed as possible instead of pinning to exact versions. If exact versions or constraints are known, those should be documented in form of a comment. 
+In general, we should try to keep dependencies as minimal as possible and if we have to add them, keep them as relaxed as possible instead of pinning to exact versions. If exact versions or constraints are known, those should be documented in form of a comment.
 
-### Development dependencies 
+### Development dependencies
 
-For local development: 
+For local development:
 
 For a development environment there is a single file that installs all the module dependencies and all of the dev tools as well: `dev_tools/requirements/dev.env.txt`.
-If this is too heavy weight for you, you can instead use `dev_tools/requirements/deps/dev-tools.txt` and the given module dependencies. 
+If this is too heavy weight for you, you can instead use `dev_tools/requirements/deps/dev-tools.txt` and the given module dependencies.
 
-For continuous integration: 
+For continuous integration:
 
-Each job might need different set of requirements and it would be inefficient to install a full-blown dev env for every tiny job (e.g. `mypy` check). 
-Instead, in the directory `dev_tools/requirements`, create a separate `<job>.env.txt` and include the necessary tools in there. Requirements files can include each other, which is heavily leveraged in our requirements files in order to remove duplication.   
+Each job might need different set of requirements and it would be inefficient to install a full-blown dev env for every tiny job (e.g. `mypy` check).
+Instead, in the directory `dev_tools/requirements`, create a separate `<job>.env.txt` and include the necessary tools in there. Requirements files can include each other, which is heavily leveraged in our requirements files in order to remove duplication.
 
-You can call the following utility to unroll the content of a file: 
+You can call the following utility to unroll the content of a file:
 
 ```
-python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt 
+python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 ```
 
 ## Producing a PyPI package

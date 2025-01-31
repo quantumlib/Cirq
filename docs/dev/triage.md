@@ -4,15 +4,15 @@ Original RFC: [bit.do/cirq-triage](https://bit.do/cirq-triage)
 
 ## **Objective**
 
-The goals for this document are as follows: 
+The goals for this document are as follows:
 
 * Define a set of lightweight community processes that make it easy for users and maintainers to understand where certain issues stand, when and how they are going to be resolved, what is blocking them
 
-* Provide visibility for project and release status 
+* Provide visibility for project and release status
 
 ## Automation: Triage party and GitHub Actions
 
-[Triage Party](https://github.com/google/triage-party) is a stateless web app to optimize issue and PR triage for large open-source projects using the GitHub API. 
+[Triage Party](https://github.com/google/triage-party) is a stateless web app to optimize issue and PR triage for large open-source projects using the GitHub API.
 
 Our deployed version is here (a static IP, domain request is in progress): [http://bit.do/cirq-triage-party](http://bit.do/cirq-triage-party)
 
@@ -75,37 +75,37 @@ Figure 2. Feature request workflow (to edit, see [mermaid source](https://mermai
 
 #### Other issue types
 
-For `kind/docs`, the label `triage/accepted` has to be added by at least one of the maintainers. 
+For `kind/docs`, the label `triage/accepted` has to be added by at least one of the maintainers.
 
 For `kind/health`, `kind/roadmap-item` and `kind/task`, there is no particular intake workflow, as we assume that only maintainers create them to track specific work items.
 
-### Prioritization 
+### Prioritization
 
-Labels for priority capture the **community's intent** around when a certain feature/bug/task should be done by. It is decided by the Triage team, based on the negotiation with the user who opened the issue. Priority is expected to be modified throughout the lifetime of the issue as the expectations evolve around it. 
+Labels for priority capture the **community's intent** around when a certain feature/bug/task should be done by. It is decided by the Triage team, based on the negotiation with the user who opened the issue. Priority is expected to be modified throughout the lifetime of the issue as the expectations evolve around it.
 
 - `priority/p0` should be very rare, only cases of emergency, and when a major critical user journey is blocked (e.g., users are exposed to a security vulnerability or they can't install Cirq)
-- `priority/p1` is reserved for issues that need to be addressed for high priority work (e.g., a publication that is planned earlier than the next release) 
-- `priority/p2`  and `priority/p3` are used to tie into release planning conversations and to signal contributors important work that can be picked up. 
+- `priority/p1` is reserved for issues that need to be addressed for high priority work (e.g., a publication that is planned earlier than the next release)
+- `priority/p2`  and `priority/p3` are used to tie into release planning conversations and to signal contributors important work that can be picked up.
 
 Features and Bugs with no priority label on them will still be up for grabs for contributors. Community contributors assigned to an issue that has no priority have the discretion to choose which release they will finish the issue by.
 
 ### Labels for feature area
 
-The goal of [feature area labels](https://github.com/quantumlib/Cirq/labels?q=area) are to enable easy filtering to certain areas. This can help during planning, exploring problematic areas, and finding duplicate issues. Multiple `area/*` labels can be added to a single issue. 
+The goal of [feature area labels](https://github.com/quantumlib/Cirq/labels?q=area) are to enable easy filtering to certain areas. This can help during planning, exploring problematic areas, and finding duplicate issues. Multiple `area/*` labels can be added to a single issue.
 
 
 ### Signalling difficulty
 
-Difficulty is a function of 
+Difficulty is a function of
 
-* Complexity – the size/hardness of the issue 
-* The skills required by the issue and the contributor's skills 
+* Complexity – the size/hardness of the issue
+* The skills required by the issue and the contributor's skills
 
 **Complexity**
 
 * `complexity/low` – involves introducing/modifying less than 1-2 concepts, should take 1-2 days max for an advanced contributor
 * `complexity/medium` – involves introducing/modifying 3-5 concepts, takes max up to a month for an advanced contributor
-* `complexity/high` – involves introducing/modifying 6+ concepts, can take more than a month for an advanced contributor to work through it, and/or modifies core concepts in Cirq 
+* `complexity/high` – involves introducing/modifying 6+ concepts, can take more than a month for an advanced contributor to work through it, and/or modifies core concepts in Cirq
 
 **Skill level required (skill/level)**
 
@@ -116,22 +116,22 @@ Difficulty is a function of
 
 ### Signalling work for contributors
 
-* `good first issue`: (`level/beginner` in the areas needed and `complexity/low` to `complexity/medium`) – the issue is relatively small, self contained, doesn't require too much quantum-computing knowledge  
-* `good for learning`: (`level/advanced` in the areas needed and `complexity/low`) – the issue is relatively small, self contained, but requires digging into some areas and develop a solid understanding. Should be a bit harder than "good first issues". 
-* `good part time project` – (`level/advanced` and `complexity/medium`) – the issue might take up a couple of months, needs a design and multiple conversations, can require digging deep into a couple of papers. It is still self-contained, doesn't have too much dependencies on the rest of Cirq. 
-* `help wanted` – If a project lead wants help on a certain task or a high-priority item needs to be done but no one is assigned to it yet, we should put the `help wanted` label on it.  
+* `good first issue`: (`level/beginner` in the areas needed and `complexity/low` to `complexity/medium`) – the issue is relatively small, self contained, doesn't require too much quantum-computing knowledge
+* `good for learning`: (`level/advanced` in the areas needed and `complexity/low`) – the issue is relatively small, self contained, but requires digging into some areas and develop a solid understanding. Should be a bit harder than "good first issues".
+* `good part time project` – (`level/advanced` and `complexity/medium`) – the issue might take up a couple of months, needs a design and multiple conversations, can require digging deep into a couple of papers. It is still self-contained, doesn't have too much dependencies on the rest of Cirq.
+* `help wanted` – If a project lead wants help on a certain task or a high-priority item needs to be done but no one is assigned to it yet, we should put the `help wanted` label on it.
 
 ### Implementation and design
 
-After an issue arrives to `triage/accepted` there can be two avenues: it is ready to be implemented (most of the cases) or it needs design work upfront. 
+After an issue arrives to `triage/accepted` there can be two avenues: it is ready to be implemented (most of the cases) or it needs design work upfront.
 
-When an issue is ready to be implemented, no extra label is required to signal the readiness, because that is the default. 
+When an issue is ready to be implemented, no extra label is required to signal the readiness, because that is the default.
 
-However, when there is a need for design, we add the label `needs agreed design`. The design could be as lightweight as a discussion in the issue itself or a full-fledged [RFC proposal](rfc_process.md) which should be clear from the comments. 
+However, when there is a need for design, we add the label `needs agreed design`. The design could be as lightweight as a discussion in the issue itself or a full-fledged [RFC proposal](rfc_process.md) which should be clear from the comments.
 
 ### Assigning work
 
-Assignment should be a function of 
+Assignment should be a function of
 
 * **Willingness** – contributors should volunteer to take issues or maintainers should take them actively.
 * **Priority** – critical issues shouldn't depend on part time work.
@@ -140,13 +140,13 @@ Assignment should be a function of
 
 ### Closing
 
-Issues should be automatically closed by PRs using the `Fixes #XYZD.` phrase in their description or manually, referring to the PR in case the PR author forgot to add the phrase. 
+Issues should be automatically closed by PRs using the `Fixes #XYZD.` phrase in their description or manually, referring to the PR in case the PR author forgot to add the phrase.
 
 ### Stale issues
 
 
-- Bugs and Feature requests in states `triage/needs-reproduction` and `triage/needs-design-work`, i.e., where the author is required to provide more details get an automated comment "*This issue has not received any updates in 90 days*" and then is marked as `triage/stale` after 60 days and are closed. 
-- Documentation (`kind/docs`) issues **without** `triage/accepted` or `triage/discuss` are subject to 90 days staleness policy as well. 
+- Bugs and Feature requests in states `triage/needs-reproduction` and `triage/needs-design-work`, i.e., where the author is required to provide more details get an automated comment "*This issue has not received any updates in 90 days*" and then is marked as `triage/stale` after 60 days and are closed.
+- Documentation (`kind/docs`) issues **without** `triage/accepted` or `triage/discuss` are subject to 90 days staleness policy as well.
 - Roadmap-items and Tasks, and issues in `triage/accepted` or `triage/discuss` state never get stale automatically, they are subject to review during daily/weekly triage and the twice a year **Bug Smash**.
 
 To summarize, **all issues** are subject to staleness-check, **except** the following:
@@ -155,7 +155,7 @@ To summarize, **all issues** are subject to staleness-check, **except** the foll
 * `triage/discuss`
 * `kind/health`
 * `kind/roadmap-item`
-* `kind/task` 
+* `kind/task`
 
 The staleness check automation is implemented via GitHub Actions, the latest definition of staleness is defined in [our staleness GitHub Action workflow](https://github.com/quantumlib/Cirq/blob/main/.github/workflows/stale.yml).
 
@@ -167,16 +167,16 @@ The staleness check automation is implemented via GitHub Actions, the latest def
 **Goals:**
 
 * P0 – notice high priority issues as soon as possible and organize a fix for them.
-* P1 – keep the issue and PR backlog clean  
+* P1 – keep the issue and PR backlog clean
     – Maintain a backlog that makes it easy to match contributors as well as maintainers to work items.
-    – For pull requests, aim for 
+    – For pull requests, aim for
         * **Responsiveness** – people can get their work done – we don't want to block community/our team members.
         * **Clean workspace** – stale PRs are wasteful as clutter is cognitive cost for maintainers. Stale PRs also a resource cost on GitHub – eating into other contributors' capacity to execute GitHub Actions/checks.
 
 **Who**
 
 * [mandatory] Cirq maintainers on weekly Cirq rotation – key thing is to cover p0 bugs.
-* [optional] Any maintainer who has Triage access rights to the repo. 
+* [optional] Any maintainer who has Triage access rights to the repo.
 
 **When**
 
@@ -184,28 +184,28 @@ The staleness check automation is implemented via GitHub Actions, the latest def
 
 **What**
 
-Issues: Daily triage should make sure that each issue has the following labels: 
+Issues: Daily triage should make sure that each issue has the following labels:
 
 * `triage/*`
 * `area/*`
 * `complexity/*`
 * `skill/*`
 
-Pull requests: 
+Pull requests:
 
-* As a triager it is your responsibility to review as many PRs as possible during your triage week. 
+* As a triager it is your responsibility to review as many PRs as possible during your triage week.
 
 ### Weekly discussions
 
 **Goals**
 
 * Make design decisions together with the maintainers on items that need to be discussed
-* Provide a forum for feedback and blockages 
-* Plan together features and releases as a community 
+* Provide a forum for feedback and blockages
+* Plan together features and releases as a community
 
 **Who**
 
-* Everyone on the [cirq-dev](https://groups.google.com/g/cirq-dev) email list is invited 
+* Everyone on the [cirq-dev](https://groups.google.com/g/cirq-dev) email list is invited
 
 **When:**
 
@@ -222,9 +222,9 @@ Cirq Cynq (join [cirq-dev](https://groups.google.com/g/cirq-dev) to get an invit
 ### Bug smash – every 6 months
 
 **Goals:**
-* Keep the triage alive: catch up on untriaged issues 
+* Keep the triage alive: catch up on untriaged issues
 * Keep the backlog of issues clean and relevant
-* Use the outstanding backlog as the driver for roadmap planning 
+* Use the outstanding backlog as the driver for roadmap planning
 
 **Who:**
 
@@ -236,4 +236,4 @@ Cirq Cynq (join [cirq-dev](https://groups.google.com/g/cirq-dev) to get an invit
 
 **What:**
 
-Every 6 months, after every other release, the team should come together and review `triage/accepted` items and revisit them. This is also a chance to catchup on daily triage in case it slipped. 
+Every 6 months, after every other release, the team should come together and review `triage/accepted` items and revisit them. This is also a chance to catchup on daily triage in case it slipped.
