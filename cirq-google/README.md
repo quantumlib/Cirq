@@ -11,7 +11,7 @@ Service](https://quantumai.google/cirq/google/concepts), and also contains
 additional tools for calibration and characterization of Google's quantum
 hardware devices.
 
-| &#9432; Please note! |
+| Please note!         |
 |:--------------------:|
 | Google's quantum hardware is currently available only to authorized partners. Access requires an application, usually with a Google sponsor.|
 
