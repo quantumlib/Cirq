@@ -81,7 +81,7 @@ class MyWidget(widget.Widget):
             YOUR_CLIENT_CODE
             </script>
         """
-    
+
     def get_widget_bundle_name(self) -> str:
         return 'YOUR_BUNDLE_FILE.bundle.js'
 ```

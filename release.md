@@ -158,7 +158,7 @@ git cherry-pick <commit>
 Bump the version number on the release branch:
 
 ```bash
-python dev_tools/modules.py replace_version --old ${VER}.dev --new ${VER} 
+python dev_tools/modules.py replace_version --old ${VER}.dev --new ${VER}
 git add .
 git commit -m "Removing ${VER}.dev -> ${VER}"
 git push origin "v${VER}-dev"
@@ -187,7 +187,7 @@ that will go to PyPI.
 ```bash
 git checkout "v${VER}-dev"
 ./dev_tools/packaging/produce-package.sh dist
-ls dist  # should only contain one file, for each modules 
+ls dist  # should only contain one file, for each modules
 ```
 
 ### Push to Test PyPI
