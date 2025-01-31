@@ -3,7 +3,7 @@
 This developer document explains how Cirq serializes objects into (and out of)
 JSON.
 It also explains how to add a new serializable object,
-how to remove a serializable object from cirq while maintaining backwards
+how to remove a serializable object from Cirq while maintaining backwards
 compatibility with old serialized files, and various related guidelines.
 
 ## Exposed API
@@ -82,7 +82,7 @@ If the returned object has a `_from_json_dict_` attribute, it is called instead.
 All of Cirq's public classes should be serializable. Public classes are the ones that can be found in the Cirq module top level
 namespaces, i.e. `cirq.*`, `cirq_google.*`, `cirq_aqt.*`, etc, (see [Cirq modules](./modules.md) for setting up JSON serialization for a module).
 This is enforced by the `test_json_test_data_coverage` test in
-`cirq-core/cirq/protocols/json_serialization_test.py`, which iterates over cirq's API
+`cirq-core/cirq/protocols/json_serialization_test.py`, which iterates over Cirq's API
 looking for types with no associated JSON test data.
 
 There are several steps needed to support an object's serialization and deserialization,
