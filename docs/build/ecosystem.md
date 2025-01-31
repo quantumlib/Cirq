@@ -4,7 +4,7 @@ The following document provides an ecosystem overview of how the various tools c
 
 * **Research Libraries and Tools:** Libraries and tools used for researching new quantum algorithms and designing and preparing experiments on quantum devices.
 
-* **Cirq**: A framework specifically for programming noisy intermediate quantum computers.
+* **Cirq**: A framework specifically for programming noisy intermediate-scale quantum computers.
 
 * **Quantum Cloud Services:** Cirq can connect to a variety of quantum cloud services. Behind each cloud service, quantum algorithms run on either a quantum processor or simulator.
 
@@ -16,10 +16,12 @@ The following document provides an ecosystem overview of how the various tools c
 
 |Name|Main sponsor|Description|
 |--- |--- |--- |
+|[Cirq](https://github.com/quantumlib/Cirq)|Google|An open-source framework for creating, editing, and invoking Noisy Intermediate-Scale Quantum (NISQ) circuits.|
 |[OpenFermion](https://github.com/quantumlib/OpenFermion)|Google|An open-source algorithms library for developing new quantum chemistry and materials simulation algorithms|
 |[TensorFlow Quantum](https://tensorflow.org/quantum)|Google|An open-source algorithms library for developing new quantum machine learning algorithms|
-|[Stim](https://github.com/quantumlib/stim)|Google|An open-source library for high speed simulation of Clifford circuits and quantum error correction|
-|[ReCirq](https://github.com/quantumlib/ReCirq)|Google|An open-source repository of example experiments, tools, and tutorials for running experiments on Google’s Quantum Computing Service|
+|[Qualtran](https://github.com/quantumlib/qualtran)|Google|An open-source library for expressing and analyzing fault-tolerant quantum algorithms|
+|[Stim](https://github.com/quantumlib/stim)|Google|An open-source library for high-speed simulation of Clifford circuits and quantum error correction|
+|[ReCirq](https://github.com/quantumlib/ReCirq)|Google|An open-source repository of example experiments, tools, and tutorials in quantum computing|
 |[Forge](https://forge.qcware.com/)|QCWare|A proprietary library for domain-specific quantum algorithms and applications|
 |[Pennylane](https://pennylane.ai/)|Xanadu|An open-source library for quantum machine learning with TensorFlow, PyTorch, or NumPy|
 
@@ -46,13 +48,12 @@ The following document provides an ecosystem overview of how the various tools c
 For more information for vendors about integrating with cirq,
 see our [RFC page](../dev/rfc_process.md#new_hardware_integrations).
 
-
 ## High performance quantum circuit simulators
 
 |Name|Main sponsor|Description|
 |--- |--- |--- |
-|[qsim](https://github.com/quantumlib/qsim)|Google|An open-source, high performance circuit simulator for Schrödinger simulations|
-|[quimb](https://github.com/jcmgray/quimb)|Johnny Gray|An open-source, high performance circuit simulator using tensor-networks|
-|[qulacs](https://github.com/qulacs/cirq-qulacs)|Quansys|An open-source, high performance circuit simulator for Schrödinger simulations|
-|[Stim](https://github.com/quantumlib/stim)|Google|An open-source library for high speed simulation of Clifford circuits and quantum error correction|
+|[qsim](https://github.com/quantumlib/qsim)|Google|An open-source, high-performance circuit simulator for Schrödinger simulations|
+|[quimb](https://github.com/jcmgray/quimb)|Johnny Gray|An open-source, high-performance circuit simulator using tensor-networks|
+|[qulacs](https://github.com/qulacs/cirq-qulacs)|Quansys|An open-source, high-performance circuit simulator for Schrödinger simulations|
+|[Stim](https://github.com/quantumlib/stim)|Google|An open-source library for high-speed simulation of Clifford circuits and quantum error correction|
 |[cuQuantum](https://developer.nvidia.com/cuquantum-sdk)|Nvidia|Tools for speeding up quantum simulation on GPUs|

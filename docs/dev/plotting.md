@@ -8,8 +8,8 @@ Here we recommend the input arguments, return value, and behavior of the
 1. **Convenience to interactive users.** This is the highest priority.
     Compared to being called in a batch script as a library (for composing
     more complicated plots or other purposes), the `plot` method is mainly
-    used in interactive sessions like ipython, jupyter, colab, PyCharm,
-    and python interpreter.
+    used in interactive sessions like ipython, Jupyter, Colab, PyCharm,
+    and the Python interpreter.
 1. **Plot is customizable.** The plot should be customizable by the user after
     `plot` returns. This is important because user may need to change the look
     for presentation, paper, or just the style they prefer. One plot style does
