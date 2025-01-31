@@ -165,7 +165,7 @@ get picked up!
 Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
 If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/main/dev_tools).
-This script uses `grpcio-tools` and protobuf version 3.8.0 to generate the Python proto API.
+This script uses `grpcio-tools` and protobuf version 4.25 to generate the Python proto API.
 
 ## Continuous integration and local testing
 
