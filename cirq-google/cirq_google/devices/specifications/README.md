@@ -1,4 +1,4 @@
-# Protocol Buffers message snapshots
+# Device specifications of Google quantum processors
 
 This directory contains snapshots of `DeviceSpecification` proto messages
 (defined in `cirq-google/cirq_google/api/v2/device.proto`) describing Google
