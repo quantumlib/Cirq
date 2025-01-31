@@ -6,9 +6,9 @@ Original RFC: [bit.do/cirq-triage](https://bit.do/cirq-triage)
 
 The goals for this document are as follows: 
 
-* to define a set of lightweight community processes that make it easy for users and maintainers to understand where certain issues stand, when and how they are going to be resolved, what is blocking them
+* Define a set of lightweight community processes that make it easy for users and maintainers to understand where certain issues stand, when and how they are going to be resolved, what is blocking them
 
-* provide visibility for project and release status 
+* Provide visibility for project and release status 
 
 ## Automation: Triage party and GitHub Actions
 
@@ -22,43 +22,44 @@ Our deployed version is here (a static IP, domain request is in progress): [http
 
 ### Issue kinds
 
-The following are the kind of issues that Cirq uses: 
+The following are the kinds of issues that Cirq uses:
 
-* `kind/bug-report` the user found a bug 
-* `kind/feature-request` for new functionality 
-* `kind/question` in case an issue turns out to be a question, please mark it with ‘kind/question‘ and close it after answering. Also point the user to Quantum Computing Stack Exchange for usage questions and to cirq-dev@googlegroups.com list instead for contribution related questions. 
-* `kind/health` For CI/testing/release process/refactoring/technical debt items 
-* `kind/docs` documentation problems, ideas, requests
-* `kind/roadmap-item` for higher level roadmap items to capture conversations and feedback (not for project tracking)
-* `kind/task` for tracking progress on larger efforts 
+* `kind/bug-report`: a report that something doesn’t work
+* `kind/design-issue`: a topic that needs software design
+* `kind/feature-request`: a request for new functionality
+* `kind/question`: the issue is actually a question (in which case, it should be closed after being answered, and the user may be pointed to other resources if appropriate, such as the Quantum Computing Stack Exchange for general usage questions)
+* `kind/health`: for CI/testing/release process/refactoring/technical debt items
+* `kind/docs`: documentation problems, ideas, requests
+* `kind/roadmap-item`: for higher-level roadmap items to capture conversations and feedback (not for project tracking)
+* `kind/task`: for tracking progress on larger efforts
 
+For most issues, there are the following phases:
 
-For most issues there are phases of 
+* **Triage** to decide whether we want to take on this issue at all,
+* **Prioritization** of how urgent it is,
+* Identifying the relevant feature **area**,
+* Signalling its anticipated **difficulty**,
+* Signalling the amount of expected **work**,
+* **Assigning** work,
+* And (eventually) **closing**.
 
-* **triage** do we want to take on this task at all,
-* **prioritization** how urgent it is,
-* identifying feature **area**,
-* signalling **difficulty**,
-* signalling **work**,
-* **assigning** work,
-* and **closing**.
-
-We will explore these phases one by one. 
+In the following subsections, we explore these phases one by one.
 
 
 ### Triage
 
-Triage states are 
+The triage states are:
 
-* `triage/accepted` – there is consensus amongst maintainers that this is a real bug or a reasonable feature to add with a reasonable design, hence it is ready to be implemented.
-* `triage/discuss` – can be applied to any of the issue types to bring them up during our weekly Cirq Cynq meeting (join [cirq-dev](https://groups.google.com/g/cirq-dev)) to get an invite!) and/or to signal need for decision. If you mark an issue with triage/discuss, consider pinging the maintainers on the issue who need to come to consensus around the issue. 
+* `triage/accepted` – there is consensus among the maintainers that this is a real bug, or a reasonable feature to add with a reasonable design, and hence it is ready to be implemented
+* `triage/duplicate` – for issues that turn out to be essentially the same as other existing issues (in which case, they're likely to be closed)
+* `triage/discuss` – can be added to any issue type to bring them up during the next Cirq Cynq meeting and/or to signal need for a decision (in addition, consider also pinging the maintainers who need to come to consensus around the issue)
 * `triage/needs-reproduction` – for bugs only
-* `triage/needs-feasibility` – for feature requests (maybe bugs).
-* `triage/needs-more-evidence` – for feature requests – the feature request seems plausible but we need more understanding if it is valuable for enough users to warrant implementing and maintaining it. 
-* `triage/stale` – GitHub actions automatically marks some of the issues stale and then it closes them in case of 90 days of inactivity.
-* `triage/duplicate` – we mark duplicated issues with this label.
+* `triage/needs-feasibility` – for feature requests (maybe bugs)
+* `triage/needs-more-evidence` – for plausible requests that nevertheless need more compelling evidence about their value for enough users to warrant implemention and maintenance
+* `triage/stale` – issues are automatically marked stale after 90 days of inactivity, and closed 60 days after that
+* `triage/wont-fix` – for when the decision is against pursuing something (perhaps because the thing in question is working as designed, or because changing it is impractical, or some other reason)
 
-While these are fairly straightforward and intuitive the workflows are depicted below. 
+The workflows are illustrated below.
 
 #### Bug report triage
 
@@ -76,7 +77,7 @@ Figure 2. Feature request workflow (to edit, see [mermaid source](https://mermai
 
 For `kind/docs`, the label `triage/accepted` has to be added by at least one of the maintainers. 
 
-For `kind/health`, `kind/roadmap-item` and `kind/task` there is no particular intake workflow, as we assume that only maintainers create them to track specific work items.
+For `kind/health`, `kind/roadmap-item` and `kind/task`, there is no particular intake workflow, as we assume that only maintainers create them to track specific work items.
 
 ### Prioritization 
 
@@ -97,8 +98,8 @@ The goal of [feature area labels](https://github.com/quantumlib/Cirq/labels?q=ar
 
 Difficulty is a function of 
 
-* complexity – the size/hardness of the issue 
-* the skills required by the issue and the contributor's skills 
+* Complexity – the size/hardness of the issue 
+* The skills required by the issue and the contributor's skills 
 
 **Complexity**
 
@@ -106,7 +107,7 @@ Difficulty is a function of
 * `complexity/medium` – involves introducing/modifying 3-5 concepts, takes max up to a month for an advanced contributor
 * `complexity/high` – involves introducing/modifying 6+ concepts, can take more than a month for an advanced contributor to work through it, and/or modifies core concepts in Cirq 
 
-**Skill level required** (skill/<level>)
+**Skill level required (skill/level)**
 
 * `none`: no special background knowledge required
 * `beginner`: little to no background knowledge is required in the given `area/*` labels
@@ -124,7 +125,7 @@ Difficulty is a function of
 
 After an issue arrives to `triage/accepted` there can be two avenues: it is ready to be implemented (most of the cases) or it needs design work upfront. 
 
-When an issue is ready to be implemented, no extra label is required to signal the readiness, that is the default. 
+When an issue is ready to be implemented, no extra label is required to signal the readiness, because that is the default. 
 
 However, when there is a need for design, we add the label `needs agreed design`. The design could be as lightweight as a discussion in the issue itself or a full-fledged [RFC proposal](rfc_process.md) which should be clear from the comments. 
 
@@ -132,10 +133,10 @@ However, when there is a need for design, we add the label `needs agreed design`
 
 Assignment should be a function of 
 
-* **willingness** – contributors should volunteer to take issues or maintainers should take them actively.
-* **priority** – critical issues shouldn't depend on part time work.
-* **complexity** – highly complex, large pieces that are not necessarily feasible/rewarding as part-time work.
-* **skills** – if someone does not have the skills for a given issue, they will have to factor in the learning that's required to do it.
+* **Willingness** – contributors should volunteer to take issues or maintainers should take them actively.
+* **Priority** – critical issues shouldn't depend on part time work.
+* **Complexity** – highly complex, large pieces that are not necessarily feasible/rewarding as part-time work.
+* **Skills** – if someone does not have the skills for a given issue, they will have to factor in the learning that's required to do it.
 
 ### Closing
 
@@ -167,19 +168,19 @@ The staleness check automation is implemented via GitHub Actions, the latest def
 
 * P0 – notice high priority issues as soon as possible and organize a fix for them.
 * P1 – keep the issue and PR backlog clean  
-    – maintain a backlog that makes it easy to match contributors as well as maintainers to work items.
-    – for pull requests we are aiming for 
-        * **responsiveness** – people can get their work done – we don't want to block community/our team members.
-        * **clean workspace** – stale PRs are wasteful as clutter is cognitive cost for maintainers. Stale PRs also a resource cost on GitHub – eating into other contributors' capacity to execute GitHub Actions/checks.
+    – Maintain a backlog that makes it easy to match contributors as well as maintainers to work items.
+    – For pull requests, aim for 
+        * **Responsiveness** – people can get their work done – we don't want to block community/our team members.
+        * **Clean workspace** – stale PRs are wasteful as clutter is cognitive cost for maintainers. Stale PRs also a resource cost on GitHub – eating into other contributors' capacity to execute GitHub Actions/checks.
 
 **Who**
 
 * [mandatory] Cirq maintainers on weekly Cirq rotation – key thing is to cover p0 bugs.
-* [optional] any maintainer who has Triage access rights to the repo. 
+* [optional] Any maintainer who has Triage access rights to the repo. 
 
 **When**
 
-* daily, continuously  – Cirq maintainer rotation is weekly
+* Daily, continuously – Cirq maintainer rotation is weekly
 
 **What**
 
@@ -198,13 +199,13 @@ Pull requests:
 
 **Goals**
 
-* make design decisions together with the maintainers on items that need to be discussed
-* provide a forum for feedback and blockages 
-* plan together features and releases as a community 
+* Make design decisions together with the maintainers on items that need to be discussed
+* Provide a forum for feedback and blockages 
+* Plan together features and releases as a community 
 
 **Who**
 
-* everyone on the [cirq-dev](https://groups.google.com/g/cirq-dev) email list is invited 
+* Everyone on the [cirq-dev](https://groups.google.com/g/cirq-dev) email list is invited 
 
 **When:**
 
@@ -212,26 +213,26 @@ Pull requests:
 
 **What:**
 
-Cirq Cynq should be the place to discuss 
+Cirq Cynq (join [cirq-dev](https://groups.google.com/g/cirq-dev) to get an invite!) should be the place to discuss the following:
 
-* as much of the `triage/discuss` items as possible and make decisions about controversial bugs and feature requests
-* **prioritization requests** – stakeholders, like quantum platform providers, research teams should be able to advocate for raising the priority of certain items
-* **release planning/status**: only issues with owners should be added to milestones. The owners are responsible to notify the maintainers in case the issue won't be resolved until the release.
+* As much of the `triage/discuss` items as possible and to make decisions about controversial bugs and feature requests
+* **Prioritization requests** – stakeholders should be able to advocate for raising the priority of certain items
+* **Release planning/status** – only issues with owners should be added to milestones, and the owners are responsible to notify the maintainers in case the issue won't be resolved until the release
 
 ### Bug smash – every 6 months
 
 **Goals:**
-* keep the triage alive: catch up on untriaged issues 
-* keep the backlog of issues clean and relevant
-* use the outstanding backlog as the driver for roadmap planning 
+* Keep the triage alive: catch up on untriaged issues 
+* Keep the backlog of issues clean and relevant
+* Use the outstanding backlog as the driver for roadmap planning 
 
 **Who:**
 
-* core maintainers
+* Core maintainers
 
 **When:**
 
-* every 6 months
+* Every 6 months
 
 **What:**
 
