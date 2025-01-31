@@ -146,7 +146,7 @@ a Getting Started guide).
 *     Transformer for compiling circuits to the supported gates on the
 hardware (or use `cirq.optimize_for_target_gateset`)
 *    ` Sampler` interface for running circuits on the hardware service.
-*     Conisder also providing a noise model that users can use to simulate the
+*     Consider also providing a noise model that users can use to simulate the
 device if direct access is not available.
 
 
