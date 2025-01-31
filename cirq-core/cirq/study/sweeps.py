@@ -403,7 +403,7 @@ class ZipLongest(Zip):
     which uses a fixed fill value.
 
     Raises:
-        ValueError if an input sweep if completely empty.
+        ValueError if an input sweep is completely empty.
     """
 
     def __init__(self, *sweeps: Sweep) -> None:
