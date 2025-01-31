@@ -58,9 +58,9 @@ version.
 To get started with using Google quantum computers through Cirq, please refer to
 the following documentation:
 
-*   [Access and authentication](https://quantumai.google/cirq/aqt/access).
+*   [Access and authentication](https://quantumai.google/cirq/google/access).
 *   [Getting started
-    guide](https://quantumai.google/cirq/tutorials/aqt/getting_started).
+    guide](https://quantumai.google/cirq/tutorials/google/start).
 
 To get started with using Cirq in general, please refer to the [Cirq
 documentation site].
