@@ -24,7 +24,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 Note that if you are using PyCharm, you might have to use the command Restart & Invalidate Caches to have the change be picked up.
 
 ## Docker
-You can build the stable and pre_release docker images with our `Dockerfile`.
+You can build the stable and pre_release Docker images with our `Dockerfile`.
 
 ```bash
     docker build -t cirq --target cirq_stable .
@@ -101,9 +101,10 @@ See the previous section for instructions.
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
-    This installs Docker among other things. You may need to restart
-    Docker or configure permissions, see
-    [docker install instructions](https://docs.docker.com/engine/install/ubuntu/).
+    This installs Docker, among other things. You may need to restart
+    Docker or configure permissions on your system; see the
+    [Docker installation instructions](https://docs.docker.com/engine/install/ubuntu/)
+    for more information.
     Note that Docker is necessary only for the `cirq-rigetti` module.
 
     There are some extra steps if Protocol Buffers are changed; see the next section.
