@@ -109,7 +109,8 @@ class CircuitSerializer(serializer.Serializer):
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
             if self.use_constants_table_for_moments:
-                if moment_index := raw_constants.get(moment, None):
+
+                if (moment_index := raw_constants.get(moment, None)) is not None:
                     # Moment is already in the constants table
                     msg.moment_indices.append(moment_index)
                     continue
@@ -132,7 +133,7 @@ class CircuitSerializer(serializer.Serializer):
                         raw_constants=raw_constants,
                     )
                 elif self.use_constants_table_for_operations:
-                    if op_index := raw_constants.get(op, None):
+                    if (op_index := raw_constants.get(op, None)) is not None:
                         # Operation is already in the constants table
                         moment_proto.operation_indices.append(op_index)
                     else:
@@ -489,6 +490,11 @@ class CircuitSerializer(serializer.Serializer):
         deserialized_constants: List[Any],
     ) -> cirq.Circuit:
         moments = []
+        if circuit_proto.moments and circuit_proto.moment_indices:
+            raise ValueError(
+                'Circuit message must not have "moments" and '
+                '"moment_indices" fields set at the same time.'
+            )
         for moment_proto in circuit_proto.moments:
             moments.append(
                 self._deserialize_moment(

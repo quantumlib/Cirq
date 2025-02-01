@@ -428,6 +428,43 @@ def test_serialize_deserialize_circuit_with_constants_table():
     assert serializer.deserialize(proto) == circuit
 
 
+def test_deserialize_circuit_with_mixed_moments_and_indicies_not_allowed():
+    serializer = cg.CircuitSerializer()
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moment_indices=[4],
+            moments=[
+                v2.program_pb2.Moment(
+                    operations=[
+                        v2.program_pb2.Operation(
+                            xpowgate=v2.program_pb2.XPowGate(
+                                exponent=v2.program_pb2.FloatArg(float_value=1.0)
+                            ),
+                            qubit_constant_index=[0],
+                        )
+                    ]
+                )
+            ],
+        ),
+        constants=[
+            v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1')),
+            v2.program_pb2.Constant(
+                operation_value=v2.program_pb2.Operation(
+                    xpowgate=v2.program_pb2.XPowGate(
+                        exponent=v2.program_pb2.FloatArg(float_value=1.0)
+                    ),
+                    qubit_constant_index=[0],
+                )
+            ),
+            v2.program_pb2.Constant(moment_value=v2.program_pb2.Moment(operation_indices=[1])),
+        ],
+    )
+    with pytest.raises(ValueError, match="set at the same time"):
+        _ = serializer.deserialize(proto)
+
+
 def test_serialize_deserialize_circuit_with_duplicate_moments():
     q = cirq.GridQubit(4, 3)
     circuit = cirq.Circuit(cirq.X(q), cirq.Z(q), cirq.X(q), cirq.Z(q))
