@@ -56,7 +56,7 @@ class QasmLexer:
     t_ignore = ' \t'
 
     def t_PI(self, t):
-        r"""pi"""
+        r"""\bpi\b"""
         t.value = np.pi
         return t
 
@@ -98,35 +98,35 @@ class QasmLexer:
         return t
 
     def t_QREG(self, t):
-        r"""qreg"""
+        r"""\bqreg\b"""
         return t
 
     def t_QUBIT(self, t):
-        r"""qubit"""
+        r"""\bqubit\b"""
         return t
 
     def t_CREG(self, t):
-        r"""creg"""
+        r"""\bcreg\b"""
         return t
 
     def t_BIT(self, t):
-        r"""bit"""
+        r"""\bbit\b"""
         return t
 
     def t_MEASURE(self, t):
-        r"""measure"""
+        r"""\bmeasure\b"""
         return t
 
     def t_RESET(self, t):
-        r"""reset"""
+        r"""\breset\b"""
         return t
 
     def t_GATE(self, t):
-        r"""gate"""
+        r"""\bgate\b"""
         return t
 
     def t_IF(self, t):
-        r"""if"""
+        r"""\bif\b"""
         return t
 
     def t_ARROW(self, t):

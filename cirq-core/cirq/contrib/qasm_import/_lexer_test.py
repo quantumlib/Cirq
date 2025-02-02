@@ -111,6 +111,14 @@ def test_pi():
     assert token.value == np.pi
 
 
+def test_identifier_startswith_keyword():
+    lexer = QasmLexer()
+    lexer.input('gateThing')
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "gateThing"
+
+
 def test_qreg():
     lexer = QasmLexer()
     lexer.input('qreg [5];')
