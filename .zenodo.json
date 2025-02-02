@@ -30,6 +30,11 @@
       "identifier": "https://pypi.org/project/cirq",
       "relation": "isSupplementedBy",
       "scheme": "url"
+    },
+    {
+      "identifier": "10.5281/zenodo.4062499",
+      "relation": "isPartOf",
+      "scheme": "doi"
     }
   ],
   "keywords": [
@@ -65,5 +70,6 @@
     "simulation",
     "software development toolkit",
     "software"
-  ]
+  ],
+  "language": "eng",
 }
