@@ -17,7 +17,7 @@ In general, the source of truth for what has to be implemented is enforced
 by the `cirq.testing.assert_implements_consistent_protocols` method.
 This method verifies the following properties:
 
-1. The class has a `__repr__` method that produces a python expression that
+1. The class has a `__repr__` method that produces a Python expression that
 evaluates to an object equal to the original value. The expression assumes that
 `cirq`, `sympy`, `numpy as np`, and `pandas as pd` have been imported.
 

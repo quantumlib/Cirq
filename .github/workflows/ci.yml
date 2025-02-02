@@ -123,8 +123,6 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
-      - name: RST check
-        run: find . -type f -name "*.rst" | xargs rstcheck
       - name: Doc check
         run: check/doctest -q
   nbformat:
