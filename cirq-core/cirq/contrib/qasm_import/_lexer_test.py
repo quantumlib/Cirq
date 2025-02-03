@@ -115,9 +115,32 @@ def test_identifier_starts_or_ends_with_keyword(token):
     lexer = QasmLexer()
     identifier = token * 2
     lexer.input(identifier)
-    token = lexer.token()
-    assert token.type == "ID"
-    assert token.value == identifier
+    t = lexer.token()
+    assert t.type == "ID"
+    assert t.value == identifier
+
+
+@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
+def test_identifier_starts_or_ends_with_keyword_2(token):
+    lexer = QasmLexer()
+    identifier = f'{token}_{token}'
+    lexer.input(identifier)
+    t = lexer.token()
+    assert t.type == "ID"
+    assert t.value == identifier
+
+
+@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
+def test_keywords(token):
+    lexer = QasmLexer()
+    identifier = f'{token} {token}'
+    lexer.input(identifier)
+    t = lexer.token()
+    assert t.type == QasmLexer.reserved[token]
+    assert t.value == token
+    t2 = lexer.token()
+    assert t2.type == QasmLexer.reserved[token]
+    assert t2.value == token
 
 
 def test_qreg():
