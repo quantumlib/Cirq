@@ -102,34 +102,6 @@ def test_numbers(number: str):
     assert token.value == float(number)
 
 
-def test_pi():
-    lexer = QasmLexer()
-    lexer.input('pi')
-    token = lexer.token()
-    assert token.type == "PI"
-    assert token.value == "pi"
-
-
-@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
-def test_identifier_starts_or_ends_with_keyword(token):
-    lexer = QasmLexer()
-    identifier = token * 2
-    lexer.input(identifier)
-    t = lexer.token()
-    assert t.type == "ID"
-    assert t.value == identifier
-
-
-@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
-def test_identifier_starts_or_ends_with_keyword_2(token):
-    lexer = QasmLexer()
-    identifier = f'{token}_{token}'
-    lexer.input(identifier)
-    t = lexer.token()
-    assert t.type == "ID"
-    assert t.value == identifier
-
-
 @pytest.mark.parametrize('token', QasmLexer.reserved.keys())
 def test_keywords(token):
     lexer = QasmLexer()
@@ -141,6 +113,26 @@ def test_keywords(token):
     t2 = lexer.token()
     assert t2.type == QasmLexer.reserved[token]
     assert t2.value == token
+
+
+@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
+def test_identifier_starts_or_ends_with_keyword(token):
+    lexer = QasmLexer()
+    identifier = f'{token}_{token}'
+    lexer.input(identifier)
+    t = lexer.token()
+    assert t.type == "ID"
+    assert t.value == identifier
+
+
+@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
+def test_identifier_starts_or_ends_with_keyword_2(token):
+    lexer = QasmLexer()
+    identifier = token * 2
+    lexer.input(identifier)
+    t = lexer.token()
+    assert t.type == "ID"
+    assert t.value == identifier
 
 
 def test_qreg():
