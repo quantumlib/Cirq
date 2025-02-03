@@ -14,7 +14,6 @@
 
 import re
 from typing import Optional
-import numpy as np
 import ply.lex as lex
 
 from cirq.contrib.qasm_import.exception import QasmException
@@ -55,11 +54,6 @@ class QasmLexer:
 
     t_ignore = ' \t'
 
-    def t_PI(self, t):
-        r"""\bpi\b"""
-        t.value = np.pi
-        return t
-
     # all numbers except NATURAL_NUMBERs:
     # it's useful to have this separation to be able to handle indices
     # separately. In case of the parameter expressions, we are "OR"-ing
@@ -97,38 +91,6 @@ class QasmLexer:
         r"""include(\s+)"stdgates.inc";"""
         return t
 
-    def t_QREG(self, t):
-        r"""\bqreg\b"""
-        return t
-
-    def t_QUBIT(self, t):
-        r"""\bqubit\b"""
-        return t
-
-    def t_CREG(self, t):
-        r"""\bcreg\b"""
-        return t
-
-    def t_BIT(self, t):
-        r"""\bbit\b"""
-        return t
-
-    def t_MEASURE(self, t):
-        r"""\bmeasure\b"""
-        return t
-
-    def t_RESET(self, t):
-        r"""\breset\b"""
-        return t
-
-    def t_GATE(self, t):
-        r"""\bgate\b"""
-        return t
-
-    def t_IF(self, t):
-        r"""\bif\b"""
-        return t
-
     def t_ARROW(self, t):
         """->"""
         return t
@@ -139,6 +101,8 @@ class QasmLexer:
 
     def t_ID(self, t):
         r"""[a-zA-Z][a-zA-Z\d_]*"""
+        if t.value in QasmLexer.reserved:
+            t.type = QasmLexer.reserved[t.value]
         return t
 
     def t_COMMENT(self, t):

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import pytest
-import numpy as np
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
 
@@ -108,7 +107,7 @@ def test_pi():
     lexer.input('pi')
     token = lexer.token()
     assert token.type == "PI"
-    assert token.value == np.pi
+    assert token.value == "pi"
 
 
 @pytest.mark.parametrize('token', QasmLexer.reserved.keys())

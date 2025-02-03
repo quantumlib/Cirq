@@ -51,7 +51,9 @@ def test_circuit_client_code(qubit):
         <button id="camera-reset">Reset Camera</button>
         <button id="camera-toggle">Toggle Camera Type</button>
         <script>
-        let viz_{stripped_id} = createGridCircuit({str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor});
+        let viz_{stripped_id} = createGridCircuit(
+            {str(circuit_obj)}, {str(moments)}, "{circuit.id}", {circuit.padding_factor}
+        );
 
         document.getElementById("camera-reset").addEventListener('click', ()  => {{
         viz_{stripped_id}.scene.setCameraAndControls(viz_{stripped_id}.circuit);
