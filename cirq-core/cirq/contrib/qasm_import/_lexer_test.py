@@ -111,12 +111,14 @@ def test_pi():
     assert token.value == np.pi
 
 
-def test_identifier_startswith_keyword():
+@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
+def test_identifier_starts_or_ends_with_keyword(token):
     lexer = QasmLexer()
-    lexer.input('gateThing')
+    identifier = token * 2
+    lexer.input(identifier)
     token = lexer.token()
     assert token.type == "ID"
-    assert token.value == "gateThing"
+    assert token.value == identifier
 
 
 def test_qreg():

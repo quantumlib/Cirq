@@ -35,8 +35,7 @@ class QasmLexer:
         'reset': 'RESET',
         'gate': 'GATE',
         'if': 'IF',
-        '->': 'ARROW',
-        '==': 'EQ',
+        'pi': 'PI',
     }
 
     tokens = [
@@ -46,7 +45,8 @@ class QasmLexer:
         'STDGATESINC',
         'QELIBINC',
         'ID',
-        'PI',
+        'ARROW',
+        'EQ',
     ] + list(reserved.values())
 
     def t_newline(self, t):
