@@ -233,7 +233,7 @@ def get_matrix(
         cirq.GateOperation,
         cirq.LinearCombinationOfGates,
         cirq.LinearCombinationOfOperations,
-    ]
+    ],
 ) -> np.ndarray:
     if isinstance(operator, (cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations)):
         return operator.matrix()
@@ -251,13 +251,19 @@ def assert_linear_combinations_are_equal(
 
     actual_matrix = get_matrix(actual)
     expected_matrix = get_matrix(expected)
-    assert np.allclose(actual_matrix, expected_matrix)
+    if cirq.is_parameterized(actual):
+        assert cirq.approx_eq(actual_matrix, expected_matrix)
+    else:
+        assert np.allclose(actual_matrix, expected_matrix)
 
     actual_expansion = cirq.pauli_expansion(actual)
     expected_expansion = cirq.pauli_expansion(expected)
     assert set(actual_expansion.keys()) == set(expected_expansion.keys())
     for name in actual_expansion.keys():
-        assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
+        if cirq.is_parameterized(actual_expansion[name]):
+            assert actual_expansion[name] == expected_expansion[name]
+        else:
+            assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
 
 
 @pytest.mark.parametrize(
@@ -287,6 +293,8 @@ def assert_linear_combinations_are_equal(
         ),
         ((cirq.X + cirq.Y + cirq.Z) ** 0, cirq.I),
         ((cirq.X - 1j * cirq.Y) ** 0, cirq.I),
+        (cirq.Y - sympy.Symbol('s') * cirq.Y, (1 - sympy.Symbol('s')) * cirq.Y),
+        ((cirq.X + cirq.Z) * sympy.Symbol('s') / np.sqrt(2), cirq.H * sympy.Symbol('s')),
     ),
 )
 def test_gate_expressions(expression, expected_result):
