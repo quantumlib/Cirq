@@ -575,7 +575,11 @@ class Engine(abstract_engine.AbstractEngine):
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
     def get_sampler(
-        self, processor_id: Union[str, List[str]], run_name: str = "", device_config_name: str = ""
+        self,
+        processor_id: Union[str, List[str]],
+        run_name: str = "",
+        device_config_name: str = "",
+        snapshot_id: str = "",
     ) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
@@ -587,6 +591,8 @@ class Engine(abstract_engine.AbstractEngine):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference. A
+                snapshot contains a collection of device configurations for the processor.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
@@ -603,7 +609,7 @@ class Engine(abstract_engine.AbstractEngine):
                 'you need to specify a list.'
             )
         return self.get_processor(processor_id).get_sampler(
-            run_name=run_name, device_config_name=device_config_name
+            run_name=run_name, device_config_name=device_config_name, snapshot_id=snapshot_id
         )
 
 

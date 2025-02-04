@@ -4,7 +4,7 @@ Google's Quantum Computing Service provides the Quantum Engine API to execute
 circuits on Google's quantum processor or simulator backends and
 to access or manage the jobs, programs, reservations and calibrations. Cirq is
 the only supported client for this API, using the `cirq_google.Engine` class.
-For other use cases (e.g. from a different language), contact
+For other use cases (e.g., from a different language), contact
 [cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com)
 with a short proposal or submit an [RFC](../dev/rfc_process.md).
 
@@ -197,7 +197,7 @@ by using our list methods.
 
 ### Listing jobs
 
-To list the executions of your circuit, i.e. the jobs, you can use `cirq_google.Engine.list_jobs()`.
+To list the executions of your circuit, i.e., the jobs, you can use `cirq_google.Engine.list_jobs()`.
 You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.
 
 ```python
@@ -215,7 +215,7 @@ for j in jobs:
 
 ### Listing programs
 
-To list the different instances of your circuits uploaded, i.e. the programs, you can use `cirq_google.Engine.list_programs()`.
+To list the different instances of your circuits uploaded, i.e., the programs, you can use `cirq_google.Engine.list_programs()`.
 Similar to jobs, filtering makes it possible to list programs by creation time and labels.
 With an existing `cirq_google.EngineProgram` object, you can list any jobs that were run using that program.
 
