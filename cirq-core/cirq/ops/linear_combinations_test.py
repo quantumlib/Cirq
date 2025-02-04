@@ -251,10 +251,7 @@ def assert_linear_combinations_are_equal(
 
     actual_matrix = get_matrix(actual)
     expected_matrix = get_matrix(expected)
-    if cirq.is_parameterized(actual):
-        assert cirq.approx_eq(actual_matrix, expected_matrix)
-    else:
-        assert np.allclose(actual_matrix, expected_matrix)
+    assert cirq.approx_eq(actual_matrix, expected_matrix)
 
     actual_expansion = cirq.pauli_expansion(actual)
     expected_expansion = cirq.pauli_expansion(expected)
