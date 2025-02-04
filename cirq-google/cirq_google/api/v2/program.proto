@@ -45,6 +45,9 @@ message Constant {
 
     // Moments used multiple times in a circuit
     Moment moment_value = 4;
+    
+    // Operations used multiple times in a circuit
+    Operation operation_value = 5;
   }
 }
 
@@ -87,6 +90,13 @@ message Moment {
   // All of the circuit operations in the moment. Each operation and circuit
   // operation must act on different qubits.
   repeated CircuitOperation circuit_operations = 2;
+
+  // All of the operations in the moment that are stored in the constants
+  // table.  Each operation should be stored in either `operations`
+  // or `operation_indices`.  Putting operations into the symbol
+  // table should be preferred for circuits with repeated operations
+  // for improved serialization size.
+  repeated int32 operation_indices = 4;
 }
 
 // The quantum circuit, specified as a series of operations at specific
