@@ -803,6 +803,10 @@ def test_parameterized_linear_combination_of_ops(
             cirq.LinearCombinationOfOperations({cirq.X(q1): 2, cirq.Z(q1): 3}) ** 0,
             cirq.LinearCombinationOfOperations({cirq.I(q1): 1}),
         ),
+        (
+            cirq.LinearCombinationOfOperations({cirq.X(q0): sympy.Symbol('s')}) ** 2,
+            cirq.LinearCombinationOfOperations({cirq.I(q0): sympy.Symbol('s') ** 2}),
+        ),
     ),
 )
 def test_operation_expressions(expression, expected_result):
