@@ -16,6 +16,11 @@ Each packed type has:
    libraries to stick with consistent and, preferably, system-native
    endianness. Note that unspecified endianness defaults to little endian;
    this approximately reflects how protobufs are serialized on the wire.
+
+Note that different types are used to enforce typing in downstream data
+data sources without inspecting the proto data.  (For instance, enforcing
+that a field stored as a proto is Complex128 requires only checking message
+type and not the data.)
 """
 
 import builtins
