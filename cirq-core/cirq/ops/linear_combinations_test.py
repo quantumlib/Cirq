@@ -153,6 +153,10 @@ def test_non_unitary_linear_combination_of_gates_has_no_unitary(terms):
         ),
         ({cirq.X: 2, cirq.H: 1}, {'X': 2 + np.sqrt(0.5), 'Z': np.sqrt(0.5)}),
         ({cirq.XX: -2, cirq.YY: 3j, cirq.ZZ: 4}, {'XX': -2, 'YY': 3j, 'ZZ': 4}),
+        (
+            {cirq.X: sympy.Symbol('x'), cirq.Y: -sympy.Symbol('y')},
+            {'X': sympy.Symbol('x'), 'Y': -sympy.Symbol('y')},
+        ),
     ),
 )
 def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected_expansion):
@@ -663,6 +667,10 @@ def test_non_unitary_linear_combination_of_operations_has_no_unitary(terms):
             {'IIZI': 1, 'IZII': 1, 'IZZI': -1},
         ),
         ({cirq.CNOT(q0, q1): 2, cirq.Z(q0): -1, cirq.X(q1): -1}, {'II': 1, 'ZX': -1}),
+        (
+            {cirq.X(q0): -sympy.Symbol('x'), cirq.Y(q0): sympy.Symbol('y')},
+            {'X': -sympy.Symbol('x'), 'Y': sympy.Symbol('y')},
+        ),
     ),
 )
 def test_linear_combination_of_operations_has_correct_pauli_expansion(terms, expected_expansion):
@@ -720,6 +728,7 @@ def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
     [
         ({cirq.H(cirq.LineQubit(0)): 1}, False, set()),
         ({cirq.X(cirq.LineQubit(0)) ** sympy.Symbol('t'): 1}, True, {'t'}),
+        ({cirq.X(cirq.LineQubit(0)): sympy.Symbol('t')}, True, {'t'}),
     ],
 )
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
