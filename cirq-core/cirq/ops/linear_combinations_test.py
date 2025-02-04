@@ -257,10 +257,7 @@ def assert_linear_combinations_are_equal(
     expected_expansion = cirq.pauli_expansion(expected)
     assert set(actual_expansion.keys()) == set(expected_expansion.keys())
     for name in actual_expansion.keys():
-        if cirq.is_parameterized(actual_expansion[name]):
-            assert actual_expansion[name] == expected_expansion[name]
-        else:
-            assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
+        assert cirq.approx_eq(actual_expansion[name], expected_expansion[name])
 
 
 @pytest.mark.parametrize(
