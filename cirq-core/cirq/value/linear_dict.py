@@ -58,7 +58,7 @@ class _SympyPrinter(sympy.printing.str.StrPrinter):
         if expr.is_complex:
             coefficient = complex(expr)
             s = _format_coefficient(self._format_spec, coefficient)
-            return s[1:-1] if s[0] == '(' else s
+            return s[1:-1] if s.startswith('(') else s
         return super()._print(expr, **kwargs)
 
 

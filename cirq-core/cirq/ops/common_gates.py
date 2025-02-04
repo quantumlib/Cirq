@@ -261,7 +261,7 @@ class XPowGate(eigen_gate.EigenGate):
         if self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        angle = np.pi * self._exponent / 2
+        angle = _pi(self._exponent) * self._exponent / 2
         lib = sympy if protocols.is_parameterized(self) else np
         return value.LinearDict({'I': phase * lib.cos(angle), 'X': -1j * phase * lib.sin(angle)})
 
@@ -466,7 +466,7 @@ class YPowGate(eigen_gate.EigenGate):
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        angle = np.pi * self._exponent / 2
+        angle = _pi(self._exponent) * self._exponent / 2
         lib = sympy if protocols.is_parameterized(self) else np
         return value.LinearDict({'I': phase * lib.cos(angle), 'Y': -1j * phase * lib.sin(angle)})
 
@@ -767,7 +767,7 @@ class ZPowGate(eigen_gate.EigenGate):
         if self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        angle = np.pi * self._exponent / 2
+        angle = _pi(self._exponent) * self._exponent / 2
         lib = sympy if protocols.is_parameterized(self) else np
         return value.LinearDict({'I': phase * lib.cos(angle), 'Z': -1j * phase * lib.sin(angle)})
 
