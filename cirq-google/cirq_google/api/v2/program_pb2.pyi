@@ -79,6 +79,7 @@ class Constant(google.protobuf.message.Message):
     CIRCUIT_VALUE_FIELD_NUMBER: builtins.int
     QUBIT_FIELD_NUMBER: builtins.int
     MOMENT_VALUE_FIELD_NUMBER: builtins.int
+    OPERATION_VALUE_FIELD_NUMBER: builtins.int
     string_value: builtins.str
     """String value used throughout the circuit, such as for token values"""
     @property
@@ -93,6 +94,10 @@ class Constant(google.protobuf.message.Message):
     def moment_value(self) -> global___Moment:
         """Moments used multiple times in a circuit"""
 
+    @property
+    def operation_value(self) -> global___Operation:
+        """Operations used multiple times in a circuit"""
+
     def __init__(
         self,
         *,
@@ -100,10 +105,11 @@ class Constant(google.protobuf.message.Message):
         circuit_value: global___Circuit | None = ...,
         qubit: global___Qubit | None = ...,
         moment_value: global___Moment | None = ...,
+        operation_value: global___Operation | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "qubit", b"qubit", "string_value", b"string_value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "qubit", b"qubit", "string_value", b"string_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["const_value", b"const_value"]) -> typing.Literal["string_value", "circuit_value", "qubit", "moment_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "operation_value", b"operation_value", "qubit", b"qubit", "string_value", b"string_value"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "operation_value", b"operation_value", "qubit", b"qubit", "string_value", b"string_value"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["const_value", b"const_value"]) -> typing.Literal["string_value", "circuit_value", "qubit", "moment_value", "operation_value"] | None: ...
 
 global___Constant = Constant
 
@@ -171,6 +177,7 @@ class Moment(google.protobuf.message.Message):
     MOMENT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     OPERATIONS_FIELD_NUMBER: builtins.int
     CIRCUIT_OPERATIONS_FIELD_NUMBER: builtins.int
+    OPERATION_INDICES_FIELD_NUMBER: builtins.int
     moment_constant_index: builtins.int
     """The index of the moment in the top-level constant table.
     If this field is populated, the other fields should be ignored
@@ -190,15 +197,25 @@ class Moment(google.protobuf.message.Message):
         operation must act on different qubits.
         """
 
+    @property
+    def operation_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]:
+        """All of the operations in the moment that are stored in the constants
+        table.  Each operation should be stored in either `operations`
+        or `operation_indices`.  Putting operations into the symbol
+        table should be preferred for circuits with repeated operations
+        for improved serialization size.
+        """
+
     def __init__(
         self,
         *,
         moment_constant_index: builtins.int | None = ...,
         operations: collections.abc.Iterable[global___Operation] | None = ...,
         circuit_operations: collections.abc.Iterable[global___CircuitOperation] | None = ...,
+        operation_indices: collections.abc.Iterable[builtins.int] | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["_moment_constant_index", b"_moment_constant_index", "moment_constant_index", b"moment_constant_index"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_moment_constant_index", b"_moment_constant_index", "circuit_operations", b"circuit_operations", "moment_constant_index", b"moment_constant_index", "operations", b"operations"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["_moment_constant_index", b"_moment_constant_index", "circuit_operations", b"circuit_operations", "moment_constant_index", b"moment_constant_index", "operation_indices", b"operation_indices", "operations", b"operations"]) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["_moment_constant_index", b"_moment_constant_index"]) -> typing.Literal["moment_constant_index"] | None: ...
 
 global___Moment = Moment

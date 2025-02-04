@@ -261,8 +261,8 @@ class XPowGate(eigen_gate.EigenGate):
         if self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        angle = np.pi * self._exponent / 2
         lib = sympy if protocols.is_parameterized(self) else np
+        angle = lib.pi * self._exponent / 2
         return value.LinearDict({'I': phase * lib.cos(angle), 'X': -1j * phase * lib.sin(angle)})
 
     def _circuit_diagram_info_(
@@ -466,8 +466,8 @@ class YPowGate(eigen_gate.EigenGate):
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        angle = np.pi * self._exponent / 2
         lib = sympy if protocols.is_parameterized(self) else np
+        angle = lib.pi * self._exponent / 2
         return value.LinearDict({'I': phase * lib.cos(angle), 'Y': -1j * phase * lib.sin(angle)})
 
     def _circuit_diagram_info_(
@@ -767,8 +767,8 @@ class ZPowGate(eigen_gate.EigenGate):
         if self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        angle = np.pi * self._exponent / 2
         lib = sympy if protocols.is_parameterized(self) else np
+        angle = lib.pi * self._exponent / 2
         return value.LinearDict({'I': phase * lib.cos(angle), 'Z': -1j * phase * lib.sin(angle)})
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):

@@ -4,9 +4,11 @@
 |---------|--------------------|
 | Cirq | https://github.com/quantumlib/Cirq/issues |
 | OpenFermion | https://github.com/quantumlib/OpenFermion/issues |
-| ReCirq | https://github.com/quantumlib/ReCirq/issues |
 | qsim | https://github.com/quantumlib/qsim/issues |
-| Tensorflow Quantum |https://github.com/tensorflow/quantum/issues |
+| Qualtran | https://github.com/quantumlib/qualtran/issues |
+| ReCirq | https://github.com/quantumlib/ReCirq/issues |
+| Stim | https://github.com/quantumlib/stim/issues |
+| Tensorflow Quantum | https://github.com/tensorflow/quantum/issues |
 
 To report an issue or request a feature in our open-source projects,
 first check if there is already an open issue for your bug report /
@@ -17,14 +19,13 @@ improve open-source quantum software!
 
 # Weekly developer meetings
 
-You may also be interested to join the bi-weekly
-[Cirq sync](https://groups.google.com/g/cirq-dev/about) with Cirq developers and
-contributors. There are also syncs for
-[OpenFermion](https://groups.google.com/g/openfermion-dev/about),
-[qsim](https://groups.google.com/g/qsim-qsimh-dev/about), and
-[TensorFlow Quantum](https://groups.google.com/g/tfq-dev/about).
+You may also be interested to join the bi-weekly _Cirq Cynq_, our biweekly
+virtual meeting of contributors. It's a forum to discuss everything from issues
+to ongoing efforts, as well as to ask questions. Become a member of
+[_cirq-dev_](https://groups.google.com/forum/#!forum/cirq-dev) to get an
+automatic meeting invitation.
 
 # Questions
 
 If you're not sure whether a certain behavior is buggy, or if you have other questions,
-please ask us in the bi-weekly cirq cync meeting.
+please ask us in the biweekly Cirq Cync meeting.
