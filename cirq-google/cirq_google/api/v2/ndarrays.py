@@ -1,3 +1,16 @@
+# Copyright 2025 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Utilities for converting to/from ndarray protos."""
 
 from __future__ import annotations
@@ -19,7 +32,6 @@ TFloatMsg = TypeVar(
 TComplexMsg = TypeVar("TComplexMsg", ndarrays_pb2.Complex128Array, ndarrays_pb2.Complex64Array)
 
 
-@functools.cache
 def _to_dtype(
     dtype: npt.DTypeLike, dtype_base: npt.DTypeLike
 ) -> tuple[ndarrays_pb2.Endianness.V, np.dtype]:
@@ -41,7 +53,6 @@ def _to_dtype(
             raise ValueError(f"Unsupported byte order: {byteorder}")
 
 
-@functools.cache
 def _from_dtype(endianness: ndarrays_pb2.Endianness, dtype_base: npt.DTypeLike) -> np.dtype:
     dtype_base = np.dtype(dtype_base)
     if endianness == ndarrays_pb2.LITTLE_ENDIAN:

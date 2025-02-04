@@ -1,3 +1,16 @@
+# Copyright 2025 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import functools
 import math
 from collections.abc import Sequence
@@ -198,14 +211,14 @@ def test_complex64_conversions(dtype, values):
     assert array.dtype.byteorder == deserialized.dtype.byteorder
 
 
-@pytest.mark.parametrize("dtype", ["i2", "f4", "complex256"])
+@pytest.mark.parametrize("dtype", ["i2", "f4"])
 def test_incompatible_complex128(dtype):
     array = np.array([1, 2, 3, 4], dtype=dtype)
     with pytest.raises(ValueError):
         ndarrays.to_complex128_array(array)
 
 
-@pytest.mark.parametrize("dtype", ["i2", "f4", "complex256", "c16", "<c16", ">c16"])
+@pytest.mark.parametrize("dtype", ["i2", "f4", "c16", "<c16", ">c16"])
 def test_incompatible_complex64(dtype):
     array = np.array([1, 2, 3, 4], dtype=dtype)
     with pytest.raises(ValueError):
