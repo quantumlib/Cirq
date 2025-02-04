@@ -984,7 +984,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         for op in list(op_tree.flatten_to_ops(clifford))[::-1]:
             if pauli_map.keys().isdisjoint(set(op.qubits)):
                 continue
-            for clifford_op in _decompose_into_cliffords(op)[::-1]:
+            # Force converting the op gate into CliffordGate.
+            op_in_clifford = clifford_gate.CliffordGate.from_op_list([op], op.qubits).on(*op.qubits)
+            for clifford_op in _decompose_into_cliffords(op_in_clifford)[::-1]:
                 if pauli_map.keys().isdisjoint(set(clifford_op.qubits)):
                     continue
                 should_negate ^= _pass_operation_over(pauli_map, clifford_op, False)

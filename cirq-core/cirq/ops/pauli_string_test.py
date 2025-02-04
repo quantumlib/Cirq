@@ -1428,9 +1428,17 @@ def test_conjugated_by_incorrectly_powered_cliffords():
         cirq.ZZ(a, b),
     ]
     for c in cliffords:
-        with pytest.raises(TypeError, match='not a known Clifford'):
+        with pytest.raises(
+            ValueError,
+            match='Clifford Gate can only be constructed from the operations'
+            ' that has stabilizer effect.',
+        ):
             _ = p.conjugated_by(c**0.1)
-        with pytest.raises(TypeError, match='not a known Clifford'):
+        with pytest.raises(
+            ValueError,
+            match='Clifford Gate can only be constructed from the operations'
+            ' that has stabilizer effect.',
+        ):
             _ = p.conjugated_by(c ** sympy.Symbol('t'))
 
 
@@ -1870,6 +1878,24 @@ def test_after_before_vs_conjugate_by():
     assert (
         p.before(cirq.CNOT(a, b)) == p.conjugated_by(cirq.CNOT(a, b)) == (p.after(cirq.CNOT(a, b)))
     )
+
+
+def test_before_after_op_must_be_in_clifford_in_decomp():
+    # Test cases would fail if op isn't converted to CliffordGate before being passed to
+    # _decompose_into_cliffords (see issue #6946).
+    phxz_gate = cirq.PhasedXZGate(axis_phase_exponent=0.25, x_exponent=-1, z_exponent=0)
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    p = cirq.X(a) * cirq.Y(c)
+    clifford_op = cirq.CliffordGate.from_op_list([cirq.CZ(a, b), phxz_gate(c)], [a, b, c]).on(
+        a, b, c
+    )
+    assert p.before(clifford_op) == cirq.X(a) * cirq.X(c) * cirq.Z(b)
+    p = cirq.X(a)
+    op = cirq.CliffordGate.from_op_list([phxz_gate(a)], [a]).on(a)
+    assert p.after(op) == cirq.Y(a)
+    assert p.after(phxz_gate(a)) == cirq.Y(a)
 
 
 def test_mutable_pauli_string_dict_functionality():
