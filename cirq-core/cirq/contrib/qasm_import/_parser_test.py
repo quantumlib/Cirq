@@ -1499,3 +1499,22 @@ def _test_parse_exception(qasm: str, cirq_err: str, qiskit_err: str | None):
             "Skipped _test_qiskit_parse_exception because "
             "qiskit isn't installed to verify against."
         )
+
+
+def test_nested_custom_gate_has_keyword_in_name():
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     gate gateGate qb { x qb; }
+     gate qregGate qa { gateGate qa; }
+     qregGate q;
+    """
+    qb = cirq.NamedQubit('qb')
+    inner = cirq.FrozenCircuit(cirq.X(qb))
+    qa = cirq.NamedQubit('qa')
+    middle = cirq.FrozenCircuit(cirq.CircuitOperation(inner, qubit_map={qb: qa}))
+    q_0 = cirq.NamedQubit('q_0')
+    expected = cirq.Circuit(cirq.CircuitOperation(middle, qubit_map={qa: q_0}))
+    parser = QasmParser()
+    parsed_qasm = parser.parse(qasm)
+    assert parsed_qasm.circuit == expected
