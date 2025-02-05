@@ -73,6 +73,7 @@ setup(
     license='Apache 2',
     description=description,
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=packs,
     package_data={
         'cirq_google': ['py.typed'],

@@ -71,6 +71,7 @@ setup(
     license='Apache 2',
     description=description,
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=cirq_packages,
     package_data={'cirq_rigetti': ['py.typed'], 'cirq_rigetti.json_test_data': ['*']},
     classifiers=[
