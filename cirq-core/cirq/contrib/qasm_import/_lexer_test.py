@@ -116,19 +116,10 @@ def test_keywords(token):
 
 
 @pytest.mark.parametrize('token', QasmLexer.reserved.keys())
-def test_identifier_starts_or_ends_with_keyword(token):
+@pytest.mark.parametrize('separator', ['', '_'])
+def test_identifier_starts_or_ends_with_keyword(token, separator):
     lexer = QasmLexer()
-    identifier = f'{token}_{token}'
-    lexer.input(identifier)
-    t = lexer.token()
-    assert t.type == "ID"
-    assert t.value == identifier
-
-
-@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
-def test_identifier_starts_or_ends_with_keyword_2(token):
-    lexer = QasmLexer()
-    identifier = token * 2
+    identifier = f'{token}{separator}{token}'
     lexer.input(identifier)
     t = lexer.token()
     assert t.type == "ID"
