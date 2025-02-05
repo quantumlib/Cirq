@@ -48,7 +48,7 @@ updates:
     # the specified directory.
     directory: "/cirq-web/cirq_ts/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: "widen"
     groups:
       # Group non-security version minor & patch updates into one PR.
