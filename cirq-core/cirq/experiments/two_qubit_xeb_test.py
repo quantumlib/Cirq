@@ -310,57 +310,6 @@ def test_run_rb_and_xeb(
     )
 
 
-@pytest.mark.parametrize(
-    'sampler,qubits,pairs',
-    [
-        (
-            cirq.DensityMatrixSimulator(
-                seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
-            ),
-            cirq.GridQubit.rect(3, 2, 4, 3),
-            None,
-        ),
-        (
-            cirq.DensityMatrixSimulator(
-                seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
-            ),
-            None,
-            [
-                (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
-                (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
-            ],
-        ),
-        (
-            DensityMatrixSimulatorWithProcessor(
-                seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
-            ),
-            None,
-            None,
-        ),
-    ],
-)
-def test_run_rb_and_xeb_with_circuit(
-    sampler: cirq.Sampler,
-    qubits: Optional[Sequence[cirq.GridQubit]],
-    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]],
-):
-    res = cirq.experiments.run_rb_and_xeb(
-        sampler=sampler,
-        qubits=qubits,
-        pairs=pairs,
-        repetitions=100,
-        num_clifford_range=tuple(np.arange(3, 10, 1)),
-        xeb_combinations=1,
-        num_circuits=1,
-        depths_xeb=(3, 4, 5),
-        random_state=0,
-        entangling_circuit_or_op=cirq.Circuit(cirq.CZ(cirq.q(0), cirq.q(1))),
-    )
-    np.testing.assert_allclose(
-        [res.xeb_result.xeb_error(*pair) for pair in res.all_qubit_pairs], 0.1, atol=1e-1
-    )
-
-
 def test_run_rb_and_xeb_without_processor_fails():
     sampler = (
         cirq.DensityMatrixSimulator(

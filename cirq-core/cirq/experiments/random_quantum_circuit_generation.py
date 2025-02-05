@@ -242,36 +242,6 @@ def random_rotations_between_two_qubit_circuit(
     return circuit
 
 
-def _generate_library_of_2q_circuits(
-    n_library_circuits: int,
-    two_qubit_op_factory: Callable[
-        ['cirq.Qid', 'cirq.Qid', 'np.random.RandomState'], 'cirq.OP_TREE'
-    ] = lambda a, b, _: ops.CZPowGate()(a, b),
-    *,
-    max_cycle_depth: int = 100,
-    q0: 'cirq.Qid' = devices.LineQubit(0),
-    q1: 'cirq.Qid' = devices.LineQubit(1),
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-):
-    rs = value.parse_random_state(random_state)
-    exponents = np.linspace(0, 7 / 4, 8)
-    single_qubit_gates = [
-        ops.PhasedXZGate(x_exponent=0.5, z_exponent=z, axis_phase_exponent=a)
-        for a, z in itertools.product(exponents, repeat=2)
-    ]
-    return [
-        random_rotations_between_two_qubit_circuit(
-            q0,
-            q1,
-            depth=max_cycle_depth,
-            two_qubit_op_factory=two_qubit_op_factory,
-            single_qubit_gates=single_qubit_gates,
-            seed=rs,
-        )
-        for _ in range(n_library_circuits)
-    ]
-
-
 def generate_library_of_2q_circuits(
     n_library_circuits: int,
     two_qubit_gate: 'cirq.Gate',
@@ -299,59 +269,23 @@ def generate_library_of_2q_circuits(
         random_state: A random state or seed used to deterministically sample the random circuits.
         tags: Tags to add to the two qubit operations.
     """
-    two_qubit_op_factory = lambda a, b, _: two_qubit_gate(a, b).with_tags(*tags)
-    return _generate_library_of_2q_circuits(
-        n_library_circuits=n_library_circuits,
-        two_qubit_op_factory=two_qubit_op_factory,
-        max_cycle_depth=max_cycle_depth,
-        q0=q0,
-        q1=q1,
-        random_state=random_state,
-    )
-
-
-def generate_library_of_2q_circuits_for_circuit_op(
-    n_library_circuits: int,
-    circuit_or_op: Union[circuits.AbstractCircuit, ops.Operation],
-    *,
-    max_cycle_depth: int = 100,
-    q0: 'cirq.Qid' = devices.LineQubit(0),
-    q1: 'cirq.Qid' = devices.LineQubit(1),
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    tags: Sequence[Any] = (),
-):
-    """Generate a library of two-qubit Circuits.
-
-    For single-qubit gates, this uses PhasedXZGates where the axis-in-XY-plane is one
-    of eight eighth turns and the Z rotation angle is one of eight eighth turns. This
-    provides 8*8=64 total choices, each implementable with one PhasedXZGate. This is
-    appropriate for architectures with microwave single-qubit control.
-
-    Args:
-        n_library_circuits: The number of circuits to generate.
-        circuit_or_op: A circuit on two qubits or a two qubit operation.
-        max_cycle_depth: The maximum cycle_depth in the circuits to generate. If you are using XEB,
-            this must be greater than or equal to the maximum value in `cycle_depths`.
-        q0: The first qubit to use when constructing the circuits.
-        q1: The second qubit to use when constructing the circuits
-        random_state: A random state or seed used to deterministically sample the random circuits.
-        tags: Tags to add to the two qubit operations.
-    """
-    if isinstance(circuit_or_op, ops.Operation):
-        op = circuit_or_op.with_tags(*tags)
-        two_qubit_op_factory = lambda a, b, _: op.with_qubits(a, b)
-    else:
-        cop = circuits.CircuitOperation(circuit_or_op.freeze().with_tags(*tags))
-        two_qubit_op_factory = lambda a, b, _: cop.with_qubits(a, b).mapped_op()
-
-    return _generate_library_of_2q_circuits(
-        n_library_circuits=n_library_circuits,
-        two_qubit_op_factory=two_qubit_op_factory,
-        max_cycle_depth=max_cycle_depth,
-        q0=q0,
-        q1=q1,
-        random_state=random_state,
-    )
+    rs = value.parse_random_state(random_state)
+    exponents = np.linspace(0, 7 / 4, 8)
+    single_qubit_gates = [
+        ops.PhasedXZGate(x_exponent=0.5, z_exponent=z, axis_phase_exponent=a)
+        for a, z in itertools.product(exponents, repeat=2)
+    ]
+    return [
+        random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=max_cycle_depth,
+            two_qubit_op_factory=lambda a, b, _: two_qubit_gate(a, b).with_tags(*tags),
+            single_qubit_gates=single_qubit_gates,
+            seed=rs,
+        )
+        for _ in range(n_library_circuits)
+    ]
 
 
 def _get_active_pairs(graph: nx.Graph, grid_layer: GridInteractionLayer):

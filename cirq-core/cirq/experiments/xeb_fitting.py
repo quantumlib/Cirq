@@ -85,6 +85,9 @@ def benchmark_2q_xeb_fidelities(
     simulated_df = simulate_2q_xeb_circuits(
         circuits=circuits, cycle_depths=sim_cycle_depths, param_resolver=param_resolver, pool=pool
     )
+    print(sampled_df.index, sampled_df.columns)
+    print(simulated_df.index, simulated_df.columns)
+    print(simulated_df.head())
     # Join the `pure_probs` onto `sampled_df`. By using 'inner', we let
     # the `cycle_depths` argument to this function control what cycle depths are benchmarked.
     df = sampled_df.join(simulated_df, how='inner').reset_index()
