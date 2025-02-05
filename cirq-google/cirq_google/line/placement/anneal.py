@@ -248,7 +248,7 @@ class AnnealSequenceSearch:
             """
             seqs = []
             prev = None
-            seq = None
+            seq = []
             for node in self._c:
                 if prev is None:
                     seq = [node]
