@@ -112,8 +112,6 @@ def test_int8_conversions(values):
     assert tuple(msg.shape) == array.shape
     deserialized = ndarrays.from_int8_array(msg)
     assert np.all(array == deserialized)
-    if array.dtype.itemsize > 1:
-        assert array.dtype.byteorder == deserialized.dtype.byteorder
 
 
 @pytest.mark.parametrize("values", [[], [1, 2, 3, 4], [[1, 2], [3, 4]]])
@@ -123,8 +121,6 @@ def test_uint8_conversions(values):
     assert tuple(msg.shape) == array.shape
     deserialized = ndarrays.from_uint8_array(msg)
     assert np.all(array == deserialized)
-    if array.dtype.itemsize > 1:
-        assert array.dtype.byteorder == deserialized.dtype.byteorder
 
 
 @pytest.mark.parametrize("dtype", [np.uint8, bool])
@@ -235,17 +231,20 @@ def test_overwrite_works():
     assert np.all(array2 == ndarrays.from_int32_array(msg))
 
 
-@pytest.mark.parametrize(
-    "msg_cls, func",
-    [
-        (ndarrays_pb2.Int16Array, ndarrays.from_int16_array),
-        (ndarrays_pb2.Int32Array, ndarrays.from_int32_array),
-        (ndarrays_pb2.Float16Array, ndarrays.from_float16_array),
-        (ndarrays_pb2.Float32Array, ndarrays.from_float32_array),
-        (ndarrays_pb2.Float64Array, ndarrays.from_float64_array),
-        (ndarrays_pb2.Complex128Array, ndarrays.from_complex128_array),
-    ],
-)
-def test_empty_messages(msg_cls, func):
+def test_empty_messages():
     with pytest.raises(ValueError, match=r"Cannot convert unset"):
-        func(msg_cls())
+        ndarrays.from_int16_array(ndarrays_pb2.Int16Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_int32_array(ndarrays_pb2.Int32Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_float16_array(ndarrays_pb2.Float16Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_float32_array(ndarrays_pb2.Float32Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_float64_array(ndarrays_pb2.Float64Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_complex128_array(ndarrays_pb2.Complex128Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_uint8_array(ndarrays_pb2.UInt8Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_bitarray(ndarrays_pb2.BitArray())

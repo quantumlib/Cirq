@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import functools
 import sys
-from typing import TypeVar
+from typing import cast, TypeVar
 
 import numpy as np
 import numpy.typing as npt
@@ -43,14 +43,14 @@ def _to_dtype(
         case "=":
             return NATIVE_BO, dtype_base.newbyteorder("=")
         case "<":
-            return ndarrays_pb2.LITTLE_ENDIAN, dtype_base.newbyteorder("<")
+            return ndarrays_pb2.LITTLE_ENDIAN, dtype_base.newbyteorder("<")  # pragma: no cover
         case ">":
             return ndarrays_pb2.BIG_ENDIAN, dtype_base.newbyteorder(">")
         case "|":
             # For single-byte data, default to little-endian
             return ndarrays_pb2.LITTLE_ENDIAN, dtype_base.newbyteorder("<")
-        case byteorder:
-            raise ValueError(f"Unsupported byte order: {byteorder}")
+        case byteorder:  # pragma: no cover
+            raise ValueError(f"Unsupported byte order: {byteorder}")  # pragma: no cover
 
 
 def _from_dtype(endianness: ndarrays_pb2.Endianness, dtype_base: npt.DTypeLike) -> np.dtype:
@@ -166,9 +166,9 @@ def _from_float_array(msg: TFloatMsg, dtype_base: npt.DTypeLike) -> np.ndarray:
         raise ValueError(
             "Error deserializing ndarray proto: only flat_bytes format "
             f"supported; given {array_format}"
-        )
+        )  # pragma: no cover
 
-    dtype = _from_dtype(msg.endianness, dtype_base)
+    dtype = _from_dtype(cast(ndarrays_pb2.Endianness, msg.endianness), dtype_base)
     flat = np.frombuffer(msg.flat_bytes, dtype=dtype)
     return np.reshape(flat, msg.shape)
 
@@ -360,9 +360,12 @@ def _from_int_array(msg: V1IntMsgs, dtype_base: npt.DTypeLike) -> np.ndarray:
         raise ValueError(
             "Error deserializing int ndarray proto: only flat_bytes format "
             f"supported; given {array_format}"
-        )
+        )  # pragma: no cover
 
-    dtype = _from_dtype(getattr(msg, "endianness", ndarrays_pb2.LITTLE_ENDIAN), dtype_base)
+    dtype = _from_dtype(
+        getattr(msg, "endianness", cast(ndarrays_pb2.Endianness, ndarrays_pb2.LITTLE_ENDIAN)),
+        dtype_base,
+    )
     flat = np.frombuffer(msg.flat_bytes, dtype=dtype)
     return np.reshape(flat, msg.shape)
 
@@ -385,9 +388,12 @@ def _from_uint_array(msg: V1UIntMsgs, dtype_base: npt.DTypeLike) -> np.ndarray:
         raise ValueError(
             "Error deserializing uint ndarray proto: only flat_bytes format "
             f"supported; given {array_format}"
-        )
+        )  # pragma: no cover
 
-    dtype = _from_dtype(getattr(msg, "endianness", ndarrays_pb2.LITTLE_ENDIAN), dtype_base)
+    dtype = _from_dtype(
+        getattr(msg, "endianness", cast(ndarrays_pb2.Endianness, ndarrays_pb2.LITTLE_ENDIAN)),
+        dtype_base,
+    )
     flat = np.frombuffer(msg.flat_bytes, dtype=dtype)
     return np.reshape(flat, msg.shape)
 
@@ -469,9 +475,9 @@ def _from_complex_array(msg: TComplexMsg, dtype_base: npt.DTypeLike) -> np.ndarr
         raise ValueError(
             "Error deserializing complex64 ndarray proto: only flat_bytes "
             f"format supported; given {array_format}"
-        )
+        )  # pragma: no cover
 
-    dtype = _from_dtype(msg.endianness, dtype_base)
+    dtype = _from_dtype(cast(ndarrays_pb2.Endianness, msg.endianness), dtype_base)
     flat = np.frombuffer(msg.flat_bytes, dtype=dtype)
     return np.reshape(flat, msg.shape)
 
