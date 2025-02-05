@@ -96,7 +96,7 @@ class XEBWideCircuitInfo:
         if has_circuit_operations and len(circuit_templates) > 1:
             # Each moment must have at most one circuit operation.
             new_moments = []
-            for moment in enumerate(zipped_circuit):
+            for moment in zipped_circuit:
                 if any(isinstance(op, circuits.CircuitOperation) for op in moment):
                     new_moments.append(
                         _transform_moment_with_circuit_ops_to_moment_with_single_op(moment)
@@ -123,8 +123,8 @@ class XEBWideCircuitInfo:
 def _target_to_operation(target: _TARGET_T) -> 'cirq.Operation':
     if isinstance(target, ops.Gate):
         return target(*devices.LineQid.for_gate(target))
-    elif isinstance(xeb_target, circuits.AbstractCircuit):
-        xeb_target = circuits.CircuitOperation(xeb_target.freeze())
+    elif isinstance(target, circuits.AbstractCircuit):
+        return circuits.CircuitOperation(target.freeze())
     return target
 
 
