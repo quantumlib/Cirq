@@ -230,7 +230,7 @@ class _PickLargestArea(GreedySequenceSearch):
     def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
         analyzed: Set[GridQubit] = set()
         best = None
-        best_size = None
+        best_size = 0
         for m in self._c_adj[qubit]:
             if m not in used and m not in analyzed:
                 reachable = self._collect_unused(m, used)
