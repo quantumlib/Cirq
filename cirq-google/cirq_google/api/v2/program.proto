@@ -45,6 +45,9 @@ message Constant {
 
     // Moments used multiple times in a circuit
     Moment moment_value = 4;
+    
+    // Operations used multiple times in a circuit
+    Operation operation_value = 5;
   }
 }
 
@@ -67,19 +70,20 @@ message Circuit {
   // The moments of the circuit, with the first element corresponding to the
   // first set of operations to apply, etc.
   repeated Moment moments = 2;
+  
+  
+  // The index of the moment in the top-level constant table.
+  // In order to preserve ordering, either this field should be populated
+  // or the moments field, but not both.
+  // This field is used to reduce size of circuits that contain many
+  // repeated moments.
+  repeated int32 moment_indices = 3;
 }
 
 // A moment is a collection of operations and circuit operations that operate
 // on a disjoint set of qubits. Conceptually, a moment represents operations
 // that all occur in the same finite period of time.
 message Moment {
-  // The index of the moment in the top-level constant table.
-  // If this field is populated, the other fields should be ignored
-  // in favor using the constant table lookup.
-  // This field is used to reduce size of circuits that contain many
-  // repeated moments.
-  optional int32 moment_constant_index = 3;
-
   // All of the gate operations in the moment. Each operation and circuit
   // operation must act on different qubits.
   repeated Operation operations = 1;
@@ -87,6 +91,16 @@ message Moment {
   // All of the circuit operations in the moment. Each operation and circuit
   // operation must act on different qubits.
   repeated CircuitOperation circuit_operations = 2;
+
+  // All of the operations in the moment that are stored in the constants
+  // table.  Each operation should be stored in either `operations`
+  // or `operation_indices`.  Putting operations into the symbol
+  // table should be preferred for circuits with repeated operations
+  // for improved serialization size.
+  repeated int32 operation_indices = 4;
+
+  // Deprecated field id, do not use.
+  reserved 3;
 }
 
 // The quantum circuit, specified as a series of operations at specific

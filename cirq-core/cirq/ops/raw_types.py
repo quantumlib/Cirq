@@ -306,7 +306,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return operations
 
     def wrap_in_linear_combination(
-        self, coefficient: Union[complex, float, int] = 1
+        self, coefficient: 'cirq.TParamValComplex' = 1
     ) -> 'cirq.LinearCombinationOfGates':
         """Returns a LinearCombinationOfGates with this gate.
 

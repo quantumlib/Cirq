@@ -14,7 +14,6 @@
 
 import re
 from typing import Optional
-import numpy as np
 import ply.lex as lex
 
 from cirq.contrib.qasm_import.exception import QasmException
@@ -35,8 +34,7 @@ class QasmLexer:
         'reset': 'RESET',
         'gate': 'GATE',
         'if': 'IF',
-        '->': 'ARROW',
-        '==': 'EQ',
+        'pi': 'PI',
     }
 
     tokens = [
@@ -46,7 +44,8 @@ class QasmLexer:
         'STDGATESINC',
         'QELIBINC',
         'ID',
-        'PI',
+        'ARROW',
+        'EQ',
     ] + list(reserved.values())
 
     def t_newline(self, t):
@@ -54,11 +53,6 @@ class QasmLexer:
         t.lexer.lineno += len(t.value)
 
     t_ignore = ' \t'
-
-    def t_PI(self, t):
-        r"""pi"""
-        t.value = np.pi
-        return t
 
     # all numbers except NATURAL_NUMBERs:
     # it's useful to have this separation to be able to handle indices
@@ -97,38 +91,6 @@ class QasmLexer:
         r"""include(\s+)"stdgates.inc";"""
         return t
 
-    def t_QREG(self, t):
-        r"""qreg"""
-        return t
-
-    def t_QUBIT(self, t):
-        r"""qubit"""
-        return t
-
-    def t_CREG(self, t):
-        r"""creg"""
-        return t
-
-    def t_BIT(self, t):
-        r"""bit"""
-        return t
-
-    def t_MEASURE(self, t):
-        r"""measure"""
-        return t
-
-    def t_RESET(self, t):
-        r"""reset"""
-        return t
-
-    def t_GATE(self, t):
-        r"""gate"""
-        return t
-
-    def t_IF(self, t):
-        r"""if"""
-        return t
-
     def t_ARROW(self, t):
         """->"""
         return t
@@ -139,6 +101,8 @@ class QasmLexer:
 
     def t_ID(self, t):
         r"""[a-zA-Z][a-zA-Z\d_]*"""
+        if t.value in QasmLexer.reserved:
+            t.type = QasmLexer.reserved[t.value]
         return t
 
     def t_COMMENT(self, t):
