@@ -60,6 +60,7 @@ def test_apply_unitary_presence_absence():
         HasApplyReturnsNotImplementedButHasUnitary(),
         HasApplyOutputInBuffer(),
         HasApplyMutateInline(),
+        m,
     ]
 
     def make_input():

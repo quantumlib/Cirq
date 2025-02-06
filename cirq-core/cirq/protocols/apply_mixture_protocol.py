@@ -333,32 +333,6 @@ def _apply_unitary_strat(
     return right_result
 
 
-def _apply_unitary_from_matrix_strat(
-    val: np.ndarray, args: 'ApplyMixtureArgs', is_density_matrix: bool
-) -> Optional[np.ndarray]:
-    """Used to enact mixture tuples that are given as (probability, np.ndarray)
-
-    If `val` does not support `apply_unitary` returns None.
-    """
-    qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
-    matrix_tensor = np.reshape(val.astype(args.target_tensor.dtype), qid_shape * 2)
-    linalg.targeted_left_multiply(
-        matrix_tensor, args.target_tensor, args.left_axes, out=args.auxiliary_buffer0
-    )
-
-    if not is_density_matrix:
-        return args.auxiliary_buffer0
-    # No need to transpose as we are acting on the tensor
-    # representation of matrix, so transpose is done for us.
-    linalg.targeted_left_multiply(
-        np.conjugate(matrix_tensor),
-        args.auxiliary_buffer0,
-        cast(Tuple[int], args.right_axes),
-        out=args.target_tensor,
-    )
-    return args.target_tensor
-
-
 def _mixture_strat(val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool) -> np.ndarray:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
     args.out_buffer[:] = 0
@@ -366,9 +340,6 @@ def _mixture_strat(val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool) 
     for prob, op in val:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer1)
         right_result = _apply_unitary_strat(op, args, is_density_matrix)
-        if right_result is None:
-            right_result = _apply_unitary_from_matrix_strat(op, args, is_density_matrix)
-
         args.out_buffer += prob * right_result
 
     return args.out_buffer
