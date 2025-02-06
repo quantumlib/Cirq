@@ -500,7 +500,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         factors = [self.get(q, default=identity.I) for q in qubits]
         if cirq.is_parameterized(self):
             raise NotImplementedError('Cannot express as matrix when parameterized')
-        assert isinstance(self.coefficient, numbers.Complex)
+        assert isinstance(self.coefficient, complex)
         return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
 
     def _has_unitary_(self) -> bool:
@@ -790,9 +790,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        """Override behavior of numpy's exp method."""
+        """Override numpy behavior."""
         if ufunc == np.exp and len(inputs) == 1 and inputs[0] is self:
             return math.e**self
+        if ufunc == np.multiply and len(inputs) == 2 and inputs[1] is self:
+            return self * inputs[0]
         return NotImplemented
 
     def __pow__(self, power):
