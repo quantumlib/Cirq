@@ -78,9 +78,6 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             return self.decompose_all_to_all_connect_ccz_gate(op.gate, op.qubits)
         return NotImplemented
 
-    def _cnot(self, *qubits):
-        return NotImplemented
-
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations.
@@ -122,6 +119,9 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     def _hadamard(self, qubit):
         return [GPI2Gate(phi=0.25).on(qubit), GPIGate(phi=0).on(qubit)]
+
+    def _cnot(self, *qubits):
+        return NotImplemented
 
     def decompose_all_to_all_connect_ccz_gate(
         self, ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
