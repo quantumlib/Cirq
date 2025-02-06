@@ -20,7 +20,6 @@ from typing import Any, cast, Iterable, Optional, Tuple, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import linalg
 from cirq._doc import doc_private
 from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
 from cirq.protocols.mixture_protocol import mixture
