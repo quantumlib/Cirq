@@ -78,6 +78,9 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             return self.decompose_all_to_all_connect_ccz_gate(op.gate, op.qubits)
         return NotImplemented
 
+    def _cnot(self, *qubits):
+        return NotImplemented
+
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations.
@@ -198,6 +201,7 @@ class AriaNativeGateset(IonqNativeGatesetBase):
             GPI2Gate(phi=1 / 2).on(qubits[0]),
             GPI2Gate(phi=-1 / 4).on(qubits[0]),
         ]
+
 
 class ForteNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
