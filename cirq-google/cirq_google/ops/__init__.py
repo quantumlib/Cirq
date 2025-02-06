@@ -28,6 +28,8 @@ from cirq_google.ops.sycamore_gate import SycamoreGate as SycamoreGate, SYC as S
 
 from cirq_google.ops.internal_gate import InternalGate as InternalGate
 
+from cirq_google.ops.internal_tag import InternalTag as InternalTag
+
 from cirq_google.ops.dynamical_decoupling_tag import (
     DynamicalDecouplingTag as DynamicalDecouplingTag,
 )
