@@ -21,9 +21,7 @@ def _check_qids_dimension(qids):
 class ProjectorString:
     """Mapping of `cirq.Qid` to measurement values (with a coefficient) representing a projector."""
 
-    def __init__(
-        self, projector_dict: Dict[raw_types.Qid, int], coefficient: complex = 1
-    ):
+    def __init__(self, projector_dict: Dict[raw_types.Qid, int], coefficient: complex = 1):
         """Constructor for ProjectorString
 
         Args:

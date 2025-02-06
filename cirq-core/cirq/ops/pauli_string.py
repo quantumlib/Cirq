@@ -271,9 +271,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         pass
 
     @overload
-    def __mul__(
-        self, other: Union[complex, numbers.Number]
-    ) -> 'cirq.PauliString[TKey]':
+    def __mul__(self, other: Union[complex, numbers.Number]) -> 'cirq.PauliString[TKey]':
         pass
 
     def __mul__(self, other):
