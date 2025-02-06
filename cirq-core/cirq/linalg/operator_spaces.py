@@ -13,15 +13,12 @@
 # limitations under the License.
 
 """Utilities for manipulating linear operators as elements of vector space."""
-from typing import Dict, Tuple, TYPE_CHECKING
+from typing import Dict, Tuple
 
 import numpy as np
 
 from cirq import value
 from cirq._doc import document
-
-if TYPE_CHECKING:
-    import cirq
 
 PAULI_BASIS = {
     'I': np.eye(2),
