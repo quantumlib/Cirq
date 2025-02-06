@@ -17,6 +17,7 @@ import itertools
 import numpy as np
 import pytest
 import scipy.linalg
+import sympy
 
 import cirq
 
@@ -287,11 +288,21 @@ def test_expand_is_inverse_of_reconstruct(m1, basis):
             (-1, -2, 3, 4),
             (1j, 2j, 3j, 4j),
             (1j, 2j, 3, 4),
+            (sympy.Symbol('i'), sympy.Symbol('x'), sympy.Symbol('y'), sympy.Symbol('z')),
+            (
+                sympy.Symbol('i') * 1j,
+                -sympy.Symbol('x'),
+                -sympy.Symbol('y') * 1j,
+                sympy.Symbol('z'),
+            ),
         ),
         (0, 1, 2, 3, 4, 5, 100, 101),
     ),
 )
 def test_pow_pauli_combination(coefficients, exponent):
+    is_symbolic = any(isinstance(a, sympy.Basic) for a in coefficients)
+    if is_symbolic and exponent > 2:
+        return  # too slow
     i = cirq.PAULI_BASIS['I']
     x = cirq.PAULI_BASIS['X']
     y = cirq.PAULI_BASIS['Y']
@@ -303,5 +314,7 @@ def test_pow_pauli_combination(coefficients, exponent):
 
     bi, bx, by, bz = cirq.pow_pauli_combination(ai, ax, ay, az, exponent)
     result = bi * i + bx * x + by * y + bz * z
-
-    assert np.allclose(result, expected_result)
+    if is_symbolic:
+        assert cirq.approx_eq(result, expected_result)
+    else:
+        assert np.allclose(result, expected_result)
