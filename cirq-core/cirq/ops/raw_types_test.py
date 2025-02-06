@@ -258,6 +258,7 @@ def test_default_qudit_inverse():
         (cirq.CZ * 1, cirq.CZ / 1),
         (-cirq.CSWAP * 1j, cirq.CSWAP / 1j),
         (cirq.TOFFOLI * 0.5, cirq.TOFFOLI / 2),
+        (-cirq.X * sympy.Symbol('s'), -sympy.Symbol('s') * cirq.X),
     ),
 )
 def test_gate_algebra(expression, expected_result):
