@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Qubit Gates, Operations, and Tags useful for Google devices. """
+"""Qubit Gates, Operations, and Tags useful for Google devices."""
 
 from cirq_google.ops.calibration_tag import CalibrationTag as CalibrationTag
 
