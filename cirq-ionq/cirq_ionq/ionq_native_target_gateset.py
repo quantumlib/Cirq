@@ -121,7 +121,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         return [GPI2Gate(phi=0.25).on(qubit), GPIGate(phi=0).on(qubit)]
 
     def _cnot(self, *qubits):
-        return NotImplementedError()
+        raise NotImplementedError()
 
     def decompose_all_to_all_connect_ccz_gate(
         self, ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
