@@ -52,14 +52,8 @@ class InternalTag:
         return dict(name=self.name, package=self.package, **self.tag_args)
 
     def _value_equality_values_(self):
-        hashable = True
-        for arg in self.tag_args.values():
-            try:
-                hash(arg)
-            except TypeError:
-                hashable = False
-        return (
-            self.name,
-            self.package,
-            frozenset(self.tag_args.items()) if hashable else self.tag_args,
-        )
+        try:
+            tag_args_eq_values = frozenset(self.tag_args.items())
+        except TypeError:
+            tag_args_eq_values = self.tag_args
+        return (self.name, self.package, tag_args_eq_values)
