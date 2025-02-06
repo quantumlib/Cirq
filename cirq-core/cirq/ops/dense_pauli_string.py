@@ -203,7 +203,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __pos__(self):
         return self
 
-    def __pow__(self, power: Union[int, float]) -> Union[NotImplementedType, Self]:
+    def __pow__(self, power: float) -> Union[NotImplementedType, Self]:
         concrete_class = type(self)
         if isinstance(power, int):
             i_group = [1, +1j, -1, -1j]

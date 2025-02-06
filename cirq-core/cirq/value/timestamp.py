@@ -14,7 +14,7 @@
 """A typed location in time that supports picosecond accuracy."""
 
 from datetime import timedelta
-from typing import Union, overload
+from typing import overload
 
 from cirq.value.duration import Duration
 
@@ -24,9 +24,7 @@ class Timestamp:
 
     Supports affine operations against Duration."""
 
-    def __init__(
-        self, *, picos: Union[int, float] = 0, nanos: Union[int, float] = 0  # Forces keyword args.
-    ) -> None:
+    def __init__(self, *, picos: float = 0, nanos: float = 0) -> None:  # Forces keyword args.
         """Initializes a Timestamp with a time specified in ns and/or ps.
 
         The time is relative to some unspecified "time zero". If both picos and
