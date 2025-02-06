@@ -1,7 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
 import math
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -22,7 +22,7 @@ class ProjectorString:
     """Mapping of `cirq.Qid` to measurement values (with a coefficient) representing a projector."""
 
     def __init__(
-        self, projector_dict: Dict[raw_types.Qid, int], coefficient: Union[int, float, complex] = 1
+        self, projector_dict: Dict[raw_types.Qid, int], coefficient: complex = 1
     ):
         """Constructor for ProjectorString
 

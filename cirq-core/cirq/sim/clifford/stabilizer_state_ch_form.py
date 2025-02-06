@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Sequence, Union
+from typing import Any, Dict, List, Sequence
 import numpy as np
 
 import cirq
@@ -101,7 +101,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         """Return the CH form representation of the state."""
         return f'StabilizerStateChForm(num_qubits={self.n!r})'
 
-    def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
+    def inner_product_of_state_and_x(self, x: int) -> complex:
         """Returns the amplitude of x'th element of
         the state vector, i.e. <x|psi>"""
         if type(x) == int:

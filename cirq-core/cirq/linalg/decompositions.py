@@ -288,7 +288,7 @@ class AxisAngleDecomposition:
         *,
         angle: float,
         axis: Tuple[float, float, float],
-        global_phase: Union[int, float, complex],
+        global_phase: complex,
     ):
         if not np.isclose(np.linalg.norm(axis, 2), 1, atol=1e-8):
             raise ValueError('Axis vector must be normalized.')

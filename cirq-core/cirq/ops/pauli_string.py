@@ -272,7 +272,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     @overload
     def __mul__(
-        self, other: Union[complex, int, float, numbers.Number]
+        self, other: Union[complex, numbers.Number]
     ) -> 'cirq.PauliString[TKey]':
         pass
 
@@ -502,7 +502,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         factors = [self.get(q, default=identity.I) for q in qubits]
         if cirq.is_parameterized(self):
             raise NotImplementedError('Cannot express as matrix when parameterized')
-        assert isinstance(self.coefficient, complex)
+        assert isinstance(self.coefficient, numbers.Complex)
         return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
 
     def _has_unitary_(self) -> bool:
@@ -518,7 +518,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
             return None
-        assert isinstance(self.coefficient, complex)
+        assert isinstance(self.coefficient, numbers.Complex)
         if self.coefficient != 1:
             args.target_tensor *= self.coefficient
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits], self.qubits, args)
@@ -1174,14 +1174,14 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def __mul__(self, other):
         if isinstance(other, SingleQubitPauliStringGateOperation):
             return self._as_pauli_string() * other._as_pauli_string()
-        if isinstance(other, (PauliString, complex, float, int)):
+        if isinstance(other, (PauliString, numbers.Complex)):
             return self._as_pauli_string() * other
         if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
             return self * as_pauli_string
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (PauliString, complex, float, int)):
+        if isinstance(other, (PauliString, numbers.Complex)):
             return other * self._as_pauli_string()
         if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
             return as_pauli_string * self

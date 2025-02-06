@@ -35,7 +35,7 @@ STATE_VECTOR_LIKE = Union[
     Sequence[int],
     # Explicit state vector or state tensor.
     np.ndarray,
-    Sequence[Union[int, float, complex]],
+    Sequence[complex],
     # Product state object
     'cirq.ProductState',
 ]
@@ -341,7 +341,7 @@ _NON_INT_STATE_LIKE = Union[
     Sequence[int],
     # Explicit state vector or state tensor.
     np.ndarray,
-    Sequence[Union[int, float, complex]],
+    Sequence[complex],
     # Product state object
     'cirq.ProductState',
     # Quantum state object

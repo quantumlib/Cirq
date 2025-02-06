@@ -116,7 +116,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return self._pauli_mask
 
     @property
-    def coefficient(self) -> Union[sympy.Expr, complex]:
+    def coefficient(self) -> 'cirq.TParamValComplex':
         """A complex coefficient or symbol."""
         return self._coefficient
 
@@ -359,7 +359,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             coef = '+'
         elif self.coefficient == -1:
             coef = '-'
-        elif isinstance(self.coefficient, (complex, sympy.Symbol)):
+        elif isinstance(self.coefficient, (numbers.Complex, sympy.Symbol)):
             coef = f'{self.coefficient}*'
         else:
             coef = f'({self.coefficient})*'
@@ -403,7 +403,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(
         self,
-        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
+        coefficient: Optional['cirq.TParamValComplex'] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> Self:
         """Returns a copy with possibly modified contents.
@@ -459,7 +459,7 @@ class DensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
+        coefficient: Optional['cirq.TParamValComplex'] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'DensePauliString':
         if pauli_mask is None and (coefficient is None or coefficient == self.coefficient):
@@ -559,7 +559,7 @@ class MutableDensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
+        coefficient: Optional['cirq.TParamValComplex'] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'MutableDensePauliString':
         return MutableDensePauliString(
