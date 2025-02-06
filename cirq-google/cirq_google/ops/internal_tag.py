@@ -1,4 +1,4 @@
-# Copyright 2023 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ class InternalTag:
     """
 
     def __init__(self, name: str, package: str, **kwargs):
-        """Instatiates an InternalGate.
+        """Instantiates an InternalTag.
 
         Arguments:
             name: Tag class name.
             package: The python module of the tag.
-            **kwargs: Arbitary keyword parameters that should be passed to the tag.
+            **kwargs: Arbitrary keyword parameters that should be passed to the tag.
         """
         self.name = name
         self.package = package
@@ -43,13 +43,10 @@ class InternalTag:
         return f'{self.package}.{self.name}({tag_args})'
 
     def __repr__(self) -> str:
-        tag_args = ', '.join(f'{k}={repr(v)}' for k, v in self.tag_args.items())
+        tag_args = ', '.join(f'{k}={v!r}' for k, v in self.tag_args.items())
         if tag_args:
             tag_args = ', ' + tag_args
-
-        return (
-            f"cirq_google.InternalTag(name='{self.name}', " f"package='{self.package}'{tag_args})"
-        )
+        return f"cirq_google.InternalTag(name='{self.name}', package='{self.package}'{tag_args})"
 
     def _json_dict_(self) -> Dict[str, Any]:
         return dict(name=self.name, package=self.package, **self.tag_args)

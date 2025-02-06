@@ -3,4 +3,5 @@
     "name": "IdleWaitTag",
     "package": "internal.module",
     "phase_match": true,
-    "pad_ns": 20.0}
+    "pad_ns": 20.0
+}

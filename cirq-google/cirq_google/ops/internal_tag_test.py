@@ -29,19 +29,17 @@ def test_internal_tag():
         str(g) == "internal_module.IdleWaitTag("
         "phase_match=True, pad_ns=10, pad_start=True, pad_end=False)"
     )
-    want_repr = (
-        "cirq_google.InternalTag(name='IdleWaitTag', "
+    assert (
+        repr(g) == "cirq_google.InternalTag(name='IdleWaitTag', "
         "package='internal_module', phase_match=True, "
         "pad_ns=10, pad_start=True, pad_end=False)"
     )
-    assert repr(g) == want_repr
 
 
 def test_internal_tag_with_no_args():
     g = cirq_google.InternalTag(name="TagWithNoArgs", package='test')
     assert str(g) == 'test.TagWithNoArgs()'
-    want_repr = "cirq_google.InternalTag(name='TagWithNoArgs', package='test')"
-    assert repr(g) == want_repr
+    assert repr(g) == "cirq_google.InternalTag(name='TagWithNoArgs', package='test')"
 
 
 def test_internal_tag_with_hashable_args_is_hashable():
