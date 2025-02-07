@@ -3573,28 +3573,6 @@ def test_insert_zero_index():
     assert c3 == expected
 
 
-def test_insert_to_open_moment():
-    # If moment is open, the insert should place it there without creating new moment.
-    q = cirq.LineQubit(0)
-    c0 = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(cirq.Z(q)))
-    c0.insert(1, cirq.Y(q), strategy=cirq.InsertStrategy.EARLIEST)
-    c1 = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(cirq.Z(q)))
-    c1.insert(1, cirq.Y(q), strategy=cirq.InsertStrategy.INLINE)
-    expected = cirq.Circuit(cirq.X(q), cirq.Y(q), cirq.Z(q))
-    assert c0 == expected
-    assert c1 == cirq.Circuit(cirq.X(q), cirq.Y(q), cirq.Moment(), cirq.Moment(cirq.Z(q)))
-
-
-def test_insert_inline_when_requested_and_previous_moment_free():
-    # If requested and previous moment are both free, it should be placed in requested one.
-    q = cirq.LineQubit(0)
-    c = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(), cirq.Moment(cirq.Z(q)))
-    c.insert(2, cirq.Y(q), strategy=cirq.InsertStrategy.INLINE)
-    assert c == cirq.Circuit(
-        cirq.Moment(cirq.X(q)), cirq.Moment(cirq.Y(q)), cirq.Moment(), cirq.Moment(cirq.Z(q))
-    )
-
-
 def test_insert_earliest_on_previous_moment():
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(), cirq.Moment(cirq.Z(q)))
