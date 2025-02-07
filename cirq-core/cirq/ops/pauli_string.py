@@ -305,10 +305,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         )
 
     def __rmul__(self, other) -> 'PauliString':
-        if isinstance(other, numbers.Number):
+        if isinstance(other, numbers.Complex):
             return PauliString(
-                qubit_pauli_map=self._qubit_pauli_map,
-                coefficient=self._coefficient * complex(cast(SupportsComplex, other)),
+                qubit_pauli_map=self._qubit_pauli_map, coefficient=self._coefficient * other
             )
 
         if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
@@ -318,10 +317,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return NotImplemented
 
     def __truediv__(self, other):
-        if isinstance(other, numbers.Number):
+        if isinstance(other, numbers.Complex):
             return PauliString(
-                qubit_pauli_map=self._qubit_pauli_map,
-                coefficient=self._coefficient / complex(cast(SupportsComplex, other)),
+                qubit_pauli_map=self._qubit_pauli_map, coefficient=self._coefficient / other
             )
         return NotImplemented
 
