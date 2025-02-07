@@ -13,8 +13,6 @@
 # limitations under the License.
 from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING
 
-import sympy
-
 from cirq import value, protocols
 from cirq.ops import raw_types
 
