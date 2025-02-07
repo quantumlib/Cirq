@@ -471,6 +471,8 @@ def _strat_apply_unitary_from_unitary(
 ) -> Optional[np.ndarray]:
     if isinstance(unitary_value, np.ndarray):
         matrix = unitary_value
+        # if not linalg.is_unitary(matrix):
+        #     return None
     else:
         # Check for magic method.
         method = getattr(unitary_value, '_unitary_', None)

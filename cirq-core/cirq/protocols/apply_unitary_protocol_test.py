@@ -54,7 +54,7 @@ def test_apply_unitary_presence_absence():
             args.target_tensor[one] *= -1
             return args.target_tensor
 
-    fails = [NoUnitaryEffect(), HasApplyReturnsNotImplemented()]
+    fails = [NoUnitaryEffect(), HasApplyReturnsNotImplemented(), m * 2]
     passes = [
         HasUnitary(),
         HasApplyReturnsNotImplementedButHasUnitary(),
