@@ -28,7 +28,6 @@ from typing import (
     Optional,
     overload,
     Sequence,
-    SupportsComplex,
     Tuple,
     TYPE_CHECKING,
     TypeVar,
@@ -271,9 +270,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         pass
 
     @overload
-    def __mul__(
-        self, other: Union[complex, int, float, numbers.Number]
-    ) -> 'cirq.PauliString[TKey]':
+    def __mul__(self, other: complex) -> 'cirq.PauliString[TKey]':
         pass
 
     def __mul__(self, other):
@@ -308,10 +305,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         )
 
     def __rmul__(self, other) -> 'PauliString':
-        if isinstance(other, numbers.Number):
+        if isinstance(other, numbers.Complex):
             return PauliString(
-                qubit_pauli_map=self._qubit_pauli_map,
-                coefficient=self._coefficient * complex(cast(SupportsComplex, other)),
+                qubit_pauli_map=self._qubit_pauli_map, coefficient=self._coefficient * other
             )
 
         if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
@@ -321,10 +317,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return NotImplemented
 
     def __truediv__(self, other):
-        if isinstance(other, numbers.Number):
+        if isinstance(other, numbers.Complex):
             return PauliString(
-                qubit_pauli_map=self._qubit_pauli_map,
-                coefficient=self._coefficient / complex(cast(SupportsComplex, other)),
+                qubit_pauli_map=self._qubit_pauli_map, coefficient=self._coefficient / other
             )
         return NotImplemented
 
@@ -518,7 +513,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
             return None
-        assert isinstance(self.coefficient, complex)
+        assert isinstance(self.coefficient, numbers.Complex)
         if self.coefficient != 1:
             args.target_tensor *= self.coefficient
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits], self.qubits, args)
@@ -792,9 +787,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        """Override behavior of numpy's exp method."""
+        """Override numpy behavior."""
         if ufunc == np.exp and len(inputs) == 1 and inputs[0] is self:
             return math.e**self
+        if ufunc == np.multiply and len(inputs) == 2 and inputs[1] is self:
+            return self * inputs[0]
         return NotImplemented
 
     def __pow__(self, power):
@@ -1174,14 +1171,14 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def __mul__(self, other):
         if isinstance(other, SingleQubitPauliStringGateOperation):
             return self._as_pauli_string() * other._as_pauli_string()
-        if isinstance(other, (PauliString, complex, float, int)):
+        if isinstance(other, (PauliString, numbers.Complex)):
             return self._as_pauli_string() * other
         if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
             return self * as_pauli_string
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (PauliString, complex, float, int)):
+        if isinstance(other, (PauliString, numbers.Complex)):
             return other * self._as_pauli_string()
         if (as_pauli_string := _try_interpret_as_pauli_string(other)) is not None:
             return as_pauli_string * self
@@ -1430,8 +1427,8 @@ class MutablePauliString(Generic[TKey]):
                 pauli_int = _pauli_like_to_pauli_int(qubit, pauli_gate_like)
                 phase_log_i += self._imul_atom_helper(cast(TKey, qubit), pauli_int, sign)
             self.coefficient *= 1j ** (phase_log_i & 3)
-        elif isinstance(other, numbers.Number):
-            self.coefficient *= complex(cast(SupportsComplex, other))
+        elif isinstance(other, numbers.Complex):
+            self.coefficient *= other
         elif isinstance(other, raw_types.Operation) and isinstance(
             other.gate, identity.IdentityGate
         ):

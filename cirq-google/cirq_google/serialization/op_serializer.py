@@ -162,7 +162,7 @@ class CircuitOpSerializer(OpSerializer):
         for p1, p2 in op.param_resolver.param_dict.items():
             entry = msg.arg_map.entries.add()
             arg_to_proto(p1, out=entry.key, arg_function_language=arg_function_language)
-            if isinstance(p2, (complex, numbers.Complex)):
+            if isinstance(p2, numbers.Complex):
                 if isinstance(p2, numbers.Real):
                     p2 = float(p2)
                 else:

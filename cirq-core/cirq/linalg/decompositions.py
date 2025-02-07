@@ -283,13 +283,7 @@ class AxisAngleDecomposition:
     rotation axis, and g is the global phase.
     """
 
-    def __init__(
-        self,
-        *,
-        angle: float,
-        axis: Tuple[float, float, float],
-        global_phase: Union[int, float, complex],
-    ):
+    def __init__(self, *, angle: float, axis: Tuple[float, float, float], global_phase: complex):
         if not np.isclose(np.linalg.norm(axis, 2), 1, atol=1e-8):
             raise ValueError('Axis vector must be normalized.')
         self.global_phase = complex(global_phase)
@@ -634,7 +628,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = cast(mplot3d.axes3d.Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
     def coord_transform(
-        pts: Union[List[Tuple[int, int, int]], np.ndarray]
+        pts: Union[List[Tuple[int, int, int]], np.ndarray],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         if len(pts) == 0:
             return np.array([]), np.array([]), np.array([])
