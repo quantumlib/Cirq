@@ -597,6 +597,8 @@ def test_numpy_ufunc():
         _ = np.exp(cirq.PauliString())
     x = np.exp(1j * np.pi * cirq.PauliString())
     assert x is not None
+    x = np.int64(2) * cirq.PauliString()
+    assert x == 2 * cirq.PauliString()
 
 
 def test_map_qubits():

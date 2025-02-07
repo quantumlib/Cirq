@@ -59,7 +59,7 @@ export class GridQubit extends Group {
       new Vector3(
         this.row * padding_factor,
         moments * padding_factor,
-        this.col * padding_factor
+        this.col * padding_factor,
       ),
     ];
     return new QubitLine(coords[0], coords[1]);
@@ -71,8 +71,8 @@ export class GridQubit extends Group {
       new Vector3(
         this.row * padding_factor,
         -0.6 * padding_factor,
-        this.col * padding_factor
-      )
+        this.col * padding_factor,
+      ),
     );
     return sprite;
   }

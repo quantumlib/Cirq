@@ -65,7 +65,7 @@ export class StateVector extends Group {
     x: number,
     y: number,
     z: number,
-    blochSphereRadius: number
+    blochSphereRadius: number,
   ) {
     const directionVector = new Vector3(x, y, z);
 
@@ -92,7 +92,7 @@ export class StateVector extends Group {
       newLength,
       hex,
       undefined,
-      headWidth
+      headWidth,
     );
 
     const arrowLine = arrowHelper.line.material as LineBasicMaterial;

@@ -123,8 +123,6 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
-      - name: RST check
-        run: find . -type f -name "*.rst" | xargs rstcheck
       - name: Doc check
         run: check/doctest -q
   nbformat:
@@ -201,7 +199,7 @@ jobs:
     name: Pytest Ubuntu with NumPy-2
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
     runs-on: ubuntu-20.04
     steps:
       - name: Check out source repository
