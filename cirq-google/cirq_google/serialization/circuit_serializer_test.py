@@ -154,6 +154,7 @@ OPERATIONS = [
             {
                 'zpowgate': {'exponent': {'float_value': 0.5}, 'is_physical_z': True},
                 'qubit_constant_index': [0],
+                'tag_indices': [1],
             }
         ),
     ),
@@ -250,6 +251,7 @@ OPERATIONS = [
                     'translate_via_model': True,
                 },
                 'qubit_constant_index': [0, 1],
+                'tag_indices': [2],
             }
         ),
     ),
@@ -327,6 +329,9 @@ def test_serialize_deserialize_ops(op, op_proto):
 
     for q in op.qubits:
         constants.append(v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id=f'{q.row}_{q.col}')))
+    for tag in op.tags:
+        constants.append(v2.program_pb2.Constant(tag_value=tag.to_proto()))
+
     # Serialize / Deserializer circuit with single operation
     circuit = cirq.Circuit(op)
     circuit_proto = v2.program_pb2.Program(
@@ -834,8 +839,16 @@ def test_circuit_with_couplerpulse():
     assert cg.CIRCUIT_SERIALIZER.deserialize(msg) == circuit
 
 
-def test_circuit_with_dd_tag():
-    tag = cg.ops.DynamicalDecouplingTag('X')
+@pytest.mark.parametrize(
+    'tag',
+    [
+        cg.ops.DynamicalDecouplingTag('X'),
+        cg.FSimViaModelTag(),
+        cg.PhysicalZTag(),
+        cg.InternalTag(name='abc', package='xyz'),
+    ],
+)
+def test_circuit_with_tag(tag):
     c = cirq.Circuit(cirq.X(cirq.q(0)).with_tags(tag))
     msg = cg.CIRCUIT_SERIALIZER.serialize(c)
     nc = cg.CIRCUIT_SERIALIZER.deserialize(msg)

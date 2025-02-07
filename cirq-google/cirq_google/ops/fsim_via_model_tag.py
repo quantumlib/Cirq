@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A class that can be used to denote FSim gate implementation using polynomial model."""
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import cirq
+from cirq_google.api.v2 import program_pb2
 
 
 class FSimViaModelTag:
@@ -42,3 +43,14 @@ class FSimViaModelTag:
 
     def __hash__(self) -> int:
         return hash("FSimViaModelTag")
+
+    def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
+        if msg is None:
+            msg = program_pb2.Tag()
+        tag_proto = program_pb2.FSimViaModelTag()
+        msg.fsim_via_model.CopyFrom(tag_proto)
+        return msg
+
+    @staticmethod
+    def from_proto(msg: program_pb2.Tag) -> 'FSimViaModelTag':
+        return FSimViaModelTag()

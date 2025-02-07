@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from cirq import value
+from cirq_google.api.v2 import program_pb2
+
+# from cirq_google.serialization import arg_func_langs
 
 
 @value.value_equality
@@ -57,3 +60,22 @@ class InternalTag:
         except TypeError:
             tag_args_eq_values = self.tag_args
         return (self.name, self.package, tag_args_eq_values)
+
+    def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
+        if msg is None:
+            msg = program_pb2.Tag()
+        msg.internal_tag.tag_name = self.name
+        msg.internal_tag.tag_package = self.package
+        # for k, v in self.tag_args.items():
+        #    arg_func_langs.arg_to_proto(
+        #        v, out=msg.internal_tag.tag_args[k]
+        #    )
+        return msg
+
+    @staticmethod
+    def from_proto(msg: program_pb2.Tag) -> 'PhysicalZTag':
+        return InternalTag(
+            name=msg.internal_tag.tag_name,
+            package=msg.internal_tag.tag_package,
+            **msg.internal_tag.tag_args,
+        )
