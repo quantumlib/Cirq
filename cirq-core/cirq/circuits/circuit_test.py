@@ -800,7 +800,7 @@ def test_insert_op_tree_inline():
     op_tree_list = [
         (1, 1, [cirq.H(a), cirq.X(b)], [a, b]),
         (0, 0, [cirq.X(b)], [b]),
-        (4, 2, [cirq.H(b)], [b]),
+        (4, 3, [cirq.H(b)], [b]),
         (5, 3, [cirq.H(a)], [a]),
         (-2, 0, [cirq.X(b)], [b]),
         (-5, 0, [cirq.CZ(a, b)], [a]),
@@ -865,13 +865,20 @@ def test_insert_inline_near_start():
     c = cirq.Circuit([cirq.Moment(), cirq.Moment()])
 
     c.insert(1, cirq.X(a), strategy=cirq.InsertStrategy.INLINE)
-    assert c == cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.X(a)))
+    assert c == cirq.Circuit([cirq.Moment([cirq.X(a)]), cirq.Moment()])
 
     c.insert(1, cirq.Y(a), strategy=cirq.InsertStrategy.INLINE)
-    assert c == cirq.Circuit(cirq.Moment(cirq.Y(a)), cirq.Moment(cirq.X(a)))
+    assert c == cirq.Circuit([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(a)]), cirq.Moment()])
 
     c.insert(0, cirq.Z(b), strategy=cirq.InsertStrategy.INLINE)
-    assert c == cirq.Circuit([cirq.Moment(cirq.Z(b), cirq.Y(a)), cirq.Moment(cirq.X(a))])
+    assert c == cirq.Circuit(
+        [
+            cirq.Moment([cirq.Z(b)]),
+            cirq.Moment([cirq.X(a)]),
+            cirq.Moment([cirq.Y(a)]),
+            cirq.Moment(),
+        ]
+    )
 
 
 def test_insert_at_frontier_init():
@@ -3575,7 +3582,7 @@ def test_insert_to_open_moment():
     c1.insert(1, cirq.Y(q), strategy=cirq.InsertStrategy.INLINE)
     expected = cirq.Circuit(cirq.X(q), cirq.Y(q), cirq.Z(q))
     assert c0 == expected
-    assert c1 == expected
+    assert c1 == cirq.Circuit(cirq.X(q), cirq.Y(q), cirq.Moment(), cirq.Moment(cirq.Z(q)))
 
 
 def test_insert_inline_when_requested_and_previous_moment_free():
@@ -3584,7 +3591,7 @@ def test_insert_inline_when_requested_and_previous_moment_free():
     c = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(), cirq.Moment(cirq.Z(q)))
     c.insert(2, cirq.Y(q), strategy=cirq.InsertStrategy.INLINE)
     assert c == cirq.Circuit(
-        cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(cirq.Y(q)), cirq.Moment(cirq.Z(q))
+        cirq.Moment(cirq.X(q)), cirq.Moment(cirq.Y(q)), cirq.Moment(), cirq.Moment(cirq.Z(q))
     )
 
 

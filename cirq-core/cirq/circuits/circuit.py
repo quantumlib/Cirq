@@ -2144,11 +2144,14 @@ class Circuit(AbstractCircuit):
                 and not isinstance(batch[0], Moment)
                 and strategy in [InsertStrategy.INLINE, InsertStrategy.EARLIEST]
                 and not all(
-                    self._can_add_op_at(k, op) or k > 0 and self._can_add_op_at(k - 1, op)
+                    (strategy is InsertStrategy.EARLIEST and self._can_add_op_at(k, op))
+                    or (k > 0 and self._can_add_op_at(k - 1, op))
                     for op in cast(List['cirq.Operation'], batch)
                 )
             ):
                 self._moments.insert(k, Moment())
+                if strategy is InsertStrategy.INLINE:
+                    k += 1
             max_p = 0
             for moment_or_op in batch:
                 # Determine Placement
@@ -2159,11 +2162,10 @@ class Circuit(AbstractCircuit):
                 elif strategy in [InsertStrategy.NEW, InsertStrategy.NEW_THEN_INLINE]:
                     self._moments.insert(k, Moment())
                     p = k
-                else:  # [InsertStrategy.INLINE, InsertStrategy.EARLIEST]
-                    # At least one of k or k-1 is free due to batch's moment insertion check above
-                    p = k if self._can_add_op_at(k, moment_or_op) else k - 1
-                    if strategy is InsertStrategy.EARLIEST:
-                        p = self.earliest_available_moment(moment_or_op, end_moment_index=p)
+                elif strategy is InsertStrategy.INLINE:
+                    p = k - 1
+                else:  # InsertStrategy.EARLIEST:
+                    p = self.earliest_available_moment(moment_or_op, end_moment_index=k)
                 # Place
                 if isinstance(moment_or_op, Moment):
                     self._moments.insert(p, moment_or_op)
@@ -2175,6 +2177,7 @@ class Circuit(AbstractCircuit):
                 max_p = max(p, max_p)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
                     strategy = InsertStrategy.INLINE
+                    k += 1
             k = max(k, max_p + 1)
         self._mutated(preserve_placement_cache=True)
         return k
