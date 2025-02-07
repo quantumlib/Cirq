@@ -25,7 +25,6 @@ from typing import (
     Sequence,
     Tuple,
     TYPE_CHECKING,
-    Union,
 )
 
 import numpy as np
@@ -45,23 +44,11 @@ if TYPE_CHECKING:
 
 _HorizontalLine = NamedTuple(
     '_HorizontalLine',
-    [
-        ('y', Union[int, float]),
-        ('x1', Union[int, float]),
-        ('x2', Union[int, float]),
-        ('emphasize', bool),
-        ('doubled', bool),
-    ],
+    [('y', float), ('x1', float), ('x2', float), ('emphasize', bool), ('doubled', bool)],
 )
 _VerticalLine = NamedTuple(
     '_VerticalLine',
-    [
-        ('x', Union[int, float]),
-        ('y1', Union[int, float]),
-        ('y2', Union[int, float]),
-        ('emphasize', bool),
-        ('doubled', bool),
-    ],
+    [('x', float), ('y1', float), ('y2', float), ('emphasize', bool), ('doubled', bool)],
 )
 _DiagramText = NamedTuple('_DiagramText', [('text', str), ('transposed_text', str)])
 
@@ -99,10 +86,10 @@ class TextDiagramDrawer:
         self.vertical_lines: List[_VerticalLine] = (
             [] if vertical_lines is None else list(vertical_lines)
         )
-        self.horizontal_padding: Dict[int, Union[int, float]] = (
+        self.horizontal_padding: Dict[int, float] = (
             dict() if horizontal_padding is None else dict(horizontal_padding)
         )
-        self.vertical_padding: Dict[int, Union[int, float]] = (
+        self.vertical_padding: Dict[int, float] = (
             dict() if vertical_padding is None else dict(vertical_padding)
         )
 
@@ -171,24 +158,14 @@ class TextDiagramDrawer:
             raise ValueError("Line is neither horizontal nor vertical")
 
     def vertical_line(
-        self,
-        x: Union[int, float],
-        y1: Union[int, float],
-        y2: Union[int, float],
-        emphasize: bool = False,
-        doubled: bool = False,
+        self, x: float, y1: float, y2: float, emphasize: bool = False, doubled: bool = False
     ) -> None:
         """Adds a line from (x, y1) to (x, y2)."""
         y1, y2 = sorted([y1, y2])
         self.vertical_lines.append(_VerticalLine(x, y1, y2, emphasize, doubled))
 
     def horizontal_line(
-        self,
-        y: Union[int, float],
-        x1: Union[int, float],
-        x2: Union[int, float],
-        emphasize: bool = False,
-        doubled: bool = False,
+        self, y: float, x1: float, x2: float, emphasize: bool = False, doubled: bool = False
     ) -> None:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
@@ -228,26 +205,21 @@ class TextDiagramDrawer:
             max_y = max(max_y, v.y1, v.y2)
         return 1 + int(max_y)
 
-    def force_horizontal_padding_after(self, index: int, padding: Union[int, float]) -> None:
+    def force_horizontal_padding_after(self, index: int, padding: float) -> None:
         """Change the padding after the given column."""
         self.horizontal_padding[index] = padding
 
-    def force_vertical_padding_after(self, index: int, padding: Union[int, float]) -> None:
+    def force_vertical_padding_after(self, index: int, padding: float) -> None:
         """Change the padding after the given row."""
         self.vertical_padding[index] = padding
 
-    def _transform_coordinates(
-        self,
-        func: Callable[
-            [Union[int, float], Union[int, float]], Tuple[Union[int, float], Union[int, float]]
-        ],
-    ) -> None:
+    def _transform_coordinates(self, func: Callable[[float, float], Tuple[float, float]]) -> None:
         """Helper method to transformer either row or column coordinates."""
 
-        def func_x(x: Union[int, float]) -> Union[int, float]:
+        def func_x(x: float) -> float:
             return func(x, 0)[0]
 
-        def func_y(y: Union[int, float]) -> Union[int, float]:
+        def func_y(y: float) -> float:
             return func(0, y)[1]
 
         self.entries = {
@@ -271,9 +243,7 @@ class TextDiagramDrawer:
     def insert_empty_columns(self, x: int, amount: int = 1) -> None:
         """Insert a number of columns after the given column."""
 
-        def transform_columns(
-            column: Union[int, float], row: Union[int, float]
-        ) -> Tuple[Union[int, float], Union[int, float]]:
+        def transform_columns(column: float, row: float) -> Tuple[float, float]:
             return column + (amount if column >= x else 0), row
 
         self._transform_coordinates(transform_columns)
@@ -281,9 +251,7 @@ class TextDiagramDrawer:
     def insert_empty_rows(self, y: int, amount: int = 1) -> None:
         """Insert a number of rows after the given row."""
 
-        def transform_rows(
-            column: Union[int, float], row: Union[int, float]
-        ) -> Tuple[Union[int, float], Union[int, float]]:
+        def transform_rows(column: float, row: float) -> Tuple[float, float]:
             return column, row + (amount if row >= y else 0)
 
         self._transform_coordinates(transform_rows)
