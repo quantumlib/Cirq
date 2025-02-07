@@ -337,13 +337,13 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __neg__(self) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=-1)
 
-    def __mul__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __mul__(self, other: complex) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=other)
 
-    def __rmul__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __rmul__(self, other: complex) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=other)
 
-    def __truediv__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __truediv__(self, other: complex) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=1 / other)
 
     def __pow__(self, power):

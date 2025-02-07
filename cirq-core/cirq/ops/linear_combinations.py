@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[
-    int, float, complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
+    complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
 document(
     PauliSumLike,

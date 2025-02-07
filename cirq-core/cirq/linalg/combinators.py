@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from numpy.typing import DTypeLike, ArrayLike
 
 
-def kron(*factors: Union[np.ndarray, complex, float], shape_len: int = 2) -> np.ndarray:
+def kron(*factors: Union[np.ndarray, complex], shape_len: int = 2) -> np.ndarray:
     """Computes the kronecker product of a sequence of values.
 
     A *args version of lambda args: functools.reduce(np.kron, args).
@@ -56,7 +56,7 @@ document(
 )
 
 
-def kron_with_controls(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
+def kron_with_controls(*factors: Union[np.ndarray, complex]) -> np.ndarray:
     """Computes the kronecker product of a sequence of values and control tags.
 
     Use `cirq.CONTROL_TAG` to represent controls. Any entry of the output
