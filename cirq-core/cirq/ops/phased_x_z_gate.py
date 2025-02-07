@@ -195,7 +195,7 @@ class PhasedXZGate(raw_types.Gate):
         yield ops.X(q) ** self._x_exponent
         yield ops.Z(q) ** (self._axis_phase_exponent + self._z_exponent)
 
-    def __pow__(self, exponent: Union[float, int]) -> 'PhasedXZGate':
+    def __pow__(self, exponent: float) -> 'PhasedXZGate':
         if exponent == 1:
             return self
         if exponent == -1:
