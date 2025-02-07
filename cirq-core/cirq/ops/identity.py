@@ -13,6 +13,7 @@
 # limitations under the License.
 """IdentityGate."""
 
+import numbers
 from types import NotImplementedType
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence, Union
 
@@ -72,7 +73,7 @@ class IdentityGate(raw_types.Gate):
         return len(self._qid_shape)
 
     def __pow__(self, power: Any) -> Any:
-        if isinstance(power, (int, float, complex, sympy.Basic)):
+        if isinstance(power, (numbers.Complex, sympy.Basic)):
             return self
         return NotImplemented
 
@@ -126,7 +127,7 @@ class IdentityGate(raw_types.Gate):
     def _mul_with_qubits(self, qubits: Tuple['cirq.Qid', ...], other):
         if isinstance(other, raw_types.Operation):
             return other
-        if isinstance(other, (complex, float, int)):
+        if isinstance(other, numbers.Complex):
             from cirq.ops.pauli_string import PauliString
 
             return PauliString(coefficient=other)

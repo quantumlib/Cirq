@@ -269,7 +269,7 @@ class _ParamFlattener(resolver.ParamResolver):
             The unique symbol or value of the parameter as resolved by this
             resolver.
         """
-        if isinstance(value, (int, float, complex, numbers.Complex)):
+        if isinstance(value, numbers.Complex):
             return value
         if isinstance(value, str):
             value = sympy.Symbol(value)
@@ -380,7 +380,7 @@ class ExpressionMap(dict):
 
 
 def _ensure_not_str(
-    param: Union[sympy.Expr, 'cirq.TParamValComplex', str]
+    param: Union[sympy.Expr, 'cirq.TParamValComplex', str],
 ) -> Union[sympy.Expr, 'cirq.TParamValComplex']:
     if isinstance(param, str):
         return sympy.Symbol(param)

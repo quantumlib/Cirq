@@ -217,7 +217,7 @@ class AbstractCircuit(abc.ABC):
             and all(m0 == m1 for m0, m1 in zip(self.moments, other.moments))
         )
 
-    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+    def _approx_eq_(self, other: Any, atol: float) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, AbstractCircuit):
             return NotImplemented
