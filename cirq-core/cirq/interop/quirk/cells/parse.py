@@ -86,7 +86,7 @@ def _tokenize(text: str) -> List[str]:
     return _merge_scientific_float_tokens(g for g in result if g.strip())
 
 
-_ResolvedToken = Union[sympy.Expr, int, float, complex]
+_ResolvedToken = Union[sympy.Expr, complex]
 
 
 class _CustomQuirkOperationToken:

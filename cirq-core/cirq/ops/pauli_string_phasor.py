@@ -392,14 +392,14 @@ class PauliStringPhasorGate(raw_types.Gate):
     ) -> 'PauliStringPhasorGate':
         exponent_neg = resolver.value_of(self.exponent_neg, recursive)
         exponent_pos = resolver.value_of(self.exponent_pos, recursive)
-        if isinstance(exponent_neg, (complex, numbers.Complex)):
+        if isinstance(exponent_neg, numbers.Complex):
             if isinstance(exponent_neg, numbers.Real):
                 exponent_neg = float(exponent_neg)
             else:
                 raise ValueError(
                     f'PauliStringPhasorGate does not support complex exponent {exponent_neg}'
                 )
-        if isinstance(exponent_pos, (complex, numbers.Complex)):
+        if isinstance(exponent_pos, numbers.Complex):
             if isinstance(exponent_pos, numbers.Real):
                 exponent_pos = float(exponent_pos)
             else:
