@@ -23,6 +23,7 @@ from typing_extensions import Protocol
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols.has_unitary_protocol import has_unitary
+from cirq.protocols.unitary_protocol import unitary
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -84,14 +85,14 @@ def mixture(
         with that probability in the mixture. The probabilities will sum to 1.0.
 
     Raises:
-        TypeError: If `val` has no `_mixture_` or `_unitary_` mehod, or if it
+        TypeError: If `val` has no `_mixture_` or `_unitary_` method, or if it
             does and this method returned `NotImplemented`.
     """
 
     mixture_getter = getattr(val, '_mixture_', None)
     result = NotImplemented if mixture_getter is None else mixture_getter()
     if result is not NotImplemented:
-        return result
+        return tuple((p, u if isinstance(u, np.ndarray) else unitary(u)) for p, u in result)
 
     unitary_getter = getattr(val, '_unitary_', None)
     result = NotImplemented if unitary_getter is None else unitary_getter()
