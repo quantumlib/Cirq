@@ -23,7 +23,6 @@ from typing_extensions import Protocol
 from cirq import linalg
 from cirq._doc import doc_private
 from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
-from cirq.protocols.mixture_protocol import mixture
 from cirq.protocols import qid_shape_protocol
 
 # This is a special indicator value used by the apply_mixture method
