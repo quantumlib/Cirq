@@ -291,26 +291,23 @@ def test_repr():
 
 def test_str_full():
     t = cirq.CliffordTableau(num_qubits=1)
-    expected_str = r"""stable | destable
+    expected_str = r"""stable | destable 
 -------+----------
-+ Z0   | + X0
-"""
++ Z0   | + X0     """
     assert t._str_full_() == expected_str
 
     t = cirq.CliffordTableau(num_qubits=1)
     _S(t, 0)
-    expected_str = r"""stable | destable
+    expected_str = r"""stable | destable 
 -------+----------
-+ Z0   | + Y0
-"""
++ Z0   | + Y0     """
     assert t._str_full_() == expected_str
 
     t = cirq.CliffordTableau(num_qubits=2)
-    expected_str = r"""stable | destable
+    expected_str = r"""stable | destable 
 -------+----------
-+ Z0   | + X0  
-+   Z1 | +   X1
-"""
++ Z0   | + X0     
++   Z1 | +   X1   """
     assert t._str_full_() == expected_str
 
 
