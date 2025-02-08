@@ -82,9 +82,6 @@ class ReturnsMixtureOfReturnsUnitary(cirq.SupportsMixture):
     def _mixture_(self):
         return ((0.4, ReturnsUnitary()), (0.6, ReturnsUnitary()))
 
-    def _has_mixture_(self):
-        return True
-
 
 @pytest.mark.parametrize(
     'val,mixture',
