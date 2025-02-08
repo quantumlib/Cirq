@@ -78,7 +78,7 @@ class ReturnsNotImplementedUnitary:
         return NotImplemented
 
 
-class ReturnsMixtureOfReturnsUnitary(cirq.SupportsMixture):
+class ReturnsMixtureOfReturnsUnitary:
     def _mixture_(self):
         return ((0.4, ReturnsUnitary()), (0.6, ReturnsUnitary()))
 
