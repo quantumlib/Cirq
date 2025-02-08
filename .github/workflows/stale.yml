@@ -1,4 +1,4 @@
-# Summary: perform stale issue & PR handling on a schedule
+# Summary: perform stale issue & PR handling on a schedule.
 # For more info, see https://github.com/actions/stale/
 
 name: "Label and close stale issues & PRs"
@@ -29,29 +29,54 @@ jobs:
         debug-only: ${{inputs.debug || false}}
         days-before-stale: 90
         days-before-close: 60
-        stale-issue-label: 'status/stale'
-        stale-pr-label: 'status/stale'
+        stale-issue-label: 'status/going-stale'
+        stale-pr-label: 'status/going-stale'
+        close-issue-label: 'status/stale'
+        close-pr-label: 'status/stale'
         exempt-issue-labels: 'triage/accepted,triage/discuss,kind/design-issue,kind/health,kind/roadmap-item,kind/task'
+        exempt-pr-labels: 'triage/accepted,kind/roadmap-item'
         stale-issue-message: >
           This issue has been automatically labeled as stale because 90 days
           have passed without comments or other activity. If no further
-          activity occurs and the `status/stale` label is not removed within
-          60 days, it will be closed. If you believe this is in error or would
-          like to discuss it further, please leave a comment here.
+          activity occurs on this issue and the `status/stale` label is not
+          removed by a maintainer within 60 days, this issue will be closed. If
+          you would like to restore its status, please leave a comment here;
+          doing so will cause the staleness handler to remove the label.
+
+          If you have questions or feedback about this process, we welcome your
+          input. You can open a new issue to let us know (please also reference
+          this issue there, for continuity), or reach out to the project
+          maintainers at quantum-oss-maintainers@google.com.
         stale-pr-message: >
           This pull request has been automatically labeled as stale because 90
           days have passed without comments or other activity. If no further
-          activity occurs and the `status/stale` label is not removed within 60
-          days, it will be closed. If you believe this is in error or would
-          like to discuss it further, please leave a comment here.
+          activity occurs and the `status/stale` label is not removed by a
+          maintainer within 60 days, this pull request will be closed. If you
+          would like to restore its active status, please leave a comment here;
+          doing so will cause the staleness handler to remove the label.
+
+          If you have questions or feedback about this process, we welcome your
+          input. You can open a new issue to let us know (please also reference
+          this issue there, for continuity), or reach out to the project
+          maintainers at quantum-oss-maintainers@google.com.
         close-issue-message: >
           This issue has been closed due to inactivity for 60 days since the
-          time the stale label was applied. If you believe this is in error or
-          would like to discuss it further, please either open a new issue
-          (and reference this one in it, for continuity) or reach out to the
-          Cirq project maintainers at quantum-oss-maintainers@google.com.
+          time the `status/stale` label was applied. If you believe the issue
+          is still relevant and would like to restore its status, please leave
+          a comment here; doing so will cause the staleness handler to remove
+          the label.
+
+          If you have questions or feedback about this process, we welcome your
+          input. You can open a new issue to let us know (please also reference
+          this issue there, for continuity), or reach out to the project
+          maintainers at quantum-oss-maintainers@google.com.
         close-pr-message: >
-          This pull-request has been closed due to inactivity for 60 days
-          since the time the stale label was applied. If you believe this is
-          in error or would like to discuss it further, please reach out to
-          the Cirq project maintainers at quantum-oss-maintainers@google.com.
+          This pull request has been closed due to inactivity for 60 days since
+          the time the `status/stale` label was applied. If you would like to
+          restore its active status, please leave a comment here; doing so will
+          cause the staleness handler to remove the label.
+
+          If you have questions or feedback about this process, we welcome your
+          input. You can open a new issue to let us know (please also reference
+          this issue there, for continuity), or reach out to the project
+          maintainers at quantum-oss-maintainers@google.com.
