@@ -15,6 +15,7 @@ import abc
 import fractions
 import math
 import numbers
+from functools import cached_property
 from types import NotImplementedType
 from typing import (
     AbstractSet,
@@ -25,6 +26,7 @@ from typing import (
     List,
     NamedTuple,
     Optional,
+    Sequence,
     Tuple,
     TYPE_CHECKING,
     Union,
@@ -34,7 +36,6 @@ import numpy as np
 import sympy
 
 from cirq import value, protocols
-from cirq.linalg import tolerance
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -92,7 +93,10 @@ class EigenGate(raw_types.Gate):
     """
 
     def __init__(
-        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0  # Forces keyword args.
+        self,
+        *,
+        exponent: value.TParamVal = 1.0,
+        global_shift: Union[float, Tuple[float, ...]] = 0.0,
     ) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
@@ -112,6 +116,9 @@ class EigenGate(raw_types.Gate):
                 `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
 
+                This can also be a tuple, where each shift is applied to the
+                eigenvalue of the same index.
+
         Raises:
             ValueError: If the supplied exponent is a complex number with an
                 imaginary component.
@@ -121,6 +128,10 @@ class EigenGate(raw_types.Gate):
                 raise ValueError(f"Gate exponent must be real. Invalid Value: {exponent}")
             exponent = exponent.real
         self._exponent = exponent
+        if isinstance(global_shift, tuple):
+            eigen_count = len(self._eigen_shifts())
+            if len(global_shift) != eigen_count:
+                raise ValueError(f'{self} expected {eigen_count} phases, provided {global_shift}')
         self._global_shift = global_shift
         self._canonical_exponent_cached = None
 
@@ -128,9 +139,21 @@ class EigenGate(raw_types.Gate):
     def exponent(self) -> value.TParamVal:
         return self._exponent
 
-    @property
+    @cached_property
     def global_shift(self) -> float:
-        return self._global_shift
+        shift = self._global_shift
+        if isinstance(shift, numbers.Real):
+            return shift
+        elif isinstance(shift, Sequence) and all(g == shift[0] for g in shift):
+            return shift[0]
+        raise TypeError('global_shift is not defined. Each eigenspace has its own shift.')
+
+    @cached_property
+    def _phase_shifts(self) -> Tuple[float, ...]:
+        shift = self._global_shift
+        if isinstance(shift, Sequence):
+            return shift
+        return (shift,) * len(self._eigen_shifts())
 
     # virtual method
     def _with_exponent(self, exponent: value.TParamVal) -> 'EigenGate':
@@ -295,7 +318,7 @@ class EigenGate(raw_types.Gate):
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        exponents = {e + self._global_shift for e in self._eigen_shifts()}
+        exponents = {e + self._phase_shifts[i] for i, e in enumerate(self._eigen_shifts())}
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
@@ -305,30 +328,16 @@ class EigenGate(raw_types.Gate):
             return NotImplemented
         return self._with_exponent(exponent=new_exponent)
 
-    @property
-    def _canonical_exponent(self):
-        if self._canonical_exponent_cached is None:
-            period = self._period()
-            if not period:
-                self._canonical_exponent_cached = self._exponent
-            elif protocols.is_parameterized(self._exponent):
-                self._canonical_exponent_cached = self._exponent
-                if isinstance(self._exponent, sympy.Number):
-                    self._canonical_exponent_cached = float(self._exponent)
-            else:
-                self._canonical_exponent_cached = self._exponent % period
-        return self._canonical_exponent_cached
-
     def _value_equality_values_(self):
-        return self._canonical_exponent, self._global_shift
+        if isinstance(self._exponent, sympy.Expr) and not isinstance(self._exponent, sympy.Number):
+            return self._exponent, self._phase_shifts
+        return tuple(
+            value.PeriodicValue(float(self._exponent) * (self._phase_shifts[i] + e), 2)
+            for i, e in enumerate(self._eigen_shifts())
+        )
 
     def _value_equality_approximate_values_(self):
-        period = self._period()
-        if not period or protocols.is_parameterized(self._exponent):
-            exponent = self._exponent
-        else:
-            exponent = value.PeriodicValue(self._exponent, period)
-        return exponent, self._global_shift
+        return self._value_equality_values_()
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if protocols.is_parameterized(self._exponent):
@@ -345,8 +354,8 @@ class EigenGate(raw_types.Gate):
         e = cast(float, self._exponent)
         return np.sum(
             [
-                component * 1j ** (2 * e * (half_turns + self._global_shift))
-                for half_turns, component in self._eigen_components()
+                component * 1j ** (2 * e * (half_turns + self._phase_shifts[i]))
+                for i, (half_turns, component) in enumerate(self._eigen_components())
             ],
             axis=0,
         )
@@ -378,20 +387,9 @@ class EigenGate(raw_types.Gate):
             return False
         self_without_phase = self._with_exponent(self.exponent)
         self_without_phase._global_shift = 0
-        self_without_exp_or_phase = self_without_phase._with_exponent(0)
-        self_without_exp_or_phase._global_shift = 0
         other_without_phase = other._with_exponent(other.exponent)
         other_without_phase._global_shift = 0
-        other_without_exp_or_phase = other_without_phase._with_exponent(0)
-        other_without_exp_or_phase._global_shift = 0
-        if not protocols.approx_eq(
-            self_without_exp_or_phase, other_without_exp_or_phase, atol=atol
-        ):
-            return False
-
-        period = self_without_phase._period()
-        exponents_diff = exponents[0] - exponents[1]
-        return tolerance.near_zero_mod(exponents_diff, period, atol=atol)
+        return protocols.approx_eq(self_without_phase, other_without_phase, atol=atol)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
