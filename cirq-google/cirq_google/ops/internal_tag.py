@@ -73,7 +73,7 @@ class InternalTag:
         return msg
 
     @staticmethod
-    def from_proto(msg: program_pb2.Tag) -> 'PhysicalZTag':
+    def from_proto(msg: program_pb2.Tag) -> 'InternalTag':
         return InternalTag(
             name=msg.internal_tag.tag_name,
             package=msg.internal_tag.tag_package,
