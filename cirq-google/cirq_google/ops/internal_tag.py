@@ -66,10 +66,6 @@ class InternalTag:
             msg = program_pb2.Tag()
         msg.internal_tag.tag_name = self.name
         msg.internal_tag.tag_package = self.package
-        # for k, v in self.tag_args.items():
-        #    arg_func_langs.arg_to_proto(
-        #        v, out=msg.internal_tag.tag_args[k]
-        #    )
         return msg
 
     @staticmethod
