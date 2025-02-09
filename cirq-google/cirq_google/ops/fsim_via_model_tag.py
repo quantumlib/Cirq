@@ -47,8 +47,7 @@ class FSimViaModelTag:
     def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
         if msg is None:
             msg = program_pb2.Tag()
-        tag_proto = program_pb2.FSimViaModelTag()
-        msg.fsim_via_model.CopyFrom(tag_proto)
+        msg.fsim_via_model.SetInParent()
         return msg
 
     @staticmethod
