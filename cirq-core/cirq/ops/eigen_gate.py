@@ -336,6 +336,9 @@ class EigenGate(raw_types.Gate):
             for i, e in enumerate(self._eigen_shifts())
         )
 
+    def _value_equality_approximate_values_(self):
+        return self._value_equality_values_()
+
     def _trace_distance_bound_(self) -> Optional[float]:
         if protocols.is_parameterized(self._exponent):
             return None
