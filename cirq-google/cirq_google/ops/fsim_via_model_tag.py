@@ -52,4 +52,6 @@ class FSimViaModelTag:
 
     @staticmethod
     def from_proto(msg: program_pb2.Tag) -> 'FSimViaModelTag':
+        if msg.WhichOneof("tag") != "fsim_via_model":
+            raise ValueError(f"Message is not a FSimViaModelTag, {msg}")
         return FSimViaModelTag()

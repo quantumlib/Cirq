@@ -59,9 +59,7 @@ class CircuitSerializer(serializer.Serializer):
     """
 
     def __init__(
-        self,
-        USE_CONSTANTS_TABLE_FOR_MOMENTS=False,
-        USE_CONSTANTS_TABLE_FOR_OPERATIONS=False,
+        self, USE_CONSTANTS_TABLE_FOR_MOMENTS=False, USE_CONSTANTS_TABLE_FOR_OPERATIONS=False
     ):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)

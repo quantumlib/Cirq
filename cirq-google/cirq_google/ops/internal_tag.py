@@ -70,6 +70,8 @@ class InternalTag:
 
     @staticmethod
     def from_proto(msg: program_pb2.Tag) -> 'InternalTag':
+        if msg.WhichOneof("tag") != "internal_tag":
+            raise ValueError(f"Message is not a InternalTag, {msg}")
         return InternalTag(
             name=msg.internal_tag.tag_name,
             package=msg.internal_tag.tag_package,
