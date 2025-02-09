@@ -882,11 +882,7 @@ class CircuitSerializer(serializer.Serializer):
         elif which == 'fsim_via_model':
             return FSimViaModelTag()
         elif which == 'internal_tag':
-            return InternalTag(
-                name=msg.internal_tag.tag_name,
-                package=msg.internal_tag.tag_package,
-                **msg.internal_tag.tag_args,
-            )
+            return InternalTag.from_proto(msg)
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
 
