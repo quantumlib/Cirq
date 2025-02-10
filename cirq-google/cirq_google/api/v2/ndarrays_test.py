@@ -233,6 +233,8 @@ def test_overwrite_works():
 
 def test_empty_messages():
     with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_int8_array(ndarrays_pb2.Int8Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
         ndarrays.from_int16_array(ndarrays_pb2.Int16Array())
     with pytest.raises(ValueError, match=r"Cannot convert unset"):
         ndarrays.from_int32_array(ndarrays_pb2.Int32Array())
@@ -242,6 +244,8 @@ def test_empty_messages():
         ndarrays.from_float32_array(ndarrays_pb2.Float32Array())
     with pytest.raises(ValueError, match=r"Cannot convert unset"):
         ndarrays.from_float64_array(ndarrays_pb2.Float64Array())
+    with pytest.raises(ValueError, match=r"Cannot convert unset"):
+        ndarrays.from_complex64_array(ndarrays_pb2.Complex64Array())
     with pytest.raises(ValueError, match=r"Cannot convert unset"):
         ndarrays.from_complex128_array(ndarrays_pb2.Complex128Array())
     with pytest.raises(ValueError, match=r"Cannot convert unset"):

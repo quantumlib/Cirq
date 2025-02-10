@@ -140,4 +140,3 @@ message BitArray {
     bytes flat_bytes = 2;
   }
 }
-

@@ -26,6 +26,14 @@ from cirq_google.api.v2 import ndarrays_pb2
 
 NATIVE_BO = ndarrays_pb2.LITTLE_ENDIAN if sys.byteorder == "little" else ndarrays_pb2.BIG_ENDIAN
 
+TIntMsgs = TypeVar(
+    "TIntMsg",
+    ndarrays_pb2.Int8Array,
+    ndarrays_pb2.Int16Array,
+    ndarrays_pb2.Int32Array,
+    ndarrays_pb2.Int64Array,
+)
+TUIntMsgs = ndarrays_pb2.UInt8Array
 TFloatMsg = TypeVar(
     "TFloatMsg", ndarrays_pb2.Float16Array, ndarrays_pb2.Float32Array, ndarrays_pb2.Float64Array
 )
@@ -171,10 +179,6 @@ def _from_float_array(msg: TFloatMsg, dtype_base: npt.DTypeLike) -> np.ndarray:
     dtype = _from_dtype(cast(ndarrays_pb2.Endianness, msg.endianness), dtype_base)
     flat = np.frombuffer(msg.flat_bytes, dtype=dtype)
     return np.reshape(flat, msg.shape)
-
-
-V1IntMsgs = ndarrays_pb2.Int16Array | ndarrays_pb2.Int32Array | ndarrays_pb2.Int64Array
-V1UIntMsgs = ndarrays_pb2.UInt8Array
 
 
 def to_int64_array(
@@ -342,7 +346,7 @@ def from_int8_array(msg: ndarrays_pb2.Int8Array) -> np.ndarray:
     return _from_int_array(msg, "i1")
 
 
-def _from_int_array(msg: V1IntMsgs, dtype_base: npt.DTypeLike) -> np.ndarray:
+def _from_int_array(msg: TIntMsgs, dtype_base: npt.DTypeLike) -> np.ndarray:
     """Convert a Int16Array/Int32Array proto to a numpy array of the same shape.
 
     Args:
@@ -370,7 +374,7 @@ def _from_int_array(msg: V1IntMsgs, dtype_base: npt.DTypeLike) -> np.ndarray:
     return np.reshape(flat, msg.shape)
 
 
-def _from_uint_array(msg: V1UIntMsgs, dtype_base: npt.DTypeLike) -> np.ndarray:
+def _from_uint_array(msg: TUIntMsgs, dtype_base: npt.DTypeLike) -> np.ndarray:
     """Convert a uIntArray proto to a numpy array of the same shape.
 
     Args:
