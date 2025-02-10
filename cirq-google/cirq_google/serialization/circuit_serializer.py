@@ -362,7 +362,7 @@ class CircuitSerializer(serializer.Serializer):
                     constant = v2.program_pb2.Constant()
                     tag_index = len(constants)
                     if getattr(tag, 'to_proto', None) is not None:
-                        tag.to_proto(constant.tag_value)
+                        tag.to_proto(constant.tag_value)  # type: ignore
                         constants.append(constant)
                         if raw_constants is not None:
                             raw_constants[tag] = tag_index
@@ -552,9 +552,16 @@ class CircuitSerializer(serializer.Serializer):
                     deserialized_constants[tag_index]
                     for tag_index in op.tag_indices
                     if deserialized_constants[tag_index] not in gate_op.tags
+                    and deserialized_constants[tag_index] is not None
                 ]
             else:
-                tags = [self._deserialize_tag(tag) for tag in op.tags if tag not in gate_op.tags]
+                tags = []
+                for tag in op.tags:
+                    if (
+                        tag not in gate_op.tags
+                        and (new_tag := self._deserialize_tag(tag)) is not None
+                    ):
+                        tags.append(new_tag)
             moment_ops.append(gate_op.with_tags(*tags))
         for op in moment_proto.circuit_operations:
             moment_ops.append(
@@ -882,6 +889,7 @@ class CircuitSerializer(serializer.Serializer):
             return InternalTag.from_proto(msg)
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
+            return None
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer()

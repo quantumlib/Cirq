@@ -849,11 +849,64 @@ def test_circuit_with_couplerpulse():
     ],
 )
 def test_circuit_with_tag(tag):
-    c = cirq.Circuit(cirq.X(cirq.q(0)).with_tags(tag))
+    c = cirq.Circuit(cirq.X(cirq.q(0)).with_tags(tag), cirq.Z(cirq.q(0)).with_tags(tag))
     msg = cg.CIRCUIT_SERIALIZER.serialize(c)
     nc = cg.CIRCUIT_SERIALIZER.deserialize(msg)
     assert c == nc
     assert nc[0].operations[0].tags == (tag,)
+
+
+def test_unknown_tag_is_ignored():
+    class DingDongTag:
+        pass
+
+    c = cirq.Circuit(cirq.X(cirq.q(0)).with_tags(DingDongTag()))
+    msg = cg.CIRCUIT_SERIALIZER.serialize(c)
+    nc = cg.CIRCUIT_SERIALIZER.deserialize(msg)
+    assert cirq.Circuit(cirq.X(cirq.q(0))) == nc
+
+
+def test_unrecognized_tag_is_ignored():
+    op_tag = v2.program_pb2.Operation()
+    op_tag.xpowgate.exponent.float_value = 1.0
+    op_tag.qubit_constant_index.append(0)
+    op_tag.tag_indices.append(1)
+    tag = v2.program_pb2.Tag()
+    tag.phase_match.SetInParent()
+    circuit_proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[v2.program_pb2.Moment(operations=[op_tag])],
+        ),
+        constants=[
+            v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1')),
+            v2.program_pb2.Constant(tag_value=tag),
+        ],
+    )
+    expected_circuit_no_tag = cirq.Circuit(cirq.X(cirq.GridQubit(1, 1)))
+    assert cg.CIRCUIT_SERIALIZER.deserialize(circuit_proto) == expected_circuit_no_tag
+
+
+def test_backwards_compatibility_with_old_tags():
+    op_tag = v2.program_pb2.Operation()
+    op_tag.xpowgate.exponent.float_value = 1.0
+    op_tag.qubit_constant_index.append(0)
+    tag = v2.program_pb2.Tag()
+    tag.dynamical_decoupling.protocol = "X"
+    op_tag.tags.append(tag)
+    circuit_proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[v2.program_pb2.Moment(operations=[op_tag])],
+        ),
+        constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1'))],
+    )
+    expected_circuit_no_tag = cirq.Circuit(
+        cirq.X(cirq.GridQubit(1, 1)).with_tags(cg.ops.DynamicalDecouplingTag(protocol='X'))
+    )
+    assert cg.CIRCUIT_SERIALIZER.deserialize(circuit_proto) == expected_circuit_no_tag
 
 
 def test_circuit_with_units():
