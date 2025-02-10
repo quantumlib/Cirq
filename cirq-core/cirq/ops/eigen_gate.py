@@ -351,7 +351,7 @@ class EigenGate(raw_types.Gate):
         if isinstance(exp, sympy.Expr) and not exp.free_symbols:
             exp = float(exp.evalf())
         if isinstance(exp, sympy.Expr):
-            return (exp, *(exp * float(ps) for ps in self._phase_shifts))
+            return (exp, *(exp * ps for ps in self._phase_shifts))
         return (
             value.PeriodicValue(0, 2),
             *(
