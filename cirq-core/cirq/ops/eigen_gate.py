@@ -143,7 +143,7 @@ class EigenGate(raw_types.Gate):
     def _global_shift(self) -> float:
         shift = self._phase_shift_or_shifts
         if isinstance(shift, numbers.Real):
-            return shift
+            return shift  # pragma: no cover (will not be hit until hack above is removed)
         if isinstance(shift, Sequence) and all(g == shift[0] for g in shift):
             return shift[0]
         raise ValueError('global_shift is not defined. Each eigenspace has its own shift.')
