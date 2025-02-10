@@ -128,10 +128,6 @@ class EigenGate(raw_types.Gate):
                 raise ValueError(f"Gate exponent must be real. Invalid Value: {exponent}")
             exponent = exponent.real
         self._exponent = exponent
-        if isinstance(global_shift, tuple):
-            eigen_count = len(self._eigen_shifts())
-            if len(global_shift) != eigen_count:
-                raise ValueError(f'{self} expected {eigen_count} phases, provided {global_shift}')
         self._phase_shift_or_shifts = global_shift
         self._canonical_exponent_cached = None
 
@@ -153,11 +149,15 @@ class EigenGate(raw_types.Gate):
         return self._global_shift
 
     @cached_property
-    def _phase_shifts(self) -> Tuple[float, ...]:
+    def phase_shifts(self) -> Tuple[float, ...]:
         shift = self._phase_shift_or_shifts
         if isinstance(shift, Sequence):
             return shift
         return (shift,) * len(self._eigen_shifts())
+
+    @cached_property
+    def has_phase_shifts(self) -> bool:
+        return any(self.phase_shifts)
 
     # virtual method
     def _with_exponent(self, exponent: value.TParamVal) -> 'EigenGate':
@@ -167,7 +167,7 @@ class EigenGate(raw_types.Gate):
         method with a differing signature.
         """
         # pylint: disable=unexpected-keyword-arg
-        if self._phase_shift_or_shifts == 0:
+        if not self.has_phase_shifts:
             return type(self)(exponent=exponent)
         return type(self)(exponent=exponent, global_shift=self._phase_shift_or_shifts)
         # pylint: enable=unexpected-keyword-arg
@@ -322,7 +322,7 @@ class EigenGate(raw_types.Gate):
             given exponent will be shifted by p until it is in the range
             (-p/2, p/2] during initialization.
         """
-        exponents = {e + self._phase_shifts[i] for i, e in enumerate(self._eigen_shifts())}
+        exponents = {e + self.phase_shifts[i] for i, e in enumerate(self._eigen_shifts())}
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
@@ -350,7 +350,7 @@ class EigenGate(raw_types.Gate):
         exp = self._exponent
         if isinstance(exp, sympy.Expr) and not exp.free_symbols:
             exp = float(exp.evalf())
-        shifts = (exp * float(p + e) for p, e in zip(self._phase_shifts, self._eigen_shifts()))
+        shifts = (exp * float(p + e) for p, e in zip(self.phase_shifts, self._eigen_shifts()))
         if isinstance(exp, sympy.Expr):
             return tuple(shifts)
         return tuple(value.PeriodicValue(s, 2) for s in shifts)
@@ -373,7 +373,7 @@ class EigenGate(raw_types.Gate):
         e = cast(float, self._exponent)
         return np.sum(
             [
-                component * 1j ** (2 * e * (half_turns + self._phase_shifts[i]))
+                component * 1j ** (2 * e * (half_turns + self.phase_shifts[i]))
                 for i, (half_turns, component) in enumerate(self._eigen_components())
             ],
             axis=0,
