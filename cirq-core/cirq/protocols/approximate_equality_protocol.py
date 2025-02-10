@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union, Iterable
+from typing import Any, Iterable
 from fractions import Fraction
 from decimal import Decimal
 
@@ -29,7 +29,7 @@ class SupportsApproximateEquality(Protocol):
     """Object which can be compared approximately."""
 
     @doc_private
-    def _approx_eq_(self, other: Any, *, atol: Union[int, float]) -> bool:
+    def _approx_eq_(self, other: Any, *, atol: float) -> bool:
         """Approximate comparator.
 
         Types implementing this protocol define their own logic for approximate
@@ -47,7 +47,7 @@ class SupportsApproximateEquality(Protocol):
         """
 
 
-def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
+def approx_eq(val: Any, other: Any, *, atol: float = 1e-8) -> bool:
     """Approximately compares two objects.
 
     If `val` implements SupportsApproxEquality protocol then it is invoked and
@@ -120,7 +120,7 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     return val == other
 
 
-def _approx_eq_iterables(val: Iterable, other: Iterable, *, atol: Union[int, float]) -> bool:
+def _approx_eq_iterables(val: Iterable, other: Iterable, *, atol: float) -> bool:
     """Iterates over arguments and calls approx_eq recursively.
 
     Types of `val` and `other` does not necessarily needs to match each other.
@@ -161,7 +161,7 @@ def _approx_eq_iterables(val: Iterable, other: Iterable, *, atol: Union[int, flo
     return True
 
 
-def _isclose(a: Any, b: Any, *, atol: Union[int, float]) -> bool:
+def _isclose(a: Any, b: Any, *, atol: float) -> bool:
     """Convenience wrapper around np.isclose."""
 
     # support casting some standard numeric types
