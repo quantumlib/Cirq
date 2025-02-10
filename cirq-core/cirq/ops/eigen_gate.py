@@ -132,7 +132,7 @@ class EigenGate(raw_types.Gate):
             eigen_count = len(self._eigen_shifts())
             if len(global_shift) != eigen_count:
                 raise ValueError(f'{self} expected {eigen_count} phases, provided {global_shift}')
-        self._global_shift = global_shift
+        self._phase_shift_or_shifts = global_shift
         self._canonical_exponent_cached = None
 
     @property
@@ -140,17 +140,21 @@ class EigenGate(raw_types.Gate):
         return self._exponent
 
     @cached_property
-    def global_shift(self) -> float:
-        shift = self._global_shift
+    def _global_shift(self) -> float:
+        shift = self._phase_shift_or_shifts
         if isinstance(shift, numbers.Real):
             return shift
         elif isinstance(shift, Sequence) and all(g == shift[0] for g in shift):
             return shift[0]
         raise TypeError('global_shift is not defined. Each eigenspace has its own shift.')
 
+    @property
+    def global_shift(self) -> float:
+        return self._global_shift
+
     @cached_property
     def _phase_shifts(self) -> Tuple[float, ...]:
-        shift = self._global_shift
+        shift = self._phase_shift_or_shifts
         if isinstance(shift, Sequence):
             return shift
         return (shift,) * len(self._eigen_shifts())
@@ -163,9 +167,9 @@ class EigenGate(raw_types.Gate):
         method with a differing signature.
         """
         # pylint: disable=unexpected-keyword-arg
-        if self._global_shift == 0:
+        if self._phase_shift_or_shifts == 0:
             return type(self)(exponent=exponent)
-        return type(self)(exponent=exponent, global_shift=self._global_shift)
+        return type(self)(exponent=exponent, global_shift=self._phase_shift_or_shifts)
         # pylint: enable=unexpected-keyword-arg
 
     def _diagram_exponent(
@@ -406,9 +410,9 @@ class EigenGate(raw_types.Gate):
         if any(exponents_is_parameterized):
             return False
         self_without_phase = self._with_exponent(self.exponent)
-        self_without_phase._global_shift = 0
+        self_without_phase._phase_shift_or_shifts = 0
         other_without_phase = other._with_exponent(other.exponent)
-        other_without_phase._global_shift = 0
+        other_without_phase._phase_shift_or_shifts = 0
         return protocols.approx_eq(self_without_phase, other_without_phase, atol=atol)
 
     def _json_dict_(self) -> Dict[str, Any]:
