@@ -329,11 +329,15 @@ class EigenGate(raw_types.Gate):
         return self._with_exponent(exponent=new_exponent)
 
     def _value_equality_values_(self):
-        if isinstance(self._exponent, sympy.Expr) and not isinstance(self._exponent, sympy.Number):
-            return self._exponent, self._phase_shifts
-        return tuple(
-            value.PeriodicValue(float(self._exponent) * (self._phase_shifts[i] + e), 2)
-            for i, e in enumerate(self._eigen_shifts())
+        exp = self._exponent
+        if isinstance(exp, sympy.Expr) and not exp.free_symbols:
+            exp = float(exp.evalf())
+        return (
+            exp if isinstance(exp, sympy.Expr) else value.PeriodicValue(0, 2),
+            *(
+                value.PeriodicValue(exp * float(self._phase_shifts[i] + e), 2)
+                for i, e in enumerate(self._eigen_shifts())
+            ),
         )
 
     def _value_equality_approximate_values_(self):
