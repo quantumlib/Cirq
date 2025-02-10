@@ -334,7 +334,7 @@ class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         super().__init__(**kwargs)
 
     def _value_equality_values_(self):
-        return self.weight, super()._value_equality_values_()
+        return self.weight, self._canonical_exponent, self._global_shift
 
     _value_equality_approximate_values_ = _value_equality_values_
 

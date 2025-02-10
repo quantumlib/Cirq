@@ -328,6 +328,20 @@ class EigenGate(raw_types.Gate):
             return NotImplemented
         return self._with_exponent(exponent=new_exponent)
 
+    @property
+    def _canonical_exponent(self):
+        if self._canonical_exponent_cached is None:
+            period = self._period()
+            if not period:
+                self._canonical_exponent_cached = self._exponent
+            elif protocols.is_parameterized(self._exponent):
+                self._canonical_exponent_cached = self._exponent
+                if isinstance(self._exponent, sympy.Number):
+                    self._canonical_exponent_cached = float(self._exponent)
+            else:
+                self._canonical_exponent_cached = self._exponent % period
+        return self._canonical_exponent_cached
+
     def _value_equality_values_(self):
         exp = self._exponent
         if isinstance(exp, sympy.Expr) and not exp.free_symbols:
