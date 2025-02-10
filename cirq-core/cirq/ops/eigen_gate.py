@@ -116,8 +116,8 @@ class EigenGate(raw_types.Gate):
                 `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
 
-                This can also be a tuple, where each shift is applied to the
-                eigenvalue of the same index.
+                This can also be a tuple, where each shift offset is applied to
+                the eigenvalue of the same index.
 
         Raises:
             ValueError: If the supplied exponent is a complex number with an
@@ -155,9 +155,7 @@ class EigenGate(raw_types.Gate):
     @cached_property
     def phase_shifts(self) -> Tuple[float, ...]:
         shift = self._phase_shift_or_shifts
-        if isinstance(shift, Sequence):
-            return shift
-        return (shift,) * len(self._eigen_shifts())
+        return shift if isinstance(shift, Sequence) else (shift,) * len(self._eigen_shifts())
 
     @cached_property
     def has_phase_shifts(self) -> bool:
@@ -353,7 +351,7 @@ class EigenGate(raw_types.Gate):
     def _value_equality_values_(self):
         exp = self._exponent
         if isinstance(exp, sympy.Expr) and not exp.free_symbols:
-            exp = float(exp.evalf())
+            exp = float(exp)
         shifts = (exp * float(p + e) for p, e in zip(self.phase_shifts, self._eigen_shifts()))
         if isinstance(exp, sympy.Expr):
             return tuple(shifts)
