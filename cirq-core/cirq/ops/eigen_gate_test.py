@@ -103,11 +103,40 @@ def test_eq():
 
     eq.add_equality_group(CExpZinGate(2.5))
     eq.add_equality_group(CExpZinGate(2.25))
-
-    eq.add_equality_group(ZGateDef(exponent=0.5, global_shift=0.0))
-    eq.add_equality_group(ZGateDef(exponent=-0.5, global_shift=0.0))
-    eq.add_equality_group(ZGateDef(exponent=0.5, global_shift=0.5))
-    eq.add_equality_group(ZGateDef(exponent=1.0, global_shift=0.5))
+    eq.add_equality_group(
+        ZGateDef(exponent=0.5, global_shift=0.0),
+        ZGateDef(exponent=0.5, global_shift=0),
+        ZGateDef(exponent=0.5, global_shift=sympy.S.Zero),
+        ZGateDef(exponent=0.5, global_shift=np.int64(0)),
+        ZGateDef(exponent=0.5, global_shift=[0.0, 0]),
+        ZGateDef(exponent=0.5, global_shift=[sympy.S.Zero, np.int64(0)]),
+    )
+    eq.add_equality_group(
+        ZGateDef(exponent=-0.5, global_shift=0.0),
+        ZGateDef(exponent=-0.5, global_shift=0),
+        ZGateDef(exponent=-0.5, global_shift=sympy.S.Zero),
+        ZGateDef(exponent=-0.5, global_shift=np.int64(0)),
+        ZGateDef(exponent=-0.5, global_shift=[0.0, 0]),
+        ZGateDef(exponent=-0.5, global_shift=[sympy.S.Zero, np.int64(0)]),
+    )
+    eq.add_equality_group(
+        ZGateDef(exponent=0.5, global_shift=0.5),
+        ZGateDef(exponent=0.5, global_shift=sympy.S.One / 2),
+        ZGateDef(exponent=0.5, global_shift=np.double(0.5)),
+        ZGateDef(exponent=0.5, global_shift=[0.5, 0.5]),
+        ZGateDef(exponent=0.5, global_shift=[sympy.S.One / 2, np.double(0.5)]),
+    )
+    eq.add_equality_group(
+        ZGateDef(exponent=1.0, global_shift=0.5),
+        ZGateDef(exponent=1.0, global_shift=sympy.S.One / 2),
+        ZGateDef(exponent=1.0, global_shift=np.double(0.5)),
+        ZGateDef(exponent=1.0, global_shift=[0.5, 0.5]),
+        ZGateDef(exponent=1.0, global_shift=[sympy.S.One / 2, np.double(0.5)]),
+        ZGateDef(exponent=1, global_shift=0.5),
+        ZGateDef(exponent=sympy.S.One, global_shift=0.5),
+        ZGateDef(exponent=np.complex128(1), global_shift=0.5),
+        ZGateDef(exponent=np.int64(1), global_shift=0.5),
+    )
 
 
 def test_approx_eq():
@@ -184,6 +213,9 @@ def test_pow():
     assert ZGateDef(exponent=0.25, global_shift=0.5) ** 2 == ZGateDef(
         exponent=0.5, global_shift=0.5
     )
+    assert ZGateDef(exponent=0.25, global_shift=[0.5, 0.5]) ** 2 == ZGateDef(
+        exponent=0.5, global_shift=0.5
+    )
     with pytest.raises(ValueError, match="real"):
         assert ZGateDef(exponent=0.5) ** 0.5j
     assert ZGateDef(exponent=0.5) ** (1 + 0j) == ZGateDef(exponent=0.5)
@@ -258,7 +290,17 @@ def test_matrix():
     )
 
     np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=1, global_shift=[0.5, 0.5])), np.diag([1j, -1j]), atol=1e-8
+    )
+
+    np.testing.assert_allclose(
         cirq.unitary(ZGateDef(exponent=0.5, global_shift=0.5)),
+        np.diag([1 + 1j, -1 + 1j]) / np.sqrt(2),
+        atol=1e-8,
+    )
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift=[0.5, 0.5])),
         np.diag([1 + 1j, -1 + 1j]) / np.sqrt(2),
         atol=1e-8,
     )
@@ -266,6 +308,24 @@ def test_matrix():
     np.testing.assert_allclose(
         cirq.unitary(ZGateDef(exponent=0.5, global_shift=-0.5)),
         np.diag([1 - 1j, 1 + 1j]) / np.sqrt(2),
+        atol=1e-8,
+    )
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift=[-0.5, -0.5])),
+        np.diag([1 - 1j, 1 + 1j]) / np.sqrt(2),
+        atol=1e-8,
+    )
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift=[0.5, -0.5])),
+        np.diag([1 + 1j, 1 + 1j]) / np.sqrt(2),
+        atol=1e-8,
+    )
+
+    np.testing.assert_allclose(
+        cirq.unitary(ZGateDef(exponent=0.5, global_shift=[-0.5, 0.5])),
+        np.diag([1 - 1j, -1 + 1j]) / np.sqrt(2),
         atol=1e-8,
     )
 
@@ -356,6 +416,8 @@ class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         (cirq.ZZ**1.9, cirq.ZZ**-0.1, True),
         (WeightedZPowGate(0), WeightedZPowGate(0.1), False),
         (WeightedZPowGate(0.3), WeightedZPowGate(0.3, global_shift=0.1), True),
+        (ZGateDef(), ZGateDef(exponent=0.3), False),
+        (ZGateDef(), ZGateDef(global_shift=(0.1, -0.2)), True),
         (cirq.X, cirq.Z, False),
         (cirq.X, cirq.Y, False),
         (cirq.rz(np.pi), cirq.Z, True),
@@ -370,3 +432,12 @@ class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
 )
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):
     assert cirq.equal_up_to_global_phase(gate1, gate2) == eq_up_to_global_phase
+
+
+def test_global_shift():
+    assert ZGateDef(global_shift=0.2).global_shift == 0.2
+    assert ZGateDef(exponent=1.5, global_shift=0.2).global_shift == 0.2
+    assert ZGateDef(global_shift=[0.2, 0.2]).global_shift == 0.2
+    assert ZGateDef(exponent=1.5, global_shift=[0.2, 0.2]).global_shift == 0.2
+    with pytest.raises(ValueError, match="global_shift is not defined"):
+        _ = ZGateDef(global_shift=[0.2, 0.3]).global_shift
