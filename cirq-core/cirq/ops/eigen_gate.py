@@ -129,6 +129,10 @@ class EigenGate(raw_types.Gate):
             exponent = exponent.real
         self._exponent = exponent
         self._phase_shift_or_shifts = global_shift
+        if not isinstance(global_shift, Sequence):
+            # hack here (and in _equal_up_to_global_phase_) for qsim dynamically checking params
+            # https://github.com/quantumlib/qsim/blob/55b4d0e7ea8f085a1709c2c06ff1e28b3aa93357/qsimcirq/qsim_circuit.py#L319-L325
+            setattr(self, '_global_shift', global_shift)
         self._canonical_exponent_cached = None
 
     @property
@@ -406,8 +410,10 @@ class EigenGate(raw_types.Gate):
             return False
         self_without_phase = self._with_exponent(self.exponent)
         self_without_phase._phase_shift_or_shifts = 0
+        setattr(self_without_phase, '_global_shift', 0)
         other_without_phase = other._with_exponent(other.exponent)
         other_without_phase._phase_shift_or_shifts = 0
+        setattr(other_without_phase, '_global_shift', 0)
         return protocols.approx_eq(self_without_phase, other_without_phase, atol=atol)
 
     def _json_dict_(self) -> Dict[str, Any]:
