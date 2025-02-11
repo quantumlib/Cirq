@@ -923,7 +923,27 @@ def test_all_single_qubit_clifford_unitaries():
     assert cirq.equal_up_to_global_phase(cs[23], (i - 1j * (-x - y - z)) / 2)
 
 
+def test_clifford_gate_repr():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    gates: list[cirq.ops.CliffordGate] = [
+        # Common gates
+        cirq.ops.CliffordGate.CNOT,
+        cirq.ops.CliffordGate.CZ,
+        cirq.ops.CliffordGate.SWAP,
+        # Other gates
+        cirq.ops.CliffordGate.from_op_list(
+            [cirq.ops.PhasedXZGate(axis_phase_exponent=0.25, x_exponent=-1, z_exponent=0).on(q0)],
+            [q0],
+        ),
+        cirq.ops.CliffordGate.from_op_list([cirq.ops.X(q0), cirq.CZ(q1, q2)], [q0, q1, q2]),
+    ]
+    for gate in gates:
+        t = gate.clifford_tableau
+        assert repr(gate) == f"Clifford Gate with Tableau:\n{t._str_full_()}"
+
+
 def test_single_qubit_clifford_gate_repr():
+    # Common gates
     assert repr(cirq.ops.SingleQubitCliffordGate.X) == (
         'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
         'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
@@ -950,8 +970,22 @@ def test_single_qubit_clifford_gate_repr():
         'zs=np.array([[False], [True]])))'
     )
 
-    assert str(cirq.ops.SingleQubitCliffordGate.X) == (
+    assert repr(cirq.ops.SingleQubitCliffordGate.X) == (
         'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
         'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
         'zs=np.array([[False], [True]])))'
+    )
+
+    # Other gates
+    qa = cirq.NamedQubit('a')
+    gate = cirq.ops.SingleQubitCliffordGate.from_clifford_tableau(
+        cirq.ops.CliffordGate.from_op_list(
+            [cirq.ops.PhasedXZGate(axis_phase_exponent=0.25, x_exponent=-1, z_exponent=0).on(qa)],
+            [qa],
+        ).clifford_tableau
+    )
+    assert repr(gate) == (
+        'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+        'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
+        'zs=np.array([[True], [True]])))'
     )
