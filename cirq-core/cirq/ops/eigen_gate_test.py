@@ -97,7 +97,6 @@ def test_eq():
     eq.make_equality_group(lambda: CExpZinGate(quarter_turns=0.1))
     eq.add_equality_group(CExpZinGate(0), CExpZinGate(4), CExpZinGate(-4))
 
-    # Equates by canonicalized period.
     eq.add_equality_group(CExpZinGate(1.5), CExpZinGate(41.5))
     eq.add_equality_group(CExpZinGate(3.5), CExpZinGate(-0.5))
 
@@ -108,6 +107,41 @@ def test_eq():
     eq.add_equality_group(ZGateDef(exponent=-0.5, global_shift=0.0))
     eq.add_equality_group(ZGateDef(exponent=0.5, global_shift=0.5))
     eq.add_equality_group(ZGateDef(exponent=1.0, global_shift=0.5))
+
+    # WeightedZPowGate(0) does nothing, WeightedZPowGate(2) is identity.
+    eq.add_equality_group(
+        WeightedZPowGate(0),
+        WeightedZPowGate(0) ** 1.1,
+        WeightedZPowGate(0) ** sympy.Symbol('a'),
+        (WeightedZPowGate(0) ** sympy.Symbol('a')) ** 1.2,
+        WeightedZPowGate(0) ** (sympy.Symbol('a') + 1.3),
+        WeightedZPowGate(0) ** sympy.Symbol('b'),
+        WeightedZPowGate(1) ** 2,
+        WeightedZPowGate(0, global_shift=1) ** 2,
+        WeightedZPowGate(1, global_shift=1) ** 2,
+        WeightedZPowGate(2),
+        WeightedZPowGate(0, global_shift=2),
+        WeightedZPowGate(2, global_shift=2),
+    )
+    # WeightedZPowGate(2) is identity, but non-integer exponent would make it different, similar to
+    # how we treat (X**2)**0.5==X. So these are in their own equality group.
+    eq.add_equality_group(
+        WeightedZPowGate(2) ** sympy.Symbol('a'),
+        (WeightedZPowGate(1) ** 2) ** sympy.Symbol('a'),
+        (WeightedZPowGate(1) ** sympy.Symbol('a')) ** 2,
+        WeightedZPowGate(1) ** (sympy.Symbol('a') * 2),
+        WeightedZPowGate(1) ** (sympy.Symbol('a') + sympy.Symbol('a')),
+    )
+    # Similarly, these are identity without the exponent, but global_shift affects both phases
+    # instead of just the one, so will have a different effect from the above depending on the
+    # exponent.
+    eq.add_equality_group(
+        WeightedZPowGate(0, global_shift=2) ** sympy.Symbol('a'),
+        (WeightedZPowGate(0, global_shift=1) ** 2) ** sympy.Symbol('a'),
+        (WeightedZPowGate(0, global_shift=1) ** sympy.Symbol('a')) ** 2,
+        WeightedZPowGate(0, global_shift=1) ** (sympy.Symbol('a') * 2),
+        WeightedZPowGate(0, global_shift=1) ** (sympy.Symbol('a') + sympy.Symbol('a')),
+    )
 
 
 def test_approx_eq():
@@ -331,11 +365,6 @@ class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def __init__(self, weight, **kwargs):
         self.weight = weight
         super().__init__(**kwargs)
-
-    def _value_equality_values_(self):
-        return self.weight, super()._value_equality_values_()
-
-    _value_equality_approximate_values_ = _value_equality_values_
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 0])), (self.weight, np.diag([0, 1]))]

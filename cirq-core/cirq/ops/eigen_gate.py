@@ -309,9 +309,12 @@ class EigenGate(raw_types.Gate):
         if isinstance(exp, sympy.Expr) and not exp.free_symbols:
             # Handle sympy.pi, etc. (Can't be done in init because diagram draws them differently).
             exp = float(exp)
-        phases = (exp * float(self._global_shift + e) for e in self._eigen_shifts())
-        if isinstance(exp, sympy.Expr):
-            return tuple(phases)
+        shifts = tuple(float(self._global_shift + e) for e in self._eigen_shifts())
+        if not any(shifts):
+            exp = 0  # Exponent is irrelevant. Eliminate, to remove possible symbols.
+        phases = tuple(exp * shift for shift in shifts)
+        if isinstance(exp, sympy.Expr) and any(shifts):
+            return phases
         return tuple(value.PeriodicValue(s, 2) for s in phases)
 
     def _value_equality_approximate_values_(self):
