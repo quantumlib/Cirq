@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 import numbers
 
 import abc
@@ -63,7 +63,7 @@ class OpSerializer(abc.ABC):
         arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant],
         raw_constants: Dict[Any, int],
-    ) -> Optional[v2.program_pb2.CircuitOperation]:
+    ) -> Optional[Union[v2.program_pb2.CircuitOperation, v2.program_pb2.Operation]]:
         """Converts op to proto using this serializer.
 
         If self.can_serialize_operation(op) == false, this should return None.
