@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A class that can be used to denote a physical Z gate."""
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import cirq
+from cirq_google.api.v2 import program_pb2
 
 
 class PhysicalZTag:
@@ -45,3 +46,13 @@ class PhysicalZTag:
 
     def __hash__(self) -> int:
         return 123
+
+    def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
+        if msg is None:
+            msg = program_pb2.Tag()
+        msg.physical_z.SetInParent()
+        return msg
+
+    @staticmethod
+    def from_proto(msg: program_pb2.Tag) -> 'PhysicalZTag':
+        return PhysicalZTag()
