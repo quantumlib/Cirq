@@ -50,7 +50,7 @@ class CExpZinGate(cirq.EigenGate, cirq.testing.TwoQubitGate):
         ]
 
 
-class ZGateDef(cirq.EigenGate, cirq.testing.TwoQubitGate):
+class ZGateDef(cirq.EigenGate, cirq.testing.SingleQubitGate):
     @property
     def exponent(self):
         return self._exponent
@@ -118,8 +118,7 @@ def test_approx_eq():
     assert cirq.approx_eq(ZGateDef(exponent=1.5), ZGateDef(exponent=1.5), atol=0.1)
     assert not cirq.approx_eq(CExpZinGate(1.5), ZGateDef(exponent=1.5), atol=0.1)
     with pytest.raises(
-        TypeError,
-        match=re.escape("unsupported operand type(s) for -: 'Symbol' and 'PeriodicValue'"),
+        TypeError, match=re.escape("unsupported operand type(s) for -: 'Zero' and 'PeriodicValue'")
     ):
         cirq.approx_eq(ZGateDef(exponent=1.5), ZGateDef(exponent=sympy.Symbol('a')), atol=0.1)
     assert cirq.approx_eq(CExpZinGate(sympy.Symbol('a')), CExpZinGate(sympy.Symbol('a')), atol=0.1)
@@ -334,7 +333,7 @@ class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         super().__init__(**kwargs)
 
     def _value_equality_values_(self):
-        return self.weight, self._canonical_exponent, self._global_shift
+        return self.weight, super()._value_equality_values_()
 
     _value_equality_approximate_values_ = _value_equality_values_
 
