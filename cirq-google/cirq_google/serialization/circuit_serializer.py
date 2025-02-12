@@ -20,7 +20,13 @@ import sympy
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.ops import PhysicalZTag, InternalGate, FSimViaModelTag, DynamicalDecouplingTag
+from cirq_google.ops import (
+    PhysicalZTag,
+    InternalGate,
+    InternalTag,
+    FSimViaModelTag,
+    DynamicalDecouplingTag,
+)
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
@@ -348,8 +354,23 @@ class CircuitSerializer(serializer.Serializer):
                     constants.append(constant)
                     if raw_constants is not None:
                         raw_constants[tag.token] = msg.token_constant_index
-            elif isinstance(tag, DynamicalDecouplingTag):
-                tag.to_proto(msg=msg.tags.add().dynamical_decoupling)
+            else:
+                if isinstance(tag, DynamicalDecouplingTag):
+                    # TODO(dstrain): Remove this once we are deserializing tag indices everywhere.
+                    tag.to_proto(msg=msg.tags.add())
+                if (tag_index := raw_constants.get(tag, None)) is None:
+                    constant = v2.program_pb2.Constant()
+                    tag_index = len(constants)
+                    if getattr(tag, 'to_proto', None) is not None:
+                        tag.to_proto(constant.tag_value)  # type: ignore
+                        constants.append(constant)
+                        if raw_constants is not None:
+                            raw_constants[tag] = tag_index
+                        msg.tag_indices.append(tag_index)
+                    else:
+                        warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+                else:
+                    msg.tag_indices.append(tag_index)
         return msg
 
     def _serialize_circuit_op(
@@ -465,6 +486,8 @@ class CircuitSerializer(serializer.Serializer):
                             deserialized_constants=deserialized_constants,
                         )
                     )
+                elif which_const == 'tag_value':
+                    deserialized_constants.append(self._deserialize_tag(constant.tag_value))
                 else:
                     msg = f'Unrecognized constant type {which_const}, ignoring.'  # pragma: no cover
                     warnings.warn(msg)  # pragma: no cover
@@ -518,15 +541,28 @@ class CircuitSerializer(serializer.Serializer):
     ) -> cirq.Moment:
         moment_ops = []
         for op in moment_proto.operations:
-            tags = [self._deserialize_tag(tag) for tag in op.tags]
-            moment_ops.append(
-                self._deserialize_gate_op(
-                    op,
-                    arg_function_language=arg_function_language,
-                    constants=constants,
-                    deserialized_constants=deserialized_constants,
-                ).with_tags(*tags)
+            gate_op = self._deserialize_gate_op(
+                op,
+                arg_function_language=arg_function_language,
+                constants=constants,
+                deserialized_constants=deserialized_constants,
             )
+            if op.tag_indices:
+                tags = [
+                    deserialized_constants[tag_index]
+                    for tag_index in op.tag_indices
+                    if deserialized_constants[tag_index] not in gate_op.tags
+                    and deserialized_constants[tag_index] is not None
+                ]
+            else:
+                tags = []
+                for tag in op.tags:
+                    if (
+                        tag not in gate_op.tags
+                        and (new_tag := self._deserialize_tag(tag)) is not None
+                    ):
+                        tags.append(new_tag)
+            moment_ops.append(gate_op.with_tags(*tags))
         for op in moment_proto.circuit_operations:
             moment_ops.append(
                 self._deserialize_circuit_op(
@@ -844,8 +880,16 @@ class CircuitSerializer(serializer.Serializer):
     def _deserialize_tag(self, msg: v2.program_pb2.Tag):
         which = msg.WhichOneof('tag')
         if which == 'dynamical_decoupling':
-            return DynamicalDecouplingTag.from_proto(msg.dynamical_decoupling)
-        raise ValueError(f'unsupported tag {msg=}')  # pragma: no cover
+            return DynamicalDecouplingTag.from_proto(msg)
+        elif which == 'physical_z':
+            return PhysicalZTag()
+        elif which == 'fsim_via_model':
+            return FSimViaModelTag()
+        elif which == 'internal_tag':
+            return InternalTag.from_proto(msg)
+        else:
+            warnings.warn(f'Unknown tag {msg=}, ignoring')
+            return None
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer()
