@@ -107,14 +107,15 @@ def test_eq():
     eq.add_equality_group(ZGateDef(exponent=0.5, global_shift=0.5))
     eq.add_equality_group(ZGateDef(exponent=1.0, global_shift=0.5))
 
-    # WeightedZPowGate(0) does nothing, WeightedZPowGate(2) is identity.
+    # All variants of (0,0) == (0*a,0*a) == (0, 2) == (2, 2)
+    a, b = sympy.symbols('a, b')
     eq.add_equality_group(
         WeightedZPowGate(0),
         WeightedZPowGate(0) ** 1.1,
-        WeightedZPowGate(0) ** sympy.Symbol('a'),
-        (WeightedZPowGate(0) ** sympy.Symbol('a')) ** 1.2,
-        WeightedZPowGate(0) ** (sympy.Symbol('a') + 1.3),
-        WeightedZPowGate(0) ** sympy.Symbol('b'),
+        WeightedZPowGate(0) ** a,
+        (WeightedZPowGate(0) ** a) ** 1.2,
+        WeightedZPowGate(0) ** (a + 1.3),
+        WeightedZPowGate(0) ** b,
         WeightedZPowGate(1) ** 2,
         WeightedZPowGate(0, global_shift=1) ** 2,
         WeightedZPowGate(1, global_shift=1) ** 2,
@@ -123,30 +124,40 @@ def test_eq():
         WeightedZPowGate(2, global_shift=2),
     )
     # WeightedZPowGate(2) is identity, but non-integer exponent would make it different, similar to
-    # how we treat (X**2)**0.5==X. So these are in their own equality group.
+    # how we treat (X**2)**0.5==X. So these are in their own equality group. (0, 2*a)
     eq.add_equality_group(
-        WeightedZPowGate(2) ** sympy.Symbol('a'),
-        (WeightedZPowGate(1) ** 2) ** sympy.Symbol('a'),
-        (WeightedZPowGate(1) ** sympy.Symbol('a')) ** 2,
-        WeightedZPowGate(1) ** (sympy.Symbol('a') * 2),
-        WeightedZPowGate(1) ** (sympy.Symbol('a') + sympy.Symbol('a')),
+        WeightedZPowGate(2) ** a,
+        (WeightedZPowGate(1) ** 2) ** a,
+        (WeightedZPowGate(1) ** a) ** 2,
+        WeightedZPowGate(1) ** (a * 2),
+        WeightedZPowGate(1) ** (a + a),
     )
     # Similarly, these are identity without the exponent, but global_shift affects both phases
     # instead of just the one, so will have a different effect from the above depending on the
-    # exponent.
+    # exponent. (2*a, 0)
     eq.add_equality_group(
-        WeightedZPowGate(0, global_shift=2) ** sympy.Symbol('a'),
-        (WeightedZPowGate(0, global_shift=1) ** 2) ** sympy.Symbol('a'),
-        (WeightedZPowGate(0, global_shift=1) ** sympy.Symbol('a')) ** 2,
-        WeightedZPowGate(0, global_shift=1) ** (sympy.Symbol('a') * 2),
-        WeightedZPowGate(0, global_shift=1) ** (sympy.Symbol('a') + sympy.Symbol('a')),
+        WeightedZPowGate(0, global_shift=2) ** a,
+        (WeightedZPowGate(0, global_shift=1) ** 2) ** a,
+        (WeightedZPowGate(0, global_shift=1) ** a) ** 2,
+        WeightedZPowGate(0, global_shift=1) ** (a * 2),
+        WeightedZPowGate(0, global_shift=1) ** (a + a),
     )
-    # Symbolic exponents that cancel
+    # Symbolic exponents that cancel (0, 1) == (0, a/a)
     eq.add_equality_group(
         WeightedZPowGate(1),
-        WeightedZPowGate(1 / sympy.Symbol('a')) ** sympy.Symbol('a'),
-        WeightedZPowGate(sympy.Symbol('a')) ** (1 / sympy.Symbol('a')),
+        WeightedZPowGate(a) ** (1 / a),
+        WeightedZPowGate(b) ** (1 / b),
+        WeightedZPowGate(1 / a) ** a,
+        WeightedZPowGate(1 / b) ** b,
     )
+    # Symbol in one phase and constant off by period in another (0, a) == (2, a)
+    eq.add_equality_group(
+        WeightedZPowGate(a),
+        WeightedZPowGate(a - 2, global_shift=2),
+        WeightedZPowGate(1 - 2 / a, global_shift=2 / a) ** a,
+    )
+    # Different symbol, different equality group (0, b)
+    eq.add_equality_group(WeightedZPowGate(b))
 
 
 def test_approx_eq():
