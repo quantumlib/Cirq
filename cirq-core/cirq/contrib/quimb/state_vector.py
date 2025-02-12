@@ -1,12 +1,13 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import warnings
-from typing import cast, Sequence, Union, List, Tuple, Dict, Optional
+from typing import cast, Sequence, Union, List, Tuple, Dict, Optional, TYPE_CHECKING
 
 import numpy as np
 import quimb
 import quimb.tensor as qtn
 
-import cirq
+if TYPE_CHECKING:
+    import cirq
 
 
 def _get_quimb_version():
@@ -25,8 +26,8 @@ QUIMB_VERSION = _get_quimb_version()
 
 
 def circuit_to_tensors(
-    circuit: cirq.Circuit,
-    qubits: Optional[Sequence[cirq.Qid]] = None,
+    circuit: 'cirq.Circuit',
+    qubits: Optional[Sequence['cirq.Qid']] = None,
     initial_state: Union[int, None] = 0,
 ) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], None]:
     """Given a circuit, construct a tensor network representation.
@@ -89,7 +90,7 @@ def circuit_to_tensors(
 
 
 def tensor_state_vector(
-    circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
+    circuit: 'cirq.Circuit', qubits: Optional[Sequence['cirq.Qid']] = None
 ) -> np.ndarray:
     """Given a circuit contract a tensor network into a final state vector."""
     if qubits is None:
@@ -103,7 +104,7 @@ def tensor_state_vector(
 
 
 def tensor_unitary(
-    circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
+    circuit: 'cirq.Circuit', qubits: Optional[Sequence['cirq.Qid']] = None
 ) -> np.ndarray:
     """Given a circuit contract a tensor network into a dense unitary
     of the circuit."""
@@ -121,8 +122,8 @@ def tensor_unitary(
 
 
 def circuit_for_expectation_value(
-    circuit: cirq.Circuit, pauli_string: cirq.PauliString
-) -> cirq.Circuit:
+    circuit: 'cirq.Circuit', pauli_string: 'cirq.PauliString'
+) -> 'cirq.Circuit':
     """Sandwich a PauliString operator between a forwards and backwards
     copy of a circuit.
 
@@ -143,7 +144,7 @@ def circuit_for_expectation_value(
 
 
 def tensor_expectation_value(
-    circuit: cirq.Circuit, pauli_string: cirq.PauliString, max_ram_gb=16, tol=1e-6
+    circuit: 'cirq.Circuit', pauli_string: 'cirq.PauliString', max_ram_gb=16, tol=1e-6
 ) -> float:
     """Compute an expectation value for an operator and a circuit via tensor
     contraction.

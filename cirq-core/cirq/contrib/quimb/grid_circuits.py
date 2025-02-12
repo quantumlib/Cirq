@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterator
+from typing import Iterator, TYPE_CHECKING
 
 import networkx as nx
 
-import cirq
+if TYPE_CHECKING:
+    import cirq
 
 
 def get_grid_moments(
     problem_graph: nx.Graph, two_qubit_gate=cirq.ZZPowGate
-) -> Iterator[cirq.Moment]:
+) -> Iterator['cirq.Moment']:
     """Yield moments on a grid.
 
     The moments will contain `two_qubit_gate` on the edges of the provided
@@ -102,7 +103,7 @@ def get_grid_moments(
     )
 
 
-def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit):
+def simplify_expectation_value_circuit(circuit_sand: 'cirq.Circuit'):
     """For low weight operators on low-degree circuits, we can simplify
     the circuit representation of an expectation value.
 

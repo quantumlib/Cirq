@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 
 from cirq import ops, protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def escape_text_for_latex(text):
@@ -33,7 +36,7 @@ def escape_text_for_latex(text):
     return r'\text{' + escaped + '}'
 
 
-def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional[Tuple[int, int]]:
+def get_multigate_parameters(args: 'cirq.CircuitDiagramInfoArgs') -> Optional[Tuple[int, int]]:
     if (args.label_map is None) or (args.known_qubits is None):
         return None
 
@@ -45,7 +48,7 @@ def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional
     return min_index, n_qubits
 
 
-def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> Optional[protocols.CircuitDiagramInfo]:
+def hardcoded_qcircuit_diagram_info(op: 'cirq.Operation') -> Optional['cirq.CircuitDiagramInfo']:
     if not isinstance(op, ops.GateOperation):
         return None
     symbols = (
@@ -65,8 +68,8 @@ def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> Optional[protocols.Cir
 
 
 def convert_text_diagram_info_to_qcircuit_diagram_info(
-    info: protocols.CircuitDiagramInfo,
-) -> protocols.CircuitDiagramInfo:
+    info: 'cirq.CircuitDiagramInfo',
+) -> 'cirq.CircuitDiagramInfo':
     labels = [escape_text_for_latex(e) for e in info.wire_symbols]
     if info.exponent != 1:
         labels[0] += '^{' + str(info.exponent) + '}'
@@ -75,8 +78,8 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
 
 
 def multigate_qcircuit_diagram_info(
-    op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
-) -> Optional[protocols.CircuitDiagramInfo]:
+    op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
+) -> Optional['cirq.CircuitDiagramInfo']:
     if not (
         isinstance(op, ops.GateOperation) and isinstance(op.gate, ops.InterchangeableQubitsGate)
     ):
@@ -104,8 +107,8 @@ def multigate_qcircuit_diagram_info(
 
 
 def fallback_qcircuit_diagram_info(
-    op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
-) -> protocols.CircuitDiagramInfo:
+    op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
+) -> 'cirq.CircuitDiagramInfo':
     args = args.with_args(use_unicode_characters=False)
     info = protocols.circuit_diagram_info(op, args, default=None)
     if info is None:
@@ -117,8 +120,8 @@ def fallback_qcircuit_diagram_info(
 
 
 def get_qcircuit_diagram_info(
-    op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
-) -> protocols.CircuitDiagramInfo:
+    op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
+) -> 'cirq.CircuitDiagramInfo':
     info = hardcoded_qcircuit_diagram_info(op)
     if info is None:
         info = multigate_qcircuit_diagram_info(op, args)

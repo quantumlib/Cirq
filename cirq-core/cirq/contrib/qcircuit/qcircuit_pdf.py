@@ -16,15 +16,18 @@
 
 import errno
 import os
+from typing import TYPE_CHECKING
 
 from pylatex import Document, NoEscape, Package
 
-from cirq import circuits
 from cirq.contrib.qcircuit.qcircuit_diagram import circuit_to_latex_using_qcircuit
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def circuit_to_pdf_using_qcircuit_via_tex(
-    circuit: circuits.Circuit,
+    circuit: 'cirq.Circuit',
     filepath: str,
     pdf_kwargs=None,
     qcircuit_kwargs=None,

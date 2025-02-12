@@ -45,7 +45,7 @@ class CustomStateSimulator(
 
     def __init__(
         self,
-        state_type: Type[TSimulationState],
+        state_type: Type['cirq.TSimulationState'],
         *,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         split_untangled_states: bool = False,
@@ -65,15 +65,15 @@ class CustomStateSimulator(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
-    ) -> 'CustomStateTrialResult[TSimulationState]':
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.TSimulationState]',
+    ) -> CustomStateTrialResult['cirq.TSimulationState']:
         return CustomStateTrialResult(
             params, measurements, final_simulator_state=final_simulator_state
         )
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[TSimulationState]'
-    ) -> 'CustomStateStepResult[TSimulationState]':
+        self, sim_state: 'cirq.SimulationStateBase[cirq.TSimulationState]'
+    ) -> CustomStateStepResult['cirq.TSimulationState']:
         return CustomStateStepResult(sim_state)
 
     def _create_partial_simulation_state(
@@ -81,7 +81,7 @@ class CustomStateSimulator(
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
-    ) -> TSimulationState:
+    ) -> 'cirq.TSimulationState':
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
         )  # type: ignore[call-arg]

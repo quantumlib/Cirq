@@ -1,16 +1,17 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from functools import lru_cache
-from typing import Sequence, Dict, Union, Tuple, List, Optional
+from typing import Sequence, Dict, Union, Tuple, List, Optional, TYPE_CHECKING
 
 import numpy as np
 import quimb
 import quimb.tensor as qtn
 
-import cirq
+if TYPE_CHECKING:
+    import cirq
 
 
 @lru_cache()
-def _qpos_tag(qubits: Union[cirq.Qid, Tuple[cirq.Qid]]):
+def _qpos_tag(qubits: Union['cirq.Qid', Tuple['cirq.Qid']]):
     """Given a qubit or qubits, return a "position tag" (used for drawing).
 
     For multiple qubits, the tag is for the first qubit.
@@ -23,7 +24,7 @@ def _qpos_tag(qubits: Union[cirq.Qid, Tuple[cirq.Qid]]):
 
 @lru_cache()
 def _qpos_y(
-    qubits: Union[cirq.Qid, Tuple[cirq.Qid, ...]], all_qubits: Tuple[cirq.Qid, ...]
+    qubits: Union['cirq.Qid', Tuple['cirq.Qid', ...]], all_qubits: Tuple['cirq.Qid', ...]
 ) -> float:
     """Given a qubit or qubits, return the position y value (used for drawing).
 
@@ -46,9 +47,9 @@ def _qpos_y(
 def _add_to_positions(
     positions: Dict[Tuple[str, str], Tuple[float, float]],
     mi: int,
-    qubits: Union[cirq.Qid, Tuple[cirq.Qid]],
+    qubits: Union['cirq.Qid', Tuple['cirq.Qid']],
     *,
-    all_qubits: Tuple[cirq.Qid, ...],
+    all_qubits: Tuple['cirq.Qid', ...],
     x_scale,
     y_scale,
     x_nudge,
@@ -76,7 +77,7 @@ def _add_to_positions(
 
 
 def circuit_to_density_matrix_tensors(
-    circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
+    circuit: 'cirq.Circuit', qubits: Optional[Sequence['cirq.Qid']] = None
 ) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], Dict[Tuple[str, str], Tuple[float, float]]]:
     """Given a circuit with mixtures or channels, construct a tensor network
     representation of the density matrix.
@@ -109,7 +110,7 @@ def circuit_to_density_matrix_tensors(
         qubits = sorted(circuit.all_qubits())  # pragma: no cover
     qubits = tuple(qubits)
 
-    qubit_frontier: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
+    qubit_frontier: Dict['cirq.Qid', int] = {q: 0 for q in qubits}
     kraus_frontier = 0
     positions: Dict[Tuple[str, str], Tuple[float, float]] = {}
     tensors: List[qtn.Tensor] = []
@@ -196,7 +197,7 @@ def circuit_to_density_matrix_tensors(
 
 
 def tensor_density_matrix(
-    circuit: cirq.Circuit, qubits: Optional[List[cirq.Qid]] = None
+    circuit: 'cirq.Circuit', qubits: Optional[List['cirq.Qid']] = None
 ) -> np.ndarray:
     """Given a circuit with mixtures or channels, contract a tensor network
     representing the resultant density matrix.

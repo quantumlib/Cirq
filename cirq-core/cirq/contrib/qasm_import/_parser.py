@@ -33,7 +33,7 @@ import numpy as np
 import sympy
 from ply import yacc
 
-from cirq import ops, value, Circuit, CircuitOperation, CX, FrozenCircuit, NamedQubit
+from cirq import ops, Circuit, CircuitOperation, CX, NamedQubit
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
@@ -47,7 +47,12 @@ class Qasm:
     """Qasm stores the final result of the Qasm parsing."""
 
     def __init__(
-        self, supported_format: bool, qelib1_include: bool, qregs: dict, cregs: dict, c: Circuit
+        self,
+        supported_format: bool,
+        qelib1_include: bool,
+        qregs: dict,
+        cregs: dict,
+        c: 'cirq.Circuit',
     ):
         # defines whether the Quantum Experience standard header
         # is present or not
@@ -60,7 +65,7 @@ class Qasm:
         self.circuit = c
 
 
-def _generate_op_qubits(args: List[List[ops.Qid]], lineno: int) -> List[List[ops.Qid]]:
+def _generate_op_qubits(args: List[List['cirq.Qid']], lineno: int) -> List[List['cirq.Qid']]:
     """Generates the Cirq qubits for an operation from the OpenQASM qregs.
 
     OpenQASM gates can be applied on single qubits and qubit registers.
@@ -97,7 +102,7 @@ class QasmGateStatement:
     def __init__(
         self,
         qasm_gate: str,
-        cirq_gate: Union[ops.Gate, Callable[[List[float]], ops.Gate]],
+        cirq_gate: Union['cirq.Gate', Callable[[List[float]], 'cirq.Gate']],
         num_params: int,
         num_args: int,
     ):
@@ -118,14 +123,14 @@ class QasmGateStatement:
         assert num_args >= 1
         self.num_args = num_args
 
-    def _validate_args(self, args: List[List[ops.Qid]], lineno: int):
+    def _validate_args(self, args: List[List['cirq.Qid']], lineno: int):
         if len(args) != self.num_args:
             raise QasmException(
                 f"{self.qasm_gate} only takes {self.num_args} arg(s) (qubits and/or registers), "
                 f"got: {len(args)}, at line {lineno}"
             )
 
-    def _validate_params(self, params: List[value.TParamVal], lineno: int):
+    def _validate_params(self, params: List['cirq.TParamVal'], lineno: int):
         if len(params) != self.num_params:
             raise QasmException(
                 f"{self.qasm_gate} takes {self.num_params} parameter(s), "
@@ -133,14 +138,14 @@ class QasmGateStatement:
             )
 
     def on(
-        self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
-    ) -> Iterable[ops.Operation]:
+        self, params: List['cirq.TParamVal'], args: List[List['cirq.Qid']], lineno: int
+    ) -> Iterable['cirq.Operation']:
         self._validate_args(args, lineno)
         self._validate_params(params, lineno)
 
         # the actual gate we'll apply the arguments to might be a parameterized
         # or non-parameterized gate
-        final_gate: ops.Gate = (
+        final_gate: 'cirq.Gate' = (
             self.cirq_gate if isinstance(self.cirq_gate, ops.Gate) else self.cirq_gate(params)
         )
         for qubits in _generate_op_qubits(args, lineno):
@@ -157,13 +162,13 @@ class CustomGate:
     the qubits and params to the values provided."""
 
     name: str
-    circuit: FrozenCircuit
+    circuit: 'cirq.FrozenCircuit'
     params: Tuple[str, ...]
-    qubits: Tuple[ops.Qid, ...]
+    qubits: Tuple['cirq.Qid', ...]
 
     def on(
-        self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
-    ) -> Iterable[ops.Operation]:
+        self, params: List['cirq.TParamVal'], args: List[List['cirq.Qid']], lineno: int
+    ) -> Iterable['cirq.Operation']:
         if len(params) != len(self.params):
             raise QasmException(f"Wrong number of params for '{self.name}' at line {lineno}")
         if len(args) != len(self.qubits):
@@ -199,14 +204,14 @@ class QasmParser:
         self.custom_gate_scoped_params: Set[str] = set()
         """The params declared within the current custom gate definition. Empty if not in
          custom gate scope."""
-        self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
+        self.custom_gate_scoped_qubits: Dict[str, 'cirq.Qid'] = {}
         """The qubits declared within the current custom gate definition. Empty if not in
          custom gate scope."""
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
         self.parsedQasm: Optional[Qasm] = None
-        self.qubits: Dict[str, ops.Qid] = {}
+        self.qubits: Dict[str, 'cirq.Qid'] = {}
         self.functions = {
             'sin': np.sin,
             'cos': np.cos,
@@ -442,7 +447,7 @@ class QasmParser:
         self._resolve_gate_operation(args=p[5], gate=p[1], p=p, params=p[3])
 
     def _resolve_gate_operation(
-        self, args: List[List[ops.Qid]], gate: str, p: Any, params: List[value.TParamVal]
+        self, args: List[List['cirq.Qid']], gate: str, p: Any, params: List['cirq.TParamVal']
     ):
         if gate not in self.gate_set:
             tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
