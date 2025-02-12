@@ -158,6 +158,12 @@ def test_eq():
     )
     # Different symbol, different equality group (0, b)
     eq.add_equality_group(WeightedZPowGate(b))
+    # Various number types
+    eq.add_equality_group(
+        WeightedZPowGate(np.int64(3), global_shift=sympy.Number(5)) ** 7.0,
+        WeightedZPowGate(sympy.Number(3), global_shift=5.0) ** np.int64(7),
+        WeightedZPowGate(3.0, global_shift=np.int64(5)) ** sympy.Number(7),
+    )
 
 
 def test_approx_eq():
