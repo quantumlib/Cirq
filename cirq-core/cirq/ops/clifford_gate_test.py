@@ -930,7 +930,7 @@ def test_clifford_gate_repr():
         == """Clifford Gate with Tableau:
 stable   | destable
 ---------+----------
-- Z0     | + X0    
+- Z0     | + X0
 +   Z1   | +   X1Z2
 +     Z2 | +   Z1X2
 """
