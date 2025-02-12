@@ -925,24 +925,16 @@ def test_all_single_qubit_clifford_unitaries():
 
 def test_clifford_gate_repr():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    gates: list[cirq.ops.CliffordGate] = [
-        # Common gates
-        cirq.ops.CliffordGate.CNOT,
-        cirq.ops.CliffordGate.CZ,
-        cirq.ops.CliffordGate.SWAP,
-        # Other gates
-        cirq.ops.CliffordGate.from_op_list(
-            [cirq.ops.PhasedXZGate(axis_phase_exponent=0.25, x_exponent=-1, z_exponent=0).on(q0)],
-            [q0],
-        ),
-        cirq.ops.CliffordGate.from_op_list([cirq.ops.X(q0), cirq.CZ(q1, q2)], [q0, q1, q2]),
-    ]
-    for gate in gates:
-        t = gate.clifford_tableau
-        assert repr(gate) == f"Clifford Gate with Tableau:\n{t._str_full_()}"
-
-    # Check repr without calling _str_full_() for one gate of CliffordGate type.
-    # This verifies that repr output is as expected with correct stabilizers and destabilizers.
+    assert (
+        repr(cirq.ops.CliffordGate.from_op_list([cirq.ops.X(q0), cirq.CZ(q1, q2)], [q0, q1, q2]))
+        == """Clifford Gate with Tableau:
+stable   | destable
+---------+----------
+- Z0     | + X0    
++   Z1   | +   X1Z2
++     Z2 | +   Z1X2
+"""
+    )
     assert (
         repr(cirq.ops.CliffordGate.CNOT)
         == """Clifford Gate with Tableau:
