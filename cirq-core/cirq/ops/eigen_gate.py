@@ -349,13 +349,13 @@ class EigenGate(raw_types.Gate):
         return self._canonical_exponent_cached
 
     def _value_equality_values_(self):
-        exp = self._exponent
-        if isinstance(exp, sympy.Expr) and not exp.free_symbols:
-            exp = float(exp)
-        shifts = (exp * float(p + e) for p, e in zip(self.phase_shifts, self._eigen_shifts()))
-        if isinstance(exp, sympy.Expr):
-            return tuple(shifts)
-        return tuple(value.PeriodicValue(s, 2) for s in shifts)
+        """The phases by which we multiply the eigencomponents."""
+        symbolic = lambda x: isinstance(x, sympy.Expr) and x.free_symbols
+        f = lambda x: x if symbolic(x) else float(x)
+        shifts = (
+            f(self._exponent) * f(p + e) for p, e in zip(self.phase_shifts, self._eigen_shifts())
+        )
+        return tuple(s if symbolic(s) else value.PeriodicValue(f(s), 2) for s in shifts)
 
     def _value_equality_approximate_values_(self):
         return self._value_equality_values_()
