@@ -307,7 +307,7 @@ class EigenGate(raw_types.Gate):
         """The phases by which we multiply the eigencomponents."""
         symbolic = lambda x: isinstance(x, sympy.Expr) and x.free_symbols
         f = lambda x: x if symbolic(x) else float(x)
-        shifts = tuple(f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
+        shifts = (f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
         return tuple(s if symbolic(s) else value.PeriodicValue(f(s), 2) for s in shifts)
 
     def _value_equality_approximate_values_(self):
