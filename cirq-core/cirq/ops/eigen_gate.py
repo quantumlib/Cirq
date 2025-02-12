@@ -305,17 +305,10 @@ class EigenGate(raw_types.Gate):
 
     def _value_equality_values_(self):
         """The phases by which we multiply the eigencomponents."""
-        exp = self._exponent
-        if isinstance(exp, sympy.Expr) and not exp.free_symbols:
-            # Handle sympy.pi, etc. (Can't be done in init because diagram draws them differently).
-            exp = float(exp)
-        shifts = tuple(float(self._global_shift + e) for e in self._eigen_shifts())
-        if not any(shifts):
-            exp = 0  # Exponent is irrelevant. Eliminate, to remove possible symbols.
-        phases = tuple(exp * shift for shift in shifts)
-        if isinstance(exp, sympy.Expr) and any(shifts):
-            return phases
-        return tuple(value.PeriodicValue(s, 2) for s in phases)
+        symbolic = lambda x: isinstance(x, sympy.Expr) and x.free_symbols
+        f = lambda x: x if symbolic(x) else float(x)
+        shifts = tuple(f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
+        return tuple(s if symbolic(s) else value.PeriodicValue(f(s), 2) for s in shifts)
 
     def _value_equality_approximate_values_(self):
         return self._value_equality_values_()

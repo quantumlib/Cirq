@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import List, Tuple
-import re
 
 import numpy as np
 import pytest
@@ -142,6 +141,12 @@ def test_eq():
         WeightedZPowGate(0, global_shift=1) ** (sympy.Symbol('a') * 2),
         WeightedZPowGate(0, global_shift=1) ** (sympy.Symbol('a') + sympy.Symbol('a')),
     )
+    # Symbolic exponents that cancel
+    eq.add_equality_group(
+        WeightedZPowGate(1),
+        WeightedZPowGate(1 / sympy.Symbol('a')) ** sympy.Symbol('a'),
+        WeightedZPowGate(sympy.Symbol('a')) ** (1 / sympy.Symbol('a')),
+    )
 
 
 def test_approx_eq():
@@ -152,7 +157,7 @@ def test_approx_eq():
     assert cirq.approx_eq(ZGateDef(exponent=1.5), ZGateDef(exponent=1.5), atol=0.1)
     assert not cirq.approx_eq(CExpZinGate(1.5), ZGateDef(exponent=1.5), atol=0.1)
     with pytest.raises(
-        TypeError, match=re.escape("unsupported operand type(s) for -: 'Zero' and 'PeriodicValue'")
+        TypeError, match="unsupported operand type\\(s\\) for -: '.*' and 'PeriodicValue'"
     ):
         cirq.approx_eq(ZGateDef(exponent=1.5), ZGateDef(exponent=sympy.Symbol('a')), atol=0.1)
     assert cirq.approx_eq(CExpZinGate(sympy.Symbol('a')), CExpZinGate(sympy.Symbol('a')), atol=0.1)
