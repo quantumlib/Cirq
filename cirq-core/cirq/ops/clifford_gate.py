@@ -433,7 +433,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         return CliffordGate.from_clifford_tableau(base_tableau)
 
     def __repr__(self) -> str:
-        return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
+        return f"Clifford Gate with Tableau:\n{self.clifford_tableau._str_full_()}"
 
     def _commutes_(
         self, other: Any, *, atol: float = 1e-8
