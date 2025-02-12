@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_CHECKING
+from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
 
 import functools
 import networkx
