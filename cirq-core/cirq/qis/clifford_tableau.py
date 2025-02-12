@@ -329,11 +329,11 @@ class CliffordTableau(StabilizerState):
         left_col_width = max(7, self.n * 2 + 3)
         right_col_width = max(10, self.n * 2 + 4)
 
-        def fill_row(left: str, right: str, mid='|', fill=' ') -> str:
+        def _fill_row(left: str, right: str, mid='|', fill=' ') -> str:
             """Builds a left-aligned fixed-width row with 2 columns."""
             return f"{left:{fill}<{left_col_width}}{mid}{right:{fill}<{right_col_width}}".rstrip()
 
-        def pauli_from_matrix(r: int, c: int) -> str:
+        def _pauli_from_matrix(r: int, c: int) -> str:
             match (self.xs[r, c], self.zs[r, c]):
                 case (np.True_, np.False_):
                     return f'X{c}'
@@ -346,17 +346,17 @@ class CliffordTableau(StabilizerState):
                 case _:
                     raise ValueError(f"Can't match a Pauli gate from row {r} and col {c}.")
 
-        title_row = fill_row('stable', ' destable')
-        divider = fill_row('', '', mid='+', fill='-')
+        title_row = _fill_row('stable', ' destable')
+        divider = _fill_row('', '', mid='+', fill='-')
         contents = [
-            fill_row(
+            _fill_row(
                 left='{sign} {paulis}'.format(  # from row i+n  # pylint: disable=consider-using-f-string
                     sign='-' if self.rs[i + self.n] else '+',
-                    paulis=''.join(pauli_from_matrix(i + self.n, j) for j in range(self.n)),
+                    paulis=''.join(_pauli_from_matrix(i + self.n, j) for j in range(self.n)),
                 ),
                 right=' {sign} {paulis}'.format(  # from row i  # pylint: disable=consider-using-f-string
                     sign='-' if self.rs[i] else '+',
-                    paulis=''.join(pauli_from_matrix(i, j) for j in range(self.n)),
+                    paulis=''.join(_pauli_from_matrix(i, j) for j in range(self.n)),
                 ),
             )
             for i in range(self.n)
