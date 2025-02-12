@@ -334,15 +334,17 @@ class CliffordTableau(StabilizerState):
             return f"{left:{fill}<{left_col_width}}{mid}{right:{fill}<{right_col_width}}".rstrip()
 
         def pauli_from_matrix(r: int, c: int) -> str:
-            match (bool(self.xs[r, c]), bool(self.zs[r, c])):
-                case (True, False):
+            match (self.xs[r, c], self.zs[r, c]):
+                case (np.True_, np.False_):
                     return f'X{c}'
-                case (False, True):
+                case (np.False_, np.True_):
                     return f'Z{c}'
-                case (True, True):
+                case (np.True_, np.True_):
                     return f'Y{c}'
-                case (False, False):
+                case (np.False_, np.False_):
                     return '  '
+                case _:
+                    raise ValueError(f"Can't match a Pauli gate from row {r} and col {c}.")
 
         title_row = fill_row('stable', ' destable')
         divider = fill_row('', '', mid='+', fill='-')
