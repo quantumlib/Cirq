@@ -17,8 +17,8 @@ from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
 import functools
 import networkx
 
-from cirq import ops
 import cirq
+from cirq import ops
 
 T = TypeVar('T')
 

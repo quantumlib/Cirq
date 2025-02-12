@@ -25,15 +25,15 @@ from typing import (
     Optional,
     Set,
     Tuple,
-    Union,
     TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
 import sympy
 from ply import yacc
 
-from cirq import ops, Circuit, CircuitOperation, CX, NamedQubit
+from cirq import Circuit, CircuitOperation, NamedQubit, ops
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
@@ -233,7 +233,7 @@ class QasmParser:
         }
 
     basic_gates: Dict[str, QasmGateStatement] = {
-        'CX': QasmGateStatement(qasm_gate='CX', cirq_gate=CX, num_params=0, num_args=2),
+        'CX': QasmGateStatement(qasm_gate='CX', cirq_gate=ops.CX, num_params=0, num_args=2),
         'U': QasmGateStatement(
             qasm_gate='U',
             num_params=3,
@@ -296,7 +296,7 @@ class QasmParser:
         'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
         's': QasmGateStatement(qasm_gate='s', num_params=0, num_args=1, cirq_gate=ops.S),
         't': QasmGateStatement(qasm_gate='t', num_params=0, num_args=1, cirq_gate=ops.T),
-        'cx': QasmGateStatement(qasm_gate='cx', cirq_gate=CX, num_params=0, num_args=2),
+        'cx': QasmGateStatement(qasm_gate='cx', cirq_gate=ops.CX, num_params=0, num_args=2),
         'cy': QasmGateStatement(
             qasm_gate='cy', cirq_gate=ops.ControlledGate(ops.Y), num_params=0, num_args=2
         ),
