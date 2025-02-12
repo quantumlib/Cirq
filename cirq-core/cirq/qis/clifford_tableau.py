@@ -331,33 +331,36 @@ class CliffordTableau(StabilizerState):
 
         def fill_row(left: str, right: str, mid='|', fill=' ') -> str:
             """Builds a left-aligned fixed-width row with 2 columns."""
-            return f"{left:{fill}<{left_col_width}}{mid}{right:{fill}<{right_col_width}}"
+            return f"{left:{fill}<{left_col_width}}{mid}{right:{fill}<{right_col_width}}".rstrip()
 
         def pauli_from_matrix(r: int, c: int) -> str:
-            return {
-                (True, False): f'X{c}',
-                (False, True): f'Z{c}',
-                (True, True): f'Y{c}',
-                (False, False): '  ',
-            }[(self.xs[r, c], self.zs[r, c])]
+            match (bool(self.xs[r, c]), bool(self.zs[r, c])):
+                case (True, False):
+                    return f'X{c}'
+                case (False, True):
+                    return f'Z{c}'
+                case (True, True):
+                    return f'Y{c}'
+                case (False, False):
+                    return '  '
 
         title_row = fill_row('stable', ' destable')
         divider = fill_row('', '', mid='+', fill='-')
         contents = [
             fill_row(
-                left='{sign} {paulis}'.format(  # from row i+n
+                left='{sign} {paulis}'.format(  # from row i+n  # pylint: disable=consider-using-f-string
                     sign='-' if self.rs[i + self.n] else '+',
-                    paulis=''.join([pauli_from_matrix(i + self.n, j) for j in range(self.n)]),
+                    paulis=''.join(pauli_from_matrix(i + self.n, j) for j in range(self.n)),
                 ),
-                right=' {sign} {paulis}'.format(  # from row i
+                right=' {sign} {paulis}'.format(  # from row i  # pylint: disable=consider-using-f-string
                     sign='-' if self.rs[i] else '+',
-                    paulis=''.join([pauli_from_matrix(i, j) for j in range(self.n)]),
+                    paulis=''.join(pauli_from_matrix(i, j) for j in range(self.n)),
                 ),
             )
             for i in range(self.n)
         ]
 
-        return '\n'.join([title_row, divider, *contents])
+        return '\n'.join([title_row, divider, *contents]) + '\n'
 
     def then(self, second: 'CliffordTableau') -> 'CliffordTableau':
         """Returns a composed CliffordTableau of this tableau and the second tableau.
