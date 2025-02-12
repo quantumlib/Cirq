@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Tests for clifford tableau."""
-import unittest.mock
+
 import numpy as np
 import pytest
 
@@ -313,19 +313,6 @@ def test_str_full():
 +   Z1 | +   X1
 """
     assert t._str_full_() == expected_str
-
-
-def test_str_full_raises():
-    t = cirq.CliffordTableau(num_qubits=2)
-    with unittest.mock.patch.object(
-        cirq.CliffordTableau,
-        "xs",
-        # Actual return should be np.True_ or np.False_. The value retured here will trigger the
-        # raise in getting paulis from the xs, zs matrices in the pauli_from_matrix() function.
-        return_value=True,
-    ):
-        with pytest.raises(ValueError, match="Can't match a Pauli gate from"):
-            _ = t._str_full_()
 
 
 def test_copy():
