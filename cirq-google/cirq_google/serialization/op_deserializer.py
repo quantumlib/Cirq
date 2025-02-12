@@ -31,16 +31,6 @@ class OpDeserializer(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def serialized_id(self) -> str:
-        """Returns the string identifier for the accepted serialized objects.
-
-        This ID denotes the serialization format this deserializer consumes. For
-        example, one of the common deserializers converts objects with the id
-        'xy' into PhasedXPowGates.
-        """
-
-    @property
-    @abc.abstractmethod
     def can_deserialize_predicate(self) -> Callable[[Any], bool]:
         """The method used to determine if this can deserialize a proto."""
 
@@ -76,12 +66,8 @@ class CircuitOpDeserializer(OpDeserializer):
     """Describes how to serialize CircuitOperations."""
 
     @property
-    def serialized_id(self):
-        return 'circuit'
-
-    @property
     def can_deserialize_predicate(self):
-        return lambda proto: isinstance(proto, v2.program_pb2.CircuitOperation)
+        return lambda proto: isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: nocover
 
     def from_proto(
         self,

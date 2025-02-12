@@ -934,14 +934,6 @@ class BingBongSerializer(OpSerializer):
     """Describes how to serialize CircuitOperations."""
 
     @property
-    def internal_type(self):
-        return cirq.Operation
-
-    @property
-    def serialized_id(self):
-        return 'bingbong'
-
-    @property
     def can_serialize_predicate(self):
         return lambda op: isinstance(op.gate, BingBongGate)
 
@@ -956,7 +948,7 @@ class BingBongSerializer(OpSerializer):
     ) -> v2.program_pb2.CircuitOperation:
         assert isinstance(op.gate, BingBongGate)
         if msg is None:
-            msg = v2.program_pb2.Operation()
+            msg = v2.program_pb2.Operation()  # pragma: nocover
         msg.internalgate.name = 'bingbong'
         msg.internalgate.module = 'test'
         msg.internalgate.num_qubits = 1
@@ -976,10 +968,6 @@ class BingBongSerializer(OpSerializer):
 
 class BingBongDeserializer(OpDeserializer):
     """Describes how to serialize CircuitOperations."""
-
-    @property
-    def serialized_id(self):
-        return 'bingbong'
 
     @property
     def can_deserialize_predicate(self):
@@ -1003,10 +991,14 @@ class BingBongDeserializer(OpDeserializer):
         )
 
 
-def test_custom_serializer():
+@pytest.mark.parametrize('use_constants_table', [True, False])
+def test_custom_serializer(use_constants_table: bool):
     c = cirq.Circuit(BingBongGate(param=2.5)(cirq.q(0, 0)))
     serializer = cg.CircuitSerializer(
-        op_serializer=BingBongSerializer(), op_deserializer=BingBongDeserializer()
+        USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
+        USE_CONSTANTS_TABLE_FOR_OPERATIONS=use_constants_table,
+        op_serializer=BingBongSerializer(),
+        op_deserializer=BingBongDeserializer(),
     )
     msg = serializer.serialize(c)
     deserialized_circuit = serializer.deserialize(msg)

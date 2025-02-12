@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 import numbers
 
 import abc
@@ -23,9 +23,6 @@ from cirq.circuits import circuit_operation
 from cirq_google.api import v2
 from cirq_google.serialization.arg_func_langs import arg_to_proto
 
-# Type for variables that are subclasses of ops.Gate.
-Gate = TypeVar('Gate', bound=cirq.Gate)
-
 
 class OpSerializer(abc.ABC):
     """Generic supertype for operation serializers.
@@ -34,25 +31,6 @@ class OpSerializer(abc.ABC):
     Cirq operation to its corresponding proto format. Multiple operation types
     may serialize to the same format.
     """
-
-    @property
-    @abc.abstractmethod
-    def internal_type(self) -> Type:
-        """Returns the type that the operation contains.
-
-        For GateOperations, this is the gate type.
-        For CircuitOperations, this is FrozenCircuit.
-        """
-
-    @property
-    @abc.abstractmethod
-    def serialized_id(self) -> str:
-        """Returns the string identifier for the resulting serialized object.
-
-        This ID denotes the serialization format this serializer produces. For
-        example, one of the common serializers assigns the id 'xy' to XPowGates,
-        as they serialize into a format also used by YPowGates.
-        """
 
     @abc.abstractmethod
     def to_proto(
@@ -98,14 +76,6 @@ class OpSerializer(abc.ABC):
 
 class CircuitOpSerializer(OpSerializer):
     """Describes how to serialize CircuitOperations."""
-
-    @property
-    def internal_type(self):
-        return cirq.FrozenCircuit
-
-    @property
-    def serialized_id(self):
-        return 'circuit'
 
     @property
     def can_serialize_predicate(self):
