@@ -349,13 +349,13 @@ class CliffordTableau(StabilizerState):
         divider = _fill_row('', '', mid='+', fill='-')
         contents = [
             _fill_row(
-                left='{sign} {paulis}'.format(  # from row i+n  # pylint: disable=consider-using-f-string
-                    sign='-' if self.rs[i + self.n] else '+',
-                    paulis=''.join(_pauli_from_matrix(i + self.n, j) for j in range(self.n)),
+                left=(
+                    f"{'-' if self.rs[i + self.n] else '+'} "
+                    f"{''.join(_pauli_from_matrix(i + self.n, j) for j in range(self.n))}"
                 ),
-                right=' {sign} {paulis}'.format(  # from row i  # pylint: disable=consider-using-f-string
-                    sign='-' if self.rs[i] else '+',
-                    paulis=''.join(_pauli_from_matrix(i, j) for j in range(self.n)),
+                right=(
+                    f" {'-' if self.rs[i] else '+'} "
+                    f"{''.join(_pauli_from_matrix(i, j) for j in range(self.n))}"
                 ),
             )
             for i in range(self.n)
