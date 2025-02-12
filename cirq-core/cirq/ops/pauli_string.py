@@ -1675,11 +1675,10 @@ def _pass_pauli_interaction_gate_over(
     return quarter_kickback % 4 == 2
 
 
-# Mypy has extreme difficulty with these constants for some reason.
-_i = cast(identity.IdentityGate, identity.I)  # type: ignore
-_x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore
-_y = cast(pauli_gates.Pauli, pauli_gates.Y)  # type: ignore
-_z = cast(pauli_gates.Pauli, pauli_gates.Z)  # type: ignore
+_i = identity.I
+_x = pauli_gates.X
+_y = pauli_gates.Y
+_z = pauli_gates.Z
 
 PAULI_GATE_LIKE_TO_INDEX_MAP: Dict['cirq.PAULI_GATE_LIKE', int] = {
     _i: 0,

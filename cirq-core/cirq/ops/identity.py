@@ -149,7 +149,7 @@ class IdentityGate(raw_types.Gate):
         return cls(num_qubits=num_qubits, qid_shape=None if qid_shape is None else tuple(qid_shape))
 
 
-I = IdentityGate(num_qubits=1)
+I: IdentityGate = IdentityGate(num_qubits=1)
 document(
     I,
     """The one qubit identity gate.

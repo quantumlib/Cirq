@@ -1463,7 +1463,7 @@ def cphase(rads: 'cirq.TParamVal') -> CZPowGate:
     return CZPowGate(exponent=rads / _pi(rads))
 
 
-H = HPowGate()
+H: HPowGate = HPowGate()
 document(
     H,
     r"""The Hadamard gate.
@@ -1480,7 +1480,7 @@ document(
     """,
 )
 
-S = ZPowGate(exponent=0.5)
+S: ZPowGate = ZPowGate(exponent=0.5)
 document(
     S,
     r"""The Clifford S gate.
@@ -1497,7 +1497,7 @@ document(
     """,
 )
 
-T = ZPowGate(exponent=0.25)
+T: ZPowGate = ZPowGate(exponent=0.25)
 document(
     T,
     r"""The non-Clifford T gate.
@@ -1514,7 +1514,7 @@ document(
     """,
 )
 
-CZ = CZPowGate()
+CZ: CZPowGate = CZPowGate()
 document(
     CZ,
     r"""The controlled Z gate.
@@ -1533,8 +1533,9 @@ document(
     """,
 )
 
+CX: CXPowGate = CXPowGate()
 CNotPowGate = CXPowGate
-CNOT = CX = CNotPowGate()
+CNOT: CNotPowGate = CNotPowGate()
 document(
     CNOT,
     r"""The controlled NOT gate.

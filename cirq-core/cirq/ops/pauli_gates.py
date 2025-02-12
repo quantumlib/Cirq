@@ -181,7 +181,7 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         return {+1: _ZEigenState(+1), -1: _ZEigenState(-1)}
 
 
-X = _PauliX()
+X: _PauliX = _PauliX()
 document(
     X,
     r"""The Pauli X gate.
@@ -198,7 +198,7 @@ document(
     """,
 )
 
-Y = _PauliY()
+Y: _PauliY = _PauliY()
 document(
     Y,
     r"""The Pauli Y gate.
@@ -215,7 +215,7 @@ document(
     """,
 )
 
-Z = _PauliZ()
+Z: _PauliZ = _PauliZ()
 document(
     Z,
     r"""The Pauli Z gate.

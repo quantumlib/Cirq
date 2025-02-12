@@ -297,7 +297,7 @@ def riswap(rads: 'cirq.TParamVal') -> ISwapPowGate:
     return cast(ISwapPowGate, ISwapPowGate() ** (2 * rads / pi))
 
 
-SWAP = SwapPowGate()
+SWAP: SwapPowGate = SwapPowGate()
 document(
     SWAP,
     r"""The swap gate.
@@ -316,7 +316,7 @@ document(
     """,
 )
 
-ISWAP = ISwapPowGate()
+ISWAP: ISwapPowGate = ISwapPowGate()
 document(
     ISWAP,
     r"""The iswap gate.
@@ -333,7 +333,7 @@ document(
     """,
 )
 
-ISWAP_INV = ISwapPowGate(exponent=-1)
+ISWAP_INV: ISwapPowGate = ISwapPowGate(exponent=-1)
 document(
     ISWAP_INV,
     r"""The inverse of the iswap gate.
@@ -350,7 +350,7 @@ document(
     """,
 )
 
-SQRT_ISWAP = ISwapPowGate(exponent=0.5)
+SQRT_ISWAP: ISwapPowGate = ISwapPowGate(exponent=0.5)
 document(
     SQRT_ISWAP,
     r"""The square root of iswap gate.
@@ -367,7 +367,7 @@ document(
     """,
 )
 
-SQRT_ISWAP_INV = ISwapPowGate(exponent=-0.5)
+SQRT_ISWAP_INV: ISwapPowGate = ISwapPowGate(exponent=-0.5)
 document(
     SQRT_ISWAP_INV,
     r"""The inverse square root of iswap gate.
