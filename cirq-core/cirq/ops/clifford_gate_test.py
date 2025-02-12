@@ -941,6 +941,18 @@ def test_clifford_gate_repr():
         t = gate.clifford_tableau
         assert repr(gate) == f"Clifford Gate with Tableau:\n{t._str_full_()}"
 
+    # Check repr without calling _str_full_() for one gate of CliffordGate type.
+    # This verifies that repr output is as expected with correct stabilizers and destabilizers.
+    assert (
+        repr(cirq.ops.CliffordGate.CNOT)
+        == """Clifford Gate with Tableau:
+stable | destable
+-------+----------
++ Z0   | + X0X1
++ Z0Z1 | +   X1
+"""
+    )
+
 
 def test_single_qubit_clifford_gate_repr():
     # Common gates
