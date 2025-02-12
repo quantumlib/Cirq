@@ -24,7 +24,7 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 if TYPE_CHECKING:
     import cirq
 
-PAULI_EIGEN_MAP: Dict[pauli_gates.Pauli, Tuple[np.ndarray, np.ndarray]] = {
+PAULI_EIGEN_MAP: Dict['cirq.Pauli', Tuple[np.ndarray, np.ndarray]] = {
     pauli_gates.X: (np.array([[0.5, 0.5], [0.5, 0.5]]), np.array([[0.5, -0.5], [-0.5, 0.5]])),
     pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j, 0.5]]), np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
     pauli_gates.Z: (np.diag([1, 0]), np.diag([0, 1])),
@@ -40,12 +40,12 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
 
     def __init__(
         self,
-        pauli0: pauli_gates.Pauli,
+        pauli0: 'cirq.Pauli',
         invert0: bool,
-        pauli1: pauli_gates.Pauli,
+        pauli1: 'cirq.Pauli',
         invert1: bool,
         *,
-        exponent: value.TParamVal = 1.0,
+        exponent: 'cirq.TParamVal' = 1.0,
     ) -> None:
         """Inits PauliInteractionGate.
 
@@ -92,7 +92,7 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
             return 0
         return index
 
-    def _with_exponent(self, exponent: value.TParamVal) -> 'PauliInteractionGate':
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'PauliInteractionGate':
         return PauliInteractionGate(
             self.pauli0, self.invert0, self.pauli1, self.invert1, exponent=exponent
         )

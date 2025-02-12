@@ -743,11 +743,11 @@ class AbstractCircuit(abc.ABC):
             and the second item is the operation itself.
 
         """
-        op_list: List[Tuple[int, ops.Operation]] = []
+        op_list: List[Tuple[int, 'cirq.Operation']] = []
         if not start_frontier:
             return op_list
         start_index = min(start_frontier.values())
-        blocked_qubits: Set[cirq.Qid] = set()
+        blocked_qubits: Set['cirq.Qid'] = set()
         for index, moment in enumerate(self[start_index:], start_index):
             active_qubits = set(q for q, s in start_frontier.items() if s <= index)
             for op in moment.operations:

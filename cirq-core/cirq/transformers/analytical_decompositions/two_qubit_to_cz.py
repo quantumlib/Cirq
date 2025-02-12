@@ -56,7 +56,7 @@ def two_qubit_matrix_to_cz_operations(
     allow_partial_czs: bool,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> List[ops.Operation]:
+) -> List['cirq.Operation']:
     """Decomposes a two-qubit operation into Z/XY/CZ gates.
 
     Args:
@@ -183,7 +183,7 @@ def _xx_yy_zz_interaction_via_full_czs(
     yield ops.H(q1)
 
 
-def cleanup_operations(operations: Sequence[ops.Operation]):
+def cleanup_operations(operations: Sequence['cirq.Operation']):
     circuit = circuits.Circuit(operations)
     circuit = merge_single_qubit_gates_to_phased_x_and_z(circuit)
     circuit = eject_phased_paulis(circuit)
@@ -195,10 +195,10 @@ def cleanup_operations(operations: Sequence[ops.Operation]):
 def _kak_decomposition_to_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
-    kak: linalg.KakDecomposition,
+    kak: 'cirq.KakDecomposition',
     allow_partial_czs: bool,
     atol: float = 1e-8,
-) -> List[ops.Operation]:
+) -> List['cirq.Operation']:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, atol=atol), _do_single_on(b1, q1, atol=atol)]
@@ -233,7 +233,7 @@ def _is_trivial_angle(rad: float, atol: float) -> bool:
 
 
 def _parity_interaction(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', rads: float, atol: float, gate: Optional[ops.Gate] = None
+    q0: 'cirq.Qid', q1: 'cirq.Qid', rads: float, atol: float, gate: Optional['cirq.Gate'] = None
 ):
     """Yields a ZZ interaction framed by the given operation."""
     if abs(rads) < atol:

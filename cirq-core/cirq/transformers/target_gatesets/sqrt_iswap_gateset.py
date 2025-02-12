@@ -14,10 +14,9 @@
 
 """Target gateset used for compiling circuits to √iSWAP + 1-q rotations + measurement gates."""
 
-from typing import Any, Dict, Optional, Sequence, Type, Union, TYPE_CHECKING
+from typing import Any, Dict, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 from cirq import ops, protocols
-from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers.analytical_decompositions import two_qubit_to_sqrt_iswap
 from cirq.transformers.target_gatesets import compilation_target_gateset
 
@@ -87,7 +86,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         self.required_sqrt_iswap_count = required_sqrt_iswap_count
         self.use_sqrt_iswap_inv = use_sqrt_iswap_inv
 
-    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
+    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> 'cirq.DecomposeResult':
         if protocols.has_unitary(op):
             return two_qubit_to_sqrt_iswap.two_qubit_matrix_to_sqrt_iswap_operations(
                 op.qubits[0],

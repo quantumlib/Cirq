@@ -25,14 +25,13 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
+def _default_measurement_key(qubits: Iterable['cirq.Qid']) -> str:
     return ','.join(str(q) for q in qubits)
 
 
 def measure_single_paulistring(
-    pauli_observable: pauli_string.PauliString,
-    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
-) -> raw_types.Operation:
+    pauli_observable: 'cirq.PauliString', key: Optional[Union[str, 'cirq.MeasurementKey']] = None
+) -> 'cirq.Operation':
     """Returns a single PauliMeasurementGate which measures the pauli observable
 
     Args:
@@ -65,8 +64,8 @@ def measure_single_paulistring(
 
 
 def measure_paulistring_terms(
-    pauli_basis: pauli_string.PauliString, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+    pauli_basis: 'cirq.PauliString', key_func: Callable[['cirq.Qid'], str] = str
+) -> List['cirq.Operation']:
     """Returns a list of operations individually measuring qubits in the pauli basis.
 
     Args:
@@ -97,17 +96,17 @@ def measure(
     *target: raw_types.Qid,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
-) -> raw_types.Operation:
+) -> 'cirq.Operation':
     pass
 
 
 @overload
 def measure(
-    __target: Iterable[raw_types.Qid],
+    __target: Iterable['cirq.Qid'],
     *,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
-) -> raw_types.Operation:
+) -> 'cirq.Operation':
     pass
 
 
@@ -116,7 +115,7 @@ def measure(
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
     confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
-) -> raw_types.Operation:
+) -> 'cirq.Operation':
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis. This can also be
@@ -169,21 +168,19 @@ M = measure
 
 @overload
 def measure_each(
-    *qubits: raw_types.Qid, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+    *qubits: raw_types.Qid, key_func: Callable[['cirq.Qid'], str] = str
+) -> List['cirq.Operation']:
     pass
 
 
 @overload
 def measure_each(
-    __qubits: Iterable[raw_types.Qid], *, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+    __qubits: Iterable['cirq.Qid'], *, key_func: Callable[['cirq.Qid'], str] = str
+) -> List['cirq.Operation']:
     pass
 
 
-def measure_each(
-    *qubits, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+def measure_each(*qubits, key_func: Callable[['cirq.Qid'], str] = str) -> List['cirq.Operation']:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.

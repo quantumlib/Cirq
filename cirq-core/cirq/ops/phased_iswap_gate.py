@@ -119,7 +119,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             exponent=protocols.resolve_parameters(self.exponent, resolver, recursive),
         )
 
-    def _with_exponent(self, exponent: value.type_alias.TParamVal) -> 'PhasedISwapPowGate':
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'PhasedISwapPowGate':
         return PhasedISwapPowGate(
             phase_exponent=self.phase_exponent, exponent=exponent, global_shift=self.global_shift
         )
@@ -137,7 +137,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             eigen_components.append((eigenvalue, new_projector))
         return eigen_components
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return NotImplemented
 
@@ -167,7 +167,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         yield cirq.Z(a) ** -self.phase_exponent
         yield cirq.Z(b) ** self.phase_exponent
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if self._is_parameterized_():
             return NotImplemented
         expansion = protocols.pauli_expansion(self._iswap)
@@ -216,7 +216,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         return f'cirq.PhasedISwapPowGate({arg_string})'
 
 
-def givens(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
+def givens(angle_rads: 'cirq.TParamVal') -> PhasedISwapPowGate:
     """Returns gate with matrix exp(-i angle_rads (Y⊗X - X⊗Y) / 2).
 
     In numerical linear algebra Givens rotation is any linear transformation

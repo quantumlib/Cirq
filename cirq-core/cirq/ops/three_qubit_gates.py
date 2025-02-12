@@ -43,7 +43,6 @@ from cirq.ops import (
     raw_types,
     swap_gates,
     raw_types,
-    control_values as cv,
     global_phase_op,
 )
 
@@ -79,7 +78,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
@@ -145,7 +144,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             sweep_abc,
         ]
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
         ooo = args.subspace_index(0b111)
@@ -194,10 +193,10 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         self,
         num_controls: Optional[int] = None,
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
-    ) -> raw_types.Gate:
+    ) -> 'cirq.Gate':
         """Returns a controlled `ZPowGate` with two additional controls.
 
         The `controlled` method of the `Gate` class, of which this class is a
@@ -228,7 +227,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
     elements are all phases.
     """
 
-    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence['cirq.TParamVal']) -> None:
         r"""A three qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and its on diagonal
@@ -239,10 +238,10 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_7)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_7})$.
         """
-        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: Tuple['cirq.TParamVal', ...] = tuple(diag_angles_radians)
 
     @property
-    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+    def diag_angles_radians(self) -> Tuple['cirq.TParamVal', ...]:
         return self._diag_angles_radians
 
     def _is_parameterized_(self) -> bool:
@@ -271,7 +270,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
             return NotImplemented
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         if self._is_parameterized_():
             return NotImplemented
         for index, angle in enumerate(self._diag_angles_radians):
@@ -366,7 +365,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
     def _value_equality_values_(self):
         return tuple(self._diag_angles_radians)
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if protocols.is_parameterized(self):
             return NotImplemented
         x = [np.exp(1j * angle) for angle in self._diag_angles_radians]
@@ -430,7 +429,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
@@ -452,7 +451,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
         p = 1j ** (2 * self._exponent * self._global_shift)
@@ -508,10 +507,10 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         self,
         num_controls: Optional[int] = None,
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
-    ) -> raw_types.Gate:
+    ) -> 'cirq.Gate':
         """Returns a controlled `XPowGate` with two additional controls.
 
         The `controlled` method of the `Gate` class, of which this class is a
@@ -541,7 +540,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def qubit_index_to_equivalence_group_key(self, index):
         return 0 if index == 0 else 1
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         return value.LinearDict(
             {
                 'III': 3 / 4,
@@ -609,7 +608,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         yield common_gates.S(c) ** -1
         yield pauli_gates.X(a) ** -0.5
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         return protocols.apply_unitary(
             controlled_gate.ControlledGate(swap_gates.SWAP),
             protocols.ApplyUnitaryArgs(args.target_tensor, args.available_buffer, args.axes),
@@ -685,10 +684,10 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         self,
         num_controls: Optional[int] = None,
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
-    ) -> raw_types.Gate:
+    ) -> 'cirq.Gate':
         """Returns a controlled `SWAP` with one additional control.
 
         The `controlled` method of the `Gate` class, of which this class is a

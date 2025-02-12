@@ -32,7 +32,7 @@ class SimulationProductState(
 
     def __init__(
         self,
-        sim_states: Dict[Optional['cirq.Qid'], TSimulationState],
+        sim_states: Dict[Optional['cirq.Qid'], 'cirq.TSimulationState'],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
@@ -55,14 +55,14 @@ class SimulationProductState(
         self._split_untangled_states = split_untangled_states
 
     @property
-    def sim_states(self) -> Mapping[Optional['cirq.Qid'], TSimulationState]:
+    def sim_states(self) -> Mapping[Optional['cirq.Qid'], 'cirq.TSimulationState']:
         return self._sim_states
 
     @property
     def split_untangled_states(self) -> bool:
         return self._split_untangled_states
 
-    def create_merged_state(self) -> TSimulationState:
+    def create_merged_state(self) -> 'cirq.TSimulationState':
         merged_state = self.sim_states[None]
         if not self.split_untangled_states:
             return merged_state
@@ -106,7 +106,7 @@ class SimulationProductState(
 
         # Go through the op's qubits and join any disparate SimulationState states
         # into a new combined state.
-        op_args_opt: Optional[TSimulationState] = None
+        op_args_opt: Optional['cirq.TSimulationState'] = None
         for q in qubits:
             if op_args_opt is None:
                 op_args_opt = self.sim_states[q]
@@ -138,7 +138,7 @@ class SimulationProductState(
 
     def copy(
         self, deep_copy_buffers: bool = True
-    ) -> 'cirq.SimulationProductState[TSimulationState]':
+    ) -> 'cirq.SimulationProductState[cirq.TSimulationState]':
         classical_data = self._classical_data.copy()
         copies = {}
         for sim_state in set(self.sim_states.values()):
@@ -157,7 +157,7 @@ class SimulationProductState(
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
         columns = []
-        selected_order: List[ops.Qid] = []
+        selected_order: List['cirq.Qid'] = []
         q_set = set(qubits)
         for v in dict.fromkeys(self.sim_states.values()):
             qs = [q for q in v.qubits if q in q_set]
@@ -170,7 +170,7 @@ class SimulationProductState(
         index_order = [qubit_map[q] for q in qubits]
         return stacked[:, index_order]
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TSimulationState:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> 'cirq.TSimulationState':
         return self.sim_states[item]
 
     def __len__(self) -> int:

@@ -114,7 +114,7 @@ class _BaseGridQid(ops.Qid):
             and abs(self._row - other._row) + abs(self._col - other._col) == 1
         )
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseGridQid']:
+    def neighbors(self, qids: Optional[Iterable['cirq.Qid']] = None) -> Set['_BaseGridQid']:
         """Returns qubits that are potential neighbors to this GridQid
 
         Args:

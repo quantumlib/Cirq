@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, Optional, Sequence, Type
+from typing import Any, Dict, Optional, Sequence, Type, TYPE_CHECKING
 
 import numpy as np
 import sympy
 
-from cirq import ops, protocols, value
+from cirq import ops, protocols
 from cirq.testing.consistent_act_on import assert_all_implemented_act_on_effects_match_unitary
 from cirq.testing.circuit_compare import (
     assert_has_consistent_apply_unitary,
@@ -41,6 +41,9 @@ from cirq.testing.consistent_controlled_gate_op import (
     assert_controlled_unitary_consistent,
 )
 from cirq.testing.consistent_unitary import assert_unitary_is_consistent
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def assert_implements_consistent_protocols(
@@ -81,9 +84,9 @@ def assert_implements_consistent_protocols(
 
 
 def assert_eigengate_implements_consistent_protocols(
-    eigen_gate_type: Type[ops.EigenGate],
+    eigen_gate_type: Type['cirq.EigenGate'],
     *,
-    exponents: Sequence[value.TParamVal] = (0, 1, -1, 0.25, sympy.Symbol('s')),
+    exponents: Sequence['cirq.TParamVal'] = (0, 1, -1, 0.25, sympy.Symbol('s')),
     global_shifts: Sequence[float] = (0, -0.5, 0.1),
     qubit_count: Optional[int] = None,
     ignoring_global_phase: bool = False,
@@ -110,7 +113,7 @@ def assert_eigengate_implements_consistent_protocols(
             )
 
 
-def assert_eigen_shifts_is_consistent_with_eigen_components(val: ops.EigenGate) -> None:
+def assert_eigen_shifts_is_consistent_with_eigen_components(val: 'cirq.EigenGate') -> None:
     # pylint: disable=unused-variable
     __tracebackhide__ = True
     # pylint: enable=unused-variable

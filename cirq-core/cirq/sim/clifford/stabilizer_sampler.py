@@ -38,7 +38,7 @@ class StabilizerSampler(sampler.Sampler):
     def run_sweep(
         self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
-        results: List[cirq.Result] = []
+        results: List['cirq.Result'] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)
             measurements = self._run(resolved_circuit, repetitions=repetitions)

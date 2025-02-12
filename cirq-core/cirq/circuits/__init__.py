@@ -21,6 +21,7 @@ from cirq.circuits.circuit import (
     AbstractCircuit as AbstractCircuit,
     Alignment as Alignment,
     Circuit as Circuit,
+    CIRCUIT_TYPE as CIRCUIT_TYPE,
 )
 from cirq.circuits.circuit_operation import CircuitOperation as CircuitOperation
 from cirq.circuits.frozen_circuit import FrozenCircuit as FrozenCircuit
@@ -32,3 +33,5 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer as PointOptimizer,
     PointOptimizationSummary as PointOptimizationSummary,
 )
+
+from cirq.circuits._box_drawing_character_data import BoxDrawCharacterSet as BoxDrawCharacterSet

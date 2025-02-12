@@ -56,7 +56,7 @@ def eject_phased_paulis(
     Returns:
           Copy of the transformed input circuit.
     """
-    held_w_phases: Dict[ops.Qid, value.TParamVal] = {}
+    held_w_phases: Dict['cirq.Qid', 'cirq.TParamVal'] = {}
     tags_to_ignore = set(context.tags_to_ignore) if context else set()
 
     def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
@@ -105,7 +105,7 @@ def eject_phased_paulis(
 
 
 def _absorb_z_into_w(
-    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal]
+    op: 'cirq.Operation', held_w_phases: Dict['cirq.Qid', 'cirq.TParamVal']
 ) -> 'cirq.OP_TREE':
     """Absorbs a Z^t gate into a W(a) flip.
 
@@ -126,7 +126,7 @@ def _absorb_z_into_w(
 
 
 def _dump_held(
-    qubits: Iterable[ops.Qid], held_w_phases: Dict[ops.Qid, value.TParamVal]
+    qubits: Iterable['cirq.Qid'], held_w_phases: Dict['cirq.Qid', 'cirq.TParamVal']
 ) -> Iterator['cirq.OP_TREE']:
     # Note: sorting is to avoid non-determinism in the insertion order.
     for q in sorted(qubits):
@@ -138,7 +138,7 @@ def _dump_held(
 
 
 def _dump_into_measurement(
-    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal]
+    op: 'cirq.Operation', held_w_phases: Dict['cirq.Qid', 'cirq.TParamVal']
 ) -> 'cirq.OP_TREE':
     measurement = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
     new_measurement = measurement.with_bits_flipped(
@@ -150,7 +150,7 @@ def _dump_into_measurement(
 
 
 def _potential_cross_whole_w(
-    op: ops.Operation, atol: float, held_w_phases: Dict[ops.Qid, value.TParamVal]
+    op: 'cirq.Operation', atol: float, held_w_phases: Dict['cirq.Qid', 'cirq.TParamVal']
 ) -> 'cirq.OP_TREE':
     """Grabs or cancels a held W gate against an existing W gate.
 
@@ -183,7 +183,7 @@ def _potential_cross_whole_w(
 
 
 def _potential_cross_partial_w(
-    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal]
+    op: 'cirq.Operation', held_w_phases: Dict['cirq.Qid', 'cirq.TParamVal']
 ) -> 'cirq.OP_TREE':
     """Cross the held W over a partial W gate.
 
@@ -209,7 +209,7 @@ def _potential_cross_partial_w(
     return new_op
 
 
-def _single_cross_over_cz(op: ops.Operation, qubit_with_w: 'cirq.Qid') -> 'cirq.OP_TREE':
+def _single_cross_over_cz(op: 'cirq.Operation', qubit_with_w: 'cirq.Qid') -> 'cirq.OP_TREE':
     """Crosses exactly one W flip over a partial CZ.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -249,7 +249,7 @@ def _single_cross_over_cz(op: ops.Operation, qubit_with_w: 'cirq.Qid') -> 'cirq.
 
 
 def _double_cross_over_cz(
-    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal]
+    op: 'cirq.Operation', held_w_phases: Dict['cirq.Qid', 'cirq.TParamVal']
 ) -> 'cirq.OP_TREE':
     """Crosses two W flips over a partial CZ.
 
@@ -292,8 +292,8 @@ def _double_cross_over_cz(
 
 
 def _try_get_known_cz_half_turns(
-    op: ops.Operation, no_symbolic: bool = False
-) -> Optional[value.TParamVal]:
+    op: 'cirq.Operation', no_symbolic: bool = False
+) -> Optional['cirq.TParamVal']:
     if not isinstance(op.gate, ops.CZPowGate):
         return None
     h = op.gate.exponent
@@ -303,8 +303,8 @@ def _try_get_known_cz_half_turns(
 
 
 def _try_get_known_phased_pauli(
-    op: ops.Operation, no_symbolic: bool = False
-) -> Optional[Tuple[value.TParamVal, value.TParamVal]]:
+    op: 'cirq.Operation', no_symbolic: bool = False
+) -> Optional[Tuple['cirq.TParamVal', 'cirq.TParamVal']]:
     if no_symbolic and protocols.is_parameterized(op):
         return None
     gate = op.gate
@@ -331,8 +331,8 @@ def _try_get_known_phased_pauli(
 
 
 def _try_get_known_z_half_turns(
-    op: ops.Operation, no_symbolic: bool = False
-) -> Optional[value.TParamVal]:
+    op: 'cirq.Operation', no_symbolic: bool = False
+) -> Optional['cirq.TParamVal']:
     g = op.gate
     if (
         isinstance(g, ops.PhasedXZGate)

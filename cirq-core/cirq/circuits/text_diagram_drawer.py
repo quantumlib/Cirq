@@ -32,7 +32,6 @@ import numpy as np
 from cirq import value
 from cirq.circuits._block_diagram_drawer import BlockDiagramDrawer
 from cirq.circuits._box_drawing_character_data import (
-    BoxDrawCharacterSet,
     NORMAL_BOX_CHARS,
     BOLD_BOX_CHARS,
     ASCII_BOX_CHARS,
@@ -53,7 +52,7 @@ _VerticalLine = NamedTuple(
 _DiagramText = NamedTuple('_DiagramText', [('text', str), ('transposed_text', str)])
 
 
-def pick_charset(use_unicode: bool, emphasize: bool, doubled: bool) -> BoxDrawCharacterSet:
+def pick_charset(use_unicode: bool, emphasize: bool, doubled: bool) -> 'cirq.BoxDrawCharacterSet':
     if not use_unicode:
         return ASCII_BOX_CHARS
     if emphasize and doubled:

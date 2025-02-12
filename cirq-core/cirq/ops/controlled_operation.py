@@ -56,7 +56,7 @@ class ControlledOperation(raw_types.Operation):
         controls: Sequence['cirq.Qid'],
         sub_operation: 'cirq.Operation',
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
     ):
         """Initializes the controlled operation.
@@ -118,7 +118,7 @@ class ControlledOperation(raw_types.Operation):
         return self._controls
 
     @property
-    def control_values(self) -> cv.AbstractControlValues:
+    def control_values(self) -> 'cirq.AbstractControlValues':
         return self._control_values
 
     @property
@@ -176,7 +176,7 @@ class ControlledOperation(raw_types.Operation):
         )
         return sorted_controls, tuple(expanded_cvals), self.sub_operation
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         n = len(self.controls)
         sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]

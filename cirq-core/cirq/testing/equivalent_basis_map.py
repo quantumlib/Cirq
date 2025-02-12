@@ -16,10 +16,9 @@ from typing import Dict, Optional, Sequence
 import numpy as np
 
 import cirq
-from cirq import circuits
 
 
-def assert_equivalent_computational_basis_map(maps: Dict[int, int], circuit: circuits.Circuit):
+def assert_equivalent_computational_basis_map(maps: Dict[int, int], circuit: 'cirq.Circuit'):
     """Ensure equivalence of basis state mapping.
 
     Args:
@@ -45,7 +44,7 @@ def assert_equivalent_computational_basis_map(maps: Dict[int, int], circuit: cir
 
 
 def _sparse_computational_basis_map(
-    inputs: Sequence[int], circuit: circuits.Circuit
+    inputs: Sequence[int], circuit: 'cirq.Circuit'
 ) -> Dict[int, int]:
     # Pick a unique amplitude for each computational basis input state.
     amps = [np.exp(1j * i / len(inputs)) / len(inputs) ** 0.5 for i in range(len(inputs))]

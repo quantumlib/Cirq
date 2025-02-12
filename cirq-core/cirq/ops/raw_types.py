@@ -43,7 +43,6 @@ import sympy
 from cirq import protocols, value
 from cirq._import import LazyLoader
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
-from cirq.ops import control_values as cv
 
 # Lazy imports to break circular dependencies.
 ops = LazyLoader("ops", globals(), "cirq.ops")
@@ -387,7 +386,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         self,
         num_controls: Optional[int] = None,
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> 'Gate':
@@ -477,7 +476,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             return NotImplemented
 
     def _commutes_on_qids_(
-        self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
+        self, qids: Sequence['cirq.Qid'], other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         return NotImplemented
 
@@ -624,7 +623,7 @@ class Operation(metaclass=abc.ABCMeta):
         self,
         *control_qubits: 'cirq.Qid',
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
     ) -> 'cirq.Operation':
         """Returns a controlled version of this operation. If no control_qubits
@@ -831,7 +830,7 @@ class TaggedOperation(Operation):
         self,
         *control_qubits: 'cirq.Qid',
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
     ) -> 'cirq.Operation':
         if len(control_qubits) == 0:
@@ -889,11 +888,11 @@ class TaggedOperation(Operation):
             self.sub_operation, default=None, flatten=False, context=context
         )
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         return protocols.pauli_expansion(self.sub_operation)
 
     def _apply_unitary_(
-        self, args: 'protocols.ApplyUnitaryArgs'
+        self, args: 'cirq.ApplyUnitaryArgs'
     ) -> Union[np.ndarray, None, NotImplementedType]:
         return protocols.apply_unitary(self.sub_operation, args, default=None)
 
@@ -993,7 +992,7 @@ class TaggedOperation(Operation):
     def __rmul__(self, other: Any) -> Any:
         return other * self.sub_operation
 
-    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
         return protocols.qasm(self.sub_operation, args=args, default=None)
 
     def _equal_up_to_global_phase_(

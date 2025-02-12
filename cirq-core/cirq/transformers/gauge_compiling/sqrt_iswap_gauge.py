@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """A Gauge transformer for SQRT_ISWAP gate."""
+from typing import TYPE_CHECKING
 
 import numpy as np
 from cirq.transformers.gauge_compiling.gauge_compiling import (
@@ -22,6 +23,9 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeSelector,
 )
 from cirq import ops
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class RZRotation(Gauge):
@@ -38,7 +42,7 @@ class RZRotation(Gauge):
     def weight(self) -> float:
         return 1.0
 
-    def _rz(self, theta: float) -> ConstantGauge:
+    def _rz(self, theta: float) -> 'cirq.ConstantGauge':
         """Returns a SQRT_ISWAP Gauge composed of Rz rotations.
 
         0: ───Rz(theta)────iSwap───Rz(theta)───
@@ -52,7 +56,7 @@ class RZRotation(Gauge):
             two_qubit_gate=ops.SQRT_ISWAP, pre_q0=rz, pre_q1=rz, post_q0=n_rz, post_q1=n_rz
         )
 
-    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> 'cirq.ConstantGauge':
         return self._rz(prng.random() * 2 * np.pi)
 
 
@@ -71,19 +75,19 @@ class XYRotation(Gauge):
     def weight(self) -> float:
         return 1.0
 
-    def _xy(self, theta: float) -> ops.PhasedXZGate:
+    def _xy(self, theta: float) -> 'cirq.PhasedXZGate':
         unitary = np.cos(theta) * np.array([[0, 1], [1, 0]]) + np.sin(theta) * np.array(
             [[0, -1j], [1j, 0]]
         )
         return ops.PhasedXZGate.from_matrix(unitary)
 
-    def _xy_gauge(self, theta: float) -> ConstantGauge:
+    def _xy_gauge(self, theta: float) -> 'cirq.ConstantGauge':
         xy = self._xy(theta)
         return ConstantGauge(
             two_qubit_gate=ops.SQRT_ISWAP, pre_q0=xy, pre_q1=xy, post_q0=xy, post_q1=xy
         )
 
-    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> 'cirq.ConstantGauge':
         return self._xy_gauge(prng.random() * 2 * np.pi)
 
 

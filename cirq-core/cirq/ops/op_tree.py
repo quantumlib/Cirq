@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A recursive type describing trees of operations, and utility methods for it.
-"""
+"""A recursive type describing trees of operations, and utility methods for it."""
 
-from typing import Callable, Iterable, Iterator, NoReturn, Union, TYPE_CHECKING
+from typing import Callable, Iterable, Iterator, NoReturn, TYPE_CHECKING, Union
 
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -48,7 +47,7 @@ document(
 
 def flatten_op_tree(
     root: OP_TREE, preserve_moments: bool = False
-) -> Iterator[Union[Operation, 'cirq.Moment']]:
+) -> Iterator[Union['cirq.Operation', 'cirq.Moment']]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
@@ -68,7 +67,7 @@ def flatten_op_tree(
         return flatten_to_ops(root)
 
 
-def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
+def flatten_to_ops(root: OP_TREE) -> Iterator['cirq.Operation']:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
@@ -89,7 +88,7 @@ def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
         _bad_op_tree(root)
 
 
-def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, 'cirq.Moment']]:
+def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union['cirq.Operation', 'cirq.Moment']]:
     """Performs an in-order iteration OP_TREE, yielding ops and moments.
 
     Args:
@@ -112,7 +111,7 @@ def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, 'cirq.
 
 def transform_op_tree(
     root: OP_TREE,
-    op_transformation: Callable[[Operation], OP_TREE] = lambda e: e,
+    op_transformation: Callable[['cirq.Operation'], OP_TREE] = lambda e: e,
     iter_transformation: Callable[[Iterable[OP_TREE]], OP_TREE] = lambda e: e,
     preserve_moments: bool = False,
 ) -> OP_TREE:

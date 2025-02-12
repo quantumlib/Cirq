@@ -15,7 +15,7 @@
 #
 import abc
 import importlib.metadata
-from typing import Awaitable, Callable, Dict, Optional, Sequence, Union
+from typing import Awaitable, Callable, Optional, Sequence, Union
 
 import google.auth
 import google.api_core

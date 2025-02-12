@@ -65,8 +65,10 @@ from cirq._version import __version__ as __version__
 from cirq.circuits import (
     AbstractCircuit as AbstractCircuit,
     Alignment as Alignment,
+    BoxDrawCharacterSet as BoxDrawCharacterSet,
     Circuit as Circuit,
     CircuitOperation as CircuitOperation,
+    CIRCUIT_TYPE as CIRCUIT_TYPE,
     FrozenCircuit as FrozenCircuit,
     InsertStrategy as InsertStrategy,
     Moment as Moment,
@@ -131,6 +133,7 @@ from cirq.linalg import (
     bidiagonalize_real_matrix_pair_with_symmetric_products as bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals as bidiagonalize_unitary_with_special_orthogonals,
     block_diag as block_diag,
+    BuildFromSlicesArgs as BuildFromSlicesArgs,
     CONTROL_TAG as CONTROL_TAG,
     deconstruct_single_qubit_matrix_into_angles as deconstruct_single_qubit_matrix_into_angles,
     density_matrix_kronecker_product as density_matrix_kronecker_product,
@@ -166,6 +169,7 @@ from cirq.linalg import (
     scatter_plot_normalized_kak_interaction_coefficients as scatter_plot_normalized_kak_interaction_coefficients,
     pow_pauli_combination as pow_pauli_combination,
     reflection_matrix_pow as reflection_matrix_pow,
+    SliceConfig as SliceConfig,
     slice_for_qubits_equal_to as slice_for_qubits_equal_to,
     state_vector_kronecker_product as state_vector_kronecker_product,
     so4_to_magic_su2s as so4_to_magic_su2s,
@@ -177,6 +181,7 @@ from cirq.linalg import (
 )
 
 from cirq.ops import (
+    AbstractControlValues as AbstractControlValues,
     amplitude_damp as amplitude_damp,
     AmplitudeDampingChannel as AmplitudeDampingChannel,
     AnyIntegerPowerGateFamily as AnyIntegerPowerGateFamily,
@@ -346,6 +351,7 @@ from cirq.transformers import (
     align_left as align_left,
     align_right as align_right,
     CompilationTargetGateset as CompilationTargetGateset,
+    ConstantGauge as ConstantGauge,
     CZTargetGateset as CZTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition as compute_cphase_exponents_for_fsim_decomposition,
     create_transformer_with_kwargs as create_transformer_with_kwargs,
@@ -362,6 +368,7 @@ from cirq.transformers import (
     eject_phased_paulis as eject_phased_paulis,
     eject_z as eject_z,
     expand_composite as expand_composite,
+    GaugeTransformer as GaugeTransformer,
     HardCodedInitialMapper as HardCodedInitialMapper,
     is_negligible_turn as is_negligible_turn,
     LineInitialMapper as LineInitialMapper,
@@ -491,6 +498,8 @@ from cirq.sim import (
     StateVectorTrialResult as StateVectorTrialResult,
     StepResult as StepResult,
     StepResultBase as StepResultBase,
+    TSimulationState as TSimulationState,
+    TSimulationTrialResult as TSimulationTrialResult,
 )
 
 from cirq.study import (
@@ -546,6 +555,7 @@ from cirq.value import (
     MeasurementType as MeasurementType,
     PeriodicValue as PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE as RANDOM_STATE_OR_SEED_LIKE,
+    Scalar as Scalar,
     state_vector_to_probabilities as state_vector_to_probabilities,
     SympyCondition as SympyCondition,
     Timestamp as Timestamp,
@@ -584,6 +594,7 @@ from cirq.protocols import (
     decompose as decompose,
     decompose_once as decompose_once,
     decompose_once_with_qubits as decompose_once_with_qubits,
+    DecomposeResult as DecomposeResult,
     DecompositionContext as DecompositionContext,
     DEFAULT_RESOLVERS as DEFAULT_RESOLVERS,
     definitely_commutes as definitely_commutes,
@@ -610,6 +621,7 @@ from cirq.protocols import (
     mixture as mixture,
     mul as mul,
     num_qubits as num_qubits,
+    ObjectFactory as ObjectFactory,
     parameter_names as parameter_names,
     parameter_symbols as parameter_symbols,
     pauli_expansion as pauli_expansion,

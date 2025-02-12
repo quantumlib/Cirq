@@ -19,13 +19,12 @@ from typing import Union, Tuple, Sequence, List, Optional
 import numpy as np
 
 import cirq
-from cirq import ops
 from cirq import transformers as opt
 
 
 def three_qubit_matrix_to_operations(
-    q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, u: np.ndarray, atol: float = 1e-8
-) -> Sequence[ops.Operation]:
+    q0: 'cirq.Qid', q1: 'cirq.Qid', q2: 'cirq.Qid', u: np.ndarray, atol: float = 1e-8
+) -> Sequence['cirq.Operation']:
     """Returns operations for a 3 qubit unitary.
 
     The algorithm is described in Shende et al.:
@@ -86,7 +85,9 @@ def three_qubit_matrix_to_operations(
     return list(cirq.Circuit(vdh_ops + cs_ops + ud_ops).all_operations())
 
 
-def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List[ops.Operation]:
+def _cs_to_ops(
+    q0: 'cirq.Qid', q1: 'cirq.Qid', q2: 'cirq.Qid', theta: np.ndarray
+) -> List['cirq.Operation']:
     """Converts theta angles based Cosine Sine matrix to operations.
 
     Using the optimization as per Appendix A.1, it uses CZ gates instead of
@@ -119,15 +120,15 @@ def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List
 
 
 def _two_qubit_multiplexor_to_ops(
-    q0: ops.Qid,
-    q1: ops.Qid,
-    q2: ops.Qid,
+    q0: 'cirq.Qid',
+    q1: 'cirq.Qid',
+    q2: 'cirq.Qid',
     u1: np.ndarray,
     u2: np.ndarray,
     shift_left: bool = True,
     diagonal: Optional[np.ndarray] = None,
     atol: float = 1e-8,
-) -> Tuple[Optional[np.ndarray], List[ops.Operation]]:
+) -> Tuple[Optional[np.ndarray], List['cirq.Operation']]:
     r"""Converts a two qubit double multiplexor to circuit.
     Input: U_1 ⊕ U_2, with select qubit a (i.e. a = |0> => U_1(b,c),
     a = |1> => U_2(b,c).
@@ -203,7 +204,7 @@ def _two_qubit_multiplexor_to_ops(
     return d_w, circuit_u1u2_l + circuit_u1u2_mid + circuit_u1u2_r
 
 
-def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
+def _optimize_multiplexed_angles_circuit(operations: Sequence['cirq.Operation']):
     """Removes two qubit gates that amount to identity.
     Exploiting the specific multiplexed structure, this methods looks ahead
     to find stripes of 3 or 4 consecutive CZ or CNOT gates and removes them.
@@ -242,7 +243,7 @@ def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
     return operations
 
 
-def _middle_multiplexor_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, eigvals: np.ndarray):
+def _middle_multiplexor_to_ops(q0: 'cirq.Qid', q1: 'cirq.Qid', q2: 'cirq.Qid', eigvals: np.ndarray):
     theta = np.real(np.log(np.sqrt(eigvals)) * 1j * 2)
     angles = _multiplexed_angles(theta)
     rzs = [cirq.rz(angle).on(q0) for angle in angles]

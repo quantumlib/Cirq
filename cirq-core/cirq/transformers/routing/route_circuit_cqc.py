@@ -253,7 +253,7 @@ class RouteCQC:
                         qubits with a custom key.
         """
         two_qubit_circuit = circuits.Circuit()
-        single_qubit_ops: List[List[cirq.Operation]] = []
+        single_qubit_ops: List[List['cirq.Operation']] = []
 
         for i, moment in enumerate(circuit):
             for op in moment:
@@ -284,7 +284,7 @@ class RouteCQC:
     @classmethod
     def _route(
         cls,
-        mm: mapping_manager.MappingManager,
+        mm: 'cirq.MappingManager',
         two_qubit_ops: List[List['cirq.Operation']],
         single_qubit_ops: List[List['cirq.Operation']],
         lookahead_radius: int,
@@ -366,7 +366,7 @@ class RouteCQC:
     @classmethod
     def _brute_force_strategy(
         cls,
-        mm: mapping_manager.MappingManager,
+        mm: 'cirq.MappingManager',
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
     ) -> Tuple[QidIntPair, ...]:
@@ -383,7 +383,7 @@ class RouteCQC:
     @classmethod
     def _choose_pair_of_swaps(
         cls,
-        mm: mapping_manager.MappingManager,
+        mm: 'cirq.MappingManager',
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
         lookahead_radius: int,
@@ -399,7 +399,7 @@ class RouteCQC:
     @classmethod
     def _choose_single_swap(
         cls,
-        mm: mapping_manager.MappingManager,
+        mm: 'cirq.MappingManager',
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
         lookahead_radius: int,
@@ -413,7 +413,7 @@ class RouteCQC:
     @classmethod
     def _choose_optimal_swap(
         cls,
-        mm: mapping_manager.MappingManager,
+        mm: 'cirq.MappingManager',
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
         lookahead_radius: int,
@@ -445,7 +445,7 @@ class RouteCQC:
 
     @classmethod
     def _initial_candidate_swaps(
-        cls, mm: mapping_manager.MappingManager, two_qubit_ops: Sequence[QidIntPair]
+        cls, mm: 'cirq.MappingManager', two_qubit_ops: Sequence[QidIntPair]
     ) -> List[QidIntPair]:
         """Finds all feasible SWAPs between qubits involved in 2-qubit operations."""
         physical_qubits = (mm.logical_to_physical[lq[i]] for lq in two_qubit_ops for i in range(2))
@@ -457,7 +457,7 @@ class RouteCQC:
     @classmethod
     def _cost(
         cls,
-        mm: mapping_manager.MappingManager,
+        mm: 'cirq.MappingManager',
         swaps: Tuple[QidIntPair, ...],
         two_qubit_ops: Sequence[QidIntPair],
     ) -> Any:

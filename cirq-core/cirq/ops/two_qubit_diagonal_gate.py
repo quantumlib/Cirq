@@ -50,7 +50,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
     $$
     """
 
-    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence['cirq.TParamVal']) -> None:
         r"""A two qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and its on-diagonal
@@ -61,10 +61,10 @@ class TwoQubitDiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_3)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_3})$.
         """
-        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: Tuple['cirq.TParamVal', ...] = tuple(diag_angles_radians)
 
     @property
-    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+    def diag_angles_radians(self) -> Tuple['cirq.TParamVal', ...]:
         return self._diag_angles_radians
 
     def _num_qubits_(self) -> int:
@@ -103,7 +103,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         yield common_gates.CZPowGate(exponent=x0 / np.pi).on(q0, q1)
         yield common_gates.XPowGate().on_each(q0, q1)
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         if self._is_parameterized_():
             return NotImplemented
         for index, angle in enumerate(self._diag_angles_radians):

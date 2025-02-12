@@ -798,7 +798,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
         # Find measured qubits, ensuring a consistent ordering.
         measured_qubits = []
-        seen_qubits: Set[cirq.Qid] = set()
+        seen_qubits: Set['cirq.Qid'] = set()
         for op in measurement_ops:
             for q in op.qubits:
                 if q not in seen_qubits:
@@ -975,8 +975,8 @@ def split_into_matching_protocol_then_general(
     the matching part (as long as those qubits have had no non-matching operation
     up to that point). Measurement keys are handled equivalently.
     """
-    blocked_qubits: Set[cirq.Qid] = set()
-    blocked_keys: Set[cirq.MeasurementKey] = set()
+    blocked_qubits: Set['cirq.Qid'] = set()
+    blocked_keys: Set['cirq.MeasurementKey'] = set()
     matching_prefix = circuits.Circuit()
     general_suffix = circuits.Circuit()
     for moment in circuit:

@@ -38,7 +38,7 @@ from typing_extensions import Self
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq.ops import raw_types, gate_features, control_values as cv
+from cirq.ops import raw_types, gate_features
 
 if TYPE_CHECKING:
     import cirq
@@ -170,14 +170,14 @@ class GateOperation(raw_types.Operation):
             self.gate, self.qubits, NotImplemented, flatten=False, context=context
         )
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         getter = getattr(self.gate, '_pauli_expansion_', None)
         if getter is not None:
             return getter()
         return NotImplemented
 
     def _apply_unitary_(
-        self, args: 'protocols.ApplyUnitaryArgs'
+        self, args: 'cirq.ApplyUnitaryArgs'
     ) -> Union[np.ndarray, None, NotImplementedType]:
         getter = getattr(self.gate, '_apply_unitary_', None)
         if getter is not None:
@@ -218,7 +218,7 @@ class GateOperation(raw_types.Operation):
         return NotImplemented
 
     def _apply_channel_(
-        self, args: 'protocols.ApplyChannelArgs'
+        self, args: 'cirq.ApplyChannelArgs'
     ) -> Union[np.ndarray, None, NotImplementedType]:
         getter = getattr(self.gate, '_apply_channel_', None)
         if getter is not None:
@@ -348,7 +348,7 @@ class GateOperation(raw_types.Operation):
     def __rmul__(self, other: Any) -> Any:
         return self.gate._rmul_with_qubits(self._qubits, other)
 
-    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
         if isinstance(self.gate, ops.GlobalPhaseGate):
             warnings.warn(
                 "OpenQASM 2.0 does not support global phase."
@@ -372,7 +372,7 @@ class GateOperation(raw_types.Operation):
         self,
         *control_qubits: 'cirq.Qid',
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
     ) -> 'cirq.Operation':
         if len(control_qubits) == 0:

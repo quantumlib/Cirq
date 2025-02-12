@@ -14,7 +14,7 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Any, Dict, List, Iterator, Optional, Tuple, Union, TYPE_CHECKING, Sequence
+from typing import Any, Dict, List, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 from typing_extensions import Self
 
 import numpy as np
@@ -327,7 +327,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             wire_symbols=('ZZ', 'ZZ'), exponent=self._diagram_exponent(args)
         )
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return None
 
@@ -379,7 +379,7 @@ class MSGate(XXPowGate):
         XXPowGate.__init__(self, exponent=rads * 2 / np.pi, global_shift=-0.5)
         self.rads = rads
 
-    def _with_exponent(self, exponent: value.TParamVal) -> Self:
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> Self:
         return type(self)(rads=exponent * np.pi / 2)
 
     def _circuit_diagram_info_(

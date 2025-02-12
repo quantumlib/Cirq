@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 def parameterized_2q_op_to_sqrt_iswap_operations(
     op: 'cirq.Operation', *, use_sqrt_iswap_inv: bool = False
-) -> protocols.decompose_protocol.DecomposeResult:
+) -> 'cirq.DecomposeResult':
     """Tries to decompose a parameterized 2q operation into √iSWAP's + parameterized 1q rotations.
 
     Currently only supports decomposing the following gates:
@@ -302,7 +302,7 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
 def _kak_decomposition_to_sqrt_iswap_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
-    kak: linalg.KakDecomposition,
+    kak: 'cirq.KakDecomposition',
     required_sqrt_iswap_count: Optional[int] = None,
     use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,

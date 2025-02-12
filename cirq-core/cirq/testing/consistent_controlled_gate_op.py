@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Optional, Union, Collection
+from typing import Collection, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import devices, ops, protocols
 import numpy as np
 
+if TYPE_CHECKING:
+    import cirq
+
 
 def assert_controlled_and_controlled_by_identical(
-    gate: ops.Gate,
+    gate: 'cirq.Gate',
     *,
     num_controls: Sequence[int] = (2, 1, 3, 10),
     control_values: Optional[Sequence[Optional[Sequence[Union[int, Collection[int]]]]]] = None,
@@ -35,7 +38,7 @@ def assert_controlled_and_controlled_by_identical(
         _assert_gate_consistent(gate, num_control, control_value)
 
 
-def assert_controlled_unitary_consistent(gate: ops.Gate):
+def assert_controlled_unitary_consistent(gate: 'cirq.Gate'):
     """Checks that unitary of ControlledGate(gate) is consistent with gate.controlled()."""
 
     u_orig = protocols.unitary(ops.ControlledGate(gate))
@@ -49,7 +52,7 @@ def assert_controlled_unitary_consistent(gate: ops.Gate):
 
 
 def _assert_gate_consistent(
-    gate: ops.Gate,
+    gate: 'cirq.Gate',
     num_controls: int,
     control_values: Optional[Sequence[Union[int, Collection[int]]]],
 ) -> None:

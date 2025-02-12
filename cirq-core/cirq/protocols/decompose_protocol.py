@@ -464,7 +464,7 @@ def _try_decompose_into_operations_and_qubits(
     if isinstance(val, ops.Gate):
         # Gates don't specify qubits, and so must be handled specially.
         qid_shape = qid_shape_protocol.qid_shape(val)
-        qubits: Sequence[cirq.Qid] = devices.LineQid.for_qid_shape(qid_shape)
+        qubits: Sequence['cirq.Qid'] = devices.LineQid.for_qid_shape(qid_shape)
         return decompose_once_with_qubits(val, qubits, None), qubits, qid_shape
 
     if isinstance(val, ops.Operation):
@@ -474,7 +474,7 @@ def _try_decompose_into_operations_and_qubits(
     result = decompose_once(val, None)
     if result is not None:
         qubit_set = set()
-        qid_shape_dict: Dict[cirq.Qid, int] = defaultdict(lambda: 1)
+        qid_shape_dict: Dict['cirq.Qid', int] = defaultdict(lambda: 1)
         for op in result:
             for level, q in zip(qid_shape_protocol.qid_shape(op), op.qubits):
                 qubit_set.add(q)

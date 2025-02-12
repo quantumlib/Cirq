@@ -229,21 +229,21 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """Returns true of `self` and `other` are equal pauli strings, ignoring the coefficient."""
         return self._qubit_pauli_map == other._qubit_pauli_map
 
-    def __getitem__(self, key: TKey) -> pauli_gates.Pauli:
+    def __getitem__(self, key: TKey) -> 'cirq.Pauli':
         return self._qubit_pauli_map[key]
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: Any, default: None = None) -> Optional[pauli_gates.Pauli]:
+    def get(self, key: Any, default: None = None) -> Optional['cirq.Pauli']:
         pass
 
     @overload
-    def get(self, key: Any, default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
+    def get(self, key: Any, default: TDefault) -> Union['cirq.Pauli', TDefault]:
         pass
 
     def get(
         self, key: Any, default: Optional[TDefault] = None
-    ) -> Union[pauli_gates.Pauli, TDefault, None]:
+    ) -> Union['cirq.Pauli', TDefault, None]:
         """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
         return self._qubit_pauli_map.get(key, default)
 
@@ -292,12 +292,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     @property
     def gate(self) -> 'cirq.DensePauliString':
         """Returns a `cirq.DensePauliString`"""
-        order: List[Optional[pauli_gates.Pauli]] = [
-            None,
-            pauli_gates.X,
-            pauli_gates.Y,
-            pauli_gates.Z,
-        ]
+        order: List[Optional['cirq.Pauli']] = [None, pauli_gates.X, pauli_gates.Y, pauli_gates.Z]
         from cirq.ops.dense_pauli_string import DensePauliString
 
         return DensePauliString(
@@ -406,11 +401,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """Returns a new `PauliString` with `self.coefficient` replaced with `new_coefficient`."""
         return PauliString(qubit_pauli_map=dict(self._qubit_pauli_map), coefficient=new_coefficient)
 
-    def values(self) -> ValuesView[pauli_gates.Pauli]:
+    def values(self) -> ValuesView['cirq.Pauli']:
         """Ordered sequence of `cirq.Pauli` gates acting on `self.keys()`."""
         return self._qubit_pauli_map.values()
 
-    def items(self) -> ItemsView[TKey, pauli_gates.Pauli]:
+    def items(self) -> ItemsView[TKey, 'cirq.Pauli']:
         """Returns (cirq.Qid, cirq.Pauli) pairs representing 1-qubit operations of pauli string."""
         return self._qubit_pauli_map.items()
 
@@ -510,7 +505,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return None
         return self.matrix()
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         if not self._has_unitary_():
             return None
         assert isinstance(self.coefficient, numbers.Complex)
@@ -739,7 +734,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     def zip_items(
         self, other: 'cirq.PauliString[TKey]'
-    ) -> Iterator[Tuple[TKey, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
+    ) -> Iterator[Tuple[TKey, Tuple['cirq.Pauli', 'cirq.Pauli']]]:
         """Combines pauli operations from pauli strings in a qubit-by-qubit fashion.
 
         For every qubit that has a `cirq.Pauli` operation acting on it in both `self` and `other`,
@@ -756,9 +751,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             if qubit in other:
                 yield qubit, (pauli0, other[qubit])
 
-    def zip_paulis(
-        self, other: 'cirq.PauliString'
-    ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
+    def zip_paulis(self, other: 'cirq.PauliString') -> Iterator[Tuple['cirq.Pauli', 'cirq.Pauli']]:
         """Combines pauli operations from pauli strings in a qubit-by-qubit fashion.
 
         For every qubit that has a `cirq.Pauli` operation acting on it in both `self` and `other`,
@@ -881,7 +874,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         new_qubit_pauli_map = {qubit_map[qubit]: pauli for qubit, pauli in self.items()}
         return PauliString(qubit_pauli_map=new_qubit_pauli_map, coefficient=self._coefficient)
 
-    def to_z_basis_ops(self) -> Iterator[raw_types.Operation]:
+    def to_z_basis_ops(self) -> Iterator['cirq.Operation']:
         """Returns single qubit operations to convert the qubits to the computational basis."""
         for qubit, pauli in self.items():
             yield clifford_gate.SingleQubitCliffordGate.from_single_map(
@@ -1145,7 +1138,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     GateOperation(X, [q]).
     """
 
-    def __init__(self, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid'):
+    def __init__(self, pauli: 'cirq.Pauli', qubit: 'cirq.Qid'):
         PauliString.__init__(self, qubit_pauli_map={qubit: pauli})
         gate_operation.GateOperation.__init__(self, cast(raw_types.Gate, pauli), [qubit])
 
@@ -1157,11 +1150,11 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         )
 
     @property
-    def pauli(self) -> pauli_gates.Pauli:
+    def pauli(self) -> 'cirq.Pauli':
         return cast(pauli_gates.Pauli, self.gate)
 
     @property
-    def qubit(self) -> raw_types.Qid:
+    def qubit(self) -> 'cirq.Qid':
         assert len(self.qubits) == 1
         return self.qubits[0]
 
@@ -1191,9 +1184,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
     @classmethod
-    def _from_json_dict_(  # type: ignore
-        cls, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid', **kwargs
-    ):
+    def _from_json_dict_(cls, pauli: 'cirq.Pauli', qubit: 'cirq.Qid', **kwargs):  # type: ignore
         # Note, this method is required or else superclasses' deserialization
         # would be used
         return cls(pauli=pauli, qubit=qubit)
@@ -1608,7 +1599,7 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
 
 
 def _pass_operation_over(
-    pauli_map: Dict[TKey, pauli_gates.Pauli], op: 'cirq.Operation', after_to_before: bool = False
+    pauli_map: Dict[TKey, 'cirq.Pauli'], op: 'cirq.Operation', after_to_before: bool = False
 ) -> bool:
     if isinstance(op, gate_operation.GateOperation):
         gate = op.gate
@@ -1628,8 +1619,8 @@ def _pass_operation_over(
 
 
 def _pass_single_clifford_gate_over(
-    pauli_map: Dict[TKey, pauli_gates.Pauli],
-    gate: clifford_gate.SingleQubitCliffordGate,
+    pauli_map: Dict[TKey, 'cirq.Pauli'],
+    gate: 'cirq.SingleQubitCliffordGate',
     qubit: TKey,
     after_to_before: bool = False,
 ) -> bool:
@@ -1643,16 +1634,16 @@ def _pass_single_clifford_gate_over(
 
 
 def _pass_pauli_interaction_gate_over(
-    pauli_map: Dict[TKey, pauli_gates.Pauli],
-    gate: pauli_interaction_gate.PauliInteractionGate,
+    pauli_map: Dict[TKey, 'cirq.Pauli'],
+    gate: 'cirq.PauliInteractionGate',
     qubit0: TKey,
     qubit1: TKey,
     after_to_before: bool = False,
 ) -> bool:
     def merge_and_kickback(
         qubit: TKey,
-        pauli_left: Optional[pauli_gates.Pauli],
-        pauli_right: Optional[pauli_gates.Pauli],
+        pauli_left: Optional['cirq.Pauli'],
+        pauli_right: Optional['cirq.Pauli'],
         inv: bool,
     ) -> int:
         assert pauli_left is not None or pauli_right is not None

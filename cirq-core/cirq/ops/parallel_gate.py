@@ -22,7 +22,6 @@ from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
-    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 @value.value_equality
@@ -59,7 +58,7 @@ class ParallelGate(raw_types.Gate):
     def num_copies(self) -> int:
         return self._num_copies
 
-    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'DecomposeResult':
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.DecomposeResult':
         if len(qubits) != self.num_qubits():
             raise ValueError(f"len(qubits)={len(qubits)} should be {self.num_qubits()}")
         step = self.sub_gate.num_qubits()

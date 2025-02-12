@@ -19,7 +19,7 @@ import numpy as np
 from cirq import protocols
 from cirq._compat import proper_repr, _method_cache_name, cached_method
 from cirq.qis import quantum_state_representation
-from cirq.value import big_endian_int_to_digits, linear_dict, random_state
+from cirq.value import big_endian_int_to_digits, random_state
 
 if TYPE_CHECKING:
     import cirq
@@ -119,7 +119,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_global_phase(self, coefficient: linear_dict.Scalar):
+    def apply_global_phase(self, coefficient: 'cirq.Scalar'):
         """Apply a global phase to the state.
 
         Args:
@@ -647,7 +647,7 @@ class CliffordTableau(StabilizerState):
         self.xs[:, target_axis] ^= self.xs[:, control_axis]
         self.zs[:, control_axis] ^= self.zs[:, target_axis]
 
-    def apply_global_phase(self, coefficient: linear_dict.Scalar):
+    def apply_global_phase(self, coefficient: 'cirq.Scalar'):
         pass
 
     def measure(

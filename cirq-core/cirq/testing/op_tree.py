@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import TYPE_CHECKING
 
 from cirq import ops
 
+if TYPE_CHECKING:
+    import cirq
 
-def assert_equivalent_op_tree(x: ops.OP_TREE, y: ops.OP_TREE):
+
+def assert_equivalent_op_tree(x: 'cirq.OP_TREE', y: 'cirq.OP_TREE'):
     """Ensures that the two OP_TREEs are equivalent.
 
     Args:

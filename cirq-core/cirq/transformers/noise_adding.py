@@ -14,13 +14,16 @@
 
 from collections.abc import Mapping
 
-from typing import cast
+from typing import cast, Optional, TYPE_CHECKING
 from cirq import ops, circuits
 from cirq.transformers import transformer_api
 import numpy as np
 
+if TYPE_CHECKING:
+    import cirq
 
-def _gate_in_moment(gate: ops.Gate, moment: circuits.Moment) -> bool:
+
+def _gate_in_moment(gate: 'cirq.Gate', moment: 'cirq.Moment') -> bool:
     """Check whether `gate` is in `moment`."""
     return any(op.gate == gate for op in moment)
 
@@ -37,7 +40,9 @@ class DepolarizingNoiseTransformer:
     """
 
     def __init__(
-        self, p: float | Mapping[tuple[ops.Qid, ops.Qid], float], target_gate: ops.Gate = ops.CZ
+        self,
+        p: float | Mapping[tuple['cirq.Qid', 'cirq.Qid'], float],
+        target_gate: 'cirq.Gate' = ops.CZ,
     ):
         """Initialize the depolarizing noise transformer with some depolarizing probability and
         target gate.
@@ -67,10 +72,10 @@ class DepolarizingNoiseTransformer:
 
     def __call__(
         self,
-        circuit: circuits.AbstractCircuit,
+        circuit: 'cirq.AbstractCircuit',
         rng: np.random.Generator | None = None,
         *,
-        context: transformer_api.TransformerContext | None = None,
+        context: Optional['cirq.TransformerContext'] = None,
     ):
         """Apply the transformer to the given circuit.
 

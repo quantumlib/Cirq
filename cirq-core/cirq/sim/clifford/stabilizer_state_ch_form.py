@@ -382,7 +382,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             self.M[control_axis, :] ^= self.M[target_axis, :]
         self.omega *= _phase(exponent, global_shift)
 
-    def apply_global_phase(self, coefficient: value.Scalar):
+    def apply_global_phase(self, coefficient: 'cirq.Scalar'):
         self.omega *= coefficient
 
     def measure(

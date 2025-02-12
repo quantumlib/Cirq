@@ -95,10 +95,10 @@ class GlobalPhaseGate(raw_types.Gate):
         self,
         num_controls: Optional[int] = None,
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
-    ) -> raw_types.Gate:
+    ) -> 'cirq.Gate':
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             not self._is_parameterized_()

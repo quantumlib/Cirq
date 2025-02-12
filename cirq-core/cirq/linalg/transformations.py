@@ -172,20 +172,20 @@ def targeted_left_multiply(
 
 
 @dataclasses.dataclass
-class _SliceConfig:
+class SliceConfig:
     axis: int
     source_index: int
     target_index: int
 
 
 @dataclasses.dataclass
-class _BuildFromSlicesArgs:
-    slices: Tuple[_SliceConfig, ...]
+class BuildFromSlicesArgs:
+    slices: Tuple[SliceConfig, ...]
     scale: complex
 
 
 def _build_from_slices(
-    args: Sequence[_BuildFromSlicesArgs], source: np.ndarray, out: np.ndarray
+    args: Sequence[BuildFromSlicesArgs], source: np.ndarray, out: np.ndarray
 ) -> np.ndarray:
     """Populates `out` from the desired slices of `source`.
 
@@ -197,25 +197,25 @@ def _build_from_slices(
 
         _build_from_slices(
             [
-                _BuildFromSlicesArgs((_SliceConfig(axis=1, source_index=0, target_index=2),), 1),
-                _BuildFromSlicesArgs((_SliceConfig(axis=1, source_index=1, target_index=2),), 1),
-                _BuildFromSlicesArgs((_SliceConfig(axis=1, source_index=2, target_index=2),), 1),
+                BuildFromSlicesArgs((SliceConfig(axis=1, source_index=0, target_index=2),), 1),
+                BuildFromSlicesArgs((SliceConfig(axis=1, source_index=1, target_index=2),), 1),
+                BuildFromSlicesArgs((SliceConfig(axis=1, source_index=2, target_index=2),), 1),
             ],
             source,
             out,
         )
 
-    When multiple slices are included in the _BuildFromSlicesArgs, this means to take the
+    When multiple slices are included in the BuildFromSlicesArgs, this means to take the
     intersection of the source space and move it to the intersection of the target space. For
     example, the following takes the bottom-left edge and moves it to the top-right, leaving all
     other cells zero. Assume the lateral axis is 2 and right-most index thereof is 2:
 
         _build_from_slices(
             [
-                _BuildFromSlicesArgs(
+                BuildFromSlicesArgs(
                     (
-                        _SliceConfig(axis=1, source_index=0, target_index=2),  # top
-                        _SliceConfig(axis=2, source_index=0, target_index=2),  # right
+                        SliceConfig(axis=1, source_index=0, target_index=2),  # top
+                        SliceConfig(axis=2, source_index=0, target_index=2),  # right
                     ),
                     scale=1,
                 ),

@@ -28,6 +28,7 @@ from typing import (
     SupportsFloat,
     Tuple,
     Union,
+    TYPE_CHECKING,
 )
 
 import matplotlib as mpl
@@ -36,11 +37,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits import axes_grid1
 
-from cirq.devices import grid_qubit
 from cirq.vis import vis_utils
 
-
-QubitTuple = Tuple[grid_qubit.GridQubit, ...]
+if TYPE_CHECKING:
+    import cirq
+QubitTuple = Tuple['cirq.GridQubit', ...]
 
 Polygon = Sequence[Tuple[float, float]]
 
@@ -84,13 +85,13 @@ class Heatmap:
         pass
 
     @overload
-    def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], **kwargs):
+    def __init__(self, value_map: Mapping['cirq.GridQubit', SupportsFloat], **kwargs):
         pass
 
     def __init__(
         self,
         value_map: Union[
-            Mapping[QubitTuple, SupportsFloat], Mapping[grid_qubit.GridQubit, SupportsFloat]
+            Mapping[QubitTuple, SupportsFloat], Mapping['cirq.GridQubit', SupportsFloat]
         ],
         **kwargs,
     ):

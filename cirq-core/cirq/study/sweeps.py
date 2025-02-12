@@ -115,20 +115,20 @@ class Sweep(metaclass=abc.ABCMeta):
     def __len__(self) -> int:
         pass
 
-    def __iter__(self) -> Iterator[resolver.ParamResolver]:
+    def __iter__(self) -> Iterator['cirq.ParamResolver']:
         for params in self.param_tuples():
             yield resolver.ParamResolver(collections.OrderedDict(params))
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, val: int) -> resolver.ParamResolver:
+    def __getitem__(self, val: int) -> 'cirq.ParamResolver':
         pass
 
     @overload
     def __getitem__(self, val: slice) -> 'Sweep':
         pass
 
-    def __getitem__(self, val: Union[int, slice]) -> Union[resolver.ParamResolver, 'Sweep']:
+    def __getitem__(self, val: Union[int, slice]) -> Union['cirq.ParamResolver', 'Sweep']:
         n = len(self)
         if isinstance(val, int):
             if val < -n or val >= n:
@@ -580,7 +580,7 @@ class Linspace(SingleSweep):
 class ListSweep(Sweep):
     """A wrapper around a list of `ParamResolver`s."""
 
-    def __init__(self, resolver_list: Iterable[resolver.ParamResolverOrSimilarType]):
+    def __init__(self, resolver_list: Iterable['cirq.ParamResolverOrSimilarType']):
         """Creates a `Sweep` over a list of `ParamResolver`s.
 
         Args:
@@ -591,7 +591,7 @@ class ListSweep(Sweep):
             TypeError: If `resolver_list` is not a `cirq.ParamResolver` or a
                 dict.
         """
-        self.resolver_list: List[resolver.ParamResolver] = []
+        self.resolver_list: List['cirq.ParamResolver'] = []
         for r in resolver_list:
             if not isinstance(r, (dict, resolver.ParamResolver)):
                 raise TypeError(f'Not a ParamResolver or dict: <{r!r}>')
@@ -625,7 +625,7 @@ class ListSweep(Sweep):
         return protocols.obj_to_dict_helper(self, ["resolver_list"])
 
 
-def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:
+def _params_without_symbols(resolver: 'cirq.ParamResolver') -> Params:
     for sym, val in resolver.param_dict.items():
         if isinstance(sym, sympy.Symbol):
             sym = sym.name

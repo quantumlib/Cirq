@@ -89,10 +89,10 @@ class IdentityGate(raw_types.Gate):
     def _unitary_(self) -> np.ndarray:
         return np.identity(np.prod(self._qid_shape, dtype=np.int64).item())
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         return value.LinearDict({'I' * self.num_qubits(): 1.0})

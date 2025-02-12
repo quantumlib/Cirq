@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import collections
 
-from cirq.circuits._box_drawing_character_data import box_draw_character, BoxDrawCharacterSet
+from cirq.circuits._box_drawing_character_data import box_draw_character
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Block:
@@ -50,7 +53,7 @@ class Block:
 
     def draw_curve(
         self,
-        grid_characters: BoxDrawCharacterSet,
+        grid_characters: 'cirq.BoxDrawCharacterSet',
         *,
         top: bool = False,
         left: bool = False,

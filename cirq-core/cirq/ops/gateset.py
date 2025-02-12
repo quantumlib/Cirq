@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 
 def _gate_str(
-    gate: Union[raw_types.Gate, Type[raw_types.Gate], 'cirq.GateFamily'],
+    gate: Union['cirq.Gate', Type['cirq.Gate'], 'cirq.GateFamily'],
     gettr: Callable[[Any], str] = str,
 ) -> str:
     return gettr(gate) if not isinstance(gate, type) else f'{gate.__module__}.{gate.__name__}'
@@ -112,7 +112,7 @@ class GateFamily:
 
     def __init__(
         self,
-        gate: Union[Type[raw_types.Gate], raw_types.Gate],
+        gate: Union[Type['cirq.Gate'], 'cirq.Gate'],
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -164,7 +164,7 @@ class GateFamily:
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
         return _gate_str(self.gate, gettr)
 
-    def _gate_json(self) -> Union[raw_types.Gate, str]:
+    def _gate_json(self) -> Union['cirq.Gate', str]:
         return self.gate if not isinstance(self.gate, type) else protocols.json_cirq_type(self.gate)
 
     def _default_name(self) -> str:
@@ -186,7 +186,7 @@ class GateFamily:
         )
 
     @property
-    def gate(self) -> Union[Type[raw_types.Gate], raw_types.Gate]:
+    def gate(self) -> Union[Type['cirq.Gate'], 'cirq.Gate']:
         return self._gate
 
     @property
@@ -205,7 +205,7 @@ class GateFamily:
     def tags_to_ignore(self) -> FrozenSet[Hashable]:
         return self._tags_to_ignore
 
-    def _predicate(self, gate: raw_types.Gate) -> bool:
+    def _predicate(self, gate: 'cirq.Gate') -> bool:
         """Checks whether `cirq.Gate` instance `gate` belongs to this GateFamily.
 
         The default predicate depends on the gate family initialization type:
@@ -225,7 +225,7 @@ class GateFamily:
             )
         return isinstance(gate, self.gate)
 
-    def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+    def __contains__(self, item: Union['cirq.Gate', 'cirq.Operation']) -> bool:
         if self._tags_to_accept and (
             not isinstance(item, raw_types.Operation) or self._tags_to_accept.isdisjoint(item.tags)
         ):
@@ -344,8 +344,8 @@ class Gateset:
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
-        self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
-        self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
+        self._instance_gate_families: Dict['cirq.Gate', GateFamily] = {}
+        self._type_gate_families: Dict[Type['cirq.Gate'], GateFamily] = {}
         self._gates_repr_str = ", ".join([_gate_str(g, repr) for g in gates])
         unique_gate_list: List[GateFamily] = list(
             dict.fromkeys(g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates)
@@ -395,7 +395,7 @@ class Gateset:
         gates = self.gates
         return Gateset(*gates, name=name, unroll_circuit_op=cast(bool, unroll_circuit_op))
 
-    def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+    def __contains__(self, item: Union['cirq.Gate', 'cirq.Operation']) -> bool:
         r"""Check for containment of a given Gate/Operation in this Gateset.
 
         Containment checks are handled as follows:
@@ -445,7 +445,7 @@ class Gateset:
 
         return any(item in gate_family for gate_family in self._gates)
 
-    def validate(self, circuit_or_optree: Union['cirq.AbstractCircuit', op_tree.OP_TREE]) -> bool:
+    def validate(self, circuit_or_optree: Union['cirq.AbstractCircuit', 'cirq.OP_TREE']) -> bool:
         """Validates gates forming `circuit_or_optree` should be contained in Gateset.
 
         Args:
@@ -459,7 +459,7 @@ class Gateset:
             optree = circuit_or_optree.all_operations()
         return all(self._validate_operation(op) for op in op_tree.flatten_to_ops(optree))
 
-    def _validate_operation(self, op: raw_types.Operation) -> bool:
+    def _validate_operation(self, op: 'cirq.Operation') -> bool:
         """Validates whether the given `cirq.Operation` is contained in this Gateset.
 
         The containment checks are handled as follows:

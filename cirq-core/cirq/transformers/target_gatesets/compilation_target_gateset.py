@@ -18,7 +18,6 @@ from typing import Optional, List, Hashable, TYPE_CHECKING, Union, Type
 import abc
 
 from cirq import circuits, ops, protocols, transformers
-from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
 
 
@@ -117,7 +116,9 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         """Maximum number of qubits on which a gate from this gateset can act upon."""
 
     @abc.abstractmethod
-    def decompose_to_target_gateset(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
+    def decompose_to_target_gateset(
+        self, op: 'cirq.Operation', moment_idx: int
+    ) -> 'cirq.DecomposeResult':
         """Method to rewrite the given operation using gates from this gateset.
 
         Args:
@@ -222,7 +223,9 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
     def num_qubits(self) -> int:
         return 2
 
-    def decompose_to_target_gateset(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
+    def decompose_to_target_gateset(
+        self, op: 'cirq.Operation', moment_idx: int
+    ) -> 'cirq.DecomposeResult':
         if not 1 <= protocols.num_qubits(op) <= 2:
             return self._decompose_multi_qubit_operation(op, moment_idx)
         if protocols.num_qubits(op) == 1:
@@ -262,7 +265,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
 
     def _decompose_single_qubit_operation(
         self, op: 'cirq.Operation', moment_idx: int
-    ) -> DecomposeResult:
+    ) -> 'cirq.DecomposeResult':
         """Decomposes (connected component of) 1-qubit operations using gates from this gateset.
 
         By default, rewrites every operation using a single `cirq.PhasedXZGate`.
@@ -284,7 +287,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
 
     def _decompose_multi_qubit_operation(
         self, op: 'cirq.Operation', moment_idx: int
-    ) -> DecomposeResult:
+    ) -> 'cirq.DecomposeResult':
         """Decomposes operations acting on more than 2 qubits using gates from this gateset.
 
         Args:
@@ -300,7 +303,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
     @abc.abstractmethod
     def _decompose_two_qubit_operation(
         self, op: 'cirq.Operation', moment_idx: int
-    ) -> DecomposeResult:
+    ) -> 'cirq.DecomposeResult':
         """Decomposes (connected component of) 2-qubit operations using gates from this gateset.
 
         Args:
