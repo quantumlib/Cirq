@@ -1,13 +1,12 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from functools import lru_cache
-from typing import Sequence, Dict, Union, Tuple, List, Optional, TYPE_CHECKING
+from typing import Sequence, Dict, Union, Tuple, List, Optional
 
 import numpy as np
 import quimb
 import quimb.tensor as qtn
 
-if TYPE_CHECKING:
-    import cirq
+import cirq
 
 
 @lru_cache()

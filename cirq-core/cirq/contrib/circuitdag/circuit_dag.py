@@ -18,9 +18,8 @@ import functools
 import networkx
 
 from cirq import ops
+import cirq
 
-if TYPE_CHECKING:
-    import cirq
 T = TypeVar('T')
 
 

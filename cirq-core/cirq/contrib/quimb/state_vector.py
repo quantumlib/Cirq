@@ -1,13 +1,12 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import warnings
-from typing import cast, Sequence, Union, List, Tuple, Dict, Optional, TYPE_CHECKING
+from typing import cast, Sequence, Union, List, Tuple, Dict, Optional
 
 import numpy as np
 import quimb
 import quimb.tensor as qtn
 
-if TYPE_CHECKING:
-    import cirq
+import cirq
 
 
 def _get_quimb_version():
