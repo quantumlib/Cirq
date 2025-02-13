@@ -858,7 +858,7 @@ def test_circuit_with_tag(tag):
     assert nc[0].operations[0].tags == (tag,)
 
 
-@pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
+@pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
 def test_unknown_tag_is_ignored():
     class DingDongTag:
         pass
@@ -869,7 +869,7 @@ def test_unknown_tag_is_ignored():
     assert cirq.Circuit(cirq.X(cirq.q(0))) == nc
 
 
-@pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
+@pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
 def test_unrecognized_tag_is_ignored():
     op_tag = v2.program_pb2.Operation()
     op_tag.xpowgate.exponent.float_value = 1.0
