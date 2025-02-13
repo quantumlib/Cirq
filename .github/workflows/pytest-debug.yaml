@@ -27,11 +27,15 @@ on:
         type: choice
         default: ubuntu-20.04
         options:
+          - ubuntu-latest
+          - ubuntu-24.04
           - ubuntu-22.04
           - ubuntu-20.04
+          - macos-latest
           - macos-15
           - macos-14
           - macos-13
+          - windows-latest
           - windows-2025
           - windows-2022
           - windows-2019
