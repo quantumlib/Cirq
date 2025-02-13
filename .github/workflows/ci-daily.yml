@@ -30,6 +30,10 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install system requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install cirq~=1.0.dev &&
