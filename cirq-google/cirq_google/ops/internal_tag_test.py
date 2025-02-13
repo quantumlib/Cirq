@@ -58,7 +58,7 @@ def test_internal_tag_with_hashable_args_is_hashable():
 
 
 def test_proto():
-    tag = cirq_google.InternalTag(name="TagWithNoParams", package='test')
+    tag = cirq_google.InternalTag(name="TagWithNoParams", package='test', param1=2.5)
     msg = tag.to_proto()
     assert tag == cirq_google.InternalTag.from_proto(msg)
 
