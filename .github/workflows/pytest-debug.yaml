@@ -25,7 +25,7 @@ on:
       os:
         description: "Runner OS:"
         type: choice
-        default: ubuntu-20.04
+        default: ubuntu-22.04
         options:
           - ubuntu-22.04
           - ubuntu-20.04
