@@ -858,6 +858,7 @@ def test_circuit_with_tag(tag):
     assert nc[0].operations[0].tags == (tag,)
 
 
+@pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
 def test_unknown_tag_is_ignored():
     class DingDongTag:
         pass
@@ -868,6 +869,7 @@ def test_unknown_tag_is_ignored():
     assert cirq.Circuit(cirq.X(cirq.q(0))) == nc
 
 
+@pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
 def test_unrecognized_tag_is_ignored():
     op_tag = v2.program_pb2.Operation()
     op_tag.xpowgate.exponent.float_value = 1.0
@@ -933,9 +935,8 @@ class BingBongGate(cirq.Gate):
 class BingBongSerializer(OpSerializer):
     """Describes how to serialize CircuitOperations."""
 
-    @property
-    def can_serialize_predicate(self):
-        return lambda op: isinstance(op.gate, BingBongGate)
+    def can_serialize_operation(self, op):
+        return isinstance(op.gate, BingBongGate)
 
     def to_proto(
         self,
@@ -969,9 +970,8 @@ class BingBongSerializer(OpSerializer):
 class BingBongDeserializer(OpDeserializer):
     """Describes how to serialize CircuitOperations."""
 
-    @property
-    def can_deserialize_predicate(self):
-        return lambda proto: (
+    def can_deserialize_proto(self, proto):
+        return (
             isinstance(proto, v2.program_pb2.Operation)
             and proto.WhichOneof("gate_value") == "internalgate"
             and proto.internalgate.name == 'bingbong'

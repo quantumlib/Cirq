@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, List
+from typing import Any, List
 
 import abc
 import sympy
@@ -26,17 +26,12 @@ class OpDeserializer(abc.ABC):
     """Generic supertype for operation deserializers.
 
     Each operation deserializer describes how to deserialize operation protos
-    with a particular `serialized_id` to a specific type of Cirq operation.
+    to a specific type of Cirq operation.
     """
 
-    @property
     @abc.abstractmethod
-    def can_deserialize_predicate(self) -> Callable[[Any], bool]:
-        """The method used to determine if this can deserialize a proto."""
-
     def can_deserialize_proto(self, proto) -> bool:
         """Whether the given operation can be serialized by this serializer."""
-        return self.can_deserialize_predicate(proto)
 
     @abc.abstractmethod
     def from_proto(
@@ -65,9 +60,8 @@ class OpDeserializer(abc.ABC):
 class CircuitOpDeserializer(OpDeserializer):
     """Describes how to serialize CircuitOperations."""
 
-    @property
-    def can_deserialize_predicate(self):
-        return lambda proto: isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: nocover
+    def can_deserialize_proto(self, proto):
+        return isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: nocover
 
     def from_proto(
         self,

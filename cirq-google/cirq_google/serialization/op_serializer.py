@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 import numbers
 
 import abc
@@ -61,25 +61,16 @@ class OpSerializer(abc.ABC):
             the returned object.
         """
 
-    @property
     @abc.abstractmethod
-    def can_serialize_predicate(self) -> Callable[[cirq.Operation], bool]:
-        """The method used to determine if this can serialize an operation.
-
-        Depending on the serializer, additional checks may be required.
-        """
-
     def can_serialize_operation(self, op: cirq.Operation) -> bool:
         """Whether the given operation can be serialized by this serializer."""
-        return self.can_serialize_predicate(op)
 
 
 class CircuitOpSerializer(OpSerializer):
     """Describes how to serialize CircuitOperations."""
 
-    @property
-    def can_serialize_predicate(self):
-        return lambda op: isinstance(op.untagged, cirq.CircuitOperation)
+    def can_serialize_operation(self, op: cirq.Operation):
+        return isinstance(op.untagged, cirq.CircuitOperation)
 
     def to_proto(
         self,
