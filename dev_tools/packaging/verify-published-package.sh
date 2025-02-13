@@ -42,12 +42,14 @@ if [ -z "${PROJECT_VERSION}" ]; then
     exit 1
 fi
 
+typeset -a PIP_FLAGS
+
 if [ "${PROD_SWITCH}" = "--test" ]; then
-    PIP_FLAGS="--index-url=https://test.pypi.org/simple/"
+    PIP_FLAGS=("--index-url=https://test.pypi.org/simple/")
     PYPI_REPO_NAME="TEST"
     PYPI_PROJECT_NAME="cirq"
 elif [ "${PROD_SWITCH}" = "--prod" ]; then
-    PIP_FLAGS=''
+    PIP_FLAGS=()
     PYPI_REPO_NAME="PROD"
     PYPI_PROJECT_NAME="cirq"
 else
@@ -76,7 +78,7 @@ echo "Working in a fresh virtualenv at ${tmp_dir}/${PYTHON_VERSION}"
 virtualenv --quiet "--python=/usr/bin/${PYTHON_VERSION}" "${tmp_dir}/${PYTHON_VERSION}"
 
 echo Installing "${PYPI_PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
-"${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PIP_FLAGS} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}" --extra-index-url https://pypi.python.org/simple
+"${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet "${PIP_FLAGS[@]}" "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}" --extra-index-url https://pypi.python.org/simple
 
 # Check that code runs without dev deps.
 echo Checking that code executes
