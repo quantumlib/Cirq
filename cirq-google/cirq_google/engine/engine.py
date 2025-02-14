@@ -27,7 +27,7 @@ import datetime
 import enum
 import random
 import string
-from typing import Dict, List, Optional, Set, TypeVar, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Set, TypeVar, TYPE_CHECKING, Union
 
 import duet
 import google.auth

@@ -214,7 +214,7 @@ class MatrixGate(raw_types.Gate):
         return str(self._matrix.round(3))
 
 
-def _matrix_to_diagram_symbol(matrix: np.ndarray, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+def _matrix_to_diagram_symbol(matrix: np.ndarray, args: 'cirq.CircuitDiagramInfoArgs') -> str:
     if args.precision is not None:
         matrix = matrix.round(args.precision)
     result = str(matrix)

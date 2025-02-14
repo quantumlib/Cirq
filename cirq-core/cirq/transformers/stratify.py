@@ -94,7 +94,7 @@ def stratified_circuit(
 
 
 def _stratify_circuit(
-    circuit: circuits.AbstractCircuit,
+    circuit: 'cirq.AbstractCircuit',
     *,
     context: 'cirq.TransformerContext',
     classifiers: Sequence[Classifier],
@@ -174,7 +174,7 @@ def _stratify_circuit(
 
 
 def _get_classifiers(
-    circuit: circuits.AbstractCircuit, categories: Iterable[Category]
+    circuit: 'cirq.AbstractCircuit', categories: Iterable[Category]
 ) -> List[Classifier]:
     """Convert a collection of categories into a list of classifiers.
 

@@ -59,7 +59,7 @@ class ControlledGate(raw_types.Gate):
         sub_gate: 'cirq.Gate',
         num_controls: Optional[int] = None,
         control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+            Union['cirq.AbstractControlValues', Sequence[Union[int, Collection[int]]]]
         ] = None,
         control_qid_shape: Optional[Sequence[int]] = None,
     ) -> None:
@@ -136,7 +136,7 @@ class ControlledGate(raw_types.Gate):
         return self._control_qid_shape
 
     @property
-    def control_values(self) -> cv.AbstractControlValues:
+    def control_values(self) -> 'cirq.AbstractControlValues':
         return self._control_values
 
     @property
@@ -223,7 +223,7 @@ class ControlledGate(raw_types.Gate):
             ),
         )
 
-    def on(self, *qubits: 'cirq.Qid') -> cop.ControlledOperation:
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.ControlledOperation':
         if len(qubits) == 0:
             raise ValueError(f"Applied a gate to an empty set of qubits. Gate: {self!r}")
         self.validate_args(qubits)
@@ -236,7 +236,7 @@ class ControlledGate(raw_types.Gate):
     def _value_equality_values_(self):
         return (self.sub_gate, self.num_controls(), self.control_values, self.control_qid_shape)
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         qubits = line_qubit.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)

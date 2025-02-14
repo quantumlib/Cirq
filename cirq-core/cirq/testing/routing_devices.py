@@ -36,7 +36,7 @@ class RoutingTestingDevice(devices.Device):
         self._metadata = devices.DeviceMetadata(relabeling_map.values(), nx_graph)
 
     @property
-    def metadata(self) -> devices.DeviceMetadata:
+    def metadata(self) -> 'cirq.DeviceMetadata':
         return self._metadata
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:

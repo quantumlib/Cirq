@@ -105,7 +105,7 @@ class _BaseLineQid(ops.Qid):
         """
         return isinstance(other, _BaseLineQid) and abs(self._x - other._x) == 1
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseLineQid']:
+    def neighbors(self, qids: Optional[Iterable['cirq.Qid']] = None) -> Set['_BaseLineQid']:
         """Returns qubits that are potential neighbors to this LineQubit
 
         Args:

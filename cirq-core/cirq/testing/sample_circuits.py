@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def nonoptimal_toffoli_circuit(q0: 'cirq.Qid', q1: 'cirq.Qid', q2: 'cirq.Qid') -> circuits.Circuit:
+def nonoptimal_toffoli_circuit(q0: 'cirq.Qid', q1: 'cirq.Qid', q2: 'cirq.Qid') -> 'cirq.Circuit':
     ret = circuits.Circuit(
         ops.Y(q2) ** 0.5,
         ops.X(q2),

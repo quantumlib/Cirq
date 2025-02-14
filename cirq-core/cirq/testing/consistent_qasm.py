@@ -13,12 +13,15 @@
 # limitations under the License.
 
 import warnings
-from typing import Any, List, Sequence, Optional
+from typing import Any, List, Sequence, Optional, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import devices, linalg, ops, protocols
 from cirq.testing import lin_alg_utils
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def assert_qasm_is_consistent_with_unitary(val: Any):
@@ -40,7 +43,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         return
 
     if isinstance(val, ops.Operation):
-        qubits: Sequence[ops.Qid] = val.qubits
+        qubits: Sequence['cirq.Qid'] = val.qubits
         op = val
         gate = val.gate
     elif isinstance(val, ops.Gate):

@@ -145,7 +145,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         )
         # fmt: on
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if protocols.is_parameterized(self):
             return NotImplemented
         a = math.cos(self.theta)

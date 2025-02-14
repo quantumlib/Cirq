@@ -18,7 +18,7 @@ from typing import List, TYPE_CHECKING
 import functools
 
 import numpy as np
-from cirq import ops, protocols, qis, sim
+from cirq import ops, protocols, sim
 
 if TYPE_CHECKING:
     import cirq
@@ -26,8 +26,8 @@ if TYPE_CHECKING:
 
 def _X(
     q: int,
-    args: sim.CliffordTableauSimulationState,
-    operations: List[ops.Operation],
+    args: 'cirq.CliffordTableauSimulationState',
+    operations: List['cirq.Operation'],
     qubits: List['cirq.Qid'],
 ):
     protocols.act_on(ops.X, args, qubits=[qubits[q]], allow_decompose=False)
@@ -36,8 +36,8 @@ def _X(
 
 def _Z(
     q: int,
-    args: sim.CliffordTableauSimulationState,
-    operations: List[ops.Operation],
+    args: 'cirq.CliffordTableauSimulationState',
+    operations: List['cirq.Operation'],
     qubits: List['cirq.Qid'],
 ):
     protocols.act_on(ops.Z, args, qubits=[qubits[q]], allow_decompose=False)
@@ -46,8 +46,8 @@ def _Z(
 
 def _Sdg(
     q: int,
-    args: sim.CliffordTableauSimulationState,
-    operations: List[ops.Operation],
+    args: 'cirq.CliffordTableauSimulationState',
+    operations: List['cirq.Operation'],
     qubits: List['cirq.Qid'],
 ):
     # Apply the tableau with S^\{dagger}
@@ -57,8 +57,8 @@ def _Sdg(
 
 def _H(
     q: int,
-    args: sim.CliffordTableauSimulationState,
-    operations: List[ops.Operation],
+    args: 'cirq.CliffordTableauSimulationState',
+    operations: List['cirq.Operation'],
     qubits: List['cirq.Qid'],
 ):
     protocols.act_on(ops.H, args, qubits=[qubits[q]], allow_decompose=False)
@@ -68,8 +68,8 @@ def _H(
 def _CNOT(
     q1: int,
     q2: int,
-    args: sim.CliffordTableauSimulationState,
-    operations: List[ops.Operation],
+    args: 'cirq.CliffordTableauSimulationState',
+    operations: List['cirq.Operation'],
     qubits: List['cirq.Qid'],
 ):
     protocols.act_on(ops.CNOT, args, qubits=[qubits[q1], qubits[q2]], allow_decompose=False)
@@ -79,8 +79,8 @@ def _CNOT(
 def _SWAP(
     q1: int,
     q2: int,
-    args: sim.CliffordTableauSimulationState,
-    operations: List[ops.Operation],
+    args: 'cirq.CliffordTableauSimulationState',
+    operations: List['cirq.Operation'],
     qubits: List['cirq.Qid'],
 ):
     protocols.act_on(ops.SWAP, args, qubits=[qubits[q1], qubits[q2]], allow_decompose=False)
@@ -88,8 +88,8 @@ def _SWAP(
 
 
 def decompose_clifford_tableau_to_operations(
-    qubits: List['cirq.Qid'], clifford_tableau: qis.CliffordTableau
-) -> List[ops.Operation]:
+    qubits: List['cirq.Qid'], clifford_tableau: 'cirq.CliffordTableau'
+) -> List['cirq.Operation']:
     """Decompose an n-qubit Clifford Tableau into a list of one/two qubit operations.
 
     The implementation is based on Theorem 8 in [1].
@@ -112,8 +112,8 @@ def decompose_clifford_tableau_to_operations(
         clifford_tableau._validate()
     ), "The provided clifford_tableau must satisfy the symplectic property."
 
-    t: qis.CliffordTableau = clifford_tableau.copy()
-    operations: List[ops.Operation] = []
+    t: 'cirq.CliffordTableau' = clifford_tableau.copy()
+    operations: List['cirq.Operation'] = []
     args = sim.CliffordTableauSimulationState(
         tableau=t, qubits=qubits, prng=np.random.RandomState()
     )

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Optional
 
 import cirq
 import numpy as np
@@ -38,12 +38,12 @@ class RandomizedMeasurements:
 
     def __call__(
         self,
-        circuit: "cirq.AbstractCircuit",
+        circuit: 'cirq.AbstractCircuit',
         unitary_ensemble: str = "pauli",
         rng: np.random.Generator | None = None,
         *,
-        context: transformer_api.TransformerContext | None = None,
-    ) -> "cirq.Circuit":
+        context: Optional['cirq.TransformerContext'] = None,
+    ) -> 'cirq.Circuit':
         """Apply the transformer to the given circuit. Given an input circuit returns
         a new circuit with the pre-measurement unitaries and measurements gates added.
         to the qubits in the subsystem provided.If no subsystem is specified in the
@@ -79,7 +79,7 @@ class RandomizedMeasurements:
 
     def random_single_qubit_unitary_moment(
         self, unitary_ensemble: str, qubits: Sequence[Any], rng: np.random.Generator
-    ) -> "cirq.Moment":
+    ) -> 'cirq.Moment':
         """Outputs the cirq moment associated with the pre-measurement rotations.
 
         Args:
@@ -106,7 +106,7 @@ class RandomizedMeasurements:
         else:
             raise ValueError("Only pauli, clifford and cue unitaries are available")
 
-        op_list: list[cirq.Operation] = []
+        op_list: list['cirq.Operation'] = []
 
         for idx, unitary in enumerate(unitaries):
             op_list.append(unitary.on(qubits[idx]))
@@ -114,7 +114,7 @@ class RandomizedMeasurements:
         return cirq.Moment.from_ops(*op_list)
 
 
-def _pauli_basis_rotation(rng: np.random.Generator) -> "cirq.Gate":
+def _pauli_basis_rotation(rng: np.random.Generator) -> 'cirq.Gate':
     """Randomly generate a Pauli basis rotation.
 
     Args:
@@ -126,7 +126,7 @@ def _pauli_basis_rotation(rng: np.random.Generator) -> "cirq.Gate":
     basis_idx = rng.choice(np.arange(3))
 
     if basis_idx == 0:
-        gate: "cirq.Gate" = cirq.Ry(rads=-np.pi / 2)
+        gate: 'cirq.Gate' = cirq.Ry(rads=-np.pi / 2)
     elif basis_idx == 1:
         gate = cirq.Rx(rads=np.pi / 2)
     else:
@@ -134,7 +134,7 @@ def _pauli_basis_rotation(rng: np.random.Generator) -> "cirq.Gate":
     return gate
 
 
-def _single_qubit_clifford(rng: np.random.Generator) -> "cirq.Gate":
+def _single_qubit_clifford(rng: np.random.Generator) -> 'cirq.Gate':
     """Randomly generate a single-qubit Clifford rotation.
 
     Args:
@@ -152,7 +152,7 @@ def _single_qubit_clifford(rng: np.random.Generator) -> "cirq.Gate":
     )
 
 
-def _single_qubit_cue(rng: np.random.Generator) -> "cirq.Gate":
+def _single_qubit_cue(rng: np.random.Generator) -> 'cirq.Gate':
     """Randomly generate a CUE gate.
 
     Args:

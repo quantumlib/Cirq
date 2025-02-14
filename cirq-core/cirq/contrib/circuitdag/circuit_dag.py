@@ -96,7 +96,7 @@ class CircuitDag(networkx.DiGraph):
 
     @staticmethod
     def from_circuit(
-        circuit: cirq.Circuit,
+        circuit: 'cirq.Circuit',
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
     ) -> 'CircuitDag':
         return CircuitDag.from_ops(circuit.all_operations(), can_reorder=can_reorder)
@@ -177,7 +177,7 @@ class CircuitDag(networkx.DiGraph):
     def all_qubits(self):
         return frozenset(q for node in self.nodes for q in node.val.qubits)
 
-    def to_circuit(self) -> cirq.Circuit:
+    def to_circuit(self) -> 'cirq.Circuit':
         return cirq.Circuit(self.all_operations(), strategy=cirq.InsertStrategy.EARLIEST)
 
     def findall_nodes_until_blocked(

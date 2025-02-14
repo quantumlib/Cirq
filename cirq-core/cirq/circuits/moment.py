@@ -159,7 +159,7 @@ class Moment:
         """
         return not self._qubit_to_op.keys().isdisjoint(qubits)
 
-    def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
+    def operation_at(self, qubit: 'cirq.Qid') -> Optional['cirq.Operation']:
         """Returns the operation on a certain qubit for the moment.
 
         Args:
@@ -547,11 +547,11 @@ class Moment:
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, key: raw_types.Qid) -> 'cirq.Operation':
+    def __getitem__(self, key: 'cirq.Qid') -> 'cirq.Operation':
         pass
 
     @overload
-    def __getitem__(self, key: Iterable[raw_types.Qid]) -> 'cirq.Moment':
+    def __getitem__(self, key: Iterable['cirq.Qid']) -> 'cirq.Moment':
         pass
 
     def __getitem__(self, key):

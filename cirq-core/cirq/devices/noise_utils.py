@@ -65,7 +65,7 @@ class OpIdentifier:
         else:
             return False
 
-    def __contains__(self, item: Union[ops.Gate, ops.Operation]) -> bool:
+    def __contains__(self, item: Union['cirq.Gate', 'cirq.Operation']) -> bool:
         if isinstance(item, ops.Gate):
             return (not self._qubits) and self._predicate(item)
         return (

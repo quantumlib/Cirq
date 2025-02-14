@@ -313,5 +313,5 @@ class MeasurementGate(raw_types.Gate):
         return True
 
 
-def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
+def _default_measurement_key(qubits: Iterable['cirq.Qid']) -> str:
     return ','.join(str(q) for q in qubits)

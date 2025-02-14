@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple, cast
+from typing import cast, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
 
 from cirq.ops import DensePauliString
 from cirq import protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def _argmax(V: npt.NDArray) -> Tuple[int, float]:
@@ -29,7 +32,9 @@ def _argmax(V: npt.NDArray) -> Tuple[int, float]:
     return cast(int, idx_max), np.max(V)
 
 
-def _validate_decomposition(decomposition: DensePauliString, U: npt.NDArray, eps: float) -> bool:
+def _validate_decomposition(
+    decomposition: 'cirq.DensePauliString', U: npt.NDArray, eps: float
+) -> bool:
     """Returns whether the max absolute value of the elementwise difference is less than eps."""
     got = protocols.unitary(decomposition)
     return np.abs(got - U).max() < eps
@@ -60,7 +65,9 @@ def _conjugate_with_hadamard(U: npt.NDArray) -> npt.NDArray:
     return U
 
 
-def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[DensePauliString]:
+def unitary_to_pauli_string(
+    U: npt.NDArray, eps: float = 1e-15
+) -> Optional['cirq.DensePauliString']:
     """Attempts to find a pauli string (with possible phase) equivalent to U up to eps.
 
         Based on this answer https://shorturl.at/aA079.

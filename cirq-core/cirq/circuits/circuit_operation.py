@@ -85,7 +85,7 @@ class CircuitOperation(ops.Operation):
         repetitions: INT_TYPE = 1,
         qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
         measurement_key_map: Optional[Dict[str, str]] = None,
-        param_resolver: Optional[study.ParamResolverOrSimilarType] = None,
+        param_resolver: Optional['cirq.ParamResolverOrSimilarType'] = None,
         repetition_ids: Optional[Sequence[str]] = None,
         parent_path: Tuple[str, ...] = (),
         extern_keys: FrozenSet['cirq.MeasurementKey'] = frozenset(),
@@ -242,7 +242,7 @@ class CircuitOperation(ops.Operation):
         return self._measurement_key_map
 
     @property
-    def param_resolver(self) -> study.ParamResolver:
+    def param_resolver(self) -> 'cirq.ParamResolver':
         return self._param_resolver
 
     @property

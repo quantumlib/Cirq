@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """A Gauge transformer for ISWAP gate."""
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -23,6 +24,9 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeSelector,
 )
 from cirq import ops
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class RZRotation(Gauge):
@@ -39,7 +43,7 @@ class RZRotation(Gauge):
     def weight(self) -> float:
         return 2.0
 
-    def _rz(self, theta, sgn: int) -> ConstantGauge:
+    def _rz(self, theta, sgn: int) -> 'cirq.ConstantGauge':
         """Returns an ISWAP Gauge composed of Rz rotations.
 
         0: ───Rz(theta)──────iSwap───Rz(sgn*theta)───
@@ -58,7 +62,7 @@ class RZRotation(Gauge):
             post_q1=n_rz,
         )
 
-    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> 'cirq.ConstantGauge':
         theta = prng.random() * 2 * np.pi
         return self._rz(theta, prng.choice([-1, 1]))
 
@@ -78,20 +82,20 @@ class XYRotation(Gauge):
     def weight(self) -> float:
         return 2.0
 
-    def _xy(self, theta: float) -> ops.PhasedXZGate:
+    def _xy(self, theta: float) -> 'cirq.PhasedXZGate':
         unitary = np.cos(theta) * np.array([[0, 1], [1, 0]]) + np.sin(theta) * np.array(
             [[0, -1j], [1j, 0]]
         )
         return ops.PhasedXZGate.from_matrix(unitary)
 
-    def _xy_gauge(self, a: float, b: float) -> ConstantGauge:
+    def _xy_gauge(self, a: float, b: float) -> 'cirq.ConstantGauge':
         xy_a = self._xy(a)
         xy_b = self._xy(b)
         return ConstantGauge(
             two_qubit_gate=ops.ISWAP, pre_q0=xy_a, pre_q1=xy_b, post_q0=xy_b, post_q1=xy_a
         )
 
-    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> 'cirq.ConstantGauge':
         a = prng.random() * 2 * np.pi
         if prng.choice([0, 1]):
             return self._xy_gauge(a, a)
