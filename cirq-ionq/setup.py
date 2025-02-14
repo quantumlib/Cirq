@@ -25,7 +25,7 @@ name = 'cirq-ionq'
 description = 'A Cirq package to simulate and connect to IonQ quantum computers'
 
 # README file as long_description.
-long_description = io.open('README.rst', encoding='utf-8').read()
+long_description = io.open('README.md', encoding='utf-8').read()
 
 # If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
 # It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
@@ -35,9 +35,13 @@ long_description = io.open('README.rst', encoding='utf-8').read()
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
-        "**This is a development version of Cirq-ionq and may be "
-        "unstable.**\n\n**For the latest stable release of Cirq-ionq "
-        "see**\n`here <https://pypi.org/project/cirq-ionq>`__.\n\n" + long_description
+        "<div align='center' width='50%'>\n\n"
+        "| ⚠️ WARNING |\n"
+        "|:----------:|\n"
+        "| **This is a development version of `cirq-ionq` and may be<br>"
+        "unstable. For the latest stable release of `cirq-ionq`,<br>"
+        "please visit** <https://pypi.org/project/cirq-ionq>.|\n"
+        "\n</div>\n\n" + long_description
     )
 
 # Read in requirements
@@ -66,6 +70,7 @@ setup(
     license='Apache 2',
     description=description,
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=cirq_packages,
     package_data={'cirq_ionq': ['py.typed'], 'cirq_ionq.json_test_data': ['*']},
     classifiers=[

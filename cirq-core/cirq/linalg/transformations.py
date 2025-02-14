@@ -422,7 +422,7 @@ class EntangledStateError(ValueError):
 
 
 def partial_trace_of_state_vector_as_mixture(
-    state_vector: np.ndarray, keep_indices: List[int], *, atol: Union[int, float] = 1e-8
+    state_vector: np.ndarray, keep_indices: List[int], *, atol: float = 1e-8
 ) -> Tuple[Tuple[float, np.ndarray], ...]:
     """Returns a mixture representing a state vector with only some qubits kept.
 
@@ -481,7 +481,7 @@ def sub_state_vector(
     keep_indices: List[int],
     *,
     default: np.ndarray = RaiseValueErrorIfNotProvided,
-    atol: Union[int, float] = 1e-6,
+    atol: float = 1e-6,
 ) -> np.ndarray:
     r"""Attempts to factor a state vector into two parts and return one of them.
 

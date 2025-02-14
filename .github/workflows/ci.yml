@@ -18,7 +18,7 @@ concurrency:
 jobs:
   quick_test:
     name: Misc check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
         run: check/misc
   packaging_test:
     name: Packaging test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
         run: ./dev_tools/packaging/packaging_test.sh
   format:
     name: Format check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -63,7 +63,7 @@ jobs:
         run: check/format-incremental
   mypy:
     name: Type check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -78,7 +78,7 @@ jobs:
         run: check/mypy
   changed_files:
     name: Changed files test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -95,7 +95,7 @@ jobs:
         run: check/pytest-changed-files -n auto
   lint:
     name: Lint check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -112,7 +112,7 @@ jobs:
         run: check/pylint -v
   doc_test:
     name: Doc test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -123,13 +123,11 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
-      - name: RST check
-        run: find . -type f -name "*.rst" | xargs rstcheck
       - name: Doc check
         run: check/doctest -q
   nbformat:
     name: Notebook formatting
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -144,7 +142,7 @@ jobs:
         run: check/nbformat
   shellcheck:
     name: Shell check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -154,7 +152,7 @@ jobs:
         run: check/shellcheck
   isolated-modules:
     name: Isolated pytest Ubuntu
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -172,7 +170,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -186,6 +184,10 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install wheel
@@ -202,7 +204,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12', '3.13']
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -215,7 +217,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          key: numpy2-${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install wheel
@@ -224,7 +230,7 @@ jobs:
         run: check/pytest -n auto --warn-numpy-data-promotion --durations=20 --ignore=cirq-rigetti
   pip-compile:
     name: Check consistency of requirements
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -240,7 +246,7 @@ jobs:
           pip-compile --resolver=backtracking dev_tools/requirements/deps/cirq-all.txt -o-
   build_protos:
     name: Build protos
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -258,7 +264,7 @@ jobs:
         run: check/protos-up-to-date
   coverage:
     name: Coverage check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -274,6 +280,10 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install system requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install wheel
@@ -349,7 +359,7 @@ jobs:
       matrix:
         # partitions should be named partition-0 to partition-(NOTEBOOK_PARTITIONS-1)
         partition: [partition-0, partition-1, partition-2, partition-3]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -372,7 +382,7 @@ jobs:
           path: out
   notebooks-branch:
     name: Notebook Tests against PR
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -393,7 +403,7 @@ jobs:
           path: out
   ts-build:
     name: Bundle file consistency
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -407,7 +417,7 @@ jobs:
         run: check/ts-build-current
   ts-lint:
     name: Typescript lint check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -421,7 +431,7 @@ jobs:
         run: check/ts-lint
   ts-test:
     name: Typescript tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4
@@ -437,7 +447,7 @@ jobs:
         run: check/ts-test-e2e
   ts-coverage:
     name: Typescript tests coverage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
         uses: actions/checkout@v4

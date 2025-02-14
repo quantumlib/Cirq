@@ -13,12 +13,16 @@
 # limitations under the License.
 
 """Utilities for manipulating linear operators as elements of vector space."""
-from typing import Dict, Tuple
+from typing import Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
+import sympy
 
 from cirq import value
 from cirq._doc import document
+
+if TYPE_CHECKING:
+    import cirq
 
 PAULI_BASIS = {
     'I': np.eye(2),
@@ -78,8 +82,17 @@ def matrix_from_basis_coefficients(
 
 
 def pow_pauli_combination(
-    ai: value.Scalar, ax: value.Scalar, ay: value.Scalar, az: value.Scalar, exponent: int
-) -> Tuple[value.Scalar, value.Scalar, value.Scalar, value.Scalar]:
+    ai: 'cirq.TParamValComplex',
+    ax: 'cirq.TParamValComplex',
+    ay: 'cirq.TParamValComplex',
+    az: 'cirq.TParamValComplex',
+    exponent: int,
+) -> Tuple[
+    'cirq.TParamValComplex',
+    'cirq.TParamValComplex',
+    'cirq.TParamValComplex',
+    'cirq.TParamValComplex',
+]:
     """Computes non-negative integer power of single-qubit Pauli combination.
 
     Returns scalar coefficients bi, bx, by, bz such that
@@ -96,7 +109,10 @@ def pow_pauli_combination(
     if exponent == 0:
         return 1, 0, 0, 0
 
-    v = np.sqrt(ax * ax + ay * ay + az * az).item()
+    if any(isinstance(a, sympy.Basic) for a in [ax, ay, az]):
+        v = sympy.sqrt(ax * ax + ay * ay + az * az)
+    else:
+        v = np.sqrt(ax * ax + ay * ay + az * az).item()
     s = (ai + v) ** exponent
     t = (ai - v) ** exponent
 

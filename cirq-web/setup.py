@@ -24,7 +24,7 @@ name = 'cirq-web'
 description = 'Web-based 3D visualization tools for Cirq.'
 
 # README file as long_description.
-long_description = open('README.rst', encoding='utf-8').read()
+long_description = open('README.md', encoding='utf-8').read()
 
 # If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
 # It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
@@ -34,9 +34,13 @@ long_description = open('README.rst', encoding='utf-8').read()
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
-        "**This is a development version of cirq-web and may be "
-        "unstable.**\n\n**For the latest stable release of cirq-web "
-        "see**\n`here <https://pypi.org/project/cirq-web>`__.\n\n" + long_description
+        "<div align='center' width='50%'>\n\n"
+        "| ⚠️ WARNING |\n"
+        "|:----------:|\n"
+        "| **This is a development version of `cirq-web` and may be<br>"
+        "unstable. For the latest stable release of `cirq-web`,<br>"
+        "please visit** <https://pypi.org/project/cirq-web>.|\n"
+        "\n</div>\n\n" + long_description
     )
 
 # Read in requirements
@@ -69,6 +73,7 @@ setup(
     license='Apache 2',
     description=description,
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=packs,
     package_data={'cirq_web': ['dist/*'], 'cirq_ts': ['dist/*.bundle.js']},
     classifiers=[

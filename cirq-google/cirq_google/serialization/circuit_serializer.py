@@ -15,11 +15,18 @@
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
 from typing import Any, Dict, List, Optional
+import warnings
 import sympy
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.ops import PhysicalZTag, InternalGate, FSimViaModelTag, DynamicalDecouplingTag
+from cirq_google.ops import (
+    PhysicalZTag,
+    InternalGate,
+    InternalTag,
+    FSimViaModelTag,
+    DynamicalDecouplingTag,
+)
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
@@ -45,12 +52,19 @@ class CircuitSerializer(serializer.Serializer):
             serialization of duplicate moments as entries in the constant table.
             This flag will soon become the default and disappear as soon as
             deserialization of this field is deployed.
+        USE_CONSTANTS_TABLE_FOR_MOMENTS: Temporary feature flag to enable
+            serialization of duplicate operations as entries in the constant table.
+            This flag will soon become the default and disappear as soon as
+            deserialization of this field is deployed.
     """
 
-    def __init__(self, USE_CONSTANTS_TABLE_FOR_MOMENTS=False):
+    def __init__(
+        self, USE_CONSTANTS_TABLE_FOR_MOMENTS=False, USE_CONSTANTS_TABLE_FOR_OPERATIONS=False
+    ):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)
         self.use_constants_table_for_moments = USE_CONSTANTS_TABLE_FOR_MOMENTS
+        self.use_constants_table_for_operations = USE_CONSTANTS_TABLE_FOR_OPERATIONS
 
     def serialize(
         self,
@@ -101,10 +115,10 @@ class CircuitSerializer(serializer.Serializer):
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
             if self.use_constants_table_for_moments:
-                if moment_index := raw_constants.get(moment, None):
+
+                if (moment_index := raw_constants.get(moment, None)) is not None:
                     # Moment is already in the constants table
-                    moment_proto = msg.moments.add()
-                    moment_proto.moment_constant_index = moment_index
+                    msg.moment_indices.append(moment_index)
                     continue
                 else:
                     # Moment is not yet in the constants table
@@ -124,6 +138,23 @@ class CircuitSerializer(serializer.Serializer):
                         constants=constants,
                         raw_constants=raw_constants,
                     )
+                elif self.use_constants_table_for_operations:
+                    if (op_index := raw_constants.get(op, None)) is not None:
+                        # Operation is already in the constants table
+                        moment_proto.operation_indices.append(op_index)
+                    else:
+                        op_pb = v2.program_pb2.Operation()
+                        self._serialize_gate_op(
+                            op,
+                            op_pb,
+                            arg_function_language=arg_function_language,
+                            constants=constants,
+                            raw_constants=raw_constants,
+                        )
+                        constants.append(v2.program_pb2.Constant(operation_value=op_pb))
+                        op_index = len(constants) - 1
+                        raw_constants[op] = op_index
+                        moment_proto.operation_indices.append(op_index)
                 else:
                     op_pb = moment_proto.operations.add()
                     self._serialize_gate_op(
@@ -137,9 +168,9 @@ class CircuitSerializer(serializer.Serializer):
             if self.use_constants_table_for_moments:
                 # Add this moment to the constants table
                 constants.append(v2.program_pb2.Constant(moment_value=moment_proto))
-                raw_constants[moment] = len(constants) - 1
-                moment_proto = msg.moments.add()
-                moment_proto.moment_constant_index = raw_constants[moment]
+                moment_index = len(constants) - 1
+                raw_constants[moment] = moment_index
+                msg.moment_indices.append(moment_index)
 
     def _serialize_gate_op(
         self,
@@ -323,8 +354,23 @@ class CircuitSerializer(serializer.Serializer):
                     constants.append(constant)
                     if raw_constants is not None:
                         raw_constants[tag.token] = msg.token_constant_index
-            elif isinstance(tag, DynamicalDecouplingTag):
-                tag.to_proto(msg=msg.tags.add().dynamical_decoupling)
+            else:
+                if isinstance(tag, DynamicalDecouplingTag):
+                    # TODO(dstrain): Remove this once we are deserializing tag indices everywhere.
+                    tag.to_proto(msg=msg.tags.add())
+                if (tag_index := raw_constants.get(tag, None)) is None:
+                    constant = v2.program_pb2.Constant()
+                    tag_index = len(constants)
+                    if getattr(tag, 'to_proto', None) is not None:
+                        tag.to_proto(constant.tag_value)  # type: ignore
+                        constants.append(constant)
+                        if raw_constants is not None:
+                            raw_constants[tag] = tag_index
+                        msg.tag_indices.append(tag_index)
+                    else:
+                        warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+                else:
+                    msg.tag_indices.append(tag_index)
         return msg
 
     def _serialize_circuit_op(
@@ -422,6 +468,30 @@ class CircuitSerializer(serializer.Serializer):
                     deserialized_constants.append(circuit.freeze())
                 elif which_const == 'qubit':
                     deserialized_constants.append(v2.qubit_from_proto_id(constant.qubit.id))
+                elif which_const == 'operation_value':
+                    deserialized_constants.append(
+                        self._deserialize_gate_op(
+                            constant.operation_value,
+                            arg_function_language=arg_func_language,
+                            constants=proto.constants,
+                            deserialized_constants=deserialized_constants,
+                        )
+                    )
+                elif which_const == 'moment_value':
+                    deserialized_constants.append(
+                        self._deserialize_moment(
+                            constant.moment_value,
+                            arg_function_language=arg_func_language,
+                            constants=proto.constants,
+                            deserialized_constants=deserialized_constants,
+                        )
+                    )
+                elif which_const == 'tag_value':
+                    deserialized_constants.append(self._deserialize_tag(constant.tag_value))
+                else:
+                    msg = f'Unrecognized constant type {which_const}, ignoring.'  # pragma: no cover
+                    warnings.warn(msg)  # pragma: no cover
+                    deserialized_constants.append(None)  # pragma: no cover
             circuit = self._deserialize_circuit(
                 proto.circuit,
                 arg_function_language=arg_func_language,
@@ -443,44 +513,69 @@ class CircuitSerializer(serializer.Serializer):
         deserialized_constants: List[Any],
     ) -> cirq.Circuit:
         moments = []
-        constant_moments: dict[int, cirq.Moment] = {}
+        if circuit_proto.moments and circuit_proto.moment_indices:
+            raise ValueError(
+                'Circuit message must not have "moments" and '
+                '"moment_indices" fields set at the same time.'
+            )
         for moment_proto in circuit_proto.moments:
-            if moment_proto.HasField('moment_constant_index'):
-                constant_index = moment_proto.moment_constant_index
-                if moment := constant_moments.get(constant_index, None):
-                    # This moment is in the constants table and has already been constructed.
-                    moments.append(moment)
-                    continue
-                # Moment is in the constants table but has not been constructed.
-                moment_proto = constants[constant_index].moment_value
-            else:
-                constant_index = None
-            moment_ops = []
-            for op in moment_proto.operations:
-                tags = [self._deserialize_tag(tag) for tag in op.tags]
-                moment_ops.append(
-                    self._deserialize_gate_op(
-                        op,
-                        arg_function_language=arg_function_language,
-                        constants=constants,
-                        deserialized_constants=deserialized_constants,
-                    ).with_tags(*tags)
+            moments.append(
+                self._deserialize_moment(
+                    moment_proto,
+                    arg_function_language=arg_function_language,
+                    constants=constants,
+                    deserialized_constants=deserialized_constants,
                 )
-            for op in moment_proto.circuit_operations:
-                moment_ops.append(
-                    self._deserialize_circuit_op(
-                        op,
-                        arg_function_language=arg_function_language,
-                        constants=constants,
-                        deserialized_constants=deserialized_constants,
-                    )
-                )
-            moment = cirq.Moment(moment_ops)
-            if constant_index is not None:
-                # Store constant moments for later so we only construct each moment once
-                constant_moments[constant_index] = moment
-            moments.append(moment)
+            )
+        for moment_index in circuit_proto.moment_indices:
+            moments.append(deserialized_constants[moment_index])
         return cirq.Circuit(moments)
+
+    def _deserialize_moment(
+        self,
+        moment_proto: v2.program_pb2.Moment,
+        *,
+        arg_function_language: str = '',
+        constants: List[v2.program_pb2.Constant],
+        deserialized_constants: List[Any],
+    ) -> cirq.Moment:
+        moment_ops = []
+        for op in moment_proto.operations:
+            gate_op = self._deserialize_gate_op(
+                op,
+                arg_function_language=arg_function_language,
+                constants=constants,
+                deserialized_constants=deserialized_constants,
+            )
+            if op.tag_indices:
+                tags = [
+                    deserialized_constants[tag_index]
+                    for tag_index in op.tag_indices
+                    if deserialized_constants[tag_index] not in gate_op.tags
+                    and deserialized_constants[tag_index] is not None
+                ]
+            else:
+                tags = []
+                for tag in op.tags:
+                    if (
+                        tag not in gate_op.tags
+                        and (new_tag := self._deserialize_tag(tag)) is not None
+                    ):
+                        tags.append(new_tag)
+            moment_ops.append(gate_op.with_tags(*tags))
+        for op in moment_proto.circuit_operations:
+            moment_ops.append(
+                self._deserialize_circuit_op(
+                    op,
+                    arg_function_language=arg_function_language,
+                    constants=constants,
+                    deserialized_constants=deserialized_constants,
+                )
+            )
+        for operation_index in moment_proto.operation_indices:
+            moment_ops.append(deserialized_constants[operation_index])
+        moment = cirq.Moment(moment_ops)
+        return moment
 
     def _deserialize_gate_op(
         self,
@@ -785,8 +880,16 @@ class CircuitSerializer(serializer.Serializer):
     def _deserialize_tag(self, msg: v2.program_pb2.Tag):
         which = msg.WhichOneof('tag')
         if which == 'dynamical_decoupling':
-            return DynamicalDecouplingTag.from_proto(msg.dynamical_decoupling)
-        raise ValueError(f'unsupported tag {msg=}')  # pragma: no cover
+            return DynamicalDecouplingTag.from_proto(msg)
+        elif which == 'physical_z':
+            return PhysicalZTag()
+        elif which == 'fsim_via_model':
+            return FSimViaModelTag()
+        elif which == 'internal_tag':
+            return InternalTag.from_proto(msg)
+        else:
+            warnings.warn(f'Unknown tag {msg=}, ignoring')
+            return None
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer()

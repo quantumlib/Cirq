@@ -1,6 +1,6 @@
 # Style guidelines
 
-As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) we use use [pylint](https://pylint.pycqa.org/)
+As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) we use use [Pylint](https://pylint.pycqa.org/)
 to check for style violations.  Pylint attempts to enforce styles in 
 [PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the 
 [dev_tools/conf/.pylintrc](https://github.com/quantumlib/Cirq/blob/main/dev_tools/conf/.pylintrc) file.
@@ -63,7 +63,7 @@ help catch coding errors.
 For documentation purposes in particular, type annotations should match the way
 classes and functions are accessed by cirq users, which is typically on the
 top-level `cirq` namespace (for example, users use `cirq.Sampler` even though
-the sampler class is defined in `cirq.work.sampler.Sampler`). Code in cirq-core
+the sampler class is defined in `cirq.work.sampler.Sampler`). Code in `cirq-core`
 typically cannot import and use `cirq.Sampler` directly because this could
 create an import cycle where modules import each other (perhaps indirectly).
 Instead, the import of the top-level `cirq` library can be guarded by the

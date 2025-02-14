@@ -195,7 +195,7 @@ class PhasedXZGate(raw_types.Gate):
         yield ops.X(q) ** self._x_exponent
         yield ops.Z(q) ** (self._axis_phase_exponent + self._z_exponent)
 
-    def __pow__(self, exponent: Union[float, int]) -> 'PhasedXZGate':
+    def __pow__(self, exponent: float) -> 'PhasedXZGate':
         if exponent == 1:
             return self
         if exponent == -1:
@@ -229,17 +229,17 @@ class PhasedXZGate(raw_types.Gate):
         z_exponent = resolver.value_of(self._z_exponent, recursive)
         x_exponent = resolver.value_of(self._x_exponent, recursive)
         axis_phase_exponent = resolver.value_of(self._axis_phase_exponent, recursive)
-        if isinstance(z_exponent, (complex, numbers.Complex)):
+        if isinstance(z_exponent, numbers.Complex):
             if isinstance(z_exponent, numbers.Real):
                 z_exponent = float(z_exponent)
             else:
                 raise ValueError(f'Complex exponent {z_exponent} not allowed in cirq.PhasedXZGate')
-        if isinstance(x_exponent, (complex, numbers.Complex)):
+        if isinstance(x_exponent, numbers.Complex):
             if isinstance(x_exponent, numbers.Real):
                 x_exponent = float(x_exponent)
             else:
                 raise ValueError(f'Complex exponent {x_exponent} not allowed in cirq.PhasedXZGate')
-        if isinstance(axis_phase_exponent, (complex, numbers.Complex)):
+        if isinstance(axis_phase_exponent, numbers.Complex):
             if isinstance(axis_phase_exponent, numbers.Real):
                 axis_phase_exponent = float(axis_phase_exponent)
             else:

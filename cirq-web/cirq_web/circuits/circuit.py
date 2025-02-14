@@ -57,7 +57,9 @@ class Circuit3D(widget.Widget):
             <button id="camera-reset">Reset Camera</button>
             <button id="camera-toggle">Toggle Camera Type</button>
             <script>
-            let viz_{stripped_id} = createGridCircuit({self.serialized_circuit}, {moments}, "{self.id}", {self.padding_factor});
+            let viz_{stripped_id} = createGridCircuit(
+                {self.serialized_circuit}, {moments}, "{self.id}", {self.padding_factor}
+            );
 
             document.getElementById("camera-reset").addEventListener('click', ()  => {{
             viz_{stripped_id}.scene.setCameraAndControls(viz_{stripped_id}.circuit);

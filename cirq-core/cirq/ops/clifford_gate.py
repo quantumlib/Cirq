@@ -433,7 +433,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         return CliffordGate.from_clifford_tableau(base_tableau)
 
     def __repr__(self) -> str:
-        return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
+        return f"Clifford Gate with Tableau:\n{self.clifford_tableau._str_full_()}"
 
     def _commutes_(
         self, other: Any, *, atol: float = 1e-8
@@ -742,7 +742,7 @@ class SingleQubitCliffordGate(CliffordGate):
             z = -0.5 if x_to_flip else 0.5
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
-    def __pow__(self, exponent: Union[float, int]) -> 'SingleQubitCliffordGate':
+    def __pow__(self, exponent: float) -> 'SingleQubitCliffordGate':
         if int(exponent) == exponent:
             # The single qubit Clifford gates are a group of size 24
             ret_gate = super().__pow__(int(exponent) % 24)

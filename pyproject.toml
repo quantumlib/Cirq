@@ -4,6 +4,22 @@ target_version = ['py310', 'py311', 'py312']
 skip-string-normalization = true
 skip-magic-trailing-comma = true
 
+
+[tool.coverage.run]
+include = [
+    # Omit files outside the current working directory.
+    # Note: this means coverage must be run from the cirq repo root.
+    # Failure to do so will result in false positives.
+    "./*",
+]
+omit = ["benchmarks/*"]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+]
+
+
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
