@@ -26,18 +26,12 @@ class OpDeserializer(abc.ABC):
     """Generic supertype for operation deserializers.
 
     Each operation deserializer describes how to deserialize operation protos
-    with a particular `serialized_id` to a specific type of Cirq operation.
+    to a specific type of Cirq operation.
     """
 
-    @property
     @abc.abstractmethod
-    def serialized_id(self) -> str:
-        """Returns the string identifier for the accepted serialized objects.
-
-        This ID denotes the serialization format this deserializer consumes. For
-        example, one of the common deserializers converts objects with the id
-        'xy' into PhasedXPowGates.
-        """
+    def can_deserialize_proto(self, proto) -> bool:
+        """Whether the given operation can be serialized by this serializer."""
 
     @abc.abstractmethod
     def from_proto(
@@ -66,9 +60,8 @@ class OpDeserializer(abc.ABC):
 class CircuitOpDeserializer(OpDeserializer):
     """Describes how to serialize CircuitOperations."""
 
-    @property
-    def serialized_id(self):
-        return 'circuit'
+    def can_deserialize_proto(self, proto):
+        return isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: nocover
 
     def from_proto(
         self,
