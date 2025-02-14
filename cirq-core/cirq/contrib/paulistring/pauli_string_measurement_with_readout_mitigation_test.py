@@ -17,6 +17,7 @@ import numpy as np
 
 from cirq.contrib.paulistring import measure_pauli_strings
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
+from cirq.experiments import SingleQubitReadoutCalibrationResult
 
 
 def _create_ghz(number_of_qubits: int, qubits: list[cirq.Qid]) -> cirq.Circuit:
@@ -36,15 +37,16 @@ def _ideal_expectation_based_on_pauli_string(pauli_string: cirq.PauliString, qub
 
 
 def test_pauli_string_measurement_errors_no_noise():
-    '''
-    Test that the mitigated expectation is close to the ideal expectation based on the Pauli string
-    '''
+    """Test that the mitigated expectation is close to the ideal expectation
+    based on the Pauli string"""
+
     qubits = cirq.LineQubit.range(5)
     circuit = _create_ghz(5, qubits)
     sampler = cirq.Simulator()
 
     circuits_to_pauli = [(circuit, [cirq.PauliString({q: cirq.X for q in qubits}),
-                                    cirq.PauliString({q: cirq.Y for q in qubits}),
+                                    cirq.PauliString(
+                                        {q: cirq.Y for q in qubits}),
                                     cirq.PauliString({q: cirq.Z for q in qubits})])
                          ]
 
@@ -53,26 +55,31 @@ def test_pauli_string_measurement_errors_no_noise():
     for input_circuit, pauli_expectations in circuits_with_pauli_expectations:
         assert isinstance(input_circuit, cirq.Circuit)
         for mitigated_pauli_expectations, unmitigated_pauli_expectations in zip(
-            pauli_expectations[0], pauli_expectations[1]):
+                pauli_expectations[0], pauli_expectations[1]):
             # Since there is no noise, the mitigated and unmitigated expectations should be the same
             assert np.isclose(
                 mitigated_pauli_expectations[1], unmitigated_pauli_expectations[1])
             assert np.isclose(
                 mitigated_pauli_expectations[1],
-                _ideal_expectation_based_on_pauli_string(mitigated_pauli_expectations[0], qubits))
+                _ideal_expectation_based_on_pauli_string(
+                    mitigated_pauli_expectations[0], qubits),
+                atol=4*mitigated_pauli_expectations[2])
+        assert isinstance(pauli_expectations[2], SingleQubitReadoutCalibrationResult)
+        assert pauli_expectations[2].zero_state_errors == {q: 0 for q in qubits}
+        assert pauli_expectations[2].one_state_errors == {q: 0 for q in qubits}
+
 
 
 def test_pauli_string_measurement_errors_with_noise():
-    '''
-    Test that the mitigated expectation is close to the ideal expectation 
-    based on the Pauli string
-    '''
+    """Test that the mitigated expectation is close to the ideal expectation
+    based on the Pauli string"""
     qubits = cirq.LineQubit.range(7)
     circuit = _create_ghz(7, qubits)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
 
     circuits_to_pauli = [(circuit, [cirq.PauliString({q: cirq.Z for q in qubits}),
-                                    cirq.PauliString({q: cirq.X for q in qubits}),
+                                    cirq.PauliString(
+                                        {q: cirq.X for q in qubits}),
                                     cirq.PauliString({q: cirq.Y for q in qubits})])
                          ]
 
@@ -83,13 +90,16 @@ def test_pauli_string_measurement_errors_with_noise():
         for paulistring, mitigated_exp, d_mit in pauli_expectations[0]:
             assert np.isclose(mitigated_exp, _ideal_expectation_based_on_pauli_string(
                 paulistring, qubits), atol=4 * d_mit)
+        assert isinstance(pauli_expectations[2], SingleQubitReadoutCalibrationResult)
+        for error in pauli_expectations[2].zero_state_errors.values():
+            assert 0.08 < error < 0.12
+        for error in pauli_expectations[2].one_state_errors.values():
+            assert 0.0045 < error < 0.0055
 
 
 def test_many_circuits_input_measurement_with_noise():
-    '''
-    Test that the mitigated expectation is close to the ideal expectation based on the Pauli string
-    for multiple circuits
-    '''
+    """Test that the mitigated expectation is close to the ideal expectation
+    based on the Pauli string for multiple circuits"""
     qubits_1 = cirq.LineQubit.range(3)
     qubits_2 = [cirq.GridQubit(0, 1),
                 cirq.GridQubit(1, 1),
@@ -103,13 +113,16 @@ def test_many_circuits_input_measurement_with_noise():
     circuit_3 = _create_ghz(8, qubits_3)
 
     circuits_to_pauli = [(circuit_1, [cirq.PauliString({q: cirq.Z for q in qubits_1}),
-                                      cirq.PauliString({q: cirq.X for q in qubits_1}),
+                                      cirq.PauliString(
+                                          {q: cirq.X for q in qubits_1}),
                                       cirq.PauliString({q: cirq.Y for q in qubits_1})]),
                          (circuit_2, [cirq.PauliString({q: cirq.Z for q in qubits_2}),
-                                      cirq.PauliString({q: cirq.X for q in qubits_2}),
+                                      cirq.PauliString(
+                                          {q: cirq.X for q in qubits_2}),
                                       cirq.PauliString({q: cirq.Y for q in qubits_2})]),
                          (circuit_3, [cirq.PauliString({q: cirq.Z for q in qubits_3}),
-                                      cirq.PauliString({q: cirq.X for q in qubits_3}),
+                                      cirq.PauliString(
+                                          {q: cirq.X for q in qubits_3}),
                                       cirq.PauliString({q: cirq.Y for q in qubits_3})])]
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.005, seed=1234)
@@ -122,3 +135,8 @@ def test_many_circuits_input_measurement_with_noise():
             qubits_to_measure = input_circuit.all_qubits()
             assert np.isclose(mitigated_exp, _ideal_expectation_based_on_pauli_string(
                 paulistring, qubits_to_measure), atol=4 * d_mit)
+        assert isinstance(pauli_expectations[2], SingleQubitReadoutCalibrationResult)
+        for error in pauli_expectations[2].zero_state_errors.values():
+            assert 0.025 < error < 0.035
+        for error in pauli_expectations[2].one_state_errors.values():
+            assert 0.0045 < error < 0.0055
