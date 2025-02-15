@@ -824,12 +824,20 @@ def test_clifford_gate_act_on_small_case():
     cirq.act_on(cirq.CliffordGate.I, args, qubits=[qubits[0]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
+    cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
     cirq.act_on(cirq.CNOT, expected_args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
     cirq.act_on(cirq.CliffordGate.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
-    cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
-    cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CZ, expected_args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.CZ, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.SWAP, expected_args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.SWAP, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
     cirq.act_on(cirq.S, expected_args, qubits=[qubits[0]], allow_decompose=False)
