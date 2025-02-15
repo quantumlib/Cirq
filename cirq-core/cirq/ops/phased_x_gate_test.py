@@ -79,16 +79,14 @@ def test_eq():
         cirq.PhasedXPowGate(exponent=1, phase_exponent=0),
         cirq.PhasedXPowGate(exponent=1, phase_exponent=2),
         cirq.PhasedXPowGate(exponent=1, phase_exponent=-2),
-        cirq.X,
     )
     eq.add_equality_group(cirq.PhasedXPowGate(exponent=1, phase_exponent=2, global_shift=0.1))
 
     eq.add_equality_group(
         cirq.PhasedXPowGate(phase_exponent=0.5, exponent=1),
         cirq.PhasedXPowGate(phase_exponent=2.5, exponent=3),
-        cirq.Y,
     )
-    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25), cirq.Y**0.25)
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25))
 
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.25, global_shift=0.1))
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=2.25, exponent=0.25, global_shift=0.2))
@@ -266,3 +264,18 @@ def test_exponent_consistency(exponent, phase_exponent):
     u = cirq.protocols.unitary(g)
     u2 = cirq.protocols.unitary(g2)
     assert np.all(u == u2)
+
+
+def test_approx_eq_for_close_phase_exponents():
+    gate1 = cirq.PhasedXPowGate(phase_exponent=0)
+    gate2 = cirq.PhasedXPowGate(phase_exponent=1e-12)
+    gate3 = cirq.PhasedXPowGate(phase_exponent=2e-12)
+    gate4 = cirq.PhasedXPowGate(phase_exponent=0.345)
+
+    assert cirq.approx_eq(gate2, gate3)
+    assert cirq.approx_eq(gate2, gate1)
+    assert not cirq.approx_eq(gate2, gate4)
+
+    assert cirq.equal_up_to_global_phase(gate2, gate3)
+    assert cirq.equal_up_to_global_phase(gate2, gate1)
+    assert not cirq.equal_up_to_global_phase(gate2, gate4)
