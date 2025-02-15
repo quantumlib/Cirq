@@ -789,8 +789,8 @@ class SingleQubitCliffordGate(CliffordGate):
                 stabilizer.apply_y(axis, -0.5)
             case SingleQubitCliffordGate.Z_nsqrt:
                 stabilizer.apply_z(axis, -0.5)
-            case _:  # pragma: no cover
-                raise ValueError(f'Unexpected SingleQubitCliffordGate {self}.')
+            case _:
+                return NotImplemented  # Unnamed Cliffords will be decomposed.
         return True
 
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.

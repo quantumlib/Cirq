@@ -881,6 +881,20 @@ def test_clifford_gate_act_on_small_case():
     assert args.tableau == expected_args.tableau
 
 
+def test_act_on_all_single_qubit_cliffords_have_distinct_results():
+    q = cirq.LineQubit.range(1)
+    results = set()
+    # Indirectly test tableau __eq__ by running loop twice.
+    for gate in cirq.SingleQubitCliffordGate.all_single_qubit_cliffords * 2:
+        args = cirq.CliffordTableauSimulationState(
+            tableau=cirq.CliffordTableau(num_qubits=1), qubits=q
+        )
+        cirq.act_on(gate, args, qubits=q, allow_decompose=False)
+        results.add(args.tableau)
+    # If _act_on_ works properly, then the resulting tableaux should all be distinct.
+    assert len(results) == len(cirq.SingleQubitCliffordGate.all_single_qubit_cliffords)
+
+
 def test_clifford_gate_act_on_large_case():
     n, num_ops = 50, 1000  # because we don't need unitary, it is fast.
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
