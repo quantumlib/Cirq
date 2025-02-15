@@ -764,32 +764,33 @@ class SingleQubitCliffordGate(CliffordGate):
 
         if not isinstance(sim_state, StabilizerSimulationState):
             return NotImplemented
-        if self is SingleQubitCliffordGate.I:
+        if self == SingleQubitCliffordGate.I:
             return True
         axis = sim_state.get_axes(qubits)[0]
         stabilizer = sim_state._state
-        if self is SingleQubitCliffordGate.X:
-            stabilizer.apply_x(axis)
-        elif self is SingleQubitCliffordGate.Y:
-            stabilizer.apply_y(axis)
-        elif self is SingleQubitCliffordGate.Z:
-            stabilizer.apply_z(axis)
-        elif self is SingleQubitCliffordGate.H:
-            stabilizer.apply_h(axis)
-        elif self is SingleQubitCliffordGate.X_sqrt:
-            stabilizer.apply_x(axis, 0.5)
-        elif self is SingleQubitCliffordGate.Y_sqrt:
-            stabilizer.apply_y(axis, 0.5)
-        elif self is SingleQubitCliffordGate.Z_sqrt:
-            stabilizer.apply_z(axis, 0.5)
-        elif self is SingleQubitCliffordGate.X_nsqrt:
-            stabilizer.apply_x(axis, -0.5)
-        elif self is SingleQubitCliffordGate.Y_nsqrt:
-            stabilizer.apply_y(axis, -0.5)
-        elif self is SingleQubitCliffordGate.Z_nsqrt:
-            stabilizer.apply_z(axis, -0.5)
-        else:
-            raise ValueError(f'Unexpected SingleQubitCliffordGate {self}.')  # pragma: no cover
+        match self:
+            case SingleQubitCliffordGate.X:
+                stabilizer.apply_x(axis)
+            case SingleQubitCliffordGate.Y:
+                stabilizer.apply_y(axis)
+            case SingleQubitCliffordGate.Z:
+                stabilizer.apply_z(axis)
+            case SingleQubitCliffordGate.H:
+                stabilizer.apply_h(axis)
+            case SingleQubitCliffordGate.X_sqrt:
+                stabilizer.apply_x(axis, 0.5)
+            case SingleQubitCliffordGate.Y_sqrt:
+                stabilizer.apply_y(axis, 0.5)
+            case SingleQubitCliffordGate.Z_sqrt:
+                stabilizer.apply_z(axis, 0.5)
+            case SingleQubitCliffordGate.X_nsqrt:
+                stabilizer.apply_x(axis, -0.5)
+            case SingleQubitCliffordGate.Y_nsqrt:
+                stabilizer.apply_y(axis, -0.5)
+            case SingleQubitCliffordGate.Z_nsqrt:
+                stabilizer.apply_z(axis, -0.5)
+            case _:  # pragma: no cover
+                raise ValueError(f'Unexpected SingleQubitCliffordGate {self}.')
         return True
 
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.
