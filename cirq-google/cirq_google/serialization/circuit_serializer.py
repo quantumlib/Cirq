@@ -56,15 +56,23 @@ class CircuitSerializer(serializer.Serializer):
             serialization of duplicate operations as entries in the constant table.
             This flag will soon become the default and disappear as soon as
             deserialization of this field is deployed.
+        op_serializer: Optional custom serializer for serializing unknown gates.
+        op_deserializer: Optional custom deserializer for deserializing unknown gates.
     """
 
     def __init__(
-        self, USE_CONSTANTS_TABLE_FOR_MOMENTS=False, USE_CONSTANTS_TABLE_FOR_OPERATIONS=False
+        self,
+        USE_CONSTANTS_TABLE_FOR_MOMENTS=False,
+        USE_CONSTANTS_TABLE_FOR_OPERATIONS=False,
+        op_serializer: Optional[op_serializer.OpSerializer] = None,
+        op_deserializer: Optional[op_deserializer.OpDeserializer] = None,
     ):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)
         self.use_constants_table_for_moments = USE_CONSTANTS_TABLE_FOR_MOMENTS
         self.use_constants_table_for_operations = USE_CONSTANTS_TABLE_FOR_OPERATIONS
+        self.op_serializer = op_serializer
+        self.op_deserializer = op_deserializer
 
     def serialize(
         self,
@@ -144,6 +152,37 @@ class CircuitSerializer(serializer.Serializer):
                         moment_proto.operation_indices.append(op_index)
                     else:
                         op_pb = v2.program_pb2.Operation()
+                        if self.op_serializer and self.op_serializer.can_serialize_operation(op):
+                            self.op_serializer.to_proto(
+                                op,
+                                op_pb,
+                                arg_function_language=arg_function_language,
+                                constants=constants,
+                                raw_constants=raw_constants,
+                            )
+                        else:
+                            self._serialize_gate_op(
+                                op,
+                                op_pb,
+                                arg_function_language=arg_function_language,
+                                constants=constants,
+                                raw_constants=raw_constants,
+                            )
+                        constants.append(v2.program_pb2.Constant(operation_value=op_pb))
+                        op_index = len(constants) - 1
+                        raw_constants[op] = op_index
+                        moment_proto.operation_indices.append(op_index)
+                else:
+                    op_pb = moment_proto.operations.add()
+                    if self.op_serializer and self.op_serializer.can_serialize_operation(op):
+                        self.op_serializer.to_proto(
+                            op,
+                            op_pb,
+                            arg_function_language=arg_function_language,
+                            constants=constants,
+                            raw_constants=raw_constants,
+                        )
+                    else:
                         self._serialize_gate_op(
                             op,
                             op_pb,
@@ -151,19 +190,6 @@ class CircuitSerializer(serializer.Serializer):
                             constants=constants,
                             raw_constants=raw_constants,
                         )
-                        constants.append(v2.program_pb2.Constant(operation_value=op_pb))
-                        op_index = len(constants) - 1
-                        raw_constants[op] = op_index
-                        moment_proto.operation_indices.append(op_index)
-                else:
-                    op_pb = moment_proto.operations.add()
-                    self._serialize_gate_op(
-                        op,
-                        op_pb,
-                        arg_function_language=arg_function_language,
-                        constants=constants,
-                        raw_constants=raw_constants,
-                    )
 
             if self.use_constants_table_for_moments:
                 # Add this moment to the constants table
@@ -469,14 +495,23 @@ class CircuitSerializer(serializer.Serializer):
                 elif which_const == 'qubit':
                     deserialized_constants.append(v2.qubit_from_proto_id(constant.qubit.id))
                 elif which_const == 'operation_value':
-                    deserialized_constants.append(
-                        self._deserialize_gate_op(
+                    if self.op_deserializer and self.op_deserializer.can_deserialize_proto(
+                        constant.operation_value
+                    ):
+                        op_pb = self.op_deserializer.from_proto(
                             constant.operation_value,
                             arg_function_language=arg_func_language,
                             constants=proto.constants,
                             deserialized_constants=deserialized_constants,
                         )
-                    )
+                    else:
+                        op_pb = self._deserialize_gate_op(
+                            constant.operation_value,
+                            arg_function_language=arg_func_language,
+                            constants=proto.constants,
+                            deserialized_constants=deserialized_constants,
+                        )
+                    deserialized_constants.append(op_pb)
                 elif which_const == 'moment_value':
                     deserialized_constants.append(
                         self._deserialize_moment(
@@ -541,12 +576,20 @@ class CircuitSerializer(serializer.Serializer):
     ) -> cirq.Moment:
         moment_ops = []
         for op in moment_proto.operations:
-            gate_op = self._deserialize_gate_op(
-                op,
-                arg_function_language=arg_function_language,
-                constants=constants,
-                deserialized_constants=deserialized_constants,
-            )
+            if self.op_deserializer and self.op_deserializer.can_deserialize_proto(op):
+                gate_op = self.op_deserializer.from_proto(
+                    op,
+                    arg_function_language=arg_function_language,
+                    constants=constants,
+                    deserialized_constants=deserialized_constants,
+                )
+            else:
+                gate_op = self._deserialize_gate_op(
+                    op,
+                    arg_function_language=arg_function_language,
+                    constants=constants,
+                    deserialized_constants=deserialized_constants,
+                )
             if op.tag_indices:
                 tags = [
                     deserialized_constants[tag_index]
