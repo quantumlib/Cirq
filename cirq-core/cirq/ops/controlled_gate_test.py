@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from types import NotImplementedType
-from typing import Union, Tuple, cast
+from typing import Any, cast, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pytest
@@ -408,6 +408,10 @@ def test_unitary():
             ),
             True,
         ),
+        (cirq.GlobalPhaseGate(1j**0.7), True),
+        (cirq.GlobalPhaseGate(sympy.Symbol("s")), False),
+        (cirq.CZPowGate(exponent=1.2, global_shift=0.3), True),
+        (cirq.CZPowGate(exponent=sympy.Symbol("s"), global_shift=0.3), False),
         # Single qudit gate with dimension 4.
         (cirq.MatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2), qid_shape=(4,)), False),
         (cirq.MatrixGate(cirq.testing.random_unitary(4, random_state=1234)), False),
@@ -420,11 +424,54 @@ def test_unitary():
     ],
 )
 def test_controlled_gate_is_consistent(gate: cirq.Gate, should_decompose_to_target):
-    cgate = cirq.ControlledGate(gate)
+    _test_controlled_gate_is_consistent(gate, should_decompose_to_target)
+
+
+@pytest.mark.parametrize(
+    'gate, control_qid_shape, control_values, should_decompose_to_target',
+    [
+        (cirq.GlobalPhaseGate(1j**0.7), [2, 2], xor_control_values, True),
+        (cirq.GlobalPhaseGate(1j**0.7), [3], None, False),
+        (cirq.GlobalPhaseGate(1j**0.7), [3, 4], xor_control_values, False),
+        (cirq.CZPowGate(exponent=1.2, global_shift=0.3), [2, 2], None, True),
+        (cirq.CZPowGate(exponent=1.2, global_shift=0.3), [2, 2], xor_control_values, False),
+        (cirq.CZPowGate(exponent=1.2, global_shift=0.3), [3], None, False),
+        (cirq.CZPowGate(exponent=1.2, global_shift=0.3), [3, 4], xor_control_values, False),
+    ],
+)
+def test_nontrivial_controlled_gate_is_consistent(
+    gate: cirq.Gate,
+    control_qid_shape: Sequence[int],
+    control_values: Any,
+    should_decompose_to_target: bool,
+):
+    _test_controlled_gate_is_consistent(
+        gate, should_decompose_to_target, control_qid_shape, control_values
+    )
+
+
+def _test_controlled_gate_is_consistent(
+    gate: cirq.Gate,
+    should_decompose_to_target: bool,
+    control_qid_shape: Optional[Sequence[int]] = None,
+    control_values: Any = None,
+):
+    cgate = cirq.ControlledGate(
+        gate, control_qid_shape=control_qid_shape, control_values=control_values
+    )
     cirq.testing.assert_implements_consistent_protocols(cgate)
     cirq.testing.assert_decompose_ends_at_default_gateset(
         cgate, ignore_known_gates=not should_decompose_to_target
     )
+    # The above only decompose once, which doesn't check that the sub-gate's phase is handled.
+    # We need to check full decomposition here.
+    if not cirq.is_parameterized(gate):
+        shape = cirq.qid_shape(cgate)
+        qids = cirq.LineQid.for_qid_shape(shape)
+        decomposed = cirq.decompose(cgate.on(*qids))
+        first_op = cirq.IdentityGate(qid_shape=shape).on(*qids)  # To ensure same qid order
+        circuit = cirq.Circuit(first_op, *decomposed)
+        np.testing.assert_allclose(cirq.unitary(cgate), cirq.unitary(circuit), atol=1e-8)
 
 
 def test_pow_inverse():
