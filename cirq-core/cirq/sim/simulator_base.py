@@ -121,7 +121,7 @@ class SimulatorBase(
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
-    ) -> TSimulationState:
+    ) -> 'cirq.TSimulationState':
         """Creates an instance of the TSimulationState class for the simulator.
 
         It represents the supplied qubits initialized to the provided state.
@@ -137,7 +137,7 @@ class SimulatorBase(
 
     @abc.abstractmethod
     def _create_step_result(
-        self, sim_state: SimulationStateBase[TSimulationState]
+        self, sim_state: 'cirq.SimulationStateBase[cirq.TSimulationState]'
     ) -> TStepResultBase:
         """This method should be implemented to create a step result.
 
@@ -179,7 +179,7 @@ class SimulatorBase(
     def _core_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',
-        sim_state: SimulationStateBase[TSimulationState],
+        sim_state: 'cirq.SimulationStateBase[cirq.TSimulationState]',
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResultBase]:
         """Standard iterator over StepResult from Moments of a Circuit.
@@ -290,7 +290,7 @@ class SimulatorBase(
         params: 'cirq.Sweepable',
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
-    ) -> Iterator[TSimulationTrialResult]:
+    ) -> Iterator['cirq.TSimulationTrialResult']:
         """Simulates the supplied Circuit.
 
         This particular implementation overrides the base implementation such
@@ -332,13 +332,13 @@ class SimulatorBase(
 
     def _create_simulation_state(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
-    ) -> SimulationStateBase[TSimulationState]:
+    ) -> 'cirq.SimulationStateBase[cirq.TSimulationState]':
         if isinstance(initial_state, SimulationStateBase):
             return initial_state
 
         classical_data = value.ClassicalDataDictionaryStore()
         if self._split_untangled_states:
-            args_map: Dict[Optional['cirq.Qid'], TSimulationState] = {}
+            args_map: Dict[Optional['cirq.Qid'], 'cirq.TSimulationState'] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
                     args_map[q] = self._create_partial_simulation_state(
@@ -368,14 +368,14 @@ class StepResultBase(
 ):
     """A base class for step results."""
 
-    def __init__(self, sim_state: SimulationStateBase[TSimulationState]):
+    def __init__(self, sim_state: 'cirq.SimulationStateBase[cirq.TSimulationState]'):
         """Initializes the step result.
 
         Args:
             sim_state: The `SimulationStateBase` for this step.
         """
         super().__init__(sim_state)
-        self._merged_sim_state_cache: Optional[TSimulationState] = None
+        self._merged_sim_state_cache: Optional['cirq.TSimulationState'] = None
         qubits = sim_state.qubits
         self._qubits = qubits
         self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
@@ -386,7 +386,7 @@ class StepResultBase(
         return self._qubit_shape
 
     @property
-    def _merged_sim_state(self) -> TSimulationState:
+    def _merged_sim_state(self) -> 'cirq.TSimulationState':
         if self._merged_sim_state_cache is None:
             self._merged_sim_state_cache = self._sim_state.create_merged_state()
         return self._merged_sim_state_cache
@@ -407,9 +407,9 @@ class SimulationTrialResultBase(
 
     def __init__(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.TSimulationState]',
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
 
@@ -423,9 +423,9 @@ class SimulationTrialResultBase(
                 trial finishes.
         """
         super().__init__(params, measurements, final_simulator_state=final_simulator_state)
-        self._merged_sim_state_cache: Optional[TSimulationState] = None
+        self._merged_sim_state_cache: Optional['cirq.TSimulationState'] = None
 
-    def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TSimulationState:
+    def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> 'cirq.TSimulationState':
         """Returns the independent state space containing the qubit.
 
         Args:
@@ -435,17 +435,17 @@ class SimulationTrialResultBase(
             The state space containing the qubit."""
         return self._final_simulator_state[qubit]
 
-    def _get_substates(self) -> Sequence[TSimulationState]:
+    def _get_substates(self) -> Sequence['cirq.TSimulationState']:
         state = self._final_simulator_state
         if isinstance(state, SimulationProductState):
-            substates: Dict[TSimulationState, int] = {}
+            substates: Dict['cirq.TSimulationState', int] = {}
             for q in state.qubits:
                 substates[self.get_state_containing_qubit(q)] = 0
             substates[state[None]] = 0
             return tuple(substates.keys())
         return [state.create_merged_state()]
 
-    def _get_merged_sim_state(self) -> TSimulationState:
+    def _get_merged_sim_state(self) -> 'cirq.TSimulationState':
         if self._merged_sim_state_cache is None:
             self._merged_sim_state_cache = self._final_simulator_state.create_merged_state()
         return self._merged_sim_state_cache

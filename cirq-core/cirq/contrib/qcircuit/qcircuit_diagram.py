@@ -35,7 +35,7 @@ def qcircuit_qubit_namer(qubit: 'cirq.Qid') -> str:
     return r'\lstick{' + escape_text_for_latex(str(qubit)) + '}&'
 
 
-def _render(diagram: circuits.TextDiagramDrawer) -> str:
+def _render(diagram: 'cirq.TextDiagramDrawer') -> str:
     w = diagram.width()
     h = diagram.height()
 

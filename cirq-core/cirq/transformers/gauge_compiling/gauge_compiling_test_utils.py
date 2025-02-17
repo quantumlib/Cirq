@@ -19,13 +19,13 @@ import pytest
 import numpy as np
 
 import cirq
-from cirq.transformers.gauge_compiling import GaugeTransformer, GaugeSelector
+from cirq.transformers.gauge_compiling import GaugeSelector
 
 
 class GaugeTester:
 
-    two_qubit_gate: cirq.Gate
-    gauge_transformer: GaugeTransformer
+    two_qubit_gate: 'cirq.Gate'
+    gauge_transformer: 'cirq.GaugeTransformer'
     must_fail: bool = False
 
     @pytest.mark.parametrize(
@@ -111,7 +111,9 @@ class GaugeTester:
             )
 
 
-def _check_equivalent_with_error_message(c: cirq.AbstractCircuit, nc: cirq.AbstractCircuit, gauge):
+def _check_equivalent_with_error_message(
+    c: 'cirq.AbstractCircuit', nc: 'cirq.AbstractCircuit', gauge
+):
     try:
         cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
             nc, c, qubit_map={q: q for q in c.all_qubits()}

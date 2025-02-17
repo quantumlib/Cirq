@@ -14,10 +14,13 @@
 
 """Common Gate Families used in cirq-core"""
 
-from typing import Any, cast, Optional, Type, Union
+from typing import Any, cast, Optional, Type, TYPE_CHECKING, Union
 
 from cirq.ops import gateset, raw_types, parallel_gate, eigen_gate
 from cirq import protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class AnyUnitaryGateFamily(gateset.GateFamily):
@@ -41,7 +44,7 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
         description = f'Accepts any {kind}unitary gate'
         super().__init__(raw_types.Gate, name=name, description=description)
 
-    def _predicate(self, g: raw_types.Gate) -> bool:
+    def _predicate(self, g: 'cirq.Gate') -> bool:
         return (
             self._num_qubits is None or protocols.num_qubits(g) == self._num_qubits
         ) and protocols.has_unitary(g)
@@ -63,7 +66,7 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
 class AnyIntegerPowerGateFamily(gateset.GateFamily):
     """GateFamily which accepts instances of a given `cirq.EigenGate`, raised to integer power."""
 
-    def __init__(self, gate: Type[eigen_gate.EigenGate]) -> None:
+    def __init__(self, gate: Type['cirq.EigenGate']) -> None:
         """Init AnyIntegerPowerGateFamily
 
         Args:
@@ -81,7 +84,7 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
             description=f'Accepts any instance `g` of `{gate}` s.t. `g.exponent` is an integer.',
         )
 
-    def _predicate(self, g: raw_types.Gate) -> bool:
+    def _predicate(self, g: 'cirq.Gate') -> bool:
         if protocols.is_parameterized(g) or not super()._predicate(g):
             return False
         exp = cast(eigen_gate.EigenGate, g).exponent  # for mypy
@@ -127,7 +130,7 @@ class ParallelGateFamily(gateset.GateFamily):
 
     def __init__(
         self,
-        gate: Union[Type[raw_types.Gate], raw_types.Gate],
+        gate: Union[Type['cirq.Gate'], 'cirq.Gate'],
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -167,7 +170,7 @@ class ParallelGateFamily(gateset.GateFamily):
             f'3. `cirq.Operation` instance `op` s.t. `op.gate` satisfies 1. or 2.'
         )
 
-    def _predicate(self, gate: raw_types.Gate) -> bool:
+    def _predicate(self, gate: 'cirq.Gate') -> bool:
         if (
             self._max_parallel_allowed is not None
             and protocols.num_qubits(gate) > self._max_parallel_allowed

@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Provides test devices that can validate circuits."""
-from typing import Tuple, AbstractSet, cast
+from typing import AbstractSet, cast, Tuple, TYPE_CHECKING
 
 from cirq import devices, ops
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ValidatingTestDevice(devices.Device):
@@ -35,7 +38,7 @@ class ValidatingTestDevice(devices.Device):
 
     def __init__(
         self,
-        qubits: AbstractSet[ops.Qid],
+        qubits: AbstractSet['cirq.Qid'],
         name: str = "ValidatingTestDevice",
         allowed_gates: Tuple[type, ...] = (ops.Gate,),
         allowed_qubit_types: Tuple[type, ...] = (devices.GridQubit,),
@@ -51,7 +54,7 @@ class ValidatingTestDevice(devices.Device):
         if self.validate_locality and devices.GridQubit not in allowed_qubit_types:
             raise ValueError("GridQubit must be an allowed qubit type with validate_locality=True")
 
-    def validate_operation(self, operation: ops.Operation) -> None:
+    def validate_operation(self, operation: 'cirq.Operation') -> None:
         # This is pretty close to what the cirq.google.XmonDevice has for validation
         for q in operation.qubits:
             if not isinstance(q, self.allowed_qubit_types):

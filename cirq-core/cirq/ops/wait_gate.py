@@ -138,7 +138,7 @@ def wait(
     nanos: 'cirq.TParamVal' = 0,
     micros: 'cirq.TParamVal' = 0,
     millis: 'cirq.TParamVal' = 0,
-) -> raw_types.Operation:
+) -> 'cirq.Operation':
     """Creates a WaitGate applied to all the given qubits.
 
     The duration can be specified as a DURATION_LIKE or using keyword args with

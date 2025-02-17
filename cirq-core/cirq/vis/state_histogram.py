@@ -14,14 +14,17 @@
 
 """Tool to visualize the results of a study."""
 
-from typing import Optional, Sequence, SupportsFloat, Union
+from typing import Optional, Sequence, SupportsFloat, TYPE_CHECKING, Union
 import collections
 import numpy as np
 import matplotlib.pyplot as plt
 import cirq.study.result as result
 
+if TYPE_CHECKING:
+    import cirq
 
-def get_state_histogram(result: 'result.Result') -> np.ndarray:
+
+def get_state_histogram(result: 'cirq.Result') -> np.ndarray:
     """Computes a state histogram from a single result with repetitions.
 
     Args:

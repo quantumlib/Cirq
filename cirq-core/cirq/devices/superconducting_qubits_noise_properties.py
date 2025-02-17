@@ -52,7 +52,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
     t1_ns: Dict['cirq.Qid', float]
     tphi_ns: Dict['cirq.Qid', float]
     readout_errors: Dict['cirq.Qid', List[float]]
-    gate_pauli_errors: Dict[noise_utils.OpIdentifier, float]
+    gate_pauli_errors: Dict['cirq.OpIdentifier', float]
 
     validate: bool = True
     _qubits: List['cirq.Qid'] = field(init=False, default_factory=list)
@@ -103,37 +103,37 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def single_qubit_gates(cls) -> Set[Type[ops.Gate]]:
+    def single_qubit_gates(cls) -> Set[Type['cirq.Gate']]:
         """Returns the set of single-qubit gates this class supports."""
 
     @classmethod
     @abc.abstractmethod
-    def symmetric_two_qubit_gates(cls) -> Set[Type[ops.Gate]]:
+    def symmetric_two_qubit_gates(cls) -> Set[Type['cirq.Gate']]:
         """Returns the set of symmetric two-qubit gates this class supports."""
 
     @classmethod
     @abc.abstractmethod
-    def asymmetric_two_qubit_gates(cls) -> Set[Type[ops.Gate]]:
+    def asymmetric_two_qubit_gates(cls) -> Set[Type['cirq.Gate']]:
         """Returns the set of asymmetric two-qubit gates this class supports."""
 
     @classmethod
-    def two_qubit_gates(cls) -> Set[Type[ops.Gate]]:
+    def two_qubit_gates(cls) -> Set[Type['cirq.Gate']]:
         """Returns the set of all two-qubit gates this class supports."""
         return cls.symmetric_two_qubit_gates() | cls.asymmetric_two_qubit_gates()
 
     @classmethod
-    def expected_gates(cls) -> Set[Type[ops.Gate]]:
+    def expected_gates(cls) -> Set[Type['cirq.Gate']]:
         """Returns the set of all gates this class supports."""
         return cls.single_qubit_gates() | cls.two_qubit_gates()
 
-    def _get_pauli_error(self, p_error: float, op_id: noise_utils.OpIdentifier):
+    def _get_pauli_error(self, p_error: float, op_id: 'cirq.OpIdentifier'):
         time_ns = float(self.gate_times_ns[op_id.gate_type])
         for q in op_id.qubits:
             p_error -= qis.decoherence_pauli_error(self.t1_ns[q], self.tphi_ns[q], time_ns)
         return p_error
 
     @cached_property
-    def _depolarizing_error(self) -> Dict[noise_utils.OpIdentifier, float]:
+    def _depolarizing_error(self) -> Dict['cirq.OpIdentifier', float]:
         """Returns the portion of Pauli error from depolarization."""
         depol_errors = {}
         for op_id, p_error in self.gate_pauli_errors.items():
@@ -175,7 +175,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
 
         # This adds per-qubit measurement error BEFORE measurement on those qubits.
         if self.readout_errors:
-            added_measure_errors: Dict[noise_utils.OpIdentifier, 'cirq.Operation'] = {}
+            added_measure_errors: Dict['cirq.OpIdentifier', 'cirq.Operation'] = {}
             for qubit in self.readout_errors:
                 p_00, p_11 = self.readout_errors[qubit]
                 p = p_11 / (p_00 + p_11)

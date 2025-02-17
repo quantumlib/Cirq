@@ -57,7 +57,7 @@ class MixedUnitaryChannel(raw_types.Gate):
 
     @staticmethod
     def from_mixture(
-        mixture: 'protocols.SupportsMixture', key: Union[str, 'cirq.MeasurementKey', None] = None
+        mixture: 'cirq.SupportsMixture', key: Union[str, 'cirq.MeasurementKey', None] = None
     ):
         """Creates a copy of a mixture with the given measurement key."""
         return MixedUnitaryChannel(mixture=list(protocols.mixture(mixture)), key=key)

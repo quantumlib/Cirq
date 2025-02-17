@@ -309,7 +309,7 @@ class ResultDict(Result):
     def __init__(
         self,
         *,  # Forces keyword args.
-        params: Optional[resolver.ParamResolver] = None,
+        params: Optional['cirq.ParamResolver'] = None,
         measurements: Optional[Mapping[str, np.ndarray]] = None,
         records: Optional[Mapping[str, np.ndarray]] = None,
     ) -> None:

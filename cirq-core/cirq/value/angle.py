@@ -12,18 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, overload
+from typing import Optional, overload, TYPE_CHECKING
 import numpy as np
 import sympy
-from cirq.value import type_alias
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def chosen_angle_to_half_turns(
-    half_turns: Optional[type_alias.TParamVal] = None,
+    half_turns: Optional['cirq.TParamVal'] = None,
     rads: Optional[float] = None,
     degs: Optional[float] = None,
     default: float = 1.0,
-) -> type_alias.TParamVal:
+) -> 'cirq.TParamVal':
     """Returns a half_turns value based on the given arguments.
 
     At most one of half_turns, rads, degs must be specified. If none are
@@ -58,11 +60,11 @@ def chosen_angle_to_half_turns(
 
 
 def chosen_angle_to_canonical_half_turns(
-    half_turns: Optional[type_alias.TParamVal] = None,
+    half_turns: Optional['cirq.TParamVal'] = None,
     rads: Optional[float] = None,
     degs: Optional[float] = None,
     default: float = 1.0,
-) -> type_alias.TParamVal:
+) -> 'cirq.TParamVal':
     """Returns a canonicalized half_turns based on the given arguments.
 
     At most one of half_turns, rads, degs must be specified. If none are
@@ -93,7 +95,7 @@ def canonicalize_half_turns(half_turns: sympy.Expr) -> sympy.Expr:
     pass
 
 
-def canonicalize_half_turns(half_turns: type_alias.TParamVal) -> type_alias.TParamVal:
+def canonicalize_half_turns(half_turns: 'cirq.TParamVal') -> 'cirq.TParamVal':
     """Wraps the input into the range (-1, +1]."""
     if isinstance(half_turns, sympy.Expr):
         if not half_turns.is_constant():

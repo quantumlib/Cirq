@@ -27,7 +27,7 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
     Gauge,
     TwoQubitGateSymbolizer,
 )
-from cirq.ops import CZ, S, X, Gateset, Gate, CZPowGate
+from cirq.ops import CZ, S, X, Gateset, CZPowGate
 
 
 if TYPE_CHECKING:
@@ -42,7 +42,7 @@ class SqrtCZGauge(Gauge):
     def weight(self) -> float:
         return 3.0
 
-    def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> 'cirq.ConstantGauge':
         if prng.choice([True, False]):
             return ConstantGauge(two_qubit_gate=gate)
         swap_qubits = prng.choice([True, False])
@@ -64,8 +64,8 @@ class SqrtCZGauge(Gauge):
 
 
 def _symbolize_as_cz_pow(
-    two_qubit_gate: Gate, symbols: Sequence[sympy.Symbol]
-) -> Tuple[Gate, Dict[str, Real]]:
+    two_qubit_gate: 'cirq.Gate', symbols: Sequence[sympy.Symbol]
+) -> Tuple['cirq.Gate', Dict[str, Real]]:
     """Symbolizes a CZPowGate to a parameterized CZPowGate."""
 
     if not isinstance(two_qubit_gate, CZPowGate) or not isinstance(two_qubit_gate.exponent, Real):

@@ -15,8 +15,8 @@
 """An efficient simulator for Clifford circuits.
 
 Allowed operations include:
-	- X,Y,Z,H,S,CNOT,CZ
-	- measurements in the computational basis
+        - X,Y,Z,H,S,CNOT,CZ
+        - measurements in the computational basis
 
 The quantum state is specified in two forms:
     1. In terms of stabilizer generators. These are a set of n Pauli operators
@@ -100,7 +100,7 @@ class CliffordSimulator(
         )
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[clifford.StabilizerChFormSimulationState]'
+        self, sim_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]'
     ):
         return CliffordSimulatorStepResult(sim_state=sim_state)
 
@@ -150,9 +150,7 @@ class CliffordSimulatorStepResult(
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(
-        self, sim_state: 'cirq.SimulationStateBase[clifford.StabilizerChFormSimulationState]'
-    ):
+    def __init__(self, sim_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]'):
         """Results of a step of the simulator.
         Attributes:
             sim_state: The qubit:SimulationState lookup for this step.

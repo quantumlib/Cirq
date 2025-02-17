@@ -37,7 +37,9 @@ def _decompose_operations_to_target_gateset(
     *,
     context: Optional['cirq.TransformerContext'] = None,
     gateset: Optional['cirq.Gateset'] = None,
-    decomposer: Callable[['cirq.Operation', int], dp.DecomposeResult] = lambda *_: NotImplemented,
+    decomposer: Callable[
+        ['cirq.Operation', int], 'cirq.DecomposeResult'
+    ] = lambda *_: NotImplemented,
     ignore_failures: bool = True,
     tags_to_decompose: Sequence[Hashable] = (),
 ) -> 'cirq.Circuit':

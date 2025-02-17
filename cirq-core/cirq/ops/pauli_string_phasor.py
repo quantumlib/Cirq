@@ -30,15 +30,7 @@ import sympy
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import (
-    raw_types,
-    common_gates,
-    gate_operation,
-    dense_pauli_string as dps,
-    pauli_string as ps,
-    pauli_gates,
-    op_tree,
-)
+from cirq.ops import raw_types, common_gates, gate_operation, pauli_gates, op_tree
 
 if TYPE_CHECKING:
     import cirq
@@ -63,7 +55,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     def __init__(
         self,
-        pauli_string: ps.PauliString,
+        pauli_string: 'cirq.PauliString',
         qubits: Optional[Sequence['cirq.Qid']] = None,
         *,
         exponent_neg: 'cirq.TParamVal' = 1,
@@ -144,7 +136,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
             )
         return False
 
-    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]) -> 'PauliStringPhasor':
+    def map_qubits(self, qubit_map: Dict['cirq.Qid', 'cirq.Qid']) -> 'PauliStringPhasor':
         """Maps the qubits inside the PauliStringPhasor.
 
         Args:
@@ -201,7 +193,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
 
     def pass_operations_over(
-        self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
+        self, ops: Iterable['cirq.Operation'], after_to_before: bool = False
     ) -> 'PauliStringPhasor':
         """Determines how the Pauli phasor changes when conjugated by Cliffords.
 
@@ -276,7 +268,7 @@ class PauliStringPhasorGate(raw_types.Gate):
 
     def __init__(
         self,
-        dense_pauli_string: dps.DensePauliString,
+        dense_pauli_string: 'cirq.DensePauliString',
         *,
         exponent_neg: 'cirq.TParamVal' = 1,
         exponent_pos: 'cirq.TParamVal' = 0,
@@ -349,7 +341,7 @@ class PauliStringPhasorGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _to_z_basis_ops(self, qubits: Sequence['cirq.Qid']) -> Iterator[raw_types.Operation]:
+    def _to_z_basis_ops(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.Operation']:
         """Returns operations to convert the qubits to the computational basis."""
         return self.dense_pauli_string.on(*qubits).to_z_basis_ops()
 
@@ -444,8 +436,8 @@ class PauliStringPhasorGate(raw_types.Gate):
 
 
 def xor_nonlocal_decompose(
-    qubits: Iterable[raw_types.Qid], onto_qubit: 'cirq.Qid'
-) -> Iterable[raw_types.Operation]:
+    qubits: Iterable['cirq.Qid'], onto_qubit: 'cirq.Qid'
+) -> Iterable['cirq.Operation']:
     """Decomposition ignores connectivity."""
     for qubit in qubits:
         if qubit != onto_qubit:

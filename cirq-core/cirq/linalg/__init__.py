@@ -81,11 +81,13 @@ from cirq.linalg.tolerance import (
 
 from cirq.linalg.transformations import (
     apply_matrix_to_slices as apply_matrix_to_slices,
+    BuildFromSlicesArgs as BuildFromSlicesArgs,
     density_matrix_kronecker_product as density_matrix_kronecker_product,
     match_global_phase as match_global_phase,
     partial_trace as partial_trace,
     partial_trace_of_state_vector_as_mixture as partial_trace_of_state_vector_as_mixture,
     reflection_matrix_pow as reflection_matrix_pow,
+    SliceConfig as SliceConfig,
     state_vector_kronecker_product as state_vector_kronecker_product,
     sub_state_vector as sub_state_vector,
     targeted_conjugate_about as targeted_conjugate_about,

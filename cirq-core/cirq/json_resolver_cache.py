@@ -16,7 +16,6 @@ import datetime
 import functools
 from typing import Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
 
-from cirq.protocols.json_serialization import ObjectFactory
 
 if TYPE_CHECKING:
     import cirq
@@ -41,7 +40,7 @@ CrossEntropyResultDict = NamedTuple(
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> Dict[str, 'cirq.ObjectFactory']:
     import cirq
     from cirq.ops import raw_types
     import pandas as pd

@@ -92,7 +92,7 @@ class EigenGate(raw_types.Gate):
     """
 
     def __init__(
-        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0  # Forces keyword args.
+        self, *, exponent: 'cirq.TParamVal' = 1.0, global_shift: float = 0.0  # Forces keyword args.
     ) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
@@ -125,7 +125,7 @@ class EigenGate(raw_types.Gate):
         self._canonical_exponent_cached = None
 
     @property
-    def exponent(self) -> value.TParamVal:
+    def exponent(self) -> 'cirq.TParamVal':
         return self._exponent
 
     @property
@@ -133,7 +133,7 @@ class EigenGate(raw_types.Gate):
         return self._global_shift
 
     # virtual method
-    def _with_exponent(self, exponent: value.TParamVal) -> 'EigenGate':
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'EigenGate':
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -146,7 +146,7 @@ class EigenGate(raw_types.Gate):
         # pylint: enable=unexpected-keyword-arg
 
     def _diagram_exponent(
-        self, args: 'protocols.CircuitDiagramInfoArgs', *, ignore_global_phase: bool = True
+        self, args: 'cirq.CircuitDiagramInfoArgs', *, ignore_global_phase: bool = True
     ):
         """The exponent to use in circuit diagrams.
 
@@ -200,9 +200,7 @@ class EigenGate(raw_types.Gate):
 
         return result
 
-    def _format_exponent_as_angle(
-        self, args: 'protocols.CircuitDiagramInfoArgs', order: int = 2
-    ) -> str:
+    def _format_exponent_as_angle(self, args: 'cirq.CircuitDiagramInfoArgs', order: int = 2) -> str:
         """Returns string with exponent expressed as angle in radians.
 
         Args:
