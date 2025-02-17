@@ -408,6 +408,7 @@ def test_unitary():
             ),
             True,
         ),
+        (cirq.GlobalPhaseGate(-1), True),
         (cirq.GlobalPhaseGate(1j**0.7), True),
         (cirq.GlobalPhaseGate(sympy.Symbol("s")), False),
         (cirq.CZPowGate(exponent=1.2, global_shift=0.3), True),
