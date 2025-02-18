@@ -50,9 +50,9 @@ def _validate_input(
     if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
         raise ValueError("Must provide a numpy random generator or a seed")
 
-    # Check num_random_bitstrings is bigger than 0
-    if num_random_bitstrings <= 0:
-        raise ValueError("Must provide non-zero num_random_bitstrings.")
+    # Check num_random_bitstrings is bigger than or equal to 0
+    if num_random_bitstrings < 0:
+        raise ValueError("Must provide zero or more num_random_bitstrings.")
 
     # Check readout_repetitions is bigger than 0
     if readout_repetitions <= 0:
@@ -168,9 +168,10 @@ def run_shuffled_with_readout_benchmarking(
         rng_or_seed: A random number generator used to generate readout circuits.
                      Or an integer seed.
         num_random_bitstrings: The number of random bitstrings for measuring readout.
+            If set to 0, no readout calibration circuits are generated.
         readout_repetitions: The number of repetitions for each readout bitstring.
         qubits: The qubits to benchmark readout errors. If None, all qubits in the
-                input_circuits are used. Can be a list of qubits or a list of lists
+                input_circuits are used. Can be a list of qubits or a list of tuples
                 of qubits.
 
     Returns:
@@ -185,28 +186,32 @@ def run_shuffled_with_readout_benchmarking(
     )
 
     # If input qubits is None, extract qubits from input circuits
+    qubits_to_measure: list[list[ops.Qid]] = []
     if qubits is None:
         qubits_set: set[ops.Qid] = set()
         for circuit in input_circuits:
             qubits_set.update(circuit.all_qubits())
-        qubits = [sorted(qubits_set)]
+        qubits_to_measure = [sorted(qubits_set)]
     elif isinstance(qubits[0], ops.Qid):
-        qubits = [qubits]
+        qubits_to_measure = [qubits]
 
-    # Generate the readout calibration circuits
-    rng = (
-        rng_or_seed
-        if isinstance(rng_or_seed, np.random.Generator)
-        else np.random.default_rng(rng_or_seed)
-    )
+    # Generate the readout calibration circuits if num_random_bitstrings>0
+    # Else all_readout_calibration_circuits and all_random_bitstrings are empty
     all_readout_calibration_circuits = []
     all_random_bitstrings = []
-    for qubit_group in qubits:
-        readout_calibration_circuits, random_bitstrings = _generate_readout_calibration_circuits(
-            qubit_group, rng, num_random_bitstrings
+
+    if num_random_bitstrings > 0:
+        rng = (
+            rng_or_seed
+            if isinstance(rng_or_seed, np.random.Generator)
+            else np.random.default_rng(rng_or_seed)
         )
-        all_readout_calibration_circuits.extend(readout_calibration_circuits)
-        all_random_bitstrings.append(random_bitstrings)
+        for qubit_group in qubits_to_measure:
+            readout_calibration_circuits, random_bitstrings = (
+                _generate_readout_calibration_circuits(qubit_group, rng, num_random_bitstrings)
+            )
+            all_readout_calibration_circuits.extend(readout_calibration_circuits)
+            all_random_bitstrings.append(random_bitstrings)
 
     # Shuffle the circuits
     if isinstance(circuit_repetitions, int):
@@ -231,7 +236,7 @@ def run_shuffled_with_readout_benchmarking(
     # Analyze results
     readout_calibration_results = {}
     start_idx = 0
-    for qubit_group, random_bitstrings in zip(qubits, all_random_bitstrings):
+    for qubit_group, random_bitstrings in zip(qubits_to_measure, all_random_bitstrings):
         end_idx = start_idx + len(random_bitstrings)
         group_measurements = unshuffled_readout_measurements[start_idx:end_idx]
         calibration_result = _analyze_readout_results(

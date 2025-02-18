@@ -255,6 +255,63 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise_and_lists
         assert isinstance(readout_calibration_result.timestamp, float)
 
 
+def test_can_handle_zero_random_bitstring():
+    """Test shuffled circuits without readout benchmarking."""
+    qubits_1 = cirq.LineQubit.range(3)
+    qubits_2 = cirq.LineQubit.range(4)
+
+    readout_qubits = [qubits_1, qubits_2]
+
+    # Generate random input circuits and append measurements
+    input_circuit_1 = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits_1[0], q1=qubits_1[1]
+    )
+    for circuit in input_circuit_1:
+        circuit.append(cirq.Circuit(cirq.measure(*qubits_1, key="m")))
+
+    input_circuit_2 = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits_1[1], q1=qubits_1[2]
+    )
+    for circuit in input_circuit_2:
+        circuit.append(cirq.Circuit(cirq.measure(*qubits_1, key="m")))
+
+    input_circuit_3 = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits_2[0], q1=qubits_2[3]
+    )
+    for circuit in input_circuit_3:
+        circuit.append(cirq.Circuit(cirq.measure(*qubits_2, key="m")))
+
+    input_circuit_4 = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits_2[1], q1=qubits_1[2]
+    )
+    for circuit in input_circuit_4:
+        circuit.append(cirq.Circuit(cirq.measure(*qubits_2, key="m")))
+
+    input_circuits = input_circuit_1 + input_circuit_2 + input_circuit_3 + input_circuit_4
+
+    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.3, seed=1234)
+    circuit_repetitions = 1
+    rng = np.random.default_rng()
+    readout_repetitions = 1000
+
+    measurements, readout_calibration_results = (
+        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+            input_circuits,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=0,
+            readout_repetitions=readout_repetitions,
+            qubits=readout_qubits,
+        )
+    )
+
+    for measurement in measurements:
+        assert isinstance(measurement, ResultDict)
+    # Check that the readout_calibration_results is empty
+    assert len(readout_calibration_results.items()) == 0
+
+
 def test_empty_input_circuits():
     """Test that the input circuits are empty."""
     with pytest.raises(ValueError, match="Input circuits must not be empty."):
@@ -331,16 +388,16 @@ def test_mismatch_circuit_repetitions():
 
 
 def test_zero_num_random_bitstrings():
-    """Test that the number of random bitstrings is zero."""
+    """Test that the number of random bitstrings is smaller than zero."""
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
-    with pytest.raises(ValueError, match="Must provide non-zero num_random_bitstrings."):
+    with pytest.raises(ValueError, match="Must provide zero or more num_random_bitstrings."):
         cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
             [circuit],
             cirq.ZerosSampler(),
             circuit_repetitions=10,
             rng_or_seed=np.random.default_rng(456),
-            num_random_bitstrings=0,
+            num_random_bitstrings=-1,
             readout_repetitions=100,
         )
 
