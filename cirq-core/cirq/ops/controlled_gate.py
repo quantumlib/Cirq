@@ -187,7 +187,7 @@ class ControlledGate(raw_types.Gate):
             rads = np.zeros(shape=shape)
             for hot in self.control_values.expand():
                 rads[hot] = angle
-            return dg.DiagonalGate(rads=list(rads.flatten())).on(*qubits)
+            return dg.DiagonalGate(diag_angles_radians=[*rads.flatten()]).on(*qubits)
         if isinstance(self.sub_gate, common_gates.CZPowGate):
             z_sub_gate = common_gates.ZPowGate(exponent=self.sub_gate.exponent)
             num_controls = self.num_controls() + 1
