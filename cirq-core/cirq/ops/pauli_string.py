@@ -55,6 +55,7 @@ from cirq.ops import (
     pauli_gates,
     pauli_interaction_gate,
     raw_types,
+    dense_pauli_string,
 )
 
 if TYPE_CHECKING:
@@ -976,17 +977,60 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Returns:
             The Pauli string conjugated by the given Clifford operation.
         """
-        pauli_map = dict(self._qubit_pauli_map)
-        should_negate = False
+        ps = self
         for op in list(op_tree.flatten_to_ops(clifford))[::-1]:
-            if pauli_map.keys().isdisjoint(set(op.qubits)):
-                continue
-            for clifford_op in _decompose_into_cliffords(op)[::-1]:
-                if pauli_map.keys().isdisjoint(set(clifford_op.qubits)):
-                    continue
-                should_negate ^= _pass_operation_over(pauli_map, clifford_op, False)
-        coef = -self._coefficient if should_negate else self.coefficient
-        return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
+            # Force converting the op in type CliffordGate
+            clifford_op = clifford_gate.CliffordGate.from_op_list([op], op.qubits).on(*op.qubits)
+
+            # To calcuate the conjugation of P (pauli) with respect of C (clifford op)
+            # Decompose P = P0⊗R where P0 acts on the same qubits as C, R acts ont the remaining.
+            # Then the conjugation C P C^T = (C⊗I P0⊗R C^T⊗I) = (C P0 C^T)⊗R.
+
+            # Isolate R
+            remain = PauliString(
+                qubit_pauli_map={
+                    q: ps.get(q)
+                    for q in self.qubits
+                    if not q in op.qubits and ps.get(q) is not None
+                }
+            )
+
+            # Store the conjugation of P0.
+            conjugated: 'cirq.DensePauliString' = (
+                dense_pauli_string.DensePauliString(
+                    pauli_mask=[identity.I for _ in clifford_op.qubits]
+                )
+                * self.coefficient
+            )
+            # Calculate the conjugation by concatenating corresponding DensePauliStrings from CliffordTableau.
+            # Note coeffient is tracked by checking
+            t = clifford_op.gate.clifford_tableau
+
+            def _shift_phase(
+                dps: dense_pauli_string.DensePauliString,
+            ) -> dense_pauli_string.DensePauliString:
+                """Explain: Y = iXZ"""
+                ret = dps
+                for pauli in dps:
+                    if pauli == pauli_gates.Y:
+                        ret *= -1
+                return ret
+
+            for r, qubit in enumerate(clifford_op.qubits):
+                pauli = ps.get(qubit)
+                match pauli:
+                    case None:
+                        continue
+                    case pauli_gates.X:
+                        conjugated *= _shift_phase(t.destabilizers()[r])
+                    case pauli_gates.Z:
+                        conjugated *= _shift_phase(t.stabilizers()[r])
+                    case pauli_gates.Y:
+                        conjugated *= _shift_phase(t.destabilizers()[r])
+                        conjugated *= _shift_phase(t.stabilizers()[r])
+                        conjugated *= 1j
+            ps = remain * conjugated.on(*clifford_op.qubits)
+        return ps
 
     def after(self, ops: 'cirq.OP_TREE') -> 'cirq.PauliString':
         r"""Determines the equivalent pauli string after some operations.
