@@ -21,6 +21,7 @@ import sympy
 
 import cirq
 from cirq import value, protocols
+from cirq._compat import proper_repr
 from cirq.ops import raw_types, controlled_gate, control_values as cv
 
 
@@ -68,10 +69,10 @@ class GlobalPhaseGate(raw_types.Gate):
         return str(self.coefficient)
 
     def __repr__(self) -> str:
-        return f'cirq.GlobalPhaseGate({self.coefficient!r})'
+        return f'cirq.GlobalPhaseGate({proper_repr(self.coefficient)})'
 
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
-        return f'cirq.global_phase_operation({self.coefficient!r})'
+        return f'cirq.global_phase_operation({proper_repr(self.coefficient)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['coefficient'])
