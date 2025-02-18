@@ -177,18 +177,17 @@ class ControlledGate(raw_types.Gate):
             )
             return invert_ops + decomposed_ops + invert_ops
         if isinstance(self.sub_gate, gp.GlobalPhaseGate):
-            # A controlled global phase is a diagonal gate (Z in the simplest case), where each
-            # active control set equal to the phase angle.
+            # A controlled global phase is a diagonal gate, where each active control value index
+            # is set equal to the phase angle.
             shape = self.control_qid_shape
             if protocols.is_parameterized(self.sub_gate) or set(shape) != {2}:
+                # Could work in theory, but DiagonalGate decompose does not support them.
                 return NotImplemented
             angle = np.angle(complex(self.sub_gate.coefficient))
-            if shape == (2,):
-                return common_gates.Z(*qubits) ** (angle / np.pi)
-            radians = np.zeros(shape=shape)
+            rads = np.zeros(shape=shape)
             for hot in self.control_values.expand():
-                radians[hot] = angle
-            return dg.DiagonalGate(list(radians.flatten())).on(*qubits)
+                rads[hot] = angle
+            return dg.DiagonalGate(rads=list(rads.flatten())).on(*qubits)
         if isinstance(self.sub_gate, common_gates.CZPowGate):
             z_sub_gate = common_gates.ZPowGate(exponent=self.sub_gate.exponent)
             num_controls = self.num_controls() + 1
