@@ -820,6 +820,10 @@ def test_clifford_gate_act_on_small_case():
     expected_args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5), qubits=qubits, prng=np.random.RandomState()
     )
+    cirq.act_on(cirq.I, expected_args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.I, args, qubits=[qubits[0]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
     cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
     cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
@@ -828,8 +832,12 @@ def test_clifford_gate_act_on_small_case():
     cirq.act_on(cirq.CliffordGate.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
-    cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
-    cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
+    cirq.act_on(cirq.CZ, expected_args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.CZ, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.SWAP, expected_args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.SWAP, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
 
     cirq.act_on(cirq.S, expected_args, qubits=[qubits[0]], allow_decompose=False)
@@ -839,6 +847,52 @@ def test_clifford_gate_act_on_small_case():
     cirq.act_on(cirq.X, expected_args, qubits=[qubits[2]], allow_decompose=False)
     cirq.act_on(cirq.CliffordGate.X, args, qubits=[qubits[2]], allow_decompose=False)
     assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.Y, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.Y, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.Z, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.Z, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.X**0.5, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.X_sqrt, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.Y**0.5, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.Y_sqrt, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.Z**0.5, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.Z_sqrt, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.X**-0.5, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.X_nsqrt, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.Y**-0.5, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.Y_nsqrt, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+    cirq.act_on(cirq.Z**-0.5, expected_args, qubits=[qubits[2]], allow_decompose=False)
+    cirq.act_on(cirq.CliffordGate.Z_nsqrt, args, qubits=[qubits[2]], allow_decompose=False)
+    assert args.tableau == expected_args.tableau
+
+
+def test_act_on_all_single_qubit_cliffords_have_distinct_results():
+    q = cirq.LineQubit.range(1)
+    results = set()
+    # Indirectly test tableau __eq__ by running loop twice.
+    for gate in cirq.SingleQubitCliffordGate.all_single_qubit_cliffords * 2:
+        args = cirq.CliffordTableauSimulationState(
+            tableau=cirq.CliffordTableau(num_qubits=1), qubits=q
+        )
+        cirq.act_on(gate, args, qubits=q, allow_decompose=False)
+        results.add(args.tableau)
+    # If _act_on_ works properly, then the resulting tableaux should all be distinct.
+    assert len(results) == len(cirq.SingleQubitCliffordGate.all_single_qubit_cliffords)
 
 
 def test_clifford_gate_act_on_large_case():

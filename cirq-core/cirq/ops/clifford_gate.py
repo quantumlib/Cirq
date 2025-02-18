@@ -759,13 +759,39 @@ class SingleQubitCliffordGate(CliffordGate):
 
         return NotImplemented
 
-    def _act_on_(
-        self,
-        sim_state: 'cirq.SimulationStateBase',  # pylint: disable=unused-argument
-        qubits: Sequence['cirq.Qid'],  # pylint: disable=unused-argument
-    ):
-        # TODO(#5256) Add the implementation of _act_on_ with CliffordTableauSimulationState.
-        return NotImplemented
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']):
+        from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
+
+        if not isinstance(sim_state, StabilizerSimulationState):
+            return NotImplemented
+        if self == SingleQubitCliffordGate.I:
+            return True
+        axis = sim_state.get_axes(qubits)[0]
+        stabilizer = sim_state._state
+        match self:
+            case SingleQubitCliffordGate.X:
+                stabilizer.apply_x(axis)
+            case SingleQubitCliffordGate.Y:
+                stabilizer.apply_y(axis)
+            case SingleQubitCliffordGate.Z:
+                stabilizer.apply_z(axis)
+            case SingleQubitCliffordGate.H:
+                stabilizer.apply_h(axis)
+            case SingleQubitCliffordGate.X_sqrt:
+                stabilizer.apply_x(axis, 0.5)
+            case SingleQubitCliffordGate.Y_sqrt:
+                stabilizer.apply_y(axis, 0.5)
+            case SingleQubitCliffordGate.Z_sqrt:
+                stabilizer.apply_z(axis, 0.5)
+            case SingleQubitCliffordGate.X_nsqrt:
+                stabilizer.apply_x(axis, -0.5)
+            case SingleQubitCliffordGate.Y_nsqrt:
+                stabilizer.apply_y(axis, -0.5)
+            case SingleQubitCliffordGate.Z_nsqrt:
+                stabilizer.apply_z(axis, -0.5)
+            case _:
+                return NotImplemented  # Unnamed Cliffords will be decomposed.
+        return True
 
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
