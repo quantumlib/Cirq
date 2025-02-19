@@ -373,7 +373,9 @@ def parallel_xeb_workflow(
             pairs = tuple(target.keys())
         else:
             assert target.keys() == set(pairs)
-    qubits, pairs = tqxeb.qubits_and_pairs(sampler, qubits, pairs)
+    qubits, xpairs = tqxeb.qubits_and_pairs(sampler, qubits, pairs)
+    if pairs is None:
+        pairs = xpairs
     graph = nx.Graph(pairs)
 
     circuit_templates = rqcg.generate_library_of_2q_circuits(
