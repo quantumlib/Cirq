@@ -348,7 +348,7 @@ class ControlledGate(raw_types.Gate):
         return str(self.control_values) + str(self.sub_gate)
 
     def __repr__(self) -> str:
-        if self.control_qid_shape == [2] and self.control_values.is_trivial:
+        if self.control_qid_shape == (2,) and self.control_values.is_trivial:
             return f'cirq.ControlledGate(sub_gate={self.sub_gate!r})'
 
         if self.control_values.is_trivial and set(self.control_qid_shape) == {2}:
