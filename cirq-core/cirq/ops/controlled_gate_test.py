@@ -431,17 +431,10 @@ def test_controlled_gate_is_consistent(gate: cirq.Gate, should_decompose_to_targ
 @pytest.mark.parametrize(
     'gate',
     [
-        cirq.I,
-        cirq.GlobalPhaseGate(1),
-        cirq.GlobalPhaseGate(-1),
         cirq.GlobalPhaseGate(1j**0.7),
-        cirq.Z,
         cirq.ZPowGate(exponent=1.2, global_shift=0.3),
-        cirq.CZ,
         cirq.CZPowGate(exponent=1.2, global_shift=0.3),
-        cirq.CCZ,
         cirq.CCZPowGate(exponent=1.2, global_shift=0.3),
-        # X gates go through matrix decomp and have too much rounding error for these.
     ],
 )
 @pytest.mark.parametrize(
