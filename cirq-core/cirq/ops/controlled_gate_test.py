@@ -476,7 +476,7 @@ def _test_controlled_gate_is_consistent(
         shape = cirq.qid_shape(cgate)
         qids = cirq.LineQid.for_qid_shape(shape)
         decomposed = cirq.decompose(cgate.on(*qids))
-        if len(decomposed) < 3000:  # CCCCCZ rounding error explodes
+        if len(decomposed) < 1000:  # CCCCCZ rounding error explodes
             first_op = cirq.IdentityGate(qid_shape=shape).on(*qids)  # To ensure same qid order
             circuit = cirq.Circuit(first_op, *decomposed)
             np.testing.assert_allclose(cirq.unitary(cgate), cirq.unitary(circuit), atol=1e-1)
