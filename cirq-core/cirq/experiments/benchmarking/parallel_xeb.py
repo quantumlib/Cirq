@@ -278,6 +278,10 @@ def sample_all_circuits(
     return sampling_results
 
 
+def _canonize_pair(pair: _QUBIT_PAIR_T) -> _QUBIT_PAIR_T:
+    return min(pair), max(pair)
+
+
 def estimate_fidilties(
     sampling_results: Sequence[dict[_QUBIT_PAIR_T, np.ndarray]],
     simulation_results: Union[
@@ -304,6 +308,7 @@ def estimate_fidilties(
         cycle_depth = info.cycle_depth
         cycle_idx = cycle_depth_to_index[cycle_depth]
         for template_idx, pair in zip(info.narrow_template_indicies, info.pairs):
+            pair = _canonize_pair(pair)
             key = str(pair)
             if key not in sampling_result:
                 continue
@@ -373,9 +378,12 @@ def parallel_xeb_workflow(
             pairs = tuple(target.keys())
         else:
             assert target.keys() == set(pairs)
-    qubits, xpairs = tqxeb.qubits_and_pairs(sampler, qubits, pairs)
+    qubits, device_pairs = tqxeb.qubits_and_pairs(sampler, qubits, pairs)
+    device_pairs = [_canonize_pair(pair) for pair in device_pairs]
     if pairs is None:
-        pairs = xpairs
+        pairs = device_pairs
+    else:
+        pairs = pairs & device_pairs
     graph = nx.Graph(pairs)
 
     circuit_templates = rqcg.generate_library_of_2q_circuits(
