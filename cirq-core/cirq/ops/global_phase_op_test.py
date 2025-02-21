@@ -33,7 +33,7 @@ def test_init():
 
 
 def test_protocols():
-    for p in [1, 1j, -1]:
+    for p in [1, 1j, -1, sympy.Symbol('s')]:
         cirq.testing.assert_implements_consistent_protocols(cirq.global_phase_operation(p))
 
     np.testing.assert_allclose(
