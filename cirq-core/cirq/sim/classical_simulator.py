@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict, Generic, Any, Sequence, List, Optional, Union, TYPE_CHECKING
+from typing import Dict, Generic, Any, Sequence, List, Optional, TYPE_CHECKING, Union
 from copy import deepcopy, copy
 from cirq import ops, qis
 from cirq.value import big_endian_int_to_bits

@@ -144,7 +144,7 @@ class PhasedXPowGate(raw_types.Gate):
     def _num_qubits_(self) -> int:
         return 1
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if self._is_parameterized_():
             return NotImplemented
         phase_angle = np.pi * self._phase_exponent / 2

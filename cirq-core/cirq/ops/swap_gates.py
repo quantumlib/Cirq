@@ -105,7 +105,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             return None
         return self.exponent % 1 == 0
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -119,7 +119,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
@@ -235,7 +235,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         yield common_gates.H(a)
         yield common_gates.CNOT(a, b)
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -251,7 +251,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
@@ -291,13 +291,13 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         return f'cirq.ISwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
 
-def riswap(rads: value.TParamVal) -> ISwapPowGate:
+def riswap(rads: 'cirq.TParamVal') -> ISwapPowGate:
     """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return cast(ISwapPowGate, ISwapPowGate() ** (2 * rads / pi))
 
 
-SWAP = SwapPowGate()
+SWAP: SwapPowGate = SwapPowGate()
 document(
     SWAP,
     r"""The swap gate.
@@ -316,7 +316,7 @@ document(
     """,
 )
 
-ISWAP = ISwapPowGate()
+ISWAP: ISwapPowGate = ISwapPowGate()
 document(
     ISWAP,
     r"""The iswap gate.
@@ -333,7 +333,7 @@ document(
     """,
 )
 
-ISWAP_INV = ISwapPowGate(exponent=-1)
+ISWAP_INV: ISwapPowGate = ISwapPowGate(exponent=-1)
 document(
     ISWAP_INV,
     r"""The inverse of the iswap gate.
@@ -350,7 +350,7 @@ document(
     """,
 )
 
-SQRT_ISWAP = ISwapPowGate(exponent=0.5)
+SQRT_ISWAP: ISwapPowGate = ISwapPowGate(exponent=0.5)
 document(
     SQRT_ISWAP,
     r"""The square root of iswap gate.
@@ -367,7 +367,7 @@ document(
     """,
 )
 
-SQRT_ISWAP_INV = ISwapPowGate(exponent=-0.5)
+SQRT_ISWAP_INV: ISwapPowGate = ISwapPowGate(exponent=-0.5)
 document(
     SQRT_ISWAP_INV,
     r"""The inverse square root of iswap gate.

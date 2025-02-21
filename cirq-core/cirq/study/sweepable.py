@@ -14,7 +14,7 @@
 
 """Defines which types are Sweepable."""
 
-from typing import Iterable, Iterator, List, Optional, Sequence, Union, cast
+from typing import cast, Iterable, Iterator, List, Optional, Sequence, TYPE_CHECKING, Union
 import warnings
 from typing_extensions import Protocol
 
@@ -22,6 +22,8 @@ from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip, dict_to_product_sweep
 
+if TYPE_CHECKING:
+    import cirq
 SweepLike = Union[ParamResolverOrSimilarType, Sweep]
 document(SweepLike, """An object similar to an iterable of parameter resolvers.""")
 
@@ -38,13 +40,13 @@ Sweepable = Union[SweepLike, _Sweepable]
 document(Sweepable, """An object or collection of objects representing a parameter sweep.""")
 
 
-def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
+def to_resolvers(sweepable: Sweepable) -> Iterator['cirq.ParamResolver']:
     """Convert a Sweepable to a list of ParamResolvers."""
     for sweep in to_sweeps(sweepable):
         yield from sweep
 
 
-def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> List[Sweep]:
+def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> List['cirq.Sweep']:
     """Converts a Sweepable to a list of Sweeps."""
     if sweepable is None:
         return [UnitSweep]
@@ -71,9 +73,9 @@ def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> List[Swe
 
 def to_sweep(
     sweep_or_resolver_list: Union[
-        'Sweep', ParamResolverOrSimilarType, Iterable[ParamResolverOrSimilarType]
-    ]
-) -> 'Sweep':
+        'Sweep', 'cirq.ParamResolverOrSimilarType', Iterable['cirq.ParamResolverOrSimilarType']
+    ],
+) -> 'cirq.Sweep':
     """Converts the argument into a ``cirq.Sweep``.
 
     Args:
@@ -98,7 +100,7 @@ def to_sweep(
     raise TypeError(f'Unexpected sweep-like value: {sweep_or_resolver_list}')
 
 
-def _resolver_to_sweep(resolver: ParamResolver, metadata: Optional[dict]) -> Sweep:
+def _resolver_to_sweep(resolver: 'cirq.ParamResolver', metadata: Optional[dict]) -> 'cirq.Sweep':
     params = resolver.param_dict
     if not params:
         return UnitSweep

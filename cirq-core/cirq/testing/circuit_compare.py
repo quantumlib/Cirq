@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from collections import defaultdict
 import itertools
@@ -21,8 +21,11 @@ import random
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, linalg, protocols, qis
+from cirq import ops, linalg, protocols, qis
 from cirq.testing import lin_alg_utils
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -41,7 +44,7 @@ def highlight_text_differences(actual: str, expected: str) -> str:
 
 
 def _measurement_subspaces(
-    measured_qubits: Iterable[ops.Qid], n_qubits: int
+    measured_qubits: Iterable['cirq.Qid'], n_qubits: int
 ) -> Sequence[Sequence[int]]:
     """Computes subspaces associated with projective measurement.
 
@@ -95,7 +98,7 @@ def _measurement_subspaces(
 
 
 def assert_circuits_with_terminal_measurements_are_equivalent(
-    actual: circuits.AbstractCircuit, reference: circuits.AbstractCircuit, atol: float = 1.0e-8
+    actual: 'cirq.AbstractCircuit', reference: 'cirq.AbstractCircuit', atol: float = 1.0e-8
 ) -> None:
     """Determines if two circuits have equivalent effects.
 
@@ -183,9 +186,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
         )
 
 
-def assert_same_circuits(
-    actual: circuits.AbstractCircuit, expected: circuits.AbstractCircuit
-) -> None:
+def assert_same_circuits(actual: 'cirq.AbstractCircuit', expected: 'cirq.AbstractCircuit') -> None:
     """Asserts that two circuits are identical, with a descriptive error.
 
     Args:
@@ -213,7 +214,7 @@ def assert_same_circuits(
 
 
 def _first_differing_moment_index(
-    circuit1: circuits.AbstractCircuit, circuit2: circuits.AbstractCircuit
+    circuit1: 'cirq.AbstractCircuit', circuit2: 'cirq.AbstractCircuit'
 ) -> Optional[int]:
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
@@ -222,9 +223,9 @@ def _first_differing_moment_index(
 
 
 def assert_circuits_have_same_unitary_given_final_permutation(
-    actual: circuits.AbstractCircuit,
-    expected: circuits.AbstractCircuit,
-    qubit_map: Dict[ops.Qid, ops.Qid],
+    actual: 'cirq.AbstractCircuit',
+    expected: 'cirq.AbstractCircuit',
+    qubit_map: Dict['cirq.Qid', 'cirq.Qid'],
 ) -> None:
     """Asserts two circuits have the same unitary up to a final permutation of qubits.
 
@@ -256,7 +257,7 @@ def assert_circuits_have_same_unitary_given_final_permutation(
 
 
 def assert_has_diagram(
-    actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
+    actual: Union['cirq.AbstractCircuit', 'cirq.Moment'], desired: str, **kwargs
 ) -> None:
     """Determines if a given circuit has the desired text diagram.
 

@@ -15,7 +15,7 @@ import dataclasses
 
 import cirq
 import numpy as np
-from cirq import ops, qis, protocols
+from cirq import ops, qis
 
 
 def _matrix_for_phasing_state(num_qubits, phase_state, phase):
@@ -39,7 +39,7 @@ class PhaseUsingCleanAncilla(ops.Gate):
     def _num_qubits_(self):
         return self.target_bitsize
 
-    def _decompose_with_context_(self, qubits, *, context: protocols.DecompositionContext):
+    def _decompose_with_context_(self, qubits, *, context: 'cirq.DecompositionContext'):
         anc = context.qubit_manager.qalloc(self.ancilla_bitsize)
         cv = [int(x) for x in f'{self.phase_state:0{self.target_bitsize}b}']
         cnot_ladder = [cirq.CNOT(anc[i - 1], anc[i]) for i in range(1, self.ancilla_bitsize)]
@@ -65,7 +65,7 @@ class PhaseUsingDirtyAncilla(ops.Gate):
     def _num_qubits_(self):
         return self.target_bitsize
 
-    def _decompose_with_context_(self, qubits, *, context: protocols.DecompositionContext):
+    def _decompose_with_context_(self, qubits, *, context: 'cirq.DecompositionContext'):
         anc = context.qubit_manager.qalloc(self.ancilla_bitsize)
         cv = [int(x) for x in f'{self.phase_state:0{self.target_bitsize}b}']
         cnot_ladder = [cirq.CNOT(anc[i - 1], anc[i]) for i in range(1, self.ancilla_bitsize)]

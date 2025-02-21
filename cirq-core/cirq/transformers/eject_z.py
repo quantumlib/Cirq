@@ -69,14 +69,14 @@ def eject_z(
         Copy of the transformed input circuit.
     """
     # Tracks qubit phases (in half turns; multiply by pi to get radians).
-    qubit_phase: Dict[ops.Qid, float] = defaultdict(lambda: 0)
+    qubit_phase: Dict['cirq.Qid', float] = defaultdict(lambda: 0)
     tags_to_ignore = set(context.tags_to_ignore) if context else set()
-    phased_xz_replacements: Dict[Tuple[int, ops.Operation], ops.PhasedXZGate] = {}
-    last_phased_xz_op: Dict[ops.Qid, Optional[Tuple[int, ops.Operation]]] = defaultdict(
+    phased_xz_replacements: Dict[Tuple[int, 'cirq.Operation'], 'cirq.PhasedXZGate'] = {}
+    last_phased_xz_op: Dict['cirq.Qid', Optional[Tuple[int, 'cirq.Operation']]] = defaultdict(
         lambda: None
     )
 
-    def dump_tracked_phase(qubits: Iterable[ops.Qid]) -> Iterator['cirq.OP_TREE']:
+    def dump_tracked_phase(qubits: Iterable['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         """Zeroes qubit_phase entries by emitting Z gates."""
         for q in qubits:
             p, key = qubit_phase[q], last_phased_xz_op[q]

@@ -36,7 +36,7 @@ def two_qubit_matrix_to_ion_operations(
     mat: np.ndarray,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> List[ops.Operation]:
+) -> List['cirq.Operation']:
     """Decomposes a two-qubit operation into MS/single-qubit rotation gates.
 
     Args:
@@ -56,8 +56,8 @@ def two_qubit_matrix_to_ion_operations(
 
 
 def _kak_decomposition_to_operations(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', kak: linalg.KakDecomposition, atol: float = 1e-8
-) -> List[ops.Operation]:
+    q0: 'cirq.Qid', q1: 'cirq.Qid', kak: 'cirq.KakDecomposition', atol: float = 1e-8
+) -> List['cirq.Operation']:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, atol), _do_single_on(b1, q1, atol)]
@@ -80,7 +80,7 @@ def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
 
 
 def _parity_interaction(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', rads: float, atol: float, gate: Optional[ops.Gate] = None
+    q0: 'cirq.Qid', q1: 'cirq.Qid', rads: float, atol: float, gate: Optional['cirq.Gate'] = None
 ):
     """Yields an XX interaction framed by the given operation."""
 

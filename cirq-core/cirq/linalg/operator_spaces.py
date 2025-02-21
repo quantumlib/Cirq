@@ -55,7 +55,7 @@ def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
 
 def expand_matrix_in_orthogonal_basis(
     m: np.ndarray, basis: Dict[str, np.ndarray]
-) -> value.LinearDict[str]:
+) -> 'cirq.LinearDict[str]':
     """Computes coefficients of expansion of m in basis.
 
     We require that basis be orthogonal w.r.t. the Hilbert-Schmidt inner
@@ -71,7 +71,7 @@ def expand_matrix_in_orthogonal_basis(
 
 
 def matrix_from_basis_coefficients(
-    expansion: value.LinearDict[str], basis: Dict[str, np.ndarray]
+    expansion: 'cirq.LinearDict[str]', basis: Dict[str, np.ndarray]
 ) -> np.ndarray:
     """Computes linear combination of basis vectors with given coefficients."""
     some_element = next(iter(basis.values()))

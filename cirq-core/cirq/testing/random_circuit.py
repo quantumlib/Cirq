@@ -15,13 +15,12 @@
 from typing import List, Union, Sequence, Dict, Optional, TYPE_CHECKING
 
 from cirq import circuits, ops, value
-from cirq.ops import Qid
 from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
 
-DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
+DEFAULT_GATE_DOMAIN: Dict['cirq.Gate', int] = {
     ops.CNOT: 2,
     ops.CZ: 2,
     ops.H: 1,
@@ -45,12 +44,12 @@ and Z gates.
 
 
 def random_circuit(
-    qubits: Union[Sequence[ops.Qid], int],
+    qubits: Union[Sequence['cirq.Qid'], int],
     n_moments: int,
     op_density: float,
-    gate_domain: Optional[Dict[ops.Gate, int]] = None,
+    gate_domain: Optional[Dict['cirq.Gate', int]] = None,
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> circuits.Circuit:
+) -> 'cirq.Circuit':
     """Generates a random circuit.
 
     Args:
@@ -106,7 +105,7 @@ def random_circuit(
 
     prng = value.parse_random_state(random_state)
 
-    moments: List[circuits.Moment] = []
+    moments: List['cirq.Moment'] = []
     gate_arity_pairs = sorted(gate_domain.items(), key=repr)
     num_gates = len(gate_domain)
     for _ in range(n_moments):
@@ -125,10 +124,10 @@ def random_circuit(
 
 def random_two_qubit_circuit_with_czs(
     num_czs: int = 3,
-    q0: Optional[Qid] = None,
-    q1: Optional[Qid] = None,
+    q0: Optional['cirq.Qid'] = None,
+    q1: Optional['cirq.Qid'] = None,
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> circuits.Circuit:
+) -> 'cirq.Circuit':
     """Creates a random two qubit circuit with the given number of CNOTs.
 
     The resulting circuit will have `num_cnots` number of CNOTs that will be

@@ -197,5 +197,5 @@ class PauliMeasurementGate(raw_types.Gate):
         return cls(observable=observable, key=value.MeasurementKey.parse_serialized(key))
 
 
-def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
+def _default_measurement_key(qubits: Iterable['cirq.Qid']) -> str:
     return ','.join(str(q) for q in qubits)

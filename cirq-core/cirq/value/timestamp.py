@@ -14,9 +14,12 @@
 """A typed location in time that supports picosecond accuracy."""
 
 from datetime import timedelta
-from typing import overload
+from typing import overload, TYPE_CHECKING
 
 from cirq.value.duration import Duration
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Timestamp:
@@ -57,11 +60,11 @@ class Timestamp:
 
     # pylint: disable=function-redefined
     @overload
-    def __sub__(self, other: 'Timestamp') -> Duration:
+    def __sub__(self, other: 'Timestamp') -> 'cirq.Duration':
         pass
 
     @overload
-    def __sub__(self, other: Duration) -> 'Timestamp':
+    def __sub__(self, other: 'cirq.Duration') -> 'Timestamp':
         pass
 
     def __sub__(self, other):

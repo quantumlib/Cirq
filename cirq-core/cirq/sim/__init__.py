@@ -51,7 +51,10 @@ from cirq.sim.mux import (
 
 from cirq.sim.simulation_product_state import SimulationProductState as SimulationProductState
 
-from cirq.sim.simulation_state import SimulationState as SimulationState
+from cirq.sim.simulation_state import (
+    SimulationState as SimulationState,
+    TSimulationState as TSimulationState,
+)
 
 from cirq.sim.simulation_state_base import SimulationStateBase as SimulationStateBase
 
@@ -63,6 +66,7 @@ from cirq.sim.simulator import (
     SimulatesSamples as SimulatesSamples,
     SimulationTrialResult as SimulationTrialResult,
     StepResult as StepResult,
+    TSimulationTrialResult as TSimulationTrialResult,
 )
 
 from cirq.sim.simulator_base import (

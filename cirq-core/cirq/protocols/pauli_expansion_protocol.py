@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for obtaining expansion of linear operators in Pauli basis."""
 
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar, TYPE_CHECKING, Union
 from typing_extensions import Protocol
 
 from cirq import value
@@ -21,16 +21,18 @@ from cirq._doc import doc_private
 from cirq.linalg import operator_spaces
 from cirq.protocols import qid_shape_protocol, unitary_protocol
 
+if TYPE_CHECKING:
+    import cirq
 TDefault = TypeVar('TDefault')
 
-RaiseTypeErrorIfNotProvided: value.LinearDict[str] = value.LinearDict({})
+RaiseTypeErrorIfNotProvided: 'cirq.LinearDict[str]' = value.LinearDict({})
 
 
 class SupportsPauliExpansion(Protocol):
     """An object that knows its expansion in the Pauli basis."""
 
     @doc_private
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
         """Efficiently obtains expansion of self in the Pauli basis.
 
         Returns:
@@ -44,9 +46,9 @@ class SupportsPauliExpansion(Protocol):
 def pauli_expansion(
     val: Any,
     *,
-    default: Union[value.LinearDict[str], TDefault] = RaiseTypeErrorIfNotProvided,
+    default: Union['cirq.LinearDict[str]', TDefault] = RaiseTypeErrorIfNotProvided,
     atol: float = 1e-9,
-) -> Union[value.LinearDict[str], TDefault]:
+) -> Union['cirq.LinearDict[str]', TDefault]:
     """Returns coefficients of the expansion of val in the Pauli basis.
 
     Args:
