@@ -39,6 +39,7 @@ def test_xx_eq():
         cirq.XXPowGate(),
         cirq.XXPowGate(exponent=1, global_shift=0),
         cirq.XXPowGate(exponent=3, global_shift=0),
+        cirq.XXPowGate(global_shift=100000),
     )
     eq.add_equality_group(cirq.XX**0.5, cirq.XX**2.5, cirq.XX**4.5)
     eq.add_equality_group(cirq.XX**0.25, cirq.XX**2.25, cirq.XX**-1.75)
