@@ -55,7 +55,9 @@ class XEBParameters:
 @attrs.frozen
 class XEBWideCircuitInfo:
     wide_circuit: circuits.Circuit
-    pairs: Sequence[_QUBIT_PAIR_T]
+    pairs: Sequence[_QUBIT_PAIR_T] = attrs.field(
+        converter=lambda seq: [tuple(sorted(pair)) for pair in seq]
+    )
     narrow_template_indicies: Sequence[int]
     cycle_depth: Optional[int] = None
 
@@ -268,8 +270,10 @@ def sample_all_circuits(
     sampler: 'cirq.Sampler', circuits: Sequence['cirq.Circuit'], repetitions: int
 ) -> Sequence[dict[_QUBIT_PAIR_T, np.ndarray]]:
     sampling_results = []
+    s = set()
     for (result,) in sampler.run_batch(programs=circuits, repetitions=repetitions):
         record = {}
+        s = s.union(result.data.keys())
         for key in result.data.keys():
             values = result.data[key]
             sampled_probs = np.bincount(values, minlength=4) / len(values)
