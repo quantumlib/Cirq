@@ -982,11 +982,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         all_ops = list(op_tree.flatten_to_ops(clifford))
         all_qubits = set.union(set(self.qubits), [q for op in all_ops for q in op.qubits])
 
-        # Iterative calculate the conjugation in reverse order of ops.
+        # Iteratively calculate the conjugation in reverse order of ops.
         for op in all_ops[::-1]:
-            # To calcuate the conjugation of P (`ps`) with respect to C (`clifford_op`)
-            # Decompose P = Pc⊗R, where Pc acts on the same qubits as C, R acts ont the remaining.
-            # Then the conjugation C.conj(Pc) = (C^{-1}⊗I Pc⊗R C⊗I) = (C^{-1} Pc C)⊗R.
+            # To calcuate the conjugation of P (`ps`) with respect to C (`op`)
+            # Decompose P = Pc⊗R, where Pc acts on the same qubits as C, R acts on the remaining.
+            # Then the conjugation = (C^{-1}⊗I·Pc⊗R·C⊗I) = (C^{-1}·Pc·C)⊗R.
 
             # Isolate R
             remain: 'cirq.PauliString' = PauliString()
@@ -1012,7 +1012,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 gate_in_clifford = clifford_gate.CliffordGate.from_op_list([op], op.qubits)
             tableau = gate_in_clifford.clifford_tableau.inverse()
 
-            # Calculate the conjugation of clifford_op by mutiplying the conjugation of each Pauli:
+            # Calculate the conjugation by `op` via mutiplying the conjugation of each Pauli:
             #   C^{-1}·(P_1⊗...⊗P_n)·C
             # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
             # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)
