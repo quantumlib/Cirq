@@ -1,0 +1,68 @@
+# Summary: save GitHub traffic statistics.
+#
+# This saves GitHub repo statistics so that they can be analyzed for longer
+# durations than GitHub's 14-day limit. The workflow runs once a day and saves
+# the day's statistics in files in a branch of the git repository. Data files
+# accumulate over time. After every run, it generates a report based on the
+# cummulative data. The GitHub workflow summary page has a link to this report.
+
+name: GitHub repo statistics preservation
+run-name: Save daily GitHub statistics for ${{github.repository}}
+
+on:
+  schedule:
+    - cron: '59 23 * * *'
+
+  # Allow manual invocation.
+  workflow_dispatch:
+
+env:
+  # Name of the git branch where the repository stats will be saved.
+  databranch: github-repo-stats
+
+# Declare default permissions as read only.
+permissions: read-all
+
+# Cancel any previously-started but still active runs on the same branch.
+concurrency:
+  cancel-in-progress: true
+  group: ${{github.workflow}}-${{github.event.pull_request.number||github.ref}}
+
+jobs:
+  save-stats:
+    name: Save GitHub repo stats
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check if the data branch exists in this repo
+        id: check-branch-exists
+        uses: GuillaumeFalourd/branch-exists@009290475dc3d75b5d7ec680c0c5b614b0d9855d # v1.1
+        with:
+          branch: ${{env.databranch}}
+
+      - if: steps.check-branch-exists.outputs.exists == 'false'
+        name: Create the data branch
+        uses: peterjgrainger/action-create-branch@10c7d268152480ae859347db45dc69086cef1d9c # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          branch: ${{env.databranch}}
+
+      - name: Run the action to save repository data & create a report
+        uses: jgehrcke/github-repo-stats@306db38ad131cab2aa5f2cd3062bf6f8aa78c1aa
+        with:
+          ghtoken: ${{secrets.GHRS_GITHUB_API_TOKEN}}
+          databranch: ${{env.databranch}}
+
+      - name: Print a note in the job summary pointing to the report
+        run: |
+          base="https://github.com/${{github.repository}}"
+          url="$base/tree/${{env.databranch}}/${{github.repository}}"
+          # shellcheck disable=SC2006
+          {
+          echo "### Location of saved repository statistics and reports"
+          echo "Data is saved in branch <code>${{env.databranch}}</code>."
+          echo "Visit the [README file]($url) there for links to the reports."
+          } >> "$GITHUB_STEP_SUMMARY"
