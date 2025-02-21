@@ -1,0 +1,60 @@
+# Summary: workflow for OSSF Scorecard (https://github.com/ossf/scorecard).
+#
+# Scorecard is an automated tool that assesses a number of important heuristics
+# associated with software security and assigns each check a score of 0-10. The
+# use of Scorecard is suggested in Google's internal GitHub guidance
+# (go/github-docs).
+#
+# Scorecard creates a report page at the following URL (for a repo ORG/REPO):
+# https://scorecard.dev/viewer/?uri=github.com/ORG/REPO
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+name: Scorecard supply-chain security
+run-name: Analyze code for Scorecard
+
+on:
+  schedule:
+    - cron: '19 20 * * 6'
+
+  # Allow manual invocation.
+  workflow_dispatch:
+
+# Declare default permissions as read only.
+permissions: read-all
+
+# Cancel any previously-started but still active runs on the same branch.
+concurrency:
+  cancel-in-progress: true
+  group: ${{github.workflow}}-${{github.event.pull_request.number||github.ref}}
+
+jobs:
+  scorecard:
+    name: Perform Scorecard analysis
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      # Needed to upload the results to the code-scanning dashboard.
+      security-events: write
+      # Needed to publish results and get a badge (see publish_results below).
+      id-token: write
+    steps:
+      - name: Check out a copy of the git repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard analysis
+        uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46 # v2.4.0
+        with:
+          # Save the results
+          results_file: results.sarif
+          results_format: sarif
+
+          # Publish results to OpenSSF REST API.
+          # See https://github.com/ossf/scorecard-action#publishing-results.
+          publish_results: true
+
+      - name: Upload results to code-scanning dashboard
+        uses: github/codeql-action/upload-sarif@9e8d0789d4a0fa9ceb6b1738f7e269594bdd67f0 # v3
+        with:
+          sarif_file: results.sarif
