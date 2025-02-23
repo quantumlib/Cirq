@@ -33,7 +33,7 @@ done
 IFS=$'\n' read -r -d '' -a our_shell_scripts < \
     <(git ls-files -z -- \
         ':(exclude)*.'{py,json,json_inward,repr,repr_inward,ipynb,txt,md} \
-        ':(exclude)*.'{yaml,ts,tst,rst,pyi,cfg} | \
+        ':(exclude)*.'{yaml,yml,js,ts,tst,rst,pyi,cfg,proto,png} | \
         xargs -0 file | grep -i 'shell script' | cut -d: -f1)
 
 # Verify our_shell_scripts array - require it must contain files below.
