@@ -47,7 +47,7 @@ for arg in "$@"; do
     elif [[ "${arg}" == "--apply-format-changes" ]]; then
         apply_arg=( "--apply" )
     elif [[ "${#rev[@]}" == 0 ]]; then
-        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
+        if [[ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]]; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi
@@ -61,7 +61,7 @@ done
 echo "Running misc"
 check/misc || errors+=( "check/misc failed" )
 
-if [ ${only_changed} -ne 0 ]; then
+if [[ ${only_changed} -ne 0 ]]; then
   echo "Running incremental pylint"
   check/pylint-changed-files || errors+=( "check/pylint-changed-files failed" )
 else
@@ -76,7 +76,7 @@ echo "Running incremental format"
 check/format-incremental "${rev[@]}" "${apply_arg[@]}" ||
     errors+=( "check/format-incremental failed" )
 
-if [ ${only_changed} -ne 0 ]; then
+if [[ ${only_changed} -ne 0 ]]; then
     echo "Running pytest and incremental coverage on changed files"
     check/pytest-changed-files-and-incremental-coverage "${rev[@]}" ||
          errors+=( "check/pytest-changed-files-and-incremental-coverage failed" )

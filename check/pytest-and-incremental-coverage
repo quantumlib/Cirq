@@ -45,17 +45,17 @@ done
 
 # Figure out which revision to compare against.
 declare rev=""
-if [ -n "${baserev}" ]; then
+if [[ -n "${baserev}" ]]; then
     if ! git rev-parse --verify --quiet --no-revs "${baserev}^{commit}"; then
         echo -e "\033[31mNo revision '${baserev}'.\033[0m" >&2
         exit 1
     fi
     rev="${baserev}"
-elif [ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]]; then
     rev=upstream/main
-elif [ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]]; then
     rev=origin/main
-elif [ "$(git cat-file -t main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t main 2> /dev/null)" == "commit" ]]; then
     rev=main
 else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2

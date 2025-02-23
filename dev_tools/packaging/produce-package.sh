@@ -28,7 +28,7 @@
 set -e
 trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
-if [ -z "${1}" ]; then
+if [[ -z "${1}" ]]; then
   echo -e "\033[31mNo output directory given.\033[0m"
   exit 1
 fi
@@ -49,7 +49,7 @@ repo_dir=$(git rev-parse --show-toplevel)
 cd "${repo_dir}"
 
 # Make a clean copy of HEAD, without files ignored by git (but potentially kept by setup.py).
-if [ -n "$(git status --short)" ]; then
+if [[ -n "$(git status --short)" ]]; then
     echo -e "\033[31mWARNING: You have uncommitted changes. They won't be included in the package.\033[0m"
 fi
 tmp_git_dir=$(mktemp -d "/tmp/produce-package-git.XXXXXXXXXXXXXXXX")
@@ -57,7 +57,7 @@ trap '{ rm -rf "${tmp_git_dir}"; }' EXIT
 echo "Creating pristine repository clone at ${tmp_git_dir}"
 git clone --shared --quiet "${repo_dir}" "${tmp_git_dir}"
 cd "${tmp_git_dir}"
-if [ -n "${SPECIFIED_VERSION}" ]; then
+if [[ -n "${SPECIFIED_VERSION}" ]]; then
     CURRENT_VERSION=$(set -e; my_dev_tools_modules print_version)
     my_dev_tools_modules replace_version --old="${CURRENT_VERSION}" --new="${SPECIFIED_VERSION}"
 fi

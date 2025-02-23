@@ -35,18 +35,18 @@ cd "${topdir}" || exit $?
 # Figure out which branch to compare against.
 declare -a rest=( "$@" )
 declare rev=""
-if [ -n "$1" ] && [[ $1 != -* ]]; then
+if [[ -n "$1" && $1 != -* ]]; then
     if ! git rev-parse --verify --quiet --no-revs "$1^{commit}"; then
         echo -e "\033[31mNo revision '$1'.\033[0m" >&2
         exit 1
     fi
     rev=$1
     rest=( "${@:2}" )
-elif [ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]]; then
     rev=upstream/main
-elif [ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]]; then
     rev=origin/main
-elif [ "$(git cat-file -t main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t main 2> /dev/null)" == "commit" ]]; then
     rev=main
 else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
@@ -73,7 +73,7 @@ declare -i num_changed=${#changed[@]}
 
 # Run it.
 echo "Found ${num_changed} test files associated with changes." >&2
-if [ "${num_changed}" -eq 0 ]; then
+if [[ "${num_changed}" -eq 0 ]]; then
     exit 0
 fi
 

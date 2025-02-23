@@ -25,7 +25,7 @@ source dev_tools/pypath || exit $?
 pytest "${PYTEST_ARGS[@]}"
 declare -i RESULT=$?
 
-if [ "$RESULT" = 5 ]; then
+if [[ "$RESULT" = 5 ]]; then
   echo "[exit 5] No tests collected, but ignored."
   exit 0
 fi

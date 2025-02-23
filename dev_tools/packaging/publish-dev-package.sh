@@ -54,7 +54,7 @@ trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 EXPECTED_VERSION=$1
 PROD_SWITCH=$2
 
-if [ -z "${EXPECTED_VERSION}" ]; then
+if [[ -z "${EXPECTED_VERSION}" ]]; then
     echo -e "\033[31mFirst argument must be the expected version.\033[0m"
     exit 1
 fi
@@ -63,34 +63,34 @@ if [[ "${EXPECTED_VERSION}" != *dev* ]]; then
   exit 1
 fi
 ACTUAL_VERSION_LINE=$(tail -n 1 "${PROJECT_NAME}/_version.py")
-if [ "${ACTUAL_VERSION_LINE}" != '__version__ = "'"${EXPECTED_VERSION}"'"' ]; then
+if [[ "${ACTUAL_VERSION_LINE}" != '__version__ = "'"${EXPECTED_VERSION}"'"' ]]; then
   echo -e "\033[31mExpected version (${EXPECTED_VERSION}) didn't match the one in ${PROJECT_NAME}/_version.py (${ACTUAL_VERSION_LINE}).\033[0m"
   exit 1
 fi
 
-if [ -z "${PROD_SWITCH}" ] || [ "${PROD_SWITCH}" = "--test" ]; then
+if [[ -z "${PROD_SWITCH}" || "${PROD_SWITCH}" = "--test" ]]; then
     PYPI_REPOSITORY_FLAG=( "--repository-url=https://test.pypi.org/legacy/" )
     PYPI_REPO_NAME="TEST"
     USERNAME="${TEST_TWINE_USERNAME}"
     PASSWORD="${TEST_TWINE_PASSWORD}"
-    if [ -z "${USERNAME}" ]; then
+    if [[ -z "${USERNAME}" ]]; then
       echo -e "\033[31mTEST_TWINE_USERNAME environment variable must be set.\033[0m"
       exit 1
     fi
-    if [ -z "${PASSWORD}" ]; then
+    if [[ -z "${PASSWORD}" ]]; then
       echo -e "\033[31mTEST_TWINE_PASSWORD environment variable must be set.\033[0m"
       exit 1
     fi
-elif [ "${PROD_SWITCH}" = "--prod" ]; then
+elif [[ "${PROD_SWITCH}" = "--prod" ]]; then
     PYPI_REPOSITORY_FLAG=( )
     PYPI_REPO_NAME="PROD"
     USERNAME="${PROD_TWINE_USERNAME}"
     PASSWORD="${PROD_TWINE_PASSWORD}"
-    if [ -z "${USERNAME}" ]; then
+    if [[ -z "${USERNAME}" ]]; then
       echo -e "\033[31mPROD_TWINE_USERNAME environment variable must be set.\033[0m"
       exit 1
     fi
-    if [ -z "${PASSWORD}" ]; then
+    if [[ -z "${PASSWORD}" ]]; then
       echo -e "\033[31mPROD_TWINE_PASSWORD environment variable must be set.\033[0m"
       exit 1
     fi

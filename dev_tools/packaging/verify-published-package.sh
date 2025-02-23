@@ -37,18 +37,18 @@ PROJECT_NAME=cirq
 PROJECT_VERSION=$1
 PROD_SWITCH=$2
 
-if [ -z "${PROJECT_VERSION}" ]; then
+if [[ -z "${PROJECT_VERSION}" ]]; then
     echo -e "\033[31mFirst argument must be the package version to test.\033[0m"
     exit 1
 fi
 
 declare -a PIP_FLAGS
 
-if [ "${PROD_SWITCH}" = "--test" ]; then
+if [[ "${PROD_SWITCH}" = "--test" ]]; then
     PIP_FLAGS=("--index-url=https://test.pypi.org/simple/")
     PYPI_REPO_NAME="TEST"
     PYPI_PROJECT_NAME="cirq"
-elif [ "${PROD_SWITCH}" = "--prod" ]; then
+elif [[ "${PROD_SWITCH}" = "--prod" ]]; then
     PIP_FLAGS=()
     PYPI_REPO_NAME="PROD"
     PYPI_PROJECT_NAME="cirq"
@@ -67,7 +67,7 @@ cd "${tmp_dir}"
 trap '{ rm -rf "${tmp_dir}"; }' EXIT
 
 # Test installation from published package
-PYTHON_VERSION=python3
+                            PYTHON_VERSION=python3
 
 # Prepare.
 CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq-core/cirq/contrib/requirements.txt"

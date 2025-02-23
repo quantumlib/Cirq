@@ -44,7 +44,7 @@ for arg in "$@"; do
         only_print=0
     elif [[ "${arg}" == "--all" ]]; then
         only_changed=0
-    elif [ -z "${rev}" ]; then
+    elif [[ -z "${rev}" ]]; then
         if ! git rev-parse --verify --quiet --no-revs "${arg}^{commit}"; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
@@ -59,12 +59,12 @@ done
 declare -a format_files
 if (( only_changed == 1 )); then
     # Figure out which branch to compare against.
-    if [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]; then
+    if [[ -z "${rev}" ]]; then
+        if [[ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]]; then
             rev=upstream/main
-        elif [ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]; then
+        elif [[ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]]; then
             rev=origin/main
-        elif [ "$(git cat-file -t main 2> /dev/null)" == "commit" ]; then
+        elif [[ "$(git cat-file -t main 2> /dev/null)" == "commit" ]]; then
             rev=main
         else
             echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
@@ -72,7 +72,7 @@ if (( only_changed == 1 )); then
         fi
     fi
     base="$(git merge-base "${rev}" HEAD)"
-    if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
+    if [[ "$(git rev-parse "${rev}")" == "${base}" ]]; then
         echo -e "Comparing against revision '${rev}'." >&2
     else
         echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2

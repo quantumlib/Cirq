@@ -34,17 +34,17 @@ cd "$(git rev-parse --show-toplevel)" || exit 1
 
 # Figure out which revision to compare against.
 declare rev=""
-if [ -n "$1" ] && [[ $1 != -* ]]; then
+if [[ -n "$1" && $1 != -* ]]; then
     if ! git rev-parse --verify --quiet --no-revs "$1^{commit}"; then
         echo -e "\033[31mNo revision '$1'.\033[0m" >&2
         exit 1
     fi
     rev=$1
-elif [ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]]; then
     rev=upstream/main
-elif [ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]]; then
     rev=origin/main
-elif [ "$(git cat-file -t main 2> /dev/null)" == "commit" ]; then
+elif [[ "$(git cat-file -t main 2> /dev/null)" == "commit" ]]; then
     rev=main
 else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
@@ -84,7 +84,7 @@ if git diff --name-only "${rev}" -- | grep "__init__\.py$" > /dev/null; then
   # Include global API tests when an __init__ file is touched.
   changed_python_tests+=('cirq-core/cirq/protocols/json_serialization_test.py')
 fi
-if [ "${#changed_python_tests[@]}" -eq 0 ]; then
+if [[ "${#changed_python_tests[@]}" -eq 0 ]]; then
     echo -e "\033[33mNo changed files with associated python tests.\033[0m" >&2
     exit 0
 fi
