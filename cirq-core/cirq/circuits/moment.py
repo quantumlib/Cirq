@@ -659,37 +659,72 @@ class Moment:
         return diagram.render()
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
-        """Determines whether Moment commutes with the Operation.
+        """Determines whether Moment commutes with another value.
 
         Args:
-            other: An Operation object. Other types are not implemented yet.
-                In case a different type is specified, NotImplemented is
-                returned.
+            other: An Operation or Moment object to test for commutativity.
             atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1
                 have a magnitude less than this tolerance, v1 and v2 can be
                 reported as commuting. Defaults to 1e-8.
 
         Returns:
-            True: The Moment and Operation commute OR they don't have shared
-            quibits.
+            True: The Moment and Operation/Moment commute OR they don't have shared
+                qubits.
             False: The two values do not commute.
             NotImplemented: In case we don't know how to check this, e.g.
-                the parameter type is not supported yet.
+                the parameter type is not supported or commutativity cannot be
+                determined.
         """
-        if not isinstance(other, ops.Operation):
+        # Handle Operation case by converting to Moment
+        if isinstance(other, ops.Operation):
+            return self._commutes_(Moment([other]), atol=atol)
+
+        if not isinstance(other, Moment):
             return NotImplemented
 
-        other_qubits = set(other.qubits)
-        for op in self.operations:
-            if not other_qubits.intersection(set(op.qubits)):
-                continue
+        # If no shared qubits, they trivially commute
+        our_qubits = self.qubits
+        their_qubits = other.qubits
+        if not our_qubits.intersection(their_qubits):
+            return True
 
-            commutes = protocols.commutes(op, other, atol=atol, default=NotImplemented)
+        # First try individual operation commutation checks as it's faster
+        our_ops = {q: op for op in self.operations for q in op.qubits}
+        their_ops = {q: op for op in other.operations for q in op.qubits}
+        
+        shared_qubits = our_qubits.intersection(their_qubits)
+        all_commute = True
+        
+        for q in shared_qubits:
+            our_op = our_ops[q]
+            their_op = their_ops[q]
+            commutes = protocols.commutes(our_op, their_op, atol=atol, default=None)
+            if commutes is None:
+                # Can't determine commutation with this method
+                all_commute = None
+                break
+            if not commutes:
+                all_commute = False
+                break
 
-            if not commutes or commutes is NotImplemented:
+        if all_commute is True:
+            return True
+
+        # If individual operations don't commute or we couldn't determine,
+        # try checking if the full moments commute using unitary matrices
+        try:
+            our_unitary = protocols.unitary(self, default=None)
+            their_unitary = protocols.unitary(other, default=None)
+            if our_unitary is not None and their_unitary is not None:
+                # Check if matrices commute
+                commutator = our_unitary @ their_unitary - their_unitary @ our_unitary
+                commutes = np.allclose(commutator, 0, atol=atol)
                 return commutes
+        except:
+            pass
 
-        return True
+        # If we get here, we couldn't determine if they commute
+        return NotImplemented
 
 
 class _SortByValFallbackToType:
