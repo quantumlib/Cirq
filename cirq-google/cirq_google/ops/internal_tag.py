@@ -68,7 +68,9 @@ class InternalTag:
         msg.internal_tag.tag_name = self.name
         msg.internal_tag.tag_package = self.package
         for k, v in self.tag_args.items():
-            arg_func_langs.arg_to_proto(v, out=msg.internal_tag.tag_args[k])
+            arg_func_langs.arg_to_proto(
+                v, out=msg.internal_tag.tag_args[k], arg_function_language='exp'
+            )
         return msg
 
     @staticmethod
@@ -76,12 +78,13 @@ class InternalTag:
         # To avoid circular import
         from cirq_google.serialization import arg_func_langs
 
+        if msg.WhichOneof("tag") != "internal_tag":
+            raise ValueError(f"Message is not a InternalTag, {msg}")
+
         kw_dict = {}
         for k, v in msg.internal_tag.tag_args.items():
             kw_dict[k] = arg_func_langs.arg_from_proto(v, arg_function_language='exp')
 
-        if msg.WhichOneof("tag") != "internal_tag":
-            raise ValueError(f"Message is not a InternalTag, {msg}")
         return InternalTag(
             name=msg.internal_tag.tag_name, package=msg.internal_tag.tag_package, **kw_dict
         )
