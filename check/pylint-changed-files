@@ -46,8 +46,9 @@ else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
     exit 1
 fi
+declare base
 base="$(git merge-base "${rev}" HEAD)"
-if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
+if [[ "$(git rev-parse "${rev}")" == "${base}" ]]; then
     echo -e "Comparing against revision '${rev}'." >&2
 else
     echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
@@ -60,7 +61,7 @@ IFS=$'\n' read -r -d '' -a changed < \
     | grep -E "^(cirq|dev_tools|examples).*.py$"
 )
 
-num_changed=${#changed[@]}
+declare -i num_changed=${#changed[@]}
 
 # Run it.
 echo "Found ${num_changed} lintable files associated with changes." >&2

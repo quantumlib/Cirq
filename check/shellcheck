@@ -17,7 +17,7 @@ topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
 # Process command line arguments
-opt_dry_run=0
+declare -i opt_dry_run=0
 declare -a shellcheck_options
 declare -a our_shell_scripts
 
@@ -50,6 +50,7 @@ required_shell_scripts=(
     dev_tools/pypath
 )
 
+declare scripts_not_found=""
 scripts_not_found="$(comm -13 \
     <(printf "%s\n" "${our_shell_scripts[@]}") \
     <(printf "%s\n" "${required_shell_scripts[@]}") )"

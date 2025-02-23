@@ -35,12 +35,12 @@ thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
 topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
-errors=()
+declare -a errors
 
 # Parse arguments.
-apply_arg=( )
-only_changed=0
-rev=( )
+declare -a apply_arg
+declare -a rev
+declare only_changed=0
 for arg in "$@"; do
     if [[ "${arg}" == "--only-changed-files" ]]; then
         only_changed=1
@@ -89,6 +89,7 @@ fi
 echo "Running doctest"
 check/doctest || errors+=( "check/doctest failed" )
 
+declare -i result
 echo
 if [[ "${#errors[@]}" == 0 ]]; then
     echo "All checks passed."

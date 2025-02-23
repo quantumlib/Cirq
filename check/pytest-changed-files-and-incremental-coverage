@@ -33,6 +33,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 # Figure out which revision to compare against.
+declare rev=""
 if [ -n "$1" ] && [[ $1 != -* ]]; then
     if ! git rev-parse --verify --quiet --no-revs "$1^{commit}"; then
         echo -e "\033[31mNo revision '$1'.\033[0m" >&2
@@ -49,8 +50,9 @@ else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
     exit 1
 fi
+declare base
 base="$(git merge-base "${rev}" HEAD)"
-if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
+if [[ "$(git rev-parse "${rev}")" == "${base}" ]]; then
     echo -e "Comparing against revision '${rev}'." >&2
 else
     echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
@@ -93,17 +95,17 @@ source dev_tools/pypath || exit $?
 check/pytest "${changed_python_tests[@]}" \
     "${cov_changed_python_file_dirs[@]}" \
     --cov-report=annotate
-pytest_result=$?
+declare -i pytest_result=$?
 
 # Analyze coverage files.
 python dev_tools/check_incremental_coverage_annotations.py "${rev}"
-cover_result=$?
+declare -i cover_result=$?
 
 # Clean up generated coverage files.
 git clean --force --quiet -x -- "*.py,cover"
 
 # Report result.
-if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then
+if (( pytest_result || cover_result )); then
   exit 1
 fi
 exit 0

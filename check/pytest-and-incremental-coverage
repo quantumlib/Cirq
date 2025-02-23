@@ -26,9 +26,9 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
-pytest_args=()
-analyze_cov=1
-baserev=""
+declare -a pytest_args
+declare -i analyze_cov=1
+declare baserev=""
 
 if [[ "$1" == [^-]* ]]; then
     baserev="$1"
@@ -44,6 +44,7 @@ for arg in "$@"; do
 done
 
 # Figure out which revision to compare against.
+declare rev=""
 if [ -n "${baserev}" ]; then
     if ! git rev-parse --verify --quiet --no-revs "${baserev}^{commit}"; then
         echo -e "\033[31mNo revision '${baserev}'.\033[0m" >&2
@@ -60,8 +61,9 @@ else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
     exit 1
 fi
+declare base
 base="$(git merge-base "${rev}" HEAD)"
-if [ "$(git rev-parse "${rev}")" == "${base}" ]; then
+if [[ "$(git rev-parse "${rev}")" == "${base}" ]]; then
     echo -e "Comparing against revision '${rev}'." >&2
 else
     echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
@@ -72,11 +74,10 @@ source dev_tools/pypath || exit $?
 
 # Run tests while producing coverage files.
 check/pytest --cov "${pytest_args[@]}"
-pytest_result=$?
-
+declare -i pytest_result=$?
 
 # assume successful cover_result in case coverage is not run
-cover_result=0
+declare -i cover_result=0
 if (( analyze_cov )); then
     # Convert to .py,cover files.
     coverage annotate

@@ -18,12 +18,12 @@ cd "${topdir}" || exit $?
 
 # Run in parallel by default.  Pass the `-n0` option for a single-process run.
 # (the last `-n` option wins)
-PYTEST_ARGS=( "-n=auto" "$@" )
+declare -a PYTEST_ARGS=( "-n=auto" "$@" )
 
 source dev_tools/pypath || exit $?
 
 pytest "${PYTEST_ARGS[@]}"
-RESULT=$?
+declare -i RESULT=$?
 
 if [ "$RESULT" = 5 ]; then
   echo "[exit 5] No tests collected, but ignored."
