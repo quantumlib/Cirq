@@ -1,0 +1,19 @@
+# Summary: config file for shellcheck program.
+#
+# The following page includes information about the .shellcheckrc file:
+# https://github.com/koalaman/shellcheck/wiki/Directive#shellcheckrc-file
+# 
+# Optional settings can be discovered by running "shellcheck --list-optional".
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# We use bash for all the scripts, so tell shellcheck to assume this dialect.
+shell=bash
+
+# Makes shellcheck include files pointed-to by the source or . statements.
+external-sources=true
+
+# Enable check for when a script uses "set -e" but a construct may disable it.
+enable=check-set-e-suppressed
+
+# Enable check for tests like [ "$var" ], which are best written [ -n "$var" ].
+enable=avoid-nullary-conditions
