@@ -26,30 +26,30 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
-PYTEST_ARGS=()
-ANALYZE_COV=1
-BASEREV=""
+pytest_args=()
+analyze_cov=1
+baserev=""
 
 if [[ "$1" == [^-]* ]]; then
-    BASEREV="$1"
+    baserev="$1"
     shift
 fi
 
 for arg in "$@"; do
     if [[ "${arg}" == "--no-analyze" ]]; then
-        ANALYZE_COV=0
+        analyze_cov=0
     else
-        PYTEST_ARGS+=("${arg}")
+        pytest_args+=("${arg}")
     fi
 done
 
 # Figure out which revision to compare against.
-if [ -n "${BASEREV}" ]; then
-    if ! git rev-parse --verify --quiet --no-revs "${BASEREV}^{commit}"; then
-        echo -e "\033[31mNo revision '${BASEREV}'.\033[0m" >&2
+if [ -n "${baserev}" ]; then
+    if ! git rev-parse --verify --quiet --no-revs "${baserev}^{commit}"; then
+        echo -e "\033[31mNo revision '${baserev}'.\033[0m" >&2
         exit 1
     fi
-    rev="${BASEREV}"
+    rev="${baserev}"
 elif [ "$(git cat-file -t upstream/main 2> /dev/null)" == "commit" ]; then
     rev=upstream/main
 elif [ "$(git cat-file -t origin/main 2> /dev/null)" == "commit" ]; then
@@ -71,13 +71,13 @@ fi
 source dev_tools/pypath || exit $?
 
 # Run tests while producing coverage files.
-check/pytest --cov "${PYTEST_ARGS[@]}"
+check/pytest --cov "${pytest_args[@]}"
 pytest_result=$?
 
 
 # assume successful cover_result in case coverage is not run
 cover_result=0
-if (( ANALYZE_COV )); then
+if (( analyze_cov )); then
     # Convert to .py,cover files.
     coverage annotate
 
