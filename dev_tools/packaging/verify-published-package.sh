@@ -42,7 +42,7 @@ if [ -z "${PROJECT_VERSION}" ]; then
     exit 1
 fi
 
-typeset -a PIP_FLAGS
+declare -a PIP_FLAGS
 
 if [ "${PROD_SWITCH}" = "--test" ]; then
     PIP_FLAGS=("--index-url=https://test.pypi.org/simple/")

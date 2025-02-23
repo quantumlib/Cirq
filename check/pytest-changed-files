@@ -54,7 +54,7 @@ fi
 echo "Comparing against revision '${rev}'." >&2
 
 # Get the _test version of changed python files.
-typeset -a changed
+declare -a changed
 IFS=$'\n' read -r -d '' -a changed < \
     <(git diff --name-only "${rev}" -- \
     | grep "\.py$" \

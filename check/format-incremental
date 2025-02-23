@@ -57,7 +57,7 @@ for arg in "$@"; do
     fi
 done
 
-typeset -a format_files
+declare -a format_files
 if (( only_changed == 1 )); then
     # Figure out which branch to compare against.
     if [ -z "${rev}" ]; then

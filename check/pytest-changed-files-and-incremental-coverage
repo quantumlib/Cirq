@@ -58,7 +58,7 @@ else
 fi
 
 # Find involved files.
-typeset -a cov_changed_python_file_dirs
+declare -a cov_changed_python_file_dirs
 IFS=$'\n' read -r -d '' -a cov_changed_python_file_dirs < \
     <(git diff --name-only "${rev}" -- \
     | grep "\.py$" \
@@ -68,7 +68,7 @@ IFS=$'\n' read -r -d '' -a cov_changed_python_file_dirs < \
     | sort \
     | uniq \
 )
-typeset -a changed_python_tests
+declare -a changed_python_tests
 IFS=$'\n' read -r -d '' -a changed_python_tests < \
     <(git diff --name-only "${rev}" -- \
     | grep "\.py$" \
