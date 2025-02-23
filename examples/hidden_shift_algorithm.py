@@ -61,7 +61,7 @@ doi: 10.1137/1.9781611973075.37
 
 
 === EXAMPLE OUTPUT ===
-Secret shift sequence: [1, 0, 0, 1, 0, 1]
+Hidden shift sequence: [1, 0, 0, 1, 0, 1]
 Circuit:
 (0, 0): ───H───X───@───X───H───@───H───M('result')───
                    │           │       │
@@ -135,9 +135,9 @@ def main():
     # Set up input qubits.
     input_qubits = set_qubits(qubit_count)
 
-    # Define secret shift
+    # Define hidden shift
     shift = [random.randint(0, 1) for _ in range(qubit_count)]
-    print(f'Secret shift sequence: {shift}')
+    print(f'Hidden shift sequence: {shift}')
 
     # Make oracles (black box)
     oracle_f = make_oracle_f(input_qubits)
@@ -154,7 +154,7 @@ def main():
     frequencies = result.histogram(key='result', fold_func=bitstring)
     print(f'Sampled results:\n{frequencies}')
 
-    # Check if we actually found the secret value.
+    # Check if we actually found the hidden value.
     most_common_bitstring = frequencies.most_common(1)[0][0]
     print(f'Most common bitstring: {most_common_bitstring}')
     print(f'Found a match: {most_common_bitstring == bitstring(shift)}')

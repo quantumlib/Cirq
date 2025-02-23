@@ -14,7 +14,7 @@ SIAM Journal on Computing 26.5 (1997): 1411-1473.
 
 === EXAMPLE OUTPUT ===
 
-Secret function:
+Hidden function:
 f(a) = a·<0, 1, 1, 1, 0, 0, 1, 0> + 1 (mod 2)
 Circuit:
 (0, 0): ───────H───────────────────────H───M───
@@ -36,7 +36,7 @@ Circuit:
 (8, 0): ───X───H───X───X───X───X───X───────────
 Sampled results:
 Counter({'01110010': 3})
-Most common matches secret factors:
+Most common matches hidden factors:
 True
 """
 
@@ -53,13 +53,13 @@ def main(qubit_count=8):
     output_qubit = cirq.GridQubit(qubit_count, 0)
 
     # Pick coefficients for the oracle and create a circuit to query it.
-    secret_bias_bit = random.randint(0, 1)
-    secret_factor_bits = [random.randint(0, 1) for _ in range(qubit_count)]
-    oracle = make_oracle(input_qubits, output_qubit, secret_factor_bits, secret_bias_bit)
+    hidden_bias_bit = random.randint(0, 1)
+    hidden_factor_bits = [random.randint(0, 1) for _ in range(qubit_count)]
+    oracle = make_oracle(input_qubits, output_qubit, hidden_factor_bits, hidden_bias_bit)
     print(
-        'Secret function:\nf(a) = '
-        f"a·<{', '.join(str(e) for e in secret_factor_bits)}> + "
-        f"{secret_bias_bit} (mod 2)"
+        'Hidden function:\nf(a) = '
+        f"a·<{', '.join(str(e) for e in hidden_factor_bits)}> + "
+        f"{hidden_bias_bit} (mod 2)"
     )
 
     # Embed the oracle into a special quantum circuit querying it exactly once.
@@ -73,21 +73,21 @@ def main(qubit_count=8):
     frequencies = result.histogram(key='result', fold_func=bitstring)
     print(f'Sampled results:\n{frequencies}')
 
-    # Check if we actually found the secret value.
+    # Check if we actually found the hidden value.
     most_common_bitstring = frequencies.most_common(1)[0][0]
     print(
-        'Most common matches secret factors:\n'
-        f'{most_common_bitstring == bitstring(secret_factor_bits)}'
+        'Most common matches hidden factors:\n'
+        f'{most_common_bitstring == bitstring(hidden_factor_bits)}'
     )
 
 
-def make_oracle(input_qubits, output_qubit, secret_factor_bits, secret_bias_bit):
+def make_oracle(input_qubits, output_qubit, hidden_factor_bits, hidden_bias_bit):
     """Gates implementing the function f(a) = a·factors + bias (mod 2)."""
 
-    if secret_bias_bit:
+    if hidden_bias_bit:
         yield cirq.X(output_qubit)
 
-    for qubit, bit in zip(input_qubits, secret_factor_bits):
+    for qubit, bit in zip(input_qubits, hidden_factor_bits):
         if bit:  # pragma: no cover
             yield cirq.CNOT(qubit, output_qubit)
 

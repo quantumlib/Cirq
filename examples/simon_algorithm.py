@@ -22,7 +22,7 @@ D. R. Simon. On the power of quantum cryptography. In35th FOCS, pages 116–123,
 Santa Fe,New Mexico, 1994. IEEE Computer Society Press.
 
 === EXAMPLE OUTPUT ===
-Secret string = [1, 0, 0, 1, 0, 0]
+Hidden string = [1, 0, 0, 1, 0, 0]
 Circuit:
                 ┌──────┐   ┌───────────┐
 (0, 0): ────H────@──────────@─────@──────H───M('result')───
@@ -62,10 +62,10 @@ def main(qubit_count=3):
 
     data = []  # we'll store here the results
 
-    # define a secret string:
-    secret_string = np.random.randint(2, size=qubit_count)
+    # define a hidden string:
+    hidden_string = np.random.randint(2, size=qubit_count)
 
-    print(f'Secret string = {secret_string}')
+    print(f'Hidden string = {hidden_string}')
 
     n_samples = 100
     for _ in range(n_samples):
@@ -78,7 +78,7 @@ def main(qubit_count=3):
             ]  # output f(x)
 
             # Pick coefficients for the oracle and create a circuit to query it.
-            oracle = make_oracle(input_qubits, output_qubits, secret_string)
+            oracle = make_oracle(input_qubits, output_qubits, hidden_string)
 
             # Embed oracle into special quantum circuit querying it exactly once
             circuit = make_simon_circuit(input_qubits, output_qubits, oracle)
@@ -98,31 +98,31 @@ def main(qubit_count=3):
     print(f'Most common answer was : {freqs.most_common(1)[0]}')
 
 
-def make_oracle(input_qubits, output_qubits, secret_string):
+def make_oracle(input_qubits, output_qubits, hidden_string):
     """Gates implementing the function f(a) = f(b) iff a ⨁ b = s"""
     # Copy contents to output qubits:
     for control_qubit, target_qubit in zip(input_qubits, output_qubits):
         yield cirq.CNOT(control_qubit, target_qubit)
 
     # Create mapping:
-    if sum(secret_string):  # check if the secret string is non-zero
-        # Find significant bit of secret string (first non-zero bit)
-        significant = list(secret_string).index(1)
+    if sum(hidden_string):  # check if the hidden string is non-zero
+        # Find significant bit of hidden string (first non-zero bit)
+        significant = list(hidden_string).index(1)
 
-        # Add secret string to input according to the significant bit:
-        for j in range(len(secret_string)):
-            if secret_string[j] > 0:
+        # Add hidden string to input according to the significant bit:
+        for j in range(len(hidden_string)):
+            if hidden_string[j] > 0:
                 yield cirq.CNOT(input_qubits[significant], output_qubits[j])
     # Apply a random permutation:
     pos = [
         0,
-        len(secret_string) - 1,
+        len(hidden_string) - 1,
     ]  # Swap some qubits to define oracle. We choose first and last:
     yield cirq.SWAP(output_qubits[pos[0]], output_qubits[pos[1]])
 
 
 def make_simon_circuit(input_qubits, output_qubits, oracle):
-    """Solves for the secret period s of a 2-to-1 function such that
+    """Solves for the hidden period s of a 2-to-1 function such that
     f(x) = f(y) iff x ⨁ y = s
     """
 

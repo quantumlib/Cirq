@@ -14,7 +14,7 @@ Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
 https://arxiv.org/abs/1804.03719
 
 === EXAMPLE OUTPUT ===
-Secret bit sequence: [1, 0]
+Hidden bit sequence: [1, 0]
 Circuit:
 (0, 0): ───────H───────@───────H───X───────@───────X───H───M───
                        │                   │               │
@@ -88,7 +88,7 @@ def main():
 
     # Choose the x' and make an oracle which can recognize it.
     x_bits = [random.randint(0, 1) for _ in range(qubit_count)]
-    print(f'Secret bit sequence: {x_bits}')
+    print(f'Hidden bit sequence: {x_bits}')
 
     # Make oracle (black box)
     oracle = make_oracle(input_qubits, output_qubit, x_bits)
@@ -105,7 +105,7 @@ def main():
     frequencies = result.histogram(key='result', fold_func=bitstring)
     print(f'Sampled results:\n{frequencies}')
 
-    # Check if we actually found the secret value.
+    # Check if we actually found the hidden value.
     most_common_bitstring = frequencies.most_common(1)[0][0]
     print(f'Most common bitstring: {most_common_bitstring}')
     print(f'Found a match: {most_common_bitstring == bitstring(x_bits)}')

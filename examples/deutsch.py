@@ -16,7 +16,7 @@ quantum computer." Proc. R. Soc. Lond. A, 400:97, 1985.
 
 === EXAMPLE OUTPUT ===
 
-Secret function:
+Hidden function:
 f(x) = <0, 1>
 Circuit:
 0: ───────H───@───H───M('result')───
@@ -36,10 +36,10 @@ def main():
     # Choose qubits to use.
     q0, q1 = cirq.LineQubit.range(2)
 
-    # Pick a secret 2-bit function and create a circuit to query the oracle.
-    secret_function = [random.randint(0, 1) for _ in range(2)]
-    oracle = make_oracle(q0, q1, secret_function)
-    print(f"Secret function:\nf(x) = <{', '.join(str(e) for e in secret_function)}>")
+    # Pick a hidden 2-bit function and create a circuit to query the oracle.
+    hidden_function = [random.randint(0, 1) for _ in range(2)]
+    oracle = make_oracle(q0, q1, hidden_function)
+    print(f"Hidden function:\nf(x) = <{', '.join(str(e) for e in hidden_function)}>")
 
     # Embed the oracle into a quantum circuit querying it exactly once.
     circuit = make_deutsch_circuit(q0, q1, oracle)
@@ -53,13 +53,13 @@ def main():
     print(result)
 
 
-def make_oracle(q0, q1, secret_function):
-    """Gates implementing the secret function f(x)."""
+def make_oracle(q0, q1, hidden_function):
+    """Gates implementing the hidden function f(x)."""
 
-    if secret_function[0]:  # pragma: no cover
+    if hidden_function[0]:  # pragma: no cover
         yield [CNOT(q0, q1), X(q1)]
 
-    if secret_function[1]:  # pragma: no cover
+    if hidden_function[1]:  # pragma: no cover
         yield CNOT(q0, q1)
 
 
