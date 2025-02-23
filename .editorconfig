@@ -1,0 +1,31 @@
+# Summary: coding style configuration for editors that read .editorconfig.
+#
+# EditorConfig defines a file format for specifying some common coding style
+# parameters. Many editors recognize .editorconfig files automatically, and
+# there exist plugins for other editors. See https://spec.editorconfig.org/.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+spelling_language = en-US
+trim_trailing_whitespace = true
+
+[*.md]
+# Important setting: trailing whitspace is meaningful in Markdown.
+trim_trailing_whitespace = false
+
+[*.py]
+indent_size = 4
+indent_style = space
+max_line_length = 100
+
+[*.sh]
+indent_size = 4
+indent_style = space
+max_line_length = 100
+
+[*.yml,*.yaml]
+indent_size = 2
