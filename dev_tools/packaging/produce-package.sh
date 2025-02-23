@@ -58,14 +58,14 @@ echo "Creating pristine repository clone at ${tmp_git_dir}"
 git clone --shared --quiet "${repo_dir}" "${tmp_git_dir}"
 cd "${tmp_git_dir}"
 if [ -n "${SPECIFIED_VERSION}" ]; then
-    CURRENT_VERSION=$(my_dev_tools_modules print_version)
+    CURRENT_VERSION=$(set -e; my_dev_tools_modules print_version)
     my_dev_tools_modules replace_version --old="${CURRENT_VERSION}" --new="${SPECIFIED_VERSION}"
 fi
 
 # Python 3 wheel.
 echo "Producing python 3 package files."
 
-CIRQ_MODULES=$(my_dev_tools_modules list --mode folder --include-parent)
+CIRQ_MODULES=$(set -e; my_dev_tools_modules list --mode folder --include-parent)
 
 for m in $CIRQ_MODULES; do
   echo "processing $m/setup.py..."
