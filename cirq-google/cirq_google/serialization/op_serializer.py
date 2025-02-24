@@ -38,7 +38,6 @@ class OpSerializer(abc.ABC):
         op,
         msg=None,
         *,
-        arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant],
         raw_constants: Dict[Any, int],
     ) -> Optional[Union[v2.program_pb2.CircuitOperation, v2.program_pb2.Operation]]:
@@ -50,8 +49,6 @@ class OpSerializer(abc.ABC):
             op: The Cirq operation to be serialized.
             msg: An optional proto object to populate with the serialization
                 results.
-            arg_function_language: The `arg_function_language` field from
-                `Program.Language`.
             constants: The list of previously-serialized Constant protos.
             raw_constants: A map raw objects to their respective indices in
                 `constants`.
@@ -77,7 +74,6 @@ class CircuitOpSerializer(OpSerializer):
         op: cirq.CircuitOperation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
-        arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant],
         raw_constants: Dict[Any, int],
     ) -> v2.program_pb2.CircuitOperation:
@@ -122,12 +118,12 @@ class CircuitOpSerializer(OpSerializer):
 
         for p1, p2 in op.param_resolver.param_dict.items():
             entry = msg.arg_map.entries.add()
-            arg_to_proto(p1, out=entry.key, arg_function_language=arg_function_language)
+            arg_to_proto(p1, out=entry.key)
             if isinstance(p2, numbers.Complex):
                 if isinstance(p2, numbers.Real):
                     p2 = float(p2)
                 else:
                     raise ValueError(f'Cannot serialize complex value {p2}')
-            arg_to_proto(p2, out=entry.value, arg_function_language=arg_function_language)
+            arg_to_proto(p2, out=entry.value)
 
         return msg
