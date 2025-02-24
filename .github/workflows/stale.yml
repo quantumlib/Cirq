@@ -62,9 +62,8 @@ jobs:
         close-issue-message: >
           This issue has been closed due to inactivity for 60 days since the
           time the `status/stale` label was applied. If you believe the issue
-          is still relevant and would like to restore its status, please leave
-          a comment here; doing so will cause the staleness handler to remove
-          the label.
+          is still relevant and would like to restore its active status, please
+          feel free to reopen it.
 
           If you have questions or feedback about this process, we welcome your
           input. You can open a new issue to let us know (please also reference
@@ -73,8 +72,7 @@ jobs:
         close-pr-message: >
           This pull request has been closed due to inactivity for 60 days since
           the time the `status/stale` label was applied. If you would like to
-          restore its active status, please leave a comment here; doing so will
-          cause the staleness handler to remove the label.
+          continue working on this PR, please feel free to reopen it.
 
           If you have questions or feedback about this process, we welcome your
           input. You can open a new issue to let us know (please also reference
