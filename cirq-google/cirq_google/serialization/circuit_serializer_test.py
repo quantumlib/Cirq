@@ -991,6 +991,15 @@ class BingBongDeserializer(OpDeserializer):
         )
 
 
+def test_serdes_preserves_syc():
+    serializer = cg.CircuitSerializer()
+    c = cirq.Circuit(cg.SYC(cirq.q(0, 0), cirq.q(0, 1)))
+    msg = serializer.serialize(c)
+    deserialized_circuit = serializer.deserialize(msg)
+    assert deserialized_circuit == c
+    assert isinstance(c[0][cirq.q(0, 0)].gate, cg.SycamoreGate)
+
+
 @pytest.mark.parametrize('use_constants_table', [True, False])
 def test_custom_serializer(use_constants_table: bool):
     c = cirq.Circuit(BingBongGate(param=2.5)(cirq.q(0, 0)))
