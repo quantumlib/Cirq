@@ -194,18 +194,20 @@ def run_shuffled_with_readout_benchmarking(
         qubits_to_measure = [sorted(qubits_set)]
     elif isinstance(qubits[0], ops.Qid):
         qubits_to_measure = [qubits]
+    else:
+        qubits_to_measure = qubits
 
     # Generate the readout calibration circuits if num_random_bitstrings>0
     # Else all_readout_calibration_circuits and all_random_bitstrings are empty
     all_readout_calibration_circuits = []
     all_random_bitstrings = []
 
+    rng = (
+        rng_or_seed
+        if isinstance(rng_or_seed, np.random.Generator)
+        else np.random.default_rng(rng_or_seed)
+    )
     if num_random_bitstrings > 0:
-        rng = (
-            rng_or_seed
-            if isinstance(rng_or_seed, np.random.Generator)
-            else np.random.default_rng(rng_or_seed)
-        )
         for qubit_group in qubits_to_measure:
             readout_calibration_circuits, random_bitstrings = (
                 _generate_readout_calibration_circuits(qubit_group, rng, num_random_bitstrings)
