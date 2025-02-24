@@ -14,7 +14,8 @@ spelling_language = en-US
 trim_trailing_whitespace = true
 
 [*.md]
-# Important setting: trailing whitspace is meaningful in Markdown.
+# Important: trailing whitspace is meaningful in Markdown. Two spaces at the end
+# of a line = line break. Ref: https://en.wikipedia.org/wiki/Markdown#Examples
 trim_trailing_whitespace = false
 
 [*.py]
