@@ -10,7 +10,7 @@ assignees: ''
 
 ## Explain how to reproduce the bug or problem
 
-```
+```text
 
 Put code in Markdown code blocks *like this*.
 
@@ -28,6 +28,6 @@ Put long logs in HTML details blocks *like this*.
 You can get the Cirq version you are running by using Python
 to print the value of `cirq.__version__`. From the command line:
 
-```
+```python
 python -c 'import cirq; print(cirq.__version__)'
 ```
