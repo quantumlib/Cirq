@@ -14,9 +14,9 @@ assignees: ''
 ## How urgent is this for you? Is it blocking important work?
 
 <!-- Please choose one of the following options and remove the others -->
-**P0** – this should land no later than a week
-**P1** – I need this no later than the next release
-**P2** – we should do it in the next couple of quarters
+**P0** – this should land no later than a week<br>
+**P1** – I need this no later than the next release<br>
+**P2** – we should do it in the next couple of quarters<br>
 **P3** – I'm not really blocked by it; it's an idea I'm proposing based on principle
 
 
