@@ -327,7 +327,7 @@ def test_optimize_for_target_gateset_multiple_passes(max_num_passes: Union[int, 
 
 @pytest.mark.parametrize('max_num_passes', [2, None])
 def test_optimize_for_target_gateset_multiple_passes_dont_preserve_moment_structure(
-    max_num_passes: Union[int, None]
+    max_num_passes: Union[int, None],
 ):
     gateset = cirq.CZTargetGateset(preserve_moment_structure=False)
 
