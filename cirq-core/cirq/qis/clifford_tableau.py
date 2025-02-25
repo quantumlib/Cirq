@@ -326,32 +326,42 @@ class CliffordTableau(StabilizerState):
         return string
 
     def _str_full_(self) -> str:
-        string = ''
+        left_col_width = max(7, self.n * 2 + 3)
+        right_col_width = max(10, self.n * 2 + 4)
 
-        string += 'stable' + ' ' * max(self.n * 2 - 3, 1)
-        string += '| destable\n'
-        string += '-' * max(7, self.n * 2 + 3) + '+' + '-' * max(10, self.n * 2 + 4) + '\n'
+        def _fill_row(left: str, right: str, mid='|', fill=' ') -> str:
+            """Builds a left-aligned fixed-width row with 2 columns."""
+            return f"{left:{fill}<{left_col_width}}{mid}{right:{fill}<{right_col_width}}".rstrip()
 
-        for j in range(self.n):
-            for i in [j + self.n, j]:
-                string += '- ' if self.rs[i] else '+ '
+        def _pauli_from_matrix(r: int, c: int) -> str:
+            match (bool(self.xs[r, c]), bool(self.zs[r, c])):
+                case (True, False):
+                    return f'X{c}'
+                case (False, True):
+                    return f'Z{c}'
+                case (True, True):
+                    return f'Y{c}'
+                case _:
+                    # (False, False) is the only leftover option
+                    return '  '
 
-                for k in range(self.n):
-                    if self.xs[i, k] & (not self.zs[i, k]):
-                        string += f'X{k}'
-                    elif (not self.xs[i, k]) & self.zs[i, k]:
-                        string += f'Z{k}'
-                    elif self.xs[i, k] & self.zs[i, k]:
-                        string += f'Y{k}'
-                    else:
-                        string += '  '
+        title_row = _fill_row('stable', ' destable')
+        divider = _fill_row('', '', mid='+', fill='-')
+        contents = [
+            _fill_row(
+                left=(
+                    f"{'-' if self.rs[i + self.n] else '+'} "
+                    f"{''.join(_pauli_from_matrix(i + self.n, j) for j in range(self.n))}"
+                ),
+                right=(
+                    f" {'-' if self.rs[i] else '+'} "
+                    f"{''.join(_pauli_from_matrix(i, j) for j in range(self.n))}"
+                ),
+            )
+            for i in range(self.n)
+        ]
 
-                if i == j + self.n:
-                    string += ' ' * max(0, 4 - self.n * 2) + ' | '
-
-            string += '\n'
-
-        return string
+        return '\n'.join([title_row, divider, *contents]) + '\n'
 
     def then(self, second: 'CliffordTableau') -> 'CliffordTableau':
         """Returns a composed CliffordTableau of this tableau and the second tableau.

@@ -15,6 +15,7 @@
 import pytest
 
 from cirq_google.ops.dynamical_decoupling_tag import DynamicalDecouplingTag
+from cirq_google.api.v2 import program_pb2
 
 
 def test_invalid_value():
@@ -26,3 +27,8 @@ def test_proto_serialization():
     tag = DynamicalDecouplingTag('X')
     msg = tag.to_proto()
     assert tag == DynamicalDecouplingTag.from_proto(msg)
+
+    with pytest.raises(ValueError, match="Message is not a DynamicalDecouplingTag"):
+        msg = program_pb2.Tag()
+        msg.fsim_via_model.SetInParent()
+        DynamicalDecouplingTag.from_proto(msg)

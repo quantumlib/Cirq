@@ -26,3 +26,9 @@ def test_syc_str_repr():
     cirq.testing.assert_equivalent_repr(
         cirq_google.PhysicalZTag(), setup_code=('import cirq\nimport cirq_google\n')
     )
+
+
+def test_proto():
+    tag = cirq_google.PhysicalZTag()
+    msg = tag.to_proto()
+    assert tag == cirq_google.PhysicalZTag.from_proto(msg)
