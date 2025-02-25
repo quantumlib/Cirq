@@ -1,7 +1,7 @@
 # Summary: perform scheduled handling of stale issues and PRs.
 # For more info, see https://github.com/actions/stale/.
 
-name: "Label and close stale issues & PRs"
+name: "Stale issues & PRs handler"
 
 on:
   schedule:
