@@ -60,8 +60,8 @@ jobs:
         debug-only: ${{inputs.debug || false}}
         days-before-stale: ${{env.days-before-stale}}
         days-before-close: ${{env.days-before-close}}
-        stale-issue-label: 'status/going-stale'
-        stale-pr-label: 'status/going-stale'
+        stale-issue-label: 'status/stale'
+        stale-pr-label: 'status/stale'
         close-issue-label: 'status/stale'
         close-pr-label: 'status/stale'
         exempt-issue-labels: ${{steps.converted.outputs.exempt-issue-labels}}
