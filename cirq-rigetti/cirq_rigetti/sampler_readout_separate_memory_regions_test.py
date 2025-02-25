@@ -24,7 +24,7 @@ def circuit_with_separate_readout_keys() -> Tuple[cirq.Circuit, cirq.Linspace]:
 
 @pytest.mark.rigetti_integration
 def test_circuit_with_separate_readout_keys_through_sampler(
-    circuit_with_separate_readout_keys: Tuple[cirq.Circuit, cirq.Linspace]
+    circuit_with_separate_readout_keys: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
     """test that RigettiQCSSampler can properly readout from separate memory
     regions.
