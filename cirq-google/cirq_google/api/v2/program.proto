@@ -246,6 +246,7 @@ message Operation {
     IdentityGate identitygate = 19;
     HPowGate hpowgate = 20;
     SingleQubitCliffordGate singlequbitcliffordgate = 21;
+    ResetGate resetgate = 24;
   }
 
   // Map from the argument name to the Argument needed to fully specify
@@ -616,4 +617,9 @@ message IdentityGate {
 
 message HPowGate {
   FloatArg exponent = 1;
+}
+
+message ResetGate {
+    string reset_type = 1;
+    map<string, Arg> arguments = 2;
 }

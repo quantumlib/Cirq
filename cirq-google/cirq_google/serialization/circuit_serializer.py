@@ -237,6 +237,8 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.duration.total_nanos(), out=msg.waitgate.duration_nanos
             )
+        elif isinstance(gate, cirq.ResetChannel):
+            arg_func_langs.arg_to_proto(gate.dimension, out=msg.resetgate.arguments['dimension'])
         elif isinstance(gate, CouplerPulse):
             arg_func_langs.float_arg_to_proto(
                 gate.hold_time.total_picos(), out=msg.couplerpulsegate.hold_time_ps
@@ -648,6 +650,14 @@ class CircuitSerializer(serializer.Serializer):
                 operation_proto.waitgate.duration_nanos, required_arg_name=None
             )
             op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos or 0.0))(*qubits)
+        elif which_gate_type == 'resetgate':
+            dimensions = arg_func_langs.arg_from_proto(
+                operation_proto.resetgate.arguments.get('dimension', 2)
+            )
+            assert isinstance(
+                dimensions, int
+            ), f"dimensions {dimensions} for ResetChannel must be an integer!"
+            op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
             op = arg_func_langs.internal_gate_from_proto(operation_proto.internalgate)(*qubits)
         elif which_gate_type == 'couplerpulsegate':

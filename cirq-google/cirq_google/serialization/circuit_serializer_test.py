@@ -264,6 +264,15 @@ OPERATIONS = [
         ),
     ),
     (
+        cirq.R(Q0),
+        op_proto(
+            {
+                'resetgate': {'arguments': {'dimension': {'arg_value': {'float_value': 2}}}},
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
         cirq.MeasurementGate(num_qubits=2, key='iron', invert_mask=(True, False))(Q0, Q1),
         op_proto(
             {
