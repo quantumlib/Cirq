@@ -52,18 +52,17 @@ def _json_format_kwargs() -> Dict[str, bool]:
 
 
 @pytest.mark.parametrize(
-    'min_lang,value,proto',
+    'value,proto',
     [
-        ('', 1.0, {'arg_value': {'float_value': 1.0}}),
-        ('', 1, {'arg_value': {'float_value': 1.0}}),
-        ('', 'abc', {'arg_value': {'string_value': 'abc'}}),
-        ('', [True, False], {'arg_value': {'bool_values': {'values': [True, False]}}}),
-        ('', [42.9, 3.14], {'arg_value': {'double_values': {'values': [42.9, 3.14]}}}),
-        ('', [3, 8], {'arg_value': {'int64_values': {'values': ['3', '8']}}}),
-        ('', ['t1', 't2'], {'arg_value': {'string_values': {'values': ['t1', 't2']}}}),
-        ('', sympy.Symbol('x'), {'symbol': 'x'}),
+        (1.0, {'arg_value': {'float_value': 1.0}}),
+        (1, {'arg_value': {'float_value': 1.0}}),
+        ('abc', {'arg_value': {'string_value': 'abc'}}),
+        ([True, False], {'arg_value': {'bool_values': {'values': [True, False]}}}),
+        ([42.9, 3.14], {'arg_value': {'double_values': {'values': [42.9, 3.14]}}}),
+        ([3, 8], {'arg_value': {'int64_values': {'values': ['3', '8']}}}),
+        (['t1', 't2'], {'arg_value': {'string_values': {'values': ['t1', 't2']}}}),
+        (sympy.Symbol('x'), {'symbol': 'x'}),
         (
-            'linear',
             sympy.Symbol('x') - sympy.Symbol('y'),
             {
                 'func': {
@@ -81,13 +80,12 @@ def _json_format_kwargs() -> Dict[str, bool]:
             },
         ),
         (
-            'exp',
             sympy.Symbol('x') ** sympy.Symbol('y'),
             {'func': {'type': 'pow', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
         ),
     ],
 )
-def test_correspondence(min_lang: str, value: ARG_LIKE, proto: v2.program_pb2.Arg):
+def test_correspondence(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     msg = v2.program_pb2.Arg()
     json_format.ParseDict(proto, msg)
     parsed = arg_from_proto(msg)
