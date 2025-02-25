@@ -32,11 +32,7 @@ class Serializer(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def serialize(
-        self,
-        program: cirq.AbstractCircuit,
-        msg: Optional[v2.program_pb2.Program] = None,
-        *,
-        arg_function_language: Optional[str] = None,
+        self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 
@@ -44,8 +40,6 @@ class Serializer(metaclass=abc.ABCMeta):
             program: The Circuit to serialize.
             msg: An optional proto object to populate with the serialization
                 results.
-            arg_function_language: The `arg_function_language` field from
-                `Program.Language`.
         """
 
     @abc.abstractmethod
