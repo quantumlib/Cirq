@@ -72,7 +72,7 @@ def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> List[Swe
 def to_sweep(
     sweep_or_resolver_list: Union[
         'Sweep', ParamResolverOrSimilarType, Iterable[ParamResolverOrSimilarType]
-    ]
+    ],
 ) -> 'Sweep':
     """Converts the argument into a ``cirq.Sweep``.
 

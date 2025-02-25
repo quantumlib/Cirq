@@ -9,7 +9,7 @@ from cirq_rigetti import RigettiQCSService
 
 @pytest.mark.rigetti_integration
 def test_parametric_circuit_through_service(
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
+    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
     """test that RigettiQCSService can run a basic parametric circuit on
     the QVM and return an accurate `cirq.study.Result`.
