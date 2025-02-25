@@ -1743,8 +1743,15 @@ class ResetGate(google.protobuf.message.Message):
     RESET_TYPE_FIELD_NUMBER: builtins.int
     ARGUMENTS_FIELD_NUMBER: builtins.int
     reset_type: builtins.str
+    """Type of reset to be executed (hardware dependent)
+    Internal users should use the name of the class.
+    (Note that this is not used for public-facing circuits,
+     which will default to cirq.ResetChannel)
+    """
     @property
-    def arguments(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]: ...
+    def arguments(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
+        """Additional arguments that can be sent to the reset implementation."""
+
     def __init__(
         self,
         *,

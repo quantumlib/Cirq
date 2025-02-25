@@ -654,9 +654,9 @@ class CircuitSerializer(serializer.Serializer):
             dimensions = arg_func_langs.arg_from_proto(
                 operation_proto.resetgate.arguments.get('dimension', 2)
             )
-            assert isinstance(
-                dimensions, int
-            ), f"dimensions {dimensions} for ResetChannel must be an integer!"
+            if not isinstance(dimensions, int):
+                # This should always be int, if serialized from cirq.
+                raise ValueError(f"dimensions {dimensions} for ResetChannel must be an integer!")
             op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
             op = arg_func_langs.internal_gate_from_proto(operation_proto.internalgate)(*qubits)

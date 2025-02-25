@@ -620,6 +620,12 @@ message HPowGate {
 }
 
 message ResetGate {
+    // Type of reset to be executed (hardware dependent)
+    // Internal users should use the name of the class.
+    // (Note that this is not used for public-facing circuits,
+    //  which will default to cirq.ResetChannel)
     string reset_type = 1;
+
+    // Additional arguments that can be sent to the reset implementation.
     map<string, Arg> arguments = 2;
 }
