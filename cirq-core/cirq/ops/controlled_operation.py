@@ -212,6 +212,7 @@ class ControlledOperation(raw_types.Operation):
             hasattr(self._sub_operation, "gate")
             and len(self._controls) == 1
             and self.control_values == cv.ProductOfSums(((1,),))
+            and all(q.dimension == 2 for q in self.qubits)
         ):
             gate = self.sub_operation.gate
             if (

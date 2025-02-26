@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+from typing import Any, Dict, List, Optional, Union
 import numbers
 
 import abc
@@ -23,9 +23,6 @@ from cirq.circuits import circuit_operation
 from cirq_google.api import v2
 from cirq_google.serialization.arg_func_langs import arg_to_proto
 
-# Type for variables that are subclasses of ops.Gate.
-Gate = TypeVar('Gate', bound=cirq.Gate)
-
 
 class OpSerializer(abc.ABC):
     """Generic supertype for operation serializers.
@@ -35,35 +32,15 @@ class OpSerializer(abc.ABC):
     may serialize to the same format.
     """
 
-    @property
-    @abc.abstractmethod
-    def internal_type(self) -> Type:
-        """Returns the type that the operation contains.
-
-        For GateOperations, this is the gate type.
-        For CircuitOperations, this is FrozenCircuit.
-        """
-
-    @property
-    @abc.abstractmethod
-    def serialized_id(self) -> str:
-        """Returns the string identifier for the resulting serialized object.
-
-        This ID denotes the serialization format this serializer produces. For
-        example, one of the common serializers assigns the id 'xy' to XPowGates,
-        as they serialize into a format also used by YPowGates.
-        """
-
     @abc.abstractmethod
     def to_proto(
         self,
         op,
         msg=None,
         *,
-        arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant],
         raw_constants: Dict[Any, int],
-    ) -> Optional[v2.program_pb2.CircuitOperation]:
+    ) -> Optional[Union[v2.program_pb2.CircuitOperation, v2.program_pb2.Operation]]:
         """Converts op to proto using this serializer.
 
         If self.can_serialize_operation(op) == false, this should return None.
@@ -72,8 +49,6 @@ class OpSerializer(abc.ABC):
             op: The Cirq operation to be serialized.
             msg: An optional proto object to populate with the serialization
                 results.
-            arg_function_language: The `arg_function_language` field from
-                `Program.Language`.
             constants: The list of previously-serialized Constant protos.
             raw_constants: A map raw objects to their respective indices in
                 `constants`.
@@ -83,40 +58,22 @@ class OpSerializer(abc.ABC):
             the returned object.
         """
 
-    @property
     @abc.abstractmethod
-    def can_serialize_predicate(self) -> Callable[[cirq.Operation], bool]:
-        """The method used to determine if this can serialize an operation.
-
-        Depending on the serializer, additional checks may be required.
-        """
-
     def can_serialize_operation(self, op: cirq.Operation) -> bool:
         """Whether the given operation can be serialized by this serializer."""
-        return self.can_serialize_predicate(op)
 
 
 class CircuitOpSerializer(OpSerializer):
     """Describes how to serialize CircuitOperations."""
 
-    @property
-    def internal_type(self):
-        return cirq.FrozenCircuit
-
-    @property
-    def serialized_id(self):
-        return 'circuit'
-
-    @property
-    def can_serialize_predicate(self):
-        return lambda op: isinstance(op.untagged, cirq.CircuitOperation)
+    def can_serialize_operation(self, op: cirq.Operation):
+        return isinstance(op.untagged, cirq.CircuitOperation)
 
     def to_proto(
         self,
         op: cirq.CircuitOperation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
-        arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant],
         raw_constants: Dict[Any, int],
     ) -> v2.program_pb2.CircuitOperation:
@@ -161,12 +118,12 @@ class CircuitOpSerializer(OpSerializer):
 
         for p1, p2 in op.param_resolver.param_dict.items():
             entry = msg.arg_map.entries.add()
-            arg_to_proto(p1, out=entry.key, arg_function_language=arg_function_language)
+            arg_to_proto(p1, out=entry.key)
             if isinstance(p2, numbers.Complex):
                 if isinstance(p2, numbers.Real):
                     p2 = float(p2)
                 else:
                     raise ValueError(f'Cannot serialize complex value {p2}')
-            arg_to_proto(p2, out=entry.value, arg_function_language=arg_function_language)
+            arg_to_proto(p2, out=entry.value)
 
         return msg

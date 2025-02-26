@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 import pytest
 
 import numpy as np
@@ -25,6 +25,8 @@ import cirq
 import cirq_google as cg
 from cirq_google.api import v2
 from cirq_google.serialization.circuit_serializer import _SERIALIZER_NAME
+from cirq_google.serialization.op_deserializer import OpDeserializer
+from cirq_google.serialization.op_serializer import OpSerializer
 
 
 class FakeDevice(cirq.Device):
@@ -259,6 +261,15 @@ OPERATIONS = [
         cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
         op_proto(
             {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0]}
+        ),
+    ),
+    (
+        cirq.R(Q0),
+        op_proto(
+            {
+                'resetgate': {'arguments': {'dimension': {'arg_value': {'float_value': 2}}}},
+                'qubit_constant_index': [0],
+            }
         ),
     ),
     (
@@ -856,6 +867,7 @@ def test_circuit_with_tag(tag):
     assert nc[0].operations[0].tags == (tag,)
 
 
+@pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
 def test_unknown_tag_is_ignored():
     class DingDongTag:
         pass
@@ -866,6 +878,7 @@ def test_unknown_tag_is_ignored():
     assert cirq.Circuit(cirq.X(cirq.q(0))) == nc
 
 
+@pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
 def test_unrecognized_tag_is_ignored():
     op_tag = v2.program_pb2.Operation()
     op_tag.xpowgate.exponent.float_value = 1.0
@@ -917,3 +930,116 @@ def test_circuit_with_units():
     )
     msg = cg.CIRCUIT_SERIALIZER.serialize(c)
     assert c == cg.CIRCUIT_SERIALIZER.deserialize(msg)
+
+
+class BingBongGate(cirq.Gate):
+
+    def __init__(self, param: float):
+        self.param = param
+
+    def _num_qubits_(self) -> int:
+        return 1
+
+
+class BingBongSerializer(OpSerializer):
+    """Describes how to serialize CircuitOperations."""
+
+    def can_serialize_operation(self, op):
+        return isinstance(op.gate, BingBongGate)
+
+    def to_proto(
+        self,
+        op: cirq.CircuitOperation,
+        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        *,
+        constants: List[v2.program_pb2.Constant],
+        raw_constants: Dict[Any, int],
+    ) -> v2.program_pb2.CircuitOperation:
+        assert isinstance(op.gate, BingBongGate)
+        if msg is None:
+            msg = v2.program_pb2.Operation()  # pragma: nocover
+        msg.internalgate.name = 'bingbong'
+        msg.internalgate.module = 'test'
+        msg.internalgate.num_qubits = 1
+        msg.internalgate.gate_args['param'].arg_value.float_value = op.gate.param
+
+        for qubit in op.qubits:
+            if qubit not in raw_constants:
+                constants.append(
+                    v2.program_pb2.Constant(
+                        qubit=v2.program_pb2.Qubit(id=v2.qubit_to_proto_id(qubit))
+                    )
+                )
+                raw_constants[qubit] = len(constants) - 1
+            msg.qubit_constant_index.append(raw_constants[qubit])
+        return msg
+
+
+class BingBongDeserializer(OpDeserializer):
+    """Describes how to serialize CircuitOperations."""
+
+    def can_deserialize_proto(self, proto):
+        return (
+            isinstance(proto, v2.program_pb2.Operation)
+            and proto.WhichOneof("gate_value") == "internalgate"
+            and proto.internalgate.name == 'bingbong'
+            and proto.internalgate.module == 'test'
+        )
+
+    def from_proto(
+        self,
+        proto: v2.program_pb2.Operation,
+        *,
+        constants: List[v2.program_pb2.Constant],
+        deserialized_constants: List[Any],
+    ) -> cirq.Operation:
+        return BingBongGate(param=proto.internalgate.gate_args["param"].arg_value.float_value).on(
+            deserialized_constants[proto.qubit_constant_index[0]]
+        )
+
+
+def test_serdes_preserves_syc():
+    serializer = cg.CircuitSerializer()
+    c = cirq.Circuit(cg.SYC(cirq.q(0, 0), cirq.q(0, 1)))
+    msg = serializer.serialize(c)
+    deserialized_circuit = serializer.deserialize(msg)
+    assert deserialized_circuit == c
+    assert isinstance(c[0][cirq.q(0, 0)].gate, cg.SycamoreGate)
+
+
+@pytest.mark.parametrize('use_constants_table', [True, False])
+def test_custom_serializer(use_constants_table: bool):
+    c = cirq.Circuit(BingBongGate(param=2.5)(cirq.q(0, 0)))
+    serializer = cg.CircuitSerializer(
+        USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
+        USE_CONSTANTS_TABLE_FOR_OPERATIONS=use_constants_table,
+        op_serializer=BingBongSerializer(),
+        op_deserializer=BingBongDeserializer(),
+    )
+    msg = serializer.serialize(c)
+    deserialized_circuit = serializer.deserialize(msg)
+    moment = deserialized_circuit[0]
+    assert len(moment) == 1
+    op = moment[cirq.q(0, 0)]
+    assert isinstance(op.gate, BingBongGate)
+    assert op.gate.param == 2.5
+    assert op.qubits == (cirq.q(0, 0),)
+
+
+def test_reset_gate_with_improper_argument():
+    serializer = cg.CircuitSerializer()
+
+    op = v2.program_pb2.Operation()
+    op.resetgate.arguments['dimension'].arg_value.float_value = 2.5
+    op.qubit_constant_index.append(0)
+    circuit_proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[v2.program_pb2.Moment(operations=[op])],
+        ),
+        constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_2'))],
+    )
+
+    with pytest.raises(ValueError, match="must be an integer"):
+        serializer.deserialize(circuit_proto)
