@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   push_to_pypi:
     if: github.repository == 'quantumlib/Cirq'
