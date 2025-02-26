@@ -264,6 +264,15 @@ OPERATIONS = [
         ),
     ),
     (
+        cirq.R(Q0),
+        op_proto(
+            {
+                'resetgate': {'arguments': {'dimension': {'arg_value': {'float_value': 2}}}},
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
         cirq.MeasurementGate(num_qubits=2, key='iron', invert_mask=(True, False))(Q0, Q1),
         op_proto(
             {
@@ -1006,3 +1015,22 @@ def test_custom_serializer(use_constants_table: bool):
     assert isinstance(op.gate, BingBongGate)
     assert op.gate.param == 2.5
     assert op.qubits == (cirq.q(0, 0),)
+
+
+def test_reset_gate_with_improper_argument():
+    serializer = cg.CircuitSerializer()
+
+    op = v2.program_pb2.Operation()
+    op.resetgate.arguments['dimension'].arg_value.float_value = 2.5
+    op.qubit_constant_index.append(0)
+    circuit_proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[v2.program_pb2.Moment(operations=[op])],
+        ),
+        constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_2'))],
+    )
+
+    with pytest.raises(ValueError, match="must be an integer"):
+        serializer.deserialize(circuit_proto)
