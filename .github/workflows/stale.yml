@@ -42,11 +42,6 @@ env:
 # Declare default permissions as read only.
 permissions: read-all
 
-# Cancel any previously-started but still active runs on the same branch.
-concurrency:
-  cancel-in-progress: true
-  group: ${{github.workflow}}-${{github.event.pull_request.number||github.ref}}
-
 jobs:
   stale:
     name: Label and/or close stale issues and PRs
