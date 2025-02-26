@@ -790,6 +790,7 @@ class CircuitSerializer(serializer.Serializer):
                     and isinstance(phi, float)
                     and np.isclose(theta, np.pi / 2)
                     and np.isclose(phi, np.pi / 6)
+                    and not operation_proto.fsimgate.translate_via_model
                 ):
                     op = SYC(*qubits)
                 else:
