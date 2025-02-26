@@ -14,10 +14,14 @@
 
 """Transformer passes to combine adjacent single-qubit rotations."""
 
+import enum
+import warnings
 from typing import Optional, TYPE_CHECKING
+
 
 from cirq import circuits, ops, protocols
 from cirq.transformers import merge_k_qubit_gates, transformer_api, transformer_primitives
+from cirq.study import sweepable
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:
@@ -152,3 +156,87 @@ def merge_single_qubit_moments_to_phxz(
         deep=context.deep if context else False,
         tags_to_ignore=tuple(tags_to_ignore),
     ).unfreeze(copy=False)
+
+
+@transformer_api.transformer
+def merge_into_symbolized_phxz(
+    circuit: 'cirq.AbstractCircuit',
+    *,
+    context: Optional['cirq.TransformerContext'] = None,
+    sweeps: Optional['sweepable.Sweepable'] = None,
+    atol: float = 1e-8,
+) -> 'cirq.Circuit':
+    """Merge consecutive single qubit gates into connected symbolized PhasedXZ gates.
+
+    Specifically, if at least one of the consecutive gates is symbolized, then the merged gate
+    will be a symbolized gate.
+
+    e.g., X-Y-H-phxz(sa, sx, sz) ---transform---> phxz(sa, sx, sz)
+
+    Note, we only consider merging non-parameterized gates to symbolized phxz with
+     3 degrees of freedom, meaning that gates like Z^exp_symbol will be considered non-mergable.
+
+    Args:
+        circuit: Input circuit to transform. It will not be modified.
+        sweeps: Sweeps of the symbols in the input circuit, updated Sweeps will be returned
+            based on the transformation.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
+        atol: Absolute tolerance to angle error. Larger values allow more negligible gates to be
+            dropped, smaller values increase accuracy.
+
+    Returns:
+        Copy of the transformed input circuit.
+    """
+
+    # TODO(#6994): support returning update sweeps when sweeps are provided.
+    if sweeps is not None:
+        raise NotImplementedError("To be supported in #6994.")
+
+    if not protocols.is_parameterized(circuit):
+        warnings.warn(
+            "Expect parameterized circuits. "
+            "Please use cirq.merge_single_qubit_gates_to_phxz instead.",
+            UserWarning,
+        )
+        return merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol)
+
+    # Merge all non parameterized single qubit gates first.
+    circuit = merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol)
+
+    def _merge_func(op1: 'cirq.Operation', op2: 'cirq.Operation'):
+
+        class _MergeGateType(enum.Enum):
+            MERAGABLE_NON_PARAMETERIZED = 0
+            MERAGABLE_PARAMETERIZED_PHXZ = 1
+            NON_MERGEABLE = 2
+
+        def _categorize(op: 'cirq.Operation') -> _MergeGateType:
+            if protocols.has_unitary(op) and protocols.num_qubits(op) == 1:
+                return _MergeGateType.MERAGABLE_NON_PARAMETERIZED
+            if isinstance(op.gate, ops.PhasedXZGate) and protocols.is_parameterized(op):
+                return _MergeGateType.MERAGABLE_PARAMETERIZED_PHXZ
+            return _MergeGateType.NON_MERGEABLE
+
+        merge_type1 = _categorize(op1)
+        merge_type2 = _categorize(op2)
+
+        if (
+            merge_type1 == _MergeGateType.NON_MERGEABLE
+            or merge_type2 == _MergeGateType.NON_MERGEABLE
+        ):
+            return None
+
+        # absorb the non-parameterized gate into the parameterized gate.
+        if merge_type1 == _MergeGateType.MERAGABLE_PARAMETERIZED_PHXZ:
+            return op1
+        if merge_type2 == _MergeGateType.MERAGABLE_PARAMETERIZED_PHXZ:
+            return op2
+
+        return None  # pragma: no cover
+
+    return transformer_primitives.merge_operations(
+        circuit,
+        _merge_func,
+        deep=context.deep if context else False,
+        tags_to_ignore=context.tags_to_ignore if context else (),
+    ).unfreeze()
