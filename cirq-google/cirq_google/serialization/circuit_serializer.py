@@ -191,7 +191,6 @@ class CircuitSerializer(serializer.Serializer):
             ValueError: If the operation cannot be serialized.
         """
         gate = op.gate
-
         if isinstance(gate, InternalGate):
             arg_func_langs.internal_gate_arg_to_proto(gate, out=msg.internalgate)
         elif isinstance(gate, cirq.XPowGate):
@@ -258,6 +257,23 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.q1_detune_mhz, out=msg.couplerpulsegate.q1_detune_mhz
             )
+        elif op.__module__.startswith('stimcirq') or (
+            gate is not None and gate.__module__.startswith('stimcirq')
+        ):
+            # Special handling for stimcirq objects, which can be both operations and gates.
+            stimcirq_obj = op if op.__module__.startswith('stimcirq') else gate
+            if stimcirq_obj is not None and hasattr(stimcirq_obj, '_json_dict_'):
+                # All stimcirq gates currently have _json_dict_defined
+                msg.internalgate.name = type(stimcirq_obj).__name__
+                msg.internalgate.module = 'stimcirq'
+                if isinstance(stimcirq_obj, cirq.Gate):
+                    msg.internalgate.num_qubits = stimcirq_obj.num_qubits()
+                else:
+                    msg.internalgate.num_qubits = len(stimcirq_obj.qubits)
+
+                # Store json_dict objects in gate_args
+                for k, v in stimcirq_obj._json_dict_().items():
+                    arg_func_langs.arg_to_proto(value=v, out=msg.internalgate.gate_args[k])
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
@@ -659,7 +675,29 @@ class CircuitSerializer(serializer.Serializer):
                 raise ValueError(f"dimensions {dimensions} for ResetChannel must be an integer!")
             op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
-            op = arg_func_langs.internal_gate_from_proto(operation_proto.internalgate)(*qubits)
+            parsed_as_stimcirq = False
+            msg = operation_proto.internalgate
+            if msg.module == 'stimcirq':
+                # special handling for stimcirq
+                try:
+                    import stimcirq
+
+                    # Use JSON resolver to instantiate the object
+                    if msg.name in stimcirq.JSON_RESOLVERS_DICT:
+                        kwargs = {}
+                        for k, v in msg.gate_args.items():
+                            arg = arg_func_langs.arg_from_proto(v)
+                            if arg is not None:
+                                kwargs[k] = arg
+                        op = stimcirq.JSON_RESOLVERS_DICT[msg.name](**kwargs)
+                        parsed_as_stimcirq = True
+
+                except ModuleNotFoundError:
+                    # fall back to creating internal gates if stimcirq not installed
+                    pass
+            if not parsed_as_stimcirq:
+                # all other internal gates
+                op = arg_func_langs.internal_gate_from_proto(msg)(*qubits)
         elif which_gate_type == 'couplerpulsegate':
             gate = CouplerPulse(
                 hold_time=cirq.Duration(

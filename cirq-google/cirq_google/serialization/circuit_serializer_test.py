@@ -1034,3 +1034,20 @@ def test_reset_gate_with_improper_argument():
 
     with pytest.raises(ValueError, match="must be an integer"):
         serializer.deserialize(circuit_proto)
+
+
+def test_stimcirq_gates():
+    try:
+        import stimcirq
+    except ModuleNotFoundError:
+        # Stimcirq not found, these are optional tests.
+        pass
+    serializer = cg.CircuitSerializer()
+    q = cirq.q(1, 2)
+    c = cirq.Circuit(
+        cirq.Moment(cirq.measure(q, key="m")),
+        cirq.Moment(stimcirq.DetAnnotation(parity_keys=["m"])),
+    )
+    msg = serializer.serialize(c)
+    deserialized_circuit = serializer.deserialize(msg)
+    assert deserialized_circuit == c
