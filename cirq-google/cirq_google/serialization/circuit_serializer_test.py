@@ -943,7 +943,6 @@ class BingBongSerializer(OpSerializer):
         op: cirq.CircuitOperation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
-        arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant],
         raw_constants: Dict[Any, int],
     ) -> v2.program_pb2.CircuitOperation:
@@ -982,7 +981,6 @@ class BingBongDeserializer(OpDeserializer):
         self,
         proto: v2.program_pb2.Operation,
         *,
-        arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant],
         deserialized_constants: List[Any],
     ) -> cirq.Operation:

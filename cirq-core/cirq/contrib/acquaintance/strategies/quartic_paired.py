@@ -47,7 +47,7 @@ def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]) -> L
 
 
 def quartic_paired_acquaintance_strategy(
-    qubit_pairs: Iterable[Tuple['cirq.Qid', ops.Qid]]
+    qubit_pairs: Iterable[Tuple['cirq.Qid', ops.Qid]],
 ) -> Tuple['cirq.Circuit', Sequence['cirq.Qid']]:
     """Acquaintance strategy for pairs of pairs.
 

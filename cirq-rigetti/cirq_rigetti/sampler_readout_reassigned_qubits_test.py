@@ -24,7 +24,7 @@ def circuit_data() -> Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace]:
 
 @pytest.mark.rigetti_integration
 def test_readout_on_reassigned_qubits(
-    circuit_data: Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace]
+    circuit_data: Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace],
 ) -> None:
     """test that RigettiQCSSampler can properly readout qubits after quilc has
     reassigned those qubits in the compiled native Quil.

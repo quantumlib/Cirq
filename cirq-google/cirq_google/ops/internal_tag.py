@@ -68,9 +68,7 @@ class InternalTag:
         msg.internal_tag.tag_name = self.name
         msg.internal_tag.tag_package = self.package
         for k, v in self.tag_args.items():
-            arg_func_langs.arg_to_proto(
-                v, out=msg.internal_tag.tag_args[k], arg_function_language='exp'
-            )
+            arg_func_langs.arg_to_proto(v, out=msg.internal_tag.tag_args[k])
         return msg
 
     @staticmethod
@@ -83,7 +81,7 @@ class InternalTag:
 
         kw_dict = {}
         for k, v in msg.internal_tag.tag_args.items():
-            kw_dict[k] = arg_func_langs.arg_from_proto(v, arg_function_language='exp')
+            kw_dict[k] = arg_func_langs.arg_from_proto(v)
 
         return InternalTag(
             name=msg.internal_tag.tag_name, package=msg.internal_tag.tag_package, **kw_dict
