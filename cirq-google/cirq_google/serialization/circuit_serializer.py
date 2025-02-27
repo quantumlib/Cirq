@@ -16,6 +16,7 @@
 
 from typing import Any, Dict, List, Optional
 import warnings
+import numpy as np
 import sympy
 
 import cirq
@@ -26,6 +27,7 @@ from cirq_google.ops import (
     InternalTag,
     FSimViaModelTag,
     DynamicalDecouplingTag,
+    SYC,
 )
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.experimental.ops import CouplerPulse
@@ -621,7 +623,16 @@ class CircuitSerializer(serializer.Serializer):
             if isinstance(theta, (int, float, sympy.Basic)) and isinstance(
                 phi, (int, float, sympy.Basic)
             ):
-                op = cirq.FSimGate(theta=theta, phi=phi)(*qubits)
+                if (
+                    isinstance(theta, float)
+                    and isinstance(phi, float)
+                    and np.isclose(theta, np.pi / 2)
+                    and np.isclose(phi, np.pi / 6)
+                    and not operation_proto.fsimgate.translate_via_model
+                ):
+                    op = SYC(*qubits)
+                else:
+                    op = cirq.FSimGate(theta=theta, phi=phi)(*qubits)
             else:
                 raise ValueError('theta and phi must be specified for FSimGate')
             if operation_proto.fsimgate.translate_via_model:
