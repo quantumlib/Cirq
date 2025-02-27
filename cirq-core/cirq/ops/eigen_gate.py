@@ -310,9 +310,6 @@ class EigenGate(raw_types.Gate):
         shifts = (f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
         return tuple(s if symbolic(s) else value.PeriodicValue(f(s), 2) for s in shifts)
 
-    def _value_equality_approximate_values_(self):
-        return self._value_equality_values_()
-
     def _trace_distance_bound_(self) -> Optional[float]:
         if protocols.is_parameterized(self._exponent):
             return None
