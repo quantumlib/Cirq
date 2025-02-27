@@ -11,7 +11,7 @@ option java_multiple_files = true;
 // A quantum program.
 message Program {
   // The language in which the program is written.
-  Language language = 1;
+  Language language = 1 [deprecated=true];
 
   // Programs can be specified by a circuit or a schedule.
   oneof program {
@@ -143,7 +143,7 @@ message Language {
   //
   // Valid names for the arg function language can be found in
   // cirq/google/arg_func_langs.py
-  string arg_function_language = 2;
+  string arg_function_language = 2 [deprecated=true];
 }
 
 // Argument that is constrained to a float or symbolic expression
@@ -246,6 +246,7 @@ message Operation {
     IdentityGate identitygate = 19;
     HPowGate hpowgate = 20;
     SingleQubitCliffordGate singlequbitcliffordgate = 21;
+    ResetGate resetgate = 24;
   }
 
   // Map from the argument name to the Argument needed to fully specify
@@ -616,4 +617,15 @@ message IdentityGate {
 
 message HPowGate {
   FloatArg exponent = 1;
+}
+
+message ResetGate {
+    // Type of reset to be executed (hardware dependent)
+    // Internal users should use the name of the class.
+    // (Note that this is not used for public-facing circuits,
+    //  which will default to cirq.ResetChannel)
+    string reset_type = 1;
+
+    // Additional arguments that can be sent to the reset implementation.
+    map<string, Arg> arguments = 2;
 }

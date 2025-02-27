@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 def _date_to_timestamp(
-    union_time: Optional[Union[datetime.datetime, datetime.date, int]]
+    union_time: Optional[Union[datetime.datetime, datetime.date, int]],
 ) -> Optional[int]:
     if isinstance(union_time, int):
         return union_time

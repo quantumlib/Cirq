@@ -111,7 +111,7 @@ def test_internal_gate_with_custom_function_round_trip():
 
     msg = arg_func_langs.internal_gate_arg_to_proto(gate)
 
-    new_gate = arg_func_langs.internal_gate_from_proto(msg, arg_func_langs.MOST_PERMISSIVE_LANGUAGE)
+    new_gate = arg_func_langs.internal_gate_from_proto(msg)
 
     func_proto = new_gate.custom_args['func'].function_interpolation_data
 
