@@ -690,9 +690,11 @@ class CircuitSerializer(serializer.Serializer):
                             if arg is not None:
                                 kwargs[k] = arg
                         op = stimcirq.JSON_RESOLVERS_DICT[msg.name](**kwargs)
+                        if qubits:
+                            op = op(*qubits)
                         parsed_as_stimcirq = True
 
-                except ModuleNotFoundError:
+                except ModuleNotFoundError: # pragma: no cover
                     # fall back to creating internal gates if stimcirq not installed
                     pass
             if not parsed_as_stimcirq:
