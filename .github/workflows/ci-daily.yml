@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   pytest:
     name: Pytest Ubuntu
@@ -17,12 +20,12 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - uses: actions/cache@v4
+      - uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
@@ -51,12 +54,12 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - uses: actions/cache@v4
+      - uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
@@ -77,12 +80,12 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
     runs-on: macos-13
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - uses: actions/cache@v4
+      - uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
