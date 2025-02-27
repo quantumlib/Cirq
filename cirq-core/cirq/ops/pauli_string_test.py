@@ -58,18 +58,18 @@ def _small_sample_qubit_pauli_maps():
 
 
 def assert_conjugation(
-    input_ps: cirq.PauliString,
-    op: cirq.Operation,
-    expected: cirq.PauliString | None,
-    compare_unitary: bool = False,
+    input_ps: cirq.PauliString, ops: cirq.OP_TREE, expected: cirq.PauliString | None
 ):
-    conjugation = input_ps.conjugated_by(op)
+    conjugation = input_ps.conjugated_by(ops)
     if expected is not None:
         assert conjugation == expected
-    if compare_unitary:
-        actual_unitary = cirq.unitary(conjugation.dense(op.qubits))
-        c = cirq.unitary(op)
-        expected_unitary = np.conj(c.T) @ cirq.unitary(input_ps.dense(op.qubits)) @ c
+    else:  # Compares the unitary of the conjugation result and the expected unitary.
+        op_list = list(cirq.flatten_to_ops(ops))
+        qubits_of_clifford = [q for op in op_list for q in op.qubits]
+        clifford = cirq.CliffordGate.from_op_list(op_list, qubits_of_clifford)
+        actual_unitary = cirq.unitary(conjugation.dense(qubits_of_clifford))
+        c = cirq.unitary(clifford)
+        expected_unitary = np.conj(c.T) @ cirq.unitary(input_ps.dense(qubits_of_clifford)) @ c
         assert np.allclose(actual_unitary, expected_unitary, atol=1e-8)
 
 
@@ -1397,26 +1397,24 @@ def test_pauli_string_expectation_from_state_vector_mixed_state_linearity():
 def test_conjugated_by_normal_gates():
     a = cirq.LineQubit(0)
 
-    assert_conjugation(cirq.X(a), cirq.H(a), cirq.Z(a), True)
-    assert_conjugation(cirq.Y(a), cirq.H(a), -cirq.Y(a), True)
-    assert_conjugation(cirq.Z(a), cirq.H(a), cirq.X(a), True)
+    assert_conjugation(cirq.X(a), cirq.H(a), cirq.Z(a))
+    assert_conjugation(cirq.Y(a), cirq.H(a), -cirq.Y(a))
+    assert_conjugation(cirq.Z(a), cirq.H(a), cirq.X(a))
 
-    assert_conjugation(cirq.X(a), cirq.S(a), -cirq.Y(a), True)
-    assert_conjugation(cirq.Y(a), cirq.S(a), cirq.X(a), True)
-    assert_conjugation(cirq.Z(a), cirq.S(a), cirq.Z(a), True)
+    assert_conjugation(cirq.X(a), cirq.S(a), -cirq.Y(a))
+    assert_conjugation(cirq.Y(a), cirq.S(a), cirq.X(a))
+    assert_conjugation(cirq.Z(a), cirq.S(a), cirq.Z(a))
 
     clifford_op = cirq.PhasedXZGate(axis_phase_exponent=0.25, x_exponent=-1, z_exponent=0).on(a)
-    assert_conjugation(cirq.X(a), clifford_op, cirq.Y(a), True)
-    assert_conjugation(cirq.Y(a), clifford_op, cirq.X(a), True)
-    assert_conjugation(cirq.Z(a), clifford_op, -cirq.Z(a), True)
+    assert_conjugation(cirq.X(a), clifford_op, cirq.Y(a))
+    assert_conjugation(cirq.Y(a), clifford_op, cirq.X(a))
+    assert_conjugation(cirq.Z(a), clifford_op, -cirq.Z(a))
 
 
 def test_conjugated_by_op_gate_of_clifford_gate_type():
     a = cirq.LineQubit(0)
 
-    assert_conjugation(
-        cirq.X(a), cirq.CliffordGate.from_op_list([cirq.H(a)], [a]).on(a), cirq.Z(a), True
-    )
+    assert_conjugation(cirq.X(a), cirq.CliffordGate.from_op_list([cirq.H(a)], [a]).on(a), cirq.Z(a))
 
 
 def test_dense():
@@ -1551,7 +1549,7 @@ def test_conjugated_by_common_single_qubit_gates():
             # pauli gate on a, clifford on b: pauli gate preserves.
             assert_conjugation(p(a), g(b), p(a))
             # pauli gate on a, clifford on a: check conjugation in matrices.
-            assert_conjugation(p(a), g(a), None, compare_unitary=True)
+            assert_conjugation(p(a), g(a), None)
 
 
 def test_conjugated_by_common_two_qubit_gates():
@@ -1582,7 +1580,7 @@ def test_conjugated_by_common_two_qubit_gates():
                 assert_conjugation(p, g(c, d), p)
                 # pauli_string on (a,b), clifford on (a,b): compare unitaries of
                 # the conjugated_by and actual matrix conjugation.
-                assert_conjugation(p, g.on(a, b), None, compare_unitary=True)
+                assert_conjugation(p, g.on(a, b), None)
 
 
 def test_conjugated_by_ordering():
