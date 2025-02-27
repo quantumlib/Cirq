@@ -13,8 +13,7 @@
 # limitations under the License.
 
 
-"""DeviceMetadata for ion trap device with mutually linked qubits placed on a line.
-"""
+"""DeviceMetadata for ion trap device with mutually linked qubits placed on a line."""
 
 from typing import Any, Iterable, Mapping
 
