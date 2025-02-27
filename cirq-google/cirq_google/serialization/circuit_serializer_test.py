@@ -1039,7 +1039,7 @@ def test_reset_gate_with_improper_argument():
 def test_stimcirq_gates():
     try:
         import stimcirq
-    except ModuleNotFoundError: # pragma: no cover
+    except ModuleNotFoundError:  # pragma: no cover
         # Stimcirq not found, these are optional tests.
         return
     serializer = cg.CircuitSerializer()
@@ -1047,7 +1047,6 @@ def test_stimcirq_gates():
     q2 = cirq.q(2, 2)
     c = cirq.Circuit(
         cirq.Moment(stimcirq.CXSwapGate(inverted=True)(q, q2)),
-
         cirq.Moment(cirq.measure(q, key="m")),
         cirq.Moment(stimcirq.DetAnnotation(parity_keys=["m"])),
     )
