@@ -1041,7 +1041,7 @@ def test_stimcirq_gates():
         import stimcirq
     except ModuleNotFoundError:
         # Stimcirq not found, these are optional tests.
-        pass
+        return
     serializer = cg.CircuitSerializer()
     q = cirq.q(1, 2)
     c = cirq.Circuit(
