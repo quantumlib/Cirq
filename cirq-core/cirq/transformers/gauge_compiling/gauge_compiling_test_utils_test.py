@@ -48,22 +48,6 @@ _BAD_TRANSFORMER = GaugeTransformer(
     ),
 )
 
-_TRANSFORMER_WITH_SWEEP = GaugeTransformer(
-    target=_EXAMPLE_SWEEP_TARGET,
-    gauge_selector=GaugeSelector(
-        gauges=[
-            ConstantGauge(
-                two_qubit_gate=_EXAMPLE_SWEEP_TARGET,
-                pre_q0=cirq.Z,
-                pre_q1=cirq.Z,
-                post_q0=cirq.Z,
-                post_q1=cirq.Z,
-                support_sweep=True,
-            )
-        ]
-    ),
-)
-
 
 class TestValidTransformer(GaugeTester):
     two_qubit_gate = _EXAMPLE_TARGET
@@ -74,9 +58,3 @@ class TestInvalidTransformer(GaugeTester):
     two_qubit_gate = _EXAMPLE_TARGET
     gauge_transformer = _BAD_TRANSFORMER
     must_fail = True
-
-
-class TestSweep(GaugeTester):
-    two_qubit_gate = _EXAMPLE_SWEEP_TARGET
-    gauge_transformer = _TRANSFORMER_WITH_SWEEP
-    sweep_must_pass = True

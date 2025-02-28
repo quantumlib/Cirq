@@ -7,20 +7,26 @@ on:
   pull_request:
     branches:
       - main
+  merge_group:
+    types:
+      - checks_requested
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   quick_test:
     name: Misc check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -28,12 +34,12 @@ jobs:
         run: check/misc
   packaging_test:
     name: Packaging test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -43,14 +49,14 @@ jobs:
         run: ./dev_tools/packaging/packaging_test.sh
   format:
     name: Format check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -60,12 +66,12 @@ jobs:
         run: check/format-incremental
   mypy:
     name: Type check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -75,14 +81,14 @@ jobs:
         run: check/mypy
   changed_files:
     name: Changed files test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -92,12 +98,12 @@ jobs:
         run: check/pytest-changed-files -n auto
   lint:
     name: Lint check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -109,29 +115,27 @@ jobs:
         run: check/pylint -v
   doc_test:
     name: Doc test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
-      - name: RST check
-        run: find . -type f -name "*.rst" | xargs rstcheck
       - name: Doc check
         run: check/doctest -q
   nbformat:
     name: Notebook formatting
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -141,22 +145,22 @@ jobs:
         run: check/nbformat
   shellcheck:
     name: Shell check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
       - name: Run shellcheck
         run: check/shellcheck
   isolated-modules:
     name: Isolated pytest Ubuntu
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -169,20 +173,24 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Set up caching of dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install wheel
@@ -198,21 +206,25 @@ jobs:
     name: Pytest Ubuntu with NumPy-2
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
-    runs-on: ubuntu-20.04
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Set up caching of dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          key: numpy2-${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install wheel
@@ -221,12 +233,12 @@ jobs:
         run: check/pytest -n auto --warn-numpy-data-promotion --durations=20 --ignore=cirq-rigetti
   pip-compile:
     name: Check consistency of requirements
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -237,14 +249,14 @@ jobs:
           pip-compile --resolver=backtracking dev_tools/requirements/deps/cirq-all.txt -o-
   build_protos:
     name: Build protos
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -255,22 +267,26 @@ jobs:
         run: check/protos-up-to-date
   coverage:
     name: Coverage check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
       - name: Set up caching of dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install system requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get install libffi7
       - name: Install requirements
         run: |
           pip install wheel
@@ -280,7 +296,7 @@ jobs:
       - name: Coverage check
         run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3 # v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Stop Quil dependencies
@@ -293,14 +309,14 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Set up caching of dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
@@ -318,18 +334,17 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
-    # TODO(#6577): upgrade to macos-latest when it runs Python 3.10
     runs-on: macos-13
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Set up caching of dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
@@ -347,14 +362,14 @@ jobs:
       matrix:
         # partitions should be named partition-0 to partition-(NOTEBOOK_PARTITIONS-1)
         partition: [partition-0, partition-1, partition-2, partition-3]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -363,19 +378,19 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         if: failure()
         with:
           name: notebook-outputs
           path: out
   notebooks-branch:
     name: Notebook Tests against PR
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -384,19 +399,19 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
       - name: Persist the outputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         if: failure()
         with:
           name: notebook-outputs
           path: out
   ts-build:
     name: Bundle file consistency
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Node environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
         with:
           node-version: '20.17.0'
       - name: Install node dependencies
@@ -405,12 +420,12 @@ jobs:
         run: check/ts-build-current
   ts-lint:
     name: Typescript lint check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Node environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
         with:
           node-version: '20.17.0'
       - name: Install node dependencies
@@ -419,12 +434,12 @@ jobs:
         run: check/ts-lint
   ts-test:
     name: Typescript tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Node environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
         with:
           node-version: '20.17.0'
       - name: Install node dependencies
@@ -435,12 +450,12 @@ jobs:
         run: check/ts-test-e2e
   ts-coverage:
     name: Typescript tests coverage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Node environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
         with:
           node-version: '20.17.0'
       - name: Install node dependencies

@@ -377,7 +377,10 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         #  ZI  [ 0  0 | 1  0  | 1 ]
         #  IZ  [ 1  0 | 1  1  | 0 ]
         # Take the third row as example: this means the ZI gate after the this gate,
-        # more precisely the conjugate transformation of ZI by this gate, becomes -ZI.
+        # more precisely the conjugate transformation of ZI by this gate, becomes -ZI:
+        #   ---(CliffordGate^-1)---ZI---CliffordGate---
+        # = unitary(CliffordGate)@unitary(ZI)@unitary(CliffordGate).conj().T
+        # = -ZI.
         # (Note the real clifford tableau has to satify the Symplectic property.
         # here is just for illustration)
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
@@ -433,12 +436,12 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         return CliffordGate.from_clifford_tableau(base_tableau)
 
     def __repr__(self) -> str:
-        return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
+        return f"Clifford Gate with Tableau:\n{self.clifford_tableau._str_full_()}"
 
     def _commutes_(
         self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
-        # Note even if we assume two gates define the tabluea based on the same qubit order,
+        # Note even if we assume two gates define the tableau based on the same qubit order,
         # the following approach cannot judge it:
         # self.clifford_tableau.then(other.clifford_tableau) == other.clifford_tableau.then(
         #     self.clifford_tableau
@@ -742,17 +745,22 @@ class SingleQubitCliffordGate(CliffordGate):
             z = -0.5 if x_to_flip else 0.5
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
-    def __pow__(self, exponent: Union[float, int]) -> 'SingleQubitCliffordGate':
-        # First to check if we can get the sqrt and negative sqrt Clifford.
-        if self._get_sqrt_map().get(exponent, None):
-            pow_gate = self._get_sqrt_map()[exponent].get(self, None)
+    def __pow__(self, exponent: float) -> 'SingleQubitCliffordGate':
+        if int(exponent) == exponent:
+            # The single qubit Clifford gates are a group of size 24
+            ret_gate = super().__pow__(int(exponent) % 24)
+            return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
+        elif int(2 * exponent) == 2 * exponent:
+            # If exponent = k/2 for integer k, then we compute the k-th power of the square root
+            if exponent < 0:
+                sqrt_exp = -0.5
+            else:
+                sqrt_exp = 0.5
+            pow_gate = self._get_sqrt_map()[sqrt_exp].get(self, None)
             if pow_gate:
-                return pow_gate
-        # If not, we try the Clifford Tableau based method.
-        ret_gate = super().__pow__(exponent)
-        if ret_gate is NotImplemented:
-            return NotImplemented
-        return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
+                return pow_gate ** (abs(2 * exponent))
+
+        return NotImplemented
 
     def _act_on_(
         self,
@@ -897,7 +905,12 @@ class SingleQubitCliffordGate(CliffordGate):
         return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
-        return f'cirq.CliffordGate.from_clifford_tableau({self.clifford_tableau!r})'
+        return (
+            f'cirq.ops.SingleQubitCliffordGate(_clifford_tableau=cirq.CliffordTableau(1, '
+            f'rs=np.array({self._clifford_tableau.rs.tolist()!r}), '
+            f'xs=np.array({self._clifford_tableau.xs.tolist()!r}), '
+            f'zs=np.array({self._clifford_tableau.zs.tolist()!r})))'
+        )
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

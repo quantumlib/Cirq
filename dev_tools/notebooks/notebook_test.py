@@ -37,8 +37,6 @@ SKIP_NOTEBOOKS = [
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
     '**/rigetti/*.ipynb',
-    # disabled to unblock Python 3.12.  TODO(#6590) - fix and enable.
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
     # skipping fidelity estimation due to
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
@@ -46,8 +44,6 @@ SKIP_NOTEBOOKS = [
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
-    'docs/noise/calibration_api.ipynb',
-    'docs/noise/floquet_calibration_example.ipynb',
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',

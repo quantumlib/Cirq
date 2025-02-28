@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A protocol for implementing high performance clifford tableau evolutions
- for Clifford Simulator."""
+for Clifford Simulator."""
 
 from typing import Optional, Sequence, TYPE_CHECKING
 

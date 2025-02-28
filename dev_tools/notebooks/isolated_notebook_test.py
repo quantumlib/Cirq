@@ -47,8 +47,6 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     # Requires OpenQASM 3.0 support from cirq 1.6
     'docs/build/interop.ipynb',
     # get_qcs_objects_for_notebook
-    'docs/noise/calibration_api.ipynb',
-    'docs/noise/floquet_calibration_example.ipynb',
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
 ]
 
@@ -90,7 +88,6 @@ PACKAGES = [
 ]
 
 
-# TODO(3577): extract these out to common utilities when we rewrite bash scripts in python
 def _find_base_revision():
     for rev in ['upstream/main', 'origin/main', 'main']:
         try:

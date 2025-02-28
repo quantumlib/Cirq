@@ -83,7 +83,7 @@ def _validate_dd_sequence(dd_sequence: Tuple[ops.Gate, ...]) -> None:
 
 
 def _parse_dd_sequence(
-    schema: Union[str, Tuple[ops.Gate, ...]]
+    schema: Union[str, Tuple[ops.Gate, ...]],
 ) -> Tuple[Tuple[ops.Gate, ...], Dict[ops.Gate, ops.Pauli]]:
     """Parses and returns dynamical decoupling sequence and its associated pauli map from schema."""
     dd_sequence = None
@@ -177,7 +177,13 @@ def _calc_pulled_through(
     clifford_ops_in_moment: list[ops.Operation] = [
         op for op in moment.operations if _is_clifford_op(op)
     ]
-    return input_pauli_ops.after(clifford_ops_in_moment)
+    # TODO(#6946): directly pass clifford_ops_in_moment to input_pauli_ops.after() after #6946 is
+    # fixed.
+    affected_qubits = [q for op in clifford_ops_in_moment for q in op.qubits]
+    all_cliffords_in_gate: ops.CliffordGate = ops.CliffordGate.from_op_list(
+        clifford_ops_in_moment, affected_qubits
+    )
+    return input_pauli_ops.after(all_cliffords_in_gate.on(*affected_qubits))
 
 
 def _get_stop_qubits(moment: circuits.Moment) -> set[ops.Qid]:

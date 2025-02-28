@@ -316,10 +316,12 @@ class SwapNetworkGate(PermutationGate):
                 parts_qubits = list(left_part + right_part)
                 parts[i] = parts_qubits[: len(right_part)]
                 parts[i + 1] = parts_qubits[len(right_part) :]
-            layers.prior_interstitial.sort(key=op_sort_key)
+            if op_sort_key is not None:
+                layers.prior_interstitial.sort(key=op_sort_key)
             for l in ('prior_interstitial', 'pre', 'intra', 'post'):
                 yield getattr(layers, l)
-        layers.posterior_interstitial.sort(key=op_sort_key)
+        if op_sort_key is not None:
+            layers.posterior_interstitial.sort(key=op_sort_key)
         yield layers.posterior_interstitial
 
         assert list(

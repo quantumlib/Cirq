@@ -49,12 +49,6 @@ def default_circuit():
     )
 
 
-def test_circuit_op_serializer_properties():
-    serializer = cg.CircuitOpSerializer()
-    assert serializer.internal_type == cirq.FrozenCircuit
-    assert serializer.serialized_id == 'circuit'
-
-
 def test_can_serialize_circuit_op():
     serializer = cg.CircuitOpSerializer()
     assert serializer.can_serialize_operation(cirq.CircuitOperation(default_circuit()))
