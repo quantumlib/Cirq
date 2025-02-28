@@ -57,6 +57,22 @@ def _small_sample_qubit_pauli_maps():
     yield {qubits[0]: cirq.Z, qubits[1]: cirq.X, qubits[2]: cirq.Y}
 
 
+def assert_conjugation(
+    input_ps: cirq.PauliString, ops: cirq.OP_TREE, expected: cirq.PauliString | None
+):
+    conjugation = input_ps.conjugated_by(ops)
+    if expected is not None:
+        assert conjugation == expected
+    else:  # Compares the unitary of the conjugation result and the expected unitary.
+        op_list = list(cirq.flatten_to_ops(ops))
+        qubits_of_clifford = [q for op in op_list for q in op.qubits]
+        clifford = cirq.CliffordGate.from_op_list(op_list, qubits_of_clifford)
+        actual_unitary = cirq.unitary(conjugation.dense(qubits_of_clifford))
+        c = cirq.unitary(clifford)
+        expected_unitary = np.conj(c.T) @ cirq.unitary(input_ps.dense(qubits_of_clifford)) @ c
+        assert np.allclose(actual_unitary, expected_unitary, atol=1e-8)
+
+
 def test_eq_ne_hash():
     q0, q1, q2 = _make_qubits(3)
     eq = cirq.testing.EqualsTester()
@@ -1381,13 +1397,24 @@ def test_pauli_string_expectation_from_state_vector_mixed_state_linearity():
 def test_conjugated_by_normal_gates():
     a = cirq.LineQubit(0)
 
-    assert cirq.X(a).conjugated_by(cirq.H(a)) == cirq.Z(a)
-    assert cirq.Y(a).conjugated_by(cirq.H(a)) == -cirq.Y(a)
-    assert cirq.Z(a).conjugated_by(cirq.H(a)) == cirq.X(a)
+    assert_conjugation(cirq.X(a), cirq.H(a), cirq.Z(a))
+    assert_conjugation(cirq.Y(a), cirq.H(a), -cirq.Y(a))
+    assert_conjugation(cirq.Z(a), cirq.H(a), cirq.X(a))
 
-    assert cirq.X(a).conjugated_by(cirq.S(a)) == -cirq.Y(a)
-    assert cirq.Y(a).conjugated_by(cirq.S(a)) == cirq.X(a)
-    assert cirq.Z(a).conjugated_by(cirq.S(a)) == cirq.Z(a)
+    assert_conjugation(cirq.X(a), cirq.S(a), -cirq.Y(a))
+    assert_conjugation(cirq.Y(a), cirq.S(a), cirq.X(a))
+    assert_conjugation(cirq.Z(a), cirq.S(a), cirq.Z(a))
+
+    clifford_op = cirq.PhasedXZGate(axis_phase_exponent=0.25, x_exponent=-1, z_exponent=0).on(a)
+    assert_conjugation(cirq.X(a), clifford_op, cirq.Y(a))
+    assert_conjugation(cirq.Y(a), clifford_op, cirq.X(a))
+    assert_conjugation(cirq.Z(a), clifford_op, -cirq.Z(a))
+
+
+def test_conjugated_by_op_gate_of_clifford_gate_type():
+    a = cirq.LineQubit(0)
+
+    assert_conjugation(cirq.X(a), cirq.CliffordGate.from_op_list([cirq.H(a)], [a]).on(a), cirq.Z(a))
 
 
 def test_dense():
@@ -1430,16 +1457,25 @@ def test_conjugated_by_incorrectly_powered_cliffords():
         cirq.ZZ(a, b),
     ]
     for c in cliffords:
-        with pytest.raises(TypeError, match='not a known Clifford'):
+        with pytest.raises(
+            ValueError,
+            match='Clifford Gate can only be constructed from the operations'
+            ' that has stabilizer effect.',
+        ):
             _ = p.conjugated_by(c**0.1)
-        with pytest.raises(TypeError, match='not a known Clifford'):
+        with pytest.raises(
+            ValueError,
+            match='Clifford Gate can only be constructed from the operations'
+            ' that has stabilizer effect.',
+        ):
             _ = p.conjugated_by(c ** sympy.Symbol('t'))
 
 
 def test_conjugated_by_global_phase():
+    """Global phase gate preserves PauliString."""
     a = cirq.LineQubit(0)
-    assert cirq.X(a).conjugated_by(cirq.global_phase_operation(1j)) == cirq.X(a)
-    assert cirq.Z(a).conjugated_by(cirq.global_phase_operation(np.exp(1.1j))) == cirq.Z(a)
+    assert_conjugation(cirq.X(a), cirq.global_phase_operation(1j), cirq.X(a))
+    assert_conjugation(cirq.X(a), cirq.global_phase_operation(np.exp(1.1j)), cirq.X(a))
 
     class DecomposeGlobal(cirq.Gate):
         def num_qubits(self):
@@ -1448,7 +1484,7 @@ def test_conjugated_by_global_phase():
         def _decompose_(self, qubits):
             yield cirq.global_phase_operation(1j)
 
-    assert cirq.X(a).conjugated_by(DecomposeGlobal().on(a)) == cirq.X(a)
+    assert_conjugation(cirq.X(a), DecomposeGlobal().on(a), cirq.X(a))
 
 
 def test_conjugated_by_composite_with_disjoint_sub_gates():
@@ -1461,8 +1497,10 @@ def test_conjugated_by_composite_with_disjoint_sub_gates():
         def _decompose_(self, qubits):
             yield cirq.H(qubits[1])
 
-    assert cirq.X(a).conjugated_by(DecomposeDisjoint().on(a, b)) == cirq.X(a)
-    assert cirq.X(a).pass_operations_over([DecomposeDisjoint().on(a, b)]) == cirq.X(a)
+    for g1 in [cirq.X, cirq.Y]:
+        for g2 in [cirq.X, cirq.Y]:
+            ps = g1(a) * g2(b)
+            assert ps.conjugated_by(DecomposeDisjoint().on(a, b)) == ps.conjugated_by(cirq.H(b))
 
 
 def test_conjugated_by_clifford_composite():
@@ -1477,16 +1515,16 @@ def test_conjugated_by_clifford_composite():
             yield cirq.SWAP(qubits[2], qubits[3])
 
     a, b, c, d = cirq.LineQubit.range(4)
-    p = cirq.X(a) * cirq.Z(b)
+    ps = cirq.X(a) * cirq.Z(b)
     u = UnknownGate()
-    assert p.conjugated_by(u(a, b, c, d)) == cirq.Z(a) * cirq.X(b)
+    assert_conjugation(ps, u(a, b, c, d), cirq.Z(a) * cirq.X(b))
 
 
 def test_conjugated_by_move_into_uninvolved():
     a, b, c, d = cirq.LineQubit.range(4)
-    p = cirq.X(a) * cirq.Z(b)
-    assert p.conjugated_by([cirq.SWAP(c, d), cirq.SWAP(b, c)]) == cirq.X(a) * cirq.Z(d)
-    assert p.conjugated_by([cirq.SWAP(b, c), cirq.SWAP(c, d)]) == cirq.X(a) * cirq.Z(c)
+    ps = cirq.X(a) * cirq.Z(b)
+    assert_conjugation(ps, [cirq.SWAP(c, d), cirq.SWAP(b, c)], cirq.X(a) * cirq.Z(d))
+    assert_conjugation(ps, [cirq.SWAP(b, c), cirq.SWAP(c, d)], cirq.X(a) * cirq.Z(c))
 
 
 def test_conjugated_by_common_single_qubit_gates():
@@ -1508,21 +1546,13 @@ def test_conjugated_by_common_single_qubit_gates():
     single_qubit_gates = [g**i for i in range(4) for g in base_single_qubit_gates]
     for p in [cirq.X, cirq.Y, cirq.Z]:
         for g in single_qubit_gates:
-            assert p.on(a).conjugated_by(g.on(b)) == p.on(a)
-
-            actual = cirq.unitary(p.on(a).conjugated_by(g.on(a)))
-            u = cirq.unitary(g)
-            expected = np.conj(u.T) @ cirq.unitary(p) @ u
-            assert cirq.allclose_up_to_global_phase(actual, expected, atol=1e-8)
+            # pauli gate on a, clifford on b: pauli gate preserves.
+            assert_conjugation(p(a), g(b), p(a))
+            # pauli gate on a, clifford on a: check conjugation in matrices.
+            assert_conjugation(p(a), g(a), None)
 
 
 def test_conjugated_by_common_two_qubit_gates():
-    class OrderSensitiveGate(cirq.Gate):
-        def num_qubits(self):
-            return 2
-
-        def _decompose_(self, qubits):
-            return [cirq.Y(qubits[0]) ** -0.5, cirq.CNOT(*qubits)]
 
     a, b, c, d = cirq.LineQubit.range(4)
     two_qubit_gates = [
@@ -1541,34 +1571,25 @@ def test_conjugated_by_common_two_qubit_gates():
         cirq.YY**-0.5,
         cirq.ZZ**-0.5,
     ]
-    two_qubit_gates.extend([OrderSensitiveGate()])
     for p1 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
         for p2 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
             pd = cirq.DensePauliString([p1, p2])
-            p = pd.sparse()
+            p = pd.sparse([a, b])
             for g in two_qubit_gates:
-                assert p.conjugated_by(g.on(c, d)) == p
-
-                actual = cirq.unitary(p.conjugated_by(g.on(a, b)).dense([a, b]))
-                u = cirq.unitary(g)
-                expected = np.conj(u.T) @ cirq.unitary(pd) @ u
-                np.testing.assert_allclose(actual, expected, atol=1e-8)
+                # pauli_string on (a,b), clifford on (c,d): pauli_string preserves.
+                assert_conjugation(p, g(c, d), p)
+                # pauli_string on (a,b), clifford on (a,b): compare unitaries of
+                # the conjugated_by and actual matrix conjugation.
+                assert_conjugation(p, g.on(a, b), None)
 
 
 def test_conjugated_by_ordering():
-    class OrderSensitiveGate(cirq.Gate):
-        def num_qubits(self):
-            return 2
-
-        def _decompose_(self, qubits):
-            return [cirq.Y(qubits[0]) ** -0.5, cirq.CNOT(*qubits)]
-
+    """Tests .conjugated_by([op1, op2]) == .conjugated_by(op2).conjugated_by(op1)"""
     a, b = cirq.LineQubit.range(2)
     inp = cirq.Z(b)
-    out1 = inp.conjugated_by(OrderSensitiveGate().on(a, b))
-    out2 = inp.conjugated_by([cirq.H(a), cirq.CNOT(a, b)])
-    out3 = inp.conjugated_by(cirq.CNOT(a, b)).conjugated_by(cirq.H(a))
-    assert out1 == out2 == out3 == cirq.X(a) * cirq.Z(b)
+    out1 = inp.conjugated_by([cirq.H(a), cirq.CNOT(a, b)])
+    out2 = inp.conjugated_by(cirq.CNOT(a, b)).conjugated_by(cirq.H(a))
+    assert out1 == out2 == cirq.X(a) * cirq.Z(b)
 
 
 def test_pass_operations_over_ordering():
