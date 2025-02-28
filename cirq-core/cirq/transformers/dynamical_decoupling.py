@@ -58,6 +58,8 @@ def _pauli_up_to_global_phase(gate: ops.Gate) -> Union[ops.Pauli, None]:
 def _validate_dd_sequence(dd_sequence: Tuple[ops.Gate, ...]) -> None:
     """Validates a given dynamical decoupling sequence.
 
+    The sequence should only consists of Pauli gates and is essentially an identity gate.
+
     Args:
         dd_sequence: Input dynamical sequence to be validated.
 
@@ -93,7 +95,7 @@ def _parse_dd_sequence(
         _validate_dd_sequence(schema)
         dd_sequence = schema
 
-    # Map Gate to Puali gate. This is necessary as dd sequence might contain gates like X^-1.
+    # Map gate to Pauli gate. This is necessary as dd sequence might contain gates like X^-1.
     pauli_map: Dict[ops.Gate, ops.Pauli] = {}
     for gate in dd_sequence:
         pauli_gate = _pauli_up_to_global_phase(gate)
@@ -171,19 +173,13 @@ def _try_merge_single_qubit_ops_of_two_moments(
 def _calc_pulled_through(
     moment: circuits.Moment, input_pauli_ops: ops.PauliString
 ) -> ops.PauliString:
-    """Calculates the pulled_through such that circuit(input_puali_ops, moment.clifford_ops) is
+    """Calculates the pulled_through such that circuit(input_pauli_ops, moment.clifford_ops) is
     equivalent to circuit(moment.clifford_ops, pulled_through).
     """
     clifford_ops_in_moment: list[ops.Operation] = [
         op for op in moment.operations if _is_clifford_op(op)
     ]
-    # TODO(#6946): directly pass clifford_ops_in_moment to input_pauli_ops.after() after #6946 is
-    # fixed.
-    affected_qubits = [q for op in clifford_ops_in_moment for q in op.qubits]
-    all_cliffords_in_gate: ops.CliffordGate = ops.CliffordGate.from_op_list(
-        clifford_ops_in_moment, affected_qubits
-    )
-    return input_pauli_ops.after(all_cliffords_in_gate.on(*affected_qubits))
+    return input_pauli_ops.after(clifford_ops_in_moment)
 
 
 def _get_stop_qubits(moment: circuits.Moment) -> set[ops.Qid]:
@@ -197,7 +193,7 @@ def _get_stop_qubits(moment: circuits.Moment) -> set[ops.Qid]:
 
 
 def _need_merge_pulled_through(op_at_q: ops.Operation, is_at_last_busy_moment: bool) -> bool:
-    """With a pulling through puali gate before op_at_q, need to merge with the
+    """With a pulling through pauli gate before op_at_q, need to merge with the
     pauli in the conditions below."""
     # The op must be mergable and single-qubit
     if not (_is_single_qubit_operation(op_at_q) and has_unitary(op_at_q)):
@@ -234,7 +230,7 @@ def add_dynamical_decoupling(
 
     busy_moment_range_by_qubit = _calc_busy_moment_range_of_each_qubit(orig_circuit)
 
-    # Stores all the moments of the output circuit chronically
+    # Stores all the moments of the output circuit chronologically.
     transformed_moments: list[circuits.Moment] = []
     # A PauliString stores the result of 'pulling' Pauli gates past each operations
     # right before the current moment.
@@ -247,7 +243,7 @@ def add_dynamical_decoupling(
         pulled_through *= pauli_map[insert_gate].on(q)
         return insert_gate.on(q)
 
-    # Insert and pull remaining Puali ops through the whole circuit.
+    # Insert and pull remaining Pauli ops through the whole circuit.
     # General ideas are
     #   * Pull through Clifford gates.
     #   * Stop at multi-qubit non-Clifford ops (and other non-mergable ops).
