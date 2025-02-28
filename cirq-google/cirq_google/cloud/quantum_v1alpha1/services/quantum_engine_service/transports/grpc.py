@@ -42,22 +42,25 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     It sends protocol buffers over the wire using gRPC (which is built on
     top of HTTP/2); the ``grpcio`` package must be installed.
     """
+
     _stubs: Dict[str, Callable]
 
-    def __init__(self, *,
-            host: str = 'quantum.googleapis.com',
-            credentials: Optional[ga_credentials.Credentials] = None,
-            credentials_file: Optional[str] = None,
-            scopes: Optional[Sequence[str]] = None,
-            channel: Optional[grpc.Channel] = None,
-            api_mtls_endpoint: Optional[str] = None,
-            client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
-            ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
-            client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
-            quota_project_id: Optional[str] = None,
-            client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
-            always_use_jwt_access: Optional[bool] = False,
-            ) -> None:
+    def __init__(
+        self,
+        *,
+        host: str = 'quantum.googleapis.com',
+        credentials: Optional[ga_credentials.Credentials] = None,
+        credentials_file: Optional[str] = None,
+        scopes: Optional[Sequence[str]] = None,
+        channel: Optional[grpc.Channel] = None,
+        api_mtls_endpoint: Optional[str] = None,
+        client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+        ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
+        client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
+        quota_project_id: Optional[str] = None,
+        client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
+        always_use_jwt_access: Optional[bool] = False,
+    ) -> None:
         """Instantiate the transport.
 
         Args:
@@ -117,7 +120,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
 
         if channel:
             # Ignore credentials if a channel was passed.
-            credentials = False
+            credentials = None
             # If a channel was explicitly provided, set it.
             self._grpc_channel = channel
             self._ssl_channel_credentials = None
@@ -166,8 +169,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
                 ssl_credentials=self._ssl_channel_credentials,
                 quota_project_id=quota_project_id,
                 options=[
-                    ("grpc.max_send_message_length", -1),
-                    ("grpc.max_receive_message_length", -1),
+                    ('grpc.max_send_message_length', 20 * 1024 * 1024),  # 20MiB
+                    ('grpc.max_receive_message_length', -1),  # unlimited
+                    ('grpc.max_metadata_length', 10 * 1024 * 1024),  # 10MiB
                 ],
             )
 
@@ -175,13 +179,15 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         self._prep_wrapped_messages(client_info)
 
     @classmethod
-    def create_channel(cls,
-                       host: str = 'quantum.googleapis.com',
-                       credentials: Optional[ga_credentials.Credentials] = None,
-                       credentials_file: Optional[str] = None,
-                       scopes: Optional[Sequence[str]] = None,
-                       quota_project_id: Optional[str] = None,
-                       **kwargs) -> grpc.Channel:
+    def create_channel(
+        cls,
+        host: str = 'quantum.googleapis.com',
+        credentials: Optional[ga_credentials.Credentials] = None,
+        credentials_file: Optional[str] = None,
+        scopes: Optional[Sequence[str]] = None,
+        quota_project_id: Optional[str] = None,
+        **kwargs,
+    ) -> grpc.Channel:
         """Create and return a gRPC channel object.
         Args:
             host (Optional[str]): The host for the channel to use.
@@ -216,19 +222,18 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
             default_scopes=cls.AUTH_SCOPES,
             scopes=scopes,
             default_host=cls.DEFAULT_HOST,
-            **kwargs
+            **kwargs,
         )
 
     @property
     def grpc_channel(self) -> grpc.Channel:
-        """Return the channel designed to connect to this service.
-        """
+        """Return the channel designed to connect to this service."""
         return self._grpc_channel
 
     @property
-    def create_quantum_program(self) -> Callable[
-            [engine.CreateQuantumProgramRequest],
-            quantum.QuantumProgram]:
+    def create_quantum_program(
+        self,
+    ) -> Callable[[engine.CreateQuantumProgramRequest], quantum.QuantumProgram]:
         r"""Return a callable for the create quantum program method over gRPC.
 
         -
@@ -252,9 +257,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['create_quantum_program']
 
     @property
-    def get_quantum_program(self) -> Callable[
-            [engine.GetQuantumProgramRequest],
-            quantum.QuantumProgram]:
+    def get_quantum_program(
+        self,
+    ) -> Callable[[engine.GetQuantumProgramRequest], quantum.QuantumProgram]:
         r"""Return a callable for the get quantum program method over gRPC.
 
         -
@@ -278,9 +283,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_program']
 
     @property
-    def list_quantum_programs(self) -> Callable[
-            [engine.ListQuantumProgramsRequest],
-            engine.ListQuantumProgramsResponse]:
+    def list_quantum_programs(
+        self,
+    ) -> Callable[[engine.ListQuantumProgramsRequest], engine.ListQuantumProgramsResponse]:
         r"""Return a callable for the list quantum programs method over gRPC.
 
         -
@@ -304,9 +309,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_programs']
 
     @property
-    def delete_quantum_program(self) -> Callable[
-            [engine.DeleteQuantumProgramRequest],
-            empty_pb2.Empty]:
+    def delete_quantum_program(
+        self,
+    ) -> Callable[[engine.DeleteQuantumProgramRequest], empty_pb2.Empty]:
         r"""Return a callable for the delete quantum program method over gRPC.
 
         -
@@ -330,9 +335,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['delete_quantum_program']
 
     @property
-    def update_quantum_program(self) -> Callable[
-            [engine.UpdateQuantumProgramRequest],
-            quantum.QuantumProgram]:
+    def update_quantum_program(
+        self,
+    ) -> Callable[[engine.UpdateQuantumProgramRequest], quantum.QuantumProgram]:
         r"""Return a callable for the update quantum program method over gRPC.
 
         -
@@ -356,9 +361,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['update_quantum_program']
 
     @property
-    def create_quantum_job(self) -> Callable[
-            [engine.CreateQuantumJobRequest],
-            quantum.QuantumJob]:
+    def create_quantum_job(self) -> Callable[[engine.CreateQuantumJobRequest], quantum.QuantumJob]:
         r"""Return a callable for the create quantum job method over gRPC.
 
         -
@@ -382,9 +385,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['create_quantum_job']
 
     @property
-    def get_quantum_job(self) -> Callable[
-            [engine.GetQuantumJobRequest],
-            quantum.QuantumJob]:
+    def get_quantum_job(self) -> Callable[[engine.GetQuantumJobRequest], quantum.QuantumJob]:
         r"""Return a callable for the get quantum job method over gRPC.
 
         -
@@ -408,9 +409,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_job']
 
     @property
-    def list_quantum_jobs(self) -> Callable[
-            [engine.ListQuantumJobsRequest],
-            engine.ListQuantumJobsResponse]:
+    def list_quantum_jobs(
+        self,
+    ) -> Callable[[engine.ListQuantumJobsRequest], engine.ListQuantumJobsResponse]:
         r"""Return a callable for the list quantum jobs method over gRPC.
 
         -
@@ -434,9 +435,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_jobs']
 
     @property
-    def delete_quantum_job(self) -> Callable[
-            [engine.DeleteQuantumJobRequest],
-            empty_pb2.Empty]:
+    def delete_quantum_job(self) -> Callable[[engine.DeleteQuantumJobRequest], empty_pb2.Empty]:
         r"""Return a callable for the delete quantum job method over gRPC.
 
         -
@@ -460,9 +459,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['delete_quantum_job']
 
     @property
-    def update_quantum_job(self) -> Callable[
-            [engine.UpdateQuantumJobRequest],
-            quantum.QuantumJob]:
+    def update_quantum_job(self) -> Callable[[engine.UpdateQuantumJobRequest], quantum.QuantumJob]:
         r"""Return a callable for the update quantum job method over gRPC.
 
         -
@@ -486,9 +483,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['update_quantum_job']
 
     @property
-    def cancel_quantum_job(self) -> Callable[
-            [engine.CancelQuantumJobRequest],
-            empty_pb2.Empty]:
+    def cancel_quantum_job(self) -> Callable[[engine.CancelQuantumJobRequest], empty_pb2.Empty]:
         r"""Return a callable for the cancel quantum job method over gRPC.
 
         -
@@ -512,9 +507,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['cancel_quantum_job']
 
     @property
-    def list_quantum_job_events(self) -> Callable[
-            [engine.ListQuantumJobEventsRequest],
-            engine.ListQuantumJobEventsResponse]:
+    def list_quantum_job_events(
+        self,
+    ) -> Callable[[engine.ListQuantumJobEventsRequest], engine.ListQuantumJobEventsResponse]:
         r"""Return a callable for the list quantum job events method over gRPC.
 
         -
@@ -538,9 +533,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_job_events']
 
     @property
-    def get_quantum_result(self) -> Callable[
-            [engine.GetQuantumResultRequest],
-            quantum.QuantumResult]:
+    def get_quantum_result(
+        self,
+    ) -> Callable[[engine.GetQuantumResultRequest], quantum.QuantumResult]:
         r"""Return a callable for the get quantum result method over gRPC.
 
         -
@@ -564,9 +559,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_result']
 
     @property
-    def list_quantum_processors(self) -> Callable[
-            [engine.ListQuantumProcessorsRequest],
-            engine.ListQuantumProcessorsResponse]:
+    def list_quantum_processors(
+        self,
+    ) -> Callable[[engine.ListQuantumProcessorsRequest], engine.ListQuantumProcessorsResponse]:
         r"""Return a callable for the list quantum processors method over gRPC.
 
         -
@@ -590,9 +585,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_processors']
 
     @property
-    def get_quantum_processor(self) -> Callable[
-            [engine.GetQuantumProcessorRequest],
-            quantum.QuantumProcessor]:
+    def get_quantum_processor(
+        self,
+    ) -> Callable[[engine.GetQuantumProcessorRequest], quantum.QuantumProcessor]:
         r"""Return a callable for the get quantum processor method over gRPC.
 
         -
@@ -616,9 +611,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_processor']
 
     @property
-    def list_quantum_calibrations(self) -> Callable[
-            [engine.ListQuantumCalibrationsRequest],
-            engine.ListQuantumCalibrationsResponse]:
+    def list_quantum_calibrations(
+        self,
+    ) -> Callable[[engine.ListQuantumCalibrationsRequest], engine.ListQuantumCalibrationsResponse]:
         r"""Return a callable for the list quantum calibrations method over gRPC.
 
         -
@@ -642,9 +637,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_calibrations']
 
     @property
-    def get_quantum_calibration(self) -> Callable[
-            [engine.GetQuantumCalibrationRequest],
-            quantum.QuantumCalibration]:
+    def get_quantum_calibration(
+        self,
+    ) -> Callable[[engine.GetQuantumCalibrationRequest], quantum.QuantumCalibration]:
         r"""Return a callable for the get quantum calibration method over gRPC.
 
         -
@@ -668,9 +663,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_calibration']
 
     @property
-    def create_quantum_reservation(self) -> Callable[
-            [engine.CreateQuantumReservationRequest],
-            quantum.QuantumReservation]:
+    def create_quantum_reservation(
+        self,
+    ) -> Callable[[engine.CreateQuantumReservationRequest], quantum.QuantumReservation]:
         r"""Return a callable for the create quantum reservation method over gRPC.
 
         -
@@ -694,9 +689,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['create_quantum_reservation']
 
     @property
-    def cancel_quantum_reservation(self) -> Callable[
-            [engine.CancelQuantumReservationRequest],
-            quantum.QuantumReservation]:
+    def cancel_quantum_reservation(
+        self,
+    ) -> Callable[[engine.CancelQuantumReservationRequest], quantum.QuantumReservation]:
         r"""Return a callable for the cancel quantum reservation method over gRPC.
 
         -
@@ -720,9 +715,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['cancel_quantum_reservation']
 
     @property
-    def delete_quantum_reservation(self) -> Callable[
-            [engine.DeleteQuantumReservationRequest],
-            empty_pb2.Empty]:
+    def delete_quantum_reservation(
+        self,
+    ) -> Callable[[engine.DeleteQuantumReservationRequest], empty_pb2.Empty]:
         r"""Return a callable for the delete quantum reservation method over gRPC.
 
         -
@@ -746,9 +741,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['delete_quantum_reservation']
 
     @property
-    def get_quantum_reservation(self) -> Callable[
-            [engine.GetQuantumReservationRequest],
-            quantum.QuantumReservation]:
+    def get_quantum_reservation(
+        self,
+    ) -> Callable[[engine.GetQuantumReservationRequest], quantum.QuantumReservation]:
         r"""Return a callable for the get quantum reservation method over gRPC.
 
         -
@@ -772,9 +767,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['get_quantum_reservation']
 
     @property
-    def list_quantum_reservations(self) -> Callable[
-            [engine.ListQuantumReservationsRequest],
-            engine.ListQuantumReservationsResponse]:
+    def list_quantum_reservations(
+        self,
+    ) -> Callable[[engine.ListQuantumReservationsRequest], engine.ListQuantumReservationsResponse]:
         r"""Return a callable for the list quantum reservations method over gRPC.
 
         -
@@ -798,9 +793,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_reservations']
 
     @property
-    def update_quantum_reservation(self) -> Callable[
-            [engine.UpdateQuantumReservationRequest],
-            quantum.QuantumReservation]:
+    def update_quantum_reservation(
+        self,
+    ) -> Callable[[engine.UpdateQuantumReservationRequest], quantum.QuantumReservation]:
         r"""Return a callable for the update quantum reservation method over gRPC.
 
         -
@@ -824,9 +819,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['update_quantum_reservation']
 
     @property
-    def quantum_run_stream(self) -> Callable[
-            [engine.QuantumRunStreamRequest],
-            engine.QuantumRunStreamResponse]:
+    def quantum_run_stream(
+        self,
+    ) -> Callable[[engine.QuantumRunStreamRequest], engine.QuantumRunStreamResponse]:
         r"""Return a callable for the quantum run stream method over gRPC.
 
         -
@@ -850,9 +845,11 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['quantum_run_stream']
 
     @property
-    def list_quantum_reservation_grants(self) -> Callable[
-            [engine.ListQuantumReservationGrantsRequest],
-            engine.ListQuantumReservationGrantsResponse]:
+    def list_quantum_reservation_grants(
+        self,
+    ) -> Callable[
+        [engine.ListQuantumReservationGrantsRequest], engine.ListQuantumReservationGrantsResponse
+    ]:
         r"""Return a callable for the list quantum reservation
         grants method over gRPC.
 
@@ -877,9 +874,11 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_reservation_grants']
 
     @property
-    def reallocate_quantum_reservation_grant(self) -> Callable[
-            [engine.ReallocateQuantumReservationGrantRequest],
-            quantum.QuantumReservationGrant]:
+    def reallocate_quantum_reservation_grant(
+        self,
+    ) -> Callable[
+        [engine.ReallocateQuantumReservationGrantRequest], quantum.QuantumReservationGrant
+    ]:
         r"""Return a callable for the reallocate quantum reservation
         grant method over gRPC.
 
@@ -904,9 +903,11 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['reallocate_quantum_reservation_grant']
 
     @property
-    def list_quantum_reservation_budgets(self) -> Callable[
-            [engine.ListQuantumReservationBudgetsRequest],
-            engine.ListQuantumReservationBudgetsResponse]:
+    def list_quantum_reservation_budgets(
+        self,
+    ) -> Callable[
+        [engine.ListQuantumReservationBudgetsRequest], engine.ListQuantumReservationBudgetsResponse
+    ]:
         r"""Return a callable for the list quantum reservation
         budgets method over gRPC.
 
@@ -931,9 +932,9 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         return self._stubs['list_quantum_reservation_budgets']
 
     @property
-    def list_quantum_time_slots(self) -> Callable[
-            [engine.ListQuantumTimeSlotsRequest],
-            engine.ListQuantumTimeSlotsResponse]:
+    def list_quantum_time_slots(
+        self,
+    ) -> Callable[[engine.ListQuantumTimeSlotsRequest], engine.ListQuantumTimeSlotsResponse]:
         r"""Return a callable for the list quantum time slots method over gRPC.
 
         -
@@ -959,6 +960,5 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     def close(self):
         self.grpc_channel.close()
 
-__all__ = (
-    'QuantumEngineServiceGrpcTransport',
-)
+
+__all__ = ('QuantumEngineServiceGrpcTransport',)

@@ -17,8 +17,8 @@ import itertools
 import functools
 
 from typing import (
-    Any,
     cast,
+    Any,
     Iterator,
     List,
     Optional,
@@ -105,9 +105,8 @@ class RandomizedBenchMarkResult:
             The plt.Axes containing the plot.
         """
         show_plot = not ax
-        if not ax:
+        if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))  # pragma: no cover
-            ax = cast(plt.Axes, ax)  # pragma: no cover
         ax.set_ylim((0.0, 1.0))  # pragma: no cover
         ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro', label='data', **plot_kwargs)
         x = np.linspace(self._num_cfds_seq[0], self._num_cfds_seq[-1], 100)
@@ -131,7 +130,7 @@ class RandomizedBenchMarkResult:
 
         $$r_p = (1 - 1/d^2) * (1 - p),$$
 
-        where $d = 2^N_Q$ is the Hilbert space dimension and $N_Q$ is the number of qubits.
+        where $d = 2^{N_Q}$ is the Hilbert space dimension and $N_Q$ is the number of qubits.
         """
         opt_params, _ = self._fit_exponential()
         p = opt_params[2]
@@ -304,7 +303,9 @@ class TomographyResult:
         """
         show_plot = axes is None
         if axes is None:
-            fig, axes = plt.subplots(1, 2, figsize=(12.0, 5.0), subplot_kw={'projection': '3d'})
+            fig, axes_v = plt.subplots(1, 2, figsize=(12.0, 5.0), subplot_kw={'projection': '3d'})
+            axes_v = cast(np.ndarray, axes_v)
+            axes = list(axes_v)
         elif len(axes) != 2:
             raise ValueError('A TomographyResult needs 2 axes to plot.')
         mat = self._density_matrix
@@ -953,16 +954,8 @@ def _single_qubit_cliffords() -> Cliffords:
     for z0, x, z1 in phi_xz:
         c1_in_xz.append([Z**z0, X**x, Z**z1])
 
-    s1: List[List[ops.SingleQubitCliffordGate]] = [
-        [X**0.0],
-        [Y**0.5, X**0.5],
-        [X**-0.5, Y**-0.5],
-    ]
-    s1_x: List[List[ops.SingleQubitCliffordGate]] = [
-        [X**0.5],
-        [X**0.5, Y**0.5, X**0.5],
-        [Y**-0.5],
-    ]
+    s1: List[List[ops.SingleQubitCliffordGate]] = [[X**0.0], [Y**0.5, X**0.5], [X**-0.5, Y**-0.5]]
+    s1_x: List[List[ops.SingleQubitCliffordGate]] = [[X**0.5], [X**0.5, Y**0.5, X**0.5], [Y**-0.5]]
     s1_y: List[List[ops.SingleQubitCliffordGate]] = [
         [Y**0.5],
         [X**-0.5, Y**-0.5, X**0.5],

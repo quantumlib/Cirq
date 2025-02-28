@@ -27,14 +27,13 @@ import datetime
 import enum
 import random
 import string
-from typing import Dict, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Set, TypeVar, Union, TYPE_CHECKING
 
 import duet
 import google.auth
 from google.protobuf import any_pb2
 
 import cirq
-from cirq._compat import deprecated
 from cirq_google.api import v2
 from cirq_google.engine import (
     abstract_engine,
@@ -210,22 +209,21 @@ class Engine(abstract_engine.AbstractEngine):
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     def run(
         self,
         program: cirq.AbstractCircuit,
+        processor_id: str,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
-        processor_ids: Sequence[str] = ('xmonsim',),
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
         *,
-        processor_id: str = "",
         run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
@@ -244,19 +242,18 @@ class Engine(abstract_engine.AbstractEngine):
                 and day.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
+            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
                 is required to be set.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -267,9 +264,7 @@ class Engine(abstract_engine.AbstractEngine):
 
         Raises:
             ValueError: If no gate set is provided.
-            ValueError: If neither `processor_id` or `processor_ids` are set.
             ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
@@ -280,33 +275,32 @@ class Engine(abstract_engine.AbstractEngine):
                 job_id=job_id,
                 params=[param_resolver],
                 repetitions=repetitions,
-                processor_ids=processor_ids,
+                processor_id=processor_id,
                 program_description=program_description,
                 program_labels=program_labels,
                 job_description=job_description,
                 job_labels=job_labels,
-                processor_id=processor_id,
                 run_name=run_name,
+                snapshot_id=snapshot_id,
                 device_config_name=device_config_name,
             )
         )[0]
 
-    # TODO(#6271): Deprecate and remove processor_ids before v1.4
     async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
+        processor_id: str,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        processor_ids: Sequence[str] = ('xmonsim',),
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
         *,
-        processor_id: str = "",
         run_name: str = "",
+        snapshot_id: str = "",
         device_config_name: str = "",
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuit via Quantum Engine.
@@ -328,19 +322,18 @@ class Engine(abstract_engine.AbstractEngine):
                 and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            processor_ids: Deprecated list of candidate processor ids to run the program.
-                Only allowed to contain one processor_id. If the argument `processor_id`
-                is non-empty, `processor_ids` will be ignored.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
             job_labels: Optional set of labels to set on the job.
-            processor_id: Processor id for running the program. If not set,
-                `processor_ids` will be used.
+            processor_id: Processor id for running the program.
             run_name: A unique identifier representing an automation run for the
                 specified processor. An Automation Run contains a collection of
                 device configurations for a processor. If specified, `processor_id`
                 is required to be set.
+            snapshot_id: A unique identifier for an immutable snapshot reference.
+                A snapshot contains a collection of device configurations for the
+                processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
@@ -352,22 +345,12 @@ class Engine(abstract_engine.AbstractEngine):
 
         Raises:
             ValueError: If no gate set is provided.
-            ValueError: If neither `processor_id` or `processor_ids` are set.
             ValueError: If  only one of `run_name` and `device_config_name` are specified.
-            ValueError: If `processor_ids` has more than one processor id.
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
 
         if self.context.enable_streaming:
-            # This logic is temporary prior to deprecating the processor_ids parameter.
-            # TODO(#6271) Remove after deprecating processor_ids elsewhere prior to v1.4.
-            if processor_ids:
-                if len(processor_ids) > 1:
-                    raise ValueError("The use of multiple processors is no longer supported.")
-                if len(processor_ids) == 1 and not processor_id:
-                    processor_id = processor_ids[0]
-
             if not program_id:
                 program_id = _make_random_id('prog-')
             if not job_id:
@@ -386,6 +369,7 @@ class Engine(abstract_engine.AbstractEngine):
                 job_labels=job_labels,
                 processor_id=processor_id,
                 run_name=run_name,
+                snapshot_id=snapshot_id,
                 device_config_name=device_config_name,
             )
             return engine_job.EngineJob(
@@ -403,11 +387,11 @@ class Engine(abstract_engine.AbstractEngine):
             job_id=job_id,
             params=params,
             repetitions=repetitions,
-            processor_ids=processor_ids,
+            processor_id=processor_id,
             description=job_description,
             labels=job_labels,
-            processor_id=processor_id,
             run_name=run_name,
+            snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
 
@@ -590,23 +574,12 @@ class Engine(abstract_engine.AbstractEngine):
         """
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
-    @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
-    def sampler(self, processor_id: Union[str, List[str]]) -> 'cirq_google.ProcessorSampler':
-        """Returns a sampler backed by the engine.
-
-        Args:
-            processor_id: String identifier, or list of string identifiers,
-                determining which processors may be used when sampling.
-
-        Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
-            that will send circuits to the Quantum Computing Service
-            when sampled.
-        """
-        return self.get_sampler(processor_id)
-
     def get_sampler(
-        self, processor_id: Union[str, List[str]], run_name: str = "", device_config_name: str = ""
+        self,
+        processor_id: Union[str, List[str]],
+        run_name: str = "",
+        device_config_name: str = "",
+        snapshot_id: str = "",
     ) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
@@ -618,6 +591,8 @@ class Engine(abstract_engine.AbstractEngine):
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
+            snapshot_id: A unique identifier for an immutable snapshot reference. A
+                snapshot contains a collection of device configurations for the processor.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
@@ -634,7 +609,7 @@ class Engine(abstract_engine.AbstractEngine):
                 'you need to specify a list.'
             )
         return self.get_processor(processor_id).get_sampler(
-            run_name=run_name, device_config_name=device_config_name
+            run_name=run_name, device_config_name=device_config_name, snapshot_id=snapshot_id
         )
 
 

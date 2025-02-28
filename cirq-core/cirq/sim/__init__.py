@@ -15,63 +15,81 @@
 """Classes for circuit simulators and base implementations of these classes."""
 
 from cirq.sim.clifford import (
-    CliffordSimulator,
-    CliffordSimulatorStepResult,
-    CliffordState,
-    CliffordTrialResult,
-    CliffordTableauSimulationState,
-    StabilizerChFormSimulationState,
-    StabilizerSampler,
-    StabilizerSimulationState,
-    StabilizerStateChForm,
+    CliffordSimulator as CliffordSimulator,
+    CliffordSimulatorStepResult as CliffordSimulatorStepResult,
+    CliffordState as CliffordState,
+    CliffordTrialResult as CliffordTrialResult,
+    CliffordTableauSimulationState as CliffordTableauSimulationState,
+    StabilizerChFormSimulationState as StabilizerChFormSimulationState,
+    StabilizerSampler as StabilizerSampler,
+    StabilizerSimulationState as StabilizerSimulationState,
+    StabilizerStateChForm as StabilizerStateChForm,
 )
 
-from cirq.sim.density_matrix_simulation_state import DensityMatrixSimulationState
+from cirq.sim.density_matrix_simulation_state import (
+    DensityMatrixSimulationState as DensityMatrixSimulationState,
+)
 
 from cirq.sim.density_matrix_simulator import (
-    DensityMatrixSimulator,
-    DensityMatrixStepResult,
-    DensityMatrixTrialResult,
+    DensityMatrixSimulator as DensityMatrixSimulator,
+    DensityMatrixStepResult as DensityMatrixStepResult,
+    DensityMatrixTrialResult as DensityMatrixTrialResult,
 )
 
-from cirq.sim.density_matrix_utils import measure_density_matrix, sample_density_matrix
+from cirq.sim.density_matrix_utils import (
+    measure_density_matrix as measure_density_matrix,
+    sample_density_matrix as sample_density_matrix,
+)
 
 from cirq.sim.mux import (
-    CIRCUIT_LIKE,
-    final_density_matrix,
-    final_state_vector,
-    sample,
-    sample_sweep,
+    CIRCUIT_LIKE as CIRCUIT_LIKE,
+    final_density_matrix as final_density_matrix,
+    final_state_vector as final_state_vector,
+    sample as sample,
+    sample_sweep as sample_sweep,
 )
 
-from cirq.sim.simulation_product_state import SimulationProductState
+from cirq.sim.simulation_product_state import SimulationProductState as SimulationProductState
 
-from cirq.sim.simulation_state import SimulationState
+from cirq.sim.simulation_state import SimulationState as SimulationState
 
-from cirq.sim.simulation_state_base import SimulationStateBase
+from cirq.sim.simulation_state_base import SimulationStateBase as SimulationStateBase
 
 from cirq.sim.simulator import (
-    SimulatesAmplitudes,
-    SimulatesExpectationValues,
-    SimulatesFinalState,
-    SimulatesIntermediateState,
-    SimulatesSamples,
-    SimulationTrialResult,
-    StepResult,
+    SimulatesAmplitudes as SimulatesAmplitudes,
+    SimulatesExpectationValues as SimulatesExpectationValues,
+    SimulatesFinalState as SimulatesFinalState,
+    SimulatesIntermediateState as SimulatesIntermediateState,
+    SimulatesSamples as SimulatesSamples,
+    SimulationTrialResult as SimulationTrialResult,
+    StepResult as StepResult,
 )
 
-from cirq.sim.simulator_base import SimulationTrialResultBase, SimulatorBase, StepResultBase
+from cirq.sim.simulator_base import (
+    SimulationTrialResultBase as SimulationTrialResultBase,
+    SimulatorBase as SimulatorBase,
+    StepResultBase as StepResultBase,
+)
 
-from cirq.sim.sparse_simulator import Simulator, SparseSimulatorStep
+from cirq.sim.sparse_simulator import (
+    Simulator as Simulator,
+    SparseSimulatorStep as SparseSimulatorStep,
+)
 
-from cirq.sim.state_vector import measure_state_vector, sample_state_vector, StateVectorMixin
+from cirq.sim.state_vector import (
+    measure_state_vector as measure_state_vector,
+    sample_state_vector as sample_state_vector,
+    StateVectorMixin as StateVectorMixin,
+)
 
-from cirq.sim.state_vector_simulation_state import StateVectorSimulationState
+from cirq.sim.state_vector_simulation_state import (
+    StateVectorSimulationState as StateVectorSimulationState,
+)
 
-from cirq.sim.classical_simulator import ClassicalStateSimulator
+from cirq.sim.classical_simulator import ClassicalStateSimulator as ClassicalStateSimulator
 
 from cirq.sim.state_vector_simulator import (
-    SimulatesIntermediateStateVector,
-    StateVectorStepResult,
-    StateVectorTrialResult,
+    SimulatesIntermediateStateVector as SimulatesIntermediateStateVector,
+    StateVectorStepResult as StateVectorStepResult,
+    StateVectorTrialResult as StateVectorTrialResult,
 )

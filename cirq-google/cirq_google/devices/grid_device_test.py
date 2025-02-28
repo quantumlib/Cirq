@@ -22,6 +22,7 @@ import cirq
 import cirq_google
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
+from cirq_google.ops import Coupler
 
 
 GRID_HEIGHT = 5
@@ -77,6 +78,9 @@ def _create_device_spec_with_horizontal_couplings():
         'coupler_pulse',
         'meas',
         'wait',
+        'fsim_via_model',
+        'cz_pow_gate',
+        'internal_gate',
     ]
     gate_durations = [(n, i * 1000) for i, n in enumerate(gate_names)]
     for gate_name, duration in sorted(gate_durations):
@@ -89,19 +93,29 @@ def _create_device_spec_with_horizontal_couplings():
         cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
         cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
         cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
-        cirq.ops.phased_x_z_gate.PhasedXZGate,
-        cirq.ops.common_gates.XPowGate,
-        cirq.ops.common_gates.YPowGate,
-        cirq.ops.phased_x_gate.PhasedXPowGate,
+        cirq.GateFamily(cirq_google.SYC),
+        cirq.GateFamily(cirq.SQRT_ISWAP),
+        cirq.GateFamily(cirq.SQRT_ISWAP_INV),
+        cirq.GateFamily(cirq.CZ),
+        cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate),
+        cirq.GateFamily(cirq.ops.common_gates.XPowGate),
+        cirq.GateFamily(cirq.ops.common_gates.YPowGate),
+        cirq.GateFamily(cirq.I),
+        cirq.GateFamily(cirq.ops.SingleQubitCliffordGate),
+        cirq.GateFamily(cirq.ops.HPowGate),
+        cirq.GateFamily(cirq.ops.phased_x_gate.PhasedXPowGate),
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
         ),
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
         ),
-        cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
-        cirq.ops.measurement_gate.MeasurementGate,
-        cirq.ops.wait_gate.WaitGate,
+        cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse),
+        cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate),
+        cirq.GateFamily(cirq.ops.wait_gate.WaitGate),
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+        cirq.GateFamily(cirq.CZPowGate),
+        cirq.GateFamily(cirq_google.InternalGate),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -110,9 +124,16 @@ def _create_device_spec_with_horizontal_couplings():
         cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]): base_duration * 1,
         cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]): base_duration * 2,
         cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]): base_duration * 3,
+        cirq.GateFamily(cirq_google.SYC): base_duration * 0,
+        cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
+        cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
+        cirq.GateFamily(cirq.CZ): base_duration * 3,
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.XPowGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.YPowGate): base_duration * 4,
+        cirq.GateFamily(cirq.ops.common_gates.HPowGate): base_duration * 4,
+        cirq.GateFamily(cirq.I): base_duration * 4,
+        cirq.GateFamily(cirq.ops.SingleQubitCliffordGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.phased_x_gate.PhasedXPowGate): base_duration * 4,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -125,6 +146,12 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
+        ): base_duration
+        * 10,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
     }
 
     expected_target_gatesets = (
@@ -133,8 +160,15 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+                cirq.GateFamily(cirq_google.SYC),
+                cirq.GateFamily(cirq.SQRT_ISWAP),
+                cirq.GateFamily(cirq.SQRT_ISWAP_INV),
+                cirq.GateFamily(cirq.CZPowGate),
                 cirq.ops.common_gates.XPowGate,
                 cirq.ops.common_gates.YPowGate,
+                cirq.ops.common_gates.HPowGate,
+                cirq.GateFamily(cirq.I),
+                cirq.ops.SingleQubitCliffordGate,
                 cirq.ops.phased_x_gate.PhasedXPowGate,
                 cirq.GateFamily(
                     cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -144,6 +178,8 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq_google.InternalGate),
             ]
         ),
         cirq_google.SycamoreTargetGateset(),
@@ -152,8 +188,15 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
                 cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
+                cirq.GateFamily(cirq_google.SYC),
+                cirq.GateFamily(cirq.SQRT_ISWAP_INV),
+                cirq.GateFamily(cirq.CZPowGate),
+                cirq.GateFamily(cirq.CZ),
                 cirq.ops.common_gates.XPowGate,
                 cirq.ops.common_gates.YPowGate,
+                cirq.ops.common_gates.HPowGate,
+                cirq.GateFamily(cirq.I),
+                cirq.ops.SingleQubitCliffordGate,
                 cirq.ops.phased_x_gate.PhasedXPowGate,
                 cirq.GateFamily(
                     cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -163,7 +206,38 @@ def _create_device_spec_with_horizontal_couplings():
                 ),
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq_google.InternalGate),
             ]
+        ),
+        cirq.CZTargetGateset(
+            allow_partial_czs=True,
+            additional_gates=[
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
+                cirq.GateFamily(cirq_google.SYC),
+                cirq.GateFamily(cirq.SQRT_ISWAP),
+                cirq.GateFamily(cirq.SQRT_ISWAP_INV),
+                cirq.GateFamily(cirq.CZ),
+                cirq.ops.common_gates.XPowGate,
+                cirq.ops.common_gates.YPowGate,
+                cirq.ops.common_gates.HPowGate,
+                cirq.GateFamily(cirq.I),
+                cirq.ops.SingleQubitCliffordGate,
+                cirq.ops.phased_x_gate.PhasedXPowGate,
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
+                ),
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
+                ),
+                cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
+                cirq.ops.wait_gate.WaitGate,
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq_google.InternalGate),
+            ],
         ),
     )
 
@@ -387,7 +461,50 @@ def test_grid_device_validate_operations_negative():
         device.validate_operation(cirq.CZ(q00, q10))
 
     with pytest.raises(ValueError, match='gate which is not supported'):
-        device.validate_operation(cirq.H(device_info.grid_qubits[0]))
+        device.validate_operation(
+            cirq.testing.DoesNotSupportSerializationGate()(device_info.grid_qubits[0])
+        )
+
+
+def test_grid_device_validate_operation_coupler_for_horizontal_couplings():
+    """Tests coupler device on a device spec that only
+    has horizontal couplings."""
+    _, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+
+    g = cirq_google.InternalGate(
+        gate_name="DetuneCoupler", gate_module='internal_module', num_qubits=1, freq=5.5
+    )
+    for y in range(GRID_HEIGHT):
+        # Valid couplers
+        coupler = Coupler(cirq.GridQubit(y, 0), cirq.GridQubit(y, 1))
+        device.validate_operation(g(coupler))
+        coupler = Coupler(cirq.GridQubit(y, 1), cirq.GridQubit(y, 0))
+        device.validate_operation(g(coupler))
+        # One coupler off grid
+        coupler = Coupler(cirq.GridQubit(y, 1), cirq.GridQubit(y, 2))
+        with pytest.raises(ValueError, match="Qubits on coupler not on device"):
+            device.validate_operation(g(coupler))
+        # Both couplers off grid
+        coupler = Coupler(cirq.GridQubit(y, 2), cirq.GridQubit(y, 3))
+        with pytest.raises(ValueError, match="Qubits on coupler not on device"):
+            device.validate_operation(g(coupler))
+        # Vertical Coupler (not on device)
+        coupler = Coupler(cirq.GridQubit(y, 0), cirq.GridQubit((y + 1) % GRID_HEIGHT, 0))
+        with pytest.raises(ValueError, match="Coupler pair is not valid on device"):
+            device.validate_operation(g(coupler))
+
+
+def test_grid_device_validate_operation_coupler_for_vertical_couplings():
+    gateset = cirq.Gateset(cirq.GateFamily(cirq_google.InternalGate))
+    device = grid_device.GridDevice._from_device_information(
+        qubit_pairs=[(cirq.GridQubit(1, 0), cirq.GridQubit(0, 0))], gateset=gateset
+    )
+    g = cirq_google.InternalGate(
+        gate_name="DetuneCoupler", gate_module='internal_module', num_qubits=1, freq=5.5
+    )
+    coupler = Coupler(cirq.GridQubit(1, 0), cirq.GridQubit(0, 0))
+    device.validate_operation(g(coupler))
 
 
 @pytest.mark.parametrize(
@@ -467,6 +584,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.SQRT_ISWAP,
         cirq.SQRT_ISWAP_INV,
         cirq.CZ,
+        cirq.GateFamily(cirq.CZPowGate),
         cirq.ops.phased_x_z_gate.PhasedXZGate,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -477,6 +595,8 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
         cirq.ops.measurement_gate.MeasurementGate,
         cirq.ops.wait_gate.WaitGate,
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+        cirq.GateFamily(cirq_google.InternalGate),
     )
 
     base_duration = cirq.Duration(picos=1_000)
@@ -497,6 +617,12 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
+        ): base_duration
+        * 10,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
@@ -599,6 +725,12 @@ def test_to_proto():
         cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
+        ): base_duration
+        * 10,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
     }
 
     spec = cirq_google.GridDevice._from_device_information(

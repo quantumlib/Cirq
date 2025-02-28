@@ -13,7 +13,9 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence
+import numbers
+from types import NotImplementedType
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence, Union
 
 import numpy as np
 import sympy
@@ -71,9 +73,15 @@ class IdentityGate(raw_types.Gate):
         return len(self._qid_shape)
 
     def __pow__(self, power: Any) -> Any:
-        if isinstance(power, (int, float, complex, sympy.Basic)):
+        if isinstance(power, (numbers.Complex, sympy.Basic)):
             return self
         return NotImplemented
+
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
+        """The identity gate commutes with all other gates."""
+        if not isinstance(other, raw_types.Gate):
+            return NotImplemented
+        return True
 
     def _has_unitary_(self) -> bool:
         return True
@@ -119,7 +127,7 @@ class IdentityGate(raw_types.Gate):
     def _mul_with_qubits(self, qubits: Tuple['cirq.Qid', ...], other):
         if isinstance(other, raw_types.Operation):
             return other
-        if isinstance(other, (complex, float, int)):
+        if isinstance(other, numbers.Complex):
             from cirq.ops.pauli_string import PauliString
 
             return PauliString(coefficient=other)
@@ -128,10 +136,12 @@ class IdentityGate(raw_types.Gate):
     _rmul_with_qubits = _mul_with_qubits
 
     def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
+        if self.num_qubits() <= 0:
+            return NotImplemented
         return ('I',) * self.num_qubits()
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
 
     @classmethod

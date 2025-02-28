@@ -15,6 +15,8 @@
 """Basic types defining qubits, gates, and operations."""
 
 import re
+import warnings
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -35,9 +37,8 @@ from typing_extensions import Self
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import ops, protocols, value
 from cirq.ops import raw_types, gate_features, control_values as cv
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -348,10 +349,18 @@ class GateOperation(raw_types.Operation):
         return self.gate._rmul_with_qubits(self._qubits, other)
 
     def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
+        if isinstance(self.gate, ops.GlobalPhaseGate):
+            warnings.warn(
+                "OpenQASM 2.0 does not support global phase."
+                "Since the global phase does not affect the measurement results, "
+                "the conversion to QASM is disregarded."
+            )
+            return ""
+
         return protocols.qasm(self.gate, args=args, qubits=self.qubits, default=None)
 
     def _equal_up_to_global_phase_(
-        self, other: Any, atol: Union[int, float] = 1e-8
+        self, other: Any, atol: float = 1e-8
     ) -> Union[NotImplementedType, bool]:
         if not isinstance(other, type(self)):
             return NotImplemented

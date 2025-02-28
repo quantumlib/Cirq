@@ -1,6 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Union
+import math
+from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -20,9 +21,7 @@ def _check_qids_dimension(qids):
 class ProjectorString:
     """Mapping of `cirq.Qid` to measurement values (with a coefficient) representing a projector."""
 
-    def __init__(
-        self, projector_dict: Dict[raw_types.Qid, int], coefficient: Union[int, float, complex] = 1
-    ):
+    def __init__(self, projector_dict: Dict[raw_types.Qid, int], coefficient: complex = 1):
         """Constructor for ProjectorString
 
         Args:
@@ -61,7 +60,7 @@ class ProjectorString:
             for qid in projector_qids
         ]
 
-        total_d = np.prod([qid.dimension for qid in projector_qids], dtype=np.int64)
+        total_d = math.prod(qid.dimension for qid in projector_qids)
 
         ones_idx = []
         for idx in itertools.product(*idx_to_keep):

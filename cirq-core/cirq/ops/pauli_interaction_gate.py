@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Sequence, TYPE_CHECKING, Tuple
+from typing import Any, Dict, Iterator, List, Sequence, TYPE_CHECKING, Tuple
 
 import numpy as np
 
@@ -108,7 +108,7 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         comp0 = np.eye(4) - comp1
         return [(0, comp0), (1, comp1)]
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         q0, q1 = qubits
         right_gate0 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli0, self.invert0))
         right_gate1 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli1, self.invert1))

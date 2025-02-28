@@ -25,6 +25,7 @@ import html
 import itertools
 import math
 from collections import defaultdict
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -62,7 +63,6 @@ from cirq.circuits.moment import Moment
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.protocols import circuit_diagram_info_protocol
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -145,29 +145,31 @@ class AbstractCircuit(abc.ABC):
     """
 
     @classmethod
-    def from_moments(cls: Type[CIRCUIT_TYPE], *moments: 'cirq.OP_TREE') -> CIRCUIT_TYPE:
+    def from_moments(cls: Type[CIRCUIT_TYPE], *moments: Optional['cirq.OP_TREE']) -> CIRCUIT_TYPE:
         """Create a circuit from moment op trees.
 
         Args:
-            *moments: Op tree for each moment. If an op tree is a moment, it
-                will be included directly in the new circuit. If an op tree is
-                a circuit, it will be frozen, wrapped in a CircuitOperation, and
-                included in its own moment in the new circuit. Otherwise, the
-                op tree will be passed to `cirq.Moment` to create a new moment
-                which is then included in the new circuit. Note that in the
-                latter case we have the normal restriction that operations in a
-                moment must be applied to disjoint sets of qubits.
+            *moments: Op trees for each moment, which can be one of the following:
+                - Moment: will be included directly in the new circuit.
+                - AbstractCircuit: will be frozen, wrapped in a CircuitOperation,
+                    and included in its own moment in the new circuit.
+                - None: will be skipped and omitted from the circuit. This can be
+                    used to include or skip a moment based on a conditional, for example.
+                - Other OP_TREE: will be passed to `cirq.Moment` to create a new moment
+                    which is then included in the new circuit. Note that in this
+                    case we have the normal restriction that operations in a
+                    moment must be applied to disjoint sets of qubits.
         """
         return cls._from_moments(cls._make_moments(moments))
 
     @staticmethod
-    def _make_moments(moments: Iterable['cirq.OP_TREE']) -> Iterator['cirq.Moment']:
+    def _make_moments(moments: Iterable[Optional['cirq.OP_TREE']]) -> Iterator['cirq.Moment']:
         for m in moments:
             if isinstance(m, Moment):
                 yield m
             elif isinstance(m, AbstractCircuit):
                 yield Moment(m.freeze().to_op())
-            else:
+            elif m is not None:
                 yield Moment(m)
 
     @classmethod
@@ -214,7 +216,7 @@ class AbstractCircuit(abc.ABC):
             and all(m0 == m1 for m0, m1 in zip(self.moments, other.moments))
         )
 
-    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+    def _approx_eq_(self, other: Any, atol: float) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, AbstractCircuit):
             return NotImplemented
@@ -1316,14 +1318,19 @@ class AbstractCircuit(abc.ABC):
             return self
         return self._from_moments(resolved_moments)
 
-    def _qasm_(self) -> str:
-        return self.to_qasm()
+    def _qasm_(self, args: Optional['cirq.QasmArgs'] = None) -> str:
+        if args is None:
+            output = self._to_qasm_output()
+        else:
+            output = self._to_qasm_output(precision=args.precision, version=args.version)
+        return str(output)
 
     def _to_qasm_output(
         self,
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        version: str = '2.0',
     ) -> 'cirq.QasmOutput':
         """Returns a QASM object equivalent to the circuit.
 
@@ -1333,6 +1340,8 @@ class AbstractCircuit(abc.ABC):
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
+            version:  Version of OpenQASM to render as output.  Defaults
+                to OpenQASM 2.0.  For OpenQASM 3.0, set this to '3.0'.
         """
         if header is None:
             header = f'Generated from Cirq v{cirq._version.__version__}'
@@ -1342,7 +1351,7 @@ class AbstractCircuit(abc.ABC):
             qubits=qubits,
             header=header,
             precision=precision,
-            version='2.0',
+            version=version,
         )
 
     def to_qasm(
@@ -1350,6 +1359,7 @@ class AbstractCircuit(abc.ABC):
         header: Optional[str] = None,
         precision: int = 10,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        version: str = '2.0',
     ) -> str:
         """Returns QASM equivalent to the circuit.
 
@@ -1359,9 +1369,11 @@ class AbstractCircuit(abc.ABC):
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
+            version: Version of OpenQASM to output.  Defaults to OpenQASM 2.0.
+                Specify '3.0' if OpenQASM 3.0 is desired.
         """
 
-        return str(self._to_qasm_output(header, precision, qubit_order))
+        return str(self._to_qasm_output(header, precision, qubit_order, version))
 
     def save_qasm(
         self,
@@ -1757,6 +1769,7 @@ class Circuit(AbstractCircuit):
                 together. This option does not affect later insertions into the
                 circuit.
         """
+        self._placement_cache: Optional[_PlacementCache] = _PlacementCache()
         self._moments: List['cirq.Moment'] = []
 
         # Implementation note: the following cached properties are set lazily and then
@@ -1767,9 +1780,11 @@ class Circuit(AbstractCircuit):
         self._is_measurement: Optional[bool] = None
         self._is_parameterized: Optional[bool] = None
         self._parameter_names: Optional[AbstractSet[str]] = None
-
+        if not contents:
+            return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
         if all(isinstance(c, Moment) for c in flattened_contents):
+            self._placement_cache = None
             self._moments[:] = cast(Iterable[Moment], flattened_contents)
             return
         with _compat.block_overlapping_deprecation('.*'):
@@ -1778,18 +1793,21 @@ class Circuit(AbstractCircuit):
             else:
                 self.append(flattened_contents, strategy=strategy)
 
-    def _mutated(self) -> None:
+    def _mutated(self, *, preserve_placement_cache=False) -> None:
         """Clear cached properties in response to this circuit being mutated."""
         self._all_qubits = None
         self._frozen = None
         self._is_measurement = None
         self._is_parameterized = None
         self._parameter_names = None
+        if not preserve_placement_cache:
+            self._placement_cache = None
 
     @classmethod
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
         new_circuit = Circuit()
         new_circuit._moments[:] = moments
+        new_circuit._placement_cache = None
         return new_circuit
 
     def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
@@ -1811,27 +1829,18 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        # These are dicts from the qubit/key to the greatest moment index that has it.
-        qubit_indices: Dict['cirq.Qid', int] = {}
-        mkey_indices: Dict['cirq.MeasurementKey', int] = {}
-        ckey_indices: Dict['cirq.MeasurementKey', int] = {}
+        # PlacementCache holds dicts from the qubit/key to the greatest moment index that has it.
+        placement_cache = cast(_PlacementCache, self._placement_cache)
 
         # We also maintain the dict from moment index to moments/ops that go into it, for use when
         # building the actual moments at the end.
         op_lists_by_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
         moments_by_index: Dict[int, 'cirq.Moment'] = {}
 
-        # For keeping track of length of the circuit thus far.
-        length = 0
-
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
             # Identify the index of the moment to place this `mop` into.
-            placement_index = get_earliest_accommodating_moment_index(
-                mop, qubit_indices, mkey_indices, ckey_indices, length
-            )
-            length = max(length, placement_index + 1)  # update the length of the circuit thus far
-
+            placement_index = placement_cache.append(mop)
             if isinstance(mop, Moment):
                 moments_by_index[placement_index] = mop
             else:
@@ -1839,7 +1848,7 @@ class Circuit(AbstractCircuit):
 
         # Finally, once everything is placed, we can construct and append the actual moments for
         # each index.
-        for i in range(length):
+        for i in range(placement_cache._length):
             if i in moments_by_index:
                 self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
             else:
@@ -1887,6 +1896,7 @@ class Circuit(AbstractCircuit):
         """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
+        copied_circuit._placement_cache = None
         return copied_circuit
 
     # pylint: disable=function-redefined
@@ -1998,6 +2008,24 @@ class Circuit(AbstractCircuit):
     ) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
+        This function will return a new `Circuit` with the same gates but
+        with qubits mapped according to the argument.
+
+        For example, the following will translate LineQubits to GridQubits:
+
+        >>> grid_qubits = cirq.GridQubit.square(2)
+        >>> line_qubits = cirq.LineQubit.range(4)
+        >>> circuit = cirq.Circuit([cirq.H(q) for q in line_qubits])
+        >>> circuit.transform_qubits(lambda q : grid_qubits[q.x])
+        cirq.Circuit([
+            cirq.Moment(
+                cirq.H(cirq.GridQubit(0, 0)),
+                cirq.H(cirq.GridQubit(0, 1)),
+                cirq.H(cirq.GridQubit(1, 0)),
+                cirq.H(cirq.GridQubit(1, 1)),
+            ),
+        ])
+
         Args:
             qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
@@ -2012,7 +2040,7 @@ class Circuit(AbstractCircuit):
         if callable(qubit_map):
             transform = qubit_map
         elif isinstance(qubit_map, dict):
-            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+            transform = lambda q: qubit_map.get(q, q)
         else:
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
 
@@ -2142,20 +2170,25 @@ class Circuit(AbstractCircuit):
         """
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
+        if strategy != InsertStrategy.EARLIEST or index != len(self._moments):
+            self._placement_cache = None
         for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
-            if isinstance(moment_or_op, Moment):
-                self._moments.insert(k, moment_or_op)
-                k += 1
+            if self._placement_cache:
+                p = self._placement_cache.append(moment_or_op)
+            elif isinstance(moment_or_op, Moment):
+                p = k
             else:
-                op = moment_or_op
-                p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
-                while p >= len(self._moments):
-                    self._moments.append(Moment())
-                self._moments[p] = self._moments[p].with_operation(op)
-                k = max(k, p + 1)
-                if strategy is InsertStrategy.NEW_THEN_INLINE:
-                    strategy = InsertStrategy.INLINE
-        self._mutated()
+                p = self._pick_or_create_inserted_op_moment_index(k, moment_or_op, strategy)
+            if isinstance(moment_or_op, Moment):
+                self._moments.insert(p, moment_or_op)
+            elif p == len(self._moments):
+                self._moments.append(Moment(moment_or_op))
+            else:
+                self._moments[p] = self._moments[p].with_operation(moment_or_op)
+            k = max(k, p + 1)
+            if strategy is InsertStrategy.NEW_THEN_INLINE:
+                strategy = InsertStrategy.INLINE
+        self._mutated(preserve_placement_cache=True)
         return k
 
     def insert_into_range(self, operations: 'cirq.OP_TREE', start: int, end: int) -> int:
@@ -2630,7 +2663,7 @@ def _draw_moment_in_diagram(
         if desc:
             y = max(label_map.values(), default=0) + 1
             if tags and include_tags:
-                desc = desc + str(tags)
+                desc = desc + f"[{', '.join(map(str, tags))}]"
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
@@ -2823,7 +2856,7 @@ def get_earliest_accommodating_moment_index(
     Args:
         moment_or_operation: The moment operation in question.
         qubit_indices: A dictionary mapping qubits to the latest moments that address them.
-        mkey_indices: A dictionary mapping measureent keys to the latest moments that address them.
+        mkey_indices: A dictionary mapping measurement keys to the latest moments that address them.
         ckey_indices: A dictionary mapping control keys to the latest moments that address them.
         length: The length of the circuit that we are trying to insert a moment or operation into.
             Should probably be equal to the maximum of the values in `qubit_indices`,
@@ -2867,7 +2900,7 @@ def get_earliest_accommodating_moment_index(
         if mop_ckeys:
             last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_ckeys])
 
-    # The index of the moment to place this moment or operaton ("mop") into.
+    # The index of the moment to place this moment or operation ("mop") into.
     mop_index = last_conflict + 1
 
     # Update our dicts with data from this `mop` placement. Note `mop_index` will always be greater
@@ -2880,3 +2913,52 @@ def get_earliest_accommodating_moment_index(
         ckey_indices[key] = mop_index
 
     return mop_index
+
+
+class _PlacementCache:
+    """Maintains qubit and cbit indices for quick op placement.
+
+    Here, we keep track of the greatest moment that contains each qubit,
+    measurement key, and control key, and append operations to the moment after
+    the maximum of these. This avoids having to iterate backwards, checking
+    each moment one at a time.
+
+    It is only valid for `append` operations, and if any other insert strategy
+    is used, or if any operation is added to the circuit without notifying the
+    cache, then the cache must be invalidated for the circuit or rebuilt from
+    scratch. Future improvements may ease this restriction.
+    """
+
+    def __init__(self) -> None:
+        # These are dicts from the qubit/key to the greatest moment index that has it.
+        self._qubit_indices: Dict['cirq.Qid', int] = {}
+        self._mkey_indices: Dict['cirq.MeasurementKey', int] = {}
+        self._ckey_indices: Dict['cirq.MeasurementKey', int] = {}
+
+        # For keeping track of length of the circuit thus far.
+        self._length = 0
+
+    def append(self, moment_or_operation: Union['cirq.Moment', 'cirq.Operation']) -> int:
+        """Find placement for moment/operation and update cache.
+
+        Determines the placement index of the provided operation, assuming
+        EARLIEST (append) strategy, and assuming that the internal cache
+        correctly represents the circuit. It then updates the cache and returns
+        the placement index.
+
+        Args:
+            moment_or_operation: The moment or operation to append.
+
+        Returns:
+            The index at which the moment/operation should be placed.
+        """
+        # Identify the index of the moment to place this into.
+        index = get_earliest_accommodating_moment_index(
+            moment_or_operation,
+            self._qubit_indices,
+            self._mkey_indices,
+            self._ckey_indices,
+            self._length,
+        )
+        self._length = max(self._length, index + 1)
+        return index

@@ -26,7 +26,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
 import cirq_google as cg
 from cirq_google.api import v2
-from cirq_google.engine import util
+from cirq_google.engine import engine_client, util
 from cirq_google.engine.engine import EngineContext
 from cirq_google.cloud import quantum
 
@@ -179,6 +179,14 @@ _RESULTS2_V2 = v2.result_pb2.Result(
 )
 
 
+class FakeEngineContext(EngineContext):
+    """Fake engine context for testing."""
+
+    def __init__(self, client: engine_client.EngineClient):
+        super().__init__()
+        self.client = client
+
+
 @pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client():
     with mock.patch(
@@ -288,7 +296,9 @@ def test_get_device():
     with pytest.raises(ValueError):
         device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
     with pytest.raises(ValueError):
-        device.validate_operation(cirq.H(cirq.GridQubit(0, 0)))
+        device.validate_operation(
+            cirq.testing.DoesNotSupportSerializationGate()(cirq.GridQubit(0, 0))
+        )
     with pytest.raises(ValueError):
         device.validate_operation(cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)))
 
@@ -297,6 +307,86 @@ def test_get_missing_device():
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     with pytest.raises(ValueError, match='device specification'):
         _ = processor.get_device()
+
+
+def test_get_sampler_initializes_default_device_configuration() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
+    sampler = processor.get_sampler()
+
+    assert sampler.run_name == "run"
+    assert sampler.device_config_name == "config_alias"
+
+
+def test_get_sampler_uses_custom_default_device_configuration_key() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_config_alias"
+            )
+        ),
+    )
+    sampler = processor.get_sampler(run_name="run1", device_config_name="config_alias1")
+
+    assert sampler.run_name == "run1"
+    assert sampler.device_config_name == "config_alias1"
+
+
+@pytest.mark.parametrize(
+    'run, snapshot_id, config_alias, error_message',
+    [
+        ('run', '', '', 'Cannot specify only one of top level identifier and `device_config_name`'),
+        (
+            '',
+            '',
+            'config',
+            'Cannot specify only one of top level identifier and `device_config_name`',
+        ),
+        ('run', 'snapshot_id', 'config', 'Cannot specify both `run_name` and `snapshot_id`'),
+    ],
+)
+def test_get_sampler_with_incomplete_device_configuration_errors(
+    run, snapshot_id, config_alias, error_message
+) -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_config_alias"
+            )
+        ),
+    )
+
+    with pytest.raises(ValueError, match=error_message):
+        processor.get_sampler(
+            run_name=run, device_config_name=config_alias, snapshot_id=snapshot_id
+        )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
+def test_get_sampler_loads_processor_with_default_device_configuration(get_processor) -> None:
+    get_processor.return_value = quantum.QuantumProcessor(
+        default_device_config_key=quantum.DeviceConfigKey(run="run", config_alias="config_alias")
+    )
+    client = engine_client.EngineClient()
+    processor = cg.EngineProcessor('a', 'p', FakeEngineContext(client=client))
+    sampler = processor.get_sampler()
+
+    assert sampler.run_name == "run"
+    assert sampler.device_config_name == "config_alias"
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
@@ -336,24 +426,6 @@ def test_list_calibrations(list_calibrations):
         1562544000021
     ]
     list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
-def test_list_calibrations_old_params(list_calibrations):
-    # Disable pylint warnings for use of deprecated parameters
-    # pylint: disable=unexpected-keyword-arg
-    list_calibrations.return_value = [_CALIBRATION]
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    with cirq.testing.assert_deprecated('Change earliest_timestamp_seconds', deadline='v1.0'):
-        assert [
-            c.timestamp for c in processor.list_calibrations(earliest_timestamp_seconds=1562500000)
-        ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-    with cirq.testing.assert_deprecated('Change latest_timestamp_seconds', deadline='v1.0'):
-        assert [
-            c.timestamp for c in processor.list_calibrations(latest_timestamp_seconds=1562600000)
-        ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
@@ -790,7 +862,10 @@ def test_run_sweep_params_with_unary_rpcs(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=False))
     job = processor.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        run_name="run",
+        device_config_name="config_alias",
     )
     results = job.results()
     assert len(results) == 2
@@ -810,9 +885,9 @@ def test_run_sweep_params_with_unary_rpcs(client):
     client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps = run_context.parameter_sweeps
     assert len(sweeps) == 2
-    for i, v in enumerate([1.0, 2.0]):
+    for i, v in enumerate([1, 2]):
         assert sweeps[i].repetitions == 1
-        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == v
     client().get_job_async.assert_called_once()
     client().get_job_results_async.assert_called_once()
 
@@ -829,7 +904,10 @@ def test_run_sweep_params_with_stream_rpcs(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext(enable_streaming=True))
     job = processor.run_sweep(
-        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
+        program=_CIRCUIT,
+        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        run_name="run",
+        device_config_name="config_alias",
     )
     results = job.results()
     assert len(results) == 2
@@ -848,9 +926,9 @@ def test_run_sweep_params_with_stream_rpcs(client):
     client().run_job_over_stream.call_args[1]['run_context'].Unpack(run_context)
     sweeps = run_context.parameter_sweeps
     assert len(sweeps) == 2
-    for i, v in enumerate([1.0, 2.0]):
+    for i, v in enumerate([1, 2]):
         assert sweeps[i].repetitions == 1
-        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
+        assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.const_value.int_value == v
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)

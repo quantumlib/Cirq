@@ -208,3 +208,27 @@ def test_identity_short_circuits_act_on():
     args = mock.Mock(cirq.SimulationState)
     args._act_on_fallback_.side_effect = mock.Mock(side_effect=Exception('No!'))
     cirq.act_on(cirq.IdentityGate(1)(cirq.LineQubit(0)), args)
+
+
+def test_identity_commutes():
+    assert cirq.commutes(cirq.I, cirq.X)
+    with pytest.raises(TypeError):
+        cirq.commutes(cirq.I, "Gate")
+
+
+def test_identity_diagram():
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.IdentityGate(3).on_each(cirq.LineQubit.range(3))),
+        """
+0: ───I───
+      │
+1: ───I───
+      │
+2: ───I───
+""",
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.IdentityGate(0)()),
+        """
+    I(0)""",
+    )

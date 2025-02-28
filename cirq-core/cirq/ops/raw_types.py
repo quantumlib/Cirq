@@ -16,6 +16,7 @@
 
 import abc
 import functools
+from types import NotImplementedType
 from typing import (
     cast,
     AbstractSet,
@@ -41,8 +42,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
-from cirq._compat import __cirq_debug__, cached_method
-from cirq.type_workarounds import NotImplementedType
+from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
 from cirq.ops import control_values as cv
 
 # Lazy imports to break circular dependencies.
@@ -114,6 +114,15 @@ class Qid(metaclass=abc.ABCMeta):
     @cached_method
     def __hash__(self) -> int:
         return hash((Qid, self._comparison_key()))
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        hash_attr = _method_cache_name(self.__hash__)
+        if hash_attr in state:
+            state = state.copy()
+            del state[hash_attr]
+        return state
 
     def __eq__(self, other):
         if not isinstance(other, Qid):
@@ -297,7 +306,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return operations
 
     def wrap_in_linear_combination(
-        self, coefficient: Union[complex, float, int] = 1
+        self, coefficient: 'cirq.TParamValComplex' = 1
     ) -> 'cirq.LinearCombinationOfGates':
         """Returns a LinearCombinationOfGates with this gate.
 
@@ -328,13 +337,13 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __neg__(self) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=-1)
 
-    def __mul__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __mul__(self, other: complex) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=other)
 
-    def __rmul__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __rmul__(self, other: complex) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=other)
 
-    def __truediv__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __truediv__(self, other: complex) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=1 / other)
 
     def __pow__(self, power):
@@ -455,6 +464,18 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         raise NotImplementedError
 
+    def _equal_up_to_global_phase_(
+        self, other: Any, atol: float = 1e-8
+    ) -> Union[NotImplementedType, bool]:
+        """Default fallback for gates that do not implement this protocol."""
+        try:
+            return protocols.equal_up_to_global_phase(
+                protocols.unitary(self), protocols.unitary(other), atol=atol
+            )
+        except TypeError:
+            # Gate has no unitary protocol
+            return NotImplemented
+
     def _commutes_on_qids_(
         self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
@@ -545,6 +566,9 @@ class Operation(metaclass=abc.ABCMeta):
         resulting operation to be eventually serialized into JSON, you should
         also restrict the operation to be JSON serializable.
 
+        Please note that tags should be instantiated if classes are
+        used.  Raw types are not allowed.
+
         Args:
             *new_tags: The tags to wrap this operation in.
         """
@@ -556,6 +580,26 @@ class Operation(metaclass=abc.ABCMeta):
         self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
     ) -> Self:
         """Returns the same operation, but with different qubits.
+
+        This function will return a new operation with the same gate but
+        with qubits mapped according to the argument.
+
+        For example, the following will translate LineQubits to GridQubits
+        using a grid with 4 columns:
+
+        >>> op = cirq.CZ(cirq.LineQubit(5), cirq.LineQubit(9))
+        >>> op.transform_qubits(lambda q: cirq.GridQubit(q.x // 4, q.x % 4))
+        cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 1))
+
+        This can also be used with a dictionary that has a mapping, such
+        as the following which maps named qubits to line qubits:
+
+        >>> a = cirq.NamedQubit('alice')
+        >>> b = cirq.NamedQubit('bob')
+        >>> d = {a: cirq.LineQubit(4), b: cirq.LineQubit(5)}
+        >>> op = cirq.CNOT(a, b)
+        >>> op.transform_qubits(d)
+        cirq.CNOT(cirq.LineQubit(4), cirq.LineQubit(5))
 
         Args:
             qubit_map: A function or a dict mapping each current qubit into a desired
@@ -571,7 +615,7 @@ class Operation(metaclass=abc.ABCMeta):
         if callable(qubit_map):
             transform = qubit_map
         elif isinstance(qubit_map, dict):
-            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+            transform = lambda q: qubit_map.get(q, q)
         else:
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
         return self.with_qubits(*(transform(q) for q in self.qubits))
@@ -750,7 +794,8 @@ class TaggedOperation(Operation):
     Tags added can be of any type, but they should be Hashable in order
     to allow equality checking.  If you wish to serialize operations into
     JSON, you should restrict yourself to only use objects that have a JSON
-    serialization.
+    serialization.  Tags cannot be raw types and should be instantiated
+    if classes are used.
 
     See `Operation.with_tags()` for more information on intended usage.
     """
@@ -758,6 +803,8 @@ class TaggedOperation(Operation):
     def __init__(self, sub_operation: 'cirq.Operation', *tags: Hashable):
         self._sub_operation = sub_operation
         self._tags = tuple(tags)
+        if any(isinstance(tag, type) for tag in tags):
+            raise ValueError('Tags cannot be types.  Did you forget to instantiate the tag type?')
 
     @property
     def sub_operation(self) -> 'cirq.Operation':
@@ -807,6 +854,9 @@ class TaggedOperation(Operation):
         Overloads Operation.with_tags to create a new TaggedOperation
         that has the tags of this operation combined with the new_tags
         specified as the parameter.
+
+        Please note that tags should be instantiated if classes are
+        used.  Raw types are not allowed.
         """
         if not new_tags:
             return self
@@ -870,7 +920,7 @@ class TaggedOperation(Operation):
     def _has_kraus_(self) -> bool:
         return protocols.has_kraus(self.sub_operation)
 
-    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+    def _kraus_(self) -> Union[Tuple[np.ndarray, ...], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
     @cached_method
@@ -921,7 +971,7 @@ class TaggedOperation(Operation):
         # Add tag to wire symbol if it exists.
         if sub_op_info is not NotImplemented and args.include_tags and sub_op_info.wire_symbols:
             sub_op_info.wire_symbols = (
-                sub_op_info.wire_symbols[0] + str(list(self._tags)),
+                sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, self._tags))}]",
             ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
 
@@ -930,7 +980,9 @@ class TaggedOperation(Operation):
         return protocols.trace_distance_bound(self.sub_operation)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'cirq.Operation':
-        return protocols.phase_by(self.sub_operation, phase_turns, qubit_index)
+        return protocols.phase_by(
+            self.sub_operation, phase_turns, qubit_index, default=NotImplemented
+        )
 
     def __pow__(self, exponent: Any) -> 'cirq.Operation':
         return self.sub_operation**exponent
@@ -945,7 +997,7 @@ class TaggedOperation(Operation):
         return protocols.qasm(self.sub_operation, args=args, default=None)
 
     def _equal_up_to_global_phase_(
-        self, other: Any, atol: Union[int, float] = 1e-8
+        self, other: Any, atol: float = 1e-8
     ) -> Union[NotImplementedType, bool]:
         return protocols.equal_up_to_global_phase(self.sub_operation, other, atol=atol)
 
@@ -1031,6 +1083,12 @@ class _InverseCompositeGate(Gate):
 
     def __repr__(self) -> str:
         return f'({self._original!r}**-1)'
+
+    def __str__(self) -> str:
+        return f'{self._original!s}†'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {'original': self._original}
 
 
 def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:

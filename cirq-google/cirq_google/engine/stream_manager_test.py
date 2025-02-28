@@ -21,6 +21,7 @@ import duet
 import pytest
 import google.api_core.exceptions as google_exceptions
 
+import cirq
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine.stream_manager import (
     _get_retry_request_or_raise,
@@ -364,9 +365,11 @@ class TestStreamManager:
         [
             google_exceptions.InternalServerError('server error'),
             google_exceptions.ServiceUnavailable('unavailable'),
+            google_exceptions.Unknown('timeout'),
         ],
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+    @cirq.testing.retry_once_after_timeout
     def test_submit_with_retryable_stream_breakage_expects_get_result_request(
         self, client_constructor, error
     ):
@@ -403,10 +406,10 @@ class TestStreamManager:
             google_exceptions.TooManyRequests('too many requests'),
             google_exceptions.Unauthenticated('unauthenticated'),
             google_exceptions.Unauthorized('unauthorized'),
-            google_exceptions.Unknown('unknown'),
         ],
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+    @cirq.testing.retry_once_after_timeout
     def test_submit_with_non_retryable_stream_breakage_raises_error(
         self, client_constructor, error
     ):

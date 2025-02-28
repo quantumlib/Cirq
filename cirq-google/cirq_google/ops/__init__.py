@@ -12,14 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Qubit Gates, Operations, and Tags useful for Google devices. """
+"""Qubit Gates, Operations, and Tags useful for Google devices."""
 
-from cirq_google.ops.calibration_tag import CalibrationTag
+from cirq_google.ops.calibration_tag import CalibrationTag as CalibrationTag
 
-from cirq_google.ops.fsim_gate_family import FSimGateFamily
+from cirq_google.ops.coupler import Coupler as Coupler
 
-from cirq_google.ops.physical_z_tag import PhysicalZTag
+from cirq_google.ops.fsim_gate_family import FSimGateFamily as FSimGateFamily
 
-from cirq_google.ops.sycamore_gate import SycamoreGate, SYC
+from cirq_google.ops.fsim_via_model_tag import FSimViaModelTag as FSimViaModelTag
 
-from cirq_google.ops.internal_gate import InternalGate
+from cirq_google.ops.physical_z_tag import PhysicalZTag as PhysicalZTag
+
+from cirq_google.ops.sycamore_gate import SycamoreGate as SycamoreGate, SYC as SYC
+
+from cirq_google.ops.internal_gate import InternalGate as InternalGate
+
+from cirq_google.ops.internal_tag import InternalTag as InternalTag
+
+from cirq_google.ops.dynamical_decoupling_tag import (
+    DynamicalDecouplingTag as DynamicalDecouplingTag,
+)

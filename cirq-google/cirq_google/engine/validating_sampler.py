@@ -14,6 +14,7 @@
 from typing import Callable, Optional, Sequence, Union
 
 import cirq
+import duet
 
 VALIDATOR_TYPE = Callable[
     [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], Union[int, Sequence[int]]], None
@@ -64,7 +65,7 @@ class ValidatingSampler(cirq.Sampler):
         self._validate_circuit([program], [params], repetitions)
         return self._sampler.run_sweep(program, params, repetitions)
 
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[Sequence[cirq.Sweepable]] = None,
@@ -72,4 +73,6 @@ class ValidatingSampler(cirq.Sampler):
     ) -> Sequence[Sequence[cirq.Result]]:
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         self._validate_circuit(programs, params_list, repetitions)
-        return self._sampler.run_batch(programs, params_list, repetitions)
+        return await self._sampler.run_batch_async(programs, params_list, repetitions)
+
+    run_batch = duet.sync(run_batch_async)

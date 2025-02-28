@@ -13,11 +13,13 @@
 # limitations under the License.
 
 import abc
+from types import NotImplementedType
 from typing import (
     Any,
     cast,
     Dict,
     Iterable,
+    Iterator,
     Optional,
     Sequence,
     Tuple,
@@ -27,7 +29,6 @@ from typing import (
 )
 
 from cirq import circuits, ops, protocols, transformers, value
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -152,7 +153,7 @@ class SwapPermutationGate(PermutationGate):
     def permutation(self) -> Dict[int, int]:
         return {0: 1, 1: 0}
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         yield self.swap_gate(*qubits)
 
     def __repr__(self) -> str:
@@ -201,7 +202,7 @@ class LinearPermutationGate(PermutationGate):
     def permutation(self) -> Dict[int, int]:
         return self._permutation
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         swap_gate = SwapPermutationGate(self.swap_gate)
         n_qubits = len(qubits)
         mapping = {i: self._permutation.get(i, i) for i in range(n_qubits)}

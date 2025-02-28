@@ -19,6 +19,7 @@ from typing import (
     Any,
     Collection,
     Dict,
+    Iterator,
     List,
     Optional,
     Sequence,
@@ -163,7 +164,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if self._exponent != 1:
             return None
 
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         lines = [
             args.format('h {0};\n', qubits[2]),
             args.format('ccx {0},{1},{2};\n', qubits[0], qubits[1], qubits[2]),
@@ -482,7 +483,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if self._exponent != 1:
             return None
 
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('ccx {0},{1},{2};\n', qubits[0], qubits[1], qubits[2])
 
     def __repr__(self) -> str:
@@ -573,7 +574,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def _decompose_inside_control(
         self, target1: 'cirq.Qid', control: 'cirq.Qid', target2: 'cirq.Qid'
-    ) -> 'cirq.OP_TREE':
+    ) -> Iterator['cirq.OP_TREE']:
         """A decomposition assuming the control separates the targets.
 
         target1: ─@─X───────T──────@────────@─────────X───@─────X^-0.5─
@@ -617,7 +618,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def _decompose_outside_control(
         self, control: 'cirq.Qid', near_target: 'cirq.Qid', far_target: 'cirq.Qid'
-    ) -> 'cirq.OP_TREE':
+    ) -> Iterator['cirq.OP_TREE']:
         """A decomposition assuming one of the targets is in the middle.
 
         control: ───T──────@────────@───@────────────@────────────────
@@ -660,7 +661,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         return protocols.CircuitDiagramInfo(('@', '×', '×'))
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('cswap {0},{1},{2};\n', qubits[0], qubits[1], qubits[2])
 
     def _value_equality_values_(self):

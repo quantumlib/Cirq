@@ -24,7 +24,7 @@ name = 'cirq-web'
 description = 'Web-based 3D visualization tools for Cirq.'
 
 # README file as long_description.
-long_description = open('README.rst', encoding='utf-8').read()
+long_description = open('README.md', encoding='utf-8').read()
 
 # If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
 # It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
@@ -34,9 +34,13 @@ long_description = open('README.rst', encoding='utf-8').read()
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
-        "**This is a development version of cirq-web and may be "
-        "unstable.**\n\n**For the latest stable release of cirq-web "
-        "see**\n`here <https://pypi.org/project/cirq-web>`__.\n\n" + long_description
+        "<div align='center' width='50%'>\n\n"
+        "| ⚠️ WARNING |\n"
+        "|:----------:|\n"
+        "| **This is a development version of `cirq-web` and may be<br>"
+        "unstable. For the latest stable release of `cirq-web`,<br>"
+        "please visit** <https://pypi.org/project/cirq-web>.|\n"
+        "\n</div>\n\n" + long_description
     )
 
 # Read in requirements
@@ -62,11 +66,54 @@ setup(
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
     author_email='cirq-dev@googlegroups.com',
-    python_requires='>=3.9.0',
+    maintainer="Google Quantum AI open-source maintainers",
+    maintainer_email="quantum-oss-maintainers@google.com",
+    python_requires='>=3.10.0',
     install_requires=requirements,
     license='Apache 2',
     description=description,
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=packs,
     package_data={'cirq_web': ['dist/*'], 'cirq_ts': ['dist/*.bundle.js']},
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Scientific/Engineering :: Quantum Computing",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Typing :: Typed",
+    ],
+    keywords=[
+        "algorithms",
+        "api",
+        "cirq",
+        "google",
+        "google quantum",
+        "nisq",
+        "python",
+        "quantum",
+        "quantum algorithms",
+        "quantum circuit",
+        "quantum circuit simulator",
+        "quantum computer simulator",
+        "quantum computing",
+        "quantum development kit",
+        "quantum information",
+        "quantum programming",
+        "quantum programming language",
+        "quantum simulation",
+        "sdk",
+        "simulation",
+    ],
 )

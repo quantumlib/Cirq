@@ -25,7 +25,7 @@ raised to a power (i.e. SQRT_ISWAP_INV=cirq.ISWAP**-0.5). See the definition in
 EigenGate.
 """
 
-from typing import Optional, Tuple, TYPE_CHECKING, List
+from typing import cast, Optional, Tuple, TYPE_CHECKING, List
 
 import numpy as np
 import sympy
@@ -148,7 +148,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
-        args.validate_version('2.0')
+        args.validate_version('2.0', '3.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
 
     def __str__(self) -> str:
@@ -218,6 +218,11 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
                              [0, 0, 0, 0]])),
         ]
         # yapf: enable
+
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
+        return self.exponent % 1 == 0
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -294,7 +299,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
 def riswap(rads: value.TParamVal) -> ISwapPowGate:
     """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
-    return ISwapPowGate() ** (2 * rads / pi)
+    return cast(ISwapPowGate, ISwapPowGate() ** (2 * rads / pi))
 
 
 SWAP = SwapPowGate()

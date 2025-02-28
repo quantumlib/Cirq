@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import contextlib
 import dataclasses
 import datetime
@@ -19,7 +20,6 @@ import io
 import json
 import os
 import pathlib
-import sys
 import warnings
 from typing import Dict, List, Optional, Tuple, Type
 from unittest import mock
@@ -55,11 +55,12 @@ TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
     'non_existent_should_be_fine': None,
 }
 
-
-# pyQuil 3.0, necessary for cirq_rigetti module requires
-# python >= 3.9
-if sys.version_info < (3, 9):  # pragma: no cover
-    del TESTED_MODULES['cirq_rigetti']
+# TODO(#6706) remove after cirq_rigetti supports NumPy 2.0
+if np.__version__.startswith("2."):  # pragma: no cover
+    warnings.warn(
+        "json_serialization_test - ignoring cirq_rigetti due to incompatibility with NumPy 2.0"
+    )
+    del TESTED_MODULES["cirq_rigetti"]
 
 
 def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:

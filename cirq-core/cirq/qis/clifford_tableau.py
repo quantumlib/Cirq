@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import proper_repr, cached_method
+from cirq._compat import proper_repr, _method_cache_name, cached_method
 from cirq.qis import quantum_state_representation
 from cirq.value import big_endian_int_to_digits, linear_dict, random_state
 
@@ -129,7 +129,9 @@ class StabilizerState(
 
 class CliffordTableau(StabilizerState):
     """Tableau representation of a stabilizer state
-    (based on Aaronson and Gottesman 2006).
+
+    References:
+        - [Aaronson and Gottesman](https://arxiv.org/abs/quant-ph/0406196)
 
     The tableau stores the stabilizer generators of
     the state using three binary arrays: xs, zs, and rs.
@@ -324,32 +326,42 @@ class CliffordTableau(StabilizerState):
         return string
 
     def _str_full_(self) -> str:
-        string = ''
+        left_col_width = max(7, self.n * 2 + 3)
+        right_col_width = max(10, self.n * 2 + 4)
 
-        string += 'stable' + ' ' * max(self.n * 2 - 3, 1)
-        string += '| destable\n'
-        string += '-' * max(7, self.n * 2 + 3) + '+' + '-' * max(10, self.n * 2 + 4) + '\n'
+        def _fill_row(left: str, right: str, mid='|', fill=' ') -> str:
+            """Builds a left-aligned fixed-width row with 2 columns."""
+            return f"{left:{fill}<{left_col_width}}{mid}{right:{fill}<{right_col_width}}".rstrip()
 
-        for j in range(self.n):
-            for i in [j + self.n, j]:
-                string += '- ' if self.rs[i] else '+ '
+        def _pauli_from_matrix(r: int, c: int) -> str:
+            match (bool(self.xs[r, c]), bool(self.zs[r, c])):
+                case (True, False):
+                    return f'X{c}'
+                case (False, True):
+                    return f'Z{c}'
+                case (True, True):
+                    return f'Y{c}'
+                case _:
+                    # (False, False) is the only leftover option
+                    return '  '
 
-                for k in range(self.n):
-                    if self.xs[i, k] & (not self.zs[i, k]):
-                        string += f'X{k}'
-                    elif (not self.xs[i, k]) & self.zs[i, k]:
-                        string += f'Z{k}'
-                    elif self.xs[i, k] & self.zs[i, k]:
-                        string += f'Y{k}'
-                    else:
-                        string += '  '
+        title_row = _fill_row('stable', ' destable')
+        divider = _fill_row('', '', mid='+', fill='-')
+        contents = [
+            _fill_row(
+                left=(
+                    f"{'-' if self.rs[i + self.n] else '+'} "
+                    f"{''.join(_pauli_from_matrix(i + self.n, j) for j in range(self.n))}"
+                ),
+                right=(
+                    f" {'-' if self.rs[i] else '+'} "
+                    f"{''.join(_pauli_from_matrix(i, j) for j in range(self.n))}"
+                ),
+            )
+            for i in range(self.n)
+        ]
 
-                if i == j + self.n:
-                    string += ' ' * max(0, 4 - self.n * 2) + ' | '
-
-            string += '\n'
-
-        return string
+        return '\n'.join([title_row, divider, *contents]) + '\n'
 
     def then(self, second: 'CliffordTableau') -> 'CliffordTableau':
         """Returns a composed CliffordTableau of this tableau and the second tableau.
@@ -656,3 +668,12 @@ class CliffordTableau(StabilizerState):
     @cached_method
     def __hash__(self) -> int:
         return hash(self.matrix().tobytes() + self.rs.tobytes())
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # clear cached hash value when pickling, see #6674
+        state = self.__dict__
+        hash_attr = _method_cache_name(self.__hash__)
+        if hash_attr in state:
+            state = state.copy()
+            del state[hash_attr]
+        return state

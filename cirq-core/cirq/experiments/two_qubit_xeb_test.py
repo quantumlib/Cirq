@@ -148,10 +148,10 @@ _TEST_RESULT = cirq.experiments.TwoQubitXEBResult(
 @pytest.mark.parametrize(
     'q0,q1,pauli',
     [
-        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 1 / 8),
-        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 1 / 4),
-        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.8 + 3 / 40),
-        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 5 / 8),
+        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 0.09374999999999997),
+        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 0.18749999999999994),
+        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.65625),
+        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 0.46875),
     ],
 )
 def test_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
@@ -174,10 +174,10 @@ class MockParallelRandomizedBenchmarkingResult(ParallelRandomizedBenchmarkingRes
 @pytest.mark.parametrize(
     'q0,q1,pauli',
     [
-        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 1 / 8 - 0.03),
-        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 1 / 4 - 0.09),
-        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.8 + 3 / 40 - 0.08),
-        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 5 / 8 - 0.13),
+        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 0.09374999999999997 - 0.03),
+        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 0.18749999999999994 - 0.09),
+        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.65625 - 0.08),
+        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 0.46875 - 0.13),
     ],
 )
 def test_inferred_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
@@ -191,10 +191,10 @@ def test_inferred_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: flo
 @pytest.mark.parametrize(
     'q0,q1,xeb',
     [
-        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 0.076),
-        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 0.128),
-        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.636),
-        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 0.396),
+        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 0.050999999999999934),
+        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 0.07799999999999996),
+        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.46099999999999997),
+        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 0.2709999999999999),
     ],
 )
 def test_inferred_xeb_error(q0: cirq.GridQubit, q1: cirq.GridQubit, xeb: float):
@@ -224,10 +224,10 @@ def test_inferred_single_qubit_pauli():
 @pytest.mark.parametrize(
     'q0,q1,pauli',
     [
-        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 1 / 8),
-        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 1 / 4),
-        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.8 + 3 / 40),
-        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 5 / 8),
+        (cirq.GridQubit(4, 4), cirq.GridQubit(5, 4), 0.09374999999999997),
+        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3), 0.18749999999999994),
+        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3), 0.65625),
+        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4), 0.46875),
     ],
 )
 def test_inferred_two_qubit_pauli(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
@@ -261,26 +261,43 @@ def test_inferred_plots(ax, target_error, kind):
 
 
 @pytest.mark.parametrize(
-    'sampler,qubits',
+    'sampler,qubits,pairs',
     [
         (
             cirq.DensityMatrixSimulator(
                 seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
             ),
             cirq.GridQubit.rect(3, 2, 4, 3),
+            None,
+        ),
+        (
+            cirq.DensityMatrixSimulator(
+                seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
+            ),
+            None,
+            [
+                (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
+                (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
+            ],
         ),
         (
             DensityMatrixSimulatorWithProcessor(
                 seed=0, noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.1))
             ),
             None,
+            None,
         ),
     ],
 )
-def test_run_rb_and_xeb(sampler: cirq.Sampler, qubits: Optional[Sequence[cirq.GridQubit]]):
+def test_run_rb_and_xeb(
+    sampler: cirq.Sampler,
+    qubits: Optional[Sequence[cirq.GridQubit]],
+    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]],
+):
     res = cirq.experiments.run_rb_and_xeb(
         sampler=sampler,
         qubits=qubits,
+        pairs=pairs,
         repetitions=100,
         num_clifford_range=tuple(np.arange(3, 10, 1)),
         xeb_combinations=1,

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Protocol for determining commutativity."""
 
+from types import NotImplementedType
 from typing import Any, overload, TypeVar, Union
 
 import numpy as np
@@ -20,7 +21,6 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument.
@@ -74,19 +74,17 @@ class SupportsCommutes(Protocol):
 
 
 @overload
-def commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool:
-    ...
+def commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool: ...
 
 
 @overload
 def commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: TDefault
-) -> Union[bool, TDefault]:
-    ...
+    v1: Any, v2: Any, *, atol: float = 1e-8, default: TDefault
+) -> Union[bool, TDefault]: ...
 
 
 def commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: Any = RaiseTypeErrorIfNotProvided
+    v1: Any, v2: Any, *, atol: float = 1e-8, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Any:
     """Determines whether two values commute.
 
@@ -149,7 +147,7 @@ def commutes(
     )
 
 
-def definitely_commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool:
+def definitely_commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool:
     """Determines whether two values definitely commute.
 
     Returns:
@@ -160,7 +158,7 @@ def definitely_commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> 
 
 
 def _strat_commutes_from_commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8
+    v1: Any, v2: Any, *, atol: float = 1e-8
 ) -> Union[bool, NotImplementedType, None]:
     """Attempts to determine commutativity via the objects' _commutes_
     method."""

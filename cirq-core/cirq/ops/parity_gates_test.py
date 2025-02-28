@@ -258,7 +258,7 @@ def test_trace_distance():
 def test_ms_arguments():
     eq_tester = cirq.testing.EqualsTester()
     eq_tester.add_equality_group(
-        cirq.ms(np.pi / 2), cirq.ops.MSGate(rads=np.pi / 2), cirq.XXPowGate(global_shift=-0.5)
+        cirq.ms(np.pi / 2), cirq.MSGate(rads=np.pi / 2), cirq.XXPowGate(global_shift=-0.5)
     )
     eq_tester.add_equality_group(
         cirq.ms(np.pi / 4), cirq.XXPowGate(exponent=0.5, global_shift=-0.5)
@@ -323,15 +323,7 @@ b: ───×───────────MS(π)───
 
 
 def test_json_serialization():
-    def custom_resolver(cirq_type: str):
-        if cirq_type == "MSGate":
-            return cirq.ops.MSGate
-        return None
-
-    assert cirq.read_json(
-        json_text=cirq.to_json(cirq.ms(np.pi / 2)), resolvers=[custom_resolver]
-    ) == cirq.ms(np.pi / 2)
-    assert custom_resolver('X') is None
+    assert cirq.read_json(json_text=cirq.to_json(cirq.ms(np.pi / 2))) == cirq.ms(np.pi / 2)
 
 
 @pytest.mark.parametrize('gate_cls', (cirq.XXPowGate, cirq.YYPowGate, cirq.ZZPowGate))

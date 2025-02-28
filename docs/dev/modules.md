@@ -13,7 +13,7 @@ cirq-example
 │       ├── __init__.py
 │       └── spec.py
 ├── LICENSE
-├── README.rst
+├── README.md
 ├── requirements.txt
 ├── setup.cfg
 └── setup.py
@@ -42,7 +42,7 @@ To setup a new module follow these steps:
 
 1. Create the folder structure above, copy the files based on an existing module
     1. LICENSE should be the same
-    2. README.rst will be the documentation that appears in PyPi
+    2. README.md will be the documentation that appears in PyPi
     3. setup.py should specify an `install_requires` configuration that has `cirq-core=={module.version}` at the minimum
 2. Setup JSON serialization for each top level python package
 
@@ -55,7 +55,7 @@ To setup a new module follow these steps:
     def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # pragma: no cover
         return {}
     ```
-2. Register the resolver cache - at _the end_ of the `<top_level_package>/__init__.py`:
+2. Register the resolver cache at _the end_ of the `<top_level_package>/__init__.py`:
     ```python
 
     # Registers cirq_example's public classes for JSON serialization.
@@ -87,7 +87,7 @@ To setup a new module follow these steps:
    3. in `cirq/protocols/json_serialization_test.py` add `'cirq_example':None` to the `TESTED_MODULES` variable. `TESTED_MODULES` is also used to prepare the test framework for deprecation warnings.
       With new modules, we use`None` as there is no deprecation setup.
 
-You can run `check/pytest-changed-files` and that should execute the json_serialization_test.py as well.
+You can run `check/pytest-changed-files` and that should execute the script `json_serialization_test.py` as well.
 
 That's it! Now, you can follow the [Serialization guide](./serialization.md) for adding and removing serializable objects.
 
@@ -101,5 +101,5 @@ To iterate through modules, you can list them by invoking `dev_tools/modules.py`
 python dev_tools/modules.py list
 ```
 
-There are different modes of listing (e.g the folder, package-path, top level package),
+There are different modes of listing (e.g., the folder, package-path, top level package),
 you can refer to `python dev_tools/modules.py list --help` for the most up to date features.

@@ -12,15 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import dataclasses
 import functools
 import operator
-from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Union, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    TYPE_CHECKING,
+)
 
 import numpy as np
 import sympy
 from ply import yacc
 
-from cirq import ops, Circuit, NamedQubit, CX
+from cirq import ops, value, Circuit, CircuitOperation, CX, FrozenCircuit, NamedQubit
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
@@ -45,6 +58,31 @@ class Qasm:
         self.qregs = qregs
         self.cregs = cregs
         self.circuit = c
+
+
+def _generate_op_qubits(args: List[List[ops.Qid]], lineno: int) -> List[List[ops.Qid]]:
+    """Generates the Cirq qubits for an operation from the OpenQASM qregs.
+
+    OpenQASM gates can be applied on single qubits and qubit registers.
+    We represent single qubits as registers of size 1.
+    Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
+    single qubit arguments can be mixed with qubit registers.
+    Given quantum registers of length reg_size and single qubits are both
+    used as arguments, we generate reg_size GateOperations via iterating
+    through each qubit of the registers 0 to n-1 and use the same one
+    qubit from the "single-qubit registers" for each operation."""
+    reg_sizes = np.unique([len(reg) for reg in args])
+    if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
+        raise QasmException(
+            f"Non matching quantum registers of length {reg_sizes} at line {lineno}"
+        )
+    op_qubits_gen = functools.reduce(
+        cast(Callable[[List['cirq.Qid'], List['cirq.Qid']], List['cirq.Qid']], np.broadcast), args
+    )
+    op_qubits = [[q] if isinstance(q, ops.Qid) else q for q in op_qubits_gen]
+    if any(len(set(q)) < len(q) for q in op_qubits):
+        raise QasmException(f"Overlapping qubits in arguments at line {lineno}")
+    return op_qubits
 
 
 class QasmGateStatement:
@@ -87,7 +125,7 @@ class QasmGateStatement:
                 f"got: {len(args)}, at line {lineno}"
             )
 
-    def _validate_params(self, params: List[float], lineno: int):
+    def _validate_params(self, params: List[value.TParamVal], lineno: int):
         if len(params) != self.num_params:
             raise QasmException(
                 f"{self.qasm_gate} takes {self.num_params} parameter(s), "
@@ -95,41 +133,47 @@ class QasmGateStatement:
             )
 
     def on(
-        self, params: List[float], args: List[List[ops.Qid]], lineno: int
+        self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
     ) -> Iterable[ops.Operation]:
         self._validate_args(args, lineno)
         self._validate_params(params, lineno)
-
-        reg_sizes = np.unique([len(reg) for reg in args])
-        if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
-            raise QasmException(
-                f"Non matching quantum registers of length {reg_sizes} at line {lineno}"
-            )
 
         # the actual gate we'll apply the arguments to might be a parameterized
         # or non-parameterized gate
         final_gate: ops.Gate = (
             self.cirq_gate if isinstance(self.cirq_gate, ops.Gate) else self.cirq_gate(params)
         )
-        # OpenQASM gates can be applied on single qubits and qubit registers.
-        # We represent single qubits as registers of size 1.
-        # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
-        # single qubit arguments can be mixed with qubit registers.
-        # Given quantum registers of length reg_size and single qubits are both
-        # used as arguments, we generate reg_size GateOperations via iterating
-        # through each qubit of the registers 0 to n-1 and use the same one
-        # qubit from the "single-qubit registers" for each operation.
-        op_qubits = functools.reduce(
-            cast(Callable[[List['cirq.Qid'], List['cirq.Qid']], List['cirq.Qid']], np.broadcast),
-            args,
-        )
-        for qubits in op_qubits:
-            if isinstance(qubits, ops.Qid):
-                yield final_gate.on(qubits)
-            elif len(np.unique(qubits)) < len(qubits):
-                raise QasmException(f"Overlapping qubits in arguments at line {lineno}")
-            else:
-                yield final_gate.on(*qubits)
+        for qubits in _generate_op_qubits(args, lineno):
+            yield final_gate.on(*qubits)
+
+
+@dataclasses.dataclass
+class CustomGate:
+    """Represents an invocation of a user-defined gate.
+
+    The custom gate definition is encoded here as a `FrozenCircuit`, and the
+    arguments (params and qubits) of the specific invocation of that gate are
+    stored here too. When `on` is called, we create a CircuitOperation, mapping
+    the qubits and params to the values provided."""
+
+    name: str
+    circuit: FrozenCircuit
+    params: Tuple[str, ...]
+    qubits: Tuple[ops.Qid, ...]
+
+    def on(
+        self, params: List[value.TParamVal], args: List[List[ops.Qid]], lineno: int
+    ) -> Iterable[ops.Operation]:
+        if len(params) != len(self.params):
+            raise QasmException(f"Wrong number of params for '{self.name}' at line {lineno}")
+        if len(args) != len(self.qubits):
+            raise QasmException(f"Wrong number of qregs for '{self.name}' at line {lineno}")
+        for qubits in _generate_op_qubits(args, lineno):
+            yield CircuitOperation(
+                self.circuit,
+                param_resolver={k: v for k, v in zip(self.params, params)},
+                qubit_map={k: v for k, v in zip(self.qubits, qubits)},
+            )
 
 
 class QasmParser:
@@ -146,6 +190,18 @@ class QasmParser:
         self.circuit = Circuit()
         self.qregs: Dict[str, int] = {}
         self.cregs: Dict[str, int] = {}
+        self.gate_set: Dict[str, Union[CustomGate, QasmGateStatement]] = {**self.basic_gates}
+        """The gates available to use in the circuit, including those from libraries, and
+         user-defined ones."""
+        self.in_custom_gate_scope = False
+        """This is set to True when the parser is in the middle of parsing a custom gate
+         definition."""
+        self.custom_gate_scoped_params: Set[str] = set()
+        """The params declared within the current custom gate definition. Empty if not in
+         custom gate scope."""
+        self.custom_gate_scoped_qubits: Dict[str, ops.Qid] = {}
+        """The qubits declared within the current custom gate definition. Empty if not in
+         custom gate scope."""
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
@@ -243,6 +299,24 @@ class QasmParser:
         'ch': QasmGateStatement(
             qasm_gate='ch', cirq_gate=ops.ControlledGate(ops.H), num_params=0, num_args=2
         ),
+        'cu1': QasmGateStatement(
+            qasm_gate='cu1',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(0, 0, params[0] / np.pi))),
+        ),
+        'cu3': QasmGateStatement(
+            qasm_gate='cu3',
+            num_params=3,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))),
+        ),
+        'crz': QasmGateStatement(
+            qasm_gate='crz',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.rz(params[0]))),
+        ),
         'swap': QasmGateStatement(qasm_gate='swap', cirq_gate=ops.SWAP, num_params=0, num_args=2),
         'cswap': QasmGateStatement(
             qasm_gate='cswap', num_params=0, num_args=3, cirq_gate=ops.CSWAP
@@ -251,8 +325,6 @@ class QasmParser:
         'sdg': QasmGateStatement(qasm_gate='sdg', num_params=0, num_args=1, cirq_gate=ops.S**-1),
         'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
     }
-
-    all_gates = {**basic_gates, **qelib_gates}
 
     tokens = QasmLexer.tokens
     start = 'start'
@@ -270,6 +342,7 @@ class QasmParser:
 
     def p_qasm_no_format_specified_error(self, p):
         """qasm : QELIBINC
+        | STDGATESINC
         | circuit"""
         if self.supported_format is False:
             raise QasmException("Missing 'OPENQASM 2.0;' statement")
@@ -277,6 +350,13 @@ class QasmParser:
     def p_qasm_include(self, p):
         """qasm : qasm QELIBINC"""
         self.qelibinc = True
+        self.gate_set |= self.qelib_gates
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
+
+    def p_qasm_include_stdgates(self, p):
+        """qasm : qasm STDGATESINC"""
+        self.qelibinc = True
+        self.gate_set |= self.qelib_gates
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
 
     def p_qasm_circuit(self, p):
@@ -285,14 +365,16 @@ class QasmParser:
 
     def p_format(self, p):
         """format : FORMAT_SPEC"""
-        if p[1] != "2.0":
+        if p[1] not in ["2.0", "3.0"]:
             raise QasmException(
-                f"Unsupported OpenQASM version: {p[1]}, only 2.0 is supported currently by Cirq"
+                f"Unsupported OpenQASM version: {p[1]}, "
+                "only 2.0 and 3.0 are supported currently by Cirq"
             )
 
     # circuit : new_reg circuit
     #         | gate_op circuit
     #         | measurement circuit
+    #         | reset circuit
     #         | if circuit
     #         | empty
 
@@ -303,6 +385,7 @@ class QasmParser:
     def p_circuit_gate_or_measurement_or_if(self, p):
         """circuit :  circuit gate_op
         |  circuit measurement
+        |  circuit reset
         |  circuit if"""
         self.circuit.append(p[2])
         p[0] = self.circuit
@@ -311,17 +394,36 @@ class QasmParser:
         """circuit : empty"""
         p[0] = self.circuit
 
+    def p_circuit_gate_def(self, p):
+        """circuit : gate_def"""
+        p[0] = self.circuit
+
     # qreg and creg
 
     def p_new_reg(self, p):
         """new_reg : QREG ID '[' NATURAL_NUMBER ']' ';'
-        | CREG ID '[' NATURAL_NUMBER ']' ';'"""
-        name, length = p[2], p[4]
+        | QUBIT '[' NATURAL_NUMBER ']' ID ';'
+        | QUBIT ID ';'
+        | CREG ID '[' NATURAL_NUMBER ']' ';'
+        | BIT '[' NATURAL_NUMBER ']' ID ';'
+        | BIT ID ';'
+        """
+        if p[1] == "qreg" or p[1] == "creg":
+            # QREG ID '[' NATURAL_NUMBER ']' ';'
+            name, length = p[2], p[4]
+        else:
+            if len(p) < 5:
+                # QUBIT ID ';' | BIT ID ';'
+                name = p[2]
+                length = 1
+            else:
+                # QUBIT '[' NATURAL_NUMBER ']' ID ';'
+                name, length = p[5], p[3]
         if name in self.qregs.keys() or name in self.cregs.keys():
             raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
         if length == 0:
             raise QasmException(f"Illegal, zero-length register '{name}' at line {p.lineno(4)}")
-        if p[1] == "qreg":
+        if p[1] == "qreg" or p[1] == "qubit":
             self.qregs[name] = length
         else:
             self.cregs[name] = length
@@ -340,14 +442,13 @@ class QasmParser:
         self._resolve_gate_operation(args=p[5], gate=p[1], p=p, params=p[3])
 
     def _resolve_gate_operation(
-        self, args: List[List[ops.Qid]], gate: str, p: Any, params: List[float]
+        self, args: List[List[ops.Qid]], gate: str, p: Any, params: List[value.TParamVal]
     ):
-        gate_set = self.basic_gates if not self.qelibinc else self.all_gates
-        if gate not in gate_set.keys():
+        if gate not in self.gate_set:
             tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
             msg = f'Unknown gate "{gate}" at line {p.lineno(1)}{tip}'
             raise QasmException(msg)
-        p[0] = gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
+        p[0] = self.gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
     # params : parameter ',' params
     #        | parameter
@@ -362,13 +463,22 @@ class QasmParser:
         p[0] = [p[1]]
 
     # expr : term
-    #            | func '(' expression ')' """
+    #            | ID
+    #            | func '(' expression ')'
     #            | binary_op
     #            | unary_op
 
     def p_expr_term(self, p):
         """expr : term"""
         p[0] = p[1]
+
+    def p_expr_identifier(self, p):
+        """expr : ID"""
+        if not self.in_custom_gate_scope:
+            raise QasmException(f"Parameter '{p[1]}' in line {p.lineno(1)} not supported")
+        if p[1] not in self.custom_gate_scoped_params:
+            raise QasmException(f"Undefined parameter '{p[1]}' in line {p.lineno(1)}'")
+        p[0] = sympy.Symbol(p[1])
 
     def p_expr_parens(self, p):
         """expr : '(' expr ')'"""
@@ -400,9 +510,12 @@ class QasmParser:
 
     def p_term(self, p):
         """term : NUMBER
-        | NATURAL_NUMBER
-        | PI"""
+        | NATURAL_NUMBER"""
         p[0] = p[1]
+
+    def p_pi(self, p):
+        """term : PI"""
+        p[0] = np.pi
 
     # qargs : qarg ',' qargs
     #      | qarg ';'
@@ -422,6 +535,15 @@ class QasmParser:
     def p_quantum_arg_register(self, p):
         """qarg : ID"""
         reg = p[1]
+        if self.in_custom_gate_scope:
+            if reg not in self.custom_gate_scoped_qubits:
+                if reg not in self.qregs:
+                    msg = f"Undefined qubit '{reg}'"
+                else:
+                    msg = f"'{reg}' is a register, not a qubit"
+                raise QasmException(f"{msg} at line {p.lineno(1)}")
+            p[0] = [self.custom_gate_scoped_qubits[reg]]
+            return
         if reg not in self.qregs.keys():
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
         qubits = []
@@ -450,6 +572,8 @@ class QasmParser:
         """qarg : ID '[' NATURAL_NUMBER ']'"""
         reg = p[1]
         idx = p[3]
+        if self.in_custom_gate_scope:
+            raise QasmException(f"Unsupported indexed qreg '{reg}[{idx}]' at line {p.lineno(1)}")
         arg_name = self.make_name(idx, reg)
         if reg not in self.qregs.keys():
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
@@ -485,9 +609,14 @@ class QasmParser:
     # measurement : MEASURE qarg ARROW carg
 
     def p_measurement(self, p):
-        """measurement : MEASURE qarg ARROW carg ';'"""
-        qreg = p[2]
-        creg = p[4]
+        """measurement : MEASURE qarg ARROW carg ';'
+        | carg '=' MEASURE qarg ';'"""
+        if p[1] == 'measure':
+            qreg = p[2]
+            creg = p[4]
+        else:
+            qreg = p[4]
+            creg = p[1]
 
         if len(qreg) != len(creg):
             raise QasmException(
@@ -498,6 +627,15 @@ class QasmParser:
         p[0] = [
             ops.MeasurementGate(num_qubits=1, key=creg[i]).on(qreg[i]) for i in range(len(qreg))
         ]
+
+    # reset operations
+    # reset : RESET qarg
+
+    def p_reset(self, p):
+        """reset : RESET qarg ';'"""
+        qreg = p[2]
+
+        p[0] = [ops.ResetChannel().on(qreg[i]) for i in range(len(qreg))]
 
     # if operations
     # if : IF '(' carg EQ NATURAL_NUMBER ')' ID qargs
@@ -513,6 +651,60 @@ class QasmParser:
         p[0] = [
             ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[7])[0])
         ]
+
+    def p_gate_params_multiple(self, p):
+        """gate_params : ID ',' gate_params"""
+        self.p_gate_params_single(p)
+        p[0] += p[3]
+
+    def p_gate_params_single(self, p):
+        """gate_params : ID"""
+        self.in_custom_gate_scope = True
+        self.custom_gate_scoped_params.add(p[1])
+        p[0] = [p[1]]
+
+    def p_gate_qubits_multiple(self, p):
+        """gate_qubits : ID ',' gate_qubits"""
+        self.p_gate_qubits_single(p)
+        p[0] += p[3]
+
+    def p_gate_qubits_single(self, p):
+        """gate_qubits : ID"""
+        self.in_custom_gate_scope = True
+        q = NamedQubit(p[1])
+        self.custom_gate_scoped_qubits[p[1]] = q
+        p[0] = [q]
+
+    def p_gate_ops(self, p):
+        """gate_ops : gate_op gate_ops"""
+        p[0] = [p[1]] + p[2]
+
+    def p_gate_ops_empty(self, p):
+        """gate_ops : empty"""
+        self.in_custom_gate_scope = True
+        p[0] = []
+
+    def p_gate_def_parameterized(self, p):
+        """gate_def : GATE ID '(' gate_params ')' gate_qubits '{' gate_ops '}'"""
+        self._gate_def(p, has_params=True)
+
+    def p_gate_def(self, p):
+        """gate_def : GATE ID gate_qubits '{' gate_ops '}'"""
+        self._gate_def(p, has_params=False)
+
+    def _gate_def(self, p: List[Any], *, has_params: bool):
+        name = p[2]
+        gate_params = tuple(p[4]) if has_params else ()
+        offset = 3 if has_params else 0
+        gate_qubits = tuple(p[3 + offset])
+        gate_ops = p[5 + offset]
+        circuit = Circuit(gate_ops).freeze()
+        gate_def = CustomGate(name, circuit, gate_params, gate_qubits)
+        self.gate_set[name] = gate_def
+        self.custom_gate_scoped_params.clear()
+        self.custom_gate_scoped_qubits.clear()
+        self.in_custom_gate_scope = False
+        p[0] = gate_def
 
     def p_error(self, p):
         if p is None:

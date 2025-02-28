@@ -205,6 +205,10 @@ class _Unit(Sweep):
 UnitSweep = _Unit()
 document(UnitSweep, """The singleton sweep with no parameters.""")
 
+# Alternate name to designate as a constant.
+UNIT_SWEEP = UnitSweep
+document(UNIT_SWEEP, """The singleton sweep with no parameters.""")
+
 
 class Product(Sweep):
     """Cartesian product of one or more sweeps.
@@ -233,8 +237,6 @@ class Product(Sweep):
         return sum((factor.keys for factor in self.factors), [])
 
     def __len__(self) -> int:
-        if not self.factors:
-            return 0
         length = 1
         for factor in self.factors:
             length *= len(factor)
@@ -273,6 +275,63 @@ class Product(Sweep):
     @classmethod
     def _from_json_dict_(cls, factors, **kwargs):
         return Product(*factors)
+
+
+class Concat(Sweep):
+    """Concatenates multiple to a new sweep.
+
+    All sweeps must share the same descriptors.
+
+    If one sweep assigns 'a' to the values 0, 1, 2, and another sweep assigns
+    'a' to the values 3, 4, 5, the concatenation produces a sweep assigning
+    'a' to the values 0, 1, 2, 3, 4, 5 in sequence.
+    """
+
+    def __init__(self, *sweeps: Sweep) -> None:
+        if not sweeps:
+            raise ValueError("Concat requires at least one sweep.")
+
+        # Validate consistency across sweeps
+        first_sweep = sweeps[0]
+        for sweep in sweeps[1:]:
+            if sweep.keys != first_sweep.keys:
+                raise ValueError("All sweeps must have the same descriptors.")
+
+        self.sweeps = sweeps
+
+    def __eq__(self, other):
+        if not isinstance(other, Concat):
+            return NotImplemented
+        return self.sweeps == other.sweeps
+
+    def __hash__(self):
+        return hash(tuple(self.sweeps))
+
+    @property
+    def keys(self) -> List['cirq.TParamKey']:
+        return self.sweeps[0].keys
+
+    def __len__(self) -> int:
+        return sum(len(sweep) for sweep in self.sweeps)
+
+    def param_tuples(self) -> Iterator[Params]:
+        for sweep in self.sweeps:
+            yield from sweep.param_tuples()
+
+    def __repr__(self) -> str:
+        sweeps_repr = ', '.join(repr(sweep) for sweep in self.sweeps)
+        return f'cirq.Concat({sweeps_repr})'
+
+    def __str__(self) -> str:
+        sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
+        return f'Concat({sweeps_repr})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['sweeps'])
+
+    @classmethod
+    def _from_json_dict_(cls, sweeps, **kwargs):
+        return Concat(*sweeps)
 
 
 class Zip(Sweep):
@@ -345,7 +404,7 @@ class ZipLongest(Zip):
     which uses a fixed fill value.
 
     Raises:
-        ValueError if an input sweep if completely empty.
+        ValueError if an input sweep is completely empty.
     """
 
     def __init__(self, *sweeps: Sweep) -> None:
@@ -588,10 +647,7 @@ def dict_to_product_sweep(factor_dict: ProductOrZipSweepLike) -> Product:
         Cartesian product of the sweeps.
     """
     return Product(
-        *(
-            Points(k, v if isinstance(v, Sequence) else [v])  # type: ignore
-            for k, v in factor_dict.items()
-        )
+        *(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items())
     )
 
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterator, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.contrib.acquaintance.permutation import SwapPermutationGate, PermutationGate
@@ -47,7 +47,7 @@ class CircularShiftGate(PermutationGate):
     def _value_equality_values_(self) -> Any:
         return self.shift, self.swap_gate, self.num_qubits()
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         n = len(qubits)
         left_shift = self.shift % n
         right_shift = n - left_shift

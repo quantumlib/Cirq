@@ -4,37 +4,43 @@ title: Experiments using quantum circuits
 landing_page:
   nav: left
   rows:
-    - heading: Experiments using quantum circuits
-      description: This is a collection of algorithms and experiments written in and using Cirq. A couple of them use only base Cirq, but the rest use additional code stored in ReCirq, a Github repository for research code that uses and builds upon Cirq.
-    - buttons:
-      - label: Cirq Github
-        path: https://github.com/quantumlib/Cirq
-      - label: ReCirq Github
-        path: https://github.com/quantumlib/ReCirq
-    - heading: Algorithms in base Cirq
-      description: Algorithms and experiments executable using only default Cirq code.
-      options:
-        - cards
-      items:
-      - heading: Textbook Algorithms Workshop
-        description: A workshop notebook with examples that covers algorithms commonly shown in quantum textbooks.
-        path: /cirq/experiments/textbook_algorithms
-      - heading: Shor's Algorithm
-        description: The famous integer factorization algorithm by Peter Shor.
-        path: /cirq/experiments/shor
-      - heading: Variational Quantum Eigensolver
-        description: Compute the ground state of a Hamiltonian using the variational principle.
-        path: /cirq/experiments/variational_algorithm
-      - heading: Quantum Walks
-        description: The quantum analog of a random walk algorithm.
-        path: /cirq/experiments/quantum_walks
-      - heading: Fourier Checking
-        description: Demonstrate the separation between quantum and classical computers.
-        path: /cirq/experiments/fourier_checking
-      - heading: Hidden Linear Function problem
-        description: Show quantum separation with a constant depth solution.
-        path: /cirq/experiments/hidden_linear_function
+  - heading: Experiments using quantum circuits
+    description: This is a collection of algorithms and experiments written in and
+      using Cirq. A couple of them use only base Cirq, but the rest use additional
+      code stored in ReCirq, a GitHub repository for research code that uses and builds
+      upon Cirq.
+  - buttons:
+    - label: Cirq GitHub
+      path: https://github.com/quantumlib/Cirq
+    - label: ReCirq GitHub
+      path: https://github.com/quantumlib/ReCirq
+  - heading: Algorithms in base Cirq
+    description: Algorithms and experiments executable using only default Cirq code.
+    options:
+    - cards
+    items:
+    - heading: Textbook Algorithms Workshop
+      description: A workshop notebook with examples that covers algorithms commonly
+        shown in quantum textbooks.
+      path: /cirq/experiments/textbook_algorithms
+    - heading: Shor's Algorithm
+      description: The famous integer factorization algorithm by Peter Shor.
+      path: /cirq/experiments/shor
+    - heading: Variational Quantum Eigensolver
+      description: Compute the ground state of a Hamiltonian using the variational
+        principle.
+      path: /cirq/experiments/variational_algorithm
+    - heading: Quantum Walks
+      description: The quantum analog of a random walk algorithm.
+      path: /cirq/experiments/quantum_walks
+    - heading: Fourier Checking
+      description: Demonstrate the separation between quantum and classical computers.
+      path: /cirq/experiments/fourier_checking
+    - heading: Hidden Linear Function problem
+      description: Show quantum separation with a constant depth solution.
+      path: /cirq/experiments/hidden_linear_function
 
-    - heading: ReCirq Experiments
-      description: Research experiments that use additional library code that resides in the external ReCirq repository.
-    - include: /cirq/experiments/_index_included.yaml
+  - heading: ReCirq Experiments
+    description: Research experiments that use additional library code that resides
+      in the external ReCirq repository.
+  - include: /cirq/experiments/_index_included.yaml

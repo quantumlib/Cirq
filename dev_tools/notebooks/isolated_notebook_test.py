@@ -44,22 +44,10 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     # Requires pinned quimb from #6438
     'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    # Hardcoded qubit placement
-    'docs/google/qubit-placement.ipynb',
+    # Requires OpenQASM 3.0 support from cirq 1.6
+    'docs/build/interop.ipynb',
     # get_qcs_objects_for_notebook
-    'docs/noise/calibration_api.ipynb',
-    'docs/tutorials/google/colab.ipynb',
-    'docs/tutorials/google/identifying_hardware_changes.ipynb',
-    'docs/tutorials/google/echoes.ipynb',
-    'docs/noise/floquet_calibration_example.ipynb',
-    'docs/tutorials/google/spin_echoes.ipynb',
-    'docs/tutorials/google/start.ipynb',
-    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
-    'docs/named_topologies.ipynb',
-    'docs/start/intro.ipynb',
-    # Circuit routing
-    'docs/transform/routing_transformer.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -71,8 +59,6 @@ SKIP_NOTEBOOKS = [
     "**/google/*.ipynb",
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",
-    # skipp cirq-ft notebooks since they are included in individual tests
-    'cirq-ft/**',
     # Rigetti uses local simulation with docker, so should work
     # if you run into issues locally, run
     # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
@@ -98,11 +84,10 @@ PACKAGES = [
     "papermill",
     "jupyter",
     # assumed to be part of colab
-    "seaborn~=0.11.1",
+    "seaborn~=0.12",
 ]
 
 
-# TODO(3577): extract these out to common utilities when we rewrite bash scripts in python
 def _find_base_revision():
     for rev in ['upstream/main', 'origin/main', 'main']:
         try:
@@ -183,7 +168,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs'). \n"
             f"If this is a new failure in this notebook due to a new change, "
-            f"that is only available in main for now, consider adding `pip install --pre cirq` "
+            f"that is only available in main for now, consider adding `pip install cirq~=1.0.dev` "
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
@@ -231,10 +216,10 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
         mandatory_matches = [
-            r"!pip install --quiet cirq(-google)? --pre",
+            r"!pip install --quiet cirq(-google)?~=1.0.dev",
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install cirq(-google)? --pre`\.",
+            r"`pip install cirq(-google)?~=1.0.dev`\.",
         ]
 
         for m in mandatory_matches:

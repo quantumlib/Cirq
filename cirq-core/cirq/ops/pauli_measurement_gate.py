@@ -17,6 +17,7 @@ from typing import (
     Dict,
     FrozenSet,
     Iterable,
+    Iterator,
     Mapping,
     Tuple,
     Sequence,
@@ -144,7 +145,7 @@ class PauliMeasurementGate(raw_types.Gate):
 
     def _decompose_(
         self, qubits: Tuple['cirq.Qid', ...]
-    ) -> 'protocols.decompose_protocol.DecomposeResult':
+    ) -> Iterator['protocols.decompose_protocol.DecomposeResult']:
         any_qubit = qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._observable.on(*qubits).to_z_basis_ops())
         xor_decomp = tuple(pauli_string_phasor.xor_nonlocal_decompose(qubits, any_qubit))

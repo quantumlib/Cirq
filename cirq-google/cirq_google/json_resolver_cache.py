@@ -44,12 +44,14 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
+        'Coupler': cirq_google.Coupler,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
         'FSimGateFamily': cirq_google.FSimGateFamily,
+        'FSimViaModelTag': cirq_google.FSimViaModelTag,
         'SycamoreTargetGateset': cirq_google.SycamoreTargetGateset,
         'cirq.google.BitstringsMeasurement': cirq_google.BitstringsMeasurement,
         'cirq.google.QuantumExecutable': cirq_google.QuantumExecutable,
@@ -76,5 +78,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.GridDevice': cirq_google.GridDevice,
         'cirq.google.GoogleCZTargetGateset': cirq_google.GoogleCZTargetGateset,
         'cirq.google.DeviceParameter': cirq_google.study.device_parameter.DeviceParameter,
+        'cirq.google.Metadata': cirq_google.study.device_parameter.Metadata,
         'InternalGate': cirq_google.InternalGate,
+        'InternalTag': cirq_google.InternalTag,
     }

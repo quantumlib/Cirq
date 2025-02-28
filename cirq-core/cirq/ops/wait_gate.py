@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
-
-import sympy
+from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING
 
 from cirq import value, protocols
 from cirq.ops import raw_types
@@ -136,10 +134,10 @@ class WaitGate(raw_types.Gate):
 def wait(
     *target: 'cirq.Qid',
     duration: 'cirq.DURATION_LIKE' = None,
-    picos: Union[int, float, sympy.Expr] = 0,
-    nanos: Union[int, float, sympy.Expr] = 0,
-    micros: Union[int, float, sympy.Expr] = 0,
-    millis: Union[int, float, sympy.Expr] = 0,
+    picos: 'cirq.TParamVal' = 0,
+    nanos: 'cirq.TParamVal' = 0,
+    micros: 'cirq.TParamVal' = 0,
+    millis: 'cirq.TParamVal' = 0,
 ) -> raw_types.Operation:
     """Creates a WaitGate applied to all the given qubits.
 

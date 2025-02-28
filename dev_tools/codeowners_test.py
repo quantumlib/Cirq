@@ -17,7 +17,7 @@ import pytest
 
 CIRQ_MAINTAINERS = ('TEAM', "@quantumlib/cirq-maintainers")
 
-BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")}
+BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole")}
 
 DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('USERNAME', '@aasfaw'), ('USERNAME', '@rmlarose')})
 
@@ -84,7 +84,7 @@ def test_codeowners(filepath, expected):
     # will be skipped
     codeowners = pytest.importorskip("codeowners")
 
-    with open(".github/CODEOWNERS") as f:
+    with open(".github/CODEOWNERS", encoding="utf8") as f:
         owners = codeowners.CodeOwners(f.read())
         assert os.path.exists(
             filepath

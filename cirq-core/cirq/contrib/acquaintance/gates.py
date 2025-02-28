@@ -16,7 +16,17 @@ import functools
 import itertools
 import math
 import operator
-from typing import Dict, Iterable, List, NamedTuple, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import (
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+)
 
 from cirq import ops, protocols, value
 
@@ -276,7 +286,7 @@ class SwapNetworkGate(PermutationGate):
         self.part_lens = tuple(part_lens)
         self.acquaintance_size = acquaintance_size
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
         qubit_to_position = {q: i for i, q in enumerate(qubits)}
         mapping = dict(qubit_to_position)
         parts = []
@@ -306,10 +316,12 @@ class SwapNetworkGate(PermutationGate):
                 parts_qubits = list(left_part + right_part)
                 parts[i] = parts_qubits[: len(right_part)]
                 parts[i + 1] = parts_qubits[len(right_part) :]
-            layers.prior_interstitial.sort(key=op_sort_key)
+            if op_sort_key is not None:
+                layers.prior_interstitial.sort(key=op_sort_key)
             for l in ('prior_interstitial', 'pre', 'intra', 'post'):
                 yield getattr(layers, l)
-        layers.posterior_interstitial.sort(key=op_sort_key)
+        if op_sort_key is not None:
+            layers.posterior_interstitial.sort(key=op_sort_key)
         yield layers.posterior_interstitial
 
         assert list(

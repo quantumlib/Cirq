@@ -17,6 +17,7 @@ import gzip
 import json
 import numbers
 import pathlib
+from types import NotImplementedType
 from typing import (
     Any,
     Callable,
@@ -39,7 +40,6 @@ import sympy
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.type_workarounds import NotImplementedType
 
 ObjectFactory = Union[Type, Callable[..., Any]]
 
@@ -47,8 +47,7 @@ ObjectFactory = Union[Type, Callable[..., Any]]
 class JsonResolver(Protocol):
     """Protocol for json resolver functions passed to read_json."""
 
-    def __call__(self, cirq_type: str) -> Optional[ObjectFactory]:
-        ...
+    def __call__(self, cirq_type: str) -> Optional[ObjectFactory]: ...
 
 
 def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> JsonResolver:
@@ -256,6 +255,12 @@ class CirqEncoder(json.JSONEncoder):
                 sympy.StrictLessThan,
                 sympy.Equality,
                 sympy.Unequality,
+                sympy.And,
+                sympy.Or,
+                sympy.Not,
+                sympy.Xor,
+                sympy.Indexed,
+                sympy.IndexedBase,
             ),
         ):
             return {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args}

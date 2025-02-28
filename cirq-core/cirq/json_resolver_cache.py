@@ -49,7 +49,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.devices import InsertionNoiseModel
     from cirq.experiments import GridInteractionLayer
-    from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
         return cirq.BooleanHamiltonianGate(
@@ -120,6 +119,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CliffordState': cirq.CliffordState,
         'CliffordTableau': cirq.CliffordTableau,
         'CNotPowGate': cirq.CNotPowGate,
+        'Concat': cirq.Concat,
         'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
         'ControlledGate': cirq.ControlledGate,
         'ControlledOperation': cirq.ControlledOperation,
@@ -141,7 +141,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GlobalPhaseGate': cirq.GlobalPhaseGate,
         'GridDeviceMetadata': cirq.GridDeviceMetadata,
         'GridInteractionLayer': GridInteractionLayer,
-        'GridParallelXEBMetadata': GridParallelXEBMetadata,
         'GridQid': cirq.GridQid,
         'GridQubit': cirq.GridQubit,
         'HPowGate': cirq.HPowGate,
@@ -149,6 +148,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'IdentityGate': cirq.IdentityGate,
         'InitObsSetting': cirq.work.InitObsSetting,
         'InsertionNoiseModel': InsertionNoiseModel,
+        '_InverseCompositeGate': raw_types._InverseCompositeGate,
         'KeyCondition': cirq.KeyCondition,
         'KrausChannel': cirq.KrausChannel,
         'LinearDict': cirq.LinearDict,
@@ -157,6 +157,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'LineTopology': cirq.LineTopology,
         'Linspace': cirq.Linspace,
         'ListSweep': cirq.ListSweep,
+        'cirq.MSGate': cirq.MSGate,
         'MatrixGate': cirq.MatrixGate,
         'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
@@ -246,6 +247,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ZipLongest': cirq.ZipLongest,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
+        'UniformSuperpositionGate': cirq.UniformSuperpositionGate,
         # Old types, only supported for backwards-compatibility
         'BooleanHamiltonian': _boolean_hamiltonian_gate_op,  # Removed in v0.15
         'CrossEntropyResult': _cross_entropy_result,  # Removed in v0.16
@@ -270,6 +272,12 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.StrictLessThan': lambda args: sympy.StrictLessThan(*args),
         'sympy.Equality': lambda args: sympy.Equality(*args),
         'sympy.Unequality': lambda args: sympy.Unequality(*args),
+        'sympy.And': lambda args: sympy.And(*args),
+        'sympy.Or': lambda args: sympy.Or(*args),
+        'sympy.Not': lambda args: sympy.Not(*args),
+        'sympy.Xor': lambda args: sympy.Xor(*args),
+        'sympy.Indexed': lambda args: sympy.Indexed(*args),
+        'sympy.IndexedBase': lambda args: sympy.IndexedBase(*args),
         'sympy.Float': lambda approx: sympy.Float(approx),
         'sympy.Integer': sympy.Integer,
         'sympy.Rational': sympy.Rational,

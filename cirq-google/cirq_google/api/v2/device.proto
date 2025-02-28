@@ -56,6 +56,9 @@ message GateSpecification {
     CouplerPulse coupler_pulse = 9;
     Measurement meas = 10;
     Wait wait = 11;
+    FSimViaModel fsim_via_model = 12;
+    CZPowGate cz_pow_gate = 13;
+    InternalGate internal_gate = 14;
   }
 
   // Gate types available to Google devices.
@@ -72,6 +75,11 @@ message GateSpecification {
   message CouplerPulse {}
   message Measurement {}
   message Wait {}
+  message FSimViaModel {}
+  message CZPowGate {}
+  // This gate gets mapped to the internal representation corresponding
+  // to <gate_module.gate_name>.
+  message InternalGate {}
 }
 
 message GateSet {

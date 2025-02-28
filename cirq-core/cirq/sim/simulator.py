@@ -912,7 +912,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     def __str__(self) -> str:
         def bitstring(vals):
             separator = ' ' if np.max(vals) >= 10 else ''
-            return separator.join(str(int(v)) for v in vals)
+            return separator.join(str(v.item()) for v in vals)
 
         results = sorted([(key, bitstring(val)) for key, val in self.measurements.items()])
         if not results:
@@ -973,9 +973,10 @@ def split_into_matching_protocol_then_general(
     qubit A will cause later operations on A to be part of the non-matching
     suffix, but later operations on other qubits will continue to be put into
     the matching part (as long as those qubits have had no non-matching operation
-    up to that point).
+    up to that point). Measurement keys are handled equivalently.
     """
     blocked_qubits: Set[cirq.Qid] = set()
+    blocked_keys: Set[cirq.MeasurementKey] = set()
     matching_prefix = circuits.Circuit()
     general_suffix = circuits.Circuit()
     for moment in circuit:
@@ -983,12 +984,12 @@ def split_into_matching_protocol_then_general(
         general_part = []
         for op in moment:
             qs = set(op.qubits)
-            if not predicate(op) or not qs.isdisjoint(blocked_qubits):
-                blocked_qubits |= qs
-
-            if qs.isdisjoint(blocked_qubits):
+            keys = protocols.measurement_keys_touched(op)
+            if predicate(op) and qs.isdisjoint(blocked_qubits) and keys.isdisjoint(blocked_keys):
                 matching_part.append(op)
             else:
+                blocked_qubits |= qs
+                blocked_keys |= keys
                 general_part.append(op)
         if matching_part:
             matching_prefix.append(circuits.Moment(matching_part))

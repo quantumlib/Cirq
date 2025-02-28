@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import pytest
-import numpy as np
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
 
@@ -103,12 +102,28 @@ def test_numbers(number: str):
     assert token.value == float(number)
 
 
-def test_pi():
+@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
+def test_keywords(token):
     lexer = QasmLexer()
-    lexer.input('pi')
-    token = lexer.token()
-    assert token.type == "PI"
-    assert token.value == np.pi
+    identifier = f'{token} {token}'
+    lexer.input(identifier)
+    t = lexer.token()
+    assert t.type == QasmLexer.reserved[token]
+    assert t.value == token
+    t2 = lexer.token()
+    assert t2.type == QasmLexer.reserved[token]
+    assert t2.value == token
+
+
+@pytest.mark.parametrize('token', QasmLexer.reserved.keys())
+@pytest.mark.parametrize('separator', ['', '_'])
+def test_identifier_starts_or_ends_with_keyword(token, separator):
+    lexer = QasmLexer()
+    identifier = f'{token}{separator}{token}'
+    lexer.input(identifier)
+    t = lexer.token()
+    assert t.type == "ID"
+    assert t.value == identifier
 
 
 def test_qreg():
@@ -157,6 +172,74 @@ def test_creg():
     token = lexer.token()
     assert token.type == ";"
     assert token.value == ";"
+
+
+def test_custom_gate():
+    lexer = QasmLexer()
+    lexer.input('gate name(param1,param2) q1, q2 {X(q1)}')
+    token = lexer.token()
+    assert token.type == "GATE"
+    assert token.value == "gate"
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "name"
+
+    token = lexer.token()
+    assert token.type == "("
+    assert token.value == "("
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "param1"
+
+    token = lexer.token()
+    assert token.type == ","
+    assert token.value == ","
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "param2"
+
+    token = lexer.token()
+    assert token.type == ")"
+    assert token.value == ")"
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "q1"
+
+    token = lexer.token()
+    assert token.type == ","
+    assert token.value == ","
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "q2"
+
+    token = lexer.token()
+    assert token.type == "{"
+    assert token.value == "{"
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "X"
+
+    token = lexer.token()
+    assert token.type == "("
+    assert token.value == "("
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == "q1"
+
+    token = lexer.token()
+    assert token.type == ")"
+    assert token.value == ")"
+
+    token = lexer.token()
+    assert token.type == "}"
+    assert token.value == "}"
 
 
 def test_error():

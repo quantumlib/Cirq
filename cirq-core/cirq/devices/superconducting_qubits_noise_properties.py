@@ -180,9 +180,9 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
                 p_00, p_11 = self.readout_errors[qubit]
                 p = p_11 / (p_00 + p_11)
                 gamma = p_11 / p
-                added_measure_errors[
-                    noise_utils.OpIdentifier(ops.MeasurementGate, qubit)
-                ] = ops.generalized_amplitude_damp(p, gamma).on(qubit)
+                added_measure_errors[noise_utils.OpIdentifier(ops.MeasurementGate, qubit)] = (
+                    ops.generalized_amplitude_damp(p, gamma).on(qubit)
+                )
 
             noise_models.append(
                 devices.InsertionNoiseModel(ops_added=added_measure_errors, prepend=True)

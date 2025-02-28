@@ -3,13 +3,14 @@ from typing import Tuple, List
 from unittest.mock import create_autospec
 import cirq
 import numpy as np
+from pyquil import Program
 from pyquil.gates import MEASURE, RX, DECLARE, H, CNOT, I
 from pyquil.quilbase import Pragma, Reset
 from cirq_rigetti import circuit_transformers as transformers
 
 
 def test_transform_cirq_circuit_to_pyquil_program(
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
+    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally.
@@ -29,7 +30,7 @@ def test_transform_cirq_circuit_to_pyquil_program(
 
 
 def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
-    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]]
+    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally with explicit physical qubit address mapping.
@@ -55,7 +56,7 @@ def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
 
 
 def test_transform_with_post_transformation_hooks(
-    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]]
+    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally with explicit physical qubit address mapping.
@@ -63,7 +64,7 @@ def test_transform_with_post_transformation_hooks(
     bell_circuit, qubits = bell_circuit_with_qids
 
     def reset_hook(program, measurement_id_map):
-        program._instructions.insert(0, Reset())
+        program = Program(Reset()) + program
         return program, measurement_id_map
 
     reset_hook_spec = create_autospec(reset_hook, side_effect=reset_hook)
@@ -71,7 +72,7 @@ def test_transform_with_post_transformation_hooks(
     pragma = Pragma('INTIAL_REWIRING', freeform_string='GREEDY')
 
     def rewire_hook(program, measurement_id_map):
-        program._instructions.insert(0, pragma)
+        program = Program(pragma) + program
         return program, measurement_id_map
 
     rewire_hook_spec = create_autospec(rewire_hook, side_effect=rewire_hook)
@@ -100,7 +101,7 @@ def test_transform_with_post_transformation_hooks(
 
 
 def test_transform_cirq_circuit_with_explicit_decompose(
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
+    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
     """test that a user add a custom circuit decomposition function"""
 

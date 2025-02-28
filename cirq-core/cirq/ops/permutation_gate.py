@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterator, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types, swap_gates
@@ -73,24 +73,22 @@ class QubitPermutationGate(raw_types.Gate):
     def _has_unitary_(self):
         return True
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
-        n = len(qubits)
-        qubit_ids = [*range(n)]
-        is_sorted = False
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+        permutation = [p for p in self.permutation]
 
-        def _swap_if_out_of_order(idx: int) -> Iterable['cirq.Operation']:
-            nonlocal is_sorted
-            if self._permutation[qubit_ids[idx]] > self._permutation[qubit_ids[idx + 1]]:
-                yield swap_gates.SWAP(qubits[idx], qubits[idx + 1])
-                qubit_ids[idx + 1], qubit_ids[idx] = qubit_ids[idx], qubit_ids[idx + 1]
-                is_sorted = False
+        for i in range(len(permutation)):
 
-        while not is_sorted:
-            is_sorted = True
-            for i in range(0, n - 1, 2):
-                yield from _swap_if_out_of_order(i)
-            for i in range(1, n - 1, 2):
-                yield from _swap_if_out_of_order(i)
+            if permutation[i] == -1:
+                continue
+            cycle = [i]
+            while permutation[cycle[-1]] != i:
+                cycle.append(permutation[cycle[-1]])
+
+            for j in cycle:
+                permutation[j] = -1
+
+            for idx in cycle[1:]:
+                yield swap_gates.SWAP(qubits[cycle[0]], qubits[idx])
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.

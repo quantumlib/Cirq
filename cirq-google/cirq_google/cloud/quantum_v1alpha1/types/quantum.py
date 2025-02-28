@@ -39,6 +39,8 @@ __protobuf__ = proto.module(
         'QuantumReservationBudget',
         'QuantumTimeSlot',
         'QuantumReservation',
+        'DeviceConfigSelector',
+        'DeviceConfigKey',
     },
 )
 
@@ -78,50 +80,19 @@ class QuantumProgram(proto.Message):
             -
     """
 
-    name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    create_time = proto.Field(
-        proto.MESSAGE,
-        number=2,
-        message=timestamp_pb2.Timestamp,
-    )
-    update_time = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=timestamp_pb2.Timestamp,
-    )
-    labels = proto.MapField(
-        proto.STRING,
-        proto.STRING,
-        number=4,
-    )
-    label_fingerprint = proto.Field(
-        proto.STRING,
-        number=5,
-    )
-    description = proto.Field(
-        proto.STRING,
-        number=6,
-    )
+    name = proto.Field(proto.STRING, number=1)
+    create_time = proto.Field(proto.MESSAGE, number=2, message=timestamp_pb2.Timestamp)
+    update_time = proto.Field(proto.MESSAGE, number=3, message=timestamp_pb2.Timestamp)
+    labels = proto.MapField(proto.STRING, proto.STRING, number=4)
+    label_fingerprint = proto.Field(proto.STRING, number=5)
+    description = proto.Field(proto.STRING, number=6)
     gcs_code_location = proto.Field(
-        proto.MESSAGE,
-        number=7,
-        oneof='code_location',
-        message='GcsLocation',
+        proto.MESSAGE, number=7, oneof='code_location', message='GcsLocation'
     )
     code_inline_data = proto.Field(
-        proto.MESSAGE,
-        number=9,
-        oneof='code_location',
-        message='InlineData',
+        proto.MESSAGE, number=9, oneof='code_location', message='InlineData'
     )
-    code = proto.Field(
-        proto.MESSAGE,
-        number=8,
-        message=any_pb2.Any,
-    )
+    code = proto.Field(proto.MESSAGE, number=8, message=any_pb2.Any)
 
 
 class QuantumJob(proto.Message):
@@ -165,84 +136,68 @@ class QuantumJob(proto.Message):
             -
     """
 
-    name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    create_time = proto.Field(
-        proto.MESSAGE,
-        number=2,
-        message=timestamp_pb2.Timestamp,
-    )
-    update_time = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=timestamp_pb2.Timestamp,
-    )
-    labels = proto.MapField(
-        proto.STRING,
-        proto.STRING,
-        number=4,
-    )
-    label_fingerprint = proto.Field(
-        proto.STRING,
-        number=5,
-    )
-    description = proto.Field(
-        proto.STRING,
-        number=6,
-    )
-    scheduling_config = proto.Field(
-        proto.MESSAGE,
-        number=7,
-        message='SchedulingConfig',
-    )
-    output_config = proto.Field(
-        proto.MESSAGE,
-        number=8,
-        message='OutputConfig',
-    )
-    execution_status = proto.Field(
-        proto.MESSAGE,
-        number=9,
-        message='ExecutionStatus',
-    )
+    name = proto.Field(proto.STRING, number=1)
+    create_time = proto.Field(proto.MESSAGE, number=2, message=timestamp_pb2.Timestamp)
+    update_time = proto.Field(proto.MESSAGE, number=3, message=timestamp_pb2.Timestamp)
+    labels = proto.MapField(proto.STRING, proto.STRING, number=4)
+    label_fingerprint = proto.Field(proto.STRING, number=5)
+    description = proto.Field(proto.STRING, number=6)
+    scheduling_config = proto.Field(proto.MESSAGE, number=7, message='SchedulingConfig')
+    output_config = proto.Field(proto.MESSAGE, number=8, message='OutputConfig')
+    execution_status = proto.Field(proto.MESSAGE, number=9, message='ExecutionStatus')
     gcs_run_context_location = proto.Field(
-        proto.MESSAGE,
-        number=10,
-        oneof='run_context_location',
-        message='GcsLocation',
+        proto.MESSAGE, number=10, oneof='run_context_location', message='GcsLocation'
     )
     run_context_inline_data = proto.Field(
-        proto.MESSAGE,
-        number=12,
-        oneof='run_context_location',
-        message='InlineData',
+        proto.MESSAGE, number=12, oneof='run_context_location', message='InlineData'
     )
-    run_context = proto.Field(
-        proto.MESSAGE,
-        number=11,
-        message=any_pb2.Any,
-    )
+    run_context = proto.Field(proto.MESSAGE, number=11, message=any_pb2.Any)
 
 
-class DeviceConfigKey(proto.Message):
+class DeviceConfigSelector(proto.Message):
     r"""-
+    This message has `oneof`_ fields (mutually exclusive fields).
+    For each oneof, at most one member field can be set at the same time.
+    Setting any member of the oneof automatically clears all other
+    members.
+    .. _oneof: https://proto-plus-python.readthedocs.io/en/stable/fields.html#oneofs-mutually-exclusive-fields
     Attributes:
         run_name (str):
             -
+            This field is a member of `oneof`_ ``top_level_identifier``.
+        snapshot_id (str):
+            -
+            This field is a member of `oneof`_ ``top_level_identifier``.
         config_alias (str):
             -
     """
 
-    run_name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    config_alias = proto.Field(
-        proto.STRING,
-        number=2,
-    )
+    run_name: str = proto.Field(proto.STRING, number=1, oneof='top_level_identifier')
+    snapshot_id: str = proto.Field(proto.STRING, number=3, oneof='top_level_identifier')
+    config_alias: str = proto.Field(proto.STRING, number=2)
+
+
+class DeviceConfigKey(proto.Message):
+    r"""-
+    This message has `oneof`_ fields (mutually exclusive fields).
+    For each oneof, at most one member field can be set at the same time.
+    Setting any member of the oneof automatically clears all other
+    members.
+    .. _oneof: https://proto-plus-python.readthedocs.io/en/stable/fields.html#oneofs-mutually-exclusive-fields
+    Attributes:
+        run (str):
+            -
+            This field is a member of `oneof`_ ``top_level_identifier``.
+        snapshot_id (str):
+            -
+            This field is a member of `oneof`_ ``top_level_identifier``.
+        config_alias (str):
+            -
+    """
+
+    run: str = proto.Field(proto.STRING, number=1, oneof='top_level_identifier')
+    snapshot_id: str = proto.Field(proto.STRING, number=3, oneof='top_level_identifier')
+    config_alias: str = proto.Field(proto.STRING, number=2)
 
 
 class SchedulingConfig(proto.Message):
@@ -265,37 +220,17 @@ class SchedulingConfig(proto.Message):
                 -
             processor (str):
                 -
-            device_config_key ((google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
+            device_config_selector ((google.cloud.quantum_v1alpha1.types.DeviceConfigSelector):
                 -
         """
 
-        processor_names = proto.RepeatedField(
-            proto.STRING,
-            number=1,
-        )
-        processor = proto.Field(
-            proto.STRING,
-            number=2,
-        )
-        device_config_key = proto.Field(
-            proto.MESSAGE,
-            number=3,
-            message=DeviceConfigKey
-        )
+        processor_names = proto.RepeatedField(proto.STRING, number=1)
+        processor = proto.Field(proto.STRING, number=2)
+        device_config_selector = proto.Field(proto.MESSAGE, number=3, message=DeviceConfigSelector)
 
-    target_route = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    processor_selector = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=ProcessorSelector,
-    )
-    priority = proto.Field(
-        proto.INT32,
-        number=2,
-    )
+    target_route = proto.Field(proto.STRING, number=1)
+    processor_selector = proto.Field(proto.MESSAGE, number=3, message=ProcessorSelector)
+    priority = proto.Field(proto.INT32, number=2)
 
 
 class ExecutionStatus(proto.Message):
@@ -313,8 +248,10 @@ class ExecutionStatus(proto.Message):
         timing (google.cloud.quantum_v1alpha1.types.ExecutionStatus.Timing):
             -
     """
+
     class State(proto.Enum):
         r"""-"""
+
         STATE_UNSPECIFIED = 0
         READY = 1
         RUNNING = 2
@@ -332,8 +269,10 @@ class ExecutionStatus(proto.Message):
             error_message (str):
                 -
         """
+
         class Code(proto.Enum):
             r"""-"""
+
             CODE_UNSPECIFIED = 0
             SYSTEM_ERROR = 1
             INVALID_PROGRAM = 2
@@ -349,15 +288,8 @@ class ExecutionStatus(proto.Message):
             SCHEDULING_EXPIRED = 14
             FAILED_PRECONDITION = 15
 
-        error_code = proto.Field(
-            proto.ENUM,
-            number=1,
-            enum='ExecutionStatus.Failure.Code',
-        )
-        error_message = proto.Field(
-            proto.STRING,
-            number=2,
-        )
+        error_code = proto.Field(proto.ENUM, number=1, enum='ExecutionStatus.Failure.Code')
+        error_message = proto.Field(proto.STRING, number=2)
 
     class Timing(proto.Message):
         r"""-
@@ -369,40 +301,14 @@ class ExecutionStatus(proto.Message):
                 -
         """
 
-        started_time = proto.Field(
-            proto.MESSAGE,
-            number=1,
-            message=timestamp_pb2.Timestamp,
-        )
-        completed_time = proto.Field(
-            proto.MESSAGE,
-            number=2,
-            message=timestamp_pb2.Timestamp,
-        )
+        started_time = proto.Field(proto.MESSAGE, number=1, message=timestamp_pb2.Timestamp)
+        completed_time = proto.Field(proto.MESSAGE, number=2, message=timestamp_pb2.Timestamp)
 
-    state = proto.Field(
-        proto.ENUM,
-        number=1,
-        enum=State,
-    )
-    processor_name = proto.Field(
-        proto.STRING,
-        number=3,
-    )
-    calibration_name = proto.Field(
-        proto.STRING,
-        number=4,
-    )
-    failure = proto.Field(
-        proto.MESSAGE,
-        number=5,
-        message=Failure,
-    )
-    timing = proto.Field(
-        proto.MESSAGE,
-        number=6,
-        message=Timing,
-    )
+    state = proto.Field(proto.ENUM, number=1, enum=State)
+    processor_name = proto.Field(proto.STRING, number=3)
+    calibration_name = proto.Field(proto.STRING, number=4)
+    failure = proto.Field(proto.MESSAGE, number=5, message=Failure)
+    timing = proto.Field(proto.MESSAGE, number=6, message=Timing)
 
 
 class OutputConfig(proto.Message):
@@ -420,15 +326,9 @@ class OutputConfig(proto.Message):
     """
 
     gcs_results_location = proto.Field(
-        proto.MESSAGE,
-        number=1,
-        oneof='output_destination',
-        message='GcsLocation',
+        proto.MESSAGE, number=1, oneof='output_destination', message='GcsLocation'
     )
-    overwrite_existing = proto.Field(
-        proto.BOOL,
-        number=2,
-    )
+    overwrite_existing = proto.Field(proto.BOOL, number=2)
 
 
 class GcsLocation(proto.Message):
@@ -441,14 +341,8 @@ class GcsLocation(proto.Message):
             -
     """
 
-    uri = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    type_url = proto.Field(
-        proto.STRING,
-        number=2,
-    )
+    uri = proto.Field(proto.STRING, number=1)
+    type_url = proto.Field(proto.STRING, number=2)
 
 
 class InlineData(proto.Message):
@@ -459,10 +353,7 @@ class InlineData(proto.Message):
             -
     """
 
-    type_url = proto.Field(
-        proto.STRING,
-        number=1,
-    )
+    type_url = proto.Field(proto.STRING, number=1)
 
 
 class QuantumJobEvent(proto.Message):
@@ -477,21 +368,9 @@ class QuantumJobEvent(proto.Message):
             -
     """
 
-    event_time = proto.Field(
-        proto.MESSAGE,
-        number=1,
-        message=timestamp_pb2.Timestamp,
-    )
-    job = proto.Field(
-        proto.MESSAGE,
-        number=2,
-        message='QuantumJob',
-    )
-    modified_field_mask = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=field_mask_pb2.FieldMask,
-    )
+    event_time = proto.Field(proto.MESSAGE, number=1, message=timestamp_pb2.Timestamp)
+    job = proto.Field(proto.MESSAGE, number=2, message='QuantumJob')
+    modified_field_mask = proto.Field(proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask)
 
 
 class QuantumResult(proto.Message):
@@ -504,15 +383,8 @@ class QuantumResult(proto.Message):
             -
     """
 
-    parent = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    result = proto.Field(
-        proto.MESSAGE,
-        number=2,
-        message=any_pb2.Any,
-    )
+    parent = proto.Field(proto.STRING, number=1)
+    result = proto.Field(proto.MESSAGE, number=2, message=any_pb2.Any)
 
 
 class QuantumProcessor(proto.Message):
@@ -541,9 +413,14 @@ class QuantumProcessor(proto.Message):
             Output only. -
         activity_stats (google.cloud.quantum_v1alpha1.types.QuantumProcessor.ActivityStats):
             -
+        default_device_config_key (google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
+            -
+
     """
+
     class Health(proto.Enum):
         r"""-"""
+
         HEALTH_UNSPECIFIED = 0
         OK = 1
         DOWN = 2
@@ -560,67 +437,21 @@ class QuantumProcessor(proto.Message):
                 -
         """
 
-        active_users_count = proto.Field(
-            proto.INT64,
-            number=1,
-        )
-        active_jobs_count = proto.Field(
-            proto.INT64,
-            number=2,
-        )
+        active_users_count = proto.Field(proto.INT64, number=1)
+        active_jobs_count = proto.Field(proto.INT64, number=2)
 
-    name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    health = proto.Field(
-        proto.ENUM,
-        number=3,
-        enum=Health,
-    )
-    expected_down_time = proto.Field(
-        proto.MESSAGE,
-        number=7,
-        message=timestamp_pb2.Timestamp,
-    )
-    expected_recovery_time = proto.Field(
-        proto.MESSAGE,
-        number=4,
-        message=timestamp_pb2.Timestamp,
-    )
-    supported_languages = proto.RepeatedField(
-        proto.STRING,
-        number=5,
-    )
-    device_spec = proto.Field(
-        proto.MESSAGE,
-        number=6,
-        message=any_pb2.Any,
-    )
-    schedule_horizon = proto.Field(
-        proto.MESSAGE,
-        number=8,
-        message=duration_pb2.Duration,
-    )
-    schedule_frozen_period = proto.Field(
-        proto.MESSAGE,
-        number=9,
-        message=duration_pb2.Duration,
-    )
-    current_calibration = proto.Field(
-        proto.STRING,
-        number=10,
-    )
-    active_time_slot = proto.Field(
-        proto.MESSAGE,
-        number=11,
-        message='QuantumTimeSlot',
-    )
-    activity_stats = proto.Field(
-        proto.MESSAGE,
-        number=12,
-        message=ActivityStats,
-    )
+    name = proto.Field(proto.STRING, number=1)
+    health = proto.Field(proto.ENUM, number=3, enum=Health)
+    expected_down_time = proto.Field(proto.MESSAGE, number=7, message=timestamp_pb2.Timestamp)
+    expected_recovery_time = proto.Field(proto.MESSAGE, number=4, message=timestamp_pb2.Timestamp)
+    supported_languages = proto.RepeatedField(proto.STRING, number=5)
+    device_spec = proto.Field(proto.MESSAGE, number=6, message=any_pb2.Any)
+    schedule_horizon = proto.Field(proto.MESSAGE, number=8, message=duration_pb2.Duration)
+    schedule_frozen_period = proto.Field(proto.MESSAGE, number=9, message=duration_pb2.Duration)
+    current_calibration = proto.Field(proto.STRING, number=10)
+    active_time_slot = proto.Field(proto.MESSAGE, number=11, message='QuantumTimeSlot')
+    activity_stats = proto.Field(proto.MESSAGE, number=12, message=ActivityStats)
+    default_device_config_key = proto.Field(proto.MESSAGE, number=13, message='DeviceConfigKey')
 
 
 class QuantumCalibration(proto.Message):
@@ -635,20 +466,9 @@ class QuantumCalibration(proto.Message):
             -
     """
 
-    name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    timestamp = proto.Field(
-        proto.MESSAGE,
-        number=2,
-        message=timestamp_pb2.Timestamp,
-    )
-    data = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=any_pb2.Any,
-    )
+    name = proto.Field(proto.STRING, number=1)
+    timestamp = proto.Field(proto.MESSAGE, number=2, message=timestamp_pb2.Timestamp)
+    data = proto.Field(proto.MESSAGE, number=3, message=any_pb2.Any)
 
 
 class QuantumReservationGrant(proto.Message):
@@ -683,54 +503,17 @@ class QuantumReservationGrant(proto.Message):
                 -
         """
 
-        project_id = proto.Field(
-            proto.STRING,
-            number=1,
-        )
-        granted_duration = proto.Field(
-            proto.MESSAGE,
-            number=2,
-            message=duration_pb2.Duration,
-        )
-        available_duration = proto.Field(
-            proto.MESSAGE,
-            number=3,
-            message=duration_pb2.Duration,
-        )
+        project_id = proto.Field(proto.STRING, number=1)
+        granted_duration = proto.Field(proto.MESSAGE, number=2, message=duration_pb2.Duration)
+        available_duration = proto.Field(proto.MESSAGE, number=3, message=duration_pb2.Duration)
 
-    name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    processor_names = proto.RepeatedField(
-        proto.STRING,
-        number=2,
-    )
-    effective_time = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=timestamp_pb2.Timestamp,
-    )
-    expire_time = proto.Field(
-        proto.MESSAGE,
-        number=4,
-        message=timestamp_pb2.Timestamp,
-    )
-    granted_duration = proto.Field(
-        proto.MESSAGE,
-        number=5,
-        message=duration_pb2.Duration,
-    )
-    available_duration = proto.Field(
-        proto.MESSAGE,
-        number=6,
-        message=duration_pb2.Duration,
-    )
-    budgets = proto.RepeatedField(
-        proto.MESSAGE,
-        number=7,
-        message=Budget,
-    )
+    name = proto.Field(proto.STRING, number=1)
+    processor_names = proto.RepeatedField(proto.STRING, number=2)
+    effective_time = proto.Field(proto.MESSAGE, number=3, message=timestamp_pb2.Timestamp)
+    expire_time = proto.Field(proto.MESSAGE, number=4, message=timestamp_pb2.Timestamp)
+    granted_duration = proto.Field(proto.MESSAGE, number=5, message=duration_pb2.Duration)
+    available_duration = proto.Field(proto.MESSAGE, number=6, message=duration_pb2.Duration)
+    budgets = proto.RepeatedField(proto.MESSAGE, number=7, message=Budget)
 
 
 class QuantumReservationBudget(proto.Message):
@@ -751,34 +534,12 @@ class QuantumReservationBudget(proto.Message):
             -
     """
 
-    name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    processor_names = proto.RepeatedField(
-        proto.STRING,
-        number=2,
-    )
-    effective_time = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=timestamp_pb2.Timestamp,
-    )
-    expire_time = proto.Field(
-        proto.MESSAGE,
-        number=4,
-        message=timestamp_pb2.Timestamp,
-    )
-    granted_duration = proto.Field(
-        proto.MESSAGE,
-        number=5,
-        message=duration_pb2.Duration,
-    )
-    available_duration = proto.Field(
-        proto.MESSAGE,
-        number=6,
-        message=duration_pb2.Duration,
-    )
+    name = proto.Field(proto.STRING, number=1)
+    processor_names = proto.RepeatedField(proto.STRING, number=2)
+    effective_time = proto.Field(proto.MESSAGE, number=3, message=timestamp_pb2.Timestamp)
+    expire_time = proto.Field(proto.MESSAGE, number=4, message=timestamp_pb2.Timestamp)
+    granted_duration = proto.Field(proto.MESSAGE, number=5, message=duration_pb2.Duration)
+    available_duration = proto.Field(proto.MESSAGE, number=6, message=duration_pb2.Duration)
 
 
 class QuantumTimeSlot(proto.Message):
@@ -809,8 +570,10 @@ class QuantumTimeSlot(proto.Message):
 
             This field is a member of `oneof`_ ``type_config``.
     """
+
     class TimeSlotType(proto.Enum):
         r"""-"""
+
         TIME_SLOT_TYPE_UNSPECIFIED = 0
         MAINTENANCE = 1
         OPEN_SWIM = 2
@@ -829,18 +592,9 @@ class QuantumTimeSlot(proto.Message):
                 -
         """
 
-        reservation = proto.Field(
-            proto.STRING,
-            number=3,
-        )
-        project_id = proto.Field(
-            proto.STRING,
-            number=1,
-        )
-        whitelisted_users = proto.RepeatedField(
-            proto.STRING,
-            number=2,
-        )
+        reservation = proto.Field(proto.STRING, number=3)
+        project_id = proto.Field(proto.STRING, number=1)
+        whitelisted_users = proto.RepeatedField(proto.STRING, number=2)
 
     class MaintenanceConfig(proto.Message):
         r"""-
@@ -852,45 +606,18 @@ class QuantumTimeSlot(proto.Message):
                 -
         """
 
-        title = proto.Field(
-            proto.STRING,
-            number=1,
-        )
-        description = proto.Field(
-            proto.STRING,
-            number=2,
-        )
+        title = proto.Field(proto.STRING, number=1)
+        description = proto.Field(proto.STRING, number=2)
 
-    processor_name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    start_time = proto.Field(
-        proto.MESSAGE,
-        number=2,
-        message=timestamp_pb2.Timestamp,
-    )
-    end_time = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=timestamp_pb2.Timestamp,
-    )
-    time_slot_type = proto.Field(
-        proto.ENUM,
-        number=5,
-        enum=TimeSlotType,
-    )
+    processor_name = proto.Field(proto.STRING, number=1)
+    start_time = proto.Field(proto.MESSAGE, number=2, message=timestamp_pb2.Timestamp)
+    end_time = proto.Field(proto.MESSAGE, number=3, message=timestamp_pb2.Timestamp)
+    time_slot_type = proto.Field(proto.ENUM, number=5, enum=TimeSlotType)
     reservation_config = proto.Field(
-        proto.MESSAGE,
-        number=6,
-        oneof='type_config',
-        message=ReservationConfig,
+        proto.MESSAGE, number=6, oneof='type_config', message=ReservationConfig
     )
     maintenance_config = proto.Field(
-        proto.MESSAGE,
-        number=7,
-        oneof='type_config',
-        message=MaintenanceConfig,
+        proto.MESSAGE, number=7, oneof='type_config', message=MaintenanceConfig
     )
 
 
@@ -910,29 +637,11 @@ class QuantumReservation(proto.Message):
             -
     """
 
-    name = proto.Field(
-        proto.STRING,
-        number=1,
-    )
-    start_time = proto.Field(
-        proto.MESSAGE,
-        number=2,
-        message=timestamp_pb2.Timestamp,
-    )
-    end_time = proto.Field(
-        proto.MESSAGE,
-        number=3,
-        message=timestamp_pb2.Timestamp,
-    )
-    cancelled_time = proto.Field(
-        proto.MESSAGE,
-        number=4,
-        message=timestamp_pb2.Timestamp,
-    )
-    whitelisted_users = proto.RepeatedField(
-        proto.STRING,
-        number=5,
-    )
+    name = proto.Field(proto.STRING, number=1)
+    start_time = proto.Field(proto.MESSAGE, number=2, message=timestamp_pb2.Timestamp)
+    end_time = proto.Field(proto.MESSAGE, number=3, message=timestamp_pb2.Timestamp)
+    cancelled_time = proto.Field(proto.MESSAGE, number=4, message=timestamp_pb2.Timestamp)
+    whitelisted_users = proto.RepeatedField(proto.STRING, number=5)
 
 
 __all__ = tuple(sorted(__protobuf__.manifest))

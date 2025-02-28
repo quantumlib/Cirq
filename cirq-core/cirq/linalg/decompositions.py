@@ -222,8 +222,9 @@ def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[complex, np.ndarray, np
             f2[(a & 1) ^ i, (b & 1) ^ j] = matrix[a ^ i, b ^ j]
 
     # Rescale factors to have unit determinants.
-    f1 /= np.sqrt(np.linalg.det(f1)) or 1
-    f2 /= np.sqrt(np.linalg.det(f2)) or 1
+    with np.errstate(divide="ignore", invalid="ignore"):
+        f1 /= np.sqrt(np.linalg.det(f1)) or 1
+        f2 /= np.sqrt(np.linalg.det(f2)) or 1
 
     # Determine global phase.
     g = matrix[a, b] / (f1[a >> 1, b >> 1] * f2[a & 1, b & 1])
@@ -282,13 +283,7 @@ class AxisAngleDecomposition:
     rotation axis, and g is the global phase.
     """
 
-    def __init__(
-        self,
-        *,
-        angle: float,
-        axis: Tuple[float, float, float],
-        global_phase: Union[int, float, complex],
-    ):
+    def __init__(self, *, angle: float, axis: Tuple[float, float, float], global_phase: complex):
         if not np.isclose(np.linalg.norm(axis, 2), 1, atol=1e-8):
             raise ValueError('Axis vector must be normalized.')
         self.global_phase = complex(global_phase)
@@ -451,18 +446,14 @@ class KakDecomposition:
             single_qubit_operations_after: a0, a1 from the above equation.
         """
         self.global_phase: complex = global_phase
-        self.single_qubit_operations_before: Tuple[
-            np.ndarray, np.ndarray
-        ] = single_qubit_operations_before or (
-            np.eye(2, dtype=np.complex64),
-            np.eye(2, dtype=np.complex64),
+        self.single_qubit_operations_before: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_before
+            or (np.eye(2, dtype=np.complex64), np.eye(2, dtype=np.complex64))
         )
         self.interaction_coefficients = interaction_coefficients
-        self.single_qubit_operations_after: Tuple[
-            np.ndarray, np.ndarray
-        ] = single_qubit_operations_after or (
-            np.eye(2, dtype=np.complex64),
-            np.eye(2, dtype=np.complex64),
+        self.single_qubit_operations_after: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_after
+            or (np.eye(2, dtype=np.complex64), np.eye(2, dtype=np.complex64))
         )
 
     def _value_equality_values_(self) -> Any:
@@ -632,12 +623,12 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         >>> plt.show()
     """
     show_plot = not ax
-    if not ax:
+    if ax is None:
         fig = plt.figure()
         ax = cast(mplot3d.axes3d.Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
     def coord_transform(
-        pts: Union[List[Tuple[int, int, int]], np.ndarray]
+        pts: Union[List[Tuple[int, int, int]], np.ndarray],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         if len(pts) == 0:
             return np.array([]), np.array([]), np.array([])
@@ -969,7 +960,8 @@ def kak_vector(
     # The algorithm in the appendix mentioned above is slightly incorrect in
     # that it only works for elements of SU(4). A phase correction must be
     # added to deal with U(4).
-    phases = np.log(-1j * np.linalg.det(unitary)).imag + np.pi / 2
+    with np.errstate(divide="ignore", invalid="ignore"):
+        phases = np.log(-1j * np.linalg.det(unitary)).imag + np.pi / 2
     evals *= np.exp(-1j * phases / 2)[..., np.newaxis]
 
     # The following steps follow the appendix exactly.

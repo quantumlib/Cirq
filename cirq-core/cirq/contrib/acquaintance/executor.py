@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
+from typing import DefaultDict, Dict, Iterator, Sequence, TYPE_CHECKING, Optional
 
 import abc
 from collections import defaultdict
@@ -75,6 +75,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         strategy = StrategyExecutorTransformer(self)
         final_circuit = strategy(input_circuit, **kwargs)
         input_circuit._moments = final_circuit._moments
+        input_circuit._placement_cache = final_circuit._placement_cache
         return strategy.mapping
 
 
@@ -208,7 +209,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
 
     def get_operations(
         self, indices: Sequence[LogicalIndex], qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+    ) -> Iterator['cirq.OP_TREE']:
         index_set = frozenset(indices)
         if index_set in self.index_set_to_gates:
             gates = self.index_set_to_gates.pop(index_set)

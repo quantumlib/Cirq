@@ -26,6 +26,7 @@ messages.
 """
 
 from typing import Any, Dict, Iterable, List, Tuple
+from types import ModuleType
 
 import sys
 import glob
@@ -34,9 +35,6 @@ import doctest
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
-
-# Bug workaround: https://github.com/python/mypy/issues/1498
-ModuleType = Any
 
 
 class Doctest:
@@ -229,11 +227,10 @@ def main():
 
     file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
     assert file_names
-    # Remove the engine client code.
     excluded = [
-        'cirq-google/cirq_google/engine/client/',
-        'cirq-google/cirq_google/cloud/',
         'cirq-google/cirq_google/api/',
+        'cirq-google/cirq_google/cloud/',
+        'cirq-web/cirq_ts/node_modules/',
     ]
     file_names = [
         f

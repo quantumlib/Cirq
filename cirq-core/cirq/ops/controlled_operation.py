@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -38,7 +39,6 @@ from cirq.ops import (
     raw_types,
     control_values as cv,
 )
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -212,6 +212,7 @@ class ControlledOperation(raw_types.Operation):
             hasattr(self._sub_operation, "gate")
             and len(self._controls) == 1
             and self.control_values == cv.ProductOfSums(((1,),))
+            and all(q.dimension == 2 for q in self.qubits)
         ):
             gate = self.sub_operation.gate
             if (

@@ -21,6 +21,7 @@ from typing import (
     Container,
     Dict,
     Iterable,
+    Iterator,
     List,
     Sequence,
     TYPE_CHECKING,
@@ -249,6 +250,7 @@ def generate_library_of_2q_circuits(
     q0: 'cirq.Qid' = devices.LineQubit(0),
     q1: 'cirq.Qid' = devices.LineQubit(1),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    tags: Sequence[Any] = (),
 ) -> List['cirq.Circuit']:
     """Generate a library of two-qubit Circuits.
 
@@ -265,6 +267,7 @@ def generate_library_of_2q_circuits(
         q0: The first qubit to use when constructing the circuits.
         q1: The second qubit to use when constructing the circuits
         random_state: A random state or seed used to deterministically sample the random circuits.
+        tags: Tags to add to the two qubit operations.
     """
     rs = value.parse_random_state(random_state)
     exponents = np.linspace(0, 7 / 4, 8)
@@ -277,7 +280,7 @@ def generate_library_of_2q_circuits(
             q0,
             q1,
             depth=max_cycle_depth,
-            two_qubit_op_factory=lambda a, b, _: two_qubit_gate(a, b),
+            two_qubit_op_factory=lambda a, b, _: two_qubit_gate(a, b).with_tags(*tags),
             single_qubit_gates=single_qubit_gates,
             seed=rs,
         )
@@ -691,7 +694,7 @@ def _two_qubit_layer(
     ],
     layer: GridInteractionLayer,
     prng: 'np.random.RandomState',
-) -> 'cirq.OP_TREE':
+) -> Iterator['cirq.OP_TREE']:
     for a, b in coupled_qubit_pairs:
         if (a, b) in layer or (b, a) in layer:
             yield two_qubit_op_factory(a, b, prng)

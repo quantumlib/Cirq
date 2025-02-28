@@ -14,4 +14,4 @@
 
 """Tools for representing a Circuit as a directed acyclic graph."""
 
-from cirq.contrib.circuitdag.circuit_dag import CircuitDag, Unique
+from cirq.contrib.circuitdag.circuit_dag import CircuitDag as CircuitDag, Unique as Unique

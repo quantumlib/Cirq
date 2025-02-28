@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[
-    int, float, complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
+    complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
 document(
     PauliSumLike,
@@ -81,7 +81,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         2 * cirq.X - 2 * cirq.Z
     """
 
-    def __init__(self, terms: Mapping[raw_types.Gate, value.Scalar]) -> None:
+    def __init__(self, terms: Mapping[raw_types.Gate, 'cirq.TParamValComplex']) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
@@ -149,17 +149,19 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         )
 
     def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(gate) for gate in self.keys())
+        return any(protocols.is_parameterized(item) for item in self.items())
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return {name for gate in self.keys() for name in protocols.parameter_names(gate)}
+        return {name for item in self.items() for name in protocols.parameter_names(item)}
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'LinearCombinationOfGates':
         return self.__class__(
             {
-                protocols.resolve_parameters(gate, resolver, recursive): coeff
+                protocols.resolve_parameters(
+                    gate, resolver, recursive
+                ): protocols.resolve_parameters(coeff, resolver, recursive)
                 for gate, coeff in self.items()
             }
         )
@@ -222,7 +224,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
     by the identity operator. Note that A may not be unitary or even normal.
     """
 
-    def __init__(self, terms: Mapping[raw_types.Operation, value.Scalar]) -> None:
+    def __init__(self, terms: Mapping[raw_types.Operation, 'cirq.TParamValComplex']) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
@@ -264,17 +266,19 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return LinearCombinationOfOperations({i: bi, x: bx, y: by, z: bz})
 
     def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(op) for op in self.keys())
+        return any(protocols.is_parameterized(item) for item in self.items())
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return {name for op in self.keys() for name in protocols.parameter_names(op)}
+        return {name for item in self.items() for name in protocols.parameter_names(item)}
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'LinearCombinationOfOperations':
         return self.__class__(
             {
-                protocols.resolve_parameters(op, resolver, recursive): coeff
+                protocols.resolve_parameters(op, resolver, recursive): protocols.resolve_parameters(
+                    coeff, resolver, recursive
+                )
                 for op, coeff in self.items()
             }
         )
@@ -353,7 +357,9 @@ def _is_linear_dict_of_unit_pauli_string(linear_dict: value.LinearDict[UnitPauli
     return True
 
 
-def _pauli_string_from_unit(unit: UnitPauliStringT, coefficient: Union[int, float, complex] = 1):
+def _pauli_string_from_unit(
+    unit: UnitPauliStringT, coefficient: Union[int, float, 'cirq.TParamValComplex'] = 1
+):
     return PauliString(qubit_pauli_map=dict(unit), coefficient=coefficient)
 
 
@@ -805,7 +811,7 @@ class PauliSum:
         if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         if isinstance(other, numbers.Complex):
-            self._linear_dict *= other
+            self._linear_dict *= complex(other)
         elif isinstance(other, PauliString):
             temp = PauliSum.from_pauli_strings([term * other for term in self])
             self._linear_dict = temp._linear_dict
@@ -870,7 +876,7 @@ def _projector_string_from_projector_dict(projector_dict, coefficient=1.0):
     return ProjectorString(dict(projector_dict), coefficient)
 
 
-@value.value_equality(approximate=True)
+@value.value_equality(approximate=True, unhashable=True)
 class ProjectorSum:
     """List of mappings representing a sum of projector operators."""
 

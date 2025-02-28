@@ -16,8 +16,7 @@
 
 ################################################################################
 # Downloads and tests cirq wheels from the pypi package repository.
-# Can verify prod, test, or pre-release versions.
-#   --pre: pre-release cirq from prod pypi
+# Can verify test or prod versions.
 #   --test: cirq from test pypi
 #   --prod: cirq from prod pypi
 #
@@ -27,7 +26,7 @@
 # dependencies disagree, the tests can spuriously fail.
 #
 # Usage:
-#     dev_tools/packaging/verify-published-package.sh PACKAGE_VERSION --test|--prod|--pre
+#     dev_tools/packaging/verify-published-package.sh PACKAGE_VERSION --test|--prod
 ################################################################################
 
 set -e
@@ -43,20 +42,18 @@ if [ -z "${PROJECT_VERSION}" ]; then
     exit 1
 fi
 
+typeset -a PIP_FLAGS
+
 if [ "${PROD_SWITCH}" = "--test" ]; then
-    PIP_FLAGS="--index-url=https://test.pypi.org/simple/"
+    PIP_FLAGS=("--index-url=https://test.pypi.org/simple/")
     PYPI_REPO_NAME="TEST"
     PYPI_PROJECT_NAME="cirq"
 elif [ "${PROD_SWITCH}" = "--prod" ]; then
-    PIP_FLAGS=''
-    PYPI_REPO_NAME="PROD"
-    PYPI_PROJECT_NAME="cirq"
-elif [ "${PROD_SWITCH}" = "--pre" ]; then
-    PIP_FLAGS='--pre'
+    PIP_FLAGS=()
     PYPI_REPO_NAME="PROD"
     PYPI_PROJECT_NAME="cirq"
 else
-    echo -e "\033[31mSecond argument must be '--prod' or '--test' or '--pre'.\033[0m"
+    echo -e "\033[31mSecond argument must be '--test' or '--prod'.\033[0m"
     exit 1
 fi
 
@@ -81,7 +78,7 @@ echo "Working in a fresh virtualenv at ${tmp_dir}/${PYTHON_VERSION}"
 virtualenv --quiet "--python=/usr/bin/${PYTHON_VERSION}" "${tmp_dir}/${PYTHON_VERSION}"
 
 echo Installing "${PYPI_PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
-"${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PIP_FLAGS} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}" --extra-index-url https://pypi.python.org/simple
+"${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet "${PIP_FLAGS[@]}" "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}" --extra-index-url https://pypi.python.org/simple
 
 # Check that code runs without dev deps.
 echo Checking that code executes

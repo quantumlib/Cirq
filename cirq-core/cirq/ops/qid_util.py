@@ -19,18 +19,15 @@ if TYPE_CHECKING:
 
 
 @overload
-def q(__x: int) -> 'cirq.LineQubit':
-    ...
+def q(__x: int) -> 'cirq.LineQubit': ...
 
 
 @overload
-def q(__row: int, __col: int) -> 'cirq.GridQubit':
-    ...
+def q(__row: int, __col: int) -> 'cirq.GridQubit': ...
 
 
 @overload
-def q(__name: str) -> 'cirq.NamedQubit':
-    ...
+def q(__name: str) -> 'cirq.NamedQubit': ...
 
 
 def q(*args: Union[int, str]) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:
@@ -44,8 +41,7 @@ def q(*args: Union[int, str]) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq
     >>> cirq.q("foo") == cirq.NamedQubit("foo")
     True
 
-    Note that arguments should be treated as positional only, even
-    though this is only enforceable in python 3.8 or later.
+    Note that arguments should be treated as positional only.
 
     Args:
         *args: One or two ints, or a single str, as described above.

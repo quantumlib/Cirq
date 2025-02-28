@@ -17,6 +17,34 @@ import cirq
 import pytest
 
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
+from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
+
+
+def add_readout_error(
+    measurements: np.ndarray,
+    zero_errors: np.ndarray,
+    one_errors: np.ndarray,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """Add readout errors to measured (or simulated) bitstrings.
+
+    Args:
+        measurements: The bitstrings to which we will add readout errors. measurements[i,j] is the
+                      ith bitstring, qubit j.
+        zero_errors: zero_errors[i] is the probability of a 0->1 readout error on qubit i.
+        one_errors: one_errors[i] is the probability of a 1->0 readout error on qubit i.
+        rng: The pseudorandom number generator to use.
+
+    Returns:
+        New measurements but with readout errors added.
+    """
+    num_bitstrs, n = measurements.shape
+    assert len(zero_errors) == len(one_errors) == n
+    # compute the probability that each bit is 1 after adding readout errors:
+    p1 = measurements * (1 - one_errors) + (1 - measurements) * zero_errors
+    r = rng.random((num_bitstrs, n))
+    noisy_measurements = r < p1
+    return noisy_measurements.astype(int)
 
 
 def get_expected_cm(num_qubits: int, p0: float, p1: float):
@@ -159,3 +187,78 @@ def test_readout_confusion_matrix_repr_and_equality():
     eq.add_equality_group(a, a)
     eq.add_equality_group(b, b)
     eq.add_equality_group(c, c)
+
+
+def _sample_ghz(n: int, repetitions: int, rng: np.random.Generator) -> np.ndarray:
+    """Sample a GHZ state in the z basis.
+    Args:
+        n: The number of qubits.
+        repetitions: The number of repetitions.
+        rng: The pseudorandom number generator to use.
+    Returns:
+        An array of the measurement outcomes.
+    """
+    return np.tile(rng.integers(0, 2, size=repetitions), (n, 1)).T
+
+
+def _add_noise_and_mitigate_ghz(
+    n: int,
+    repetitions: int,
+    zero_errors: np.ndarray,
+    one_errors: np.ndarray,
+    rng: np.random.Generator | None = None,
+) -> tuple[float, float, float, float]:
+    """Add readout error to GHZ-like bitstrings and measure <ZZZ...> with and
+    without readout error mitigation.
+    Args:
+        n: The number of qubits.
+        repetitions: The number of repetitions.
+        zero_errors: zero_errors[i] is the probability of a 0->1 readout error on qubit i.
+        one_errors: one_errors[i] is the probability of a 1->0 readout error on qubit i.
+        rng: The pseudorandom number generator to use.
+    Returns:
+        A tuple of:
+        - The mitigated expectation value of <ZZZ...>
+        - The statistical uncertainty of the previous output
+        - The unmitigated expectation value of <ZZZ...>
+        - The statstical uncertainty of the previous output
+    """
+    if rng is None:
+        rng = np.random.default_rng(0)
+    confusion_matrices = [
+        np.array([[1 - e0, e1], [e0, 1 - e1]]) for e0, e1 in zip(zero_errors, one_errors)
+    ]
+    qubits = cirq.LineQubit.range(n)
+    tcm = TensoredConfusionMatrices(
+        confusion_matrices, [[q] for q in qubits], repetitions=0, timestamp=0.0
+    )
+
+    measurements = _sample_ghz(n, repetitions, rng)
+    noisy_measurements = add_readout_error(measurements, zero_errors, one_errors, rng)
+    # unmitigated:
+    p1 = np.mean(np.sum(noisy_measurements, axis=1) % 2)
+    z = 1 - 2 * np.mean(p1)
+    dz = 2 * np.sqrt(p1 * (1 - p1) / repetitions)
+    # return mitigated and unmitigated:
+    return (*tcm.readout_mitigation_pauli_uncorrelated(qubits, noisy_measurements), z, dz)
+
+
+def test_uncorrelated_readout_mitigation_pauli():
+    n_all = np.arange(2, 35)
+    z_all_mit = []
+    dz_all_mit = []
+    z_all_raw = []
+    dz_all_raw = []
+    repetitions = 10_000
+    for n in n_all:
+        e0 = np.ones(n) * 0.005
+        e1 = np.ones(n) * 0.03
+        z_mit, dz_mit, z_raw, dz_raw = _add_noise_and_mitigate_ghz(n, repetitions, e0, e1)
+        z_all_mit.append(z_mit)
+        dz_all_mit.append(dz_mit)
+        z_all_raw.append(z_raw)
+        dz_all_raw.append(dz_raw)
+
+    for n, z, dz in zip(n_all, z_all_mit, dz_all_mit):
+        ideal = 1.0 if n % 2 == 0 else 0.0
+        assert np.isclose(z, ideal, atol=4 * dz)
