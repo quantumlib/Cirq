@@ -101,6 +101,7 @@ def test_teleportation_diagram():
  &\lstick{\text{bob}}&     \qw&                      \qw&\targ    \qw\qwx&         \qw    &                \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
  \\
 }""".strip()
+    print(circuit)
     assert_has_qcircuit_diagram(
         circuit, expected_diagram, qubit_order=cirq.QubitOrder.explicit([ali, car, bob])
     )
@@ -164,4 +165,30 @@ def test_sqrt_iswap_diagram():
  &\lstick{\text{q(1)}}& \qw&\ghost{\text{ISWAP}^{0.5}}        \qw&\qw\\
  \\
 }""".strip()
+    assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+def test_latex_formatting():
+    # test for proper rendering of failing latex formats
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    
+    # custom gate with a control for zero and one
+    custom_gate = cirq.X.controlled(2, control_values=(0, 1))
+
+    circuit = cirq.Circuit(
+        custom_gate(q0, q1, q2),
+        custom_gate(q2, q0, q1),
+        custom_gate(q1, q2, q0),
+        cirq.SWAP(q0, q1),
+        cirq.SWAP(q1, q2)
+    )
+    print(circuit)
+
+    expected_diagram = r"""
+\Qcircuit @R=1em @C=0.75em {
+ \\
+ &\lstick{\text{q(0)}}& \qw&\ctrlo{} \qw    &\control \qw    &\targ    \qw    &\qswap     \qw&           \qw&\qw\\
+ &\lstick{\text{q(1)}}& \qw&\control \qw\qwx&\targ    \qw\qwx&\ctrlo{} \qw\qwx&\qswap\qwx \qw&\qswap     \qw&\qw\\
+ &\lstick{\text{q(2)}}& \qw&\targ    \qw\qwx&\ctrlo{} \qw\qwx&\control \qw\qwx&           \qw&\qswap\qwx \qw&\qw\\
+}""".strip()
+    
     assert_has_qcircuit_diagram(circuit, expected_diagram)
