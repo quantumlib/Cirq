@@ -237,6 +237,17 @@ def test_apply_mixture_no_protocols_implemented():
         assert_apply_mixture_returns(NoProtocols(), rho, left_axes=[1], right_axes=[1])
 
 
+def test_apply_mixture_mixture_returns_not_implemented():
+    class NoMixture:
+        def _mixture_(self):
+            return NotImplemented
+
+    rho = np.ones((2, 2, 2, 2), dtype=np.complex128)
+
+    with pytest.raises(TypeError, match='has no'):
+        assert_apply_mixture_returns(NoMixture(), rho, left_axes=[1], right_axes=[1])
+
+
 def test_apply_mixture_no_protocols_implemented_default():
     class NoProtocols:
         pass
