@@ -41,7 +41,7 @@ class StabilizerSimulationState(
         self,
         *,
         state: TStabilizerState,
-        prng: Optional[np.random.RandomState] = None,
+        prng: Optional[Union[np.random.Generator, np.random.RandomState]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
