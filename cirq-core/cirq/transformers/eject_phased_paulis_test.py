@@ -196,11 +196,17 @@ def test_crosses_czs():
     # Partial CZ.
     assert_optimizes(
         before=quick_circuit([cirq.X(a)], [cirq.CZ(a, b) ** 0.25]),
-        expected=quick_circuit([cirq.Z(b) ** 0.25], [cirq.CZ(a, b) ** -0.25], [cirq.X(a)]),
+        expected=quick_circuit(
+            [cirq.Z(b) ** 0.25],
+            [cirq.CZ(a, b) ** -0.25],
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+        ),
     )
     assert_optimizes(
         before=quick_circuit([cirq.X(a)], [cirq.CZ(a, b) ** x]),
-        expected=quick_circuit([cirq.Z(b) ** x], [cirq.CZ(a, b) ** -x], [cirq.X(a)]),
+        expected=quick_circuit(
+            [cirq.Z(b) ** x], [cirq.CZ(a, b) ** -x], [cirq.PhasedXPowGate(phase_exponent=0)(a)]
+        ),
         eject_parameterized=True,
     )
 
@@ -380,7 +386,8 @@ def test_phases_partial_ws():
             [cirq.X(q)], [cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.5).on(q)]
         ),
         expected=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=-0.25, exponent=0.5).on(q)], [cirq.X(q)]
+            [cirq.PhasedXPowGate(phase_exponent=-0.25, exponent=0.5).on(q)],
+            [cirq.PhasedXPowGate(phase_exponent=0)(q)],
         ),
     )
 
@@ -398,7 +405,8 @@ def test_phases_partial_ws():
             [cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.75).on(q)],
         ),
         expected=quick_circuit(
-            [cirq.X(q) ** 0.75], [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)]
+            [cirq.PhasedXPowGate(phase_exponent=0)(q) ** 0.75],
+            [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
         ),
     )
 
@@ -407,7 +415,8 @@ def test_phases_partial_ws():
             [cirq.X(q)], [cirq.PhasedXPowGate(exponent=-0.25, phase_exponent=0.5).on(q)]
         ),
         expected=quick_circuit(
-            [cirq.PhasedXPowGate(exponent=-0.25, phase_exponent=-0.5).on(q)], [cirq.X(q)]
+            [cirq.PhasedXPowGate(exponent=-0.25, phase_exponent=-0.5).on(q)],
+            [cirq.PhasedXPowGate(phase_exponent=0)(q)],
         ),
     )
 
@@ -431,18 +440,30 @@ def test_blocked_by_unknown_and_symbols(sym):
 
     assert_optimizes(
         before=quick_circuit([cirq.X(a)], [cirq.SWAP(a, b)], [cirq.X(a)]),
-        expected=quick_circuit([cirq.X(a)], [cirq.SWAP(a, b)], [cirq.X(a)]),
+        expected=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+            [cirq.SWAP(a, b)],
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+        ),
     )
 
     assert_optimizes(
         before=quick_circuit([cirq.X(a)], [cirq.Z(a) ** sym], [cirq.X(a)]),
-        expected=quick_circuit([cirq.X(a)], [cirq.Z(a) ** sym], [cirq.X(a)]),
+        expected=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+            [cirq.Z(a) ** sym],
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+        ),
         compare_unitaries=False,
     )
 
     assert_optimizes(
         before=quick_circuit([cirq.X(a)], [cirq.CZ(a, b) ** sym], [cirq.X(a)]),
-        expected=quick_circuit([cirq.X(a)], [cirq.CZ(a, b) ** sym], [cirq.X(a)]),
+        expected=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+            [cirq.CZ(a, b) ** sym],
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+        ),
         compare_unitaries=False,
     )
 
@@ -453,7 +474,11 @@ def test_blocked_by_nocompile_tag():
 
     assert_optimizes(
         before=quick_circuit([cirq.X(a)], [cirq.CZ(a, b).with_tags("nocompile")], [cirq.X(a)]),
-        expected=quick_circuit([cirq.X(a)], [cirq.CZ(a, b).with_tags("nocompile")], [cirq.X(a)]),
+        expected=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+            [cirq.CZ(a, b).with_tags("nocompile")],
+            [cirq.PhasedXPowGate(phase_exponent=0)(a)],
+        ),
         with_context=True,
     )
 
