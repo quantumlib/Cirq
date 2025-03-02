@@ -17,9 +17,9 @@ topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
 # Process command line arguments
-opt_dry_run=0
-typeset -a shellcheck_options
-typeset -a our_shell_scripts
+declare -i opt_dry_run=0
+declare -a shellcheck_options
+declare -a our_shell_scripts
 
 for arg in "$@"; do
     if [[ "${arg}" == "--dry-run" ]]; then
@@ -33,12 +33,12 @@ done
 IFS=$'\n' read -r -d '' -a our_shell_scripts <<< "$(
     git ls-files -z -- \
         ':(exclude)*.'{py,json,json_inward,repr,repr_inward,ipynb,txt,md} \
-        ':(exclude)*.'{yaml,ts,tst,rst,pyi,cfg} | \
+        ':(exclude)*.'{yaml,yml,js,ts,tst,rst,pyi,cfg,proto,png} | \
     xargs -0 file | grep -i 'shell script' | cut -d: -f1 \
 )"
 
 # Verify our_shell_scripts array - require it must contain files below.
-typeset -a required_shell_scripts
+declare -a required_shell_scripts
 required_shell_scripts=(
     # items below must be sorted
     check/all
@@ -51,6 +51,7 @@ required_shell_scripts=(
     dev_tools/pypath
 )
 
+declare scripts_not_found=""
 scripts_not_found="$(comm -13 \
     <(printf "%s\n" "${our_shell_scripts[@]}") \
     <(printf "%s\n" "${required_shell_scripts[@]}") )"
