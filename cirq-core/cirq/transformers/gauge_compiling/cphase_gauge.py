@@ -81,8 +81,8 @@ class CPhasePauliGauge(Gauge):
                 two_qubit_gate=gate, pre_q0=pre_q0, pre_q1=pre_q1, post_q0=pre_q0, post_q1=pre_q1
             )
         elif pre_q0 in anticommuting_paulis and pre_q1 in commuting_paulis:
-            new_gate = cirq.CZ ** (-exponent)
-            post_q1 = cirq.Z ** (exponent) if pre_q1 == cirq.I else cirq.Z ** (1 + exponent)
+            new_gate = ops.CZ ** (-exponent)
+            post_q1 = ops.Z ** (exponent) if pre_q1 == ops.I else ops.Z ** (1 + exponent)
             return ConstantGauge(
                 two_qubit_gate=new_gate,
                 pre_q0=pre_q0,
@@ -91,8 +91,8 @@ class CPhasePauliGauge(Gauge):
                 post_q1=post_q1,
             )
         elif pre_q0 in commuting_paulis and pre_q1 in anticommuting_paulis:
-            new_gate = cirq.CZ ** (-exponent)
-            post_q0 = cirq.Z ** (exponent) if pre_q0 == cirq.I else cirq.Z ** (1 + exponent)
+            new_gate = ops.CZ ** (-exponent)
+            post_q0 = ops.Z ** (exponent) if pre_q0 == ops.I else ops.Z ** (1 + exponent)
             return ConstantGauge(
                 two_qubit_gate=new_gate,
                 pre_q0=pre_q0,
