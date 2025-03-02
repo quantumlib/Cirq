@@ -38,3 +38,5 @@ from cirq.transformers.gauge_compiling.iswap_gauge import (
 from cirq.transformers.gauge_compiling.sqrt_iswap_gauge import (
     SqrtISWAPGaugeTransformer as SqrtISWAPGaugeTransformer,
 )
+
+from cirq.transformers.gauge_compiling.cphase_gaute import CPhaseGaugeTransformer
