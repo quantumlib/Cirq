@@ -408,3 +408,10 @@ def test_numpy_index():
     assert q.col == 6
     assert q.dimension == 3
     assert isinstance(q.dimension, int)
+
+
+def test_non_integer_index():
+    q = cirq.GridQubit(5.5, 6.5)
+    hash(q)  # doesn't throw
+    assert q.row == 5.5
+    assert q.col == 6.5
