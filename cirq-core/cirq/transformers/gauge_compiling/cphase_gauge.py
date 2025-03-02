@@ -17,7 +17,6 @@
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeTransformer,
     GaugeSelector,
-    SameGateGauge,
     ConstantGauge,
     Gauge,
 )
@@ -57,7 +56,7 @@ class CPhasePauliGauge(Gauge):
             raise ValueError("pre should be cirq.X or cirq.Y")
 
     def _get_constant_gauge(
-        self, gate: ops.CZPowGate, pre_q0: ops.Gate, pre_q1: ops.Gate
+        self, gate: ops.Gate, pre_q0: ops.Gate, pre_q1: ops.Gate
     ) -> ConstantGauge:
         """Get the ConstantGauge corresponding to a given pre_q0 and pre_q1.
 
