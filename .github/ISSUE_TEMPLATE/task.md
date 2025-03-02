@@ -1,19 +1,17 @@
 ---
 name: Project task
-about: Task to track larger efforts
+about: Describe a task (typically as part of a larger effort)
 title: ''
 labels: 'kind/task'
 assignees: ''
-
 ---
-
-**Summarize the task**
-
-
-**Acceptance criteria - when is the task considered done?**
+## Summarize the task
 
 
-<!-- optional, feel free to remove this section -->
-**Related**
+## Acceptance criteria – when will the task be considered done?
 
-Related issues: #abc, #xyz, ...
+
+<!-- Optional; feel free to remove the next section if it's not relevant. -->
+## Related issues
+
+Refer to related issues #abc, #xyz, ...
