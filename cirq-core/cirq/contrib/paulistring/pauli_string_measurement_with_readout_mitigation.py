@@ -11,10 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Tools for measuring expectation values of Pauli strings with readout error mitigation. """
+"""Tools for measuring expectation values of Pauli strings with readout error mitigation. """
 import time
-import dataclasses
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Tuple
+import attrs
 
 import numpy as np
 
@@ -25,7 +25,7 @@ from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 from cirq.study import ResultDict
 
 
-@dataclasses.dataclass
+@attrs.define
 class PauliStringMeasurementResult:
     """Result of measuring a Pauli string.
 
@@ -35,6 +35,7 @@ class PauliStringMeasurementResult:
         mitigated_stddev: The standard deviation of the error-mitigated expectation value.
         unmitigated_expectation: The unmitigated expectation value of the Pauli string.
         unmitigated_stddev: The standard deviation of the unmitigated expectation value.
+        calibration_result: The calibration result for single-qubit readout errors.
     """
 
     pauli_string: ops.PauliString
@@ -42,21 +43,20 @@ class PauliStringMeasurementResult:
     mitigated_stddev: float
     unmitigated_expectation: float
     unmitigated_stddev: float
+    calibration_result: Optional[SingleQubitReadoutCalibrationResult]
 
 
-@dataclasses.dataclass
+@attrs.define
 class CircuitToPauliStringsMeasurementResult:
     """Result of measuring Pauli strings on a circuit.
 
     Attributes:
         circuit: The circuit that is measured.
         results: A list of PauliStringMeasurementResult objects.
-        calibration_result: The calibration result for single-qubit readout errors.
     """
-
+    
     circuit: circuits.FrozenCircuit
     results: List[PauliStringMeasurementResult]
-    calibration_result: Optional[SingleQubitReadoutCalibrationResult]
 
 
 def _pauli_string_to_basis_change_ops(
@@ -77,16 +77,14 @@ def _pauli_string_to_basis_change_ops(
         pauli_strings.
     """
     operations = []
-    for qubit in pauli_string:
-        pauli_op = pauli_string[qubit]
-        qubit_index = qid_list.index(qubit)
-        if pauli_op == ops.X:
-            # Rotate to X basis: Ry(-pi/2)
-            operations.append(ops.ry(-np.pi / 2)(qid_list[qubit_index]))
-        elif pauli_op == ops.Y:
-            # Rotate to Y basis: Rx(pi/2)
-            operations.append(ops.rx(np.pi / 2)(qid_list[qubit_index]))
-        # No operation needed for Pauli Z or I (identity)
+    for qubit in qid_list:  # Iterate over ALL qubits in the circuit
+        if qubit in pauli_string:
+            pauli_op = pauli_string[qubit]
+            if pauli_op == ops.X:
+                operations.append(ops.ry(-np.pi / 2)(qubit))
+            elif pauli_op == ops.Y:
+                operations.append(ops.rx(np.pi / 2)(qubit))
+            # If pauli_op is Z or I, no operation needed
     return operations
 
 
@@ -144,9 +142,10 @@ def _process_pauli_measurement_results(
     qubits: List[ops.Qid],
     pauli_strings: List[ops.PauliString],
     circuit_results: List[ResultDict],
-    confusion_matrices: List[np.ndarray],
+    calibration_results: Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
     pauli_repetitions: int,
     timestamp: float,
+    disable_readout_mitigation: bool = False,
 ) -> List[PauliStringMeasurementResult]:
     """Calculates both error-mitigated expectation values and unmitigated expectation values
     from measurement results.
@@ -164,6 +163,8 @@ def _process_pauli_measurement_results(
         confusion_matrices: A list of confusion matrices from calibration results.
         pauli_repetitions: The number of repetitions used for Pauli string measurements.
         timestamp: The timestamp of the calibration results.
+        disable_readout_mitigation: If set to True, returns no error-mitigated error
+            expectation values.
 
     Returns:
         A list of PauliStringMeasurementResult objects, where each object contains:
@@ -173,25 +174,40 @@ def _process_pauli_measurement_results(
             - The unmitigated expectation value of the Pauli string.
             - The standard deviation of the unmitigated expectation value.
     """
-    tensored_cm = TensoredConfusionMatrices(
-        confusion_matrices,
-        [[q] for q in qubits],
-        repetitions=pauli_repetitions,
-        timestamp=timestamp,
-    )
 
     pauli_measurement_results: List[PauliStringMeasurementResult] = []
 
     for pauli_index, circuit_result in enumerate(circuit_results):
         measurement_results = circuit_result.measurements["m"]
 
-        mitigated_values, d_m = tensored_cm.readout_mitigation_pauli_uncorrelated(
-            qubits, measurement_results
+        pauli_string = pauli_strings[pauli_index]
+        qubits_sorted = sorted(pauli_string.qubits)
+        qubit_indices = [qubits.index(q) for q in qubits_sorted]
+
+        confusion_matrices = (
+            _build_many_one_qubits_confusion_matrix(calibration_results[tuple(qubits_sorted)])
+            if disable_readout_mitigation is False
+            else _build_many_one_qubits_empty_confusion_matrix(len(qubits_sorted))
+        )
+        tensored_cm = TensoredConfusionMatrices(
+            confusion_matrices,
+            [[q] for q in qubits_sorted],
+            repetitions=pauli_repetitions,
+            timestamp=timestamp,
         )
 
-        p1 = np.mean(np.sum(measurement_results, axis=1) % 2)
-        unmitigated_values = 1 - 2 * np.mean(p1)
-        d_unmit = 2 * np.sqrt(p1 * (1 - p1) / pauli_repetitions)
+        #  Create a mask for the relevant qubits in the measurement results
+        relevant_bits = measurement_results[:, qubit_indices]
+
+        # Calculate the mitigated expectation.
+        mitigated_values, d_m = tensored_cm.readout_mitigation_pauli_uncorrelated(
+            qubits_sorted, relevant_bits
+        )
+
+        # Calculate the unmitigated expectation.
+        parity = np.sum(relevant_bits, axis=1) % 2
+        unmitigated_values = 1 - 2 * np.mean(parity)
+        d_unmit = 2 * np.sqrt(np.mean(parity) * (1 - np.mean(parity)) / pauli_repetitions)
 
         pauli_measurement_results.append(
             PauliStringMeasurementResult(
@@ -200,6 +216,11 @@ def _process_pauli_measurement_results(
                 mitigated_stddev=d_m,
                 unmitigated_expectation=unmitigated_values,
                 unmitigated_stddev=d_unmit,
+                calibration_result=(
+                    calibration_results[tuple(qubits_sorted)]
+                    if disable_readout_mitigation is False
+                    else None
+                ),
             )
         )
 
@@ -245,17 +266,18 @@ def measure_pauli_strings(
             - The calibration result for single-qubit readout errors.
     """
 
-    # Extract unique qubit tuples from all circuits
+    # Extract unique qubit tuples from input pauli strings
     unique_qubit_tuples = set()
-    for circuit in circuits_to_pauli.keys():
-        unique_qubit_tuples.add(tuple(sorted(set(circuit.all_qubits()))))
+    for pauli_strings in circuits_to_pauli.values():
+        for pauli_string in pauli_strings:
+            unique_qubit_tuples.add(tuple(sorted(set(pauli_string.qubits))))
     # qubits_list is a list of qubit tuples
     qubits_list = sorted(unique_qubit_tuples)
 
     # Build the basis-change circuits for each Pauli string
     pauli_measurement_circuits = list[ops.PauliString]()
     for input_circuit, pauli_strings in circuits_to_pauli.items():
-        qid_list = list(set(input_circuit.all_qubits()))
+        qid_list = list(sorted(input_circuit.all_qubits()))
         basis_change_circuits = []
         input_circuit_unfrozen = input_circuit.unfreeze()
         for pauli_string in pauli_strings:
@@ -282,29 +304,21 @@ def measure_pauli_strings(
     results: List[CircuitToPauliStringsMeasurementResult] = []
     circuit_result_index = 0
     for input_circuit, pauli_strings in circuits_to_pauli.items():
-        qubits_in_circuit = tuple(sorted(set(input_circuit.all_qubits())))
+        qubits_in_circuit = tuple(sorted(input_circuit.all_qubits()))
 
-        confusion_matrices = (
-            _build_many_one_qubits_confusion_matrix(calibration_results[qubits_in_circuit])
-            if num_random_bitstrings != 0
-            else _build_many_one_qubits_empty_confusion_matrix(len(qubits_in_circuit))
-        )
-
+        disable_readout_mitigation = False if num_random_bitstrings != 0 else True
         pauli_measurement_results = _process_pauli_measurement_results(
             list(qubits_in_circuit),
             pauli_strings,
             circuits_results[circuit_result_index : circuit_result_index + len(pauli_strings)],
-            confusion_matrices,
+            calibration_results,
             pauli_repetitions,
             time.time(),
+            disable_readout_mitigation,
         )
         results.append(
             CircuitToPauliStringsMeasurementResult(
-                circuit=input_circuit,
-                results=pauli_measurement_results,
-                calibration_result=(
-                    calibration_results[qubits_in_circuit] if num_random_bitstrings != 0 else None
-                ),
+                circuit=input_circuit, results=pauli_measurement_results
             )
         )
 

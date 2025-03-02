@@ -193,7 +193,7 @@ def run_shuffled_with_readout_benchmarking(
             qubits_set.update(circuit.all_qubits())
         qubits_to_measure = [sorted(qubits_set)]
     elif isinstance(qubits[0], ops.Qid):
-        qubits_to_measure = [qubits]
+        qubits_to_measure = [qubits]  # Wrap single list of qubits in another list
     else:
         qubits_to_measure = qubits
 

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import random
 from typing import Dict
 import cirq
 import numpy as np
@@ -28,12 +29,25 @@ def _create_ghz(number_of_qubits: int, qubits: list[cirq.Qid]) -> cirq.Circuit:
     return ghz_circuit
 
 
-def _ideal_expectation_based_on_pauli_string(pauli_string: cirq.PauliString, qubits: list) -> float:
-    if pauli_string == cirq.PauliString({q: cirq.X for q in qubits}):
-        ideal = 1
-    else:
-        ideal = 1 if len(qubits) % 2 == 0 else 0
-    return ideal
+def _generate_random_pauli_string(qubits: list[cirq.Qid]):
+    pauli_ops = [cirq.I, cirq.X, cirq.Y, cirq.Z]
+
+    # Ensure at least one non-identity.
+    operators = {q: cirq.I for q in qubits}  # Start with all identities
+    # Choose a random subset of qubits to have non-identity operators
+    non_identity_qubits = random.sample(qubits, random.randint(1, len(qubits)))
+    for q in non_identity_qubits:
+        operators[q] = random.choice([cirq.X, cirq.Y, cirq.Z])  # Only non-identity ops
+    operators = {q: random.choice(pauli_ops) for q in qubits}
+    return cirq.PauliString(operators)
+
+
+def _ideal_expectation_based_on_pauli_string(
+    pauli_string: cirq.PauliString, final_state_vector: any
+) -> float:
+    return pauli_string.expectation_from_state_vector(
+        final_state_vector, qubit_map={q: i for i, q in enumerate(pauli_string.qubits)}
+    )
 
 
 def test_pauli_string_measurement_errors_no_noise():
@@ -46,9 +60,9 @@ def test_pauli_string_measurement_errors_no_noise():
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [
-        cirq.PauliString({q: cirq.X for q in qubits}),
-        cirq.PauliString({q: cirq.Y for q in qubits}),
-        cirq.PauliString({q: cirq.Z for q in qubits}),
+        _generate_random_pauli_string(qubits),
+        _generate_random_pauli_string(qubits),
+        _generate_random_pauli_string(qubits),
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
@@ -57,9 +71,11 @@ def test_pauli_string_measurement_errors_no_noise():
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
         assert isinstance(circuit_with_pauli_expectations.circuit, cirq.FrozenCircuit)
-        assert isinstance(
-            circuit_with_pauli_expectations.calibration_result, SingleQubitReadoutCalibrationResult
+
+        expected_val_simulation = sampler.simulate(
+            circuit_with_pauli_expectations.circuit.unfreeze()
         )
+        final_state_vector = expected_val_simulation.final_state_vector
 
         for pauli_string_measurement_results in circuit_with_pauli_expectations.results:
             # Since there is no noise, the mitigated and unmitigated expectations should be the same
@@ -70,16 +86,20 @@ def test_pauli_string_measurement_errors_no_noise():
             assert np.isclose(
                 pauli_string_measurement_results.mitigated_expectation,
                 _ideal_expectation_based_on_pauli_string(
-                    pauli_string_measurement_results.pauli_string, qubits
+                    pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
                 atol=4 * pauli_string_measurement_results.mitigated_stddev,
             )
-        assert circuit_with_pauli_expectations.calibration_result.zero_state_errors == {
-            q: 0 for q in qubits
-        }
-        assert circuit_with_pauli_expectations.calibration_result.one_state_errors == {
-            q: 0 for q in qubits
-        }
+            assert isinstance(
+                pauli_string_measurement_results.calibration_result,
+                SingleQubitReadoutCalibrationResult,
+            )
+            assert pauli_string_measurement_results.calibration_result.zero_state_errors == {
+                q: 0 for q in pauli_string_measurement_results.pauli_string.qubits
+            }
+            assert pauli_string_measurement_results.calibration_result.one_state_errors == {
+                q: 0 for q in pauli_string_measurement_results.pauli_string.qubits
+            }
 
 
 def test_pauli_string_measurement_errors_with_noise():
@@ -88,12 +108,13 @@ def test_pauli_string_measurement_errors_with_noise():
     qubits = cirq.LineQubit.range(7)
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
+    simulator = cirq.Simulator()
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [
-        cirq.PauliString({q: cirq.Z for q in qubits}),
-        cirq.PauliString({q: cirq.X for q in qubits}),
-        cirq.PauliString({q: cirq.Y for q in qubits}),
+        _generate_random_pauli_string(qubits),
+        _generate_random_pauli_string(qubits),
+        _generate_random_pauli_string(qubits),
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
@@ -102,22 +123,34 @@ def test_pauli_string_measurement_errors_with_noise():
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
         assert isinstance(circuit_with_pauli_expectations.circuit, cirq.FrozenCircuit)
-        assert isinstance(
-            circuit_with_pauli_expectations.calibration_result, SingleQubitReadoutCalibrationResult
+
+        expected_val_simulation = simulator.simulate(
+            circuit_with_pauli_expectations.circuit.unfreeze()
         )
+        final_state_vector = expected_val_simulation.final_state_vector
 
         for pauli_string_measurement_results in circuit_with_pauli_expectations.results:
             assert np.isclose(
                 pauli_string_measurement_results.mitigated_expectation,
                 _ideal_expectation_based_on_pauli_string(
-                    pauli_string_measurement_results.pauli_string, qubits
+                    pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
                 atol=4 * pauli_string_measurement_results.mitigated_stddev,
             )
-        for error in circuit_with_pauli_expectations.calibration_result.zero_state_errors.values():
-            assert 0.08 < error < 0.12
-        for error in circuit_with_pauli_expectations.calibration_result.one_state_errors.values():
-            assert 0.0045 < error < 0.0055
+
+            assert isinstance(
+                pauli_string_measurement_results.calibration_result,
+                SingleQubitReadoutCalibrationResult,
+            )
+
+            for (
+                error
+            ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
+                assert 0.08 < error < 0.12
+            for (
+                error
+            ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
+                assert 0.0045 < error < 0.0055
 
 
 def test_many_circuits_input_measurement_with_noise():
@@ -139,22 +172,23 @@ def test_many_circuits_input_measurement_with_noise():
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit_1] = [
-        cirq.PauliString({q: cirq.Z for q in qubits_1}),
-        cirq.PauliString({q: cirq.X for q in qubits_1}),
-        cirq.PauliString({q: cirq.Y for q in qubits_1}),
+        _generate_random_pauli_string(qubits_1),
+        _generate_random_pauli_string(qubits_1),
+        _generate_random_pauli_string(qubits_1),
     ]
     circuits_to_pauli[circuit_2] = [
-        cirq.PauliString({q: cirq.Z for q in qubits_2}),
-        cirq.PauliString({q: cirq.X for q in qubits_2}),
-        cirq.PauliString({q: cirq.Y for q in qubits_2}),
+        _generate_random_pauli_string(qubits_2),
+        _generate_random_pauli_string(qubits_2),
+        _generate_random_pauli_string(qubits_2),
     ]
     circuits_to_pauli[circuit_3] = [
-        cirq.PauliString({q: cirq.Z for q in qubits_3}),
-        cirq.PauliString({q: cirq.X for q in qubits_3}),
-        cirq.PauliString({q: cirq.Y for q in qubits_3}),
+        _generate_random_pauli_string(qubits_3),
+        _generate_random_pauli_string(qubits_3),
+        _generate_random_pauli_string(qubits_3),
     ]
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.005, seed=1234)
+    simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
         circuits_to_pauli, sampler, np.random.default_rng(), 1000, 1000, 1000
@@ -162,23 +196,32 @@ def test_many_circuits_input_measurement_with_noise():
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
         assert isinstance(circuit_with_pauli_expectations.circuit, cirq.FrozenCircuit)
-        assert isinstance(
-            circuit_with_pauli_expectations.calibration_result, SingleQubitReadoutCalibrationResult
+
+        expected_val_simulation = simulator.simulate(
+            circuit_with_pauli_expectations.circuit.unfreeze()
         )
+        final_state_vector = expected_val_simulation.final_state_vector
 
         for pauli_string_measurement_results in circuit_with_pauli_expectations.results:
-            qubits_to_measure = circuit_with_pauli_expectations.circuit.all_qubits()
             assert np.isclose(
                 pauli_string_measurement_results.mitigated_expectation,
                 _ideal_expectation_based_on_pauli_string(
-                    pauli_string_measurement_results.pauli_string, qubits_to_measure
+                    pauli_string_measurement_results.pauli_string, final_state_vector
                 ),
                 atol=4 * pauli_string_measurement_results.mitigated_stddev,
             )
-        for error in circuit_with_pauli_expectations.calibration_result.zero_state_errors.values():
-            assert 0.025 < error < 0.035
-        for error in circuit_with_pauli_expectations.calibration_result.one_state_errors.values():
-            assert 0.0045 < error < 0.0055
+            assert isinstance(
+                pauli_string_measurement_results.calibration_result,
+                SingleQubitReadoutCalibrationResult,
+            )
+            for (
+                error
+            ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
+                assert 0.025 < error < 0.035
+            for (
+                error
+            ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
+                assert 0.0045 < error < 0.0055
 
 
 def test_allow_measurement_without_readout_mitigation():
@@ -187,12 +230,13 @@ def test_allow_measurement_without_readout_mitigation():
     qubits = cirq.LineQubit.range(7)
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
+    simulator = cirq.Simulator()
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [
-        cirq.PauliString({q: cirq.Z for q in qubits}),
-        cirq.PauliString({q: cirq.X for q in qubits}),
-        cirq.PauliString({q: cirq.Y for q in qubits}),
+        _generate_random_pauli_string(qubits),
+        _generate_random_pauli_string(qubits),
+        _generate_random_pauli_string(qubits),
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
@@ -201,9 +245,11 @@ def test_allow_measurement_without_readout_mitigation():
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
         assert isinstance(circuit_with_pauli_expectations.circuit, cirq.FrozenCircuit)
-        # Since no readout mitigation string was generated, the calibration
-        # result should be None
-        assert circuit_with_pauli_expectations.calibration_result is None
+
+        expected_val_simulation = simulator.simulate(
+            circuit_with_pauli_expectations.circuit.unfreeze()
+        )
+        final_state_vector = expected_val_simulation.final_state_vector
 
         for pauli_string_measurement_results in circuit_with_pauli_expectations.results:
             # Since there's no mitigation, the mitigated and unmitigated expectations
@@ -212,4 +258,11 @@ def test_allow_measurement_without_readout_mitigation():
                 pauli_string_measurement_results.mitigated_expectation,
                 pauli_string_measurement_results.unmitigated_expectation,
             )
-        assert circuit_with_pauli_expectations.calibration_result is None
+            assert np.isclose(
+                pauli_string_measurement_results.mitigated_expectation,
+                _ideal_expectation_based_on_pauli_string(
+                    pauli_string_measurement_results.pauli_string, final_state_vector
+                ),
+                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+            )
+            assert pauli_string_measurement_results.calibration_result is None
