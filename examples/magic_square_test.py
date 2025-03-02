@@ -5,7 +5,7 @@ import numpy as np
 import examples.magic_square as ms
 
 
-def run_magic_square_game() -> None:
+def test_run_magic_square_game() -> None:
     """Test that Alice and Bob win 100% of the time with a noiseless simulator."""
 
     sampler = cirq.Simulator()
