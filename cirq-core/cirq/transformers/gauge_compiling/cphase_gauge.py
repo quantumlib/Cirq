@@ -22,6 +22,7 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
 )
 from cirq import ops
 import numpy as np
+from typing import cast
 
 
 class CPhasePauliGauge(Gauge):
@@ -56,7 +57,7 @@ class CPhasePauliGauge(Gauge):
             raise ValueError("pre should be cirq.X or cirq.Y")
 
     def _get_constant_gauge(
-        self, gate: ops.Gate, pre_q0: ops.Gate, pre_q1: ops.Gate
+        self, gate: ops.CZPowGate, pre_q0: ops.Gate, pre_q1: ops.Gate
     ) -> ConstantGauge:
         """Get the ConstantGauge corresponding to a given pre_q0 and pre_q1.
 
@@ -119,10 +120,15 @@ class CPhasePauliGauge(Gauge):
 
         Returns:
             A ConstantGauge implementing the transformation.
+
+        Raises:
+            TypeError: if gate is not a CZPowGate
         """
 
+        if not type(gate) == ops.CZPowGate:
+            raise TypeError("gate must be a CZPowGate")
         pre_q0, pre_q1 = prng.choice(np.array([ops.I, ops.X, ops.Y, ops.Z]), size=2, replace=True)
-        return self._get_constant_gauge(gate, pre_q0, pre_q1)
+        return self._get_constant_gauge(cast(ops.CZPowGate, gate), pre_q0, pre_q1)
 
 
 CPhaseGaugeSelector = GaugeSelector(gauges=[CPhasePauliGauge()])
