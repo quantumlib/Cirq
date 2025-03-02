@@ -287,7 +287,7 @@ def test_numeric():
     assert isinstance(complex(cirq.LineQubit(x=5)), complex)
 
 
-@pytest.mark.parametrize('dtype', (np.int8, np.int64, float, np.float128))
+@pytest.mark.parametrize('dtype', (np.int8, np.int64, float, np.float64))
 def test_numpy_index(dtype):
     np5 = dtype(5)
     q = cirq.LineQubit(np5)
@@ -305,7 +305,7 @@ def test_numpy_index(dtype):
     assert isinstance(q.dimension, int)
 
 
-@pytest.mark.parametrize('dtype', (float, np.float128))
+@pytest.mark.parametrize('dtype', (float, np.float64))
 def test_non_integer_index(dtype):
     q = cirq.LineQubit(dtype(5.5))
     assert q.x == 5.5

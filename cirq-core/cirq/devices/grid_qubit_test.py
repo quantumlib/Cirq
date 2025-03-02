@@ -393,7 +393,7 @@ def test_complex():
     assert isinstance(complex(cirq.GridQubit(row=1, col=2)), complex)
 
 
-@pytest.mark.parametrize('dtype', (np.int8, np.int64, float, np.float128))
+@pytest.mark.parametrize('dtype', (np.int8, np.int64, float, np.float64))
 def test_numpy_index(dtype):
     np5, np6, np3 = [dtype(i) for i in [5, 6, 3]]
     q = cirq.GridQubit(np5, np6)
@@ -411,7 +411,7 @@ def test_numpy_index(dtype):
     assert isinstance(q.dimension, int)
 
 
-@pytest.mark.parametrize('dtype', (float, np.float128))
+@pytest.mark.parametrize('dtype', (float, np.float64))
 def test_non_integer_index(dtype):
     q = cirq.GridQubit(dtype(5.5), dtype(6.5))
     hash(q)  # doesn't throw
