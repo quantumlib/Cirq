@@ -222,7 +222,7 @@ class GridQid(_BaseGridQid):
             inst._row = row
             inst._col = col
             inst._dimension = dimension
-            inst._hash = hash(((dimension - 2) * 1_000_003 + col) * 1_000_003 + row)
+            inst._hash = ((dimension - 2) * 1_000_003 + hash(col)) * 1_000_003 + hash(row)
             cls._cache[key] = inst
         return inst
 
@@ -384,7 +384,7 @@ class GridQubit(_BaseGridQid):
             inst = super().__new__(cls)
             inst._row = row
             inst._col = col
-            inst._hash = hash(col * 1_000_003 + row)
+            inst._hash = hash(col) * 1_000_003 + hash(row)
             cls._cache[key] = inst
         return inst
 

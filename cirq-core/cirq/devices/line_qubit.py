@@ -199,7 +199,7 @@ class LineQid(_BaseLineQid):
             inst = super().__new__(cls)
             inst._x = x
             inst._dimension = dimension
-            inst._hash = hash((dimension - 2) * 1_000_003 + x)
+            inst._hash = (dimension - 2) * 1_000_003 + hash(x)
             cls._cache[key] = inst
         return inst
 

@@ -393,13 +393,16 @@ def test_complex():
     assert isinstance(complex(cirq.GridQubit(row=1, col=2)), complex)
 
 
-def test_numpy_index():
-    np5, np6, np3 = [np.int64(i) for i in [5, 6, 3]]
+@pytest.mark.parametrize('dtype', (np.int8, np.int64, float, np.float128))
+def test_numpy_index(dtype):
+    np5, np6, np3 = [dtype(i) for i in [5, 6, 3]]
     q = cirq.GridQubit(np5, np6)
     hash(q)  # doesn't throw
     assert q.row == 5
     assert q.col == 6
     assert q.dimension == 2
+    assert isinstance(q.row, dtype)
+    assert isinstance(q.col, dtype)
     assert isinstance(q.dimension, int)
 
     q = cirq.GridQid(np5, np6, dimension=np3)
@@ -407,11 +410,16 @@ def test_numpy_index():
     assert q.row == 5
     assert q.col == 6
     assert q.dimension == 3
+    assert isinstance(q.row, dtype)
+    assert isinstance(q.col, dtype)
     assert isinstance(q.dimension, int)
 
 
-def test_non_integer_index():
-    q = cirq.GridQubit(5.5, 6.5)
+@pytest.mark.parametrize('dtype', (float, np.float128))
+def test_non_integer_index(dtype):
+    q = cirq.GridQubit(dtype(5.5), dtype(6.5))
     hash(q)  # doesn't throw
     assert q.row == 5.5
     assert q.col == 6.5
+    assert isinstance(q.row, dtype)
+    assert isinstance(q.col, dtype)
