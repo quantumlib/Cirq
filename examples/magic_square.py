@@ -1,27 +1,31 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 """An implementation of the Mermin–Peres magic square game.
 
-The game is described on [Wikipedia](https://en.wikipedia.org/wiki/Quantum_pseudo-telepathy#The_magic_square_game).
-There are two players, Alice and Bob, who are allowed to share two Bell pairs but otherwise cannot communicate.
-Alice is given a row number and asked to fill in three numbers, each either +1 or -1, such that their product is +1,
-and Bob is given a column number and asked to fill in three numbers, also either +1 or -1, such that their product is -1.
-Alice and Bob win if they agree at the intersection of their row and column. The best classical strategy wins 8/9 of the time,
-but with a quantum strategy, they can win 100% of the time.
+The game is described on
+[Wikipedia](https://en.wikipedia.org/wiki/Quantum_pseudo-telepathy#The_magic_square_game).
+There are two players, Alice and Bob, who are allowed to share two Bell pairs but otherwise cannot
+communicate. Alice is given a row number and asked to fill in three numbers, each either +1 or -1,
+such that their product is +1, and Bob is given a column number and asked to fill in three numbers,
+also either +1 or -1, such that their product is -1. Alice and Bob win if they agree at the
+intersection of their row and column. The best classical strategy wins 8/9 of the time, but with a
+quantum strategy, they can win 100% of the time.
 
-In the quantum strategy, Alice and Bob share two Bell pairs and agree ahead of time on the following table:
+In the quantum strategy, Alice and Bob share two Bell pairs and agree ahead of time on the
+following table:
 
      I ⊗ Z | Z ⊗ I | Z ⊗ Z
      X ⊗ I | I ⊗ X | X ⊗ X
     -X ⊗ Z |-Z ⊗ X | Y ⊗ Y
 
-Alice then measures the operators in the row number that she is given and returns the three values. Similarly, Bob measures
-the three operators in his assigned column and returns those numbers. By construction, Alice and Bob's numbers follow the rules
-of the game and agree at the intersection.
+Alice then measures the operators in the row number that she is given and returns the three values.
+Similarly, Bob measures the three operators in his assigned column and returns those numbers. By
+construction, Alice and Bob's numbers follow the rules of the game and agree at the intersection.
 
-In the implementation of this strategy here, Alice and Bob only measure the first two operators in their assigned row or column,
-resulting in a shallower circuit. For the first two rows and first two columns, only single-qubit measurements are required. However,
-the bottom row and rightmost column require non-destructive measurements of two-qubit Paulis, so we require ancillas. The qubit layout that
-we use is as follows;
+In the implementation of this strategy here, Alice and Bob only measure the first two operators in
+their assigned row or column, resulting in a shallower circuit. For the first two rows and first
+two columns, only single-qubit measurements are required. However, the bottom row and rightmost
+column require non-destructive measurements of two-qubit Paulis, so we require ancillas. The qubit
+layout that we use is as follows;
 
   measure ---- data ---- data ---- measure   (Alice)
                 |          |
