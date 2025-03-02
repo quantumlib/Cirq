@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import cirq
-from cirq.transformers.gauge_compiling import CPhaseGaugeTransformer
+from cirq.transformers.gauge_compiling.cphase_gauge import CPhaseGaugeTransformer
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
 
 

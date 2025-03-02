@@ -35,7 +35,7 @@ class CPhasePauliGauge(Gauge):
     def weight(self) -> float:
         return 1.0
 
-    def _get_new_post(self, exponent: float, pre: 'cirq.Gate') -> 'cirq.Gate':
+    def _get_new_post(self, exponent: float, pre: ops.Gate) -> ops.Gate:
         """Identify the new single-qubit gate that needs to be inserted in the case that both pre
         gates are X or Y.
 
@@ -57,7 +57,7 @@ class CPhasePauliGauge(Gauge):
             raise ValueError("pre should be cirq.X or cirq.Y")
 
     def _get_constant_gauge(
-        self, gate: ops.CZPowGate, pre_q0: 'cirq.Gate', pre_q1: 'cirq.Gate'
+        self, gate: ops.CZPowGate, pre_q0: ops.Gate, pre_q1: ops.Gate
     ) -> ConstantGauge:
         """Get the ConstantGauge corresponding to a given pre_q0 and pre_q1.
 
@@ -111,7 +111,7 @@ class CPhasePauliGauge(Gauge):
         else:
             raise ValueError("pre_q0 and pre_q1 should be single-qubit Pauli operators")
 
-    def sample(self, gate: ops.CZPowGate, prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         """Sample the 16 cphase gauges at random.
 
         Args:
@@ -122,7 +122,7 @@ class CPhasePauliGauge(Gauge):
             A ConstantGauge implementing the transformation.
         """
 
-        pre_q0, pre_q1 = prng.choice([ops.I, ops.X, ops.Y, ops.Z], size=2, replace=True)
+        pre_q0, pre_q1 = prng.choice(np.array([ops.I, ops.X, ops.Y, ops.Z]), size=2, replace=True)
         return self._get_constant_gauge(gate, pre_q0, pre_q1)
 
 
