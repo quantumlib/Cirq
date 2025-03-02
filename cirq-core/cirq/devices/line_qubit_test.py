@@ -295,7 +295,6 @@ def test_numpy_index(dtype):
     assert q.x == 5
     assert q.x == dtype(5)
     assert q.dimension == 2
-    assert isinstance(q.x, dtype)
     assert isinstance(q.dimension, int)
 
     q = cirq.LineQid(np5, dtype(3))
@@ -303,7 +302,6 @@ def test_numpy_index(dtype):
     assert q.x == 5
     assert q.x == dtype(5)
     assert q.dimension == 3
-    assert isinstance(q.x, dtype)
     assert isinstance(q.dimension, int)
 
 

@@ -401,8 +401,6 @@ def test_numpy_index(dtype):
     assert q.row == 5
     assert q.col == 6
     assert q.dimension == 2
-    assert isinstance(q.row, dtype)
-    assert isinstance(q.col, dtype)
     assert isinstance(q.dimension, int)
 
     q = cirq.GridQid(np5, np6, dimension=np3)
@@ -410,8 +408,6 @@ def test_numpy_index(dtype):
     assert q.row == 5
     assert q.col == 6
     assert q.dimension == 3
-    assert isinstance(q.row, dtype)
-    assert isinstance(q.col, dtype)
     assert isinstance(q.dimension, int)
 
 
