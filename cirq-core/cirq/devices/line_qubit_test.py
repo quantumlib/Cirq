@@ -293,20 +293,19 @@ def test_numpy_index(dtype):
     q = cirq.LineQubit(np5)
     assert hash(q) == 5
     assert q.x == 5
-    assert q.x == dtype(5)
     assert q.dimension == 2
     assert isinstance(q.dimension, int)
 
     q = cirq.LineQid(np5, dtype(3))
     hash(q)  # doesn't throw
     assert q.x == 5
-    assert q.x == dtype(5)
     assert q.dimension == 3
     assert isinstance(q.dimension, int)
 
 
 @pytest.mark.parametrize('dtype', (float, np.float64))
 def test_non_integer_index(dtype):
+    # Not supported type-wise, but is used in practice, so behavior needs to be preserved.
     q = cirq.LineQubit(dtype(5.5))
     assert q.x == 5.5
     assert q.x == dtype(5.5)
