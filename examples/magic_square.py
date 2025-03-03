@@ -208,8 +208,9 @@ def state_prep_circuit(
     Returns:
         A circuit preparing the Bell states.
     """
-    pairs = ((alice_data_qubits[0], bob_data_qubits[0]), (alice_data_qubits[1], bob_data_qubits[1]))
-    return bell_pair_prep_circuit(*pairs[0]).zip(bell_pair_prep_circuit(*pairs[1]))
+    a1, a2 = alice_data_qubits
+    b1, b2 = bob_data_qubits
+    return bell_pair_prep_circuit(a1, b1).zip(bell_pair_prep_circuit(a2, b2))
 
 
 def construct_measure_circuit(
@@ -320,6 +321,8 @@ def construct_magic_square_circuit(
     Returns:
         A circuit implementing the game.
     """
+    assert len(alice_qubits) == 4, f"Expected 4 qubits, but got {len(alice_qubits)}"
+    assert len(bob_qubits) == 4, f"Expected 4 qubits, but got {len(bob_qubits)}"
     alice_data_qubits = (alice_qubits[1], alice_qubits[2])
     bob_data_qubits = (bob_qubits[1], bob_qubits[2])
     prep_circuit = state_prep_circuit(alice_data_qubits, bob_data_qubits)
