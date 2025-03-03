@@ -431,10 +431,23 @@ def test_controlled_gate_is_consistent(gate: cirq.Gate, should_decompose_to_targ
 @pytest.mark.parametrize(
     'gate',
     [
+        cirq.I,
+        cirq.GlobalPhaseGate(1),
+        cirq.GlobalPhaseGate(-1),
+        cirq.GlobalPhaseGate(1j),
         cirq.GlobalPhaseGate(1j**0.7),
+        cirq.Z,
         cirq.ZPowGate(exponent=1.2, global_shift=0.3),
+        cirq.CZ,
         cirq.CZPowGate(exponent=1.2, global_shift=0.3),
+        cirq.CCZ,
         cirq.CCZPowGate(exponent=1.2, global_shift=0.3),
+        cirq.X,
+        cirq.XPowGate(exponent=1.2, global_shift=0.3),
+        cirq.CX,
+        cirq.CXPowGate(exponent=1.2, global_shift=0.3),
+        cirq.CCX,
+        cirq.CCXPowGate(exponent=1.2, global_shift=0.3),
     ],
 )
 @pytest.mark.parametrize(
@@ -476,10 +489,9 @@ def _test_controlled_gate_is_consistent(
         shape = cirq.qid_shape(cgate)
         qids = cirq.LineQid.for_qid_shape(shape)
         decomposed = cirq.decompose(cgate.on(*qids))
-        if len(decomposed) < 1000:  # CCCCCZ rounding error explodes
-            first_op = cirq.IdentityGate(qid_shape=shape).on(*qids)  # To ensure same qid order
-            circuit = cirq.Circuit(first_op, *decomposed)
-            np.testing.assert_allclose(cirq.unitary(cgate), cirq.unitary(circuit), atol=1e-1)
+        first_op = cirq.IdentityGate(qid_shape=shape).on(*qids)  # To ensure same qid order
+        circuit = cirq.Circuit(first_op, *decomposed)
+        assert cirq.equal_up_to_global_phase(cirq.unitary(cgate), cirq.unitary(circuit))
 
 
 def test_pow_inverse():
