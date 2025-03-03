@@ -183,7 +183,7 @@ import numpy as np
 
 
 def bell_pair_prep_circuit(q0: cirq.GridQubit, q1: cirq.GridQubit) -> cirq.Circuit:
-    """Prepare a Bell state between qubits q0 and q1.
+    """Prepare the Bell state |00> + |11> between qubits q0 and q1.
 
     Args:
         q0: One qubit.
@@ -192,7 +192,7 @@ def bell_pair_prep_circuit(q0: cirq.GridQubit, q1: cirq.GridQubit) -> cirq.Circu
     Returns:
         A circuit creating a Bell state.
     """
-    return cirq.Circuit(cirq.H.on_each(q0, q1), cirq.CZ(q0, q1), cirq.H(q1))
+    return cirq.Circuit.from_moments(cirq.H.on_each(q0, q1), cirq.CZ(q0, q1), cirq.H(q1))
 
 
 def state_prep_circuit(
@@ -241,35 +241,37 @@ def construct_measure_circuit(
     q = alice_qubits[1:3]  # data qubits
     m = (alice_qubits[0], alice_qubits[3])  # measure qubits
     if mermin_row == 0:
-        alice_circuit = cirq.Circuit(cirq.M(*q, key="alice"))
+        alice_circuit = cirq.Circuit.from_moments(cirq.M(*q, key="alice"))
     elif mermin_row == 1:
-        alice_circuit = cirq.Circuit(cirq.H.on_each(*q), cirq.M(*q, key="alice"))
+        alice_circuit = cirq.Circuit.from_moments(cirq.H.on_each(*q), cirq.M(*q, key="alice"))
     elif mermin_row == 2:
-        alice_circuit = cirq.Circuit(
+        alice_circuit = cirq.Circuit.from_moments(
             cirq.CZ(*q),
-            cirq.Moment(cirq.H.on_each(*q, *m)),
+            cirq.H.on_each(*q, *m),
             cirq.CZ.on_each(*zip(m, q)),
             cirq.H.on_each(*m),
-            cirq.Moment(cirq.M(*m, key="alice")),
+            cirq.M(*m, key="alice"),
         )
 
     q = bob_qubits[1:3]  # data qubits
     m = (bob_qubits[0], bob_qubits[3])  # measure qubits
     if mermin_col == 0:
-        bob_circuit = cirq.Circuit(cirq.H(q[0]), cirq.M(*q, key="bob"))
+        bob_circuit = cirq.Circuit.from_moments(cirq.H(q[0]), cirq.M(*q, key="bob"))
     elif mermin_col == 1:
-        bob_circuit = cirq.Circuit(cirq.H(q[1]), cirq.M(*q, key="bob"))
+        bob_circuit = cirq.Circuit.from_moments(cirq.H(q[1]), cirq.M(*q, key="bob"))
     elif mermin_col == 2:
-        bob_circuit = cirq.Circuit(
+        bob_circuit = cirq.Circuit.from_moments(
             cirq.H(q[0]),
             cirq.CZ(*q),
-            cirq.Moment(cirq.H.on_each(*q, *m)),
+            cirq.H.on_each(*q, *m),
             cirq.CZ.on_each(*zip(m, q)),
             cirq.H.on_each(*m),
-            cirq.Moment(cirq.M(*m, key="bob")),
+            cirq.M(*m, key="bob"),
         )
 
-    last_moment_circuit = cirq.Circuit(cirq.Moment(alice_circuit[-1] + bob_circuit[-1]))
+    last_moment_circuit = cirq.Circuit.from_moments(
+        cirq.Moment(alice_circuit[-1] + bob_circuit[-1])
+    )
     if mermin_row == 0:
         circuit = bob_circuit[:-1] + last_moment_circuit
     elif mermin_row == 1:
@@ -280,14 +282,14 @@ def construct_measure_circuit(
     elif mermin_row == 2:
         if mermin_col == 2:
             circuit = (
-                cirq.Circuit(bob_circuit[0])
+                cirq.Circuit.from_moments(bob_circuit[0])
                 + alice_circuit[:-1].zip(bob_circuit[1:-1])
                 + last_moment_circuit
             )
         else:
             circuit = (
                 alice_circuit[0:3]
-                + cirq.Circuit(cirq.Moment(alice_circuit[3] + bob_circuit[0]))
+                + cirq.Circuit.from_moments(cirq.Moment(alice_circuit[3] + bob_circuit[0]))
                 + last_moment_circuit
             )
     return circuit
