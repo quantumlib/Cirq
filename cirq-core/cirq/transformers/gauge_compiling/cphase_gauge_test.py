@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,5 +19,29 @@ from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTe
 
 class TestCPhaseGauge(GaugeTester):
     two_qubit_gate = cirq.CZ**0.3
+    gauge_transformer = CPhaseGaugeTransformer
+    sweep_must_pass = True
+
+
+class TestCPhaseGauge(GaugeTester):
+    two_qubit_gate = cirq.CZ ** (-0.3)
+    gauge_transformer = CPhaseGaugeTransformer
+    sweep_must_pass = True
+
+
+class TestCPhaseGauge(GaugeTester):
+    two_qubit_gate = cirq.CZ**0.1
+    gauge_transformer = CPhaseGaugeTransformer
+    sweep_must_pass = True
+
+
+class TestCPhaseGauge(GaugeTester):
+    two_qubit_gate = cirq.CZ ** (-0.1)
+    gauge_transformer = CPhaseGaugeTransformer
+    sweep_must_pass = True
+
+
+class TestCPhaseGauge(GaugeTester):
+    two_qubit_gate = cirq.CZ**0.7
     gauge_transformer = CPhaseGaugeTransformer
     sweep_must_pass = True

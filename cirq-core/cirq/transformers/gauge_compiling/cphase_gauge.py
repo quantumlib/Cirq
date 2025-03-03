@@ -1,4 +1,4 @@
-# Copyright 2024 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,10 +28,12 @@ import numpy as np
 
 
 class CPhasePauliGauge(Gauge):
-    """Gauges for the cphase gate (CZPowGate). We identify 16 distinct gauges, corresponding to the
-    16 two-qubit Pauli operators that can be inserted before the cphase gate. When an anticommuting
-    gate is inserted, the cphase angle is negated (or equivalently, the exponent of the CZPowGate
-    is negated), so both postive and negative angles should be calibrated to use this.
+    """Gauges for the cphase gate (CZPowGate).
+
+    We identify 16 distinct gauges, corresponding to the 16 two-qubit Pauli operators that can be
+    inserted before the cphase gate. When an anticommuting gate is inserted, the cphase angle is
+    negated (or equivalently, the exponent of the CZPowGate is negated), so both postive and
+    negative angles should be calibrated to use this.
     """
 
     def weight(self) -> float:
