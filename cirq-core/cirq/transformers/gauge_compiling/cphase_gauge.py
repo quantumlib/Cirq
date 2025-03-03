@@ -56,7 +56,7 @@ class CPhasePauliGauge(Gauge):
         elif pre == ops.Y:
             return ops.PhasedXZGate.from_zyz_exponents(z0=-exponent, y=1, z1=0)
         else:
-            raise ValueError("pre should be cirq.X or cirq.Y")
+            raise ValueError("pre should be cirq.X or cirq.Y")  # pragma: no cover
 
     def _get_constant_gauge(
         self, gate: ops.CZPowGate, pre_q0: ops.Gate, pre_q1: ops.Gate
@@ -111,7 +111,7 @@ class CPhasePauliGauge(Gauge):
                 post_q1=self._get_new_post(exponent, pre_q1),
             )
         else:
-            raise ValueError("pre_q0 and pre_q1 should be single-qubit Pauli operators")
+            raise ValueError("pre_q0 and pre_q1 should be X, Y, Z, or I")  # pragma: no cover
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         """Sample the 16 cphase gauges at random.
@@ -128,7 +128,7 @@ class CPhasePauliGauge(Gauge):
         """
 
         if not type(gate) == ops.CZPowGate:
-            raise TypeError("gate must be a CZPowGate")
+            raise TypeError("gate must be a CZPowGate")  # pragma: no cover
         pre_q0, pre_q1 = prng.choice(np.array([ops.I, ops.X, ops.Y, ops.Z]), size=2, replace=True)
         return self._get_constant_gauge(gate, pre_q0, pre_q1)
 
