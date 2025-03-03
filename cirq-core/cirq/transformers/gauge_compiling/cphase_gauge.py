@@ -14,11 +14,14 @@
 
 """A Gauge Transformer for the cphase gate."""
 
+import cirq.transformers.gauge_compiling.sqrt_cz_gauge as sqrt_cz_gauge
+
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeTransformer,
     GaugeSelector,
     ConstantGauge,
     Gauge,
+    TwoQubitGateSymbolizer,
 )
 from cirq import ops
 import numpy as np
@@ -133,5 +136,9 @@ class CPhasePauliGauge(Gauge):
 CPhaseGaugeSelector = GaugeSelector(gauges=[CPhasePauliGauge()])
 
 CPhaseGaugeTransformer = GaugeTransformer(
-    target=ops.Gateset(ops.CZPowGate), gauge_selector=CPhaseGaugeSelector
+    target=ops.Gateset(ops.CZPowGate),
+    gauge_selector=CPhaseGaugeSelector,
+    two_qubit_gate_symbolizer=TwoQubitGateSymbolizer(
+        symbolizer_fn=sqrt_cz_gauge._symbolize_as_cz_pow, n_symbols=1
+    ),
 )
