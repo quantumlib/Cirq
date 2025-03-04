@@ -54,10 +54,12 @@ DEFAULT_GATE_NS: Dict[Type['cirq.Gate'], float] = {
 }
 GATE_PREFIX_PAIRS: Dict[Type['cirq.Gate'], str] = {
     cg_ops.SycamoreGate: 'two_qubit_parallel_sycamore_gate',
+    ops.CZPowGate: 'two_qubit_parallel_cz_gate',
     ops.ISwapPowGate: 'two_qubit_parallel_sqrt_iswap_gate',
 }
 GATE_ZPHASE_CODE_PAIRS: Dict[Type['cirq.Gate'], str] = {
     cg_ops.SycamoreGate: 'syc',
+    ops.CZPowGate: 'cz',
     ops.ISwapPowGate: 'sqrt_iswap',
 }
 
