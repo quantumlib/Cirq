@@ -16,6 +16,11 @@ import cirq
 import cirq.contrib.qcircuit as ccq
 
 
+# Update - Debugging complete - new testcases required
+#TODO: Testcase required here for methods:
+#       convert_text_diagram_info_to_qcircuit_diagram_info
+#       multigate_qcircuit_diagram_info
+
 def test_get_qcircuit_diagram_info():
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 

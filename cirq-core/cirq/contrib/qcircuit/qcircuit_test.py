@@ -192,3 +192,5 @@ def test_latex_formatting():
 }""".strip()
     
     assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+# test_latex_formatting()

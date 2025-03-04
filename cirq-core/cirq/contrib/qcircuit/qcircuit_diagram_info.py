@@ -64,6 +64,9 @@ def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> Optional[protocols.Cir
     return protocols.CircuitDiagramInfo(symbols) if symbols else None
 
 
+
+#TODO: Modification required here to fix \targ \control \ctrlo{} issues
+
 def convert_text_diagram_info_to_qcircuit_diagram_info(
     info: protocols.CircuitDiagramInfo,
 ) -> protocols.CircuitDiagramInfo:
@@ -73,6 +76,9 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
     symbols = tuple(r'\gate{' + l + '}' for l in labels)
     return protocols.CircuitDiagramInfo(symbols)
 
+
+
+#TODO: Modification required here to fix the multigate/swap/ ghost/swap issue
 
 def multigate_qcircuit_diagram_info(
     op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
