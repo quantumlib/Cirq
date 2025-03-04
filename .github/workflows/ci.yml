@@ -62,6 +62,8 @@ jobs:
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/format.txt
+      - name: Set up problem matcher for Black output
+        run: echo '::add-matcher::.github/problem-matchers/black.json'
       - name: Format
         run: check/format-incremental
   mypy:
@@ -77,6 +79,8 @@ jobs:
           architecture: 'x64'
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
+      - name: Set up problem matcher for Mypy output
+        run: echo '::add-matcher::.github/problem-matchers/mypy.json'
       - name: Type check
         run: check/mypy
   changed_files:
@@ -109,6 +113,8 @@ jobs:
           architecture: 'x64'
       - name: Install pylint
         run: pip install -r dev_tools/requirements/pylint.env.txt
+      - name: Set up problem matcher for Pylint output
+        run: echo '::add-matcher::.github/problem-matchers/pylint.json'
       - name: Display version
         run: check/pylint --version
       - name: Lint
@@ -151,6 +157,8 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
+      - name: Set up problem matcher for Shellcheck output
+        run: echo '::add-matcher::.github/problem-matchers/shellcheck.json'
       - name: Run shellcheck
         run: check/shellcheck
   isolated-modules:
