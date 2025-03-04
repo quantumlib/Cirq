@@ -51,6 +51,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             cirq.YYPowGate,
             cirq.ZZPowGate,
             cirq.MeasurementGate,
+            cirq.GlobalPhaseGate,
             unroll_circuit_op=False,
         )
         self.atol = atol
