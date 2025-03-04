@@ -45,7 +45,7 @@ def test_merge_single_qubit_gates_to_phased_x_and_z():
         optimized=cirq.merge_single_qubit_gates_to_phased_x_and_z(c),
         expected=cirq.Circuit(
             cirq.PhasedXPowGate(phase_exponent=1)(a),
-            cirq.Y(b) ** 0.5,
+            cirq.PhasedXPowGate(phase_exponent=0.5)(b) ** 0.5,
             cirq.CZ(a, b),
             (cirq.PhasedXPowGate(phase_exponent=-0.5)(a)) ** 0.5,
             cirq.measure(b, key="m"),
