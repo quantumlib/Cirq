@@ -1,0 +1,85 @@
+# Summary: add a welcoming comment to first-time contributors' issues & PRs.
+# This is written in a generic way so that we can use the same workflow
+# in all our quantumlib repos.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+name: Welcome first interactions
+run-name: Welcome ${{github.actor}}'s first interaction
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+# Declare default permissions as read-only.
+permissions: read-all
+
+jobs:
+  welcome:
+    name: Check for first interaction
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      issues: write
+      pull-requests: write
+    env:
+      repo: ${{github.server_url}}/${{github.repository}}
+      files: ${{github.server_url}}/${{github.repository}}/blob/${{github.ref_name}}
+    steps:
+      - name: Check out a copy of the git repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Add a welcome comment if appropriate
+        uses: actions/first-interaction@2ec0f0fd78838633cd1c1342e4536d49ef72be54 # v1.3.0
+        with:
+          repo-token: ${{secrets.GITHUB_TOKEN}}
+          issue-message: |
+            Hello and welcome, ${{github.actor}} 👋!
+
+            Thanks for filing your first issue with the ${{github.repository}}
+            project! We are glad you are here and are excited to see your first
+            contribution. Please keep in mind our [community participation
+            guidelines](${{env.files}}/CODE_OF_CONDUCT.md).
+
+            If this is a bug report, we will probably need the following
+            details in order to diagnose the issue. If you did not include it
+            in the original issue description, please consider providing it
+            now because it will probably save everyone time in the long run:
+
+            - [ ] Environment you are using (MacOS, Windows, Colab, etc.)
+            - [ ] Version of Python you are using
+            - [ ] Steps to reproduce the issue
+
+            Please allow time for the project community to be able to read the
+            issue and act on it. In the meantime, you may want to look through
+            the [existing open issues](${{env.repo}}/issues) to see if any look
+            similar to yours. If you find a similar or identical issue,
+            consider closing this one; if you don't want to close this one, it
+            would be helpful if you could write a comment here that references
+            the related issue and explains how this new one differs from the
+            other one.
+
+            This is an automatically-generated message.
+          pr-message: |
+            Hello and welcome, ${{github.actor}} 👋!
+
+            Thanks for making your first pull request to the
+            ${{github.repository}} project! We are glad you are here and are
+            excited to see your first contribution. Please keep in mind our
+            [community code of conduct](${{env.files}}/CODE_OF_CONDUCT.md).
+
+            Since this is your first pull request with this project, the
+            automated check for the Google [Contributor License
+            Agreement](https://cla.developers.google.com/about) (CLA) will
+            trigger and may request that you to sign the CLA. More information
+            about the agreement can be found in the project's [contributing
+            guide](${{env.files}}/CONTRIBUTING.md).
+
+            If this pull request is to fix a bug, please reference the relevant
+            issue number in the project [issue tracker](${{env.repo}}/issues).
+
+            Please allow time for the project community to be able to read and
+            evaluate your pull request.
+
+            This is an automatically-generated message.
