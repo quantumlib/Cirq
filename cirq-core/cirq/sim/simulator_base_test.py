@@ -434,3 +434,29 @@ def test_inhomogeneous_measurement_count_padding():
     results = sim.run(c, repetitions=10)
     for i in range(10):
         assert np.sum(results.records['m'][i, :, :]) == 1
+
+
+def test_run_with_custom_rng():
+    sim = cirq.Simulator()
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    rng1 = np.random.default_rng(seed=1234)
+    rng2 = np.random.default_rng(seed=1234)
+
+    result1 = sim._run(circuit, param_resolver=cirq.ParamResolver({}), repetitions=10, rng=rng1)
+    result2 = sim._run(circuit, param_resolver=cirq.ParamResolver({}), repetitions=10, rng=rng2)
+    assert np.array_equal(result1['q(0)'], result2['q(0)'])
+
+    rng3 = np.random.default_rng(seed=5678)
+    result3 = sim._run(circuit, param_resolver=cirq.ParamResolver({}), repetitions=10, rng=rng3)
+    assert not np.array_equal(result1['q(0)'], result3['q(0)'])
+
+
+def test_run_with_explicit_rng_override():
+    sim1 = cirq.Simulator(seed=1234)
+    sim2 = cirq.Simulator(seed=5678)
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    rng = np.random.default_rng(1234)
+
+    result1 = sim1._run(circuit, cirq.ParamResolver({}), repetitions=10)
+    result2 = sim2._run(circuit, cirq.ParamResolver({}), repetitions=10, rng=rng)
+    assert np.array_equal(result1['q(0)'], result2['q(0)'])
