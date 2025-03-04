@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import linalg, protocols, _import
 from cirq._compat import proper_repr
-from cirq.ops import raw_types, phased_x_z_gate, global_phase_op as gp, identity
+from cirq.ops import global_phase_op, identity, phased_x_z_gate, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -148,6 +148,8 @@ class MatrixGate(raw_types.Gate):
         return MatrixGate(matrix=result.reshape(self._matrix.shape), qid_shape=self._qid_shape)
 
     def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+        from cirq.circuits import Circuit
+
         decomposed: List['cirq.Operation'] = NotImplemented
         if self._qid_shape == (2,):
             decomposed = [
@@ -166,8 +168,6 @@ class MatrixGate(raw_types.Gate):
             return NotImplemented
         # The above algorithms ignore phase, but phase is important to maintain if the gate is
         # controlled. Here, we add it back in with a global phase op.
-        from cirq.circuits import Circuit
-
         ident = identity.IdentityGate(qid_shape=self._qid_shape).on(*qubits)
         u = protocols.unitary(Circuit(ident, *decomposed)).reshape(self._matrix.shape)
         # All cells will have the same phase difference. Just choose the cell with the largest
@@ -177,7 +177,7 @@ class MatrixGate(raw_types.Gate):
         # Phase delta is on the complex unit circle, so if real(phase_delta) >= 1, that means
         # no phase delta. (>1 is rounding error).
         if phase_delta.real < 1:
-            decomposed.append(gp.global_phase_operation(phase_delta))
+            decomposed.append(global_phase_op.global_phase_operation(phase_delta))
         return decomposed
 
     def _has_unitary_(self) -> bool:
