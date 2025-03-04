@@ -25,7 +25,7 @@ from cirq import transformers as opt
 
 def three_qubit_matrix_to_operations(
     q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, u: np.ndarray, atol: float = 1e-8
-) -> Sequence[ops.Operation]:
+) -> List[ops.Operation]:
     """Returns operations for a 3 qubit unitary.
 
     The algorithm is described in Shende et al.:

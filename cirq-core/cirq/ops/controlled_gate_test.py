@@ -491,7 +491,7 @@ def _test_controlled_gate_is_consistent(
         decomposed = cirq.decompose(cgate.on(*qids))
         first_op = cirq.IdentityGate(qid_shape=shape).on(*qids)  # To ensure same qid order
         circuit = cirq.Circuit(first_op, *decomposed)
-        assert cirq.equal_up_to_global_phase(cirq.unitary(cgate), cirq.unitary(circuit))
+        np.testing.assert_allclose(cirq.unitary(cgate), cirq.unitary(circuit), atol=1e-13)
 
 
 def test_pow_inverse():
