@@ -979,10 +979,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # Initialize the ps the same as self.
         ps = PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient)
         all_ops = list(op_tree.flatten_to_ops(clifford))
-        all_qubits: set[TKey] = set.union(
-            set(self.qubits), [q for op in all_ops for q in op.qubits]
-        )
-
+        all_qubits = set.union(set(self.qubits), [q for op in all_ops for q in op.qubits])
         # Iteratively calculate the conjugation in reverse order of ops.
         for op in all_ops[::-1]:
             # To calcuate the conjugation of P (`ps`) with respect to C (`op`)
@@ -997,7 +994,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             # Initialize the conjugation of Pc.
             conjugated: 'cirq.DensePauliString' = (
                 dense_pauli_string.DensePauliString(pauli_mask=[identity.I for _ in op.qubits])
-                * self.coefficient
+                * ps.coefficient
             )
 
             # Calculate the conjugation via CliffordGate's clifford_tableau.
@@ -1099,20 +1096,17 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
-        pauli_map = dict(self._qubit_pauli_map)
-        should_negate = False
-        for op in ops:
-            if pauli_map.keys().isdisjoint(set(op.qubits)):
-                continue
-            decomposed = _decompose_into_cliffords(op)
-            if not after_to_before:
-                decomposed = decomposed[::-1]
-            for clifford_op in decomposed:
-                if pauli_map.keys().isdisjoint(set(clifford_op.qubits)):
-                    continue
-                should_negate ^= _pass_operation_over(pauli_map, clifford_op, after_to_before)
-        coef = -self._coefficient if should_negate else self.coefficient
-        return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
+        # TODO(#6946): deprecate this method.
+        # Note: This method is supposed to be replaced by conjugated_by()
+        #  (see #2351 for details).
+        if after_to_before:
+            return self.after(ops)
+
+        if isinstance(ops, gate_operation.GateOperation):
+            return self.before(ops)
+
+        all_ops = list(op_tree.flatten_to_ops(ops))
+        return self.before(all_ops[::-1])
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
