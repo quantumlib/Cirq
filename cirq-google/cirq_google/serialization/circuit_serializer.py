@@ -36,6 +36,9 @@ from cirq_google.serialization import serializer, op_deserializer, op_serializer
 # CircuitSerializer is the dedicated serializer for the v2.5 format.
 _SERIALIZER_NAME = 'v2_5'
 
+# Package name for stimcirq
+_STIMCIRQ_MODULE = "stimcirq"
+
 
 class CircuitSerializer(serializer.Serializer):
     """A class for serializing and deserializing programs and operations.
@@ -257,15 +260,17 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.q1_detune_mhz, out=msg.couplerpulsegate.q1_detune_mhz
             )
-        elif op.__module__.startswith('stimcirq') or (
-            gate is not None and gate.__module__.startswith('stimcirq')
-        ):
+        elif getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) or getattr(
+            gate, "__module__", ""
+        ).startswith(_STIMCIRQ_MODULE):
             # Special handling for stimcirq objects, which can be both operations and gates.
-            stimcirq_obj = op if op.__module__.startswith('stimcirq') else gate
+            stimcirq_obj = (
+                op if getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) else gate
+            )
             if stimcirq_obj is not None and hasattr(stimcirq_obj, '_json_dict_'):
                 # All stimcirq gates currently have _json_dict_defined
                 msg.internalgate.name = type(stimcirq_obj).__name__
-                msg.internalgate.module = 'stimcirq'
+                msg.internalgate.module = _STIMCIRQ_MODULE
                 if isinstance(stimcirq_obj, cirq.Gate):
                     msg.internalgate.num_qubits = stimcirq_obj.num_qubits()
                 else:
@@ -274,6 +279,8 @@ class CircuitSerializer(serializer.Serializer):
                 # Store json_dict objects in gate_args
                 for k, v in stimcirq_obj._json_dict_().items():
                     arg_func_langs.arg_to_proto(value=v, out=msg.internalgate.gate_args[k])
+            else:
+                raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
@@ -677,7 +684,7 @@ class CircuitSerializer(serializer.Serializer):
         elif which_gate_type == 'internalgate':
             parsed_as_stimcirq = False
             msg = operation_proto.internalgate
-            if msg.module == 'stimcirq':
+            if msg.module == _STIMCIRQ_MODULE:
                 # special handling for stimcirq
                 try:
                     import stimcirq
