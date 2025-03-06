@@ -814,9 +814,6 @@ def test_pass_operations_over_cz():
 def test_pass_operations_over_no_common_qubits():
     class ExampleGate(cirq.testing.SingleQubitGate):
 
-        def num_qubits(self):
-            return 1
-
         def _decompose_(self, qubits):
             return cirq.X(qubits[0])
 
