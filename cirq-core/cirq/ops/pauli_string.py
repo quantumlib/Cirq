@@ -1033,9 +1033,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                             * tableau.stabilizers()[qid]  # then conj Z
                         )
             ps = remain * conjugated.on(*op.qubits)
-        return PauliString(
-            qubit_pauli_map=dict(sorted(ps._qubit_pauli_map.items())), coefficient=ps.coefficient
-        )
+        return ps
 
     def after(self, ops: 'cirq.OP_TREE') -> 'cirq.PauliString':
         r"""Determines the equivalent pauli string after some operations.
