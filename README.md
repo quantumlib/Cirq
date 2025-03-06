@@ -166,7 +166,7 @@ develop quantum programs for a variety of applications.
 
 [Qualtran]: https://github.com/quantumlib/qualtran
 [qsim]: https://github.com/quantumlib/qsim
-[Stim]: https://github.com/quantumlib/ssim
+[Stim]: https://github.com/quantumlib/stim
 [OpenFermion]: https://github.com/quantumlib/openfermion
 [OpenFermion-FQE]: https://github.com/quantumlib/OpenFermion-FQE
 [OpenFermion-PySCF]: https://github.com/quantumlib/OpenFermion-PySCF
