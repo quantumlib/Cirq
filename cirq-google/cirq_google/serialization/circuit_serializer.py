@@ -283,7 +283,9 @@ class CircuitSerializer(serializer.Serializer):
                     arg_func_langs.arg_to_proto(value=v, out=msg.internalgate.gate_args[k])
             else:
                 # New stimcirq op without a json dict has been introduced
-                raise ValueError(f'Cannot serialize stimcirq {op!r}:{type(gate)}') # pragma: no cover
+                raise ValueError(
+                    f'Cannot serialize stimcirq {op!r}:{type(gate)}'
+                )  # pragma: no cover
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
