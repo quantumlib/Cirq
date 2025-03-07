@@ -245,11 +245,12 @@ def test_rot_gates_eq():
     eq.add_equality_group(cirq.YPowGate(), cirq.YPowGate(exponent=1), cirq.Y)
     eq.add_equality_group(cirq.ZPowGate(), cirq.ZPowGate(exponent=1), cirq.Z)
     eq.add_equality_group(
-        cirq.ZPowGate(exponent=1, global_shift=-0.5), cirq.ZPowGate(exponent=5, global_shift=-0.5)
+        cirq.ZPowGate(exponent=1, global_shift=-0.5),
+        cirq.ZPowGate(exponent=5, global_shift=-0.5),
+        cirq.ZPowGate(exponent=5, global_shift=-0.1),
     )
     eq.add_equality_group(cirq.ZPowGate(exponent=3, global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=1, global_shift=-0.1))
-    eq.add_equality_group(cirq.ZPowGate(exponent=5, global_shift=-0.1))
     eq.add_equality_group(
         cirq.CNotPowGate(), cirq.CXPowGate(), cirq.CNotPowGate(exponent=1), cirq.CNOT
     )
