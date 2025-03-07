@@ -1046,11 +1046,7 @@ def test_reset_gate_with_improper_argument():
 
 
 def test_stimcirq_gates():
-    try:
-        import stimcirq
-    except ModuleNotFoundError:  # pragma: no cover
-        # Stimcirq not found, these are optional tests.
-        return
+    stimcirq = pytest.importorskip("stimcirq")
     serializer = cg.CircuitSerializer()
     q = cirq.q(1, 2)
     q2 = cirq.q(2, 2)
