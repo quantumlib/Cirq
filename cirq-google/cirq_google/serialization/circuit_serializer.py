@@ -15,6 +15,7 @@
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
 from typing import Any, Dict, List, Optional
+import functools
 import warnings
 import numpy as np
 import sympy
@@ -696,29 +697,19 @@ class CircuitSerializer(serializer.Serializer):
                 raise ValueError(f"dimensions {dimensions} for ResetChannel must be an integer!")
             op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
-            parsed_as_stimcirq = False
             msg = operation_proto.internalgate
-            if msg.module == _STIMCIRQ_MODULE:
+            if msg.module == _STIMCIRQ_MODULE and msg.name in _stimcirq_json_resolvers():
                 # special handling for stimcirq
-                try:
-                    import stimcirq
-
-                    # Use JSON resolver to instantiate the object
-                    if msg.name in stimcirq.JSON_RESOLVERS_DICT:
-                        kwargs = {}
-                        for k, v in msg.gate_args.items():
-                            arg = arg_func_langs.arg_from_proto(v)
-                            if arg is not None:
-                                kwargs[k] = arg
-                        op = stimcirq.JSON_RESOLVERS_DICT[msg.name](**kwargs)
-                        if qubits:
-                            op = op(*qubits)
-                        parsed_as_stimcirq = True
-
-                except ModuleNotFoundError:  # pragma: no cover
-                    # fall back to creating internal gates if stimcirq not installed
-                    pass
-            if not parsed_as_stimcirq:
+                # Use JSON resolver to instantiate the object
+                kwargs = {}
+                for k, v in msg.gate_args.items():
+                    arg = arg_func_langs.arg_from_proto(v)
+                    if arg is not None:
+                        kwargs[k] = arg
+                op = _stimcirq_json_resolvers()[msg.name](**kwargs)
+                if qubits:
+                    op = op(*qubits)
+            else:
                 # all other internal gates
                 op = arg_func_langs.internal_gate_from_proto(msg)(*qubits)
         elif which_gate_type == 'couplerpulsegate':
@@ -814,6 +805,18 @@ class CircuitSerializer(serializer.Serializer):
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
             return None
+
+
+@functools.cache
+def _stimcirq_json_resolvers():
+    """Retrieves stimcirq JSON resolvers if stimcirq is installed.
+    Returns an empty dict if not installed."""
+    try:
+        import stimcirq
+
+        return stimcirq.JSON_RESOLVERS_DICT
+    except ModuleNotFoundError:  # pragma: no cover
+        return {}  # pragma: no cover
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer()
