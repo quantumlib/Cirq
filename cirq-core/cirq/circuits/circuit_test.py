@@ -3555,6 +3555,52 @@ def test_insert_operations_random_circuits(circuit):
     assert circuit == other_circuit
 
 
+def test_insert_zero_index():
+    # Should always go to moment[0], independent of qubit order or earliest/inline strategy.
+    q0, q1 = cirq.LineQubit.range(2)
+    c0 = cirq.Circuit(cirq.X(q0))
+    c0.insert(0, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.EARLIEST)
+    c1 = cirq.Circuit(cirq.X(q0))
+    c1.insert(0, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.EARLIEST)
+    c2 = cirq.Circuit(cirq.X(q0))
+    c2.insert(0, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c3 = cirq.Circuit(cirq.X(q0))
+    c3.insert(0, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    expected = cirq.Circuit(cirq.Moment(cirq.Y(q0), cirq.Y(q1)), cirq.Moment(cirq.X(q0)))
+    assert c0 == expected
+    assert c1 == expected
+    assert c2 == expected
+    assert c3 == expected
+
+
+def test_insert_earliest_on_previous_moment():
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.Moment(cirq.X(q)), cirq.Moment(), cirq.Moment(), cirq.Moment(cirq.Z(q)))
+    c.insert(3, cirq.Y(q), strategy=cirq.InsertStrategy.EARLIEST)
+    # Should fall back to moment[1] since EARLIEST
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q)), cirq.Moment(cirq.Y(q)), cirq.Moment(), cirq.Moment(cirq.Z(q))
+    )
+
+
+def test_insert_inline_end_of_circuit():
+    # If end index is specified, INLINE should place all ops there independent of qubit order.
+    q0, q1 = cirq.LineQubit.range(2)
+    c0 = cirq.Circuit(cirq.X(q0))
+    c0.insert(1, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c1 = cirq.Circuit(cirq.X(q0))
+    c1.insert(1, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    c2 = cirq.Circuit(cirq.X(q0))
+    c2.insert(5, cirq.Y.on_each(q0, q1), strategy=cirq.InsertStrategy.INLINE)
+    c3 = cirq.Circuit(cirq.X(q0))
+    c3.insert(5, cirq.Y.on_each(q1, q0), strategy=cirq.InsertStrategy.INLINE)
+    expected = cirq.Circuit(cirq.Moment(cirq.X(q0)), cirq.Moment(cirq.Y(q0), cirq.Y(q1)))
+    assert c0 == expected
+    assert c1 == expected
+    assert c2 == expected
+    assert c3 == expected
+
+
 def test_insert_operations_errors():
     a, b, c = (cirq.NamedQubit(s) for s in 'abc')
     with pytest.raises(ValueError):
