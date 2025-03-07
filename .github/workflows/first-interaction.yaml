@@ -27,9 +27,6 @@ jobs:
       repo: ${{github.server_url}}/${{github.repository}}
       files: ${{github.server_url}}/${{github.repository}}/blob/${{github.ref_name}}
     steps:
-      - name: Check out a copy of the git repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
       - name: Add a welcome comment if appropriate
         uses: actions/first-interaction@2ec0f0fd78838633cd1c1342e4536d49ef72be54 # v1.3.0
         with:
