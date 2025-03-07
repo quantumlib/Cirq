@@ -12,3 +12,6 @@ asv
 
 # For verifying behavior of qasm output.
 qiskit-aer~=0.16.1
+
+# For testing stimcirq compatibility (cirq-google)
+stimcirq
