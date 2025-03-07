@@ -35,48 +35,40 @@ jobs:
             Hello and welcome, ${{github.actor}} 👋!
 
             Thanks for filing your first issue with the ${{github.repository}}
-            project! We are glad you are here and are excited to see your first
-            contribution. Please keep in mind our [community participation
+            project! Here are some quick tips:
+
+            - Please make sure to read our [community participation
             guidelines](${{env.files}}/CODE_OF_CONDUCT.md).
 
-            If this is a bug report, we will probably need the following
-            details in order to diagnose the issue. If you did not include it
-            in the original issue description, please consider providing it
-            now because it will probably save everyone time in the long run:
+            - If this is a bug report, we'll probably need the following
+            details in order to diagnose the issue. If they're not in the
+            original issue description, please consider adding them now:
 
-            - [ ] Environment you are using (MacOS, Windows, Colab, etc.)
-            - [ ] Version of Python you are using
-            - [ ] Steps to reproduce the issue
+               - [ ] Environment you are using (MacOS, Windows, Colab, etc.)
+               - [ ] Version of Python you are using
+               - [ ] Steps to reproduce the issue
 
-            Please allow time for the project community to be able to read the
-            issue and act on it. In the meantime, you may want to look through
-            the [existing open issues](${{env.repo}}/issues) to see if any look
-            similar to yours. If you find a similar or identical issue,
-            consider closing this one; if you don't want to close this one, it
-            would be helpful if you could write a comment here that references
-            the related issue and explains how this new one differs from the
-            other one.
-
-            This is an automatically-generated message.
+            - Please look through [existing issues](${{env.repo}}/issues) for
+            any that look the same as this one. If you find a similar issue,
+            consider closing this one; if you don't want to close this one, can
+            you explain how this new one differs from the other one?
           pr-message: |
             Hello and welcome, ${{github.actor}} 👋!
 
             Thanks for making your first pull request to the
-            ${{github.repository}} project! We are glad you are here and are
-            excited to see your first contribution. Please keep in mind our
-            [community code of conduct](${{env.files}}/CODE_OF_CONDUCT.md).
+            ${{github.repository}} project! Here are some quick tips:
 
-            Since this is your first pull request with this project, the
-            automated check for the Google [Contributor License
-            Agreement](https://cla.developers.google.com/about) (CLA) will
-            trigger and may request that you to sign the CLA. More information
-            about the agreement can be found in the project's [contributing
-            guide](${{env.files}}/CONTRIBUTING.md).
+            - Please make sure to read the [contributing
+            guide](${{env.files}}/CONTRIBUTING.md) and [community participation
+            guidelines](${{env.files}}/CODE_OF_CONDUCT.md).
 
-            If this pull request is to fix a bug, please reference the relevant
-            issue number in the project [issue tracker](${{env.repo}}/issues).
+            - All contributors must sign the [Contributor License
+            Agreement](https://cla.developers.google.com/about) (CLA). If
+            [googlebot](https://github.com/googlebot) leaves a comment on this
+            pull request, make sure you follow the instructions it provides.
+
+            - If this pull request fixes a bug, please reference the relevant
+            issue number in the [issue tracker](${{env.repo}}/issues).
 
             Please allow time for the project community to be able to read and
-            evaluate your pull request.
-
-            This is an automatically-generated message.
+            evaluate your pull request. Thanks again!
