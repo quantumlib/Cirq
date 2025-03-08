@@ -176,6 +176,8 @@ def kron_factor_4x4_to_2x2s(
 
     Args:
         matrix: The 4x4 unitary matrix to factor.
+        rtol: Per-matrix-entry relative tolerance on equality.
+        atol: Per-matrix-entry absolute tolerance on equality.
 
     Returns:
         A scalar factor and a pair of 2x2 unit-determinant matrices. The
