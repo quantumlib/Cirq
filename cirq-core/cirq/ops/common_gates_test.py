@@ -941,9 +941,13 @@ def test_cx_cz_stabilizer(gate):
 
 
 def test_phase_by_xy():
-    assert cirq.phase_by(cirq.X, 0.25, 0) == cirq.Y
-    assert cirq.phase_by(cirq.X**0.5, 0.25, 0) == cirq.Y**0.5
-    assert cirq.phase_by(cirq.X**-0.5, 0.25, 0) == cirq.Y**-0.5
+    assert cirq.phase_by(cirq.X, 0.25, 0) == cirq.PhasedXPowGate(phase_exponent=0.5)
+    assert cirq.phase_by(cirq.X**0.5, 0.25, 0) == cirq.PhasedXPowGate(
+        exponent=0.5, phase_exponent=0.5
+    )
+    assert cirq.phase_by(cirq.X**-0.5, 0.25, 0) == cirq.PhasedXPowGate(
+        exponent=-0.5, phase_exponent=0.5
+    )
 
 
 def test_ixyz_circuit_diagram():

@@ -300,7 +300,8 @@ def test_get_circuit_v1(get_program_async):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
 def test_get_circuit_v2(get_program_async):
     circuit = cirq.Circuit(
-        cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
+        cirq.PhasedXPowGate(phase_exponent=0)(cirq.GridQubit(5, 2)) ** 0.5,
+        cirq.measure(cirq.GridQubit(5, 2), key='result'),
     )
 
     program = cg.EngineProgram('a', 'b', EngineContext())
