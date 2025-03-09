@@ -15,6 +15,7 @@
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
 from typing import Any, Dict, List, Optional
+import functools
 import warnings
 import numpy as np
 import sympy
@@ -37,6 +38,9 @@ from cirq_google.serialization import serializer, op_deserializer, op_serializer
 # "v2.5" refers to the most current v2.Program proto format.
 # CircuitSerializer is the dedicated serializer for the v2.5 format.
 _SERIALIZER_NAME = 'v2_5'
+
+# Package name for stimcirq
+_STIMCIRQ_MODULE = "stimcirq"
 
 
 class CircuitSerializer(serializer.Serializer):
@@ -193,7 +197,6 @@ class CircuitSerializer(serializer.Serializer):
             ValueError: If the operation cannot be serialized.
         """
         gate = op.gate
-
         if isinstance(gate, InternalGate):
             arg_func_langs.internal_gate_arg_to_proto(gate, out=msg.internalgate)
         elif isinstance(gate, cirq.XPowGate):
@@ -260,6 +263,30 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.q1_detune_mhz, out=msg.couplerpulsegate.q1_detune_mhz
             )
+        elif getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) or getattr(
+            gate, "__module__", ""
+        ).startswith(_STIMCIRQ_MODULE):
+            # Special handling for stimcirq objects, which can be both operations and gates.
+            stimcirq_obj = (
+                op if getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) else gate
+            )
+            if stimcirq_obj is not None and hasattr(stimcirq_obj, '_json_dict_'):
+                # All stimcirq gates currently have _json_dict_defined
+                msg.internalgate.name = type(stimcirq_obj).__name__
+                msg.internalgate.module = _STIMCIRQ_MODULE
+                if isinstance(stimcirq_obj, cirq.Gate):
+                    msg.internalgate.num_qubits = stimcirq_obj.num_qubits()
+                else:
+                    msg.internalgate.num_qubits = len(stimcirq_obj.qubits)
+
+                # Store json_dict objects in gate_args
+                for k, v in stimcirq_obj._json_dict_().items():
+                    arg_func_langs.arg_to_proto(value=v, out=msg.internalgate.gate_args[k])
+            else:
+                # New stimcirq op without a json dict has been introduced
+                raise ValueError(
+                    f'Cannot serialize stimcirq {op!r}:{type(gate)}'
+                )  # pragma: no cover
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
@@ -670,7 +697,21 @@ class CircuitSerializer(serializer.Serializer):
                 raise ValueError(f"dimensions {dimensions} for ResetChannel must be an integer!")
             op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
-            op = arg_func_langs.internal_gate_from_proto(operation_proto.internalgate)(*qubits)
+            msg = operation_proto.internalgate
+            if msg.module == _STIMCIRQ_MODULE and msg.name in _stimcirq_json_resolvers():
+                # special handling for stimcirq
+                # Use JSON resolver to instantiate the object
+                kwargs = {}
+                for k, v in msg.gate_args.items():
+                    arg = arg_func_langs.arg_from_proto(v)
+                    if arg is not None:
+                        kwargs[k] = arg
+                op = _stimcirq_json_resolvers()[msg.name](**kwargs)
+                if qubits:
+                    op = op(*qubits)
+            else:
+                # all other internal gates
+                op = arg_func_langs.internal_gate_from_proto(msg)(*qubits)
         elif which_gate_type == 'couplerpulsegate':
             gate = CouplerPulse(
                 hold_time=cirq.Duration(
@@ -764,6 +805,18 @@ class CircuitSerializer(serializer.Serializer):
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
             return None
+
+
+@functools.cache
+def _stimcirq_json_resolvers():
+    """Retrieves stimcirq JSON resolvers if stimcirq is installed.
+    Returns an empty dict if not installed."""
+    try:
+        import stimcirq
+
+        return stimcirq.JSON_RESOLVERS_DICT
+    except ModuleNotFoundError:  # pragma: no cover
+        return {}  # pragma: no cover
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer()
