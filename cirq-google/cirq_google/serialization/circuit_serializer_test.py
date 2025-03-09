@@ -1043,3 +1043,18 @@ def test_reset_gate_with_improper_argument():
 
     with pytest.raises(ValueError, match="must be an integer"):
         serializer.deserialize(circuit_proto)
+
+
+def test_stimcirq_gates():
+    stimcirq = pytest.importorskip("stimcirq")
+    serializer = cg.CircuitSerializer()
+    q = cirq.q(1, 2)
+    q2 = cirq.q(2, 2)
+    c = cirq.Circuit(
+        cirq.Moment(stimcirq.CXSwapGate(inverted=True)(q, q2)),
+        cirq.Moment(cirq.measure(q, key="m")),
+        cirq.Moment(stimcirq.DetAnnotation(parity_keys=["m"])),
+    )
+    msg = serializer.serialize(c)
+    deserialized_circuit = serializer.deserialize(msg)
+    assert deserialized_circuit == c
