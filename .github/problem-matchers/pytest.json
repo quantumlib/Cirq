@@ -1,0 +1,16 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "pytest",
+      "severity": "error",
+      "pattern": [
+        {
+          "regexp": "^(\\S+):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
+      ]
+    }
+  ]
+}
