@@ -36,6 +36,8 @@ Here is a summary of the examples found in this directory:
     by Harrow, Hassidim, and Lloyd.
 *   [`hidden_shift_algorithm.py`](hidden_shift_algorithm.py):
     demonstration of a Hidden Shift algorithm.
+*   [`magic_square.py`](magic_square.py):
+    demonstration of the Mermin-Peres magic square game.
 *   [`noisy_simulation_example.py`](noisy_simulation_example.py): example
     of a noisy circuit using the `cirq.ConstantQubitNoiseModel` class.
 *   [`phase_estimator.py`](phase_estimator.py): example of a phase

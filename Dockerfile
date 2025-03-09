@@ -10,17 +10,19 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteract
 
 # Configure UTF-8 encoding.
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
-ENV LANG en_US.UTF-8  
-ENV LANGUAGE en_US:en  
-ENV LC_ALL en_US.UTF-8 
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 # Make python3 default
 RUN rm -f /usr/bin/python \
      && ln -s /usr/bin/python3 /usr/bin/python
 #cirq stable image
 FROM cirq_base AS cirq_stable
-RUN pip3 install cirq
+# TODO: adjust after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
+RUN pip3 install cirq "qcs-sdk-python<=0.21.12"
 
 ##cirq pre_release image
 FROM cirq_base AS cirq_pre_release
-RUN pip3 install cirq~=1.0.dev
+# TODO: adjust after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
+RUN pip3 install cirq~=1.0.dev "qcs-sdk-python<=0.21.12"
