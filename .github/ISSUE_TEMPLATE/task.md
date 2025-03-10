@@ -7,9 +7,7 @@ assignees: ''
 ---
 ## Summarize the task
 
-
 ## Acceptance criteria – when will the task be considered done?
-
 
 <!-- Optional; feel free to remove the next section if it's not relevant. -->
 ## Related issues

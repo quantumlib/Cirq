@@ -7,10 +7,9 @@ assignees: ''
 ---
 ## Describe the issue
 
-
 ## Explain how to reproduce the bug or problem
 
-```
+```text
 
 Put code in Markdown code blocks *like this*.
 
@@ -21,7 +20,6 @@ Put code in Markdown code blocks *like this*.
 Put long logs in HTML details blocks *like this*.
 
 </details>
-
 
 ## Tell us the version of Cirq where this happens
 
