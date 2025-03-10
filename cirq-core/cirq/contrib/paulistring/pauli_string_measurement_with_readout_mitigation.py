@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tools for measuring expectation values of Pauli strings with readout error mitigation. """
+"""Tools for measuring expectation values of Pauli strings with readout error mitigation."""
 import time
 from typing import List, Union, Dict, Optional, Tuple
 import attrs
@@ -54,9 +54,55 @@ class CircuitToPauliStringsMeasurementResult:
         circuit: The circuit that is measured.
         results: A list of PauliStringMeasurementResult objects.
     """
-    
+
     circuit: circuits.FrozenCircuit
     results: List[PauliStringMeasurementResult]
+
+
+def _validate_input(
+    circuits_to_pauli: Dict[circuits.FrozenCircuit, list[ops.PauliString]],
+    rng_or_seed: Union[np.random.Generator, int],
+    pauli_repetitions: int,
+    readout_repetitions: int,
+    num_random_bitstrings: int,
+):
+    if not circuits_to_pauli:
+        raise ValueError("Input circuits must not be empty.")
+
+    for circuit in circuits_to_pauli.keys():
+        if not isinstance(circuit, circuits.FrozenCircuit):
+            raise TypeError("All keys in 'circuits_to_pauli' must be FrozenCircuit instances.")
+
+    for pauli_strings in circuits_to_pauli.values():
+        for pauli_str in pauli_strings:
+            if not isinstance(pauli_str, ops.PauliString):
+                raise TypeError(
+                    f"All elements in the Pauli string lists must be cirq.PauliString "
+                    f"instances, got {type(pauli_str)}."
+                )
+
+            if all(q == ops.I for q in pauli_str):
+                raise ValueError(
+                    "Empty Pauli strings or Pauli strings consisting"
+                    "only of Pauli I are not allowed. Please provide"
+                    "valid input Pauli strings."
+                )
+
+    # Check rng is a numpy random generator
+    if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
+        raise ValueError("Must provide a numpy random generator or a seed")
+
+    # Check pauli_repetitions is bigger than 0
+    if pauli_repetitions <= 0:
+        raise ValueError("Must provide non-zero pauli_repetitions.")
+
+    # Check num_random_bitstrings is bigger than or equal to 0
+    if num_random_bitstrings < 0:
+        raise ValueError("Must provide zero or more num_random_bitstrings.")
+
+    # Check readout_repetitions is bigger than 0
+    if readout_repetitions <= 0:
+        raise ValueError("Must provide non-zero readout_repetitions for readout calibration.")
 
 
 def _pauli_string_to_basis_change_ops(
@@ -130,7 +176,7 @@ def _build_many_one_qubits_confusion_matrix(
     return cms
 
 
-def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int):
+def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np.ndarray]:
     """Builds a list of empty confusion matrices"""
     cms: list[np.ndarray] = []
     for _ in range(qubits_length):
@@ -200,22 +246,26 @@ def _process_pauli_measurement_results(
         relevant_bits = measurement_results[:, qubit_indices]
 
         # Calculate the mitigated expectation.
-        mitigated_values, d_m = tensored_cm.readout_mitigation_pauli_uncorrelated(
+        raw_mitigated_values, raw_d_m = tensored_cm.readout_mitigation_pauli_uncorrelated(
             qubits_sorted, relevant_bits
         )
+        mitigated_values_with_coefficient = raw_mitigated_values * pauli_string.coefficient
+        d_m_with_coefficient = raw_d_m * abs(pauli_string.coefficient)
 
         # Calculate the unmitigated expectation.
         parity = np.sum(relevant_bits, axis=1) % 2
-        unmitigated_values = 1 - 2 * np.mean(parity)
-        d_unmit = 2 * np.sqrt(np.mean(parity) * (1 - np.mean(parity)) / pauli_repetitions)
+        raw_unmitigated_values = 1 - 2 * np.mean(parity)
+        raw_d_unmit = 2 * np.sqrt(np.mean(parity) * (1 - np.mean(parity)) / pauli_repetitions)
+        unmitigated_value_with_coefficient = raw_unmitigated_values * pauli_string.coefficient
+        d_unmit_with_coefficient = raw_d_unmit * abs(pauli_string.coefficient)
 
         pauli_measurement_results.append(
             PauliStringMeasurementResult(
                 pauli_string=pauli_strings[pauli_index],
-                mitigated_expectation=mitigated_values,
-                mitigated_stddev=d_m,
-                unmitigated_expectation=unmitigated_values,
-                unmitigated_stddev=d_unmit,
+                mitigated_expectation=mitigated_values_with_coefficient,
+                mitigated_stddev=d_m_with_coefficient,
+                unmitigated_expectation=unmitigated_value_with_coefficient,
+                unmitigated_stddev=d_unmit_with_coefficient,
                 calibration_result=(
                     calibration_results[tuple(qubits_sorted)]
                     if disable_readout_mitigation is False
@@ -266,6 +316,14 @@ def measure_pauli_strings(
             - The calibration result for single-qubit readout errors.
     """
 
+    _validate_input(
+        circuits_to_pauli,
+        rng_or_seed,
+        pauli_repetitions,
+        readout_repetitions,
+        num_random_bitstrings,
+    )
+
     # Extract unique qubit tuples from input pauli strings
     unique_qubit_tuples = set()
     for pauli_strings in circuits_to_pauli.values():
@@ -275,7 +333,7 @@ def measure_pauli_strings(
     qubits_list = sorted(unique_qubit_tuples)
 
     # Build the basis-change circuits for each Pauli string
-    pauli_measurement_circuits = list[ops.PauliString]()
+    pauli_measurement_circuits = list[circuits.Circuit]()
     for input_circuit, pauli_strings in circuits_to_pauli.items():
         qid_list = list(sorted(input_circuit.all_qubits()))
         basis_change_circuits = []

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Tools for running circuits in a shuffled order with readout error benchmarking."""
 import time
-from typing import Optional, Union, Dict, Tuple
+from typing import Optional, Union, Dict, Tuple, List
 
 import numpy as np
 
@@ -157,7 +157,7 @@ def run_shuffled_with_readout_benchmarking(
     rng_or_seed: Union[np.random.Generator, int],
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
-    qubits: Optional[Union[list[ops.Qid], list[list[ops.Qid]]]] = None,
+    qubits: Optional[Union[List[ops.Qid], List[List[ops.Qid]]]] = None,
 ) -> tuple[list[ResultDict], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
@@ -186,16 +186,16 @@ def run_shuffled_with_readout_benchmarking(
     )
 
     # If input qubits is None, extract qubits from input circuits
-    qubits_to_measure: list[list[ops.Qid]] = []
+    qubits_to_measure: List[List[ops.Qid]] = []
     if qubits is None:
         qubits_set: set[ops.Qid] = set()
         for circuit in input_circuits:
             qubits_set.update(circuit.all_qubits())
         qubits_to_measure = [sorted(qubits_set)]
     elif isinstance(qubits[0], ops.Qid):
-        qubits_to_measure = [qubits]  # Wrap single list of qubits in another list
+        qubits_to_measure = [qubits]  # type: ignore
     else:
-        qubits_to_measure = qubits
+        qubits_to_measure = qubits  # type: ignore
 
     # Generate the readout calibration circuits if num_random_bitstrings>0
     # Else all_readout_calibration_circuits and all_random_bitstrings are empty
