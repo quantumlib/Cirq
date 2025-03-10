@@ -1,10 +1,10 @@
 syntax = "proto3";
 
+package cirq.google.api.v2;
+
 import "cirq_google/api/v2/program.proto";
 import "cirq_google/api/v2/result.proto";
 import "cirq_google/api/v2/run_context.proto";
-
-package cirq.google.api.v2;
 
 option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "BatchProto";
@@ -18,7 +18,6 @@ option java_multiple_files = true;
 // of the total batch and different hardware constraints may
 // cause the programs to be executed separately on the hardware.
 message BatchProgram {
-
   // The circuits that should be bundled together as one program
   repeated Program programs = 1;
 }
@@ -26,7 +25,6 @@ message BatchProgram {
 // A batch of contexts for running a bundled batch of programs
 // To be used in conjunction with BatchProgram
 message BatchRunContext {
-
   // Run contexts for each program in the BatchProgram
   // Each RunContext should map directly to a Program in the corresponding
   // BatchProgram.
@@ -37,10 +35,8 @@ message BatchRunContext {
   repeated RunContext run_contexts = 1;
 }
 
-
 // The result returned from running a BatchProgram/BatchRunContext
 message BatchResult {
-
   // Results returned from executing a BatchProgram/BatchRunContext pair.
   //
   // After a BatchProgram and BatchRunContext is successfully run in
@@ -55,4 +51,3 @@ message BatchResult {
   // populated for programs that were not able to be run correctly.
   repeated Result results = 1;
 }
-

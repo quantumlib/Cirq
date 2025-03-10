@@ -57,7 +57,8 @@ global___Endianness = Endianness
 @typing.final
 class Complex128Array(google.protobuf.message.Message):
     """
-    Array of interleaved (real, imaginary) pairs, each of which are 64-bit floats.
+    Array of interleaved (real, imaginary) pairs, each of which are 64-bit
+    floats.
     """
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
@@ -85,7 +86,8 @@ global___Complex128Array = Complex128Array
 @typing.final
 class Complex64Array(google.protobuf.message.Message):
     """
-    Array of interleaved (real, imaginary) pairs, each of which are 32-bit floats.
+    Array of interleaved (real, imaginary) pairs, each of which are 32-bit
+    floats.
     """
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
