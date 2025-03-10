@@ -328,7 +328,7 @@ def measure_pauli_strings(
     unique_qubit_tuples = set()
     for pauli_strings in circuits_to_pauli.values():
         for pauli_string in pauli_strings:
-            unique_qubit_tuples.add(tuple(sorted(set(pauli_string.qubits))))
+            unique_qubit_tuples.add(tuple(sorted(pauli_string.qubits)))
     # qubits_list is a list of qubit tuples
     qubits_list = sorted(unique_qubit_tuples)
 
