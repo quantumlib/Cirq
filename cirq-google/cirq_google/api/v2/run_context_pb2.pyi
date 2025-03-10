@@ -369,8 +369,8 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         type_descriptor: builtins.str
         """Type description of the value representation. Eg. if the following value
         bytes field is a JSON string, type_descriptor can be its JSON namespace;
-        or if the following value field is a protobuf serialization, type_descriptor
-        can be its protobuf definition URL.
+        or if the following value field is a protobuf serialization,
+        type_descriptor can be its protobuf definition URL.
         """
         value: builtins.bytes
         """The value in client's encoding."""
@@ -404,8 +404,8 @@ class DeviceParametersDiff(google.protobuf.message.Message):
 
         @property
         def generic_value(self) -> global___DeviceParametersDiff.GenericValue:
-            """this param's new value, and its type is not among the variants supported
-            by ArgValue.
+            """this param's new value, and its type is not among the variants
+            supported by ArgValue.
             """
 
         def __init__(
@@ -430,7 +430,8 @@ class DeviceParametersDiff(google.protobuf.message.Message):
     @property
     def strs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """List of all key, dir, and deletion names in these contents.
-        ResourceGroup.name, Param.name, and Deletion.name are indexes into this list.
+        ResourceGroup.name, Param.name, and Deletion.name are indexes into this
+        list.
         """
 
     def __init__(
@@ -574,7 +575,9 @@ class ConstValue(google.protobuf.message.Message):
     STRING_VALUE_FIELD_NUMBER: builtins.int
     WITH_UNIT_VALUE_FIELD_NUMBER: builtins.int
     is_none: builtins.bool
-    """This value should always be true if set, which represent the python None object."""
+    """This value should always be true if set, which represents the python None
+    object.
+    """
     float_value: builtins.float
     int_value: builtins.int
     string_value: builtins.str
