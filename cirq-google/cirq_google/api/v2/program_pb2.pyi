@@ -1552,9 +1552,10 @@ class InternalGate(google.protobuf.message.Message):
 
     @property
     def custom_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___CustomArg]:
-        """Custom args are arguments that require special processing during deserialization.
-        The `key` is the argument in the internal class's constructor, the `value`
-        is a representation from which an internal object can be constructed.
+        """Custom args are arguments that require special processing during
+        deserialization. The `key` is the argument in the internal class's
+        constructor, the `value` is a representation from which an internal object
+        can be constructed.
         """
 
     def __init__(
