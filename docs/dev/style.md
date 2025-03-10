@@ -1,52 +1,70 @@
 # Style guidelines
 
-As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) we use use [Pylint](https://pylint.pycqa.org/)
-to check for style violations.  Pylint attempts to enforce styles in 
-[PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the 
-[dev_tools/conf/.pylintrc](https://github.com/quantumlib/Cirq/blob/main/dev_tools/conf/.pylintrc) file.
+As mentioned in
+[CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md)
+we use use [Pylint](https://pylint.pycqa.org/) to check for style violations.
+Pylint attempts to enforce styles in
+[PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we
+enforce, see the
+[dev_tools/conf/.pylintrc](https://github.com/quantumlib/Cirq/blob/main/dev_tools/conf/.pylintrc)
+file.
 
 Here we include some extra style guidelines.
 
 ## Import statements
 
-We follow the [import standards](https://www.python.org/dev/peps/pep-0008/#imports) of PEP 8, 
-with the following guidance.  
+We follow the
+[import standards](https://www.python.org/dev/peps/pep-0008/#imports) of PEP 8,
+with the following guidance.
 
-In Cirq's main implementation code (not testing code), we prefer importing the full module. This
-aids in mocking during tests.  Thus we prefer
+In Cirq's main implementation code (not testing code), we prefer importing the
+full module. This aids in mocking during tests. Thus we prefer
+
 ```python
 from cirq import ops
 qubit = ops.NamedQubit('a')
 ```
+
 in contrast to
+
 ```python
 from cirq.ops import NamedQubit
 qubit = NamedQubit('a')
-``` 
+```
+
 or (the one we would prefer, but doing this causes cyclic dependencies)
+
 ```python
 import cirq
 qubit = cirq.NamedQubit('a')
 ```
-The one exception to this is for the typing code, where we prefer the direct import 
+
+The one exception to this is for the typing code, where we prefer the direct
+import
+
 ```python
 from typing import List
 ```
-This exception allows typing hints to be more compact. 
 
-In tests, however, we prefer that we use Cirq as you would use cirq externally. For code
-that is in the Cirq core framework this is
+This exception allows typing hints to be more compact.
+
+In tests, however, we prefer that we use Cirq as you would use cirq externally.
+For code that is in the Cirq core framework this is
+
 ```python
 import cirq
 qubit = cirq.NamedQubit('a')
 ```
-For Cirq code that is outside of the core and does not appear at the `cirq` module level, 
-for example work in `contrib`, one should use the highest level possible for test code
+
+For Cirq code that is outside of the core and does not appear at the `cirq`
+module level, for example work in `contrib`, one should use the highest level
+possible for test code
+
 ```python
 import cirq
 from cirq import contrib
 contrib.circuit_to_latex_using_qcircuit(cirq.Circuit())
-``` 
+```
 
 Of course, if this import style fundamentally cannot be used, do not let this
 block submitting a pull request for the code as we will definitely grant
@@ -63,13 +81,13 @@ help catch coding errors.
 For documentation purposes in particular, type annotations should match the way
 classes and functions are accessed by cirq users, which is typically on the
 top-level `cirq` namespace (for example, users use `cirq.Sampler` even though
-the sampler class is defined in `cirq.work.sampler.Sampler`). Code in `cirq-core`
-typically cannot import and use `cirq.Sampler` directly because this could
-create an import cycle where modules import each other (perhaps indirectly).
-Instead, the import of the top-level `cirq` library can be guarded by the
-`TYPE_CHECKING` constant provided by `typing`, and the type annotation can be
-quoted so that it is not evaluated when the module is imported but rather during
-type-checking:
+the sampler class is defined in `cirq.work.sampler.Sampler`). Code in
+`cirq-core` typically cannot import and use `cirq.Sampler` directly because this
+could create an import cycle where modules import each other (perhaps
+indirectly). Instead, the import of the top-level `cirq` library can be guarded
+by the `TYPE_CHECKING` constant provided by `typing`, and the type annotation
+can be quoted so that it is not evaluated when the module is imported but rather
+during type-checking:
 
 ```python
 from typing import TYPE_CHECKING
@@ -90,8 +108,8 @@ later in the same file.
 
 ## Nomenclature
 
-Using consistent wording across Cirq is important for lowering users
-cognitive load. For rule governing naming, see the 
+Using consistent wording across Cirq is important for lowering users cognitive
+load. For rule governing naming, see the
 [nomenclature guidelines](nomenclature.md).
 
 ## Datetimes
@@ -103,16 +121,17 @@ import datetime
 dt = datetime.datetime.now(tz=datetime.timezone.utc)
 ```
 
-Public components of Protobuf APIs will return "aware" `datetime` objects.
-JSON de-serialization will promote values to "aware" `datetime` objects upon deserialization. 
+Public components of Protobuf APIs will return "aware" `datetime` objects. JSON
+de-serialization will promote values to "aware" `datetime` objects upon
+deserialization.
 
-Comparing (or testing equality) between "naive" and "aware" `datetime` objects throws
-an exception.
-If you are implementing a class that has `datetime` member variables, delegate equality
-and comparison operators to the built-in `datetime` equality and comparison operators.
-If you're writing a function that compares `datetime` objects, you can defensively promote
-them to "aware" objects or use their `.timestamp()` properties for a comparison that will
-never throw an exception.
+Comparing (or testing equality) between "naive" and "aware" `datetime` objects
+throws an exception. If you are implementing a class that has `datetime` member
+variables, delegate equality and comparison operators to the built-in `datetime`
+equality and comparison operators. If you're writing a function that compares
+`datetime` objects, you can defensively promote them to "aware" objects or use
+their `.timestamp()` properties for a comparison that will never throw an
+exception.
 
 Absolutely do not use `datetime.utcnow()` as explained in the warnings in the
 Python [documentation](https://docs.python.org/3/library/datetime.html).

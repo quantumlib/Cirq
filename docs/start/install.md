@@ -2,38 +2,43 @@
 
 Choose your operating system:
 
-- [Installing on Linux](#installing-on-linux)
-- [Installing on MacOS](#installing-on-macos)
-- [Installing on Windows](#installing-on-windows)
+-   [Installing on Linux](#installing-on-linux)
+-   [Installing on MacOS](#installing-on-macos)
+-   [Installing on Windows](#installing-on-windows)
 
-If you want to create a development environment, see the [development page](../dev/development.md).
+If you want to create a development environment, see the
+[development page](../dev/development.md).
 
----
+--------------------------------------------------------------------------------
 
 ## Python version support
 
-Cirq currently supports Python 3.10 and later.
-We follow NumPy's schedule for Python version support defined in [NEP 29](https://numpy.org/neps/nep-0029-deprecation_policy.html),
-though we may deviate from that schedule by extending support for older Python
-versions if they are needed by [Colab](https://colab.research.google.com/)
-or internal Google systems.
+Cirq currently supports Python 3.10 and later. We follow NumPy's schedule for
+Python version support defined in
+[NEP 29](https://numpy.org/neps/nep-0029-deprecation_policy.html), though we may
+deviate from that schedule by extending support for older Python versions if
+they are needed by [Colab](https://colab.research.google.com/) or internal
+Google systems.
 
 ## Installing on Linux
 
-0. Make sure you have Python 3.10.0 or greater.
+1.  Make sure you have Python 3.10.0 or greater.
 
-    See [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/) in The Hitchhiker's Guide to Python.
+    See
+    [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/)
+    in The Hitchhiker's Guide to Python.
 
-1. Consider using a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
+2.  Consider using a
+    [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
 
-2. Use `pip` to install `cirq`:
+3.  Use `pip` to install `cirq`:
 
     ```bash
     python -m pip install --upgrade pip
     python -m pip install cirq
     ```
 
-3. (Optional) install other dependencies.
+4.  (Optional) install other dependencies.
 
     Install dependencies of features in `cirq.contrib`.
 
@@ -47,9 +52,10 @@ or internal Google systems.
     sudo apt-get install texlive-latex-base latexmk
     ```
 
-    - Without `texlive-latex-base` and `latexmk`, pdf writing functionality will not work.
+    -   Without `texlive-latex-base` and `latexmk`, pdf writing functionality
+        will not work.
 
-4. Check that it works!
+5.  Check that it works!
 
     ```bash
     python -c 'import cirq_google; print(cirq_google.Sycamore)'
@@ -84,23 +90,25 @@ or internal Google systems.
     #                                     (9, 4)
     ```
 
-
 ## Installing on MacOS
 
-0. Make sure you have Python 3.10.0 or greater.
+1.  Make sure you have Python 3.10.0 or greater.
 
-    See [Installing Python 3 on MacOS](https://docs.python-guide.org/starting/install3/osx/) .
+    See
+    [Installing Python 3 on MacOS](https://docs.python-guide.org/starting/install3/osx/)
+    .
 
-1. Consider using a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
+2.  Consider using a
+    [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
 
-2. Use `pip` to install `cirq`:
+3.  Use `pip` to install `cirq`:
 
     ```bash
     python -m pip install --upgrade pip
     python -m pip install cirq
     ```
 
-3. (Optional) install dependencies of features in `cirq.contrib`.
+4.  (Optional) install dependencies of features in `cirq.contrib`.
 
     ```bash
     python -m pip install 'cirq-core[contrib]'
@@ -112,9 +120,9 @@ or internal Google systems.
     brew install --cask mactex
     ```
 
-    - Without `mactex`, pdf writing functionality will not work.
+    -   Without `mactex`, pdf writing functionality will not work.
 
-4. Check that it works!
+5.  Check that it works!
 
     ```bash
     python -c 'import cirq_google; print(cirq_google.Sycamore)'
@@ -149,29 +157,33 @@ or internal Google systems.
     #                                     (9, 4)
     ```
 
-
 ## Installing on Windows
 
-0. If you are using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about), use the [Linux install instructions](#installing-on-linux) instead of these instructions.
+1.  If you are using the
+    [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about),
+    use the [Linux install instructions](#installing-on-linux) instead of these
+    instructions.
 
-1. Make sure you have Python 3.10.0 or greater.
+2.  Make sure you have Python 3.10.0 or greater.
 
-    See [Installing Python 3 on Windows](https://docs.python-guide.org/starting/install3/win/) in The Hitchhiker's Guide to Python.
+    See
+    [Installing Python 3 on Windows](https://docs.python-guide.org/starting/install3/win/)
+    in The Hitchhiker's Guide to Python.
 
-2. Use `pip` to install `cirq`:
+3.  Use `pip` to install `cirq`:
 
     ```bash
     python -m pip install --upgrade pip
     python -m pip install cirq
     ```
 
-3. (Optional) install dependencies of features in `cirq.contrib`.
+4.  (Optional) install dependencies of features in `cirq.contrib`.
 
     ```bash
     python -m pip install 'cirq-core[contrib]'
     ```
 
-4. Check that it works!
+5.  Check that it works!
 
     ```bash
     python -c "import cirq_google; print(cirq_google.Sycamore)"
@@ -205,4 +217,3 @@ or internal Google systems.
     #                                     │
     #                                     (9, 4)
     ```
-
