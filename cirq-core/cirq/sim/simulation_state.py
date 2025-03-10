@@ -27,6 +27,7 @@ from typing import (
     TypeVar,
     TYPE_CHECKING,
     Tuple,
+    Union,
 )
 from typing_extensions import Self
 
@@ -49,7 +50,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         self,
         *,
         state: TState,
-        prng: Optional[np.random.RandomState] = None,
+        prng: Optional[Union[np.random.Generator, np.random.RandomState]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
@@ -70,12 +71,14 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         classical_data = classical_data or value.ClassicalDataDictionaryStore()
         super().__init__(qubits=qubits, classical_data=classical_data)
         if prng is None:
-            prng = cast(np.random.RandomState, np.random)
+            prng = np.random.default_rng()
+        elif isinstance(prng, np.random.RandomState):
+            prng = np.random.default_rng(prng._bit_generator)
         self._prng = prng
         self._state = state
 
     @property
-    def prng(self) -> np.random.RandomState:
+    def prng(self) -> np.random.Generator:
         return self._prng
 
     def measure(

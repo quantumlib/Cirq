@@ -13,7 +13,7 @@
 # limitations under the License.
 """A testing class with utilities for checking linear algebra."""
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -39,8 +39,8 @@ def random_superposition(
     """
     random_state = value.parse_random_state(random_state)
 
-    state_vector = random_state.randn(dim).astype(complex)
-    state_vector += 1j * random_state.randn(dim)
+    state_vector = random_state.random(dim).astype(complex)
+    state_vector += 1j * random_state.random(dim)
     state_vector /= np.linalg.norm(state_vector)
     return state_vector
 
@@ -63,7 +63,7 @@ def random_density_matrix(
     """
     random_state = value.parse_random_state(random_state)
 
-    mat = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    mat = random_state.random((dim, dim)) + 1j * random_state.random((dim, dim))
     mat = mat @ mat.T.conj()
     return mat / np.trace(mat)
 
@@ -86,7 +86,7 @@ def random_unitary(
     """
     random_state = value.parse_random_state(random_state)
 
-    z = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    z = random_state.random((dim, dim)) + 1j * random_state.random((dim, dim))
     q, r = np.linalg.qr(z)
     d = np.diag(r)
     return q * (d / abs(d))
@@ -112,14 +112,14 @@ def random_orthogonal(
     """
     random_state = value.parse_random_state(random_state)
 
-    m = random_state.randn(dim, dim)
+    m = random_state.random((dim, dim))
     q, r = np.linalg.qr(m)
     d = np.diag(r)
     return q * (d / abs(d))
 
 
 def random_special_unitary(
-    dim: int, *, random_state: Optional[np.random.RandomState] = None
+    dim: int, *, random_state: Optional[Union[np.random.Generator, np.random.RandomState]] = None
 ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 
