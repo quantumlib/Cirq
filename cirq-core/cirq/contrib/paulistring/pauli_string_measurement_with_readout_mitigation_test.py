@@ -439,7 +439,7 @@ def test_invalid_input_pauli_string_type() -> None:
     with pytest.raises(
         TypeError,
         match="All elements in the Pauli string lists must be cirq.PauliString "
-        "instances, got <class 'cirq.circuits.frozen_circuit.FrozenCircuit'>.",
+        "instances, got <class 'cirq.circuits.moment.Moment'>.",
     ):
         measure_pauli_strings(
             circuits_to_pauli,  # type: ignore[arg-type]
