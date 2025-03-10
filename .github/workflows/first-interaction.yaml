@@ -31,7 +31,7 @@ jobs:
         uses: actions/first-interaction@2ec0f0fd78838633cd1c1342e4536d49ef72be54 # v1.3.0
         with:
           repo-token: ${{secrets.GITHUB_TOKEN}}
-          issue-message: |
+          issue-message: >
             Hello and welcome, ${{github.actor}} 👋!
 
             Thanks for filing your first issue with the ${{github.repository}}
@@ -52,7 +52,7 @@ jobs:
             any that look the same as this one. If you find a similar issue,
             consider closing this one; if you don't want to close this one, can
             you explain how this new one differs from the other one?
-          pr-message: |
+          pr-message: >
             Hello and welcome, ${{github.actor}} 👋!
 
             Thanks for making your first pull request to the
