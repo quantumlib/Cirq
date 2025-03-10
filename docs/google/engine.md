@@ -1,10 +1,10 @@
 # Quantum Engine API
 
 Google's Quantum Computing Service provides the Quantum Engine API to execute
-circuits on Google's quantum processor or simulator backends and
-to access or manage the jobs, programs, reservations and calibrations. Cirq is
-the only supported client for this API, using the `cirq_google.Engine` class.
-For other use cases (e.g., from a different language), contact
+circuits on Google's quantum processor or simulator backends and to access or
+manage the jobs, programs, reservations and calibrations. Cirq is the only
+supported client for this API, using the `cirq_google.Engine` class. For other
+use cases (e.g., from a different language), contact
 [cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com)
 with a short proposal or submit an [RFC](../dev/rfc_process.md).
 
@@ -13,8 +13,8 @@ Note: the Quantum Engine API is not yet open for public access.
 ## Authenticating to Google Cloud
 
 Before you begin, you will need to create a Google Cloud project with the API
-enabled and billing enabled.  You will then need to create credentials in order to
-access the API.
+enabled and billing enabled. You will then need to create credentials in order
+to access the API.
 
 You can create application default credentials from the command line using the
 gcloud client:
@@ -23,7 +23,7 @@ gcloud client:
 
 From a colab, you can execute:
 
-```
+```python
 from google.colab import auth
 auth.authenticate_user(clear_output=False)
 ```
@@ -36,30 +36,35 @@ More information on creating application default credentials can be found on the
 The `Engine` class is the entry point to communicate with the API.
 
 It can be initialized using your project id (found within your
-[Google Cloud Platform Console](https://console.cloud.google.com)).
-You can use this instance to run quantum circuits or sweeps (parameterized
-variants of a general circuit).
+[Google Cloud Platform Console](https://console.cloud.google.com)). You can use
+this instance to run quantum circuits or sweeps (parameterized variants of a
+general circuit).
 
 <!---test_substitution
 results = job.results.*
 results = None
 --->
+
 <!---test_substitution
 print.results.idx.*
 print()
 --->
+
 <!---test_substitution
 engine = cirq_google.Engine(.*)
 engine = MockEngine()
 --->
+
 <!---test_substitution
 cg.Engine(.*)
 cirq.Simulator()
 --->
+
 <!---test_substitution
 sampler = .*
 sampler = engine
 --->
+
 ```python
 import cirq
 import cirq_google as cg
@@ -93,64 +98,62 @@ print(results.data)
 ## Device Specification
 
 Several public devices have been released and can be found in the `cirq_google`
-package.  These are documented further on the [Google Device](devices.md) page.
+package. These are documented further on the [Google Device](devices.md) page.
 
-However, you can also retrieve the device using the `get_device_specification` of an
-`Engine` object.  This is a [protocol buffer](https://developers.google.com/protocol-buffers)
-message that contains information about the qubits on the device, the
-connectivity, and the supported gates.
+However, you can also retrieve the device using the `get_device_specification`
+of an `Engine` object. This is a
+[protocol buffer](https://developers.google.com/protocol-buffers) message that
+contains information about the qubits on the device, the connectivity, and the
+supported gates.
 
-This proto can be queried directly to get information about the device or can be transformed
-into a `cirq.Device` by using `cirq_google.GridDevice.from_proto()` that will
-enforce constraints imposed by the hardware.
+This proto can be queried directly to get information about the device or can be
+transformed into a `cirq.Device` by using `cirq_google.GridDevice.from_proto()`
+that will enforce constraints imposed by the hardware.
 
 See the [Device Specification](specification.md) page for more information on
 device specifications.
 
-
 ## Calibration Metrics
 
-Metrics from the current status of the device can be retrieved using the\
+Metrics from the current status of the device can be retrieved using the \
 `get_current_calibration` method of an `EngineProcessor` object.
 `EngineProcessor` objects can be retrieved from `Engine` using `get_processor`.
-This will return a Python dictionary where each key is the metric name.  The
-value of the dictionary will be the value of the metric, which can also be
-a dictionary.
+This will return a Python dictionary where each key is the metric name. The
+value of the dictionary will be the value of the metric, which can also be a
+dictionary.
 
-For example, the key may refer to a two-qubit gate error, and the value may
-be a dictionary from 2-tuples of `cirq.GridQubits` to an error rate represented
-as a float value.
+For example, the key may refer to a two-qubit gate error, and the value may be a
+dictionary from 2-tuples of `cirq.GridQubits` to an error rate represented as a
+float value.
 
 See the [Calibration Metrics](calibration.md) page for more information.
 
 ## Running circuits in batch
 
-Circuits can be batched together.  This may improve performance in certain
-instances (when circuits measure the same qubits and have the same number
-of repetitions).  However, performance is implementation dependant and may
-change as the underlying server infrastructure evolves.
+Circuits can be batched together. This may improve performance in certain
+instances (when circuits measure the same qubits and have the same number of
+repetitions). However, performance is implementation dependant and may change as
+the underlying server infrastructure evolves.
 
 To use this functionality, use the `run_batch()` method of the sampler
-associated with the processor.  This will return a Sequence of Sequences
-of `cirq.Result` objects.
+associated with the processor. This will return a Sequence of Sequences of
+`cirq.Result` objects.
 
 ## Downloading historical results
 
-Results from  previous computations are archived and can be downloaded later
-by those in the same cloud project.  You must use the same project id to
-access historical results or your request will be denied.
+Results from previous computations are archived and can be downloaded later by
+those in the same cloud project. You must use the same project id to access
+historical results or your request will be denied.
 
-Each time that you run a circuit or sweep, the `Engine` class will generate
-a program id and job id for you.  (You can also specify the program and job id
-yourself when running the program).  Both the program and job id will need to be
-unique within the project.  In order to retrieve previous results,
-you will need both this program id as well as the job id.
-If these were generated by the `Engine`, they can be retrieved from the
-job object when you run a sweep.
-Currently, getting the program and job ids can only be done through the
-`Engine` interface and not through the sampler interface.
-You can then use `get_program` and `get_job` to retrieve the results.
-See below for an example:
+Each time that you run a circuit or sweep, the `Engine` class will generate a
+program id and job id for you. (You can also specify the program and job id
+yourself when running the program). Both the program and job id will need to be
+unique within the project. In order to retrieve previous results, you will need
+both this program id as well as the job id. If these were generated by the
+`Engine`, they can be retrieved from the job object when you run a sweep.
+Currently, getting the program and job ids can only be done through the `Engine`
+interface and not through the sampler interface. You can then use `get_program`
+and `get_job` to retrieve the results. See below for an example:
 
 ```python
 # Initialize the engine object
@@ -190,15 +193,15 @@ historical_results = historical_job.results()
 
 ```
 
-If you did not save the ids, you can still find them from your
-job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs) or
-by using our list methods.
-
+If you did not save the ids, you can still find them from your job using the
+[Cloud Console](https://console.cloud.google.com/quantum/jobs) or by using our
+list methods.
 
 ### Listing jobs
 
-To list the executions of your circuit, i.e., the jobs, you can use `cirq_google.Engine.list_jobs()`.
-You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.
+To list the executions of your circuit, i.e., the jobs, you can use
+`cirq_google.Engine.list_jobs()`. You can search in all the jobs within your
+project using filtering criteria on creation time, execution state and labels.
 
 ```python
 from cirq_google.engine.client.quantum import enums
@@ -215,9 +218,11 @@ for j in jobs:
 
 ### Listing programs
 
-To list the different instances of your circuits uploaded, i.e., the programs, you can use `cirq_google.Engine.list_programs()`.
-Similar to jobs, filtering makes it possible to list programs by creation time and labels.
-With an existing `cirq_google.EngineProgram` object, you can list any jobs that were run using that program.
+To list the different instances of your circuits uploaded, i.e., the programs,
+you can use `cirq_google.Engine.list_programs()`. Similar to jobs, filtering
+makes it possible to list programs by creation time and labels. With an existing
+`cirq_google.EngineProgram` object, you can list any jobs that were run using
+that program.
 
 ```python
 from cirq_google.engine.client.quantum import enums
@@ -239,4 +244,3 @@ for p in programs:
    for j in p.list_jobs(execution_states=[enums.ExecutionStatus.State.FAILURE]):
      print(j.job_id, j.status())
 ```
-
