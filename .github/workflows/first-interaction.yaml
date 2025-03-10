@@ -17,6 +17,7 @@ permissions: read-all
 
 jobs:
   welcome:
+    if: github.actor != 'dependabot[bot]'
     name: Check for first interaction
     runs-on: ubuntu-24.04
     timeout-minutes: 10
