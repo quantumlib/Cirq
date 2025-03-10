@@ -255,7 +255,8 @@ message Linspace {
 message ConstValue {
   // The values.
   oneof value {
-    // This value should always be true if set, which represent the python None object.
+    // This value should always be true if set, which represents the python None
+    // object.
     bool is_none = 1;
     float float_value = 2;
     int64 int_value = 3;
