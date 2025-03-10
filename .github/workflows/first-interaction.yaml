@@ -28,7 +28,7 @@ jobs:
       files: ${{github.server_url}}/${{github.repository}}/blob/${{github.ref_name}}
     steps:
       - name: Add a welcome comment if appropriate
-        uses: actions/first-interaction@2ec0f0fd78838633cd1c1342e4536d49ef72be54 # v1.3.0
+        uses: actions/first-interaction@d94ed8e502bc16de558688b9dd9a26261ae78a66 # v1.3.0
         with:
           repo-token: ${{secrets.GITHUB_TOKEN}}
           issue-message: |
