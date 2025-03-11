@@ -1485,7 +1485,7 @@ def _test_parse_exception(qasm: str, cirq_err: str, qiskit_err: str | None):
     parser = QasmParser()
     with pytest.raises(QasmException, match=re.escape(cirq_err)):
         parser.parse(qasm)
-    qiskit = pytest.importorskip("qiskit")
+    pytest.importorskip("qiskit")
     import qiskit.qasm2
 
     if qiskit_err is None:
