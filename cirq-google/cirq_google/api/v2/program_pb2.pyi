@@ -80,6 +80,7 @@ class Constant(google.protobuf.message.Message):
     QUBIT_FIELD_NUMBER: builtins.int
     MOMENT_VALUE_FIELD_NUMBER: builtins.int
     OPERATION_VALUE_FIELD_NUMBER: builtins.int
+    TAG_VALUE_FIELD_NUMBER: builtins.int
     string_value: builtins.str
     """String value used throughout the circuit, such as for token values"""
     @property
@@ -98,6 +99,10 @@ class Constant(google.protobuf.message.Message):
     def operation_value(self) -> global___Operation:
         """Operations used multiple times in a circuit"""
 
+    @property
+    def tag_value(self) -> global___Tag:
+        """Tags used multiple times in a circuit"""
+
     def __init__(
         self,
         *,
@@ -106,10 +111,11 @@ class Constant(google.protobuf.message.Message):
         qubit: global___Qubit | None = ...,
         moment_value: global___Moment | None = ...,
         operation_value: global___Operation | None = ...,
+        tag_value: global___Tag | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "operation_value", b"operation_value", "qubit", b"qubit", "string_value", b"string_value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "operation_value", b"operation_value", "qubit", b"qubit", "string_value", b"string_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["const_value", b"const_value"]) -> typing.Literal["string_value", "circuit_value", "qubit", "moment_value", "operation_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "operation_value", b"operation_value", "qubit", b"qubit", "string_value", b"string_value", "tag_value", b"tag_value"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["circuit_value", b"circuit_value", "const_value", b"const_value", "moment_value", b"moment_value", "operation_value", b"operation_value", "qubit", b"qubit", "string_value", b"string_value", "tag_value", b"tag_value"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["const_value", b"const_value"]) -> typing.Literal["string_value", "circuit_value", "qubit", "moment_value", "operation_value", "tag_value"] | None: ...
 
 global___Constant = Constant
 
@@ -602,12 +608,14 @@ class Operation(google.protobuf.message.Message):
     IDENTITYGATE_FIELD_NUMBER: builtins.int
     HPOWGATE_FIELD_NUMBER: builtins.int
     SINGLEQUBITCLIFFORDGATE_FIELD_NUMBER: builtins.int
+    RESETGATE_FIELD_NUMBER: builtins.int
     ARGS_FIELD_NUMBER: builtins.int
     QUBITS_FIELD_NUMBER: builtins.int
     QUBIT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     TOKEN_VALUE_FIELD_NUMBER: builtins.int
     TOKEN_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     TAGS_FIELD_NUMBER: builtins.int
+    TAG_INDICES_FIELD_NUMBER: builtins.int
     token_value: builtins.str
     token_constant_index: builtins.int
     @property
@@ -647,6 +655,8 @@ class Operation(google.protobuf.message.Message):
     @property
     def singlequbitcliffordgate(self) -> global___SingleQubitCliffordGate: ...
     @property
+    def resetgate(self) -> global___ResetGate: ...
+    @property
     def args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
         """Map from the argument name to the Argument needed to fully specify
         the gate. Only populated pre-v2.5+.
@@ -665,7 +675,13 @@ class Operation(google.protobuf.message.Message):
     @property
     def qubit_constant_index(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
     @property
-    def tags(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Tag]: ...
+    def tags(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Tag]:
+        """To be deprecated"""
+
+    @property
+    def tag_indices(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]:
+        """Indices in the constant table for tags associated with the operation"""
+
     def __init__(
         self,
         *,
@@ -685,17 +701,19 @@ class Operation(google.protobuf.message.Message):
         identitygate: global___IdentityGate | None = ...,
         hpowgate: global___HPowGate | None = ...,
         singlequbitcliffordgate: global___SingleQubitCliffordGate | None = ...,
+        resetgate: global___ResetGate | None = ...,
         args: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
         qubits: collections.abc.Iterable[global___Qubit] | None = ...,
         qubit_constant_index: collections.abc.Iterable[builtins.int] | None = ...,
         token_value: builtins.str = ...,
         token_constant_index: builtins.int = ...,
         tags: collections.abc.Iterable[global___Tag] | None = ...,
+        tag_indices: collections.abc.Iterable[builtins.int] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["args", b"args", "couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "singlequbitcliffordgate", b"singlequbitcliffordgate", "tags", b"tags", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["args", b"args", "couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "tag_indices", b"tag_indices", "tags", b"tags", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["gate_value", b"gate_value"]) -> typing.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "couplerpulsegate", "identitygate", "hpowgate", "singlequbitcliffordgate"] | None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["gate_value", b"gate_value"]) -> typing.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "couplerpulsegate", "identitygate", "hpowgate", "singlequbitcliffordgate", "resetgate"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["token", b"token"]) -> typing.Literal["token_value", "token_constant_index"] | None: ...
 
@@ -720,21 +738,237 @@ global___DynamicalDecouplingTag = DynamicalDecouplingTag
 
 @typing.final
 class Tag(google.protobuf.message.Message):
+    """Messages for tags that can modify operations
+    These are often directives to hardware specifying
+    how the operation should be executed.
+    """
+
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     DYNAMICAL_DECOUPLING_FIELD_NUMBER: builtins.int
+    NO_SYNC_FIELD_NUMBER: builtins.int
+    PHASE_MATCH_FIELD_NUMBER: builtins.int
+    PHYSICAL_Z_FIELD_NUMBER: builtins.int
+    CLASSICAL_STATE_FIELD_NUMBER: builtins.int
+    FSIM_VIA_MODEL_FIELD_NUMBER: builtins.int
+    INTERNAL_TAG_FIELD_NUMBER: builtins.int
     @property
-    def dynamical_decoupling(self) -> global___DynamicalDecouplingTag: ...
+    def dynamical_decoupling(self) -> global___DynamicalDecouplingTag:
+        """Tag to denote a composite dynamical decoupling operation.
+        Should generally be applied to cirq.I gates.
+        """
+
+    @property
+    def no_sync(self) -> global___NoSyncTag:
+        """Directs the hardware to ignore moment-based
+        synchronization and to instead schedule
+        operations as soon as possible for these qubits.
+        """
+
+    @property
+    def phase_match(self) -> global___PhaseMatchTag:
+        """Operation should do phase matching to match phase
+        required for subsequent operations
+        """
+
+    @property
+    def physical_z(self) -> global___PhysicalZTag:
+        """Only applicable to Z gates and other gates
+        that have Z gates as part of their internal operation
+        This indicates that the Z gates could be executed on
+        hardware rather than be computed virtually as part
+        of phase matching.
+        """
+
+    @property
+    def classical_state(self) -> global___ClassicalStateTag:
+        """Indicates that the operations are classical states"""
+
+    @property
+    def fsim_via_model(self) -> global___FSimViaModelTag:
+        """Field id 6 Reserved for OverlayTag, will add in a subsequent PR.
+
+        Uses parameter model to interpolate FSim gate.
+        """
+
+    @property
+    def internal_tag(self) -> global___InternalTag:
+        """Catch-all for all gates that do not fit into the
+        above tags.
+        """
+
     def __init__(
         self,
         *,
         dynamical_decoupling: global___DynamicalDecouplingTag | None = ...,
+        no_sync: global___NoSyncTag | None = ...,
+        phase_match: global___PhaseMatchTag | None = ...,
+        physical_z: global___PhysicalZTag | None = ...,
+        classical_state: global___ClassicalStateTag | None = ...,
+        fsim_via_model: global___FSimViaModelTag | None = ...,
+        internal_tag: global___InternalTag | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["dynamical_decoupling", b"dynamical_decoupling", "tag", b"tag"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["dynamical_decoupling", b"dynamical_decoupling", "tag", b"tag"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling"] | None: ...
+    def HasField(self, field_name: typing.Literal["classical_state", b"classical_state", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["classical_state", b"classical_state", "dynamical_decoupling", b"dynamical_decoupling", "fsim_via_model", b"fsim_via_model", "internal_tag", b"internal_tag", "no_sync", b"no_sync", "phase_match", b"phase_match", "physical_z", b"physical_z", "tag", b"tag"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["tag", b"tag"]) -> typing.Literal["dynamical_decoupling", "no_sync", "phase_match", "physical_z", "classical_state", "fsim_via_model", "internal_tag"] | None: ...
 
 global___Tag = Tag
+
+@typing.final
+class PhaseMatchTag(google.protobuf.message.Message):
+    """Tag for operations that should do phase matching to match phase
+    required for subsequent operations
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    def __init__(
+        self,
+    ) -> None: ...
+
+global___PhaseMatchTag = PhaseMatchTag
+
+@typing.final
+class PhysicalZTag(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    def __init__(
+        self,
+    ) -> None: ...
+
+global___PhysicalZTag = PhysicalZTag
+
+@typing.final
+class ClassicalStateTag(google.protobuf.message.Message):
+    """Tag to indicate that a state prep circuit produces a classical state.
+    This serves as a hint to the compiler that we can ignore virtual Z phases
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    def __init__(
+        self,
+    ) -> None: ...
+
+global___ClassicalStateTag = ClassicalStateTag
+
+@typing.final
+class FSimViaModelTag(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    def __init__(
+        self,
+    ) -> None: ...
+
+global___FSimViaModelTag = FSimViaModelTag
+
+@typing.final
+class NoSyncTag(google.protobuf.message.Message):
+    """Tag to remove moment-based synchronization
+    The reverse and forward arguments control the
+    number of moments to reverse synchronization.
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    REVERSE_FIELD_NUMBER: builtins.int
+    REMOVE_ALL_SYNCS_BEFORE_FIELD_NUMBER: builtins.int
+    FORWARD_FIELD_NUMBER: builtins.int
+    REMOVE_ALL_SYNCS_AFTER_FIELD_NUMBER: builtins.int
+    reverse: builtins.int
+    """Number of synchronizations before the operation to remove"""
+    remove_all_syncs_before: builtins.bool
+    """Remove all possible synchronizations"""
+    forward: builtins.int
+    """Number of synchronizations after the operation to remove"""
+    remove_all_syncs_after: builtins.bool
+    """Remove all possible synchronizations"""
+    def __init__(
+        self,
+        *,
+        reverse: builtins.int = ...,
+        remove_all_syncs_before: builtins.bool = ...,
+        forward: builtins.int = ...,
+        remove_all_syncs_after: builtins.bool = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["forward", b"forward", "fwd", b"fwd", "remove_all_syncs_after", b"remove_all_syncs_after", "remove_all_syncs_before", b"remove_all_syncs_before", "rev", b"rev", "reverse", b"reverse"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["forward", b"forward", "fwd", b"fwd", "remove_all_syncs_after", b"remove_all_syncs_after", "remove_all_syncs_before", b"remove_all_syncs_before", "rev", b"rev", "reverse", b"reverse"]) -> None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing.Literal["fwd", b"fwd"]) -> typing.Literal["forward", "remove_all_syncs_after"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing.Literal["rev", b"rev"]) -> typing.Literal["reverse", "remove_all_syncs_before"] | None: ...
+
+global___NoSyncTag = NoSyncTag
+
+@typing.final
+class InternalTag(google.protobuf.message.Message):
+    """Tag to represent any internal tags or tags not yet
+    implemented in the proto.
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing.final
+    class TagArgsEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        @property
+        def value(self) -> global___Arg: ...
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: global___Arg | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+
+    @typing.final
+    class CustomArgsEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        @property
+        def value(self) -> global___CustomArg: ...
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: global___CustomArg | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+
+    TAG_NAME_FIELD_NUMBER: builtins.int
+    TAG_PACKAGE_FIELD_NUMBER: builtins.int
+    TAG_ARGS_FIELD_NUMBER: builtins.int
+    CUSTOM_ARGS_FIELD_NUMBER: builtins.int
+    tag_name: builtins.str
+    """Name of the tag"""
+    tag_package: builtins.str
+    """Python package of the Tag"""
+    @property
+    def tag_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
+        """Instantiation arguments of the Tag"""
+
+    @property
+    def custom_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___CustomArg]: ...
+    def __init__(
+        self,
+        *,
+        tag_name: builtins.str = ...,
+        tag_package: builtins.str = ...,
+        tag_args: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
+        custom_args: collections.abc.Mapping[builtins.str, global___CustomArg] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["custom_args", b"custom_args", "tag_args", b"tag_args", "tag_name", b"tag_name", "tag_package", b"tag_package"]) -> None: ...
+
+global___InternalTag = InternalTag
 
 @typing.final
 class Gate(google.protobuf.message.Message):
@@ -1318,9 +1552,10 @@ class InternalGate(google.protobuf.message.Message):
 
     @property
     def custom_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___CustomArg]:
-        """Custom args are arguments that require special processing during deserialization.
-        The `key` is the argument in the internal class's constructor, the `value`
-        is a representation from which an internal object can be constructed.
+        """Custom args are arguments that require special processing during
+        deserialization. The `key` is the argument in the internal class's
+        constructor, the `value` is a representation from which an internal object
+        can be constructed.
         """
 
     def __init__(
@@ -1483,3 +1718,47 @@ class HPowGate(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["exponent", b"exponent"]) -> None: ...
 
 global___HPowGate = HPowGate
+
+@typing.final
+class ResetGate(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing.final
+    class ArgumentsEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        @property
+        def value(self) -> global___Arg: ...
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: global___Arg | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing.Literal["key", b"key", "value", b"value"]) -> None: ...
+
+    RESET_TYPE_FIELD_NUMBER: builtins.int
+    ARGUMENTS_FIELD_NUMBER: builtins.int
+    reset_type: builtins.str
+    """Type of reset to be executed (hardware dependent)
+    Internal users should use the name of the class.
+    (Note that this is not used for public-facing circuits,
+     which will default to cirq.ResetChannel)
+    """
+    @property
+    def arguments(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
+        """Additional arguments that can be sent to the reset implementation."""
+
+    def __init__(
+        self,
+        *,
+        reset_type: builtins.str = ...,
+        arguments: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["arguments", b"arguments", "reset_type", b"reset_type"]) -> None: ...
+
+global___ResetGate = ResetGate

@@ -13,7 +13,7 @@
 # limitations under the License.
 import math
 import numbers
-from typing import cast, Dict, FrozenSet, Iterable, Iterator, List, Optional, Sequence, Union
+from typing import cast, Iterable, Iterator, List, Optional, Sequence, Union
 
 import numpy as np
 import sympy
@@ -21,15 +21,6 @@ from cirq_google.api import v2
 from cirq_google.ops import InternalGate
 from cirq.qis import CliffordTableau
 import tunits
-
-SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
-    '': frozenset(),
-    'linear': frozenset({'add', 'mul'}),
-    'exp': frozenset({'add', 'mul', 'pow'}),
-    # None means any. Is used when inferring the language during serialization.
-    None: frozenset({'add', 'mul', 'pow'}),
-}
-MOST_PERMISSIVE_LANGUAGE = 'exp'
 
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
@@ -94,10 +85,7 @@ def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg) -> Iterator[str]
 
 
 def float_arg_to_proto(
-    value: ARG_LIKE,
-    *,
-    arg_function_language: Optional[str] = None,
-    out: Optional[v2.program_pb2.FloatArg] = None,
+    value: ARG_LIKE, *, out: Optional[v2.program_pb2.FloatArg] = None
 ) -> v2.program_pb2.FloatArg:
     """Writes an argument value into an FloatArg proto.
 
@@ -108,9 +96,6 @@ def float_arg_to_proto(
     Args:
         value: The value to encode.  This must be a float or compatible
             sympy expression. Strings and repeated booleans are not allowed.
-        arg_function_language: The language to use when encoding functions. If
-            this is set to None, it will be set to the minimal language
-            necessary to support the features that were actually used.
         out: The proto to write the result into. Defaults to a new instance.
 
     Returns:
@@ -121,29 +106,22 @@ def float_arg_to_proto(
     if isinstance(value, FLOAT_TYPES):
         msg.float_value = float(value)
     else:
-        _arg_func_to_proto(value, arg_function_language, msg)
+        _arg_func_to_proto(value, msg)
 
     return msg
 
 
 def arg_to_proto(
-    value: ARG_LIKE,
-    *,
-    arg_function_language: Optional[str] = None,
-    out: Optional[v2.program_pb2.Arg] = None,
+    value: ARG_LIKE, *, out: Optional[v2.program_pb2.Arg] = None
 ) -> v2.program_pb2.Arg:
     """Writes an argument value into an Arg proto.
 
     Args:
         value: The value to encode.
-        arg_function_language: The language to use when encoding functions. If
-            this is set to None, it will be set to the minimal language
-            necessary to support the features that were actually used.
         out: The proto to write the result into. Defaults to a new instance.
 
     Returns:
-        The proto that was written into as well as the `arg_function_language`
-        that was used.
+        The proto that was written into.
 
     Raises:
         ValueError: if the object holds unsupported values.
@@ -188,42 +166,28 @@ def arg_to_proto(
     elif isinstance(value, tunits.Value):
         msg.arg_value.value_with_unit.MergeFrom(value.to_proto())
     else:
-        _arg_func_to_proto(value, arg_function_language, msg)
+        _arg_func_to_proto(value, msg)
 
     return msg
 
 
 def _arg_func_to_proto(
-    value: ARG_LIKE,
-    arg_function_language: Optional[str],
-    msg: Union[v2.program_pb2.Arg, v2.program_pb2.FloatArg],
+    value: ARG_LIKE, msg: Union[v2.program_pb2.Arg, v2.program_pb2.FloatArg]
 ) -> None:
-    def check_support(func_type: str) -> str:
-        if func_type not in supported:
-            lang = repr(arg_function_language) if arg_function_language is not None else '[any]'
-            raise ValueError(
-                f'Function type {func_type!r} not supported by arg_function_language {lang}'
-            )
-        return func_type
-
-    if arg_function_language not in SUPPORTED_FUNCTIONS_FOR_LANGUAGE:
-        raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')
-    supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE[arg_function_language]
-
     if isinstance(value, sympy.Symbol):
         msg.symbol = str(value.free_symbols.pop())
     elif isinstance(value, sympy.Add):
-        msg.func.type = check_support('add')
+        msg.func.type = 'add'
         for arg in value.args:
-            arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
+            arg_to_proto(arg, out=msg.func.args.add())
     elif isinstance(value, sympy.Mul):
-        msg.func.type = check_support('mul')
+        msg.func.type = 'mul'
         for arg in value.args:
-            arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
+            arg_to_proto(arg, out=msg.func.args.add())
     elif isinstance(value, sympy.Pow):
-        msg.func.type = check_support('pow')
+        msg.func.type = 'pow'
         for arg in value.args:
-            arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
+            arg_to_proto(arg, out=msg.func.args.add())
     else:
         raise ValueError(
             f"Unrecognized Sympy expression type: {type(value)}."
@@ -233,10 +197,7 @@ def _arg_func_to_proto(
 
 
 def float_arg_from_proto(
-    arg_proto: v2.program_pb2.FloatArg,
-    *,
-    arg_function_language: str,
-    required_arg_name: Optional[str] = None,
+    arg_proto: v2.program_pb2.FloatArg, *, required_arg_name: Optional[str] = None
 ) -> Optional[FLOAT_ARG_LIKE]:
     """Extracts a python value from an argument value proto.
 
@@ -245,8 +206,6 @@ def float_arg_from_proto(
 
     Args:
         arg_proto: The proto containing a serialized value.
-        arg_function_language: The `arg_function_language` field from
-            `Program.Language`.
         required_arg_name: If set to `None`, the method will return `None` when
             given an unset proto value. If set to a string, the method will
             instead raise an error complaining that the value is missing in that
@@ -268,11 +227,7 @@ def float_arg_from_proto(
     elif which == 'symbol':
         return sympy.Symbol(arg_proto.symbol)
     elif which == 'func':
-        func = _arg_func_from_proto(
-            arg_proto.func,
-            arg_function_language=arg_function_language,
-            required_arg_name=required_arg_name,
-        )
+        func = _arg_func_from_proto(arg_proto.func, required_arg_name=required_arg_name)
         if func is None and required_arg_name is not None:
             raise ValueError(
                 f'Arg {arg_proto.func} could not be processed for {required_arg_name}.'
@@ -287,17 +242,12 @@ def float_arg_from_proto(
 
 
 def arg_from_proto(
-    arg_proto: v2.program_pb2.Arg,
-    *,
-    arg_function_language: str,
-    required_arg_name: Optional[str] = None,
+    arg_proto: v2.program_pb2.Arg, *, required_arg_name: Optional[str] = None
 ) -> Optional[ARG_RETURN_LIKE]:
     """Extracts a python value from an argument value proto.
 
     Args:
         arg_proto: The proto containing a serialized value.
-        arg_function_language: The `arg_function_language` field from
-            `Program.Language`.
         required_arg_name: If set to `None`, the method will return `None` when
             given an unset proto value. If set to a string, the method will
             instead raise an error complaining that the value is missing in that
@@ -342,11 +292,7 @@ def arg_from_proto(
         return sympy.Symbol(arg_proto.symbol)
 
     if which == 'func':
-        func = _arg_func_from_proto(
-            arg_proto.func,
-            arg_function_language=arg_function_language,
-            required_arg_name=required_arg_name,
-        )
+        func = _arg_func_from_proto(arg_proto.func, required_arg_name=required_arg_name)
         if func is not None:
             return func
 
@@ -360,55 +306,22 @@ def arg_from_proto(
 
 
 def _arg_func_from_proto(
-    func: v2.program_pb2.ArgFunction,
-    *,
-    arg_function_language: str,
-    required_arg_name: Optional[str] = None,
+    func: v2.program_pb2.ArgFunction, *, required_arg_name: Optional[str] = None
 ) -> Optional[ARG_RETURN_LIKE]:
-    supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE.get(arg_function_language)
-    if supported is None:
-        raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')
-
-    if func.type not in supported:
-        raise ValueError(
-            f'Unrecognized function type {func.type!r} '
-            f'for arg_function_language={arg_function_language!r}'
-        )
 
     if func.type == 'add':
         return sympy.Add(
-            *[
-                arg_from_proto(
-                    a,
-                    arg_function_language=arg_function_language,
-                    required_arg_name='An addition argument',
-                )
-                for a in func.args
-            ]
+            *[arg_from_proto(a, required_arg_name='An addition argument') for a in func.args]
         )
 
     if func.type == 'mul':
         return sympy.Mul(
-            *[
-                arg_from_proto(
-                    a,
-                    arg_function_language=arg_function_language,
-                    required_arg_name='A multiplication argument',
-                )
-                for a in func.args
-            ]
+            *[arg_from_proto(a, required_arg_name='A multiplication argument') for a in func.args]
         )
 
     if func.type == 'pow':
         return sympy.Pow(
-            *[
-                arg_from_proto(
-                    a,
-                    arg_function_language=arg_function_language,
-                    required_arg_name='A power argument',
-                )
-                for a in func.args
-            ]
+            *[arg_from_proto(a, required_arg_name='A power argument') for a in func.args]
         )
     return None
 
@@ -420,9 +333,6 @@ def internal_gate_arg_to_proto(
 
     Args:
         value: The gate to encode.
-        arg_function_language: The language to use when encoding functions. If
-            this is set to None, it will be set to the minimal language
-            necessary to support the features that were actually used.
         out: The proto to write the result into. Defaults to a new instance.
 
     Returns:
@@ -442,15 +352,11 @@ def internal_gate_arg_to_proto(
     return msg
 
 
-def internal_gate_from_proto(
-    msg: v2.program_pb2.InternalGate, arg_function_language: str
-) -> InternalGate:
+def internal_gate_from_proto(msg: v2.program_pb2.InternalGate) -> InternalGate:
     """Extracts an InternalGate object from an InternalGate proto.
 
     Args:
         msg: The proto containing a serialized value.
-        arg_function_language: The `arg_function_language` field from
-            `Program.Language`.
 
     Returns:
         The deserialized InternalGate object.
@@ -460,7 +366,7 @@ def internal_gate_from_proto(
     """
     gate_args = {}
     for k, v in msg.gate_args.items():
-        gate_args[k] = arg_from_proto(v, arg_function_language=arg_function_language)
+        gate_args[k] = arg_from_proto(v)
     return InternalGate(
         gate_name=str(msg.name),
         gate_module=str(msg.module),
@@ -476,9 +382,6 @@ def clifford_tableau_arg_to_proto(
     """Writes an CliffordTableau object into an CliffordTableau proto.
     Args:
         value: The gate to encode.
-        arg_function_language: The language to use when encoding functions. If
-            this is set to None, it will be set to the minimal language
-            necessary to support the features that were actually used.
         out: The proto to write the result into. Defaults to a new instance.
     Returns:
         The proto that was written into.
@@ -492,14 +395,10 @@ def clifford_tableau_arg_to_proto(
     return msg
 
 
-def clifford_tableau_from_proto(
-    msg: v2.program_pb2.CliffordTableau, arg_function_language: str
-) -> CliffordTableau:
+def clifford_tableau_from_proto(msg: v2.program_pb2.CliffordTableau) -> CliffordTableau:
     """Extracts a CliffordTableau object from a CliffordTableau proto.
     Args:
         msg: The proto containing a serialized value.
-        arg_function_language: The `arg_function_language` field from
-            `Program.Language`.
     Returns:
         The deserialized InternalGate object.
     """

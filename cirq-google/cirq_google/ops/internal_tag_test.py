@@ -15,6 +15,8 @@
 import cirq_google
 import pytest
 
+from cirq_google.api.v2 import program_pb2
+
 
 def test_internal_tag():
     g = cirq_google.InternalTag(
@@ -53,3 +55,14 @@ def test_internal_tag_with_hashable_args_is_hashable():
     )
     with pytest.raises(TypeError, match="unhashable"):
         _ = hash(unhashable)
+
+
+def test_proto():
+    tag = cirq_google.InternalTag(name="TagWithNoParams", package='test', param1=2.5)
+    msg = tag.to_proto()
+    assert tag == cirq_google.InternalTag.from_proto(msg)
+
+    with pytest.raises(ValueError, match="Message is not a InternalTag"):
+        msg = program_pb2.Tag()
+        msg.fsim_via_model.SetInParent()
+        cirq_google.InternalTag.from_proto(msg)

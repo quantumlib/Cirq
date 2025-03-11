@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Target gateset for ion trap device with mutually linked qubits placed on a line.
-"""
+"""Target gateset for ion trap device with mutually linked qubits placed on a line."""
 
 from typing import List
 
