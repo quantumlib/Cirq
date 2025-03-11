@@ -2142,7 +2142,7 @@ class Circuit(AbstractCircuit):
             if (
                 not self._placement_cache
                 and not isinstance(batch[0], Moment)
-                and strategy in [InsertStrategy.INLINE, InsertStrategy.EARLIEST]
+                and strategy in (InsertStrategy.INLINE, InsertStrategy.EARLIEST)
                 and not all(
                     (strategy is InsertStrategy.EARLIEST and self._can_add_op_at(k, op))
                     or (k > 0 and self._can_add_op_at(k - 1, op))
