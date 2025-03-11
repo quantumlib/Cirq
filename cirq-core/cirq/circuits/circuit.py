@@ -2845,25 +2845,20 @@ def _group_into_moment_compatible(inputs: Sequence[_MOMENT_OR_OP]) -> Iterator[L
     Examples:
         [X(a), X(b), X(a)] -> [[X(a), X(b)], [X(a)]]
         [X(a), X(a), X(b)] -> [[X(a)], [X(a), X(b)]]
-        [X(a), Moment(X(b)), X(c)] -> [[X(a)], [Moment(X(b))], [X(c)]]"""
-    i = 0
+    """
     batch: List[_MOMENT_OR_OP] = []
-    while i < len(inputs):
-        if isinstance(inputs[i], Moment):
-            yield [inputs[i]]
-            i += 1
+    batch_qubits: Set['cirq.Qid'] = set()
+    for mop in inputs:
+        is_moment = isinstance(mop, cirq.Moment)
+        if (is_moment and batch) or not batch_qubits.isdisjoint(mop.qubits):
+            yield batch
+            batch = []
+            batch_qubits.clear()
+        if is_moment:
+            yield [mop]
             continue
-        batch_qubits: Set['cirq.Qid'] = set()
-        while i < len(inputs):
-            mop = inputs[i]
-            qs = mop.qubits
-            if isinstance(mop, Moment) or not batch_qubits.isdisjoint(qs):
-                yield batch
-                batch = []
-                break
-            batch.append(mop)
-            batch_qubits.update(qs)
-            i += 1
+        batch.append(mop)
+        batch_qubits.update(mop.qubits)
     if batch:
         yield batch
 
