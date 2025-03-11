@@ -2159,7 +2159,7 @@ class Circuit(AbstractCircuit):
                     p = self._placement_cache.append(moment_or_op)
                 elif isinstance(moment_or_op, Moment):
                     p = k
-                elif strategy in [InsertStrategy.NEW, InsertStrategy.NEW_THEN_INLINE]:
+                elif strategy in (InsertStrategy.NEW, InsertStrategy.NEW_THEN_INLINE):
                     self._moments.insert(k, Moment())
                     p = k
                 elif strategy is InsertStrategy.INLINE:
@@ -2845,6 +2845,7 @@ def _group_into_moment_compatible(inputs: Sequence[_MOMENT_OR_OP]) -> Iterator[L
     Examples:
         [X(a), X(b), X(a)] -> [[X(a), X(b)], [X(a)]]
         [X(a), X(a), X(b)] -> [[X(a)], [X(a), X(b)]]
+        [X(a), Moment(X(b)), X(c)] -> [[X(a)], [Moment(X(b))], [X(c)]]
     """
     batch: List[_MOMENT_OR_OP] = []
     batch_qubits: Set['cirq.Qid'] = set()
