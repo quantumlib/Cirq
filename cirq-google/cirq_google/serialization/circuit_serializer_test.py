@@ -1045,6 +1045,24 @@ def test_reset_gate_with_improper_argument():
         serializer.deserialize(circuit_proto)
 
 
+def test_reset_gate_with_no_dimension():
+    serializer = cg.CircuitSerializer()
+
+    op = v2.program_pb2.Operation()
+    op.resetgate.SetInParent()
+    op.qubit_constant_index.append(0)
+    circuit_proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[v2.program_pb2.Moment(operations=[op])],
+        ),
+        constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_2'))],
+    )
+    reset_circuit = serializer.deserialize(circuit_proto)
+    assert reset_circuit == cirq.Circuit(cirq.R(cirq.q(1, 2)))
+
+
 def test_stimcirq_gates():
     stimcirq = pytest.importorskip("stimcirq")
     serializer = cg.CircuitSerializer()
