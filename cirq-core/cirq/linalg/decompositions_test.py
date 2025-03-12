@@ -20,6 +20,7 @@ import pytest
 import cirq
 from cirq import value
 from cirq import unitary_eig
+from cirq.linalg.decompositions import MAGIC, MAGIC_CONJ_T
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -45,9 +46,7 @@ def assert_kronecker_factorization_not_within_tolerance(matrix, g, f1, f2):
 
 
 def assert_magic_su2_within_tolerance(mat, a, b):
-    M = cirq.linalg.decompositions.MAGIC
-    MT = cirq.linalg.decompositions.MAGIC_CONJ_T
-    recon = cirq.linalg.combinators.dot(MT, cirq.linalg.combinators.kron(a, b), M)
+    recon = cirq.linalg.combinators.dot(MAGIC_CONJ_T, cirq.linalg.combinators.kron(a, b), MAGIC)
     assert np.allclose(recon, mat), "Failed to decompose within tolerance."
 
 
@@ -149,14 +148,15 @@ def test_kron_factor_special_unitaries(f1, f2):
     assert_kronecker_factorization_within_tolerance(p, g, g1, g2)
 
 
-def test_kron_factor_fail():
-    mat = cirq.kron_with_controls(cirq.CONTROL_TAG, X)
-    g, f1, f2 = cirq.kron_factor_4x4_to_2x2s(mat)
-    with pytest.raises(ValueError):
-        assert_kronecker_factorization_not_within_tolerance(mat, g, f1, f2)
-    mat = cirq.kron_factor_4x4_to_2x2s(np.diag([1, 1, 1, 1j]))
-    with pytest.raises(ValueError):
-        assert_kronecker_factorization_not_within_tolerance(mat, g, f1, f2)
+def test_kron_factor_invalid_input():
+    mats = [
+        cirq.kron_with_controls(cirq.CONTROL_TAG, X),
+        np.array([[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1], [1, 2, 3, 4]]),
+        np.diag([1, 1, 1, 1j]),
+    ]
+    for mat in mats:
+        with pytest.raises(ValueError, match="Invalid 4x4 kronecker product"):
+            cirq.kron_factor_4x4_to_2x2s(mat)
 
 
 def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -165,8 +165,7 @@ def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     assert cirq.is_special_unitary(a)
     assert cirq.is_special_unitary(b)
 
-    magic = np.array([[1, 0, 0, 1j], [0, 1j, 1, 0], [0, 1j, -1, 0], [1, 0, 0, -1j]]) * np.sqrt(0.5)
-    result = np.real(cirq.dot(np.conj(magic.T), cirq.kron(a, b), magic))
+    result = np.real(cirq.dot(MAGIC_CONJ_T, cirq.kron(a, b), MAGIC))
     assert cirq.is_orthogonal(result)
     return result
 
@@ -656,7 +655,7 @@ def test_kak_vector_matches_vectorized():
     np.testing.assert_almost_equal(actual, expected)
 
 
-def test_KAK_vector_local_invariants_random_input():
+def test_kak_vector_local_invariants_random_input():
     actual = _local_invariants_from_kak(cirq.kak_vector(_random_unitaries))
     expected = _local_invariants_from_kak(_kak_vecs)
 
@@ -697,7 +696,7 @@ def test_kak_vector_on_weyl_chamber_face():
         (np.kron(X, X), (0, 0, 0)),
     ),
 )
-def test_KAK_vector_weyl_chamber_vertices(unitary, expected):
+def test_kak_vector_weyl_chamber_vertices(unitary, expected):
     actual = cirq.kak_vector(unitary)
     np.testing.assert_almost_equal(actual, expected)
 
