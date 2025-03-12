@@ -87,6 +87,11 @@ def _validate_input(
                     "only of Pauli I are not allowed. Please provide"
                     "valid input Pauli strings."
                 )
+            if pauli_str.coefficient.imag != 0:
+                raise ValueError(
+                    "Cannot compute expectation value of a non-Hermitian PauliString. "
+                    "Coefficient must be real."
+                )
 
     # Check rng is a numpy random generator
     if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
@@ -166,8 +171,6 @@ def _build_many_one_qubits_confusion_matrix(
         in the calibration results (alphabetical order by qubit name).
     """
     cms: list[np.ndarray] = []
-    if not qubits_to_error:
-        return cms
 
     for qubit in sorted(qubits_to_error.zero_state_errors.keys()):
         e0 = qubits_to_error.zero_state_errors[qubit]
@@ -249,8 +252,8 @@ def _process_pauli_measurement_results(
         raw_mitigated_values, raw_d_m = tensored_cm.readout_mitigation_pauli_uncorrelated(
             qubits_sorted, relevant_bits
         )
-        mitigated_values_with_coefficient = raw_mitigated_values * pauli_string.coefficient
-        d_m_with_coefficient = raw_d_m * abs(pauli_string.coefficient)
+        mitigated_values_with_coefficient = raw_mitigated_values * pauli_string.coefficient.real
+        d_m_with_coefficient = raw_d_m * abs(pauli_string.coefficient.real)
 
         # Calculate the unmitigated expectation.
         parity = np.sum(relevant_bits, axis=1) % 2

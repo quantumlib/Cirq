@@ -386,6 +386,30 @@ def test_many_circuits_with_coefficient() -> None:
                 assert 0.0045 < error < 0.0055
 
 
+def test_coefficient_not_real_number() -> None:
+    """Test that the coefficient of input pauli string is not real. 
+    Should return error in this case"""
+    qubits_1 = cirq.LineQubit.range(3)
+    random_pauli_string = _generate_random_pauli_string(qubits_1, True) * (3 + 4j)
+    circuit_1 = cirq.FrozenCircuit(_create_ghz(3, qubits_1))
+
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli[circuit_1] = [
+        random_pauli_string,
+        _generate_random_pauli_string(qubits_1, True),
+        _generate_random_pauli_string(qubits_1, True),
+    ]
+
+    with pytest.raises(
+        ValueError,
+        match="Cannot compute expectation value of a "
+        "non-Hermitian PauliString. Coefficient must be real.",
+    ):
+        measure_pauli_strings(
+            circuits_to_pauli, cirq.Simulator(), np.random.default_rng(), 1000, 1000, 1000
+        )
+
+
 def test_empty_input_circuits_to_pauli_mapping() -> None:
     """Test that the input circuits are empty."""
 
