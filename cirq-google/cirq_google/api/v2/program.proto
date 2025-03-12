@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-import "tunits/proto/tunits.proto";
-
 package cirq.google.api.v2;
+
+import "tunits/proto/tunits.proto";
 
 option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "ProgramProto";
@@ -11,7 +11,7 @@ option java_multiple_files = true;
 // A quantum program.
 message Program {
   // The language in which the program is written.
-  Language language = 1;
+  Language language = 1 [deprecated = true];
 
   // Programs can be specified by a circuit or a schedule.
   oneof program {
@@ -45,7 +45,7 @@ message Constant {
 
     // Moments used multiple times in a circuit
     Moment moment_value = 4;
-    
+
     // Operations used multiple times in a circuit
     Operation operation_value = 5;
 
@@ -73,8 +73,7 @@ message Circuit {
   // The moments of the circuit, with the first element corresponding to the
   // first set of operations to apply, etc.
   repeated Moment moments = 2;
-  
-  
+
   // The index of the moment in the top-level constant table.
   // In order to preserve ordering, either this field should be populated
   // or the moments field, but not both.
@@ -143,7 +142,7 @@ message Language {
   //
   // Valid names for the arg function language can be found in
   // cirq/google/arg_func_langs.py
-  string arg_function_language = 2;
+  string arg_function_language = 2 [deprecated = true];
 }
 
 // Argument that is constrained to a float or symbolic expression
@@ -246,6 +245,7 @@ message Operation {
     IdentityGate identitygate = 19;
     HPowGate hpowgate = 20;
     SingleQubitCliffordGate singlequbitcliffordgate = 21;
+    ResetGate resetgate = 24;
   }
 
   // Map from the argument name to the Argument needed to fully specify
@@ -281,7 +281,6 @@ message Operation {
 message DynamicalDecouplingTag {
   optional string protocol = 1;
 }
-
 
 // Messages for tags that can modify operations
 // These are often directives to hardware specifying
@@ -322,44 +321,37 @@ message Tag {
   }
 }
 
-
 // Tag for operations that should do phase matching to match phase
 // required for subsequent operations
-message PhaseMatchTag {
-}
+message PhaseMatchTag {}
 
-message PhysicalZTag {
-}
+message PhysicalZTag {}
 
 // Tag to indicate that a state prep circuit produces a classical state.
 // This serves as a hint to the compiler that we can ignore virtual Z phases
-message ClassicalStateTag {
-}
+message ClassicalStateTag {}
 
-
-message FSimViaModelTag {
-}
+message FSimViaModelTag {}
 
 // Tag to remove moment-based synchronization
 // The reverse and forward arguments control the
 // number of moments to reverse synchronization.
 message NoSyncTag {
-    oneof rev {
-        // Number of synchronizations before the operation to remove
-        int32 reverse = 1;
+  oneof rev {
+    // Number of synchronizations before the operation to remove
+    int32 reverse = 1;
 
-        // Remove all possible synchronizations
-        bool remove_all_syncs_before = 2;
-    }
-    oneof fwd {
-        // Number of synchronizations after the operation to remove
-        int32 forward = 3;
+    // Remove all possible synchronizations
+    bool remove_all_syncs_before = 2;
+  }
+  oneof fwd {
+    // Number of synchronizations after the operation to remove
+    int32 forward = 3;
 
-        // Remove all possible synchronizations
-        bool remove_all_syncs_after = 4;
-    }
+    // Remove all possible synchronizations
+    bool remove_all_syncs_after = 4;
+  }
 }
-
 
 // Tag to represent any internal tags or tags not yet
 // implemented in the proto.
@@ -373,7 +365,6 @@ message InternalTag {
   map<string, Arg> tag_args = 3;
   map<string, CustomArg> custom_args = 4;
 }
-
 
 // The instruction identifying the action taken on the quantum computer.
 message Gate {
@@ -567,8 +558,8 @@ message FunctionInterpolation {
   repeated float x_values = 1 [packed = true];  // The independent variable.
   repeated float y_values = 2 [packed = true];  // The dependent variable.
 
-  // Currently only piecewise linear interpolation (i.e. np.interp) is supported.
-  // That's we connect (x[i], y[i]) to (x[i+1], y[i+1]))
+  // Currently only piecewise linear interpolation (i.e. np.interp) is
+  // supported. That's we connect (x[i], y[i]) to (x[i+1], y[i+1]))
 }
 
 message CustomArg {
@@ -577,21 +568,22 @@ message CustomArg {
   }
 }
 
-message InternalGate{
-  string name = 1;  // Gate name.
-  string module = 2;  // Gate module. 
+message InternalGate {
+  string name = 1;       // Gate name.
+  string module = 2;     // Gate module.
   int32 num_qubits = 3;  // Number of qubits. Required during deserialization.
   map<string, Arg> gate_args = 4;  // Gate args.
 
-  // Custom args are arguments that require special processing during deserialization.
-  // The `key` is the argument in the internal class's constructor, the `value`
-  // is a representation from which an internal object can be constructed.
+  // Custom args are arguments that require special processing during
+  // deserialization. The `key` is the argument in the internal class's
+  // constructor, the `value` is a representation from which an internal object
+  // can be constructed.
   map<string, CustomArg> custom_args = 5;
 }
 
-message CouplerPulseGate{
-  optional FloatArg hold_time_ps = 1;  // ps=picoseconds.
-  optional FloatArg rise_time_ps = 2;  // ps=picoseconds.
+message CouplerPulseGate {
+  optional FloatArg hold_time_ps = 1;     // ps=picoseconds.
+  optional FloatArg rise_time_ps = 2;     // ps=picoseconds.
   optional FloatArg padding_time_ps = 3;  // ps=picoseconds.
   optional FloatArg coupling_mhz = 4;
   optional FloatArg q0_detune_mhz = 5;
@@ -599,11 +591,16 @@ message CouplerPulseGate{
 }
 
 message CliffordTableau {
-  optional int32 num_qubits = 1;  // Number of qubits the CliffordTableau acts on.
-  optional int32 initial_state = 2;  // The initial state.
-  repeated bool rs = 3;  // A flattened version of the `rs` array.
-  repeated bool xs = 4;  // A flattened version of the `xs` array.
-  repeated bool zs = 5;  // A flattened version of the `zs` array.
+  // Number of qubits the CliffordTableau acts on.
+  optional int32 num_qubits = 1;
+  // The initial state.
+  optional int32 initial_state = 2;
+  // A flattened version of the `rs` array.
+  repeated bool rs = 3;
+  // A flattened version of the `xs` array.
+  repeated bool xs = 4;
+  // A flattened version of the `zs` array.
+  repeated bool zs = 5;
 }
 
 message SingleQubitCliffordGate {
@@ -616,4 +613,15 @@ message IdentityGate {
 
 message HPowGate {
   FloatArg exponent = 1;
+}
+
+message ResetGate {
+  // Type of reset to be executed (hardware dependent)
+  // Internal users should use the name of the class.
+  // (Note that this is not used for public-facing circuits,
+  //  which will default to cirq.ResetChannel)
+  string reset_type = 1;
+
+  // Additional arguments that can be sent to the reset implementation.
+  map<string, Arg> arguments = 2;
 }

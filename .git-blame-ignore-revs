@@ -21,3 +21,6 @@ cb6940a40141dba95cba84f5acc27acbeb65b17c
 
 # Format all files with black-24.3.0 (#6513)
 1a6c16a07cb37136a7674dc9f2e114942c88e02b
+
+# Format proto files (#7133)
+5cf0e8df8f3e097b8d496cba1c2d4bd04cb83546

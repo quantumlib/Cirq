@@ -219,6 +219,11 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         ]
         # yapf: enable
 
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
+        return self.exponent % 1 == 0
+
     def _decompose_(self, qubits):
         a, b = qubits
 

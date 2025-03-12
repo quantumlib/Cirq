@@ -1,32 +1,33 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a bug or problem in Cirq or the project
 title: ''
 labels: 'kind/bug-report'
 assignees: ''
-
 ---
+## Describe the issue
 
-**Description of the issue**
 
-**How to reproduce the issue**
+## Explain how to reproduce the bug or problem
 
 ```
 
-put code in code blocks *like this*
+Put code in Markdown code blocks *like this*.
 
 ```
 
 <details>
 
-put long logs in details blocks *like this*
+Put long logs in HTML details blocks *like this*.
 
 </details>
 
-**Cirq version**
-You can get the cirq version by printing `cirq.__version__`. From the command line:
 
-```
+## Tell us the version of Cirq where this happens
+
+You can get the Cirq version you are running by using Python
+to print the value of `cirq.__version__`. From the command line:
+
+```shell
 python -c 'import cirq; print(cirq.__version__)'
 ```
-

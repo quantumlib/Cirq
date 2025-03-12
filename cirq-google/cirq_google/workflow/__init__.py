@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utilities for running end-to-end experiments using Quantum Computing Service (QCS). """
+"""Utilities for running end-to-end experiments using Quantum Computing Service (QCS)."""
 
 from cirq_google.workflow.quantum_executable import (
     ExecutableSpec as ExecutableSpec,
