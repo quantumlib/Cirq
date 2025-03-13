@@ -154,7 +154,11 @@ def test_z_pushes_past_xy_and_phases_it():
     assert_optimizes(
         before=cirq.Circuit([cirq.Moment([cirq.Z(q) ** 0.5]), cirq.Moment([cirq.Y(q) ** 0.25])]),
         expected=cirq.Circuit(
-            [cirq.Moment(), cirq.Moment([cirq.X(q) ** 0.25]), cirq.Moment([cirq.Z(q) ** 0.5])]
+            [
+                cirq.Moment(),
+                cirq.Moment([cirq.PhasedXPowGate(phase_exponent=0)(q) ** 0.25]),
+                cirq.Moment([cirq.Z(q) ** 0.5]),
+            ]
         ),
     )
 

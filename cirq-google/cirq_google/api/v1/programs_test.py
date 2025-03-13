@@ -28,7 +28,7 @@ def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation, 
 def test_protobuf_round_trip():
     qubits = cirq.GridQubit.rect(1, 5)
     circuit = cirq.Circuit(
-        [cirq.X(q) ** 0.5 for q in qubits],
+        [cirq.PhasedXPowGate(phase_exponent=0)(q) ** 0.5 for q in qubits],
         [
             cirq.CZ(q, q2)
             for q in [cirq.GridQubit(0, 0)]
@@ -245,7 +245,7 @@ def test_w_to_proto():
     )
     assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
-    gate = cirq.X**0.25
+    gate = cirq.PhasedXPowGate(exponent=0.25, phase_exponent=0)
     proto = operations_pb2.Operation(
         exp_w=operations_pb2.ExpW(
             target=operations_pb2.Qubit(row=2, col=3),
@@ -255,7 +255,7 @@ def test_w_to_proto():
     )
     assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
-    gate = cirq.Y**0.25
+    gate = cirq.PhasedXPowGate(exponent=0.25, phase_exponent=0.5)
     proto = operations_pb2.Operation(
         exp_w=operations_pb2.ExpW(
             target=operations_pb2.Qubit(row=2, col=3),
