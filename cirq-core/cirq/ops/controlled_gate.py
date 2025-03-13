@@ -34,7 +34,6 @@ from cirq.ops import (
     controlled_operation as cop,
     diagonal_gate as dg,
     global_phase_op as gp,
-    matrix_gates,
     op_tree,
     raw_types,
 )
@@ -220,12 +219,6 @@ class ControlledGate(raw_types.Gate):
                     control_qid_shape=self.control_qid_shape,
                 ).on(*control_qubits)
                 return [result, controlled_phase_op]
-
-        if isinstance(self.sub_gate, matrix_gates.MatrixGate):
-            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
-            # local phase in the controlled variant and hence cannot be ignored.
-            return NotImplemented
-
         result = protocols.decompose_once_with_qubits(
             self.sub_gate,
             qubits[self.num_controls() :],
