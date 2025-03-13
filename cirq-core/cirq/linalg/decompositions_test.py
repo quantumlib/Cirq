@@ -596,7 +596,7 @@ def _random_two_qubit_unitaries(num_samples: int, random_state: 'cirq.RANDOM_STA
 
     prng = value.parse_random_state(random_state)
     # Generate the non-local part by explict matrix exponentiation.
-    kak_vecs = prng.rand(num_samples, 3) * np.pi
+    kak_vecs = prng.random((num_samples, 3)) * np.pi
     gens = np.einsum('...a,abc->...bc', kak_vecs, _kak_gens)
     evals, evecs = np.linalg.eigh(gens)
     A = np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals), evecs.conj())

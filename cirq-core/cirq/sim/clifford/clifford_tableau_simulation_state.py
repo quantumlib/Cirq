@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
 for Clifford Simulator."""
 
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -31,7 +31,7 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
     def __init__(
         self,
         tableau: 'cirq.CliffordTableau',
-        prng: Optional[np.random.RandomState] = None,
+        prng: Optional[Union[np.random.Generator, np.random.RandomState]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
