@@ -377,7 +377,10 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         #  ZI  [ 0  0 | 1  0  | 1 ]
         #  IZ  [ 1  0 | 1  1  | 0 ]
         # Take the third row as example: this means the ZI gate after the this gate,
-        # more precisely the conjugate transformation of ZI by this gate, becomes -ZI.
+        # more precisely the conjugate transformation of ZI by this gate, becomes -ZI:
+        #   ---(CliffordGate^-1)---ZI---CliffordGate---
+        # = unitary(CliffordGate)@unitary(ZI)@unitary(CliffordGate).conj().T
+        # = -ZI.
         # (Note the real clifford tableau has to satify the Symplectic property.
         # here is just for illustration)
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
@@ -438,7 +441,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
     def _commutes_(
         self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
-        # Note even if we assume two gates define the tabluea based on the same qubit order,
+        # Note even if we assume two gates define the tableau based on the same qubit order,
         # the following approach cannot judge it:
         # self.clifford_tableau.then(other.clifford_tableau) == other.clifford_tableau.then(
         #     self.clifford_tableau

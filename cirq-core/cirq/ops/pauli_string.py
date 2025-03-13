@@ -41,7 +41,6 @@ from typing import (
 import numpy as np
 import sympy
 
-import cirq
 from cirq import value, protocols, linalg, qis, _compat
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -55,6 +54,7 @@ from cirq.ops import (
     pauli_gates,
     pauli_interaction_gate,
     raw_types,
+    dense_pauli_string,
 )
 
 if TYPE_CHECKING:
@@ -495,7 +495,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """
         qubits = self.qubits if qubits is None else qubits
         factors = [self.get(q, default=identity.I) for q in qubits]
-        if cirq.is_parameterized(self):
+        if protocols.is_parameterized(self):
             raise NotImplementedError('Cannot express as matrix when parameterized')
         assert isinstance(self.coefficient, complex)
         return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
@@ -907,14 +907,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Raises:
             ValueError: If the number of qubits is too small.
         """
-        from cirq.ops.dense_pauli_string import DensePauliString
 
         if not self.keys() <= set(qubits):
             raise ValueError('not self.keys() <= set(qubits)')
         # pylint: disable=too-many-function-args
         pauli_mask = [self.get(q, identity.I) for q in qubits]
         # pylint: enable=too-many-function-args
-        return DensePauliString(pauli_mask, coefficient=self.coefficient)
+        return dense_pauli_string.DensePauliString(pauli_mask, coefficient=self.coefficient)
 
     def conjugated_by(self, clifford: 'cirq.OP_TREE') -> 'PauliString':
         r"""Returns the Pauli string conjugated by a clifford operation.
@@ -976,17 +975,65 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Returns:
             The Pauli string conjugated by the given Clifford operation.
         """
-        pauli_map = dict(self._qubit_pauli_map)
-        should_negate = False
-        for op in list(op_tree.flatten_to_ops(clifford))[::-1]:
-            if pauli_map.keys().isdisjoint(set(op.qubits)):
-                continue
-            for clifford_op in _decompose_into_cliffords(op)[::-1]:
-                if pauli_map.keys().isdisjoint(set(clifford_op.qubits)):
-                    continue
-                should_negate ^= _pass_operation_over(pauli_map, clifford_op, False)
-        coef = -self._coefficient if should_negate else self.coefficient
-        return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
+
+        # Initialize the ps the same as self.
+        ps = PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient)
+        all_ops = list(op_tree.flatten_to_ops(clifford))
+        all_qubits = set.union(set(self.qubits), [q for op in all_ops for q in op.qubits])
+        # Iteratively calculate the conjugation in reverse order of ops.
+        for op in all_ops[::-1]:
+            # To calcuate the conjugation of P (`ps`) with respect to C (`op`)
+            # Decompose P = Pc⊗R, where Pc acts on the same qubits as C, R acts on the remaining.
+            # Then the conjugation = (C^{-1}⊗I·Pc⊗R·C⊗I) = (C^{-1}·Pc·C)⊗R.
+
+            # Isolate R
+            remain: 'cirq.PauliString' = PauliString(
+                *(pauli(q) for q in all_qubits - set(op.qubits) if (pauli := ps.get(q)) is not None)
+            )
+
+            # Initialize the conjugation of Pc.
+            conjugated: 'cirq.DensePauliString' = (
+                dense_pauli_string.DensePauliString(pauli_mask=[identity.I for _ in op.qubits])
+                * ps.coefficient
+            )
+
+            # Calculate the conjugation via CliffordGate's clifford_tableau.
+            # Note the clifford_tableau in CliffordGate represents C·P·C^-1 instead of C^-1·P·C.
+            # So we take the inverse of the tableau to match the definition of the conjugation here.
+            gate_in_clifford: 'cirq.CliffordGate'
+            if isinstance(op.gate, clifford_gate.CliffordGate):
+                gate_in_clifford = op.gate
+            else:
+                # Convert the clifford gate to CliffordGate type.
+                gate_in_clifford = clifford_gate.CliffordGate.from_op_list([op], op.qubits)
+            tableau = gate_in_clifford.clifford_tableau.inverse()
+
+            # Calculate the conjugation by `op` via mutiplying the conjugation of each Pauli:
+            #   C^{-1}·(P_1⊗...⊗P_n)·C
+            # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
+            # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)
+            # For the Pauli on the kth qubit P_k. The conjugation is calculated as following.
+            #   Puali X_k's conjugation is from the destabilzer table;
+            #   Puali Z_k's conjugation is from the stabilzer table;
+            #   Puali Y_k's conjugation is calcluated according to Y = iXZ. E.g., for the kth qubit,
+            #     C^{-1}·Y_k⊗I·C = C^{-1}·(iX_k⊗I·Z_k⊗I)·C = i (C^{-1}·X_k⊗I·C)·(C^{-1}·Z_k⊗I·C).
+            for qid, qubit in enumerate(op.qubits):
+                pauli = ps.get(qubit)
+                match pauli:
+                    case None:
+                        continue
+                    case pauli_gates.X:
+                        conjugated *= tableau.destabilizers()[qid]
+                    case pauli_gates.Z:
+                        conjugated *= tableau.stabilizers()[qid]
+                    case pauli_gates.Y:
+                        conjugated *= (
+                            1j
+                            * tableau.destabilizers()[qid]  # conj X first
+                            * tableau.stabilizers()[qid]  # then conj Z
+                        )
+            ps = remain * conjugated.on(*op.qubits)
+        return ps
 
     def after(self, ops: 'cirq.OP_TREE') -> 'cirq.PauliString':
         r"""Determines the equivalent pauli string after some operations.
@@ -1049,20 +1096,17 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
-        pauli_map = dict(self._qubit_pauli_map)
-        should_negate = False
-        for op in ops:
-            if pauli_map.keys().isdisjoint(set(op.qubits)):
-                continue
-            decomposed = _decompose_into_cliffords(op)
-            if not after_to_before:
-                decomposed = decomposed[::-1]
-            for clifford_op in decomposed:
-                if pauli_map.keys().isdisjoint(set(clifford_op.qubits)):
-                    continue
-                should_negate ^= _pass_operation_over(pauli_map, clifford_op, after_to_before)
-        coef = -self._coefficient if should_negate else self.coefficient
-        return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
+        # TODO(#6946): deprecate this method.
+        # Note: This method is supposed to be replaced by conjugated_by()
+        #  (see #2351 for details).
+        if after_to_before:
+            return self.after(ops)
+
+        if isinstance(ops, gate_operation.GateOperation):
+            return self.before(ops)
+
+        all_ops = list(op_tree.flatten_to_ops(ops))
+        return self.before(all_ops[::-1])
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
@@ -1128,7 +1172,7 @@ def _try_interpret_as_pauli_string(op: Any):
         if (pauli := gates.get(type(op.gate), None)) is not None:
             exponent = op.gate.exponent  # type: ignore
             if exponent % 2 == 0:
-                return cirq.PauliString()
+                return PauliString()
             if exponent % 2 == 1:
                 return pauli.on(op.qubits[0])
     return None
