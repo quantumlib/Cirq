@@ -7,7 +7,6 @@ assignees: ''
 ---
 ## Describe the issue
 
-
 ## Tell us the version of Cirq where this happens
 
 You can get the Cirq version you are running by using Python

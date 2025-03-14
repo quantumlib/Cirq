@@ -1,16 +1,15 @@
 # Pasqal Sampler
 
-The Pasqal sampler, via the `cirq_pasqal.PasqalSampler` class, executes programs and jobs using the
-API of Pasqal.
+The Pasqal sampler, via the `cirq_pasqal.PasqalSampler` class, executes programs
+and jobs using the API of Pasqal.
 
-Note that the API of Pasqal is not yet open for public access. Please contact us if you are
-interested.
+Note that the API of Pasqal is not yet open for public access. Please contact us
+if you are interested.
 
 ## PasqalSampler class
 
-The `PasqalSampler` class is the entry point to communicate with the API. It can be initialized
-using your PASQAL_API_ACCESS_TOKEN.
-
+The `PasqalSampler` class is the entry point to communicate with the API. It can
+be initialized using your PASQAL_API_ACCESS_TOKEN.
 
 ```python
 import cirq
@@ -35,10 +34,13 @@ p_circuit.append(cirq.measure(qubit, key='result'))    # Measurement.
 ## Device Specification
 
 Currently, only virtual devices are available. The options are:
- * `PasqalVirtualDevice` to emulate a first-generation Pasqal device
- * `PasqalDevice` to work with an unconstrained device which is then optimized and transpiled on Pasqal's side. 
- 
- See the [Devices page](devices.md) for more information on how to work with these devices.
+
+*   `PasqalVirtualDevice` to emulate a first-generation Pasqal device
+*   `PasqalDevice` to work with an unconstrained device which is then optimized
+    and transpiled on Pasqal's side.
+
+    See the [Devices page](devices.md) for more information on how to work with
+    these devices.
 
 ## Calibration Metrics
 
