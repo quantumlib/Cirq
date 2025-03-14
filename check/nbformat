@@ -14,7 +14,7 @@
 #
 ################################################################################
 
-only_print=1
+declare -i only_print=1
 for arg in "$@"; do
     if [[ "${arg}" == "--apply" ]]; then
         only_print=0
@@ -39,7 +39,7 @@ my_nbfmt() {
     python3 -m tensorflow_docs.tools.nbfmt --indent=1 "$@"
 }
 
-exit_code=0
+declare -i exit_code=0
 
 # Check if notebooks are already formatted and store output for later use
 if output=$(my_nbfmt --test docs 2>&1); then
