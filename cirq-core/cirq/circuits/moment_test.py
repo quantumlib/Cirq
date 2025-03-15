@@ -680,7 +680,7 @@ def test_text_diagram_does_not_depend_on_insertion_order():
     assert str(m1) == str(m2)
 
 
-def test_commutes():
+def test_commutes_moment_and_operation():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
@@ -688,7 +688,7 @@ def test_commutes():
 
     moment = cirq.Moment([cirq.X(a), cirq.Y(b), cirq.H(c)])
 
-    assert NotImplemented == cirq.commutes(moment, a, default=NotImplemented)
+    assert cirq.commutes(moment, a, default=None) is None
 
     assert cirq.commutes(moment, cirq.X(a))
     assert cirq.commutes(moment, cirq.Y(b))
@@ -699,6 +699,101 @@ def test_commutes():
     assert not cirq.commutes(moment, cirq.H(a))
     assert not cirq.commutes(moment, cirq.H(b))
     assert not cirq.commutes(moment, cirq.X(c))
+
+    # Empty moment commutes with everything
+    moment = cirq.Moment()
+    assert cirq.commutes(moment, cirq.X(a))
+    assert cirq.commutes(moment, cirq.measure(b))
+
+    # Two qubit operation
+    moment = cirq.Moment(cirq.Z(a), cirq.Z(b))
+    assert cirq.commutes(moment, cirq.XX(a, b))
+
+
+def test_commutes_moment_and_moment():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+
+    # Test cases where individual operations don't commute but moments do
+    # Two Z gates (Z⊗Z) commutes with RXX even though individual Z's don't
+    assert not cirq.commutes(cirq.Moment(cirq.Z(a)), cirq.Moment(cirq.XX(a, b)))
+    assert cirq.commutes(cirq.Moment(cirq.Z(a), cirq.Z(b)), cirq.Moment(cirq.XX(a, b)))
+
+    # Moments that do not commute if acting on same qubits
+    assert cirq.commutes(cirq.Moment(cirq.X(a)), cirq.Moment(cirq.Y(b)))
+    assert not cirq.commutes(cirq.Moment(cirq.X(a)), cirq.Moment(cirq.Y(a)))
+
+    # Moments commute with themselves
+    assert cirq.commutes(
+        cirq.Moment([cirq.X(a), cirq.Y(b), cirq.H(c)]),
+        cirq.Moment([cirq.X(a), cirq.Y(b), cirq.H(c)]),
+    )
+
+
+def test_commutes_moment_with_controls():
+    a, b = cirq.LineQubit.range(2)
+    assert cirq.commutes(
+        cirq.Moment(cirq.measure(a, key='k0')), cirq.Moment(cirq.X(b).with_classical_controls('k1'))
+    )
+    assert cirq.commutes(
+        cirq.Moment(cirq.X(b).with_classical_controls('k1')), cirq.Moment(cirq.measure(a, key='k0'))
+    )
+    assert cirq.commutes(
+        cirq.Moment(cirq.X(a).with_classical_controls('k0')),
+        cirq.Moment(cirq.H(b).with_classical_controls('k0')),
+    )
+    assert cirq.commutes(
+        cirq.Moment(cirq.X(a).with_classical_controls('k0')),
+        cirq.Moment(cirq.X(a).with_classical_controls('k0')),
+    )
+    assert not cirq.commutes(
+        cirq.Moment(cirq.measure(a, key='k0')), cirq.Moment(cirq.X(b).with_classical_controls('k0'))
+    )
+    assert not cirq.commutes(
+        cirq.Moment(cirq.X(b).with_classical_controls('k0')), cirq.Moment(cirq.measure(a, key='k0'))
+    )
+    assert not cirq.commutes(
+        cirq.Moment(cirq.X(a).with_classical_controls('k0')),
+        cirq.Moment(cirq.H(a).with_classical_controls('k0')),
+    )
+
+
+def test_commutes_moment_and_moment_comprehensive():
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    # Basic Z⊗Z commuting with XX at different angles
+    m1 = cirq.Moment([cirq.Z(a), cirq.Z(b)])
+    m2 = cirq.Moment([cirq.XXPowGate(exponent=0.5)(a, b)])
+    assert cirq.commutes(m1, m2)
+
+    # Disjoint qubit sets
+    m1 = cirq.Moment([cirq.X(a), cirq.Y(b)])
+    m2 = cirq.Moment([cirq.Z(c), cirq.H(d)])
+    assert cirq.commutes(m1, m2)
+
+    # Mixed case - some commute individually, some as group
+    m1 = cirq.Moment([cirq.Z(a), cirq.Z(b), cirq.X(c)])
+    m2 = cirq.Moment([cirq.XXPowGate(exponent=0.5)(a, b), cirq.X(c)])
+    assert cirq.commutes(m1, m2)
+
+    # Non-commuting case: X on first qubit, Z on second with XX gate
+    m1 = cirq.Moment([cirq.X(a), cirq.Z(b)])
+    m2 = cirq.Moment([cirq.XX(a, b)])
+    assert not cirq.commutes(m1, m2)
+
+    # Complex case requiring unitary calculation - non-commuting case
+    m1 = cirq.Moment([cirq.Z(a), cirq.Z(b), cirq.Z(c)])
+    m2 = cirq.Moment([cirq.XXPowGate(exponent=0.5)(a, b), cirq.X(c)])
+    assert not cirq.commutes(m1, m2)  # Z⊗Z⊗Z doesn't commute with XX⊗X
+
+
+def test_commutes_handles_non_unitary_operation():
+    a = cirq.NamedQubit('a')
+    op_damp_a = cirq.AmplitudeDampingChannel(gamma=0.1).on(a)
+    assert cirq.commutes(cirq.Moment(cirq.X(a)), op_damp_a, default=None) is None
+    assert cirq.commutes(cirq.Moment(cirq.X(a)), cirq.Moment(op_damp_a), default=None) is None
+    assert cirq.commutes(cirq.Moment(op_damp_a), cirq.Moment(op_damp_a))
 
 
 def test_transform_qubits():
