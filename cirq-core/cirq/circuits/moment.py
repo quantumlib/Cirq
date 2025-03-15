@@ -691,10 +691,10 @@ class Moment:
         # First try individual operation commutation checks as it's faster
         our_ops = {q: op for op in self.operations for q in op.qubits}
         their_ops = {q: op for op in other.operations for q in op.qubits}
-        
+
         shared_qubits = our_qubits.intersection(their_qubits)
         all_commute = True
-        
+
         for q in shared_qubits:
             our_op = our_ops[q]
             their_op = their_ops[q]
