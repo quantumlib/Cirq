@@ -659,7 +659,7 @@ class Moment:
         return diagram.render()
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
-        """Determines whether Moment commutes with another value.
+        """Determines whether Moment commutes with the other Moment or Operation.
 
         Args:
             other: An Operation or Moment object to test for commutativity.
@@ -668,8 +668,8 @@ class Moment:
                 reported as commuting. Defaults to 1e-8.
 
         Returns:
-            True: The Moment and Operation/Moment commute OR they don't have shared
-                qubits.
+            True: The Moment commutes with Moment or Operation OR they don't
+                have shared qubits.
             False: The two values do not commute.
             NotImplemented: In case we don't know how to check this, e.g.
                 the parameter type is not supported or commutativity cannot be
