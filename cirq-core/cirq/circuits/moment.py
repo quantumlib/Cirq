@@ -675,56 +675,56 @@ class Moment:
                 the parameter type is not supported or commutativity cannot be
                 determined.
         """
-        # Handle Operation case by converting to Moment
-        if isinstance(other, ops.Operation):
-            return self._commutes_(Moment([other]), atol=atol)
-
-        if not isinstance(other, Moment):
+        if not isinstance(other, (ops.Operation, Moment)):
             return NotImplemented
-
-        # If no shared qubits, they trivially commute
-        our_qubits = self.qubits
-        their_qubits = other.qubits
-        if not our_qubits.intersection(their_qubits):
+        self_keys = protocols.measurement_key_objs(self)
+        other_keys = protocols.measurement_key_objs(other)
+        if (
+            not self_keys.isdisjoint(other_keys)
+            or not protocols.control_keys(self).isdisjoint(other_keys)
+            or not protocols.control_keys(other).isdisjoint(self_keys)
+        ):
+            return False
+        shared_qubits = self.qubits.intersection(other.qubits)
+        if not shared_qubits:
             return True
 
-        # First try individual operation commutation checks as it's faster
-        our_ops = {q: op for op in self.operations for q in op.qubits}
-        their_ops = {q: op for op in other.operations for q in op.qubits}
+        # there are operations acting on shared_qubits in both self and other
+        self_ops_on_shared = [
+            op for op in self.operations if not shared_qubits.isdisjoint(op.qubits)
+        ]
+        other_ops_on_shared = (
+            [op for op in other.operations if not shared_qubits.isdisjoint(op.qubits)]
+            if isinstance(other, Moment)
+            else [other]
+        )
 
-        shared_qubits = our_qubits.intersection(their_qubits)
-        all_commute = True
-
-        for q in shared_qubits:
-            our_op = our_ops[q]
-            their_op = their_ops[q]
-            commutes = protocols.commutes(our_op, their_op, atol=atol, default=None)
-            if commutes is None:
-                # Can't determine commutation with this method
-                all_commute = None
-                break
-            if not commutes:
-                all_commute = False
-                break
-
-        if all_commute is True:
+        # shortcut if we have equivalent operations
+        if set(self_ops_on_shared) == set(other_ops_on_shared):
             return True
 
-        # If individual operations don't commute or we couldn't determine,
-        # try checking if the full moments commute using unitary matrices
-        try:
-            our_unitary = protocols.unitary(self, default=None)
-            their_unitary = protocols.unitary(other, default=None)
-            if our_unitary is not None and their_unitary is not None:
-                # Check if matrices commute
-                commutator = our_unitary @ their_unitary - their_unitary @ our_unitary
-                commutes = np.allclose(commutator, 0, atol=atol)
-                return commutes
-        except:
-            pass
+        # convert to CircuitOperation if needed and check as for operatins
+        from cirq.circuits.frozen_circuit import FrozenCircuit
 
-        # If we get here, we couldn't determine if they commute
-        return NotImplemented
+        self_as_op = (
+            self_ops_on_shared[0]
+            if len(self_ops_on_shared) == 1
+            else (
+                FrozenCircuit.from_moments(
+                    Moment(*self_ops_on_shared, _flatten_contents=False)
+                ).to_op()
+            )
+        )
+        other_as_op = (
+            other_ops_on_shared[0]
+            if len(other_ops_on_shared) == 1
+            else (
+                FrozenCircuit.from_moments(
+                    Moment(*other_ops_on_shared, _flatten_contents=False)
+                ).to_op()
+            )
+        )
+        return protocols.commutes(self_as_op, other_as_op, atol=atol, default=NotImplemented)
 
 
 class _SortByValFallbackToType:
