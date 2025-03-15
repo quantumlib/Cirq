@@ -731,6 +731,34 @@ def test_commutes_moment_and_moment():
     )
 
 
+def test_commutes_moment_with_controls():
+    a, b = cirq.LineQubit.range(2)
+    assert cirq.commutes(
+        cirq.Moment(cirq.measure(a, key='k0')), cirq.Moment(cirq.X(b).with_classical_controls('k1'))
+    )
+    assert cirq.commutes(
+        cirq.Moment(cirq.X(b).with_classical_controls('k1')), cirq.Moment(cirq.measure(a, key='k0'))
+    )
+    assert cirq.commutes(
+        cirq.Moment(cirq.X(a).with_classical_controls('k0')),
+        cirq.Moment(cirq.H(b).with_classical_controls('k0')),
+    )
+    assert cirq.commutes(
+        cirq.Moment(cirq.X(a).with_classical_controls('k0')),
+        cirq.Moment(cirq.X(a).with_classical_controls('k0')),
+    )
+    assert not cirq.commutes(
+        cirq.Moment(cirq.measure(a, key='k0')), cirq.Moment(cirq.X(b).with_classical_controls('k0'))
+    )
+    assert not cirq.commutes(
+        cirq.Moment(cirq.X(b).with_classical_controls('k0')), cirq.Moment(cirq.measure(a, key='k0'))
+    )
+    assert not cirq.commutes(
+        cirq.Moment(cirq.X(a).with_classical_controls('k0')),
+        cirq.Moment(cirq.H(a).with_classical_controls('k0')),
+    )
+
+
 def test_commutes_moment_and_moment_comprehensive():
     a, b, c, d = cirq.LineQubit.range(4)
 
