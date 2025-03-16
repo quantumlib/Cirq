@@ -27,9 +27,6 @@ identifiers:
   - description: The home page for Cirq
     value: https://quantumai.google/Cirq
     type: url
-  - description: The GitHub repository for Cirq
-    value: https://github.com/quantumlib/Cirq
-    type: url
   - description: PyPI project for Cirq
     value: https://pypi.org/project/Cirq
     type: url
