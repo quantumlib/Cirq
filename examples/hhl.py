@@ -381,11 +381,13 @@ class HHLAlgorithm:
             num_runs = 0  # number of calls to simulator.run
             # We use the algorithm "Quantum Searching Without Knowing Success Probability II"
             # from Kaye et al., Section 8.4.
+            # We perform 9 iterations, which suffices if the success probability p of a single run
+            # without amplification is at least 1/2^10.
             for l in range(1, 10):
                 M = 2**l
                 # Apply amplitude amplification a random number of times between 0 and M-1.
                 # For M large enough, doing this twice increases the success probability to
-                # 3/4 - O(1/(M*θ)), where θ is the angle such that sin^2(θ) equals the probability
+                # 3/4 - O(1/(M*θ)), where θ is the angle such that sin^2(θ) = p, the probability
                 # of success of a single run without amplification.
                 for _ in range(2):
                     j = random.randint(0, M - 1)
