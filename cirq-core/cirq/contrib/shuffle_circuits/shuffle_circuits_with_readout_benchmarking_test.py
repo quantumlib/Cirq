@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 import pytest
 
 import numpy as np
@@ -22,26 +23,32 @@ from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.study import ResultDict
 
 
+def _create_test_circuits(qubits: list[cirq.Qid], n_circuits: int) -> list[cirq.Circuit]:
+    """Helper function to generate circuits for testing."""
+    if len(qubits) < 2:
+        raise ValueError("Need at least two qubits to generate two-qubit circuits.")
+    two_qubit_gates = [cirq.ISWAP**0.5, cirq.CNOT**0.5]
+    input_circuits = []
+    qubit_pairs = list(itertools.combinations(qubits, 2))
+    num_pairs = len(qubit_pairs)
+    for i in range(n_circuits):
+        gate = two_qubit_gates[i % len(two_qubit_gates)]
+        q0, q1 = qubit_pairs[i % num_pairs]
+        circuits = rqcg.generate_library_of_2q_circuits(
+            n_library_circuits=5, two_qubit_gate=gate, q0=q0, q1=q1
+        )
+        for circuit in circuits:
+            circuit.append(cirq.measure(*qubits, key="m"))
+        input_circuits.extend(circuits)
+    return input_circuits
+
+
 def test_shuffled_circuits_with_readout_benchmarking_errors_no_noise():
     """Test shuffled circuits with readout benchmarking with no noise from sampler."""
     qubits = cirq.LineQubit.range(5)
 
     # Generate random input circuits
-    input_circuits = []
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits[0], q1=qubits[2]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits[1], q1=qubits[3]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits[0], q1=qubits[4]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits[2], q1=qubits[4]
-    )
-    for circuit in input_circuits:
-        circuit.append(cirq.measure(*qubits, key="m"))
+    input_circuits = _create_test_circuits(qubits, 3)
 
     sampler = cirq.Simulator()
     circuit_repetitions = 1
@@ -79,24 +86,7 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise():
     qubits = cirq.LineQubit.range(6)
 
     # Generate random input circuits
-    input_circuits = []
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits[0], q1=qubits[1]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits[1], q1=qubits[3]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits[0], q1=qubits[4]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits[2], q1=qubits[4]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits[2], q1=qubits[5]
-    )
-    for circuit in input_circuits:
-        circuit.append(cirq.measure(*qubits, key="m"))
+    input_circuits = _create_test_circuits(qubits, 6)
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
     circuit_repetitions = 1
@@ -136,24 +126,7 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise_and_input
     readout_qubits = qubits[:4]
 
     # Generate random input circuits
-    input_circuits = []
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits[0], q1=qubits[1]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits[1], q1=qubits[2]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits[0], q1=qubits[2]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits[4], q1=qubits[3]
-    )
-    input_circuits += rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits[2], q1=qubits[5]
-    )
-    for circuit in input_circuits:
-        circuit.append(cirq.measure(*qubits, key="m"))
+    input_circuits = _create_test_circuits(qubits, 6)
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.3, seed=1234)
     circuit_repetitions = 1
@@ -196,31 +169,7 @@ def test_shuffled_circuits_with_readout_benchmarking_errors_with_noise_and_lists
     readout_qubits = [qubits_1, qubits_2]
 
     # Generate random input circuits and append measurements
-    input_circuit_1 = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits_1[0], q1=qubits_1[1]
-    )
-    for circuit in input_circuit_1:
-        circuit.append(cirq.Circuit(cirq.measure(*qubits_1, key="m")))
-
-    input_circuit_2 = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits_1[1], q1=qubits_1[2]
-    )
-    for circuit in input_circuit_2:
-        circuit.append(cirq.Circuit(cirq.measure(*qubits_1, key="m")))
-
-    input_circuit_3 = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits_2[0], q1=qubits_2[3]
-    )
-    for circuit in input_circuit_3:
-        circuit.append(cirq.Circuit(cirq.measure(*qubits_2, key="m")))
-
-    input_circuit_4 = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits_2[1], q1=qubits_1[2]
-    )
-    for circuit in input_circuit_4:
-        circuit.append(cirq.Circuit(cirq.measure(*qubits_2, key="m")))
-
-    input_circuits = input_circuit_1 + input_circuit_2 + input_circuit_3 + input_circuit_4
+    input_circuits = _create_test_circuits(qubits_1, 6) + _create_test_circuits(qubits_2, 4)
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.3, seed=1234)
     circuit_repetitions = 1
@@ -263,31 +212,7 @@ def test_can_handle_zero_random_bitstring():
     readout_qubits = [qubits_1, qubits_2]
 
     # Generate random input circuits and append measurements
-    input_circuit_1 = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits_1[0], q1=qubits_1[1]
-    )
-    for circuit in input_circuit_1:
-        circuit.append(cirq.Circuit(cirq.measure(*qubits_1, key="m")))
-
-    input_circuit_2 = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits_1[1], q1=qubits_1[2]
-    )
-    for circuit in input_circuit_2:
-        circuit.append(cirq.Circuit(cirq.measure(*qubits_1, key="m")))
-
-    input_circuit_3 = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.CNOT**0.5, q0=qubits_2[0], q1=qubits_2[3]
-    )
-    for circuit in input_circuit_3:
-        circuit.append(cirq.Circuit(cirq.measure(*qubits_2, key="m")))
-
-    input_circuit_4 = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, q0=qubits_2[1], q1=qubits_1[2]
-    )
-    for circuit in input_circuit_4:
-        circuit.append(cirq.Circuit(cirq.measure(*qubits_2, key="m")))
-
-    input_circuits = input_circuit_1 + input_circuit_2 + input_circuit_3 + input_circuit_4
+    input_circuits = _create_test_circuits(qubits_1, 6) + _create_test_circuits(qubits_2, 4)
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.3, seed=1234)
     circuit_repetitions = 1

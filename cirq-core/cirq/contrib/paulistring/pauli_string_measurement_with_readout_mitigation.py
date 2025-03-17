@@ -25,7 +25,7 @@ from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 from cirq.study import ResultDict
 
 
-@attrs.define
+@attrs.frozen
 class PauliStringMeasurementResult:
     """Result of measuring a Pauli string.
 
@@ -43,10 +43,10 @@ class PauliStringMeasurementResult:
     mitigated_stddev: float
     unmitigated_expectation: float
     unmitigated_stddev: float
-    calibration_result: Optional[SingleQubitReadoutCalibrationResult]
+    calibration_result: Optional[SingleQubitReadoutCalibrationResult] = None
 
 
-@attrs.define
+@attrs.frozen
 class CircuitToPauliStringsMeasurementResult:
     """Result of measuring Pauli strings on a circuit.
 
@@ -61,10 +61,10 @@ class CircuitToPauliStringsMeasurementResult:
 
 def _validate_input(
     circuits_to_pauli: Dict[circuits.FrozenCircuit, list[ops.PauliString]],
-    rng_or_seed: Union[np.random.Generator, int],
     pauli_repetitions: int,
     readout_repetitions: int,
     num_random_bitstrings: int,
+    rng_or_seed: Union[np.random.Generator, int],
 ):
     if not circuits_to_pauli:
         raise ValueError("Input circuits must not be empty.")
@@ -132,7 +132,7 @@ def _pauli_string_to_basis_change_ops(
         if qubit in pauli_string:
             pauli_op = pauli_string[qubit]
             if pauli_op == ops.X:
-                operations.append(ops.ry(-np.pi / 2)(qubit))
+                operations.append(ops.ry(-np.pi / 2)(qubit))  # =cirq.H
             elif pauli_op == ops.Y:
                 operations.append(ops.rx(np.pi / 2)(qubit))
             # If pauli_op is Z or I, no operation needed
@@ -181,10 +181,7 @@ def _build_many_one_qubits_confusion_matrix(
 
 def _build_many_one_qubits_empty_confusion_matrix(qubits_length: int) -> list[np.ndarray]:
     """Builds a list of empty confusion matrices"""
-    cms: list[np.ndarray] = []
-    for _ in range(qubits_length):
-        cms.append(_build_one_qubit_confusion_matrix(0, 0))
-    return cms
+    return [_build_one_qubit_confusion_matrix(0, 0) for _ in range(qubits_length)]
 
 
 def _process_pauli_measurement_results(
@@ -216,12 +213,7 @@ def _process_pauli_measurement_results(
             expectation values.
 
     Returns:
-        A list of PauliStringMeasurementResult objects, where each object contains:
-            - The Pauli string that was measured.
-            - The mitigated expectation value of the Pauli string.
-            - The standard deviation of the mitigated expectation value.
-            - The unmitigated expectation value of the Pauli string.
-            - The standard deviation of the unmitigated expectation value.
+        A list of PauliStringMeasurementResult.
     """
 
     pauli_measurement_results: List[PauliStringMeasurementResult] = []
@@ -283,10 +275,10 @@ def _process_pauli_measurement_results(
 def measure_pauli_strings(
     circuits_to_pauli: Dict[circuits.FrozenCircuit, list[ops.PauliString]],
     sampler: work.Sampler,
-    rng_or_seed: Union[np.random.Generator, int],
     pauli_repetitions: int,
     readout_repetitions: int,
     num_random_bitstrings: int,
+    rng_or_seed: Union[np.random.Generator, int],
 ) -> List[CircuitToPauliStringsMeasurementResult]:
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.
@@ -304,13 +296,13 @@ def measure_pauli_strings(
         circuits_to_pauli: A dictionary mapping circuits to a list of Pauli strings
             to measure.
         sampler: The sampler to use.
-        rng_or_seed: A random number generator or seed for the shuffled benchmarking.
         pauli_repetitions: The number of repetitions for each circuit when measuring
             Pauli strings.
         readout_repetitions: The number of repetitions for readout calibration
             in the shuffled benchmarking.
         num_random_bitstrings: The number of random bitstrings to use in shuffled
             benchmarking.
+        rng_or_seed: A random number generator or seed for the shuffled benchmarking.
 
     Returns:
         A list of CircuitToPauliStringsMeasurementResult objects, where each object contains:
@@ -321,10 +313,10 @@ def measure_pauli_strings(
 
     _validate_input(
         circuits_to_pauli,
-        rng_or_seed,
         pauli_repetitions,
         readout_repetitions,
         num_random_bitstrings,
+        rng_or_seed,
     )
 
     # Extract unique qubit tuples from input pauli strings
