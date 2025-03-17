@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     import cirq
 
 # Lazy imports to break circular dependencies.
-circuits = LazyLoader("circuits", globals(), "cirq.circuits.circuit")
+circuit = LazyLoader("circuit", globals(), "cirq.circuits.circuit")
 op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
 text_diagram_drawer = LazyLoader(
     "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
@@ -525,7 +525,7 @@ class Moment:
         return cls.from_ops(*operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-        if isinstance(other, circuits.AbstractCircuit):
+        if isinstance(other, circuit.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
