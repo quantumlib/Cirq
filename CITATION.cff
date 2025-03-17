@@ -3,6 +3,8 @@
 # CITATION.cff files provide human- & machine-readable citation information for
 # software and datasets. GitHub, Zenodo, and the Zotero browser plugin all use
 # CFF files automatically if provided. https://citation-file-format.github.io/.
+#
+# Tools exist to generate CITATION.cff files from other formats such as BibTeX.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 cff-version: 1.2.0
