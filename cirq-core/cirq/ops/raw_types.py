@@ -1132,6 +1132,11 @@ def _operations_commutes_impl(
     ops2_raw = [
         op.without_classical_controls() for op in ops2 if not shared_qubits.isdisjoint(op.qubits)
     ]
+
+    # shortcut if we have equivalent operations
+    if set(ops1_raw) == set(ops2_raw):
+        return True
+
     ops1_group = circuits.Moment(ops1_raw) if len(ops1_raw) > 1 else ops1_raw
     ops2_group = circuits.Moment(ops2_raw) if len(ops2_raw) > 1 else ops2_raw
     circuit12 = circuits.Circuit(ops1_group, ops2_group)

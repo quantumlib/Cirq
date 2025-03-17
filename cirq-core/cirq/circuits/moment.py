@@ -677,54 +677,8 @@ class Moment:
         """
         if not isinstance(other, (ops.Operation, Moment)):
             return NotImplemented
-        self_keys = protocols.measurement_key_objs(self)
-        other_keys = protocols.measurement_key_objs(other)
-        if (
-            not self_keys.isdisjoint(other_keys)
-            or not protocols.control_keys(self).isdisjoint(other_keys)
-            or not protocols.control_keys(other).isdisjoint(self_keys)
-        ):
-            return False
-        shared_qubits = self.qubits.intersection(other.qubits)
-        if not shared_qubits:
-            return True
-
-        # there are operations acting on shared_qubits in both self and other
-        self_ops_on_shared = [
-            op for op in self.operations if not shared_qubits.isdisjoint(op.qubits)
-        ]
-        other_ops_on_shared = (
-            [op for op in other.operations if not shared_qubits.isdisjoint(op.qubits)]
-            if isinstance(other, Moment)
-            else [other]
-        )
-
-        # shortcut if we have equivalent operations
-        if set(self_ops_on_shared) == set(other_ops_on_shared):
-            return True
-
-        # convert to CircuitOperation if needed and check as for operatins
-        from cirq.circuits.frozen_circuit import FrozenCircuit
-
-        self_as_op = (
-            self_ops_on_shared[0]
-            if len(self_ops_on_shared) == 1
-            else (
-                FrozenCircuit.from_moments(
-                    Moment(*self_ops_on_shared, _flatten_contents=False)
-                ).to_op()
-            )
-        )
-        other_as_op = (
-            other_ops_on_shared[0]
-            if len(other_ops_on_shared) == 1
-            else (
-                FrozenCircuit.from_moments(
-                    Moment(*other_ops_on_shared, _flatten_contents=False)
-                ).to_op()
-            )
-        )
-        return protocols.commutes(self_as_op, other_as_op, atol=atol, default=NotImplemented)
+        other_operations = other.operations if isinstance(other, Moment) else (other,)
+        return raw_types._operations_commutes_impl(self.operations, other_operations, atol=atol)
 
 
 class _SortByValFallbackToType:
