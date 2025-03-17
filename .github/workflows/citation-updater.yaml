@@ -1,0 +1,102 @@
+# Zero-config modular workflow for updating CITATION.cff upon new releases.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+name: CITATION.cff updater
+run-name: Update CITATION.cff for new release
+
+on:
+  release:
+    types: [published]
+
+  # Allow manual invocation.
+  workflow_dispatch:
+    inputs:
+      use_tag:
+        description: 'Value of tag_name to use:'
+        type: string
+        required: true
+      use_date:
+        description: 'Value of published_date to use:'
+        type: string
+        required: true
+
+# Declare default permissions as read only.
+permissions: read-all
+
+# Cancel any previously-started but still active runs on the same branch.
+concurrency:
+  cancel-in-progress: true
+  group: ${{github.workflow}}-${{github.event.pull_request.number||github.ref}}
+
+jobs:
+  update-citation-cff:
+    name: Update CITATION.cff file
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      version_tag: ${{inputs.use_tag || github.event.release.tag_name}}
+      pub_date: ${{inputs.use_date || github.event.release.published_at}}
+    steps:
+      - if: ${{!env.version_tag || !env.pub_date}}
+        name: Quit if the release tag or publication date is empty
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          script: |
+            core.setFailed('The release version and/or date could not be read')
+
+      - name: Check out a copy of the git repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Verify that this repo has a CITATION.cff file
+        id: check
+        run: |
+          [[ -f CITATION.cff ]] && have_cff=true || have_cff=false
+          echo "has_cff_file=$have_cff" >> "$GITHUB_OUTPUT"
+
+      - if: steps.check.outputs.has_cff_file == 'false'
+        name: Quit if there is no CITATION.cff file
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          script: |
+            core.setFailed('Could not find a CITATION.cff file')
+
+      - name: Update the CITATION.cff file
+        id: update
+        run: |
+          echo "::group::CITATION.cff file before update"
+          cat CITATION.cff
+          echo "::endgroup::"
+
+          set -x
+          version="${{env.version_tag}}"
+          version="${version#v}"
+          date=$(date -u -d "${{env.pub_date}}" +"%Y-%m-%d")
+          sed -i "s/^version:.*$/version: '$version'/" CITATION.cff
+          sed -i "s/^date-released:.*$/date-released: $date/" CITATION.cff
+
+          # Sanity-check that the result looks valid.
+          success=true
+          yamllint CITATION.cff > /dev/null 2>&1 || success=false
+          written_version=$(yq -r .version CITATION.cff)
+          [[ "$version" == "$written_version" ]] || success=false
+          echo "success=$success" >> "$GITHUB_OUTPUT"
+
+          echo "::group::CITATION.cff file after update"
+          cat CITATION.cff
+          echo "::endgroup::"
+
+      - if: steps.update.outputs.success == 'false'
+        name: Quit if CITATION.cff update failed
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          script: |
+            core.setFailed('CITATION.cff update failed or the file is not valid')
+
+      - if: steps.update.outputs.success == 'true'
+        name: Commit the updated CITATION.cff back to the repo
+        uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9
+        with:
+          add: CITATION.cff
+          message: 'Update version and date in CITATION.cff file'
