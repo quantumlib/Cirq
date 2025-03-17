@@ -689,9 +689,11 @@ class CircuitSerializer(serializer.Serializer):
             )
             op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos or 0.0))(*qubits)
         elif which_gate_type == 'resetgate':
-            dimensions = arg_func_langs.arg_from_proto(
-                operation_proto.resetgate.arguments.get('dimension', 2)
-            )
+            dimensions_proto = operation_proto.resetgate.arguments.get('dimension', None)
+            if dimensions_proto is not None:
+                dimensions = arg_func_langs.arg_from_proto(dimensions_proto)
+            else:
+                dimensions = 2
             if not isinstance(dimensions, int):
                 # This should always be int, if serialized from cirq.
                 raise ValueError(f"dimensions {dimensions} for ResetChannel must be an integer!")

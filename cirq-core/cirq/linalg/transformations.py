@@ -407,7 +407,7 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     if not all(i < ndim for i in keep_indices):
         raise ValueError(
             f'keep_indices were {keep_indices} but must be in first half, '
-            f'i.e. have index less that {ndim}.'
+            f'i.e. have index less than {ndim}.'
         )
     keep_set = set(keep_indices)
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
