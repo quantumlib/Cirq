@@ -137,8 +137,8 @@ class QubitMeasurementResult(google.protobuf.message.Message):
     results: builtins.bytes
     """These are the results of a measurement on a qubit. The number of bits
     measured is equal to repetitions * instances, where repetitions is defined
-    in the SweepResult message, and instances is defined in the MeasurementResult
-    message.
+    in the SweepResult message, and instances is defined in the
+    MeasurementResult message.
 
     The bytes in this field are constructed as follows:
 
