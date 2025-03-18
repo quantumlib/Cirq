@@ -15,12 +15,6 @@
 import cirq
 import cirq.contrib.qcircuit as ccq
 
-
-# Update - Debugging complete - new testcases required
-#TODO: Testcase required here for methods:
-#       convert_text_diagram_info_to_qcircuit_diagram_info
-#       multigate_qcircuit_diagram_info
-
 def test_get_qcircuit_diagram_info():
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 
@@ -53,7 +47,7 @@ def test_get_qcircuit_diagram_info():
     )
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     expected_info = cirq.CircuitDiagramInfo(
-        (r'\ghost{\text{SWAP}}', r'\multigate{1}{\text{SWAP}}'), connected=False
+        (r'\qswap\qwx', r'\qswap'), connected=False
     )
     assert actual_info == expected_info
 
@@ -71,3 +65,5 @@ def test_get_qcircuit_diagram_info():
 
     actual_info = ccq.get_qcircuit_diagram_info(op, cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
     assert actual_info == expected_info
+
+test_get_qcircuit_diagram_info()

@@ -15,6 +15,7 @@
 import cirq
 import cirq.contrib.qcircuit as ccq
 import cirq.testing as ct
+import cirq.contrib.qcircuit.qcircuit_pdf as pdf
 
 
 def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) -> None:
@@ -101,7 +102,6 @@ def test_teleportation_diagram():
  &\lstick{\text{bob}}&     \qw&                      \qw&\targ    \qw\qwx&         \qw    &                \qw&\targ    \qw\qwx&\control \qw\qwx&\qw\\
  \\
 }""".strip()
-    print(circuit)
     assert_has_qcircuit_diagram(
         circuit, expected_diagram, qubit_order=cirq.QubitOrder.explicit([ali, car, bob])
     )
@@ -181,7 +181,6 @@ def test_latex_formatting():
         cirq.SWAP(q0, q1),
         cirq.SWAP(q1, q2)
     )
-    print(circuit)
 
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
@@ -189,8 +188,7 @@ def test_latex_formatting():
  &\lstick{\text{q(0)}}& \qw&\ctrlo{} \qw    &\control \qw    &\targ    \qw    &\qswap     \qw&           \qw&\qw\\
  &\lstick{\text{q(1)}}& \qw&\control \qw\qwx&\targ    \qw\qwx&\ctrlo{} \qw\qwx&\qswap\qwx \qw&\qswap     \qw&\qw\\
  &\lstick{\text{q(2)}}& \qw&\targ    \qw\qwx&\ctrlo{} \qw\qwx&\control \qw\qwx&           \qw&\qswap\qwx \qw&\qw\\
+ \\
 }""".strip()
     
     assert_has_qcircuit_diagram(circuit, expected_diagram)
-
-# test_latex_formatting()
