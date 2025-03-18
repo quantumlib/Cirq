@@ -21,7 +21,7 @@ updates:
     # in the specified directory.
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "area/dependencies"
       - "area/docker"
@@ -32,7 +32,7 @@ updates:
     # value "/" is given for the directory attribute. Yes, that's confusing.
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "area/dependencies"
       - "area/github"
@@ -60,11 +60,9 @@ updates:
       - "kind/health"
 
   - package-ecosystem: "pip"
-    # Cirq has requirements.txt files in multiple places. N.b. the use of
-    # attribute "directories" instead of "directory" here.
     directory: "/dev_tools/requirements/deps"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: "increase-if-necessary"
     labels:
       - "area/dependencies"
