@@ -26,7 +26,7 @@ from cirq.study import ResultDict
 def _create_test_circuits(qubits: list[cirq.Qid], n_circuits: int) -> list[cirq.Circuit]:
     """Helper function to generate circuits for testing."""
     if len(qubits) < 2:
-        raise ValueError("Need at least two qubits to generate two-qubit circuits.")
+        raise ValueError("Need at least two qubits to generate two-qubit circuits.") # pragma: no cover
     two_qubit_gates = [cirq.ISWAP**0.5, cirq.CNOT**0.5]
     input_circuits = []
     qubit_pairs = list(itertools.combinations(qubits, 2))
