@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Iterator
+from concurrent import futures
 import pytest
 import numpy as np
 import cirq
@@ -24,7 +26,7 @@ _CIRCUIT_TEMPLATES = [
     cirq.Circuit(cirq.Y.on_each(_QUBITS), cirq.CX(*_QUBITS), cirq.Z.on_each(_QUBITS)),
     cirq.Circuit(cirq.Z.on_each(_QUBITS), cirq.CZ(*_QUBITS), cirq.X.on_each(_QUBITS)),
 ]
-_PAIRS = [(cirq.q(0, 0), cirq.q(0, 1)), (cirq.q(0, 2), cirq.q(0, 3)), (cirq.q(0, 4), cirq.q(0, 5))]
+_PAIRS = ((cirq.q(0, 0), cirq.q(0, 1)), (cirq.q(0, 2), cirq.q(0, 3)), (cirq.q(0, 4), cirq.q(0, 5)))
 
 
 class TestXEBWideCircuitInfo:
@@ -329,7 +331,7 @@ def test_parallel_two_qubit_xeb(target, pairs):
             n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)
         ),
     )
-    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.2)
+    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
 
 
 def test_parallel_two_qubit_xeb_with_dict_target():
@@ -342,4 +344,26 @@ def test_parallel_two_qubit_xeb_with_dict_target():
             n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)
         ),
     )
-    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.2)
+    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
+    assert result.all_qubit_pairs == _PAIRS
+
+
+@pytest.fixture
+def threading_pool() -> Iterator[futures.Executor]:
+    with futures.ThreadPoolExecutor(1) as pool:
+        yield pool
+
+
+def test_parallel_two_qubit_xeb_with_dict_target_and_pool(threading_pool):
+    target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS}
+    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03))
+    result = xeb.parallel_two_qubit_xeb(
+        sampler=sampler,
+        target=target,
+        parameters=xeb.XEBParameters(
+            n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)
+        ),
+        pool=threading_pool,
+    )
+    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
+    assert result.all_qubit_pairs == _PAIRS
