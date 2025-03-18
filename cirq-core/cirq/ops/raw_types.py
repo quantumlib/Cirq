@@ -1114,8 +1114,8 @@ def _operations_commutes_impl(
     ):
         return False
 
-    ops1_qubits = frozenset(q for op in ops1 for q in op.qubits)
-    ops2_qubits = frozenset(q for op in ops2 for q in op.qubits)
+    ops1_qubits = frozenset().union(*(op.qubits for op in ops1))
+    ops2_qubits = frozenset().union(*(op.qubits for op in ops2))
     if ops1_qubits.isdisjoint(ops2_qubits):
         return True
 
@@ -1132,15 +1132,15 @@ def _operations_commutes_impl(
     ops2_raw = [
         op.without_classical_controls() for op in ops2 if not shared_qubits.isdisjoint(op.qubits)
     ]
+    moment1 = circuits.Moment(ops1_raw)
+    moment2 = circuits.Moment(ops2_raw)
 
-    # shortcut if we have equivalent operations
-    if set(ops1_raw) == set(ops2_raw):
+    # shortcut if we have equal moments
+    if moment1 == moment2:
         return True
 
-    ops1_group = circuits.Moment(ops1_raw) if len(ops1_raw) > 1 else ops1_raw
-    ops2_group = circuits.Moment(ops2_raw) if len(ops2_raw) > 1 else ops2_raw
-    circuit12 = circuits.Circuit(ops1_group, ops2_group)
-    circuit21 = circuits.Circuit(ops2_group, ops1_group)
+    circuit12 = circuits.Circuit(moment1, moment2)
+    circuit21 = circuits.Circuit(moment2, moment1)
 
     # Don't create gigantic matrices.
     shape = protocols.qid_shape_protocol.qid_shape(circuit12)
