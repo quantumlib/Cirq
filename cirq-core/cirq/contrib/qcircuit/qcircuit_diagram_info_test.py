@@ -65,5 +65,3 @@ def test_get_qcircuit_diagram_info():
 
     actual_info = ccq.get_qcircuit_diagram_info(op, cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
     assert actual_info == expected_info
-
-test_get_qcircuit_diagram_info()
