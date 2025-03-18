@@ -30,9 +30,7 @@ def test_get_qcircuit_diagram_info():
     )
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     name = r'{\text{SWAP}^{0.5}}'
-    expected_info = cirq.CircuitDiagramInfo(
-        (r'\multigate{1}' + name, r'\ghost' + name), exponent=1, connected=False
-    )
+    expected_info = cirq.CircuitDiagramInfo((r'\multigate{1}' + name, r'\ghost' + name), exponent=1, connected=False)
     assert actual_info == expected_info
 
     gate = cirq.SWAP

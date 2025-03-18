@@ -15,7 +15,7 @@
 import cirq
 import cirq.contrib.qcircuit as ccq
 import cirq.testing as ct
-import cirq.contrib.qcircuit.qcircuit_pdf as pdf
+# import cirq.contrib.qcircuit.qcircuit_pdf as pdf
 
 
 def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) -> None:
@@ -179,7 +179,7 @@ def test_latex_formatting():
         custom_gate(q2, q0, q1),
         custom_gate(q1, q2, q0),
         cirq.SWAP(q0, q1),
-        cirq.SWAP(q1, q2)
+        cirq.SWAP(q1, q2),
     )
 
     expected_diagram = r"""
@@ -193,34 +193,30 @@ def test_latex_formatting():
     
     assert_has_qcircuit_diagram(circuit, expected_diagram)
 
-def test_pdf_custom_gates():
-    # test for proper rendering of failing latex formats in a pdf
-    q0, q1, q2 = cirq.LineQubit.range(3)
+
+# def test_pdf_custom_gates():
+#     # test for proper rendering of failing latex formats in a pdf
+#     q0, q1, q2 = cirq.LineQubit.range(3)
     
-    # custom gate with a control for zero and one
-    custom_gate = cirq.X.controlled(2, control_values=(0, 1))
+#     # custom gate with a control for zero and one
+#     custom_gate = cirq.X.controlled(2, control_values=(0, 1))
 
-    circuit = cirq.Circuit(
-        custom_gate(q0, q1, q2),
-        custom_gate(q2, q0, q1),
-        custom_gate(q1, q2, q0),
-        cirq.SWAP(q0, q1),
-        cirq.SWAP(q1, q2)
-    )
+#     circuit = cirq.Circuit(
+#         custom_gate(q0, q1, q2),
+#         custom_gate(q2, q0, q1),
+#         custom_gate(q1, q2, q0),
+#         cirq.SWAP(q0, q1),
+#         cirq.SWAP(q1, q2),
+#     )
 
-    pdf_kwargs = {
-        'compiler': 'latexmk',
-        'compiler_args': [
-            '-pdf',
-            '-f',
-            '-pdflatex=xelatex',
-            '-quiet'
-        ]
-    }
+#     pdf_kwargs = {
+#         'compiler': 'latexmk',
+#         'compiler_args': ['-pdf', '-f', '-pdflatex=xelatex', '-quiet'],
+#     }
 
-    remove = ['aux', 'fdb_latexmk', 'fls', 'log']
+#     remove = ['aux', 'fdb_latexmk', 'fls', 'log']
 
-    # This test was facing errors due to technical issues in qcuircuit_pdf.py that are out of scope of my issue (4685)
-    # It will remain commented out until a resolution is found, or until it is realized that this test is not necessary
+#     # This test was facing errors due to technical issues in qcuircuit_pdf.py that are out of scope of my issue (4685)
+#     # It will remain commented out until a resolution is found, or until it is realized that this test is not necessary
 
-    # pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, "./cirq-core/cirq/contrib/qcircuit/pdf_test_files/test", pdf_kwargs, None, remove)
+#     # pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, "./cirq-core/cirq/contrib/qcircuit/pdf_test_files/test", pdf_kwargs, None, remove)

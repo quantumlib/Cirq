@@ -33,18 +33,7 @@ def escape_text_for_latex(text):
     return r'\text{' + escaped + '}'
 
 def escape_text_for_latex_custom_control_gate(text):
-    return (
-        text.replace('(0)', r'\ctrlo{}')
-        .replace('@', r'\control')
-        .replace('X', r'\targ')
-    )
-
-def escape_text_for_latex_swap_gate(text):
-    return (
-        text.replace('SWAP', r'\qswap')
-        .replace('@', r'\control')
-        .replace('X', r'\targ')
-    )
+    return text.replace('(0)', r'\ctrlo{}').replace('@', r'\control').replace('X', r'\targ')
 
 def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional[Tuple[int, int]]:
     if (args.label_map is None) or (args.known_qubits is None):
@@ -81,10 +70,12 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
     info: protocols.CircuitDiagramInfo,
 ) -> protocols.CircuitDiagramInfo:
     symbols = None
-    if len(info.wire_symbols) == 3 and \
-            '(0)' in info.wire_symbols and \
-            '@' in info.wire_symbols and \
-            'X' in info.wire_symbols:
+    if (
+        len(info.wire_symbols) == 3 
+        and '(0)' in info.wire_symbols
+        and '@' in info.wire_symbols
+        and 'X' in info.wire_symbols
+    ):
         labels = [escape_text_for_latex_custom_control_gate(e) for e in info.wire_symbols]
         symbols = tuple(l for l in labels)
     else:
@@ -115,10 +106,12 @@ def multigate_qcircuit_diagram_info(
     assert args.label_map is not None
     assert args.known_qubits is not None
 
-    if (op.gate == ops.SWAP):
+    if op.gate == ops.SWAP:
         box = r'\qswap'
         ghost = r'\qswap\qwx'
-        symbols = tuple(box if (args.label_map[q] == min_index) else ghost for q in args.known_qubits)
+        symbols = tuple(
+            box if (args.label_map[q] == min_index) else ghost for q in args.known_qubits
+        )
     else:
         name = escape_text_for_latex(
             str(op.gate).rsplit('**', 1)[0] if isinstance(op, ops.GateOperation) else str(op)
@@ -127,7 +120,9 @@ def multigate_qcircuit_diagram_info(
             name += '^{' + str(info.exponent) + '}'
         box = r'\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
         ghost = r'\ghost{' + name + '}'
-        symbols = tuple(box if (args.label_map[q] == min_index) else ghost for q in args.known_qubits)
+        symbols = tuple(
+            box if (args.label_map[q] == min_index) else ghost for q in args.known_qubits
+        )
         # Force exponent=1 to defer to exponent formatting given above.
 
     return protocols.CircuitDiagramInfo(symbols, connected=False)
