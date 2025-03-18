@@ -14,4 +14,4 @@
 
 """A subpackage with modules and methods for error mitigation."""
 
-from cirq.experiments.benchmarking.parallel_xeb import parallel_xeb_workflow
+from cirq.experiments.benchmarking.parallel_xeb import parallel_two_qubit_xeb
