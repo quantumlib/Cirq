@@ -96,7 +96,7 @@ class XEBWideCircuitInfo:
         """
         transformed_circuits = []
         has_circuit_operations = False
-        for i, pair in zip(permutation, pairs):
+        for i, pair in zip(permutation, pairs, strict=True):
             circuit = circuit_templates[i].transform_qubits(lambda q: pair[q.x])
             if isinstance(target, ops.Operation):
                 xeb_op = target.with_qubits(*pair)
@@ -386,10 +386,10 @@ def _reshape_sampling_results(
         pair: [[np.empty(0)] * num_templates for _ in range(len(cycle_depths))] for pair in pairs
     }
 
-    for sampling_result, info in zip(sampling_results, wide_circuits_info):
+    for sampling_result, info in zip(sampling_results, wide_circuits_info, strict=True):
         cycle_depth = info.cycle_depth
         cycle_idx = cycle_depth_to_index[cycle_depth]
-        for template_idx, pair in zip(info.narrow_template_indicies, info.pairs):
+        for template_idx, pair in zip(info.narrow_template_indicies, info.pairs, strict=True):
             pair = _canonize_pair(pair)
             key = str(pair)
             if key not in sampling_result:
@@ -428,6 +428,22 @@ def _reshape_simulation_results(
                 common_pure_probs[cycle_idx][template_idx] = pure_probs
         return {pair: common_pure_probs for pair in pairs}
 
+@attrs.frozen
+class XEBFidelity:
+    """The estimated fidelity of a given pair at a give cycle depth.
+    
+    Attributes:
+        pair: A qubit pair.
+        cycle_depth: The depth of the cycle.
+        fidelity: The estimated fidelity.
+        fidelity_variance: The estimated fidelity variance.
+    """
+
+    pair: _QUBIT_PAIR_T
+    cycle_depth: int
+    fidelity: float
+    fidelity_variance: float
+
 
 def estimate_fidilties(
     sampling_results: Sequence[dict[str, np.ndarray]],
@@ -438,7 +454,7 @@ def estimate_fidilties(
     wide_circuits_info: Sequence[XEBWideCircuitInfo],
     pairs: Sequence[_QUBIT_PAIR_T],
     num_templates: int,
-) -> pd.DataFrame:
+) -> Sequence[XEBFidelity]:
     """Estimates the fidelities from the given sampling and simulation results.
     
     Args:
@@ -451,10 +467,7 @@ def estimate_fidilties(
         num_templates: The number of circuit templates used for benchmarking,
     
     Returns:
-        A DataFrame with three columns:
-            - pair: The qubit pair.
-            - cycle_depth: The cycle depth.
-            - fidelity: The estimated fidelity at that depth.
+        A sequence of XEBFidilty objects.
     """
 
     sampled_probabilities = _reshape_sampling_results(
@@ -471,6 +484,7 @@ def estimate_fidilties(
         for depth_idx, cycle_depth in enumerate(cycle_depths):
             numerator = 0.0
             denominator = 0.0
+            fidelity_variance = 0.0
             for template_idx in range(num_templates):
                 pure_probs = pure_probabilities[pair][depth_idx][template_idx]
                 sampled_probs = sampled_probabilities[pair][depth_idx][template_idx]
@@ -488,9 +502,13 @@ def estimate_fidilties(
                 x = e_u - u_u
                 numerator += x * y
                 denominator += x**2
+                # Var[f] = Var['numerator'] / (sum ['denominator'])^2
+                #           = sum (['x']^2 * ['var_m_u']) / (sum ['denominator'])^2
+                fidelity_variance += var_m_u * x**2
             fidelity = numerator / denominator
-            records.append({'pair': pair, 'fidelity': fidelity, 'cycle_depth': cycle_depth})
-    return pd.DataFrame.from_records(records)
+            fidelity_variance /= denominator ** 2
+            records.append(XEBFidelity(pair=pair, cycle_depth=cycle_depth, fidelity=fidelity, fidelity_variance=fidelity_variance))
+    return records
 
 
 def parallel_xeb_workflow(
@@ -501,7 +519,23 @@ def parallel_xeb_workflow(
     parameters: XEBParameters = XEBParameters(),
     rng: Optional[np.random.Generator] = None,
     pool: Optional[futures.Executor] = None,
-):
+) -> Sequence[XEBFidelity]:
+    """A utility method that runs the full XEB workflow.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        target: The entangling gate to use.
+        qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
+        rng: The random number generator to use.
+        pool: An optional `concurrent.futures.Executor` pool.
+
+    Returns:
+        A sequence of XEBFidelity listing the estimated fidelity for each qubit_pair per depth.
+
+    Raises:
+        ValueError: If qubits are not specified and the sampler has no device.
+    """
     if rng is None:
         rng = np.random.default_rng()
     rs = np.random.RandomState(rng.integers(0, 10**9))
@@ -570,5 +604,37 @@ def parallel_xeb_workflow(
         pairs,
         parameters.n_circuits,
     )
+    return estimated_fidilties
 
-    return tqxeb.TwoQubitXEBResult(xeb_fitting.fit_exponential_decays(estimated_fidilties))
+
+
+def parallel_two_qubit_xeb(    
+    sampler: 'cirq.Sampler',
+    target: Union[_TARGET_T, Dict[tuple['cirq.GridQubit', 'cirq.GridQubit'], _TARGET_T]],
+    qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
+    parameters: XEBParameters = XEBParameters(),
+    rng: Optional[np.random.Generator] = None,
+    pool: Optional[futures.Executor] = None,
+) -> tqxeb.TwoQubitXEBResult:
+    """A convenience method that runs the full XEB workflow.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        target: The entangling gate to use.
+        qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
+        rng: The random number generator to use.
+        pool: An optional `concurrent.futures.Executor` pool.
+
+    Returns:
+        A `TwoQubitXEBResult` object representing the result.
+
+    Raises:
+        ValueError: If qubits are not specified and the sampler has no device.
+    """
+    estimated_fidilties = parallel_xeb_workflow(
+        sampler, target, qubits, pairs, parameters, rng, pool
+    )
+    df = pd.DataFrame.from_records([attrs.asdict(ef) for ef in estimated_fidilties])
+    return tqxeb.TwoQubitXEBResult(xeb_fitting.fit_exponential_decays(df))

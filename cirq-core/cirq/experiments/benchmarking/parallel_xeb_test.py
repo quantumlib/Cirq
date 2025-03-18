@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import attrs
+import pytest
 import numpy as np
 import cirq
 from cirq.experiments.benchmarking import parallel_xeb as xeb
@@ -245,4 +245,104 @@ def test_sample_all_circuits():
 
 
 def test_estimate_fidilties():
-    pass
+    sampling_result = [
+        {
+            str(_PAIRS[0]): np.array([0.15, 0.15, 0.35, 0.35]),
+        }
+    ]
+
+    simulation_results = [
+        [
+            np.array([0.1, 0.2, 0.3, 0.4]),
+        ],
+    ]
+
+    result = xeb.estimate_fidilties(
+        sampling_results=sampling_result,
+        simulation_results=simulation_results,
+        cycle_depths=(1,),
+        num_templates=1,
+        pairs=_PAIRS[:1],
+        wide_circuits_info=[
+            xeb.XEBWideCircuitInfo(
+                wide_circuit=            cirq.Circuit.from_moments(
+                    [cirq.Y.on_each(*_PAIRS[0])],
+                    cirq.CNOT(*_PAIRS[0]),
+                    [cirq.Z.on_each(*_PAIRS[0])],
+                    cirq.measure(_PAIRS[0], key=str(_PAIRS[0])),
+                ),
+                cycle_depth=1,
+                narrow_template_indicies=(0,),
+                pairs=_PAIRS[:1],
+            )
+        ]
+    )
+
+    assert result == [
+        xeb.XEBFidelity(pair=_PAIRS[0], cycle_depth=1, fidelity=pytest.approx(0.8), fidelity_variance=pytest.approx(25.84))
+    ]
+
+def test_estimate_fidilties_with_dict_target():
+    sampling_result = [
+        {
+            str(_PAIRS[0]): np.array([0.15, 0.15, 0.35, 0.35]),
+        }
+    ]
+
+    simulation_results = {
+        _PAIRS[0]: [
+            [
+                np.array([0.1, 0.2, 0.3, 0.4]),
+            ],
+        ]
+    }
+
+    result = xeb.estimate_fidilties(
+        sampling_results=sampling_result,
+        simulation_results=simulation_results,
+        cycle_depths=(1,),
+        num_templates=1,
+        pairs=_PAIRS[:1],
+        wide_circuits_info=[
+            xeb.XEBWideCircuitInfo(
+                wide_circuit=            cirq.Circuit.from_moments(
+                    [cirq.Y.on_each(*_PAIRS[0])],
+                    cirq.CNOT(*_PAIRS[0]),
+                    [cirq.Z.on_each(*_PAIRS[0])],
+                    cirq.measure(_PAIRS[0], key=str(_PAIRS[0])),
+                ),
+                cycle_depth=1,
+                narrow_template_indicies=(0,),
+                pairs=_PAIRS[:1],
+            )
+        ]
+    )
+
+    assert result == [
+        xeb.XEBFidelity(pair=_PAIRS[0], cycle_depth=1, fidelity=pytest.approx(0.8), fidelity_variance=pytest.approx(25.84))
+    ]
+
+
+@pytest.mark.parametrize('target', [
+    cirq.CZ, 
+    cirq.Circuit(cirq.CZ(*_QUBITS)),
+])
+@pytest.mark.parametrize('pairs', [
+    _PAIRS[:1], _PAIRS[:2]
+])
+def test_parallel_two_qubit_xeb(target, pairs):
+    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03))
+    result = xeb.parallel_two_qubit_xeb(
+        sampler=sampler, target=target, pairs=pairs, parameters=xeb.XEBParameters(n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)),
+    )
+    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.1)
+
+def test_parallel_two_qubit_xeb_with_dict_target():
+    target = {
+        p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS
+    }
+    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03))
+    result = xeb.parallel_two_qubit_xeb(
+        sampler=sampler, target=target, parameters=xeb.XEBParameters(n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)),
+    )
+    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.1)
