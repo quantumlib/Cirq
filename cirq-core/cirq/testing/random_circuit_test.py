@@ -57,7 +57,7 @@ def _cases_for_random_circuit():
                 )
             )
             # Sometimes we generate gate domains whose gates all act on a
-            # number of qubits greater that the number of qubits for the
+            # number of qubits greater than the number of qubits for the
             # circuit. In this case, try again.
             if all(n > n_qubits for n in gate_domain.values()):
                 continue  # pragma: no cover
