@@ -67,7 +67,7 @@ cd "${tmp_dir}"
 trap '{ rm -rf "${tmp_dir}"; }' EXIT
 
 # Test installation from published package
-                            PYTHON_VERSION=python3
+PYTHON_VERSION=python3
 
 # Prepare.
 CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq-core/cirq/contrib/requirements.txt"
