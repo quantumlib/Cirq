@@ -22,8 +22,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
+      contents: read
       issues: write
       pull-requests: write
+      id-token: write
     env:
       repo: ${{github.server_url}}/${{github.repository}}
       files: ${{github.server_url}}/${{github.repository}}/blob/${{github.ref_name}}
