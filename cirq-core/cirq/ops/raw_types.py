@@ -688,41 +688,7 @@ class Operation(metaclass=abc.ABCMeta):
         """Determine if this Operation commutes with the object"""
         if not isinstance(other, Operation):
             return NotImplemented
-
-        self_keys = protocols.measurement_key_objs(self)
-        other_keys = protocols.measurement_key_objs(other)
-        if (
-            not self_keys.isdisjoint(other_keys)
-            or not protocols.control_keys(self).isdisjoint(other_keys)
-            or not protocols.control_keys(other).isdisjoint(self_keys)
-        ):
-            return False
-
-        if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(other.qubits):
-            return True
-
-        from cirq import circuits
-
-        # Remove the classical controls to validate the quantum commutativity. This can be done
-        # because during execution, the two operations will either both be run, in which case they
-        # behave like the suboperations, so if the suboperations commute then these commute. Or
-        # one of them is cold in which case it behaves like the identity, which always commutes.
-        self_raw = self.without_classical_controls()
-        other_raw = other.without_classical_controls()
-        circuit12 = circuits.Circuit(self_raw, other_raw)
-        circuit21 = circuits.Circuit(other_raw, self_raw)
-
-        # Don't create gigantic matrices.
-        shape = protocols.qid_shape_protocol.qid_shape(circuit12)
-        if np.prod(shape, dtype=np.int64) > 2**10:
-            return NotImplemented  # pragma: no cover
-
-        m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
-        m21 = protocols.unitary_protocol.unitary(circuit21, default=None)
-        if m12 is None or m21 is None:
-            return NotImplemented
-
-        return np.allclose(m12, m21, atol=atol)
+        return _operations_commutes_impl([self], [other], atol=atol)
 
     @property
     def classical_controls(self) -> FrozenSet['cirq.Condition']:
@@ -1112,3 +1078,78 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
         raise ValueError(
             f'Duplicate qids for <{val!r}>. Expected unique qids but got <{qubits!r}>.'
         )
+
+
+def _operations_commutes_impl(
+    ops1: Collection[Operation], ops2: Collection[Operation], *, atol: float
+) -> Union[bool, NotImplementedType]:
+    """Determine if two collections of non-overlapping Operations commute.
+
+    This function implements the commutes protocol for the Operation and Moment classes
+    and is not intended for other use.
+
+    Args:
+        ops1: The first collection of operations.  It is assumed each operation
+            acts on different qubits, i.e., the operations can form a Moment.
+        ops2: The second collection of operations to be checked for commutation
+            with `ops1`.  It is assumed each operation acts on different qubits,
+            i.e., the operations can form a Moment.
+        atol: Absolute error tolerance. If all entries in ops1@ops2 - ops2@ops1
+            have a magnitude less than this tolerance, ops1 and ops2 are considered
+            to commute.
+
+    Returns:
+        True: `ops1` and `ops2` commute (or approximately commute).
+        False: `ops1` and `ops2` do not commute.
+        NotImplemented: The commutativity cannot be determined here.
+    """
+    ops1_keys = frozenset(k for op in ops1 for k in protocols.measurement_key_objs(op))
+    ops2_keys = frozenset(k for op in ops2 for k in protocols.measurement_key_objs(op))
+    ops1_control_keys = frozenset(k for op in ops1 for k in protocols.control_keys(op))
+    ops2_control_keys = frozenset(k for op in ops2 for k in protocols.control_keys(op))
+    if (
+        not ops1_keys.isdisjoint(ops2_keys)
+        or not ops1_control_keys.isdisjoint(ops2_keys)
+        or not ops2_control_keys.isdisjoint(ops1_keys)
+    ):
+        return False
+
+    ops1_qubits = frozenset().union(*(op.qubits for op in ops1))
+    ops2_qubits = frozenset().union(*(op.qubits for op in ops2))
+    if ops1_qubits.isdisjoint(ops2_qubits):
+        return True
+
+    from cirq import circuits
+
+    # Remove the classical controls to validate the quantum commutativity. This can be done
+    # because during execution, the two operations will either both be run, in which case they
+    # behave like the suboperations, so if the suboperations commute then these commute. Or
+    # one of them is cold in which case it behaves like the identity, which always commutes.
+    shared_qubits = ops1_qubits.intersection(ops2_qubits)
+    ops1_raw = [
+        op.without_classical_controls() for op in ops1 if not shared_qubits.isdisjoint(op.qubits)
+    ]
+    ops2_raw = [
+        op.without_classical_controls() for op in ops2 if not shared_qubits.isdisjoint(op.qubits)
+    ]
+    moment1 = circuits.Moment(ops1_raw)
+    moment2 = circuits.Moment(ops2_raw)
+
+    # shortcut if we have equal moments
+    if moment1 == moment2:
+        return True
+
+    circuit12 = circuits.Circuit(moment1, moment2)
+    circuit21 = circuits.Circuit(moment2, moment1)
+
+    # Don't create gigantic matrices.
+    shape = protocols.qid_shape_protocol.qid_shape(circuit12)
+    if np.prod(shape, dtype=np.int64) > 2**10:
+        return NotImplemented  # pragma: no cover
+
+    m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
+    m21 = protocols.unitary_protocol.unitary(circuit21, default=None)
+    if m12 is None or m21 is None:
+        return NotImplemented
+
+    return np.allclose(m12, m21, atol=atol)
