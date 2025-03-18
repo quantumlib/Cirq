@@ -15,6 +15,7 @@
 import cirq
 import cirq.contrib.qcircuit as ccq
 import cirq.testing as ct
+
 # import cirq.contrib.qcircuit.qcircuit_pdf as pdf
 
 
@@ -167,10 +168,11 @@ def test_sqrt_iswap_diagram():
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
 
+
 def test_latex_formatting():
     # test for proper rendering of failing latex formats
     q0, q1, q2 = cirq.LineQubit.range(3)
-    
+
     # custom gate with a control for zero and one
     custom_gate = cirq.X.controlled(2, control_values=(0, 1))
 
@@ -190,14 +192,14 @@ def test_latex_formatting():
  &\lstick{\text{q(2)}}& \qw&\targ    \qw\qwx&\ctrlo{} \qw\qwx&\control \qw\qwx&           \qw&\qswap\qwx \qw&\qw\\
  \\
 }""".strip()
-    
+
     assert_has_qcircuit_diagram(circuit, expected_diagram)
 
 
 # def test_pdf_custom_gates():
 #     # test for proper rendering of failing latex formats in a pdf
 #     q0, q1, q2 = cirq.LineQubit.range(3)
-    
+
 #     # custom gate with a control for zero and one
 #     custom_gate = cirq.X.controlled(2, control_values=(0, 1))
 

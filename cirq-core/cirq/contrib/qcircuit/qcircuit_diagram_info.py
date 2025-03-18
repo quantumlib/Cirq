@@ -32,8 +32,10 @@ def escape_text_for_latex(text):
     )
     return r'\text{' + escaped + '}'
 
+
 def escape_text_for_latex_custom_control_gate(text):
     return text.replace('(0)', r'\ctrlo{}').replace('@', r'\control').replace('X', r'\targ')
+
 
 def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional[Tuple[int, int]]:
     if (args.label_map is None) or (args.known_qubits is None):
@@ -71,7 +73,7 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
 ) -> protocols.CircuitDiagramInfo:
     symbols = None
     if (
-        len(info.wire_symbols) == 3 
+        len(info.wire_symbols) == 3
         and '(0)' in info.wire_symbols
         and '@' in info.wire_symbols
         and 'X' in info.wire_symbols
