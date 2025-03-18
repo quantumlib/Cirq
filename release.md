@@ -83,9 +83,9 @@ the [version file](./cirq-core/cirq/_version.py).
 
 ### Release Schedule
 
-Releases are made on an as-needed basis determined by Cirq maintainers. All Cirq
-packages (including vendor packages such as `cirq-aqt`) are released at the same
-time.
+Releases are made approximately every quarter (i.e., every 3 months). All Cirq
+packages (including vendor packages such as `cirq-aqt`) are released at the
+same time.
 
 ## Before you release: flush the deprecation backlog
 

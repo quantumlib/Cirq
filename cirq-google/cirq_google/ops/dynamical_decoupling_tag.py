@@ -43,14 +43,14 @@ class DynamicalDecouplingTag:
     def _validate_protocol(self, attribute, value):
         assert value in SUPPORTED_DD_PROTOCOLS
 
-    def to_proto(
-        self, msg: Optional[program_pb2.DynamicalDecouplingTag] = None
-    ) -> program_pb2.DynamicalDecouplingTag:
+    def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
         if msg is None:
-            msg = program_pb2.DynamicalDecouplingTag()
-        msg.protocol = self.protocol
+            msg = program_pb2.Tag()
+        msg.dynamical_decoupling.protocol = self.protocol
         return msg
 
     @staticmethod
-    def from_proto(msg: program_pb2.DynamicalDecouplingTag) -> 'DynamicalDecouplingTag':
-        return DynamicalDecouplingTag(protocol=msg.protocol)
+    def from_proto(msg: program_pb2.Tag) -> 'DynamicalDecouplingTag':
+        if msg.WhichOneof("tag") != "dynamical_decoupling":
+            raise ValueError(f"Message is not a DynamicalDecouplingTag, {msg}")
+        return DynamicalDecouplingTag(protocol=msg.dynamical_decoupling.protocol)
