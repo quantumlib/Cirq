@@ -218,7 +218,15 @@ def test_latex_formatting():
 
 #     remove = ['aux', 'fdb_latexmk', 'fls', 'log']
 
-#     # This test was facing errors due to technical issues in qcuircuit_pdf.py that are out of scope of my issue (4685)
-#     # It will remain commented out until a resolution is found, or until it is realized that this test is not necessary
+#     # This test was facing errors due to technical issues in qcuircuit_pdf.py 
+#     # that are out of scope of my issue (4685)
+#     # It will remain commented out until a resolution is found, 
+#     # or until it is realized that this test is not necessary
 
-#     # pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, "./cirq-core/cirq/contrib/qcircuit/pdf_test_files/test", pdf_kwargs, None, remove)
+#     pdf.circuit_to_pdf_using_qcircuit_via_tex(
+#         circuit, 
+#         "./cirq-core/cirq/contrib/qcircuit/pdf_test_files/test", 
+#         pdf_kwargs, 
+#         None, 
+#         remove
+#     )
