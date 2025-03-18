@@ -33,6 +33,11 @@ if TYPE_CHECKING:
 _TARGET_T = Union['cirq.Gate', 'cirq.Operation', 'cirq.AbstractCircuit']
 _QUBIT_PAIR_T = tuple['cirq.GridQubit', 'cirq.GridQubit']
 _CANONICAL_TARGET_T = Union['cirq.Operation', Dict[_QUBIT_PAIR_T, 'cirq.Operation']]
+_PROBABILITIES_DICT_T = dict[_QUBIT_PAIR_T, list[list[np.ndarray]]]
+
+
+def _canonize_pair(pair: _QUBIT_PAIR_T) -> _QUBIT_PAIR_T:
+    return min(pair), max(pair)
 
 
 @attrs.frozen
@@ -54,9 +59,19 @@ class XEBParameters:
 
 @attrs.frozen
 class XEBWideCircuitInfo:
+    """Represents an XEB circuit expanded to the given cycle depth.
+
+    Attributes:
+        wide_circuit: The expanded circuit.
+        pairs: A list of the pairs benchmarked by the given circuit.
+        narrow_template_indicies: Integer indices of the the circuits in the narrow circuit library
+            used to build the given wide circuit.
+        cycle_depth: Optional, the depth of the cycle forming the wide circuit.
+    """
+
     wide_circuit: circuits.Circuit
     pairs: Sequence[_QUBIT_PAIR_T] = attrs.field(
-        converter=lambda seq: [tuple(sorted(pair)) for pair in seq]
+        converter=lambda seq: [_canonize_pair(pair) for pair in seq]
     )
     narrow_template_indicies: Sequence[int]
     cycle_depth: Optional[int] = None
@@ -68,6 +83,17 @@ class XEBWideCircuitInfo:
         pairs: Sequence[_QUBIT_PAIR_T],
         target: _CANONICAL_TARGET_T,
     ) -> 'XEBWideCircuitInfo':
+        """A static method that merges a sequence of narrow circuits into a wide circuit.
+
+        Args:
+            circuit_templates: A sequence of 2Q (i.e. narrow) circuits.
+            permutation: A permutation that maps a qubit-pair to a narrow circuit.
+            pairs: The list of qubit-pais to benchmark.
+            target: The target 2Q operation to benchmark.
+
+        Returns:
+            An XEBWideCircuitInfo instance representing the glued circuits.
+        """
         transformed_circuits = []
         has_circuit_operations = False
         for i, pair in zip(permutation, pairs):
@@ -109,6 +135,14 @@ class XEBWideCircuitInfo:
         return XEBWideCircuitInfo(zipped_circuit, pairs, narrow_template_indicies=permutation)
 
     def sliced_circuits(self, cycle_depths: Sequence[int]) -> Sequence['XEBWideCircuitInfo']:
+        """slices the widecircuit into the given cycle depths and appends the necessary measurements.
+
+        Args:
+            cycle_depths: the cycle depths to cut the wide circuit into.
+
+        Returns:
+            A sequence of XEBWideCircuitInfo representing the sliced circuits.
+        """
         xeb_circuits = []
         for cycle_depth in cycle_depths:
             circuit_depth = 2 * cycle_depth + 1
@@ -141,6 +175,14 @@ def _canonize_target(
 def _transform_moment_with_circuit_ops_to_moment_with_single_op(
     moment: circuits.Moment,
 ) -> circuits.Moment:
+    """Merges all circuit operations in a moment into a single circuit operation.
+
+    Args:
+        moment: A cirq moment composed of single and two qubit operations.
+
+    Returns:
+        A Moment with at most one CircuitOperation.
+    """
     circuit_ops = [
         op.mapped_circuit() for op in moment if isinstance(op, circuits.CircuitOperation)
     ]
@@ -156,7 +198,16 @@ def create_combination_circuits(
     combinations_by_layer: Sequence[rqcg.CircuitLibraryCombination],
     target: _CANONICAL_TARGET_T,
 ) -> Sequence[XEBWideCircuitInfo]:
-    """Zips two-qubit circuits into a single wide circuit for each of the given combinations."""
+    """Zips two-qubit circuits into a single wide circuit for each of the given combinations.
+
+    Args:
+        circuit_templates: A sequence of narrow circuits.
+        combinations_by_layer: A sequence of combinations.
+        target: The target 2Q operation.
+
+    Returns:
+        A sequence of XEBWideCircuitInfo representing the wide circuits.
+    """
     wide_circuits_info = []
     for layer_comb in combinations_by_layer:
         pairs = layer_comb.pairs
@@ -166,7 +217,7 @@ def create_combination_circuits(
         for comb in layer_comb.combinations:
             wide_circuits_info.append(
                 XEBWideCircuitInfo.from_narrow_circuits(
-                    circuit_templates, comb, layer_comb.pairs, target
+                    circuit_templates, permutation=comb, pairs=layer_comb.pairs, target=target
                 )
             )
     return wide_circuits_info
@@ -174,10 +225,24 @@ def create_combination_circuits(
 
 def simulate_circuit(
     simulator: 'cirq.Simulator',
-    circuit_id: int,
     circuit: 'cirq.Circuit',
     cycle_depths: Sequence[int],
-) -> tuple[int, Sequence[np.ndarray]]:
+    circuit_id: Optional[int] = None,
+) -> tuple[Optional[int], Sequence[np.ndarray]]:
+    """Simulates the given circuit and returns the state probabilities for each cycle depth.
+
+    Args:
+        simulator: A cirq simulator.
+        circuit: The circuit to simulate.
+        cycle_depths: A sequence of integers representing the depths for which we need the
+            state probabilities.
+        circuit_id: Optional id of the circuit being simulated circuit. This is returned as given.
+
+    Returns:
+        - The cuircuit_id, same as given in input.
+        - The state probabilities for each cycle depth.
+    """
+    cycle_depths_set = frozenset(cycle_depths)
     result = []
     for moment_i, step_result in enumerate(simulator.simulate_moment_steps(circuit=circuit)):
         # Translate from moment_i to cycle_depth:
@@ -186,7 +251,7 @@ def simulate_circuit(
         if moment_i % 2 == 1:
             continue
         cycle_depth = moment_i // 2
-        if cycle_depth not in cycle_depths:
+        if cycle_depth not in cycle_depths_set:
             continue
 
         psi = step_result.state_vector()
@@ -220,6 +285,22 @@ def simulate_circuit_library(
     cycle_depths: Sequence[int],
     pool: Optional[futures.Executor] = None,
 ) -> Union[Sequence[Sequence[np.ndarray]], dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]]:
+    """Simulate the given sequence of circuits.
+
+    Args:
+        circuit_templates: A sequence of circuits to simulate.
+        target_or_dict: The target operation or dictionary mapping qubit-pairs to operations.
+        cycle_depths: A list of integers giving the cycle depths to use in benchmarking.
+        pool: An optional concurrent.futures.Executor pool (e.g. ThreadPoolExecutor or ProcessPoolExecutor).
+            If given, the simulations are performed asynchronously.
+
+    Returns:
+        If target_or_dict is an operation:
+            A sequence of the result of simulate_circuit for each circuit_templates.
+        Else:
+            A dictionary mapping the keys of the map to a sequence of the result of
+            simulate_circuit for each circuit_templates.
+    """
     two_qubit_ops = []
     keys = None
     if isinstance(target_or_dict, dict):
@@ -244,12 +325,15 @@ def simulate_circuit_library(
     simulator = sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128)
     if pool is None:
         simulation_results = [
-            simulate_circuit(simulator, -1, circuit, cycle_depths)[1] for circuit in all_circuits
+            simulate_circuit(simulator, circuit=circuit, cycle_depths=cycle_depths, circuit_id=-1)[
+                1
+            ]
+            for circuit in all_circuits
         ]
     else:
         simulation_results = [np.empty(0)] * len(all_circuits)
         tasks = [
-            pool.submit(simulate_circuit, simulator, i, circuit, cycle_depths)
+            pool.submit(simulate_circuit, simulator, circuit, cycle_depths, i)
             for i, circuit in enumerate(all_circuits)
         ]
         for result in futures.as_completed(tasks):
@@ -268,7 +352,17 @@ def simulate_circuit_library(
 
 def sample_all_circuits(
     sampler: 'cirq.Sampler', circuits: Sequence['cirq.Circuit'], repetitions: int
-) -> Sequence[dict[_QUBIT_PAIR_T, np.ndarray]]:
+) -> Sequence[dict[str, np.ndarray]]:
+    """Calls sampler.run_batch on the given circuits and estimates the state probabilities.
+
+    Args:
+        sampler: A cirq sampler.
+        circuits: A sequence of circuits.
+        repetitions: An integer, the number of sampling repetitions.
+
+    Returns:
+        For each circuit, a dictionary mapping measurement keys to the estimated probabilities.
+    """
     sampling_results = []
     for (result,) in sampler.run_batch(programs=circuits, repetitions=repetitions):
         record = {}
@@ -280,29 +374,15 @@ def sample_all_circuits(
     return sampling_results
 
 
-def _canonize_pair(pair: _QUBIT_PAIR_T) -> _QUBIT_PAIR_T:
-    return min(pair), max(pair)
-
-
-def estimate_fidilties(
-    sampling_results: Sequence[dict[_QUBIT_PAIR_T, np.ndarray]],
-    simulation_results: Union[
-        Sequence[Sequence[np.ndarray]], dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]
-    ],
+def _reshape_sampling_results(
+    sampling_results: Sequence[dict[str, np.ndarray]],
     cycle_depths: Sequence[int],
     wide_circuits_info: Sequence[XEBWideCircuitInfo],
     pairs: Sequence[_QUBIT_PAIR_T],
-    num_templates,
-):
+    num_templates: int,
+) -> _PROBABILITIES_DICT_T:
     cycle_depth_to_index = {d: i for i, d in enumerate(cycle_depths)}
-
-    # A map from qubit pair to a list of np.ndarrays representing the sampled/actual probabalities.
     sampled_probabilities = {
-        pair: [[np.empty(0)] * num_templates for _ in range(len(cycle_depths))] for pair in pairs
-    }
-
-    # A map from qubit pair to a list of np.ndarrays representing the pure probabalities.
-    pure_probabilities = {
         pair: [[np.empty(0)] * num_templates for _ in range(len(cycle_depths))] for pair in pairs
     }
 
@@ -316,23 +396,76 @@ def estimate_fidilties(
                 continue
             sampled_prob = sampling_result[key]
             sampled_probabilities[pair][cycle_idx][template_idx] = sampled_prob
+    return sampled_probabilities
+
+
+def _reshape_simulation_results(
+    simulation_results: Union[
+        Sequence[Sequence[np.ndarray]], dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]
+    ],
+    cycle_depths: Sequence[int],
+    pairs: Sequence[_QUBIT_PAIR_T],
+    num_templates: int,
+) -> _PROBABILITIES_DICT_T:
+    cycle_depth_to_index = {d: i for i, d in enumerate(cycle_depths)}
 
     if isinstance(simulation_results, dict):
+        pure_probabilities = {
+            pair: [[np.empty(0)] * num_templates for _ in range(len(cycle_depths))] for pair in pairs
+        }
         for pair, simulation_result_for_pair in simulation_results.items():
             for template_idx, template_simulation_result in enumerate(simulation_result_for_pair):
-                for cycle_depth, pure_probs in zip(cycle_depths, template_simulation_result):
+                for cycle_depth, pure_probs in zip(cycle_depths, template_simulation_result, strict=True):
                     cycle_idx = cycle_depth_to_index[cycle_depth]
                     pure_probabilities[pair][cycle_idx][template_idx] = pure_probs
 
+        return pure_probabilities
     else:
         common_pure_probs = [[np.empty(0)] * num_templates for _ in range(len(cycle_depths))]
         for template_idx, template_simulation_result in enumerate(simulation_results):
-            for cycle_depth, pure_probs in zip(cycle_depths, template_simulation_result):
+            for cycle_depth, pure_probs in zip(cycle_depths, template_simulation_result, strict=True):
                 cycle_idx = cycle_depth_to_index[cycle_depth]
                 common_pure_probs[cycle_idx][template_idx] = pure_probs
-        pure_probabilities = {pair: common_pure_probs for pair in pairs}
+        return {pair: common_pure_probs for pair in pairs}
 
-    D = 2**2
+
+def estimate_fidilties(
+    sampling_results: Sequence[dict[str, np.ndarray]],
+    simulation_results: Union[
+        Sequence[Sequence[np.ndarray]], dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]
+    ],
+    cycle_depths: Sequence[int],
+    wide_circuits_info: Sequence[XEBWideCircuitInfo],
+    pairs: Sequence[_QUBIT_PAIR_T],
+    num_templates: int,
+) -> pd.DataFrame:
+    """Estimates the fidelities from the given sampling and simulation results.
+    
+    Args:
+        sampling_results: The result of `sample_all_circuits`.
+        simulation_results: The result of `simulate_circuit_library`,
+        cycle_depths: The sequence of cycle depths,
+        wide_circuits_info: Sequence of XEBWideCircuitInfo detailing describing
+            the sampled circuits.
+        pairs: The qubit pairs being tests,
+        num_templates: The number of circuit templates used for benchmarking,
+    
+    Returns:
+        A DataFrame with three columns:
+            - pair: The qubit pair.
+            - cycle_depth: The cycle depth.
+            - fidelity: The estimated fidelity at that depth.
+    """
+
+    sampled_probabilities = _reshape_sampling_results(
+        sampling_results, cycle_depths, wide_circuits_info, pairs, num_templates
+    )
+
+    pure_probabilities = _reshape_simulation_results(
+        simulation_results, cycle_depths, pairs, num_templates
+    )
+
+    D = 2**2  # Dimension of the hilbert space.
     records = []
     for pair in pairs:
         for depth_idx, cycle_depth in enumerate(cycle_depths):
@@ -341,8 +474,8 @@ def estimate_fidilties(
             for template_idx in range(num_templates):
                 pure_probs = pure_probabilities[pair][depth_idx][template_idx]
                 sampled_probs = sampled_probabilities[pair][depth_idx][template_idx]
-                if len(sampled_probs) != 4:
-                    continue
+                if len(sampled_probs) == 0: continue
+                assert len(sampled_probs) == 4, f'{pair=} {cycle_depth=} {template_idx=}: {sampled_probs=}'
                 e_u = np.sum(pure_probs**2)
                 u_u = np.sum(pure_probs) / D
                 m_u = np.dot(pure_probs, sampled_probs)
@@ -355,8 +488,6 @@ def estimate_fidilties(
                 x = e_u - u_u
                 numerator += x * y
                 denominator += x**2
-            if denominator == 0:
-                continue
             fidelity = numerator / denominator
             records.append({'pair': pair, 'fidelity': fidelity, 'cycle_depth': cycle_depth})
     return pd.DataFrame.from_records(records)
@@ -385,7 +516,8 @@ def parallel_xeb_workflow(
     if pairs is None:
         pairs = device_pairs
     else:
-        pairs = pairs & device_pairs
+        pairs = [_canonize_pair(p) for p in pairs]
+        pairs = tuple(set(pairs) & set(device_pairs))
     graph = nx.Graph(pairs)
 
     circuit_templates = rqcg.generate_library_of_2q_circuits(
