@@ -1,3 +1,5 @@
+# Dependabot config file for the Cirq project.
+
 # Copyright 2024 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,13 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Summary: Dependabot config file, to adjust things for the Cirq project.
-#
-# By default, Dependabot labels all pull requests with label 'dependencies'.
-# We prefer `area/dependencies`, so have to configure Dependabot appropriately.
-# ─────────────────────────────────────────────────────────────────────────────
 
 version: 2
 updates:
