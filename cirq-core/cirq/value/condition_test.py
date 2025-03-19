@@ -193,3 +193,181 @@ def test_sympy_condition_qasm():
         ValueError, match='QASM is defined only for SympyConditions of type key == constant'
     ):
         _ = cirq.SympyCondition(sympy.Symbol('a') != 2).qasm
+
+
+def test_bitmask_condition_qasm_raises():
+    with pytest.raises(ValueError):
+        _ = cirq.BitMaskKeyCondition('a').qasm
+
+
+@pytest.mark.parametrize(
+    ['cond', 'cond_str'],
+    [
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=None, equal_target=False, index=59, key='a', target_value=0
+            ),
+            'a[59]',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=None, equal_target=False, index=-1, key='a', target_value=0
+            ),
+            'a',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=None, equal_target=False, index=58, key='b', target_value=3
+            ),
+            'b[58] != 3',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=None, equal_target=False, index=-1, key='b', target_value=3
+            ),
+            'b != 3',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=13, equal_target=False, index=57, key='c', target_value=0
+            ),
+            'c[57] & 13',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=13, equal_target=False, index=-1, key='c', target_value=0
+            ),
+            'c & 13',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=13, equal_target=False, index=56, key='d', target_value=12
+            ),
+            '(d[56] & 13) != 12',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=13, equal_target=False, index=-1, key='d', target_value=12
+            ),
+            '(d & 13) != 12',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=13, equal_target=True, index=55, key='d', target_value=12
+            ),
+            '(d[55] & 13) == 12',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=13, equal_target=True, index=-1, key='d', target_value=12
+            ),
+            '(d & 13) == 12',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=11, equal_target=True, index=54, key='e', target_value=11
+            ),
+            '(e[54] & 11) == 11',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=11, equal_target=True, index=-1, key='e', target_value=11
+            ),
+            '(e & 11) == 11',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=9, equal_target=False, index=53, key='e', target_value=9
+            ),
+            '(e[53] & 9) != 9',
+        ),
+        (
+            cirq.BitMaskKeyCondition(
+                bitmask=9, equal_target=False, index=-1, key='e', target_value=9
+            ),
+            '(e & 9) != 9',
+        ),
+    ],
+)
+def test_bitmask_condition_str(cond: cirq.BitMaskKeyCondition, cond_str: str):
+    assert str(cond) == cond_str
+
+
+@pytest.mark.parametrize(
+    ['cond', 'value'],
+    [
+        (cirq.BitMaskKeyCondition('c', bitmask=13, target_value=9), False),
+        (cirq.BitMaskKeyCondition('d', bitmask=13, target_value=12, equal_target=True), True),
+    ],
+)
+def test_bitmask_condition_resolve(cond: cirq.BitMaskKeyCondition, value: bool):
+    resolver = cirq.ClassicalDataDictionaryStore(
+        _records={'c': [(1, 0, 0, 1)], 'd': [(1, 0, 1, 1, 0, 0)]}
+    )
+    assert cond.resolve(resolver) == value
+
+
+def test_bitmask_condition_resolve_invalid_input_raises():
+    cond = cirq.BitMaskKeyCondition('a')
+    resolver = cirq.ClassicalDataDictionaryStore(
+        _records={'c': [(1, 0, 0, 1)], 'd': [(1, 0, 1, 1, 0, 0)]}
+    )
+    with pytest.raises(ValueError):
+        _ = cond.resolve(resolver)
+
+
+@pytest.mark.parametrize(
+    'cond',
+    [
+        cirq.BitMaskKeyCondition(
+            bitmask=None, equal_target=False, index=59, key='a', target_value=0
+        ),
+        cirq.BitMaskKeyCondition(
+            bitmask=None, equal_target=False, index=-1, key='a', target_value=0
+        ),
+        cirq.BitMaskKeyCondition(
+            bitmask=None, equal_target=False, index=58, key='b', target_value=3
+        ),
+        cirq.BitMaskKeyCondition(
+            bitmask=None, equal_target=False, index=-1, key='b', target_value=3
+        ),
+        cirq.BitMaskKeyCondition(bitmask=13, equal_target=False, index=57, key='c', target_value=0),
+        cirq.BitMaskKeyCondition(bitmask=13, equal_target=False, index=-1, key='c', target_value=0),
+        cirq.BitMaskKeyCondition(
+            bitmask=13, equal_target=False, index=56, key='d', target_value=12
+        ),
+        cirq.BitMaskKeyCondition(
+            bitmask=13, equal_target=False, index=-1, key='d', target_value=12
+        ),
+        cirq.BitMaskKeyCondition(bitmask=13, equal_target=True, index=55, key='d', target_value=12),
+        cirq.BitMaskKeyCondition(bitmask=13, equal_target=True, index=-1, key='d', target_value=12),
+        cirq.BitMaskKeyCondition(bitmask=11, equal_target=True, index=54, key='e', target_value=11),
+        cirq.BitMaskKeyCondition(bitmask=11, equal_target=True, index=-1, key='e', target_value=11),
+        cirq.BitMaskKeyCondition(bitmask=9, equal_target=False, index=53, key='e', target_value=9),
+        cirq.BitMaskKeyCondition(bitmask=9, equal_target=False, index=-1, key='e', target_value=9),
+    ],
+)
+def test_bitmask_condition_repr(cond):
+    cirq.testing.assert_equivalent_repr(cond)
+
+
+def test_bitmask_condition_keys():
+    assert cirq.BitMaskKeyCondition('test').keys == ('test',)
+
+
+def test_bitmask_create_equal_mask():
+    assert cirq.BitMaskKeyCondition.create_equal_mask('a', 9) == cirq.BitMaskKeyCondition(
+        'a', equal_target=True, bitmask=9, target_value=9
+    )
+
+
+def test_bitmask_create_not_equal_mask():
+    assert cirq.BitMaskKeyCondition.create_not_equal_mask('b', 14) == cirq.BitMaskKeyCondition(
+        'b', equal_target=False, bitmask=14, target_value=14
+    )
+
+
+def test_bitmask_replace_key():
+    cond = cirq.BitMaskKeyCondition('a')
+    assert cond.replace_key('a', 'b') == cirq.BitMaskKeyCondition('b')
+    assert cond.replace_key('c', 'd') is cond

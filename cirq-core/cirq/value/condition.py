@@ -137,7 +137,19 @@ class KeyCondition(Condition):
 
 @dataclasses.dataclass(frozen=True)
 class BitMaskKeyCondition(Condition):
-    """A classical control condition based on a single measurement key."""
+    """A multiqubit classical control condition with a bitmask.
+
+    The control is based on a single measurement key and allows comparing equality or inequality
+    after taking the bitwise and with a bitmask.
+
+    Examples:
+        - BitMaskKeycondition('a') -> a != 0
+        - BitMaskKeyCondition('a', bitmask=13) -> (a & 13) != 0
+        - BitMaskKeyCondition('a', bitmask=13, target_value=9) -> (a & 13) != 9
+        - BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=True) -> (a & 13) == 9
+        - BitMaskKeyCondition.create_equal_mask('a', 13) -> (a & 13) == 13
+        - BitMaskKeyCondition.create_not_equal_mask('a', 13) -> (a & 13) != 13
+    """
 
     key: 'cirq.MeasurementKey'
     index: int = -1
@@ -182,6 +194,11 @@ class BitMaskKeyCondition(Condition):
             s = f'{s} != {self.target_value}'
         return s
 
+    def __repr__(self):
+        args = dataclasses.asdict(self)
+        args_str = ', '.join(f'{k}={repr(v)}' for k, v in sorted(args.items()))
+        return f'cirq.BitMaskKeyCondition({args_str})'
+
     def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
@@ -197,7 +214,9 @@ class BitMaskKeyCondition(Condition):
 
     @classmethod
     def _from_json_dict_(cls, key, **kwargs):
-        return cls(key=key)
+        parameter_names = ['index', 'target_value', 'bitmask', 'equal_target']
+        parameters = {k: kwargs[k] for k in parameter_names if k in kwargs}
+        return cls(key=key, **parameters)
 
     @property
     def qasm(self):
