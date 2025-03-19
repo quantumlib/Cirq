@@ -302,7 +302,10 @@ def test_bitmask_condition_str(cond: cirq.BitMaskKeyCondition, cond_str: str):
 )
 def test_bitmask_condition_resolve(cond: cirq.BitMaskKeyCondition, value: bool):
     resolver = cirq.ClassicalDataDictionaryStore(
-        _records={'c': [(1, 0, 0, 1)], 'd': [(1, 0, 1, 1, 0, 0)]}
+        _records={
+            cirq.MeasurementKey('c'): [(1, 0, 0, 1)],
+            cirq.MeasurementKey('d'): [(1, 0, 1, 1, 0, 0)],
+        }
     )
     assert cond.resolve(resolver) == value
 
@@ -310,7 +313,10 @@ def test_bitmask_condition_resolve(cond: cirq.BitMaskKeyCondition, value: bool):
 def test_bitmask_condition_resolve_invalid_input_raises():
     cond = cirq.BitMaskKeyCondition('a')
     resolver = cirq.ClassicalDataDictionaryStore(
-        _records={'c': [(1, 0, 0, 1)], 'd': [(1, 0, 1, 1, 0, 0)]}
+        _records={
+            cirq.MeasurementKey('c'): [(1, 0, 0, 1)],
+            cirq.MeasurementKey('d'): [(1, 0, 1, 1, 0, 0)],
+        }
     )
     with pytest.raises(ValueError):
         _ = cond.resolve(resolver)
