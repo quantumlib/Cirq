@@ -1,4 +1,4 @@
-# Copyright 2025 Google LLC
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,17 +23,11 @@
 # We mostly follow Google's style guides (https://google.github.io/styleguide/)
 # with very few deviations.
 #
-# Miscellaneous notes:
-#
-# - The EditorConfig property `max_line_length` is not set here because its
-#   intended behavior is poorly specified. (See the discussion in the comments
-#   at https://github.com/editorconfig/editorconfig/issues/387) It *would* have
-#   been desirable to define a project convention for the line width here, but
-#   we must instead use editor-specific configuration files to do that.
-#
-# - With few exceptions (e.g., shfmt), `.editorconfig` files are not read by
-#   linters or formatters, which means the project needs separate config files
-#   for those tools. This includes markdownlint, yamllint, and others.
+# Note: The EditorConfig property `max_line_length` is not set here because its
+# intended behavior is poorly specified. (See the discussion in the comments at
+# https://github.com/editorconfig/editorconfig/issues/387) It *would* have been
+# desirable to define a project convention for the line width here, but we must
+# instead use editor-specific configuration files to do that.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 root = true
@@ -43,24 +37,10 @@ charset = utf-8
 indent_style = space
 insert_final_newline = true
 spelling_language = en-US
-# It would be preferable not to set tab_width, but some EditorConfig plugins
-# (e.g., Emacs's) set it equal to indent_size if it's not set otherwise.
-tab_width = 8
-# Trailing whitespace on lines is almost always noise. An exception is in
-# Markdown, where two spaces = line break; however, that's such a foot-gun in
-# practice that we avoid it. So, it's okay to set this next value globally.
 trim_trailing_whitespace = true
 
-[{BUILD,*.BUILD,*.bzl,*.bazel}]
-# Google doesn't have a style guideline for Bazel files. Most people use 4.
-indent_size = 4
-
-[{*.cc,*.h}]
-# This matches Google style guidelines.
-indent_size = 2
-
 [{*.ts,*.js}]
-# This matches Google style guidelines.
+# Google style guidelines use 2.
 indent_size = 2
 
 [*.json]
@@ -68,26 +48,12 @@ indent_size = 2
 indent_size = 2
 
 [*.py]
-# This matches Google style guidelines.
+# Google style guidelines use 4.
 indent_size = 4
-
-[*.rst]
-# Google doesn't have a style guideline for reStructuredText. Many people use 3.
-indent_size = 3
 
 [*.sh]
-# This matches Google style guidelines.
+# Google style guidelines use 2.
 indent_size = 4
-# The following are used by shfmt. These bring it closer to Google's style.
-binary_next_line = true
-shell_variant = bash
-space_redirects = true
-switch_case_indent = true
-
-# If this repository has a "third_party" directory, ignore it entirely.
-# Note: shfmt also respects this if you run it with --appply-ignore.
-[third_party/**]
-ignore = true
 
 [{*.yaml,*.yml}]
 # Google doesn't have style guidelines for YAML. Most people use indent = 2.
