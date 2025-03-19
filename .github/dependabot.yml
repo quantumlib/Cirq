@@ -1,3 +1,5 @@
+# Dependabot config file for the Cirq project.
+
 # Copyright 2024 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,13 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Summary: Dependabot config file, to adjust things for the Cirq project.
-#
-# By default, Dependabot labels all pull requests with label 'dependencies'.
-# We prefer `area/dependencies`, so have to configure Dependabot appropriately.
-# ─────────────────────────────────────────────────────────────────────────────
-
 version: 2
 updates:
   - package-ecosystem: "docker"
@@ -26,7 +21,7 @@ updates:
     # in the specified directory.
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "area/dependencies"
       - "area/docker"
@@ -37,7 +32,7 @@ updates:
     # value "/" is given for the directory attribute. Yes, that's confusing.
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "area/dependencies"
       - "area/github"
@@ -65,20 +60,9 @@ updates:
       - "kind/health"
 
   - package-ecosystem: "pip"
-    # Cirq has requirements.txt files in multiple places. N.b. the use of
-    # attribute "directories" instead of "directory" here.
-    directories:
-      - "/"
-      - "/cirq-aqt"
-      - "/cirq-core"
-      - "/cirq-google"
-      - "/cirq-ionq"
-      - "/cirq-pasqal"
-      - "/cirq-rigetti"
-      - "/cirq-web"
-      - "/dev_tools/requirements"
+    directory: "/dev_tools/requirements/deps"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: "increase-if-necessary"
     labels:
       - "area/dependencies"

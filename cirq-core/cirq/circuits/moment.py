@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     import cirq
 
 # Lazy imports to break circular dependencies.
-circuits = LazyLoader("circuits", globals(), "cirq.circuits.circuit")
+circuit = LazyLoader("circuit", globals(), "cirq.circuits.circuit")
 op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
 text_diagram_drawer = LazyLoader(
     "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
@@ -525,7 +525,7 @@ class Moment:
         return cls.from_ops(*operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-        if isinstance(other, circuits.AbstractCircuit):
+        if isinstance(other, circuit.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
@@ -659,37 +659,26 @@ class Moment:
         return diagram.render()
 
     def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
-        """Determines whether Moment commutes with the Operation.
+        """Determines whether Moment commutes with the other Moment or Operation.
 
         Args:
-            other: An Operation object. Other types are not implemented yet.
-                In case a different type is specified, NotImplemented is
-                returned.
+            other: An Operation or Moment object to test for commutativity.
             atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1
                 have a magnitude less than this tolerance, v1 and v2 can be
                 reported as commuting. Defaults to 1e-8.
 
         Returns:
-            True: The Moment and Operation commute OR they don't have shared
-            quibits.
+            True: The Moment commutes with Moment or Operation OR they don't
+                have shared qubits.
             False: The two values do not commute.
             NotImplemented: In case we don't know how to check this, e.g.
-                the parameter type is not supported yet.
+                the parameter type is not supported or commutativity cannot be
+                determined.
         """
-        if not isinstance(other, ops.Operation):
+        if not isinstance(other, (ops.Operation, Moment)):
             return NotImplemented
-
-        other_qubits = set(other.qubits)
-        for op in self.operations:
-            if not other_qubits.intersection(set(op.qubits)):
-                continue
-
-            commutes = protocols.commutes(op, other, atol=atol, default=NotImplemented)
-
-            if not commutes or commutes is NotImplemented:
-                return commutes
-
-        return True
+        other_operations = other.operations if isinstance(other, Moment) else (other,)
+        return raw_types._operations_commutes_impl(self.operations, other_operations, atol=atol)
 
 
 class _SortByValFallbackToType:
