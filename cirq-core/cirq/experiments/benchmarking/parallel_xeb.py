@@ -326,18 +326,26 @@ def simulate_circuit_library(
         for circuit in circuit_templates:
             all_circuits.append(circuit.map_operations(_map_op))
 
-    simulator = sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128)
     if pool is None:
         simulation_results = [
-            simulate_circuit(simulator, circuit=circuit, cycle_depths=cycle_depths, circuit_id=-1)[
-                1
-            ]
+            simulate_circuit(
+                sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
+                circuit=circuit,
+                cycle_depths=cycle_depths,
+                circuit_id=-1,
+            )[1]
             for circuit in all_circuits
         ]
     else:
         simulation_results = [np.empty(0)] * len(all_circuits)  # type: ignore[list-item]
         tasks = [
-            pool.submit(simulate_circuit, simulator, circuit, cycle_depths, i)
+            pool.submit(
+                simulate_circuit,
+                sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
+                circuit,
+                cycle_depths,
+                i,
+            )
             for i, circuit in enumerate(all_circuits)
         ]
         for result in futures.as_completed(tasks):
@@ -398,9 +406,7 @@ def _reshape_sampling_results(
         for template_idx, pair in zip(info.narrow_template_indicies, info.pairs, strict=True):
             pair = _canonize_pair(pair)
             key = str(pair)
-            if key not in sampling_result:
-                continue
-            sampled_prob = sampling_result[key]
+            sampled_prob = sampling_result.get(key, np.empty(0))
             sampled_probabilities[pair][cycle_idx][template_idx] = sampled_prob
     return sampled_probabilities
 
