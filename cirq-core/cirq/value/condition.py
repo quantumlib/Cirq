@@ -16,6 +16,7 @@ import abc
 import dataclasses
 from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING
 
+import attrs
 import sympy
 
 from cirq._compat import proper_repr
@@ -135,7 +136,7 @@ class KeyCondition(Condition):
         return f'{key}==1'
 
 
-@dataclasses.dataclass(frozen=True)
+@attrs.frozen
 class BitMaskKeyCondition(Condition):
     """A multiqubit classical control condition with a bitmask.
 
@@ -158,7 +159,13 @@ class BitMaskKeyCondition(Condition):
         - bitmask: Optional bitmask to apply before doing the comparison.
     """
 
-    key: 'cirq.MeasurementKey'
+    key: 'cirq.MeasurementKey' = attrs.field(
+        converter=lambda x: (
+            x
+            if isinstance(x, measurement_key.MeasurementKey)
+            else measurement_key.MeasurementKey(x)
+        )
+    )
     index: int = -1
     target_value: int = 0
     equal_target: bool = False
@@ -202,9 +209,9 @@ class BitMaskKeyCondition(Condition):
         return s
 
     def __repr__(self):
-        args = dataclasses.asdict(self)
-        args_str = ', '.join(f'{k}={repr(v)}' for k, v in sorted(args.items()))
-        return f'cirq.BitMaskKeyCondition({args_str})'
+        values = attrs.asdict(self)
+        parameters = ', '.join(f'{f.name}={repr(values[f.name])}' for f in attrs.fields(type(self)))
+        return f'cirq.BitMaskKeyCondition({parameters})'
 
     def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
         if self.key not in classical_data.keys():
@@ -217,11 +224,11 @@ class BitMaskKeyCondition(Condition):
         return value != self.target_value
 
     def _json_dict_(self):
-        return json_serialization.dataclass_json_dict(self)
+        return json_serialization.attrs_json_dict(self)
 
     @classmethod
     def _from_json_dict_(cls, key, **kwargs):
-        parameter_names = ['index', 'target_value', 'bitmask', 'equal_target']
+        parameter_names = [f.name for f in attrs.fields(cls)[1:]]
         parameters = {k: kwargs[k] for k in parameter_names if k in kwargs}
         return cls(key=key, **parameters)
 
