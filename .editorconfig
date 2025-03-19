@@ -21,13 +21,7 @@
 # are two examples (as of early 2025).
 #
 # We mostly follow Google's style guides (https://google.github.io/styleguide/)
-# with very few deviations.
-#
-# Note: The EditorConfig property `max_line_length` is not set here because its
-# intended behavior is poorly specified. (See the discussion in the comments at
-# https://github.com/editorconfig/editorconfig/issues/387) It *would* have been
-# desirable to define a project convention for the line width here, but we must
-# instead use editor-specific configuration files to do that.
+# with only a few deviations for line length and indentation in some files.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 root = true
@@ -38,6 +32,7 @@ indent_style = space
 insert_final_newline = true
 spelling_language = en-US
 trim_trailing_whitespace = true
+max_line_length = 100
 
 [{*.ts,*.js}]
 # Google style guidelines use 2.
