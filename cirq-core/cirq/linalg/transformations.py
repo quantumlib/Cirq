@@ -29,7 +29,7 @@ from cirq.linalg import predicates
 # user provides a different np.array([]) value.
 RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
 
-_NPY_MAXDIMS = 32  # Should be changed once numpy/numpy#5744 is resolved.
+_NPY_MAXDIMS = 64
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
