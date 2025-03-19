@@ -136,6 +136,75 @@ class KeyCondition(Condition):
 
 
 @dataclasses.dataclass(frozen=True)
+class BitMaskKeyCondition(Condition):
+    """A classical control condition based on a single measurement key."""
+
+    key: 'cirq.MeasurementKey'
+    index: int = -1
+    target_value: int = 0
+    equal_target: bool = False
+    bitmask: Optional[int] = None
+
+    @property
+    def keys(self):
+        return (self.key,)
+
+    @staticmethod
+    def create_equal_mask(
+        key: 'cirq.MeasurementKey', bitmask: int, *, index: int = -1
+    ) -> 'BitMaskKeyCondition':
+        return BitMaskKeyCondition(
+            key, index, target_value=bitmask, equal_target=True, bitmask=bitmask
+        )
+
+    @staticmethod
+    def create_not_equal_mask(
+        key: 'cirq.MeasurementKey', bitmask: int, *, index: int = -1
+    ) -> 'BitMaskKeyCondition':
+        return BitMaskKeyCondition(
+            key, index, target_value=bitmask, equal_target=False, bitmask=bitmask
+        )
+
+    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+        return BitMaskKeyCondition(replacement) if self.key == current else self
+
+    def __str__(self):
+        s = str(self.key) if self.index == -1 else f'{self.key}[{self.index}]'
+        if self.bitmask is not None:
+            s = f'{s} & {self.bitmask}'
+        if self.equal_target:
+            if self.bitmask is not None:
+                s = f'({s})'
+            s = f'{s} == {self.target_value}'
+        elif self.target_value != 0:
+            if self.bitmask is not None:
+                s = f'({s})'
+            s = f'{s} != {self.target_value}'
+        return s
+
+    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
+        if self.key not in classical_data.keys():
+            raise ValueError(f'Measurement key {self.key} missing when testing classical control')
+        value = classical_data.get_int(self.key, self.index)
+        if self.bitmask is not None:
+            value &= self.bitmask
+        if self.equal_target:
+            return value == self.target_value
+        return value != self.target_value
+
+    def _json_dict_(self):
+        return json_serialization.dataclass_json_dict(self)
+
+    @classmethod
+    def _from_json_dict_(cls, key, **kwargs):
+        return cls(key=key)
+
+    @property
+    def qasm(self):
+        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
+
+
+@dataclasses.dataclass(frozen=True)
 class SympyCondition(Condition):
     """A classical control condition based on a sympy expression.
 

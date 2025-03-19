@@ -533,6 +533,7 @@ from cirq.value import (
     canonicalize_half_turns as canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns as chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns as chosen_angle_to_half_turns,
+    BitMaskKeyCondition as BitMaskKeyCondition,
     ClassicalDataDictionaryStore as ClassicalDataDictionaryStore,
     ClassicalDataStore as ClassicalDataStore,
     ClassicalDataStoreReader as ClassicalDataStoreReader,
