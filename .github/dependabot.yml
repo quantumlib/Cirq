@@ -45,6 +45,9 @@ updates:
     schedule:
       interval: "monthly"
     versioning-strategy: "widen"
+    ignore:
+      - dependency-name: "chai"
+        versions: [">= 5.0.0"]
     groups:
       # Group non-security version minor & patch updates into one PR.
       # Security and major update versions will be done as individual PRs.
