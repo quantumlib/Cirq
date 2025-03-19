@@ -1,27 +1,94 @@
-# Summary: coding style configuration for editors that read .editorconfig.
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Common editor configurations for this project.
 #
 # EditorConfig defines a file format for specifying some common coding style
-# parameters. Many editors recognize .editorconfig files automatically, and
-# there exist plugins for other editors. See https://spec.editorconfig.org/.
+# parameters. Many IDEs and editors read .editorconfig files, either natively
+# or via plugins. A few formatters also read .editorconfig; shfmt and Prettier
+# are two examples (as of early 2025).
+#
+# We mostly follow Google's style guides (https://google.github.io/styleguide/)
+# with very few deviations.
+#
+# Miscellaneous notes:
+#
+# - The EditorConfig property `max_line_length` is not set here because its
+#   intended behavior is poorly specified. (See the discussion in the comments
+#   at https://github.com/editorconfig/editorconfig/issues/387) It *would* have
+#   been desirable to define a project convention for the line width here, but
+#   we must instead use editor-specific configuration files to do that.
+#
+# - With few exceptions (e.g., shfmt), `.editorconfig` files are not read by
+#   linters or formatters, which means the project needs separate config files
+#   for those tools. This includes markdownlint, yamllint, and others.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 root = true
 
 [*]
 charset = utf-8
-end_of_line = lf
+indent_style = space
 insert_final_newline = true
 spelling_language = en-US
+# It would be preferable not to set tab_width, but some EditorConfig plugins
+# (e.g., Emacs's) set it equal to indent_size if it's not set otherwise.
+tab_width = 8
+# Trailing whitespace on lines is almost always noise. An exception is in
+# Markdown, where two spaces = line break; however, that's such a foot-gun in
+# practice that we avoid it. So, it's okay to set this next value globally.
 trim_trailing_whitespace = true
 
-[*.py]
+[{BUILD,*.BUILD,*.bzl,*.bazel}]
+# Google doesn't have a style guideline for Bazel files. Most people use 4.
 indent_size = 4
-indent_style = space
-max_line_length = 100
+
+[{*.cc,*.h}]
+# This matches Google style guidelines.
+indent_size = 2
+
+[{*.ts,*.js}]
+# This matches Google style guidelines.
+indent_size = 2
+
+[*.json]
+# Not stated explicitly in Google's guidelines, but the examples use 2.
+indent_size = 2
+
+[*.py]
+# This matches Google style guidelines.
+indent_size = 4
+
+[*.rst]
+# Google doesn't have a style guideline for reStructuredText. Many people use 3.
+indent_size = 3
 
 [*.sh]
+# This matches Google style guidelines.
 indent_size = 4
-indent_style = space
-max_line_length = 100
+# The following are used by shfmt. These bring it closer to Google's style.
+binary_next_line = true
+shell_variant = bash
+space_redirects = true
+switch_case_indent = true
 
-[*.yml,*.yaml]
+# If this repository has a "third_party" directory, ignore it entirely.
+# Note: shfmt also respects this if you run it with --appply-ignore.
+[third_party/**]
+ignore = true
+
+[{*.yaml,*.yml}]
+# Google doesn't have style guidelines for YAML. Most people use indent = 2.
 indent_size = 2
