@@ -149,6 +149,13 @@ class BitMaskKeyCondition(Condition):
         - BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=True) -> (a & 13) == 9
         - BitMaskKeyCondition.create_equal_mask('a', 13) -> (a & 13) == 13
         - BitMaskKeyCondition.create_not_equal_mask('a', 13) -> (a & 13) != 13
+
+    Attributes:
+        - key: Measurement key.
+        - index: integer index (same as KeyCondition.index).
+        - target_value: The value we compare with.
+        - equal_target: Whether to comapre with == or !=.
+        - bitmask: Optional bitmask to apply before doing the comparison.
     """
 
     key: 'cirq.MeasurementKey'
