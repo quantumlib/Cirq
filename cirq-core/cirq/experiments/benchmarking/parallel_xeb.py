@@ -341,10 +341,10 @@ def simulate_circuit_library(
         tasks = [
             pool.submit(
                 simulate_circuit,
-                sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
-                circuit,
-                cycle_depths,
-                i,
+                simulator=sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
+                circuit=circuit,
+                cycle_depths=cycle_depths,
+                circuit_id=i,
             )
             for i, circuit in enumerate(all_circuits)
         ]
@@ -539,11 +539,31 @@ def estimate_fidilties(
     return records
 
 
+def _extract_pairs(
+    sampler: 'cirq.Sampler',
+    target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
+    qubits: Optional[Sequence['cirq.GridQubit']],
+    pairs: Optional[Sequence[_QUBIT_PAIR_T]],
+) -> Sequence[_QUBIT_PAIR_T]:
+    if isinstance(target, dict):
+        if pairs is None:
+            pairs = tuple(target.keys())
+        else:
+            assert target.keys() == set(pairs)
+    qubits, device_pairs = tqxeb.qubits_and_pairs(sampler, qubits, pairs)
+    device_pairs = [_canonize_pair(pair) for pair in device_pairs]
+    if pairs is None:
+        return device_pairs
+    else:
+        pairs = [_canonize_pair(p) for p in pairs]
+        return tuple(set(pairs) & set(device_pairs))
+
+
 def parallel_xeb_workflow(
     sampler: 'cirq.Sampler',
-    target: Union[_TARGET_T, Dict[tuple['cirq.GridQubit', 'cirq.GridQubit'], _TARGET_T]],
+    target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
-    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
+    pairs: Optional[Sequence[_QUBIT_PAIR_T]] = None,
     parameters: XEBParameters = XEBParameters(),
     rng: Optional[np.random.Generator] = None,
     pool: Optional[futures.Executor] = None,
@@ -569,18 +589,7 @@ def parallel_xeb_workflow(
         rng = np.random.default_rng()
     rs = np.random.RandomState(rng.integers(0, 10**9))
 
-    if isinstance(target, dict):
-        if pairs is None:
-            pairs = tuple(target.keys())
-        else:
-            assert target.keys() == set(pairs)
-    qubits, device_pairs = tqxeb.qubits_and_pairs(sampler, qubits, pairs)
-    device_pairs = [_canonize_pair(pair) for pair in device_pairs]
-    if pairs is None:
-        pairs = device_pairs
-    else:
-        pairs = [_canonize_pair(p) for p in pairs]
-        pairs = tuple(set(pairs) & set(device_pairs))
+    pairs = _extract_pairs(sampler, target, qubits, pairs)
     graph = nx.Graph(pairs)
 
     circuit_templates = rqcg.generate_library_of_2q_circuits(
@@ -639,9 +648,9 @@ def parallel_xeb_workflow(
 
 def parallel_two_qubit_xeb(
     sampler: 'cirq.Sampler',
-    target: Union[_TARGET_T, Dict[tuple['cirq.GridQubit', 'cirq.GridQubit'], _TARGET_T]],
+    target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
-    pairs: Optional[Sequence[tuple['cirq.GridQubit', 'cirq.GridQubit']]] = None,
+    pairs: Optional[Sequence[_QUBIT_PAIR_T]] = None,
     parameters: XEBParameters = XEBParameters(),
     rng: Optional[np.random.Generator] = None,
     pool: Optional[futures.Executor] = None,

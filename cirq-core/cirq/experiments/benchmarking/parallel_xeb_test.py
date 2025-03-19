@@ -338,7 +338,7 @@ def test_parallel_two_qubit_xeb(target, pairs):
 
 class MockDevice(cirq.Device):
     @property
-    def metadata(self):
+    def metadata(self) -> cirq.DeviceMetadata:
         qubits = cirq.GridQubit.rect(3, 2, 4, 3)
         graph = nx.Graph(
             pair
@@ -359,8 +359,8 @@ class DensityMatrixSimulatorWithProcessor(cirq.DensityMatrixSimulator):
         return MockProcessor()
 
 
-def test_parallel_two_qubit_xeb_with_dict_target_with_device():
-    target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS}
+def test_parallel_two_qubit_xeb_with_device():
+    target = cirq.CZ
     sampler = DensityMatrixSimulatorWithProcessor(noise=cirq.depolarize(0.03))
     result = xeb.parallel_two_qubit_xeb(
         sampler=sampler,
@@ -370,7 +370,14 @@ def test_parallel_two_qubit_xeb_with_dict_target_with_device():
         ),
     )
     np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
-    assert result.all_qubit_pairs == _PAIRS
+    qubits = cirq.GridQubit.rect(3, 2, 4, 3)
+    pairs = tuple(
+        pair
+        for pair in itertools.combinations(qubits, 2)
+        if abs(pair[0].row - pair[1].row) + abs(pair[0].col - pair[1].col) == 1
+        and pair[0] < pair[1]
+    )
+    assert result.all_qubit_pairs == pairs
 
 
 def test_parallel_two_qubit_xeb_with_dict_target():
