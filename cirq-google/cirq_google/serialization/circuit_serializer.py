@@ -344,7 +344,7 @@ class CircuitSerializer(serializer.Serializer):
                     if constant.WhichOneof('const_value'):
                         constants.append(constant)
                         if raw_constants is not None:
-                            raw_constants[tag] = tag_index
+                            raw_constants[tag] = len(constants) - 1
                         msg.tag_indices.append(len(constants) - 1)
                 else:
                     msg.tag_indices.append(tag_index)
