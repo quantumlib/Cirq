@@ -15,11 +15,8 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Common editor configurations for this project.
 #
-# EditorConfig defines a file format for specifying some common coding style
-# parameters. Many IDEs and editors read .editorconfig files, either natively
-# or via plugins. A few formatters also read .editorconfig; shfmt and Prettier
-# are two examples (as of early 2025).
-#
+# EditorConfig is a file format for specifying some common style parameters.
+# Many IDEs & editors read .editorconfig files, either natively or via plugins.
 # We mostly follow Google's style guides (https://google.github.io/styleguide/)
 # with only a few deviations for line length and indentation in some files.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
