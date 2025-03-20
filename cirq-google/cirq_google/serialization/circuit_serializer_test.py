@@ -1032,6 +1032,13 @@ class DiscountTag:
     def __init__(self, discount: float):
         self.discount = discount
 
+    def __eq__(self, other):
+        if isinstance(other, DiscountTag) and self.discount == other.discount:
+            return True
+
+    def __hash__(self):
+        return hash(self.discount)
+
 
 class DiscountTagSerializer(TagSerializer):
     """Describes how to serialize DiscountTag."""
@@ -1093,6 +1100,32 @@ def test_custom_tag_serializer(use_constants_table: bool):
     assert len(op.tags) == 1
     assert isinstance(op.tags[0], DiscountTag)
     assert op.tags[0].discount == 0.25
+
+
+def test_custom_tag_serializer_with_tags_outside_constants():
+    op_tag = v2.program_pb2.Operation()
+    op_tag.xpowgate.exponent.float_value = 1.0
+    op_tag.qubit_constant_index.append(0)
+    tag = v2.program_pb2.Tag()
+    tag.internal_tag.tag_name = 'Discount'
+    tag.internal_tag.tag_package = 'test'
+    tag.internal_tag.tag_args['discount'].arg_value.float_value = 0.5
+    op_tag.tags.append(tag)
+    circuit_proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[v2.program_pb2.Moment(operations=[op_tag])],
+        ),
+        constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1'))],
+    )
+    expected_circuit_no_tag = cirq.Circuit(
+        cirq.X(cirq.GridQubit(1, 1)).with_tags(DiscountTag(0.50))
+    )
+    serializer = cg.CircuitSerializer(
+        tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
+    )
+    assert serializer.deserialize(circuit_proto) == expected_circuit_no_tag
 
 
 def test_reset_gate_with_improper_argument():
