@@ -51,7 +51,7 @@ required_shell_scripts=(
     dev_tools/pypath
 )
 
-declare scripts_not_found=""
+scripts_not_found=""
 scripts_not_found="$(comm -13 \
     <(printf "%s\n" "${our_shell_scripts[@]}") \
     <(printf "%s\n" "${required_shell_scripts[@]}") )"

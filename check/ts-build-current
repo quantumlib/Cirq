@@ -15,16 +15,15 @@
 # limitations under the License.
 
 ################################################################################
-# Checks if all bundled files are up to date. 
+# Checks if all bundled files are up to date.
 #
 # Usage:
 #     check/ts-build-changes
 ################################################################################
 
-check/ts-build 
+check/ts-build
 
 # Find the changed bundle.js files, if any
-declare untracked
 untracked=$(git status --porcelain 2>/dev/null | grep "cirq-web/cirq_ts/dist/" | cut -d " " -f 3)
 
 if [[ -n "$untracked" ]]; then

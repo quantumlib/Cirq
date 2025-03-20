@@ -28,7 +28,7 @@ cd "$(git rev-parse --show-toplevel)" || exit 1
 
 declare -a pytest_args
 declare -i analyze_cov=1
-declare baserev=""
+baserev=""
 
 if [[ "$1" == [^-]* ]]; then
     baserev="$1"
@@ -44,7 +44,7 @@ for arg in "$@"; do
 done
 
 # Figure out which revision to compare against.
-declare rev=""
+rev=""
 if [[ -n "${baserev}" ]]; then
     if ! git rev-parse --verify --quiet --no-revs "${baserev}^{commit}"; then
         echo -e "\033[31mNo revision '${baserev}'.\033[0m" >&2
@@ -61,7 +61,6 @@ else
     echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/main' or 'HEAD~1').\033[0m" >&2
     exit 1
 fi
-declare base
 base="$(git merge-base "${rev}" HEAD)"
 if [[ "$(git rev-parse "${rev}")" == "${base}" ]]; then
     echo -e "Comparing against revision '${rev}'." >&2

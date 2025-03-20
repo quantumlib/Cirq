@@ -40,7 +40,7 @@ declare -a errors
 # Parse arguments.
 declare -a apply_arg
 declare -a rev
-declare only_changed=0
+only_changed=0
 for arg in "$@"; do
     if [[ "${arg}" == "--only-changed-files" ]]; then
         only_changed=1

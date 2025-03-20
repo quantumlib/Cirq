@@ -38,7 +38,7 @@ cd "${topdir}" || exit $?
 # Parse arguments.
 declare -i only_print=1
 declare -i only_changed=1
-declare rev=""
+rev=""
 for arg in "$@"; do
     if [[ "${arg}" == "--apply" ]]; then
         only_print=0
@@ -93,7 +93,6 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
-declare BLACKVERSION
 BLACKVERSION="$(black --version)"
 
 echo "Running the black formatter... (version: $BLACKVERSION)"
