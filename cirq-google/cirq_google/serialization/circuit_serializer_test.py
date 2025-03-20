@@ -27,6 +27,8 @@ from cirq_google.api import v2
 from cirq_google.serialization.circuit_serializer import _SERIALIZER_NAME
 from cirq_google.serialization.op_deserializer import OpDeserializer
 from cirq_google.serialization.op_serializer import OpSerializer
+from cirq_google.serialization.tag_deserializer import TagDeserializer
+from cirq_google.serialization.tag_serializer import TagSerializer
 
 
 class FakeDevice(cirq.Device):
@@ -949,7 +951,7 @@ class BingBongSerializer(OpSerializer):
 
     def to_proto(
         self,
-        op: cirq.CircuitOperation,
+        op: cirq.Operation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
         constants: List[v2.program_pb2.Constant],
@@ -1008,7 +1010,7 @@ def test_serdes_preserves_syc():
 
 
 @pytest.mark.parametrize('use_constants_table', [True, False])
-def test_custom_serializer(use_constants_table: bool):
+def test_custom_op_serializer(use_constants_table: bool):
     c = cirq.Circuit(BingBongGate(param=2.5)(cirq.q(0, 0)))
     serializer = cg.CircuitSerializer(
         USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
@@ -1024,6 +1026,73 @@ def test_custom_serializer(use_constants_table: bool):
     assert isinstance(op.gate, BingBongGate)
     assert op.gate.param == 2.5
     assert op.qubits == (cirq.q(0, 0),)
+
+
+class DiscountTag:
+    def __init__(self, discount: float):
+        self.discount = discount
+
+
+class DiscountTagSerializer(TagSerializer):
+    """Describes how to serialize DiscountTag."""
+
+    def can_serialize_tag(self, tag):
+        return isinstance(tag, DiscountTag)
+
+    def to_proto(
+        self,
+        tag: Any,
+        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        *,
+        constants: List[v2.program_pb2.Constant],
+        raw_constants: Dict[Any, int],
+    ) -> v2.program_pb2.CircuitOperation:
+        assert isinstance(tag, DiscountTag)
+        if msg is None:
+            msg = v2.program_pb2.Tag()  # pragma: nocover
+        msg.internal_tag.tag_name = 'Discount'
+        msg.internal_tag.tag_package = 'test'
+        msg.internal_tag.tag_args['discount'].arg_value.float_value = tag.discount
+        return msg
+
+
+class DiscountTagDeserializer(TagDeserializer):
+    """Describes how to serialize CircuitOperations."""
+
+    def can_deserialize_proto(self, proto):
+        return (
+            proto.WhichOneof("tag") == "internal_tag"
+            and proto.internal_tag.tag_name == 'Discount'
+            and proto.internal_tag.tag_package == 'test'
+        )
+
+    def from_proto(
+        self,
+        proto: v2.program_pb2.Operation,
+        *,
+        constants: List[v2.program_pb2.Constant],
+        deserialized_constants: List[Any],
+    ) -> cirq.Operation:
+        return DiscountTag(discount=proto.internal_tag.tag_args["discount"].arg_value.float_value)
+
+
+@pytest.mark.parametrize('use_constants_table', [True, False])
+def test_custom_tag_serializer(use_constants_table: bool):
+    c = cirq.Circuit(cirq.X(cirq.q(0, 0)).with_tags(DiscountTag(0.25)))
+    serializer = cg.CircuitSerializer(
+        USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
+        USE_CONSTANTS_TABLE_FOR_OPERATIONS=use_constants_table,
+        tag_serializer=DiscountTagSerializer(),
+        tag_deserializer=DiscountTagDeserializer(),
+    )
+    msg = serializer.serialize(c)
+    deserialized_circuit = serializer.deserialize(msg)
+    moment = deserialized_circuit[0]
+    assert len(moment) == 1
+    op = moment[cirq.q(0, 0)]
+    assert len(op.tags) == 1
+    assert isinstance(op.tags[0], DiscountTag)
+    assert op.tags[0].discount == 0.25
 
 
 def test_reset_gate_with_improper_argument():

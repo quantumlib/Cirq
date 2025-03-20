@@ -32,7 +32,14 @@ from cirq_google.ops import (
 )
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.experimental.ops import CouplerPulse
-from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
+from cirq_google.serialization import (
+    serializer,
+    op_deserializer,
+    op_serializer,
+    arg_func_langs,
+    tag_serializer,
+    tag_deserializer,
+)
 
 # The name used in program.proto to identify the serializer as CircuitSerializer.
 # "v2.5" refers to the most current v2.Program proto format.
@@ -64,6 +71,8 @@ class CircuitSerializer(serializer.Serializer):
             deserialization of this field is deployed.
         op_serializer: Optional custom serializer for serializing unknown gates.
         op_deserializer: Optional custom deserializer for deserializing unknown gates.
+        tag_serializer: Optional custom serializer for serializing unknown tags.
+        tag_deserializer: Optional custom deserializer for deserializing unknown tags.
     """
 
     def __init__(
@@ -72,6 +81,8 @@ class CircuitSerializer(serializer.Serializer):
         USE_CONSTANTS_TABLE_FOR_OPERATIONS=False,
         op_serializer: Optional[op_serializer.OpSerializer] = None,
         op_deserializer: Optional[op_deserializer.OpDeserializer] = None,
+        tag_serializer: Optional[tag_serializer.TagSerializer] = None,
+        tag_deserializer: Optional[tag_deserializer.TagDeserializer] = None,
     ):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)
@@ -79,6 +90,8 @@ class CircuitSerializer(serializer.Serializer):
         self.use_constants_table_for_operations = USE_CONSTANTS_TABLE_FOR_OPERATIONS
         self.op_serializer = op_serializer
         self.op_deserializer = op_deserializer
+        self.tag_serializer = tag_serializer
+        self.tag_deserializer = tag_deserializer
 
     def serialize(
         self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
@@ -319,7 +332,15 @@ class CircuitSerializer(serializer.Serializer):
                 if (tag_index := raw_constants.get(tag, None)) is None:
                     constant = v2.program_pb2.Constant()
                     tag_index = len(constants)
-                    if getattr(tag, 'to_proto', None) is not None:
+                    if self.tag_serializer and self.tag_serializer.can_serialize_tag(tag):
+                        tag_proto = self.tag_serializer.to_proto(
+                            tag, constants=constants, raw_constants=raw_constants
+                        )
+                        constants.append(v2.program_pb2.Constant(tag_value=tag_proto))
+                        if raw_constants is not None:
+                            raw_constants[tag] = tag_index
+                        msg.tag_indices.append(tag_index)
+                    elif getattr(tag, 'to_proto', None) is not None:
                         tag.to_proto(constant.tag_value)  # type: ignore
                         constants.append(constant)
                         if raw_constants is not None:
@@ -434,7 +455,18 @@ class CircuitSerializer(serializer.Serializer):
                         )
                     )
                 elif which_const == 'tag_value':
-                    deserialized_constants.append(self._deserialize_tag(constant.tag_value))
+                    if self.tag_deserializer and self.tag_deserializer.can_deserialize_proto(
+                        constant.tag_value
+                    ):
+                        deserialized_constants.append(
+                            self.tag_deserializer.from_proto(
+                                constant.tag_value,
+                                constants=proto.constants,
+                                deserialized_constants=deserialized_constants,
+                            )
+                        )
+                    else:
+                        deserialized_constants.append(self._deserialize_tag(constant.tag_value))
                 else:
                     msg = f'Unrecognized constant type {which_const}, ignoring.'  # pragma: no cover
                     warnings.warn(msg)  # pragma: no cover
@@ -490,22 +522,7 @@ class CircuitSerializer(serializer.Serializer):
                 gate_op = self._deserialize_gate_op(
                     op, constants=constants, deserialized_constants=deserialized_constants
                 )
-            if op.tag_indices:
-                tags = [
-                    deserialized_constants[tag_index]
-                    for tag_index in op.tag_indices
-                    if deserialized_constants[tag_index] not in gate_op.tags
-                    and deserialized_constants[tag_index] is not None
-                ]
-            else:
-                tags = []
-                for tag in op.tags:
-                    if (
-                        tag not in gate_op.tags
-                        and (new_tag := self._deserialize_tag(tag)) is not None
-                    ):
-                        tags.append(new_tag)
-            moment_ops.append(gate_op.with_tags(*tags))
+            moment_ops.append(gate_op)
         for op in moment_proto.circuit_operations:
             moment_ops.append(
                 self._deserialize_circuit_op(
@@ -768,7 +785,30 @@ class CircuitSerializer(serializer.Serializer):
         elif which == 'token_value':
             op = op.with_tags(CalibrationTag(operation_proto.token_value))
 
-        return op
+        # Add tags to op
+        if operation_proto.tag_indices:
+            tags = [
+                deserialized_constants[tag_index]
+                for tag_index in operation_proto.tag_indices
+                if deserialized_constants[tag_index] not in op.tags
+                and deserialized_constants[tag_index] is not None
+            ]
+        else:
+            tags = []
+            for tag in operation_proto.tags:
+                if tag not in op.tags:
+                    if self.tag_deserializer and self.tag_deserializer.can_deserialize_proto(tag):
+                        tags.append(
+                            self.tag_deserializer.from_proto(
+                                tag,
+                                constants=constants,
+                                deserialized_constants=deserialized_constants,
+                            )
+                        )
+                    elif (new_tag := self._deserialize_tag(tag)) is not None:
+                        tags.append(new_tag)
+
+        return op.with_tags(*tags)
 
     def _deserialize_circuit_op(
         self,
