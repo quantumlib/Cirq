@@ -15,6 +15,7 @@
 from typing import Any, Dict, List, Optional
 import pytest
 
+import attrs
 import numpy as np
 import sympy
 from google.protobuf import json_format
@@ -918,10 +919,10 @@ def test_backwards_compatibility_with_old_tags():
         ),
         constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1'))],
     )
-    expected_circuit_no_tag = cirq.Circuit(
+    expected_circuit = cirq.Circuit(
         cirq.X(cirq.GridQubit(1, 1)).with_tags(cg.ops.DynamicalDecouplingTag(protocol='X'))
     )
-    assert cg.CIRCUIT_SERIALIZER.deserialize(circuit_proto) == expected_circuit_no_tag
+    assert cg.CIRCUIT_SERIALIZER.deserialize(circuit_proto) == expected_circuit
 
 
 def test_circuit_with_units():
@@ -1028,16 +1029,9 @@ def test_custom_op_serializer(use_constants_table: bool):
     assert op.qubits == (cirq.q(0, 0),)
 
 
+@attrs.frozen
 class DiscountTag:
-    def __init__(self, discount: float):
-        self.discount = discount
-
-    def __eq__(self, other):
-        if isinstance(other, DiscountTag) and self.discount == other.discount:
-            return True
-
-    def __hash__(self):
-        return hash(self.discount)
+    discount: float
 
 
 class DiscountTagSerializer(TagSerializer):
@@ -1049,11 +1043,11 @@ class DiscountTagSerializer(TagSerializer):
     def to_proto(
         self,
         tag: Any,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: Optional[v2.program_pb2.Tag] = None,
         *,
         constants: List[v2.program_pb2.Constant],
         raw_constants: Dict[Any, int],
-    ) -> v2.program_pb2.CircuitOperation:
+    ) -> v2.program_pb2.Tag:
         assert isinstance(tag, DiscountTag)
         if msg is None:
             msg = v2.program_pb2.Tag()  # pragma: nocover
@@ -1119,13 +1113,11 @@ def test_custom_tag_serializer_with_tags_outside_constants():
         ),
         constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='1_1'))],
     )
-    expected_circuit_no_tag = cirq.Circuit(
-        cirq.X(cirq.GridQubit(1, 1)).with_tags(DiscountTag(0.50))
-    )
+    expected_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(1, 1)).with_tags(DiscountTag(0.50)))
     serializer = cg.CircuitSerializer(
         tag_serializer=DiscountTagSerializer(), tag_deserializer=DiscountTagDeserializer()
     )
-    assert serializer.deserialize(circuit_proto) == expected_circuit_no_tag
+    assert serializer.deserialize(circuit_proto) == expected_circuit
 
 
 def test_reset_gate_with_improper_argument():

@@ -314,8 +314,8 @@ class CircuitSerializer(serializer.Serializer):
             msg.qubit_constant_index.append(raw_constants[qubit])
 
         for tag in op.tags:
+            constant = v2.program_pb2.Constant()
             if isinstance(tag, CalibrationTag):
-                constant = v2.program_pb2.Constant()
                 constant.string_value = tag.token
                 if tag.token in raw_constants:
                     msg.token_constant_index = raw_constants[tag.token]
@@ -330,24 +330,22 @@ class CircuitSerializer(serializer.Serializer):
                     # TODO(dstrain): Remove this once we are deserializing tag indices everywhere.
                     tag.to_proto(msg=msg.tags.add())
                 if (tag_index := raw_constants.get(tag, None)) is None:
-                    constant = v2.program_pb2.Constant()
-                    tag_index = len(constants)
                     if self.tag_serializer and self.tag_serializer.can_serialize_tag(tag):
-                        tag_proto = self.tag_serializer.to_proto(
-                            tag, constants=constants, raw_constants=raw_constants
+                        self.tag_serializer.to_proto(
+                            tag,
+                            msg=constant.tag_value,
+                            constants=constants,
+                            raw_constants=raw_constants,
                         )
-                        constants.append(v2.program_pb2.Constant(tag_value=tag_proto))
-                        if raw_constants is not None:
-                            raw_constants[tag] = tag_index
-                        msg.tag_indices.append(tag_index)
                     elif getattr(tag, 'to_proto', None) is not None:
                         tag.to_proto(constant.tag_value)  # type: ignore
+                    else:
+                        warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+                    if constant.WhichOneof('const_value'):
                         constants.append(constant)
                         if raw_constants is not None:
                             raw_constants[tag] = tag_index
-                        msg.tag_indices.append(tag_index)
-                    else:
-                        warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+                        msg.tag_indices.append(len(constants) - 1)
                 else:
                     msg.tag_indices.append(tag_index)
         return msg
