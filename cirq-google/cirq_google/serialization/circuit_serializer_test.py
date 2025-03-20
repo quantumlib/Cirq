@@ -1072,7 +1072,7 @@ class DiscountTagDeserializer(TagDeserializer):
         *,
         constants: List[v2.program_pb2.Constant],
         deserialized_constants: List[Any],
-    ) -> cirq.Operation:
+    ) -> DiscountTag:
         return DiscountTag(discount=proto.internal_tag.tag_args["discount"].arg_value.float_value)
 
 

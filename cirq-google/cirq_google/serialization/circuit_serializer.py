@@ -786,7 +786,7 @@ class CircuitSerializer(serializer.Serializer):
             op = op.with_tags(CalibrationTag(operation_proto.token_value))
 
         # Add tags to op
-        if operation_proto.tag_indices:
+        if operation_proto.tag_indices and deserialized_constants is not None:
             tags = [
                 deserialized_constants[tag_index]
                 for tag_index in operation_proto.tag_indices
@@ -801,8 +801,8 @@ class CircuitSerializer(serializer.Serializer):
                         tags.append(
                             self.tag_deserializer.from_proto(
                                 tag,
-                                constants=constants,
-                                deserialized_constants=deserialized_constants,
+                                constants=constants or [],
+                                deserialized_constants=deserialized_constants or [],
                             )
                         )
                     elif (new_tag := self._deserialize_tag(tag)) is not None:
