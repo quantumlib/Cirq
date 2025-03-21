@@ -1,4 +1,19 @@
-# Summary: add a welcoming comment to first-time contributors' issues & PRs.
+# Copyright 2025 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Add a welcoming comment to first-time contributors' issues & PRs.
 # This is written in a generic way so that we can use the same workflow
 # in all our quantumlib repos.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,21 +32,24 @@ permissions: read-all
 
 jobs:
   welcome:
+    if: github.actor != 'dependabot[bot]'
     name: Check for first interaction
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
+      contents: read
       issues: write
       pull-requests: write
+      id-token: write
     env:
       repo: ${{github.server_url}}/${{github.repository}}
       files: ${{github.server_url}}/${{github.repository}}/blob/${{github.ref_name}}
     steps:
       - name: Add a welcome comment if appropriate
-        uses: actions/first-interaction@2ec0f0fd78838633cd1c1342e4536d49ef72be54 # v1.3.0
+        uses: actions/first-interaction@d94ed8e502bc16de558688b9dd9a26261ae78a66 # v1.3.0
         with:
           repo-token: ${{secrets.GITHUB_TOKEN}}
-          issue-message: |
+          issue-message: >
             Hello and welcome, ${{github.actor}} 👋!
 
             Thanks for filing your first issue with the ${{github.repository}}
@@ -52,7 +70,7 @@ jobs:
             any that look the same as this one. If you find a similar issue,
             consider closing this one; if you don't want to close this one, can
             you explain how this new one differs from the other one?
-          pr-message: |
+          pr-message: >
             Hello and welcome, ${{github.actor}} 👋!
 
             Thanks for making your first pull request to the
