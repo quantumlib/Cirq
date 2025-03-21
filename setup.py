@@ -56,6 +56,9 @@ assert __version__, 'Version string cannot be empty'
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
 
+# Exclude cirq-rigetti so that cirq can install with numpy-2
+requirements = [r for r in requirements if not r.startswith("cirq-rigetti")]
+
 dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
 
 # filter out direct urls (https://github.com/pypa/pip/issues/6301)
