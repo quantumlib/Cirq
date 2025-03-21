@@ -1,0 +1,21 @@
+\documentclass{article}%
+\usepackage[T1]{fontenc}%
+\usepackage[utf8]{inputenc}%
+\usepackage{lmodern}%
+\usepackage{textcomp}%
+\usepackage{lastpage}%
+\usepackage{amsmath}%
+\usepackage{qcircuit}%
+%
+\usepackage[utf8]{inputenc}%
+%
+\begin{document}%
+\normalsize%
+\Qcircuit @R=1em @C=0.75em {
+ \\
+ &\lstick{\text{q(0)}}& \qw&\ctrlo{} \qw    &\control \qw    &\targ    \qw    &\qswap     \qw&           \qw&\qw\\
+ &\lstick{\text{q(1)}}& \qw&\control \qw\qwx&\targ    \qw\qwx&\ctrlo{} \qw\qwx&\qswap\qwx \qw&\qswap     \qw&\qw\\
+ &\lstick{\text{q(2)}}& \qw&\targ    \qw\qwx&\ctrlo{} \qw\qwx&\control \qw\qwx&           \qw&\qswap\qwx \qw&\qw\\
+ \\
+}%
+\end{document}
