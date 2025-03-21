@@ -4,13 +4,9 @@ The files in this directory (`cirq/examples/`) are examples of various quantum
 programs, algorithms, and demonstrations of using Cirq. This directory is not
 included in the packaged Cirq releases.
 
-<div align="center">
-<p align="center">
-<img alt="Everyone is free to copy, use, modify, and publish this example code"
-        align="center" height="30px"
-        src="https://img.shields.io/badge/Everyone%20is%20free%20to%20copy,%20modify,%20use,%20and/or%20publish%20these%20example%20programs-ffe288.svg?style=for-the-badge">
-</p>
-</div>
+> [!TIP]
+> Everyone is free to copy, use, modify, and publish this example code under the
+> terms of the [Apache 2.0 license](https://github.com/quantumlib/Cirq/LICENSE).
 
 ## Summary of examples
 
