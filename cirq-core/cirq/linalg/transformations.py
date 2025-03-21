@@ -807,14 +807,14 @@ def transpose_flattened_array(t: np.ndarray, shape: Sequence[int], axes: Sequenc
 
 
 @functools.cache
-def can_numpy_support_dims(num_dims: int) -> bool:
+def _can_numpy_support_dims(num_dims: int) -> bool:
     try:
         _ = np.empty((1,) * num_dims)
         return True
     except ValueError:
-        return False
+        return False  # pragma: no cover
 
 
 def can_numpy_support_shape(shape: Sequence[int]) -> bool:
     """Returns whether numpy supports the given shape or not numpy/numpy#5744."""
-    return can_numpy_support_dims(len(shape))
+    return _can_numpy_support_dims(len(shape))
