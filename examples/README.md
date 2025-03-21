@@ -6,7 +6,7 @@ included in the packaged Cirq releases.
 
 > [!TIP]
 > Everyone is free to copy, use, modify, and publish this example code under the
-> terms of the [Apache 2.0 license](https://github.com/quantumlib/Cirq/LICENSE).
+> terms of the [Apache 2.0 license](https://github.com/quantumlib/Cirq/blob/main/LICENSE).
 
 ## Summary of examples
 
