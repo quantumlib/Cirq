@@ -37,6 +37,9 @@ updates:
       - "area/dependencies"
       - "area/github"
       - "kind/health"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
 
   - package-ecosystem: "npm"
     # The "npm" ecosystem directive makes Dependabot look for package.json in
