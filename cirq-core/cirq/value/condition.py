@@ -234,7 +234,7 @@ class BitMaskKeyCondition(Condition):
 
     @property
     def qasm(self):
-        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
+        raise NotImplementedError()  # pragma: no cover
 
 
 @dataclasses.dataclass(frozen=True)

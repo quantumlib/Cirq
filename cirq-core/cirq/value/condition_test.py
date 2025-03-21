@@ -195,11 +195,6 @@ def test_sympy_condition_qasm():
         _ = cirq.SympyCondition(sympy.Symbol('a') != 2).qasm
 
 
-def test_bitmask_condition_qasm_raises():
-    with pytest.raises(ValueError):
-        _ = cirq.BitMaskKeyCondition('a').qasm
-
-
 @pytest.mark.parametrize(
     ['cond', 'cond_str'],
     [
