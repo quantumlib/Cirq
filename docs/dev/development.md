@@ -414,7 +414,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
     over the installed code. If everything goes smoothly, the script will finish
     by printing `VERIFIED`.
 
-1.  Do a dry run with prod PyPI
+2.  Do a dry run with prod PyPI
 
     This step is essentially identical to the test dry run, but with production
     PyPI. You should have access to a production PyPI account capable of
@@ -433,7 +433,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     If everything goes smoothly, the script will finish by printing `VERIFIED`.
 
-1.  Set the version number in
+3.  Set the version number in
     [cirq/\_version.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_version.py).
 
     Development versions end with `.dev` or `.dev#`. For example, `0.0.4.dev500`
@@ -441,7 +441,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
     create a pull request turning `#.#.#.dev*` into `#.#.#` and a follow up pull
     request turning `#.#.#` into `(#+1).#.#.dev`.
 
-1.  Run
+4.  Run
     [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/packaging/produce-package.sh)
     to produce PyPI artifacts.
 
@@ -451,14 +451,14 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 
     The output files will be placed in the directory `dist/`.
 
-1.  Create a GitHub release.
+5.  Create a GitHub release.
 
     Describe major changes (especially breaking changes) in the summary. Make
     sure you point the tag being created at the one and only revision with the
     non-dev version number. Attach the package files you produced to the
     release.
 
-1.  Upload to PyPI.
+6.  Upload to PyPI.
 
     You can use a tool such as `twine` for this. For example:
 

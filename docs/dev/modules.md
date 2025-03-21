@@ -100,9 +100,9 @@ To setup a new module follow these steps:
          )
         ```
 
-    1.  `__init__.py` should import `TestSpec` from `spec.py`
+    2.  `__init__.py` should import `TestSpec` from `spec.py`
 
-    1.  in `cirq/protocols/json_serialization_test.py` add `'cirq_example':None`
+    3.  in `cirq/protocols/json_serialization_test.py` add `'cirq_example':None`
         to the `TESTED_MODULES` variable. `TESTED_MODULES` is also used to
         prepare the test framework for deprecation warnings. With new modules,
         we use`None` as there is no deprecation setup.
