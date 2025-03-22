@@ -105,7 +105,6 @@ See the previous section for instructions.
     Docker or configure permissions on your system; see the
     [Docker installation instructions](https://docs.docker.com/engine/install/ubuntu/)
     for more information.
-    Note that Docker is necessary only for the `cirq-rigetti` module.
 
     There are some extra steps if Protocol Buffers are changed; see the next section.
 
