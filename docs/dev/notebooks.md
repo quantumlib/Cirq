@@ -71,7 +71,7 @@ Thus, for notebooks with external dependencies, **all cells must have their outp
 
 ## Lifecycle
 
-You should configure notebooks differently depending on whether they rely on features in the pre-release build of cirq or not.
+You should configure notebooks differently depending on whether they rely on features in the pre-release build of Cirq or not.
 
 ### Pre-release notebooks
 
