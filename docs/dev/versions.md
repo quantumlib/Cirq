@@ -12,6 +12,7 @@ Cirq follows Semantic Versioning 2.0 ([semver](http://semver.org/)) for its publ
 
 ## What is covered
 The public APIs of Cirq are backwards-compatible across minor and patch versions. The public APIs consist of
+the following:
 
 * All the documented [symbols](https://quantumai.google/reference/python/cirq/all_symbols) (module, function, argument, property, class, or constant) in the Cirq module and its submodules, except for
     *   Private symbols: any symbol whose name start with an underscore **\_**.
@@ -26,6 +27,7 @@ The public APIs of Cirq are backwards-compatible across minor and patch versions
     *   any symbol in the `cirq.contrib` module or its submodules.
     *   any symbol whose name contains `experimental` or `Experimental`; or
     *   any symbol whose fully-qualified name includes a module or class that is itself experimental. This includes fields and submessages of any JSON/protocol serialization called `experimental`.
+* **Hardware vendor modules**: As mentioned in the previous section, interface packages from quantum hardware vendors, such as `cirq-aqt`, `cirq-google`, `cirq-rigetti`, and others, are not covered.
 * **Details of gate decompositions**: Many public gates and operations in Cirq are composite gates defined by specifying a particular decomposition in terms of other simpler gates, using `_decompose_` protocol. These decompositions may change for minor releases, with a guarantee that the old and new decompositions would result in the same unitary up to a global phase.
 * **Floating point numerical details**: The specific floating point values computed by simulators and linear algebra utilities may change at any time. Users should rely only on approximate accuracy and numerical stability, not on the specific bits computed.
 * **Type Preservation**: The exact type of the objects consumed and returned by methods/functions in the public API can be changed any time, as long as the change satisfies [Liskov Substitution Principle (LSP)](https://en.wikipedia.org/wiki/Liskov_substitution_principle).
@@ -35,7 +37,6 @@ The public APIs of Cirq are backwards-compatible across minor and patch versions
     *   For example: We can change [SVG diagrams](https://github.com/quantumlib/Cirq/issues/5689) and [text diagrams](https://github.com/quantumlib/Cirq/issues/5688) to use a different symbol for all classically-controlled operations.
 * **Error behavior**: We may replace input validation errors with non-error behavior. For instance, we may change a class/function to compute a result instead of raising an error for a certain set of inputs, even if that error is documented. We also reserve the right to change the text of error messages.
     *   For example: If we decide to extend functionality of `PauliSumExponential` to support non-commuting Pauli’s, the [value error](https://github.com/quantumlib/Cirq/blob/e00767a2ef1233e82e9089cf3801a77e4cc3aea3/cirq-core/cirq/ops/pauli_sum_exponential.py#L53) in the constructor would be removed.
-* **Hardware vendor modules**: As mentioned in the previous section, interface packages from quantum hardware vendors, such as `cirq-aqt`, `cirq-google`, `cirq-rigetti`, and others, are not covered.
 
 ## Compatibility of serialized objects
 Cirq currently uses JSON serialization for serializing gates, operations and circuits. Many Cirq users serialize and store their circuits so they can be loaded and executed with a later release of Cirq. In compliance with [semver](https://semver.org/), serialized JSON objects written with one version of Cirq can be loaded and evaluated with a later version of Cirq with the same major release.
