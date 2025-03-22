@@ -57,7 +57,7 @@ exceptions.
 Cirq makes extensive use of type annotations as defined by
 [PEP 484](https://peps.python.org/pep-0484/). All new code should use type
 annotations where possible, especially on public classes and functions to serve
-as documentation, but also on internal code so that the mypy typechecker can
+as documentation, but also on internal code so that the mypy type checker can
 help catch coding errors.
 
 For documentation purposes in particular, type annotations should match the way

@@ -15,7 +15,7 @@ cd Cirq
 
 ## Recommended git setup
 
-The following command will setup large refactoring revisions to be ignored, when using git blame.
+The following command will set up large refactoring revisions to be ignored, when using git blame.
 
 ```
 git config blame.ignoreRevsFile .git-blame-ignore-revs
@@ -24,7 +24,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 Note that if you are using PyCharm, you might have to use the command Restart & Invalidate Caches to have the change be picked up.
 
 ## Docker
-You can build the stable and pre_release Docker images with our `Dockerfile`.
+You can build the stable and pre-release Docker images with our `Dockerfile`.
 
 ```bash
     docker build -t cirq --target cirq_stable .

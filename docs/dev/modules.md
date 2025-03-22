@@ -28,7 +28,7 @@ All modules should depend on `cirq-core`, which is the central, core library for
 
 ## Packaging
 
-Each package gets published to PyPi as a separate package. To build all the wheel files locally, use
+Each package gets published to PyPI as a separate package. To build all the wheel files locally, use
 
 ```bash
 dev_tools/packaging/produce-package.sh ./dist `./dev_tools/packaging/generate-dev-version-id.sh`
@@ -38,7 +38,7 @@ Packages are versioned together, share the same version number, and are released
 
 ## Setting up a new module
 
-To setup a new module follow these steps:
+To set up a new module follow these steps:
 
 1. Create the folder structure above, copy the files based on an existing module
     1. The `LICENSE` file should be the same
@@ -85,7 +85,7 @@ To setup a new module follow these steps:
        ```
    2. `__init__.py` should import `TestSpec` from `spec.py`
    3. in `cirq/protocols/json_serialization_test.py` add `'cirq_example':None` to the `TESTED_MODULES` variable. `TESTED_MODULES` is also used to prepare the test framework for deprecation warnings.
-      With new modules, we use`None` as there is no deprecation setup.
+      With new modules, we use `None` as there is no deprecation setup.
 
 You can run `check/pytest-changed-files` and that should execute the script `json_serialization_test.py` as well.
 

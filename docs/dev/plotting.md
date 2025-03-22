@@ -45,7 +45,7 @@ class Foo:
 ```
 
 This `plot` method works in 2 modes: *memory mode* and *interactive mode*,
-signalled by the presence of the `ax` argument. When present, the method is
+signaled by the presence of the `ax` argument. When present, the method is
 instructed to plot on the provided `ax` instance in memory. No plot is shown
 on the screen. When absent, the code is in *interactive* mode, and it creates
 a figure and shows it.

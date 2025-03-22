@@ -62,6 +62,6 @@ generally surprising to users.
 If you have to use an operation, try to have the `.gate` property of the
 operation can return something useful instead of `None`.
 
-8. Consider adding interop methods like `_qasm_`.
+8. Consider adding interoperability methods like `_qasm_`.
 These methods will fallback to using things like `_decompose_`, but the output
 is usually much better when specialized.

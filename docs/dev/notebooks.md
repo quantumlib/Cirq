@@ -62,7 +62,7 @@ them to `SKIP_NOTEBOOKS` within the file `dev_tools/notebooks/notebook_test.py`.
 
 External dependencies, for these purposes, are calls to external services and
 APIs, such as vendor endpoints for cloud services.  These can also include
-external downloads, such as installing packages from unknown debian
+external downloads, such as installing packages from unknown Debian
 repositories, which may be blocked for security reasons.
 
 The site that generates the outputs for notebooks also can't handle external dependencies.

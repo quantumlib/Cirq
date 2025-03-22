@@ -36,8 +36,8 @@ For most issues, there are the following phases:
 * **Triage** to decide whether we want to take on this issue at all,
 * **Prioritization** of how urgent it is,
 * Identifying the relevant feature **area**,
-* Signalling its anticipated **difficulty**,
-* Signalling the amount of expected **work**,
+* Signaling its anticipated **difficulty**,
+* Signaling the amount of expected **work**,
 * **Assigning** work,
 * And (eventually) **closing**.
 
@@ -52,7 +52,7 @@ The triage states are:
 * `triage/discuss` – can be added to any issue type to bring them up during the next Cirq Cynq meeting and/or to signal need for a decision (in addition, consider also pinging the maintainers who need to come to consensus around the issue)
 * `triage/duplicate` – for issues that turn out to be essentially the same as other existing issues (in which case, they're likely to be closed)
 * `triage/needs-feasibility` – for feature requests (maybe bugs)
-* `triage/needs-more-evidence` – for plausible requests that nevertheless need more compelling evidence about their value for enough users to warrant implemention and maintenance
+* `triage/needs-more-evidence` – for plausible requests that nevertheless need more compelling evidence about their value for enough users to warrant implementation and maintenance
 * `triage/needs-reproduction` – for bugs only
 * `triage/wont-fix` – for when the decision is against pursuing something (perhaps because the thing in question is working as designed, or because changing it is impractical, or some other reason)
 
@@ -89,7 +89,7 @@ Features and Bugs with no priority label on them will still be up for grabs for 
 The goal of [feature area labels](https://github.com/quantumlib/Cirq/labels?q=area) are to enable easy filtering to certain areas. This can help during planning, exploring problematic areas, and finding duplicate issues. Multiple `area/*` labels can be added to a single issue.
 
 
-### Signalling difficulty
+### Signaling difficulty
 
 Difficulty is a function of
 
@@ -106,10 +106,10 @@ Difficulty is a function of
 
 * `none`: no special background knowledge required
 * `beginner`: little to no background knowledge is required in the given `area/*` labels
-* `advanced`: requires solid understanding at least one of the areas signalled by the `area/*` labels
+* `advanced`: requires solid understanding at least one of the areas signaled by the `area/*` labels
 * `expert`: requires deep insight about one or more `area/*` labels to design the right abstractions
 
-### Signalling work for contributors
+### Signaling work for contributors
 
 * `good first issue`: (`level/beginner` in the areas needed and `complexity/low` to `complexity/medium`) – the issue is relatively small, self contained, doesn't require too much quantum-computing knowledge
 * `good for learning`: (`level/advanced` in the areas needed and `complexity/low`) – the issue is relatively small, self contained, but requires digging into some areas and develop a solid understanding. Should be a bit harder than "good first issues".
@@ -230,4 +230,4 @@ Cirq Cynq (join [cirq-dev](https://groups.google.com/g/cirq-dev) to get an invit
 
 **What:**
 
-Every 6 months, after every other release, the team should come together and review `triage/accepted` items and revisit them. This is also a chance to catchup on daily triage in case it slipped.
+Every 6 months, after every other release, the team should come together and review `triage/accepted` items and revisit them. This is also a chance to catch up on daily triage in case it slipped.

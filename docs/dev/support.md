@@ -15,7 +15,7 @@ below.
 | Qualtran | https://github.com/quantumlib/Qualtran/issues |
 | ReCirq | https://github.com/quantumlib/ReCirq/issues |
 | Stim | https://github.com/quantumlib/Stim/issues |
-| Tensorflow Quantum | https://github.com/tensorflow/quantum/issues |
+| TensorFlow Quantum | https://github.com/tensorflow/quantum/issues |
 | Tesseract Decoder | https://github.com/quantumlib/Tesseract-decoder/issues |
 
 To report an issue or request a feature in one of our open-source projects,
