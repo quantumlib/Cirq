@@ -1,6 +1,6 @@
 # Cirq modules
 
-Cirq has a modular architecture and is organized in a monorepo, all of the modules follow the same folder structure.
+Cirq has a modular architecture and is organized in a monorepo. All of the modules follow the same folder structure.
 Each module is structured as follows. Let's take as example a module named `cirq-example`:
 
 ```
@@ -21,7 +21,7 @@ cirq-example
 
 Note that typically there is only a single top level package, `cirq_example` - but there might be exceptions.
 
-Additionally, there is a metapackage "cirq" that's a completely different beast and just depends on the modules.
+Additionally, there is a metapackage named `cirq` that's a completely different beast and just depends on the modules.
 This enables `pip install cirq` to have all the included modules to be installed for our users.
 
 All modules should depend on `cirq-core`, which is the central, core library for Cirq.
@@ -41,10 +41,10 @@ Packages are versioned together, share the same version number, and are released
 To setup a new module follow these steps:
 
 1. Create the folder structure above, copy the files based on an existing module
-    1. LICENSE should be the same
-    2. README.md will be the documentation that appears in PyPi
-    3. setup.py should specify an `install_requires` configuration that has `cirq-core=={module.version}` at the minimum
-2. Setup JSON serialization for each top level Python package
+    1. The `LICENSE` file should be the same
+    2. The `README.md` file will be the documentation that appears in PyPI
+    3. The `setup.py` file should specify an `install_requires` configuration that has `cirq-core=={module.version}` at the minimum
+2. Set up JSON serialization for each top level Python package
 
 
 ### Setting up JSON serialization
