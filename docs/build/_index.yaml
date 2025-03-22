@@ -40,7 +40,7 @@ landing_page:
       description: Build and measure observables from sums and products of Pauli operators.
       path: /cirq/build/pauli_observables
     - heading: Qudits
-      description: Qutrits and higher dimensional quantum systems.
+      description: Qutrits and higher-dimensional quantum systems.
       path: /cirq/build/qudits
     - heading: Protocols
       description: Magic methods supported by Cirq's classes.

@@ -44,7 +44,7 @@ To setup a new module follow these steps:
     1. LICENSE should be the same
     2. README.md will be the documentation that appears in PyPi
     3. setup.py should specify an `install_requires` configuration that has `cirq-core=={module.version}` at the minimum
-2. Setup JSON serialization for each top level python package
+2. Setup JSON serialization for each top level Python package
 
 
 ### Setting up JSON serialization

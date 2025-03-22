@@ -46,7 +46,7 @@ In some cases the default behavior of using `__str__` is sufficient.
 
 4. If the `__repr__` is cumbersome, gates should specify a `_repr_pretty_`
 method.
-This method will be used preferentially by Jupyter notebooks, ipython, etc.
+This method will be used preferentially by Jupyter notebooks, iPython, etc.
 
 5. Gates should specify an `_apply_unitary_` method.
 This is not necessary for single or two qubit gates, but it is a huge
