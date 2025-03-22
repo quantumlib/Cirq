@@ -17,8 +17,10 @@ from typing import Dict
 
 import cirq_rigetti
 from cirq.protocols.json_serialization import ObjectFactory
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_function
 
 
+@deprecated_cirq_rigetti_function()
 @functools.lru_cache()  # pragma: no cover
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # pragma: no cover
     return {

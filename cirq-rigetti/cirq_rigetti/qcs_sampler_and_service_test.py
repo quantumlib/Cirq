@@ -223,7 +223,7 @@ def test_explicit_qubit_id_map(
         mock_qpu_implementer,
         bell_circuit,
         param_resolvers,
-        transformer=transformers.build(qubit_id_map=qubit_id_map),  # type: ignore
+        transformer=transformers.build(qubit_id_map=qubit_id_map),
     )
 
     assert len(param_resolvers) == len(
