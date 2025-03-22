@@ -811,7 +811,7 @@ def _can_numpy_support_dims(num_dims: int) -> bool:
     try:
         _ = np.empty((1,) * num_dims)
         return True
-    except ValueError:
+    except ValueError:  # pragma: no cover
         return False  # pragma: no cover
 
 
