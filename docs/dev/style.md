@@ -90,8 +90,8 @@ later in the same file.
 
 ## Nomenclature
 
-Using consistent wording across Cirq is important for lowering users
-cognitive load. For rule governing naming, see the 
+Using consistent wording across Cirq is important for lowering users'
+cognitive load. For rule governing naming, see the
 [nomenclature guidelines](nomenclature.md).
 
 ## Datetimes
@@ -104,7 +104,7 @@ dt = datetime.datetime.now(tz=datetime.timezone.utc)
 ```
 
 Public components of Protobuf APIs will return "aware" `datetime` objects.
-JSON de-serialization will promote values to "aware" `datetime` objects upon deserialization. 
+JSON de-serialization will promote values to "aware" `datetime` objects upon deserialization.
 
 Comparing (or testing equality) between "naive" and "aware" `datetime` objects throws
 an exception.
