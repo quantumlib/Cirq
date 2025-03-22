@@ -6,6 +6,7 @@ import sympy
 from pyquil import get_qc
 from pyquil.api import QVM
 from cirq_rigetti import RigettiQCSSampler
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.fixture
@@ -23,6 +24,7 @@ def circuit_with_separate_readout_keys() -> Tuple[cirq.Circuit, cirq.Linspace]:
 
 
 @pytest.mark.rigetti_integration
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_circuit_with_separate_readout_keys_through_sampler(
     circuit_with_separate_readout_keys: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:

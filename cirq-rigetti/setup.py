@@ -34,15 +34,6 @@ long_description = io.open('README.md', encoding='utf-8').read()
 # for more details.
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
-    long_description = (
-        "<div align='center' width='50%'>\n\n"
-        "| ⚠️ WARNING |\n"
-        "|:----------:|\n"
-        "| **This is a development version of `cirq-rigetti` and may be<br>"
-        "unstable. For the latest stable release of `cirq-rigetti`,<br>"
-        "please visit** <https://pypi.org/project/cirq-rigetti>.|\n"
-        "\n</div>\n\n" + long_description
-    )
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()

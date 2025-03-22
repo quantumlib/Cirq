@@ -5,9 +5,11 @@ import cirq
 from pyquil import get_qc
 from pyquil.api import QVM
 from cirq_rigetti import RigettiQCSSampler, circuit_sweep_executors
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.mark.rigetti_integration
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_circuit_through_sampler(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
@@ -41,6 +43,7 @@ def test_parametric_circuit_through_sampler(
 
 
 @pytest.mark.rigetti_integration
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_circuit_through_sampler_with_parametric_compilation(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:

@@ -5,9 +5,11 @@ import cirq
 from pyquil import get_qc
 from pyquil.api import QVM
 from cirq_rigetti import RigettiQCSService
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.mark.rigetti_integration
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_bell_circuit_through_service(bell_circuit: cirq.Circuit) -> None:
     """test that RigettiQCSService can run a basic bell circuit on the QVM and return an accurate
     ``cirq.study.Result``.

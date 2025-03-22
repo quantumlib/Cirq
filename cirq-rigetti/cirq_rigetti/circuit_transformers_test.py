@@ -7,8 +7,10 @@ from pyquil import Program
 from pyquil.gates import MEASURE, RX, DECLARE, H, CNOT, I
 from pyquil.quilbase import Pragma, Reset
 from cirq_rigetti import circuit_transformers as transformers
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_transform_cirq_circuit_to_pyquil_program(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
@@ -29,6 +31,7 @@ def test_transform_cirq_circuit_to_pyquil_program(
     ), "executable should measure the read out bit"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
     bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
 ) -> None:
@@ -55,6 +58,7 @@ def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
     ), "executable should measure the second qubit to the second read out bit"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_transform_with_post_transformation_hooks(
     bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
 ) -> None:
@@ -100,6 +104,7 @@ def test_transform_with_post_transformation_hooks(
     ), "executable should measure the second qubit to the second read out bit"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_transform_cirq_circuit_with_explicit_decompose(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:

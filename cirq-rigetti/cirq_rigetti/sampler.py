@@ -18,11 +18,13 @@ from pyquil.api import QuantumComputer
 import cirq
 from cirq_rigetti import circuit_transformers as transformers
 from cirq_rigetti import circuit_sweep_executors as executors
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 
 _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resolution
 
 
+@deprecated_cirq_rigetti_class()
 class RigettiQCSSampler(cirq.Sampler):
     """This class supports running circuits on QCS quantum hardware as well as pyQuil's
     quantum virtual machine (QVM). It implements the `cirq.Sampler` interface and
@@ -77,6 +79,7 @@ class RigettiQCSSampler(cirq.Sampler):
         )
 
 
+@deprecated_cirq_rigetti_function()
 def get_rigetti_qcs_sampler(
     quantum_processor_id: str,
     *,

@@ -1,5 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import os
+import warnings
 from unittest.mock import patch, PropertyMock
 from math import sqrt
 import pathlib
@@ -12,11 +13,28 @@ from cirq_rigetti import (
     UnsupportedQubit,
     UnsupportedRigettiQCSOperation,
 )
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 from qcs_sdk.qpu.isa import InstructionSetArchitecture, Family
 import numpy as np
+from cirq._compat import ALLOW_DEPRECATION_IN_TEST
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 dir_path = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 fixture_path = dir_path / '__fixtures__'
+
+# test parameterization uses deprecated classes, therefore we need to have
+# ALLOW_DEPRECATION_IN_TEST set during import time.  The initial environment
+# is restored at the end of the module.
+
+_SAVE_ENVIRON = {k: os.environ[k] for k in [ALLOW_DEPRECATION_IN_TEST] if k in os.environ}
+os.environ[ALLOW_DEPRECATION_IN_TEST] = "True"
+
+warnings.filterwarnings(
+    "ignore",
+    message="(.|\n)*Cirq-Rigetti is deprecated.",
+    category=DeprecationWarning,
+    module=__name__,
+)
 
 
 @pytest.fixture
@@ -25,6 +43,7 @@ def qcs_aspen8_isa() -> InstructionSetArchitecture:
         return InstructionSetArchitecture.from_raw(f.read())
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_octagonal_qubit_index():
     """test that OctagonalQubit properly calculates index and uses it for comparison"""
     qubit0 = OctagonalQubit(0)
@@ -32,12 +51,14 @@ def test_octagonal_qubit_index():
     assert OctagonalQubit(1) > qubit0
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_octagonal_qubit_repr():
     """test OctagonalQubit.__repr__"""
     qubit5 = OctagonalQubit(5)
     assert "cirq_rigetti.OctagonalQubit(octagon_position=5)" == repr(qubit5)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_octagonal_qubit_positions():
     """test OctagonalQubit 2D position and distance calculations"""
     qubit0 = OctagonalQubit(0)
@@ -77,12 +98,14 @@ def test_octagonal_qubit_positions():
         _ = qubit0.distance(AspenQubit(0, 0))
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_octagonal_position_validation():
     """test OctagonalQubit validates octagon position when initialized"""
     with pytest.raises(ValueError):
         _ = OctagonalQubit(8)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_aspen_qubit_index():
     """test that AspenQubit properly calculates index and uses it for comparison"""
     qubit10 = AspenQubit(1, 0)
@@ -90,12 +113,14 @@ def test_aspen_qubit_index():
     assert qubit10 > AspenQubit(0, 5)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_aspen_qubit_repr():
     """test AspenQubit.__repr__"""
     qubit10 = AspenQubit(1, 0)
     assert "cirq_rigetti.AspenQubit(octagon=1, octagon_position=0)" == repr(qubit10)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_aspen_qubit_positions_and_distance():
     """test AspenQubit 2D position and distance calculations"""
     qubit10 = AspenQubit(1, 0)
@@ -131,6 +156,7 @@ def test_aspen_qubit_positions_and_distance():
         _ = AspenQubit(1, 9)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_aspen_qubit_qid_conversions():
     """test AspenQubit conversion to and from other `cirq.Qid` implementations"""
     qubit10 = AspenQubit(1, 0)
@@ -152,6 +178,7 @@ def test_aspen_qubit_qid_conversions():
         _ = AspenQubit.from_grid_qubit(cirq.GridQubit(3, 4))
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_rigetti_qcs_aspen_device_topology(qcs_aspen8_isa: InstructionSetArchitecture):
     """test RigettiQCSAspenDevice topological nodes and edges"""
     device = RigettiQCSAspenDevice(isa=qcs_aspen8_isa)
@@ -171,6 +198,7 @@ def test_rigetti_qcs_aspen_device_topology(qcs_aspen8_isa: InstructionSetArchite
         OctagonalQubit(6),
     ],
 )
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_rigetti_qcs_aspen_device_valid_qubit(
     qubit: cirq.Qid, qcs_aspen8_isa: InstructionSetArchitecture
 ):
@@ -191,6 +219,7 @@ def test_rigetti_qcs_aspen_device_valid_qubit(
         AspenQubit(4, 0),
     ],
 )
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_rigetti_qcs_aspen_device_invalid_qubit(
     qubit: cirq.Qid, qcs_aspen8_isa: InstructionSetArchitecture
 ):
@@ -212,6 +241,7 @@ def test_rigetti_qcs_aspen_device_invalid_qubit(
         cirq.CNOT(AspenQubit(0, 1), AspenQubit(1, 1)),
     ],
 )
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_rigetti_qcs_aspen_device_invalid_operation(
     operation: cirq.Operation, qcs_aspen8_isa: InstructionSetArchitecture
 ):
@@ -224,6 +254,7 @@ def test_rigetti_qcs_aspen_device_invalid_operation(
 
 
 @pytest.mark.parametrize('operation', [cirq.CNOT(AspenQubit(0, 1), AspenQubit(0, 2))])
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_rigetti_qcs_aspen_device_valid_operation(
     operation: cirq.Operation, qcs_aspen8_isa: InstructionSetArchitecture
 ):
@@ -234,6 +265,7 @@ def test_rigetti_qcs_aspen_device_valid_operation(
     device.validate_operation(operation)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_rigetti_qcs_aspen_device_qubits(qcs_aspen8_isa: InstructionSetArchitecture):
     """test RigettiQCSAspenDevice returns accurate set of qubits"""
     device = RigettiQCSAspenDevice(isa=qcs_aspen8_isa)
@@ -244,12 +276,14 @@ def test_rigetti_qcs_aspen_device_qubits(qcs_aspen8_isa: InstructionSetArchitect
     assert expected_qubits == set(device.qubits())
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_rigetti_qcs_aspen_device_repr(qcs_aspen8_isa: InstructionSetArchitecture):
     """test RigettiQCSAspenDevice.__repr__"""
     device = RigettiQCSAspenDevice(isa=qcs_aspen8_isa)
     assert f'cirq_rigetti.RigettiQCSAspenDevice(isa={qcs_aspen8_isa!r})' == repr(device)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_rigetti_qcs_aspen_device_family_validation(qcs_aspen8_isa: InstructionSetArchitecture):
     """test RigettiQCSAspenDevice validates architecture family on initialization"""
     non_aspen_isa = InstructionSetArchitecture.from_raw(qcs_aspen8_isa.json())
@@ -260,6 +294,7 @@ def test_rigetti_qcs_aspen_device_family_validation(qcs_aspen8_isa: InstructionS
     ), 'ISA family is read-only and should still be Aspen'
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_get_rigetti_qcs_aspen_device(qcs_aspen8_isa: InstructionSetArchitecture):
     with patch('cirq_rigetti.aspen_device.get_instruction_set_architecture') as mock:
         mock.return_value = qcs_aspen8_isa
@@ -267,3 +302,8 @@ def test_get_rigetti_qcs_aspen_device(qcs_aspen8_isa: InstructionSetArchitecture
         from cirq_rigetti.aspen_device import get_rigetti_qcs_aspen_device
 
         assert get_rigetti_qcs_aspen_device('Aspen-8') == RigettiQCSAspenDevice(isa=qcs_aspen8_isa)
+
+
+# clean up extra environment variable
+del os.environ[ALLOW_DEPRECATION_IN_TEST]
+os.environ.update(_SAVE_ENVIRON)

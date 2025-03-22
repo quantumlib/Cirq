@@ -19,8 +19,10 @@ from pyquil import Program
 import cirq
 from cirq_rigetti.quil_output import RigettiQCSQuilOutput
 from typing_extensions import Protocol
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 
+@deprecated_cirq_rigetti_class()
 class _PostTransformationHook(Protocol):
     def __call__(
         self, *, program: Program, measurement_id_map: Dict[str, str]
@@ -57,6 +59,7 @@ def _transform_cirq_circuit_to_pyquil_program(
     return program, measurement_id_map
 
 
+@deprecated_cirq_rigetti_class()
 class CircuitTransformer(Protocol):
     """A type definition for `cirq.Circuit` to `pyquil.Program` transformer functions."""
 
@@ -72,6 +75,7 @@ class CircuitTransformer(Protocol):
         """
 
 
+@deprecated_cirq_rigetti_function()
 def build(
     *,
     qubits: Optional[Tuple[cirq.Qid, ...]] = None,
@@ -111,6 +115,7 @@ def build(
     return cast(CircuitTransformer, transformer)
 
 
+@deprecated_cirq_rigetti_function()
 def default(*, circuit: cirq.Circuit) -> Tuple[Program, Dict[str, str]]:
     """The default `CircuitTransformer` uses the default behavior of cirq's Quil
     protocol to transform a `cirq.Circuit` into a `pyquil.Program`.

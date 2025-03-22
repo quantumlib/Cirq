@@ -21,12 +21,14 @@ from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
 import cirq_rigetti
 from cirq_rigetti.quil_output import QuilOutput
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 def _make_qubits(n):
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_single_gate_no_parameter():
     (q0,) = _make_qubits(1)
     output = cirq_rigetti.quil_output.QuilOutput((cirq.X(q0),), (q0,))
@@ -38,6 +40,7 @@ X 0\n"""
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_single_gate_with_parameter():
     (q0,) = _make_qubits(1)
     output = cirq_rigetti.quil_output.QuilOutput((cirq.X(q0) ** 0.5,), (q0,))
@@ -49,6 +52,7 @@ RX({np.pi / 2}) 0\n"""
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_single_gate_named_qubit():
     q = cirq.NamedQubit('qTest')
     output = cirq_rigetti.quil_output.QuilOutput((cirq.X(q),), (q,))
@@ -61,6 +65,7 @@ X 0\n"""
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_h_gate_with_parameter():
     (q0,) = _make_qubits(1)
     output = cirq_rigetti.quil_output.QuilOutput((cirq.H(q0) ** 0.25,), (q0,))
@@ -74,6 +79,7 @@ RY({-np.pi / 4}) 0\n"""
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_save_to_file(tmpdir):
     file_path = os.path.join(tmpdir, 'test.quil')
     (q0,) = _make_qubits(1)
@@ -89,6 +95,7 @@ X 0\n"""
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_quil_one_qubit_gate_repr():
     gate = cirq_rigetti.quil_output.QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
     assert repr(gate) == (
@@ -99,6 +106,7 @@ def test_quil_one_qubit_gate_repr():
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_quil_two_qubit_gate_repr():
     gate = cirq_rigetti.quil_output.QuilTwoQubitGate(
         np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
@@ -113,6 +121,7 @@ def test_quil_two_qubit_gate_repr():
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_quil_one_qubit_gate_eq():
     gate = cirq_rigetti.quil_output.QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
     gate2 = cirq_rigetti.quil_output.QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
@@ -122,6 +131,7 @@ def test_quil_one_qubit_gate_eq():
     assert not cirq.approx_eq(gate4, gate3, atol=1e-16)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_quil_two_qubit_gate_eq():
     gate = cirq_rigetti.quil_output.QuilTwoQubitGate(
         np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
@@ -139,6 +149,7 @@ def test_quil_two_qubit_gate_eq():
     assert not cirq.approx_eq(gate4, gate3, atol=1e-8)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_quil_one_qubit_gate_output():
     (q0,) = _make_qubits(1)
     gate = cirq_rigetti.quil_output.QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
@@ -155,6 +166,7 @@ USERGATE1 0
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_two_quil_one_qubit_gate_output():
     (q0,) = _make_qubits(1)
     gate = cirq_rigetti.quil_output.QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
@@ -176,6 +188,7 @@ USERGATE2 0
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_quil_two_qubit_gate_output():
     (q0, q1) = _make_qubits(2)
     gate = cirq_rigetti.quil_output.QuilTwoQubitGate(
@@ -196,6 +209,7 @@ USERGATE1 0 1
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_unsupported_operation():
     (q0,) = _make_qubits(1)
 
@@ -208,6 +222,7 @@ def test_unsupported_operation():
         _ = str(output)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_i_swap_with_power():
     q0, q1 = _make_qubits(2)
 
@@ -221,6 +236,7 @@ XY({np.pi / 4}) 0 1
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_all_operations():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits, include_measurements=False)
@@ -369,6 +385,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_fails_on_big_unknowns():
     class UnrecognizedGate(cirq.testing.ThreeQubitGate):
         pass
@@ -379,6 +396,7 @@ def test_fails_on_big_unknowns():
         _ = str(res)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_pauli_interaction_gate():
     (q0, q1) = _make_qubits(2)
     output = cirq_rigetti.quil_output.QuilOutput(PauliInteractionGate.CZ.on(q0, q1), (q0, q1))
@@ -391,6 +409,7 @@ CZ 0 1
     )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_equivalent_unitaries():
     """This test covers the factor of pi change. However, it will be skipped
     if pyquil is unavailable for import.
@@ -435,6 +454,7 @@ X 1
 """
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_two_qubit_diagonal_gate_quil_output():
     pyquil = pytest.importorskip("pyquil")
     pyquil_simulation_tools = pytest.importorskip("pyquil.simulation.tools")
@@ -460,6 +480,7 @@ def test_two_qubit_diagonal_gate_quil_output():
     assert f"\n{program.out()}" == QUIL_DIAGONAL_DECOMPOSE_PROGRAM
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_parseable_defgate_output():
     pyquil = pytest.importorskip("pyquil")
     q0, q1 = _make_qubits(2)
@@ -474,6 +495,7 @@ def test_parseable_defgate_output():
     pyquil.Program(str(output))
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_unconveritble_op():
     (q0,) = _make_qubits(1)
 
