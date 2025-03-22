@@ -29,8 +29,6 @@ The following are the kinds of issues that Cirq uses:
 * `kind/feature-request`: a request for new functionality
 * `kind/question`: the issue is actually a question (in which case, it should be closed after being answered, and the user may be pointed to other resources if appropriate, such as the Quantum Computing Stack Exchange for general usage questions)
 * `kind/health`: for CI/testing/release process/refactoring/technical debt items
-* `kind/docs`: documentation problems, ideas, requests
-* `kind/roadmap-item`: for higher-level roadmap items to capture conversations and feedback (not for project tracking)
 * `kind/task`: for tracking progress on larger efforts
 
 For most issues, there are the following phases:
@@ -75,9 +73,7 @@ Figure 2. Feature request workflow (to edit, see [mermaid source](https://mermai
 
 #### Other issue types
 
-For `kind/docs`, the label `triage/accepted` has to be added by at least one of the maintainers.
-
-For `kind/health`, `kind/roadmap-item` and `kind/task`, there is no particular intake workflow, as we assume that only maintainers create them to track specific work items.
+For `kind/health` and `kind/task`, there is no particular intake workflow, as we assume that only maintainers create them to track specific work items.
 
 ### Prioritization
 
@@ -127,7 +123,7 @@ After an issue arrives to `triage/accepted` there can be two avenues: it is read
 
 When an issue is ready to be implemented, no extra label is required to signal the readiness, because that is the default.
 
-However, when there is a need for design, we add the label `needs agreed design`. The design could be as lightweight as a discussion in the issue itself or a full-fledged [RFC proposal](rfc_process.md) which should be clear from the comments.
+However, when there is a need for design, we add the label `status/needs agreed design`. The design could be as lightweight as a discussion in the issue itself or a full-fledged [RFC proposal](rfc_process.md) which should be clear from the comments.
 
 ### Assigning work
 
@@ -146,7 +142,7 @@ Issues should be automatically closed by PRs using the `Fixes #XYZD.` phrase in 
 
 
 - Bugs and Feature requests in states `triage/needs-reproduction` and `triage/needs-design-work`, i.e., where the author is required to provide more details get an automated comment "*This issue has not received any updates in 90 days*" and then is marked as `triage/stale` after 60 days and are closed.
-- Documentation (`kind/docs`) issues **without** `triage/accepted` or `triage/discuss` are subject to 90 days staleness policy as well.
+- Documentation (`area/docs`) issues **without** `triage/accepted` or `triage/discuss` are subject to 90 days staleness policy as well.
 - Roadmap-items and Tasks, and issues in `triage/accepted` or `triage/discuss` state never get stale automatically, they are subject to review during daily/weekly triage and the twice a year **Bug Smash**.
 
 To summarize, **all issues** are subject to staleness-check, **except** the following:
