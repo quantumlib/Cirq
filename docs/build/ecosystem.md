@@ -2,13 +2,13 @@ The following document provides an ecosystem overview of how the various tools c
 
 ![image alt text](../images/ecosystem.png)
 
-* **Research Libraries and Tools:** Libraries and tools used for researching new quantum algorithms and designing and preparing experiments on quantum devices.
+* **Research Libraries and Tools**: Libraries and tools used for researching new quantum algorithms and designing and preparing experiments on quantum devices.
 
 * **Cirq**: A framework specifically for programming noisy intermediate-scale quantum computers.
 
-* **Quantum Cloud Services:** Cirq can connect to a variety of quantum cloud services. Behind each cloud service, quantum algorithms run on either a quantum processor or simulator.
+* **Quantum Cloud Services**: Cirq can connect to a variety of quantum cloud services. Behind each cloud service, quantum algorithms run on either a quantum processor or simulator.
 
-* **Quantum Circuit Simulators:** Cirq is compatible with a number of quantum circuit simulators that can run either locally or in a distributed fashion.
+* **Quantum Circuit Simulators**: Cirq is compatible with a number of quantum circuit simulators that can run either locally or in a distributed fashion.
 
 # Research libraries and tools
 
@@ -45,10 +45,10 @@ The following document provides an ecosystem overview of how the various tools c
 |[Microsoft Azure Quantum](https://quantumai.google/cirq/hardware/azure-quantum/getting_started_ionq)|Trapped ions (Honeywell and IonQ)|
 |[Pasqal](https://quantumai.google/cirq/hardware/pasqal/getting_started)|Neutral atoms|
 
-For more information for vendors about integrating with cirq,
+For more information for vendors about integrating with Cirq,
 see our [RFC page](../dev/rfc_process.md#new_hardware_integrations).
 
-## High performance quantum circuit simulators
+## High-performance quantum circuit simulators
 
 |Name|Main sponsor|Description|
 |--- |--- |--- |
