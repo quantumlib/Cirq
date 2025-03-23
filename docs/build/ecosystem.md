@@ -21,7 +21,6 @@ The following document provides an ecosystem overview of how the various tools c
 |[TensorFlow Quantum](https://tensorflow.org/quantum)|Google|An open-source algorithms library for developing new quantum machine learning algorithms|
 |[Qualtran](https://github.com/quantumlib/qualtran)|Google|An open-source library for expressing and analyzing fault-tolerant quantum algorithms|
 |[Stim](https://github.com/quantumlib/stim)|Google|An open-source library for high-speed simulation of Clifford circuits and quantum error correction|
-|[Tesseract Decoder](https://github.com/quantumlib/tesseract-decoder)|Google|An open-source search-based decoder for quantum error correction|
 |[ReCirq](https://github.com/quantumlib/ReCirq)|Google|An open-source repository of example experiments, tools, and tutorials in quantum computing|
 |[Forge](https://forge.qcware.com/)|QCWare|A proprietary library for domain-specific quantum algorithms and applications|
 |[Pennylane](https://pennylane.ai/)|Xanadu|An open-source library for quantum machine learning with TensorFlow, PyTorch, or NumPy|
