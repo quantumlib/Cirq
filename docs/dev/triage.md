@@ -158,7 +158,7 @@ The staleness check is implemented with a GitHub Actions workflow. The current d
 
 ### Daily triage
 
-**Goals:**
+**Goals**:
 
 * P0 – notice high priority issues as soon as possible and organize a fix for them.
 * P1 – keep the issue and PR backlog clean
@@ -201,11 +201,11 @@ Pull requests:
 
 * Everyone on the [cirq-dev](https://groups.google.com/g/cirq-dev) email list is invited
 
-**When:**
+**When**:
 
 * 10:00AM-11:00PM Pacific Time Wednesdays
 
-**What:**
+**What**:
 
 Cirq Cynq (join [cirq-dev](https://groups.google.com/g/cirq-dev) to get an invite!) should be the place to discuss the following:
 
@@ -215,19 +215,19 @@ Cirq Cynq (join [cirq-dev](https://groups.google.com/g/cirq-dev) to get an invit
 
 ### Bug smash – every 6 months
 
-**Goals:**
+**Goals**:
 * Keep the triage alive: catch up on untriaged issues
 * Keep the backlog of issues clean and relevant
 * Use the outstanding backlog as the driver for roadmap planning
 
-**Who:**
+**Who**:
 
 * Core maintainers
 
-**When:**
+**When**:
 
 * Every 6 months
 
-**What:**
+**What**:
 
 Every 6 months, after every other release, the team should come together and review `triage/accepted` items and revisit them. This is also a chance to catch up on daily triage in case it slipped.
