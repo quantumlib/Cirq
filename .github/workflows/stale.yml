@@ -47,13 +47,14 @@ env:
   exempt-issue-labels-list:
     kind/design-issue
     kind/health
-    kind/roadmap-item
     kind/task
+    roadmap
     triage/accepted
     triage/discuss
   exempt-pr-labels-list:
-    kind/roadmap-item
+    roadmap
     triage/accepted
+    triage/discuss
 
 # Declare default permissions as read only.
 permissions: read-all
