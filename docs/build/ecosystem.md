@@ -29,7 +29,7 @@ The following document provides an ecosystem overview of various open-source too
 
 |Name|Main sponsor|Description|
 |--- |--- |--- |
-|[BQSKit](https://bqskit.lbl.gov/)|LBL|A portable quantum compiler framework with circuit optimization, synthesis, and gate set transpilation|
+|[BQSKit](https://bqskit.lbl.gov/)|Lawrence Berkeley Labs|A portable quantum compiler framework with circuit optimization, synthesis, and gate set transpilation|
 |[Mitiq](https://github.com/unitaryfund/mitiq)|Unitary Foundation|A library for error mitigation|
 |[pyGSTi](https://www.pygsti.info/)|Sandia National Labs|A library for modeling and characterizing noisy quantum information processors|
 |[Qristal](https://github.com/qbrilliance/qristal)|Quantum Brilliance|A library for designing, optimizing, simulating and running hybrid quantum programs|
@@ -39,7 +39,7 @@ The following document provides an ecosystem overview of various open-source too
 |[staq](https://github.com/softwareQinc/staq)|softwareQ Inc|C++ library for the synthesis, transformation, optimization, and compilation of quantum circuits|
 |[Superstaq](https://github.com/Infleqtion/client-superstaq/tree/main)|Infleqtion|An SDK that optimizes the execution of quantum programs by tailoring to underlying hardware primitives|
 |[tket](https://docs.quantinuum.com/tket/index.html)|Quantinuum|A platform-agnostic SDK for circuit optimization, compilation and noise mitigation|
-|[XACC](https://github.com/ORNL-QCI/xacc)|ORNL|Extensible compilation framework using a novel, polymorphic quantum intermediate representation|
+|[XACC](https://github.com/ORNL-QCI/xacc)|Oak Ridge National Labs|Extensible compilation framework using a novel, polymorphic quantum intermediate representation|
 
 ## Quantum computing cloud services
 
