@@ -99,6 +99,9 @@ BLACKVERSION="$(black --version)"
 echo "Running the black formatter... (version: $BLACKVERSION)"
 
 args=()
+if [[ -t 1 ]]; then
+    args+=("--color")
+fi
 if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
