@@ -99,7 +99,8 @@ BLACKVERSION="$(black --version)"
 echo "Running the black formatter... (version: $BLACKVERSION)"
 
 args=()
-if [[ -t 1 ]]; then
+if [[ -t 1 || ${CI} == true ]]; then
+    # color when outputting to a terminal or to a GitHub Actions log
     args+=("--color")
 fi
 if (( only_print == 1 )); then
