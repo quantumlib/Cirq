@@ -60,7 +60,7 @@ see our [RFC page](../dev/rfc_process.md#new_hardware_integrations).
 |--- |--- |--- |
 |[Qibo](https://qibo.science/)|Technology Innovation Institute|API library for hardware-accelerated quantum simulation and quantum hardware control|
 |[qsim](https://github.com/quantumlib/qsim)|Google|A high-performance circuit simulator for Schrödinger simulations|
-|[quimb](https://github.com/jcmgray/quimb)|Johnny Gray|A high-performance circuit simulator using tensor-networks|
+|[quimb](https://github.com/jcmgray/quimb)|Johnnie Gray|A high-performance circuit simulator using tensor-networks|
 |[qulacs](https://github.com/qulacs/cirq-qulacs)|Quansys|A high-performance circuit simulator for Schrödinger simulations|
 |[Stim](https://github.com/quantumlib/stim)|Google|A library for high-speed simulation of Clifford circuits and quantum error correction|
 |[cuQuantum](https://github.com/NVIDIA/cuQuantum)|NVIDIA|API libraries for speeding up quantum simulation on NVIDIA GPUs|
