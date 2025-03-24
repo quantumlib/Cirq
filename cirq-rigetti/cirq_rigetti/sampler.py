@@ -30,7 +30,7 @@ class RigettiQCSSampler(cirq.Sampler):
     """
 
     def __init__(
-        self,
+         self,
         quantum_computer: QuantumComputer,
         executor: executors.CircuitSweepExecutor = _default_executor,
         transformer: transformers.CircuitTransformer = transformers.default,
