@@ -1,8 +1,12 @@
 <div align="center">
+
 | ⚠️ WARNING |
 |:----------:|
-| **Cirq-Rigetti is deprecated.  For more details or to provide feedback see https://github.com/quantumlib/Cirq/issues/7058 |
+| Cirq-Rigetti is deprecated.  For more details or to provide feedback see https://github.com/quantumlib/Cirq/issues/7058 |
 
+</div>
+
+<div align="center">
 <img width="190px" alt="Cirq logo"
 src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg"
 ><img width="60px" height="0" alt=""><img width="190px" alt="Rigetti logo"
