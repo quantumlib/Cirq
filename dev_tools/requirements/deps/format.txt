@@ -1,2 +1,3 @@
 black==25.1.0
-isort[colors]~=6.0.1
+isort~=6.0.1
+colorama~=0.4.6
