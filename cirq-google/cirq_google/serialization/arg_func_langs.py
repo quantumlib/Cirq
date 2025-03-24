@@ -128,7 +128,7 @@ def arg_to_proto(
     """
     msg = v2.program_pb2.Arg() if out is None else out
 
-    if isinstance(value, bool):
+    if isinstance(value, (bool, np.bool_)):
         msg.arg_value.bool_value = value
     elif isinstance(value, FLOAT_TYPES):
         msg.arg_value.float_value = float(value)
