@@ -12,7 +12,7 @@ line_length = 100
 order_by_type = false # Sort alphabetically, irrespective of case.
 skip_gitignore = true
 combine_as_imports = true
-known_first_party = ["cirq"]
+known_first_party = ["cirq*"]
 extend_skip = "__init__.py"
 
 
