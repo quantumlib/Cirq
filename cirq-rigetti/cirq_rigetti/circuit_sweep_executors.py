@@ -24,6 +24,7 @@ import sympy
 from typing_extensions import Protocol
 from cirq_rigetti.logging import logger
 from cirq_rigetti import circuit_transformers as transformers
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 
 def _execute_and_read_result(
@@ -128,6 +129,7 @@ def _prepend_real_declarations(
     return program
 
 
+@deprecated_cirq_rigetti_class()
 class CircuitSweepExecutor(Protocol):
     """A type definition for circuit sweep execution functions."""
 
@@ -158,6 +160,7 @@ class CircuitSweepExecutor(Protocol):
         """
 
 
+@deprecated_cirq_rigetti_function()
 def without_quilc_compilation(
     *,
     quantum_computer: QuantumComputer,
@@ -199,6 +202,7 @@ def without_quilc_compilation(
     return cirq_results
 
 
+@deprecated_cirq_rigetti_function()
 def with_quilc_compilation_and_cirq_parameter_resolution(
     *,
     quantum_computer: QuantumComputer,
@@ -242,6 +246,7 @@ def with_quilc_compilation_and_cirq_parameter_resolution(
     return cirq_results
 
 
+@deprecated_cirq_rigetti_function()
 def with_quilc_parametric_compilation(
     *,
     quantum_computer: QuantumComputer,
