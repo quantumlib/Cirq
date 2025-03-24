@@ -648,3 +648,8 @@ def test_transpose_flattened_array(num_dimensions):
         assert np.array_equal(want, got)
         got = linalg.transpose_flattened_array(A.reshape(shape), shape, axes).reshape(want.shape)
         assert np.array_equal(want, got)
+
+
+@pytest.mark.parametrize('shape, result', [((), True), (30 * (1,), True), ((-3, 1, -1), False)])
+def test_can_numpy_support_shape(shape: tuple[int, ...], result: bool) -> None:
+    assert linalg.can_numpy_support_shape(shape) is result

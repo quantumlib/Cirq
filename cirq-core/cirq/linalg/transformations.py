@@ -812,9 +812,9 @@ def _can_numpy_support_dims(num_dims: int) -> bool:
         _ = np.empty((1,) * num_dims)
         return True
     except ValueError:  # pragma: no cover
-        return False  # pragma: no cover
+        return False
 
 
 def can_numpy_support_shape(shape: Sequence[int]) -> bool:
     """Returns whether numpy supports the given shape or not numpy/numpy#5744."""
-    return _can_numpy_support_dims(len(shape))
+    return min(shape, default=0) >= 0 and _can_numpy_support_dims(len(shape))
