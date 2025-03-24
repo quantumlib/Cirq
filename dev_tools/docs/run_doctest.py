@@ -230,6 +230,7 @@ def main():
     excluded = [
         'cirq-google/cirq_google/api/',
         'cirq-google/cirq_google/cloud/',
+        'cirq-rigetti/',
         'cirq-web/cirq_ts/node_modules/',
     ]
     file_names = [
