@@ -236,7 +236,6 @@ def main():
     file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
     assert file_names
     excluded = [
-        'cirq-rigetti/',
         'cirq-google/cirq_google/api/',
         'cirq-google/cirq_google/cloud/',
         'cirq-web/cirq_ts/node_modules/',
