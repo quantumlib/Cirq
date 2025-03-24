@@ -181,9 +181,8 @@ def exec_tests(
         if r.failed != 0:
             try_print('F', end='', flush=True)
             error = shell_tools.highlight(
-                '{}\n{} failed, {} passed, {} total\n'.format(
-                    test.file_name, r.failed, r.attempted - r.failed, r.attempted
-                ),
+                f'{test.file_name}\n'
+                f'{r.failed} failed, {r.attempted - r.failed} passed, {r.attempted} total\n',
                 shell_tools.RED,
             )
             error += out.content()
