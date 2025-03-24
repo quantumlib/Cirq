@@ -94,6 +94,18 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
+ISORTVERSION="$(isort --vn)"
+
+echo "Sorting imports with isort... (version: $ISORTVERSION)"
+
+args=("--color")
+if (( only_print == 1 )); then
+    args+=("--check" "--diff")
+fi
+
+isort "${args[@]}" "${format_files[@]}"
+ISORTSTATUS=$?
+
 BLACKVERSION="$(black --version)"
 
 echo "Running the black formatter... (version: $BLACKVERSION)"
@@ -106,7 +118,7 @@ fi
 black "${args[@]}" "${format_files[@]}"
 BLACKSTATUS=$?
 
-if [[ "$BLACKSTATUS" != "0"  ]]; then
+if [[ "$BLACKSTATUS" != "0" || "$ISORTSTATUS" != "0"  ]]; then
   exit 1
 fi
 exit 0
