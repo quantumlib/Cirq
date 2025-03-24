@@ -32,5 +32,5 @@ TestSpec = ModuleJsonTestSpec(
         "UnsupportedRigettiQCSQuantumProcessor",
     ],
     resolver_cache=_class_resolver_dictionary(),
-    deprecated={},
+    deprecated=dict.fromkeys(_class_resolver_dictionary(), "v1.6"),
 )
