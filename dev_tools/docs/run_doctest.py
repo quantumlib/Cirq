@@ -32,9 +32,17 @@ import sys
 import glob
 import importlib.util
 import doctest
+import warnings
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
+
+# The contrib module imports quimb. Quimb a dependency on the package named cotengra. The latter
+# has optional dependencies on optimization packages; unfortunately, it also has hardwired
+# warnings that it prints if the user doesn't load at least one of the optional packages. The
+# warnings are confusing in the context of testing, so the following ignores them.
+warnings.filterwarnings("ignore", message="^Couldn't find `optuna`")
+warnings.filterwarnings("ignore", message="^Couldn't import `kahypar`")
 
 
 class Doctest:
@@ -228,6 +236,7 @@ def main():
     file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
     assert file_names
     excluded = [
+        'cirq-rigetti/',
         'cirq-google/cirq_google/api/',
         'cirq-google/cirq_google/cloud/',
         'cirq-web/cirq_ts/node_modules/',
