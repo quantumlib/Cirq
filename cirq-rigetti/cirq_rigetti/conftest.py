@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from typing import (
     Any,
     Iterable,
@@ -47,6 +48,10 @@ import sympy
 import numpy as np
 
 T = TypeVar("T")
+
+
+def pytest_configure(config):
+    os.environ['CIRQ_TESTING'] = "true"
 
 
 class MockQAM(QAM, Generic[T]):
