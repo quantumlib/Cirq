@@ -173,13 +173,12 @@ class TensoredConfusionMatrices:
         return in_vars + out_vars
 
     def _confusion_matrix(self, qubits: Sequence['cirq.Qid']) -> np.ndarray:
-        ein_input = []
+        ein_input: List[np.ndarray | List[int]] = []
         for qs, cm in zip(self.measure_qubits, self.confusion_matrices):
             ein_input.extend([cm.reshape((2, 2) * len(qs)), self._get_vars(qs)])
         ein_out = self._get_vars(qubits)
 
-        # TODO(#5757): remove type ignore when numpy has proper override signature.
-        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)  # type: ignore
+        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)
         return ret / ret.sum(axis=1)
 
     def confusion_matrix(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> np.ndarray:

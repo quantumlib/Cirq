@@ -153,7 +153,6 @@ def targeted_left_multiply(
 
     all_indices = set(input_indices + data_indices + tuple(output_indices))
 
-    # TODO(#5757): remove type ignore when numpy has proper override signature.
     return np.einsum(
         left_matrix,
         input_indices,
@@ -164,10 +163,8 @@ def targeted_left_multiply(
         # but this is a workaround for a bug in numpy:
         #     https://github.com/numpy/numpy/issues/10926
         optimize=len(all_indices) >= 26,
-        # And this is workaround for *another* bug!
-        # Supposed to be able to just say 'old=old'.
-        **({'out': out} if out is not None else {}),
-    )  # type: ignore
+        out=out,
+    )
 
 
 @dataclasses.dataclass
@@ -412,7 +409,6 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
     left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
     right_indices = [ndim + i if i in keep_set else i for i in left_indices]
-    # TODO(#5757): remove type ignore when numpy has proper override signature.
     return np.einsum(tensor, left_indices + right_indices)
 
 
