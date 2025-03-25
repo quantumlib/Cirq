@@ -32,9 +32,16 @@ import sys
 import glob
 import importlib.util
 import doctest
+import warnings
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
+
+# The contrib module imports quimb. Quimb a dependency on the package named cotengra. The latter
+# has optional dependencies on optimization packages; unfortunately, it also has hardwired
+# warnings that it prints if the user doesn't load at least one of the optional packages. The
+# warnings are confusing in the context of testing, so the following ignores them.
+warnings.filterwarnings("ignore", category=UserWarning, module="cotengra.hyperoptimizers.hyper")
 
 
 class Doctest:
