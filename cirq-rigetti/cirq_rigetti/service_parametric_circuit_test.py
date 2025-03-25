@@ -5,9 +5,11 @@ import cirq
 from pyquil import get_qc
 from pyquil.api import QVM
 from cirq_rigetti import RigettiQCSService
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.mark.rigetti_integration
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_circuit_through_service(
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
