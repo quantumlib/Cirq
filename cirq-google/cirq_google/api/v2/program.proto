@@ -19,11 +19,10 @@ message Program {
     // moment having a set of gates that act on disjoint qubits. Circuits don't
     // have absolute times for their operations (gates acting on qubits).
     Circuit circuit = 2;
-
-    // Schedules are a list of operations (gates acting on qubits) that specify
-    // absolute start times for the operations.
-    Schedule schedule = 3;
   }
+
+  // Previously deprecated field.  Do not use.
+  reserved 3;
 
   // List to store global constants, such as strings used in many places.
   // constants are referred to their index in this list, starting at zero.
@@ -103,25 +102,6 @@ message Moment {
 
   // Deprecated field id, do not use.
   reserved 3;
-}
-
-// The quantum circuit, specified as a series of operations at specific
-// start times.
-message Schedule {
-  // A list of all the operations and their absolute start times.
-  repeated ScheduledOperation scheduled_operations = 3;
-}
-
-// An operation occurring at a specific start time.
-message ScheduledOperation {
-  // Which operation is to be scheduled.
-  Operation operation = 1;
-
-  // The start time of the operation, with zero representing the absolute
-  // start of the circuit.
-  //
-  // This must be consistent with the moment structure and must be positive.
-  int64 start_time_picos = 2;
 }
 
 // The language in which the program is expressed.
@@ -223,9 +203,8 @@ message WaitGate {
 
 // An operation acts on a set of qubits.
 message Operation {
-  // Which gate this operation corresponds to.
-  // Populated pre-v2.5+.
-  Gate gate = 1 [deprecated = true];
+  // Previously deprecated fields.  Do not use.
+  reserved 1,2;
 
   // Each gate should populate one possible gate message
   // depending on the type desired.  Only populated in v2.5+.
@@ -247,10 +226,6 @@ message Operation {
     SingleQubitCliffordGate singlequbitcliffordgate = 21;
     ResetGate resetgate = 24;
   }
-
-  // Map from the argument name to the Argument needed to fully specify
-  // the gate. Only populated pre-v2.5+.
-  map<string, Arg> args = 2 [deprecated = true];
 
   // Which qubits the operation acts on.
   // Operations should populate one of the following two

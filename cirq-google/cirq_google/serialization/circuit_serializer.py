@@ -405,12 +405,6 @@ class CircuitSerializer(serializer.Serializer):
                 a schedule is attempted.
             NotImplementedError: If the program proto does not contain a circuit or schedule.
         """
-        if not proto.HasField('language') or not proto.language.gate_set:
-            raise ValueError('Missing gate set specification.')
-        if proto.language.gate_set != self.name:
-            raise ValueError(
-                f'Gate set in proto was {proto.language.gate_set} but expected {self.name}'
-            )
         which = proto.WhichOneof('program')
 
         if which == 'circuit':
