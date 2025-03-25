@@ -1,7 +1,7 @@
 <!-- H1 title omitted because our logo acts as the title. -->
 <div align="center">
-<img alt="Cirq logo" width="340px" src="docs/images/Cirq_logo_color.svg#gh-light-mode-only">
-<img alt="Cirq logo" width="340px" src="docs/images/Cirq_logo_color_white_text.svg#gh-dark-mode-only">
+<img alt="Cirq logo" width="340px" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg#gh-light-mode-only">
+<img alt="Cirq logo" width="340px" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color_white_text.svg#gh-dark-mode-only">
 
 Python package for writing, manipulating, and running [quantum
 circuits](https://en.wikipedia.org/wiki/Quantum_circuit) on quantum computers
