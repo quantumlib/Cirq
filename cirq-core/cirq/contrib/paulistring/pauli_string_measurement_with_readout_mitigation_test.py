@@ -35,11 +35,10 @@ def _create_ghz(number_of_qubits: int, qubits: Sequence[cirq.Qid]) -> cirq.Circu
 
 def _generate_random_pauli_string(qubits: Sequence[cirq.Qid], enable_coeff: bool = False):
     pauli_ops = [cirq.I, cirq.X, cirq.Y, cirq.Z]
-    pauli_xyz = [cirq.X, cirq.Y, cirq.Z]
 
     operators = {q: random.choice(pauli_ops) for q in qubits}
     # Ensure at least one non-identity.
-    operators[random.choice(qubits)] = random.choice(pauli_xyz)
+    operators[random.choice(qubits)] = random.choice(pauli_ops[1:])
 
     if enable_coeff:
         coefficient = (2 * random.random() - 1) * 100
