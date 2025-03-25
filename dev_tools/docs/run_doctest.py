@@ -41,8 +41,7 @@ from dev_tools.output_capture import OutputCapture
 # has optional dependencies on optimization packages; unfortunately, it also has hardwired
 # warnings that it prints if the user doesn't load at least one of the optional packages. The
 # warnings are confusing in the context of testing, so the following ignores them.
-warnings.filterwarnings("ignore", message="^Couldn't find `optuna`")
-warnings.filterwarnings("ignore", message="^Couldn't import `kahypar`")
+warnings.filterwarnings("ignore", category=UserWarning, module="cotengra.hyperoptimizers.hyper")
 
 
 class Doctest:
