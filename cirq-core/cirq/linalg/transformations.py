@@ -409,7 +409,6 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
     left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
     right_indices = [ndim + i if i in keep_set else i for i in left_indices]
-    # TODO(#5757): remove type ignore when numpy has proper override signature.
     return np.einsum(tensor, left_indices + right_indices)
 
 
