@@ -48,6 +48,8 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/build/interop.ipynb',
     # get_qcs_objects_for_notebook
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
+    # Requires features the require 1.4.2+
+    'docs/build/classical_control.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
