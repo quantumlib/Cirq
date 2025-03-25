@@ -48,7 +48,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/build/interop.ipynb',
     # get_qcs_objects_for_notebook
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
-    # Requires features the require 1.4.2+
+    # Requires features the require cirq 1.5.
     'docs/build/classical_control.ipynb',
 ]
 
