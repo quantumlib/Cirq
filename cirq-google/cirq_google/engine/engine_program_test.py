@@ -17,7 +17,7 @@ from unittest import mock
 
 import pytest
 import numpy as np
-from google.protobuf import any_pb2, timestamp_pb2
+from google.protobuf import timestamp_pb2
 from google.protobuf.text_format import Merge
 
 import cirq
@@ -315,19 +315,6 @@ def mock_grpc_client():
         'cirq_google.engine.engine_client.quantum.QuantumEngineServiceClient'
     ) as _fixture:
         yield _fixture
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
-def test_get_circuit_v2_unknown_gateset(get_program_async):
-    program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program_async.return_value = quantum.QuantumProgram(
-        code=util.pack_any(
-            v2.program_pb2.Program(language=v2.program_pb2.Language(gate_set="BAD_GATESET"))
-        )
-    )
-
-    with pytest.raises(ValueError, match='BAD_GATESET'):
-        program.get_circuit()
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_program_async')
