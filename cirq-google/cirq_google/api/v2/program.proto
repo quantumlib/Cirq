@@ -233,7 +233,7 @@ message Operation {
   // to reference an index in the enclosing Program's
   // constant messages.  Note that qubit_constant_index
   // will only be populated in v2.5+
-  repeated Qubit qubits = 3;
+  repeated Qubit qubits = 3 [deprecated=true];
   repeated int32 qubit_constant_index = 6;
 
   // Token that can be used to specify a version of a gate.
