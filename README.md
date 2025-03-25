@@ -1,7 +1,10 @@
 <!-- H1 title omitted because our logo acts as the title. -->
 <div align="center">
-<img alt="Cirq logo" width="340px" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg#gh-light-mode-only">
-<img alt="Cirq logo" width="340px" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color_white_text.svg#gh-dark-mode-only">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color_white_text.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
+  <img alt="Cirq logo" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg" width="300px">
+</picture>
 
 Python package for writing, manipulating, and running [quantum
 circuits](https://en.wikipedia.org/wiki/Quantum_circuit) on quantum computers
