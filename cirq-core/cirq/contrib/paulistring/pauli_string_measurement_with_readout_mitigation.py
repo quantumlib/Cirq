@@ -83,8 +83,8 @@ def _validate_input(
 
             if all(q == ops.I for q in pauli_str):
                 raise ValueError(
-                    "Empty Pauli strings or Pauli strings consisting"
-                    "only of Pauli I are not allowed. Please provide"
+                    "Empty Pauli strings or Pauli strings consisting "
+                    "only of Pauli I are not allowed. Please provide "
                     "valid input Pauli strings."
                 )
             if pauli_str.coefficient.imag != 0:

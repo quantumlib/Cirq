@@ -458,8 +458,8 @@ def test_all_pauli_strings_are_pauli_i() -> None:
 
     with pytest.raises(
         ValueError,
-        match="Empty Pauli strings or Pauli strings consisting"
-        "only of Pauli I are not allowed. Please provide"
+        match="Empty Pauli strings or Pauli strings consisting "
+        "only of Pauli I are not allowed. Please provide "
         "valid input Pauli strings.",
     ):
         measure_pauli_strings(
