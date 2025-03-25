@@ -253,7 +253,7 @@ Zenodo](https://doi.org/10.5281/zenodo.4062499).
 ## Contact
 
 For any questions or concerns not addressed here, please email
-<quantum-oss-maintainers@google.com>.
+quantum-oss-maintainers@google.com.
 
 ## Disclaimer
 
