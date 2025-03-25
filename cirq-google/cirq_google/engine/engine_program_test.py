@@ -17,7 +17,7 @@ from unittest import mock
 
 import pytest
 import numpy as np
-from google.protobuf import timestamp_pb2
+from google.protobuf import any_pb2, timestamp_pb2
 from google.protobuf.text_format import Merge
 
 import cirq
