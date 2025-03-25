@@ -1,5 +1,4 @@
-# <!-- H1 title omitted because our logo acts as the title. -->
-
+<!-- H1 title omitted because our logo acts as the title. -->
 <div align="center">
 <img width="280px" height="135px" alt="Cirq logo"
 src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
