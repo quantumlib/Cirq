@@ -15,6 +15,7 @@
 """Utility methods for transforming matrices or vectors."""
 
 import dataclasses
+import functools
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -28,8 +29,6 @@ from cirq.linalg import predicates
 # case. It is checked for using `is`, so it won't have a false positive if the
 # user provides a different np.array([]) value.
 RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
-
-_NPY_MAXDIMS = 32  # Should be changed once numpy/numpy#5744 is resolved.
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
@@ -807,6 +806,15 @@ def transpose_flattened_array(t: np.ndarray, shape: Sequence[int], axes: Sequenc
     return ret
 
 
+@functools.cache
+def _can_numpy_support_dims(num_dims: int) -> bool:
+    try:
+        _ = np.empty((1,) * num_dims)
+        return True
+    except ValueError:  # pragma: no cover
+        return False
+
+
 def can_numpy_support_shape(shape: Sequence[int]) -> bool:
     """Returns whether numpy supports the given shape or not numpy/numpy#5744."""
-    return len(shape) <= _NPY_MAXDIMS
+    return min(shape, default=0) >= 0 and _can_numpy_support_dims(len(shape))
