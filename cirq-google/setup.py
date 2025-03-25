@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq_google/_version.py
@@ -27,23 +26,6 @@ description = (
 
 # README file as long_description.
 long_description = open('README.md', encoding='utf-8').read()
-
-# If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
-# It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
-# it will be a pre-release version on PyPi. See
-# https://packaging.python.org/guides/distributing-packages-using-setuptools/#pre-release-versioning
-# for more details.
-if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
-    __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
-    long_description = (
-        "<div align='center' width='50%'>\n\n"
-        "| ⚠️ WARNING |\n"
-        "|:----------:|\n"
-        "| **This is a development version of `cirq-google` and may be<br>"
-        "unstable. For the latest stable release of `cirq-google`,<br>"
-        "please visit** <https://pypi.org/project/cirq-google>.|\n"
-        "\n</div>\n\n" + long_description
-    )
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
