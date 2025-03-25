@@ -17,8 +17,8 @@ the following:
 * All the documented [symbols](https://quantumai.google/reference/python/cirq/all_symbols) (module, function, argument, property, class, or constant) in the Cirq module and its submodules, except for
     *   Private symbols: any symbol whose name start with an underscore **\_**.
     *   Experimental and `cirq.contrib` symbols, see [below](#what-is-not-covered) for details.
-* Note that only code reachable through the `cirq` Python module is covered by the compatibility guarantees. 
-    *   For example: Code in the [examples/](https://github.com/quantumlib/Cirq/tree/main/examples) and [dev\_tools/](https://github.com/quantumlib/Cirq/tree/main/dev_tools) directories is not reachable through the `cirq` Python module and is thus not covered by the compatibility guarantee. 
+* Note that only code reachable through the `cirq` Python module is covered by the compatibility guarantees.
+    *   For example: Code in the [examples/](https://github.com/quantumlib/Cirq/tree/main/examples) and [dev\_tools/](https://github.com/quantumlib/Cirq/tree/main/dev_tools) directories is not reachable through the `cirq` Python module and is thus not covered by the compatibility guarantee.
     *   Similarly, symbols in vendor packages, like [cirq-google](https://quantumai.google/reference/python/cirq_google/all_symbols), [cirq-aqt](https://quantumai.google/reference/python/cirq_aqt/all_symbols) are also not covered by the compatibility guarantee.
     *   If a symbol is available through the `cirq` Python module or its submodules, but is not documented, then it is **not** considered part of the public API.
 
@@ -27,7 +27,7 @@ the following:
     *   any symbol in the `cirq.contrib` module or its submodules.
     *   any symbol whose name contains `experimental` or `Experimental`; or
     *   any symbol whose fully-qualified name includes a module or class that is itself experimental. This includes fields and submessages of any JSON/protocol serialization called `experimental`.
-* **Hardware vendor modules**: As mentioned in the previous section, interface packages from quantum hardware vendors, such as `cirq-aqt`, `cirq-google`, `cirq-rigetti`, and others, are not covered.
+* **Hardware vendor modules**: As mentioned in the previous section, interface packages from quantum hardware vendors, such as `cirq-aqt`, `cirq-google`, and others, are not covered.
 * **Details of gate decompositions**: Many public gates and operations in Cirq are composite gates defined by specifying a particular decomposition in terms of other simpler gates, using `_decompose_` protocol. These decompositions may change for minor releases, with a guarantee that the old and new decompositions would result in the same unitary up to a global phase.
 * **Floating point numerical details**: The specific floating point values computed by simulators and linear algebra utilities may change at any time. Users should rely only on approximate accuracy and numerical stability, not on the specific bits computed.
 * **Type Preservation**: The exact type of the objects consumed and returned by methods/functions in the public API can be changed any time, as long as the change satisfies [Liskov Substitution Principle (LSP)](https://en.wikipedia.org/wiki/Liskov_substitution_principle).
