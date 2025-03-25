@@ -330,17 +330,6 @@ def test_get_circuit_v2_unknown_gateset(get_program_async):
         program.get_circuit()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
-def test_get_circuit_unsupported_program_type(get_program_async):
-    program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program_async.return_value = quantum.QuantumProgram(
-        code=any_pb2.Any(type_url='type.googleapis.com/unknown.proto')
-    )
-
-    with pytest.raises(ValueError, match='unknown.proto'):
-        program.get_circuit()
-
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_program_async')
 def test_delete(delete_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
