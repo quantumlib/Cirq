@@ -21,7 +21,7 @@ numbers. The following guarantees are provided:
     ever becomes necessary to allow packages to have different version numbers,
     this policy will be updated.)
 
-1.  Libraries in the `cirq-core` directory (with the exception of
+2.  Libraries in the `cirq-core` directory (with the exception of
     `cirq-core/cirq/contrib`) adhere to the guarantees outlined in the Semantic
     Versioning specification. In summary:
 
@@ -34,14 +34,14 @@ numbers. The following guarantees are provided:
     *   Additions and/or changes that affect the API in a
         backwards-_incompatible_ way will increment the MAJOR version.
 
-1.  The contrib directory (at `cirq-core/cirq/contrib`) currently follows
+3.  The contrib directory (at `cirq-core/cirq/contrib`) currently follows
     Semantic Versioning except for the MINOR version increment policy: releases
     with MINOR version increments may contain backward-incompatible
     functionality changes to its public API. (They may be changed to strictly
     follow Semantic Versioning in the future, at which point this policy will
     be updated.)
 
-1.  Cirq vendor directories (`cirq-aqt`, `cirq-google`, `cirq-ionq`, etc.) follow
+4.  Cirq vendor directories (`cirq-aqt`, `cirq-google`, `cirq-ionq`, etc.) follow
     Semantic Versioning except the MINOR version increment policy: each vendor
     directory has a separate policy on whether MINOR version increments provide
     backward-compatibility guarantees, as described in `version_policy.md` in the
@@ -54,7 +54,7 @@ numbers. The following guarantees are provided:
     1.  For each vendor directory, version policies may be modified to strictly
         follow Semantic Versioning in the future.
 
-1.  Versions based on unreleased branches of `main` will be suffixed with `.dev`.
+5.  Versions based on unreleased branches of `main` will be suffixed with `.dev0`.
 
 The rules for version changes are:
 
@@ -76,7 +76,7 @@ We use GitHub's release system for creating releases.  Release are listed
 
 Our development process uses the branch named `main` for development. This
 branch will always use the next unreleased minor version number with the suffix
-of `.dev`. When a release is performed, the `.dev` will be removed and tagged
+of `.dev0`. When a release is performed, the `.dev0` will be removed and tagged
 in a release branch with a version tag (vX.X.X). Then, `main` will be updated
 to the next minor version. The version number of `main` can always be found in
 the [version file](./cirq-core/cirq/_version.py).
@@ -158,9 +158,9 @@ git cherry-pick <commit>
 Bump the version number on the release branch:
 
 ```bash
-python dev_tools/modules.py replace_version --old ${VER}.dev --new ${VER}
+python dev_tools/modules.py replace_version --old ${VER}.dev0 --new ${VER}
 git add .
-git commit -m "Removing ${VER}.dev -> ${VER}"
+git commit -m "Removing ${VER}.dev0 -> ${VER}"
 git push origin "v${VER}-dev"
 ```
 
@@ -171,7 +171,7 @@ updates, leave it as it is.
 
 ```bash
 git checkout main -b "version_bump_${NEXT_VER}"
-python dev_tools/modules.py replace_version --old ${VER}.dev --new ${NEXT_VER}.dev
+python dev_tools/modules.py replace_version --old ${VER}.dev0 --new ${NEXT_VER}.dev0
 git add .
 git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "version_bump_${NEXT_VER}"

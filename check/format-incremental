@@ -94,15 +94,30 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
-BLACKVERSION="$(black --version)"
+# color the output if it goes to a terminal or GitHub Actions log
+arg_color=()
+if [[ -t 1 || "${CI}" == true ]]; then
+    arg_color=("--color")
+fi
+
+ISORTVERSION="$(isort --version-number)"
+
+echo "Sorting imports with isort... (version: $ISORTVERSION)"
+
+args=("${arg_color[@]}")
+if (( only_print == 1 )); then
+    args+=("--check" "--diff")
+fi
+
+# TODO(#4863, #7181) - exclude __init__.py from isort arguments and enable
+echo "isort is temporarily disabled"
+ISORTSTATUS=$?
+
+BLACKVERSION="$(black --version | head -1)"
 
 echo "Running the black formatter... (version: $BLACKVERSION)"
 
-args=()
-if [[ -t 1 || ${CI} == true ]]; then
-    # color when outputting to a terminal or to a GitHub Actions log
-    args+=("--color")
-fi
+args=("${arg_color[@]}")
 if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
@@ -110,7 +125,7 @@ fi
 black "${args[@]}" "${format_files[@]}"
 BLACKSTATUS=$?
 
-if [[ "$BLACKSTATUS" != "0"  ]]; then
+if (( BLACKSTATUS || ISORTSTATUS )); then
   exit 1
 fi
 exit 0

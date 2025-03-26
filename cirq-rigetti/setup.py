@@ -12,45 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
-import os
+import runpy
+
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
-exec(open('cirq_rigetti/_version.py').read())
+# This reads the __version__ variable from cirq_rigetti/_version.py
+__version__ = runpy.run_path('cirq_rigetti/_version.py')['__version__']
+assert __version__, 'Version string cannot be empty'
 
 name = 'cirq-rigetti'
 
 description = 'A Cirq package to simulate and connect to Rigetti quantum computers and Quil QVM'
 
 # README file as long_description.
-long_description = io.open('README.md', encoding='utf-8').read()
-
-# If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
-# It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
-# it will be a pre-release version on PyPi. See
-# https://packaging.python.org/guides/distributing-packages-using-setuptools/#pre-release-versioning
-# for more details.
-if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
-    __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
-    long_description = (
-        "<div align='center' width='50%'>\n\n"
-        "| ⚠️ WARNING |\n"
-        "|:----------:|\n"
-        "| **This is a development version of `cirq-rigetti` and may be<br>"
-        "unstable. For the latest stable release of `cirq-rigetti`,<br>"
-        "please visit** <https://pypi.org/project/cirq-rigetti>.|\n"
-        "\n</div>\n\n" + long_description
-    )
+long_description = open('README.md', encoding='utf-8').read()
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
-
-# Sanity check
-assert __version__, 'Version string cannot be empty'
-
 requirements += [f'cirq-core=={__version__}']
 
 cirq_packages = ['cirq_rigetti'] + [
