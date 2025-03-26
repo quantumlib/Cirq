@@ -109,7 +109,8 @@ if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
 
-isort "${args[@]}" "${format_files[@]}"
+# TODO(#4863, #7181) - exclude __init__.py from isort arguments and enable
+echo "isort is temporarily disabled"
 ISORTSTATUS=$?
 
 BLACKVERSION="$(black --version | head -1)"
