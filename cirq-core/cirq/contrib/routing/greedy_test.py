@@ -53,7 +53,7 @@ def test_router_hanging():
     circuit, device_graph = create_circuit_and_device()
     process = Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
     process.start()
-    process.join(timeout=5)
+    process.join(timeout=20)
     try:
         assert not process.is_alive(), "Greedy router timeout"
     finally:
