@@ -100,7 +100,7 @@ if [[ -t 1 || "${CI}" == true ]]; then
     arg_color=("--color")
 fi
 
-ISORTVERSION="$(isort --vn)"
+ISORTVERSION="$(isort --version-number)"
 
 echo "Sorting imports with isort... (version: $ISORTVERSION)"
 
@@ -112,7 +112,7 @@ fi
 isort "${args[@]}" "${format_files[@]}"
 ISORTSTATUS=$?
 
-BLACKVERSION="$(black --version)"
+BLACKVERSION="$(black --version | head -1)"
 
 echo "Running the black formatter... (version: $BLACKVERSION)"
 
