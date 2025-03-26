@@ -259,11 +259,6 @@ git log <previous version>..HEAD --pretty="%an" | sort |\
   uniq | sed ':a;N;$!ba;s/\n/, /g'
 ```
 
-### `cirq-google` Changelog
-
-Add `cirq-google` release notes to `cirq-google/CHANGELOG.md` following the
-[changelog format](https://keepachangelog.com/en/1.0.0/).
-
 ### Release to production PyPI
 
 Upload to prod PyPI using the following command:
