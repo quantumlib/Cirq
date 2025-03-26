@@ -302,18 +302,14 @@ If there are unreleased notebooks that are under testing (meaning that
 [`dev_tools/notebooks/isolated_notebook_test.py`](dev_tools/notebooks/isolated_notebook_test.py)),
 then follow the steps in our [notebooks guide](docs/dev/notebooks.md).
 
-### Create a Zenodo release
+### Verify the Zenodo archive
 
-Got to the [Zenodo release
-page](https://zenodo.org/record/6599601#.YpZCspPMLzc). Login using credentials
-stored in Google's internal password utility (or get someone from Google to do
-this). Click "New Version".
-
-*   Upload the new zip file (found in releases page under "assets").
-*   Remove old zip file.
-*   Update version.
-*   Double check all other fields.
-*   Click publish.
+Each new release should get archived in Zenodo automatically. To check it, [log
+in to Zenodo](https://zenodo.org) using credentials stored in Google's internal
+password utility (or get someone from Google to do this). Navigate to the [list
+of uploads](https://zenodo.org/me/uploads), and ensure an entry for the new
+release is present there. Open the page for the entry, verify the information,
+and edit it if necessary.
 
 ### Email cirq-announce
 
