@@ -221,13 +221,15 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
         mandatory_matches = [
-            r"!pip install --quiet cirq(-google)?~=1.0.dev",
+            r"!pip install --quiet cirq(-google)?~=1\.\d*\.dev",
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install cirq(-google)?~=1.0.dev`\.",
+            r"`pip install cirq(-google)?~=1\.\d*\.dev`\.",
         ]
 
         for m in mandatory_matches:
+            print(m)
+            print(re.search(m, content))
             assert re.search(m, content), (
                 f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
                 f"however it contains no line matching:\n{m}"
