@@ -6,7 +6,7 @@ releases.
 Note that Cirq development takes place on the `main` branch in GitHub. If you
 want to use a more stable version of Cirq, you should use one of the
 [releases](https://github.com/quantumlib/Cirq/releases) or install the package
-from PyPI using `pip install cirq`. The release from the latest commit to main
+from PyPI using `pip install cirq`. The release from the latest commit to `main`
 can be installed with `pip install cirq~=1.0.dev`.
 
 ## Versioning
@@ -166,7 +166,7 @@ git push origin "v${VER}-dev"
 
 ### Bump the main version
 
-WARNING: Only bump the main version for minor and major releases. For PATCH
+WARNING: Only bump the `main` version for minor and major releases. For PATCH
 updates, leave it as it is.
 
 ```bash
@@ -177,7 +177,7 @@ git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "version_bump_${NEXT_VER}"
 ```
 
-The main branch should never see a non-dev version specifier.
+The `main` branch should never see a non-dev version specifier.
 
 ### Create distribution wheel
 
