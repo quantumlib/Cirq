@@ -94,11 +94,17 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
+# color the output if it goes to a terminal or GitHub Actions log
+arg_color=()
+if [[ -t 1 || "${CI}" == true ]]; then
+    arg_color=("--color")
+fi
+
 ISORTVERSION="$(isort --vn)"
 
 echo "Sorting imports with isort... (version: $ISORTVERSION)"
 
-args=("--color")
+args=("${arg_color[@]}")
 if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
@@ -110,7 +116,7 @@ BLACKVERSION="$(black --version)"
 
 echo "Running the black formatter... (version: $BLACKVERSION)"
 
-args=("--color")
+args=("${arg_color[@]}")
 if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
@@ -118,7 +124,7 @@ fi
 black "${args[@]}" "${format_files[@]}"
 BLACKSTATUS=$?
 
-if [[ "$BLACKSTATUS" != "0" || "$ISORTSTATUS" != "0"  ]]; then
+if (( BLACKSTATUS || ISORTSTATUS )); then
   exit 1
 fi
 exit 0
