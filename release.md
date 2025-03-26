@@ -179,7 +179,7 @@ git push origin "version_bump_${NEXT_VER}"
 
 The `main` branch should never see a non-dev version specifier.
 
-### Create distribution wheel
+### Create the distribution wheel
 
 From a release branch, create a binary distribution wheel. This is the package
 that will go to PyPI.
@@ -284,7 +284,7 @@ pip install cirq
 python -c "import cirq; print(cirq.__version__)"
 ```
 
-### Create the release
+### Create the release on GitHub
 
 Using the information above, create the release on the
 [Release page](https://github.com/quantumlib/Cirq/releases).
