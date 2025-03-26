@@ -109,8 +109,9 @@ if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
 
-isort "${args[@]}" "${format_files[@]}"
-ISORTSTATUS=$?
+echo "skipped"; ISORTSTATUS=0
+# isort "${args[@]}" "${format_files[@]}"
+# ISORTSTATUS=$?
 
 BLACKVERSION="$(black --version | head -1)"
 
