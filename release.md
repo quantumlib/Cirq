@@ -141,7 +141,7 @@ NEXT_VER=NEXT_VERSION  # e.g. "0.8.0" (skip for PATCH releases)
 
 ### Create a release branch
 
-Create a release branch called "v${VERSION}-dev":
+Create a release branch called "v${VER}-dev":
 
 ```bash
 git checkout -b "v${VER}-dev"
