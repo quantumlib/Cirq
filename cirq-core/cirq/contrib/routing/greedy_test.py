@@ -49,7 +49,7 @@ def create_hanging_routing_instance(circuit, device_graph):
 
 
 def test_router_hanging():
-    """Run a separate process and check if greedy router hits timeout (5s)."""
+    """Run a separate process and check if greedy router hits timeout (20s)."""
     circuit, device_graph = create_circuit_and_device()
     process = Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
     process.start()
