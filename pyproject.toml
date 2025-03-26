@@ -6,16 +6,6 @@ skip-magic-trailing-comma = true
 extend-exclude = ".*_pb2[.]py[i]?"
 
 
-[tool.isort]
-profile = 'black'
-line_length = 100
-order_by_type = false # Sort alphabetically, irrespective of case.
-skip_gitignore = true
-combine_as_imports = true
-known_first_party = ["cirq*"]
-extend_skip = "__init__.py"
-
-
 [tool.coverage.run]
 include = [
     # Omit files outside the current working directory.
@@ -30,6 +20,17 @@ omit = ["benchmarks/*"]
 exclude_also = [
     "if TYPE_CHECKING:",
 ]
+
+
+[tool.isort]
+profile = 'black'
+line_length = 100
+order_by_type = false # Sort alphabetically, irrespective of case.
+skip_gitignore = true
+combine_as_imports = true
+known_first_party = ["cirq*"]
+extend_skip = ["__init__.py"]
+extend_skip_glob = ["*_pb2.py"]
 
 
 [tool.pytest.ini_options]
