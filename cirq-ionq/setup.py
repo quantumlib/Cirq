@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
 import runpy
 
 from setuptools import find_packages, setup
@@ -26,7 +25,7 @@ name = 'cirq-ionq'
 description = 'A Cirq package to simulate and connect to IonQ quantum computers'
 
 # README file as long_description.
-long_description = io.open('README.md', encoding='utf-8').read()
+long_description = open('README.md', encoding='utf-8').read()
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
