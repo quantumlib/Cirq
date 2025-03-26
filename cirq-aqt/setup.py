@@ -13,11 +13,13 @@
 # limitations under the License.
 
 import io
+import runpy
+
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
-exec(open('cirq_aqt/_version.py').read())
+# This reads the __version__ variable from cirq_aqt/_version.py
+__version__ = runpy.run_path('cirq_aqt/_version.py')['__version__']
+assert __version__, 'Version string cannot be empty'
 
 name = 'cirq-aqt'
 
@@ -36,9 +38,6 @@ requirements += [f'cirq-core=={__version__}']
 cirq_packages = ['cirq_aqt'] + [
     'cirq_aqt.' + package for package in find_packages(where='cirq_aqt')
 ]
-
-# Sanity check
-assert __version__, 'Version string cannot be empty'
 
 setup(
     name=name,

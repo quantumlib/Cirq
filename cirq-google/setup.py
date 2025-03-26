@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import runpy
+
 from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq_google/_version.py
-__version__ = ''
-exec(open('cirq_google/_version.py').read())
+__version__ = runpy.run_path('cirq_google/_version.py')['__version__']
+assert __version__, 'Version string cannot be empty'
 
 name = 'cirq-google'
 
@@ -30,11 +32,6 @@ long_description = open('README.md', encoding='utf-8').read()
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
-
-# Sanity check
-assert __version__, 'Version string cannot be empty'
-
-# This is a pure metapackage that installs all our packages
 requirements += [f'cirq-core=={__version__}']
 
 

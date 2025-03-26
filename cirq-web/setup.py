@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import runpy
+
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
-exec(open('cirq_web/_version.py').read())
+# This reads the __version__ variable from cirq_web/_version.py
+__version__ = runpy.run_path('cirq_web/_version.py')['__version__']
+assert __version__, 'Version string cannot be empty'
 
 name = 'cirq-web'
 
@@ -28,10 +30,6 @@ long_description = open('README.md', encoding='utf-8').read()
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
-
-# Sanity check
-assert __version__, 'Version string cannot be empty'
-
 requirements += [f'cirq-core=={__version__}']
 
 # Gather all packages from cirq_web, and the dist/ folder from cirq_ts

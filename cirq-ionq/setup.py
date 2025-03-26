@@ -13,11 +13,13 @@
 # limitations under the License.
 
 import io
+import runpy
+
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
-exec(open('cirq_ionq/_version.py').read())
+# This reads the __version__ variable from cirq_ionq/_version.py
+__version__ = runpy.run_path('cirq_ionq/_version.py')['__version__']
+assert __version__, 'Version string cannot be empty'
 
 name = 'cirq-ionq'
 
@@ -29,15 +31,12 @@ long_description = io.open('README.md', encoding='utf-8').read()
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
+requirements += [f'cirq-core=={__version__}']
 
 cirq_packages = ['cirq_ionq'] + [
     'cirq_ionq.' + package for package in find_packages(where='cirq_ionq')
 ]
 
-# Sanity check
-assert __version__, 'Version string cannot be empty'
-
-requirements += [f'cirq-core=={__version__}']
 
 setup(
     name=name,

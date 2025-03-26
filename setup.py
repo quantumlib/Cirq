@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup
+import runpy
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
+from setuptools import setup
 
 from dev_tools import modules
 from dev_tools.requirements import explode
 
-exec(open('cirq-core/cirq/_version.py').read())
+# This reads the __version__ variable from cirq-core/cirq/_version.py
+__version__ = runpy.run_path('cirq-core/cirq/_version.py')['__version__']
+assert __version__, 'Version string cannot be empty'
 
 name = 'cirq'
 
@@ -31,9 +32,6 @@ description = (
 
 # README file as long_description.
 long_description = open('README.md', encoding='utf-8').read()
-
-# Sanity check
-assert __version__, 'Version string cannot be empty'
 
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
