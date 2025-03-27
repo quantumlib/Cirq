@@ -702,7 +702,9 @@ class CircuitSerializer(serializer.Serializer):
             total_nanos = arg_func_langs.float_arg_from_proto(
                 operation_proto.waitgate.duration_nanos, required_arg_name=None
             )
-            op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos or 0.0))(*qubits)
+            op = cirq.WaitGate(
+                duration=cirq.Duration(nanos=total_nanos or 0.0), num_qubits=len(qubits)
+            )(*qubits)
         elif which_gate_type == 'resetgate':
             dimensions_proto = operation_proto.resetgate.arguments.get('dimension', None)
             if dimensions_proto is not None:

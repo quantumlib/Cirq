@@ -267,6 +267,12 @@ OPERATIONS = [
         ),
     ),
     (
+        cirq.WaitGate(duration=cirq.Duration(nanos=15), num_qubits=2)(Q0, Q1),
+        op_proto(
+            {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0, 1]}
+        ),
+    ),
+    (
         cirq.R(Q0),
         op_proto(
             {
