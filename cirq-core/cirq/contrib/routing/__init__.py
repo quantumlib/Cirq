@@ -13,6 +13,9 @@
 # limitations under the License.
 """Utilities for routing circuits on devices"""
 
+import sys
+import os
+
 from cirq.contrib.routing.device import (
     get_linear_device_graph as get_linear_device_graph,
     get_grid_device_graph as get_grid_device_graph,
