@@ -1,16 +1,23 @@
 # Style guidelines
 
 As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) we use use [Pylint](https://pylint.pycqa.org/)
-to check for style violations.  Pylint attempts to enforce styles in 
-[PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the 
+to check for style violations.  Pylint attempts to enforce styles in
+[PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the
 [dev_tools/conf/.pylintrc](https://github.com/quantumlib/Cirq/blob/main/dev_tools/conf/.pylintrc) file.
 
 Here we include some extra style guidelines.
 
 ## Import statements
 
-We follow the [import standards](https://www.python.org/dev/peps/pep-0008/#imports) of PEP 8, 
-with the following guidance.  
+We follow the [import standards](https://www.python.org/dev/peps/pep-0008/#imports) of PEP 8,
+with the following guidance.
+
+### Module import path conventions
+
+We use two different conventions for Python `import` statements, depending on whether the `import`
+statement is in main implementation code or test code.
+
+#### Normal code
 
 In Cirq's main implementation code (not testing code), we prefer importing the full module. This
 aids in mocking during tests.  Thus we prefer
@@ -22,35 +29,50 @@ in contrast to
 ```python
 from cirq.ops import NamedQubit
 qubit = NamedQubit('a')
-``` 
+```
 or (the one we would prefer, but doing this causes cyclic dependencies)
 ```python
 import cirq
 qubit = cirq.NamedQubit('a')
 ```
-The one exception to this is for the typing code, where we prefer the direct import 
+The one exception to this is for the typing code, where we prefer the direct import
 ```python
 from typing import List
 ```
-This exception allows typing hints to be more compact. 
+This exception allows typing hints to be more compact.
 
-In tests, however, we prefer that we use Cirq as you would use cirq externally. For code
-that is in the Cirq core framework this is
+#### Test code
+
+In tests, however, we prefer that we use Cirq as you would use Cirq externally. For code
+that is in the Cirq core framework, this is
 ```python
 import cirq
 qubit = cirq.NamedQubit('a')
 ```
-For Cirq code that is outside of the core and does not appear at the `cirq` module level, 
+For Cirq code that is outside of the core and does not appear at the `cirq` module level,
 for example work in `contrib`, one should use the highest level possible for test code
 ```python
 import cirq
 from cirq import contrib
 contrib.circuit_to_latex_using_qcircuit(cirq.Circuit())
-``` 
+```
 
 Of course, if this import style fundamentally cannot be used, do not let this
 block submitting a pull request for the code as we will definitely grant
 exceptions.
+
+### Ordering of module import statements
+
+To keep import statements sorted in a consistent way across Cirq source code files, we follow the
+sorting conventions implemented in the program [isort](https://pypi.org/project/isort/) version 6.0
+and higher. A number of editors and IDEs provide an integration with `isort`; Cirq also comes with a
+command-line script to that will run both a code formatter and `isort`:
+
+```shell
+cd ROOT-OF-YOUR-LOCAL-CIRQ-REPO
+# Add the option --apply below to reformat files in place.
+check/format-incremental FILES...
+```
 
 ## Type annotations
 
