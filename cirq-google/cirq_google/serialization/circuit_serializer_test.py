@@ -1163,9 +1163,13 @@ def test_reset_gate_with_no_dimension():
     assert reset_circuit == cirq.Circuit(cirq.R(cirq.q(1, 2)))
 
 
-def test_stimcirq_gates():
+@pytest.mark.parametrize('use_constants_table', [True, False])
+def test_stimcirq_gates(use_constants_table: bool):
     stimcirq = pytest.importorskip("stimcirq")
-    serializer = cg.CircuitSerializer()
+    serializer = cg.CircuitSerializer(
+        USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
+        USE_CONSTANTS_TABLE_FOR_OPERATIONS=use_constants_table,
+    )
     q = cirq.q(1, 2)
     q2 = cirq.q(2, 2)
     c = cirq.Circuit(
@@ -1184,7 +1188,13 @@ def test_stimcirq_gates():
         ),
         cirq.Moment(stimcirq.ShiftCoordsAnnotation([1.0, 2.0])),
         cirq.Moment(
-            stimcirq.SweepPauli(stim_sweep_bit_index=4, cirq_sweep_symbol='t', pauli=cirq.X)(q)
+            stimcirq.SweepPauli(stim_sweep_bit_index=2, cirq_sweep_symbol='t', pauli=cirq.X)(q)
+        ),
+        cirq.Moment(
+            stimcirq.SweepPauli(stim_sweep_bit_index=3, cirq_sweep_symbol='y', pauli=cirq.Y)(q)
+        ),
+        cirq.Moment(
+            stimcirq.SweepPauli(stim_sweep_bit_index=4, cirq_sweep_symbol='t', pauli=cirq.Z)(q)
         ),
         cirq.Moment(stimcirq.TwoQubitAsymmetricDepolarizingChannel([0.05] * 15)(q, q2)),
         cirq.Moment(stimcirq.CZSwapGate()(q, q2)),

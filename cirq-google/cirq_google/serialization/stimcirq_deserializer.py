@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, List
+from typing import Any, Dict, List
 
 import functools
 
@@ -72,19 +72,17 @@ class StimCirqDeserializer(OpDeserializer):
             raise ValueError(f"stimcirq object {proto} not recognized. (Is stimcirq installed?)")
 
         # Resolve each of the serialized arguments
-        kwargs = {}
+        kwargs: Dict[str, Any] = {}
         for k, v in proto.internalgate.gate_args.items():
             if k == "pauli":
                 # Special Handling for pauli gate
                 pauli = v.arg_value.string_value
                 if pauli == "X":
-                    kwargs[k]: cirq.Gate = cirq.X
+                    kwargs[k] = cirq.X
                 elif pauli == "Y":
                     kwargs[k] = cirq.Y
                 elif pauli == "Z":
                     kwargs[k] = cirq.Z
-                elif pauli == "I":
-                    kwargs[k] = cirq.I
                 else:
                     raise ValueError(f"Unknown stimcirq pauli Gate {v}")
                 continue
