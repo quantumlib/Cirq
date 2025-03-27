@@ -573,9 +573,12 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         'git checkout -q alt\n'
         'echo " print(1)" > alt.py\n'
         'git add -A\n'
-        'git commit -q -m test3 --no-gpg-sign\n',
+        'git commit -q -m test3 --no-gpg-sign\n'
+        'export CI=true\n',
+        additional_intercepts=['isort'],
     )
     assert result.returncode == 0
+    assert 'INTERCEPTED isort --color --check --diff alt.py' in result.stdout
     assert 'INTERCEPTED black --color --check --diff alt.py' in result.stdout
     assert result.stderr.startswith("Comparing against revision 'main' (merge base ")
 
