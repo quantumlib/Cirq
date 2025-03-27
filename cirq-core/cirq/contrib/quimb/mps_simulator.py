@@ -379,7 +379,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.RandomState):
+    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.Generator):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -481,7 +481,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         }
 
     def _measure(
-        self, axes: Sequence[int], prng: np.random.RandomState, collapse_state_vector=True
+        self, axes: Sequence[int], prng: np.random.Generator, collapse_state_vector=True
     ) -> List[int]:
         results: List[int] = []
 
@@ -565,7 +565,7 @@ class MPSState(SimulationState[_MPSHandler]):
         self,
         *,
         qubits: Sequence['cirq.Qid'],
-        prng: np.random.RandomState,
+        prng: Union[np.random.Generator, np.random.RandomState],
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,

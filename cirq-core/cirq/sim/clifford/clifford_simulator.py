@@ -242,7 +242,7 @@ class CliffordState:
 
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.StabilizerChFormSimulationState(
-            prng=np.random.RandomState(), qubits=self.qubit_map.keys(), initial_state=self.ch_form
+            prng=np.random.default_rng(), qubits=self.qubit_map.keys(), initial_state=self.ch_form
         )
         try:
             act_on(op, ch_form_args)
@@ -254,7 +254,7 @@ class CliffordState:
         self,
         op: 'cirq.Operation',
         measurements: Dict[str, List[int]],
-        prng: np.random.RandomState,
+        prng: Union[np.random.Generator, np.random.RandomState],
         collapse_state_vector=True,
     ):
         if not isinstance(op.gate, cirq.MeasurementGate):

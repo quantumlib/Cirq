@@ -29,6 +29,7 @@ from typing import (
     Type,
     TypeVar,
     TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
@@ -93,7 +94,7 @@ class SimulatorBase(
         *,
         dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: Optional[Union[int, np.random.Generator, np.random.RandomState]] = None,
         split_untangled_states: bool = False,
     ):
         """Initializes the simulator.
@@ -101,13 +102,19 @@ class SimulatorBase(
         Args:
             dtype: The `numpy.dtype` used by the simulation.
             noise: A noise model to apply while simulating.
-            seed: The random seed to use for this simulator.
+            seed: The random seed or generator to use for this simulator.
             split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
         """
         self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
+        if isinstance(seed, np.random.RandomState):
+            # Convert RandomState to Generator for backward compatibility
+            self._prng = np.random.Generator(seed._bit_generator)
+        elif isinstance(seed, np.random.Generator):
+            self._prng = seed
+        else:
+            self._prng = np.random.default_rng(seed)
         self._noise = devices.NoiseModel.from_noise_model_like(noise)
         self._split_untangled_states = split_untangled_states
 
@@ -228,6 +235,7 @@ class SimulatorBase(
         circuit: 'cirq.AbstractCircuit',
         param_resolver: 'cirq.ParamResolver',
         repetitions: int,
+        rng: Optional[np.random.Generator] = None,
     ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
@@ -254,7 +262,10 @@ class SimulatorBase(
             assert step_result is not None
             measurement_ops = [cast(ops.GateOperation, op) for op in general_ops]
             return step_result.sample_measurement_ops(
-                measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
+                measurement_ops,
+                repetitions,
+                seed=rng if rng is not None else self._prng,
+                _allow_repeated=True,
             )
 
         records: Dict['cirq.MeasurementKey', List[Sequence[Sequence[int]]]] = {}
@@ -395,9 +406,15 @@ class StepResultBase(
         self,
         qubits: List['cirq.Qid'],
         repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: Optional[Union[int, np.random.Generator, np.random.RandomState]] = None,
     ) -> np.ndarray:
-        return self._sim_state.sample(qubits, repetitions, seed)
+        if isinstance(seed, np.random.RandomState):
+            rng = np.random.Generator(seed._bit_generator)
+        elif isinstance(seed, np.random.Generator):
+            rng = seed
+        else:
+            rng = np.random.default_rng(seed)
+        return self._sim_state.sample(qubits, repetitions, rng)
 
 
 class SimulationTrialResultBase(
