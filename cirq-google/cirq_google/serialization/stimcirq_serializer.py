@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import cirq
 from cirq_google.api import v2
@@ -60,8 +60,8 @@ class StimCirqSerializer(OpSerializer):
     ) -> v2.program_pb2.Operation:
         """Returns the stimcirq object as a proto."""
         msg = msg or v2.program_pb2.Operation()
-        if getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE):
-            stimcirq_obj = op
+        if getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) or op.gate is None:
+            stimcirq_obj: Union[cirq.Operation, cirq.Gate] = op
             is_gate = False
         else:
             stimcirq_obj = op.gate
