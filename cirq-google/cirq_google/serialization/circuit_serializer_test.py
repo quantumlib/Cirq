@@ -1169,6 +1169,25 @@ def test_stimcirq_gates():
     q = cirq.q(1, 2)
     q2 = cirq.q(2, 2)
     c = cirq.Circuit(
+        cirq.Moment(
+            stimcirq.CumulativeObservableAnnotation(parity_keys=["m"], observable_index=123)
+        ),
+        cirq.Moment(
+            stimcirq.MeasureAndOrResetGate(
+                measure=True,
+                reset=False,
+                basis='Z',
+                invert_measure=True,
+                key='mmm',
+                measure_flip_probability=0.125,
+            )(q2)
+        ),
+        cirq.Moment(stimcirq.ShiftCoordsAnnotation([1.0, 2.0])),
+        cirq.Moment(
+            stimcirq.SweepPauli(stim_sweep_bit_index=4, cirq_sweep_symbol='t', pauli=cirq.X)(q)
+        ),
+        cirq.Moment(stimcirq.TwoQubitAsymmetricDepolarizingChannel([0.05] * 15)(q, q2)),
+        cirq.Moment(stimcirq.CZSwapGate()(q, q2)),
         cirq.Moment(stimcirq.CXSwapGate(inverted=True)(q, q2)),
         cirq.Moment(cirq.measure(q, key="m")),
         cirq.Moment(stimcirq.DetAnnotation(parity_keys=["m"])),
