@@ -14,7 +14,7 @@
 """Result types for the IonQ API."""
 
 import collections
-from typing import Dict, Counter, List, Optional, Sequence
+from typing import Counter, Dict, List, Optional, Sequence
 
 import numpy as np
 

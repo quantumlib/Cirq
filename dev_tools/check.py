@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Optional, cast, Set
-
 import abc
 import os.path
+from typing import cast, Optional, Set, Tuple
 
 from dev_tools import env_tools, shell_tools
 

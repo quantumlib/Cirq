@@ -13,8 +13,9 @@
 # limitations under the License.
 from typing import Callable, Optional, Sequence, Union
 
-import cirq
 import duet
+
+import cirq
 
 VALIDATOR_TYPE = Callable[
     [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], Union[int, Sequence[int]]], None

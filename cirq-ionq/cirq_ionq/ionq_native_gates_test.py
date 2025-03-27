@@ -13,12 +13,11 @@
 # limitations under the License.
 """Tests for IonQ native gates"""
 
-import cirq
 import numpy
 import pytest
 
+import cirq
 import cirq_ionq as ionq
-
 
 PARAMS_FOR_ONE_ANGLE_GATE = [0, 0.1, 0.4, 0.5, 1, 2]
 PARAMS_FOR_TWO_ANGLE_GATE = [(0, 1), (0.1, 1), (0.4, 1), (0.5, 0), (0, 1), (0.1, 2)]

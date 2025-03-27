@@ -16,17 +16,17 @@ from typing import Any, cast, Optional, Type
 
 import numpy as np
 
+from cirq import protocols
 from cirq.circuits.circuit import Circuit
 from cirq.devices import LineQubit
 from cirq.ops import common_gates
 from cirq.ops.dense_pauli_string import DensePauliString
-from cirq import protocols
 from cirq.qis import clifford_tableau
-from cirq.sim import state_vector_simulation_state, final_state_vector
+from cirq.sim import final_state_vector, state_vector_simulation_state
 from cirq.sim.clifford import (
     clifford_tableau_simulation_state,
-    stabilizer_state_ch_form,
     stabilizer_ch_form_simulation_state,
+    stabilizer_state_ch_form,
 )
 
 

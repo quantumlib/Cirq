@@ -26,15 +26,15 @@
 
 import os
 import re
-import subprocess
 import shutil
+import subprocess
 import warnings
-from typing import Set, List
+from typing import List, Set
 
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_notebook
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list

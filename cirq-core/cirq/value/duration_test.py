@@ -13,9 +13,10 @@
 # limitations under the License.
 
 from datetime import timedelta
+
+import numpy as np
 import pytest
 import sympy
-import numpy as np
 
 import cirq
 from cirq.value import Duration

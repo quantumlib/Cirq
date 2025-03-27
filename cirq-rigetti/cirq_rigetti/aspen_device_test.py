@@ -1,22 +1,23 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import os
-import warnings
-from unittest.mock import patch, PropertyMock
-from math import sqrt
 import pathlib
+import warnings
+from math import sqrt
+from unittest.mock import patch, PropertyMock
+
+import numpy as np
 import pytest
+from qcs_sdk.qpu.isa import Family, InstructionSetArchitecture
+
 import cirq
+from cirq._compat import ALLOW_DEPRECATION_IN_TEST
 from cirq_rigetti import (
-    OctagonalQubit,
     AspenQubit,
+    OctagonalQubit,
     RigettiQCSAspenDevice,
     UnsupportedQubit,
     UnsupportedRigettiQCSOperation,
 )
-from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
-from qcs_sdk.qpu.isa import InstructionSetArchitecture, Family
-import numpy as np
-from cirq._compat import ALLOW_DEPRECATION_IN_TEST
 from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 dir_path = pathlib.Path(os.path.dirname(os.path.realpath(__file__)))

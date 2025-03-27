@@ -17,9 +17,9 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq import quirk_url_to_circuit
 from cirq.interop.quirk.cells import arithmetic_cells
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
-from cirq import quirk_url_to_circuit
 
 
 def test_arithmetic_comparison_gates():

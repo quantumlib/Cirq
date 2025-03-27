@@ -1,5 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import random
+
 import cirq
 
 """Example program that demonstrates a Hidden Shift algorithm.

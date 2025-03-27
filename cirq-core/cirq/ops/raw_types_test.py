@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Iterator, Any
+from typing import AbstractSet, Any, Iterator
 
-import pytest
 import numpy as np
+import pytest
 import sympy
 
 import cirq

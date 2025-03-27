@@ -28,7 +28,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols, _compat
+from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 

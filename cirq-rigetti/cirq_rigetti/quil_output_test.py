@@ -13,15 +13,15 @@
 # limitations under the License.
 
 import os
+
 import numpy as np
 import pytest
 
 import cirq
-from cirq.ops.pauli_interaction_gate import PauliInteractionGate
-
 import cirq_rigetti
-from cirq_rigetti.quil_output import QuilOutput
+from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
+from cirq_rigetti.quil_output import QuilOutput
 
 
 def _make_qubits(n):

@@ -13,20 +13,22 @@
 # limitations under the License.
 
 import unittest.mock
-import pytest
+
 import numpy as np
-import cirq
+import pytest
 import sympy
+
+import cirq
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 from cirq.transformers.gauge_compiling import (
-    GaugeTransformer,
-    CZGaugeTransformer,
-    SqrtCZGaugeTransformer,
     ConstantGauge,
+    CZGaugeTransformer,
     GaugeSelector,
+    GaugeTransformer,
+    SqrtCZGaugeTransformer,
     TwoQubitGateSymbolizer,
 )
 from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGauge
-from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 
 def test_deep_transformation_not_supported():

@@ -15,7 +15,6 @@
 from typing import Sequence, TYPE_CHECKING
 
 from cirq import circuits, ops
-
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates,

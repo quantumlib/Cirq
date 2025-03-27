@@ -14,8 +14,8 @@
 
 from typing import Dict, Iterable, TYPE_CHECKING
 
-from cirq import ops
 import cirq.contrib.acquaintance as cca
+from cirq import ops
 
 if TYPE_CHECKING:
     import cirq

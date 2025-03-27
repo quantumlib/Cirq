@@ -22,11 +22,11 @@ import sympy
 
 import cirq
 import cirq.testing as ct
-from cirq.testing import consistent_qasm as cq
 from cirq import Circuit
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._parser import QasmParser
+from cirq.testing import consistent_qasm as cq
 
 
 def test_format_header_circuit():
