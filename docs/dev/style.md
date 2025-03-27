@@ -66,7 +66,7 @@ exceptions.
 To keep import statements sorted in a consistent way across Cirq source code files, we follow the
 sorting conventions implemented in the program [isort](https://pypi.org/project/isort/) version 6.0
 and higher. A number of editors and IDEs provide an integration with `isort`; Cirq also comes with a
-command-line script to that will run both a code formatter and `isort`:
+command-line script that will run both a code formatter and `isort`:
 
 ```shell
 cd ROOT-OF-YOUR-LOCAL-CIRQ-REPO
