@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import datetime
-from functools import cached_property
 import sys
+import warnings
+from functools import cached_property
 from typing import (
     AsyncIterable,
     Awaitable,
@@ -23,11 +24,10 @@ from typing import (
     List,
     Optional,
     Set,
-    TypeVar,
     Tuple,
+    TypeVar,
     Union,
 )
-import warnings
 
 import duet
 import proto
@@ -36,8 +36,8 @@ from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq_google.cloud import quantum
-from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine import stream_manager
+from cirq_google.engine.asyncio_executor import AsyncioExecutor
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')

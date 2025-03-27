@@ -13,12 +13,12 @@
 # limitations under the License.
 """Tools for measuring expectation values of Pauli strings with readout error mitigation."""
 import time
-from typing import List, Union, Dict, Optional, Tuple
-import attrs
+from typing import Dict, List, Optional, Tuple, Union
 
+import attrs
 import numpy as np
 
-from cirq import ops, circuits, work
+from cirq import circuits, ops, work
 from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices

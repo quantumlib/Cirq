@@ -16,15 +16,15 @@ import re
 from fractions import Fraction
 from typing import (
     Any,
-    TYPE_CHECKING,
-    Optional,
-    Union,
-    TypeVar,
     Dict,
-    overload,
     Iterable,
     List,
+    Optional,
+    overload,
     Sequence,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
 )
 
 import numpy as np

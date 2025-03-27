@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from typing import Any, Dict, List, Optional
-import pytest
 
 import attrs
 import numpy as np
+import pytest
 import sympy
-from google.protobuf import json_format
-
 import tunits.units
+from google.protobuf import json_format
 
 import cirq
 import cirq_google as cg

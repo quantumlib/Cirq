@@ -33,7 +33,7 @@ import sympy
 import cirq
 from cirq._compat import proper_eq
 from cirq.protocols import json_serialization
-from cirq.testing.json import ModuleJsonTestSpec, spec_for, assert_json_roundtrip_works
+from cirq.testing.json import assert_json_roundtrip_works, ModuleJsonTestSpec, spec_for
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
 

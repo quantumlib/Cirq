@@ -13,8 +13,9 @@
 # limitations under the License.
 
 from concurrent.futures import ThreadPoolExecutor
-import pytest
+
 import numpy as np
+import pytest
 
 from cirq.qis.entropy import process_renyi_entropy_from_bitstrings
 

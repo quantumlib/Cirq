@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from typing import Optional, Sequence, Type
-import pytest
-import cirq
-import sympy
+
 import numpy as np
+import pytest
+import sympy
+
+import cirq
 
 
 def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):

@@ -16,38 +16,35 @@ from inspect import signature
 
 import numpy as np
 import pytest
-
+import sympy
 from pyquil.quil import Program
-from pyquil.quilbase import Parameter, DefGate
-from pyquil.quilatom import quil_cos, quil_sin, quil_exp
+from pyquil.quilatom import quil_cos, quil_exp, quil_sin
+from pyquil.quilbase import DefGate, Parameter
 from pyquil.simulation import matrices
 from pyquil.simulation.tools import program_unitary
 
-import sympy
 import cirq
-from cirq import Circuit, LineQubit
-from cirq import Simulator, unitary
+from cirq import Circuit, LineQubit, Simulator, unitary
 from cirq.linalg.predicates import allclose_up_to_global_phase
+from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, XPowGate, YPowGate, ZPowGate
+from cirq.ops.identity import I
+from cirq.ops.measurement_gate import MeasurementGate
+from cirq.ops.pauli_gates import X, Y, Z
+from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
+from cirq.ops.three_qubit_gates import CCNOT, CSWAP
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 from cirq_rigetti.quil_input import (
-    UndefinedQuilGate,
-    UnsupportedQuilInstruction,
-    SUPPORTED_GATES,
-    PARAMETRIC_TRANSFORMERS,
+    circuit_from_quil,
     CPHASE00,
     CPHASE01,
     CPHASE10,
-    PSWAP,
-    circuit_from_quil,
     defgate_to_cirq,
+    PARAMETRIC_TRANSFORMERS,
+    PSWAP,
+    SUPPORTED_GATES,
+    UndefinedQuilGate,
+    UnsupportedQuilInstruction,
 )
-from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
-
-from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, ZPowGate, YPowGate, XPowGate
-from cirq.ops.pauli_gates import X, Y, Z
-from cirq.ops.identity import I
-from cirq.ops.measurement_gate import MeasurementGate
-from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
-from cirq.ops.three_qubit_gates import CCNOT, CSWAP
 
 
 @allow_deprecated_cirq_rigetti_use_in_tests

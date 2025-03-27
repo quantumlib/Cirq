@@ -14,9 +14,10 @@
 
 
 import numpy as np
+
 import cirq
+from cirq.transformers import ConstantGauge, GaugeSelector, GaugeTransformer
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
-from cirq.transformers import GaugeTransformer, GaugeSelector, ConstantGauge
 
 
 class ExampleGate(cirq.testing.TwoQubitGate):

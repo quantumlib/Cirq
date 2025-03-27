@@ -13,11 +13,11 @@
 # limitations under the License.
 """Tools for running circuits in a shuffled order with readout error benchmarking."""
 import time
-from typing import Optional, Union, Dict, Tuple, List
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-from cirq import ops, circuits, work, protocols
+from cirq import circuits, ops, protocols, work
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.study import ResultDict
 

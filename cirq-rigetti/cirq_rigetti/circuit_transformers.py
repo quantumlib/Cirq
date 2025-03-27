@@ -14,12 +14,14 @@
 """A collection of `CircuitTransformer` s that the client may pass to `RigettiQCSService` or
 `RigettiQCSSampler` as `transformer`.
 """
-from typing import Dict, cast, Optional, Tuple, List, Callable
+from typing import Callable, cast, Dict, List, Optional, Tuple
+
 from pyquil import Program
-import cirq
-from cirq_rigetti.quil_output import RigettiQCSQuilOutput
 from typing_extensions import Protocol
+
+import cirq
 from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
+from cirq_rigetti.quil_output import RigettiQCSQuilOutput
 
 
 @deprecated_cirq_rigetti_class()

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Iterable, Sequence, Tuple, Union, cast, List
+from typing import Any, Callable, cast, Iterable, List, Sequence, Tuple, Union
 
 from cirq import circuits, ops, protocols
 from cirq.contrib import circuitdag
 from cirq.contrib.paulistring.pauli_string_dag import (
-    pauli_string_reorder_pred,
     pauli_string_dag_from_circuit,
+    pauli_string_reorder_pred,
 )
 
 

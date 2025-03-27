@@ -15,6 +15,7 @@
 import numpy as np
 import pytest
 
+from cirq.linalg import is_orthogonal, is_special_orthogonal, is_special_unitary, is_unitary
 from cirq.testing import (
     assert_allclose_up_to_global_phase,
     random_density_matrix,
@@ -24,7 +25,6 @@ from cirq.testing import (
     random_superposition,
     random_unitary,
 )
-from cirq.linalg import is_unitary, is_orthogonal, is_special_unitary, is_special_orthogonal
 
 
 @pytest.mark.parametrize('dim', range(1, 10))

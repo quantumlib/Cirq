@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import itertools
-import pytest
+
 import numpy as np
+import pytest
 import sympy
 
 import cirq

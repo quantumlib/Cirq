@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import string
-from typing import Callable, Dict, Set, Tuple, Union, Any, Optional, List, cast
+from typing import Any, Callable, cast, Dict, List, Optional, Set, Tuple, Union
+
 import numpy as np
+
 import cirq
 import cirq_rigetti
-from cirq import protocols, value, ops
+from cirq import ops, protocols, value
 from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 

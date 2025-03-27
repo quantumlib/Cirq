@@ -14,13 +14,14 @@
 
 """Defines which types are Sweepable."""
 
-from typing import Iterable, Iterator, List, Optional, Sequence, Union, cast
 import warnings
+from typing import cast, Iterable, Iterator, List, Optional, Sequence, Union
+
 from typing_extensions import Protocol
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
-from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip, dict_to_product_sweep
+from cirq.study.sweeps import dict_to_product_sweep, ListSweep, Points, Sweep, UnitSweep, Zip
 
 SweepLike = Union[ParamResolverOrSimilarType, Sweep]
 document(SweepLike, """An object similar to an iterable of parameter resolvers.""")

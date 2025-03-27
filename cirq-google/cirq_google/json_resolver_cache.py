@@ -14,8 +14,8 @@
 
 """Module for use in exporting cirq-google objects in JSON."""
 
-import warnings
 import functools
+import warnings
 from typing import Dict
 
 from cirq.protocols.json_serialization import ObjectFactory
