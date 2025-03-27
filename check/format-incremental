@@ -95,6 +95,14 @@ if (( ${#format_files[@]} == 0 )); then
     exit 0
 fi
 
+# Exclude __init__.py files from isort targets
+declare -a isort_files=()
+for f in "${format_files[@]}"; do
+    if [[ "${f##*/}" != __init__.py ]]; then
+        isort_files+=("${f}")
+    fi
+done
+
 # Color the output if it goes to a terminal or GitHub Actions log
 arg_color=()
 if [[ -t 1 || "${CI}" == true ]]; then
@@ -110,9 +118,11 @@ if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
 
-# TODO(#4863, #7181) - exclude __init__.py from isort arguments and enable
-echo "isort is temporarily disabled"
-ISORTSTATUS=$?
+ISORTSTATUS=0
+if (( "${#isort_files[@]}" )); then
+    isort "${args[@]}" "${isort_files[@]}"
+    ISORTSTATUS=$?
+fi
 
 BLACKVERSION="$(black --version | head -1)"
 
