@@ -6,7 +6,7 @@ releases.
 Note that Cirq development takes place on the `main` branch in GitHub. If you
 want to use a more stable version of Cirq, you should use one of the
 [releases](https://github.com/quantumlib/Cirq/releases) or install the package
-from PyPI using `pip install cirq`. The release from the latest commit to main
+from PyPI using `pip install cirq`. The release from the latest commit to `main`
 can be installed with `pip install cirq~=1.0.dev`.
 
 ## Versioning
@@ -141,7 +141,7 @@ NEXT_VER=NEXT_VERSION  # e.g. "0.8.0" (skip for PATCH releases)
 
 ### Create a release branch
 
-Create a release branch called "v${VERSION}-dev":
+Create a release branch called "v${VER}-dev":
 
 ```bash
 git checkout -b "v${VER}-dev"
@@ -166,7 +166,7 @@ git push origin "v${VER}-dev"
 
 ### Bump the main version
 
-WARNING: Only bump the main version for minor and major releases. For PATCH
+WARNING: Only bump the `main` version for minor and major releases. For PATCH
 updates, leave it as it is.
 
 ```bash
@@ -177,9 +177,9 @@ git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "version_bump_${NEXT_VER}"
 ```
 
-The main branch should never see a non-dev version specifier.
+The `main` branch should never see a non-dev version specifier.
 
-### Create distribution wheel
+### Create the distribution wheel
 
 From a release branch, create a binary distribution wheel. This is the package
 that will go to PyPI.
@@ -259,11 +259,6 @@ git log <previous version>..HEAD --pretty="%an" | sort |\
   uniq | sed ':a;N;$!ba;s/\n/, /g'
 ```
 
-### `cirq-google` Changelog
-
-Add `cirq-google` release notes to `cirq-google/CHANGELOG.md` following the
-[changelog format](https://keepachangelog.com/en/1.0.0/).
-
 ### Release to production PyPI
 
 Upload to prod PyPI using the following command:
@@ -289,7 +284,7 @@ pip install cirq
 python -c "import cirq; print(cirq.__version__)"
 ```
 
-### Create the release
+### Create the release on GitHub
 
 Using the information above, create the release on the
 [Release page](https://github.com/quantumlib/Cirq/releases).
@@ -302,18 +297,14 @@ If there are unreleased notebooks that are under testing (meaning that
 [`dev_tools/notebooks/isolated_notebook_test.py`](dev_tools/notebooks/isolated_notebook_test.py)),
 then follow the steps in our [notebooks guide](docs/dev/notebooks.md).
 
-### Create a Zenodo release
+### Verify the Zenodo archive
 
-Got to the [Zenodo release
-page](https://zenodo.org/record/6599601#.YpZCspPMLzc). Login using credentials
-stored in Google's internal password utility (or get someone from Google to do
-this). Click "New Version".
-
-*   Upload the new zip file (found in releases page under "assets").
-*   Remove old zip file.
-*   Update version.
-*   Double check all other fields.
-*   Click publish.
+Each new release should get archived in Zenodo automatically. To check it, [log
+in to Zenodo](https://zenodo.org) using credentials stored in Google's internal
+password utility (or get someone from Google to do this). Navigate to the [list
+of uploads](https://zenodo.org/me/uploads), and ensure an entry for the new
+release is present there. Open the page for the entry, verify the information,
+and edit it if necessary.
 
 ### Email cirq-announce
 
