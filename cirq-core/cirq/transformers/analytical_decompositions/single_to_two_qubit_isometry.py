@@ -14,10 +14,10 @@
 
 """Analytical decompositions for 2-qubit unitaries when one input qubit is in the |0> state."""
 from typing import List, TYPE_CHECKING
+
 import numpy as np
 
 from cirq import ops
-
 from cirq.transformers.analytical_decompositions import two_qubit_to_cz
 
 if TYPE_CHECKING:

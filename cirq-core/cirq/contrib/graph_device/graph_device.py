@@ -14,11 +14,9 @@
 
 import abc
 import itertools
-
-from typing import Iterable, Optional, TYPE_CHECKING, Tuple, cast
+from typing import cast, Iterable, Optional, Tuple, TYPE_CHECKING
 
 from cirq import devices, ops, value
-
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
 if TYPE_CHECKING:

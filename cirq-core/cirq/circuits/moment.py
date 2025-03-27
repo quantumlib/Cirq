@@ -28,21 +28,20 @@ from typing import (
     Iterator,
     List,
     Mapping,
-    overload,
     Optional,
+    overload,
     Sequence,
     Tuple,
     TYPE_CHECKING,
     Union,
 )
 
+import numpy as np
 from typing_extensions import Self
 
-import numpy as np
-
-from cirq import protocols, ops, qis, _compat
+from cirq import _compat, ops, protocols, qis
 from cirq._import import LazyLoader
-from cirq.ops import raw_types, op_tree
+from cirq.ops import op_tree, raw_types
 from cirq.protocols import circuit_diagram_info_protocol
 
 if TYPE_CHECKING:

@@ -15,11 +15,10 @@
 from typing import cast, FrozenSet, List, Sequence, Set, TYPE_CHECKING
 
 from cirq import circuits
-
-from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation
-from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
+from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.inspection_utils import LogicalAnnotator
+from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 
 if TYPE_CHECKING:
     import cirq

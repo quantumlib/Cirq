@@ -18,8 +18,8 @@ import pytest
 from google.protobuf.text_format import Merge
 
 import cirq
-from cirq.testing import assert_equivalent_op_tree
 import cirq_google
+from cirq.testing import assert_equivalent_op_tree
 from cirq_google.api import v2
 from cirq_google.experimental.noise_models import simple_noise_from_calibration_metrics
 

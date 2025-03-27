@@ -28,9 +28,9 @@ from typing import (
     TypeVar,
     Union,
 )
-from typing_extensions import Self
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq import protocols, value
 

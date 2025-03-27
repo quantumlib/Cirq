@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import random
+
 import pytest
 
 import cirq.contrib.graph_device as ccgd

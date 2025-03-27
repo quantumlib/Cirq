@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Sequence, TYPE_CHECKING, Union, Callable
+from typing import Any, Callable, Dict, Iterable, Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
-from cirq._import import LazyLoader
 from cirq._doc import document
+from cirq._import import LazyLoader
 
 moment_module = LazyLoader("moment_module", globals(), "cirq.circuits.moment")
 

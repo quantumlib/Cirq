@@ -11,20 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional, List
-import cirq
+from typing import List, Optional
 
 from pyquil import get_qc
+from pyquil.api import QuantumComputer
+from qcs_sdk.client import QCSClient
 from qcs_sdk.qpu import list_quantum_processors
 from qcs_sdk.qpu.isa import get_instruction_set_architecture, InstructionSetArchitecture
-from qcs_sdk.client import QCSClient
 from qcs_sdk.qpu.translation import get_quilt_calibrations
-from pyquil.api import QuantumComputer
-from cirq_rigetti.sampler import RigettiQCSSampler
-from cirq_rigetti import circuit_transformers as transformers
-from cirq_rigetti import circuit_sweep_executors as executors
-from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
+import cirq
+from cirq_rigetti import circuit_sweep_executors as executors, circuit_transformers as transformers
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
+from cirq_rigetti.sampler import RigettiQCSSampler
 
 _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resolution
 

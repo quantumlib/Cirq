@@ -14,17 +14,16 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import collections
-from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TypeVar, TYPE_CHECKING, Union
+from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
 
 import duet
 import pandas as pd
 
-
 from cirq import ops, protocols, study, value
 from cirq.work.observable_measurement import (
+    CheckpointFileOptions,
     measure_observables,
     RepetitionsStoppingCriteria,
-    CheckpointFileOptions,
 )
 from cirq.work.observable_settings import _hashable_param
 

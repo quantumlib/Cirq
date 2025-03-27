@@ -14,6 +14,7 @@
 
 import abc
 from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+
 from typing_extensions import Self
 
 from cirq import protocols

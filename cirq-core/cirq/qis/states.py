@@ -14,8 +14,8 @@
 
 """Classes and methods for quantum states."""
 
-from typing import Any, cast, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Union
 import itertools
+from typing import Any, cast, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -23,8 +23,9 @@ from cirq import value
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    import cirq
     from numpy.typing import DTypeLike
+
+    import cirq
 
 DEFAULT_COMPLEX_DTYPE = np.complex64
 

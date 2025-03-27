@@ -21,7 +21,6 @@ import pytest
 
 import cirq
 
-
 LOCAL_DEFAULT: List[np.ndarray] = [np.array([])]
 
 

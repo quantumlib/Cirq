@@ -39,7 +39,6 @@ from mpl_toolkits import axes_grid1
 from cirq.devices import grid_qubit
 from cirq.vis import vis_utils
 
-
 QubitTuple = Tuple[grid_qubit.GridQubit, ...]
 
 Polygon = Sequence[Tuple[float, float]]

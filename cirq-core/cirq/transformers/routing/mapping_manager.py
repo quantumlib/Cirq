@@ -14,9 +14,9 @@
 
 """Manages the mapping from logical to physical qubits during a routing procedure."""
 
-from typing import List, Dict, Sequence, TYPE_CHECKING
-import networkx as nx
+from typing import Dict, List, Sequence, TYPE_CHECKING
 
+import networkx as nx
 import numpy as np
 
 if TYPE_CHECKING:

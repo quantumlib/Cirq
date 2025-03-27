@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
-from typing import Optional, Sequence, Tuple
 import datetime
-import cirq
+from typing import Optional, Sequence, Tuple
 
+import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
 from cirq_google.engine.engine_result import EngineResult

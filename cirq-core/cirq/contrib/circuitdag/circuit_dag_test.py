@@ -15,8 +15,8 @@
 import itertools
 import random
 
-import pytest
 import networkx
+import pytest
 
 import cirq
 

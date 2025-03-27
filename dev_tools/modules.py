@@ -48,7 +48,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'

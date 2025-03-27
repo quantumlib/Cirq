@@ -12,21 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
-import matplotlib.pyplot as plt
-
 import cirq
 import cirq.experiments.qubit_characterizations as ceqc
-from cirq import GridQubit
-from cirq import circuits, ops, sim
+from cirq import circuits, GridQubit, ops, sim
 from cirq.experiments import (
-    single_qubit_randomized_benchmarking,
-    two_qubit_randomized_benchmarking,
-    single_qubit_state_tomography,
-    two_qubit_state_tomography,
     parallel_single_qubit_randomized_benchmarking,
+    single_qubit_randomized_benchmarking,
+    single_qubit_state_tomography,
+    two_qubit_randomized_benchmarking,
+    two_qubit_state_tomography,
 )
 
 

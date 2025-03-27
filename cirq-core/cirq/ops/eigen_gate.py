@@ -33,7 +33,7 @@ from typing import (
 import numpy as np
 import sympy
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq.linalg import tolerance
 from cirq.ops import raw_types
 

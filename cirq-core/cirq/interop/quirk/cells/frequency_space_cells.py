@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, Callable
+from typing import Callable, Iterator
 
 import sympy
 
 import cirq
-from cirq.interop.quirk.cells.cell import CellMaker, CELL_SIZES, ExplicitOperationsCell
+from cirq.interop.quirk.cells.cell import CELL_SIZES, CellMaker, ExplicitOperationsCell
 
 
 def generate_all_frequency_space_cell_makers() -> Iterator[CellMaker]:

@@ -16,6 +16,7 @@ import abc
 import functools
 import weakref
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+
 from typing_extensions import Self
 
 from cirq import ops, protocols

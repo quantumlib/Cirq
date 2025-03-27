@@ -16,7 +16,6 @@
 
 from typing import List, NamedTuple, Optional
 
-
 _BoxDrawCharacterSet = NamedTuple(
     '_BoxDrawCharacterSet',
     [
