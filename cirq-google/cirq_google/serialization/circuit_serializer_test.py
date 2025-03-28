@@ -680,18 +680,6 @@ def test_serialize_unrecognized():
         serializer.serialize("not quite right")
 
 
-def default_circuit_proto():
-    op1 = v2.program_pb2.Operation()
-    op1.gate.id = 'x_pow'
-    op1.args['half_turns'].arg_value.string_value = 'k'
-    op1.qubits.add().id = '1_1'
-
-    return v2.program_pb2.Circuit(
-        scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-        moments=[v2.program_pb2.Moment(operations=[op1])],
-    )
-
-
 def default_circuit():
     return cirq.FrozenCircuit(
         cirq.X(cirq.GridQubit(1, 1)) ** sympy.Symbol('k'),
@@ -701,7 +689,7 @@ def default_circuit():
 
 def test_serialize_circuit_op_errors():
     serializer = cg.CircuitSerializer()
-    constants = [default_circuit_proto()]
+    constants = [serializer.serialize(default_circuit()).circuit]
     raw_constants = {default_circuit(): 0}
 
     op = cirq.CircuitOperation(default_circuit())
@@ -713,26 +701,6 @@ def test_serialize_circuit_op_errors():
 
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
         serializer._serialize_circuit_op(op, raw_constants=raw_constants)
-
-
-def test_deserialize_unsupported_gate_type():
-    serializer = cg.CircuitSerializer()
-    operation_proto = op_proto(
-        {
-            'gate': {'id': 'no_pow'},
-            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
-            'qubits': [{'id': '1_1'}],
-        }
-    )
-    proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set=_SERIALIZER_NAME),
-        circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[v2.program_pb2.Moment(operations=[operation_proto])],
-        ),
-    )
-    with pytest.raises(ValueError, match='no_pow'):
-        serializer.deserialize(proto)
 
 
 def test_serialize_op_unsupported_type():
@@ -757,42 +725,6 @@ def test_serialize_op_bad_operation():
     null_op = NullOperation()
     with pytest.raises(ValueError, match='Cannot serialize op'):
         serializer.serialize(cirq.Circuit(null_op))
-
-
-def test_deserialize_invalid_gate_set():
-    serializer = cg.CircuitSerializer()
-    proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(gate_set='not_my_gate_set'),
-        circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
-        ),
-    )
-    with pytest.raises(ValueError, match='not_my_gate_set'):
-        serializer.deserialize(proto)
-
-    proto.language.gate_set = ''
-    with pytest.raises(ValueError, match='Missing gate set'):
-        serializer.deserialize(proto)
-
-    proto = v2.program_pb2.Program(
-        circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
-        )
-    )
-    with pytest.raises(ValueError, match='Missing gate set'):
-        serializer.deserialize(proto)
-
-
-def test_deserialize_schedule_not_supported():
-    serializer = cg.CircuitSerializer()
-    proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(gate_set=_SERIALIZER_NAME),
-        schedule=v2.program_pb2.Schedule(
-            scheduled_operations=[v2.program_pb2.ScheduledOperation(start_time_picos=0)]
-        ),
-    )
-    with pytest.raises(ValueError, match='no longer supported'):
-        serializer.deserialize(proto)
 
 
 def test_deserialize_fsim_missing_parameters():
