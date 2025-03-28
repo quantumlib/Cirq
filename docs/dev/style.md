@@ -63,16 +63,11 @@ exceptions.
 
 ### Ordering of module import statements
 
-To keep import statements sorted in a consistent way across Cirq source code files, we follow the
-sorting conventions implemented in the program [isort](https://pypi.org/project/isort/) version 6.0
-and higher. A number of editors and IDEs provide an integration with `isort`; Cirq also comes with a
-command-line script that will run both a code formatter and `isort`:
-
-```shell
-cd ROOT-OF-YOUR-LOCAL-CIRQ-REPO
-# Add the option --apply below to reformat files in place.
-check/format-incremental FILES...
-```
+The import statements are alphabetically ordered in 3 groups for standard Python modules,
+third-party modules, and for internal Cirq imports.  This ordering is enforced by the CI.
+In a local development environment, the import statements can be sorted either by using
+the [isort](https://pycqa.github.io/isort/) program or by running the
+`check/format-incremental` script.
 
 ## Type annotations
 
