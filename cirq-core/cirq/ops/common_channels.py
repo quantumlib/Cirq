@@ -1089,15 +1089,12 @@ class BitFlipChannel(raw_types.Gate):
             ValueError: if p is not a valid probability.
         """
         self._p = value.validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(p, 0.0, 0.0)
 
     def _num_qubits_(self) -> int:
         return 1
 
-    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        mixture = self._delegate._mixture_()
-        # just return identity and x term
-        return (mixture[0], mixture[1])
+    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+        return ((1 - self._p, identity.I), (self._p, pauli_gates.X))
 
     def _has_mixture_(self) -> bool:
         return True
