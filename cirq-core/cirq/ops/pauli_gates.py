@@ -103,11 +103,6 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return pauli_string.SingleQubitPauliStringGateOperation(self, qubits[0])
 
-    @property
-    def _canonical_exponent(self):
-        """Overrides EigenGate._canonical_exponent in subclasses."""
-        return 1
-
 
 class _PauliX(Pauli, common_gates.XPowGate):
     def __init__(self):

@@ -85,7 +85,13 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         return 2
 
     def _value_equality_values_(self):
-        return (self.pauli0, self.invert0, self.pauli1, self.invert1, self._canonical_exponent)
+        return (
+            self.pauli0,
+            self.invert0,
+            self.pauli1,
+            self.invert1,
+            value.PeriodicValue(self.exponent, 2),
+        )
 
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         if self.pauli0 == self.pauli1 and self.invert0 == self.invert1:
