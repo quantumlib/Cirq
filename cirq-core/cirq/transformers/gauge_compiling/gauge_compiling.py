@@ -14,23 +14,23 @@
 
 """Creates the abstraction for gauge compiling as a cirq transformer."""
 
-from typing import Callable, Dict, Tuple, Optional, Sequence, Union, List
+import abc
+import functools
+import itertools
 from dataclasses import dataclass
 from numbers import Real
-import abc
-import itertools
-import functools
-import sympy
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
-from attrs import frozen, field
 import numpy as np
+import sympy
+from attrs import field, frozen
 
-from cirq.transformers import transformer_api
-from cirq import ops, circuits
-from cirq.study import sweepable
+from cirq import circuits, ops
 from cirq.protocols import unitary_protocol
 from cirq.protocols.has_unitary_protocol import has_unitary
+from cirq.study import sweepable
 from cirq.study.sweeps import Points, Zip
+from cirq.transformers import transformer_api
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 

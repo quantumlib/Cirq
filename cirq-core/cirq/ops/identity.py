@@ -15,7 +15,7 @@
 
 import numbers
 from types import NotImplementedType
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy

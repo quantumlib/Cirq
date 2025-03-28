@@ -1,5 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import pytest
+
 from cirq_rigetti import get_rigetti_qcs_sampler
 from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 

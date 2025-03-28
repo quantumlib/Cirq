@@ -1,10 +1,12 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import cast, Tuple
+
 import pytest
-import cirq
 from pyquil import get_qc
 from pyquil.api import QVM
-from cirq_rigetti import RigettiQCSSampler, circuit_sweep_executors
+
+import cirq
+from cirq_rigetti import circuit_sweep_executors, RigettiQCSSampler
 from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 

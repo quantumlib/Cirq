@@ -1,17 +1,20 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Any, List, Sequence, Tuple
-import cirq
+
+import numpy as np
 import pytest
 from pyquil import Program
 from pyquil.api import QuantumComputer
-import numpy as np
-from pyquil.gates import MEASURE, RX, X, DECLARE, H, CNOT
-from cirq_rigetti import RigettiQCSService
+from pyquil.gates import CNOT, DECLARE, H, MEASURE, RX, X
 from typing_extensions import Protocol
-from cirq_rigetti import circuit_transformers as transformers
-from cirq_rigetti import circuit_sweep_executors as executors
-from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
+import cirq
+from cirq_rigetti import (
+    circuit_sweep_executors as executors,
+    circuit_transformers as transformers,
+    RigettiQCSService,
+)
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resolution
 

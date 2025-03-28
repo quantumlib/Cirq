@@ -15,8 +15,9 @@
 import itertools
 from typing import Iterable
 
-import cirq
 import networkx as nx
+
+import cirq
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):

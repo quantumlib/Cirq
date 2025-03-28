@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import (
     AbstractSet,
     cast,
@@ -24,20 +25,18 @@ from typing import (
     Union,
 )
 
-import numbers
-
 import sympy
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import (
-    raw_types,
     common_gates,
-    gate_operation,
     dense_pauli_string as dps,
-    pauli_string as ps,
-    pauli_gates,
+    gate_operation,
     op_tree,
+    pauli_gates,
+    pauli_string as ps,
+    raw_types,
 )
 
 if TYPE_CHECKING:

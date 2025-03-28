@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, List, Optional
-from types import ModuleType
-from importlib.machinery import ModuleSpec
-from importlib.abc import Loader
-
-from contextlib import contextmanager
 import importlib
-from importlib import abc
 import sys
+from contextlib import contextmanager
+from importlib import abc
+from importlib.abc import Loader
+from importlib.machinery import ModuleSpec
+from types import ModuleType
+from typing import Any, Callable, cast, List, Optional
 
 
 class InstrumentedFinder(abc.MetaPathFinder):

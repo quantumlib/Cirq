@@ -18,20 +18,21 @@ import dataclasses
 import datetime
 import time
 import uuid
-from typing import Any, Dict, Optional, List, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+
+import numpy as np
 
 import cirq
-import numpy as np
 from cirq import _compat
 from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow.io import _FilesystemSaver
 from cirq_google.workflow.progress import _PrintLogger
 from cirq_google.workflow.quantum_executable import (
-    QuantumExecutable,
     ExecutableSpec,
+    QuantumExecutable,
     QuantumExecutableGroup,
 )
-from cirq_google.workflow.qubit_placement import QubitPlacer, NaiveQubitPlacer
+from cirq_google.workflow.qubit_placement import NaiveQubitPlacer, QubitPlacer
 
 if TYPE_CHECKING:
     import cirq_google as cg

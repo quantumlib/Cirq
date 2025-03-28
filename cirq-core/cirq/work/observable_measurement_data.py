@@ -18,14 +18,14 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, TYPE_CHE
 
 import numpy as np
 import sympy
-from cirq import ops, protocols, value
 
+from cirq import ops, protocols, value
 from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
-    InitObsSetting,
     _max_weight_observable,
     _max_weight_state,
     _MeasurementSpec,
+    InitObsSetting,
     zeros_state,
 )
 

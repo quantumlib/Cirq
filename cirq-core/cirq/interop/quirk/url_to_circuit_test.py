@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import quirk_url_to_circuit, quirk_json_to_circuit
+from cirq import quirk_json_to_circuit, quirk_url_to_circuit
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 

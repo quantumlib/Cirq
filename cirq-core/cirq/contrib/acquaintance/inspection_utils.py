@@ -15,11 +15,10 @@
 from typing import FrozenSet, Iterator, Sequence, Set, TYPE_CHECKING
 
 from cirq import devices
-
+from cirq.contrib import circuitdag
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation, ExecutionStrategy
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 from cirq.contrib.acquaintance.permutation import LogicalIndex, LogicalMapping
-from cirq.contrib import circuitdag
 
 if TYPE_CHECKING:
     import cirq

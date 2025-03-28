@@ -16,13 +16,13 @@ import numpy as np
 import pytest
 
 from cirq.qis.noise_utils import (
-    decay_constant_to_xeb_fidelity,
+    average_error,
     decay_constant_to_pauli_error,
+    decay_constant_to_xeb_fidelity,
+    decoherence_pauli_error,
+    pauli_error_from_t1,
     pauli_error_to_decay_constant,
     xeb_fidelity_to_decay_constant,
-    pauli_error_from_t1,
-    average_error,
-    decoherence_pauli_error,
 )
 
 

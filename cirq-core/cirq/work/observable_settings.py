@@ -16,19 +16,19 @@ import dataclasses
 import numbers
 from typing import (
     AbstractSet,
-    Mapping,
-    Union,
-    Iterable,
     Dict,
-    Optional,
-    TYPE_CHECKING,
-    Tuple,
     FrozenSet,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
 )
 
 import sympy
 
-from cirq import ops, value, protocols
+from cirq import ops, protocols, value
 
 if TYPE_CHECKING:
     import cirq

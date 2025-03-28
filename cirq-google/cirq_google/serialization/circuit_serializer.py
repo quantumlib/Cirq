@@ -14,26 +14,27 @@
 
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
-from typing import Any, Dict, List, Optional
 import functools
 import warnings
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import sympy
 
 import cirq
 from cirq_google.api import v2
+from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
-    PhysicalZTag,
+    DynamicalDecouplingTag,
+    FSimViaModelTag,
     InternalGate,
     InternalTag,
-    FSimViaModelTag,
-    DynamicalDecouplingTag,
+    PhysicalZTag,
     SYC,
 )
 from cirq_google.ops.calibration_tag import CalibrationTag
-from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.serialization import (
-    serializer,
+    arg_func_langs,
     op_deserializer,
     op_serializer,
     arg_func_langs,
@@ -41,6 +42,7 @@ from cirq_google.serialization import (
     stimcirq_deserializer,
     tag_serializer,
     tag_deserializer,
+    tag_serializer,
 )
 
 # The name used in program.proto to identify the serializer as CircuitSerializer.

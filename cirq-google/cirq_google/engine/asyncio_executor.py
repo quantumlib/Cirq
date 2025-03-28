@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Awaitable, Callable, Optional, TypeVar
 import asyncio
 import threading
-
-from typing_extensions import ParamSpec
+from typing import Awaitable, Callable, Optional, TypeVar
 
 import duet
-
+from typing_extensions import ParamSpec
 
 R = TypeVar('R')
 P = ParamSpec("P")

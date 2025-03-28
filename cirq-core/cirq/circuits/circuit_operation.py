@@ -39,7 +39,7 @@ from typing import (
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, protocols, value, study
+from cirq import circuits, ops, protocols, study, value
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:

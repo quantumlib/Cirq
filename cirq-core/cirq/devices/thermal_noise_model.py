@@ -14,7 +14,8 @@
 
 import dataclasses
 import functools
-from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+
 import numpy as np
 import sympy
 

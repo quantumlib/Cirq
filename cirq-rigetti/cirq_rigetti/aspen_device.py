@@ -11,16 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional, Union, Dict, Any
 import functools
-from math import sqrt
 import json
-import numpy as np
+from math import sqrt
+from typing import Any, Dict, List, Optional, Union
+
 import networkx as nx
-import cirq
+import numpy as np
 from pyquil.quantum_processor import QCSQuantumProcessor
 from qcs_sdk.client import QCSClient
-from qcs_sdk.qpu.isa import get_instruction_set_architecture, InstructionSetArchitecture, Family
+from qcs_sdk.qpu.isa import Family, get_instruction_set_architecture, InstructionSetArchitecture
+
+import cirq
 from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 

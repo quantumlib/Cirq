@@ -1,10 +1,12 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Tuple, Any, List, Union, Dict
-import pytest
-import cirq
-from pyquil import Program
+from typing import Any, Dict, List, Tuple, Union
+
 import numpy as np
+import pytest
 import sympy
+from pyquil import Program
+
+import cirq
 from cirq_rigetti import circuit_sweep_executors as executors, circuit_transformers
 from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 

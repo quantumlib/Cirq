@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Iterable, Any, Union, Optional, overload
+from typing import Any, Iterable, List, Optional, overload, Union
 
 
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:

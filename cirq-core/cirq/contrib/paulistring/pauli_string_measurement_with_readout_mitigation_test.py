@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Sequence
 import random
+from typing import Dict, Sequence
 
+import numpy as np
 import pytest
 
 import cirq
-import numpy as np
-
 from cirq.contrib.paulistring import measure_pauli_strings
-from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 from cirq.experiments import SingleQubitReadoutCalibrationResult
+from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 
 
 def _create_ghz(number_of_qubits: int, qubits: Sequence[cirq.Qid]) -> cirq.Circuit:
