@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import pytest
 
-import numpy as np
-
-from cirq.sim import simulation_utils
 from cirq import testing
+from cirq.sim import simulation_utils
 
 
 @pytest.mark.parametrize('n,m', [(n, m) for n in range(1, 4) for m in range(1, n + 1)])

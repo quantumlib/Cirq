@@ -13,16 +13,16 @@
 # limitations under the License.
 
 from typing import Dict, List, Set, Tuple
+
 import numpy as np
-import cirq
 import pytest
 
+import cirq
 from cirq.devices.noise_properties import NoiseModelFromNoiseProperties
+from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 from cirq.devices.superconducting_qubits_noise_properties import (
     SuperconductingQubitsNoiseProperties,
 )
-from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
-
 
 DEFAULT_GATE_NS: Dict[type, float] = {
     cirq.ZPowGate: 25.0,

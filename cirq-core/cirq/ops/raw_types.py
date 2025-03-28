@@ -18,10 +18,10 @@ import abc
 import functools
 from types import NotImplementedType
 from typing import (
-    cast,
     AbstractSet,
     Any,
     Callable,
+    cast,
     Collection,
     Dict,
     FrozenSet,
@@ -35,14 +35,14 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
-from typing_extensions import Self
 
 import numpy as np
 import sympy
+from typing_extensions import Self
 
 from cirq import protocols, value
-from cirq._import import LazyLoader
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
+from cirq._import import LazyLoader
 from cirq.ops import control_values as cv
 
 # Lazy imports to break circular dependencies.
@@ -1014,7 +1014,7 @@ class _InverseCompositeGate(Gate):
         )
 
     def _has_unitary_(self):
-        from cirq import protocols, devices
+        from cirq import devices, protocols
 
         qubits = devices.LineQid.for_gate(self)
         return all(

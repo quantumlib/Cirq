@@ -420,6 +420,7 @@ message ArgValue {
     RepeatedDouble double_values = 6;
     RepeatedString string_values = 7;
     tunits.Value value_with_unit = 8;
+    bool bool_value = 9;
   }
 }
 

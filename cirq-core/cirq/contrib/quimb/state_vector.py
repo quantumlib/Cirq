@@ -1,6 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import warnings
-from typing import cast, Sequence, Union, List, Tuple, Dict, Optional
+from typing import cast, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import quimb

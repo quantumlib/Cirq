@@ -22,8 +22,8 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
-from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
 from cirq.protocols import qid_shape_protocol
+from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
 
 # This is a special indicator value used by the apply_mixture method
 # to determine whether or not the caller provided a 'default' argument. It must

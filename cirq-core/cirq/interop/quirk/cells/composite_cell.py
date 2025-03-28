@@ -13,16 +13,16 @@
 # limitations under the License.
 
 from typing import (
-    List,
-    TYPE_CHECKING,
     Callable,
-    Optional,
-    Iterator,
     cast,
     Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
     TypeVar,
     Union,
-    Sequence,
 )
 
 from cirq import circuits

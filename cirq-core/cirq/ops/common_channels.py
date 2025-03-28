@@ -15,13 +15,13 @@
 """Quantum channels that are commonly used in the literature."""
 
 import itertools
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq.linalg import transformations
-from cirq.ops import raw_types, common_gates, pauli_gates, identity
+from cirq.ops import common_gates, identity, pauli_gates, raw_types
 
 if TYPE_CHECKING:
     import cirq

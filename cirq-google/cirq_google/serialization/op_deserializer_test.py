@@ -19,7 +19,6 @@ import cirq
 import cirq_google as cg
 from cirq_google.api import v2
 
-
 DEFAULT_TOKEN = 'test_tag'
 
 

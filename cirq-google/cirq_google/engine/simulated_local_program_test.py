@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import cirq
-
-from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
+from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 
 
 def test_id():

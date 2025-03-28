@@ -20,25 +20,25 @@ from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
-    Mapping,
     cast,
     Collection,
     Dict,
     FrozenSet,
+    List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
-    TypeVar,
     TYPE_CHECKING,
+    TypeVar,
     Union,
-    List,
 )
-from typing_extensions import Self
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq import ops, protocols, value
-from cirq.ops import raw_types, gate_features, control_values as cv
+from cirq.ops import control_values as cv, gate_features, raw_types
 
 if TYPE_CHECKING:
     import cirq

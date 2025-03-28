@@ -17,8 +17,8 @@
 from typing import Optional, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
+from cirq.transformers import merge_k_qubit_gates, transformer_api, transformer_primitives
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
-from cirq.transformers import transformer_api, transformer_primitives, merge_k_qubit_gates
 
 if TYPE_CHECKING:
     import cirq

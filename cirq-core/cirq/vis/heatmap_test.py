@@ -18,11 +18,10 @@ import shutil
 import string
 from tempfile import mkdtemp
 
-import numpy as np
-import pytest
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 from matplotlib.colors import to_rgba_array
 
 from cirq.devices import grid_qubit
