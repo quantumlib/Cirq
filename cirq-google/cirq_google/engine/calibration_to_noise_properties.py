@@ -30,8 +30,7 @@ from typing import Dict, Optional, Tuple, Type, TYPE_CHECKING
 
 from cirq import ops
 from cirq.devices import noise_utils
-from cirq_google import engine
-from cirq_google import ops as cg_ops
+from cirq_google import engine, ops as cg_ops
 from cirq_google.devices import google_noise_properties
 from cirq_google.engine import util
 
@@ -54,10 +53,12 @@ DEFAULT_GATE_NS: Dict[Type['cirq.Gate'], float] = {
 }
 GATE_PREFIX_PAIRS: Dict[Type['cirq.Gate'], str] = {
     cg_ops.SycamoreGate: 'two_qubit_parallel_sycamore_gate',
+    ops.CZPowGate: 'two_qubit_parallel_cz_gate',
     ops.ISwapPowGate: 'two_qubit_parallel_sqrt_iswap_gate',
 }
 GATE_ZPHASE_CODE_PAIRS: Dict[Type['cirq.Gate'], str] = {
     cg_ops.SycamoreGate: 'syc',
+    ops.CZPowGate: 'cz',
     ops.ISwapPowGate: 'sqrt_iswap',
 }
 

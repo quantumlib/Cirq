@@ -14,7 +14,6 @@
 
 import re
 import textwrap
-import warnings
 from typing import Callable
 
 import numpy as np
@@ -23,11 +22,11 @@ import sympy
 
 import cirq
 import cirq.testing as ct
-from cirq.testing import consistent_qasm as cq
 from cirq import Circuit
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._parser import QasmParser
+from cirq.testing import consistent_qasm as cq
 
 
 def test_format_header_circuit():
@@ -1486,19 +1485,14 @@ def _test_parse_exception(qasm: str, cirq_err: str, qiskit_err: str | None):
     parser = QasmParser()
     with pytest.raises(QasmException, match=re.escape(cirq_err)):
         parser.parse(qasm)
-    try:
-        import qiskit
+    pytest.importorskip("qiskit")
+    import qiskit.qasm2
 
-        if qiskit_err is None:
-            qiskit.QuantumCircuit.from_qasm_str(qasm)
-            return
-        with pytest.raises(qiskit.qasm2.exceptions.QASM2ParseError, match=re.escape(qiskit_err)):
-            qiskit.QuantumCircuit.from_qasm_str(qasm)
-    except ImportError:  # pragma: no cover
-        warnings.warn(
-            "Skipped _test_qiskit_parse_exception because "
-            "qiskit isn't installed to verify against."
-        )
+    if qiskit_err is None:
+        qiskit.QuantumCircuit.from_qasm_str(qasm)
+        return
+    with pytest.raises(qiskit.qasm2.exceptions.QASM2ParseError, match=re.escape(qiskit_err)):
+        qiskit.QuantumCircuit.from_qasm_str(qasm)
 
 
 def test_nested_custom_gate_has_keyword_in_name():

@@ -13,10 +13,10 @@
 # limitations under the License.
 
 from typing import List, Tuple
-import cirq
 
+import cirq
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
-from cirq.devices.noise_properties import NoiseProperties, NoiseModelFromNoiseProperties
+from cirq.devices.noise_properties import NoiseModelFromNoiseProperties, NoiseProperties
 from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 
 

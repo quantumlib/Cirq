@@ -19,10 +19,10 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Un
 
 import numpy as np
 
-from cirq import protocols, value, linalg, qis
-from cirq._import import LazyLoader
+from cirq import linalg, protocols, qis, value
 from cirq._compat import cached_method
-from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
+from cirq._import import LazyLoader
+from cirq.ops import common_gates, named_qubit, pauli_gates, phased_x_z_gate, raw_types
 from cirq.ops.pauli_gates import Pauli
 
 if TYPE_CHECKING:

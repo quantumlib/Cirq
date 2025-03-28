@@ -12,19 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import string
-from typing import Callable, Dict, Set, Tuple, Union, Any, Optional, List, cast
+from typing import Any, Callable, cast, Dict, List, Optional, Set, Tuple, Union
+
 import numpy as np
+
 import cirq
 import cirq_rigetti
-from cirq import protocols, value, ops
+from cirq import ops, protocols, value
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 
+@deprecated_cirq_rigetti_function()
 def to_quil_complex_format(num) -> str:
     """A function for outputting a number to a complex string in QUIL format."""
     cnum = complex(str(num))
     return f"{cnum.real}+{cnum.imag}i"
 
 
+@deprecated_cirq_rigetti_class()
 class QuilFormatter(string.Formatter):
     """A unique formatter to correctly output values to QUIL."""
 
@@ -52,6 +57,7 @@ class QuilFormatter(string.Formatter):
         return super().format_field(value, spec)
 
 
+@deprecated_cirq_rigetti_class()
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.Gate):
     """A QUIL gate representing any single qubit unitary with a DEFGATE and
@@ -76,6 +82,7 @@ class QuilOneQubitGate(ops.Gate):
         return self.matrix
 
 
+@deprecated_cirq_rigetti_class()
 @value.value_equality(approximate=True)
 class QuilTwoQubitGate(ops.Gate):
     """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
@@ -334,6 +341,7 @@ SUPPORTED_GATES = {
 }
 
 
+@deprecated_cirq_rigetti_class()
 class QuilOutput:
     """An object for passing operations and qubits then outputting them to
     QUIL format. The string representation returns the QUIL output for the
@@ -475,6 +483,7 @@ class QuilOutput:
         return result
 
 
+@deprecated_cirq_rigetti_class()
 class RigettiQCSQuilOutput(QuilOutput):
     """A sub-class of `cirq.circuits.quil_output.QuilOutput` that additionally accepts a
     `qubit_id_map` for explicitly mapping logical qubits to physical qubits.

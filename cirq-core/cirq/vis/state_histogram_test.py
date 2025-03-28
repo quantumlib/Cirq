@@ -14,10 +14,10 @@
 
 """Tests for state_histogram."""
 
-import numpy as np
-from matplotlib import pyplot as plt
 import matplotlib as mpl
+import numpy as np
 import pytest
+from matplotlib import pyplot as plt
 
 import cirq
 from cirq.devices import GridQubit

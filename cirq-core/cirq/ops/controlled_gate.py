@@ -22,13 +22,13 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Union,
     TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
 
-from cirq import protocols, value, _import
+from cirq import _import, protocols, value
 from cirq.ops import (
     control_values as cv,
     controlled_operation as cop,

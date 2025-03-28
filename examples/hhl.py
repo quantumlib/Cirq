@@ -65,8 +65,10 @@ reversing qubit order for phase kickbacks.
 """
 
 import math
+
 import numpy as np
 import sympy
+
 import cirq
 
 

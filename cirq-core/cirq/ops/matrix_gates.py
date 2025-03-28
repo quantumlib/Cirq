@@ -18,7 +18,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import linalg, protocols, _import
+from cirq import _import, linalg, protocols
 from cirq._compat import proper_repr
 from cirq.ops import global_phase_op, identity, phased_x_z_gate, raw_types
 

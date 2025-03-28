@@ -15,14 +15,14 @@
 """Utility methods for combining matrices."""
 
 import functools
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    from numpy.typing import DTypeLike, ArrayLike
+    from numpy.typing import ArrayLike, DTypeLike
 
 
 def kron(*factors: Union[np.ndarray, complex], shape_len: int = 2) -> np.ndarray:

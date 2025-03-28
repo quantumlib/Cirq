@@ -18,7 +18,6 @@ import sympy
 
 from cirq._compat import proper_repr
 
-
 if TYPE_CHECKING:
     import cirq
 

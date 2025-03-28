@@ -1,16 +1,20 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Any, List, Sequence, Tuple
-import cirq
+
+import numpy as np
 import pytest
 from pyquil import Program
 from pyquil.api import QuantumComputer
-import numpy as np
-from pyquil.gates import MEASURE, RX, X, DECLARE, H, CNOT
-from cirq_rigetti import RigettiQCSService
+from pyquil.gates import CNOT, DECLARE, H, MEASURE, RX, X
 from typing_extensions import Protocol
-from cirq_rigetti import circuit_transformers as transformers
-from cirq_rigetti import circuit_sweep_executors as executors
 
+import cirq
+from cirq_rigetti import (
+    circuit_sweep_executors as executors,
+    circuit_transformers as transformers,
+    RigettiQCSService,
+)
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resolution
 
@@ -85,6 +89,7 @@ def _build_sampler_results(
 
 
 @pytest.mark.parametrize("result_builder", [_build_service_results, _build_sampler_results])
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_circuit(
     mock_qpu_implementer: Any,
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable],
@@ -149,6 +154,7 @@ def test_parametric_circuit(
 
 
 @pytest.mark.parametrize("result_builder", [_build_service_results, _build_sampler_results])
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_bell_circuit(
     mock_qpu_implementer: Any, bell_circuit: cirq.Circuit, result_builder: _ResultBuilder
 ) -> None:
@@ -207,6 +213,7 @@ def test_bell_circuit(
 
 
 @pytest.mark.parametrize("result_builder", [_build_service_results, _build_sampler_results])
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_explicit_qubit_id_map(
     mock_qpu_implementer: Any,
     bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.LineQubit]],
@@ -223,7 +230,7 @@ def test_explicit_qubit_id_map(
         mock_qpu_implementer,
         bell_circuit,
         param_resolvers,
-        transformer=transformers.build(qubit_id_map=qubit_id_map),  # type: ignore
+        transformer=transformers.build(qubit_id_map=qubit_id_map),
     )
 
     assert len(param_resolvers) == len(
@@ -272,6 +279,7 @@ def test_explicit_qubit_id_map(
 
 
 @pytest.mark.parametrize("result_builder", [_build_service_results, _build_sampler_results])
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_run_without_quilc_compilation(
     mock_qpu_implementer: Any, bell_circuit: cirq.Circuit, result_builder: _ResultBuilder
 ) -> None:

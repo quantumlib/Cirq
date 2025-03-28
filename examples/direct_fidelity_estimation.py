@@ -26,9 +26,10 @@ import sys
 from dataclasses import dataclass
 from typing import cast, List, Optional, Tuple
 
-import cirq
 import duet
 import numpy as np
+
+import cirq
 from cirq.sim import clifford
 
 

@@ -14,29 +14,41 @@
 
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
-from typing import Any, Dict, List, Optional
+import functools
 import warnings
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import sympy
 
 import cirq
 from cirq_google.api import v2
+from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
-    PhysicalZTag,
+    DynamicalDecouplingTag,
+    FSimViaModelTag,
     InternalGate,
     InternalTag,
-    FSimViaModelTag,
-    DynamicalDecouplingTag,
+    PhysicalZTag,
     SYC,
 )
 from cirq_google.ops.calibration_tag import CalibrationTag
-from cirq_google.experimental.ops import CouplerPulse
-from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
+from cirq_google.serialization import (
+    arg_func_langs,
+    op_deserializer,
+    op_serializer,
+    serializer,
+    tag_deserializer,
+    tag_serializer,
+)
 
 # The name used in program.proto to identify the serializer as CircuitSerializer.
 # "v2.5" refers to the most current v2.Program proto format.
 # CircuitSerializer is the dedicated serializer for the v2.5 format.
 _SERIALIZER_NAME = 'v2_5'
+
+# Package name for stimcirq
+_STIMCIRQ_MODULE = "stimcirq"
 
 
 class CircuitSerializer(serializer.Serializer):
@@ -60,6 +72,8 @@ class CircuitSerializer(serializer.Serializer):
             deserialization of this field is deployed.
         op_serializer: Optional custom serializer for serializing unknown gates.
         op_deserializer: Optional custom deserializer for deserializing unknown gates.
+        tag_serializer: Optional custom serializer for serializing unknown tags.
+        tag_deserializer: Optional custom deserializer for deserializing unknown tags.
     """
 
     def __init__(
@@ -68,6 +82,8 @@ class CircuitSerializer(serializer.Serializer):
         USE_CONSTANTS_TABLE_FOR_OPERATIONS=False,
         op_serializer: Optional[op_serializer.OpSerializer] = None,
         op_deserializer: Optional[op_deserializer.OpDeserializer] = None,
+        tag_serializer: Optional[tag_serializer.TagSerializer] = None,
+        tag_deserializer: Optional[tag_deserializer.TagDeserializer] = None,
     ):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)
@@ -75,6 +91,8 @@ class CircuitSerializer(serializer.Serializer):
         self.use_constants_table_for_operations = USE_CONSTANTS_TABLE_FOR_OPERATIONS
         self.op_serializer = op_serializer
         self.op_deserializer = op_deserializer
+        self.tag_serializer = tag_serializer
+        self.tag_deserializer = tag_deserializer
 
     def serialize(
         self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
@@ -193,7 +211,6 @@ class CircuitSerializer(serializer.Serializer):
             ValueError: If the operation cannot be serialized.
         """
         gate = op.gate
-
         if isinstance(gate, InternalGate):
             arg_func_langs.internal_gate_arg_to_proto(gate, out=msg.internalgate)
         elif isinstance(gate, cirq.XPowGate):
@@ -260,6 +277,30 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.q1_detune_mhz, out=msg.couplerpulsegate.q1_detune_mhz
             )
+        elif getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) or getattr(
+            gate, "__module__", ""
+        ).startswith(_STIMCIRQ_MODULE):
+            # Special handling for stimcirq objects, which can be both operations and gates.
+            stimcirq_obj = (
+                op if getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) else gate
+            )
+            if stimcirq_obj is not None and hasattr(stimcirq_obj, '_json_dict_'):
+                # All stimcirq gates currently have _json_dict_defined
+                msg.internalgate.name = type(stimcirq_obj).__name__
+                msg.internalgate.module = _STIMCIRQ_MODULE
+                if isinstance(stimcirq_obj, cirq.Gate):
+                    msg.internalgate.num_qubits = stimcirq_obj.num_qubits()
+                else:
+                    msg.internalgate.num_qubits = len(stimcirq_obj.qubits)
+
+                # Store json_dict objects in gate_args
+                for k, v in stimcirq_obj._json_dict_().items():
+                    arg_func_langs.arg_to_proto(value=v, out=msg.internalgate.gate_args[k])
+            else:
+                # New stimcirq op without a json dict has been introduced
+                raise ValueError(
+                    f'Cannot serialize stimcirq {op!r}:{type(gate)}'
+                )  # pragma: no cover
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
@@ -274,8 +315,8 @@ class CircuitSerializer(serializer.Serializer):
             msg.qubit_constant_index.append(raw_constants[qubit])
 
         for tag in op.tags:
+            constant = v2.program_pb2.Constant()
             if isinstance(tag, CalibrationTag):
-                constant = v2.program_pb2.Constant()
                 constant.string_value = tag.token
                 if tag.token in raw_constants:
                     msg.token_constant_index = raw_constants[tag.token]
@@ -290,16 +331,22 @@ class CircuitSerializer(serializer.Serializer):
                     # TODO(dstrain): Remove this once we are deserializing tag indices everywhere.
                     tag.to_proto(msg=msg.tags.add())
                 if (tag_index := raw_constants.get(tag, None)) is None:
-                    constant = v2.program_pb2.Constant()
-                    tag_index = len(constants)
-                    if getattr(tag, 'to_proto', None) is not None:
+                    if self.tag_serializer and self.tag_serializer.can_serialize_tag(tag):
+                        self.tag_serializer.to_proto(
+                            tag,
+                            msg=constant.tag_value,
+                            constants=constants,
+                            raw_constants=raw_constants,
+                        )
+                    elif getattr(tag, 'to_proto', None) is not None:
                         tag.to_proto(constant.tag_value)  # type: ignore
-                        constants.append(constant)
-                        if raw_constants is not None:
-                            raw_constants[tag] = tag_index
-                        msg.tag_indices.append(tag_index)
                     else:
                         warnings.warn(f'Unrecognized Tag {tag}, not serializing.')
+                    if constant.WhichOneof('const_value'):
+                        constants.append(constant)
+                        if raw_constants is not None:
+                            raw_constants[tag] = len(constants) - 1
+                        msg.tag_indices.append(len(constants) - 1)
                 else:
                     msg.tag_indices.append(tag_index)
         return msg
@@ -407,7 +454,18 @@ class CircuitSerializer(serializer.Serializer):
                         )
                     )
                 elif which_const == 'tag_value':
-                    deserialized_constants.append(self._deserialize_tag(constant.tag_value))
+                    if self.tag_deserializer and self.tag_deserializer.can_deserialize_proto(
+                        constant.tag_value
+                    ):
+                        deserialized_constants.append(
+                            self.tag_deserializer.from_proto(
+                                constant.tag_value,
+                                constants=proto.constants,
+                                deserialized_constants=deserialized_constants,
+                            )
+                        )
+                    else:
+                        deserialized_constants.append(self._deserialize_tag(constant.tag_value))
                 else:
                     msg = f'Unrecognized constant type {which_const}, ignoring.'  # pragma: no cover
                     warnings.warn(msg)  # pragma: no cover
@@ -463,22 +521,7 @@ class CircuitSerializer(serializer.Serializer):
                 gate_op = self._deserialize_gate_op(
                     op, constants=constants, deserialized_constants=deserialized_constants
                 )
-            if op.tag_indices:
-                tags = [
-                    deserialized_constants[tag_index]
-                    for tag_index in op.tag_indices
-                    if deserialized_constants[tag_index] not in gate_op.tags
-                    and deserialized_constants[tag_index] is not None
-                ]
-            else:
-                tags = []
-                for tag in op.tags:
-                    if (
-                        tag not in gate_op.tags
-                        and (new_tag := self._deserialize_tag(tag)) is not None
-                    ):
-                        tags.append(new_tag)
-            moment_ops.append(gate_op.with_tags(*tags))
+            moment_ops.append(gate_op)
         for op in moment_proto.circuit_operations:
             moment_ops.append(
                 self._deserialize_circuit_op(
@@ -660,17 +703,35 @@ class CircuitSerializer(serializer.Serializer):
             total_nanos = arg_func_langs.float_arg_from_proto(
                 operation_proto.waitgate.duration_nanos, required_arg_name=None
             )
-            op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos or 0.0))(*qubits)
+            op = cirq.WaitGate(
+                duration=cirq.Duration(nanos=total_nanos or 0.0), num_qubits=len(qubits)
+            )(*qubits)
         elif which_gate_type == 'resetgate':
-            dimensions = arg_func_langs.arg_from_proto(
-                operation_proto.resetgate.arguments.get('dimension', 2)
-            )
+            dimensions_proto = operation_proto.resetgate.arguments.get('dimension', None)
+            if dimensions_proto is not None:
+                dimensions = arg_func_langs.arg_from_proto(dimensions_proto)
+            else:
+                dimensions = 2
             if not isinstance(dimensions, int):
                 # This should always be int, if serialized from cirq.
                 raise ValueError(f"dimensions {dimensions} for ResetChannel must be an integer!")
             op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
-            op = arg_func_langs.internal_gate_from_proto(operation_proto.internalgate)(*qubits)
+            msg = operation_proto.internalgate
+            if msg.module == _STIMCIRQ_MODULE and msg.name in _stimcirq_json_resolvers():
+                # special handling for stimcirq
+                # Use JSON resolver to instantiate the object
+                kwargs = {}
+                for k, v in msg.gate_args.items():
+                    arg = arg_func_langs.arg_from_proto(v)
+                    if arg is not None:
+                        kwargs[k] = arg
+                op = _stimcirq_json_resolvers()[msg.name](**kwargs)
+                if qubits:
+                    op = op(*qubits)
+            else:
+                # all other internal gates
+                op = arg_func_langs.internal_gate_from_proto(msg)(*qubits)
         elif which_gate_type == 'couplerpulsegate':
             gate = CouplerPulse(
                 hold_time=cirq.Duration(
@@ -725,7 +786,30 @@ class CircuitSerializer(serializer.Serializer):
         elif which == 'token_value':
             op = op.with_tags(CalibrationTag(operation_proto.token_value))
 
-        return op
+        # Add tags to op
+        if operation_proto.tag_indices and deserialized_constants is not None:
+            tags = [
+                deserialized_constants[tag_index]
+                for tag_index in operation_proto.tag_indices
+                if deserialized_constants[tag_index] not in op.tags
+                and deserialized_constants[tag_index] is not None
+            ]
+        else:
+            tags = []
+            for tag in operation_proto.tags:
+                if tag not in op.tags:
+                    if self.tag_deserializer and self.tag_deserializer.can_deserialize_proto(tag):
+                        tags.append(
+                            self.tag_deserializer.from_proto(
+                                tag,
+                                constants=constants or [],
+                                deserialized_constants=deserialized_constants or [],
+                            )
+                        )
+                    elif (new_tag := self._deserialize_tag(tag)) is not None:
+                        tags.append(new_tag)
+
+        return op.with_tags(*tags)
 
     def _deserialize_circuit_op(
         self,
@@ -764,6 +848,18 @@ class CircuitSerializer(serializer.Serializer):
         else:
             warnings.warn(f'Unknown tag {msg=}, ignoring')
             return None
+
+
+@functools.cache
+def _stimcirq_json_resolvers():
+    """Retrieves stimcirq JSON resolvers if stimcirq is installed.
+    Returns an empty dict if not installed."""
+    try:
+        import stimcirq
+
+        return stimcirq.JSON_RESOLVERS_DICT
+    except ModuleNotFoundError:  # pragma: no cover
+        return {}  # pragma: no cover
 
 
 CIRCUIT_SERIALIZER = CircuitSerializer()

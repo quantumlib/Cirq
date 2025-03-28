@@ -15,10 +15,10 @@
 import abc
 import functools
 import weakref
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TYPE_CHECKING, Union
-from typing_extensions import Self
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq import ops, protocols
 
@@ -213,8 +213,6 @@ class GridQid(_BaseGridQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        row = int(row)
-        col = int(col)
         dimension = int(dimension)
         key = (row, col, dimension)
         inst = cls._cache.get(key)
@@ -224,7 +222,7 @@ class GridQid(_BaseGridQid):
             inst._row = row
             inst._col = col
             inst._dimension = dimension
-            inst._hash = ((dimension - 2) * 1_000_003 + col) * 1_000_003 + row
+            inst._hash = ((dimension - 2) * 1_000_003 + hash(col)) * 1_000_003 + hash(row)
             cls._cache[key] = inst
         return inst
 
@@ -380,15 +378,13 @@ class GridQubit(_BaseGridQid):
             row: the row coordinate
             col: the column coordinate
         """
-        row = int(row)
-        col = int(col)
         key = (row, col)
         inst = cls._cache.get(key)
         if inst is None:
             inst = super().__new__(cls)
             inst._row = row
             inst._col = col
-            inst._hash = col * 1_000_003 + row
+            inst._hash = hash(col) * 1_000_003 + hash(row)
             cls._cache[key] = inst
         return inst
 

@@ -17,13 +17,12 @@ from typing import Iterator
 
 import pytest
 import sympy
-
 import tunits
 
 import cirq
 from cirq.study import sweeps
-from cirq_google.study import DeviceParameter, Metadata
 from cirq_google.api import v2
+from cirq_google.study import DeviceParameter, Metadata
 
 
 class UnknownSweep(sweeps.SingleSweep):

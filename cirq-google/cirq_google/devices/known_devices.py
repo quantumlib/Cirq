@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, Dict, Optional, List, Set, Tuple, cast
+from typing import cast, Collection, Dict, List, Optional, Set, Tuple
 
 import cirq
 from cirq_google.api import v2

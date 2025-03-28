@@ -17,7 +17,7 @@ from typing import List, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops
-from cirq.linalg import is_unitary, is_special_unitary, map_eigenvalues
+from cirq.linalg import is_special_unitary, is_unitary, map_eigenvalues
 from cirq.protocols import unitary
 
 if TYPE_CHECKING:
