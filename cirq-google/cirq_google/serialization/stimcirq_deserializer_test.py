@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import pytest
-from cirq_google.serialization.stimcirq_deserializer import StimCirqDeserializer
+
 from cirq_google.api import v2
+from cirq_google.serialization.stimcirq_deserializer import StimCirqDeserializer
 
 
 def test_bad_stimcirq_op():

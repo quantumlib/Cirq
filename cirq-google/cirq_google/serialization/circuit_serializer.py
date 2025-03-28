@@ -37,10 +37,9 @@ from cirq_google.serialization import (
     arg_func_langs,
     op_deserializer,
     op_serializer,
-    arg_func_langs,
-    stimcirq_serializer,
     stimcirq_deserializer,
-    tag_serializer,
+    stimcirq_serializer,
+    serializer,
     tag_deserializer,
     tag_serializer,
 )
