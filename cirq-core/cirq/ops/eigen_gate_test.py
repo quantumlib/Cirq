@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import re
-
 from typing import List, Tuple
 
 import numpy as np
