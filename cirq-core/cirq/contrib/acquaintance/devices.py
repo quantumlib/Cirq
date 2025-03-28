@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 from typing import TYPE_CHECKING, Union
 
@@ -30,7 +32,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
 
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
-    def validate_operation(self, operation: 'cirq.Operation') -> None:
+    def validate_operation(self, operation: cirq.Operation) -> None:
         if not (
             isinstance(operation, ops.GateOperation) and isinstance(operation.gate, self.gate_types)
         ):

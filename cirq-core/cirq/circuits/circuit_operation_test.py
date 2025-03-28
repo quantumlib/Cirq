@@ -168,7 +168,7 @@ def test_with_qubits():
 
     assert op_base.with_qubit_mapping({a: d, b: c, d: a}) == op_with_qubits
 
-    def map_fn(qubit: 'cirq.Qid') -> 'cirq.Qid':
+    def map_fn(qubit: cirq.Qid) -> cirq.Qid:
         if qubit == a:
             return d
         if qubit == b:
