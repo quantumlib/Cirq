@@ -16,6 +16,7 @@ from typing import List, Tuple
 
 import numpy as np
 import pytest
+import re
 import sympy
 
 import cirq

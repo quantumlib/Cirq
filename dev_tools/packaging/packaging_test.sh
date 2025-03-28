@@ -50,9 +50,19 @@ echo =======================================
 echo Testing that all modules are installed
 echo =======================================
 
+python_test_template="\
+import @p
+print(@p)
+assert '${tmp_dir}' in @p.__file__, 'Package path seems invalid.'
+assert (
+    '@p' == 'cirq_ts' or
+    '${CIRQ_PRE_RELEASE_VERSION}' == @p.__version__
+), 'Package version is invalid'
+"
+
 CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package)
 for p in $CIRQ_PACKAGES; do
   echo "--- Testing $p -----"
-  python_test="import $p; print($p); assert '${tmp_dir}' in $p.__file__, 'Package path seems invalid.'"
+  python_test="${python_test_template//@p/$p}"
   env PYTHONPATH='' "${tmp_dir}/env/bin/python" -c "$python_test" && echo -e "\033[32mPASS\033[0m"  || echo -e "\033[31mFAIL\033[0m"
 done

@@ -24,10 +24,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 import cirq
+from cirq.testing import random_special_unitary
 from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
     unitary_entanglement_fidelity,
 )
-from cirq.testing import random_special_unitary
 
 
 def main(samples: int = 1000, max_infidelity: float = 0.01):

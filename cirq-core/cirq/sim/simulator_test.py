@@ -13,7 +13,7 @@
 # limitations under the License.
 """Tests for simulator.py"""
 import abc
-from typing import Generic, Dict, Any, List, Sequence, Union
+from typing import Any, Dict, Generic, List, Sequence, Union
 from unittest import mock
 
 import duet
@@ -24,13 +24,13 @@ import cirq
 from cirq import study
 from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulator import (
-    TStepResult,
     SimulatesAmplitudes,
     SimulatesExpectationValues,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesSamples,
     SimulationTrialResult,
+    TStepResult,
 )
 
 

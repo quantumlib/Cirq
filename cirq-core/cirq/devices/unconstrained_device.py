@@ -14,7 +14,7 @@
 
 from typing import Any, Dict, TYPE_CHECKING
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._doc import document
 from cirq.devices import device
 

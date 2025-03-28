@@ -1,9 +1,10 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Sequence
 
+import numpy as np
+
 import cirq
 import cirq.work as cw
-import numpy as np
 
 
 class DepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):

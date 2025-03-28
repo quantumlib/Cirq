@@ -18,7 +18,7 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq import value, _compat
+from cirq import _compat, value
 from cirq.ops import raw_types
 
 

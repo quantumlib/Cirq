@@ -14,10 +14,11 @@
 
 from typing import Union
 
+import pytest
+
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers.optimize_for_target_gateset import _decompose_operations_to_target_gateset
-import pytest
 
 
 def test_decompose_operations_raises_on_stuck():

@@ -13,8 +13,10 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, FrozenSet, Iterable
+from typing import FrozenSet, Iterable, Optional, TYPE_CHECKING
+
 import networkx as nx
+
 from cirq import value
 
 if TYPE_CHECKING:

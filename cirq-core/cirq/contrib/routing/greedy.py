@@ -26,11 +26,11 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import numpy as np
 import networkx as nx
+import numpy as np
 
-from cirq import circuits, ops, value
 import cirq.contrib.acquaintance as cca
+from cirq import circuits, ops, value
 from cirq.contrib import circuitdag
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork

@@ -5,9 +5,9 @@ import pytest
 import cirq
 from cirq import value
 from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
-    weyl_chamber_mesh,
     kak_vector_infidelity,
     random_qubit_unitary,
+    weyl_chamber_mesh,
 )
 
 

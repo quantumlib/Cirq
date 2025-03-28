@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import cirq
-import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
+import cirq.testing as ct
 
 
 def test_remove_redundant_acquaintance_opportunities():

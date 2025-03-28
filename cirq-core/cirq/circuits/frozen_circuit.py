@@ -28,7 +28,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols, _compat
+from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
@@ -84,7 +84,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self
 
     def unfreeze(self, copy: bool = True) -> 'cirq.Circuit':
-        return Circuit.from_moments(*self)
+        return Circuit._from_moments(self._moments)
 
     @property
     def tags(self) -> Tuple[Hashable, ...]:

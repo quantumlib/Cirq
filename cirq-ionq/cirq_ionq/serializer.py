@@ -33,8 +33,8 @@ import sympy
 
 import cirq
 from cirq.devices import line_qubit
-from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
 from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
+from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False

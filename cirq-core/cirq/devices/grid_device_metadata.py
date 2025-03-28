@@ -13,9 +13,10 @@
 # limitations under the License.
 """Metadata subtype for 2D Homogenous devices."""
 
-from typing import TYPE_CHECKING, cast, FrozenSet, Iterable, Mapping, Optional, Tuple
+from typing import cast, FrozenSet, Iterable, Mapping, Optional, Tuple, TYPE_CHECKING
 
 import networkx as nx
+
 from cirq import value
 from cirq.devices import device
 

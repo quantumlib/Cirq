@@ -13,7 +13,7 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, TYPE_CHECKING, Dict, Any
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -21,8 +21,9 @@ import pandas as pd
 from cirq import sim, value
 
 if TYPE_CHECKING:
-    import cirq
     import multiprocessing
+
+    import cirq
 
 
 @dataclass(frozen=True)

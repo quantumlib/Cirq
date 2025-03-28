@@ -15,27 +15,26 @@
 import inspect
 from typing import Dict
 
-import tunits.units
-
 import numpy as np
 import pytest
 import sympy
+import tunits.units
 from google.protobuf import json_format
 
 import cirq_google
+from cirq.qis import CliffordTableau
+from cirq_google.api import v2
 from cirq_google.serialization.arg_func_langs import (
     arg_from_proto,
+    ARG_LIKE,
     arg_to_proto,
+    clifford_tableau_arg_to_proto,
+    clifford_tableau_from_proto,
     float_arg_from_proto,
     float_arg_to_proto,
     internal_gate_arg_to_proto,
     internal_gate_from_proto,
-    ARG_LIKE,
-    clifford_tableau_arg_to_proto,
-    clifford_tableau_from_proto,
 )
-from cirq_google.api import v2
-from cirq.qis import CliffordTableau
 
 
 def _json_format_kwargs() -> Dict[str, bool]:
@@ -57,6 +56,7 @@ def _json_format_kwargs() -> Dict[str, bool]:
         (1.0, {'arg_value': {'float_value': 1.0}}),
         (1, {'arg_value': {'float_value': 1.0}}),
         ('abc', {'arg_value': {'string_value': 'abc'}}),
+        (True, {'arg_value': {'bool_value': True}}),
         ([True, False], {'arg_value': {'bool_values': {'values': [True, False]}}}),
         ([42.9, 3.14], {'arg_value': {'double_values': {'values': [42.9, 3.14]}}}),
         ([3, 8], {'arg_value': {'int64_values': {'values': ['3', '8']}}}),

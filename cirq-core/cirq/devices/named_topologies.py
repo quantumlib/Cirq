@@ -16,16 +16,16 @@ import abc
 import warnings
 from dataclasses import dataclass
 from typing import (
-    Dict,
-    List,
-    Tuple,
     Any,
-    Sequence,
-    Union,
-    Iterable,
-    TYPE_CHECKING,
     Callable,
+    Dict,
+    Iterable,
+    List,
     Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
 )
 
 import networkx as nx
