@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 from typing import List, Tuple
 
 import numpy as np
 import pytest
-import re
 import sympy
 
 import cirq
