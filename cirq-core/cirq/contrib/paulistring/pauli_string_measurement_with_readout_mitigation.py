@@ -283,13 +283,13 @@ def measure_pauli_strings(
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.
 
-    This function takes a list of circuits and corresponding List[Pauli string] to measure.
-    For each circuit-List[Pauli string] pair, it:
+    This function takes a list of circuits and corresponding List[PauliString] to measure.
+    For each circuit-List[PauliString] pair, it:
     1.  Constructs circuits to measure the Pauli string expectation value by
         adding basis change moments and measurement operations.
     2.  Runs shuffled readout benchmarking on these circuits to calibrate readout errors.
     3.  Mitigates readout errors using the calibrated confusion matrices.
-    4.  Calculates and returns both error-mitigated and unmitigatedexpectation values for
+    4.  Calculates and returns both error-mitigated and unmitigated expectation values for
     each Pauli string.
 
     Args:
@@ -300,9 +300,9 @@ def measure_pauli_strings(
             Pauli strings.
         readout_repetitions: The number of repetitions for readout calibration
             in the shuffled benchmarking.
-        num_random_bitstrings: The number of random bitstrings to use in shuffled
+        num_random_bitstrings: The number of random bitstrings to use in readout
             benchmarking.
-        rng_or_seed: A random number generator or seed for the shuffled benchmarking.
+        rng_or_seed: A random number generator or seed for the readout benchmarking.
 
     Returns:
         A list of CircuitToPauliStringsMeasurementResult objects, where each object contains:
