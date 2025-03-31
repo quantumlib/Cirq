@@ -395,6 +395,22 @@ def test_parallel_two_qubit_xeb_with_dict_target():
     assert result.all_qubit_pairs == _PAIRS
 
 
+def test_parallel_two_qubit_xeb_with_ideal_target():
+    target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS[:2]}
+    target[_PAIRS[2]] = cirq.CZ(*_QUBITS)
+    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03))
+    result = xeb.parallel_two_qubit_xeb(
+        sampler=sampler,
+        target=target,
+        ideal_target=cirq.CZ,
+        parameters=xeb.XEBParameters(
+            n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)
+        ),
+    )
+    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
+    assert result.all_qubit_pairs == _PAIRS
+
+
 @pytest.fixture
 def threading_pool() -> Iterator[futures.Executor]:
     with futures.ThreadPoolExecutor(1) as pool:
@@ -420,4 +436,12 @@ def test_parallel_two_qubit_xeb_with_invalid_input_raises():
     with pytest.raises(AssertionError):
         _ = xeb.parallel_two_qubit_xeb(
             sampler=cirq.Simulator(), target={_PAIRS[0]: cirq.CZ}, pairs=_PAIRS
+        )
+
+    with pytest.raises(AssertionError):
+        _ = xeb.parallel_two_qubit_xeb(
+            sampler=cirq.Simulator(),
+            target=cirq.CZ,
+            ideal_target={_PAIRS[0]: cirq.CZ},
+            pairs=_PAIRS,
         )

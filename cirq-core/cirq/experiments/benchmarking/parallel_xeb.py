@@ -527,6 +527,11 @@ def estimate_fidilties(
                 #           = sum (['x']^2 * ['var_m_u']) / (sum ['denominator'])^2
                 fidelity_variance += var_m_u * x**2
             fidelity = numerator / denominator
+            if fidelity < 0:
+                # fidelity is a statistical estimate of the true fidelity which due to
+                # statistical error may fall below 0. In this case we set it to a tiny
+                # positive number.
+                fidelity = 1e-300
             fidelity_variance /= denominator**2
             records.append(
                 XEBFidelity(
@@ -562,6 +567,7 @@ def _extract_pairs(
 def parallel_xeb_workflow(
     sampler: 'cirq.Sampler',
     target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
+    ideal_target: Optional[Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]]] = None,
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
     pairs: Optional[Sequence[_QUBIT_PAIR_T]] = None,
     parameters: XEBParameters = XEBParameters(),
@@ -572,7 +578,8 @@ def parallel_xeb_workflow(
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
-        target: The entangling gate to use.
+        target: The entangling gate, op, circuit or dict mapping pairs to ops.
+        ideal_target: The ideal target(s) to branch mark against. If None, use `target`.
         qubits: Qubits under test. If none, uses all qubits on the sampler's device.
         pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
         parameters: An `XEBParameters` containing the parameters of the XEB experiment.
@@ -608,10 +615,20 @@ def parallel_xeb_workflow(
     )
 
     canonical_target = _canonize_target(target)
+    if ideal_target is None:
+        canonical_ideal_target = canonical_target
+    else:
+        canonical_ideal_target = _canonize_target(ideal_target)
 
     if isinstance(canonical_target, dict):
         assert all(
             all(pair in canonical_target for pair in layer_comb.pairs)
+            for layer_comb in combs_by_layer
+        )
+
+    if isinstance(canonical_ideal_target, dict):
+        assert all(
+            all(pair in canonical_ideal_target for pair in layer_comb.pairs)
             for layer_comb in combs_by_layer
         )
 
@@ -632,7 +649,7 @@ def parallel_xeb_workflow(
     # Either of a pure_probability[circuit_template_idx][cycle_depth_index] or
     #   A map pure_probability[pair][circuit_template_idx][cycle_depth_index]
     simulation_results = simulate_circuit_library(
-        circuit_templates, canonical_target, parameters.cycle_depths, pool
+        circuit_templates, canonical_ideal_target, parameters.cycle_depths, pool
     )
 
     estimated_fidilties = estimate_fidilties(
@@ -649,6 +666,7 @@ def parallel_xeb_workflow(
 def parallel_two_qubit_xeb(
     sampler: 'cirq.Sampler',
     target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
+    ideal_target: Optional[Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]]] = None,
     qubits: Optional[Sequence['cirq.GridQubit']] = None,
     pairs: Optional[Sequence[_QUBIT_PAIR_T]] = None,
     parameters: XEBParameters = XEBParameters(),
@@ -659,7 +677,8 @@ def parallel_two_qubit_xeb(
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
-        target: The entangling gate to use.
+        target: The entangling gate, op, circuit or dict mapping pairs to ops.
+        ideal_target: The ideal target(s) to branch mark against. If None, use `target`.
         qubits: Qubits under test. If none, uses all qubits on the sampler's device.
         pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
         parameters: An `XEBParameters` containing the parameters of the XEB experiment.
@@ -673,7 +692,7 @@ def parallel_two_qubit_xeb(
         ValueError: If qubits are not specified and the sampler has no device.
     """
     estimated_fidilties = parallel_xeb_workflow(
-        sampler, target, qubits, pairs, parameters, rng, pool
+        sampler, target, ideal_target, qubits, pairs, parameters, rng, pool
     )
     df = pd.DataFrame.from_records([attrs.asdict(ef) for ef in estimated_fidilties])
     return tqxeb.TwoQubitXEBResult(xeb_fitting.fit_exponential_decays(df))
