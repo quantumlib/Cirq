@@ -1,0 +1,7 @@
+[cirq.BitMaskKeyCondition(key=cirq.MeasurementKey(name='a'), index=59, target_value=0, equal_target=False, bitmask=None),
+ cirq.BitMaskKeyCondition(key=cirq.MeasurementKey(name='b'), index=58, target_value=3, equal_target=False, bitmask=None),
+ cirq.BitMaskKeyCondition(key=cirq.MeasurementKey(name='c'), index=57, target_value=0, equal_target=False, bitmask=13),
+ cirq.BitMaskKeyCondition(key=cirq.MeasurementKey(name='d'), index=56, target_value=12, equal_target=False, bitmask=13),
+ cirq.BitMaskKeyCondition(key=cirq.MeasurementKey(name='d'), index=55, target_value=12, equal_target=True, bitmask=13),
+ cirq.BitMaskKeyCondition(key=cirq.MeasurementKey(name='e'), index=54, target_value=11, equal_target=True, bitmask=11),
+ cirq.BitMaskKeyCondition(key=cirq.MeasurementKey(name='e'), index=53, target_value=9, equal_target=False, bitmask=9)]
