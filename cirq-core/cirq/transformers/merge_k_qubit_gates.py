@@ -14,9 +14,9 @@
 
 """Transformer pass to merge connected components of k-qubit unitary operations."""
 
-from typing import cast, Optional, Callable, TYPE_CHECKING
+from typing import Callable, cast, Optional, TYPE_CHECKING
 
-from cirq import ops, protocols, circuits
+from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:

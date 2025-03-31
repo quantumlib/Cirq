@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from typing import Any, Dict, List, Optional
-import pytest
 
 import attrs
 import numpy as np
+import pytest
 import sympy
-from google.protobuf import json_format
-
 import tunits.units
+from google.protobuf import json_format
 
 import cirq
 import cirq_google as cg
@@ -264,6 +263,12 @@ OPERATIONS = [
         cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
         op_proto(
             {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0]}
+        ),
+    ),
+    (
+        cirq.WaitGate(duration=cirq.Duration(nanos=15), num_qubits=2)(Q0, Q1),
+        op_proto(
+            {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0, 1]}
         ),
     ),
     (

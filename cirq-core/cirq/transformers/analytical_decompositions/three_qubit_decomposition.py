@@ -14,13 +14,12 @@
 
 """Utility methods for decomposing three-qubit unitaries."""
 
-from typing import Union, Tuple, Sequence, List, Optional
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 import cirq
-from cirq import ops
-from cirq import transformers as opt
+from cirq import ops, transformers as opt
 
 
 def three_qubit_matrix_to_operations(

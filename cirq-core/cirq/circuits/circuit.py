@@ -48,10 +48,10 @@ from typing import (
     TypeVar,
     Union,
 )
-from typing_extensions import Self
 
 import networkx
 import numpy as np
+from typing_extensions import Self
 
 import cirq._version
 from cirq import _compat, devices, ops, protocols, qis

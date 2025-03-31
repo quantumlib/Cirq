@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, Optional, cast, Iterable, TYPE_CHECKING
+from typing import cast, Iterable, Iterator, Optional, TYPE_CHECKING
 
 from cirq import ops
 from cirq.interop.quirk.cells.cell import CellMaker, ExplicitOperationsCell

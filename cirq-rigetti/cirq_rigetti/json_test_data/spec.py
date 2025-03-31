@@ -15,9 +15,8 @@
 import pathlib
 
 import cirq_rigetti
-from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary
-
 from cirq.testing.json import ModuleJsonTestSpec
+from cirq_rigetti.json_resolver_cache import _class_resolver_dictionary
 
 TestSpec = ModuleJsonTestSpec(
     name="cirq_rigetti",

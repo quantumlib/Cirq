@@ -14,15 +14,16 @@
 """Single qubit readout experiments using parallel or isolated statistics."""
 import dataclasses
 import time
-from typing import cast, Any, Dict, Iterable, List, Optional, TYPE_CHECKING
+from typing import Any, cast, Dict, Iterable, List, Optional, TYPE_CHECKING
 
-import sympy
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import sympy
+
 import cirq.vis.heatmap as cirq_heatmap
 import cirq.vis.histogram as cirq_histogram
-from cirq.devices import grid_qubit
 from cirq import circuits, ops, study
+from cirq.devices import grid_qubit
 
 if TYPE_CHECKING:
     import cirq

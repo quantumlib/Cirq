@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for SimulatedLocalJob."""
-import pytest
 import numpy as np
+import pytest
 import sympy
 
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
-from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.local_simulation_type import LocalSimulationType
+from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 
 Q = cirq.GridQubit(2, 2)
 

@@ -20,7 +20,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 import sympy
 
-from cirq import ops, linalg, protocols
+from cirq import linalg, ops, protocols
 from cirq.linalg.tolerance import near_zero_mod
 
 

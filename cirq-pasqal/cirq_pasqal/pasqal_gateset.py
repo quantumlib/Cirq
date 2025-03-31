@@ -14,7 +14,6 @@
 #
 from typing import Any, Dict, List, Type, Union
 
-
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
 

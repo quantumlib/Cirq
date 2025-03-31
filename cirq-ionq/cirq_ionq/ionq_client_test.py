@@ -17,8 +17,8 @@ import datetime
 import io
 from unittest import mock
 
-import requests
 import pytest
+import requests
 
 import cirq_ionq as ionq
 

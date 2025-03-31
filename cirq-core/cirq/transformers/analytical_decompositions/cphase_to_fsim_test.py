@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 from typing import List, Sequence, Tuple
 
-import itertools
 import numpy as np
 import pytest
 import sympy

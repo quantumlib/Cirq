@@ -191,8 +191,9 @@ Win rate for all 9 possible inputs, out of 10,000 repetitions each:
 
 import dataclasses
 
-import cirq
 import numpy as np
+
+import cirq
 
 
 def bell_pair_prep_circuit(q0: cirq.GridQubit, q1: cirq.GridQubit) -> cirq.Circuit:

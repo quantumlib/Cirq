@@ -49,11 +49,10 @@ In addition to checking that the code executes:
 """
 
 import inspect
-from typing import Any, Dict, List, Optional, Pattern, Tuple, Iterator
-
 import os
 import pathlib
 import re
+from typing import Any, Dict, Iterator, List, Optional, Pattern, Tuple
 
 import pytest
 

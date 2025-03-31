@@ -20,7 +20,6 @@ import sympy
 import cirq
 from cirq_aqt import aqt_target_gateset
 
-
 Q, Q2, Q3, Q4 = cirq.LineQubit.range(4)
 
 

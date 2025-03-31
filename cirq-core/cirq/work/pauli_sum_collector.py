@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import collections
-from typing import cast, Dict, Optional, Union, TYPE_CHECKING
+from typing import cast, Dict, Optional, TYPE_CHECKING, Union
 
 import numpy as np
 

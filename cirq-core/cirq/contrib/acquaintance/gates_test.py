@@ -21,8 +21,8 @@ import numpy
 import pytest
 
 import cirq
-import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
+import cirq.testing as ct
 
 
 def test_acquaintance_gate_repr():

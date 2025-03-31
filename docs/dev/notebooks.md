@@ -62,7 +62,7 @@ them to `SKIP_NOTEBOOKS` within the file `dev_tools/notebooks/notebook_test.py`.
 
 External dependencies, for these purposes, are calls to external services and
 APIs, such as vendor endpoints for cloud services.  These can also include
-external downloads, such as installing packages from unknown debian
+external downloads, such as installing packages from unknown Debian
 repositories, which may be blocked for security reasons.
 
 The site that generates the outputs for notebooks also can't handle external dependencies.
@@ -71,7 +71,7 @@ Thus, for notebooks with external dependencies, **all cells must have their outp
 
 ## Lifecycle
 
-You should configure notebooks differently depending on whether they rely on features in the pre-release build of cirq or not.
+You should configure notebooks differently depending on whether they rely on features in the pre-release build of Cirq or not.
 
 ### Pre-release notebooks
 

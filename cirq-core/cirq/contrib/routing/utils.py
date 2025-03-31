@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import operator
-from typing import Callable, Iterable, List, TYPE_CHECKING
 import re
+from typing import Callable, Iterable, List, TYPE_CHECKING
 
 import networkx as nx
 
-from cirq import circuits, ops
 import cirq.contrib.acquaintance as cca
+from cirq import circuits, ops
 from cirq.contrib.circuitdag import CircuitDag
 from cirq.contrib.routing.swap_network import SwapNetwork
 

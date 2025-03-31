@@ -17,23 +17,23 @@ import time
 import uuid
 from dataclasses import dataclass
 from typing import (
+    Any,
     Callable,
+    ContextManager,
+    Dict,
     List,
     Optional,
     Sequence,
+    Set,
     Tuple,
     TYPE_CHECKING,
-    Set,
-    ContextManager,
-    Dict,
-    Any,
 )
 
 import numpy as np
 import pandas as pd
 import tqdm
 
-from cirq import ops, devices, value, protocols
+from cirq import devices, ops, protocols, value
 from cirq.circuits import Circuit, Moment
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
 

@@ -16,7 +16,6 @@ import pytest
 
 import cirq
 
-
 Q, Q2, Q3 = cirq.LineQubit.range(3)
 
 

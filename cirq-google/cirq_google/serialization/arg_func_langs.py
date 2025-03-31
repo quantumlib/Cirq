@@ -17,10 +17,11 @@ from typing import cast, Iterable, Iterator, List, Optional, Sequence, Union
 
 import numpy as np
 import sympy
+import tunits
+
+from cirq.qis import CliffordTableau
 from cirq_google.api import v2
 from cirq_google.ops import InternalGate
-from cirq.qis import CliffordTableau
-import tunits
 
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 

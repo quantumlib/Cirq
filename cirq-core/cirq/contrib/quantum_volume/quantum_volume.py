@@ -4,7 +4,7 @@ https://arxiv.org/abs/1811.12926.
 """
 
 from dataclasses import dataclass
-from typing import Optional, List, Callable, Dict, Tuple, Set, Any
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 import numpy as np

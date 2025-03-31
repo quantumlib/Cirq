@@ -14,13 +14,13 @@
 
 """A Gauge Transformer for the CZ gate."""
 
-from cirq.transformers.gauge_compiling.gauge_compiling import (
-    GaugeTransformer,
-    GaugeSelector,
-    ConstantGauge,
-)
-from cirq.ops.common_gates import CZ
 from cirq import ops
+from cirq.ops.common_gates import CZ
+from cirq.transformers.gauge_compiling.gauge_compiling import (
+    ConstantGauge,
+    GaugeSelector,
+    GaugeTransformer,
+)
 
 CZGaugeSelector = GaugeSelector(
     gauges=[

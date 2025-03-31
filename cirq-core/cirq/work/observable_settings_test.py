@@ -16,8 +16,8 @@ import pytest
 import sympy
 
 import cirq
-from cirq.work.observable_settings import _max_weight_state, _max_weight_observable, _hashable_param
-from cirq.work import InitObsSetting, observables_to_settings, _MeasurementSpec
+from cirq.work import _MeasurementSpec, InitObsSetting, observables_to_settings
+from cirq.work.observable_settings import _hashable_param, _max_weight_observable, _max_weight_state
 
 
 def test_init_obs_setting():

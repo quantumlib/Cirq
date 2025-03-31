@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
 import numpy as np
+import pytest
 
 import cirq
 from cirq.testing.circuit_compare import _assert_apply_unitary_works_when_axes_transposed
