@@ -133,6 +133,8 @@ def arg_to_proto(
         msg.arg_value.bool_value = bool(value)
     elif isinstance(value, FLOAT_TYPES):
         msg.arg_value.float_value = float(value)
+    elif isinstance(value, bytes):
+        msg.arg_value.bytes_value = value
     elif isinstance(value, str):
         msg.arg_value.string_value = value
     elif isinstance(value, (list, tuple, np.ndarray)):
@@ -291,6 +293,8 @@ def arg_from_proto(
             return [str(v) for v in arg_value.string_values.values]
         if which_val == 'value_with_unit':
             return tunits.Value.from_proto(arg_value.value_with_unit)
+        if which_val == 'bytes_value':
+            return bytes(arg_value.bytes_value)
         raise ValueError(f'Unrecognized value type: {which_val!r}')
 
     if which == 'symbol':
