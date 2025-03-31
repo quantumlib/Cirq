@@ -56,14 +56,7 @@ def _json_format_kwargs() -> Dict[str, bool]:
     [
         (1.0, {'arg_value': {'float_value': 1.0}}),
         (1, {'arg_value': {'float_value': 1.0}}),
-        (
-            bytes('abcdef', 'utf-8'),
-            {
-                'arg_value': {
-                    'bytes_value': base64.b64encode(bytes('abcdef', 'utf-8')).decode("ascii")
-                }
-            },
-        ),
+        (b'abcdef', {'arg_value': {'bytes_value': base64.b64encode(b'abcdef').decode("ascii")}}),
         ('abc', {'arg_value': {'string_value': 'abc'}}),
         (True, {'arg_value': {'bool_value': True}}),
         ([True, False], {'arg_value': {'bool_values': {'values': [True, False]}}}),
