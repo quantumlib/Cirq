@@ -151,6 +151,9 @@ class BitMaskKeyCondition(Condition):
         - BitMaskKeyCondition.create_equal_mask('a', 13) -> (a & 13) == 13
         - BitMaskKeyCondition.create_not_equal_mask('a', 13) -> (a & 13) != 13
 
+    The bits in the bitmask have the same order as the qubits passed to `cirq.measure(...)`. That's the
+    most significant bit corresponds to the the first (left most) qubit.
+
     Attributes:
         - key: Measurement key.
         - index: integer index (same as KeyCondition.index).
@@ -179,6 +182,7 @@ class BitMaskKeyCondition(Condition):
     def create_equal_mask(
         key: 'cirq.MeasurementKey', bitmask: int, *, index: int = -1
     ) -> 'BitMaskKeyCondition':
+        """Creates a condition that evaluates (meas & bitmask) == bitmask."""
         return BitMaskKeyCondition(
             key, index, target_value=bitmask, equal_target=True, bitmask=bitmask
         )
@@ -187,6 +191,7 @@ class BitMaskKeyCondition(Condition):
     def create_not_equal_mask(
         key: 'cirq.MeasurementKey', bitmask: int, *, index: int = -1
     ) -> 'BitMaskKeyCondition':
+        """Creates a condition that evaluates (meas & bitmask) != bitmask."""
         return BitMaskKeyCondition(
             key, index, target_value=bitmask, equal_target=False, bitmask=bitmask
         )

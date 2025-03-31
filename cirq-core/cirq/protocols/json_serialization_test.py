@@ -24,6 +24,7 @@ import warnings
 from typing import Dict, List, Optional, Tuple, Type
 from unittest import mock
 
+import attrs
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -790,3 +791,15 @@ def test_datetime():
     assert re_pst_dt == pst_dt
     assert re_pst_dt == utc_dt
     assert re_pst_dt == re_naive_dt
+
+
+@attrs.frozen
+class _TestAttrsClas:
+    name: str
+    x: int
+
+
+def test_attrs_json_dict():
+    obj = _TestAttrsClas('test', x=123)
+    js = json_serialization.attrs_json_dict(obj)
+    assert js == {'name': 'test', 'x': 123}
