@@ -15,8 +15,8 @@
 import pytest
 
 import cirq
-from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 from cirq import quirk_url_to_circuit
+from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
 def test_swap():

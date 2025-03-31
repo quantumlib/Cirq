@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Sequence, Union, Collection, Tuple, List
-
-import pytest
+from typing import Collection, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
+import pytest
 
 import cirq
 from cirq.ops import control_values as cv

@@ -21,9 +21,8 @@ See cirq-core/cirq/testing/json.py for a description of the framework.
 import pathlib
 
 import cirq_pasqal
-from cirq_pasqal.json_resolver_cache import _class_resolver_dictionary
-
 from cirq.testing.json import ModuleJsonTestSpec
+from cirq_pasqal.json_resolver_cache import _class_resolver_dictionary
 
 TestSpec = ModuleJsonTestSpec(
     name="cirq_pasqal",

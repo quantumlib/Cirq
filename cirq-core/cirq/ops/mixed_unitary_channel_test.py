@@ -1,7 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-import cirq
 import numpy as np
 import pytest
+
+import cirq
 
 
 def test_matrix_mixture_from_mixture():

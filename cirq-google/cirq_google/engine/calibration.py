@@ -14,18 +14,17 @@
 
 """Calibration wrapper for calibrations returned from the Quantum Engine."""
 
-from collections import abc, defaultdict
 import datetime
+from collections import abc, defaultdict
 from itertools import cycle
-from typing import Any, cast, Dict, Iterator, List, Optional, Tuple, Union, Sequence
+from typing import Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 
+import google.protobuf.json_format as json_format
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import google.protobuf.json_format as json_format
 
 import cirq
 from cirq_google.api import v2
-
 
 # Calibration Metric types
 METRIC_KEY = Tuple[Union[cirq.GridQubit, str], ...]

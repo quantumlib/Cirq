@@ -18,7 +18,6 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from cirq import protocols
 from cirq.ops import raw_types
 
-
 if TYPE_CHECKING:
     import cirq
 

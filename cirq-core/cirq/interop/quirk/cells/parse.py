@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cmath
+import re
 from typing import (
     Any,
     Callable,
@@ -22,13 +24,10 @@ from typing import (
     List,
     Mapping,
     Optional,
-    Union,
     SupportsFloat,
     TypeVar,
+    Union,
 )
-
-import cmath
-import re
 
 import numpy as np
 import sympy

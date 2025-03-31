@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import dataclasses
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
 from cirq import devices
 from cirq.devices import noise_utils

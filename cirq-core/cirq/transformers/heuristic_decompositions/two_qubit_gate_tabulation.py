@@ -14,21 +14,21 @@
 
 """Attempt to tabulate single qubit gates required to generate a target 2Q gate
 with a product A k A."""
+from dataclasses import dataclass
 from functools import reduce
 from typing import List, NamedTuple, Sequence, Tuple
 
-from dataclasses import dataclass
 import numpy as np
 
 import cirq
 from cirq import value
-from cirq._compat import proper_repr, proper_eq
+from cirq._compat import proper_eq, proper_repr
 from cirq.transformers.heuristic_decompositions.gate_tabulation_math_utils import (
     kak_vector_infidelity,
+    kak_vector_to_unitary,
+    random_qubit_unitary,
     vector_kron,
     weyl_chamber_mesh,
-    random_qubit_unitary,
-    kak_vector_to_unitary,
 )
 
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]

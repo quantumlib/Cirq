@@ -15,7 +15,8 @@
 """Transformer pass to move terminal measurements to the end of circuit."""
 
 from typing import List, Optional, Set, Tuple, TYPE_CHECKING
-from cirq import protocols, circuits
+
+from cirq import circuits, protocols
 from cirq.transformers import transformer_api
 
 if TYPE_CHECKING:

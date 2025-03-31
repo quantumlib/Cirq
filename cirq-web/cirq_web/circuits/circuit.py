@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Iterable
+
 import cirq
 from cirq_web import widget
 from cirq_web.circuits.symbols import (
-    Operation3DSymbol,
-    SymbolResolver,
-    resolve_operation,
     DEFAULT_SYMBOL_RESOLVERS,
+    Operation3DSymbol,
+    resolve_operation,
+    SymbolResolver,
 )
 
 

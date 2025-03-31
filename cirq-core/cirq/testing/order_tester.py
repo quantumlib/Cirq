@@ -24,8 +24,8 @@ It will also check that a==b implies hash(a)==hash(b).
 """
 
 from typing import Any
-from cirq.testing.equals_tester import EqualsTester
 
+from cirq.testing.equals_tester import EqualsTester
 
 _NAMED_COMPARISON_OPERATORS = [
     ('<', lambda a, b: a < b),

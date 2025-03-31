@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import json
+
 import numpy as np
 import pytest
 import sympy
 
 import cirq
 import cirq_ionq as ionq
-
 from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
 
 

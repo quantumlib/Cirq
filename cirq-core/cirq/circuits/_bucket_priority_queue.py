@@ -14,7 +14,6 @@
 
 from typing import Any, Generic, Iterable, Iterator, List, Optional, Set, Tuple, TypeVar
 
-
 TItem = TypeVar('TItem')
 
 

@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple
-
 import dataclasses
+from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple
 
 MEASUREMENT_KEY_SEPARATOR = ':'
 

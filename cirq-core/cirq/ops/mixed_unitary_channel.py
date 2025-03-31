@@ -1,5 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import Any, Dict, FrozenSet, Iterable, Mapping, Tuple, TYPE_CHECKING, Union
+
 import numpy as np
 
 from cirq import linalg, protocols, value

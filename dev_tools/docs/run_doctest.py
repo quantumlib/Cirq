@@ -25,16 +25,22 @@ The -q argument suppresses all output except the final result line and any error
 messages.
 """
 
-from typing import Any, Dict, Iterable, List, Tuple
-from types import ModuleType
-
-import sys
+import doctest
 import glob
 import importlib.util
-import doctest
+import sys
+import warnings
+from types import ModuleType
+from typing import Any, Dict, Iterable, List, Tuple
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
+
+# The contrib module imports quimb. Quimb a dependency on the package named cotengra. The latter
+# has optional dependencies on optimization packages; unfortunately, it also has hardwired
+# warnings that it prints if the user doesn't load at least one of the optional packages. The
+# warnings are confusing in the context of testing, so the following ignores them.
+warnings.filterwarnings("ignore", category=UserWarning, module="cotengra.hyperoptimizers.hyper")
 
 
 class Doctest:
@@ -115,11 +121,12 @@ def load_tests(
     else:
         try_print = lambda *args, **kwargs: None
     if include_modules:
+        import numpy
+        import pandas
+        import sympy
+
         import cirq
         import cirq_google
-        import numpy
-        import sympy
-        import pandas
 
         base_globals = {
             'cirq': cirq,
@@ -181,9 +188,8 @@ def exec_tests(
         if r.failed != 0:
             try_print('F', end='', flush=True)
             error = shell_tools.highlight(
-                '{}\n{} failed, {} passed, {} total\n'.format(
-                    test.file_name, r.failed, r.attempted - r.failed, r.attempted
-                ),
+                f'{test.file_name}\n'
+                f'{r.failed} failed, {r.attempted - r.failed} passed, {r.attempted} total\n',
                 shell_tools.RED,
             )
             error += out.content()
@@ -230,6 +236,7 @@ def main():
     excluded = [
         'cirq-google/cirq_google/api/',
         'cirq-google/cirq_google/cloud/',
+        'cirq-rigetti/',
         'cirq-web/cirq_ts/node_modules/',
     ]
     file_names = [

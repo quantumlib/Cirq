@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterator, Sequence, Any, Dict, TYPE_CHECKING
+from typing import Any, Dict, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
+
+from cirq.ops import raw_types
 from cirq.ops.common_gates import H, ry
 from cirq.ops.pauli_gates import X
-from cirq.ops import raw_types
-
 
 if TYPE_CHECKING:
     import cirq

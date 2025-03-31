@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-import pytest
 import numpy as np
-import cirq_google as cg
+import pytest
 import sympy
+
+import cirq
+import cirq_google as cg
 
 EXPECTED_TARGET_GATESET = cirq.Gateset(cirq.AnyUnitaryGateFamily(1), cg.SYC)
 
