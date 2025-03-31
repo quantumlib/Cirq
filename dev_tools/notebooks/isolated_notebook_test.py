@@ -228,8 +228,6 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
         ]
 
         for m in mandatory_matches:
-            print(m)
-            print(re.search(m, content))
             assert re.search(m, content), (
                 f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
                 f"however it contains no line matching:\n{m}"
