@@ -14,19 +14,18 @@
 
 """A module for peforming and analysing paralle XEB."""
 
-from typing import Optional, Sequence, TYPE_CHECKING, Union, Dict, overload
 from concurrent import futures
+from typing import Dict, Optional, overload, Sequence, TYPE_CHECKING, Union
 
 import attrs
-
 import networkx as nx
 import numpy as np
 import pandas as pd
 
-from cirq import ops, circuits, protocols, value, devices, sim
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 import cirq.experiments.two_qubit_xeb as tqxeb
 import cirq.experiments.xeb_fitting as xeb_fitting
+from cirq import circuits, devices, ops, protocols, sim, value
 
 if TYPE_CHECKING:
     import cirq

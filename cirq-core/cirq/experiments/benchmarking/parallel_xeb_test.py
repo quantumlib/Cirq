@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterator
 import itertools
 from concurrent import futures
+from typing import Iterator
+
 import networkx as nx
-import pytest
 import numpy as np
+import pytest
+
 import cirq
-from cirq.experiments.benchmarking import parallel_xeb as xeb
 import cirq.experiments.random_quantum_circuit_generation as rqcg
+from cirq.experiments.benchmarking import parallel_xeb as xeb
 
 _QUBITS = cirq.LineQubit.range(2)
 _CIRCUIT_TEMPLATES = [
