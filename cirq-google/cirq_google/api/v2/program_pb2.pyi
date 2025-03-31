@@ -1060,10 +1060,12 @@ class ArgValue(google.protobuf.message.Message):
     STRING_VALUES_FIELD_NUMBER: builtins.int
     VALUE_WITH_UNIT_FIELD_NUMBER: builtins.int
     BOOL_VALUE_FIELD_NUMBER: builtins.int
+    BYTES_VALUE_FIELD_NUMBER: builtins.int
     float_value: builtins.float
     string_value: builtins.str
     double_value: builtins.float
     bool_value: builtins.bool
+    bytes_value: builtins.bytes
     @property
     def bool_values(self) -> global___RepeatedBoolean: ...
     @property
@@ -1086,10 +1088,11 @@ class ArgValue(google.protobuf.message.Message):
         string_values: global___RepeatedString | None = ...,
         value_with_unit: tunits.proto.tunits_pb2.Value | None = ...,
         bool_value: builtins.bool = ...,
+        bytes_value: builtins.bytes = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values", "value_with_unit", b"value_with_unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values", "value_with_unit", b"value_with_unit"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["arg_value", b"arg_value"]) -> typing.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values", "string_values", "value_with_unit", "bool_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values", "value_with_unit", b"value_with_unit"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values", "value_with_unit", b"value_with_unit"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["arg_value", b"arg_value"]) -> typing.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values", "string_values", "value_with_unit", "bool_value", "bytes_value"] | None: ...
 
 global___ArgValue = ArgValue
 
