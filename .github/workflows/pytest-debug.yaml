@@ -96,6 +96,9 @@ run-name: |
   Pytest ${{inputs.single-test || '(all tests)' }} on ${{inputs.os}}
   ${{inputs.arch}} with Python ${{inputs.py-version}}
 
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   pytest:
     name: Run pytest
