@@ -55,6 +55,7 @@ def _json_format_kwargs() -> Dict[str, bool]:
     'value,proto',
     [
         (1.0, {'arg_value': {'float_value': 1.0}}),
+        (1.5, {'arg_value': {'float_value': 1.5}}),
         (1, {'arg_value': {'float_value': 1.0}}),
         (b'abcdef', {'arg_value': {'bytes_value': base64.b64encode(b'abcdef').decode("ascii")}}),
         ('abc', {'arg_value': {'string_value': 'abc'}}),
@@ -111,6 +112,10 @@ def test_double_value():
     msg.arg_value.double_value = 1.0
     parsed = arg_from_proto(msg)
     assert parsed == 1
+    msg = v2.program_pb2.Arg()
+    msg.arg_value.double_value = 1.5
+    parsed = arg_from_proto(msg)
+    assert parsed == 1.5
 
 
 def test_serialize_sympy_constants():
@@ -177,6 +182,7 @@ def test_missing_required_arg():
     with pytest.raises(ValueError, match='unrecognized argument type'):
         _ = arg_from_proto(v2.program_pb2.Arg(), required_arg_name='blah')
     assert arg_from_proto(v2.program_pb2.Arg()) is None
+    assert float_arg_from_proto(v2.program_pb2.FloatArg()) is None
 
 
 def test_invalid_float_arg():
