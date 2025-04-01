@@ -224,26 +224,26 @@ def float_arg_from_proto(
         ValueError: If the float arg proto is invalid.
     """
     which = arg_proto.WhichOneof('arg')
-    if which == 'float_value':
-        result = float(arg_proto.float_value)
-        if round(result) == result:
-            result = int(result)
-        return result
-    elif which == 'symbol':
-        return sympy.Symbol(arg_proto.symbol)
-    elif which == 'func':
-        func = _arg_func_from_proto(arg_proto.func, required_arg_name=required_arg_name)
-        if func is None and required_arg_name is not None:
-            raise ValueError(
-                f'Arg {arg_proto.func} could not be processed for {required_arg_name}.'
-            )
-        return cast(FLOAT_ARG_LIKE, func)
-    elif which is None:
-        if required_arg_name is not None:
-            raise ValueError(f'Arg {required_arg_name} is missing.')
-        return None
-    else:
-        raise ValueError(f'unrecognized argument type ({which}).')
+    match which:
+        case 'float_value':
+            result = float(arg_proto.float_value)
+            if round(result) == result:
+                result = int(result)
+            return result
+        case 'symbol':
+            return sympy.Symbol(arg_proto.symbol)
+        case 'func':
+            func = _arg_func_from_proto(arg_proto.func, required_arg_name=required_arg_name)
+            if func is None and required_arg_name is not None:
+                raise ValueError(  # pragma: nocover
+                    f'Arg {arg_proto.func} could not be processed for {required_arg_name}.'
+                )
+            return cast(FLOAT_ARG_LIKE, func)
+        case None:
+            if required_arg_name is not None:
+                raise ValueError(f'Arg {required_arg_name} is missing.')
+            return None
+    raise ValueError(f'unrecognized argument type ({which}).')
 
 
 def arg_from_proto(
@@ -268,42 +268,44 @@ def arg_from_proto(
     """
 
     which = arg_proto.WhichOneof('arg')
-    if which == 'arg_value':
-        arg_value = arg_proto.arg_value
-        which_val = arg_value.WhichOneof('arg_value')
-        if which_val == 'float_value' or which_val == 'double_value':
-            if which_val == 'double_value':
-                result = float(arg_value.double_value)
-            else:
-                result = float(arg_value.float_value)
-            if math.ceil(result) == math.floor(result):
-                result = int(result)
-            return result
-        if which_val == 'bool_value':
-            return bool(arg_value.bool_value)
-        if which_val == 'bool_values':
-            return list(arg_value.bool_values.values)
-        if which_val == 'string_value':
-            return str(arg_value.string_value)
-        if which_val == 'int64_values':
-            return [int(v) for v in arg_value.int64_values.values]
-        if which_val == 'double_values':
-            return [float(v) for v in arg_value.double_values.values]
-        if which_val == 'string_values':
-            return [str(v) for v in arg_value.string_values.values]
-        if which_val == 'value_with_unit':
-            return tunits.Value.from_proto(arg_value.value_with_unit)
-        if which_val == 'bytes_value':
-            return bytes(arg_value.bytes_value)
-        raise ValueError(f'Unrecognized value type: {which_val!r}')
-
-    if which == 'symbol':
-        return sympy.Symbol(arg_proto.symbol)
-
-    if which == 'func':
-        func = _arg_func_from_proto(arg_proto.func, required_arg_name=required_arg_name)
-        if func is not None:
-            return func
+    match which:
+        case 'arg_value':
+            arg_value = arg_proto.arg_value
+            which_val = arg_value.WhichOneof('arg_value')
+            match which_val:
+                case 'float_value':
+                    result = float(arg_value.float_value)
+                    if math.ceil(result) == math.floor(result):
+                        return int(result)
+                    return result
+                case 'double_value':
+                    result = float(arg_value.double_value)
+                    if math.ceil(result) == math.floor(result):
+                        return int(result)
+                    return result
+                case 'bool_value':
+                    return bool(arg_value.bool_value)
+                case 'bool_values':
+                    return list(arg_value.bool_values.values)
+                case 'string_value':
+                    return str(arg_value.string_value)
+                case 'int64_values':
+                    return [int(v) for v in arg_value.int64_values.values]
+                case 'double_values':
+                    return [float(v) for v in arg_value.double_values.values]
+                case 'string_values':
+                    return [str(v) for v in arg_value.string_values.values]
+                case 'value_with_unit':
+                    return tunits.Value.from_proto(arg_value.value_with_unit)
+                case 'bytes_value':
+                    return bytes(arg_value.bytes_value)
+            raise ValueError(f'Unrecognized value type: {which_val!r}')  # pragma: nocover
+        case 'symbol':
+            return sympy.Symbol(arg_proto.symbol)
+        case 'func':
+            func = _arg_func_from_proto(arg_proto.func, required_arg_name=required_arg_name)
+            if func is not None:
+                return func
 
     if required_arg_name is not None:
         raise ValueError(
