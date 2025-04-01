@@ -59,21 +59,3 @@ jobs:
 
           xl_label: 'size: XL'
           fail_if_xl: 'false'
-          message_if_xl: >-
-            The size of this pull request exceeds 1000 additions and/or
-            deletions. Extra large pull requests like this are more difficult
-            to review, and sometimes their large size signals that they could
-            be restructured. Please check the following:
-
-            - [ ] Are the git commits in this PR limited to what's needed? Or
-            is it possible that other commits were included accidentally?
-
-            - [ ] Does this PR only address one issue, feature, problem, or
-            topic? Or are multiple issues or changes mixed together?
-
-            Sometimes large commits really are needed, and that's okay!
-            Examples include reformatting code using an automated tool,
-            refactoring code, and adding generated code. At other times, a
-            large PR could benefit by reconsidering it in light of the [Small
-            CLs](https://google.github.io/eng-practices/review/developer/small-cls.html)
-            principles.
