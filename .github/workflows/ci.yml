@@ -15,9 +15,6 @@ concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-# Declare default permissions as read only.
-permissions: read-all
-
 jobs:
   quick_test:
     name: Misc check

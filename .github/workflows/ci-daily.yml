@@ -9,9 +9,6 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
-# Declare default permissions as read only.
-permissions: read-all
-
 jobs:
   pytest:
     name: Pytest Ubuntu
