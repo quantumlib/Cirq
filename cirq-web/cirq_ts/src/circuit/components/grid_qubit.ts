@@ -56,11 +56,7 @@ export class GridQubit extends Group {
   private createLine(moments: number, padding_factor: number): QubitLine {
     const coords = [
       new Vector3(this.row * padding_factor, 0, this.col * padding_factor),
-      new Vector3(
-        this.row * padding_factor,
-        moments * padding_factor,
-        this.col * padding_factor,
-      ),
+      new Vector3(this.row * padding_factor, moments * padding_factor, this.col * padding_factor),
     ];
     return new QubitLine(coords[0], coords[1]);
   }
@@ -68,11 +64,7 @@ export class GridQubit extends Group {
   private addLocationLabel(padding_factor: number): QubitLabel {
     const sprite = new QubitLabel(`(${this.row}, ${this.col})`);
     sprite.position.copy(
-      new Vector3(
-        this.row * padding_factor,
-        -0.6 * padding_factor,
-        this.col * padding_factor,
-      ),
+      new Vector3(this.row * padding_factor, -0.6 * padding_factor, this.col * padding_factor),
     );
     return sprite;
   }

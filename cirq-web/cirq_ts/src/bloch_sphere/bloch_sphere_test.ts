@@ -39,13 +39,9 @@ describe('BlochSphere (with empty constructor)', () => {
   // and then test that it's what we want.
   const children = bloch_sphere.children;
 
-  const sphere = children.find(
-    child => child.constructor.name === 'Sphere',
-  ) as Sphere;
+  const sphere = children.find(child => child.constructor.name === 'Sphere') as Sphere;
 
-  const meridians = children.filter(
-    child => child.constructor.name === 'Meridians',
-  ) as Meridians[];
+  const meridians = children.filter(child => child.constructor.name === 'Meridians') as Meridians[];
 
   const horizontalMeridians = meridians.find(
     child => child.orientation === Orientation.HORIZONTAL,
@@ -55,13 +51,9 @@ describe('BlochSphere (with empty constructor)', () => {
     child => child.orientation === Orientation.VERTICAL,
   ) as Meridians;
 
-  const axes = children.find(
-    child => child.constructor.name === 'Axes',
-  ) as Axes;
+  const axes = children.find(child => child.constructor.name === 'Axes') as Axes;
 
-  const labels = children.find(
-    child => child.constructor.name === 'Labels',
-  ) as Labels;
+  const labels = children.find(child => child.constructor.name === 'Labels') as Labels;
 
   it('adds a single BlochSphere of type Group', () => {
     const children = scene.children;
@@ -73,9 +65,7 @@ describe('BlochSphere (with empty constructor)', () => {
 
   describe('child group (Sphere, Meridians, etc.)', () => {
     it('Sphere contains the correct number of components', () => {
-      const sphereExists = children.find(
-        child => child.constructor.name === 'Sphere',
-      );
+      const sphereExists = children.find(child => child.constructor.name === 'Sphere');
       expect(sphereExists).to.not.equal(undefined);
     });
 
@@ -87,16 +77,12 @@ describe('BlochSphere (with empty constructor)', () => {
     });
 
     it('Axes exist', () => {
-      const axesExists = children.some(
-        child => child.constructor.name === 'Axes',
-      );
+      const axesExists = children.some(child => child.constructor.name === 'Axes');
       expect(axesExists).to.equal(true);
     });
 
     it('Labels exist', () => {
-      const labelsExists = children.some(
-        child => child.constructor.name === 'Labels',
-      );
+      const labelsExists = children.some(child => child.constructor.name === 'Labels');
       expect(labelsExists).to.equal(true);
     });
   });
@@ -162,13 +148,9 @@ describe('BlochSphere (with valid custom constructor values)', () => {
   const bloch_sphere = new BlochSphere(3, 9, 6);
   const children = bloch_sphere.children;
 
-  const sphere = children.find(
-    child => child.constructor.name === 'Sphere',
-  ) as Sphere;
+  const sphere = children.find(child => child.constructor.name === 'Sphere') as Sphere;
 
-  const meridians = children.filter(
-    child => child.constructor.name === 'Meridians',
-  ) as Meridians[];
+  const meridians = children.filter(child => child.constructor.name === 'Meridians') as Meridians[];
 
   const horizontalMeridians = meridians.find(
     child => child.orientation === Orientation.HORIZONTAL,
@@ -229,8 +211,7 @@ describe('BlochSphere (with valid custom constructor values)', () => {
 describe('BlochSphere (with invalid custom constructor values)', () => {
   it('fails correctly if given an invalid radius', () => {
     const inputs = [0, -1];
-    const errorMessage =
-      'The radius of a Sphere must be greater than or equal to 1';
+    const errorMessage = 'The radius of a Sphere must be greater than or equal to 1';
 
     inputs.forEach(input => {
       expect(() => new BlochSphere(input)).to.throw(errorMessage);
