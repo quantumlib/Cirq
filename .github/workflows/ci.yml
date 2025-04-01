@@ -378,7 +378,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: notebook-outputs
@@ -399,7 +399,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
       - name: Persist the outputs
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: notebook-outputs
