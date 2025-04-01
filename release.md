@@ -7,7 +7,7 @@ Note that Cirq development takes place on the `main` branch in GitHub. If you
 want to use a more stable version of Cirq, you should use one of the
 [releases](https://github.com/quantumlib/Cirq/releases) or install the package
 from PyPI using `pip install cirq`. The release from the latest commit to `main`
-can be installed with `pip install cirq~=1.0.dev`.
+can be installed with `pip install --upgrade cirq~=1.0.dev`.
 
 ## Versioning
 
