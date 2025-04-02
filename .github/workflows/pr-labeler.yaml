@@ -22,7 +22,14 @@ run-name: >-
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types:
+      - opened
+      - synchronize
+
+  pull_request_target:
+    branches:
+      - main
+      - master
 
   # Allow manual invocation.
   workflow_dispatch:
