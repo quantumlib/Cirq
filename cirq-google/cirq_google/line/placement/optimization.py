@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import math
-
 from typing import Callable, Optional, Tuple, TypeVar
 
 T = TypeVar('T')

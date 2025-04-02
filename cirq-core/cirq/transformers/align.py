@@ -16,6 +16,7 @@
 
 import dataclasses
 from typing import Optional, TYPE_CHECKING
+
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
 

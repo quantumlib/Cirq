@@ -15,9 +15,10 @@
 """Utility methods for efficiently preparing two qubit states."""
 
 from typing import List, TYPE_CHECKING
+
 import numpy as np
 
-from cirq import ops, qis, circuits
+from cirq import circuits, ops, qis
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:

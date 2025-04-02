@@ -14,13 +14,14 @@
 
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
-from typing import Any, Dict, List, Optional, Set, Sequence, Tuple, TYPE_CHECKING
 import itertools
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING
+
 import networkx as nx
 
 from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
-from cirq.transformers.routing import mapping_manager, line_initial_mapper
+from cirq.transformers.routing import line_initial_mapper, mapping_manager
 
 if TYPE_CHECKING:
     import cirq

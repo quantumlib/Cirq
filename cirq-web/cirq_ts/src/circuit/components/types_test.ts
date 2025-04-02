@@ -122,9 +122,7 @@ describe('Symbol3D', () => {
       expect(ctrlSymbol?.position.z).to.equal(0);
       expect(ctrlSymbol?.position.y).to.equal(1);
 
-      const xSymbol = symbolObj.children.find(
-        child => child.constructor.name === 'X3DSymbol',
-      );
+      const xSymbol = symbolObj.children.find(child => child.constructor.name === 'X3DSymbol');
       expect(xSymbol).to.not.equal(undefined);
       expect(xSymbol?.position.x).to.equal(0);
       expect(xSymbol?.position.z).to.equal(1);
@@ -189,9 +187,7 @@ describe('Symbol3D', () => {
       );
       expect(boxSymbols.length).to.equal(2);
 
-      const xSymbol = symbolObj.children.find(
-        child => child.constructor.name === 'X3DSymbol',
-      );
+      const xSymbol = symbolObj.children.find(child => child.constructor.name === 'X3DSymbol');
       expect(xSymbol).to.not.equal(undefined);
 
       const expectedRows = [0, 0, 0];

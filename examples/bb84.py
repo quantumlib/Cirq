@@ -107,6 +107,7 @@ Actual key:     111011
 
 """
 import numpy as np
+
 import cirq
 
 

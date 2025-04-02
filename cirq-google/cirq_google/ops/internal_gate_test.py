@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 
 import cirq
 import cirq_google
-import pytest
 from cirq_google.ops import internal_gate
 from cirq_google.serialization import arg_func_langs
 

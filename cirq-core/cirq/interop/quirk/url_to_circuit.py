@@ -15,28 +15,28 @@ import json
 import urllib.parse
 from typing import (
     Any,
-    List,
+    cast,
     Dict,
+    Iterable,
+    List,
+    Mapping,
     Optional,
     Sequence,
-    cast,
-    TYPE_CHECKING,
-    Iterable,
-    Union,
-    Mapping,
     Tuple,
+    TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
 
-from cirq import devices, circuits, ops, protocols
+from cirq import circuits, devices, ops, protocols
 from cirq.interop.quirk.cells import (
     Cell,
     CellMaker,
     CellMakerArgs,
     CompositeCell,
-    generate_all_quirk_cell_makers,
     ExplicitOperationsCell,
+    generate_all_quirk_cell_makers,
 )
 from cirq.interop.quirk.cells.parse import parse_matrix
 

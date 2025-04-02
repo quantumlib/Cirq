@@ -22,8 +22,8 @@ import duet
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
-from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.engine_result import EngineResult
+from cirq_google.engine.local_simulation_type import LocalSimulationType
 
 
 def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]) -> List[EngineResult]:

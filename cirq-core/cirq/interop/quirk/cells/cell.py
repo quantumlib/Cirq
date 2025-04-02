@@ -13,20 +13,20 @@
 # limitations under the License.
 import abc
 from typing import (
+    Any,
     Callable,
-    Optional,
+    Dict,
+    Iterable,
     List,
     NamedTuple,
-    Any,
-    Iterable,
+    Optional,
     Sequence,
+    Tuple,
     TYPE_CHECKING,
     Union,
-    Dict,
-    Tuple,
 )
 
-from cirq import ops, value, devices
+from cirq import devices, ops, value
 
 if TYPE_CHECKING:
     import cirq

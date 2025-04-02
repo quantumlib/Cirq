@@ -19,7 +19,6 @@ import pytest
 import cirq
 import cirq.contrib.acquaintance as cca
 
-
 circuit_diagrams = {
     (
         'undecomposed',

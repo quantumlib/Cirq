@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
 

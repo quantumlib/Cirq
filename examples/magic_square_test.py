@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
 import numpy as np
 
+import cirq
 import examples.magic_square as ms
 
 

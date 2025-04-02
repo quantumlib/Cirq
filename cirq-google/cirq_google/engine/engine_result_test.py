@@ -15,11 +15,11 @@
 import datetime
 from typing import Mapping
 
+import numpy as np
 import pandas as pd
 
 import cirq
 import cirq_google as cg
-import numpy as np
 
 _DT = datetime.datetime(2022, 4, 1, 1, 23, 45, tzinfo=datetime.timezone.utc)
 

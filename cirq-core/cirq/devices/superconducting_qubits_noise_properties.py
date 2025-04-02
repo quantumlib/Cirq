@@ -18,9 +18,9 @@
 import abc
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Dict, TYPE_CHECKING, List, Set, Type
+from typing import Dict, List, Set, Type, TYPE_CHECKING
 
-from cirq import ops, devices, qis
+from cirq import devices, ops, qis
 from cirq.devices import noise_utils
 
 if TYPE_CHECKING:

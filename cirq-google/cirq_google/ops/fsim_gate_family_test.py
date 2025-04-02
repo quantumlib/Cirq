@@ -16,9 +16,10 @@
 
 from typing import List, Union
 
+import numpy as np
 import pytest
 import sympy
-import numpy as np
+
 import cirq
 import cirq_google
 

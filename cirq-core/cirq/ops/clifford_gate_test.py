@@ -21,7 +21,7 @@ import pytest
 
 import cirq
 from cirq.protocols.act_on_protocol_test import ExampleSimulationState
-from cirq.testing import EqualsTester, assert_allclose_up_to_global_phase
+from cirq.testing import assert_allclose_up_to_global_phase, EqualsTester
 
 _bools = (False, True)
 _paulis = (cirq.X, cirq.Y, cirq.Z)

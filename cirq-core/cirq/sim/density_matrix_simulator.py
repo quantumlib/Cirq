@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq import ops, protocols, study, value
 from cirq._compat import proper_repr
-from cirq.sim import simulator, density_matrix_simulation_state, simulator_base
+from cirq.sim import density_matrix_simulation_state, simulator, simulator_base
 
 if TYPE_CHECKING:
     import cirq

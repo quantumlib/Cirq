@@ -12,22 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import DefaultDict, Dict, Iterator, Sequence, TYPE_CHECKING, Optional
-
 import abc
 from collections import defaultdict
+from typing import DefaultDict, Dict, Iterator, Optional, Sequence, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, transformers
-
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
+from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 from cirq.contrib.acquaintance.permutation import (
-    PermutationGate,
+    LogicalGates,
     LogicalIndex,
     LogicalIndexSequence,
-    LogicalGates,
     LogicalMapping,
+    PermutationGate,
 )
-from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 
 if TYPE_CHECKING:
     import cirq

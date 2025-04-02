@@ -14,8 +14,7 @@
 
 from typing import Iterator, Tuple
 
-from cirq import ops, circuits, transformers
-
+from cirq import circuits, ops, transformers
 from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
 
 

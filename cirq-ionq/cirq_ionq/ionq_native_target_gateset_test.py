@@ -13,12 +13,11 @@
 # limitations under the License.
 """Tests transpiling of circuits using the IonQ native gate set."""
 
-import cirq
 import numpy as np
 import pytest
 
-from cirq_ionq.ionq_native_target_gateset import AriaNativeGateset
-from cirq_ionq.ionq_native_target_gateset import ForteNativeGateset
+import cirq
+from cirq_ionq.ionq_native_target_gateset import AriaNativeGateset, ForteNativeGateset
 
 
 # test object representation

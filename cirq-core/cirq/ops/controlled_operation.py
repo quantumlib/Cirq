@@ -22,22 +22,22 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Union,
     TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
 
 from cirq import protocols, qis, value
 from cirq.ops import (
-    controlled_gate,
     common_gates,
+    control_values as cv,
+    controlled_gate,
     eigen_gate,
     gate_operation,
     matrix_gates,
     op_tree,
     raw_types,
-    control_values as cv,
 )
 
 if TYPE_CHECKING:

@@ -11,26 +11,32 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional, Union, Dict, Any
 import functools
-from math import sqrt
 import json
-import numpy as np
+from math import sqrt
+from typing import Any, Dict, List, Optional, Union
+
 import networkx as nx
-import cirq
+import numpy as np
 from pyquil.quantum_processor import QCSQuantumProcessor
 from qcs_sdk.client import QCSClient
-from qcs_sdk.qpu.isa import get_instruction_set_architecture, InstructionSetArchitecture, Family
+from qcs_sdk.qpu.isa import Family, get_instruction_set_architecture, InstructionSetArchitecture
+
+import cirq
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 
+@deprecated_cirq_rigetti_class()
 class UnsupportedQubit(ValueError):
     pass
 
 
+@deprecated_cirq_rigetti_class()
 class UnsupportedRigettiQCSOperation(ValueError):
     pass
 
 
+@deprecated_cirq_rigetti_class()
 class UnsupportedRigettiQCSQuantumProcessor(ValueError):
     pass
 
@@ -45,6 +51,7 @@ _forward_line_qubit_mapping = [5, 4, 3, 2]
 _reverse_line_qubit_mapping = [1, 0, 7, 6]
 
 
+@deprecated_cirq_rigetti_class()
 @cirq.value.value_equality
 class RigettiQCSAspenDevice(cirq.devices.Device):
     """A cirq.Qid supporting Rigetti QCS Aspen device topology."""
@@ -232,6 +239,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         return cls(isa=InstructionSetArchitecture.from_raw(json.dumps(isa)))
 
 
+@deprecated_cirq_rigetti_function()
 def get_rigetti_qcs_aspen_device(
     quantum_processor_id: str, client: Optional[QCSClient] = None
 ) -> RigettiQCSAspenDevice:
@@ -254,6 +262,7 @@ def get_rigetti_qcs_aspen_device(
     return RigettiQCSAspenDevice(isa=isa)
 
 
+@deprecated_cirq_rigetti_class()
 class OctagonalQubit(cirq.ops.Qid):
     """A cirq.Qid supporting Octagonal indexing."""
 
@@ -369,6 +378,7 @@ class OctagonalQubit(cirq.ops.Qid):
         return {'octagon_position': self.octagon_position}
 
 
+@deprecated_cirq_rigetti_class()
 class AspenQubit(OctagonalQubit):
     def __init__(self, octagon: int, octagon_position: int):
         super(AspenQubit, self).__init__(octagon_position)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, cast
+from typing import cast, Tuple
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset

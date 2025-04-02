@@ -15,17 +15,17 @@
 """Transformer pass that adds dynamical decoupling operations to a circuit."""
 
 from functools import reduce
-from typing import Dict, Optional, Tuple, Union, TYPE_CHECKING
 from itertools import cycle
-
-from cirq import ops, circuits, protocols
-from cirq.transformers import transformer_api
-from cirq.transformers.analytical_decompositions import single_qubit_decompositions
-from cirq.protocols import unitary_protocol
-from cirq.protocols.has_unitary_protocol import has_unitary
-from cirq.protocols.has_stabilizer_effect_protocol import has_stabilizer_effect
+from typing import Dict, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
+
+from cirq import circuits, ops, protocols
+from cirq.protocols import unitary_protocol
+from cirq.protocols.has_stabilizer_effect_protocol import has_stabilizer_effect
+from cirq.protocols.has_unitary_protocol import has_unitary
+from cirq.transformers import transformer_api
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:
     import cirq

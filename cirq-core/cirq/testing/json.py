@@ -18,12 +18,13 @@ import io
 import pathlib
 from dataclasses import dataclass
 from types import ModuleType
-from typing import List, Type, Dict, Iterator, Tuple, Set
+from typing import Dict, Iterator, List, Set, Tuple, Type
 
 import numpy as np
 import pandas as pd
 
 import cirq
+from cirq.protocols.json_serialization import ObjectFactory
 
 # This is the testing framework for json serialization
 # The actual tests live in cirq.protocols.json_serialization_test.py.
@@ -36,8 +37,6 @@ import cirq
 #       cirq/google/json_test_data/spec.py
 #  - resolver cache: a resolver cache for the exposed types - see for example
 #       cirq/json_resolver_cache.py or cirq/google/json_resolver_cache.py
-
-from cirq.protocols.json_serialization import ObjectFactory
 
 
 @dataclass

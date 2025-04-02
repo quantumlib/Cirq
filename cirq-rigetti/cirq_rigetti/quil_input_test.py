@@ -16,39 +16,38 @@ from inspect import signature
 
 import numpy as np
 import pytest
-
+import sympy
 from pyquil.quil import Program
-from pyquil.quilbase import Parameter, DefGate
-from pyquil.quilatom import quil_cos, quil_sin, quil_exp
+from pyquil.quilatom import quil_cos, quil_exp, quil_sin
+from pyquil.quilbase import DefGate, Parameter
 from pyquil.simulation import matrices
 from pyquil.simulation.tools import program_unitary
 
-import sympy
 import cirq
-from cirq import Circuit, LineQubit
-from cirq import Simulator, unitary
+from cirq import Circuit, LineQubit, Simulator, unitary
 from cirq.linalg.predicates import allclose_up_to_global_phase
+from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, XPowGate, YPowGate, ZPowGate
+from cirq.ops.identity import I
+from cirq.ops.measurement_gate import MeasurementGate
+from cirq.ops.pauli_gates import X, Y, Z
+from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
+from cirq.ops.three_qubit_gates import CCNOT, CSWAP
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 from cirq_rigetti.quil_input import (
-    UndefinedQuilGate,
-    UnsupportedQuilInstruction,
-    SUPPORTED_GATES,
-    PARAMETRIC_TRANSFORMERS,
+    circuit_from_quil,
     CPHASE00,
     CPHASE01,
     CPHASE10,
-    PSWAP,
-    circuit_from_quil,
     defgate_to_cirq,
+    PARAMETRIC_TRANSFORMERS,
+    PSWAP,
+    SUPPORTED_GATES,
+    UndefinedQuilGate,
+    UnsupportedQuilInstruction,
 )
 
-from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, ZPowGate, YPowGate, XPowGate
-from cirq.ops.pauli_gates import X, Y, Z
-from cirq.ops.identity import I
-from cirq.ops.measurement_gate import MeasurementGate
-from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
-from cirq.ops.three_qubit_gates import CCNOT, CSWAP
 
-
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_gate_conversion():
     """Check that the gates all convert with matching unitaries."""
     for quil_gate, cirq_gate in SUPPORTED_GATES.items():
@@ -101,6 +100,7 @@ MEASURE 2 ro[2]
 """
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_circuit_from_quil():
     """Convert a test circuit from Quil with a wide range of gates."""
     q0, q1, q2 = LineQubit.range(3)
@@ -164,6 +164,7 @@ MYZ 0
 """
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_quil_with_defgate():
     """Convert a Quil program with a DefGate."""
     q0 = LineQubit(0)
@@ -182,6 +183,7 @@ MYPHASE(pi/2) 0
 """
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_program_with_parameterized_defgate():
     """Convert a Quil program with a parameterized DefGate."""
     program = Program(QUIL_PROGRAM_WITH_PARAMETERIZED_DEFGATE)
@@ -193,6 +195,7 @@ def test_program_with_parameterized_defgate():
     assert allclose_up_to_global_phase(pyquil_unitary, cirq_unitary, atol=1e-8)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_unsupported_quil_instruction():
     """Convert a program with invalid or unsupported instructions."""
     with pytest.raises(UnsupportedQuilInstruction):
@@ -202,6 +205,7 @@ def test_unsupported_quil_instruction():
         circuit_from_quil("RESET")
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_undefined_quil_gate():
     """There are no such things as FREDKIN & TOFFOLI in Quil. The standard
     names for those gates in Quil are CSWAP and CCNOT. Of course, they can
@@ -224,6 +228,7 @@ RX(2*COS(theta[3])*EXP(i*theta[3])) 4
 """
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_quil():
     """Convert a program which uses parameters and expressions."""
     program = Program(QUIL_PROGRAM_WITH_PARAMETERS)
@@ -253,6 +258,7 @@ def test_parametric_quil():
     assert cirq_circuit == circuit
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_measurement_without_classical_reg():
     """Measure operations must declare a classical register."""
     with pytest.raises(UnsupportedQuilInstruction):
@@ -270,6 +276,7 @@ MEASURE 0 ro[0]
 """
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_readout_noise():
     """Convert a program with readout noise."""
     program = Program(QUIL_PROGRAM_WITH_READOUT_NOISE)
@@ -280,6 +287,7 @@ def test_readout_noise():
     assert result.histogram(key="ro[0]")[1] > 900
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_resolve_parameters():
     """Test that parameters are correctly resolved for defined parametric gate."""
     theta, beta = Parameter("theta"), Parameter("beta")
@@ -303,6 +311,7 @@ def test_resolve_parameters():
     op._resolve_parameters_({"beta": 1.0, "theta": 2.0}, True)
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_op_identifier():
     """Check that converted parametric defgates will be correctly identified."""
     theta, beta = Parameter("theta"), Parameter("beta")

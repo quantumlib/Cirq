@@ -14,8 +14,10 @@
 
 
 from typing import Any
-import cirq
+
 import numpy as np
+
+import cirq
 
 
 def assert_unitary_is_consistent(val: Any, ignoring_global_phase: bool = False):

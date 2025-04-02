@@ -1,16 +1,23 @@
 # Style guidelines
 
 As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) we use use [Pylint](https://pylint.pycqa.org/)
-to check for style violations.  Pylint attempts to enforce styles in 
-[PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the 
+to check for style violations.  Pylint attempts to enforce styles in
+[PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the
 [dev_tools/conf/.pylintrc](https://github.com/quantumlib/Cirq/blob/main/dev_tools/conf/.pylintrc) file.
 
 Here we include some extra style guidelines.
 
 ## Import statements
 
-We follow the [import standards](https://www.python.org/dev/peps/pep-0008/#imports) of PEP 8, 
-with the following guidance.  
+We follow the [import standards](https://www.python.org/dev/peps/pep-0008/#imports) of PEP 8,
+with the following guidance.
+
+### Module import path conventions
+
+We use two different conventions for Python `import` statements, depending on whether the `import`
+statement is in main implementation code or test code.
+
+#### Normal code
 
 In Cirq's main implementation code (not testing code), we prefer importing the full module. This
 aids in mocking during tests.  Thus we prefer
@@ -22,42 +29,52 @@ in contrast to
 ```python
 from cirq.ops import NamedQubit
 qubit = NamedQubit('a')
-``` 
+```
 or (the one we would prefer, but doing this causes cyclic dependencies)
 ```python
 import cirq
 qubit = cirq.NamedQubit('a')
 ```
-The one exception to this is for the typing code, where we prefer the direct import 
+The one exception to this is for the typing code, where we prefer the direct import
 ```python
 from typing import List
 ```
-This exception allows typing hints to be more compact. 
+This exception allows typing hints to be more compact.
 
-In tests, however, we prefer that we use Cirq as you would use cirq externally. For code
-that is in the Cirq core framework this is
+#### Test code
+
+In tests, however, we prefer that we use Cirq as you would use Cirq externally. For code
+that is in the Cirq core framework, this is
 ```python
 import cirq
 qubit = cirq.NamedQubit('a')
 ```
-For Cirq code that is outside of the core and does not appear at the `cirq` module level, 
+For Cirq code that is outside of the core and does not appear at the `cirq` module level,
 for example work in `contrib`, one should use the highest level possible for test code
 ```python
 import cirq
 from cirq import contrib
 contrib.circuit_to_latex_using_qcircuit(cirq.Circuit())
-``` 
+```
 
 Of course, if this import style fundamentally cannot be used, do not let this
 block submitting a pull request for the code as we will definitely grant
 exceptions.
+
+### Ordering of module import statements
+
+The import statements are alphabetically ordered in 3 groups for standard Python modules,
+third-party modules, and for internal Cirq imports.  This ordering is enforced by the CI.
+In a local development environment, the import statements can be sorted either by using
+the [isort](https://pycqa.github.io/isort/) program or by running the
+`check/format-incremental` script.
 
 ## Type annotations
 
 Cirq makes extensive use of type annotations as defined by
 [PEP 484](https://peps.python.org/pep-0484/). All new code should use type
 annotations where possible, especially on public classes and functions to serve
-as documentation, but also on internal code so that the mypy typechecker can
+as documentation, but also on internal code so that the mypy type checker can
 help catch coding errors.
 
 For documentation purposes in particular, type annotations should match the way
@@ -90,8 +107,8 @@ later in the same file.
 
 ## Nomenclature
 
-Using consistent wording across Cirq is important for lowering users
-cognitive load. For rule governing naming, see the 
+Using consistent wording across Cirq is important for lowering users'
+cognitive load. For rule governing naming, see the
 [nomenclature guidelines](nomenclature.md).
 
 ## Datetimes
@@ -104,7 +121,7 @@ dt = datetime.datetime.now(tz=datetime.timezone.utc)
 ```
 
 Public components of Protobuf APIs will return "aware" `datetime` objects.
-JSON de-serialization will promote values to "aware" `datetime` objects upon deserialization. 
+JSON de-serialization will promote values to "aware" `datetime` objects upon deserialization.
 
 Comparing (or testing equality) between "naive" and "aware" `datetime` objects throws
 an exception.

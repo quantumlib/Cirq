@@ -15,7 +15,7 @@ from typing import Any, Iterator, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import linalg, protocols, value, _compat
+from cirq import _compat, linalg, protocols, value
 from cirq.ops import linear_combinations, pauli_string_phasor
 
 if TYPE_CHECKING:

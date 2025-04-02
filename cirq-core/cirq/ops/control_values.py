@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from functools import cached_property
-from typing import Collection, Tuple, TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union
 import itertools
+from functools import cached_property
+from typing import Any, Collection, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 from cirq import protocols, value
 

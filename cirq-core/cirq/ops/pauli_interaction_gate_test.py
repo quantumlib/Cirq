@@ -13,13 +13,12 @@
 # limitations under the License.
 
 import itertools
-import pytest
+
 import numpy as np
+import pytest
 import sympy
 
-
 import cirq
-
 
 _bools = (False, True)
 _paulis = (cirq.X, cirq.Y, cirq.Z)

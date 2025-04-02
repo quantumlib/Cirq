@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 
 import cirq
-
+from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq.experiments.z_phase_calibration import (
     calibrate_z_phases,
-    z_phase_calibration_workflow,
-    plot_z_phase_calibration_result,
     CalibrationTransformer,
+    plot_z_phase_calibration_result,
+    z_phase_calibration_workflow,
 )
-from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 
 _ANGLES = ['theta', 'phi', 'chi', 'zeta', 'gamma']
 # fix random generator seed to ensure reproducibility and faster convergence

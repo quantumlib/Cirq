@@ -36,15 +36,14 @@ from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import (
     common_gates,
+    control_values as cv,
     controlled_gate,
     eigen_gate,
     gate_features,
+    global_phase_op,
     pauli_gates,
     raw_types,
     swap_gates,
-    raw_types,
-    control_values as cv,
-    global_phase_op,
 )
 
 if TYPE_CHECKING:

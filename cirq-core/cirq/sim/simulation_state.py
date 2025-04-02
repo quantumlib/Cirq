@@ -24,16 +24,15 @@ from typing import (
     Optional,
     Sequence,
     Set,
-    TypeVar,
-    TYPE_CHECKING,
     Tuple,
+    TYPE_CHECKING,
+    TypeVar,
 )
-from typing_extensions import Self
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq import ops, protocols, value
-
 from cirq.sim.simulation_state_base import SimulationStateBase
 
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')

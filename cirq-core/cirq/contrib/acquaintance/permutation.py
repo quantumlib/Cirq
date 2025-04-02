@@ -23,9 +23,9 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    TYPE_CHECKING,
     TypeVar,
     Union,
-    TYPE_CHECKING,
 )
 
 from cirq import circuits, ops, protocols, transformers, value

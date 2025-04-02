@@ -1,13 +1,17 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import cast
+
 import pytest
-import cirq
 from pyquil import get_qc
 from pyquil.api import QVM
+
+import cirq
 from cirq_rigetti import RigettiQCSSampler
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.mark.rigetti_integration
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_bell_circuit_through_sampler(bell_circuit: cirq.Circuit) -> None:
     """test that RigettiQCSSampler can run a basic bell circuit on the QVM and return an accurate
     ``cirq.study.Result``.

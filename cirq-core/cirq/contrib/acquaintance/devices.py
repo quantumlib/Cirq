@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, TYPE_CHECKING
-
 import abc
+from typing import TYPE_CHECKING, Union
 
 from cirq import circuits, devices, ops
-from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate, SwapNetworkGate
 from cirq.contrib.acquaintance.bipartite import BipartiteSwapNetworkGate
-from cirq.contrib.acquaintance.shift_swap_network import ShiftSwapNetworkGate
+from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate, SwapNetworkGate
 from cirq.contrib.acquaintance.permutation import PermutationGate
+from cirq.contrib.acquaintance.shift_swap_network import ShiftSwapNetworkGate
 
 if TYPE_CHECKING:
     import cirq

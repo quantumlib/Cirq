@@ -26,12 +26,7 @@ import {BlochSphere} from './bloch_sphere';
  * @param hMeridians The designated number of horizontal meridians of the Bloch sphere
  * @param vMeridians The designated number of vertical meridians in the Bloch sphere
  */
-export function renderBlochSphere(
-  containerId: string,
-  radius = 5,
-  hMeridians = 7,
-  vMeridians = 4,
-) {
+export function renderBlochSphere(containerId: string, radius = 5, hMeridians = 7, vMeridians = 4) {
   const scene = new BlochSphereScene();
   scene.addSceneToHTMLContainer(containerId);
 

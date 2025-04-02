@@ -40,7 +40,9 @@ x:  -0.1647 y:  -0.9829 z:  0.082
 """
 
 import random
+
 import numpy as np
+
 import cirq
 
 

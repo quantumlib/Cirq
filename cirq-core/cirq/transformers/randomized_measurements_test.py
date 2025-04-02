@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq
 import cirq.transformers.randomized_measurements as rand_meas
-import pytest
 
 
 def test_randomized_measurements_appends_two_moments_on_returned_circuit():

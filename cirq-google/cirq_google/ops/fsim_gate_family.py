@@ -14,10 +14,11 @@
 
 """Define FSimGateFamily used to convert/accept `cirq.FSimGate` and other related gate types"""
 
-from typing import Any, Callable, cast, Dict, Iterable, Optional, Type, TypeVar, Sequence, Union
+from typing import Any, Callable, cast, Dict, Iterable, Optional, Sequence, Type, TypeVar, Union
 
-import sympy
 import numpy as np
+import sympy
+
 import cirq
 from cirq.ops.gateset import _gate_str
 

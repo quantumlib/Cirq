@@ -14,7 +14,7 @@
 
 import string
 from types import NotImplementedType
-from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, Iterable
+from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING, TypeVar, Union
 
 from typing_extensions import Protocol
 

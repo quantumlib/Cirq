@@ -14,7 +14,7 @@
 
 """Target gateset used for compiling circuits to √iSWAP + 1-q rotations + measurement gates."""
 
-from typing import Any, Dict, Optional, Sequence, Type, Union, TYPE_CHECKING
+from typing import Any, Dict, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 from cirq import ops, protocols
 from cirq.protocols.decompose_protocol import DecomposeResult

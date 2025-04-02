@@ -27,10 +27,8 @@ The following are the kinds of issues that Cirq uses:
 * `kind/bug-report`: a report that something doesn’t work
 * `kind/design-issue`: a topic that needs software design
 * `kind/feature-request`: a request for new functionality
-* `kind/question`: the issue is actually a question (in which case, it should be closed after being answered, and the user may be pointed to other resources if appropriate, such as the Quantum Computing Stack Exchange for general usage questions)
 * `kind/health`: for CI/testing/release process/refactoring/technical debt items
-* `kind/docs`: documentation problems, ideas, requests
-* `kind/roadmap-item`: for higher-level roadmap items to capture conversations and feedback (not for project tracking)
+* `kind/question`: the issue is actually a question (in which case, it should be closed after being answered, and the user may be pointed to other resources if appropriate, such as the Quantum Computing Stack Exchange for general usage questions)
 * `kind/task`: for tracking progress on larger efforts
 
 For most issues, there are the following phases:
@@ -38,8 +36,8 @@ For most issues, there are the following phases:
 * **Triage** to decide whether we want to take on this issue at all,
 * **Prioritization** of how urgent it is,
 * Identifying the relevant feature **area**,
-* Signalling its anticipated **difficulty**,
-* Signalling the amount of expected **work**,
+* Signaling its anticipated **difficulty**,
+* Signaling the amount of expected **work**,
 * **Assigning** work,
 * And (eventually) **closing**.
 
@@ -51,12 +49,11 @@ In the following subsections, we explore these phases one by one.
 The triage states are:
 
 * `triage/accepted` – there is consensus among the maintainers that this is a real bug, or a reasonable feature to add with a reasonable design, and hence it is ready to be implemented
-* `triage/duplicate` – for issues that turn out to be essentially the same as other existing issues (in which case, they're likely to be closed)
 * `triage/discuss` – can be added to any issue type to bring them up during the next Cirq Cynq meeting and/or to signal need for a decision (in addition, consider also pinging the maintainers who need to come to consensus around the issue)
-* `triage/needs-reproduction` – for bugs only
+* `triage/duplicate` – for issues that turn out to be essentially the same as other existing issues (in which case, they're likely to be closed)
 * `triage/needs-feasibility` – for feature requests (maybe bugs)
-* `triage/needs-more-evidence` – for plausible requests that nevertheless need more compelling evidence about their value for enough users to warrant implemention and maintenance
-* `triage/stale` – issues are automatically marked stale after 90 days of inactivity, and closed 60 days after that
+* `triage/needs-more-evidence` – for plausible requests that nevertheless need more compelling evidence about their value for enough users to warrant implementation and maintenance
+* `triage/needs-reproduction` – for bugs only
 * `triage/wont-fix` – for when the decision is against pursuing something (perhaps because the thing in question is working as designed, or because changing it is impractical, or some other reason)
 
 The workflows are illustrated below.
@@ -75,9 +72,7 @@ Figure 2. Feature request workflow (to edit, see [mermaid source](https://mermai
 
 #### Other issue types
 
-For `kind/docs`, the label `triage/accepted` has to be added by at least one of the maintainers.
-
-For `kind/health`, `kind/roadmap-item` and `kind/task`, there is no particular intake workflow, as we assume that only maintainers create them to track specific work items.
+For `kind/health` and `kind/task`, there is no particular intake workflow, as we assume that only maintainers create them to track specific work items.
 
 ### Prioritization
 
@@ -94,7 +89,7 @@ Features and Bugs with no priority label on them will still be up for grabs for 
 The goal of [feature area labels](https://github.com/quantumlib/Cirq/labels?q=area) are to enable easy filtering to certain areas. This can help during planning, exploring problematic areas, and finding duplicate issues. Multiple `area/*` labels can be added to a single issue.
 
 
-### Signalling difficulty
+### Signaling difficulty
 
 Difficulty is a function of
 
@@ -111,10 +106,10 @@ Difficulty is a function of
 
 * `none`: no special background knowledge required
 * `beginner`: little to no background knowledge is required in the given `area/*` labels
-* `advanced`: requires solid understanding at least one of the areas signalled by the `area/*` labels
+* `advanced`: requires solid understanding at least one of the areas signaled by the `area/*` labels
 * `expert`: requires deep insight about one or more `area/*` labels to design the right abstractions
 
-### Signalling work for contributors
+### Signaling work for contributors
 
 * `good first issue`: (`level/beginner` in the areas needed and `complexity/low` to `complexity/medium`) – the issue is relatively small, self contained, doesn't require too much quantum-computing knowledge
 * `good for learning`: (`level/advanced` in the areas needed and `complexity/low`) – the issue is relatively small, self contained, but requires digging into some areas and develop a solid understanding. Should be a bit harder than "good first issues".
@@ -127,7 +122,7 @@ After an issue arrives to `triage/accepted` there can be two avenues: it is read
 
 When an issue is ready to be implemented, no extra label is required to signal the readiness, because that is the default.
 
-However, when there is a need for design, we add the label `needs agreed design`. The design could be as lightweight as a discussion in the issue itself or a full-fledged [RFC proposal](rfc_process.md) which should be clear from the comments.
+However, when there is a need for design, we add the label `status/needs agreed design`. The design could be as lightweight as a discussion in the issue itself or a full-fledged [RFC proposal](rfc_process.md) which should be clear from the comments.
 
 ### Assigning work
 
@@ -142,29 +137,28 @@ Assignment should be a function of
 
 Issues should be automatically closed by PRs using the `Fixes #XYZD.` phrase in their description or manually, referring to the PR in case the PR author forgot to add the phrase.
 
-### Stale issues
+### Handling stale issues
 
+Issues and pull requests that have not had any activity for 90 days or more are automatically
+labeled with `status/stale` and get a comment explaining why. If an issue or PR does not have
+any update in 60 days after that, it is automatically closed.
 
-- Bugs and Feature requests in states `triage/needs-reproduction` and `triage/needs-design-work`, i.e., where the author is required to provide more details get an automated comment "*This issue has not received any updates in 90 days*" and then is marked as `triage/stale` after 60 days and are closed.
-- Documentation (`kind/docs`) issues **without** `triage/accepted` or `triage/discuss` are subject to 90 days staleness policy as well.
-- Roadmap-items and Tasks, and issues in `triage/accepted` or `triage/discuss` state never get stale automatically, they are subject to review during daily/weekly triage and the twice a year **Bug Smash**.
+Exceptions are made for issues and PRs with the following labels:
 
-To summarize, **all issues** are subject to staleness-check, **except** the following:
-
+* `kind/design-issue` (for issues only)
+* `kind/health` (for issues only)
+* `kind/task` (for issues only)
+* `roadmap`
 * `triage/accepted`
 * `triage/discuss`
-* `kind/health`
-* `kind/roadmap-item`
-* `kind/task`
 
-The staleness check automation is implemented via GitHub Actions, the latest definition of staleness is defined in [our staleness GitHub Action workflow](https://github.com/quantumlib/Cirq/blob/main/.github/workflows/stale.yml).
-
+The staleness check is implemented with a GitHub Actions workflow. The current definition of staleness is defined in [the workflow file](https://github.com/quantumlib/Cirq/blob/main/.github/workflows/stale.yml).
 
 ## Processes
 
 ### Daily triage
 
-**Goals:**
+**Goals**:
 
 * P0 – notice high priority issues as soon as possible and organize a fix for them.
 * P1 – keep the issue and PR backlog clean
@@ -207,11 +201,11 @@ Pull requests:
 
 * Everyone on the [cirq-dev](https://groups.google.com/g/cirq-dev) email list is invited
 
-**When:**
+**When**:
 
 * 10:00AM-11:00PM Pacific Time Wednesdays
 
-**What:**
+**What**:
 
 Cirq Cynq (join [cirq-dev](https://groups.google.com/g/cirq-dev) to get an invite!) should be the place to discuss the following:
 
@@ -221,19 +215,19 @@ Cirq Cynq (join [cirq-dev](https://groups.google.com/g/cirq-dev) to get an invit
 
 ### Bug smash – every 6 months
 
-**Goals:**
+**Goals**:
 * Keep the triage alive: catch up on untriaged issues
 * Keep the backlog of issues clean and relevant
 * Use the outstanding backlog as the driver for roadmap planning
 
-**Who:**
+**Who**:
 
 * Core maintainers
 
-**When:**
+**When**:
 
 * Every 6 months
 
-**What:**
+**What**:
 
-Every 6 months, after every other release, the team should come together and review `triage/accepted` items and revisit them. This is also a chance to catchup on daily triage in case it slipped.
+Every 6 months, after every other release, the team should come together and review `triage/accepted` items and revisit them. This is also a chance to catch up on daily triage in case it slipped.

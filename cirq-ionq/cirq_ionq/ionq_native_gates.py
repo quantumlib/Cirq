@@ -13,10 +13,10 @@
 # limitations under the License.
 """Native gates for IonQ hardware"""
 
-from typing import Any, Dict, Sequence, Union
-
 import cmath
 import math
+from typing import Any, Dict, Sequence, Union
+
 import numpy as np
 
 import cirq

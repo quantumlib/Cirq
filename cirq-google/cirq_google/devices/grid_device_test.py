@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest.mock as mock
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-import unittest.mock as mock
 import pytest
 
 import cirq
@@ -23,7 +23,6 @@ import cirq_google
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
 from cirq_google.ops import Coupler
-
 
 GRID_HEIGHT = 5
 

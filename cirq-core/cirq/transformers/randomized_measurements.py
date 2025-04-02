@@ -15,8 +15,9 @@
 from collections.abc import Sequence
 from typing import Any
 
-import cirq
 import numpy as np
+
+import cirq
 from cirq.ops import SingleQubitCliffordGate
 from cirq.transformers import transformer_api
 

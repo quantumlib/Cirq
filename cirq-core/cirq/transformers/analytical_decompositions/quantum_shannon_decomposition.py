@@ -21,20 +21,19 @@ https://arxiv.org/abs/quant-ph/0406176
 """
 from typing import Callable, Iterable, List, TYPE_CHECKING
 
+import numpy as np
 from scipy.linalg import cossin
 
-import numpy as np
-
 from cirq import ops
+from cirq.circuits.frozen_circuit import FrozenCircuit
 from cirq.linalg import decompositions, predicates
-from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
-    two_qubit_matrix_to_cz_operations,
-)
+from cirq.protocols import unitary_protocol
 from cirq.transformers.analytical_decompositions.three_qubit_decomposition import (
     three_qubit_matrix_to_operations,
 )
-from cirq.protocols import unitary_protocol
-from cirq.circuits.frozen_circuit import FrozenCircuit
+from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
+    two_qubit_matrix_to_cz_operations,
+)
 
 if TYPE_CHECKING:
     import cirq

@@ -1,9 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import TYPE_CHECKING, List, Tuple, cast, Dict
+from typing import cast, Dict, List, Tuple, TYPE_CHECKING
 
-import matplotlib.textpath
 import matplotlib.font_manager
-
+import matplotlib.textpath
 
 if TYPE_CHECKING:
     import cirq

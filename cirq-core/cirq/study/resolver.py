@@ -19,6 +19,7 @@ from typing import Any, cast, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, 
 import numpy as np
 import sympy
 from sympy.core import numbers as sympy_numbers
+
 from cirq._compat import proper_repr
 from cirq._doc import document
 

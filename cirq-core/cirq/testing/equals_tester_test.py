@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import fractions
+
 import pytest
 
 from cirq.testing.equals_tester import EqualsTester

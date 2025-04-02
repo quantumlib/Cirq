@@ -127,7 +127,7 @@ See the [Calibration Metrics](calibration.md) page for more information.
 
 Circuits can be batched together.  This may improve performance in certain
 instances (when circuits measure the same qubits and have the same number
-of repetitions).  However, performance is implementation dependant and may
+of repetitions).  However, performance is implementation-dependent and may
 change as the underlying server infrastructure evolves.
 
 To use this functionality, use the `run_batch()` method of the sampler

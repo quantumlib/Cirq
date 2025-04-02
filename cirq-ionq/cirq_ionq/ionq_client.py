@@ -14,18 +14,18 @@
 """Client for making requests to IonQ's API."""
 
 import datetime
+import json.decoder as jd
+import platform
 import sys
 import time
 import urllib
-import platform
 from typing import Any, Callable, cast, Dict, List, Optional
-import json.decoder as jd
 
 import requests
 
 import cirq_ionq
-from cirq_ionq import ionq_exceptions
 from cirq import __version__ as cirq_version
+from cirq_ionq import ionq_exceptions
 
 # https://support.cloudflare.com/hc/en-us/articles/115003014512-4xx-Client-Error
 # "Cloudflare will generate and serve a 409 response for a Error 1001: DNS Resolution Error."

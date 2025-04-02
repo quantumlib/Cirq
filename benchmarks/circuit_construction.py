@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-from typing import Tuple, Set, Sequence
+from typing import Sequence, Set, Tuple
 
 import cirq
 

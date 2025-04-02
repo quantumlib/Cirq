@@ -14,7 +14,7 @@
 
 """Target gateset used for compiling circuits to CZ + 1-q rotations + measurement gates."""
 
-from typing import Any, Dict, Sequence, Type, Union, TYPE_CHECKING
+from typing import Any, Dict, Sequence, Type, TYPE_CHECKING, Union
 
 from cirq import ops, protocols
 from cirq.transformers.analytical_decompositions import two_qubit_to_cz

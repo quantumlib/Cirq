@@ -1,17 +1,17 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
 
+import matplotlib.pyplot as plt
 import networkx
 import numpy as np
 import pytest
-import matplotlib.pyplot as plt
 
 import cirq
 import examples.basic_arithmetic
 import examples.bb84
+import examples.bcs_mean_field
 import examples.bell_inequality
 import examples.bernstein_vazirani
-import examples.bcs_mean_field
 import examples.deutsch
 import examples.grover
 import examples.heatmaps

@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import json
-from typing import Any, cast, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
+from typing import Any, cast, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
+
 import numpy as np
 import sympy
 

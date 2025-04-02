@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable
-from fractions import Fraction
-from decimal import Decimal
-
 import numbers
+from decimal import Decimal
+from fractions import Fraction
+from typing import Any, Iterable
+
 import numpy as np
 import sympy
-
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private

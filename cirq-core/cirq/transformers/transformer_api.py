@@ -15,24 +15,25 @@
 """Defines the API for circuit transformers in Cirq."""
 
 import dataclasses
-import inspect
 import enum
 import functools
+import inspect
 import textwrap
 from typing import (
-    cast,
     Any,
     Callable,
-    Tuple,
+    cast,
     Hashable,
     List,
-    overload,
     Optional,
+    overload,
+    Tuple,
     Type,
     TYPE_CHECKING,
     TypeVar,
     Union,
 )
+
 from typing_extensions import Protocol
 
 from cirq import circuits

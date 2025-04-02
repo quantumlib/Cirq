@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-import pytest
 
+import pytest
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq_google.cloud import quantum

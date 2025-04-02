@@ -14,22 +14,21 @@
 
 """Defines primitives for common transformer patterns."""
 
-from collections import defaultdict
 import bisect
 import dataclasses
-
+from collections import defaultdict
 from typing import (
-    cast,
     Callable,
+    cast,
     Dict,
     Hashable,
     List,
     Optional,
     Sequence,
     Set,
-    Union,
     Tuple,
     TYPE_CHECKING,
+    Union,
 )
 
 from cirq import circuits, ops, protocols

@@ -1,6 +1,6 @@
 # Cirq modules
 
-Cirq has a modular architecture and is organized in a monorepo, all of the modules follow the same folder structure.
+Cirq has a modular architecture and is organized in a monorepo. All of the modules follow the same folder structure.
 Each module is structured as follows. Let's take as example a module named `cirq-example`:
 
 ```
@@ -21,14 +21,14 @@ cirq-example
 
 Note that typically there is only a single top level package, `cirq_example` - but there might be exceptions.
 
-Additionally, there is a metapackage "cirq" that's a completely different beast and just depends on the modules.
+Additionally, there is a metapackage named `cirq` that's a completely different beast and just depends on the modules.
 This enables `pip install cirq` to have all the included modules to be installed for our users.
 
 All modules should depend on `cirq-core`, which is the central, core library for Cirq.
 
 ## Packaging
 
-Each package gets published to PyPi as a separate package. To build all the wheel files locally, use
+Each package gets published to PyPI as a separate package. To build all the wheel files locally, use
 
 ```bash
 dev_tools/packaging/produce-package.sh ./dist `./dev_tools/packaging/generate-dev-version-id.sh`
@@ -38,13 +38,13 @@ Packages are versioned together, share the same version number, and are released
 
 ## Setting up a new module
 
-To setup a new module follow these steps:
+To set up a new module follow these steps:
 
 1. Create the folder structure above, copy the files based on an existing module
-    1. LICENSE should be the same
-    2. README.md will be the documentation that appears in PyPi
-    3. setup.py should specify an `install_requires` configuration that has `cirq-core=={module.version}` at the minimum
-2. Setup JSON serialization for each top level python package
+    1. The `LICENSE` file should be the same
+    2. The `README.md` file will be the documentation that appears in PyPI
+    3. The `setup.py` file should specify an `install_requires` configuration that has `cirq-core=={module.version}` at the minimum
+2. Set up JSON serialization for each top level Python package
 
 
 ### Setting up JSON serialization
@@ -85,7 +85,7 @@ To setup a new module follow these steps:
        ```
    2. `__init__.py` should import `TestSpec` from `spec.py`
    3. in `cirq/protocols/json_serialization_test.py` add `'cirq_example':None` to the `TESTED_MODULES` variable. `TESTED_MODULES` is also used to prepare the test framework for deprecation warnings.
-      With new modules, we use`None` as there is no deprecation setup.
+      With new modules, we use `None` as there is no deprecation setup.
 
 You can run `check/pytest-changed-files` and that should execute the script `json_serialization_test.py` as well.
 

@@ -16,8 +16,8 @@
 
 from typing import Optional
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import lines, patches
 
 from cirq.qis.states import validate_density_matrix

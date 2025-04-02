@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AsyncIterator, Dict, Optional, Union
 import asyncio
-import duet
+from typing import AsyncIterator, Dict, Optional, Union
 
+import duet
 import google.api_core.exceptions as google_exceptions
 
 from cirq_google.cloud import quantum

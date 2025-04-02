@@ -14,8 +14,12 @@
 
 """Device object representing Google devices with a grid qubit layout."""
 
+import re
+import warnings
+from dataclasses import dataclass
 from typing import (
     Any,
+    cast,
     Collection,
     Dict,
     List,
@@ -26,19 +30,13 @@ from typing import (
     Tuple,
     Type,
     Union,
-    cast,
 )
-import re
-import warnings
-from dataclasses import dataclass
 
 import cirq
-from cirq_google import ops
-from cirq_google import transformers
+from cirq_google import ops, transformers
 from cirq_google.api import v2
 from cirq_google.devices import known_devices
 from cirq_google.experimental import ops as experimental_ops
-
 
 # Gate family constants used in various parts of GridDevice logic.
 _PHASED_XZ_GATE_FAMILY = cirq.GateFamily(cirq.PhasedXZGate)

@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:

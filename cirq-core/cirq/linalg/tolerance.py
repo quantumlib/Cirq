@@ -14,7 +14,7 @@
 
 """Utility for testing approximate equality of matrices and scalars within
 tolerances."""
-from typing import Union, Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Union
 
 import numpy as np
 

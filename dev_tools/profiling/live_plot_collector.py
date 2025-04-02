@@ -1,11 +1,10 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import List, Mapping, Sequence
-
 import collections
 import time
+from typing import List, Mapping, Sequence
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import sympy
 
 import cirq

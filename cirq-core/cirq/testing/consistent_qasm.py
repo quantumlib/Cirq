@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import warnings
-from typing import Any, List, Sequence, Optional
+from typing import Any, List, Optional, Sequence
 
 import numpy as np
 

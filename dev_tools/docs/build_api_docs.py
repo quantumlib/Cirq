@@ -27,11 +27,8 @@ import os
 import types
 
 import networkx
-from absl import app
-from absl import flags
-from tensorflow_docs.api_generator import doc_controls
-from tensorflow_docs.api_generator import generate_lib
-from tensorflow_docs.api_generator import public_api
+from absl import app, flags
+from tensorflow_docs.api_generator import doc_controls, generate_lib, public_api
 
 import cirq
 import cirq_aqt
@@ -40,7 +37,6 @@ import cirq_ionq
 import cirq_pasqal
 import cirq_rigetti
 import cirq_web
-
 from cirq import _doc
 
 flags.DEFINE_string("output_dir", "docs/api_docs", "Where to output the docs")

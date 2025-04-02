@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast
-import itertools
 import cmath
-import pytest
+import itertools
+from typing import cast
 
 import numpy as np
+import pytest
 
-from cirq.ops import DensePauliString, T
 from cirq import protocols
+from cirq.ops import DensePauliString, T
 from cirq.transformers.analytical_decompositions import unitary_to_pauli_string
 
 

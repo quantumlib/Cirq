@@ -15,7 +15,7 @@
 """Defines the OptimizationPass type."""
 import abc
 from collections import defaultdict
-from typing import Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast
+from typing import Callable, cast, Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import ops
 

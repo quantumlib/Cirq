@@ -15,10 +15,10 @@
 
 import abc
 import itertools
-from typing import Union, Iterable, List, Sequence, cast, Tuple, TYPE_CHECKING
-from typing_extensions import Self
+from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq.ops.raw_types import Gate
 

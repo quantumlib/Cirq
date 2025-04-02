@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional, TYPE_CHECKING, Set, List
+from typing import List, Optional, Set, TYPE_CHECKING
 
 import pytest
+
 import cirq
-from cirq import PointOptimizer, PointOptimizationSummary, Operation
+from cirq import Operation, PointOptimizationSummary, PointOptimizer
 from cirq.testing import EqualsTester
 
 if TYPE_CHECKING:

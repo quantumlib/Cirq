@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Union
-import numbers
-
 import abc
+import numbers
+from typing import Any, Dict, List, Optional, Union
+
 import numpy as np
 
 import cirq

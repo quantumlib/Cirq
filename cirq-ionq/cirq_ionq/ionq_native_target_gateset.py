@@ -17,13 +17,11 @@
 from types import NotImplementedType
 from typing import Any, Dict, Iterator, List, Tuple, Union
 
-import cirq
 import numpy as np
 
-from cirq import linalg
-from cirq import ops
-
-from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate, ZZGate
+import cirq
+from cirq import linalg, ops
+from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
 
 
 class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):

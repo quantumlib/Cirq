@@ -34,10 +34,11 @@ from typing import (
     Union,
     ValuesView,
 )
-from typing_extensions import Self
 
 import numpy as np
 import sympy
+from typing_extensions import Self
+
 from cirq import protocols
 
 if TYPE_CHECKING:

@@ -14,10 +14,9 @@
 
 import enum
 import itertools
-from typing import Dict, Iterator, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Dict, Iterator, Sequence, Tuple, TYPE_CHECKING, Union
 
 from cirq import ops
-
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import PermutationGate, SwapPermutationGate
 

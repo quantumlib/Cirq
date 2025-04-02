@@ -20,12 +20,12 @@ import pytest
 
 import cirq
 from cirq import value
+from cirq.testing import random_two_qubit_circuit_with_czs
 from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
-    _parity_interaction,
     _is_trivial_angle,
+    _parity_interaction,
     two_qubit_matrix_to_diagonal_and_cz_operations,
 )
-from cirq.testing import random_two_qubit_circuit_with_czs
 
 
 @pytest.mark.parametrize(

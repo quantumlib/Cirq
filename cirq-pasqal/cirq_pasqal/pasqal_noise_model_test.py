@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-import cirq
 
-from cirq_pasqal import PasqalNoiseModel, PasqalDevice
+import cirq
 from cirq.ops import NamedQubit
+from cirq_pasqal import PasqalDevice, PasqalNoiseModel
 
 
 def test_noise_model_init():

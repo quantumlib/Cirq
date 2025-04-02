@@ -31,12 +31,12 @@ from typing import (
 )
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d
-import numpy as np
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._import import LazyLoader
 from cirq.linalg import combinators, diagonalize, predicates, transformations

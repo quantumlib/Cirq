@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Iterator, List, Optional
+
 import pytest
 
 import cirq

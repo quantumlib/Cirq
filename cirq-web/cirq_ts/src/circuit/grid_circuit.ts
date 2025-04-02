@@ -33,11 +33,7 @@ export class GridCircuit extends Group {
    * in the circuit.
    * @param padding_factor A number scaling the distance between meshes.
    */
-  constructor(
-    initial_num_moments: number,
-    symbols: SymbolInformation[],
-    padding_factor = 1,
-  ) {
+  constructor(initial_num_moments: number, symbols: SymbolInformation[], padding_factor = 1) {
     super();
     this.padding_factor = padding_factor;
     this.qubit_map = new Map();
@@ -57,10 +53,7 @@ export class GridCircuit extends Group {
     }
   }
 
-  private addSymbol(
-    symbolInfo: SymbolInformation,
-    initial_num_moments: number,
-  ) {
+  private addSymbol(symbolInfo: SymbolInformation, initial_num_moments: number) {
     const symbol = new Symbol3D(symbolInfo, this.padding_factor);
 
     // In production these issues will never come up, since we will always be given
@@ -72,20 +65,12 @@ export class GridCircuit extends Group {
       );
     }
 
-    const qubit = this.getQubit(
-      symbolInfo.location_info[0].row,
-      symbolInfo.location_info[0].col,
-    )!;
+    const qubit = this.getQubit(symbolInfo.location_info[0].row, symbolInfo.location_info[0].col)!;
     qubit.addSymbol(symbol);
   }
 
   private addQubit(row: number, col: number, initial_num_moments: number) {
-    const qubit = new GridQubit(
-      row,
-      col,
-      initial_num_moments,
-      this.padding_factor,
-    );
+    const qubit = new GridQubit(row, col, initial_num_moments, this.padding_factor);
     this.setQubit(row, col, qubit);
     this.add(qubit);
   }

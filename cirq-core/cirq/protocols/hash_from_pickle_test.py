@@ -50,6 +50,11 @@ _EXCLUDE_JSON_FILES = (
     "cirq/protocols/json_test_data/sympy.Indexed.json",
     "cirq/protocols/json_test_data/sympy.IndexedBase.json",
     "cirq/protocols/json_test_data/sympy.pi.json",
+    # Cirq-Rigetti is deprecated per #7058
+    # Instead of handling deprecation-in-test errors we exclude
+    # all cirq_rigetti classes here.
+    "cirq_rigetti/json_test_data/AspenQubit.json",
+    "cirq_rigetti/json_test_data/OctagonalQubit.json",
     # RigettiQCSAspenDevice does not pickle
     "cirq_rigetti/json_test_data/RigettiQCSAspenDevice.json",
 )

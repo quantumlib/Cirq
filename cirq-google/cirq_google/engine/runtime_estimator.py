@@ -31,6 +31,7 @@ when possible.
 """
 
 from typing import List, Optional, Sequence
+
 import cirq
 
 # Estimated end-to-end latency of circuits through the system

@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Set, TYPE_CHECKING
-
 import abc
 import collections
+from typing import Dict, List, Optional, Set, TYPE_CHECKING
 
 from cirq.devices import GridQubit
 from cirq_google.line.placement import place_strategy
@@ -23,8 +22,8 @@ from cirq_google.line.placement.chip import chip_as_adjacency_list
 from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
-    from cirq_google.line.placement.sequence import LineSequence
     import cirq_google
+    from cirq_google.line.placement.sequence import LineSequence
 
 
 class GreedySequenceSearch:

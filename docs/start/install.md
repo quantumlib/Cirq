@@ -41,7 +41,7 @@ or internal Google systems.
     python -m pip install 'cirq-core[contrib]'
     ```
 
-    Install system dependencies that pip can't handle.
+    Install system dependencies that `pip` can't handle.
 
     ```bash
     sudo apt-get install texlive-latex-base latexmk
@@ -106,13 +106,13 @@ or internal Google systems.
     python -m pip install 'cirq-core[contrib]'
     ```
 
-    Install system dependencies that pip can't handle.
+    Install system dependencies that `pip` can't handle.
 
     ```bash
     brew install --cask mactex
     ```
 
-    - Without `mactex`, pdf writing functionality will not work.
+    - Without `mactex`, functionality for writing PDF files will not work.
 
 4. Check that it works!
 

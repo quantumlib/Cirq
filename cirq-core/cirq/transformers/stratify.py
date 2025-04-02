@@ -15,9 +15,9 @@
 """Transformer pass to repack circuits avoiding simultaneous operations with different classes."""
 
 import itertools
-from typing import TYPE_CHECKING, Type, Callable, Dict, Optional, Union, Iterable, Sequence, List
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
-from cirq import ops, circuits, protocols, _import
+from cirq import _import, circuits, ops, protocols
 from cirq.transformers import transformer_api
 
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')

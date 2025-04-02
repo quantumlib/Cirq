@@ -14,13 +14,12 @@
 
 """Base class for creating custom target gatesets which can be used for compilation."""
 
-from typing import Optional, List, Hashable, TYPE_CHECKING, Union, Type
 import abc
+from typing import Hashable, List, Optional, Type, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
-
 
 if TYPE_CHECKING:
     import cirq

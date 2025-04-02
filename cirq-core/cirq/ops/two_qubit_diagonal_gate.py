@@ -18,13 +18,14 @@ The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Dict, Iterator, Tuple, Optional, Sequence, TYPE_CHECKING
+from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
+
 import numpy as np
 import sympy
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import raw_types, common_gates
+from cirq.ops import common_gates, raw_types
 
 if TYPE_CHECKING:
     import cirq

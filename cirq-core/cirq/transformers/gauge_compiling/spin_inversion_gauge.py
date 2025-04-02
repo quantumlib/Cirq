@@ -14,12 +14,12 @@
 
 """The spin inversion gauge transformer."""
 
+from cirq import ops
 from cirq.transformers.gauge_compiling.gauge_compiling import (
-    GaugeTransformer,
     GaugeSelector,
+    GaugeTransformer,
     SameGateGauge,
 )
-from cirq import ops
 
 SpinInversionGaugeSelector = GaugeSelector(
     gauges=[

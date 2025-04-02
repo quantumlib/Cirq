@@ -1,32 +1,62 @@
+# Citation information for this repository.                         -*- yaml -*-
+#
+# CITATION.cff files provide human- & machine-readable citation information for
+# software and datasets. GitHub, Zenodo, and the Zotero browser plugin all use
+# CFF files automatically if provided. https://citation-file-format.github.io/.
+#
+# Tools exist to generate CITATION.cff files from other formats such as BibTeX.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 cff-version: 1.2.0
-message: If you use this software, please cite it as below.
+message: If you use this software, please cite it using this metadata.
+
+title: Cirq
 authors:
   - name: Cirq Developers
     website: https://github.com/quantumlib/Cirq/graphs/contributors
-title: Cirq
-abstract: Python package for writing, manipulating, and running quantum circuits on quantum computers and simulators.
+abstract: >-
+  Python package for writing, manipulating, and running quantum circuits
+  on quantum computers and simulators.
 version: 1.4.1
 date-released: 2024-06-26
 url: https://quantumai.google/cirq
 repository-code: https://github.com/quantumlib/Cirq
 license: Apache-2.0
 identifiers:
-  - type: doi
+  - description: Archival DOI for Cirq software releases
     value: 10.5281/zenodo.4062499
-    description: Archival DOI for Cirq software releases.
+    type: doi
+  - description: The home page for Cirq
+    value: https://quantumai.google/Cirq
+    type: url
+  - description: PyPI project for Cirq
+    value: https://pypi.org/project/Cirq
+    type: url
 type: software
 keywords:
-  - api
-  - nisq
+  - algorithms
+  - API
+  - application programming interface
+  - NISQ
   - noisy intermediate-scale quantum
-  - python
+  - open-source software
+  - Python
+  - quantum
   - quantum algorithms
   - quantum circuit simulation
   - quantum circuits
+  - quantum computer simulation
   - quantum computing
+  - quantum information
   - quantum programming
   - quantum programming languages
   - quantum simulation
-  - sdk
+  - qubit
+  - research
+  - science
+  - SDK
   - simulation
+  - simulator
   - software
+  - software development toolkit
+  - visualization

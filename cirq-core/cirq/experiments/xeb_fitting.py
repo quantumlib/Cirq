@@ -13,19 +13,22 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import sympy
-from cirq import circuits, ops, protocols, _import
+
+from cirq import _import, circuits, ops, protocols
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
 if TYPE_CHECKING:
-    import cirq
     import multiprocessing
+
     import scipy.optimize
+
+    import cirq
 
 # We initialize these lazily, otherwise they slow global import speed.
 optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")

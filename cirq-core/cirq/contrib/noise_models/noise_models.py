@@ -14,7 +14,7 @@
 
 from typing import Sequence, TYPE_CHECKING
 
-from cirq import circuits, devices, value, ops
+from cirq import circuits, devices, ops, value
 from cirq.devices.noise_model import validate_all_measurements
 
 if TYPE_CHECKING:

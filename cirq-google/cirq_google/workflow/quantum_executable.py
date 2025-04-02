@@ -17,7 +17,7 @@
 import abc
 import dataclasses
 from dataclasses import dataclass
-from typing import Union, Tuple, Optional, Sequence, cast, Dict, Any, List, Iterator
+from typing import Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 
 import cirq
 from cirq import _compat, study

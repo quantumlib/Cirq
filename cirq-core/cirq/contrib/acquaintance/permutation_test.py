@@ -17,8 +17,8 @@ import random
 import pytest
 
 import cirq
-import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
+import cirq.testing as ct
 
 
 def test_swap_permutation_gate():

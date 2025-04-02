@@ -14,7 +14,7 @@
 
 """Utility methods for diagonalizing matrices."""
 
-from typing import Tuple, Callable, List
+from typing import Callable, List, Tuple
 
 import numpy as np
 

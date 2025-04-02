@@ -16,9 +16,12 @@ import math
 import numbers
 from types import NotImplementedType
 from typing import (
+    AbstractSet,
     Any,
+    Callable,
     cast,
     Dict,
+    Generic,
     ItemsView,
     Iterable,
     Iterator,
@@ -33,20 +36,18 @@ from typing import (
     TypeVar,
     Union,
     ValuesView,
-    AbstractSet,
-    Callable,
-    Generic,
 )
 
 import numpy as np
 import sympy
 
-from cirq import value, protocols, linalg, qis, _compat
+from cirq import _compat, linalg, protocols, qis, value
 from cirq._doc import document
 from cirq._import import LazyLoader
 from cirq.ops import (
     clifford_gate,
     common_gates,
+    dense_pauli_string,
     gate_operation,
     global_phase_op,
     identity,
@@ -54,7 +55,6 @@ from cirq.ops import (
     pauli_gates,
     pauli_interaction_gate,
     raw_types,
-    dense_pauli_string,
 )
 
 if TYPE_CHECKING:

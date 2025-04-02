@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import fractions
+
 import pytest
 
 import cirq
-
 
 CMP_OPS = [
     lambda a, b: a == b,

@@ -14,9 +14,9 @@
 
 from typing import Callable
 
-from cirq import ops, circuits, transformers
-from cirq.contrib.paulistring.pauli_string_optimize import pauli_string_optimized_circuit
+from cirq import circuits, ops, transformers
 from cirq.contrib.paulistring.clifford_optimize import clifford_optimized_circuit
+from cirq.contrib.paulistring.pauli_string_optimize import pauli_string_optimized_circuit
 
 
 class _CZTargetGateSet(transformers.CZTargetGateset):

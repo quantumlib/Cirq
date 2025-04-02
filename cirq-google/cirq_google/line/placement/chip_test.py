@@ -15,7 +15,7 @@
 from typing import Iterable
 
 import cirq
-from cirq_google.line.placement.chip import chip_as_adjacency_list, above, below, right_of, left_of
+from cirq_google.line.placement.chip import above, below, chip_as_adjacency_list, left_of, right_of
 
 
 def test_neighbours():

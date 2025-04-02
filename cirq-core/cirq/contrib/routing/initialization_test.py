@@ -14,9 +14,9 @@
 
 import random
 
+import networkx as nx
 import numpy as np
 import pytest
-import networkx as nx
 
 import cirq
 import cirq.contrib.routing as ccr

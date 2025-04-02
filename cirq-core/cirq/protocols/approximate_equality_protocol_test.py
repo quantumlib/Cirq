@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fractions import Fraction
 from decimal import Decimal
+from fractions import Fraction
 from numbers import Number
+
 import numpy as np
 import pytest
 import sympy
+
 import cirq
 
 

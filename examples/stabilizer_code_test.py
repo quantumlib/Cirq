@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 
 import cirq
-
 import examples.stabilizer_code as sc
 
 

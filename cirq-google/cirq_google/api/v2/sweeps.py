@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Callable, Dict, List, Optional
+from typing import Any, Callable, cast, Dict, List, Optional
 
 import sympy
 import tunits

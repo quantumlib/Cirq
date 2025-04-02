@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from cirq import ops, circuits
+from cirq import circuits, ops
 
 if TYPE_CHECKING:
     import cirq

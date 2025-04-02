@@ -13,21 +13,22 @@
 # limitations under the License.
 
 """Provides a method to do z-phase calibration for excitation-preserving gates."""
-from typing import Union, Optional, Sequence, Tuple, Dict, TYPE_CHECKING, Any, List
 import multiprocessing
 import multiprocessing.pool
+from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from cirq import circuits, ops, protocols
 from cirq.experiments import xeb_fitting
 from cirq.experiments.two_qubit_xeb import parallel_xeb_workflow
 from cirq.transformers import transformer_api
-from cirq import ops, circuits, protocols
 
 if TYPE_CHECKING:
-    import cirq
     import pandas as pd
+
+    import cirq
 
 
 def z_phase_calibration_workflow(

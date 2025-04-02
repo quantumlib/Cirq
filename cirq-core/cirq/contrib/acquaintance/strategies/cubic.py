@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, Sequence, Tuple, TypeVar, TYPE_CHECKING
+from typing import Iterable, Sequence, Tuple, TYPE_CHECKING, TypeVar
 
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.gates import acquaint

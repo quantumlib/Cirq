@@ -21,12 +21,13 @@ when combined with a run context, will become a quantum job.
 import abc
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+
 import cirq
 from cirq_google.cloud import quantum
 
 if TYPE_CHECKING:
-    import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.abstract_engine as abstract_engine
+    import cirq_google.engine.abstract_job as abstract_job
 
 
 class AbstractProgram(abc.ABC):

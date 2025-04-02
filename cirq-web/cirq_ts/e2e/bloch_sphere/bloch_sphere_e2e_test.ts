@@ -79,14 +79,9 @@ describe('Bloch sphere', () => {
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
-      const pixels = pixelmatch(
-        expected.data,
-        actual.data,
-        diff.data,
-        width,
-        height,
-        {threshold: 0.1},
-      );
+      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+        threshold: 0.1,
+      });
 
       expect(pixels).to.equal(0);
     });
@@ -112,14 +107,9 @@ describe('Bloch sphere', () => {
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
-      const pixels = pixelmatch(
-        expected.data,
-        actual.data,
-        diff.data,
-        width,
-        height,
-        {threshold: 0.1},
-      );
+      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+        threshold: 0.1,
+      });
 
       expect(pixels).to.equal(0);
     });

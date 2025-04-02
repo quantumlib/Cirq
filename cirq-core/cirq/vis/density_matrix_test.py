@@ -15,13 +15,10 @@
 
 import numpy as np
 import pytest
-
-from matplotlib import lines, patches, text, spines, axis
-from matplotlib import pyplot as plt
+from matplotlib import axis, lines, patches, pyplot as plt, spines, text
 
 import cirq.testing
-from cirq.vis.density_matrix import plot_density_matrix
-from cirq.vis.density_matrix import _plot_element_of_density_matrix
+from cirq.vis.density_matrix import _plot_element_of_density_matrix, plot_density_matrix
 
 
 @pytest.mark.usefixtures('closefigures')

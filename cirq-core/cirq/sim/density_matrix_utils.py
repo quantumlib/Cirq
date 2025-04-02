@@ -14,7 +14,7 @@
 
 """Code to handle density matrices."""
 
-from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
+from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 

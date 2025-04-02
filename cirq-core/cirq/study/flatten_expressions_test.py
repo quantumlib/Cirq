@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import sympy
+
 import cirq
 from cirq.study import flatten_expressions
-
 
 # None of the following tests use expressions of the form
 # <constant term> - <other term> because the string of expressions containing

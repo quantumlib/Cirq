@@ -24,10 +24,11 @@ from cirq_google.engine.engine_result import EngineResult
 
 if TYPE_CHECKING:
     import datetime
-    import cirq_google.engine.calibration as calibration
+
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_processor as abstract_processor
     import cirq_google.engine.abstract_program as abstract_program
+    import cirq_google.engine.calibration as calibration
 
 
 class AbstractJob(abc.ABC):

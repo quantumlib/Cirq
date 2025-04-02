@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Wraps Parallel Two Qubit XEB into a few convenience methods."""
-from typing import Optional, Sequence, Dict
-import itertools
 import io
+import itertools
+from typing import Dict, Optional, Sequence
 
 import matplotlib.pyplot as plt
-
-import numpy as np
 import networkx as nx
+import numpy as np
 import pandas as pd
 import pytest
 

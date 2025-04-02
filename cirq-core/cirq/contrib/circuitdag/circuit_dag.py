@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
-
 import functools
+from typing import Any, Callable, cast, Dict, Generic, Iterator, TypeVar
+
 import networkx
 
 import cirq

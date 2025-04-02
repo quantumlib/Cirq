@@ -13,13 +13,11 @@
 # limitations under the License.
 
 import collections
-
-from typing import cast, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import cast, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, transformers
-
-from cirq.contrib.acquaintance.gates import SwapNetworkGate, AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.devices import get_acquaintance_size
+from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate, SwapNetworkGate
 from cirq.contrib.acquaintance.permutation import PermutationGate
 
 if TYPE_CHECKING:

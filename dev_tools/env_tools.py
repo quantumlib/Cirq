@@ -14,9 +14,9 @@
 
 import os
 import sys
-from typing import Optional, Iterable, Callable, cast
+from typing import Callable, cast, Iterable, Optional
 
-from dev_tools import shell_tools, git_env_tools
+from dev_tools import git_env_tools, shell_tools
 from dev_tools.github_repository import GithubRepository
 from dev_tools.prepared_env import PreparedEnv
 

@@ -25,15 +25,14 @@ API keys for classical simulators and quantum devices can be obtained at:
 import json
 import time
 import uuid
-from typing import Callable, cast, Dict, List, Sequence, Tuple, Union, Literal, TypedDict
+from typing import Callable, cast, Dict, List, Literal, Sequence, Tuple, TypedDict, Union
 from urllib.parse import urljoin
 
 import numpy as np
-from requests import post, get
+from requests import get, post
 
 import cirq
 from cirq_aqt.aqt_device import AQTSimulator, get_op_string, OperationString
-
 
 _DEFAULT_HOST = "https://arnica.aqt.eu/api/v1/"
 

@@ -15,8 +15,8 @@
 import cirq
 from cirq.contrib.paulistring import (
     convert_and_separate_circuit,
-    pauli_string_dag_from_circuit,
     move_pauli_strings_into_circuit,
+    pauli_string_dag_from_circuit,
 )
 
 

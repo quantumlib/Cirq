@@ -27,7 +27,7 @@ import datetime
 import enum
 import random
 import string
-from typing import Dict, List, Optional, Set, TypeVar, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Set, TYPE_CHECKING, TypeVar, Union
 
 import duet
 import google.auth
@@ -35,6 +35,7 @@ from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.api import v2
+from cirq_google.cloud import quantum
 from cirq_google.engine import (
     abstract_engine,
     abstract_program,
@@ -44,12 +45,12 @@ from cirq_google.engine import (
     engine_program,
     util,
 )
-from cirq_google.cloud import quantum
 from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
 
 if TYPE_CHECKING:
-    import cirq_google
     import google.protobuf
+
+    import cirq_google
 
 TYPE_PREFIX = 'type.googleapis.com/'
 

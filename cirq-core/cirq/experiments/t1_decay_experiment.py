@@ -12,16 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, Sequence, TYPE_CHECKING, cast
-
 import warnings
+from typing import Any, cast, Optional, Sequence, TYPE_CHECKING
+
+import numpy as np
 import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
-import numpy as np
 
-
-from cirq import circuits, ops, study, value, _import
+from cirq import _import, circuits, ops, study, value
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:

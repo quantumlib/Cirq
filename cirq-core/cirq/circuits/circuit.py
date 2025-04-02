@@ -48,10 +48,10 @@ from typing import (
     TypeVar,
     Union,
 )
-from typing_extensions import Self
 
 import networkx
 import numpy as np
+from typing_extensions import Self
 
 import cirq._version
 from cirq import _compat, devices, ops, protocols, qis
@@ -1867,7 +1867,7 @@ class Circuit(AbstractCircuit):
         from cirq.circuits.frozen_circuit import FrozenCircuit
 
         if self._frozen is None:
-            self._frozen = FrozenCircuit.from_moments(*self._moments)
+            self._frozen = FrozenCircuit._from_moments(self._moments)
         return self._frozen
 
     def unfreeze(self, copy: bool = True) -> 'cirq.Circuit':

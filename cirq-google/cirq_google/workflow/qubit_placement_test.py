@@ -13,12 +13,11 @@
 # limitations under the License.
 import itertools
 
+import numpy as np
 import pytest
 
 import cirq
 import cirq_google as cg
-
-import numpy as np
 
 
 class FakeDevice(cirq.Device):

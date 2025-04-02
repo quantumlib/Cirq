@@ -50,10 +50,7 @@ export class BlochSphereScene extends Scene {
 
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
     this.renderer = new WebGLRenderer({alpha: true});
-    this.renderer.setSize(
-      BlochSphereScene.VIZ_WIDTH,
-      BlochSphereScene.VIZ_HEIGHT,
-    );
+    this.renderer.setSize(BlochSphereScene.VIZ_WIDTH, BlochSphereScene.VIZ_HEIGHT);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     this.init();

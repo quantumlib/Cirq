@@ -239,7 +239,7 @@ upper_tabs:
         path: /cirq/dev/versions
       - title: "Triage process"
         path: /cirq/dev/triage
-      - title: "Issues / requests / questions"
+      - title: "Issues, requests, and questions"
         path: /cirq/dev/support
 
     - name: "Reference"

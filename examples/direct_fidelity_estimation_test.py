@@ -1,6 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import numpy as np
 import pytest
+
 import cirq
 import examples.direct_fidelity_estimation as dfe
 

@@ -14,11 +14,12 @@
 
 """Transformer pass that pushes 180° rotations around axes in the XY plane later in the circuit."""
 
-from typing import Optional, cast, TYPE_CHECKING, Iterable, Iterator, Tuple, Dict
-import sympy
-import numpy as np
+from typing import cast, Dict, Iterable, Iterator, Optional, Tuple, TYPE_CHECKING
 
-from cirq import circuits, ops, value, protocols
+import numpy as np
+import sympy
+
+from cirq import circuits, ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 

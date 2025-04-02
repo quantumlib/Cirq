@@ -14,15 +14,15 @@
 """Measures on and between quantum states and operations."""
 
 
-from typing import Optional, TYPE_CHECKING, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import protocols, value, _import
+from cirq import _import, protocols, value
 from cirq.qis.states import (
-    QuantumState,
     infer_qid_shape,
     quantum_state,
+    QuantumState,
     validate_density_matrix,
     validate_normalized_state_vector,
 )

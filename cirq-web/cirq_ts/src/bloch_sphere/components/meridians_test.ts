@@ -25,31 +25,19 @@ describe('Meridians', () => {
   describe('by default', () => {
     it(`generates the correct number of lines given 
     the default number (7)`, () => {
-      const meridians = new Meridians(
-        DEFAULT_RADIUS,
-        DEFAULT_H_MERIDIANS,
-        Orientation.HORIZONTAL,
-      );
+      const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS, Orientation.HORIZONTAL);
       expect(meridians.children.length).to.equal(DEFAULT_H_MERIDIANS);
     });
 
     it(`generates the correct number of lines given 
     the default number (4)`, () => {
-      const meridians = new Meridians(
-        DEFAULT_RADIUS,
-        DEFAULT_V_MERIDIANS,
-        Orientation.VERTICAL,
-      );
+      const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_V_MERIDIANS, Orientation.VERTICAL);
       expect(meridians.children.length).to.equal(DEFAULT_V_MERIDIANS);
     });
 
     it(`generates lines at the correct positions 
     with defaults`, () => {
-      const meridians = new Meridians(
-        DEFAULT_RADIUS,
-        DEFAULT_H_MERIDIANS,
-        Orientation.HORIZONTAL,
-      );
+      const meridians = new Meridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS, Orientation.HORIZONTAL);
 
       const positions = [
         new Vector3(0, 0, 0),
@@ -75,11 +63,7 @@ describe('Meridians', () => {
       const lineValues = [4, 0, 17, 299, 4.123, 1];
       const expectedLineNumbers = [5, 0, 17, 299, 5, 1];
       lineValues.forEach((el, index) => {
-        const meridians = new Meridians(
-          DEFAULT_RADIUS,
-          el,
-          Orientation.HORIZONTAL,
-        );
+        const meridians = new Meridians(DEFAULT_RADIUS, el, Orientation.HORIZONTAL);
         expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
       });
     });
@@ -88,21 +72,13 @@ describe('Meridians', () => {
       const lineValues = [4, 0, 17, 299, 4.123];
       const expectedLineNumbers = [4, 0, 18, 299, 4];
       lineValues.forEach((el, index) => {
-        const meridians = new Meridians(
-          DEFAULT_RADIUS,
-          el,
-          Orientation.VERTICAL,
-        );
+        const meridians = new Meridians(DEFAULT_RADIUS, el, Orientation.VERTICAL);
         expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
       });
     });
 
     it('changes the number of horizontal chord meridians correctly with scale', () => {
-      const meridians = new Meridians(
-        DEFAULT_RADIUS,
-        9,
-        Orientation.HORIZONTAL,
-      );
+      const meridians = new Meridians(DEFAULT_RADIUS, 9, Orientation.HORIZONTAL);
 
       const positions = [
         new Vector3(0, 0, 0),

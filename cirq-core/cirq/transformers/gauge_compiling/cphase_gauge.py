@@ -14,17 +14,17 @@
 
 """A Gauge Transformer for the cphase gate."""
 
-import cirq.transformers.gauge_compiling.sqrt_cz_gauge as sqrt_cz_gauge
+import numpy as np
 
+import cirq.transformers.gauge_compiling.sqrt_cz_gauge as sqrt_cz_gauge
+from cirq import ops
 from cirq.transformers.gauge_compiling.gauge_compiling import (
-    GaugeTransformer,
-    GaugeSelector,
     ConstantGauge,
     Gauge,
+    GaugeSelector,
+    GaugeTransformer,
     TwoQubitGateSymbolizer,
 )
-from cirq import ops
-import numpy as np
 
 
 class CPhasePauliGauge(Gauge):

@@ -14,12 +14,12 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, Union, TYPE_CHECKING
-
 import re
+from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
 import numpy as np
 
-from cirq import ops, linalg, protocols, value
+from cirq import linalg, ops, protocols, value
 
 if TYPE_CHECKING:
     import cirq

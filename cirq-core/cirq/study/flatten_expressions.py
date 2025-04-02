@@ -13,13 +13,13 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import Any, Callable, List, Optional, Tuple, Union, TYPE_CHECKING
 import numbers
+from typing import Any, Callable, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import sympy
 
 from cirq import protocols
-from cirq.study import resolver, sweeps, sweepable
+from cirq.study import resolver, sweepable, sweeps
 
 if TYPE_CHECKING:
     import cirq

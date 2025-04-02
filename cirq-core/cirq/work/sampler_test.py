@@ -14,11 +14,10 @@
 """Tests for cirq.Sampler."""
 from typing import Sequence
 
-import pytest
-
 import duet
 import numpy as np
 import pandas as pd
+import pytest
 import sympy
 
 import cirq

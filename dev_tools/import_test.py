@@ -30,14 +30,13 @@ Usage:
                   imported
 """
 
-from typing import List
-
 import argparse
 import collections
 import os.path
 import subprocess
 import sys
 import time
+from typing import List
 
 parser = argparse.ArgumentParser(
     description="Locates imports that violate cirq's submodule dependencies."

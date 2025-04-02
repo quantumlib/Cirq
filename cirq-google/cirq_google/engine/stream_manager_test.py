@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AsyncIterable, AsyncIterator, Awaitable, List, Sequence, Union
 import asyncio
 import concurrent
+from typing import AsyncIterable, AsyncIterator, Awaitable, List, Sequence, Union
 from unittest import mock
 
 import duet
-import pytest
 import google.api_core.exceptions as google_exceptions
+import pytest
 
 import cirq
+from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine.stream_manager import (
     _get_retry_request_or_raise,
@@ -29,8 +30,6 @@ from cirq_google.engine.stream_manager import (
     StreamError,
     StreamManager,
 )
-from cirq_google.cloud import quantum
-
 
 Code = quantum.StreamError.Code
 

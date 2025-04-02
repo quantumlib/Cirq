@@ -1,12 +1,14 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import cast, Tuple, List
-import cirq
+from typing import cast, List, Tuple
+
 import pytest
 import sympy
 from pyquil import get_qc
 from pyquil.api import QVM
-from cirq_rigetti import RigettiQCSSampler
-from cirq_rigetti import circuit_transformers
+
+import cirq
+from cirq_rigetti import circuit_transformers, RigettiQCSSampler
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.fixture
@@ -23,6 +25,7 @@ def circuit_data() -> Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace]:
 
 
 @pytest.mark.rigetti_integration
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_readout_on_reassigned_qubits(
     circuit_data: Tuple[cirq.Circuit, List[cirq.LineQubit], cirq.Linspace],
 ) -> None:

@@ -15,7 +15,6 @@ import pytest
 
 import cirq
 import cirq_google
-
 from cirq_google.api.v2 import program_pb2
 
 

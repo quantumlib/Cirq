@@ -13,33 +13,32 @@
 # limitations under the License.
 
 import dataclasses
-import itertools
 import functools
-
+import itertools
 from typing import (
-    cast,
     Any,
+    cast,
+    Dict,
     Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
     TYPE_CHECKING,
-    Mapping,
-    Dict,
 )
-import numpy as np
-from scipy.optimize import curve_fit
 
+import numpy as np
 from matplotlib import pyplot as plt
-import cirq.vis.heatmap as cirq_heatmap
-import cirq.vis.histogram as cirq_histogram
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d
+from scipy.optimize import curve_fit
+
+import cirq.vis.heatmap as cirq_heatmap
+import cirq.vis.histogram as cirq_histogram
 from cirq import circuits, ops, protocols
 from cirq.devices import grid_qubit
-
 
 if TYPE_CHECKING:
     import cirq

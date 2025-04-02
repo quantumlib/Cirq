@@ -14,8 +14,7 @@
 
 
 import cirq
-
-from cirq.contrib.paulistring import pauli_string_optimized_circuit, CliffordTargetGateset
+from cirq.contrib.paulistring import CliffordTargetGateset, pauli_string_optimized_circuit
 
 
 def test_optimize():

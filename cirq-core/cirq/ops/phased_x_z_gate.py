@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 import numbers
+from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
 
-from cirq import value, ops, protocols, linalg
-from cirq.ops import raw_types
+from cirq import linalg, ops, protocols, value
 from cirq._compat import proper_repr
+from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq

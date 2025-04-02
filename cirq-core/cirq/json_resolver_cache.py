@@ -20,8 +20,8 @@ from cirq.protocols.json_serialization import ObjectFactory
 
 if TYPE_CHECKING:
     import cirq
-    import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
+    import cirq.ops.pauli_gates
 
 
 # Needed for backwards compatible named tuples of CrossEntropyResult
@@ -42,13 +42,14 @@ CrossEntropyResultDict = NamedTuple(
 
 @functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
-    import cirq
-    from cirq.ops import raw_types
-    import pandas as pd
     import numpy as np
-    from cirq.devices.noise_model import _NoNoiseModel
+    import pandas as pd
+
+    import cirq
     from cirq.devices import InsertionNoiseModel
+    from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import GridInteractionLayer
+    from cirq.ops import raw_types
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
         return cirq.BooleanHamiltonianGate(
@@ -106,6 +107,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'AnyUnitaryGateFamily': cirq.AnyUnitaryGateFamily,
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
         'BitFlipChannel': cirq.BitFlipChannel,
+        'BitMaskKeyCondition': cirq.BitMaskKeyCondition,
         'BitstringAccumulator': cirq.work.BitstringAccumulator,
         'BooleanHamiltonianGate': cirq.BooleanHamiltonianGate,
         'CCNotPowGate': cirq.CCNotPowGate,

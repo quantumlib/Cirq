@@ -15,20 +15,20 @@
 """A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
 
-from typing import TYPE_CHECKING, Dict, Sequence, Tuple
 from numbers import Real
+from typing import Dict, Sequence, Tuple, TYPE_CHECKING
+
 import numpy as np
 import sympy
 
+from cirq.ops import CZ, CZPowGate, Gate, Gateset, S, X
 from cirq.transformers.gauge_compiling.gauge_compiling import (
-    GaugeTransformer,
-    GaugeSelector,
     ConstantGauge,
     Gauge,
+    GaugeSelector,
+    GaugeTransformer,
     TwoQubitGateSymbolizer,
 )
-from cirq.ops import CZ, S, X, Gateset, Gate, CZPowGate
-
 
 if TYPE_CHECKING:
     import cirq

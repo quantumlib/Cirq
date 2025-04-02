@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
+from typing import Any, Callable, List, Optional, Set, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 import cirq
-from cirq_google.line.placement import place_strategy, optimization
-from cirq_google.line.placement.chip import above, right_of, chip_as_adjacency_list, EDGE
+from cirq_google.line.placement import optimization, place_strategy
+from cirq_google.line.placement.chip import above, chip_as_adjacency_list, EDGE, right_of
 from cirq_google.line.placement.sequence import GridQubitLineTuple, LineSequence
 
 if TYPE_CHECKING:

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq_google
 import pytest
 
+import cirq_google
 from cirq_google.api.v2 import program_pb2
 
 

@@ -30,8 +30,8 @@ from typing import (
     Any,
     cast,
     Collection,
-    List,
     Dict,
+    List,
     Optional,
     Sequence,
     Tuple,
@@ -46,9 +46,9 @@ import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
-from cirq.ops import controlled_gate, eigen_gate, gate_features, raw_types, control_values as cv
-from cirq.ops.swap_gates import ISWAP, SWAP, ISwapPowGate, SwapPowGate
+from cirq.ops import control_values as cv, controlled_gate, eigen_gate, gate_features, raw_types
 from cirq.ops.measurement_gate import MeasurementGate
+from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP, SwapPowGate
 
 if TYPE_CHECKING:
     import cirq

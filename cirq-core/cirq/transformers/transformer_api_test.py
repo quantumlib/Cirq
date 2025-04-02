@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import mock
 from typing import Optional
+from unittest import mock
+
+import pytest
 
 import cirq
 from cirq.transformers.transformer_api import LogLevel
-
-import pytest
 
 
 @cirq.transformer()

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from typing import Iterable, List
-
 from unittest import mock
+
 import numpy as np
 import pytest
 

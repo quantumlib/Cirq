@@ -16,7 +16,7 @@ import itertools
 from typing import Any, Dict, Iterator, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import ops, value
-from cirq.contrib.acquaintance.permutation import SwapPermutationGate, PermutationGate
+from cirq.contrib.acquaintance.permutation import PermutationGate, SwapPermutationGate
 
 if TYPE_CHECKING:
     import cirq

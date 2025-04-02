@@ -1,10 +1,12 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 """Tests for the Quantum Volume utilities."""
 
-from unittest.mock import Mock, MagicMock
 import io
+from unittest.mock import MagicMock, Mock
+
 import numpy as np
 import pytest
+
 import cirq
 import cirq.contrib.routing as ccr
 from cirq.contrib.quantum_volume import CompilationResult

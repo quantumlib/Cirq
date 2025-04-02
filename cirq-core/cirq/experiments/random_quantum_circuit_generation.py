@@ -18,18 +18,17 @@ import itertools
 from typing import (
     Any,
     Callable,
+    cast,
     Container,
     Dict,
     Iterable,
     Iterator,
     List,
-    Sequence,
-    TYPE_CHECKING,
-    Tuple,
-    Union,
     Optional,
-    cast,
-    Iterator,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
 )
 
 import networkx as nx

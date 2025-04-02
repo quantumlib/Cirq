@@ -16,13 +16,13 @@
 
 import numpy as np
 
+from cirq import ops
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
     Gauge,
-    GaugeTransformer,
     GaugeSelector,
+    GaugeTransformer,
 )
-from cirq import ops
 
 
 class RZRotation(Gauge):

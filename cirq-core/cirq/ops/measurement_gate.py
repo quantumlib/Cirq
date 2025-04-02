@@ -19,8 +19,8 @@ from typing import (
     Iterable,
     Mapping,
     Optional,
-    Tuple,
     Sequence,
+    Tuple,
     TYPE_CHECKING,
     Union,
 )

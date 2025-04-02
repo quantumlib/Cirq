@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import numpy as np
-import cirq
 import pytest
+
+import cirq
 
 
 @pytest.mark.parametrize(

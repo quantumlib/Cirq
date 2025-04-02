@@ -14,14 +14,14 @@
 
 from itertools import combinations
 from string import ascii_lowercase
-from typing import Sequence, Dict, Tuple
+from typing import Dict, Sequence, Tuple
 
 import numpy as np
 import pytest
 
 import cirq
-import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
+import cirq.testing as ct
 
 
 class ExampleGate(cirq.Gate):

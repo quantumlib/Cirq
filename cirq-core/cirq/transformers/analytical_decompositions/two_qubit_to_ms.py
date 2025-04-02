@@ -19,11 +19,11 @@ Gate compilation methods implemented here are following the paper below:
     arXiv:1603.07678
 """
 
-from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
+from typing import cast, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, protocols
+from cirq import linalg, ops, protocols
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions, two_qubit_to_cz
 
 if TYPE_CHECKING:

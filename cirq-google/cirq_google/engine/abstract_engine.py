@@ -23,7 +23,7 @@ from typing import Dict, List, Optional, Sequence, Set, Union
 
 import cirq
 from cirq_google.cloud import quantum
-from cirq_google.engine import abstract_job, abstract_program, abstract_processor
+from cirq_google.engine import abstract_job, abstract_processor, abstract_program
 
 VALID_DATE_TYPE = Union[datetime.datetime, datetime.date]
 

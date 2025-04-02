@@ -14,7 +14,7 @@
 
 """A recursive type describing trees of operations, and utility methods for it."""
 
-from typing import Callable, Iterable, Iterator, NoReturn, Union, TYPE_CHECKING
+from typing import Callable, Iterable, Iterator, NoReturn, TYPE_CHECKING, Union
 
 from cirq._doc import document
 from cirq._import import LazyLoader

@@ -19,8 +19,8 @@ import cirq
 import cirq_google as cg
 from cirq._compat import dataclass_repr
 from cirq_google.engine.virtual_engine_factory import (
-    MOST_RECENT_TEMPLATES,
     _create_device_spec_from_template,
+    MOST_RECENT_TEMPLATES,
 )
 
 

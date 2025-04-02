@@ -18,8 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import value
-from cirq import unitary_eig
+from cirq import unitary_eig, value
 from cirq.linalg.decompositions import MAGIC, MAGIC_CONJ_T
 
 X = np.array([[0, 1], [1, 0]])

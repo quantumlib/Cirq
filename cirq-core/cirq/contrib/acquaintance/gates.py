@@ -29,13 +29,12 @@ from typing import (
 )
 
 from cirq import ops, protocols, value
-
-from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
+    LinearPermutationGate,
     PermutationGate,
     SwapPermutationGate,
-    LinearPermutationGate,
 )
+from cirq.contrib.acquaintance.shift import CircularShiftGate
 
 if TYPE_CHECKING:
     import cirq
