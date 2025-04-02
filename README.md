@@ -125,7 +125,7 @@ documentation for Cirq is available.
 *   Docs for the [current stable release] correspond to what you get with
     `pip install cirq`.
 *   Docs for the [pre-release] correspond to what you get with
-    `pip install cirq~=1.0.dev`.
+    `pip install --upgrade cirq~=1.0.dev`.
 
 [current stable release]: https://quantumai.google/reference/python/cirq/all_symbols
 [pre-release]: https://quantumai.google/reference/python/cirq/all_symbols?version=nightly
