@@ -20,6 +20,9 @@
 # List of files to exclude from size calculations.
 exclude_files:
   - "cirq-web/cirq_ts/package-lock.json"
+  - "*_pb2.py"
+  - "*_pb2.pyi"
+  - "*.bundle.js"
 
 # cbrgm/pr-size-labeler-action can assign labels based on both "size" (= lines
 # added + lines deleted) and number of files changed.
