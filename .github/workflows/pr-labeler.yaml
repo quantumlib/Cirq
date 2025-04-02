@@ -37,6 +37,7 @@ jobs:
     name: Update size labels on a PR
     runs-on: ubuntu-24.04
     permissions:
+      id-token: write
       contents: read
       pull-requests: write
       issues: write
