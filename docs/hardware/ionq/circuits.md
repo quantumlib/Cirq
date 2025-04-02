@@ -96,17 +96,18 @@ these gates are one or two qubit gates which support the `unitary` protocol
 for the gate), there is support for compiling these into API supported gates.
 This conversion may not be optimal, but it does produce a valid API circuit.
 
-This support is given by the `cirq_ionq.IonQAPIDevice` and its
-`decompose_operation` method.  On way to use this is to pass the device
-to a circuit, and these decompositions will be automatically applied while
-the circuit is being constructed:
+This support is provided by the `cirq.optimize_for_target_gateset` transformer
+and the `cirq_ionq.IonQTargetGateset`, which specifies the IonQ native gates,
+for example:
 
 ```python
 q0 = cirq.LineQubit(0)
-device = ionq.IonQAPIDevice([q0])
-circuit = cirq.Circuit(device=device)
-circuit.append(cirq.H(q0)**0.2) # Non-API gate
-print(circuit)
+circuit = cirq.Circuit(cirq.H(q0)**0.2)  # Non-API gate
+circuit_for_ionq = cirq.optimize_for_target_gateset(
+    circuit,
+    gateset=ionq.IonQTargetGateset(),
+)
+print(circuit_for_ionq)
 ```
 which produces
 ```
@@ -121,4 +122,3 @@ circuit.
 [How to use the service API](jobs.md)
 
 [Get information about QPUs from IonQ calibrations](calibrations.md)
-
