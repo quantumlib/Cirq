@@ -313,6 +313,13 @@ def test_estimate_fidilties_with_dict_target():
     ]
 
 
+def _assert_fidelities_approx_equal(fids, expected: float, atol: float):
+    fids = np.asarray(fids).tolist()
+    fids.sort(reverse=True)
+    fids.pop()  # discard smallest to make the test rebust to randomness
+    np.testing.assert_allclose(fids, expected, atol=atol)
+
+
 @pytest.mark.parametrize('target', [cirq.CZ, cirq.Circuit(cirq.CZ(*_QUBITS)), cirq.CZ(*_QUBITS)])
 @pytest.mark.parametrize('pairs', [_PAIRS[:1], _PAIRS[:2]])
 def test_parallel_two_qubit_xeb(target, pairs):
@@ -325,7 +332,7 @@ def test_parallel_two_qubit_xeb(target, pairs):
             n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)
         ),
     )
-    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
+    _assert_fidelities_approx_equal(result.fidelities.layer_fid, 0.9, atol=0.3)
 
 
 class MockDevice(cirq.Device):
@@ -361,7 +368,7 @@ def test_parallel_two_qubit_xeb_with_device():
             n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)
         ),
     )
-    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
+    _assert_fidelities_approx_equal(result.fidelities.layer_fid, 0.9, atol=0.3)
     qubits = cirq.GridQubit.rect(3, 2, 4, 3)
     pairs = tuple(
         pair
@@ -383,10 +390,7 @@ def test_parallel_two_qubit_xeb_with_dict_target():
             n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)
         ),
     )
-    fids = result.fidelities.layer_fid.tolist()
-    fids.sort(reverse=True)
-    fids.pop()  # drop the minimum fid to make the test robust to randomness.
-    np.testing.assert_allclose(fids, 0.9, atol=0.3)
+    _assert_fidelities_approx_equal(result.fidelities.layer_fid, 0.9, atol=0.3)
     assert result.all_qubit_pairs == _PAIRS
 
 
@@ -402,7 +406,7 @@ def test_parallel_two_qubit_xeb_with_ideal_target():
             n_circuits=10, n_combinations=10, n_repetitions=10, cycle_depths=range(1, 10, 2)
         ),
     )
-    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
+    _assert_fidelities_approx_equal(result.fidelities.layer_fid, 0.9, atol=0.3)
     assert result.all_qubit_pairs == _PAIRS
 
 
@@ -423,7 +427,7 @@ def test_parallel_two_qubit_xeb_with_dict_target_and_pool(threading_pool):
         ),
         pool=threading_pool,
     )
-    np.testing.assert_allclose(result.fidelities.layer_fid, 0.9, atol=0.3)
+    _assert_fidelities_approx_equal(result.fidelities.layer_fid, 0.9, atol=0.3)
     assert result.all_qubit_pairs == _PAIRS
 
 
