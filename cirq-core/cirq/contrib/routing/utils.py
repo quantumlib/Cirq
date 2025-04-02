@@ -23,10 +23,10 @@ import networkx as nx
 import cirq.contrib.acquaintance as cca
 from cirq import circuits, ops
 from cirq.contrib.circuitdag import CircuitDag
-from cirq.contrib.routing.swap_network import SwapNetwork
 
 if TYPE_CHECKING:
     import cirq
+    from cirq.contrib.routing import SwapNetwork
 
 BINARY_OP_PREDICATE = Callable[[ops.Operation, ops.Operation], bool]
 

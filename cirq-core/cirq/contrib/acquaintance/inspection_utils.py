@@ -20,10 +20,10 @@ from cirq import devices
 from cirq.contrib import circuitdag
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation, ExecutionStrategy
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
-from cirq.contrib.acquaintance.permutation import LogicalIndex, LogicalMapping
 
 if TYPE_CHECKING:
     import cirq
+    from cirq.contrib.acquaintance.permutation import LogicalIndex, LogicalMapping
 
 
 class LogicalAnnotator(ExecutionStrategy):
