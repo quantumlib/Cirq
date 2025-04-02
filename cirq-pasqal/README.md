@@ -38,7 +38,7 @@ two installation options for the `cirq-pasqal` module:
 *   To install the latest pre-release version of `cirq-pasqal`, use
 
     ```shell
-    pip install cirq-pasqal~=1.0.dev
+    pip install --upgrade cirq-pasqal~=1.0.dev
     ```
 
     (The `~=` has a special meaning to `pip` of selecting the latest version
@@ -47,7 +47,7 @@ two installation options for the `cirq-pasqal` module:
 
 If you would like to install Cirq with all the optional modules, not just
 `cirq-pasqal`, then instead of the above commands, use `pip install cirq` for the
-stable release or `pip install cirq~=1.0.dev` for the latest pre-release
+stable release or `pip install --upgrade cirq~=1.0.dev` for the latest pre-release
 version.
 
 ## Documentation
