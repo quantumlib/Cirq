@@ -67,7 +67,7 @@ def is_parameterized(val: Any) -> bool:
 
     A value is parameterized when it has an `_is_parameterized_` method and
     that method returns a truthy value, or if the value is an instance of
-    sympy.Basic.
+    sympy.Basic. Note this covers sympy constants such as `sympy.pi`.
 
     Returns:
         True if the gate has any unresolved Symbols
