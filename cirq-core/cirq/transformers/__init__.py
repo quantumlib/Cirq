@@ -100,8 +100,8 @@ from cirq.transformers.merge_k_qubit_gates import merge_k_qubit_unitaries as mer
 from cirq.transformers.merge_single_qubit_gates import (
     merge_single_qubit_gates_to_phased_x_and_z as merge_single_qubit_gates_to_phased_x_and_z,
     merge_single_qubit_gates_to_phxz as merge_single_qubit_gates_to_phxz,
+    merge_single_qubit_gates_to_phxz_symbolized as merge_single_qubit_gates_to_phxz_symbolized,
     merge_single_qubit_moments_to_phxz as merge_single_qubit_moments_to_phxz,
-    merge_into_symbolized_phxz as merge_into_symbolized_phxz,
 )
 
 from cirq.transformers.qubit_management_transformers import (
