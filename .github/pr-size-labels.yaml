@@ -19,7 +19,7 @@
 
 # List of files to exclude from size calculations.
 exclude_files:
-  - "cirq-web/cirq_ts/package-lock.json"
+  - "package-lock.json"
   - "*_pb2.py"
   - "*_pb2.pyi"
   - "*.bundle.js"
