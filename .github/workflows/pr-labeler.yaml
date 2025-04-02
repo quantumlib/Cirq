@@ -22,7 +22,7 @@ run-name: >-
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
 
   # Allow manual invocation.
   workflow_dispatch:
@@ -32,7 +32,7 @@ permissions: read-all
 
 jobs:
   label-pr-size:
-    name: Add size label to new pull request
+    name: Update size labels on a PR
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -40,22 +40,9 @@ jobs:
       issues: write
     steps:
       - name: Label the PR with a size label
-        uses: codelytv/pr-size-labeler@c7a55a022747628b50f3eb5bf863b9e796b8f274 # v1
+        uses: cbrgm/pr-size-labeler-action@85f918ef4ef0a7dbc08166774f9158697584bc8c # v1
         with:
-          # Don't count file deletions, per suggestion in Small CLs.
-          ignore_file_deletions: 'true'
-
-          xs_label: 'Size: XS'
-          xs_max_size: '10'
-
-          s_label: 'size: S'
-          s_max_size: '50'
-
-          m_label: 'size: M'
-          m_max_size: '250'
-
-          l_label: 'size: L'
-          l_max_size: '1000'
-
-          xl_label: 'size: XL'
-          fail_if_xl: 'false'
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          github_pr_number: ${{github.event.number}}
+          github_repository: ${{github.repository}}
+          config_file_path: '.github/pr-size-labels.yaml'
