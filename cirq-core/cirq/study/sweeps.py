@@ -101,7 +101,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def __eq__(self, other) -> bool:
-        pass
+        pass  # pragma: nocover
 
     def __ne__(self, other) -> bool:
         return not self == other
@@ -113,7 +113,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def __len__(self) -> int:
-        pass
+        pass  # pragma: nocover
 
     def __iter__(self) -> Iterator[resolver.ParamResolver]:
         for params in self.param_tuples():
@@ -122,11 +122,11 @@ class Sweep(metaclass=abc.ABCMeta):
     # pylint: disable=function-redefined
     @overload
     def __getitem__(self, val: int) -> resolver.ParamResolver:
-        pass
+        pass  # pragma: nocover
 
     @overload
     def __getitem__(self, val: slice) -> 'Sweep':
-        pass
+        pass  # pragma: nocover
 
     def __getitem__(self, val: Union[int, slice]) -> Union[resolver.ParamResolver, 'Sweep']:
         n = len(self)
@@ -464,7 +464,7 @@ class SingleSweep(Sweep):
 
     @abc.abstractmethod
     def _tuple(self) -> Tuple[Any, ...]:
-        pass
+        pass  # pragma: nocover
 
     @property
     def keys(self) -> List['cirq.TParamKey']:
@@ -476,7 +476,7 @@ class SingleSweep(Sweep):
 
     @abc.abstractmethod
     def _values(self) -> Iterator[float]:
-        pass
+        pass  # pragma: nocover
 
 
 class Points(SingleSweep):

@@ -473,7 +473,7 @@ class _ModAdd(ops.ArithmeticGate):
         return (self._dimension,), (self._dimension,)
 
     def with_registers(self, *new_registers) -> '_ModAdd':
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
     def apply(self, *register_values: int) -> Tuple[int, int]:
         return register_values[0], sum(register_values)

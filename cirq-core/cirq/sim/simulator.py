@@ -128,7 +128,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             third to the actual boolean measurement results (ordered by the
             qubits being measured.)
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
 
 class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
@@ -228,7 +228,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             An Iterator over lists of amplitudes. The outer dimension indexes
             the circuit parameters and the inner dimension indexes bitstrings.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
     def sample_from_amplitudes(
         self,
@@ -452,7 +452,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError if 'program' has terminal measurement(s) and
             'permit_terminal_measurements' is False.
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
 
 class SimulatesFinalState(
@@ -549,7 +549,7 @@ class SimulatesFinalState(
             Iterator over SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
 
 class SimulatesIntermediateState(
@@ -689,7 +689,7 @@ class SimulatesIntermediateState(
         Returns:
             The SimulationTrialResult.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
 
 class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
@@ -743,7 +743,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             measurements ordered by the supplied qubits. These lists
             are wrapped as a numpy ndarray.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
     def sample_measurement_ops(
         self,

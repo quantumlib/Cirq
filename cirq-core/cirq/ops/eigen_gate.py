@@ -302,7 +302,7 @@ class EigenGate(raw_types.Gate):
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: nocover
         return self._with_exponent(exponent=new_exponent)
 
     @property

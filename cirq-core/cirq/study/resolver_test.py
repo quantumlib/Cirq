@@ -84,7 +84,7 @@ def _assert_consistent_resolution(v, resolved):
 
         # note: super().subs() doesn't resolve based on the param_dict properly
         # for some reason, that's why a delegate (self.symbol) is used instead
-        def subs(self, *args, **kwargs):
+        def subs(self, *args, **kwargs):  # pragma: nocover
             self.called = True
             return self.symbol.subs(*args, **kwargs)
 
@@ -93,6 +93,7 @@ def _assert_consistent_resolution(v, resolved):
     # symbol based resolution
     s = SubsAwareSymbol('a')
     assert r.value_of(s) == resolved, f"expected {resolved}, got {r.value_of(s)}"
+    assert r[s] == resolved, f"expected {resolved}, got {r.value_of(s)}"
     assert not s.called, f"For pass-through type {type(v)} sympy.subs shouldn't have been called."
     assert isinstance(
         r.value_of(s), type(resolved)
@@ -181,6 +182,14 @@ def test_recursive_evaluation():
     assert sympy.Eq(r.value_of(c), a + 5)
     assert sympy.Eq(r.value_of(d), a + 3)
     assert sympy.Eq(r.value_of(e), 0)
+
+
+def test_resolution_of_unknown_formulas():
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+
+    r = cirq.ParamResolver({a: b - 2})
+    assert r.value_of(sympy.sin(a), recursive=False) == sympy.sin(b - 2)
 
 
 def test_unbound_recursion_halted():

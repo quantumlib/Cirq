@@ -55,19 +55,6 @@ if TYPE_CHECKING:
 q0, q1, q2, q3 = cirq.LineQubit.range(4)
 
 
-class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
-    def validate_operation(self, operation):
-        if not isinstance(operation, cirq.Operation):
-            raise ValueError(f'not isinstance({operation!r}, {cirq.Operation!r})')
-
-    def validate_moment(self, moment):
-        if not isinstance(moment, cirq.Moment):
-            raise ValueError(f'not isinstance({moment!r}, {cirq.Moment!r})')
-
-
-moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
-
-
 def test_from_moments():
     a, b, c, d = cirq.LineQubit.range(4)
     moment = cirq.Moment(cirq.Z(a), cirq.Z(b))
@@ -4778,7 +4765,7 @@ def test_zero_target_operations_go_below_diagram():
             self.text = text
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
         @property
         def qubits(self):
@@ -4789,7 +4776,7 @@ def test_zero_target_operations_go_below_diagram():
 
     class CustomOperationAnnotationNoInfo(cirq.Operation):
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
         @property
         def qubits(self):

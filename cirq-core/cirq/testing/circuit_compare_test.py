@@ -333,7 +333,7 @@ def test_assert_has_consistent_apply_unitary():
             return args.available_buffer
 
         def _unitary_(self):
-            return np.eye(2)
+            return np.eye(2)  # pragma: nocover
 
         def _num_qubits_(self):
             return 1
@@ -366,7 +366,7 @@ def test_assert_has_consistent_apply_unitary():
             return args.available_buffer
 
         def _unitary_(self):
-            return np.array([[0, 1], [1, 0]])
+            return np.array([[0, 1], [1, 0]])  # pragma: nocover
 
         def _num_qubits_(self):
             return 1

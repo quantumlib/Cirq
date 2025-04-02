@@ -113,7 +113,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Delegates the call to measure the `QuantumStateRepresentation`."""
         if self._state is not None:
             return self._state.measure(self.get_axes(qubits), self.prng)
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
     def _confuse_result(
         self,
@@ -144,7 +144,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     ) -> np.ndarray:
         if self._state is not None:
             return self._state.sample(self.get_axes(qubits), repetitions, seed)
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
     def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.
@@ -336,7 +336,7 @@ def strat_act_on_from_apply_decompose(
         curr_ancilla = tuple(q for q in operation.qubits if q not in args.qubits)
         args = args.add_qubits(curr_ancilla)
         if args is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: nocover
         all_ancilla.update(curr_ancilla)
         protocols.act_on(operation, args)
     args = args.remove_qubits(tuple(all_ancilla))

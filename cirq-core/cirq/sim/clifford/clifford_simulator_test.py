@@ -1,4 +1,16 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
+# Copyright 2025 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import itertools
 
 import numpy as np
@@ -91,12 +103,17 @@ def test_simulate_initial_state():
                 circuit.append(cirq.X(q1))
             circuit.append(cirq.measure(q0, q1))
 
-            result = simulator.simulate(circuit, initial_state=1)
-            expected_state = np.zeros(shape=(2, 2))
-            expected_state[b0][1 - b1] = 1.0
-            np.testing.assert_almost_equal(
-                result.final_state.to_numpy(), np.reshape(expected_state, 4)
-            )
+            for initial_state in [
+                cirq.StabilizerChFormSimulationState(
+                    qubits=cirq.LineQubit.range(2), initial_state=1
+                )
+            ]:
+                result = simulator.simulate(circuit, initial_state=initial_state)
+                expected_state = np.zeros(shape=(2, 2))
+                expected_state[b0][1 - b1] = 1.0
+                np.testing.assert_almost_equal(
+                    result.final_state.to_numpy(), np.reshape(expected_state, 4)
+                )
 
 
 def test_simulation_state():
@@ -207,6 +224,8 @@ def test_clifford_state_initial_state():
         _ = cirq.CliffordState(qubit_map={q0: 0}, initial_state=2)
     state = cirq.CliffordState(qubit_map={q0: 0}, initial_state=1)
     np.testing.assert_allclose(state.state_vector(), [0, 1])
+
+    assert state.copy() == state
 
 
 def test_clifford_trial_result_repr():
@@ -473,13 +492,13 @@ def test_is_supported_operation():
             return cirq.LineQubit.range(100)
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
         def _has_unitary_(self):
-            return True
+            return True  # pragma: nocover
 
         def _unitary_(self):
-            assert False
+            assert False  # pragma: nocover
 
     q1, q2 = cirq.LineQubit.range(2)
     assert cirq.CliffordSimulator.is_supported_operation(cirq.X(q1))
@@ -548,6 +567,10 @@ def test_valid_apply_measurement():
     q0 = cirq.LineQubit(0)
     state = cirq.CliffordState(qubit_map={q0: 0}, initial_state=1)
     measurements = {}
+    _ = state.apply_measurement(
+        cirq.measure(q0), measurements, np.random.RandomState(), collapse_state_vector=False
+    )
+    assert measurements == {'q(0)': [1]}
     state.apply_measurement(cirq.measure(q0), measurements, np.random.RandomState())
     assert measurements == {'q(0)': [1]}
 

@@ -541,9 +541,8 @@ def get_grid_interaction_layer_circuit(
     moments = []
     for layer in pattern:
         pairs = sorted(_get_active_pairs(device_graph, layer))
-        if len(pairs) == 0:
-            continue
-        moments += [circuits.Moment(two_qubit_gate.on(*pair) for pair in pairs)]
+        if len(pairs) > 0:
+            moments += [circuits.Moment(two_qubit_gate.on(*pair) for pair in pairs)]
     return circuits.Circuit(moments)
 
 

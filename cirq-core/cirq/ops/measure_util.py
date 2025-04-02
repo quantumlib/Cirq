@@ -98,7 +98,7 @@ def measure(
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
-    pass
+    pass  # pragma: nocover
 
 
 @overload
@@ -108,7 +108,7 @@ def measure(
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
-    pass
+    pass  # pragma: nocover
 
 
 def measure(
@@ -171,14 +171,14 @@ M = measure
 def measure_each(
     *qubits: raw_types.Qid, key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
-    pass
+    pass  # pragma: nocover
 
 
 @overload
 def measure_each(
     __qubits: Iterable[raw_types.Qid], *, key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
-    pass
+    pass  # pragma: nocover
 
 
 def measure_each(

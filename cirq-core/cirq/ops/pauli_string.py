@@ -235,11 +235,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     # pylint: disable=function-redefined
     @overload
     def get(self, key: Any, default: None = None) -> Optional[pauli_gates.Pauli]:
-        pass
+        pass  # pragma: nocover
 
     @overload
     def get(self, key: Any, default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
-        pass
+        pass  # pragma: nocover
 
     def get(
         self, key: Any, default: Optional[TDefault] = None
@@ -251,27 +251,27 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __mul__(
         self, other: 'cirq.PauliString[TKeyOther]'
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
-        pass
+        pass  # pragma: nocover
 
     @overload
     def __mul__(
         self, other: Mapping[TKeyOther, 'cirq.PAULI_GATE_LIKE']
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
-        pass
+        pass  # pragma: nocover
 
     @overload
     def __mul__(
         self, other: Iterable['cirq.PAULI_STRING_LIKE']
     ) -> 'cirq.PauliString[Union[TKey, cirq.Qid]]':
-        pass
+        pass  # pragma: nocover
 
     @overload
     def __mul__(self, other: 'cirq.Operation') -> 'cirq.PauliString[Union[TKey, cirq.Qid]]':
-        pass
+        pass  # pragma: nocover
 
     @overload
     def __mul__(self, other: complex) -> 'cirq.PauliString[TKey]':
-        pass
+        pass  # pragma: nocover
 
     def __mul__(self, other):
         known = False
@@ -311,7 +311,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             )
 
         if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
-            return self
+            return self  # pragma: nocover
 
         # Note: PauliString case handled by __mul__.
         return NotImplemented
@@ -462,7 +462,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         fused = prefix + '*'.join(factors)
         if len(factors) > 1:
             return f'({fused})'
-        return fused
+        return fused  # pragma: nocover
 
     def __str__(self) -> str:
         ordered_qubits = sorted(self.qubits)
@@ -1369,11 +1369,11 @@ class MutablePauliString(Generic[TKey]):
     # pylint: disable=function-redefined
     @overload
     def get(self, key: TKey, default: None = None) -> Union['cirq.Pauli', None]:
-        pass
+        pass  # pragma: nocover
 
     @overload
     def get(self, key: TKey, default: TDefault) -> Union['cirq.Pauli', TDefault]:
-        pass
+        pass  # pragma: nocover
 
     def get(self, key: TKey, default=None) -> Union['cirq.Pauli', TDefault, None]:
         """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
@@ -1646,86 +1646,9 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
     if decomposed is not None:
         return [out for sub_op in decomposed for out in _decompose_into_cliffords(sub_op)]
 
-    raise TypeError(
+    raise TypeError(  # pragma: nocover
         f'Operation is not a known Clifford and did not decompose into known Cliffords: {op!r}'
     )
-
-
-def _pass_operation_over(
-    pauli_map: Dict[TKey, pauli_gates.Pauli], op: 'cirq.Operation', after_to_before: bool = False
-) -> bool:
-    if isinstance(op, gate_operation.GateOperation):
-        gate = op.gate
-        if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
-            return _pass_single_clifford_gate_over(
-                pauli_map, gate, cast(TKey, op.qubits[0]), after_to_before=after_to_before
-            )
-        if isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
-            return _pass_pauli_interaction_gate_over(
-                pauli_map,
-                gate,
-                cast(TKey, op.qubits[0]),
-                cast(TKey, op.qubits[1]),
-                after_to_before=after_to_before,
-            )
-    raise NotImplementedError(f'Unsupported operation: {op!r}')
-
-
-def _pass_single_clifford_gate_over(
-    pauli_map: Dict[TKey, pauli_gates.Pauli],
-    gate: clifford_gate.SingleQubitCliffordGate,
-    qubit: TKey,
-    after_to_before: bool = False,
-) -> bool:
-    if qubit not in pauli_map:
-        return False  # pragma: no cover
-    if not after_to_before:
-        gate **= -1
-    pauli, inv = gate.pauli_tuple(pauli_map[qubit])
-    pauli_map[qubit] = pauli
-    return inv
-
-
-def _pass_pauli_interaction_gate_over(
-    pauli_map: Dict[TKey, pauli_gates.Pauli],
-    gate: pauli_interaction_gate.PauliInteractionGate,
-    qubit0: TKey,
-    qubit1: TKey,
-    after_to_before: bool = False,
-) -> bool:
-    def merge_and_kickback(
-        qubit: TKey,
-        pauli_left: Optional[pauli_gates.Pauli],
-        pauli_right: Optional[pauli_gates.Pauli],
-        inv: bool,
-    ) -> int:
-        assert pauli_left is not None or pauli_right is not None
-        if pauli_left is None or pauli_right is None:
-            pauli_map[qubit] = cast(pauli_gates.Pauli, pauli_left or pauli_right)
-            return 0
-        if pauli_left == pauli_right:
-            del pauli_map[qubit]
-            return 0
-
-        pauli_map[qubit] = pauli_left.third(pauli_right)
-        if (pauli_left < pauli_right) ^ after_to_before:
-            return int(inv) * 2 + 1
-
-        return int(inv) * 2 - 1
-
-    quarter_kickback = 0
-    if qubit0 in pauli_map and not protocols.commutes(pauli_map[qubit0], gate.pauli0):
-        quarter_kickback += merge_and_kickback(
-            qubit1, gate.pauli1, pauli_map.get(qubit1), gate.invert1
-        )
-    if qubit1 in pauli_map and not protocols.commutes(pauli_map[qubit1], gate.pauli1):
-        quarter_kickback += merge_and_kickback(
-            qubit0, pauli_map.get(qubit0), gate.pauli0, gate.invert0
-        )
-    assert (
-        quarter_kickback % 2 == 0
-    ), 'Impossible condition.  quarter_kickback is either incremented twice or never.'
-    return quarter_kickback % 4 == 2
 
 
 # Mypy has extreme difficulty with these constants for some reason.

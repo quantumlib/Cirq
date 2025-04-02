@@ -20,10 +20,10 @@ from cirq.interop.quirk.cells.cell import Cell, ExplicitOperationsCell
 def test_cell_defaults():
     class BasicCell(Cell):
         def with_line_qubits_mapped_to(self, qubits):
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
         def gate_count(self) -> int:
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
     c = BasicCell()
     assert c.operations() == ()

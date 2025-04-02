@@ -586,7 +586,7 @@ def test_merge_moments_empty_moment_as_intermediate_step():
 
 def test_merge_moments_empty_circuit():
     def fail_if_called_func(*_):
-        assert False
+        assert False  # pragma: nocover
 
     c = cirq.Circuit()
     assert cirq.merge_moments(c, fail_if_called_func) is c
@@ -601,7 +601,7 @@ def test_merge_operations_raises():
 
 def test_merge_operations_nothing_to_merge():
     def fail_if_called_func(*_):
-        assert False
+        assert False  # pragma: nocover
 
     # Empty Circuit.
     c = cirq.Circuit()

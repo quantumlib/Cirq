@@ -169,7 +169,7 @@ def map_clean_and_borrowable_qubits(
                     # one from the original system qubits.
                     allocated_map[q] = qm.qborrow(1)[0]
             else:
-                assert False, f"Unknown temporary qubit type {q}"
+                assert False, f"Unknown temporary qubit type {q}"  # pragma: nocover
 
         # Return the transformed operation / decomposed op-tree.
         return op.transform_qubits({**allocated_map, **trivial_map})

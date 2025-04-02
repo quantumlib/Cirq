@@ -100,7 +100,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         Returns:
             A list of constants and qubit groups that the gate will act upon.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
     @abc.abstractmethod
     def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> Self:
@@ -114,7 +114,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
             An instance of the same kind of gate, but acting on different
             registers.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
     @abc.abstractmethod
     def apply(self, *register_values: int) -> Union[int, Iterable[int]]:
@@ -160,7 +160,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                 return target + offset
             ```
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: nocover
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         shape = []

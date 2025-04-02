@@ -89,7 +89,7 @@ def test_consistent_protocols():
 def test_diagram():
     class NoDetailsGate(cirq.Gate):
         def num_qubits(self) -> int:
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
     assert cirq.circuit_diagram_info(NoDetailsGate().with_probability(0.5), None) is None
 
@@ -148,12 +148,6 @@ def test_mixture():
     m = cirq.mixture(cirq.bit_flip(1 / 4).with_probability(1 / 8))
     assert len(m) == 3
     assert {p for p, _ in m} == {7 / 8, 1 / 32, 3 / 32}
-
-
-def assert_channel_sums_to_identity(val):
-    m = cirq.kraus(val)
-    s = sum(np.conj(e.T) @ e for e in m)
-    np.testing.assert_allclose(s, np.eye(np.prod(cirq.qid_shape(val), dtype=np.int64)), atol=1e-8)
 
 
 def test_channel():

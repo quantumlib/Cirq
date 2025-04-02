@@ -297,7 +297,7 @@ class ControlledOperation(raw_types.Operation):
             return None
         u = protocols.unitary(self.sub_operation, default=None)
         if u is None:
-            return NotImplemented
+            return NotImplemented  # pragma: nocover
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 

@@ -50,13 +50,13 @@ class FakeStepResult(cirq.StepResult):
         self._final_state = final_state
 
     def _simulator_state(self):
-        return self._final_state
+        return self._final_state  # pragma: nocover
 
     def state_vector(self):
-        pass
+        pass  # pragma: nocover
 
     def __setstate__(self, state):
-        pass
+        pass  # pragma: nocover
 
     def sample(self, qubits, repetitions=1, seed=None):
         return np.array([[qubit in self._ones_qubits for qubit in qubits]] * repetitions)

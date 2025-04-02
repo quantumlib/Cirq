@@ -547,11 +547,11 @@ class Moment:
     # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: raw_types.Qid) -> 'cirq.Operation':
-        pass
+        pass  # pragma: nocover
 
     @overload
     def __getitem__(self, key: Iterable[raw_types.Qid]) -> 'cirq.Moment':
-        pass
+        pass  # pragma: nocover
 
     def __getitem__(self, key):
         if isinstance(key, raw_types.Qid):

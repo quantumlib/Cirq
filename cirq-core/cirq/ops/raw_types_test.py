@@ -77,6 +77,13 @@ def test_wrapped_qid():
         'dimension': 3,
     }
 
+    assert not ValidQubit('zz') == 4
+    assert ValidQubit('zz') != 4
+    assert ValidQubit('zz') > ValidQubit('aa')
+    assert ValidQubit('zz') <= ValidQubit('zz')
+    assert ValidQubit('zz') >= ValidQubit('zz')
+    assert ValidQubit('zz') >= ValidQubit('aa')
+
 
 def test_qid_dimension():
     assert ValidQubit('a').dimension == 2
@@ -208,6 +215,21 @@ def test_default_validation_and_inverse():
     )
 
     cirq.testing.assert_implements_consistent_protocols(i, local_vals={'TestGate': TestGate})
+
+
+def test_default_no_qubits():
+    class TestOp(cirq.Operation):
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()  # pragma: nocover
+
+        @property
+        def qubits(self):
+            pass  # pragma: nocover
+
+    op = TestOp()
+    assert op.controlled_by(*[]) is op
+    op = TestOp().with_tags("abc")
+    assert op.classical_controls == frozenset()
 
 
 def test_default_inverse():
@@ -659,6 +681,9 @@ def test_tagged_operation_forwards_protocols():
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
     classically_controlled_y = tagged_y.with_classical_controls("a")
+    assert classically_controlled_y.classical_controls == frozenset(
+        {cirq.KeyCondition(cirq.MeasurementKey(name='a'))}
+    )
     assert classically_controlled_y == y.with_classical_controls("a")
     assert isinstance(classically_controlled_y, cirq.Operation)
     assert not isinstance(classically_controlled_y, cirq.TaggedOperation)
@@ -788,7 +813,7 @@ def test_tagged_act_on():
 
     class MissingActOn(cirq.Operation):
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
         @property
         def qubits(self):
@@ -808,7 +833,7 @@ def test_tagged_act_on():
 def test_single_qubit_gate_validates_on_each():
     class Example(cirq.testing.SingleQubitGate):
         def matrix(self):
-            pass
+            pass  # pragma: nocover
 
     g = Example()
     assert g.num_qubits() == 1
@@ -975,7 +1000,7 @@ def test_on_each_iterable_qid():
             return 1
 
         def __iter__(self):
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
 

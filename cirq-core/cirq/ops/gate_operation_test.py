@@ -357,7 +357,7 @@ def test_mul():
                 return 3
             if isinstance(other, cirq.Operation) and isinstance(other.gate, GateRMul):
                 return 4
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
     class GateMul(cirq.Gate):
         def num_qubits(self) -> int:
@@ -368,7 +368,7 @@ def test_mul():
                 return 5
             if isinstance(other, cirq.Operation) and isinstance(other.gate, GateMul):
                 return 6
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
     # Delegates right multiplication.
     q = cirq.LineQubit(0)
@@ -454,6 +454,7 @@ def test_is_parameterized():
             return True
 
     q = cirq.LineQubit(0)
+    assert No1().num_qubits() == 1
     assert not cirq.is_parameterized(No1().on(q))
     assert not cirq.is_parameterized(No2().on(q))
     assert cirq.is_parameterized(Yes().on(q))

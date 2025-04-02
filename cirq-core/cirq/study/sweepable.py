@@ -32,7 +32,7 @@ class _Sweepable(Protocol):
     since recursive union definitions are not yet supported in mypy."""
 
     def __iter__(self) -> Iterator[Union[SweepLike, '_Sweepable']]:
-        pass
+        pass  # pragma: nocover
 
 
 Sweepable = Union[SweepLike, _Sweepable]

@@ -297,7 +297,7 @@ def test_resolve_parameters(resolve_fn):
 def test_diagram_period():
     class ShiftyGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
         def __init__(self, e, *shifts):
             super().__init__(exponent=e, global_shift=np.random.random())

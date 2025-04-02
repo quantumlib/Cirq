@@ -99,7 +99,7 @@ def test_arithmetic_gate_apply_unitary():
             return self.target_register, self.input_register
 
         def with_registers(self, *new_registers):
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
         def apply(self, target_value, input_value):
             return target_value + input_value

@@ -1860,7 +1860,7 @@ def test_mutable_pauli_string_inplace_conjugate_by():
             return self._qubits
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()
+            raise NotImplementedError()  # pragma: nocover
 
         def _decompose_(self):
             return []
@@ -1889,6 +1889,48 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     p2 = p.inplace_after(cirq.S(a))
     assert p2 is p and p == cirq.X(a)
 
+    # After sqrt-X and back.
+    p2 = p.inplace_before(cirq.X(a) ** 0.5)
+    assert p2 is p and p == cirq.X(a)
+    p2 = p.inplace_after(cirq.X(a) ** 0.5)
+    assert p2 is p and p == cirq.X(a)
+
+    # After sqrt-Y and back.
+    p2 = p.inplace_before(cirq.Y(a) ** 0.5)
+    assert p2 is p and p == cirq.Z(a)
+    p2 = p.inplace_after(cirq.Y(a) ** 0.5)
+    assert p2 is p and p == cirq.X(a)
+
+    # After inv-sqrt-Y and back.
+    p2 = p.inplace_before(cirq.Y(a) ** 1.5)
+    assert p2 is p and p == -cirq.Z(a)
+    p2 = p.inplace_after(cirq.Y(a) ** 1.5)
+    assert p2 is p and p == cirq.X(a)
+
+    # After X**0 and back.
+    p2 = p.inplace_before(cirq.X(a) ** 0)
+    assert p2 is p and p == cirq.X(a)
+    p2 = p.inplace_after(cirq.X(a) ** 0)
+    assert p2 is p and p == cirq.X(a)
+
+    # After Y**0 and back.
+    p2 = p.inplace_before(cirq.Y(a) ** 0)
+    assert p2 is p and p == cirq.X(a)
+    p2 = p.inplace_after(cirq.Y(a) ** 0)
+    assert p2 is p and p == cirq.X(a)
+
+    # After Z**0 and back.
+    p2 = p.inplace_before(cirq.Z(a) ** 0)
+    assert p2 is p and p == cirq.X(a)
+    p2 = p.inplace_after(cirq.Z(a) ** 0)
+    assert p2 is p and p == cirq.X(a)
+
+    # After H**0 and back.
+    p2 = p.inplace_before(cirq.H(a) ** 0)
+    assert p2 is p and p == cirq.X(a)
+    p2 = p.inplace_after(cirq.H(a) ** 0)
+    assert p2 is p and p == cirq.X(a)
+
     # After inverse S and back.
     p2 = p.inplace_after(cirq.S(a) ** -1)
     assert p2 is p and p == -cirq.Y(a)
@@ -1900,6 +1942,10 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     assert p2 is p and p == cirq.X(a)
 
     # Two qubit operation.
+    p2 = p.inplace_after(cirq.CX(a, b) ** 0)
+    assert p2 is p and p == cirq.X(a)
+    p2 = p.inplace_after(cirq.CZ(a, b) ** 0)
+    assert p2 is p and p == cirq.X(a)
     p2 = p.inplace_after(cirq.CZ(a, b))
     assert p2 is p and p == cirq.X(a) * cirq.Z(b)
     p2 = p.inplace_after(cirq.CZ(a, c))

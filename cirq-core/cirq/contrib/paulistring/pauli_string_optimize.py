@@ -46,7 +46,9 @@ def pauli_string_optimized_circuit(
 def assert_no_multi_qubit_pauli_strings(circuit: circuits.Circuit) -> None:
     for op in circuit.all_operations():
         if isinstance(op, PauliStringGateOperation):
-            assert len(op.pauli_string) == 1, 'Multi qubit Pauli string left over'
+            assert (
+                len(op.pauli_string) == 1
+            ), 'Multi qubit Pauli string left over'  # pragma: nocover
 
 
 def merge_equal_strings(string_dag: circuitdag.CircuitDag) -> None:

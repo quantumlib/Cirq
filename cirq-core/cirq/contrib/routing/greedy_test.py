@@ -45,7 +45,9 @@ def create_circuit_and_device():
 
 def create_hanging_routing_instance(circuit, device_graph):
     """Create a test problem instance."""
-    route_circuit_greedily(circuit, device_graph, max_search_radius=2, random_state=1)
+    route_circuit_greedily(  # pragma: nocover
+        circuit, device_graph, max_search_radius=2, random_state=1
+    )
 
 
 def test_router_hanging():

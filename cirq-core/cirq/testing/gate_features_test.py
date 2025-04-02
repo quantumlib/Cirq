@@ -20,7 +20,7 @@ import cirq
 def test_two_qubit_gate_is_abstract_can_implement():
     class Included(cirq.testing.TwoQubitGate):
         def matrix(self):
-            pass
+            pass  # pragma: nocover
 
     assert isinstance(Included(), cirq.testing.TwoQubitGate)
 
@@ -28,7 +28,7 @@ def test_two_qubit_gate_is_abstract_can_implement():
 def test_two_qubit_gate_validate_pass():
     class Example(cirq.testing.TwoQubitGate):
         def matrix(self):
-            pass
+            pass  # pragma: nocover
 
     g = Example()
     q1 = cirq.NamedQubit('q1')
@@ -44,7 +44,7 @@ def test_two_qubit_gate_validate_pass():
 def test_two_qubit_gate_validate_wrong_number():
     class Example(cirq.testing.TwoQubitGate):
         def matrix(self):
-            pass
+            pass  # pragma: nocover
 
     g = Example()
     q1 = cirq.NamedQubit('q1')
@@ -62,7 +62,7 @@ def test_two_qubit_gate_validate_wrong_number():
 def test_three_qubit_gate_validate():
     class Example(cirq.testing.ThreeQubitGate):
         def matrix(self):
-            pass
+            pass  # pragma: nocover
 
     g = Example()
     a, b, c, d = cirq.LineQubit.range(4)
@@ -78,3 +78,8 @@ def test_three_qubit_gate_validate():
         g.validate_args([a, b])
     with pytest.raises(ValueError):
         g.validate_args([a, b, c, d])
+
+
+def test_does_not_support_serialization_gate():
+    g = cirq.testing.DoesNotSupportSerializationGate(n_qubits=4)
+    assert g.num_qubits() == 4

@@ -132,7 +132,7 @@ def wrap_module_executions(
 
     def wrap(finder: Any) -> Any:
         if not hasattr(finder, 'find_spec'):
-            return finder
+            return finder  # pragma: nocover
         return InstrumentedFinder(finder, module_name, wrap_func, after_exec)
 
     new_meta_path = [wrap(finder) for finder in sys.meta_path]

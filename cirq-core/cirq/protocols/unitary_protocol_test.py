@@ -286,7 +286,7 @@ def test_unitary_from_apply_unitary():
 
     class UnknownType:
         def _apply_unitary_(self, args):
-            assert False
+            assert False  # pragma: nocover
 
     class ApplyGateNotUnitary(cirq.Gate):
         def num_qubits(self):

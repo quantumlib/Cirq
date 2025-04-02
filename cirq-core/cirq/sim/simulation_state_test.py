@@ -24,7 +24,7 @@ from cirq.testing import PhaseUsingCleanAncilla, PhaseUsingDirtyAncilla
 
 class ExampleQuantumState(cirq.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers=True):
-        pass
+        pass  # pragma: nocover
 
     def measure(self, axes, seed=None):
         return [5, 3]
@@ -66,7 +66,7 @@ class DelegatingAncillaZ(cirq.Gate):
 
 class Composite(cirq.Gate):
     def num_qubits(self) -> int:
-        return 1
+        return 1  # pragma: nocover
 
     def _decompose_(self, qubits):
         yield cirq.X(*qubits)
