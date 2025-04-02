@@ -278,12 +278,7 @@ def test_estimate_fidilties():
     )
 
     assert result == [
-        xeb.XEBFidelity(
-            pair=_PAIRS[0],
-            cycle_depth=1,
-            fidelity=pytest.approx(0.8),
-            fidelity_variance=pytest.approx(25.84),
-        )
+        xeb.XEBFidelity(pair=_PAIRS[0], cycle_depth=1, fidelity=pytest.approx(0.785, abs=2e-4))
     ]
 
 
@@ -314,12 +309,7 @@ def test_estimate_fidilties_with_dict_target():
     )
 
     assert result == [
-        xeb.XEBFidelity(
-            pair=_PAIRS[0],
-            cycle_depth=1,
-            fidelity=pytest.approx(0.8),
-            fidelity_variance=pytest.approx(25.84),
-        )
+        xeb.XEBFidelity(pair=_PAIRS[0], cycle_depth=1, fidelity=pytest.approx(0.785, abs=2e-4))
     ]
 
 

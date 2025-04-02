@@ -453,13 +453,16 @@ class XEBFidelity:
         pair: A qubit pair.
         cycle_depth: The depth of the cycle.
         fidelity: The estimated fidelity.
-        fidelity_variance: The estimated fidelity variance.
     """
 
     pair: _QUBIT_PAIR_T
     cycle_depth: int
     fidelity: float
-    fidelity_variance: float
+
+
+def _cross_entropy(p: np.ndarray, q: np.ndarray, eps: float = 1e-60) -> float:
+    q[q <= 0] = eps  # for numerical stability
+    return -np.dot(p, np.log2(q))
 
 
 def estimate_fidilties(
@@ -495,13 +498,11 @@ def estimate_fidilties(
         simulation_results, cycle_depths, pairs, num_templates
     )
 
-    D = 2**2  # Dimension of the hilbert space.
     records = []
     for pair in pairs:
         for depth_idx, cycle_depth in enumerate(cycle_depths):
             numerator = 0.0
             denominator = 0.0
-            fidelity_variance = 0.0
             for template_idx in range(num_templates):
                 pure_probs = pure_probabilities[pair][depth_idx][template_idx]
                 sampled_probs = sampled_probabilities[pair][depth_idx][template_idx]
@@ -510,36 +511,20 @@ def estimate_fidilties(
                 assert (
                     len(sampled_probs) == 4
                 ), f'{pair=} {cycle_depth=} {template_idx=}: {sampled_probs=}'
-                e_u = np.sum(pure_probs**2)
-                u_u = np.sum(pure_probs) / D
-                m_u = np.dot(pure_probs, sampled_probs)
-                # Var[m_u] = Var[sum p(x) * p_sampled(x)]
-                #           = sum p(x)^2 Var[p_sampled(x)]
-                #           = sum p(x)^2 p(x) (1 - p(x))
-                #           = sum p(x)^3 (1 - p(x))
-                var_m_u = np.dot(pure_probs**3, (1 - pure_probs))
-                y = m_u - u_u
-                x = e_u - u_u
+                p_uniform = np.ones_like(pure_probs) / len(pure_probs)
+                pure_probs /= pure_probs.sum()
+                sampled_probs /= sampled_probs.sum()
+
+                h_up = _cross_entropy(p_uniform, pure_probs)  # H[uniform, pure probs]
+                h_sp = _cross_entropy(sampled_probs, pure_probs)  # H[sampled probs, pure probs]
+                h_pp = _cross_entropy(pure_probs, pure_probs)  # H[pure probs]
+
+                y = h_up - h_sp
+                x = h_up - h_pp
                 numerator += x * y
                 denominator += x**2
-                # Var[f] = Var['numerator'] / (sum ['denominator'])^2
-                #           = sum (['x']^2 * ['var_m_u']) / (sum ['denominator'])^2
-                fidelity_variance += var_m_u * x**2
             fidelity = numerator / denominator
-            if fidelity < 0:
-                # fidelity is a statistical estimate of the true fidelity which due to
-                # statistical error may fall below 0. In this case we set it to a tiny
-                # positive number.
-                fidelity = 1e-300
-            fidelity_variance /= denominator**2
-            records.append(
-                XEBFidelity(
-                    pair=pair,
-                    cycle_depth=cycle_depth,
-                    fidelity=fidelity,
-                    fidelity_variance=fidelity_variance,
-                )
-            )
+            records.append(XEBFidelity(pair=pair, cycle_depth=cycle_depth, fidelity=fidelity))
     return records
 
 
