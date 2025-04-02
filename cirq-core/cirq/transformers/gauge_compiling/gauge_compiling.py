@@ -27,10 +27,9 @@ import numpy as np
 
 from cirq.transformers import transformer_api
 from cirq import ops, circuits
-from cirq.study import sweepable
 from cirq.protocols import unitary_protocol
 from cirq.protocols.has_unitary_protocol import has_unitary
-from cirq.study.sweeps import Points, Zip
+from cirq.study.sweeps import Points, Sweep, Zip
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 
@@ -256,7 +255,7 @@ class GaugeTransformer:
         N: int,
         context: Optional[transformer_api.TransformerContext] = None,
         prng: Optional[np.random.Generator] = None,
-    ) -> Tuple[circuits.AbstractCircuit, sweepable.Sweepable]:
+    ) -> Tuple[circuits.AbstractCircuit, Sweep]:
         """Generates a parameterized circuit with *N* sets of sweepable parameters.
 
         Args:

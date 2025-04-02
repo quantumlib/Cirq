@@ -84,7 +84,7 @@ def test_merge_single_qubit_gates_to_phased_x_and_z_deep():
     cirq.testing.assert_same_circuits(c_new, c_expected)
 
 
-def _phxz(a: float, x: float, z: float):
+def _phxz(a: float | sympy.Symbol, x: float | sympy.Symbol, z: float | sympy.Symbol):
     return cirq.PhasedXZGate(axis_phase_exponent=a, x_exponent=x, z_exponent=z)
 
 
@@ -239,66 +239,62 @@ def test_merge_single_qubit_moments_to_phased_x_and_z_global_phase():
 def test_merge_into_symbolized_phxz():
     """Test case diagram.
     Input circuit:
-    0: ───X───────@───H[ignore]───H───X───PhXZ(a=a1,x=x1,z=z1)───X───PhXZ(a=a2,x=x2,z=z2)───H───
-                  │                                                                         ║
-    1: ───Y^0.5───@───M─────────────────────────────────────────────────────────────────────╫───
-                      ║                                                                     ║
-    m: ═══════════════@═════════════════════════════════════════════════════════════════════^═══
+    0: ───X─────────@──────────H[ignore]───H───X───PhXZ(a=a0,x=x0,z=z0)───X───PhXZ(a=a1,x=x1,z=z1)───
+                    │
+    1: ───H^h_exp───@^cz_exp─────────────────────────────────────────────────────────────────────────
     Expected output:
-    0: ───PhXZ(a=-1,x=1,z=0)──────@───H[ignore]───PhXZ(a=a1,x=x1,z=z1)───H───
-                                  │                                      ║
-    1: ───PhXZ(a=0.5,x=0.5,z=0)───@───M──────────────────────────────────╫───
-                                      ║                                  ║
-    m: ═══════════════════════════════@══════════════════════════════════^═══
+    0: ───PhXZ(a=-1,x=1,z=0)─────@──────────H[ignore]───PhXZ(a=a1,x=x1,z=z1)───
+                                 │
+    1: ───PhXZ(a=a0,x=x0,z=z0)───@^cz_exp──────────────────────────────────────
     """
     a, b = cirq.LineQubit.range(2)
-    sa1, sa2 = [sympy.Symbol(a) for a in ["a1", "a2"]]
-    sx1, sx2 = [sympy.Symbol(x) for x in ["x1", "x2"]]
-    sz1, sz2 = [sympy.Symbol(z) for z in ["z1", "z2"]]
+    sa0, sa1 = [sympy.Symbol(a) for a in ["a0", "a1"]]
+    sx0, sx1 = [sympy.Symbol(x) for x in ["x0", "x1"]]
+    sz0, sz1 = [sympy.Symbol(z) for z in ["z0", "z1"]]
     input_circuit = cirq.Circuit(
-        cirq.X(a),
-        cirq.Y(b) ** 0.5,
-        cirq.CZ(a, b),
-        cirq.H(a).with_tags("ignore"),
-        cirq.H(a),
-        cirq.X(a),
-        _phxz(sa1, sx1, sz1).on(a),
-        cirq.X(a),
-        _phxz(sa2, sx2, sz2).on(a),
-        cirq.measure(b, key="m"),
-        cirq.H(a).with_classical_controls("m"),
+        cirq.Moment(cirq.X(a), cirq.H(b) ** sympy.Symbol("h_exp")),
+        cirq.Moment(cirq.CZ(a, b) ** sympy.Symbol("cz_exp")),
+        cirq.Moment(cirq.H(a).with_tags("ignore")),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.X(a)),
+        cirq.Moment(_phxz(sa0, sx0, sz0).on(a)),
+        cirq.Moment(cirq.X(a)),
+        cirq.Moment(_phxz(sa1, sx1, sz1).on(a)),
     )
     context = cirq.TransformerContext(tags_to_ignore=["ignore"])
-    assert_optimizes(
-        optimized=cirq.merge_into_symbolized_phxz(input_circuit, context=context),
-        expected=cirq.Circuit(
-            _phxz(-1, 1, 0).on(a),
-            _phxz(0.5, 0.5, 0).on(b),
-            cirq.CZ(a, b),
-            cirq.H(a).with_tags("ignore"),
-            _phxz(sa1, sx1, sz1).on(a),
-            cirq.measure(b, key="m"),
-            cirq.H(a).with_classical_controls("m"),
-        ),
+    sweep = cirq.Zip(
+        cirq.Points(key="h_exp", points=[0, 1]),
+        cirq.Points(key="cz_exp", points=[0, 1]),
+        cirq.Points(key="a0", points=[0, 1]),
+        cirq.Points(key="x0", points=[0, 1]),
+        cirq.Points(key="z0", points=[0, 1]),
+        cirq.Points(key="a1", points=[0, 1]),
+        cirq.Points(key="x1", points=[0, 1]),
+        cirq.Points(key="z1", points=[0, 1]),
     )
-
-
-def test_merge_into_symbolized_phxz_other_symbolized_gates():
-    a = cirq.NamedQubit('a')
-    input_circuit = cirq.Circuit(_phxz(1, 1, 1).on(a), cirq.H(a) ** sympy.Symbol("exp"))
-    assert_optimizes(
-        optimized=cirq.merge_into_symbolized_phxz(input_circuit), expected=input_circuit
+    output_circuit, new_sweep = cirq.merge_single_qubit_gates_to_phxz_symbolized(
+        input_circuit, context=context, sweep=sweep
     )
+    expected = cirq.Circuit(
+        cirq.Moment(_phxz(-1, 1, 0).on(a), _phxz(sa0, sx0, sz0).on(b)),
+        cirq.Moment(cirq.CZ(a, b) ** sympy.Symbol("cz_exp")),
+        cirq.Moment(cirq.H(a).with_tags("ignore")),
+        cirq.Moment(_phxz(sa1, sx1, sz1).on(a)),
+    )
+    assert_optimizes(output_circuit, expected)
+
+    # Check the unitaries are preserved for each set of sweep paramerization.
+    for old_resolver, new_resolver in zip(sweep, new_sweep):
+        cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+            cirq.resolve_parameters(input_circuit, old_resolver),
+            cirq.resolve_parameters(output_circuit, new_resolver),
+            {q: q for q in input_circuit.all_qubits()},
+        )
 
 
 def test_merge_into_symbolized_phxz_non_symbolized_input():
     a = cirq.NamedQubit('a')
     with pytest.warns(UserWarning):
-        cirq.merge_into_symbolized_phxz(cirq.Circuit(cirq.H(a), cirq.H(a)))
-
-
-def test_merge_into_symbolized_phxz_with_sweeps():
-    with pytest.raises(NotImplementedError):
-        cirq.merge_into_symbolized_phxz(
-            cirq.Circuit(), sweeps=[Points(key="x", points=[0.1, 0.2, 0.5])]
+        cirq.merge_single_qubit_gates_to_phxz_symbolized(
+            cirq.Circuit(cirq.H(a), cirq.H(a)), sweep=cirq.Points(key="a", points=[0.1, 0.2, 0.5])
         )
