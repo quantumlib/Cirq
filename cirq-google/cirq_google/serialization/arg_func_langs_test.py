@@ -57,12 +57,43 @@ def _json_format_kwargs() -> Dict[str, bool]:
         (1.0, {'arg_value': {'float_value': 1.0}}),
         (1.5, {'arg_value': {'float_value': 1.5}}),
         (1, {'arg_value': {'float_value': 1.0}}),
+        (1 + 2j, {'arg_value': {'complex_value': {'real_value': 1.0, 'imaginary_value': 2.0}}}),
         (b'abcdef', {'arg_value': {'bytes_value': base64.b64encode(b'abcdef').decode("ascii")}}),
         ('abc', {'arg_value': {'string_value': 'abc'}}),
         (True, {'arg_value': {'bool_value': True}}),
         ([True, False], {'arg_value': {'bool_values': {'values': [True, False]}}}),
         ([42.9, 3.14], {'arg_value': {'double_values': {'values': [42.9, 3.14]}}}),
         ([3, 8], {'arg_value': {'int64_values': {'values': ['3', '8']}}}),
+        (
+            ('settings', 3.5, (True, 3 + 4.5j)),
+            {
+                'arg_value': {
+                    'tuple_value': {
+                        'values': [
+                            {'arg_value': {'string_value': 'settings'}},
+                            {'arg_value': {'float_value': 3.5}},
+                            {
+                                'arg_value': {
+                                    'tuple_value': {
+                                        'values': [
+                                            {'arg_value': {'bool_value': True}},
+                                            {
+                                                'arg_value': {
+                                                    'complex_value': {
+                                                        'real_value': 3.0,
+                                                        'imaginary_value': 4.5,
+                                                    }
+                                                }
+                                            },
+                                        ]
+                                    }
+                                }
+                            },
+                        ]
+                    }
+                }
+            },
+        ),
         (['t1', 't2'], {'arg_value': {'string_values': {'values': ['t1', 't2']}}}),
         (sympy.Symbol('x'), {'symbol': 'x'}),
         (
@@ -138,7 +169,7 @@ def test_serialize_sympy_constants():
         ((True, False), {'arg_value': {'bool_values': {'values': [True, False]}}}),
         (
             np.array([True, False], dtype=bool),
-            {'arg_value': {'bool_values': {'values': [True, False]}}},
+            {'arg_value': {'ndarray_value': {'bit_array': {'flat_bytes': 'gA==', 'shape': [2]}}}},
         ),
     ],
 )
@@ -152,6 +183,28 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
         use_integers_for_enums=True,
     )
     assert packed == proto
+
+
+@pytest.mark.parametrize(
+    'value',
+    [
+        np.array([[True, False], [False, True]], dtype=bool),
+        np.array([[1.0, 0.5, 0.25], [0.75, 0.125, 0.625]], dtype=np.float64),
+        np.array([[1.0, 0.25], [1.75, 1.125]], dtype=np.float32),
+        np.array([[-1.0, 0.25], [-1.75, 1.125]], dtype=np.float16),
+        np.array([[-1, 2], [-7, 8]], dtype=np.int64),
+        np.array([[-16, 126], [-77, 88]], dtype=np.int32),
+        np.array([[16, 12], [-7, 8]], dtype=np.int16),
+        np.array([[1, 2], [7, -8]], dtype=np.int8),
+        np.array([[2, 3], [76, 54]], dtype=np.uint8),
+        np.array([[2 + 3j, 3 + 4.5j], [7 + 6j, 5 + 4.25j]], dtype=np.complex128),
+        np.array([[2 + 3.5j, 3 + 4.125], [8 + 7j, 5 + 4.75j]], dtype=np.complex64),
+    ],
+)
+def test_ndarray_roundtrip(value: ARG_LIKE):
+    msg = arg_to_proto(value)
+    deserialized_value = arg_from_proto(msg)
+    np.testing.assert_array_equal(value, deserialized_value)
 
 
 @pytest.mark.parametrize(
@@ -209,14 +262,6 @@ def test_internal_gate_serialization(rotation_angles_arg, qid_shape_arg, tags_ar
     internal_gate_arg_to_proto(g, out=proto)
     v = internal_gate_from_proto(proto)
     assert g == v
-
-
-def test_invalid_list():
-    with pytest.raises(ValueError):
-        _ = arg_to_proto(['', 1])
-
-    with pytest.raises(ValueError):
-        _ = arg_to_proto([1.0, ''])
 
 
 def test_clifford_tableau():

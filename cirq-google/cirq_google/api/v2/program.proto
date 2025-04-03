@@ -3,6 +3,7 @@ syntax = "proto3";
 package cirq.google.api.v2;
 
 import "tunits/proto/tunits.proto";
+import "cirq_google/api/v2/ndarrays.proto";
 
 option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "ProgramProto";
@@ -422,6 +423,9 @@ message ArgValue {
     tunits.Value value_with_unit = 8;
     bool bool_value = 9;
     bytes bytes_value = 10;
+    Complex complex_value = 11;
+    Tuple tuple_value = 12;
+    NDArray ndarray_value = 13;
   }
 }
 
@@ -440,6 +444,33 @@ message RepeatedString {
 // A repeated boolean value.
 message RepeatedBoolean {
   repeated bool values = 1;
+}
+
+// Representation of a mixed tuple of values
+message Tuple {
+  repeated Arg values = 1;
+}
+
+// Representation of a complex number
+message Complex {
+    double real_value = 1;
+    double imaginary_value = 2;
+}
+
+message NDArray {
+  oneof arr {
+    Complex128Array complex128_array = 1;
+    Complex64Array complex64_array = 2;
+    Float16Array float16_array = 3;
+    Float32Array float32_array = 4;
+    Float64Array float64_array = 5;
+    Int64Array int64_array = 6;
+    Int32Array int32_array = 7;
+    Int16Array int16_array = 8;
+    Int8Array int8_array = 9;
+    UInt8Array uint8_array = 10;
+    BitArray bit_array = 11;
+  }
 }
 
 // A function of arguments. This is an s-expression tree representing
