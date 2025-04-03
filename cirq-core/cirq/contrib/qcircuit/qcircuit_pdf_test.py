@@ -18,7 +18,4 @@ import cirq.contrib.qcircuit.qcircuit_pdf as qcircuit_pdf
 
 def test_qcircuit_pdf_prepare_only():
     circuit = cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))
-    qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(
-            circuit,
-            "/tmp/test_file",
-            prepare_only = True)
+    qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, "/tmp/test_file", prepare_only=True)
