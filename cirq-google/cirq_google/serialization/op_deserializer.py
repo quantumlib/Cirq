@@ -54,7 +54,7 @@ class CircuitOpDeserializer(OpDeserializer):
     """Describes how to serialize CircuitOperations."""
 
     def can_deserialize_proto(self, proto):
-        return isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: nocover
+        return isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: no cover
 
     def from_proto(
         self,

@@ -50,7 +50,7 @@ class FakeStepResult(cirq.StepResult):
         self._final_state = final_state
 
     def _simulator_state(self):
-        return self._final_state
+        return self._final_state  # pragma: no cover
 
     def state_vector(self):
         pass

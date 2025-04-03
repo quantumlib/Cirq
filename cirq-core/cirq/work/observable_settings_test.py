@@ -68,6 +68,7 @@ def test_param_hash():
     params3 = [('beta', 1.24), ('gamma', 4.57)]
     params4 = [('beta', 1.23 + 0.01j), ('gamma', 4.56 + 0.01j)]
     params5 = [('beta', 1.23 + 0.01j), ('gamma', 4.56 + 0.01j)]
+    params3 = [('beta', 1.24), ('gamma', 4.57)]
     assert _hashable_param(params1) == _hashable_param(params1)
     assert hash(_hashable_param(params1)) == hash(_hashable_param(params1))
     assert _hashable_param(params1) == _hashable_param(params2)
