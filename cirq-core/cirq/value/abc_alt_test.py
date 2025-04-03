@@ -41,7 +41,7 @@ def test_single_alternative():
 
         @abc.abstractmethod
         def alt(self) -> str:
-            pass  # pragma: no cover
+            pass
 
     class SingleAlternativeChild(SingleAlternative):
         def alt(self) -> str:
@@ -87,7 +87,7 @@ def test_doc_string():
 
         @abc.abstractmethod
         def alt(self) -> None:
-            pass  # pragma: no cover
+            pass
 
     class SingleAlternativeChild(SingleAlternative):
         def alt(self) -> None:
@@ -159,11 +159,11 @@ def test_two_alternatives():
 
         @abc.abstractmethod
         def alt1(self) -> Optional[str]:
-            pass  # pragma: no cover
+            pass
 
         @abc.abstractmethod
         def alt2(self) -> Optional[str]:
-            pass  # pragma: no cover
+            pass
 
     class TwoAlternativesChild(TwoAlternatives):
         def alt1(self) -> str:

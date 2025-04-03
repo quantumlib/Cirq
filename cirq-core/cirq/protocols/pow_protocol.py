@@ -27,34 +27,34 @@ TDefault = TypeVar('TDefault')
 # pylint: disable=function-redefined, redefined-builtin
 @overload
 def pow(val: 'cirq.Gate', exponent: Any) -> 'cirq.Gate':
-    pass  # pragma: no cover
+    pass
 
 
 @overload
 def pow(val: 'cirq.Operation', exponent: Any) -> 'cirq.Operation':
-    pass  # pragma: no cover
+    pass
 
 
 @overload
 def pow(val: 'cirq.Gate', exponent: Any, default: TDefault) -> Union[TDefault, 'cirq.Gate']:
-    pass  # pragma: no cover
+    pass
 
 
 @overload
 def pow(
     val: 'cirq.Operation', exponent: Any, default: TDefault
 ) -> Union[TDefault, 'cirq.Operation']:
-    pass  # pragma: no cover
+    pass
 
 
 @overload
 def pow(val: 'cirq.Circuit', exponent: int, default: TDefault) -> Union[TDefault, 'cirq.Circuit']:
-    pass  # pragma: no cover
+    pass
 
 
 @overload
 def pow(val: Any, exponent: Any, default: TDefault) -> Any:
-    pass  # pragma: no cover
+    pass
 
 
 # pylint: enable=function-redefined

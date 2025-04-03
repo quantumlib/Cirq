@@ -58,11 +58,11 @@ class Timestamp:
     # pylint: disable=function-redefined
     @overload
     def __sub__(self, other: 'Timestamp') -> Duration:
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __sub__(self, other: Duration) -> 'Timestamp':
-        pass  # pragma: no cover
+        pass
 
     def __sub__(self, other):
         if isinstance(other, Duration):

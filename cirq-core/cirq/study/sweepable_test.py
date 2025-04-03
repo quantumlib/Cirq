@@ -50,7 +50,7 @@ def test_to_resolvers_iterable_sweeps():
 def test_to_resolvers_bad():
     with pytest.raises(TypeError, match='Unrecognized sweepable'):
         for _ in cirq.study.to_resolvers('nope'):
-            pass  # pragma: no cover
+            pass
 
 
 def test_to_sweeps_none():

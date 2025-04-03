@@ -164,7 +164,7 @@ class _PauliEigenState(_NamedOneQubitState):
     @property
     @abc.abstractmethod
     def _symbol(self) -> str:
-        pass  # pragma: no cover
+        pass
 
     def __str__(self) -> str:
         sign = {1: '+', -1: '-'}[self.eigenvalue]
@@ -175,7 +175,7 @@ class _PauliEigenState(_NamedOneQubitState):
 
     @abc.abstractmethod
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
-        pass  # pragma: no cover
+        pass
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):

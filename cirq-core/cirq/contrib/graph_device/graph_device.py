@@ -28,11 +28,11 @@ class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def duration_of(self, operation: ops.Operation) -> value.Duration:
-        pass  # pragma: no cover
+        pass
 
     @abc.abstractmethod
     def validate_operation(self, operation: ops.Operation) -> None:
-        pass  # pragma: no cover
+        pass
 
 
 @value.value_equality
@@ -60,7 +60,7 @@ class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
         return value.Duration(picos=0)
 
     def validate_operation(self, operation: ops.Operation) -> None:
-        pass  # pragma: no cover
+        pass
 
     def __eq__(self, other):
         return self.__class__ == other.__class__

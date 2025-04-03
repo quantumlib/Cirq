@@ -98,7 +98,7 @@ class SupportsQasm(Protocol):
 
     @doc_private
     def _qasm_(self) -> Union[None, NotImplementedType, str]:
-        pass  # pragma: no cover
+        pass
 
 
 class SupportsQasmWithArgs(Protocol):
@@ -111,7 +111,7 @@ class SupportsQasmWithArgs(Protocol):
 
     @doc_private
     def _qasm_(self, args: QasmArgs) -> Union[None, NotImplementedType, str]:
-        pass  # pragma: no cover
+        pass
 
 
 class SupportsQasmWithArgsAndQubits(Protocol):
@@ -126,7 +126,7 @@ class SupportsQasmWithArgsAndQubits(Protocol):
     def _qasm_(
         self, qubits: Tuple['cirq.Qid'], args: QasmArgs
     ) -> Union[None, NotImplementedType, str]:
-        pass  # pragma: no cover
+        pass
 
 
 # pylint: disable=function-redefined

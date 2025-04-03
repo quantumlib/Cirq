@@ -189,7 +189,7 @@ class AbstractCircuit(abc.ABC):
     @property
     @abc.abstractmethod
     def moments(self) -> Sequence['cirq.Moment']:
-        pass  # pragma: no cover
+        pass
 
     @abc.abstractmethod
     def freeze(self) -> 'cirq.FrozenCircuit':
@@ -241,27 +241,27 @@ class AbstractCircuit(abc.ABC):
     # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: int) -> 'cirq.Moment':
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __getitem__(self, key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __getitem__(self, key: slice) -> Self:
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> Self:
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __getitem__(self, key: Tuple[slice, Iterable['cirq.Qid']]) -> Self:
-        pass  # pragma: no cover
+        pass
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -1903,11 +1903,11 @@ class Circuit(AbstractCircuit):
     # pylint: disable=function-redefined
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __setitem__(self, key: slice, value: Iterable['cirq.Moment']):
-        pass  # pragma: no cover
+        pass
 
     def __setitem__(self, key, value):
         if isinstance(key, int) and not isinstance(value, Moment):
@@ -2796,14 +2796,14 @@ _TKey = TypeVar('_TKey')
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey]
 ) -> Iterable[Tuple[_TKey, List[_TIn]]]:
-    pass  # pragma: no cover
+    pass
 
 
 @overload
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val: Callable[[_TIn], _TOut]
 ) -> Iterable[Tuple[_TKey, List[_TOut]]]:
-    pass  # pragma: no cover
+    pass
 
 
 def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val=lambda e: e):

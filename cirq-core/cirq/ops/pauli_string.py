@@ -235,11 +235,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     # pylint: disable=function-redefined
     @overload
     def get(self, key: Any, default: None = None) -> Optional[pauli_gates.Pauli]:
-        pass  # pragma: no cover
+        pass
 
     @overload
     def get(self, key: Any, default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
-        pass  # pragma: no cover
+        pass
 
     def get(
         self, key: Any, default: Optional[TDefault] = None
@@ -251,27 +251,27 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __mul__(
         self, other: 'cirq.PauliString[TKeyOther]'
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __mul__(
         self, other: Mapping[TKeyOther, 'cirq.PAULI_GATE_LIKE']
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __mul__(
         self, other: Iterable['cirq.PAULI_STRING_LIKE']
     ) -> 'cirq.PauliString[Union[TKey, cirq.Qid]]':
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __mul__(self, other: 'cirq.Operation') -> 'cirq.PauliString[Union[TKey, cirq.Qid]]':
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __mul__(self, other: complex) -> 'cirq.PauliString[TKey]':
-        pass  # pragma: no cover
+        pass
 
     def __mul__(self, other):
         known = False
@@ -1369,11 +1369,11 @@ class MutablePauliString(Generic[TKey]):
     # pylint: disable=function-redefined
     @overload
     def get(self, key: TKey, default: None = None) -> Union['cirq.Pauli', None]:
-        pass  # pragma: no cover
+        pass
 
     @overload
     def get(self, key: TKey, default: TDefault) -> Union['cirq.Pauli', TDefault]:
-        pass  # pragma: no cover
+        pass
 
     def get(self, key: TKey, default=None) -> Union['cirq.Pauli', TDefault, None]:
         """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""

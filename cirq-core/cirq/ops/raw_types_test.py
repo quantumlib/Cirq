@@ -224,7 +224,7 @@ def test_default_no_qubits():
 
         @property
         def qubits(self):
-            pass  # pragma: no cover
+            pass
 
     op = TestOp()
     assert op.controlled_by(*[]) is op
@@ -833,7 +833,7 @@ def test_tagged_act_on():
 def test_single_qubit_gate_validates_on_each():
     class Example(cirq.testing.SingleQubitGate):
         def matrix(self):
-            pass  # pragma: no cover
+            pass
 
     g = Example()
     assert g.num_qubits() == 1

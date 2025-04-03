@@ -80,11 +80,11 @@ class Heatmap:
     # pylint: disable=function-redefined
     @overload
     def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], **kwargs):
-        pass  # pragma: no cover
+        pass
 
     def __init__(
         self,

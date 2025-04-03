@@ -219,11 +219,11 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @overload
     def __getitem__(self, item: int) -> Union['cirq.Pauli', 'cirq.IdentityGate']:
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __getitem__(self, item: slice) -> Self:
-        pass  # pragma: no cover
+        pass
 
     def __getitem__(self, item):
         if isinstance(item, int):
@@ -490,7 +490,7 @@ class MutableDensePauliString(BaseDensePauliString):
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.PAULI_GATE_LIKE') -> Self:
-        pass  # pragma: no cover
+        pass
 
     @overload
     def __setitem__(
@@ -498,7 +498,7 @@ class MutableDensePauliString(BaseDensePauliString):
         key: slice,
         value: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray, BaseDensePauliString],
     ) -> Self:
-        pass  # pragma: no cover
+        pass
 
     def __setitem__(self, key, value):
         if isinstance(key, int):

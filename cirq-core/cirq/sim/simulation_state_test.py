@@ -24,7 +24,7 @@ from cirq.testing import PhaseUsingCleanAncilla, PhaseUsingDirtyAncilla
 
 class ExampleQuantumState(cirq.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers=True):
-        pass  # pragma: no cover
+        pass
 
     def measure(self, axes, seed=None):
         return [5, 3]

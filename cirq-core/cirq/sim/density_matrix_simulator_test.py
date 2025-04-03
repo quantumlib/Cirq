@@ -1564,7 +1564,7 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries():
             return True
 
         def with_qubits(self, qubits):
-            pass  # pragma: no cover
+            pass
 
         @property
         def qubits(self):

@@ -252,4 +252,4 @@ def test_bad_manual_cls_forgot_method():
         @cirq.value_equality(manual_cls=True)
         class _:
             def _value_equality_values_(self):
-                pass  # pragma: no cover
+                pass

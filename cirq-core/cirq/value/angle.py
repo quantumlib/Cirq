@@ -87,12 +87,12 @@ def chosen_angle_to_canonical_half_turns(
 # pylint: disable=function-redefined
 @overload
 def canonicalize_half_turns(half_turns: float) -> float:
-    pass  # pragma: no cover
+    pass
 
 
 @overload
 def canonicalize_half_turns(half_turns: sympy.Expr) -> sympy.Expr:
-    pass  # pragma: no cover
+    pass
 
 
 def canonicalize_half_turns(half_turns: type_alias.TParamVal) -> type_alias.TParamVal:
