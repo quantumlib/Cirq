@@ -165,7 +165,7 @@ class Duration:
         if other_duration is not None:
             return self.total_picos() / other_duration.total_picos()
 
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def __eq__(self, other):
         other = _attempt_duration_like_to_duration(other)

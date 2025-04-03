@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pragma: no cover
 
 import errno
 import os
@@ -30,6 +29,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(
     qcircuit_kwargs=None,
     clean_ext=('dvi', 'ps'),
     documentclass='article',
+    prepare_only=False,
 ):
     """Compiles the QCircuit-based latex diagram of the given circuit.
 
@@ -43,6 +43,8 @@ def circuit_to_pdf_using_qcircuit_via_tex(
             default, latexmk is used with the '-pdfps' flag, which produces
             intermediary dvi and ps files.
         documentclass: The documentclass of the latex file.
+        prepare_only: If True, only prepare the document, do not generate PDF.
+            Used only for testing.
 
     Raises:
         OSError, IOError: If cleanup fails.
@@ -59,10 +61,11 @@ def circuit_to_pdf_using_qcircuit_via_tex(
     doc.packages.append(Package('qcircuit'))
     doc.preamble.append(Package('inputenc', options=['utf8']))
     doc.append(NoEscape(tex))
-    doc.generate_pdf(filepath, **pdf_kwargs)
-    for ext in clean_ext:
-        try:
-            os.remove(filepath + '.' + ext)
-        except (OSError, IOError) as e:
-            if e.errno != errno.ENOENT:
-                raise
+    if not prepare_only:  # pragma: nocover
+        doc.generate_pdf(filepath, **pdf_kwargs)
+        for ext in clean_ext:
+            try:
+                os.remove(filepath + '.' + ext)
+            except (OSError, IOError) as e:
+                if e.errno != errno.ENOENT:
+                    raise

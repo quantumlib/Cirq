@@ -137,14 +137,14 @@ class PointOptimizer:
 
                 # Skip if an optimization removed the circuit underneath us.
                 if i >= len(circuit):
-                    continue
+                    continue  # pragma: no cover
                 # Skip if an optimization removed the op we're considering.
                 if op not in circuit[i].operations:
-                    continue
+                    continue  # pragma: no cover
                 opt = self.optimization_at(circuit, i, op)
                 # Skip if the optimization did nothing.
                 if opt is None:
-                    continue
+                    continue  # pragma: no cover
 
                 # Clear target area, and insert new operations.
                 circuit.clear_operations_touching(

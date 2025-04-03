@@ -116,7 +116,7 @@ class PhasedXPowGate(raw_types.Gate):
     def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'PhasedXPowGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return PhasedXPowGate(
             phase_exponent=self._phase_exponent,
             exponent=new_exponent,

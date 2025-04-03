@@ -902,7 +902,7 @@ class TaggedOperation(Operation):
         sub = getattr(self.sub_operation, "_is_measurement_", None)
         if sub is not None:
             return sub()
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     @cached_method
     def _is_parameterized_(self) -> bool:

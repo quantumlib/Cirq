@@ -257,6 +257,14 @@ def test_transformer_stats_logger_show_levels(capfd):
     assert all(line not in out for line in [info_line, debug_line, warning_line])
 
 
+def test_noop_logger():
+    logger = cirq.transformers.transformer_api.NoOpTransformerLogger()
+    logger.register_initial(cirq.Circuit(), "test")
+    logger.log("stuff")
+    logger.register_final(cirq.Circuit(), "test")
+    logger.show()
+
+
 def test_transformer_stats_logger_linear_and_nested(capfd):
     q = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H.on_each(*q), cirq.CNOT(*q))
