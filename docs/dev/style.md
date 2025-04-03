@@ -84,26 +84,32 @@ the sampler class is defined in `cirq.work.sampler.Sampler`). Code in `cirq-core
 typically cannot import and use `cirq.Sampler` directly because this could
 create an import cycle where modules import each other (perhaps indirectly).
 Instead, the import of the top-level `cirq` library can be guarded by the
-`TYPE_CHECKING` constant provided by `typing`, and the type annotation can be
-quoted so that it is not evaluated when the module is imported but rather during
-type-checking:
+`TYPE_CHECKING` constant provided by `typing`. In addition, the module needs to
+start with `from __future__ import annotations` so that annotations are skipped
+at the module import time and get only evaluated during type-checking when the
+`cirq` import is in effect.
 
 ```python
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
 
-def accepts_sampler(sampler: 'cirq.Sampler') -> None:
+def accepts_sampler(sampler: cirq.Sampler) -> None:
     ...
 ```
 
 Use top-level `cirq.*` annotations like this when annotating new public types
 and classes. Older code may not adhere to this style and should be updated.
 
-Note that type annotations may need to be quoted like this in other situations
-as well, such as when an annotation is a "forward reference" to a class defined
-later in the same file.
+Note that type annotations may need to be quoted when they act in expressions
+that are evaluated at the import time, for example,
+
+```python
+MOMENT_OR_OPERATION = Union['cirq.Moment', 'cirq.Operation']
+```
 
 ## Nomenclature
 
