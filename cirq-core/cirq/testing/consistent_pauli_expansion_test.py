@@ -32,7 +32,7 @@ class GoodGateExplicitPauliExpansion(cirq.testing.SingleQubitGate):
 
 class GoodGateNoPauliExpansion(cirq.Gate):
     def num_qubits(self) -> int:
-        return 4  # pragma: nocover
+        return 4  # pragma: no cover
 
 
 class GoodGateNoUnitary(cirq.testing.SingleQubitGate):

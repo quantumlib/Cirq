@@ -87,7 +87,7 @@ def test_failed_job():
             return cirq.CircuitSampleJob(circuit=circuit, repetitions=10, tag='test')
 
         def on_job_result(self, job, result):
-            pass  # pragma: nocover
+            pass
 
     with pytest.raises(Exception, match='job failed!'):
         TestCollector().collect(sampler=FailingSampler(), max_total_samples=100, concurrency=5)

@@ -248,7 +248,7 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         trace = np.sum(np.sqrt(np.abs(eigs)))
         return trace**2
     # matrix is reshaped before this point
-    raise ValueError(  # pragma: nocover
+    raise ValueError(  # pragma: no cover
         'The given arrays must be one- or two-dimensional. '
         f'Got shapes {state1.shape} and {state2.shape}.'
     )

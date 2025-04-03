@@ -492,13 +492,13 @@ def test_is_supported_operation():
             return cirq.LineQubit.range(100)
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()
 
         def _has_unitary_(self):
-            return True  # pragma: nocover
+            return True  # pragma: no cover
 
         def _unitary_(self):
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
     q1, q2 = cirq.LineQubit.range(2)
     assert cirq.CliffordSimulator.is_supported_operation(cirq.X(q1))

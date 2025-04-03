@@ -130,7 +130,7 @@ def value_equality(
     manual_cls: bool = False,
     approximate: bool = False,
 ) -> type:
-    pass  # pragma: nocover
+    pass
 
 
 @overload
@@ -141,7 +141,7 @@ def value_equality(
     manual_cls: bool = False,
     approximate: bool = False,
 ) -> Callable[[type], type]:
-    pass  # pragma: nocover
+    pass
 
 
 def value_equality(

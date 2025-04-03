@@ -239,7 +239,7 @@ class BitMaskKeyCondition(Condition):
 
     @property
     def qasm(self):
-        raise NotImplementedError()  # pragma: no cover
+        raise NotImplementedError()
 
 
 @dataclasses.dataclass(frozen=True)

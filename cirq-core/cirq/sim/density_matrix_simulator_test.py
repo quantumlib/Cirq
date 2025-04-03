@@ -1080,7 +1080,7 @@ def test_works_on_operation():
             return (self.q,)
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()
 
         def _kraus_(self):
             return cirq.kraus(cirq.X)
@@ -1564,7 +1564,7 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries():
             return True
 
         def with_qubits(self, qubits):
-            pass  # pragma: nocover
+            pass
 
         @property
         def qubits(self):

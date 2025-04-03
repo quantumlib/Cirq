@@ -81,7 +81,7 @@ def test_via_apply_unitary():
     class No4:  # A non-operation non-gate.
         def _apply_unitary_(self, args):
             # Because has_unitary doesn't understand how to call.
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
     class Yes1(EmptyOp):
         def _apply_unitary_(self, args):
@@ -156,13 +156,13 @@ def test_order():
             return True
 
         def _decompose_(self):
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
         def _apply_unitary_(self, args):
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
         def _unitary_(self):
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
     class Yes2(EmptyOp):
         def _has_unitary_(self):
@@ -172,10 +172,10 @@ def test_order():
             return []
 
         def _apply_unitary_(self, args):
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
         def _unitary_(self):
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
     class Yes3(EmptyOp):
         def _has_unitary_(self):
@@ -188,7 +188,7 @@ def test_order():
             return args.target_tensor
 
         def _unitary_(self):
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
     class Yes4(EmptyOp):
         def _has_unitary_(self):

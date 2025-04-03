@@ -433,7 +433,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='_num_qubits_', implementation=_backwards_compatibility_num_qubits)
     def num_qubits(self) -> int:
         """The number of qubits this gate acts on."""
-        raise NotImplementedError  # pragma: nocover
+        raise NotImplementedError
 
     def _num_qubits_from_shape(self) -> int:
         shape = self._qid_shape_()
@@ -448,7 +448,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='_qid_shape_', implementation=_num_qubits_from_shape)
     def _num_qubits_(self) -> int:
         """The number of qubits this gate acts on."""
-        raise NotImplementedError  # pragma: nocover
+        raise NotImplementedError
 
     def _default_shape_from_num_qubits(self) -> Tuple[int, ...]:
         num_qubits = self._num_qubits_()
@@ -462,7 +462,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
-        raise NotImplementedError  # pragma: nocover
+        raise NotImplementedError
 
     def _equal_up_to_global_phase_(
         self, other: Any, atol: float = 1e-8
@@ -518,7 +518,7 @@ class Operation(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def qubits(self) -> Tuple['cirq.Qid', ...]:
-        raise NotImplementedError()  # pragma: nocover
+        raise NotImplementedError()
 
     def _num_qubits_(self) -> int:
         """The number of qubits this operation acts on.
@@ -660,7 +660,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
         gate = self.gate
         if gate is None:
-            raise NotImplementedError("with_probability on gateless operation.")  # pragma: nocover
+            raise NotImplementedError("with_probability on gateless operation.")
         if probability == 1:
             return self
         return ops.random_gate_channel.RandomGateChannel(sub_gate=gate, probability=probability).on(
@@ -902,7 +902,7 @@ class TaggedOperation(Operation):
         sub = getattr(self.sub_operation, "_is_measurement_", None)
         if sub is not None:
             return sub()
-        return NotImplemented  # pragma: nocover
+        return NotImplemented  # pragma: no cover
 
     @cached_method
     def _is_parameterized_(self) -> bool:

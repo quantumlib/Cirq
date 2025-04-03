@@ -165,7 +165,7 @@ entangled_state_repr = np.array([[math.sqrt(0.5), 0], [0, math.sqrt(0.5)]])
 
 class TestOp(cirq.Operation):
     def with_qubits(self, *new_qubits):
-        pass  # pragma: nocover
+        pass
 
     @property
     def qubits(self):
@@ -389,7 +389,7 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
             return True
 
         def with_qubits(self, qubits):
-            pass  # pragma: nocover
+            pass
 
         @property
         def qubits(self):

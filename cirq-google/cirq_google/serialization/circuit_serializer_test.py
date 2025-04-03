@@ -965,7 +965,7 @@ class BingBongSerializer(OpSerializer):
     ) -> v2.program_pb2.CircuitOperation:
         assert isinstance(op.gate, BingBongGate)
         if msg is None:
-            msg = v2.program_pb2.Operation()  # pragma: nocover
+            msg = v2.program_pb2.Operation()  # pragma: no cover
         msg.internalgate.name = 'bingbong'
         msg.internalgate.module = 'test'
         msg.internalgate.num_qubits = 1
@@ -1055,7 +1055,7 @@ class DiscountTagSerializer(TagSerializer):
     ) -> v2.program_pb2.Tag:
         assert isinstance(tag, DiscountTag)
         if msg is None:
-            msg = v2.program_pb2.Tag()  # pragma: nocover
+            msg = v2.program_pb2.Tag()  # pragma: no cover
         msg.internal_tag.tag_name = 'Discount'
         msg.internal_tag.tag_package = 'test'
         msg.internal_tag.tag_args['discount'].arg_value.float_value = tag.discount

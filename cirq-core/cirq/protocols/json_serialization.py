@@ -125,7 +125,7 @@ class SupportsJSON(Protocol):
 
     @doc_private
     def _json_dict_(self) -> Union[None, NotImplementedType, Dict[Any, Any]]:
-        pass  # pragma: nocover
+        pass
 
 
 class HasJSONNamespace(Protocol):
@@ -142,7 +142,7 @@ class HasJSONNamespace(Protocol):
     @doc_private
     @classmethod
     def _json_namespace_(cls) -> str:
-        pass  # pragma: nocover
+        pass
 
 
 def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
@@ -481,14 +481,14 @@ def to_json(
     separators=None,
     cls=CirqEncoder,
 ) -> None:
-    pass  # pragma: nocover
+    pass
 
 
 @overload
 def to_json(
     obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
 ) -> str:
-    pass  # pragma: nocover
+    pass
 
 
 def to_json(

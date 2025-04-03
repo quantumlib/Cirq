@@ -136,7 +136,7 @@ def test_invalid_levels():
         with cirq.testing.assert_logs(
             "test", min_level=logging.CRITICAL, max_level=logging.WARNING
         ):
-            pass  # pragma: nocover
+            pass
 
 
 def test_assert_logs_warnings():

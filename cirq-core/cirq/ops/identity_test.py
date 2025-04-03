@@ -54,7 +54,7 @@ def test_identity_on_each_iter_second():
 
         def __iter__(self):
             # Having this method makes `isinstance(x, Iterable)` return True.
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()
 
     q = Q()
     assert cirq.I.on_each(q) == [cirq.I(q)]
@@ -184,10 +184,10 @@ def test_identity_mul():
     class UnknownOperation(cirq.Operation):
         @property
         def qubits(self):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()
 
     q = cirq.LineQubit(0)
     g = UnknownGate().on(q)

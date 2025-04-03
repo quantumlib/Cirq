@@ -235,7 +235,7 @@ def float_arg_from_proto(
         case 'func':
             func = _arg_func_from_proto(arg_proto.func, required_arg_name=required_arg_name)
             if func is None and required_arg_name is not None:
-                raise ValueError(  # pragma: nocover
+                raise ValueError(  # pragma: no cover
                     f'Arg {arg_proto.func} could not be processed for {required_arg_name}.'
                 )
             return cast(FLOAT_ARG_LIKE, func)
@@ -299,7 +299,7 @@ def arg_from_proto(
                     return tunits.Value.from_proto(arg_value.value_with_unit)
                 case 'bytes_value':
                     return bytes(arg_value.bytes_value)
-            raise ValueError(f'Unrecognized value type: {which_val!r}')  # pragma: nocover
+            raise ValueError(f'Unrecognized value type: {which_val!r}')  # pragma: no cover
         case 'symbol':
             return sympy.Symbol(arg_proto.symbol)
         case 'func':

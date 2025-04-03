@@ -29,42 +29,42 @@ TDefault = TypeVar('TDefault')
 # pylint: disable=function-redefined
 @overload
 def inverse(val: 'cirq.Gate') -> 'cirq.Gate':
-    pass  # pragma: nocover
+    pass
 
 
 @overload
 def inverse(val: 'cirq.Operation') -> 'cirq.Operation':
-    pass  # pragma: nocover
+    pass
 
 
 @overload
 def inverse(val: 'cirq.Circuit') -> 'cirq.Circuit':
-    pass  # pragma: nocover
+    pass
 
 
 @overload
 def inverse(val: 'cirq.OP_TREE') -> 'cirq.OP_TREE':
-    pass  # pragma: nocover
+    pass
 
 
 @overload
 def inverse(val: 'cirq.Gate', default: TDefault) -> Union[TDefault, 'cirq.Gate']:
-    pass  # pragma: nocover
+    pass
 
 
 @overload
 def inverse(val: 'cirq.Operation', default: TDefault) -> Union[TDefault, 'cirq.Operation']:
-    pass  # pragma: nocover
+    pass
 
 
 @overload
 def inverse(val: 'cirq.Circuit', default: TDefault) -> Union[TDefault, 'cirq.Circuit']:
-    pass  # pragma: nocover
+    pass
 
 
 @overload
 def inverse(val: 'cirq.OP_TREE', default: TDefault) -> Union[TDefault, 'cirq.OP_TREE']:
-    pass  # pragma: nocover
+    pass
 
 
 def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:

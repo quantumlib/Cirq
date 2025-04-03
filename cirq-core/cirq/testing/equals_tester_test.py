@@ -118,7 +118,7 @@ def test_fails_when_forgot_type_check():
             return not self == other
 
         def __hash__(self):
-            return hash(self.x)  # pragma: nocover
+            return hash(self.x)  # pragma: no cover
 
     with pytest.raises(AttributeError, match="has no attribute 'x'"):
         eq.add_equality_group(NoTypeCheckEqualImplementation())
@@ -194,14 +194,14 @@ def test_fails_when_ne_is_inconsistent_due_to_not_implemented():
 
         def __eq__(self, other):
             if not isinstance(other, type(self)):
-                return NotImplemented  # pragma: nocover
+                return NotImplemented  # pragma: no cover
             return self.x == other.x
 
         def __ne__(self, other):
             return NotImplemented
 
         def __hash__(self):
-            return hash(self.x)  # pragma: nocover
+            return hash(self.x)  # pragma: no cover
 
     with pytest.raises(AssertionError, match='inconsistent'):
         eq.make_equality_group(InconsistentNeImplementation)
@@ -216,7 +216,7 @@ def test_fails_when_not_reflexive():
 
         def __eq__(self, other):
             if other is not self:
-                return NotImplemented  # pragma: nocover
+                return NotImplemented  # pragma: no cover
             return False
 
         def __ne__(self, other):
@@ -235,7 +235,7 @@ def test_fails_when_not_commutative():
 
         def __eq__(self, other):
             if not isinstance(other, type(self)):
-                return NotImplemented  # pragma: nocover
+                return NotImplemented  # pragma: no cover
             return self.x <= other.x
 
         def __ne__(self, other):

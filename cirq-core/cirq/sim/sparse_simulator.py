@@ -172,7 +172,7 @@ class Simulator(
         """
         if isinstance(initial_state, state_vector_simulation_state.StateVectorSimulationState):
             # Instances of SimulationStateBase usually returned before this point
-            return initial_state  # pragma: nocover
+            return initial_state  # pragma: no cover
 
         return state_vector_simulation_state.StateVectorSimulationState(
             qubits=qubits,

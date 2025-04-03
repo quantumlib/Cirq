@@ -34,7 +34,7 @@ class Fixed(cirq.Operation):
         return cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1)
 
     def with_qubits(self, *new_qubits):
-        raise NotImplementedError()  # pragma: nocover
+        raise NotImplementedError()
 
     def _qasm_(self, args: cirq.QasmArgs):
         return args.format(self.qasm, *self.qubits)

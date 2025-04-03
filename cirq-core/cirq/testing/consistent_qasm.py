@@ -47,7 +47,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         qid_shape = protocols.qid_shape(val)
         remaining_shape = list(qid_shape)
         controls = getattr(val, 'control_qubits', None)
-        if controls is not None:  # pragma: nocover
+        if controls is not None:  # pragma: no cover
             for i, q in zip(reversed(range(len(controls))), reversed(controls)):
                 if q is not None:
                     remaining_shape.pop(i)
@@ -55,7 +55,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         op = val.on(*qubits)
         gate = val
     else:
-        raise NotImplementedError(f"Don't know how to test {val!r}")  # pragma: nocover
+        raise NotImplementedError(f"Don't know how to test {val!r}")
 
     if isinstance(gate, ops.GlobalPhaseGate):
         # OpenQASM 2.0 does not support global phase gates.

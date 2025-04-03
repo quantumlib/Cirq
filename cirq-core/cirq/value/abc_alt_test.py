@@ -41,7 +41,7 @@ def test_single_alternative():
 
         @abc.abstractmethod
         def alt(self) -> str:
-            pass  # pragma: nocover
+            pass
 
     class SingleAlternativeChild(SingleAlternative):
         def alt(self) -> str:
@@ -87,7 +87,7 @@ def test_doc_string():
 
         @abc.abstractmethod
         def alt(self) -> None:
-            pass  # pragma: nocover
+            pass
 
     class SingleAlternativeChild(SingleAlternative):
         def alt(self) -> None:
@@ -155,15 +155,15 @@ def test_two_alternatives():
         @alternative(requires='alt2', implementation=_default_impl2)
         def my_method(self, arg, kw=99) -> str:
             """Docstring."""
-            raise NotImplementedError  # pragma: nocover
+            raise NotImplementedError
 
         @abc.abstractmethod
         def alt1(self) -> Optional[str]:
-            pass  # pragma: nocover
+            pass
 
         @abc.abstractmethod
         def alt2(self) -> Optional[str]:
-            pass  # pragma: nocover
+            pass
 
     class TwoAlternativesChild(TwoAlternatives):
         def alt1(self) -> str:

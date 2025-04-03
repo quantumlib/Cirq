@@ -426,7 +426,7 @@ def _single_qubit_matrices_with_sqrt_iswap(
     for can_decompose, decomposer in decomposers:
         if can_decompose(kak.interaction_coefficients, weyl_tol=atol / 10):
             return decomposer(kak, atol)
-    assert False, 'The final can_decompose should always returns True'  # pragma: nocover
+    assert False, 'The final can_decompose should always returns True'  # pragma: no cover
 
 
 def _in_0_region(

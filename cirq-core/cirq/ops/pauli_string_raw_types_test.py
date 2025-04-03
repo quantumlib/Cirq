@@ -67,7 +67,7 @@ def test_on_wrong_number_qubits():
 def test_default_text_diagram():
     class DiagramGate(cirq.PauliStringGateOperation):
         def map_qubits(self, qubit_map):
-            pass  # pragma: nocover
+            pass
 
         def _circuit_diagram_info_(
             self, args: cirq.CircuitDiagramInfoArgs

@@ -100,11 +100,11 @@ def test_is_measurement():
 
     class NotImplementedOperation(cirq.Operation):
         def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()
 
         @property
         def qubits(self):
-            return cirq.LineQubit.range(2)  # pragma: nocover
+            return cirq.LineQubit.range(2)  # pragma: no cover
 
     assert not cirq.is_measurement(NotImplementedOperation())
 
@@ -123,27 +123,27 @@ def test_measurement_without_key():
 def test_non_measurement_with_key():
     class NonMeasurementGate(cirq.Gate):
         def _is_measurement_(self):
-            return False  # pragma: nocover
+            return False  # pragma: no cover
 
         def _decompose_(self, qubits):
             # Decompose should not be called by `is_measurement`
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
         def _measurement_key_name_(self):
             # `measurement_key_name`` should not be called by `is_measurement`
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
         def _measurement_key_names_(self):
             # `measurement_key_names`` should not be called by `is_measurement`
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
         def _measurement_key_obj_(self):
             # `measurement_key_obj`` should not be called by `is_measurement`
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
         def _measurement_key_objs_(self):
             # `measurement_key_objs`` should not be called by `is_measurement`
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
 
         def num_qubits(self) -> int:
             return 2  # pragma: no cover

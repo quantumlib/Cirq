@@ -150,7 +150,7 @@ def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int
     if isinstance(val, (complex, numbers.Complex)):
         return int(val.real * precision), int(val.imag * precision)
     # Pretty much all numbers are instances of numbers.Complex
-    return int(val * precision)  # pragma: nocover
+    return int(val * precision)  # pragma: no cover
 
 
 def _hashable_param(

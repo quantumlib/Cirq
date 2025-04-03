@@ -91,7 +91,7 @@ class CliffordSimulator(
         """
         if isinstance(initial_state, clifford.StabilizerChFormSimulationState):
             # Instances of SimulationStateBase usually returned before this point
-            return initial_state  # pragma: nocover
+            return initial_state  # pragma: no cover
 
         return clifford.StabilizerChFormSimulationState(
             prng=self._prng,

@@ -89,7 +89,7 @@ class StateVectorMixin:
             operating on intermediate states of a circuit.
             Defaults to False.
         """
-        raise NotImplementedError()  # pragma: nocover
+        raise NotImplementedError()
 
     def dirac_notation(self, decimals: int = 2) -> str:
         """Returns the state vector as a string in Dirac notation.
