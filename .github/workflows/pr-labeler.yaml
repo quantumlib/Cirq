@@ -14,6 +14,10 @@
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Label PRs with labels such as size.
+#
+# This workflow is designed not to fail if labeling actions encounter errors;
+# instead, the actions write annotations on the workflow run summary page. If
+# labels don't seem to be getting applied as expected, check there for errors.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 name: Pull request labeler
@@ -22,7 +26,9 @@ run-name: >-
 
 on:
   pull_request:
-    types: [opened]
+    types:
+      - opened
+      - synchronize
 
   # Allow manual invocation.
   workflow_dispatch:
@@ -32,30 +38,42 @@ permissions: read-all
 
 jobs:
   label-pr-size:
-    name: Add size label to new pull request
+    name: Update PR size labels
     runs-on: ubuntu-24.04
     permissions:
+      id-token: write
       contents: read
       pull-requests: write
       issues: write
     steps:
+      # We need a copy of the repo so the action can read the config file.
+      - name: Check out a copy of the git repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
       - name: Label the PR with a size label
-        uses: codelytv/pr-size-labeler@c7a55a022747628b50f3eb5bf863b9e796b8f274 # v1
-        with:
-          # Don't count file deletions, per suggestion in Small CLs.
-          ignore_file_deletions: 'true'
+        id: label
+        continue-on-error: true
+        run: |
+          set -x +e
+          podman --out action.out run -v .github:/tmp/.github --rm -it \
+            ghcr.io/cbrgm/pr-size-labeler-action:v1 \
+            --githubtoken ${{secrets.GITHUB_TOKEN}} \
+            --eventname pull_request \
+            --reponame ${{github.repository}} \
+            --prnumber ${{github.event.number}} \
+            --configfilepath /tmp/.github/pr-size-labels.yaml
+          status=$?
+          echo '::group::Labeler action output'
+          cat action.out
+          echo '::endgroup::'
+          exit $status
 
-          xs_label: 'Size: XS'
-          xs_max_size: '10'
-
-          s_label: 'size: S'
-          s_max_size: '50'
-
-          m_label: 'size: M'
-          m_max_size: '250'
-
-          l_label: 'size: L'
-          l_max_size: '1000'
-
-          xl_label: 'size: XL'
-          fail_if_xl: 'false'
+      - name: Detect and report errors in labeler action
+        if: steps.label.outcome == 'failure' || steps.label.outcome == 'error'
+        run: |
+          {
+          echo "<h4>‼️ Failed to label PR ${{github.event.number}}</h4>"
+          echo "<pre>"
+          cat action.out
+          echo "</pre>"
+          } >> "$GITHUB_STEP_SUMMARY"
