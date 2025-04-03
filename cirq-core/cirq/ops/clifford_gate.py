@@ -144,8 +144,6 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     # These are class properties so we define them as properties on a metaclass.
-    # Note that in python 3.9+ @classmethod can be used with @property, so these
-    # can be moved to CommonCliffordGates.
 
     @property
     def all_single_qubit_cliffords(cls) -> Sequence['cirq.SingleQubitCliffordGate']:
