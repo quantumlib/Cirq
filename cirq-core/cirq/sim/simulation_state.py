@@ -336,7 +336,7 @@ def strat_act_on_from_apply_decompose(
         curr_ancilla = tuple(q for q in operation.qubits if q not in args.qubits)
         args = args.add_qubits(curr_ancilla)
         if args is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         all_ancilla.update(curr_ancilla)
         protocols.act_on(operation, args)
     args = args.remove_qubits(tuple(all_ancilla))

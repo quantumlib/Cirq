@@ -627,7 +627,7 @@ def _attempt_value_to_pauli_index(v: 'cirq.Operation') -> Optional[Tuple[int, in
         return None
 
     if not isinstance(v.gate, pauli_gates.Pauli):
-        return None
+        return None  # pragma: no cover
 
     q = v.qubits[0]
     from cirq import devices

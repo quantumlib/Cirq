@@ -4,7 +4,7 @@ https://arxiv.org/abs/1811.12926.
 """
 
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 import numpy as np
@@ -414,11 +414,6 @@ def execute_circuits(
                 )
             )
     return results
-
-
-def _get_device_graph(device_or_qubits: Any):
-    qubits = device_or_qubits if isinstance(device_or_qubits, list) else device_or_qubits.qubits
-    return ccr.gridqubits_to_graph_device(qubits)
 
 
 def calculate_quantum_volume(

@@ -90,7 +90,8 @@ class CliffordSimulator(
             StabilizerChFormSimulationState for the circuit.
         """
         if isinstance(initial_state, clifford.StabilizerChFormSimulationState):
-            return initial_state
+            # Instances of SimulationStateBase usually returned before this point
+            return initial_state  # pragma: no cover
 
         return clifford.StabilizerChFormSimulationState(
             prng=self._prng,
