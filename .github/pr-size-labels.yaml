@@ -24,9 +24,12 @@ exclude_files:
   - "*_pb2.pyi"
   - "*.bundle.js"
 
-# cbrgm/pr-size-labeler-action can assign labels based on both "size" (= lines
-# added + lines deleted) and number of files changed.
-
+# cbrgm/pr-size-labeler-action labels based on both "size" (= lines added +
+# lines deleted) and number of files changed in a PR. The action looks for the
+# largest matching configuration, considering numer of files changed first.
+# Reasoning about changes along two dimensions simultaneously is difficult, so
+# for simplicity, the settings below simply use the same value for both. This
+# lets us think in terms of "changes" more broadly, regardless of what kind.
 label_configs:
   - size: xs
     diff: 10           # Threshold for total LoC changed (additions + deletions)
@@ -48,9 +51,9 @@ label_configs:
     files: 1000
     labels: ["size: L"]
 
-  # Although it's not obvious from the docs of the action, the way it handles
-  # the final entry in the configs is it uses it for all cases that exceed the
-  # given value too. I.e., anything that exceeds this is lumped together as xl.
+  # Although it's not obvious from the docs of the action, it uses the final
+  # config for all cases that exceed the given values too. I.e., anything that
+  # hits 1001 or more will be lumped together as xl.
   - size: xl
     diff: 1001
     files: 1001
