@@ -45,6 +45,7 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
+      administration: write
     steps:
       # We need a copy of the repo so the action can read the config file.
       - name: Check out a copy of the git repository
