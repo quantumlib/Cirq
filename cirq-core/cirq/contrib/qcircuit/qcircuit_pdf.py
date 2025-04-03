@@ -13,24 +13,23 @@
 # limitations under the License.
 
 
-import errno  # pragma: nocover
-import os  # pragma: nocover
+import errno
+import os
 
-from pylatex import Document, NoEscape, Package  # pragma: nocover
+from pylatex import Document, NoEscape, Package
 
-from cirq import circuits  # pragma: nocover
-from cirq.contrib.qcircuit.qcircuit_diagram import (
-    circuit_to_latex_using_qcircuit,  # pragma: nocover
-)
+from cirq import circuits
+from cirq.contrib.qcircuit.qcircuit_diagram import circuit_to_latex_using_qcircuit
 
 
-def circuit_to_pdf_using_qcircuit_via_tex(  # pragma: nocover
+def circuit_to_pdf_using_qcircuit_via_tex(
     circuit: circuits.Circuit,
     filepath: str,
     pdf_kwargs=None,
     qcircuit_kwargs=None,
     clean_ext=('dvi', 'ps'),
     documentclass='article',
+    prepare_only=False,
 ):
     """Compiles the QCircuit-based latex diagram of the given circuit.
 
@@ -44,6 +43,8 @@ def circuit_to_pdf_using_qcircuit_via_tex(  # pragma: nocover
             default, latexmk is used with the '-pdfps' flag, which produces
             intermediary dvi and ps files.
         documentclass: The documentclass of the latex file.
+        prepare_only: If True, only prepare the document, do not generate PDF.
+            Used only for testing.
 
     Raises:
         OSError, IOError: If cleanup fails.
@@ -60,10 +61,11 @@ def circuit_to_pdf_using_qcircuit_via_tex(  # pragma: nocover
     doc.packages.append(Package('qcircuit'))
     doc.preamble.append(Package('inputenc', options=['utf8']))
     doc.append(NoEscape(tex))
-    doc.generate_pdf(filepath, **pdf_kwargs)
-    for ext in clean_ext:
-        try:
-            os.remove(filepath + '.' + ext)
-        except (OSError, IOError) as e:
-            if e.errno != errno.ENOENT:
-                raise
+    if not prepare_only:  # pragma: nocover
+        doc.generate_pdf(filepath, **pdf_kwargs)
+        for ext in clean_ext:
+            try:
+                os.remove(filepath + '.' + ext)
+            except (OSError, IOError) as e:
+                if e.errno != errno.ENOENT:
+                    raise
