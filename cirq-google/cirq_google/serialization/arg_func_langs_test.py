@@ -14,7 +14,7 @@
 
 import base64
 import inspect
-from typing import Dict
+from typing import cast, Dict
 
 import numpy as np
 import pytest
@@ -201,9 +201,9 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
         np.array([[2 + 3.5j, 3 + 4.125], [8 + 7j, 5 + 4.75j]], dtype=np.complex64),
     ],
 )
-def test_ndarray_roundtrip(value: ARG_LIKE):
+def test_ndarray_roundtrip(value: np.ndarray):
     msg = arg_to_proto(value)
-    deserialized_value = arg_from_proto(msg)
+    deserialized_value = cast(np.ndarray, arg_from_proto(msg))
     np.testing.assert_array_equal(value, deserialized_value)
 
 

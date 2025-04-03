@@ -237,7 +237,7 @@ def _ndarray_from_proto(msg: v2.program_pb2.ArgValue):
             return ndarrays.from_bitarray(ndarray_msg.bit_array)
 
 
-def _tuple_to_proto(value: tuple, out: v2.program_pb2.Tuple):
+def _tuple_to_proto(value: Union[list, tuple], out: v2.program_pb2.Tuple):
     """Converts a tuple of mixed values to Arg protos."""
     for arg in value:
         new_arg = out.values.add()
