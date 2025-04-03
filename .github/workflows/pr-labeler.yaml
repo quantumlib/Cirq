@@ -50,6 +50,7 @@ jobs:
 
       - name: Label the PR with a size label
         uses: cbrgm/pr-size-labeler-action@85f918ef4ef0a7dbc08166774f9158697584bc8c # v1
+        continue-on-error: true
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           github_pr_number: ${{github.event.number}}
