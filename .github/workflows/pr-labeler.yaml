@@ -41,7 +41,6 @@ jobs:
     name: Update PR size labels
     runs-on: ubuntu-24.04
     permissions:
-      id-token: write
       contents: read
       pull-requests: write
       issues: write
@@ -57,7 +56,7 @@ jobs:
           set -x +e
           podman --out action.out run -v .github:/tmp/.github --rm -it \
             ghcr.io/cbrgm/pr-size-labeler-action:v1 \
-            --githubtoken ${{secrets.GITHUB_TOKEN}} \
+            --githubtoken ${{secrets.PR_LABELER_TOKEN}} \
             --eventname pull_request \
             --reponame ${{github.repository}} \
             --prnumber ${{github.event.number}} \
