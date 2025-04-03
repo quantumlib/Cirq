@@ -40,12 +40,7 @@ jobs:
   label-pr-size:
     name: Update PR size labels
     runs-on: ubuntu-24.04
-    permissions:
-      id-token: write
-      contents: write
-      pull-requests: write
-      issues: write
-      administration: write
+    permissions: write-all
     steps:
       # We need a copy of the repo so the action can read the config file.
       - name: Check out a copy of the git repository
