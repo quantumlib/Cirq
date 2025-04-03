@@ -113,7 +113,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Delegates the call to measure the `QuantumStateRepresentation`."""
         if self._state is not None:
             return self._state.measure(self.get_axes(qubits), self.prng)
-        raise NotImplementedError()  # pragma: no cover
+        raise NotImplementedError()
 
     def _confuse_result(
         self,
@@ -144,7 +144,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     ) -> np.ndarray:
         if self._state is not None:
             return self._state.sample(self.get_axes(qubits), repetitions, seed)
-        raise NotImplementedError()  # pragma: no cover
+        raise NotImplementedError()
 
     def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.

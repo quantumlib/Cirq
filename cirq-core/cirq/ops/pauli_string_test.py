@@ -1860,7 +1860,7 @@ def test_mutable_pauli_string_inplace_conjugate_by():
             return self._qubits
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: no cover
+            raise NotImplementedError()
 
         def _decompose_(self):
             return []

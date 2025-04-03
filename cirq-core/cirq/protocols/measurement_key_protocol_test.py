@@ -100,7 +100,7 @@ def test_is_measurement():
 
     class NotImplementedOperation(cirq.Operation):
         def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
-            raise NotImplementedError()  # pragma: no cover
+            raise NotImplementedError()
 
         @property
         def qubits(self):

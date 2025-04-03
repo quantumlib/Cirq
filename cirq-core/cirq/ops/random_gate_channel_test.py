@@ -89,7 +89,7 @@ def test_consistent_protocols():
 def test_diagram():
     class NoDetailsGate(cirq.Gate):
         def num_qubits(self) -> int:
-            raise NotImplementedError()  # pragma: no cover
+            raise NotImplementedError()
 
     assert cirq.circuit_diagram_info(NoDetailsGate().with_probability(0.5), None) is None
 

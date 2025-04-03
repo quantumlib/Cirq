@@ -35,11 +35,11 @@ def test_default_repetitions():
 
         @property
         def params(self):
-            raise NotImplementedError()  # pragma: no cover
+            raise NotImplementedError()
 
         @property
         def measurements(self):
-            raise NotImplementedError()  # pragma: no cover
+            raise NotImplementedError()
 
         @property
         def records(self):
@@ -47,7 +47,7 @@ def test_default_repetitions():
 
         @property
         def data(self):
-            raise NotImplementedError()  # pragma: no cover
+            raise NotImplementedError()
 
     assert MyResult({}).repetitions == 0
     assert MyResult({'a': np.zeros((5, 2, 3))}).repetitions == 5

@@ -19,6 +19,7 @@ omit = ["benchmarks/*"]
 [tool.coverage.report]
 exclude_also = [
     "^ *pass$",
+    "^ *raise NotImplementedError",
     "if TYPE_CHECKING:",
 ]
 

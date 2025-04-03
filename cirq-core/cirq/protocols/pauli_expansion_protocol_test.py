@@ -48,7 +48,7 @@ class HasQuditUnitary:
         return (3,)
 
     def _unitary_(self) -> np.ndarray:
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
 
 @pytest.mark.parametrize(

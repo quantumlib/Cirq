@@ -483,7 +483,7 @@ def test_assert_has_consistent_qid_shape():
 
     class ConsistentOp(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @property
         def qubits(self):
@@ -500,7 +500,7 @@ def test_assert_has_consistent_qid_shape():
     # the three methods before finding an inconsistency and throwing an error.
     class InconsistentOp1(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @property
         def qubits(self):
@@ -514,7 +514,7 @@ def test_assert_has_consistent_qid_shape():
 
     class InconsistentOp2(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @property
         def qubits(self):
@@ -528,7 +528,7 @@ def test_assert_has_consistent_qid_shape():
 
     class InconsistentOp3(cirq.Operation):
         def with_qubits(self, *qubits):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @property
         def qubits(self):

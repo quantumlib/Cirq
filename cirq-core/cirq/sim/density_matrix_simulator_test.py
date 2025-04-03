@@ -1080,7 +1080,7 @@ def test_works_on_operation():
             return (self.q,)
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: no cover
+            raise NotImplementedError()
 
         def _kraus_(self):
             return cirq.kraus(cirq.X)

@@ -55,7 +55,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         op = val.on(*qubits)
         gate = val
     else:
-        raise NotImplementedError(f"Don't know how to test {val!r}")  # pragma: no cover
+        raise NotImplementedError(f"Don't know how to test {val!r}")
 
     if isinstance(gate, ops.GlobalPhaseGate):
         # OpenQASM 2.0 does not support global phase gates.

@@ -1634,7 +1634,7 @@ def _overlap_collision_time(
     elif align == Alignment.FIRST:
         upper_bound = min(len(c1), len(c2))
     else:
-        raise NotImplementedError(f"Unrecognized alignment: {align}")  # pragma: no cover
+        raise NotImplementedError(f"Unrecognized alignment: {align}")
 
     t = 0
     while t < upper_bound:

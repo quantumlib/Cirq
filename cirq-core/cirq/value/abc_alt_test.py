@@ -155,7 +155,7 @@ def test_two_alternatives():
         @alternative(requires='alt2', implementation=_default_impl2)
         def my_method(self, arg, kw=99) -> str:
             """Docstring."""
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
         @abc.abstractmethod
         def alt1(self) -> Optional[str]:
