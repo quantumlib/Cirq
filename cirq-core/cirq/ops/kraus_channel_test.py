@@ -54,6 +54,7 @@ def test_kraus_channel_remap_keys():
     kc_x = cirq.KrausChannel.from_channel(dp, key='x')
     assert cirq.with_measurement_key_mapping(kc_x, {'a': 'b'}) is kc_x
     assert cirq.measurement_key_name(cirq.with_key_path(kc_x, ('path',))) == 'path:x'
+    assert cirq.measurement_key_name(cirq.with_key_path_prefix(kc_x, ('path',))) == 'path:x'
 
     kc_a = cirq.KrausChannel.from_channel(dp, key='a')
     kc_b = cirq.KrausChannel.from_channel(dp, key='b')

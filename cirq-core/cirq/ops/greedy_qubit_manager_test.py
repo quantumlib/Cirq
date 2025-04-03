@@ -90,6 +90,11 @@ ancilla_1: ───X───X───
     )
 
 
+def test_empty_qubits():
+    qm = cirq.GreedyQubitManager(prefix="anc")
+    assert qm.qalloc(0) == []
+
+
 def test_greedy_qubit_manager_preserves_order():
     qm = cirq.GreedyQubitManager(prefix="anc")
     ancillae = [cirq.q(f"anc_{i}") for i in range(100)]

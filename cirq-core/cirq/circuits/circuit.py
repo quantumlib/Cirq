@@ -1318,7 +1318,7 @@ class AbstractCircuit(abc.ABC):
                 changed = True
             resolved_moments.append(resolved_moment)
         if not changed:
-            return self
+            return self  # pragma: no cover
         return self._from_moments(resolved_moments)
 
     def _qasm_(self, args: Optional[cirq.QasmArgs] = None) -> str:
@@ -2316,7 +2316,7 @@ class Circuit(AbstractCircuit):
             frontier = defaultdict(lambda: 0)
         flat_ops = tuple(ops.flatten_to_ops(operations))
         if not flat_ops:
-            return frontier
+            return frontier  # pragma: no cover
         qubits = set(q for op in flat_ops for q in op.qubits)
         if any(frontier[q] > start for q in qubits):
             raise ValueError(

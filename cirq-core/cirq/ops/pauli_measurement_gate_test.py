@@ -63,6 +63,7 @@ def test_measurement_eq():
     [
         (None, None, 'b'),
         (cirq.with_key_path, ('p', 'q'), 'p:q:a'),
+        (cirq.with_key_path_prefix, ('p', 'q'), 'p:q:a'),
         (cirq.with_measurement_key_mapping, {'a': 'b'}, 'b'),
     ],
 )

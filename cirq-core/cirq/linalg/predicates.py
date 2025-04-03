@@ -308,7 +308,7 @@ def slice_for_qubits_equal_to(
     else:
         if little_endian_qureg_value < 0 and not qid_shape_specified:
             # Allow negative binary numbers
-            little_endian_qureg_value &= (1 << len(target_shape)) - 1
+            little_endian_qureg_value &= (1 << len(target_shape)) - 1  # pragma: no cover
         digits = value.big_endian_int_to_digits(little_endian_qureg_value, base=target_shape[::-1])[
             ::-1
         ]

@@ -53,19 +53,6 @@ BCONE = ValidatingTestDevice(
 q0, q1, q2, q3 = cirq.LineQubit.range(4)
 
 
-class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
-    def validate_operation(self, operation):
-        if not isinstance(operation, cirq.Operation):
-            raise ValueError(f'not isinstance({operation!r}, {cirq.Operation!r})')
-
-    def validate_moment(self, moment):
-        if not isinstance(moment, cirq.Moment):
-            raise ValueError(f'not isinstance({moment!r}, {cirq.Moment!r})')
-
-
-moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
-
-
 def test_from_moments():
     a, b, c, d = cirq.LineQubit.range(4)
     moment = cirq.Moment(cirq.Z(a), cirq.Z(b))

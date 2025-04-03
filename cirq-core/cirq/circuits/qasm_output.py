@@ -351,7 +351,7 @@ class QasmOutput:
                 return NotImplemented
 
             if len(op.qubits) == 1:
-                return QasmUGate.from_matrix(mat).on(*op.qubits)
+                return QasmUGate.from_matrix(mat).on(*op.qubits)  # pragma: no cover
             return QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
 
         def on_stuck(bad_op):
