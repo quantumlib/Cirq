@@ -103,7 +103,7 @@ class MPSSimulator(
             MPSState args for simulating the Circuit.
         """
         if isinstance(initial_state, MPSState):
-            return initial_state  # pragma: nocover
+            return initial_state  # pragma: no cover
 
         return MPSState(
             qubits=qubits,
@@ -460,7 +460,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def estimation_stats(self):  # pragma: nocover
+    def estimation_stats(self):  # pragma: no cover
         """Returns some statistics about the memory usage and quality of the approximation."""
 
         num_coefs_used = sum([Mi.data.size for Mi in self._M])

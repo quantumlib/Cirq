@@ -13,18 +13,18 @@
 # limitations under the License.
 
 
-import errno  # pragma: nocover
-import os  # pragma: nocover
+import errno  # pragma: no cover
+import os  # pragma: no cover
 
-from pylatex import Document, NoEscape, Package  # pragma: nocover
+from pylatex import Document, NoEscape, Package  # pragma: no cover
 
-from cirq import circuits  # pragma: nocover
+from cirq import circuits  # pragma: no cover
 from cirq.contrib.qcircuit.qcircuit_diagram import (
-    circuit_to_latex_using_qcircuit,  # pragma: nocover
+    circuit_to_latex_using_qcircuit,  # pragma: no cover
 )
 
 
-def circuit_to_pdf_using_qcircuit_via_tex(  # pragma: nocover
+def circuit_to_pdf_using_qcircuit_via_tex(  # pragma: no cover
     circuit: circuits.Circuit,
     filepath: str,
     pdf_kwargs=None,

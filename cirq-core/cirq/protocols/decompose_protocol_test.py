@@ -358,7 +358,7 @@ class RecursiveDecompose(cirq.Gate):
 
     def _decompose_(self, qubits):
         if self.with_context:
-            assert False  # pragma: nocover
+            assert False  # pragma: no cover
         else:
             return self._decompose_impl(qubits, self.mock_qm)
 

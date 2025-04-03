@@ -141,7 +141,7 @@ class _ClassUnknownToSubjects:
         return not self == other
 
     def __hash__(self):
-        return hash(_ClassUnknownToSubjects)  # pragma: nocover
+        return hash(_ClassUnknownToSubjects)  # pragma: no cover
 
 
 class _TestsForNotImplemented:

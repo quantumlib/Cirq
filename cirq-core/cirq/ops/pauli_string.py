@@ -235,11 +235,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     # pylint: disable=function-redefined
     @overload
     def get(self, key: Any, default: None = None) -> Optional[pauli_gates.Pauli]:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def get(self, key: Any, default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def get(
         self, key: Any, default: Optional[TDefault] = None
@@ -251,27 +251,27 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __mul__(
         self, other: 'cirq.PauliString[TKeyOther]'
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __mul__(
         self, other: Mapping[TKeyOther, 'cirq.PAULI_GATE_LIKE']
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __mul__(
         self, other: Iterable['cirq.PAULI_STRING_LIKE']
     ) -> 'cirq.PauliString[Union[TKey, cirq.Qid]]':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __mul__(self, other: 'cirq.Operation') -> 'cirq.PauliString[Union[TKey, cirq.Qid]]':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __mul__(self, other: complex) -> 'cirq.PauliString[TKey]':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def __mul__(self, other):
         known = False
@@ -311,7 +311,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             )
 
         if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
-            return self  # pragma: nocover
+            return self  # pragma: no cover
 
         # Note: PauliString case handled by __mul__.
         return NotImplemented
@@ -462,7 +462,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         fused = prefix + '*'.join(factors)
         if len(factors) > 1:
             return f'({fused})'
-        return fused  # pragma: nocover
+        return fused  # pragma: no cover
 
     def __str__(self) -> str:
         ordered_qubits = sorted(self.qubits)
@@ -1369,11 +1369,11 @@ class MutablePauliString(Generic[TKey]):
     # pylint: disable=function-redefined
     @overload
     def get(self, key: TKey, default: None = None) -> Union['cirq.Pauli', None]:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def get(self, key: TKey, default: TDefault) -> Union['cirq.Pauli', TDefault]:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def get(self, key: TKey, default=None) -> Union['cirq.Pauli', TDefault, None]:
         """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
@@ -1646,7 +1646,7 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
     if decomposed is not None:
         return [out for sub_op in decomposed for out in _decompose_into_cliffords(sub_op)]
 
-    raise TypeError(  # pragma: nocover
+    raise TypeError(  # pragma: no cover
         f'Operation is not a known Clifford and did not decompose into known Cliffords: {op!r}'
     )
 

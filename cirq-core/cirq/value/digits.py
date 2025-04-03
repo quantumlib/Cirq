@@ -121,12 +121,12 @@ def big_endian_digits_to_int(digits: Iterable[int], *, base: Union[int, Iterable
 # pylint: disable=function-redefined
 @overload
 def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> List[int]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 @overload
 def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> List[int]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 def big_endian_int_to_digits(

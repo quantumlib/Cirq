@@ -125,7 +125,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             A sequence of OP_TREEs, with the k'th tree corresponding to the
             noisy operations for the k'th moment.
         """
-        raise NotImplementedError  # pragma: nocover
+        raise NotImplementedError  # pragma: no cover
 
     def _noisy_moment_impl_moments(
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
@@ -151,7 +151,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         Returns:
             An OP_TREE corresponding to the noisy operations for the moment.
         """
-        raise NotImplementedError  # pragma: nocover
+        raise NotImplementedError  # pragma: no cover
 
     def _noisy_operation_impl_moments(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         return self.noisy_moments([moment_module.Moment([operation])], operation.qubits)
@@ -171,7 +171,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             An OP_TREE corresponding to the noisy operations implementing the
             noisy version of the given operation.
         """
-        raise NotImplementedError  # pragma: nocover
+        raise NotImplementedError  # pragma: no cover
 
 
 @value.value_equality

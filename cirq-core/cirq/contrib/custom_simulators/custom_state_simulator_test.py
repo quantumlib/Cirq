@@ -26,7 +26,7 @@ class ComputationalBasisState(cirq.qis.QuantumStateRepresentation):
         self.basis = initial_state
 
     def copy(self, deep_copy_buffers: bool = True) -> 'ComputationalBasisState':
-        return ComputationalBasisState(self.basis)  # pragma: nocover
+        return ComputationalBasisState(self.basis)  # pragma: no cover
 
     def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         return [self.basis[i] for i in axes]
@@ -149,11 +149,13 @@ class ComputationalBasisProductState(cirq.qis.QuantumStateRepresentation):
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
     ) -> Tuple['ComputationalBasisProductState', 'ComputationalBasisProductState']:
-        extracted = ComputationalBasisProductState([self.basis[i] for i in axes])  # pragma: nocover
+        extracted = ComputationalBasisProductState(
+            [self.basis[i] for i in axes]
+        )  # pragma: no cover
         remainder = ComputationalBasisProductState(
             [self.basis[i] for i in range(len(self.basis)) if i not in axes]
-        )  # pragma: nocover
-        return extracted, remainder  # pragma: nocover
+        )  # pragma: no cover
+        return extracted, remainder  # pragma: no cover
 
     def reindex(self, axes: Sequence[int]) -> 'ComputationalBasisProductState':
         return ComputationalBasisProductState([self.basis[i] for i in axes])

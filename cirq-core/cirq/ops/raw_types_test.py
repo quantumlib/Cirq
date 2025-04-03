@@ -220,11 +220,11 @@ def test_default_validation_and_inverse():
 def test_default_no_qubits():
     class TestOp(cirq.Operation):
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
         @property
         def qubits(self):
-            pass  # pragma: nocover
+            pass  # pragma: no cover
 
     op = TestOp()
     assert op.controlled_by(*[]) is op
@@ -813,7 +813,7 @@ def test_tagged_act_on():
 
     class MissingActOn(cirq.Operation):
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
         @property
         def qubits(self):
@@ -833,7 +833,7 @@ def test_tagged_act_on():
 def test_single_qubit_gate_validates_on_each():
     class Example(cirq.testing.SingleQubitGate):
         def matrix(self):
-            pass  # pragma: nocover
+            pass  # pragma: no cover
 
     g = Example()
     assert g.num_qubits() == 1
@@ -1000,7 +1000,7 @@ def test_on_each_iterable_qid():
             return 1
 
         def __iter__(self):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
 

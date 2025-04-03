@@ -304,7 +304,7 @@ def test_unknown_operation_blocks():
             return [q]
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
     u = UnknownOp()
 

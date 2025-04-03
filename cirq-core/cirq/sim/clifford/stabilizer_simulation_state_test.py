@@ -119,7 +119,7 @@ def test_decompose():
             return [cirq.X(*qs)]
 
         def _qid_shape_(self):
-            pass  # pragma: nocover
+            pass  # pragma: no cover
 
     q0 = cirq.LineQubit(0)
     state = mock.Mock()

@@ -275,7 +275,7 @@ class SumOfProducts(AbstractControlValues):
 
         if len(self._conjunctions) == 1:
             # Use a simpler diagram if there's only 1 term.
-            return protocols.CircuitDiagramInfo(  # pragma: nocover
+            return protocols.CircuitDiagramInfo(  # pragma: no cover
                 wire_symbols=["@" if x == 1 else f"({x})" for x in self._conjunctions[0]]
             )
 

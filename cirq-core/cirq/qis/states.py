@@ -845,7 +845,7 @@ def _qudit_values_to_state_tensor(
             )
 
     if state_vector.dtype.kind[0] not in '?bBiu':
-        raise ValueError(  # pragma: nocover
+        raise ValueError(  # pragma: no cover
             f'Expected a bool or int entry for each qudit in '
             f'`state`, because len(state) == len(qid_shape), '
             f'but got dtype {state_vector.dtype}.'

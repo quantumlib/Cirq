@@ -189,7 +189,7 @@ class AbstractCircuit(abc.ABC):
     @property
     @abc.abstractmethod
     def moments(self) -> Sequence['cirq.Moment']:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @abc.abstractmethod
     def freeze(self) -> 'cirq.FrozenCircuit':
@@ -241,27 +241,27 @@ class AbstractCircuit(abc.ABC):
     # pylint: disable=function-redefined
     @overload
     def __getitem__(self, key: int) -> 'cirq.Moment':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __getitem__(self, key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __getitem__(self, key: slice) -> Self:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> Self:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __getitem__(self, key: Tuple[slice, Iterable['cirq.Qid']]) -> Self:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -1316,7 +1316,7 @@ class AbstractCircuit(abc.ABC):
                 changed = True
             resolved_moments.append(resolved_moment)
         if not changed:
-            return self  # pragma: nocover
+            return self  # pragma: no cover
         return self._from_moments(resolved_moments)
 
     def _qasm_(self, args: Optional['cirq.QasmArgs'] = None) -> str:
@@ -1634,7 +1634,7 @@ def _overlap_collision_time(
     elif align == Alignment.FIRST:
         upper_bound = min(len(c1), len(c2))
     else:
-        raise NotImplementedError(f"Unrecognized alignment: {align}")  # pragma: nocover
+        raise NotImplementedError(f"Unrecognized alignment: {align}")  # pragma: no cover
 
     t = 0
     while t < upper_bound:
@@ -1903,11 +1903,11 @@ class Circuit(AbstractCircuit):
     # pylint: disable=function-redefined
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def __setitem__(self, key: slice, value: Iterable['cirq.Moment']):
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def __setitem__(self, key, value):
         if isinstance(key, int) and not isinstance(value, Moment):
@@ -2317,7 +2317,7 @@ class Circuit(AbstractCircuit):
             frontier = defaultdict(lambda: 0)
         flat_ops = tuple(ops.flatten_to_ops(operations))
         if not flat_ops:
-            return frontier  # pragma: nocover
+            return frontier  # pragma: no cover
         qubits = set(q for op in flat_ops for q in op.qubits)
         if any(frontier[q] > start for q in qubits):
             raise ValueError(
@@ -2796,14 +2796,14 @@ _TKey = TypeVar('_TKey')
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey]
 ) -> Iterable[Tuple[_TKey, List[_TIn]]]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 @overload
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val: Callable[[_TIn], _TOut]
 ) -> Iterable[Tuple[_TKey, List[_TOut]]]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val=lambda e: e):

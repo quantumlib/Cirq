@@ -84,7 +84,7 @@ def _assert_consistent_resolution(v, resolved):
 
         # note: super().subs() doesn't resolve based on the param_dict properly
         # for some reason, that's why a delegate (self.symbol) is used instead
-        def subs(self, *args, **kwargs):  # pragma: nocover
+        def subs(self, *args, **kwargs):  # pragma: no cover
             self.called = True
             return self.symbol.subs(*args, **kwargs)
 

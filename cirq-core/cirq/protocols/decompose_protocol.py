@@ -124,12 +124,12 @@ class SupportsDecompose(Protocol):
 
     @doc_private
     def _decompose_(self) -> DecomposeResult:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def _decompose_with_context_(
         self, *, context: Optional[DecompositionContext] = None
     ) -> DecomposeResult:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
 
 class SupportsDecomposeWithQubits(Protocol):
@@ -152,12 +152,12 @@ class SupportsDecomposeWithQubits(Protocol):
     """
 
     def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> DecomposeResult:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def _decompose_with_context_(
         self, qubits: Tuple['cirq.Qid', ...], *, context: Optional[DecompositionContext] = None
     ) -> DecomposeResult:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
 
 def _try_op_decomposer(
@@ -314,14 +314,14 @@ def decompose(
 
 @overload
 def decompose_once(val: Any, **kwargs) -> List['cirq.Operation']:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 @overload
 def decompose_once(
     val: Any, default: TDefault, *args, flatten: bool = True, **kwargs
 ) -> Union[TDefault, List['cirq.Operation']]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 def decompose_once(
@@ -398,7 +398,7 @@ def decompose_once_with_qubits(
     flatten: bool = True,
     context: Optional['DecompositionContext'] = None,
 ) -> List['cirq.Operation']:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 @overload
@@ -410,7 +410,7 @@ def decompose_once_with_qubits(
     flatten: bool = True,
     context: Optional['DecompositionContext'] = None,
 ) -> Union[TDefault, List['cirq.Operation']]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 def decompose_once_with_qubits(

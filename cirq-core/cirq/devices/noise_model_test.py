@@ -179,7 +179,7 @@ def test_constant_qubit_noise_repr():
 def test_wrap():
     class Forget(cirq.NoiseModel):
         def noisy_operation(self, operation):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
     forget = Forget()
 

@@ -73,11 +73,11 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
 
     def kron(self, other: Self) -> Self:
         """Joins two state spaces together."""
-        raise NotImplementedError()  # pragma: nocover
+        raise NotImplementedError()  # pragma: no cover
 
     def factor(self, axes: Sequence[int], *, validate=True, atol=1e-07) -> Tuple[Self, Self]:
         """Splits two state spaces after a measurement or reset."""
-        raise NotImplementedError()  # pragma: nocover
+        raise NotImplementedError()  # pragma: no cover
 
     def reindex(self, axes: Sequence[int]) -> Self:
         """Physically reindexes the state by the new basis.
@@ -87,7 +87,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
             The state with qubit order transposed and underlying representation
             updated.
         """
-        raise NotImplementedError()  # pragma: nocover
+        raise NotImplementedError()  # pragma: no cover
 
     @property
     def supports_factor(self) -> bool:

@@ -302,7 +302,7 @@ class GateOperation(raw_types.Operation):
     def _decompose_into_clifford_(self):
         sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
         if sub is None:
-            return NotImplemented  # pragma: nocover
+            return NotImplemented  # pragma: no cover
         return sub(self.qubits)
 
     def _trace_distance_bound_(self) -> float:

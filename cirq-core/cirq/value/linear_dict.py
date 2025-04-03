@@ -185,7 +185,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def update(
         self, other: Mapping[TVector, 'cirq.TParamValComplex'], **kwargs: 'cirq.TParamValComplex'
     ) -> None:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def update(
@@ -193,11 +193,11 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         other: Iterable[Tuple[TVector, 'cirq.TParamValComplex']],
         **kwargs: 'cirq.TParamValComplex',
     ) -> None:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def update(self, *args: Any, **kwargs: 'cirq.TParamValComplex') -> None:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def update(self, *args, **kwargs):
         terms = dict()
@@ -212,11 +212,11 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
 
     @overload
     def get(self, vector: TVector) -> 'cirq.TParamValComplex':
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     @overload
     def get(self, vector: TVector, default: TDefault) -> Union['cirq.TParamValComplex', TDefault]:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def get(self, vector, default=0):
         if self._terms.get(vector, 0) == 0:

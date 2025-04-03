@@ -111,7 +111,7 @@ def test_operation_commutes_using_overlap_and_unitary():
             return self.qs
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
     class NoDetails(cirq.Operation):
         def __init__(self, *qs: cirq.Qid):
@@ -122,7 +122,7 @@ def test_operation_commutes_using_overlap_and_unitary():
             return self.qs
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
     a, b, c = cirq.LineQubit.range(3)
 

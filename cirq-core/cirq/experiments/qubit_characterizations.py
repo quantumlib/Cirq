@@ -287,7 +287,7 @@ class TomographyResult:
 
     def plot(
         self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any
-    ) -> List[plt.Axes]:  # pragma:nocover
+    ) -> List[plt.Axes]:  # pragma: no cover
         """Plots the real and imaginary parts of the density matrix as two 3D bar plots.
 
         Args:
@@ -782,7 +782,7 @@ def _matrix_bar_plot(
     title: Optional[str] = None,
     ylim: Tuple[int, int] = (-1, 1),
     **bar3d_kwargs: Any,
-) -> None:  # pragma: nocover
+) -> None:  # pragma: no cover
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()

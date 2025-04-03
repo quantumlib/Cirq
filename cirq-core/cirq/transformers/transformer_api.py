@@ -277,19 +277,19 @@ _TRANSFORMER_OR_CLS_T = TypeVar(
 def transformer(
     *, add_deep_support: bool = False
 ) -> Callable[[_TRANSFORMER_OR_CLS_T], _TRANSFORMER_OR_CLS_T]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 @overload
 def transformer(cls_or_func: _TRANSFORMER_T, *, add_deep_support: bool = False) -> _TRANSFORMER_T:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 @overload
 def transformer(
     cls_or_func: _TRANSFORMER_CLS_T, *, add_deep_support: bool = False
 ) -> _TRANSFORMER_CLS_T:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> Any:

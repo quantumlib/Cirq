@@ -132,7 +132,7 @@ def kraus(
     """
     channel_getter = getattr(val, '_channel_', None)
     if channel_getter is not None:
-        warnings.warn(  # pragma: nocover
+        warnings.warn(  # pragma: no cover
             '_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_',
             DeprecationWarning,
         )
@@ -154,7 +154,7 @@ def kraus(
 
     channel_result = NotImplemented if channel_getter is None else channel_getter()
     if channel_result is not NotImplemented:
-        return tuple(channel_result)  # pragma: nocover
+        return tuple(channel_result)  # pragma: no cover
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default

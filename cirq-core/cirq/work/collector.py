@@ -58,7 +58,7 @@ class CircuitSampleJob:
 
 class CircuitSampleJobTree(Protocol):
     def __iter__(self) -> Iterator[Union[CircuitSampleJob, 'CircuitSampleJobTree']]:
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
 
 CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, CircuitSampleJobTree]

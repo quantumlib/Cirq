@@ -199,7 +199,7 @@ def tdd_to_svg(
             # qubits start at far left and their wires shall be blue
             stroke = QBLUE
         else:
-            stroke = 'black'  # pragma: nocover
+            stroke = 'black'  # pragma: no cover
         t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1" />'
 
     for xi, yi1, yi2, _, _ in tdd.vertical_lines:

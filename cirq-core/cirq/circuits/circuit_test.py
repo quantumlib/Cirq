@@ -4765,7 +4765,7 @@ def test_zero_target_operations_go_below_diagram():
             self.text = text
 
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
         @property
         def qubits(self):
@@ -4776,7 +4776,7 @@ def test_zero_target_operations_go_below_diagram():
 
     class CustomOperationAnnotationNoInfo(cirq.Operation):
         def with_qubits(self, *new_qubits):
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
         @property
         def qubits(self):

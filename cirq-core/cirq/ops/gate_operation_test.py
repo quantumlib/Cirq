@@ -357,7 +357,7 @@ def test_mul():
                 return 3
             if isinstance(other, cirq.Operation) and isinstance(other.gate, GateRMul):
                 return 4
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
     class GateMul(cirq.Gate):
         def num_qubits(self) -> int:
@@ -368,7 +368,7 @@ def test_mul():
                 return 5
             if isinstance(other, cirq.Operation) and isinstance(other.gate, GateMul):
                 return 6
-            raise NotImplementedError()  # pragma: nocover
+            raise NotImplementedError()  # pragma: no cover
 
     # Delegates right multiplication.
     q = cirq.LineQubit(0)

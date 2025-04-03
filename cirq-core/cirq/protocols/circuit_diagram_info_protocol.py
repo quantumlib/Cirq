@@ -371,19 +371,19 @@ def _op_info_with_fallback(
 def circuit_diagram_info(
     val: Any, args: Optional[CircuitDiagramInfoArgs] = None
 ) -> CircuitDiagramInfo:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 @overload
 def circuit_diagram_info(
     val: Any, args: Optional[CircuitDiagramInfoArgs], default: TDefault
 ) -> Union[CircuitDiagramInfo, TDefault]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 @overload
 def circuit_diagram_info(val: Any, *, default: TDefault) -> Union[CircuitDiagramInfo, TDefault]:
-    pass  # pragma: nocover
+    pass  # pragma: no cover
 
 
 def circuit_diagram_info(

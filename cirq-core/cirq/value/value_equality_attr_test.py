@@ -94,7 +94,7 @@ class UnhashableD:
         self.x = x
 
     def _value_equality_values_(self):
-        return self.x  # pragma: nocover
+        return self.x  # pragma: no cover
 
 
 class UnhashableCa(UnhashableC):
@@ -252,4 +252,4 @@ def test_bad_manual_cls_forgot_method():
         @cirq.value_equality(manual_cls=True)
         class _:
             def _value_equality_values_(self):
-                pass  # pragma: nocover
+                pass  # pragma: no cover

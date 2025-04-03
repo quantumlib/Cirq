@@ -395,7 +395,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
 
     def __pow__(self, exponent: float) -> 'CliffordGate':
         if exponent != int(exponent):
-            return NotImplemented  # pragma: nocover
+            return NotImplemented  # pragma: no cover
         exponent = int(exponent)
 
         if exponent == -1:
@@ -438,7 +438,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # )
         # For example: X.then(Z) and Z.then(X) both return same tableau
         # it is because Clifford tableau ignores the global phase information.
-        return NotImplemented  # pragma: nocover
+        return NotImplemented  # pragma: no cover
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         return transformers.analytical_decompositions.decompose_clifford_tableau_to_operations(
@@ -467,7 +467,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             # is aimed to fix that.
             return NotImplemented
 
-        return NotImplemented  # pragma: nocover
+        return NotImplemented  # pragma: no cover
 
 
 @dataclass(frozen=True, init=False, eq=False, repr=False)

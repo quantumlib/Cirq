@@ -22,10 +22,10 @@ import cirq
 
 class ExampleQuantumState(cirq.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers=True):
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
     def measure(self, axes, seed=None):
-        pass  # pragma: nocover
+        pass  # pragma: no cover
 
 
 class ExampleSimulationState(cirq.SimulationState):
@@ -63,10 +63,10 @@ def test_act_on_errors():
     class Op(cirq.Operation):
         @property
         def qubits(self) -> Tuple['cirq.Qid', ...]:  # type: ignore[empty-body]
-            pass  # pragma: nocover
+            pass  # pragma: no cover
 
         def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:  # type: ignore[empty-body]
-            pass  # pragma: nocover
+            pass  # pragma: no cover
 
         def _act_on_(self, sim_state):
             return False
@@ -80,10 +80,10 @@ def test_qubits_not_allowed_for_operations():
     class Op(cirq.Operation):
         @property
         def qubits(self) -> Tuple['cirq.Qid', ...]:  # type: ignore[empty-body]
-            pass  # pragma: nocover
+            pass  # pragma: no cover
 
         def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:  # type: ignore[empty-body]
-            pass  # pragma: nocover
+            pass  # pragma: no cover
 
     state = ExampleSimulationState()
     with pytest.raises(
