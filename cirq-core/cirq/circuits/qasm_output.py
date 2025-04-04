@@ -14,6 +14,8 @@
 
 """Utility classes for representing QASM."""
 
+from __future__ import annotations
+
 import re
 from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
@@ -46,14 +48,14 @@ class QasmUGate(ops.Gate):
         return 1
 
     @staticmethod
-    def from_matrix(mat: np.ndarray) -> 'QasmUGate':
+    def from_matrix(mat: np.ndarray) -> QasmUGate:
         pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return QasmUGate(rotation / np.pi, post_phase / np.pi, pre_phase / np.pi)
 
     def _has_unitary_(self):
         return True
 
-    def _qasm_(self, qubits: Tuple['cirq.Qid', ...], args: 'cirq.QasmArgs') -> str:
+    def _qasm_(self, qubits: Tuple[cirq.Qid, ...], args: cirq.QasmArgs) -> str:
         args.validate_version('2.0', '3.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
@@ -86,13 +88,13 @@ class QasmUGate(ops.Gate):
         return {'theta': self.theta, 'phi': self.phi, 'lmda': self.lmda}
 
     @classmethod
-    def _from_json_dict_(cls, theta: float, phi: float, lmda: float, **kwargs) -> 'QasmUGate':
+    def _from_json_dict_(cls, theta: float, phi: float, lmda: float, **kwargs) -> QasmUGate:
         return cls(theta, phi, lmda)
 
 
 @value.value_equality
 class QasmTwoQubitGate(ops.Gate):
-    def __init__(self, kak: 'cirq.KakDecomposition') -> None:
+    def __init__(self, kak: cirq.KakDecomposition) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
         All angles are in half turns.  Assumes a canonicalized KAK
@@ -110,7 +112,7 @@ class QasmTwoQubitGate(ops.Gate):
         return self.kak
 
     @staticmethod
-    def from_matrix(mat: np.ndarray, atol=1e-8) -> 'QasmTwoQubitGate':
+    def from_matrix(mat: np.ndarray, atol=1e-8) -> QasmTwoQubitGate:
         """Creates a QasmTwoQubitGate from the given matrix.
 
         Args:
@@ -126,7 +128,7 @@ class QasmTwoQubitGate(ops.Gate):
     def _unitary_(self):
         return protocols.unitary(self.kak)
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         q0, q1 = qubits
         x, y, z = self.kak.interaction_coefficients
         a = x * -2 / np.pi + 0.5
@@ -170,8 +172,8 @@ class QasmOutput:
 
     def __init__(
         self,
-        operations: 'cirq.OP_TREE',
-        qubits: Tuple['cirq.Qid', ...],
+        operations: cirq.OP_TREE,
+        qubits: Tuple[cirq.Qid, ...],
         header: str = '',
         precision: int = 10,
         version: str = '2.0',
@@ -225,7 +227,7 @@ class QasmOutput:
             meas_key_id_map[key] = meas_id
         return meas_key_id_map, meas_comments
 
-    def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
+    def _generate_qubit_ids(self) -> Dict[cirq.Qid, str]:
         return {qubit: f'q[{i}]' for i, qubit in enumerate(self.qubits)}
 
     def _generate_cregs(self, meas_key_id_map: Dict[str, str]) -> Dict[str, tuple[int, str]]:
@@ -333,11 +335,11 @@ class QasmOutput:
 
     def _write_operations(
         self,
-        op_tree: 'cirq.OP_TREE',
+        op_tree: cirq.OP_TREE,
         output: Callable[[str], None],
         output_line_gap: Callable[[int], None],
     ) -> None:
-        def keep(op: 'cirq.Operation') -> bool:
+        def keep(op: cirq.Operation) -> bool:
             return protocols.qasm(op, args=self.args, default=None) is not None
 
         def fallback(op):
