@@ -168,12 +168,9 @@ class MatrixGate(raw_types.Gate):
             return NotImplemented
         # The above algorithms ignore phase, but phase is important to maintain if the gate is
         # controlled. Here, we add it back in with a global phase op.
-        ident = identity.IdentityGate(qid_shape=self._qid_shape).on(*qubits)
+        ident = identity.IdentityGate(qid_shape=self._qid_shape).on(*qubits)  # Preserve qid order
         u = protocols.unitary(Circuit(ident, *decomposed)).reshape(self._matrix.shape)
-        # All cells will have the same phase difference. Just choose the cell with the largest
-        # absolute value, to minimize rounding error.
-        max_index = np.unravel_index(np.abs(self._matrix).argmax(), self._matrix.shape)
-        phase_delta = self._matrix[max_index] / u[max_index]
+        phase_delta = linalg.phase_delta(u, self._matrix)
         # Phase delta is on the complex unit circle, so if real(phase_delta) >= 1, that means
         # no phase delta. (>1 is rounding error).
         if phase_delta.real < 1:
