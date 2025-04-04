@@ -34,8 +34,6 @@ max_line_length = 100
 [{*.ts,*.js}]
 # Google style guidelines use 2.
 indent_size = 2
-# TODO: remove the next setting after reformatting TypeScript code.
-max_line_length = 0
 
 [*.json]
 # Not stated explicitly in Google's guidelines, but the examples use 2.

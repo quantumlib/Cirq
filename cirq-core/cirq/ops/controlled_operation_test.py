@@ -159,7 +159,7 @@ def test_str():
             return ()
 
         def with_qubits(self, *new_qubits: cirq.Qid):
-            pass
+            return self
 
         def __str__(self):
             return "Op(q2)"
@@ -170,7 +170,11 @@ def test_str():
     assert str(cirq.ControlledOperation([c1, c2], SingleQubitOp())) == "CC(c1, c2, Op(q2))"
 
     assert (
-        str(cirq.ControlledOperation([c1, c2.with_dimension(3)], SingleQubitOp()))
+        str(
+            cirq.ControlledOperation(
+                [c1, c2.with_dimension(3)], SingleQubitOp().with_qubits(cirq.q(1))
+            )
+        )
         == "CC(c1, c2 (d=3), Op(q2))"
     )
 

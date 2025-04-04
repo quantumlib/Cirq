@@ -371,7 +371,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         Raises:
             ValueError: if the program created was not a batch program.
         """
-        raise NotImplementedError("Batch programs are no longer supported.")  # pragma: no cover
+        raise NotImplementedError("Batch programs are no longer supported.")
 
     batch_size = duet.sync(batch_size_async)
 

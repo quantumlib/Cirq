@@ -104,6 +104,9 @@ def test_block_diag():
         ),
     )
 
+    with pytest.raises(ValueError, match='Blocks must be square'):
+        _ = cirq.block_diag(np.array([[1, 2, 3], [3, 4, 5]]))
+
 
 def test_block_diag_dtype():
     assert cirq.block_diag().dtype == np.complex128
