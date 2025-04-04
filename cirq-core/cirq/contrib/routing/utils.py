@@ -12,19 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import operator
-from typing import Callable, Iterable, List, TYPE_CHECKING
 import re
+from typing import Callable, Iterable, List, TYPE_CHECKING
 
 import networkx as nx
 
-from cirq import circuits, ops
 import cirq.contrib.acquaintance as cca
+from cirq import circuits, ops
 from cirq.contrib.circuitdag import CircuitDag
-from cirq.contrib.routing.swap_network import SwapNetwork
 
 if TYPE_CHECKING:
     import cirq
+    from cirq.contrib.routing import SwapNetwork
 
 BINARY_OP_PREDICATE = Callable[[ops.Operation, ops.Operation], bool]
 
@@ -86,7 +88,7 @@ def is_valid_routing(
         raise
 
 
-def get_circuit_connectivity(circuit: 'cirq.Circuit') -> nx.Graph:
+def get_circuit_connectivity(circuit: cirq.Circuit) -> nx.Graph:
     """Return a graph of all 2q interactions in a circuit.
 
     Nodes are qubits and undirected edges correspond to any two-qubit

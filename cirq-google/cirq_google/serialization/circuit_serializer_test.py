@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from typing import Any, Dict, List, Optional
-import pytest
 
 import attrs
 import numpy as np
+import pytest
 import sympy
-from google.protobuf import json_format
-
 import tunits.units
+from google.protobuf import json_format
 
 import cirq
 import cirq_google as cg
@@ -264,6 +263,12 @@ OPERATIONS = [
         cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
         op_proto(
             {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0]}
+        ),
+    ),
+    (
+        cirq.WaitGate(duration=cirq.Duration(nanos=15), num_qubits=2)(Q0, Q1),
+        op_proto(
+            {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0, 1]}
         ),
     ),
     (
@@ -892,7 +897,7 @@ class BingBongSerializer(OpSerializer):
     ) -> v2.program_pb2.CircuitOperation:
         assert isinstance(op.gate, BingBongGate)
         if msg is None:
-            msg = v2.program_pb2.Operation()  # pragma: nocover
+            msg = v2.program_pb2.Operation()  # pragma: no cover
         msg.internalgate.name = 'bingbong'
         msg.internalgate.module = 'test'
         msg.internalgate.num_qubits = 1
@@ -982,7 +987,7 @@ class DiscountTagSerializer(TagSerializer):
     ) -> v2.program_pb2.Tag:
         assert isinstance(tag, DiscountTag)
         if msg is None:
-            msg = v2.program_pb2.Tag()  # pragma: nocover
+            msg = v2.program_pb2.Tag()  # pragma: no cover
         msg.internal_tag.tag_name = 'Discount'
         msg.internal_tag.tag_package = 'test'
         msg.internal_tag.tag_args['discount'].arg_value.float_value = tag.discount
@@ -1089,12 +1094,41 @@ def test_reset_gate_with_no_dimension():
     assert reset_circuit == cirq.Circuit(cirq.R(cirq.q(1, 2)))
 
 
-def test_stimcirq_gates():
+@pytest.mark.parametrize('use_constants_table', [True, False])
+def test_stimcirq_gates(use_constants_table: bool):
     stimcirq = pytest.importorskip("stimcirq")
-    serializer = cg.CircuitSerializer()
+    serializer = cg.CircuitSerializer(
+        USE_CONSTANTS_TABLE_FOR_MOMENTS=use_constants_table,
+        USE_CONSTANTS_TABLE_FOR_OPERATIONS=use_constants_table,
+    )
     q = cirq.q(1, 2)
     q2 = cirq.q(2, 2)
     c = cirq.Circuit(
+        cirq.Moment(
+            stimcirq.CumulativeObservableAnnotation(parity_keys=["m"], observable_index=123)
+        ),
+        cirq.Moment(
+            stimcirq.MeasureAndOrResetGate(
+                measure=True,
+                reset=False,
+                basis='Z',
+                invert_measure=True,
+                key='mmm',
+                measure_flip_probability=0.125,
+            )(q2)
+        ),
+        cirq.Moment(stimcirq.ShiftCoordsAnnotation([1.0, 2.0])),
+        cirq.Moment(
+            stimcirq.SweepPauli(stim_sweep_bit_index=2, cirq_sweep_symbol='t', pauli=cirq.X)(q)
+        ),
+        cirq.Moment(
+            stimcirq.SweepPauli(stim_sweep_bit_index=3, cirq_sweep_symbol='y', pauli=cirq.Y)(q)
+        ),
+        cirq.Moment(
+            stimcirq.SweepPauli(stim_sweep_bit_index=4, cirq_sweep_symbol='t', pauli=cirq.Z)(q)
+        ),
+        cirq.Moment(stimcirq.TwoQubitAsymmetricDepolarizingChannel([0.05] * 15)(q, q2)),
+        cirq.Moment(stimcirq.CZSwapGate()(q, q2)),
         cirq.Moment(stimcirq.CXSwapGate(inverted=True)(q, q2)),
         cirq.Moment(cirq.measure(q, key="m")),
         cirq.Moment(stimcirq.DetAnnotation(parity_keys=["m"])),

@@ -13,11 +13,12 @@
 # limitations under the License.
 
 import itertools
+
 import numpy as np
 import pytest
+import sympy
 
 import cirq
-import sympy
 
 
 def random_unitary(seed):

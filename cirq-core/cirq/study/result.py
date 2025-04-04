@@ -19,22 +19,22 @@ import io
 from typing import (
     Any,
     Callable,
+    cast,
     Dict,
     Iterable,
     Mapping,
     Optional,
     Sequence,
-    TYPE_CHECKING,
     Tuple,
+    TYPE_CHECKING,
     TypeVar,
     Union,
-    cast,
 )
 
 import numpy as np
 import pandas as pd
 
-from cirq import value, ops
+from cirq import ops, value
 from cirq._compat import proper_repr
 from cirq.study import resolver
 

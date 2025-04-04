@@ -14,7 +14,8 @@
 
 import abc
 import dataclasses
-from typing import Iterable, List, TYPE_CHECKING, Tuple
+from typing import Iterable, List, Tuple, TYPE_CHECKING
+
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:

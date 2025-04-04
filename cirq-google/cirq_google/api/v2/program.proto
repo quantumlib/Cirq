@@ -204,7 +204,7 @@ message WaitGate {
 // An operation acts on a set of qubits.
 message Operation {
   // Previously deprecated fields.  Do not use.
-  reserved 1,2;
+  reserved 1, 2;
 
   // Each gate should populate one possible gate message
   // depending on the type desired.  Only populated in v2.5+.
@@ -233,7 +233,7 @@ message Operation {
   // to reference an index in the enclosing Program's
   // constant messages.  Note that qubit_constant_index
   // will only be populated in v2.5+
-  repeated Qubit qubits = 3 [deprecated=true];
+  repeated Qubit qubits = 3 [deprecated = true];
   repeated int32 qubit_constant_index = 6;
 
   // Token that can be used to specify a version of a gate.
@@ -396,6 +396,7 @@ message ArgValue {
     RepeatedString string_values = 7;
     tunits.Value value_with_unit = 8;
     bool bool_value = 9;
+    bytes bytes_value = 10;
   }
 }
 

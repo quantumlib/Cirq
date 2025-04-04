@@ -3,7 +3,7 @@
 This page describes some of the best practices when using the Cirq library.
 Following these guidelines will help you write code that is more performant and
 less likely to break from version to version.  Many of these rules apply to
-other python libraries as well.
+other Python libraries as well.
 
 ## Use top-level constructs
 
@@ -23,7 +23,7 @@ unexpected behavior or in broken code.
 
 ## Do not mutate "immutable" classes
 
-While python's flexibility allows developers to modify just about anything, it
+While Python's flexibility allows developers to modify just about anything, it
 is bad practice to modify classes that are designed to be immutable.  Doing so
 can violate assumptions made in other parts of the library.
 

@@ -17,7 +17,7 @@ from typing import Any, Iterable, Iterator, List, Optional, Sequence, Tuple, Uni
 import numpy as np
 
 import cirq
-from cirq import ops, linalg, value
+from cirq import linalg, ops, value
 from cirq.interop.quirk.cells.cell import Cell, CellMaker
 
 

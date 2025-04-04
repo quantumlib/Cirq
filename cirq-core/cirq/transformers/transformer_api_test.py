@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import mock
 from typing import Optional
+from unittest import mock
+
+import pytest
 
 import cirq
 from cirq.transformers.transformer_api import LogLevel
-
-import pytest
 
 
 @cirq.transformer()
@@ -255,6 +255,14 @@ def test_transformer_stats_logger_show_levels(capfd):
     context.logger.show(LogLevel.NONE)
     out, _ = capfd.readouterr()
     assert all(line not in out for line in [info_line, debug_line, warning_line])
+
+
+def test_noop_logger():
+    logger = cirq.transformers.transformer_api.NoOpTransformerLogger()
+    logger.register_initial(cirq.Circuit(), "test")
+    logger.log("stuff")
+    logger.register_final(cirq.Circuit(), "test")
+    logger.show()
 
 
 def test_transformer_stats_logger_linear_and_nested(capfd):

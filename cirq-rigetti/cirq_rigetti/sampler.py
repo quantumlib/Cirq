@@ -15,11 +15,10 @@ from typing import Optional, Sequence
 
 from pyquil import get_qc
 from pyquil.api import QuantumComputer
-import cirq
-from cirq_rigetti import circuit_transformers as transformers
-from cirq_rigetti import circuit_sweep_executors as executors
-from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
+import cirq
+from cirq_rigetti import circuit_sweep_executors as executors, circuit_transformers as transformers
+from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 _default_executor = executors.with_quilc_compilation_and_cirq_parameter_resolution
 

@@ -14,10 +14,11 @@
 
 """Utility methods to decompose Clifford gates into circuits."""
 
-from typing import List, TYPE_CHECKING
 import functools
+from typing import List, TYPE_CHECKING
 
 import numpy as np
+
 from cirq import ops, protocols, qis, sim
 
 if TYPE_CHECKING:

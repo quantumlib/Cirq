@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 from types import NotImplementedType
 from typing import (
@@ -23,9 +25,9 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    TYPE_CHECKING,
     TypeVar,
     Union,
-    TYPE_CHECKING,
 )
 
 from cirq import circuits, ops, protocols, transformers, value
@@ -51,7 +53,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
             qubits (e.g. SWAP or fermionic swap).
     """
 
-    def __init__(self, num_qubits: int, swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
+    def __init__(self, num_qubits: int, swap_gate: cirq.Gate = ops.SWAP) -> None:
         self._num_qubits = num_qubits
         self.swap_gate = swap_gate
 
@@ -64,7 +66,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         the s[i]-th element."""
 
     def update_mapping(
-        self, mapping: Dict[ops.Qid, LogicalIndex], keys: Sequence['cirq.Qid']
+        self, mapping: Dict[ops.Qid, LogicalIndex], keys: Sequence[cirq.Qid]
     ) -> None:
         """Updates a mapping (in place) from qubits to logical indices.
 
@@ -96,8 +98,8 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
                 raise IndexError('key is out of bounds.')
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, Iterable[str], 'cirq.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, Iterable[str], cirq.CircuitDiagramInfo]:
         if args.known_qubit_count is None:
             return NotImplemented
         permutation = self.permutation()
@@ -118,14 +120,12 @@ class MappingDisplayGate(ops.Gate):
     def num_qubits(self) -> int:
         return self._num_qubits
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = tuple('' if i is None else str(i) for i in self.indices)
         return protocols.CircuitDiagramInfo(wire_symbols, connected=False)
 
 
-def display_mapping(circuit: 'cirq.Circuit', initial_mapping: LogicalMapping) -> None:
+def display_mapping(circuit: cirq.Circuit, initial_mapping: LogicalMapping) -> None:
     """Inserts display gates between moments to indicate the mapping throughout
     the circuit."""
     qubits = sorted(circuit.all_qubits())
@@ -147,13 +147,13 @@ def display_mapping(circuit: 'cirq.Circuit', initial_mapping: LogicalMapping) ->
 class SwapPermutationGate(PermutationGate):
     """Generic swap gate."""
 
-    def __init__(self, swap_gate: 'cirq.Gate' = ops.SWAP):
+    def __init__(self, swap_gate: cirq.Gate = ops.SWAP):
         super().__init__(2, swap_gate)
 
     def permutation(self) -> Dict[int, int]:
         return {0: 1, 1: 0}
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         yield self.swap_gate(*qubits)
 
     def __repr__(self) -> str:
@@ -186,7 +186,7 @@ class LinearPermutationGate(PermutationGate):
     sorting network."""
 
     def __init__(
-        self, num_qubits: int, permutation: Dict[int, int], swap_gate: 'cirq.Gate' = ops.SWAP
+        self, num_qubits: int, permutation: Dict[int, int], swap_gate: cirq.Gate = ops.SWAP
     ) -> None:
         """Initializes a linear permutation gate.
 
@@ -202,7 +202,7 @@ class LinearPermutationGate(PermutationGate):
     def permutation(self) -> Dict[int, int]:
         return self._permutation
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         swap_gate = SwapPermutationGate(self.swap_gate)
         n_qubits = len(qubits)
         mapping = {i: self._permutation.get(i, i) for i in range(n_qubits)}
@@ -238,7 +238,7 @@ class LinearPermutationGate(PermutationGate):
         return NotImplemented
 
 
-def update_mapping(mapping: Dict[ops.Qid, LogicalIndex], operations: 'cirq.OP_TREE') -> None:
+def update_mapping(mapping: Dict[ops.Qid, LogicalIndex], operations: cirq.OP_TREE) -> None:
     """Updates a mapping (in place) from qubits to logical indices according to
     a set of permutation gates. Any gates other than permutation gates are
     ignored.
@@ -253,8 +253,8 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex], operations: 'cirq.OP_TR
 
 
 def get_logical_operations(
-    operations: 'cirq.OP_TREE', initial_mapping: Dict[ops.Qid, ops.Qid]
-) -> Iterable['cirq.Operation']:
+    operations: cirq.OP_TREE, initial_mapping: Dict[ops.Qid, ops.Qid]
+) -> Iterable[cirq.Operation]:
     """Gets the logical operations specified by the physical operations and
     initial mapping.
 
@@ -300,10 +300,10 @@ class DecomposePermutationGates:
                 not all([isinstance(op, ops.GateOperation), isinstance(op.gate, PermutationGate)])
             )
 
-    def optimize_circuit(self, circuit: 'cirq.Circuit') -> None:
+    def optimize_circuit(self, circuit: cirq.Circuit) -> None:
         circuit._moments = [*transformers.expand_composite(circuit, no_decomp=self.no_decomp)]
 
-    def __call__(self, circuit: 'cirq.Circuit') -> None:
+    def __call__(self, circuit: cirq.Circuit) -> None:
         self.optimize_circuit(circuit)
 
 
@@ -311,7 +311,7 @@ EXPAND_PERMUTATION_GATES = DecomposePermutationGates(keep_swap_permutations=True
 DECOMPOSE_PERMUTATION_GATES = DecomposePermutationGates(keep_swap_permutations=False)
 
 
-def return_to_initial_mapping(circuit: 'cirq.Circuit', swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
+def return_to_initial_mapping(circuit: cirq.Circuit, swap_gate: cirq.Gate = ops.SWAP) -> None:
     qubits = sorted(circuit.all_qubits())
     n_qubits = len(qubits)
 
@@ -323,7 +323,7 @@ def return_to_initial_mapping(circuit: 'cirq.Circuit', swap_gate: 'cirq.Gate' = 
     circuit.append(returning_permutation_op)
 
 
-def uses_consistent_swap_gate(circuit: 'cirq.Circuit', swap_gate: 'cirq.Gate') -> bool:
+def uses_consistent_swap_gate(circuit: cirq.Circuit, swap_gate: cirq.Gate) -> bool:
     for op in circuit.all_operations():
         if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
             if op.gate.swap_gate != swap_gate:

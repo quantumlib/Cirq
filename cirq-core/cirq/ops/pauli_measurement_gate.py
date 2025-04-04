@@ -14,26 +14,26 @@
 
 from typing import (
     Any,
+    cast,
     Dict,
     FrozenSet,
     Iterable,
     Iterator,
     Mapping,
-    Tuple,
     Sequence,
+    Tuple,
     TYPE_CHECKING,
     Union,
-    cast,
 )
 
 from cirq import protocols, value
 from cirq.ops import (
-    raw_types,
+    dense_pauli_string as dps,
     measurement_gate,
     op_tree,
-    dense_pauli_string as dps,
     pauli_gates,
     pauli_string_phasor,
+    raw_types,
 )
 
 if TYPE_CHECKING:

@@ -13,18 +13,18 @@
 # limitations under the License.
 
 from typing import Dict, List, Tuple
-from cirq.ops.fsim_gate import PhasedFSimGate
+
 import numpy as np
 import pytest
-import cirq, cirq_google
 
+import cirq
+import cirq_google
 from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
-
+from cirq.ops.fsim_gate import PhasedFSimGate
 from cirq_google.devices.google_noise_properties import (
     GoogleNoiseProperties,
     NoiseModelFromGoogleNoiseProperties,
 )
-
 
 DEFAULT_GATE_NS: Dict[type, float] = {
     cirq.ZPowGate: 25.0,

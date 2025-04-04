@@ -16,12 +16,11 @@
 import json
 import time
 import warnings
-from typing import Dict, Sequence, Union, Optional, TYPE_CHECKING
-
-from cirq_ionq import ionq_exceptions, results
-from cirq._doc import document
+from typing import Dict, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
+from cirq._doc import document
+from cirq_ionq import ionq_exceptions, results
 
 if TYPE_CHECKING:
     import cirq_ionq

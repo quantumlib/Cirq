@@ -17,16 +17,14 @@ import abc
 import importlib.metadata
 from typing import Awaitable, Callable, Dict, Optional, Sequence, Union
 
-import google.auth
 import google.api_core
-from google.api_core import exceptions as core_exceptions
-from google.api_core import gapic_v1
+import google.auth
+from google.api_core import exceptions as core_exceptions, gapic_v1
 from google.auth import credentials as ga_credentials
 from google.oauth2 import service_account
-
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from google.protobuf import empty_pb2
+
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(

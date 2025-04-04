@@ -13,9 +13,9 @@
 # limitations under the License.
 import itertools
 import random
-from typing import Type
-
+from typing import Type, Union
 from unittest import mock
+
 import numpy as np
 import pytest
 import sympy
@@ -446,7 +446,15 @@ def test_simulate_bit_flips(dtype: Type[np.complexfloating], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_initial_state(dtype: Type[np.complexfloating], split: bool):
+@pytest.mark.parametrize(
+    'initial_state',
+    [1, cirq.StateVectorSimulationState(initial_state=1, qubits=cirq.LineQubit.range(2))],
+)
+def test_simulate_initial_state(
+    dtype: Type[np.complexfloating],
+    split: bool,
+    initial_state: Union[int, cirq.StateVectorSimulationState],
+):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:

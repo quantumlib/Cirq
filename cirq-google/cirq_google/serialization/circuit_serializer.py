@@ -14,40 +14,40 @@
 
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
-from typing import Any, Dict, List, Optional
 import functools
 import warnings
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import sympy
 
 import cirq
 from cirq_google.api import v2
+from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
-    PhysicalZTag,
+    DynamicalDecouplingTag,
+    FSimViaModelTag,
     InternalGate,
     InternalTag,
-    FSimViaModelTag,
-    DynamicalDecouplingTag,
+    PhysicalZTag,
     SYC,
 )
 from cirq_google.ops.calibration_tag import CalibrationTag
-from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.serialization import (
-    serializer,
+    arg_func_langs,
     op_deserializer,
     op_serializer,
-    arg_func_langs,
-    tag_serializer,
+    serializer,
+    stimcirq_deserializer,
+    stimcirq_serializer,
     tag_deserializer,
+    tag_serializer,
 )
 
 # The name used in program.proto to identify the serializer as CircuitSerializer.
 # "v2.5" refers to the most current v2.Program proto format.
 # CircuitSerializer is the dedicated serializer for the v2.5 format.
 _SERIALIZER_NAME = 'v2_5'
-
-# Package name for stimcirq
-_STIMCIRQ_MODULE = "stimcirq"
 
 
 class CircuitSerializer(serializer.Serializer):
@@ -92,6 +92,8 @@ class CircuitSerializer(serializer.Serializer):
         self.op_deserializer = op_deserializer
         self.tag_serializer = tag_serializer
         self.tag_deserializer = tag_deserializer
+        self.stimcirq_serializer = stimcirq_serializer.StimCirqSerializer()
+        self.stimcirq_deserializer = stimcirq_deserializer.StimCirqDeserializer()
 
     def serialize(
         self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
@@ -159,6 +161,10 @@ class CircuitSerializer(serializer.Serializer):
                             self.op_serializer.to_proto(
                                 op, op_pb, constants=constants, raw_constants=raw_constants
                             )
+                        elif self.stimcirq_serializer.can_serialize_operation(op):
+                            self.stimcirq_serializer.to_proto(
+                                op, op_pb, constants=constants, raw_constants=raw_constants
+                            )
                         else:
                             self._serialize_gate_op(
                                 op, op_pb, constants=constants, raw_constants=raw_constants
@@ -171,6 +177,10 @@ class CircuitSerializer(serializer.Serializer):
                     op_pb = moment_proto.operations.add()
                     if self.op_serializer and self.op_serializer.can_serialize_operation(op):
                         self.op_serializer.to_proto(
+                            op, op_pb, constants=constants, raw_constants=raw_constants
+                        )
+                    elif self.stimcirq_serializer.can_serialize_operation(op):
+                        self.stimcirq_serializer.to_proto(
                             op, op_pb, constants=constants, raw_constants=raw_constants
                         )
                     else:
@@ -276,30 +286,6 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(
                 gate.q1_detune_mhz, out=msg.couplerpulsegate.q1_detune_mhz
             )
-        elif getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) or getattr(
-            gate, "__module__", ""
-        ).startswith(_STIMCIRQ_MODULE):
-            # Special handling for stimcirq objects, which can be both operations and gates.
-            stimcirq_obj = (
-                op if getattr(op, "__module__", "").startswith(_STIMCIRQ_MODULE) else gate
-            )
-            if stimcirq_obj is not None and hasattr(stimcirq_obj, '_json_dict_'):
-                # All stimcirq gates currently have _json_dict_defined
-                msg.internalgate.name = type(stimcirq_obj).__name__
-                msg.internalgate.module = _STIMCIRQ_MODULE
-                if isinstance(stimcirq_obj, cirq.Gate):
-                    msg.internalgate.num_qubits = stimcirq_obj.num_qubits()
-                else:
-                    msg.internalgate.num_qubits = len(stimcirq_obj.qubits)
-
-                # Store json_dict objects in gate_args
-                for k, v in stimcirq_obj._json_dict_().items():
-                    arg_func_langs.arg_to_proto(value=v, out=msg.internalgate.gate_args[k])
-            else:
-                # New stimcirq op without a json dict has been introduced
-                raise ValueError(
-                    f'Cannot serialize stimcirq {op!r}:{type(gate)}'
-                )  # pragma: no cover
         else:
             raise ValueError(f'Cannot serialize op {op!r} of type {type(gate)}')
 
@@ -431,6 +417,12 @@ class CircuitSerializer(serializer.Serializer):
                             constants=proto.constants,
                             deserialized_constants=deserialized_constants,
                         )
+                    elif self.stimcirq_deserializer.can_deserialize_proto(constant.operation_value):
+                        op_pb = self.stimcirq_deserializer.from_proto(
+                            constant.operation_value,
+                            constants=proto.constants,
+                            deserialized_constants=deserialized_constants,
+                        )
                     else:
                         op_pb = self._deserialize_gate_op(
                             constant.operation_value,
@@ -508,6 +500,10 @@ class CircuitSerializer(serializer.Serializer):
         for op in moment_proto.operations:
             if self.op_deserializer and self.op_deserializer.can_deserialize_proto(op):
                 gate_op = self.op_deserializer.from_proto(
+                    op, constants=constants, deserialized_constants=deserialized_constants
+                )
+            elif self.stimcirq_deserializer.can_deserialize_proto(op):
+                gate_op = self.stimcirq_deserializer.from_proto(
                     op, constants=constants, deserialized_constants=deserialized_constants
                 )
             else:
@@ -696,7 +692,9 @@ class CircuitSerializer(serializer.Serializer):
             total_nanos = arg_func_langs.float_arg_from_proto(
                 operation_proto.waitgate.duration_nanos, required_arg_name=None
             )
-            op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos or 0.0))(*qubits)
+            op = cirq.WaitGate(
+                duration=cirq.Duration(nanos=total_nanos or 0.0), num_qubits=len(qubits)
+            )(*qubits)
         elif which_gate_type == 'resetgate':
             dimensions_proto = operation_proto.resetgate.arguments.get('dimension', None)
             if dimensions_proto is not None:
@@ -709,20 +707,7 @@ class CircuitSerializer(serializer.Serializer):
             op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
             msg = operation_proto.internalgate
-            if msg.module == _STIMCIRQ_MODULE and msg.name in _stimcirq_json_resolvers():
-                # special handling for stimcirq
-                # Use JSON resolver to instantiate the object
-                kwargs = {}
-                for k, v in msg.gate_args.items():
-                    arg = arg_func_langs.arg_from_proto(v)
-                    if arg is not None:
-                        kwargs[k] = arg
-                op = _stimcirq_json_resolvers()[msg.name](**kwargs)
-                if qubits:
-                    op = op(*qubits)
-            else:
-                # all other internal gates
-                op = arg_func_langs.internal_gate_from_proto(msg)(*qubits)
+            op = arg_func_langs.internal_gate_from_proto(msg)(*qubits)
         elif which_gate_type == 'couplerpulsegate':
             gate = CouplerPulse(
                 hold_time=cirq.Duration(

@@ -14,8 +14,8 @@
 
 """Classes and methods for quantum states."""
 
-from typing import Any, cast, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Union
 import itertools
+from typing import Any, cast, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -23,8 +23,9 @@ from cirq import value
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    import cirq
     from numpy.typing import DTypeLike
+
+    import cirq
 
 DEFAULT_COMPLEX_DTYPE = np.complex64
 
@@ -677,7 +678,6 @@ def density_matrix_from_state_vector(
     sum_inds = np.array(range(n_qubits))
     sum_inds[indices] += n_qubits
 
-    # TODO(#5757): remove type ignore when numpy has proper override signature.
     rho = np.einsum(
         state_vector,
         list(range(n_qubits)),
@@ -845,7 +845,7 @@ def _qudit_values_to_state_tensor(
             )
 
     if state_vector.dtype.kind[0] not in '?bBiu':
-        raise ValueError(
+        raise ValueError(  # pragma: no cover
             f'Expected a bool or int entry for each qudit in '
             f'`state`, because len(state) == len(qid_shape), '
             f'but got dtype {state_vector.dtype}.'

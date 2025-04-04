@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility methods for checking properties of matrices."""
-from typing import cast, List, Optional, Sequence, Union, Tuple
+from typing import cast, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from cirq.linalg import tolerance, transformations
 from cirq import value
+from cirq.linalg import tolerance, transformations
 
 
 def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
@@ -308,7 +308,7 @@ def slice_for_qubits_equal_to(
     else:
         if little_endian_qureg_value < 0 and not qid_shape_specified:
             # Allow negative binary numbers
-            little_endian_qureg_value &= (1 << len(target_shape)) - 1
+            little_endian_qureg_value &= (1 << len(target_shape)) - 1  # pragma: no cover
         digits = value.big_endian_int_to_digits(little_endian_qureg_value, base=target_shape[::-1])[
             ::-1
         ]

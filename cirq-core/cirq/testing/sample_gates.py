@@ -13,9 +13,10 @@
 # limitations under the License.
 import dataclasses
 
-import cirq
 import numpy as np
-from cirq import ops, qis, protocols
+
+import cirq
+from cirq import ops, protocols, qis
 
 
 def _matrix_for_phasing_state(num_qubits, phase_state, phase):

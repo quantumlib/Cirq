@@ -12,62 +12,60 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Type, cast, Dict, Union, List, Tuple, Optional
+from typing import Any, Callable, cast, Dict, List, Optional, Tuple, Type, Union
 
-import sympy
 import numpy as np
+import sympy
 from numpy.typing import NDArray
-
 from pyquil.quil import Program
+from pyquil.quilatom import (
+    Add,
+    BinaryExp,
+    Div,
+    Function,
+    MemoryReference,
+    Mul,
+    Parameter,
+    ParameterDesignator,
+    Pow,
+    qubit_index,
+    QubitDesignator,
+    Sub,
+    substitute_array,
+)
 from pyquil.quilbase import (
     Declare,
     DefGate,
+    Fence,
+    FenceAll,
     Gate as PyQuilGate,
     Measurement as PyQuilMeasurement,
     Pragma,
     Reset,
     ResetQubit,
-    Fence,
-    FenceAll,
-)
-from pyquil.quilatom import (
-    MemoryReference,
-    ParameterDesignator,
-    QubitDesignator,
-    Function,
-    BinaryExp,
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Pow,
-    Parameter,
-    substitute_array,
-    qubit_index,
 )
 from pyquil.simulation import matrices
 
 import cirq
+from cirq._compat import cached_method
 from cirq.circuits.circuit import Circuit
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
-from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs, CircuitDiagramInfo
 from cirq.devices.line_qubit import LineQubit
 from cirq.devices.noise_utils import OpIdentifier
-from cirq.value import value_equality
-from cirq.protocols import is_parameterized
-
-from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, ZPowGate, YPowGate, XPowGate
-from cirq.ops.parity_gates import ZZPowGate, XXPowGate, YYPowGate
-from cirq.ops.pauli_gates import X, Y, Z
+from cirq.ops.common_gates import CNOT, CZ, CZPowGate, H, S, T, XPowGate, YPowGate, ZPowGate
 from cirq.ops.fsim_gate import FSimGate, PhasedFSimGate
 from cirq.ops.identity import I
+from cirq.ops.kraus_channel import KrausChannel
 from cirq.ops.matrix_gates import MatrixGate
 from cirq.ops.measurement_gate import MeasurementGate
+from cirq.ops.parity_gates import XXPowGate, YYPowGate, ZZPowGate
+from cirq.ops.pauli_gates import X, Y, Z
+from cirq.ops.raw_types import Gate
 from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP
 from cirq.ops.three_qubit_gates import CCNOT, CSWAP
-from cirq.ops.raw_types import Gate
-from cirq.ops.kraus_channel import KrausChannel
-from cirq._compat import cached_method
+from cirq.protocols import is_parameterized
+from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfo, CircuitDiagramInfoArgs
+from cirq.value import value_equality
 from cirq_rigetti.deprecation import deprecated_cirq_rigetti_class, deprecated_cirq_rigetti_function
 
 

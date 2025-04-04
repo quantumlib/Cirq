@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-import pytest
 
 import numpy as np
-import cirq
+import pytest
 
+import cirq
+from cirq.experiments import (
+    random_quantum_circuit_generation as rqcg,
+    SingleQubitReadoutCalibrationResult,
+)
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
-from cirq.experiments import random_quantum_circuit_generation as rqcg
-from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.study import ResultDict
 
 

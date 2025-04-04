@@ -22,9 +22,9 @@ from scipy.linalg import block_diag
 
 import cirq
 from cirq.transformers.analytical_decompositions.three_qubit_decomposition import (
-    _multiplexed_angles,
     _cs_to_ops,
     _middle_multiplexor_to_ops,
+    _multiplexed_angles,
     _two_qubit_multiplexor_to_ops,
 )
 

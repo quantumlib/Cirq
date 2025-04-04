@@ -22,13 +22,13 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Union,
     TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
 
-from cirq import protocols, value, _import
+from cirq import _import, protocols, value
 from cirq.ops import (
     control_values as cv,
     controlled_operation as cop,
@@ -314,7 +314,7 @@ class ControlledGate(raw_types.Gate):
             return None
         u = protocols.unitary(self.sub_gate, default=None)
         if u is None:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 

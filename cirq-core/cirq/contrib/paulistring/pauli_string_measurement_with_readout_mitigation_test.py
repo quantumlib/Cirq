@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Sequence
 import random
+from typing import Dict, Sequence
 
+import numpy as np
 import pytest
 
 import cirq
-import numpy as np
-
 from cirq.contrib.paulistring import measure_pauli_strings
-from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 from cirq.experiments import SingleQubitReadoutCalibrationResult
+from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 
 
 def _create_ghz(number_of_qubits: int, qubits: Sequence[cirq.Qid]) -> cirq.Circuit:
@@ -36,13 +35,9 @@ def _create_ghz(number_of_qubits: int, qubits: Sequence[cirq.Qid]) -> cirq.Circu
 def _generate_random_pauli_string(qubits: Sequence[cirq.Qid], enable_coeff: bool = False):
     pauli_ops = [cirq.I, cirq.X, cirq.Y, cirq.Z]
 
-    # Ensure at least one non-identity.
-    operators = {q: cirq.I(q) for q in qubits}  # Start with all identities
-    # Choose a random subset of qubits to have non-identity operators
-    non_identity_qubits = random.sample(qubits, random.randint(1, len(qubits)))
-    for q in non_identity_qubits:
-        operators[q] = random.choice([cirq.X, cirq.Y, cirq.Z])(q)  # Only non-identity ops
     operators = {q: random.choice(pauli_ops) for q in qubits}
+    # Ensure at least one non-identity.
+    operators[random.choice(qubits)] = random.choice(pauli_ops[1:])
 
     if enable_coeff:
         coefficient = (2 * random.random() - 1) * 100
@@ -461,8 +456,8 @@ def test_all_pauli_strings_are_pauli_i() -> None:
 
     with pytest.raises(
         ValueError,
-        match="Empty Pauli strings or Pauli strings consisting"
-        "only of Pauli I are not allowed. Please provide"
+        match="Empty Pauli strings or Pauli strings consisting "
+        "only of Pauli I are not allowed. Please provide "
         "valid input Pauli strings.",
     ):
         measure_pauli_strings(
