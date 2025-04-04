@@ -15,7 +15,7 @@ cd Cirq
 
 ## Recommended git setup
 
-The following command will setup large refactoring revisions to be ignored, when using git blame.
+The following command will set up large refactoring revisions to be ignored, when using git blame.
 
 ```
 git config blame.ignoreRevsFile .git-blame-ignore-revs
@@ -24,7 +24,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 Note that if you are using PyCharm, you might have to use the command Restart & Invalidate Caches to have the change be picked up.
 
 ## Docker
-You can build the stable and pre_release Docker images with our `Dockerfile`.
+You can build the stable and pre-release Docker images with our `Dockerfile`.
 
 ```bash
     docker build -t cirq --target cirq_stable .
@@ -105,11 +105,10 @@ See the previous section for instructions.
     Docker or configure permissions on your system; see the
     [Docker installation instructions](https://docs.docker.com/engine/install/ubuntu/)
     for more information.
-    Note that Docker is necessary only for the `cirq-rigetti` module.
 
     There are some extra steps if Protocol Buffers are changed; see the next section.
 
-2. Prepare a virtual environment including the dev tools (such as Mypy).
+2. Prepare a Python virtual environment that includes the Cirq dev tools (such as Mypy).
 
     One of the system dependencies we installed was `virtualenvwrapper`, which makes it easy to create virtual environments.
     If you did not have `virtualenvwrapper` previously, you may need to re-open your terminal or run `source ~/.bashrc` before these commands will work:
@@ -123,7 +122,7 @@ See the previous section for instructions.
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
 
-    **Note:** Some highly managed or customized devices have configurations that interfere with `virtualenv`.
+    **Note**: Some highly managed or customized devices have configurations that interfere with `virtualenv`.
     In that case, [anaconda](https://www.anaconda.com/) environments may be a better choice.
 
 3. Check that the tests pass.
@@ -147,7 +146,7 @@ See the previous section for instructions.
     ```bash
     add2virtualenv <paste modules from last command>
     ```
-    (Typically `add2virtualenv` is not executable using xargs, so this two step process is necessary.)
+    (Typically `add2virtualenv` is not executable using `xargs`, so this two step process is necessary.)
 
 ## Editable installs
 

@@ -24,6 +24,7 @@ import warnings
 from typing import Dict, List, Optional, Tuple, Type
 from unittest import mock
 
+import attrs
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -83,20 +84,20 @@ def test_deprecated_cirq_type_in_json_dict():
         __module__ = 'test.noncirq.namespace'
 
         def __eq__(self, other):
-            return isinstance(other, HasOldJsonDict)
+            return isinstance(other, HasOldJsonDict)  # pragma: no cover
 
         def _json_dict_(self):
             return {'cirq_type': 'test.noncirq.namespace.HasOldJsonDict'}
 
         @classmethod
         def _from_json_dict_(cls, **kwargs):
-            return cls()
+            return cls()  # pragma: no cover
 
     with pytest.raises(ValueError, match='not a Cirq type'):
         _ = cirq.json_cirq_type(HasOldJsonDict)
 
     def custom_resolver(name):
-        if name == 'test.noncirq.namespace.HasOldJsonDict':
+        if name == 'test.noncirq.namespace.HasOldJsonDict':  # pragma: no cover
             return HasOldJsonDict
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
@@ -282,6 +283,7 @@ def test_builtins():
 def test_numpy():
     x = np.ones(1)[0]
 
+    assert_json_roundtrip_works(np.bool_(True))
     assert_json_roundtrip_works(x.astype(np.int8))
     assert_json_roundtrip_works(x.astype(np.int16))
     assert_json_roundtrip_works(x.astype(np.int32))
@@ -366,7 +368,7 @@ class SBKImpl(cirq.SerializableByKey):
 
     def __eq__(self, other):
         if not isinstance(other, SBKImpl):
-            return False
+            return False  # pragma: no cover
         return (
             self.name == other.name
             and self.data_list == other.data_list
@@ -541,7 +543,7 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
         return pytest.xfail(reason="Not serializable (yet)")
 
     if cls is None:
-        pytest.skip(f'No serialization for None-mapped type: {cirq_obj_name}')
+        pytest.skip(f'No serialization for None-mapped type: {cirq_obj_name}')  # pragma: no cover
 
     try:
         typename = cirq.json_cirq_type(cls)
@@ -613,7 +615,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
 
     for deprecation in TESTED_MODULES.values():
         if deprecation is not None and deprecation.old_name in content:
-            ctx_managers.append(deprecation.deprecation_assertion)
+            ctx_managers.append(deprecation.deprecation_assertion)  # pragma: no cover
 
     imports = {'cirq': cirq, 'pd': pd, 'sympy': sympy, 'np': np, 'datetime': datetime, 'nx': nx}
 
@@ -790,3 +792,15 @@ def test_datetime():
     assert re_pst_dt == pst_dt
     assert re_pst_dt == utc_dt
     assert re_pst_dt == re_naive_dt
+
+
+@attrs.frozen
+class _TestAttrsClas:
+    name: str
+    x: int
+
+
+def test_attrs_json_dict():
+    obj = _TestAttrsClas('test', x=123)
+    js = json_serialization.attrs_json_dict(obj)
+    assert js == {'name': 'test', 'x': 123}

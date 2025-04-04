@@ -168,7 +168,8 @@ class DensityMatrixSimulator(
             DensityMatrixSimulationState for the circuit.
         """
         if isinstance(initial_state, density_matrix_simulation_state.DensityMatrixSimulationState):
-            return initial_state
+            # Instances of SimulationStateBase usually returned before this point
+            return initial_state  # pragma: no cover
 
         return density_matrix_simulation_state.DensityMatrixSimulationState(
             qubits=qubits,

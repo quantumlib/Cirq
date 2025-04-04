@@ -78,3 +78,8 @@ def test_three_qubit_gate_validate():
         g.validate_args([a, b])
     with pytest.raises(ValueError):
         g.validate_args([a, b, c, d])
+
+
+def test_does_not_support_serialization_gate():
+    g = cirq.testing.DoesNotSupportSerializationGate(n_qubits=4)
+    assert g.num_qubits() == 4

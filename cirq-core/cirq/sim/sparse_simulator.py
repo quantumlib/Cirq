@@ -171,7 +171,8 @@ class Simulator(
             StateVectorSimulationState for the circuit.
         """
         if isinstance(initial_state, state_vector_simulation_state.StateVectorSimulationState):
-            return initial_state
+            # Instances of SimulationStateBase usually returned before this point
+            return initial_state  # pragma: no cover
 
         return state_vector_simulation_state.StateVectorSimulationState(
             qubits=qubits,

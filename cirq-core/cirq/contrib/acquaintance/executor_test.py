@@ -48,6 +48,7 @@ def test_executor_explicit():
     }
     initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
+    assert execution_strategy.device == cirq.UNCONSTRAINED_DEVICE
 
     with pytest.raises(ValueError):
         executor = cca.StrategyExecutorTransformer(None)

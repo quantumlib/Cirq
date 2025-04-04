@@ -307,6 +307,11 @@ def test_h_str():
     assert str(cirq.H**0.5) == 'H**0.5'
 
 
+def test_phase_exponent():
+    assert cirq.XPowGate(exponent=0.5).phase_exponent == 0.0
+    assert cirq.YPowGate(exponent=0.5).phase_exponent == 0.5
+
+
 def test_x_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.X, ExampleSimulationState(), qubits=())
