@@ -16,7 +16,6 @@ import subprocess
 import sys
 from typing import List, Tuple, Union
 
-
 BOLD = 1
 DIM = 2
 RED = 31

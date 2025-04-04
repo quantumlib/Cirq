@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Iterator, Any
+from typing import AbstractSet, Any, Iterator
 
-import pytest
 import numpy as np
+import pytest
 import sympy
 
 import cirq
@@ -76,6 +76,13 @@ def test_wrapped_qid():
         'qubit': ValidQubit('zz'),
         'dimension': 3,
     }
+
+    assert not ValidQubit('zz') == 4
+    assert ValidQubit('zz') != 4
+    assert ValidQubit('zz') > ValidQubit('aa')
+    assert ValidQubit('zz') <= ValidQubit('zz')
+    assert ValidQubit('zz') >= ValidQubit('zz')
+    assert ValidQubit('zz') >= ValidQubit('aa')
 
 
 def test_qid_dimension():
@@ -210,6 +217,21 @@ def test_default_validation_and_inverse():
     cirq.testing.assert_implements_consistent_protocols(i, local_vals={'TestGate': TestGate})
 
 
+def test_default_no_qubits():
+    class TestOp(cirq.Operation):
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        @property
+        def qubits(self):
+            pass
+
+    op = TestOp()
+    assert op.controlled_by(*[]) is op
+    op = TestOp().with_tags("abc")
+    assert op.classical_controls == frozenset()
+
+
 def test_default_inverse():
     class TestGate(cirq.Gate):
         def _num_qubits_(self):
@@ -258,6 +280,7 @@ def test_default_qudit_inverse():
         (cirq.CZ * 1, cirq.CZ / 1),
         (-cirq.CSWAP * 1j, cirq.CSWAP / 1j),
         (cirq.TOFFOLI * 0.5, cirq.TOFFOLI / 2),
+        (-cirq.X * sympy.Symbol('s'), -sympy.Symbol('s') * cirq.X),
     ),
 )
 def test_gate_algebra(expression, expected_result):
@@ -356,7 +379,7 @@ def test_gate_shape_protocol():
 def test_operation_shape():
     class FixedQids(cirq.Operation):
         def with_qubits(self, *new_qids):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
     class QubitOp(FixedQids):
         @property
@@ -658,6 +681,9 @@ def test_tagged_operation_forwards_protocols():
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
     classically_controlled_y = tagged_y.with_classical_controls("a")
+    assert classically_controlled_y.classical_controls == frozenset(
+        {cirq.KeyCondition(cirq.MeasurementKey(name='a'))}
+    )
     assert classically_controlled_y == y.with_classical_controls("a")
     assert isinstance(classically_controlled_y, cirq.Operation)
     assert not isinstance(classically_controlled_y, cirq.TaggedOperation)

@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from itertools import product
+
 import numpy as np
 import pytest
-import cirq
 import sympy
+
+import cirq
 
 
 def test_x_gate():

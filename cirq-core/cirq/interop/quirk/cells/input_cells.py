@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterator, Iterable, TYPE_CHECKING
+from typing import Iterable, Iterator, List, Optional, TYPE_CHECKING
 
 from cirq.interop.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
 

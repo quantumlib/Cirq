@@ -24,16 +24,15 @@ from typing import (
     Optional,
     Sequence,
     Set,
-    TypeVar,
-    TYPE_CHECKING,
     Tuple,
+    TYPE_CHECKING,
+    TypeVar,
 )
-from typing_extensions import Self
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq import ops, protocols, value
-
 from cirq.sim.simulation_state_base import SimulationStateBase
 
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
@@ -337,7 +336,7 @@ def strat_act_on_from_apply_decompose(
         curr_ancilla = tuple(q for q in operation.qubits if q not in args.qubits)
         args = args.add_qubits(curr_ancilla)
         if args is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         all_ancilla.update(curr_ancilla)
         protocols.act_on(operation, args)
     args = args.remove_qubits(tuple(all_ancilla))

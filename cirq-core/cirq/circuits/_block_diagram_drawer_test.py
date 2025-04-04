@@ -19,11 +19,11 @@ import pytest
 import cirq
 from cirq.circuits._block_diagram_drawer import BlockDiagramDrawer
 from cirq.circuits._box_drawing_character_data import (
-    NORMAL_BOX_CHARS,
-    BOLD_BOX_CHARS,
-    DOUBLED_BOX_CHARS,
     ASCII_BOX_CHARS,
+    BOLD_BOX_CHARS,
     BoxDrawCharacterSet,
+    DOUBLED_BOX_CHARS,
+    NORMAL_BOX_CHARS,
 )
 
 

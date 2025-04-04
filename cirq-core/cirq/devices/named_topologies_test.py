@@ -14,16 +14,17 @@
 import itertools
 from unittest.mock import MagicMock
 
-import cirq
 import networkx as nx
 import pytest
+
+import cirq
 from cirq import (
     draw_gridlike,
+    draw_placements,
+    get_placements,
+    is_valid_placement,
     LineTopology,
     TiltedSquareLattice,
-    get_placements,
-    draw_placements,
-    is_valid_placement,
 )
 
 

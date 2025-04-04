@@ -35,9 +35,7 @@ describe('GridQubit with 5 default moments', () => {
   });
 
   it('has a three.js sprite label', () => {
-    const sprite = children.find(
-      child => child.type === 'Sprite'
-    ) as QubitLabel;
+    const sprite = children.find(child => child.type === 'Sprite') as QubitLabel;
     expect(sprite.text).to.equal(`(${DEFAULT_ROW}, ${DEFAULT_COL})`);
   });
 
@@ -52,9 +50,7 @@ describe('GridQubit with 5 default moments', () => {
     const symbol = new Symbol3D(symbolInfo);
     gridQubit.addSymbol(symbol);
 
-    const symbol3D = children.find(
-      child => child.constructor.name === 'Symbol3D'
-    )!;
+    const symbol3D = children.find(child => child.constructor.name === 'Symbol3D')!;
     expect(symbol3D.children[0].constructor.name).to.equal('X3DSymbol');
   });
 });

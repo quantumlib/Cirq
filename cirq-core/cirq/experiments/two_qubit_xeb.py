@@ -13,32 +13,35 @@
 # limitations under the License.
 
 """Provides functions for running and analyzing two-qubit XEB experiments."""
-from typing import Sequence, TYPE_CHECKING, Optional, Tuple, Dict, cast, Mapping, Any
-
+import functools
+import itertools
 from dataclasses import dataclass
 from types import MappingProxyType
-import itertools
-import functools
+from typing import Any, cast, Dict, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
 
-from matplotlib import pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from cirq import ops, value, vis
-from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
-from cirq.experiments.xeb_fitting import benchmark_2q_xeb_fidelities
-from cirq.experiments.xeb_fitting import fit_exponential_decays, exponential_decay
+from cirq._compat import cached_method
 from cirq.experiments import random_quantum_circuit_generation as rqcg
 from cirq.experiments.qubit_characterizations import (
-    ParallelRandomizedBenchmarkingResult,
     parallel_single_qubit_randomized_benchmarking,
+    ParallelRandomizedBenchmarkingResult,
 )
+from cirq.experiments.xeb_fitting import (
+    benchmark_2q_xeb_fidelities,
+    exponential_decay,
+    fit_exponential_decays,
+)
+from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 from cirq.qis import noise_utils
-from cirq._compat import cached_method
 
 if TYPE_CHECKING:
     import multiprocessing
+
     import cirq
 
 

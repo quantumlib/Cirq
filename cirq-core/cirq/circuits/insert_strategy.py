@@ -23,6 +23,16 @@ class InsertStrategy:
     INLINE: 'InsertStrategy'
     EARLIEST: 'InsertStrategy'
 
+    def __new__(cls, name: str, doc: str) -> 'InsertStrategy':
+        inst = getattr(cls, name, None)
+        if not inst or not isinstance(inst, cls):
+            inst = super().__new__(cls)
+        return inst
+
+    def __getnewargs__(self):
+        """Returns a tuple of args to pass to __new__ when unpickling."""
+        return (self.name, self.__doc__)
+
     def __init__(self, name: str, doc: str):
         self.name = name
         self.__doc__ = doc

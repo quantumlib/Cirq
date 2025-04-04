@@ -26,16 +26,16 @@ import pytest
 import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.xeb_fitting import (
+    _fit_exponential_decay,
+    before_and_after_characterization,
     benchmark_2q_xeb_fidelities,
-    parameterize_circuit,
-    SqrtISwapXEBOptions,
     characterize_phased_fsim_parameters_with_xeb,
     characterize_phased_fsim_parameters_with_xeb_by_pair,
-    _fit_exponential_decay,
     fit_exponential_decays,
-    before_and_after_characterization,
-    XEBPhasedFSimCharacterizationOptions,
+    parameterize_circuit,
     phased_fsim_angles_from_gate,
+    SqrtISwapXEBOptions,
+    XEBPhasedFSimCharacterizationOptions,
 )
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 

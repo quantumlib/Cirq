@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from typing import Optional, Mapping, TYPE_CHECKING, Any, Dict
+from typing import Any, Dict, Mapping, Optional, TYPE_CHECKING
 
 import numpy as np
 

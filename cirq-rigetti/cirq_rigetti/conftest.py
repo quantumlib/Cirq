@@ -12,41 +12,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from typing import (
     Any,
+    Dict,
+    Generic,
     Iterable,
+    List,
     Mapping,
+    Optional,
     Sequence,
     Tuple,
-    Optional,
-    List,
-    Union,
-    Generic,
     TypeVar,
-    Dict,
+    Union,
 )
-
 from unittest.mock import create_autospec, Mock
+
+import networkx as nx
+import numpy as np
 import pytest
+import sympy
 from pyquil import Program
-from pyquil.quantum_processor import AbstractQuantumProcessor, NxQuantumProcessor
 from pyquil.api import (
-    QAM,
-    QuantumComputer,
-    QuantumExecutable,
-    QAMExecutionResult,
     EncryptedProgram,
     MemoryMap,
+    QAM,
+    QAMExecutionResult,
+    QuantumComputer,
+    QuantumExecutable,
 )
 from pyquil.api._abstract_compiler import AbstractCompiler
-from qcs_sdk import QCSClient, ExecutionData, ResultData, RegisterData
+from pyquil.quantum_processor import AbstractQuantumProcessor, NxQuantumProcessor
+from qcs_sdk import ExecutionData, QCSClient, RegisterData, ResultData
 from qcs_sdk.qvm import QVMResultData
-import networkx as nx
+
 import cirq
-import sympy
-import numpy as np
 
 T = TypeVar("T")
+
+
+def pytest_configure(config):
+    os.environ['CIRQ_TESTING'] = "true"
 
 
 class MockQAM(QAM, Generic[T]):

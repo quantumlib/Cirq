@@ -112,7 +112,7 @@ In addition, please note that all gates will have variations and
 errors that vary from device to device and from qubit to qubit.
 This can include both incoherent as well as coherent error.
 
-Note: Gate durations are subject to change based on device or
+Note: gate durations are subject to change based on device or
 configuration.  To get gates durations for a specific device, see the
 [Device specification](./specification.md#gate-durations) page.  Also
 note that some gates (such as Z gates or Fsim gates) have multiple
@@ -251,8 +251,8 @@ may help for circuits that would otherwise run into size limitations.
 
 ### Parameterized Gates
 
-Circuits for Google devices could contain gates parameterized by Sympy
-expressions, but only a subset of Sympy expression types are supported:
+Circuits for Google devices could contain gates parameterized by SymPy
+expressions, but only a subset of SymPy expression types are supported:
 `sympy.Symbol`, `sympy.Add`, `sympy.Mul`, and `sympy.Pow`.
 
 ## Specific Device Layouts

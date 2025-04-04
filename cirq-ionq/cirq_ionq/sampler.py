@@ -16,8 +16,8 @@
 import itertools
 from typing import Optional, Sequence, TYPE_CHECKING
 
-from cirq_ionq import results
 import cirq
+from cirq_ionq import results
 
 if TYPE_CHECKING:
     import cirq_ionq

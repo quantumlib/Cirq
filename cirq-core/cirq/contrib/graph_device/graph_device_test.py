@@ -15,7 +15,6 @@
 import pytest
 
 import cirq
-
 import cirq.contrib.graph_device as ccgd
 import cirq.contrib.graph_device.graph_device as ccgdgd
 

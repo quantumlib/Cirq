@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
+from __future__ import annotations
 
-from typing import cast, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
+import collections
+from typing import cast, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, transformers
-
-from cirq.contrib.acquaintance.gates import SwapNetworkGate, AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.devices import get_acquaintance_size
+from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate, SwapNetworkGate
 from cirq.contrib.acquaintance.permutation import PermutationGate
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
 
-def rectify_acquaintance_strategy(circuit: 'cirq.Circuit', acquaint_first: bool = True) -> None:
+def rectify_acquaintance_strategy(circuit: cirq.Circuit, acquaint_first: bool = True) -> None:
     """Splits moments so that they contain either only acquaintance or permutation gates.
 
     Orders resulting moments so that the first one is of the same type as the previous one.
@@ -57,10 +57,10 @@ def rectify_acquaintance_strategy(circuit: 'cirq.Circuit', acquaint_first: bool 
 
 
 def replace_acquaintance_with_swap_network(
-    circuit: 'cirq.Circuit',
-    qubit_order: Sequence['cirq.Qid'],
+    circuit: cirq.Circuit,
+    qubit_order: Sequence[cirq.Qid],
     acquaintance_size: Optional[int] = 0,
-    swap_gate: 'cirq.Gate' = ops.SWAP,
+    swap_gate: cirq.Gate = ops.SWAP,
 ) -> bool:
     """Replace every rectified moment with acquaintance gates with a generalized swap network.
 
@@ -106,10 +106,10 @@ class ExposeAcquaintanceGates:
             not get_acquaintance_size(op) or isinstance(op.gate, AcquaintanceOpportunityGate)
         )
 
-    def optimize_circuit(self, circuit: 'cirq.Circuit') -> None:
+    def optimize_circuit(self, circuit: cirq.Circuit) -> None:
         circuit._moments = [*transformers.expand_composite(circuit, no_decomp=self.no_decomp)]
 
-    def __call__(self, circuit: 'cirq.Circuit') -> None:
+    def __call__(self, circuit: cirq.Circuit) -> None:
         self.optimize_circuit(circuit)
 
 

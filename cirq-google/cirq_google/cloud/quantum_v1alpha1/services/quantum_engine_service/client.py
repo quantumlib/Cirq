@@ -13,24 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from collections import OrderedDict
 import importlib.metadata
 import os
 import re
-from typing import Dict, Optional, Iterable, Iterator, Sequence, Tuple, Type, Union
+from collections import OrderedDict
+from typing import Dict, Iterable, Iterator, Optional, Sequence, Tuple, Type, Union
 
-from google.api_core import client_options as client_options_lib
-from google.api_core import gapic_v1
-from google.api_core import retry as retries
+from google.api_core import client_options as client_options_lib, gapic_v1, retry as retries
 from google.auth import credentials as ga_credentials
-from google.auth.transport import mtls
 from google.auth.exceptions import MutualTLSChannelError
+from google.auth.transport import mtls
 from google.oauth2 import service_account
 
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
+
+from .transports.base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
 from .transports.grpc import QuantumEngineServiceGrpcTransport
 from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
 

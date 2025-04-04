@@ -13,22 +13,22 @@
 # limitations under the License.
 import inspect
 from typing import (
-    Callable,
-    Optional,
-    Union,
-    Iterable,
-    Sequence,
-    Iterator,
-    Tuple,
     Any,
+    Callable,
     cast,
-    List,
     Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
     TYPE_CHECKING,
+    Union,
 )
 
 from cirq import ops, value
-from cirq.interop.quirk.cells.cell import Cell, CellMaker, CELL_SIZES
+from cirq.interop.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
 
 if TYPE_CHECKING:
     import cirq

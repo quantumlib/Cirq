@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any, Dict, Generic, Sequence, Type, TYPE_CHECKING
 
 import numpy as np
@@ -47,7 +49,7 @@ class CustomStateSimulator(
         self,
         state_type: Type[TSimulationState],
         *,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
         split_untangled_states: bool = False,
     ):
         """Initializes a CustomStateSimulator.
@@ -63,24 +65,24 @@ class CustomStateSimulator(
 
     def _create_simulator_trial_result(
         self,
-        params: 'cirq.ParamResolver',
+        params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
-    ) -> 'CustomStateTrialResult[TSimulationState]':
+        final_simulator_state: cirq.SimulationStateBase[TSimulationState],
+    ) -> CustomStateTrialResult[TSimulationState]:
         return CustomStateTrialResult(
             params, measurements, final_simulator_state=final_simulator_state
         )
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[TSimulationState]'
-    ) -> 'CustomStateStepResult[TSimulationState]':
+        self, sim_state: cirq.SimulationStateBase[TSimulationState]
+    ) -> CustomStateStepResult[TSimulationState]:
         return CustomStateStepResult(sim_state)
 
     def _create_partial_simulation_state(
         self,
         initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
+        qubits: Sequence[cirq.Qid],
+        classical_data: cirq.ClassicalDataStore,
     ) -> TSimulationState:
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data

@@ -13,11 +13,11 @@
 # limitations under the License.
 import os
 
+import numpy as np
 import pytest
 
 import cirq
 import cirq_google as cg
-import numpy as np
 from cirq_google.workflow.io import _FilesystemSaver
 
 

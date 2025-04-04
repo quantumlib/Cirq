@@ -9,11 +9,11 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
-    "declaration": false,
     "sourceMap": false,
     "outDir": "build"
   },
   "include": [
+    "e2e/**/*.ts",
     "src/**/*.ts"
   ]
 }

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import datetime
-
 from typing import Optional, Set, Tuple
 
 import cirq

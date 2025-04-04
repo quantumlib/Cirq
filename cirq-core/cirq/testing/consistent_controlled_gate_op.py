@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Optional, Union, Collection
+from typing import Collection, Optional, Sequence, Union
+
+import numpy as np
 
 from cirq import devices, ops, protocols
-import numpy as np
 
 
 def assert_controlled_and_controlled_by_identical(

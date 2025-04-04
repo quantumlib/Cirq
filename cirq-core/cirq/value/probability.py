@@ -17,6 +17,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+
 from cirq.qis import to_valid_state_vector
 
 if TYPE_CHECKING:

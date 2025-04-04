@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Provides test devices that can validate circuits."""
-from typing import Tuple, AbstractSet, cast
+from typing import AbstractSet, cast, Tuple
 
 from cirq import devices, ops
 

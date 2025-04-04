@@ -14,15 +14,15 @@
 """Abstract classes for simulations which keep track of state vector."""
 
 import abc
-from functools import cached_property
-from typing import Any, Dict, Iterator, Sequence, Type, TYPE_CHECKING, Generic, TypeVar
 import warnings
+from functools import cached_property
+from typing import Any, Dict, Generic, Iterator, Sequence, Type, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
-from cirq import _compat, ops, value, qis
-from cirq.sim import simulator, state_vector, simulator_base
+from cirq import _compat, ops, qis, value
 from cirq.protocols import qid_shape
+from cirq.sim import simulator, simulator_base, state_vector
 
 if TYPE_CHECKING:
     import cirq

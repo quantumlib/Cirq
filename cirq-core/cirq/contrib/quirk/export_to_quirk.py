@@ -14,15 +14,15 @@
 
 import json
 import urllib.parse
-from typing import List, cast, Tuple, Any, Iterable
+from typing import Any, cast, Iterable, List, Tuple
 
-from cirq import ops, circuits, devices, protocols
+from cirq import circuits, devices, ops, protocols
 from cirq.contrib.quirk.linearize_circuit import linearize_circuit_qubits
 from cirq.contrib.quirk.quirk_gate import (
     known_quirk_op_for_operation,
     QuirkOp,
-    UNKNOWN_GATE,
     single_qubit_matrix_gate,
+    UNKNOWN_GATE,
 )
 
 

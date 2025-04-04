@@ -37,8 +37,6 @@ SKIP_NOTEBOOKS = [
     '**/ionq/*.ipynb',
     '**/pasqal/*.ipynb',
     '**/rigetti/*.ipynb',
-    # disabled to unblock Python 3.12.  TODO(#6590) - fix and enable.
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
     # skipping fidelity estimation due to
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',

@@ -14,13 +14,14 @@
 
 import sys
 import unittest.mock as mock
+
 import pytest
 
 import cirq_google as cg
 from cirq_google.engine.qcs_notebook import (
+    authenticate_user,
     get_qcs_objects_for_notebook,
     QCSObjectsForNotebook,
-    authenticate_user,
 )
 
 

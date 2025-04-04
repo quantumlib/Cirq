@@ -18,6 +18,7 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
     Gauge as Gauge,
     GaugeSelector as GaugeSelector,
     GaugeTransformer as GaugeTransformer,
+    TwoQubitGateSymbolizer as TwoQubitGateSymbolizer,
 )
 
 from cirq.transformers.gauge_compiling.sqrt_cz_gauge import (
@@ -37,3 +38,5 @@ from cirq.transformers.gauge_compiling.iswap_gauge import (
 from cirq.transformers.gauge_compiling.sqrt_iswap_gauge import (
     SqrtISWAPGaugeTransformer as SqrtISWAPGaugeTransformer,
 )
+
+from cirq.transformers.gauge_compiling.cphase_gauge import CPhaseGaugeTransformer

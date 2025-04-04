@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, cast
+from typing import Callable, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 import networkx as nx
 import numpy as np
@@ -24,12 +24,12 @@ from cirq.experiments import (
     random_rotations_between_grid_interaction_layers_circuit,
 )
 from cirq.experiments.random_quantum_circuit_generation import (
-    random_rotations_between_two_qubit_circuit,
     generate_library_of_2q_circuits,
-    get_random_combinations_for_device,
-    get_random_combinations_for_pairs,
-    get_random_combinations_for_layer_circuit,
     get_grid_interaction_layer_circuit,
+    get_random_combinations_for_device,
+    get_random_combinations_for_layer_circuit,
+    get_random_combinations_for_pairs,
+    random_rotations_between_two_qubit_circuit,
 )
 
 SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]

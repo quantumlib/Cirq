@@ -1,0 +1,7 @@
+{
+    "cirq_type": "InternalTag",
+    "name": "IdleWaitTag",
+    "package": "internal.module",
+    "phase_match": true,
+    "pad_ns": 20.0
+}

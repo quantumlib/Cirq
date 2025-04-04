@@ -24,7 +24,6 @@ from typing import (
     Iterable,
     List,
     Optional,
-    Set,
     Tuple,
     TYPE_CHECKING,
     TypeVar,
@@ -32,12 +31,12 @@ from typing import (
 )
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d
-import numpy as np
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._import import LazyLoader
 from cirq.linalg import combinators, diagonalize, predicates, transformations
@@ -106,29 +105,6 @@ def deconstruct_single_qubit_matrix_into_angles(mat: np.ndarray) -> Tuple[float,
     return right_phase + diagonal_phase, rotation * 2, bottom_phase
 
 
-def _group_similar(items: List[T], comparer: Callable[[T, T], bool]) -> List[List[T]]:
-    """Combines similar items into groups.
-
-    Args:
-      items: The list of items to group.
-      comparer: Determines if two items are similar.
-
-    Returns:
-      A list of groups of items.
-    """
-    groups: List[List[T]] = []
-    used: Set[int] = set()
-    for i in range(len(items)):
-        if i not in used:
-            group = [items[i]]
-            for j in range(i + 1, len(items)):
-                if j not in used and comparer(items[i], items[j]):
-                    used.add(j)
-                    group.append(items[j])
-            groups.append(group)
-    return groups
-
-
 def unitary_eig(
     matrix: np.ndarray, check_preconditions: bool = True, atol: float = 1e-8
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -175,7 +151,6 @@ def map_eigenvalues(
     Args:
         matrix: The matrix to modify with the function.
         func: The function to apply to the eigenvalues of the matrix.
-        rtol: Relative threshold used when separating eigenspaces.
         atol: Absolute threshold used when separating eigenspaces.
 
     Returns:
@@ -191,15 +166,18 @@ def map_eigenvalues(
     return total
 
 
-def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[complex, np.ndarray, np.ndarray]:
+def kron_factor_4x4_to_2x2s(
+    matrix: np.ndarray, rtol=1e-5, atol=1e-8
+) -> Tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
     Requires the matrix to have a non-zero determinant.
-    Giving an incorrect matrix will cause garbage output.
 
     Args:
         matrix: The 4x4 unitary matrix to factor.
+        rtol: Per-matrix-entry relative tolerance on equality.
+        atol: Per-matrix-entry absolute tolerance on equality.
 
     Returns:
         A scalar factor and a pair of 2x2 unit-determinant matrices. The
@@ -231,6 +209,9 @@ def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[complex, np.ndarray, np
     if np.real(g) < 0:
         f1 *= -1
         g = -g
+
+    if not np.allclose(matrix, g * np.kron(f1, f2), rtol=rtol, atol=atol):
+        raise ValueError("Invalid 4x4 kronecker product.")
 
     return g, f1, f2
 
@@ -266,7 +247,7 @@ def so4_to_magic_su2s(
             raise ValueError('mat must be 4x4 special orthogonal.')
 
     ab = combinators.dot(MAGIC, mat, MAGIC_CONJ_T)
-    _, a, b = kron_factor_4x4_to_2x2s(ab)
+    _, a, b = kron_factor_4x4_to_2x2s(ab, rtol, atol)
 
     return a, b
 
@@ -283,13 +264,7 @@ class AxisAngleDecomposition:
     rotation axis, and g is the global phase.
     """
 
-    def __init__(
-        self,
-        *,
-        angle: float,
-        axis: Tuple[float, float, float],
-        global_phase: Union[int, float, complex],
-    ):
+    def __init__(self, *, angle: float, axis: Tuple[float, float, float], global_phase: complex):
         if not np.isclose(np.linalg.norm(axis, 2), 1, atol=1e-8):
             raise ValueError('Axis vector must be normalized.')
         self.global_phase = complex(global_phase)
@@ -634,7 +609,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = cast(mplot3d.axes3d.Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
     def coord_transform(
-        pts: Union[List[Tuple[int, int, int]], np.ndarray]
+        pts: Union[List[Tuple[int, int, int]], np.ndarray],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         if len(pts) == 0:
             return np.array([]), np.array([]), np.array([])
@@ -993,7 +968,7 @@ def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     unitaries required to bring the KAK vector into canonical form.
 
     Args:
-        k_vec: THe KAK vector to be canonicalized. This input may be vectorized,
+        k_vec: The KAK vector to be canonicalized. This input may be vectorized,
             with shape (...,3), where the final axis denotes the k_vector and
             all other axes are broadcast.
         atol: How close x2 must be to π/4 to guarantee z2 >= 0.

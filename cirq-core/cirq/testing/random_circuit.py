@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Sequence, Dict, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, value
-from cirq.ops import Qid
 from cirq._doc import document
+from cirq.ops import Qid
 
 if TYPE_CHECKING:
     import cirq

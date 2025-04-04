@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-""" Example program to demonstrate BB84 QKD Protocol
+"""Example program to demonstrate BB84 QKD Protocol
 
 BB84 [1] is a quantum key distribution (QKD) protocol developed by
 Charles Bennett and Gilles Brassard in 1984. It was the first quantum
@@ -107,6 +107,7 @@ Actual key:     111011
 
 """
 import numpy as np
+
 import cirq
 
 

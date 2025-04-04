@@ -16,8 +16,8 @@
 
 from typing import Any, cast, Optional, Type, Union
 
-from cirq.ops import gateset, raw_types, parallel_gate, eigen_gate
 from cirq import protocols
+from cirq.ops import eigen_gate, gateset, parallel_gate, raw_types
 
 
 class AnyUnitaryGateFamily(gateset.GateFamily):

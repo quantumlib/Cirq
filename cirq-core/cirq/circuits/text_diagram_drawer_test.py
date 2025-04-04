@@ -13,23 +13,24 @@
 # limitations under the License.
 
 from unittest import mock
+
 import pytest
 
+import cirq.testing as ct
 from cirq.circuits import TextDiagramDrawer
 from cirq.circuits._block_diagram_drawer_test import _assert_same_diagram
 from cirq.circuits._box_drawing_character_data import (
     ASCII_BOX_CHARS,
-    NORMAL_BOX_CHARS,
-    DOUBLED_BOX_CHARS,
     BOLD_BOX_CHARS,
+    DOUBLED_BOX_CHARS,
+    NORMAL_BOX_CHARS,
 )
 from cirq.circuits.text_diagram_drawer import (
+    _DiagramText,
     _HorizontalLine,
     _VerticalLine,
-    _DiagramText,
     pick_charset,
 )
-import cirq.testing as ct
 
 
 def assert_has_rendering(actual: TextDiagramDrawer, desired: str, **kwargs) -> None:

@@ -79,20 +79,12 @@ export class BlochSphere extends Group {
   }
 
   private addHorizontalMeridians() {
-    const meridians = new Meridians(
-      this.radius,
-      this.hMeridians,
-      Orientation.HORIZONTAL
-    );
+    const meridians = new Meridians(this.radius, this.hMeridians, Orientation.HORIZONTAL);
     this.add(meridians);
   }
 
   private addVerticalMeridians() {
-    const meridians = new Meridians(
-      this.radius,
-      this.vMeridians,
-      Orientation.VERTICAL
-    );
+    const meridians = new Meridians(this.radius, this.vMeridians, Orientation.VERTICAL);
     this.add(meridians);
   }
 

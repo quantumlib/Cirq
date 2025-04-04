@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import math
 from typing import Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
@@ -158,7 +160,7 @@ class BayesianNetworkGate(raw_types.Gate):
                     raise ValueError('Conditional prob should be between 0 and 1.')
         self._arc_probs = arc_probs
 
-    def _decompose_(self, qubits: Sequence['raw_types.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         parameter_names = [init_prob[0] for init_prob in self._init_probs]
         qubit_map = dict(zip(parameter_names, qubits))
 
@@ -188,7 +190,7 @@ class BayesianNetworkGate(raw_types.Gate):
         init_probs: List[List[Union[str, Optional[float]]]],
         arc_probs: List[List[Union[str, List[str], List[float]]]],
         **kwargs,
-    ) -> 'BayesianNetworkGate':
+    ) -> BayesianNetworkGate:
         converted_init_probs = cast(
             List[Tuple[str, Optional[float]]],
             [(param, init_prob) for param, init_prob in init_probs],

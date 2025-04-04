@@ -94,7 +94,7 @@ class UnhashableD:
         self.x = x
 
     def _value_equality_values_(self):
-        return self.x
+        return self.x  # pragma: no cover
 
 
 class UnhashableCa(UnhashableC):

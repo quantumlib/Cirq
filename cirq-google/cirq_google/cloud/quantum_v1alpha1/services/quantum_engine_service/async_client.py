@@ -15,18 +15,17 @@
 #
 
 import importlib.metadata
-from typing import Optional, AsyncIterable, Awaitable, AsyncIterator, Sequence, Tuple, Union
+from typing import AsyncIterable, AsyncIterator, Awaitable, Optional, Sequence, Tuple, Union
 
+from google.api_core import gapic_v1, retry as retries
 from google.api_core.client_options import ClientOptions
-from google.api_core import gapic_v1
-from google.api_core import retry as retries
 from google.auth import credentials as ga_credentials
 
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from .transports.base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
+
 from .client import QuantumEngineServiceClient
+from .transports.base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
 
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]

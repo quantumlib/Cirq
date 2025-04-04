@@ -15,17 +15,17 @@
 """Utility methods for combining matrices."""
 
 import functools
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    from numpy.typing import DTypeLike, ArrayLike
+    from numpy.typing import ArrayLike, DTypeLike
 
 
-def kron(*factors: Union[np.ndarray, complex, float], shape_len: int = 2) -> np.ndarray:
+def kron(*factors: Union[np.ndarray, complex], shape_len: int = 2) -> np.ndarray:
     """Computes the kronecker product of a sequence of values.
 
     A *args version of lambda args: functools.reduce(np.kron, args).
@@ -56,7 +56,7 @@ document(
 )
 
 
-def kron_with_controls(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
+def kron_with_controls(*factors: Union[np.ndarray, complex]) -> np.ndarray:
     """Computes the kronecker product of a sequence of values and control tags.
 
     Use `cirq.CONTROL_TAG` to represent controls. Any entry of the output

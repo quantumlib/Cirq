@@ -56,7 +56,7 @@ def compute_cphase_exponents_for_fsim_decomposition(
     """
 
     def nonempty_intervals(
-        intervals: Sequence[Tuple[float, float]]
+        intervals: Sequence[Tuple[float, float]],
     ) -> Sequence[Tuple[float, float]]:
         return tuple((a, b) for a, b in intervals if a < b)
 

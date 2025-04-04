@@ -12,13 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  EllipseCurve,
-  BufferGeometry,
-  LineBasicMaterial,
-  Line,
-  Group,
-} from 'three';
+import {EllipseCurve, BufferGeometry, LineBasicMaterial, Line, Group} from 'three';
 import {Orientation} from './enums';
 
 interface CurveData {
@@ -87,9 +81,7 @@ export class Meridians extends Group {
     }
 
     let nonEquatorCircles: number;
-    numCircles % 2 !== 0
-      ? (nonEquatorCircles = numCircles - 1)
-      : (nonEquatorCircles = numCircles);
+    numCircles % 2 !== 0 ? (nonEquatorCircles = numCircles - 1) : (nonEquatorCircles = numCircles);
     const circlesPerHalf = nonEquatorCircles / 2;
 
     // Creates chords proportionally to radius 5 circle.
@@ -98,16 +90,10 @@ export class Meridians extends Group {
     // Start building the chords from the top down.
     // If the user only wants one chord, skip the loop.
     let topmostChordPos: number;
-    numCircles === 1
-      ? (topmostChordPos = 0)
-      : (topmostChordPos = radius - initialFactor);
+    numCircles === 1 ? (topmostChordPos = 0) : (topmostChordPos = radius - initialFactor);
 
     const chordYPositions = [0]; // equator
-    for (
-      let i = topmostChordPos;
-      i > 0;
-      i -= topmostChordPos / circlesPerHalf
-    ) {
+    for (let i = topmostChordPos; i > 0; i -= topmostChordPos / circlesPerHalf) {
       chordYPositions.push(i);
       chordYPositions.push(-i);
     }
@@ -124,7 +110,7 @@ export class Meridians extends Group {
         curve,
         Math.PI / 2,
         Orientation.HORIZONTAL,
-        position
+        position,
       );
       this.add(meridianLine);
     }
@@ -154,11 +140,7 @@ export class Meridians extends Group {
 
     for (let i = 0; i < Math.PI; i += Math.PI / numCircles) {
       const curve = this.createMeridianCurve(curveData);
-      const meridianLine = this.createMeridianLine(
-        curve,
-        i,
-        Orientation.VERTICAL
-      );
+      const meridianLine = this.createMeridianLine(curve, i, Orientation.VERTICAL);
       this.add(meridianLine);
     }
   }
@@ -177,7 +159,7 @@ export class Meridians extends Group {
     curve: EllipseCurve,
     rotationAngle: number,
     orientation: Orientation,
-    yPosition?: number
+    yPosition?: number,
   ): Line {
     const points = curve.getSpacedPoints(128);
     const meridianGeom = new BufferGeometry().setFromPoints(points);
@@ -195,10 +177,7 @@ export class Meridians extends Group {
       // through the constructor.
     }
 
-    const meridianLine = new Line(
-      meridianGeom,
-      new LineBasicMaterial({color: 'gray'})
-    );
+    const meridianLine = new Line(meridianGeom, new LineBasicMaterial({color: 'gray'}));
     if (yPosition) {
       meridianLine.position.y = yPosition;
     }
@@ -220,7 +199,7 @@ export class Meridians extends Group {
       curveData.startAngle,
       curveData.endAngle,
       curveData.isClockwise,
-      curveData.rotation
+      curveData.rotation,
     );
   }
 

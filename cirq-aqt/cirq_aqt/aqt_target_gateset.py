@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Target gateset for ion trap device with mutually linked qubits placed on a line.
-"""
+"""Target gateset for ion trap device with mutually linked qubits placed on a line."""
 
 from typing import List
 
@@ -43,7 +42,7 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             unroll_circuit_op=False,
         )
 
-    def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _: int) -> DecomposeResult:
+    def _decompose_single_qubit_operation(self, op: cirq.Operation, _: int) -> DecomposeResult:
         # unwrap tagged and circuit operations to get the actual operation
         opu = op.untagged
         opu = (
@@ -58,7 +57,7 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             return [g.on(opu.qubits[0]) for g in gates]
         return NotImplemented
 
-    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
+    def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> DecomposeResult:
         if cirq.has_unitary(op):
             return cirq.two_qubit_matrix_to_ion_operations(
                 op.qubits[0], op.qubits[1], cirq.unitary(op)
@@ -66,6 +65,6 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         return NotImplemented
 
     @property
-    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
         return [cirq.drop_negligible_operations, cirq.drop_empty_moments]

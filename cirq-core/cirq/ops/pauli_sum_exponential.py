@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Iterator, Tuple, Union, TYPE_CHECKING
+from typing import Any, Iterator, Tuple, TYPE_CHECKING
 
 import numpy as np
-import sympy
 
-from cirq import linalg, protocols, value, _compat
+from cirq import _compat, linalg, protocols, value
 from cirq.ops import linear_combinations, pauli_string_phasor
 
 if TYPE_CHECKING:
@@ -45,7 +44,7 @@ class PauliSumExponential:
     def __init__(
         self,
         pauli_sum_like: 'cirq.PauliSumLike',
-        exponent: Union[int, float, sympy.Expr] = 1,
+        exponent: 'cirq.TParamVal' = 1,
         atol: float = 1e-8,
     ):
         pauli_sum = linear_combinations.PauliSum.wrap(pauli_sum_like)

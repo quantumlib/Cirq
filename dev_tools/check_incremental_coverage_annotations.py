@@ -16,7 +16,6 @@ import os
 import sys
 
 from dev_tools import prepared_env, shell_tools
-
 from dev_tools.incremental_coverage import check_for_uncovered_lines
 
 

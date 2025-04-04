@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Callable, Sequence, Union
+
 from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.engine.validating_sampler import VALIDATOR_TYPE
 from cirq_google.serialization.serializer import Serializer
-
 
 MAX_MESSAGE_SIZE = 10_000_000
 MAX_MOMENTS = 10000

@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
 import networkx as nx
+import pytest
 
 import cirq
 import cirq.contrib.routing as ccr

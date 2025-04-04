@@ -283,13 +283,16 @@ class Metadata(google.protobuf.message.Message):
 
     DEVICE_PARAMETERS_FIELD_NUMBER: builtins.int
     LABEL_FIELD_NUMBER: builtins.int
-    AS_PARAMETER_FIELD_NUMBER: builtins.int
+    IS_CONST_FIELD_NUMBER: builtins.int
+    UNIT_FIELD_NUMBER: builtins.int
     label: builtins.str
     """If specified, use this label instead of parameter_key as the independent
     column name in returned dataset.
     """
-    as_parameter: builtins.bool
+    is_const: builtins.bool
     """If true, store this sweep as parameters instead of the independent axes."""
+    unit: builtins.str
+    """A temporary solution that we store the unit information here."""
     @property
     def device_parameters(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DeviceParameter]:
         """Optional arguments for if this is a device parameter.
@@ -301,14 +304,17 @@ class Metadata(google.protobuf.message.Message):
         *,
         device_parameters: collections.abc.Iterable[global___DeviceParameter] | None = ...,
         label: builtins.str | None = ...,
-        as_parameter: builtins.bool | None = ...,
+        is_const: builtins.bool | None = ...,
+        unit: builtins.str | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["_as_parameter", b"_as_parameter", "_label", b"_label", "as_parameter", b"as_parameter", "label", b"label"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_as_parameter", b"_as_parameter", "_label", b"_label", "as_parameter", b"as_parameter", "device_parameters", b"device_parameters", "label", b"label"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["_is_const", b"_is_const", "_label", b"_label", "_unit", b"_unit", "is_const", b"is_const", "label", b"label", "unit", b"unit"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["_is_const", b"_is_const", "_label", b"_label", "_unit", b"_unit", "device_parameters", b"device_parameters", "is_const", b"is_const", "label", b"label", "unit", b"unit"]) -> None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["_as_parameter", b"_as_parameter"]) -> typing.Literal["as_parameter"] | None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["_is_const", b"_is_const"]) -> typing.Literal["is_const"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["_label", b"_label"]) -> typing.Literal["label"] | None: ...
+    @typing.overload
+    def WhichOneof(self, oneof_group: typing.Literal["_unit", b"_unit"]) -> typing.Literal["unit"] | None: ...
 
 global___Metadata = Metadata
 
@@ -363,8 +369,8 @@ class DeviceParametersDiff(google.protobuf.message.Message):
         type_descriptor: builtins.str
         """Type description of the value representation. Eg. if the following value
         bytes field is a JSON string, type_descriptor can be its JSON namespace;
-        or if the following value field is a protobuf serialization, type_descriptor
-        can be its protobuf definition URL.
+        or if the following value field is a protobuf serialization,
+        type_descriptor can be its protobuf definition URL.
         """
         value: builtins.bytes
         """The value in client's encoding."""
@@ -398,8 +404,8 @@ class DeviceParametersDiff(google.protobuf.message.Message):
 
         @property
         def generic_value(self) -> global___DeviceParametersDiff.GenericValue:
-            """this param's new value, and its type is not among the variants supported
-            by ArgValue.
+            """this param's new value, and its type is not among the variants
+            supported by ArgValue.
             """
 
         def __init__(
@@ -424,7 +430,8 @@ class DeviceParametersDiff(google.protobuf.message.Message):
     @property
     def strs(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]:
         """List of all key, dir, and deletion names in these contents.
-        ResourceGroup.name, Param.name, and Deletion.name are indexes into this list.
+        ResourceGroup.name, Param.name, and Deletion.name are indexes into this
+        list.
         """
 
     def __init__(
@@ -568,7 +575,9 @@ class ConstValue(google.protobuf.message.Message):
     STRING_VALUE_FIELD_NUMBER: builtins.int
     WITH_UNIT_VALUE_FIELD_NUMBER: builtins.int
     is_none: builtins.bool
-    """This value should always be true if set, which represent the python None object."""
+    """This value should always be true if set, which represents the python None
+    object.
+    """
     float_value: builtins.float
     int_value: builtins.int
     string_value: builtins.str

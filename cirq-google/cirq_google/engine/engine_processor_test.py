@@ -12,23 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import mock
 import datetime
+from unittest import mock
 
 import duet
-import pytest
 import freezegun
 import numpy as np
-
+import pytest
 from google.protobuf.duration_pb2 import Duration
 from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
+
 import cirq
 import cirq_google as cg
 from cirq_google.api import v2
+from cirq_google.cloud import quantum
 from cirq_google.engine import engine_client, util
 from cirq_google.engine.engine import EngineContext
-from cirq_google.cloud import quantum
 
 
 def _to_timestamp(json_string):
@@ -376,12 +376,12 @@ def test_get_sampler_with_incomplete_device_configuration_errors(
         )
 
 
-def test_get_sampler_loads_processor_with_default_device_configuration() -> None:
-    client = mock.Mock(engine_client.EngineClient)
-    client.get_processor.return_value = quantum.QuantumProcessor(
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
+def test_get_sampler_loads_processor_with_default_device_configuration(get_processor) -> None:
+    get_processor.return_value = quantum.QuantumProcessor(
         default_device_config_key=quantum.DeviceConfigKey(run="run", config_alias="config_alias")
     )
-
+    client = engine_client.EngineClient()
     processor = cg.EngineProcessor('a', 'p', FakeEngineContext(client=client))
     sampler = processor.get_sampler()
 
@@ -732,6 +732,7 @@ def _allow_deprecated_freezegun(func):
     # used elsewhere, it is specific to freezegun functionality.
     def wrapper(*args, **kwargs):
         import os
+
         from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
 
         orig_exist, orig_value = (

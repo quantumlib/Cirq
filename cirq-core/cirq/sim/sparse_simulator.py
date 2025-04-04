@@ -14,12 +14,12 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
-from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Type, Optional
+from typing import Any, Iterator, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import ops
-from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
+from cirq.sim import simulator, state_vector, state_vector_simulation_state, state_vector_simulator
 
 if TYPE_CHECKING:
     import cirq
@@ -171,7 +171,8 @@ class Simulator(
             StateVectorSimulationState for the circuit.
         """
         if isinstance(initial_state, state_vector_simulation_state.StateVectorSimulationState):
-            return initial_state
+            # Instances of SimulationStateBase usually returned before this point
+            return initial_state  # pragma: no cover
 
         return state_vector_simulation_state.StateVectorSimulationState(
             qubits=qubits,

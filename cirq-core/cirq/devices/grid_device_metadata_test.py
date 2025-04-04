@@ -13,9 +13,10 @@
 # limitations under the License.
 """Tests for GridDevicemetadata."""
 
-import pytest
-import cirq
 import networkx as nx
+import pytest
+
+import cirq
 
 
 def test_griddevice_metadata():

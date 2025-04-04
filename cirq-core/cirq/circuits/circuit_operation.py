@@ -18,6 +18,9 @@ A CircuitOperation is an Operation object that wraps a FrozenCircuit. When
 applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
+
+from __future__ import annotations
+
 import math
 from functools import cached_property
 from typing import (
@@ -39,7 +42,7 @@ from typing import (
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, protocols, value, study
+from cirq import circuits, ops, protocols, study, value
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -81,16 +84,16 @@ class CircuitOperation(ops.Operation):
 
     def __init__(
         self,
-        circuit: 'cirq.FrozenCircuit',
+        circuit: cirq.FrozenCircuit,
         repetitions: INT_TYPE = 1,
-        qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
+        qubit_map: Optional[Dict[cirq.Qid, cirq.Qid]] = None,
         measurement_key_map: Optional[Dict[str, str]] = None,
         param_resolver: Optional[study.ParamResolverOrSimilarType] = None,
         repetition_ids: Optional[Sequence[str]] = None,
         parent_path: Tuple[str, ...] = (),
-        extern_keys: FrozenSet['cirq.MeasurementKey'] = frozenset(),
+        extern_keys: FrozenSet[cirq.MeasurementKey] = frozenset(),
         use_repetition_ids: Optional[bool] = None,
-        repeat_until: Optional['cirq.Condition'] = None,
+        repeat_until: Optional[cirq.Condition] = None,
     ):
         """Initializes a CircuitOperation.
 
@@ -204,16 +207,17 @@ class CircuitOperation(ops.Operation):
                 )
 
         self._repeat_until = repeat_until
-        if self._repeat_until:
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until:
             if self._use_repetition_ids or self._repetitions != 1:
                 raise ValueError('Cannot use repetitions with repeat_until')
             if protocols.measurement_key_objs(self._mapped_single_loop()).isdisjoint(
-                self._repeat_until.keys
+                mapped_repeat_until.keys
             ):
                 raise ValueError('Infinite loop: condition is not modified in subcircuit.')
 
     @property
-    def circuit(self) -> 'cirq.FrozenCircuit':
+    def circuit(self) -> cirq.FrozenCircuit:
         return self._circuit
 
     @property
@@ -229,11 +233,11 @@ class CircuitOperation(ops.Operation):
         return self._use_repetition_ids
 
     @property
-    def repeat_until(self) -> Optional['cirq.Condition']:
+    def repeat_until(self) -> Optional[cirq.Condition]:
         return self._repeat_until
 
     @property
-    def qubit_map(self) -> Mapping['cirq.Qid', 'cirq.Qid']:
+    def qubit_map(self) -> Mapping[cirq.Qid, cirq.Qid]:
         return self._qubit_map
 
     @property
@@ -248,14 +252,14 @@ class CircuitOperation(ops.Operation):
     def parent_path(self) -> Tuple[str, ...]:
         return self._parent_path
 
-    def base_operation(self) -> 'cirq.CircuitOperation':
+    def base_operation(self) -> cirq.CircuitOperation:
         """Returns a copy of this operation with only the wrapped circuit.
 
         Key and qubit mappings, parameter values, and repetitions are not copied.
         """
         return CircuitOperation(self.circuit)
 
-    def replace(self, **changes) -> 'cirq.CircuitOperation':
+    def replace(self, **changes) -> cirq.CircuitOperation:
         """Returns a copy of this operation with the specified changes."""
         kwargs = {
             'circuit': self.circuit,
@@ -266,7 +270,9 @@ class CircuitOperation(ops.Operation):
             'repetition_ids': self.repetition_ids,
             'parent_path': self.parent_path,
             'extern_keys': self._extern_keys,
-            'use_repetition_ids': True if 'repetition_ids' in changes else self.use_repetition_ids,
+            'use_repetition_ids': (
+                True if changes.get('repetition_ids') is not None else self.use_repetition_ids
+            ),
             'repeat_until': self.repeat_until,
             **changes,
         }
@@ -290,7 +296,7 @@ class CircuitOperation(ops.Operation):
     # Methods for getting post-mapping properties of the contained circuit.
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         """Returns the qubits operated on by this object."""
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
         return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
@@ -316,7 +322,7 @@ class CircuitOperation(ops.Operation):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
     @cached_property
-    def _measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _measurement_key_objs(self) -> FrozenSet[cirq.MeasurementKey]:
         circuit_keys = protocols.measurement_key_objs(self.circuit)
         if circuit_keys and self.use_repetition_ids:
             self._ensure_deterministic_loop_count()
@@ -334,24 +340,25 @@ class CircuitOperation(ops.Operation):
             for key in circuit_keys
         )
 
-    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
         return self._measurement_key_objs
 
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return frozenset(str(key) for key in self._measurement_key_objs_())
 
     @cached_property
-    def _control_keys(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _control_keys(self) -> FrozenSet[cirq.MeasurementKey]:
         keys = (
             frozenset()
             if not protocols.control_keys(self.circuit)
             else protocols.control_keys(self._mapped_single_loop())
         )
-        if self.repeat_until is not None:
-            keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until is not None:
+            keys |= frozenset(mapped_repeat_until.keys) - self._measurement_key_objs_()
         return keys
 
-    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
         return self._control_keys
 
     def _is_parameterized_(self) -> bool:
@@ -362,14 +369,11 @@ class CircuitOperation(ops.Operation):
 
     def _parameter_names_generator(self) -> Iterator[str]:
         yield from protocols.parameter_names(self.repetitions)
-        for symbol in protocols.parameter_symbols(self.circuit):
-            for name in protocols.parameter_names(
-                protocols.resolve_parameters(symbol, self.param_resolver, recursive=False)
-            ):
-                yield name
+        yield from protocols.parameter_names(self._mapped_repeat_until)
+        yield from protocols.parameter_names(self._mapped_any_loop)
 
     @cached_property
-    def _mapped_any_loop(self) -> 'cirq.Circuit':
+    def _mapped_any_loop(self) -> cirq.Circuit:
         circuit = self.circuit.unfreeze()
         if self.qubit_map:
             circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
@@ -381,7 +385,7 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         return circuit.unfreeze(copy=False)
 
-    def _mapped_single_loop(self, repetition_id: Optional[str] = None) -> 'cirq.Circuit':
+    def _mapped_single_loop(self, repetition_id: Optional[str] = None) -> cirq.Circuit:
         circuit = self._mapped_any_loop
         if repetition_id:
             circuit = protocols.with_rescoped_keys(circuit, (repetition_id,))
@@ -389,7 +393,27 @@ class CircuitOperation(ops.Operation):
             circuit, self.parent_path, bindable_keys=self._extern_keys
         )
 
-    def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
+    @cached_property
+    def _mapped_repeat_until(self) -> Optional[cirq.Condition]:
+        """Applies measurement_key_map, param_resolver, and current scope to repeat_until."""
+        repeat_until = self.repeat_until
+        if not repeat_until:
+            return repeat_until
+        if self.measurement_key_map:
+            repeat_until = protocols.with_measurement_key_mapping(
+                repeat_until, self.measurement_key_map
+            )
+        if self.param_resolver:
+            repeat_until = protocols.resolve_parameters(
+                repeat_until, self.param_resolver, recursive=False
+            )
+        return protocols.with_rescoped_keys(
+            repeat_until,
+            self.parent_path,
+            bindable_keys=self._extern_keys | self._measurement_key_objs,
+        )
+
+    def mapped_circuit(self, deep: bool = False) -> cirq.Circuit:
         """Applies all maps to the contained circuit and returns the result.
 
         Args:
@@ -417,20 +441,21 @@ class CircuitOperation(ops.Operation):
             )
         return circuit
 
-    def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
+    def mapped_op(self, deep: bool = False) -> cirq.CircuitOperation:
         """As `mapped_circuit`, but wraps the result in a CircuitOperation."""
         return CircuitOperation(circuit=self.mapped_circuit(deep=deep).freeze())
 
-    def _decompose_(self) -> Iterator['cirq.Operation']:
+    def _decompose_(self) -> Iterator[cirq.Operation]:
         return self.mapped_circuit(deep=False).all_operations()
 
-    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
-        if self.repeat_until:
+    def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
+        mapped_repeat_until = self._mapped_repeat_until
+        if mapped_repeat_until:
             circuit = self._mapped_single_loop()
             while True:
                 for op in circuit.all_operations():
                     protocols.act_on(op, sim_state)
-                if self.repeat_until.resolve(sim_state.classical_data):
+                if mapped_repeat_until.resolve(sim_state.classical_data):
                     break
         else:
             for op in self._decompose_():
@@ -571,7 +596,7 @@ class CircuitOperation(ops.Operation):
         repetitions: Optional[IntParam] = None,
         repetition_ids: Optional[Sequence[str]] = None,
         use_repetition_ids: Optional[bool] = None,
-    ) -> 'CircuitOperation':
+    ) -> CircuitOperation:
         """Returns a copy of this operation repeated 'repetitions' times.
          Each repetition instance will be identified by a single repetition_id.
 
@@ -634,7 +659,7 @@ class CircuitOperation(ops.Operation):
             use_repetition_ids=use_repetition_ids,
         )
 
-    def __pow__(self, power: IntParam) -> 'cirq.CircuitOperation':
+    def __pow__(self, power: IntParam) -> cirq.CircuitOperation:
         return self.repeat(power)
 
     def _with_key_path_(self, path: Tuple[str, ...]):
@@ -644,7 +669,7 @@ class CircuitOperation(ops.Operation):
         return self.replace(parent_path=prefix + self.parent_path)
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ):
         # The following line prevents binding to measurement keys in previous repeated subcircuits
         # "just because their repetition ids matched". If we eventually decide to change that
@@ -668,7 +693,7 @@ class CircuitOperation(ops.Operation):
         """
         return self._with_key_path_(path)
 
-    def with_repetition_ids(self, repetition_ids: List[str]) -> 'cirq.CircuitOperation':
+    def with_repetition_ids(self, repetition_ids: List[str]) -> cirq.CircuitOperation:
         """Returns a copy of this `CircuitOperation` with the given repetition IDs.
 
         Args:
@@ -681,8 +706,8 @@ class CircuitOperation(ops.Operation):
         return self.replace(repetition_ids=repetition_ids)
 
     def with_qubit_mapping(
-        self, qubit_map: Union[Mapping['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
-    ) -> 'cirq.CircuitOperation':
+        self, qubit_map: Union[Mapping[cirq.Qid, cirq.Qid], Callable[[cirq.Qid], cirq.Qid]]
+    ) -> cirq.CircuitOperation:
         """Returns a copy of this operation with an updated qubit mapping.
 
         Users should pass either 'qubit_map' or 'transform' to this method.
@@ -721,7 +746,7 @@ class CircuitOperation(ops.Operation):
             )
         return new_op
 
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.CircuitOperation':
+    def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.CircuitOperation:
         """Returns a copy of this operation with an updated qubit mapping.
 
         Args:
@@ -741,7 +766,7 @@ class CircuitOperation(ops.Operation):
             raise ValueError(f'Expected {expected} qubits, got {len(new_qubits)}.')
         return self.with_qubit_mapping(dict(zip(self.qubits, new_qubits)))
 
-    def with_measurement_key_mapping(self, key_map: Mapping[str, str]) -> 'cirq.CircuitOperation':
+    def with_measurement_key_mapping(self, key_map: Mapping[str, str]) -> cirq.CircuitOperation:
         """Returns a copy of this operation with an updated key mapping.
 
         Args:
@@ -775,12 +800,12 @@ class CircuitOperation(ops.Operation):
             )
         return new_op
 
-    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'cirq.CircuitOperation':
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> cirq.CircuitOperation:
         return self.with_measurement_key_mapping(key_map)
 
     def with_params(
-        self, param_values: 'cirq.ParamResolverOrSimilarType', recursive: bool = False
-    ) -> 'cirq.CircuitOperation':
+        self, param_values: cirq.ParamResolverOrSimilarType, recursive: bool = False
+    ) -> cirq.CircuitOperation:
         """Returns a copy of this operation with an updated ParamResolver.
 
         Any existing parameter mappings will have their values updated given
@@ -806,7 +831,9 @@ class CircuitOperation(ops.Operation):
                 by param_values.
         """
         new_params = {}
-        for k in protocols.parameter_symbols(self.circuit):
+        for k in protocols.parameter_symbols(self.circuit) | protocols.parameter_symbols(
+            self.repeat_until
+        ):
             v = self.param_resolver.value_of(k, recursive=False)
             v = protocols.resolve_parameters(v, param_values, recursive=recursive)
             if v != k:
@@ -814,8 +841,8 @@ class CircuitOperation(ops.Operation):
         return self.replace(param_resolver=new_params)
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.CircuitOperation':
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> cirq.CircuitOperation:
         resolved = self.with_params(resolver.param_dict, recursive)
         # repetitions can resolve to a float, but this is ok since constructor converts to
         # nearby int.

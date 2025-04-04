@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_google.api.v2 import program_pb2
-from cirq_google.api.v2 import run_context_pb2
-import cirq_google.api.v2.run_context as run_context
 import google.protobuf.text_format as text_format
+
+import cirq_google.api.v2.run_context as run_context
+from cirq_google.api.v2 import program_pb2, run_context_pb2
 
 
 def test_converting_multiple_device_params_to_device_parameters_diff() -> None:

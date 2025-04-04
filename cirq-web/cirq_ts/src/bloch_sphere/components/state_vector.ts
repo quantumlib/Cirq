@@ -61,12 +61,7 @@ export class StateVector extends Group {
    * @param blochSphereRadius The radius of the Bloch sphere in which
    * the state vector will be applied
    */
-  private generateVector(
-    x: number,
-    y: number,
-    z: number,
-    blochSphereRadius: number
-  ) {
+  private generateVector(x: number, y: number, z: number, blochSphereRadius: number) {
     const directionVector = new Vector3(x, y, z);
 
     // Apply a -90 degree correction rotation across the x axis
@@ -92,7 +87,7 @@ export class StateVector extends Group {
       newLength,
       hex,
       undefined,
-      headWidth
+      headWidth,
     );
 
     const arrowLine = arrowHelper.line.material as LineBasicMaterial;

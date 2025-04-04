@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
-from typing import Iterable, Sequence, Tuple, TypeVar, TYPE_CHECKING
+from typing import Iterable, Sequence, Tuple, TYPE_CHECKING, TypeVar
 
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.gates import acquaint
@@ -35,8 +37,8 @@ def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
 
 
 def cubic_acquaintance_strategy(
-    qubits: Iterable['cirq.Qid'], swap_gate: 'cirq.Gate' = ops.SWAP
-) -> 'cirq.Circuit':
+    qubits: Iterable[cirq.Qid], swap_gate: cirq.Gate = ops.SWAP
+) -> cirq.Circuit:
     """Acquaints every triple of qubits.
 
     Exploits the fact that in a simple linear swap network every pair of

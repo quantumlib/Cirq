@@ -34,6 +34,13 @@ def test_fidelity_symmetric():
     )
 
 
+def test_bad_fidelity():
+    arr = np.asarray([[[1j, 0], [0, 0]], [[0, 0], [0, 0]]])
+    assert arr.ndim > 2
+    assert arr.dtype.kind == 'c'
+    _ = cirq.fidelity(arr, arr)
+
+
 def test_fidelity_between_zero_and_one():
     assert 0 <= cirq.fidelity(VEC1, VEC2) <= 1
     assert 0 <= cirq.fidelity(VEC1, MAT1) <= 1

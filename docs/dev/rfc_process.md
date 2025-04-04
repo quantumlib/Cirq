@@ -5,7 +5,7 @@ New major Cirq feature begins life as a Request for Comment (RFC).
 An RFC is a document that describes a requirement and the proposed changes that will solve it. Specifically, the RFC will:
 
 *   Be formatted according to the [RFC template](https://tinyurl.com/cirq-rfc-template) in a Google Doc
-*   A github issue is submitted with the link to the Google Doc
+*   A GitHub issue is submitted with the link to the Google Doc
 *   Be subject to discussion and a review meeting prior to acceptance.
 
 The purpose of a Cirq Request for Comments (RFC) is to engage the Cirq community in development, by getting feedback from stakeholders and experts, 
@@ -92,7 +92,7 @@ If you are working on new code to implement an RFC:
 *   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md) file in the project repo you're contributing to.
 *   Run unit tests before submitting your code.
 *   Work with the RFC sponsor to successfully land the new code. This could include PR / marketing of the new feature as well.
-*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_compat.py) as an example.
+*   Follow the Cirq process of deprecating code. Please refer to [`_compat.py`](https://github.com/quantumlib/Cirq/blob/main/cirq-core/cirq/_compat.py) as an example.
 
 
 ## Keeping the bar high
@@ -110,9 +110,9 @@ An approved RFC is not a commitment to implementation on any sort of timeline. T
 
 ## New hardware integrations
 
-Several hardware vendors already have integrations with cirq.
-If you are considering integrating with cirq, please engage with us through the
-cirq-maintainer team by attending the weekly cirq cync meeting and submitting
+Several hardware vendors already have integrations with Cirq.
+If you are considering integrating with Cirq, please engage with us through the
+cirq-maintainer team by attending the weekly Cirq Cynq meetings and submitting
 an RFC to get feedback on your design proposal (as specified above). The goal of the RFC
 review process is to ensure all integrations end up with a well-maintained, user
 friendly interface with a high reliability.
@@ -120,16 +120,16 @@ friendly interface with a high reliability.
 Examples of other integrations can be found on the
 [Hardware page](../hardware).
 
-There are a range of possibilities for integrating with cirq, including:
+There are a range of possibilities for integrating with Cirq, including:
 
 *    Completely independent repository: requires the least engagement from
-the cirq team, but also lacks the benefits of a tighter integration and
+the Cirq team, but also lacks the benefits of a tighter integration and
 partnership.
-*    Different repository with links or tutorials hosted on cirq:
+*    Different repository with links or tutorials hosted on Cirq:
 less coordination is needed than a hosted integration, but requires
 continuous integration on the external repository to ensure compatibility
-with new cirq versions.
-*    Integration hosted within cirq repository:  requires the highest
+with new Cirq versions.
+*    Integration hosted within Cirq repository:  requires the highest
 amount of coordination and effort but allows a tighter integration and for
 cirq-maintainers to modify the integration code to stay in sync with an
 evolving cirq-core code base.  We generally do not accept submissions for
@@ -146,7 +146,7 @@ a Getting Started guide).
 *     Transformer for compiling circuits to the supported gates on the
 hardware (or use `cirq.optimize_for_target_gateset`)
 *    ` Sampler` interface for running circuits on the hardware service.
-*     Conisder also providing a noise model that users can use to simulate the
+*     Consider also providing a noise model that users can use to simulate the
 device if direct access is not available.
 
 

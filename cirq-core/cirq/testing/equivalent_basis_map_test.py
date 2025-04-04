@@ -14,7 +14,6 @@
 import pytest
 
 import cirq
-
 from cirq import circuits
 
 

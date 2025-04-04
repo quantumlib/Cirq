@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Dict, Iterable, List, overload, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Dict, Iterable, List, Optional, overload, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import raw_types, pauli_string
+from cirq.ops import pauli_string, raw_types
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.pauli_measurement_gate import PauliMeasurementGate
 

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from functools import cached_property
-from typing import Collection, Tuple, TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union
 import itertools
+from functools import cached_property
+from typing import Any, Collection, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 from cirq import protocols, value
 
@@ -275,7 +275,7 @@ class SumOfProducts(AbstractControlValues):
 
         if len(self._conjunctions) == 1:
             # Use a simpler diagram if there's only 1 term.
-            return protocols.CircuitDiagramInfo(
+            return protocols.CircuitDiagramInfo(  # pragma: no cover
                 wire_symbols=["@" if x == 1 else f"({x})" for x in self._conjunctions[0]]
             )
 

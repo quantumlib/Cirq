@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import warnings
-from typing import Any, List, Sequence, Optional
+from typing import Any, List, Optional, Sequence
 
 import numpy as np
 
@@ -47,7 +47,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         qid_shape = protocols.qid_shape(val)
         remaining_shape = list(qid_shape)
         controls = getattr(val, 'control_qubits', None)
-        if controls is not None:
+        if controls is not None:  # pragma: no cover
             for i, q in zip(reversed(range(len(controls))), reversed(controls)):
                 if q is not None:
                     remaining_shape.pop(i)
@@ -76,11 +76,9 @@ qreg q[{num_qubits}];
 
     qasm_unitary = None
     try:
-        result = qiskit.execute(
-            qiskit.QuantumCircuit.from_qasm_str(qasm),
-            backend=qiskit.Aer.get_backend('unitary_simulator'),
-        )
-        qasm_unitary = result.result().get_unitary()
+        qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
+        qc.remove_final_measurements()
+        qasm_unitary = qiskit.quantum_info.Operator(qc).data
         qasm_unitary = _reorder_indices_of_matrix(qasm_unitary, list(reversed(range(num_qubits))))
 
         lin_alg_utils.assert_allclose_up_to_global_phase(
@@ -115,11 +113,9 @@ def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):  # pragma:
         return
 
     num_qubits = int(np.log2(len(unitary)))
-    result = qiskit.execute(
-        qiskit.QuantumCircuit.from_qasm_str(qasm),
-        backend=qiskit.Aer.get_backend('unitary_simulator'),
-    )
-    qiskit_unitary = result.result().get_unitary()
+    qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
+    qc.remove_final_measurements()  # no measurements allowed
+    qiskit_unitary = qiskit.quantum_info.Operator(qc).data
     qiskit_unitary = _reorder_indices_of_matrix(qiskit_unitary, list(reversed(range(num_qubits))))
 
     lin_alg_utils.assert_allclose_up_to_global_phase(unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)

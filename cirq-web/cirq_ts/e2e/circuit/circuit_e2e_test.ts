@@ -81,28 +81,21 @@ describe('Circuit', () => {
             },
         ], 5, 'mycircuitdiv'
         );
-      `)
+      `),
       );
       await page.screenshot({path: outputPath});
       await browser.close();
     });
 
     it('with limited gates matches the gold copy', () => {
-      const expected = PNG.PNG.sync.read(
-        readFileSync('e2e/circuit/circuit_expected.png')
-      );
+      const expected = PNG.PNG.sync.read(readFileSync('e2e/circuit/circuit_expected.png'));
       const actual = PNG.PNG.sync.read(readFileSync(outputPath));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
-      const pixels = pixelmatch(
-        expected.data,
-        actual.data,
-        diff.data,
-        width,
-        height,
-        {threshold: 0.1}
-      );
+      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+        threshold: 0.1,
+      });
 
       expect(pixels).to.equal(0);
     });

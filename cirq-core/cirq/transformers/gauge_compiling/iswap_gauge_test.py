@@ -21,4 +21,3 @@ from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTe
 class TestISWAPGauge(GaugeTester):
     two_qubit_gate = cirq.ISWAP
     gauge_transformer = ISWAPGaugeTransformer
-    sweep_must_pass = True

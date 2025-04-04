@@ -15,12 +15,12 @@
 
 import functools
 import glob
-import re
 import os
+import re
 import subprocess
 import tempfile
 from logging import warning
-from typing import Set, List
+from typing import List, Set
 
 
 def list_all_notebooks() -> Set[str]:

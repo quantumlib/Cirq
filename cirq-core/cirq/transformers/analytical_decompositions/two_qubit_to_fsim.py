@@ -14,7 +14,7 @@
 
 """Utility methods for decomposing two-qubit unitaries into FSim gates."""
 
-from typing import Sequence, Union, List, Iterator, TYPE_CHECKING, Iterable, Optional
+from typing import Iterable, Iterator, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 

@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from typing import List
+
 import pytest
+
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
 

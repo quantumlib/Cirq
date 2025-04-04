@@ -14,12 +14,7 @@
 # limitations under the License.
 #
 import proto
-
-from google.protobuf import any_pb2
-from google.protobuf import duration_pb2
-from google.protobuf import field_mask_pb2
-from google.protobuf import timestamp_pb2
-
+from google.protobuf import any_pb2, duration_pb2, field_mask_pb2, timestamp_pb2
 
 __protobuf__ = proto.module(
     package='google.cloud.quantum.v1alpha1',

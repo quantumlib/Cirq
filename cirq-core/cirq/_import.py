@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, List, Optional
-from types import ModuleType
-from importlib.machinery import ModuleSpec
-from importlib.abc import Loader
-
-from contextlib import contextmanager
 import importlib
-from importlib import abc
 import sys
+from contextlib import contextmanager
+from importlib import abc
+from importlib.abc import Loader
+from importlib.machinery import ModuleSpec
+from types import ModuleType
+from typing import Any, Callable, cast, List, Optional
 
 
 class InstrumentedFinder(abc.MetaPathFinder):
@@ -133,7 +132,7 @@ def wrap_module_executions(
 
     def wrap(finder: Any) -> Any:
         if not hasattr(finder, 'find_spec'):
-            return finder
+            return finder  # pragma: no cover
         return InstrumentedFinder(finder, module_name, wrap_func, after_exec)
 
     new_meta_path = [wrap(finder) for finder in sys.meta_path]

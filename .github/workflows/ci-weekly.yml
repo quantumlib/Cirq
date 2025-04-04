@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   notebooks-stable:
     name: All Notebooks Isolated Test against Cirq stable
@@ -18,10 +21,10 @@ jobs:
       matrix:
         # partitions should be named partition-0 to partition-(NOTEBOOK_PARTITIONS-1)
         partition: [partition-0, partition-1, partition-2, partition-3]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -29,7 +32,7 @@ jobs:
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
         run: check/pytest -n auto -m weekly dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: notebook-outputs

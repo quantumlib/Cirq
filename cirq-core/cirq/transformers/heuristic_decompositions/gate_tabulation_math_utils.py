@@ -1,8 +1,9 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
-from typing import Union, Sequence, Optional
+from typing import Optional, Sequence, Union
 
 import numpy as np
+
 from cirq.value import random_state
 
 _RealArraylike = Union[np.ndarray, float]

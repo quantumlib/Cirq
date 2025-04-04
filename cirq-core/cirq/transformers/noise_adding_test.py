@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import ops, circuits, devices
-import cirq.transformers.noise_adding as na
 import numpy as np
+
+import cirq.transformers.noise_adding as na
+from cirq import circuits, devices, ops
 
 
 def test_noise_adding():

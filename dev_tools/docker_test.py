@@ -1,7 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-import subprocess
 import pathlib
 import platform
+import subprocess
+
 import pytest
 
 

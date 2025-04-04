@@ -13,13 +13,7 @@
 // limitations under the License.
 
 import {Group, Vector3} from 'three';
-import {
-  BoxGate3DSymbol,
-  ConnectionLine,
-  Control3DSymbol,
-  Swap3DSymbol,
-  X3DSymbol,
-} from './meshes';
+import {BoxGate3DSymbol, ConnectionLine, Control3DSymbol, Swap3DSymbol, X3DSymbol} from './meshes';
 
 export interface SymbolInformation {
   readonly wire_symbols: string[];
@@ -79,7 +73,7 @@ export class Symbol3D extends Group {
       mesh.position.set(
         locationInfo[index].row * this.padding_factor,
         symbol_info.moment * this.padding_factor,
-        locationInfo[index].col * this.padding_factor
+        locationInfo[index].col * this.padding_factor,
       );
       this.add(mesh);
     });
@@ -95,12 +89,12 @@ export class Symbol3D extends Group {
           new Vector3(
             locationInfo[i].row * this.padding_factor,
             symbol_info.moment * this.padding_factor,
-            locationInfo[i].col * this.padding_factor
+            locationInfo[i].col * this.padding_factor,
           ),
           new Vector3(
             locationInfo[i + 1].row * this.padding_factor,
             symbol_info.moment * this.padding_factor,
-            locationInfo[i + 1].col * this.padding_factor
+            locationInfo[i + 1].col * this.padding_factor,
           ),
         ];
         this.add(new ConnectionLine(coords[0], coords[1]));

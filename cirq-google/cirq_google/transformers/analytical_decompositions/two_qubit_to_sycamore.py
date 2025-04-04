@@ -14,10 +14,10 @@
 
 """Utility methods for decomposing two-qubit unitaries into Sycamore gates."""
 
-from typing import Iterator, List, Optional
-
 import itertools
 import math
+from typing import Iterator, List, Optional
+
 import numpy as np
 
 import cirq

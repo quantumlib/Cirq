@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 from typing import Any, List
 
-import abc
 import sympy
 
 import cirq
@@ -26,34 +26,21 @@ class OpDeserializer(abc.ABC):
     """Generic supertype for operation deserializers.
 
     Each operation deserializer describes how to deserialize operation protos
-    with a particular `serialized_id` to a specific type of Cirq operation.
+    to a specific type of Cirq operation.
     """
 
-    @property
     @abc.abstractmethod
-    def serialized_id(self) -> str:
-        """Returns the string identifier for the accepted serialized objects.
-
-        This ID denotes the serialization format this deserializer consumes. For
-        example, one of the common deserializers converts objects with the id
-        'xy' into PhasedXPowGates.
-        """
+    def can_deserialize_proto(self, proto) -> bool:
+        """Whether the given operation can be serialized by this serializer."""
 
     @abc.abstractmethod
     def from_proto(
-        self,
-        proto,
-        *,
-        arg_function_language: str = '',
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        self, proto, *, constants: List[v2.program_pb2.Constant], deserialized_constants: List[Any]
     ) -> cirq.Operation:
         """Converts a proto-formatted operation into a Cirq operation.
 
         Args:
             proto: The proto object to be deserialized.
-            arg_function_language: The `arg_function_language` field from
-                `Program.Language`.
             constants: The list of Constant protos referenced by constant
                 table indices in `proto`.
             deserialized_constants: The deserialized contents of `constants`.
@@ -66,15 +53,13 @@ class OpDeserializer(abc.ABC):
 class CircuitOpDeserializer(OpDeserializer):
     """Describes how to serialize CircuitOperations."""
 
-    @property
-    def serialized_id(self):
-        return 'circuit'
+    def can_deserialize_proto(self, proto):
+        return isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: no cover
 
     def from_proto(
         self,
         proto: v2.program_pb2.CircuitOperation,
         *,
-        arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant],
         deserialized_constants: List[Any],
     ) -> cirq.CircuitOperation:
@@ -82,8 +67,6 @@ class CircuitOpDeserializer(OpDeserializer):
 
         Args:
             proto: The proto object to be deserialized.
-            arg_function_language: The `arg_function_language` field from
-                `Program.Language`.
             constants: The list of Constant protos referenced by constant
                 table indices in `proto`. This list should already have been
                 parsed to produce 'deserialized_constants'.
@@ -128,11 +111,7 @@ class CircuitOpDeserializer(OpDeserializer):
             for entry in proto.measurement_key_map.entries
         }
         arg_map = {
-            arg_func_langs.arg_from_proto(
-                entry.key, arg_function_language=arg_function_language
-            ): arg_func_langs.arg_from_proto(
-                entry.value, arg_function_language=arg_function_language
-            )
+            arg_func_langs.arg_from_proto(entry.key): arg_func_langs.arg_from_proto(entry.value)
             for entry in proto.arg_map.entries
         }
 

@@ -10,10 +10,10 @@ before the problem can be addressed. Instead, please use the GitHub ["Report
 a Vulnerability"](https://github.com/quantumlib/cirq/security/advisories/new)
 interface from the _Security_ tab of the Cirq repository.
 
-Please security bugs in third-party modules to the person or team maintaining
-the module rather than the Cirq project stewards, unless you believe that some
-action needs to be taken with Cirq in order to guard against the effects of a
-security vulnerability in a third-party module.
+Please report security issues in third-party modules to the person or team
+maintaining the module rather than the Cirq project stewards, unless you
+believe that some action needs to be taken with Cirq in order to guard against
+the effects of a security vulnerability in a third-party module.
 
 ## Responses to security reports
 

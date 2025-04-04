@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import List
+
+import numpy as np
 import pytest
 import sympy
-import numpy as np
 
 import cirq
 import cirq_google as cg

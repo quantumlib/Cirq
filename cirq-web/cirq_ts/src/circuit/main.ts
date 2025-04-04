@@ -12,14 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  Scene,
-  PerspectiveCamera,
-  WebGLRenderer,
-  OrthographicCamera,
-  Vector3,
-  Box3,
-} from 'three';
+import {Scene, PerspectiveCamera, WebGLRenderer, OrthographicCamera, Vector3, Box3} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {GridCircuit} from './grid_circuit';
 import {SymbolInformation} from './components/types';
@@ -54,12 +47,7 @@ class CircuitScene extends Scene {
     this.renderer = new WebGLRenderer({alpha: true, antialias: true});
     this.renderer.setSize(this.WIDTH, this.HEIGHT);
 
-    this.perspectiveCamera = new PerspectiveCamera(
-      75,
-      this.WIDTH / this.HEIGHT,
-      0.1,
-      1000
-    );
+    this.perspectiveCamera = new PerspectiveCamera(75, this.WIDTH / this.HEIGHT, 0.1, 1000);
 
     this.orthographicCamera = new OrthographicCamera(
       this.WIDTH / this.HEIGHT / -2,
@@ -67,19 +55,16 @@ class CircuitScene extends Scene {
       this.HEIGHT / this.WIDTH / 2,
       this.HEIGHT / this.WIDTH / -2,
       0.1,
-      100
+      100,
     );
     this.orthographicCamera.zoom = 0.1;
     // The default camera is the Perspective camera
     this.camera = this.perspectiveCamera;
 
-    this.perspectiveControls = new OrbitControls(
-      this.perspectiveCamera,
-      this.renderer.domElement
-    );
+    this.perspectiveControls = new OrbitControls(this.perspectiveCamera, this.renderer.domElement);
     this.orthographicControls = new OrbitControls(
       this.orthographicCamera,
-      this.renderer.domElement
+      this.renderer.domElement,
     );
     // The default controls are the Orbit controls for the Perspective camera
     this.controls = this.perspectiveControls;
@@ -181,7 +166,7 @@ export function createGridCircuit(
   symbol_info: SymbolInformation[],
   numMoments: number,
   sceneId: string,
-  padding_factor = 1
+  padding_factor = 1,
 ): {circuit: GridCircuit; scene: CircuitScene} {
   const scene = new CircuitScene(sceneId);
 

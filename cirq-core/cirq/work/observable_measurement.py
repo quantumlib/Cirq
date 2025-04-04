@@ -24,15 +24,15 @@ import numpy as np
 import pandas as pd
 import sympy
 
-from cirq import circuits, study, ops, value, protocols
+from cirq import circuits, ops, protocols, study, value
 from cirq._doc import document
 from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T
 from cirq.work.observable_measurement_data import (
     BitstringAccumulator,
-    ObservableMeasuredResult,
     flatten_grouped_results,
+    ObservableMeasuredResult,
 )
-from cirq.work.observable_settings import InitObsSetting, observables_to_settings, _MeasurementSpec
+from cirq.work.observable_settings import _MeasurementSpec, InitObsSetting, observables_to_settings
 
 if TYPE_CHECKING:
     import cirq

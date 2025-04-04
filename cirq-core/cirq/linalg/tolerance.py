@@ -14,7 +14,7 @@
 
 """Utility for testing approximate equality of matrices and scalars within
 tolerances."""
-from typing import Union, Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -33,7 +33,7 @@ def all_near_zero(a: 'ArrayLike', *, atol: float = 1e-8) -> bool:
 
 
 def all_near_zero_mod(
-    a: Union[float, complex, Iterable[float], np.ndarray], period: float, *, atol: float = 1e-8
+    a: Union[float, Iterable[float], np.ndarray], period: float, *, atol: float = 1e-8
 ) -> bool:
     """Checks if the tensor's elements are all near multiples of the period.
 

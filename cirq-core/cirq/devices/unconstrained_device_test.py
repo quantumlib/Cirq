@@ -23,3 +23,9 @@ def test_infinitely_fast():
     assert cirq.UNCONSTRAINED_DEVICE.duration_of(cirq.X(cirq.NamedQubit('a'))) == cirq.Duration(
         picos=0
     )
+
+
+def test_any_qubit_works():
+    moment = cirq.Moment([cirq.X(cirq.LineQubit(987654321))])
+    cirq.UNCONSTRAINED_DEVICE.validate_moment(moment)
+    cirq.UNCONSTRAINED_DEVICE.validate_circuit(cirq.Circuit(moment))

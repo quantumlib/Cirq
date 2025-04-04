@@ -73,20 +73,15 @@ describe('Bloch sphere', () => {
 
     it('with no vector matches the gold PNG', () => {
       const expected = PNG.PNG.sync.read(
-        readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png')
+        readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png'),
       );
       const actual = PNG.PNG.sync.read(readFileSync(outputPath));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
-      const pixels = pixelmatch(
-        expected.data,
-        actual.data,
-        diff.data,
-        width,
-        height,
-        {threshold: 0.1}
-      );
+      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+        threshold: 0.1,
+      });
 
       expect(pixels).to.equal(0);
     });
@@ -98,7 +93,7 @@ describe('Bloch sphere', () => {
 
       // Take a screenshot of the second image, adding the vector
       await page.setContent(
-        htmlContent("renderBlochSphere('container').addVector(0.5, 0.5, 0.5);")
+        htmlContent("renderBlochSphere('container').addVector(0.5, 0.5, 0.5);"),
       );
       await page.screenshot({path: newVectorOutputPath});
       await browser.close();
@@ -106,20 +101,15 @@ describe('Bloch sphere', () => {
 
     it('with custom statevector matches the gold PNG', () => {
       const expected = PNG.PNG.sync.read(
-        readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png')
+        readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png'),
       );
       const actual = PNG.PNG.sync.read(readFileSync(newVectorOutputPath));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
-      const pixels = pixelmatch(
-        expected.data,
-        actual.data,
-        diff.data,
-        width,
-        height,
-        {threshold: 0.1}
-      );
+      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+        threshold: 0.1,
+      });
 
       expect(pixels).to.equal(0);
     });

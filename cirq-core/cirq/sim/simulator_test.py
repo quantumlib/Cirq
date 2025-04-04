@@ -13,7 +13,7 @@
 # limitations under the License.
 """Tests for simulator.py"""
 import abc
-from typing import Generic, Dict, Any, List, Sequence, Union
+from typing import Any, Dict, Generic, List, Sequence, Union
 from unittest import mock
 
 import duet
@@ -24,13 +24,13 @@ import cirq
 from cirq import study
 from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulator import (
-    TStepResult,
     SimulatesAmplitudes,
     SimulatesExpectationValues,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesSamples,
     SimulationTrialResult,
+    TStepResult,
 )
 
 
@@ -50,7 +50,7 @@ class FakeStepResult(cirq.StepResult):
         self._final_state = final_state
 
     def _simulator_state(self):
-        return self._final_state
+        return self._final_state  # pragma: no cover
 
     def state_vector(self):
         pass
@@ -397,6 +397,17 @@ def test_sample_repeated_measurement_keys():
     assert len(result.records['b']) == 1
     assert len(result.records['a'][0]) == 2
     assert len(result.records['b'][0]) == 2
+
+
+def test_classical_controls_go_to_suffix_if_corresponding_measurement_does():
+    subcircuit = cirq.CircuitOperation(cirq.FrozenCircuit()).with_classical_controls('a')
+    m = cirq.measure(cirq.LineQubit(0), key='a')
+    circuit = cirq.Circuit(m, subcircuit)
+    prefix, suffix = cirq.sim.simulator.split_into_matching_protocol_then_general(
+        circuit, lambda op: op != m  # any op but m goes into prefix
+    )
+    assert not prefix
+    assert suffix == circuit
 
 
 def test_simulate_with_invert_mask():

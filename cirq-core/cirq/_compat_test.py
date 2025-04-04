@@ -22,9 +22,9 @@ import sys
 import traceback
 import types
 import warnings
+from importlib.machinery import ModuleSpec
 from types import ModuleType
 from typing import Any, Callable, Dict, Optional, Tuple
-from importlib.machinery import ModuleSpec
 from unittest import mock
 
 import duet
@@ -38,16 +38,16 @@ import cirq.testing
 from cirq._compat import (
     block_overlapping_deprecation,
     cached_method,
-    proper_repr,
     dataclass_repr,
-    deprecated,
-    deprecated_parameter,
-    proper_eq,
     deprecate_attributes,
+    deprecated,
     deprecated_class,
+    deprecated_parameter,
     deprecated_submodule,
-    DeprecatedModuleLoader,
     DeprecatedModuleImportError,
+    DeprecatedModuleLoader,
+    proper_eq,
+    proper_repr,
 )
 
 
@@ -564,8 +564,9 @@ def _import_deprecated_same_name_in_earlier_subtree():
 
 
 def _import_top_level_deprecated():
-    from cirq.testing._compat_test_data.fake_freezegun import api  # type: ignore
     import time
+
+    from cirq.testing._compat_test_data.fake_freezegun import api  # type: ignore
 
     assert api.real_time == time.time
 
@@ -873,11 +874,12 @@ def test_new_module_is_top_level():
 def _test_new_module_is_top_level_inner():
     # sets up the DeprecationFinders
     # pylint: disable=unused-import
-    import cirq.testing._compat_test_data
+    import time
 
     # imports a top level module that was also deprecated
     from freezegun import api
-    import time
+
+    import cirq.testing._compat_test_data
 
     assert api.real_time == time.time
 

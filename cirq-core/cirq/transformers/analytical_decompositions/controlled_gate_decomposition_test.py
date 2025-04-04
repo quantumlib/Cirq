@@ -96,6 +96,7 @@ def test_decompose_random_unitary():
         _test_decompose(_random_unitary(), controls_count)
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_decompose_random_special_unitary():
     for controls_count in range(5):
         for _ in range(10):

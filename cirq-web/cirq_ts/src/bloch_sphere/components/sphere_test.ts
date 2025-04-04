@@ -68,8 +68,7 @@ describe('Sphere', () => {
     describe('throws the correct errors if the user', () => {
       it('gives invalid radius inputs (-1, 0)', () => {
         const radiusInputs = [-1, 0];
-        const expectedErrorMessage =
-          'The radius of a Sphere must be greater than or equal to 1';
+        const expectedErrorMessage = 'The radius of a Sphere must be greater than or equal to 1';
         radiusInputs.forEach(el => {
           expect(() => new Sphere(el)).to.throw(expectedErrorMessage);
         });

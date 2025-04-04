@@ -16,8 +16,7 @@
 
 import abc
 import functools
-from typing import cast, Callable, Set, TypeVar
-
+from typing import Callable, cast, Set, TypeVar
 
 T = TypeVar('T')
 

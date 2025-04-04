@@ -17,7 +17,7 @@ In general, the source of truth for what has to be implemented is enforced
 by the `cirq.testing.assert_implements_consistent_protocols` method.
 This method verifies the following properties:
 
-1. The class has a `__repr__` method that produces a python expression that
+1. The class has a `__repr__` method that produces a Python expression that
 evaluates to an object equal to the original value. The expression assumes that
 `cirq`, `sympy`, `numpy as np`, and `pandas as pd` have been imported.
 
@@ -46,7 +46,7 @@ In some cases the default behavior of using `__str__` is sufficient.
 
 4. If the `__repr__` is cumbersome, gates should specify a `_repr_pretty_`
 method.
-This method will be used preferentially by Jupyter notebooks, ipython, etc.
+This method will be used preferentially by Jupyter notebooks, iPython, etc.
 
 5. Gates should specify an `_apply_unitary_` method.
 This is not necessary for single or two qubit gates, but it is a huge
@@ -62,6 +62,6 @@ generally surprising to users.
 If you have to use an operation, try to have the `.gate` property of the
 operation can return something useful instead of `None`.
 
-8. Consider adding interop methods like `_qasm_`.
+8. Consider adding interoperability methods like `_qasm_`.
 These methods will fallback to using things like `_decompose_`, but the output
 is usually much better when specialized.

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from types import NotImplementedType
-from typing import AbstractSet, Union, Any, Optional, Tuple, TYPE_CHECKING, Dict
+from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 

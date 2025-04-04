@@ -1,0 +1,18 @@
+{
+    "cirq_type":"cirq.google.Metadata",
+    "device_parameters":[
+       {
+          "cirq_type":"cirq.google.DeviceParameter",
+          "path":[
+             "test",
+             "subdir"
+          ],
+          "idx":null,
+          "value":null,
+          "units":null
+       }
+    ],
+    "is_const":true,
+    "label":"fake_label",
+    "unit":null
+} 

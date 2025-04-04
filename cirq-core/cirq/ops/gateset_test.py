@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, List, cast
 import re
+from typing import cast, List, Tuple
+
+import numpy as np
 import pytest
 import sympy
+
 import cirq
 from cirq._compat import proper_repr
-import numpy as np
 
 
 class CustomXPowGate(cirq.EigenGate):
@@ -441,3 +443,10 @@ def test_gateset_contains_with_tags():
     # Both tags to accept and tags to ignore
     assert op in cirq.Gateset(gf_accept, gf_ignore)
     assert op_with_tag in cirq.Gateset(gf_accept, gf_ignore)
+
+
+def test_gateset_contains_op_with_no_gate():
+    gf = cirq.GateFamily(cirq.ZPowGate)
+    op = cirq.X(cirq.q(1)).with_classical_controls('a')
+    assert op.gate is None
+    assert op not in gf

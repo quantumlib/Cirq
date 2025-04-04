@@ -3,3 +3,5 @@
 *_pb2.py         linguist-generated=true
 *_pb2.pyi        linguist-generated=true
 
+# Cirq-web javascript bundles generated using check/ts-build
+*.bundle.js      linguist-generated=true

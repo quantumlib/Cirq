@@ -1,10 +1,10 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import cirq
-from cirq.testing import assert_json_roundtrip_works
-from cirq.contrib.json import DEFAULT_CONTRIB_RESOLVERS
 from cirq.contrib.acquaintance import SwapPermutationGate
 from cirq.contrib.bayesian_network import BayesianNetworkGate
+from cirq.contrib.json import DEFAULT_CONTRIB_RESOLVERS
 from cirq.contrib.quantum_volume import QuantumVolumeResult
+from cirq.testing import assert_json_roundtrip_works
 
 
 def test_bayesian_network_gate():

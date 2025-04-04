@@ -29,28 +29,30 @@ thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
 topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
-pip show tensorflow-docs > /dev/null || exit 1
-
-FORMAT_CMD="python3 -m tensorflow_docs.tools.nbfmt --indent=1"
-
-# Test the notebooks
-unformatted=$($FORMAT_CMD --test docs 2>&1 | grep "\- docs" || true)
-needed_changes=0
-if [ -n "${unformatted}" ]; then
-    needed_changes=1
-    if (( only_print == 0 )); then
-        $FORMAT_CMD docs
-    else
-        echo -e "\033[31mThe following notebooks require formatting\033[0m."
-        echo "${unformatted}"
-    fi
+# check if the nbfmt tool in tensorflow-docs is installed and working
+if ! python3 -c "import tensorflow_docs.tools.nbfmt"; then
+    echo -e "\033[31mInstallation of tensorflow-docs is broken, please correct.\033[0m"
+    exit 2
 fi
 
-if (( needed_changes == 0 )); then
+my_nbfmt() {
+    python3 -m tensorflow_docs.tools.nbfmt --indent=1 "$@"
+}
+
+exit_code=0
+
+# Check if notebooks are already formatted and store output for later use
+if output=$(my_nbfmt --test docs 2>&1); then
     echo -e "\033[32mNotebooks are formatted\033[0m."
-elif (( only_print == 1 )); then
+elif (( only_print )); then
+    echo -e "\033[31mThe following notebooks require formatting\033[0m."
+    grep "^- docs" <<<"${output}"
     echo -e "\033[33mNotebooks are not formatted. Please run 'check/nbformat --apply'\033[0m"
-    exit 1
+    exit_code=1
 else
-    echo -e "\033[33mReformatted changed notebooks\033[0m."
+    my_nbfmt docs &&
+        echo -e "\033[33mReformatted changed notebooks\033[0m." ||
+        exit_code=$?
 fi
+
+exit ${exit_code}

@@ -14,12 +14,12 @@
 
 """Tests for engine."""
 import datetime
-from unittest import mock
 import time
-import numpy as np
-import pytest
+from unittest import mock
 
 import duet
+import numpy as np
+import pytest
 from google.protobuf import any_pb2, timestamp_pb2
 from google.protobuf.text_format import Merge
 
@@ -27,8 +27,8 @@ import cirq
 import cirq_google
 import cirq_google as cg
 from cirq_google.api import v1, v2
-from cirq_google.engine import util
 from cirq_google.cloud import quantum
+from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
 
 _CIRCUIT = cirq.Circuit(
@@ -279,6 +279,24 @@ def test_run_circuit_with_unary_rpcs(client):
     )
     client().get_job_async.assert_called_once_with('proj', 'prog', 'job-id', False)
     client().get_job_results_async.assert_called_once_with('proj', 'prog', 'job-id')
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
+def test_engine_get_sampler_with_snapshot_id_passes_to_unary_rpc(client):
+    setup_run_circuit_with_result_(client, _A_RESULT)
+    engine = cg.Engine(
+        project_id='proj',
+        context=EngineContext(service_args={'client_info': 1}, enable_streaming=False),
+    )
+    sampler = engine.get_sampler('mysim', device_config_name="config", snapshot_id="123")
+    _ = sampler.run_sweep(_CIRCUIT, params=[cirq.ParamResolver({'a': 1})])
+
+    kwargs = client().create_job_async.call_args_list[0].kwargs
+
+    # We care about asserting that the snapshot_id is correctly passed.
+    assert kwargs["snapshot_id"] == "123"
+    assert kwargs["run_name"] == ""
+    assert kwargs["device_config_name"] == "config"
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)

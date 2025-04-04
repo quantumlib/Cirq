@@ -15,13 +15,14 @@
 """A Gauge transformer for SQRT_ISWAP gate."""
 
 import numpy as np
+
+from cirq import ops
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
     Gauge,
-    GaugeTransformer,
     GaugeSelector,
+    GaugeTransformer,
 )
-from cirq import ops
 
 
 class RZRotation(Gauge):
@@ -49,12 +50,7 @@ class RZRotation(Gauge):
         rz = ops.rz(theta)
         n_rz = ops.rz(-theta)
         return ConstantGauge(
-            two_qubit_gate=ops.SQRT_ISWAP,
-            pre_q0=rz,
-            pre_q1=rz,
-            post_q0=n_rz,
-            post_q1=n_rz,
-            support_sweep=True,
+            two_qubit_gate=ops.SQRT_ISWAP, pre_q0=rz, pre_q1=rz, post_q0=n_rz, post_q1=n_rz
         )
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
@@ -85,12 +81,7 @@ class XYRotation(Gauge):
     def _xy_gauge(self, theta: float) -> ConstantGauge:
         xy = self._xy(theta)
         return ConstantGauge(
-            two_qubit_gate=ops.SQRT_ISWAP,
-            pre_q0=xy,
-            pre_q1=xy,
-            post_q0=xy,
-            post_q1=xy,
-            support_sweep=True,
+            two_qubit_gate=ops.SQRT_ISWAP, pre_q0=xy, pre_q1=xy, post_q0=xy, post_q1=xy
         )
 
     def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:

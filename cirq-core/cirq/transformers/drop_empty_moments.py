@@ -15,6 +15,7 @@
 """Transformer pass that removes empty moments from a circuit."""
 
 from typing import Optional, TYPE_CHECKING
+
 from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:

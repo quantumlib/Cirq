@@ -20,15 +20,15 @@ from typing import (
     Any,
     cast,
     Dict,
-    Iterator,
     Generic,
+    Iterator,
     List,
     Optional,
     Sequence,
     Tuple,
     Type,
-    TypeVar,
     TYPE_CHECKING,
+    TypeVar,
 )
 
 import numpy as np
@@ -38,13 +38,13 @@ from cirq.sim.simulation_product_state import SimulationProductState
 from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulation_state_base import SimulationStateBase
 from cirq.sim.simulator import (
-    TSimulationTrialResult,
+    check_all_resolved,
     SimulatesIntermediateState,
     SimulatesSamples,
-    StepResult,
     SimulationTrialResult,
-    check_all_resolved,
     split_into_matching_protocol_then_general,
+    StepResult,
+    TSimulationTrialResult,
 )
 
 if TYPE_CHECKING:

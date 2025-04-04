@@ -14,10 +14,11 @@
 
 from typing import Optional
 
-import cirq
+import numpy as np
 import pytest
 import sympy
-import numpy as np
+
+import cirq
 
 
 def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):

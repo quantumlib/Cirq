@@ -15,6 +15,7 @@
 """Transformer pass that removes operations with tiny effects."""
 
 from typing import Optional, TYPE_CHECKING
+
 from cirq import protocols
 from cirq.transformers import transformer_api, transformer_primitives
 

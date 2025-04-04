@@ -292,7 +292,20 @@ def drop_terminal_measurements(
     def flip_inversion(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if isinstance(op.gate, ops.MeasurementGate):
             return [
-                ops.X(q) if b else ops.I(q) for q, b in zip(op.qubits, op.gate.full_invert_mask())
+                (
+                    (ops.X if b else ops.I)
+                    if q.dimension == 2
+                    else (
+                        ops.MatrixGate(
+                            # Per SimulationState.measure(), swap 0,1 but leave other dims alone
+                            np.eye(q.dimension)[[1, 0, *range(2, q.dimension)]],
+                            qid_shape=(q.dimension,),
+                        )
+                        if b
+                        else ops.IdentityGate(qid_shape=(q.dimension,))
+                    )
+                ).on(q)
+                for q, b in zip(op.qubits, op.gate.full_invert_mask())
             ]
         return op
 

@@ -33,7 +33,7 @@ from typing import (
 import numpy as np
 import sympy
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq.linalg import tolerance
 from cirq.ops import raw_types
 
@@ -302,7 +302,7 @@ class EigenGate(raw_types.Gate):
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return self._with_exponent(exponent=new_exponent)
 
     @property
@@ -359,7 +359,7 @@ class EigenGate(raw_types.Gate):
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
         exponent = resolver.value_of(self._exponent, recursive)
-        if isinstance(exponent, (complex, numbers.Complex)):
+        if isinstance(exponent, numbers.Complex):
             if isinstance(exponent, numbers.Real):
                 exponent = float(exponent)
             else:

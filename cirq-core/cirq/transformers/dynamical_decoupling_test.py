@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from typing import Sequence, Tuple, Union
+
+import numpy as np
+import pytest
+
 import cirq
 from cirq import add_dynamical_decoupling
-import pytest
-import numpy as np
 
 
 def assert_sim_eq(circuit1: 'cirq.AbstractCircuit', circuit2: 'cirq.AbstractCircuit'):

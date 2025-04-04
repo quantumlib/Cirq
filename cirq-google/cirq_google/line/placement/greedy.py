@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Set, TYPE_CHECKING
-
 import abc
 import collections
+from typing import Dict, List, Optional, Set, TYPE_CHECKING
 
 from cirq.devices import GridQubit
 from cirq_google.line.placement import place_strategy
@@ -23,8 +22,8 @@ from cirq_google.line.placement.chip import chip_as_adjacency_list
 from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
-    from cirq_google.line.placement.sequence import LineSequence
     import cirq_google
+    from cirq_google.line.placement.sequence import LineSequence
 
 
 class GreedySequenceSearch:
@@ -230,7 +229,7 @@ class _PickLargestArea(GreedySequenceSearch):
     def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
         analyzed: Set[GridQubit] = set()
         best = None
-        best_size = None
+        best_size = 0
         for m in self._c_adj[qubit]:
             if m not in used and m not in analyzed:
                 reachable = self._collect_unused(m, used)

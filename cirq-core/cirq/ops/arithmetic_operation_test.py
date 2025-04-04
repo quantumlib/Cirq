@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Sequence
+from typing import Sequence, Union
 
-import pytest
 import numpy as np
+import pytest
 
 import cirq
 

@@ -17,7 +17,6 @@ import pytest
 import cirq
 import cirq_google
 
-
 _qa, _qb = cirq.NamedQubit('a'), cirq.NamedQubit('b')
 
 

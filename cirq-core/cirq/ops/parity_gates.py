@@ -14,23 +14,22 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Any, Dict, List, Iterator, Optional, Tuple, Union, TYPE_CHECKING, Sequence
-from typing_extensions import Self
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import (
-    gate_features,
-    eigen_gate,
-    common_gates,
-    pauli_gates,
     clifford_gate,
+    common_gates,
+    eigen_gate,
+    gate_features,
+    pauli_gates,
     pauli_interaction_gate,
 )
-
 
 if TYPE_CHECKING:
     import cirq

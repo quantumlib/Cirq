@@ -15,7 +15,6 @@
 
 import cirq_google as cg
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
-
 from cirq_google.transformers import SYCGaugeTransformer
 
 

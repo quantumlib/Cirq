@@ -14,7 +14,6 @@
 
 
 import cirq
-
 from cirq.contrib.paulistring import optimized_circuit
 
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tempfile
-from typing import Iterable, Dict, List
+from typing import Dict, Iterable, List
 
 import numpy as np
 import pytest
@@ -21,19 +21,19 @@ import cirq
 import cirq.work as cw
 from cirq.work import _MeasurementSpec, BitstringAccumulator, group_settings_greedy, InitObsSetting
 from cirq.work.observable_measurement import (
-    _with_parameterized_layers,
-    _get_params_for_setting,
-    _pad_setting,
-    _subdivide_meas_specs,
     _aggregate_n_repetitions,
     _check_meas_specs_still_todo,
-    StoppingCriteria,
+    _get_params_for_setting,
+    _pad_setting,
     _parse_checkpoint_options,
-    measure_observables_df,
+    _subdivide_meas_specs,
+    _with_parameterized_layers,
     CheckpointFileOptions,
-    VarianceStoppingCriteria,
     measure_observables,
+    measure_observables_df,
     RepetitionsStoppingCriteria,
+    StoppingCriteria,
+    VarianceStoppingCriteria,
 )
 
 

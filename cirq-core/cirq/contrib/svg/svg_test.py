@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.contrib.svg import circuit_to_svg
+from cirq.contrib.svg import circuit_to_svg, SVGCircuit
 
 
 def test_svg():
@@ -82,7 +82,8 @@ def test_gate_with_less_greater_str(symbol, svg_symbol):
             return cirq.CircuitDiagramInfo(wire_symbols=[symbol])
 
     circuit = cirq.Circuit(CustomGate().on(cirq.LineQubit(0)))
-    svg = circuit_to_svg(circuit)
+    svg_circuit = SVGCircuit(circuit)
+    svg = svg_circuit._repr_svg_()
 
     _ = IPython.display.SVG(svg)
     assert svg_symbol in svg

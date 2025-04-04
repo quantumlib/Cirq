@@ -11,13 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import itertools
 import dataclasses
 import inspect
+import itertools
 from collections import defaultdict
 from types import NotImplementedType
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -28,12 +27,12 @@ from typing import (
     overload,
     Sequence,
     Tuple,
+    TYPE_CHECKING,
     TypeVar,
     Union,
 )
-from typing_extensions import runtime_checkable
 
-from typing_extensions import Protocol
+from typing_extensions import Protocol, runtime_checkable
 
 from cirq import devices, ops
 from cirq._doc import doc_private

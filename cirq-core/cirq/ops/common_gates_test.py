@@ -307,6 +307,11 @@ def test_h_str():
     assert str(cirq.H**0.5) == 'H**0.5'
 
 
+def test_phase_exponent():
+    assert cirq.XPowGate(exponent=0.5).phase_exponent == 0.0
+    assert cirq.YPowGate(exponent=0.5).phase_exponent == 0.5
+
+
 def test_x_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.X, ExampleSimulationState(), qubits=())
@@ -1300,3 +1305,13 @@ def test_wrong_dims():
 
     with pytest.raises(ValueError, match='Wrong shape'):
         _ = cirq.Z.on(cirq.LineQid(0, dimension=3))
+
+
+@pytest.mark.parametrize('gate_type', [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate])
+@pytest.mark.parametrize('exponent', [sympy.Symbol('s'), sympy.Symbol('s') * 2])
+def test_parameterized_pauli_expansion(gate_type, exponent):
+    gate = gate_type(exponent=exponent)
+    pauli = cirq.pauli_expansion(gate)
+    gate_resolved = cirq.resolve_parameters(gate, {'s': 0.5})
+    pauli_resolved = cirq.resolve_parameters(pauli, {'s': 0.5})
+    assert cirq.approx_eq(pauli_resolved, cirq.pauli_expansion(gate_resolved))

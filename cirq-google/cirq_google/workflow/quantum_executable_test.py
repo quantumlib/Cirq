@@ -15,13 +15,14 @@
 import dataclasses
 import pickle
 
+import pytest
+
 import cirq
 import cirq_google
-import pytest
 from cirq_google import (
-    QuantumExecutable,
     BitstringsMeasurement,
     KeyValueExecutableSpec,
+    QuantumExecutable,
     QuantumExecutableGroup,
 )
 

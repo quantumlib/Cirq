@@ -1,8 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import dataclasses
-from typing import Union, Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Union
 
-from cirq import circuits, study, ops
+from cirq import circuits, ops, study
 from cirq.work.observable_measurement import measure_grouped_settings, StoppingCriteria
 from cirq.work.observable_settings import InitObsSetting, zeros_state
 

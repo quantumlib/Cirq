@@ -74,17 +74,17 @@ class SupportsCommutes(Protocol):
 
 
 @overload
-def commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool: ...
+def commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool: ...
 
 
 @overload
 def commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: TDefault
+    v1: Any, v2: Any, *, atol: float = 1e-8, default: TDefault
 ) -> Union[bool, TDefault]: ...
 
 
 def commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: Any = RaiseTypeErrorIfNotProvided
+    v1: Any, v2: Any, *, atol: float = 1e-8, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Any:
     """Determines whether two values commute.
 
@@ -147,7 +147,7 @@ def commutes(
     )
 
 
-def definitely_commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool:
+def definitely_commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool:
     """Determines whether two values definitely commute.
 
     Returns:
@@ -158,7 +158,7 @@ def definitely_commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> 
 
 
 def _strat_commutes_from_commutes(
-    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8
+    v1: Any, v2: Any, *, atol: float = 1e-8
 ) -> Union[bool, NotImplementedType, None]:
     """Attempts to determine commutativity via the objects' _commutes_
     method."""

@@ -12,20 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from types import NotImplementedType
-from typing import List, Union, Type, cast, TYPE_CHECKING
+from __future__ import annotations
+
 from enum import Enum
+from types import NotImplementedType
+from typing import cast, List, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import ops, transformers, protocols, linalg
+from cirq import linalg, ops, protocols, transformers
 
 if TYPE_CHECKING:
     import cirq
 
 
 def _matrix_to_clifford_op(
-    mat: np.ndarray, qubit: 'cirq.Qid', *, atol: float
+    mat: np.ndarray, qubit: cirq.Qid, *, atol: float
 ) -> Union[ops.Operation, NotImplementedType]:
     rotations = transformers.single_qubit_matrix_to_pauli_rotations(mat, atol)
     clifford_gate = ops.SingleQubitCliffordGate.I
@@ -43,7 +45,7 @@ def _matrix_to_clifford_op(
 
 
 def _matrix_to_pauli_string_phasors(
-    mat: np.ndarray, qubit: 'cirq.Qid', *, keep_clifford: bool, atol: float
+    mat: np.ndarray, qubit: cirq.Qid, *, keep_clifford: bool, atol: float
 ) -> ops.OP_TREE:
     rotations = transformers.single_qubit_matrix_to_pauli_rotations(mat, atol)
     out_ops: List[ops.GateOperation] = []
@@ -95,7 +97,7 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
         """
         self.atol = atol
         self.single_qubit_target = single_qubit_target
-        gates: List[Union['cirq.Gate', Type['cirq.Gate']]] = [ops.CZ, ops.MeasurementGate]
+        gates: List[Union[cirq.Gate, Type[cirq.Gate]]] = [ops.CZ, ops.MeasurementGate]
         if single_qubit_target in [
             self.SingleQubitTarget.SINGLE_QUBIT_CLIFFORDS,
             self.SingleQubitTarget.PAULI_STRING_PHASORS_AND_CLIFFORDS,
@@ -109,8 +111,8 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
         super().__init__(*gates)
 
     def _decompose_single_qubit_operation(
-        self, op: 'cirq.Operation', _
-    ) -> Union[NotImplementedType, 'cirq.OP_TREE']:
+        self, op: cirq.Operation, _
+    ) -> Union[NotImplementedType, cirq.OP_TREE]:
         if not protocols.has_unitary(op):
             return NotImplemented
         mat = protocols.unitary(op)
@@ -126,8 +128,8 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
         )
 
     def _decompose_two_qubit_operation(
-        self, op: 'cirq.Operation', _
-    ) -> Union[NotImplementedType, 'cirq.OP_TREE']:
+        self, op: cirq.Operation, _
+    ) -> Union[NotImplementedType, cirq.OP_TREE]:
         if not protocols.has_unitary(op):
             return NotImplemented
         return transformers.two_qubit_matrix_to_cz_operations(
@@ -139,10 +141,10 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
         )
 
     @property
-    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
 
-        def rewriter(o: 'cirq.CircuitOperation'):
+        def rewriter(o: cirq.CircuitOperation):
             result = self._decompose_single_qubit_operation(o, -1)
             return o.circuit.all_operations() if result is NotImplemented else result
 

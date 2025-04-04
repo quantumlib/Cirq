@@ -27,7 +27,7 @@ Version management:
  - Python: get_version and replace_version
  - CLI:
     - python3 dev_tools/modules.py print_version
-    - python3 dev_tools/modules.py replace_version --old v0.12.0.dev --new v0.12.1.dev
+    - python3 dev_tools/modules.py replace_version --old v1.5.0.dev0 --new v1.5.1.dev0
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -48,7 +48,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
@@ -199,7 +199,7 @@ def _parse_module(folder: Path) -> Dict[str, Any]:
     try:
         setuptools.setup = setup
         os.chdir(str(folder))
-        setup_py = open("setup.py").read()
+        setup_py = open("setup.py", encoding="utf8").read()
         exec(setup_py, globals(), {})
         assert setup_args, f"Invalid setup.py - setup() was not called in {folder}/setup.py!"
         return setup_args

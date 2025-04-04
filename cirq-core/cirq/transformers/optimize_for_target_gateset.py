@@ -14,7 +14,7 @@
 
 """Transformers to rewrite a circuit using gates from a given target gateset."""
 
-from typing import Optional, Callable, Hashable, Sequence, TYPE_CHECKING, Union
+from typing import Callable, Hashable, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits
 from cirq.protocols import decompose_protocol as dp

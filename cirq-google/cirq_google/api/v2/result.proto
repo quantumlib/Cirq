@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-import "cirq_google/api/v2/program.proto";
-
 package cirq.google.api.v2;
+
+import "cirq_google/api/v2/program.proto";
 
 option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "ResultProto";
@@ -60,8 +60,8 @@ message QubitMeasurementResult {
 
   // These are the results of a measurement on a qubit. The number of bits
   // measured is equal to repetitions * instances, where repetitions is defined
-  // in the SweepResult message, and instances is defined in the MeasurementResult
-  // message.
+  // in the SweepResult message, and instances is defined in the
+  // MeasurementResult message.
   //
   // The bytes in this field are constructed as follows:
   //
@@ -86,4 +86,3 @@ message ParameterDict {
   // Maps parameter names to values.
   map<string, float> assignments = 1;
 }
-

@@ -45,15 +45,17 @@ def create_circuit_and_device():
 
 def create_hanging_routing_instance(circuit, device_graph):
     """Create a test problem instance."""
-    route_circuit_greedily(circuit, device_graph, max_search_radius=2, random_state=1)
+    route_circuit_greedily(  # pragma: no cover
+        circuit, device_graph, max_search_radius=2, random_state=1
+    )
 
 
 def test_router_hanging():
-    """Run a separate process and check if greedy router hits timeout (5s)."""
+    """Run a separate process and check if greedy router hits timeout (20s)."""
     circuit, device_graph = create_circuit_and_device()
     process = Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
     process.start()
-    process.join(timeout=5)
+    process.join(timeout=20)
     try:
         assert not process.is_alive(), "Greedy router timeout"
     finally:

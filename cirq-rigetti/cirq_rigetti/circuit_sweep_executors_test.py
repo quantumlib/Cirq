@@ -1,13 +1,17 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Tuple, Any, List, Union, Dict
-import pytest
-import cirq
-from pyquil import Program
+from typing import Any, Dict, List, Tuple, Union
+
 import numpy as np
+import pytest
 import sympy
+from pyquil import Program
+
+import cirq
 from cirq_rigetti import circuit_sweep_executors as executors, circuit_transformers
+from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_with_quilc_compilation_and_cirq_parameter_resolution(
     mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:
@@ -46,6 +50,7 @@ def test_with_quilc_compilation_and_cirq_parameter_resolution(
 
 
 @pytest.mark.parametrize('pass_dict', [True, False])
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_with_quilc_parametric_compilation(
     mock_qpu_implementer: Any,
     parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
@@ -88,6 +93,7 @@ def test_with_quilc_parametric_compilation(
         ), "should return an ordered list of results with correct set of measurements"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_with_symbols(
     mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
 ):
@@ -106,6 +112,7 @@ def test_parametric_with_symbols(
         )
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_without_quilc_compilation(
     mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:
@@ -143,6 +150,7 @@ def test_without_quilc_compilation(
         ), "should return an ordered list of results with correct set of measurements"
 
 
+@allow_deprecated_cirq_rigetti_use_in_tests
 def test_invalid_pyquil_region_measurement(
     mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:

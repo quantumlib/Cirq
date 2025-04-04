@@ -17,7 +17,7 @@ from typing import List, Optional, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import devices, work, study
+from cirq import devices, study, work
 
 if TYPE_CHECKING:
     import cirq

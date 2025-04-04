@@ -14,7 +14,6 @@
 import re
 
 import cirq
-
 from cirq_google.ops.coupler import Coupler
 
 GRID_QUBIT_ID_PATTERN = r'^q?(-?\d+)_(-?\d+)$'

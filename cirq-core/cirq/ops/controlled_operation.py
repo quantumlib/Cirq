@@ -22,22 +22,22 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Union,
     TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
 
 from cirq import protocols, qis, value
 from cirq.ops import (
-    controlled_gate,
     common_gates,
+    control_values as cv,
+    controlled_gate,
     eigen_gate,
     gate_operation,
     matrix_gates,
     op_tree,
     raw_types,
-    control_values as cv,
 )
 
 if TYPE_CHECKING:
@@ -212,6 +212,7 @@ class ControlledOperation(raw_types.Operation):
             hasattr(self._sub_operation, "gate")
             and len(self._controls) == 1
             and self.control_values == cv.ProductOfSums(((1,),))
+            and all(q.dimension == 2 for q in self.qubits)
         ):
             gate = self.sub_operation.gate
             if (
@@ -296,7 +297,7 @@ class ControlledOperation(raw_types.Operation):
             return None
         u = protocols.unitary(self.sub_operation, default=None)
         if u is None:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 

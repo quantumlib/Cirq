@@ -20,25 +20,25 @@ from types import NotImplementedType
 from typing import (
     AbstractSet,
     Any,
-    Mapping,
     cast,
     Collection,
     Dict,
     FrozenSet,
+    List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
-    TypeVar,
     TYPE_CHECKING,
+    TypeVar,
     Union,
-    List,
 )
-from typing_extensions import Self
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq import ops, protocols, value
-from cirq.ops import raw_types, gate_features, control_values as cv
+from cirq.ops import control_values as cv, gate_features, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -302,7 +302,7 @@ class GateOperation(raw_types.Operation):
     def _decompose_into_clifford_(self):
         sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
         if sub is None:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return sub(self.qubits)
 
     def _trace_distance_bound_(self) -> float:
@@ -360,7 +360,7 @@ class GateOperation(raw_types.Operation):
         return protocols.qasm(self.gate, args=args, qubits=self.qubits, default=None)
 
     def _equal_up_to_global_phase_(
-        self, other: Any, atol: Union[int, float] = 1e-8
+        self, other: Any, atol: float = 1e-8
     ) -> Union[NotImplementedType, bool]:
         if not isinstance(other, type(self)):
             return NotImplemented

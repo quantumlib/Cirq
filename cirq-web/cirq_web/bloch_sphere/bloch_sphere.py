@@ -15,7 +15,6 @@
 from typing import Optional
 
 import cirq
-
 from cirq_web import widget
 
 

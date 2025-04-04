@@ -153,6 +153,10 @@ def test_non_unitary_linear_combination_of_gates_has_no_unitary(terms):
         ),
         ({cirq.X: 2, cirq.H: 1}, {'X': 2 + np.sqrt(0.5), 'Z': np.sqrt(0.5)}),
         ({cirq.XX: -2, cirq.YY: 3j, cirq.ZZ: 4}, {'XX': -2, 'YY': 3j, 'ZZ': 4}),
+        (
+            {cirq.X: sympy.Symbol('x'), cirq.Y: -sympy.Symbol('y')},
+            {'X': sympy.Symbol('x'), 'Y': -sympy.Symbol('y')},
+        ),
     ),
 )
 def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected_expansion):
@@ -206,7 +210,11 @@ def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
 
 @pytest.mark.parametrize(
     'terms, is_parameterized, parameter_names',
-    [({cirq.H: 1}, False, set()), ({cirq.X ** sympy.Symbol('t'): 1}, True, {'t'})],
+    [
+        ({cirq.H: 1}, False, set()),
+        ({cirq.X ** sympy.Symbol('t'): 1}, True, {'t'}),
+        ({cirq.X: sympy.Symbol('t')}, True, {'t'}),
+    ],
 )
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameterized_linear_combination_of_gates(
@@ -225,7 +233,7 @@ def get_matrix(
         cirq.GateOperation,
         cirq.LinearCombinationOfGates,
         cirq.LinearCombinationOfOperations,
-    ]
+    ],
 ) -> np.ndarray:
     if isinstance(operator, (cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations)):
         return operator.matrix()
@@ -243,13 +251,13 @@ def assert_linear_combinations_are_equal(
 
     actual_matrix = get_matrix(actual)
     expected_matrix = get_matrix(expected)
-    assert np.allclose(actual_matrix, expected_matrix)
+    assert cirq.approx_eq(actual_matrix, expected_matrix)
 
     actual_expansion = cirq.pauli_expansion(actual)
     expected_expansion = cirq.pauli_expansion(expected)
     assert set(actual_expansion.keys()) == set(expected_expansion.keys())
     for name in actual_expansion.keys():
-        assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
+        assert cirq.approx_eq(actual_expansion[name], expected_expansion[name])
 
 
 @pytest.mark.parametrize(
@@ -279,6 +287,8 @@ def assert_linear_combinations_are_equal(
         ),
         ((cirq.X + cirq.Y + cirq.Z) ** 0, cirq.I),
         ((cirq.X - 1j * cirq.Y) ** 0, cirq.I),
+        (cirq.Y - sympy.Symbol('s') * cirq.Y, (1 - sympy.Symbol('s')) * cirq.Y),
+        ((cirq.X + cirq.Z) * sympy.Symbol('s') / np.sqrt(2), cirq.H * sympy.Symbol('s')),
     ),
 )
 def test_gate_expressions(expression, expected_result):
@@ -659,6 +669,10 @@ def test_non_unitary_linear_combination_of_operations_has_no_unitary(terms):
             {'IIZI': 1, 'IZII': 1, 'IZZI': -1},
         ),
         ({cirq.CNOT(q0, q1): 2, cirq.Z(q0): -1, cirq.X(q1): -1}, {'II': 1, 'ZX': -1}),
+        (
+            {cirq.X(q0): -sympy.Symbol('x'), cirq.Y(q0): sympy.Symbol('y')},
+            {'X': -sympy.Symbol('x'), 'Y': sympy.Symbol('y')},
+        ),
     ),
 )
 def test_linear_combination_of_operations_has_correct_pauli_expansion(terms, expected_expansion):
@@ -716,6 +730,7 @@ def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
     [
         ({cirq.H(cirq.LineQubit(0)): 1}, False, set()),
         ({cirq.X(cirq.LineQubit(0)) ** sympy.Symbol('t'): 1}, True, {'t'}),
+        ({cirq.X(cirq.LineQubit(0)): sympy.Symbol('t')}, True, {'t'}),
     ],
 )
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
@@ -787,6 +802,10 @@ def test_parameterized_linear_combination_of_ops(
         (
             cirq.LinearCombinationOfOperations({cirq.X(q1): 2, cirq.Z(q1): 3}) ** 0,
             cirq.LinearCombinationOfOperations({cirq.I(q1): 1}),
+        ),
+        (
+            cirq.LinearCombinationOfOperations({cirq.X(q0): sympy.Symbol('s')}) ** 2,
+            cirq.LinearCombinationOfOperations({cirq.I(q0): sympy.Symbol('s') ** 2}),
         ),
     ),
 )

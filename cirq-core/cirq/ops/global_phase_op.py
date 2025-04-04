@@ -14,14 +14,15 @@
 """A no-qubit global phase operation."""
 
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Dict, Sequence, Tuple, Union, Optional, Collection
+from typing import AbstractSet, Any, cast, Collection, Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
 
 import cirq
-from cirq import value, protocols
-from cirq.ops import raw_types, controlled_gate, control_values as cv
+from cirq import protocols, value
+from cirq._compat import proper_repr
+from cirq.ops import control_values as cv, controlled_gate, raw_types
 
 
 @value.value_equality(approximate=True)
@@ -68,10 +69,10 @@ class GlobalPhaseGate(raw_types.Gate):
         return str(self.coefficient)
 
     def __repr__(self) -> str:
-        return f'cirq.GlobalPhaseGate({self.coefficient!r})'
+        return f'cirq.GlobalPhaseGate({proper_repr(self.coefficient)})'
 
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
-        return f'cirq.global_phase_operation({self.coefficient!r})'
+        return f'cirq.global_phase_operation({proper_repr(self.coefficient)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['coefficient'])

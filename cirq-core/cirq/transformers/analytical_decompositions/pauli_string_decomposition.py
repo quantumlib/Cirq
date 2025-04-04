@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple, cast
+from typing import cast, Optional, Tuple
 
 import numpy as np
 import numpy.typing as npt
 
-from cirq.ops import DensePauliString
 from cirq import protocols
+from cirq.ops import DensePauliString
 
 
 def _argmax(V: npt.NDArray) -> Tuple[int, float]:

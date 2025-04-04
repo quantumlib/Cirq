@@ -22,12 +22,11 @@ import sympy
 
 import cirq
 from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
+    _B,
     _decompose_two_qubit_interaction_into_two_b_gates,
     _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops,
     _sticky_0_to_1,
-    _B,
 )
-
 
 UNITARY_OBJS = [
     cirq.IdentityGate(2),

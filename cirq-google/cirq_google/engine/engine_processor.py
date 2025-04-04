@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import datetime
-
 from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
 from google.protobuf import any_pb2
@@ -26,12 +25,12 @@ from cirq_google.engine import abstract_processor, calibration, processor_sample
 
 if TYPE_CHECKING:
     import cirq_google as cg
-    import cirq_google.engine.engine as engine_base
     import cirq_google.engine.abstract_job as abstract_job
+    import cirq_google.engine.engine as engine_base
 
 
 def _date_to_timestamp(
-    union_time: Optional[Union[datetime.datetime, datetime.date, int]]
+    union_time: Optional[Union[datetime.datetime, datetime.date, int]],
 ) -> Optional[int]:
     if isinstance(union_time, int):
         return union_time

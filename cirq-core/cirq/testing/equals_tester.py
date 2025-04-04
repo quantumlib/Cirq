@@ -21,10 +21,8 @@ equal to each other. It will also check that a==b implies hash(a)==hash(b).
 """
 
 import collections
-
-from typing import Any, Callable, List, Tuple, Union
-
 import itertools
+from typing import Any, Callable, List, Tuple, Union
 
 
 class EqualsTester:
@@ -143,7 +141,7 @@ class _ClassUnknownToSubjects:
         return not self == other
 
     def __hash__(self):
-        return hash(_ClassUnknownToSubjects)
+        return hash(_ClassUnknownToSubjects)  # pragma: no cover
 
 
 class _TestsForNotImplemented:

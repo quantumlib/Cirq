@@ -12,16 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
-
-from collections import defaultdict
 import itertools
 import random
+from collections import defaultdict
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
 
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, linalg, protocols, qis
+from cirq import circuits, linalg, ops, protocols, qis
 from cirq.testing import lin_alg_utils
 
 

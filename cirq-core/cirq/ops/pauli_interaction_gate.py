@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterator, List, Sequence, TYPE_CHECKING, Tuple
+from typing import Any, Dict, Iterator, List, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, common_gates, eigen_gate, pauli_gates
+from cirq.ops import common_gates, eigen_gate, gate_features, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 if TYPE_CHECKING:

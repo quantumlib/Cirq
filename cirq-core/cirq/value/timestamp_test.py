@@ -13,10 +13,11 @@
 # limitations under the License.
 
 from datetime import timedelta
+
 import pytest
 
 import cirq
-from cirq import Timestamp, Duration
+from cirq import Duration, Timestamp
 
 
 def test_init():

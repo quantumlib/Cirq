@@ -13,12 +13,11 @@
 # limitations under the License.
 """Tests transpiling of circuits using the IonQ native gate set."""
 
-import cirq
 import numpy as np
 import pytest
 
-from cirq_ionq.ionq_native_target_gateset import AriaNativeGateset
-from cirq_ionq.ionq_native_target_gateset import ForteNativeGateset
+import cirq
+from cirq_ionq.ionq_native_target_gateset import AriaNativeGateset, ForteNativeGateset
 
 
 # test object representation
@@ -49,6 +48,10 @@ def test_equality_aria():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(AriaNativeGateset(atol=1e-6))
     eq.add_equality_group(AriaNativeGateset(atol=1e-5))
+
+
+def test_equality_forte():
+    eq = cirq.testing.EqualsTester()
     eq.add_equality_group(ForteNativeGateset(atol=1e-6))
     eq.add_equality_group(ForteNativeGateset(atol=1e-5))
 

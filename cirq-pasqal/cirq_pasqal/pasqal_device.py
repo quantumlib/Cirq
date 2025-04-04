@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Any, Union, Dict
-import numpy as np
+from typing import Any, Dict, Sequence, Union
+
 import networkx as nx
+import numpy as np
 
 import cirq
 from cirq import GridQubit, LineQubit
 from cirq.ops import NamedQubit
-from cirq_pasqal import ThreeDQubit, TwoDQubit, PasqalGateset
+from cirq_pasqal import PasqalGateset, ThreeDQubit, TwoDQubit
 
 
 @cirq.value.value_equality(unhashable=True)

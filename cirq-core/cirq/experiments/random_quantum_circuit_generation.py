@@ -18,18 +18,17 @@ import itertools
 from typing import (
     Any,
     Callable,
+    cast,
     Container,
     Dict,
     Iterable,
     Iterator,
     List,
-    Sequence,
-    TYPE_CHECKING,
-    Tuple,
-    Union,
     Optional,
-    cast,
-    Iterator,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
 )
 
 import networkx as nx
@@ -542,9 +541,8 @@ def get_grid_interaction_layer_circuit(
     moments = []
     for layer in pattern:
         pairs = sorted(_get_active_pairs(device_graph, layer))
-        if len(pairs) == 0:
-            continue
-        moments += [circuits.Moment(two_qubit_gate.on(*pair) for pair in pairs)]
+        if pairs:
+            moments += [circuits.Moment(two_qubit_gate.on(*pair) for pair in pairs)]
     return circuits.Circuit(moments)
 
 

@@ -13,13 +13,14 @@
 # limitations under the License.
 
 
-from typing import Dict, Generic, Any, Sequence, List, Optional, Union, TYPE_CHECKING
-from copy import deepcopy, copy
-from cirq import ops, qis
-from cirq.value import big_endian_int_to_bits
-from cirq import sim
-from cirq.sim.simulation_state import TSimulationState, SimulationState
+from copy import copy, deepcopy
+from typing import Any, Dict, Generic, List, Optional, Sequence, TYPE_CHECKING, Union
+
 import numpy as np
+
+from cirq import ops, qis, sim
+from cirq.sim.simulation_state import SimulationState, TSimulationState
+from cirq.value import big_endian_int_to_bits
 
 if TYPE_CHECKING:
     import cirq

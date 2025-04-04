@@ -1,0 +1,30 @@
+# Copyright 2025 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Yamllint configuration to match project settings like line length.
+# See https://yamllint.readthedocs.io/ for info about configuration options.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+rules:
+  line-length:
+    # YAML files (especially GitHub Actions workflows) tend to end up with
+    # long lines. The default of 80 is pretty limiting, and besides, in Python
+    # code linting, we set line lengths to 100. May as well follow suit here.
+    max: 100
+    # Another common occurrence in YAML files is long URLs. The next two
+    # settings are not specific to URLs, but help. It saves developer time by
+    # not requiring comment directives to disable warnings at every occurrence.
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true

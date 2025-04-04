@@ -14,14 +14,14 @@
 from typing import (
     AbstractSet,
     Any,
-    Mapping,
     Dict,
     FrozenSet,
     List,
+    Mapping,
     Optional,
     Sequence,
-    TYPE_CHECKING,
     Tuple,
+    TYPE_CHECKING,
     Union,
 )
 
@@ -45,6 +45,36 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     This object is typically created via
      `operation.with_classical_controls(*conditions)`.
+
+    Examples:
+
+    >>> import cirq
+    >>> a, b, c = cirq.LineQubit.range(3)
+    >>> circuit1 = cirq.Circuit(
+    ...     cirq.measure(a, key='control_key'),
+    ...     cirq.X(b).with_classical_controls('control_key'))
+    >>> print(circuit1)
+    0: ─────────────M───────
+                    ║
+    1: ─────────────╫───X───
+                    ║   ║
+    control_key: ═══@═══^═══
+    >>> circuit2 = cirq.Circuit([
+    ...     cirq.measure(a, key='control_key1'),
+    ...     cirq.measure(b, key='control_key2'),
+    ...     cirq.X(c).with_classical_controls('control_key1', 'control_key2')])
+    >>> print(circuit2)
+                     ┌──┐
+    0: ───────────────M─────────
+                      ║
+    1: ───────────────╫M────────
+                      ║║
+    2: ───────────────╫╫────X───
+                      ║║    ║
+    control_key1: ════@╬════^═══
+                       ║    ║
+    control_key2: ═════@════^═══
+                     └──┘
     """
 
     def __init__(

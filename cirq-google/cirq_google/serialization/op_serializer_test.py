@@ -19,7 +19,6 @@ import cirq
 import cirq_google as cg
 from cirq_google.api import v2
 
-
 DEFAULT_TOKEN = 'test_tag'
 
 
@@ -47,12 +46,6 @@ def default_circuit():
         cirq.X(cirq.GridQubit(1, 2)).with_tags(DEFAULT_TOKEN),
         cirq.measure(cirq.GridQubit(1, 1), key='m'),
     )
-
-
-def test_circuit_op_serializer_properties():
-    serializer = cg.CircuitOpSerializer()
-    assert serializer.internal_type == cirq.FrozenCircuit
-    assert serializer.serialized_id == 'circuit'
 
 
 def test_can_serialize_circuit_op():

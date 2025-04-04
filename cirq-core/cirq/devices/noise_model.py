@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Sequence, TYPE_CHECKING, Union, Callable
+from __future__ import annotations
+
+from typing import Any, Callable, Dict, Iterable, Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
-from cirq._import import LazyLoader
 from cirq._doc import document
+from cirq._import import LazyLoader
 
 moment_module = LazyLoader("moment_module", globals(), "cirq.circuits.moment")
 
@@ -41,7 +43,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     """
 
     @classmethod
-    def from_noise_model_like(cls, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.NoiseModel':
+    def from_noise_model_like(cls, noise: cirq.NOISE_MODEL_LIKE) -> cirq.NoiseModel:
         """Transforms an object into a noise model if unambiguously possible.
 
         Args:
@@ -76,7 +78,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             f'or a single qubit gate). Got {noise!r}'
         )
 
-    def is_virtual_moment(self, moment: 'cirq.Moment') -> bool:
+    def is_virtual_moment(self, moment: cirq.Moment) -> bool:
         """Returns true iff the given moment is non-empty and all of its
         operations are virtual.
 
@@ -95,16 +97,16 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         return all(ops.VirtualTag() in op.tags for op in moment)
 
     def _noisy_moments_impl_moment(
-        self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
-    ) -> Sequence['cirq.OP_TREE']:
+        self, moments: Iterable[cirq.Moment], system_qubits: Sequence[cirq.Qid]
+    ) -> Sequence[cirq.OP_TREE]:
         result = []
         for moment in moments:
             result.append(self.noisy_moment(moment, system_qubits))
         return result
 
     def _noisy_moments_impl_operation(
-        self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
-    ) -> Sequence['cirq.OP_TREE']:
+        self, moments: Iterable[cirq.Moment], system_qubits: Sequence[cirq.Qid]
+    ) -> Sequence[cirq.OP_TREE]:
         result = []
         for moment in moments:
             result.append([self.noisy_operation(op) for op in moment])
@@ -113,8 +115,8 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='noisy_moment', implementation=_noisy_moments_impl_moment)
     @value.alternative(requires='noisy_operation', implementation=_noisy_moments_impl_operation)
     def noisy_moments(
-        self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
-    ) -> Sequence['cirq.OP_TREE']:
+        self, moments: Iterable[cirq.Moment], system_qubits: Sequence[cirq.Qid]
+    ) -> Sequence[cirq.OP_TREE]:
         """Adds possibly stateful noise to a series of moments.
 
         Args:
@@ -128,20 +130,18 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         raise NotImplementedError
 
     def _noisy_moment_impl_moments(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+        self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]
+    ) -> cirq.OP_TREE:
         return self.noisy_moments([moment], system_qubits)
 
     def _noisy_moment_impl_operation(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+        self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]
+    ) -> cirq.OP_TREE:
         return [self.noisy_operation(op) for op in moment]
 
     @value.alternative(requires='noisy_moments', implementation=_noisy_moment_impl_moments)
     @value.alternative(requires='noisy_operation', implementation=_noisy_moment_impl_operation)
-    def noisy_moment(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         """Adds noise to the operations from a moment.
 
         Args:
@@ -153,15 +153,15 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         raise NotImplementedError
 
-    def _noisy_operation_impl_moments(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def _noisy_operation_impl_moments(self, operation: cirq.Operation) -> cirq.OP_TREE:
         return self.noisy_moments([moment_module.Moment([operation])], operation.qubits)
 
-    def _noisy_operation_impl_moment(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def _noisy_operation_impl_moment(self, operation: cirq.Operation) -> cirq.OP_TREE:
         return self.noisy_moment(moment_module.Moment([operation]), operation.qubits)
 
     @value.alternative(requires='noisy_moments', implementation=_noisy_operation_impl_moments)
     @value.alternative(requires='noisy_moment', implementation=_noisy_operation_impl_moment)
-    def noisy_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def noisy_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
         """Adds noise to an individual operation.
 
         Args:
@@ -178,15 +178,13 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
 class _NoNoiseModel(NoiseModel):
     """A default noise model that adds no noise."""
 
-    def noisy_moments(self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']):
+    def noisy_moments(self, moments: Iterable[cirq.Moment], system_qubits: Sequence[cirq.Qid]):
         return list(moments)
 
-    def noisy_moment(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.Moment':
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.Moment:
         return moment
 
-    def noisy_operation(self, operation: 'cirq.Operation') -> 'cirq.Operation':
+    def noisy_operation(self, operation: cirq.Operation) -> cirq.Operation:
         return operation
 
     def _value_equality_values_(self) -> Any:
@@ -216,7 +214,7 @@ class ConstantQubitNoiseModel(NoiseModel):
     operation is given as "the noise to use" for a `NOISE_MODEL_LIKE` parameter.
     """
 
-    def __init__(self, qubit_noise_gate: 'cirq.Gate', prepend: bool = False):
+    def __init__(self, qubit_noise_gate: cirq.Gate, prepend: bool = False):
         """Noise model which applies a specific gate as noise to all gates.
 
         Args:
@@ -237,7 +235,7 @@ class ConstantQubitNoiseModel(NoiseModel):
     def __repr__(self) -> str:
         return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
 
-    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]):
         # Noise should not be appended to previously-added noise.
         if self.is_virtual_moment(moment):
             return moment
@@ -260,7 +258,7 @@ class ConstantQubitNoiseModel(NoiseModel):
 
 
 class GateSubstitutionNoiseModel(NoiseModel):
-    def __init__(self, substitution_func: Callable[['cirq.Operation'], 'cirq.Operation']):
+    def __init__(self, substitution_func: Callable[[cirq.Operation], cirq.Operation]):
         """Noise model which replaces operations using a substitution function.
 
         Args:
@@ -268,13 +266,11 @@ class GateSubstitutionNoiseModel(NoiseModel):
         """
         self.substitution_func = substitution_func
 
-    def noisy_moment(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         return moment_module.Moment([self.substitution_func(op) for op in moment.operations])
 
 
-NO_NOISE: 'cirq.NoiseModel' = _NoNoiseModel()
+NO_NOISE: cirq.NoiseModel = _NoNoiseModel()
 document(
     NO_NOISE,
     """The trivial noise model with no effects.
@@ -298,7 +294,7 @@ document(
 )
 
 
-def validate_all_measurements(moment: 'cirq.Moment') -> bool:
+def validate_all_measurements(moment: cirq.Moment) -> bool:
     """Ensures that the moment is homogenous and returns whether all ops are measurement gates.
 
     Args:

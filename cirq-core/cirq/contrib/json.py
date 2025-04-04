@@ -1,6 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-"""Functions for JSON serialization and de-serialization for classes in Contrib.
-"""
+"""Functions for JSON serialization and de-serialization for classes in Contrib."""
 
 from cirq.protocols.json_serialization import DEFAULT_RESOLVERS
 

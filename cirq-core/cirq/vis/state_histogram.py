@@ -14,10 +14,12 @@
 
 """Tool to visualize the results of a study."""
 
-from typing import Optional, Sequence, SupportsFloat, Union
 import collections
-import numpy as np
+from typing import Optional, Sequence, SupportsFloat, Union
+
 import matplotlib.pyplot as plt
+import numpy as np
+
 import cirq.study.result as result
 
 
