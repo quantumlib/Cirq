@@ -41,13 +41,13 @@ or internal Google systems.
     python -m pip install 'cirq-core[contrib]'
     ```
 
-    Install system dependencies that `pip` can't handle.
+    Install system dependencies that `pip` can't handle, such as `texlive-latex-base` to support
+    PDF printing. For Debian-based Linux systems, the necessary packages can be installed using
+    the following command from the top level of the Cirq repository:
 
     ```bash
-    sudo apt-get install texlive-latex-base latexmk
+    sudo apt install $(cat apt-system-requirements.txt)
     ```
-
-    - Without `texlive-latex-base` and `latexmk`, pdf writing functionality will not work.
 
 4. Check that it works!
 
@@ -205,4 +205,3 @@ or internal Google systems.
     #                                     │
     #                                     (9, 4)
     ```
-
