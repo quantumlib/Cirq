@@ -249,9 +249,9 @@ class AQTDevice(cirq.Device):
 
     def __init__(
         self,
-        measurement_duration: 'cirq.DURATION_LIKE',
-        twoq_gates_duration: 'cirq.DURATION_LIKE',
-        oneq_gates_duration: 'cirq.DURATION_LIKE',
+        measurement_duration: cirq.DURATION_LIKE,
+        twoq_gates_duration: cirq.DURATION_LIKE,
+        oneq_gates_duration: cirq.DURATION_LIKE,
         qubits: Iterable[cirq.LineQubit],
     ) -> None:
         """Initializes the description of an ion trap device.
