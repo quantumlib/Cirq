@@ -25,7 +25,7 @@ run-name: >-
   Label pull request ${{github.event.pull_request.number}} by ${{github.actor}}
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - synchronize
