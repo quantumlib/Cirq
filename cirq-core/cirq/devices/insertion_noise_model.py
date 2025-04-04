@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
@@ -42,16 +44,14 @@ class InsertionNoiseModel(devices.NoiseModel):
             with PHYSICAL_GATE_TAG.
     """
 
-    ops_added: Dict[noise_utils.OpIdentifier, 'cirq.Operation'] = dataclasses.field(
+    ops_added: Dict[noise_utils.OpIdentifier, cirq.Operation] = dataclasses.field(
         default_factory=dict
     )
     prepend: bool = False
     require_physical_tag: bool = True
 
-    def noisy_moment(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
-        noise_ops: List['cirq.Operation'] = []
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
+        noise_ops: List[cirq.Operation] = []
         candidate_ops = [
             op
             for op in moment
