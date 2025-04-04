@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import enum
 import itertools
 from typing import Dict, Iterator, Sequence, Tuple, TYPE_CHECKING, Union
@@ -62,7 +64,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         self,
         subgraph: Union[str, BipartiteGraphType],
         part_size: int,
-        swap_gate: 'cirq.Gate' = ops.SWAP,
+        swap_gate: cirq.Gate = ops.SWAP,
     ) -> None:
         super().__init__(2 * part_size, swap_gate)
         self.part_size = part_size
@@ -71,7 +73,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         )
         self.swap_gate = swap_gate
 
-    def decompose_complete(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def decompose_complete(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         swap_gate = SwapPermutationGate(self.swap_gate)
         if self.part_size == 1:
             yield acquaint(*qubits)
@@ -86,7 +88,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 yield acquaint(*qubits[x : x + 2])
                 yield swap_gate(*qubits[x : x + 2])
 
-    def decompose_matching(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def decompose_matching(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         swap_gate = SwapPermutationGate(self.swap_gate)
         for k in range(-self.part_size + 1, self.part_size):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
@@ -95,7 +97,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 else:
                     yield acquaint(*qubits[x : x + 2])
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if len(qubits) != 2 * self.part_size:
             raise ValueError('len(qubits) != 2 * self.part_size')
         if self.subgraph == BipartiteGraphType.COMPLETE:
@@ -122,7 +124,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
             return dict(enumerate(range(2 * self.part_size)))
         raise NotImplementedError(str(self.subgraph) + 'not implemented')
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         qubit_count = 2 * self.part_size
         if args.known_qubit_count not in (None, qubit_count):
             raise ValueError('args.known_qubit_count not in (None, 2 * self.part_size)')

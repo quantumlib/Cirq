@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import warnings
 from dataclasses import dataclass
@@ -127,7 +129,7 @@ class LineTopology(NamedTopology):
         )
         object.__setattr__(self, 'graph', graph)
 
-    def nodes_as_linequbits(self) -> List['cirq.LineQubit']:
+    def nodes_as_linequbits(self) -> List[cirq.LineQubit]:
         """Get the graph nodes as cirq.LineQubit"""
         return [LineQubit(x) for x in sorted(self.graph.nodes)]
 
@@ -142,7 +144,7 @@ class LineTopology(NamedTopology):
         g2 = nx.relabel_nodes(self.graph, {n: (n, 1) for n in self.graph.nodes})
         return draw_gridlike(g2, ax=ax, tilted=tilted, **kwargs)
 
-    def nodes_to_linequbits(self, offset: int = 0) -> Dict[int, 'cirq.LineQubit']:
+    def nodes_to_linequbits(self, offset: int = 0) -> Dict[int, cirq.LineQubit]:
         """Return a mapping from graph nodes to `cirq.LineQubit`
 
         Args:
@@ -240,11 +242,11 @@ class TiltedSquareLattice(NamedTopology):
         """
         return draw_gridlike(self.graph, ax=ax, tilted=tilted, **kwargs)
 
-    def nodes_as_gridqubits(self) -> List['cirq.GridQubit']:
+    def nodes_as_gridqubits(self) -> List[cirq.GridQubit]:
         """Get the graph nodes as cirq.GridQubit"""
         return [GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
 
-    def nodes_to_gridqubits(self, offset=(0, 0)) -> Dict[Tuple[int, int], 'cirq.GridQubit']:
+    def nodes_to_gridqubits(self, offset=(0, 0)) -> Dict[Tuple[int, int], cirq.GridQubit]:
         """Return a mapping from graph nodes to `cirq.GridQubit`
 
         Args:
