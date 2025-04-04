@@ -111,7 +111,9 @@ def test_zip_longest_compatibility():
 
 
 def test_empty_zip():
+    assert len(cirq.Zip()) == 0
     assert len(cirq.ZipLongest()) == 0
+    assert str(cirq.Zip()) == 'Zip()'
     with pytest.raises(ValueError, match='non-empty'):
         _ = cirq.ZipLongest(cirq.Points('e', []), cirq.Points('a', [1, 2, 3]))
 
@@ -142,10 +144,26 @@ def test_product():
     assert _values(sweep, 'a') == [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3]
     assert _values(sweep, 'b') == [4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7]
 
+    sweep = cirq.Points('a', [1, 2]) * (cirq.Points('b', [3, 4]) * cirq.Points('c', [5, 6]))
+    assert len(sweep) == 8
+    assert _values(sweep, 'a') == [1, 1, 1, 1, 2, 2, 2, 2]
+    assert _values(sweep, 'b') == [3, 3, 4, 4, 3, 3, 4, 4]
+    assert _values(sweep, 'c') == [5, 6, 5, 6, 5, 6, 5, 6]
+
+
+def test_zip_addition():
+    zip_sweep = cirq.Zip(cirq.Points('a', [1, 2]), cirq.Points('b', [3, 4]))
+    zip_sweep2 = cirq.Points('c', [5, 6]) + zip_sweep
+    assert len(zip_sweep2) == 2
+    assert _values(zip_sweep2, 'a') == [1, 2]
+    assert _values(zip_sweep2, 'b') == [3, 4]
+    assert _values(zip_sweep2, 'c') == [5, 6]
+
 
 def test_empty_product():
     sweep = cirq.Product()
     assert len(sweep) == len(list(sweep)) == 1
+    assert str(sweep) == 'Product()'
 
 
 def test_slice_access_error():

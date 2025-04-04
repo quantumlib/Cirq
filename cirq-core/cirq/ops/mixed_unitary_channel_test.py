@@ -55,6 +55,7 @@ def test_matrix_mixture_remap_keys():
     mm_x = cirq.MixedUnitaryChannel.from_mixture(dp, key='x')
     assert cirq.with_measurement_key_mapping(mm_x, {'a': 'b'}) is mm_x
     assert cirq.measurement_key_name(cirq.with_key_path(mm_x, ('path',))) == 'path:x'
+    assert cirq.measurement_key_name(cirq.with_key_path_prefix(mm_x, ('path',))) == 'path:x'
 
     mm_a = cirq.MixedUnitaryChannel.from_mixture(dp, key='a')
     mm_b = cirq.MixedUnitaryChannel.from_mixture(dp, key='b')

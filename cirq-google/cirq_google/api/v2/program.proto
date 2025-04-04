@@ -421,6 +421,7 @@ message ArgValue {
     RepeatedString string_values = 7;
     tunits.Value value_with_unit = 8;
     bool bool_value = 9;
+    bytes bytes_value = 10;
   }
 }
 

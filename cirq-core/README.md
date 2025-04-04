@@ -39,7 +39,7 @@ There are two installation options for the `cirq-core` module:
 *   To install the latest pre-release version of `cirq-core`, use
 
     ```shell
-    pip install cirq-core~=1.0.dev
+    pip install --upgrade cirq-core~=1.0.dev
     ```
 
     (The `~=` has a special meaning to `pip` of selecting the latest version
@@ -48,7 +48,7 @@ There are two installation options for the `cirq-core` module:
 
 If you would like to install Cirq with all the optional modules, not just
 `cirq-core`, then instead of the above commands, use `pip install cirq` for the
-stable release or `pip install cirq~=1.0.dev` for the latest pre-release
+stable release or `pip install --upgrade cirq~=1.0.dev` for the latest pre-release
 version.
 
 ## Documentation
