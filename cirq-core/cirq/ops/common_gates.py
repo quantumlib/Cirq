@@ -326,12 +326,6 @@ class XPowGate(eigen_gate.EigenGate):
             d['dimension'] = self.dimension
         return d
 
-    def _value_equality_values_(self):
-        return (*super()._value_equality_values_(), self._dimension)
-
-    def _value_equality_approximate_values_(self):
-        return (*super()._value_equality_approximate_values_(), self._dimension)
-
 
 class Rx(XPowGate):
     r"""A gate with matrix $e^{-i X t/2}$ that rotates around the X axis of the Bloch sphere by $t$.
@@ -861,12 +855,6 @@ class ZPowGate(eigen_gate.EigenGate):
         if self.dimension != 2:
             d['dimension'] = self.dimension
         return d
-
-    def _value_equality_values_(self):
-        return (*super()._value_equality_values_(), self._dimension)
-
-    def _value_equality_approximate_values_(self):
-        return (*super()._value_equality_approximate_values_(), self._dimension)
 
 
 class Rz(ZPowGate):
