@@ -46,7 +46,7 @@ import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
-from cirq.ops import control_values as cv, controlled_gate, eigen_gate, gate_features, raw_types
+from cirq.ops import control_values as cv, controlled_gate, eigen_gate, gate_features, raw_types, global_phase_op as gp
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP, SwapPowGate
 
@@ -1073,6 +1073,14 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _num_qubits_(self) -> int:
         return 2
 
+    def _decompose_(self, qubits):
+        if self.global_shift == 0:
+            return NotImplemented
+        phase_gate = gp.from_phase_and_exponent(self.global_shift, self.exponent)
+        return ([] if phase_gate.is_identity else [phase_gate()]) + [
+            CZPowGate(exponent=self.exponent).on(*qubits)
+        ]
+
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
@@ -1181,10 +1189,10 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
                 )
             )
         result = super().controlled(num_controls, control_values, control_qid_shape)
+        if self._global_shift != 0 or not isinstance(result, controlled_gate.ControlledGate):
+            return result
         if (
-            self._global_shift == 0
-            and isinstance(result, controlled_gate.ControlledGate)
-            and isinstance(result.control_values, cv.ProductOfSums)
+            isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
@@ -1193,7 +1201,12 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             ).controlled(
                 result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
             )
-        return result
+        return controlled_gate.ControlledGate(
+            ZPowGate(exponent=self.exponent),
+            num_controls=result.num_controls() + 1,
+            control_values=result.control_values & cv.ProductOfSums([1]),
+            control_qid_shape=result.control_qid_shape + (2,),
+        )
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

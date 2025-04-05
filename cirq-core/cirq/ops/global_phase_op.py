@@ -22,7 +22,7 @@ import sympy
 import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import control_values as cv, controlled_gate, raw_types
+from cirq.ops import control_values as cv, controlled_gate, raw_types, diagonal_gate as dg
 
 
 @value.value_equality(approximate=True)
@@ -36,6 +36,12 @@ class GlobalPhaseGate(raw_types.Gate):
     @property
     def coefficient(self) -> 'cirq.TParamValComplex':
         return self._coefficient
+
+    @property
+    def is_identity(self) -> bool:
+        return (
+            not protocols.is_parameterized(self._coefficient) and abs(self._coefficient - 1.0) == 0
+        )
 
     def _value_equality_values_(self) -> Any:
         return self.coefficient
@@ -101,26 +107,45 @@ class GlobalPhaseGate(raw_types.Gate):
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         result = super().controlled(num_controls, control_values, control_qid_shape)
+        if self._is_parameterized_() or not isinstance(result, controlled_gate.ControlledGate):
+            return result
+        coefficient = complex(self.coefficient)
+        angle = np.angle(coefficient)
         if (
-            not self._is_parameterized_()
-            and isinstance(result, controlled_gate.ControlledGate)
-            and isinstance(result.control_values, cv.ProductOfSums)
+            isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
             # A `GlobalPhaseGate` controlled on a qubit in state `|1>` is equivalent
             # to applying a `ZPowGate`. This override ensures that `global_phase_gate.controlled()`
             # returns a `ZPowGate` instead of a `ControlledGate(sub_gate=global_phase_gate)`.
-            coefficient = complex(self.coefficient)
-            exponent = float(np.angle(coefficient) / np.pi)
+            exponent = float(angle / np.pi)
             return cirq.ZPowGate(exponent=exponent).controlled(
                 result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
             )
+        if set(result.control_qid_shape) == {2}:
+            # It can also be a diagonal gate where active control values are set to the phase angle.
+            radians = np.zeros(shape=result.control_qid_shape)
+            for hot in result.control_values.expand():
+                radians[hot] = angle
+            return dg.DiagonalGate(list(radians.flatten()))
         return result
-
 
 def global_phase_operation(
     coefficient: 'cirq.TParamValComplex', atol: float = 1e-8
 ) -> 'cirq.GateOperation':
     """Creates an operation that represents a global phase on the state."""
     return GlobalPhaseGate(coefficient, atol)()
+
+
+def from_phase_and_exponent(
+    half_turns: 'cirq.TParamVal', exponent: 'cirq.TParamVal'
+) -> 'cirq.GlobalPhaseGate':
+    """Creates a GlobalPhaseGate from the global phase and exponent."""
+    global_phase = 1j ** (2 * half_turns * exponent)
+    global_phase = (
+        complex(global_phase)
+        if isinstance(global_phase, sympy.Expr) and global_phase.is_complex
+        else global_phase
+    )
+    return GlobalPhaseGate(global_phase)
