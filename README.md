@@ -1,8 +1,10 @@
-# <!-- H1 title omitted because our logo acts as the title. -->
-
+<!-- H1 title omitted because our logo acts as the title. -->
 <div align="center">
-<img width="280px" height="135px" alt="Cirq logo"
-src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color_white_text.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
+  <img alt="Cirq logo" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg" width="300px">
+</picture>
 
 Python package for writing, manipulating, and running [quantum
 circuits](https://en.wikipedia.org/wiki/Quantum_circuit) on quantum computers
@@ -230,7 +232,7 @@ Cirq releases take place approximately every quarter.
 [contribution guidelines]: https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md
 [pull requests]: https://help.github.com/articles/about-pull-requests
 
-## Citing Cirq<a name="how-to-cite-cirq"></a>
+## Citing Cirq<a name="how-to-cite-cirq"></a><a name="how-to-cite"></a>
 
 When publishing articles or otherwise writing about Cirq, please cite the Cirq
 version you use – it will help others reproduce your results. We use Zenodo to
@@ -253,7 +255,7 @@ Zenodo](https://doi.org/10.5281/zenodo.4062499).
 ## Contact
 
 For any questions or concerns not addressed here, please email
-<quantum-oss-maintainers@google.com>.
+quantum-oss-maintainers@google.com.
 
 ## Disclaimer
 
