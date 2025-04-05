@@ -39,7 +39,7 @@ class AsyncioExecutor:
 
     @staticmethod
     async def _main(loop_future: duet.AwaitableFuture) -> None:
-        def handle_exception(loop, context) -> None:
+        def handle_exception(loop, context) -> None:  # pragma: no cover
             # Ignore PollerCompletionQueue errors (see https://github.com/grpc/grpc/issues/25364)
             exc = context.get("exception")
             if exc and isinstance(exc, BlockingIOError) and exc.errno == errno.EAGAIN:
