@@ -63,7 +63,7 @@ class ReturnsMixtureButNoHasMixture:
 
 class ReturnsUnitary:
     def _unitary_(self):
-        return np.ones((2, 2))
+        return np.eye(2)
 
     def _has_unitary_(self):
         return True
@@ -87,8 +87,8 @@ class ReturnsMixtureOfReturnsUnitary:
     (
         (ReturnsValidTuple(), ((0.4, a), (0.6, b))),
         (ReturnsNonnormalizedTuple(), ((0.4, a), (0.4, b))),
-        (ReturnsUnitary(), ((1.0, np.ones((2, 2))),)),
-        (ReturnsMixtureOfReturnsUnitary(), ((0.4, np.ones((2, 2))), (0.6, np.ones((2, 2))))),
+        (ReturnsUnitary(), ((1.0, np.eye(2)),)),
+        (ReturnsMixtureOfReturnsUnitary(), ((0.4, np.eye(2)), (0.6, np.eye(2)))),
     ),
 )
 def test_objects_with_mixture(val, mixture):
