@@ -24,10 +24,10 @@ import sympy
 import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import common_gates, raw_types
+from cirq.ops import raw_types
 
 
-@value.value_equality(manual_cls=True, approximate=True)
+@value.value_equality(approximate=True)
 class PhasedXPowGate(raw_types.Gate):
     r"""A gate equivalent to $Z^{-p} X^t Z^{p}$ (in time order).
 
@@ -241,22 +241,7 @@ class PhasedXPowGate(raw_types.Gate):
 
         return self._exponent % period
 
-    def _value_equality_values_cls_(self):
-        if self.phase_exponent == 0:
-            return common_gates.XPowGate
-        if self.phase_exponent == 0.5:
-            return common_gates.YPowGate
-        return PhasedXPowGate
-
     def _value_equality_values_(self):
-        if self.phase_exponent == 0:
-            return common_gates.XPowGate(
-                exponent=self._exponent, global_shift=self._global_shift
-            )._value_equality_values_()
-        if self.phase_exponent == 0.5:
-            return common_gates.YPowGate(
-                exponent=self._exponent, global_shift=self._global_shift
-            )._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
 
     def _json_dict_(self) -> Dict[str, Any]:
