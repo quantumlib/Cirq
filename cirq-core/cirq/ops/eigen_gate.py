@@ -304,7 +304,14 @@ class EigenGate(raw_types.Gate):
         return self._with_exponent(exponent=new_exponent)
 
     def _value_equality_values_(self):
-        """The phases by which we multiply the eigencomponents."""
+        """The phases by which we multiply the eigenspaces.
+
+        The default implementation assumes that the eigenspaces are constant
+        for the class, and the eigenphases are the only distinguishing
+        characteristics. For gates whose eigenspaces can change, such as
+        `PhasedISwapPowGate`, this must be overridden to provide the additional
+        fields that affect the eigenspaces.
+        """
         symbolic = lambda x: isinstance(x, sympy.Expr) and x.free_symbols
         f = lambda x: x if symbolic(x) else float(x)
         shifts = (f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
