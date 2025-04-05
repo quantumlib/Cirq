@@ -814,3 +814,17 @@ def _can_numpy_support_dims(num_dims: int) -> bool:
 def can_numpy_support_shape(shape: Sequence[int]) -> bool:
     """Returns whether numpy supports the given shape or not numpy/numpy#5744."""
     return min(shape, default=0) >= 0 and _can_numpy_support_dims(len(shape))
+
+
+def phase_delta(u1: np.ndarray, u2: np.ndarray) -> complex:
+    """Calculates the phase delta of two unitaries.
+
+    The delta is from u1 to u2. i.e. u1 * phase_delta(u1, u2) == u2.
+
+    Assumes but does not verify that inputs are valid unitaries and differ only
+    by phase.
+    """
+    # All cells will have the same phase difference. Just choose the cell with the largest
+    # absolute value, to minimize rounding error.
+    max_index = np.unravel_index(np.abs(u1).argmax(), u1.shape)
+    return u2[max_index] / u1[max_index]

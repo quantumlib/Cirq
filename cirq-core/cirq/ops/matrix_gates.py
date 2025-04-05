@@ -14,13 +14,13 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import _import, linalg, protocols
 from cirq._compat import proper_repr
-from cirq.ops import phased_x_z_gate, raw_types
+from cirq.ops import global_phase_op, identity, phased_x_z_gate, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -148,18 +148,34 @@ class MatrixGate(raw_types.Gate):
         return MatrixGate(matrix=result.reshape(self._matrix.shape), qid_shape=self._qid_shape)
 
     def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+        from cirq.circuits import Circuit
+
+        decomposed: List['cirq.Operation'] = NotImplemented
         if self._qid_shape == (2,):
-            return [
+            decomposed = [
                 g.on(qubits[0])
                 for g in single_qubit_decompositions.single_qubit_matrix_to_gates(self._matrix)
             ]
         if self._qid_shape == (2,) * 2:
-            return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
+            decomposed = two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
                 *qubits, self._matrix, allow_partial_czs=True
             )
         if self._qid_shape == (2,) * 3:
-            return three_qubit_decomposition.three_qubit_matrix_to_operations(*qubits, self._matrix)
-        return NotImplemented
+            decomposed = three_qubit_decomposition.three_qubit_matrix_to_operations(
+                *qubits, self._matrix
+            )
+        if decomposed is NotImplemented:
+            return NotImplemented
+        # The above algorithms ignore phase, but phase is important to maintain if the gate is
+        # controlled. Here, we add it back in with a global phase op.
+        ident = identity.IdentityGate(qid_shape=self._qid_shape).on(*qubits)  # Preserve qid order
+        u = protocols.unitary(Circuit(ident, *decomposed)).reshape(self._matrix.shape)
+        phase_delta = linalg.phase_delta(u, self._matrix)
+        # Phase delta is on the complex unit circle, so if real(phase_delta) >= 1, that means
+        # no phase delta. (>1 is rounding error).
+        if phase_delta.real < 1:
+            decomposed.append(global_phase_op.global_phase_operation(phase_delta))
+        return decomposed
 
     def _has_unitary_(self) -> bool:
         return True

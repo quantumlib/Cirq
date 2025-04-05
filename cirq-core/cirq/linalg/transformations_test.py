@@ -653,3 +653,11 @@ def test_transpose_flattened_array(num_dimensions):
 @pytest.mark.parametrize('shape, result', [((), True), (30 * (1,), True), ((-3, 1, -1), False)])
 def test_can_numpy_support_shape(shape: tuple[int, ...], result: bool) -> None:
     assert linalg.can_numpy_support_shape(shape) is result
+
+
+@pytest.mark.parametrize('coeff', [1, 1j, -1, -1j, 1j**0.5, 1j**0.3])
+def test_phase_delta(coeff):
+    u1 = cirq.testing.random_unitary(4)
+    u2 = u1 * coeff
+    np.testing.assert_almost_equal(linalg.phase_delta(u1, u2), coeff)
+    np.testing.assert_almost_equal(u1 * linalg.phase_delta(u1, u2), u2)
