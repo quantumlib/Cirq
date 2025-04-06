@@ -30,13 +30,7 @@ def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation, 
 def test_protobuf_round_trip():
     qubits = cirq.GridQubit.rect(1, 5)
     circuit = cirq.Circuit(
-        [cirq.X(q) ** 0.5 for q in qubits],
-        [
-            cirq.CZ(q, q2)
-            for q in [cirq.GridQubit(0, 0)]
-            for q, q2 in zip(qubits, qubits)
-            if q != q2
-        ],
+        [cirq.X(q) ** 0.5 for q in qubits], [cirq.CZ(qubits[0], q1) for q1 in qubits[1:]]
     )
 
     protos = list(programs.circuit_as_schedule_to_protos(circuit))
