@@ -80,13 +80,16 @@ def test_eq():
         cirq.PhasedXPowGate(exponent=1, phase_exponent=2),
         cirq.PhasedXPowGate(exponent=1, phase_exponent=-2),
     )
+    eq.add_equality_group(cirq.X)
     eq.add_equality_group(cirq.PhasedXPowGate(exponent=1, phase_exponent=2, global_shift=0.1))
 
     eq.add_equality_group(
         cirq.PhasedXPowGate(phase_exponent=0.5, exponent=1),
         cirq.PhasedXPowGate(phase_exponent=2.5, exponent=3),
     )
+    eq.add_equality_group(cirq.Y)
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25))
+    eq.add_equality_group(cirq.Y**0.25)
 
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.25, global_shift=0.1))
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=2.25, exponent=0.25, global_shift=0.2))
