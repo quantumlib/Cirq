@@ -72,6 +72,9 @@ reversing qubit order for phase kickbacks.
 
 import math
 import random
+from collections.abc import Mapping
+from typing import Any
+
 import numpy as np
 import sympy
 import cirq
@@ -208,7 +211,9 @@ class HHLAlgorithm:
     and one without.
     """
 
-    def __init__(self, A, C, t, register_size, *input_prep_gates):
+    def __init__(
+        self, A: np.ndarray, C: float, t: float, register_size: int, *input_prep_gates: cirq.Gate
+    ):
         """Initializes the HHL algorithm.
 
         Args:
@@ -266,7 +271,7 @@ class HHLAlgorithm:
         c.append(cirq.X.on_each(qubits))
         return c
 
-    def amplitude_amplification(self, num_iterations):
+    def amplitude_amplification(self, num_iterations: int):
         """Applies amplitude amplification to increase the probability of measuring the ancilla
         qubit as 1.
 
@@ -291,7 +296,7 @@ class HHLAlgorithm:
 
         return c
 
-    def measure_circuit(self, circuit):
+    def measure_circuit(self, circuit: cirq.Circuit):
         """Measures the ancilla qubit and the memory qubit.
 
         There are two parameters in the circuit, `exponent` and `phase_exponent` corresponding
@@ -316,22 +321,47 @@ class HHLAlgorithm:
 
         return circuit
 
-    def simulate_without_amplification(self, total_runs):
-        """Simulates the HHL circuit without amplitude amplification.
-
-        Measures X, Y and Z on the memory qubit.
-        Only the runs where the ancilla is measured as 1 are considered.
+    def print_results(self, results: list[np.ndarray], num_runs: list[int]) -> np.floating[Any]:
+        """Prints the measurement results for X, Y, and Z measurements.
 
         Args:
-            total_runs: The number of simulation runs.
+            results: List containing memory qubit measurements for X, Y and Z.
+            num_runs: List containing the total number of simulation runs to obtain X, Y and Z.
 
         Returns:
-            The success probability of measuring the ancilla qubit as 1.
+            the success probability, as the mean of (# of successful runs) / (# of runs) needed
+            to obtain an estimate for X, Y and Z.
+        """
+        success_probability = []
+
+        for label, result, runs in zip(('X', 'Y', 'Z'), results, num_runs):
+            expectation = 1 - 2 * np.mean(result)
+            num_estimates = result.shape[0]
+            print(
+                f'{label} = {expectation} from {num_estimates} estimates '
+                f'out of {runs} simulation runs'
+            )
+            success_probability.append(num_estimates / runs)
+
+        return np.mean(success_probability)
+
+    def simulate_without_amplification(self, total_runs: int) -> list[np.ndarray]:
+        """Simulates the HHL circuit without amplitude amplification.
+
+        At the end measures X, Y and Z on the memory qubit.
+        Only the runs where the ancilla is measured as 1 are returned.
+
+        Args:
+            total_runs: The total number of simulations to run.
+
+        Returns:
+            A list containing the simulation results where the ancilla is 1, for each
+            X, Y and Z measurement.
         """
         simulator = cirq.Simulator()
 
         # Cases for measuring X, Y, and Z (respectively) on the memory qubit.
-        params = [
+        params: list[Mapping[str, float]] = [
             {'exponent': 0.5, 'phase_exponent': -0.5},
             {'exponent': 0.5, 'phase_exponent': 0},
             {'exponent': 0, 'phase_exponent': 0},
@@ -341,20 +371,11 @@ class HHLAlgorithm:
             self.measure_circuit(self.hhl_circuit()), params, repetitions=total_runs
         )
 
-        success_probability = []
-        for label, result in zip(('X', 'Y', 'Z'), list(results)):
-            # Only select cases where the ancilla is 1.
-            expectation = 1 - 2 * np.mean(result.measurements['m'][result.measurements['a'] == 1])
-            estimates = (result.measurements['a'] == 1).sum()
-            print(
-                f'{label} = {expectation} from {estimates} estimates '
-                f'out of {total_runs} simulation runs'
-            )
-            success_probability.append(estimates / total_runs)
+        return [result.measurements['m'][result.measurements['a'] == 1] for result in results]
 
-        return np.mean(success_probability)
-
-    def simulate_with_amplification(self, total_estimates):
+    def simulate_with_amplification(
+        self, total_estimates: int
+    ) -> tuple[list[np.ndarray], list[int]]:
         """Simulates the HHL circuit with amplitude amplification.
 
         Amplitude amplification is applied to the HHL circuit until the ancilla is measured as 1.
@@ -362,11 +383,16 @@ class HHLAlgorithm:
 
         Args:
             total_estimates: The number of estimates to obtain for each X, Y and Z measurement.
+
+        Returns:
+            A pair of lists, containing for each X, Y and Z measurement goal:
+                - a numpy array with the results for successful simulations.
+                - the total number of simulation runs.
         """
         simulator = cirq.Simulator()
 
         # Cases for measuring X, Y, and Z (respectively) on the memory qubit.
-        params = [
+        params: list[Mapping[str, float]] = [
             {'exponent': 0.5, 'phase_exponent': -0.5},
             {'exponent': 0.5, 'phase_exponent': 0},
             {'exponent': 0, 'phase_exponent': 0},
@@ -409,13 +435,7 @@ class HHLAlgorithm:
             results.append(np.concatenate(results_for_param, axis=0))
             runs.append(num_runs)
 
-        for label, result, num_runs in zip(('X', 'Y', 'Z'), results, runs):
-            expectation = 1 - 2 * np.mean(result)
-            num_estimates = result.shape[0]
-            print(
-                f'{label} = {expectation} from {num_estimates} estimates '
-                f'out of {num_runs} simulation runs'
-            )
+        return results, runs
 
 
 def main():
@@ -453,7 +473,8 @@ def main():
 
     hhl = HHLAlgorithm(A, C, t, register_size, *input_prep_gates)
     print('Actual values without amplitude amplification: ')
-    success_probability = hhl.simulate_without_amplification(total_runs=5000)
+    results = hhl.simulate_without_amplification(total_runs=5000)
+    success_probability = hhl.print_results(results, num_runs=[5000, 5000, 5000])
     print(
         f'Success probability of a single run without amplitude amplification: '
         f'{success_probability}'
@@ -463,7 +484,14 @@ def main():
     # estimates is set to 5000 * success_probability to be roughly equivalent to 5000 runs
     # without amplitude amplification.
     print('Actual values with amplitude amplification: ')
-    hhl.simulate_with_amplification(total_estimates=int(5000 * success_probability))
+    results, num_runs = hhl.simulate_with_amplification(
+        total_estimates=int(5000 * success_probability)
+    )
+    success_probability = hhl.print_results(results, num_runs)
+    print(
+        f'Success probability of a single run with amplitude amplification: '
+        f'{success_probability}'
+    )
 
 
 if __name__ == '__main__':
