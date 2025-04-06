@@ -1,27 +1,52 @@
-# Summary: coding style configuration for editors that read .editorconfig.
+# Copyright 2025 The Cirq Developers
 #
-# EditorConfig defines a file format for specifying some common coding style
-# parameters. Many editors recognize .editorconfig files automatically, and
-# there exist plugins for other editors. See https://spec.editorconfig.org/.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Common editor configurations for this project.
+#
+# EditorConfig is a file format for specifying some common style parameters.
+# Many IDEs & editors read .editorconfig files, either natively or via plugins.
+# We mostly follow Google's style guides (https://google.github.io/styleguide/)
+# with only a few deviations for line length and indentation in some files.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 root = true
 
 [*]
 charset = utf-8
-end_of_line = lf
+indent_style = space
 insert_final_newline = true
 spelling_language = en-US
 trim_trailing_whitespace = true
+max_line_length = 100
+
+[{*.ts,*.js}]
+# Google style guidelines use 2.
+indent_size = 2
+
+[*.json]
+# Not stated explicitly in Google's guidelines, but the examples use 2.
+indent_size = 2
 
 [*.py]
+# Google style guidelines use 4.
 indent_size = 4
-indent_style = space
-max_line_length = 100
 
 [*.sh]
+# Google style guidelines use 2.
 indent_size = 4
-indent_style = space
-max_line_length = 100
 
-[*.yml,*.yaml]
+[{*.yaml,*.yml}]
+# Google doesn't have style guidelines for YAML. Most people use indent = 2.
 indent_size = 2

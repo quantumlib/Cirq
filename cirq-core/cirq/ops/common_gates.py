@@ -30,8 +30,8 @@ from typing import (
     Any,
     cast,
     Collection,
-    List,
     Dict,
+    List,
     Optional,
     Sequence,
     Tuple,
@@ -46,9 +46,9 @@ import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
-from cirq.ops import controlled_gate, eigen_gate, gate_features, raw_types, control_values as cv
-from cirq.ops.swap_gates import ISWAP, SWAP, ISwapPowGate, SwapPowGate
+from cirq.ops import control_values as cv, controlled_gate, eigen_gate, gate_features, raw_types
 from cirq.ops.measurement_gate import MeasurementGate
+from cirq.ops.swap_gates import ISWAP, ISwapPowGate, SWAP, SwapPowGate
 
 if TYPE_CHECKING:
     import cirq
@@ -177,7 +177,7 @@ class XPowGate(eigen_gate.EigenGate):
             return SingleQubitCliffordGate.X.on(*qubits)
         if self.exponent % 2 == 1.5:
             return SingleQubitCliffordGate.X_nsqrt.on(*qubits)
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_() or self._dimension != 2:
@@ -259,7 +259,7 @@ class XPowGate(eigen_gate.EigenGate):
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._dimension != 2:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         lib = sympy if protocols.is_parameterized(self) else np
         angle = lib.pi * self._exponent / 2
@@ -325,12 +325,6 @@ class XPowGate(eigen_gate.EigenGate):
         if self.dimension != 2:
             d['dimension'] = self.dimension
         return d
-
-    def _value_equality_values_(self):
-        return (*super()._value_equality_values_(), self._dimension)
-
-    def _value_equality_approximate_values_(self):
-        return (*super()._value_equality_approximate_values_(), self._dimension)
 
 
 class Rx(XPowGate):
@@ -451,7 +445,7 @@ class YPowGate(eigen_gate.EigenGate):
             return SingleQubitCliffordGate.Y.on(*qubits)
         if self.exponent % 2 == 1.5:
             return SingleQubitCliffordGate.Y_nsqrt.on(*qubits)
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
@@ -656,7 +650,7 @@ class ZPowGate(eigen_gate.EigenGate):
             return SingleQubitCliffordGate.Z.on(*qubits)
         if self.exponent % 2 == 1.5:
             return SingleQubitCliffordGate.Z_nsqrt.on(*qubits)
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def in_su2(self) -> 'Rz':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -765,7 +759,7 @@ class ZPowGate(eigen_gate.EigenGate):
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._dimension != 2:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         lib = sympy if protocols.is_parameterized(self) else np
         angle = lib.pi * self._exponent / 2
@@ -861,12 +855,6 @@ class ZPowGate(eigen_gate.EigenGate):
         if self.dimension != 2:
             d['dimension'] = self.dimension
         return d
-
-    def _value_equality_values_(self):
-        return (*super()._value_equality_values_(), self._dimension)
-
-    def _value_equality_approximate_values_(self):
-        return (*super()._value_equality_approximate_values_(), self._dimension)
 
 
 class Rz(ZPowGate):
@@ -982,7 +970,7 @@ class HPowGate(eigen_gate.EigenGate):
             return SingleQubitCliffordGate.H.on(*qubits)
         if self.exponent % 2 == 0:
             return []
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -1080,7 +1068,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             return PauliInteractionGate.CZ.on(*qubits)
         if self.exponent % 2 == 0:
             return []
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 1, 1, 0])), (1, np.diag([0, 0, 0, 1]))]
@@ -1275,7 +1263,7 @@ class CXPowGate(eigen_gate.EigenGate):
             return PauliInteractionGate.CNOT.on(*qubits)
         if self.exponent % 2 == 0:
             return []
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def _decompose_(self, qubits):
         c, t = qubits

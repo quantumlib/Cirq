@@ -12,8 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pickle
+
+import pytest
+
 import cirq
 
 
 def test_repr():
     assert repr(cirq.InsertStrategy.NEW) == 'cirq.InsertStrategy.NEW'
+    assert str(cirq.InsertStrategy.NEW) == 'NEW'
+
+
+@pytest.mark.parametrize(
+    'strategy',
+    [
+        cirq.InsertStrategy.NEW,
+        cirq.InsertStrategy.NEW_THEN_INLINE,
+        cirq.InsertStrategy.INLINE,
+        cirq.InsertStrategy.EARLIEST,
+    ],
+    ids=lambda strategy: strategy.name,
+)
+def test_identity_after_pickling(strategy: cirq.InsertStrategy):
+    unpickled_strategy = pickle.loads(pickle.dumps(strategy))
+    assert unpickled_strategy is strategy

@@ -14,6 +14,7 @@
 import itertools
 from typing import Optional
 from unittest import mock
+
 import pytest
 
 import cirq
@@ -357,7 +358,7 @@ class RecursiveDecompose(cirq.Gate):
 
     def _decompose_(self, qubits):
         if self.with_context:
-            assert False
+            assert False  # pragma: no cover
         else:
             return self._decompose_impl(qubits, self.mock_qm)
 

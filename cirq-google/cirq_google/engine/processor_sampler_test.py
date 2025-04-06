@@ -14,8 +14,8 @@
 
 from unittest import mock
 
-import pytest
 import duet
+import pytest
 
 import cirq
 import cirq_google as cg

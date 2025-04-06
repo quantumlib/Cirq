@@ -14,8 +14,8 @@
 
 import pytest
 
-from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 import cirq
+from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 
 
 def test_init():

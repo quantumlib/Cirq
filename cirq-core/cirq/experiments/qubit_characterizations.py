@@ -13,33 +13,32 @@
 # limitations under the License.
 
 import dataclasses
-import itertools
 import functools
-
+import itertools
 from typing import (
-    cast,
     Any,
+    cast,
+    Dict,
     Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
     TYPE_CHECKING,
-    Mapping,
-    Dict,
 )
-import numpy as np
-from scipy.optimize import curve_fit
 
+import numpy as np
 from matplotlib import pyplot as plt
-import cirq.vis.heatmap as cirq_heatmap
-import cirq.vis.histogram as cirq_histogram
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d
+from scipy.optimize import curve_fit
+
+import cirq.vis.heatmap as cirq_heatmap
+import cirq.vis.histogram as cirq_histogram
 from cirq import circuits, ops, protocols
 from cirq.devices import grid_qubit
-
 
 if TYPE_CHECKING:
     import cirq
@@ -286,7 +285,9 @@ class TomographyResult:
         """
         return self._density_matrix
 
-    def plot(self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any) -> List[plt.Axes]:
+    def plot(
+        self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any
+    ) -> List[plt.Axes]:  # pragma: no cover
         """Plots the real and imaginary parts of the density matrix as two 3D bar plots.
 
         Args:
@@ -781,7 +782,7 @@ def _matrix_bar_plot(
     title: Optional[str] = None,
     ylim: Tuple[int, int] = (-1, 1),
     **bar3d_kwargs: Any,
-) -> None:
+) -> None:  # pragma: no cover
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()

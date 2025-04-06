@@ -14,12 +14,12 @@
 
 
 from unittest.mock import patch
-import pytest
 
 import numpy as np
+import pytest
 
 import cirq
-from cirq.transformers.gauge_compiling import GaugeTransformer, GaugeSelector
+from cirq.transformers.gauge_compiling import GaugeSelector, GaugeTransformer
 
 
 class GaugeTester:

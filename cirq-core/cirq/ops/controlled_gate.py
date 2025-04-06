@@ -22,19 +22,18 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Union,
     TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
 
-from cirq import protocols, value, _import
+from cirq import _import, protocols, value
 from cirq.ops import (
     control_values as cv,
     controlled_operation as cop,
     diagonal_gate as dg,
     global_phase_op as gp,
-    matrix_gates,
     op_tree,
     raw_types,
 )
@@ -220,12 +219,6 @@ class ControlledGate(raw_types.Gate):
                     control_qid_shape=self.control_qid_shape,
                 ).on(*control_qubits)
                 return [result, controlled_phase_op]
-
-        if isinstance(self.sub_gate, matrix_gates.MatrixGate):
-            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
-            # local phase in the controlled variant and hence cannot be ignored.
-            return NotImplemented
-
         result = protocols.decompose_once_with_qubits(
             self.sub_gate,
             qubits[self.num_controls() :],
@@ -314,7 +307,7 @@ class ControlledGate(raw_types.Gate):
             return None
         u = protocols.unitary(self.sub_gate, default=None)
         if u is None:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 

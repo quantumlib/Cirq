@@ -13,21 +13,20 @@
 # limitations under the License.
 import abc
 from types import NotImplementedType
-from typing import Any, cast, Tuple, TYPE_CHECKING, Union, Dict
+from typing import Any, cast, Dict, Tuple, TYPE_CHECKING, Union
 
 from cirq._doc import document
 from cirq._import import LazyLoader
-from cirq.ops import common_gates, raw_types, identity
-
+from cirq.ops import common_gates, identity, raw_types
 
 if TYPE_CHECKING:
     import cirq
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
-    from cirq.value.product_state import (
+    from cirq.value.product_state import (  # pragma: no cover
         _XEigenState,
         _YEigenState,
         _ZEigenState,
-    )  # pragma: no cover
+    )
 
 
 pauli_string = LazyLoader("pauli_string", globals(), "cirq.ops.pauli_string")
@@ -103,11 +102,6 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             raise ValueError(f'Expected a single qubit, got <{qubits!r}>.')
 
         return pauli_string.SingleQubitPauliStringGateOperation(self, qubits[0])
-
-    @property
-    def _canonical_exponent(self):
-        """Overrides EigenGate._canonical_exponent in subclasses."""
-        return 1
 
 
 class _PauliX(Pauli, common_gates.XPowGate):

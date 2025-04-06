@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 from typing import List, Optional
 
-import os
 import requests
 
-from dev_tools import shell_tools, github_repository
+from dev_tools import github_repository, shell_tools
 
 
 class PreparedEnv:

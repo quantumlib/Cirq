@@ -14,10 +14,11 @@
 
 import abc
 from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import proper_repr, _method_cache_name, cached_method
+from cirq._compat import _method_cache_name, cached_method, proper_repr
 from cirq.qis import quantum_state_representation
 from cirq.value import big_endian_int_to_digits, linear_dict, random_state
 

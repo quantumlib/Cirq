@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Dict, List, TYPE_CHECKING
-import pytest
+
 import numpy as np
+import pytest
+
 import cirq
 from cirq_google.engine.abstract_job import AbstractJob
 
 if TYPE_CHECKING:
     import datetime
+
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_program as abstract_program
 

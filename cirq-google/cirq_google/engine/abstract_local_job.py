@@ -14,7 +14,6 @@
 """A helper for jobs that have been created on the Quantum Engine."""
 import copy
 import datetime
-
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import cirq
@@ -22,9 +21,9 @@ from cirq_google.engine import calibration
 from cirq_google.engine.abstract_job import AbstractJob
 
 if TYPE_CHECKING:
-    from cirq_google.engine.abstract_local_program import AbstractLocalProgram
-    from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
     from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
+    from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
+    from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 
 
 class AbstractLocalJob(AbstractJob):

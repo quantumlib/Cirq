@@ -13,17 +13,16 @@
 # limitations under the License.
 """An `XPowGate` conjugated by `ZPowGate`s."""
 
-from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
-
 import math
 import numbers
+from types import NotImplementedType
+from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
 
 import cirq
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import common_gates, raw_types
 
@@ -117,7 +116,7 @@ class PhasedXPowGate(raw_types.Gate):
     def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'PhasedXPowGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return PhasedXPowGate(
             phase_exponent=self._phase_exponent,
             exponent=new_exponent,

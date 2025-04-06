@@ -13,8 +13,7 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
-from typing import Sequence
-from typing import Union
+from typing import Sequence, Union
 
 import cirq
 from cirq_ionq import ionq_gateset

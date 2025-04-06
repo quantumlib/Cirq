@@ -1,0 +1,86 @@
+[
+  {
+    "cirq_type": "BitMaskKeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "a",
+      "path": []
+    },
+    "index": 59,
+    "target_value": 0,
+    "equal_target": false,
+    "bitmask": null
+  },
+  {
+    "cirq_type": "BitMaskKeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "b",
+      "path": []
+    },
+    "index": 58,
+    "target_value": 3,
+    "equal_target": false,
+    "bitmask": null
+  },
+  {
+    "cirq_type": "BitMaskKeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "c",
+      "path": []
+    },
+    "index": 57,
+    "target_value": 0,
+    "equal_target": false,
+    "bitmask": 13
+  },
+  {
+    "cirq_type": "BitMaskKeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "d",
+      "path": []
+    },
+    "index": 56,
+    "target_value": 12,
+    "equal_target": false,
+    "bitmask": 13
+  },
+  {
+    "cirq_type": "BitMaskKeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "d",
+      "path": []
+    },
+    "index": 55,
+    "target_value": 12,
+    "equal_target": true,
+    "bitmask": 13
+  },
+  {
+    "cirq_type": "BitMaskKeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "e",
+      "path": []
+    },
+    "index": 54,
+    "target_value": 11,
+    "equal_target": true,
+    "bitmask": 11
+  },
+  {
+    "cirq_type": "BitMaskKeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "e",
+      "path": []
+    },
+    "index": 53,
+    "target_value": 9,
+    "equal_target": false,
+    "bitmask": 9
+  }
+]

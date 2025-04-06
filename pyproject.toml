@@ -15,16 +15,31 @@ include = [
 ]
 omit = ["benchmarks/*"]
 
+
 [tool.coverage.report]
 exclude_also = [
+    "^ *pass$",
+    "^ *raise NotImplementedError",
     "if TYPE_CHECKING:",
 ]
+
+
+[tool.isort]
+profile = 'black'
+line_length = 100
+order_by_type = false # Sort alphabetically, irrespective of case.
+skip_gitignore = true
+combine_as_imports = true
+known_first_party = ["cirq*"]
+extend_skip = ["__init__.py"]
+extend_skip_glob = ["*_pb2.py"]
 
 
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
     "ignore:FigureCanvasAgg is non-interactive.*cannot be shown:UserWarning",
+    "ignore::UserWarning:cotengra.hyperoptimizers.hyper",
 ]
 markers = [
     "rigetti_integration: tests that connect to Quil compiler or QVM.",

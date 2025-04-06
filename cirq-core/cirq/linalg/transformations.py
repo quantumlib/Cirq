@@ -15,6 +15,7 @@
 """Utility methods for transforming matrices or vectors."""
 
 import dataclasses
+import functools
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -28,8 +29,6 @@ from cirq.linalg import predicates
 # case. It is checked for using `is`, so it won't have a false positive if the
 # user provides a different np.array([]) value.
 RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
-
-_NPY_MAXDIMS = 32  # Should be changed once numpy/numpy#5744 is resolved.
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
@@ -154,7 +153,6 @@ def targeted_left_multiply(
 
     all_indices = set(input_indices + data_indices + tuple(output_indices))
 
-    # TODO(#5757): remove type ignore when numpy has proper override signature.
     return np.einsum(
         left_matrix,
         input_indices,
@@ -165,10 +163,8 @@ def targeted_left_multiply(
         # but this is a workaround for a bug in numpy:
         #     https://github.com/numpy/numpy/issues/10926
         optimize=len(all_indices) >= 26,
-        # And this is workaround for *another* bug!
-        # Supposed to be able to just say 'old=old'.
-        **({'out': out} if out is not None else {}),
-    )  # type: ignore
+        out=out,
+    )
 
 
 @dataclasses.dataclass
@@ -407,13 +403,12 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     if not all(i < ndim for i in keep_indices):
         raise ValueError(
             f'keep_indices were {keep_indices} but must be in first half, '
-            f'i.e. have index less that {ndim}.'
+            f'i.e. have index less than {ndim}.'
         )
     keep_set = set(keep_indices)
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
     left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
     right_indices = [ndim + i if i in keep_set else i for i in left_indices]
-    # TODO(#5757): remove type ignore when numpy has proper override signature.
     return np.einsum(tensor, left_indices + right_indices)
 
 
@@ -807,6 +802,29 @@ def transpose_flattened_array(t: np.ndarray, shape: Sequence[int], axes: Sequenc
     return ret
 
 
+@functools.cache
+def _can_numpy_support_dims(num_dims: int) -> bool:
+    try:
+        _ = np.empty((1,) * num_dims)
+        return True
+    except ValueError:  # pragma: no cover
+        return False
+
+
 def can_numpy_support_shape(shape: Sequence[int]) -> bool:
     """Returns whether numpy supports the given shape or not numpy/numpy#5744."""
-    return len(shape) <= _NPY_MAXDIMS
+    return min(shape, default=0) >= 0 and _can_numpy_support_dims(len(shape))
+
+
+def phase_delta(u1: np.ndarray, u2: np.ndarray) -> complex:
+    """Calculates the phase delta of two unitaries.
+
+    The delta is from u1 to u2. i.e. u1 * phase_delta(u1, u2) == u2.
+
+    Assumes but does not verify that inputs are valid unitaries and differ only
+    by phase.
+    """
+    # All cells will have the same phase difference. Just choose the cell with the largest
+    # absolute value, to minimize rounding error.
+    max_index = np.unravel_index(np.abs(u1).argmax(), u1.shape)
+    return u2[max_index] / u1[max_index]

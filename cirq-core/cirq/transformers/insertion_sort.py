@@ -16,7 +16,7 @@
 
 from typing import Dict, List, Optional, TYPE_CHECKING
 
-from cirq import protocols, circuits
+from cirq import circuits, protocols
 from cirq.transformers import transformer_api
 
 if TYPE_CHECKING:

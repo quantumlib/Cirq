@@ -18,7 +18,6 @@ import attrs
 
 from cirq_google.api.v2 import program_pb2
 
-
 SUPPORTED_DD_PROTOCOLS = frozenset(
     [
         "X",  # An even number of X
