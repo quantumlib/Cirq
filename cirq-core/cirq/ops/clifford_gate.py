@@ -19,10 +19,10 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Un
 
 import numpy as np
 
-from cirq import protocols, value, linalg, qis
-from cirq._import import LazyLoader
+from cirq import linalg, protocols, qis, value
 from cirq._compat import cached_method
-from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
+from cirq._import import LazyLoader
+from cirq.ops import common_gates, named_qubit, pauli_gates, phased_x_z_gate, raw_types
 from cirq.ops.pauli_gates import Pauli
 
 if TYPE_CHECKING:
@@ -130,22 +130,10 @@ def _pad_tableau(
     return padded_tableau
 
 
-def _gate_tableau(num_qubits: int, gate: raw_types.Gate) -> 'cirq.CliffordTableau':
-    qubits = devices.LineQubit.range(num_qubits)
-    t = qis.CliffordTableau(num_qubits=num_qubits)
-    args = sim.CliffordTableauSimulationState(
-        tableau=t, qubits=qubits, prng=np.random.RandomState()
-    )
-    protocols.act_on(gate, args, qubits, allow_decompose=False)
-    return args.tableau
-
-
 class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     # These are class properties so we define them as properties on a metaclass.
-    # Note that in python 3.9+ @classmethod can be used with @property, so these
-    # can be moved to CommonCliffordGates.
 
     @property
     def all_single_qubit_cliffords(cls) -> Sequence['cirq.SingleQubitCliffordGate']:
@@ -377,7 +365,10 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         #  ZI  [ 0  0 | 1  0  | 1 ]
         #  IZ  [ 1  0 | 1  1  | 0 ]
         # Take the third row as example: this means the ZI gate after the this gate,
-        # more precisely the conjugate transformation of ZI by this gate, becomes -ZI.
+        # more precisely the conjugate transformation of ZI by this gate, becomes -ZI:
+        #   ---(CliffordGate^-1)---ZI---CliffordGate---
+        # = unitary(CliffordGate)@unitary(ZI)@unitary(CliffordGate).conj().T
+        # = -ZI.
         # (Note the real clifford tableau has to satify the Symplectic property.
         # here is just for illustration)
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
@@ -402,7 +393,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
 
     def __pow__(self, exponent: float) -> 'CliffordGate':
         if exponent != int(exponent):
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         exponent = int(exponent)
 
         if exponent == -1:
@@ -433,19 +424,19 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         return CliffordGate.from_clifford_tableau(base_tableau)
 
     def __repr__(self) -> str:
-        return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
+        return f"Clifford Gate with Tableau:\n{self.clifford_tableau._str_full_()}"
 
     def _commutes_(
         self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
-        # Note even if we assume two gates define the tabluea based on the same qubit order,
+        # Note even if we assume two gates define the tableau based on the same qubit order,
         # the following approach cannot judge it:
         # self.clifford_tableau.then(other.clifford_tableau) == other.clifford_tableau.then(
         #     self.clifford_tableau
         # )
         # For example: X.then(Z) and Z.then(X) both return same tableau
         # it is because Clifford tableau ignores the global phase information.
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         return transformers.analytical_decompositions.decompose_clifford_tableau_to_operations(
@@ -474,7 +465,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             # is aimed to fix that.
             return NotImplemented
 
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
 
 @dataclass(frozen=True, init=False, eq=False, repr=False)
@@ -742,10 +733,11 @@ class SingleQubitCliffordGate(CliffordGate):
             z = -0.5 if x_to_flip else 0.5
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
-    def __pow__(self, exponent: Union[float, int]) -> 'SingleQubitCliffordGate':
+    def __pow__(self, exponent: float) -> 'SingleQubitCliffordGate':
         if int(exponent) == exponent:
             # The single qubit Clifford gates are a group of size 24
-            ret_gate = super().__pow__(int(exponent) % 24)
+            exp = int(exponent) % 24
+            ret_gate = super().__pow__(exp if exp != 23 else -1)
             return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
         elif int(2 * exponent) == 2 * exponent:
             # If exponent = k/2 for integer k, then we compute the k-th power of the square root

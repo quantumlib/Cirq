@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
+import collections
+import itertools
 from typing import (
     Any,
     cast,
@@ -21,14 +24,11 @@ from typing import (
     Optional,
     overload,
     Sequence,
-    TYPE_CHECKING,
     Tuple,
+    TYPE_CHECKING,
     Union,
 )
 
-import abc
-import collections
-import itertools
 import sympy
 
 from cirq import protocols
@@ -216,7 +216,8 @@ class Product(Sweep):
     If one sweep assigns 'a' to the values 0, 1, 2, and the second sweep
     assigns 'b' to the values 2, 3, then the product is a sweep that
     assigns the tuple ('a','b') to all possible combinations of these
-    assignments: (0, 2), (1, 2), (2, 2), (0, 3), (1, 3), (2, 3).
+    assignments: (0, 2), (0, 3), (1, 2), (1, 3), (2, 2), (2, 3).
+    That is, the leftmost sweep is the outer loop in a product of sweeps.
     """
 
     def __init__(self, *factors: Sweep) -> None:

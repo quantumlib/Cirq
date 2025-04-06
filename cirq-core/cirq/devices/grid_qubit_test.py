@@ -58,7 +58,7 @@ def test_grid_qid_pickled_hash():
     _test_qid_pickled_hash(q, q_bad)
 
 
-def _test_qid_pickled_hash(q: 'cirq.Qid', q_bad: 'cirq.Qid') -> None:
+def _test_qid_pickled_hash(q: cirq.Qid, q_bad: cirq.Qid) -> None:
     """Test that hashes are not pickled with Qid instances."""
     assert q_bad is not q
     _ = hash(q_bad)  # compute hash to ensure it is cached.
@@ -393,22 +393,30 @@ def test_complex():
     assert isinstance(complex(cirq.GridQubit(row=1, col=2)), complex)
 
 
-def test_numpy_index():
-    np5, np6, np3 = [np.int64(i) for i in [5, 6, 3]]
+@pytest.mark.parametrize('dtype', (np.int8, np.int64, float, np.float64))
+def test_numpy_index(dtype):
+    np5, np6, np3 = [dtype(i) for i in [5, 6, 3]]
     q = cirq.GridQubit(np5, np6)
-    hash(q)  # doesn't throw
+    assert hash(q) == hash(cirq.GridQubit(5, 6))
     assert q.row == 5
     assert q.col == 6
     assert q.dimension == 2
-    assert isinstance(q.row, int)
-    assert isinstance(q.col, int)
     assert isinstance(q.dimension, int)
 
     q = cirq.GridQid(np5, np6, dimension=np3)
-    hash(q)  # doesn't throw
+    assert hash(q) == hash(cirq.GridQid(5, 6, dimension=3))
     assert q.row == 5
     assert q.col == 6
     assert q.dimension == 3
-    assert isinstance(q.row, int)
-    assert isinstance(q.col, int)
     assert isinstance(q.dimension, int)
+
+
+@pytest.mark.parametrize('dtype', (float, np.float64))
+def test_non_integer_index(dtype):
+    # Not supported type-wise, but is used in practice, so behavior needs to be preserved.
+    q = cirq.GridQubit(dtype(5.5), dtype(6.5))
+    assert hash(q) == hash(cirq.GridQubit(5.5, 6.5))
+    assert q.row == 5.5
+    assert q.col == 6.5
+    assert isinstance(q.row, dtype)
+    assert isinstance(q.col, dtype)

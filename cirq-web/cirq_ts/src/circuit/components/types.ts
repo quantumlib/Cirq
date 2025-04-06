@@ -13,13 +13,7 @@
 // limitations under the License.
 
 import {Group, Vector3} from 'three';
-import {
-  BoxGate3DSymbol,
-  ConnectionLine,
-  Control3DSymbol,
-  Swap3DSymbol,
-  X3DSymbol,
-} from './meshes';
+import {BoxGate3DSymbol, ConnectionLine, Control3DSymbol, Swap3DSymbol, X3DSymbol} from './meshes';
 
 export interface SymbolInformation {
   readonly wire_symbols: string[];

@@ -16,6 +16,7 @@ import abc
 import dataclasses
 from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING
 
+import attrs
 import sympy
 
 from cirq._compat import proper_repr
@@ -133,6 +134,112 @@ class KeyCondition(Condition):
         if args.meas_key_bitcount[str(key)] != 1:
             raise ValueError('QASM is defined only for single-bit classical conditions.')
         return f'{key}==1'
+
+
+@attrs.frozen
+class BitMaskKeyCondition(Condition):
+    """A multiqubit classical control condition with a bitmask.
+
+    The control is based on a single measurement key and allows comparing equality or inequality
+    after taking the bitwise and with a bitmask.
+
+    Examples:
+        - BitMaskKeycondition('a') -> a != 0
+        - BitMaskKeyCondition('a', bitmask=13) -> (a & 13) != 0
+        - BitMaskKeyCondition('a', bitmask=13, target_value=9) -> (a & 13) != 9
+        - BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=True) -> (a & 13) == 9
+        - BitMaskKeyCondition.create_equal_mask('a', 13) -> (a & 13) == 13
+        - BitMaskKeyCondition.create_not_equal_mask('a', 13) -> (a & 13) != 13
+
+    The bits in the bitmask have the same order as the qubits passed to `cirq.measure(...)`. That's
+    the most significant bit corresponds to the the first (left most) qubit.
+
+    Attributes:
+        - key: Measurement key.
+        - index: integer index (same as KeyCondition.index).
+        - target_value: The value we compare with.
+        - equal_target: Whether to comapre with == or !=.
+        - bitmask: Optional bitmask to apply before doing the comparison.
+    """
+
+    key: 'cirq.MeasurementKey' = attrs.field(
+        converter=lambda x: (
+            x
+            if isinstance(x, measurement_key.MeasurementKey)
+            else measurement_key.MeasurementKey(x)
+        )
+    )
+    index: int = -1
+    target_value: int = 0
+    equal_target: bool = False
+    bitmask: Optional[int] = None
+
+    @property
+    def keys(self):
+        return (self.key,)
+
+    @staticmethod
+    def create_equal_mask(
+        key: 'cirq.MeasurementKey', bitmask: int, *, index: int = -1
+    ) -> 'BitMaskKeyCondition':
+        """Creates a condition that evaluates (meas & bitmask) == bitmask."""
+        return BitMaskKeyCondition(
+            key, index, target_value=bitmask, equal_target=True, bitmask=bitmask
+        )
+
+    @staticmethod
+    def create_not_equal_mask(
+        key: 'cirq.MeasurementKey', bitmask: int, *, index: int = -1
+    ) -> 'BitMaskKeyCondition':
+        """Creates a condition that evaluates (meas & bitmask) != bitmask."""
+        return BitMaskKeyCondition(
+            key, index, target_value=bitmask, equal_target=False, bitmask=bitmask
+        )
+
+    def replace_key(self, current: 'cirq.MeasurementKey', replacement: 'cirq.MeasurementKey'):
+        return BitMaskKeyCondition(replacement) if self.key == current else self
+
+    def __str__(self):
+        s = str(self.key) if self.index == -1 else f'{self.key}[{self.index}]'
+        if self.bitmask is not None:
+            s = f'{s} & {self.bitmask}'
+        if self.equal_target:
+            if self.bitmask is not None:
+                s = f'({s})'
+            s = f'{s} == {self.target_value}'
+        elif self.target_value != 0:
+            if self.bitmask is not None:
+                s = f'({s})'
+            s = f'{s} != {self.target_value}'
+        return s
+
+    def __repr__(self):
+        values = attrs.asdict(self)
+        parameters = ', '.join(f'{f.name}={repr(values[f.name])}' for f in attrs.fields(type(self)))
+        return f'cirq.BitMaskKeyCondition({parameters})'
+
+    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
+        if self.key not in classical_data.keys():
+            raise ValueError(f'Measurement key {self.key} missing when testing classical control')
+        value = classical_data.get_int(self.key, self.index)
+        if self.bitmask is not None:
+            value &= self.bitmask
+        if self.equal_target:
+            return value == self.target_value
+        return value != self.target_value
+
+    def _json_dict_(self):
+        return json_serialization.attrs_json_dict(self)
+
+    @classmethod
+    def _from_json_dict_(cls, key, **kwargs):
+        parameter_names = [f.name for f in attrs.fields(cls)[1:]]
+        parameters = {k: kwargs[k] for k in parameter_names if k in kwargs}
+        return cls(key=key, **parameters)
+
+    @property
+    def qasm(self):
+        raise NotImplementedError()
 
 
 @dataclasses.dataclass(frozen=True)

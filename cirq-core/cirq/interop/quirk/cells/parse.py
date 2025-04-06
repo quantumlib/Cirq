@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cmath
+import re
 from typing import (
     Any,
     Callable,
@@ -22,13 +24,10 @@ from typing import (
     List,
     Mapping,
     Optional,
-    Union,
     SupportsFloat,
     TypeVar,
+    Union,
 )
-
-import cmath
-import re
 
 import numpy as np
 import sympy
@@ -86,7 +85,7 @@ def _tokenize(text: str) -> List[str]:
     return _merge_scientific_float_tokens(g for g in result if g.strip())
 
 
-_ResolvedToken = Union[sympy.Expr, int, float, complex]
+_ResolvedToken = Union[sympy.Expr, complex]
 
 
 class _CustomQuirkOperationToken:

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import numbers
-from typing import AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, Optional
+from typing import AbstractSet, Any, cast, Dict, Optional, SupportsFloat, Tuple, TYPE_CHECKING
 
 import numpy as np
 

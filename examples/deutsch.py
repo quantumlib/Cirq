@@ -29,7 +29,7 @@ result=1
 import random
 
 import cirq
-from cirq import H, X, CNOT, measure
+from cirq import CNOT, H, measure, X
 
 
 def main():

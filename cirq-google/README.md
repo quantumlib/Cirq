@@ -41,7 +41,7 @@ installation options for the `cirq-google` module:
 *   To install the latest pre-release version of `cirq-google`, use
 
     ```shell
-    pip install cirq-google~=1.0.dev
+    pip install --upgrade cirq-google~=1.0.dev
     ```
 
     (The `~=` has a special meaning to `pip` of selecting the latest version
@@ -50,7 +50,7 @@ installation options for the `cirq-google` module:
 
 If you would like to install Cirq with all the optional modules, not just
 `cirq-google`, then instead of the above commands, use `pip install cirq` for
-the stable release or `pip install cirq~=1.0.dev` for the latest pre-release
+the stable release or `pip install --upgrade cirq~=1.0.dev` for the latest pre-release
 version.
 
 ## Documentation

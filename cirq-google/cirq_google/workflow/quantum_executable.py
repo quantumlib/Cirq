@@ -17,10 +17,10 @@
 import abc
 import dataclasses
 from dataclasses import dataclass
-from typing import Union, Tuple, Optional, Sequence, cast, Dict, Any, List, Iterator
+from typing import Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 
 import cirq
-from cirq import _compat, study
+from cirq import _compat
 
 
 class ExecutableSpec(metaclass=abc.ABCMeta):
@@ -193,7 +193,7 @@ class QuantumExecutable:
             isinstance(param_kv, Sequence) and len(param_kv) == 2 for param_kv in params
         ):
             frozen_params = tuple((k, v) for k, v in params)
-        elif study.resolver._is_param_resolver_or_similar_type(params):
+        elif params is None or isinstance(params, (cirq.ParamResolver, dict)):
             param_resolver = cirq.ParamResolver(cast(cirq.ParamResolverOrSimilarType, params))
             frozen_params = tuple(param_resolver.param_dict.items())
         else:

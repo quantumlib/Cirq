@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import functools
 import weakref
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TYPE_CHECKING, Union
-from typing_extensions import Self
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
+from typing_extensions import Self
 
 from cirq import ops, protocols
 
@@ -104,17 +106,17 @@ class _BaseGridQid(ops.Qid):
     def dimension(self) -> int:
         return self._dimension
 
-    def with_dimension(self, dimension: int) -> 'GridQid':
+    def with_dimension(self, dimension: int) -> GridQid:
         return GridQid(self._row, self._col, dimension=dimension)
 
-    def is_adjacent(self, other: 'cirq.Qid') -> bool:
+    def is_adjacent(self, other: cirq.Qid) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (
             isinstance(other, GridQubit)
             and abs(self._row - other._row) + abs(self._col - other._col) == 1
         )
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseGridQid']:
+    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set[_BaseGridQid]:
         """Returns qubits that are potential neighbors to this GridQid
 
         Args:
@@ -204,7 +206,7 @@ class GridQid(_BaseGridQid):
     # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[Tuple[int, int, int], 'cirq.GridQid']()
 
-    def __new__(cls, row: int, col: int, *, dimension: int) -> 'cirq.GridQid':
+    def __new__(cls, row: int, col: int, *, dimension: int) -> cirq.GridQid:
         """Creates a grid qid at the given row, col coordinate
 
         Args:
@@ -213,8 +215,6 @@ class GridQid(_BaseGridQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         """
-        row = int(row)
-        col = int(col)
         dimension = int(dimension)
         key = (row, col, dimension)
         inst = cls._cache.get(key)
@@ -224,7 +224,7 @@ class GridQid(_BaseGridQid):
             inst._row = row
             inst._col = col
             inst._dimension = dimension
-            inst._hash = ((dimension - 2) * 1_000_003 + col) * 1_000_003 + row
+            inst._hash = ((dimension - 2) * 1_000_003 + hash(col)) * 1_000_003 + hash(row)
             cls._cache[key] = inst
         return inst
 
@@ -236,11 +236,11 @@ class GridQid(_BaseGridQid):
     def __getstate__(self) -> Dict[str, Any]:
         return {}
 
-    def _with_row_col(self, row: int, col: int) -> 'GridQid':
+    def _with_row_col(self, row: int, col: int) -> GridQid:
         return GridQid(row, col, dimension=self._dimension)
 
     @staticmethod
-    def square(diameter: int, top: int = 0, left: int = 0, *, dimension: int) -> List['GridQid']:
+    def square(diameter: int, top: int = 0, left: int = 0, *, dimension: int) -> List[GridQid]:
         """Returns a square of GridQid.
 
         Args:
@@ -256,9 +256,7 @@ class GridQid(_BaseGridQid):
         return GridQid.rect(diameter, diameter, top=top, left=left, dimension=dimension)
 
     @staticmethod
-    def rect(
-        rows: int, cols: int, top: int = 0, left: int = 0, *, dimension: int
-    ) -> List['GridQid']:
+    def rect(rows: int, cols: int, top: int = 0, left: int = 0, *, dimension: int) -> List[GridQid]:
         """Returns a rectangle of GridQid.
 
         Args:
@@ -279,7 +277,7 @@ class GridQid(_BaseGridQid):
         ]
 
     @staticmethod
-    def from_diagram(diagram: str, dimension: int) -> List['GridQid']:
+    def from_diagram(diagram: str, dimension: int) -> List[GridQid]:
         """Parse ASCII art device layout into a device.
 
         As an example, the below diagram will create a list of GridQid in a
@@ -339,9 +337,7 @@ class GridQid(_BaseGridQid):
     def __str__(self) -> str:
         return f"q({self._row}, {self._col}) (d={self._dimension})"
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=(f"({self._row}, {self._col}) (d={self._dimension})",)
         )
@@ -373,22 +369,20 @@ class GridQubit(_BaseGridQid):
     # Holds weak references so instances can still be garbage collected.
     _cache = weakref.WeakValueDictionary[Tuple[int, int], 'cirq.GridQubit']()
 
-    def __new__(cls, row: int, col: int) -> 'cirq.GridQubit':
+    def __new__(cls, row: int, col: int) -> cirq.GridQubit:
         """Creates a grid qubit at the given row, col coordinate
 
         Args:
             row: the row coordinate
             col: the column coordinate
         """
-        row = int(row)
-        col = int(col)
         key = (row, col)
         inst = cls._cache.get(key)
         if inst is None:
             inst = super().__new__(cls)
             inst._row = row
             inst._col = col
-            inst._hash = col * 1_000_003 + row
+            inst._hash = hash(col) * 1_000_003 + hash(row)
             cls._cache[key] = inst
         return inst
 
@@ -400,11 +394,11 @@ class GridQubit(_BaseGridQid):
     def __getstate__(self) -> Dict[str, Any]:
         return {}
 
-    def _with_row_col(self, row: int, col: int) -> 'GridQubit':
+    def _with_row_col(self, row: int, col: int) -> GridQubit:
         return GridQubit(row, col)
 
     @staticmethod
-    def square(diameter: int, top: int = 0, left: int = 0) -> List['GridQubit']:
+    def square(diameter: int, top: int = 0, left: int = 0) -> List[GridQubit]:
         """Returns a square of GridQubits.
 
         Args:
@@ -418,7 +412,7 @@ class GridQubit(_BaseGridQid):
         return GridQubit.rect(diameter, diameter, top=top, left=left)
 
     @staticmethod
-    def rect(rows: int, cols: int, top: int = 0, left: int = 0) -> List['GridQubit']:
+    def rect(rows: int, cols: int, top: int = 0, left: int = 0) -> List[GridQubit]:
         """Returns a rectangle of GridQubits.
 
         Args:
@@ -437,7 +431,7 @@ class GridQubit(_BaseGridQid):
         ]
 
     @staticmethod
-    def from_diagram(diagram: str) -> List['GridQubit']:
+    def from_diagram(diagram: str) -> List[GridQubit]:
         """Parse ASCII art into device layout info.
 
         As an example, the below diagram will create a list of
@@ -494,9 +488,7 @@ class GridQubit(_BaseGridQid):
     def __str__(self) -> str:
         return f"q({self._row}, {self._col})"
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(wire_symbols=(f"({self._row}, {self._col})",))
 
     def _json_dict_(self) -> Dict[str, Any]:

@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq.interop.quirk.cells.parse import parse_matrix, parse_formula, parse_complex
+from cirq.interop.quirk.cells.parse import parse_complex, parse_formula, parse_matrix
 
 
 def test_parse_matrix():
@@ -102,7 +102,7 @@ def test_parse_complex_raw_cases_from_quirk():
 
     assert parse_complex("3/2i") == 1.5j
 
-    assert parse_complex("\u221A2-\u2153i") == np.sqrt(2) - 1j / 3
+    assert parse_complex("\u221a2-\u2153i") == np.sqrt(2) - 1j / 3
 
     assert parse_complex("1e-10") == 0.0000000001
     assert parse_complex("1e+10") == 10000000000

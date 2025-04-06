@@ -22,9 +22,8 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
-from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
-from cirq.protocols.mixture_protocol import mixture
 from cirq.protocols import qid_shape_protocol
+from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
 
 # This is a special indicator value used by the apply_mixture method
 # to determine whether or not the caller provided a 'default' argument. It must
@@ -260,9 +259,9 @@ def apply_mixture(
         return result
 
     # Fallback to using the object's `_mixture_` matrices. (STEP C)
-    prob_mix = mixture(val, None)
-    if prob_mix is not None:
-        return _mixture_strat(prob_mix, args, is_density_matrix)
+    result = _apply_mixture_from_mixture_strat(val, args, is_density_matrix)
+    if result is not None:
+        return result
 
     # Don't know how to apply mixture. Fallback to specified default behavior.
     # (STEP D)
@@ -359,11 +358,19 @@ def _apply_unitary_from_matrix_strat(
     return args.target_tensor
 
 
-def _mixture_strat(val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool) -> np.ndarray:
+def _apply_mixture_from_mixture_strat(
+    val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
+) -> Optional[np.ndarray]:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
+    method = getattr(val, '_mixture_', None)
+    if method is None:
+        return None
+    prob_mix = method()
+    if prob_mix is NotImplemented or prob_mix is None:
+        return None
     args.out_buffer[:] = 0
     np.copyto(dst=args.auxiliary_buffer1, src=args.target_tensor)
-    for prob, op in val:
+    for prob, op in prob_mix:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer1)
         right_result = _apply_unitary_strat(op, args, is_density_matrix)
         if right_result is None:

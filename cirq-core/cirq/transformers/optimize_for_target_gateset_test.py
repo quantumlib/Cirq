@@ -14,10 +14,11 @@
 
 from typing import Union
 
+import pytest
+
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers.optimize_for_target_gateset import _decompose_operations_to_target_gateset
-import pytest
 
 
 def test_decompose_operations_raises_on_stuck():
@@ -327,7 +328,7 @@ def test_optimize_for_target_gateset_multiple_passes(max_num_passes: Union[int, 
 
 @pytest.mark.parametrize('max_num_passes', [2, None])
 def test_optimize_for_target_gateset_multiple_passes_dont_preserve_moment_structure(
-    max_num_passes: Union[int, None]
+    max_num_passes: Union[int, None],
 ):
     gateset = cirq.CZTargetGateset(preserve_moment_structure=False)
 

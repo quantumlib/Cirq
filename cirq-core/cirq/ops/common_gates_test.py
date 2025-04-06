@@ -245,11 +245,12 @@ def test_rot_gates_eq():
     eq.add_equality_group(cirq.YPowGate(), cirq.YPowGate(exponent=1), cirq.Y)
     eq.add_equality_group(cirq.ZPowGate(), cirq.ZPowGate(exponent=1), cirq.Z)
     eq.add_equality_group(
-        cirq.ZPowGate(exponent=1, global_shift=-0.5), cirq.ZPowGate(exponent=5, global_shift=-0.5)
+        cirq.ZPowGate(exponent=1, global_shift=-0.5),
+        cirq.ZPowGate(exponent=5, global_shift=-0.5),
+        cirq.ZPowGate(exponent=5, global_shift=-0.1),
     )
     eq.add_equality_group(cirq.ZPowGate(exponent=3, global_shift=-0.5))
     eq.add_equality_group(cirq.ZPowGate(exponent=1, global_shift=-0.1))
-    eq.add_equality_group(cirq.ZPowGate(exponent=5, global_shift=-0.1))
     eq.add_equality_group(
         cirq.CNotPowGate(), cirq.CXPowGate(), cirq.CNotPowGate(exponent=1), cirq.CNOT
     )
@@ -305,6 +306,11 @@ def test_h_init():
 def test_h_str():
     assert str(cirq.H) == 'H'
     assert str(cirq.H**0.5) == 'H**0.5'
+
+
+def test_phase_exponent():
+    assert cirq.XPowGate(exponent=0.5).phase_exponent == 0.0
+    assert cirq.YPowGate(exponent=0.5).phase_exponent == 0.5
 
 
 def test_x_act_on_tableau():

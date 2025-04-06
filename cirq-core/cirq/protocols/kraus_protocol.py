@@ -14,9 +14,9 @@
 
 """Protocol and methods for obtaining Kraus representation of quantum channels."""
 
+import warnings
 from types import NotImplementedType
 from typing import Any, Sequence, Tuple, TypeVar, Union
-import warnings
 
 import numpy as np
 from typing_extensions import Protocol
@@ -24,7 +24,7 @@ from typing_extensions import Protocol
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols.mixture_protocol import has_mixture
-
+from cirq.protocols.unitary_protocol import unitary
 
 # This is a special indicator value used by the channel method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -133,7 +133,7 @@ def kraus(
     """
     channel_getter = getattr(val, '_channel_', None)
     if channel_getter is not None:
-        warnings.warn(
+        warnings.warn(  # pragma: no cover
             '_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_',
             DeprecationWarning,
         )
@@ -146,7 +146,9 @@ def kraus(
     mixture_getter = getattr(val, '_mixture_', None)
     mixture_result = NotImplemented if mixture_getter is None else mixture_getter()
     if mixture_result is not NotImplemented and mixture_result is not None:
-        return tuple(np.sqrt(p) * u for p, u in mixture_result)
+        return tuple(
+            np.sqrt(p) * (u if isinstance(u, np.ndarray) else unitary(u)) for p, u in mixture_result
+        )
 
     unitary_getter = getattr(val, '_unitary_', None)
     unitary_result = NotImplemented if unitary_getter is None else unitary_getter()
@@ -155,7 +157,7 @@ def kraus(
 
     channel_result = NotImplemented if channel_getter is None else channel_getter()
     if channel_result is not NotImplemented:
-        return tuple(channel_result)
+        return tuple(channel_result)  # pragma: no cover
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default

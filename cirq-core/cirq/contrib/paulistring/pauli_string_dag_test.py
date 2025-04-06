@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import cirq
-
 from cirq.contrib.paulistring import convert_and_separate_circuit, pauli_string_dag_from_circuit
 
 

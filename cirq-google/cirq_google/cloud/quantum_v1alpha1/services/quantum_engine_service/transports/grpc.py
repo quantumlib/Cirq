@@ -16,18 +16,16 @@
 import warnings
 from typing import Callable, Dict, Optional, Sequence, Tuple, Union
 
-from google.api_core import grpc_helpers
-from google.api_core import gapic_v1
 import google.auth
+import grpc  # type: ignore
+from google.api_core import gapic_v1, grpc_helpers
 from google.auth import credentials as ga_credentials
 from google.auth.transport.grpc import SslCredentials
-
-import grpc  # type: ignore
-
-from cirq_google.cloud.quantum_v1alpha1.types import engine
-from cirq_google.cloud.quantum_v1alpha1.types import quantum
 from google.protobuf import empty_pb2
-from .base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
+
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
+
+from .base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
 
 
 class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):

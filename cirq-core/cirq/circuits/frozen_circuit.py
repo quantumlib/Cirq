@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """An immutable version of the Circuit data structure."""
+
+from __future__ import annotations
+
 from functools import cached_property
 from types import NotImplementedType
 from typing import (
@@ -28,7 +32,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols, _compat
+from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
@@ -46,8 +50,8 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     def __init__(
         self,
-        *contents: 'cirq.OP_TREE',
-        strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+        *contents: cirq.OP_TREE,
+        strategy: cirq.InsertStrategy = InsertStrategy.EARLIEST,
         tags: Sequence[Hashable] = (),
     ) -> None:
         """Initializes a frozen circuit.
@@ -71,20 +75,20 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._tags = tuple(tags)
 
     @classmethod
-    def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
+    def _from_moments(cls, moments: Iterable[cirq.Moment]) -> FrozenCircuit:
         new_circuit = FrozenCircuit()
         new_circuit._moments = tuple(moments)
         return new_circuit
 
     @property
-    def moments(self) -> Sequence['cirq.Moment']:
+    def moments(self) -> Sequence[cirq.Moment]:
         return self._moments
 
-    def freeze(self) -> 'cirq.FrozenCircuit':
+    def freeze(self) -> cirq.FrozenCircuit:
         return self
 
-    def unfreeze(self, copy: bool = True) -> 'cirq.Circuit':
-        return Circuit.from_moments(*self)
+    def unfreeze(self, copy: bool = True) -> cirq.Circuit:
+        return Circuit._from_moments(self._moments)
 
     @property
     def tags(self) -> Tuple[Hashable, ...]:
@@ -92,11 +96,11 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self._tags
 
     @cached_property
-    def untagged(self) -> 'cirq.FrozenCircuit':
+    def untagged(self) -> cirq.FrozenCircuit:
         """Returns the underlying FrozenCircuit without any tags."""
         return self._from_moments(self._moments) if self.tags else self
 
-    def with_tags(self, *new_tags: Hashable) -> 'cirq.FrozenCircuit':
+    def with_tags(self, *new_tags: Hashable) -> cirq.FrozenCircuit:
         """Creates a new tagged `FrozenCircuit` with `self.tags` and `new_tags` combined."""
         if not new_tags:
             return self
@@ -146,28 +150,28 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return protocols.is_measurement(self.unfreeze())
 
     @_compat.cached_method
-    def all_qubits(self) -> FrozenSet['cirq.Qid']:
+    def all_qubits(self) -> FrozenSet[cirq.Qid]:
         return super().all_qubits()
 
     @cached_property
-    def _all_operations(self) -> Tuple['cirq.Operation', ...]:
+    def _all_operations(self) -> Tuple[cirq.Operation, ...]:
         return tuple(super().all_operations())
 
-    def all_operations(self) -> Iterator['cirq.Operation']:
+    def all_operations(self) -> Iterator[cirq.Operation]:
         return iter(self._all_operations)
 
     def has_measurements(self) -> bool:
         return self._is_measurement_()
 
     @_compat.cached_method
-    def all_measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
+    def all_measurement_key_objs(self) -> FrozenSet[cirq.MeasurementKey]:
         return super().all_measurement_key_objs()
 
-    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
         return self.all_measurement_key_objs()
 
     @_compat.cached_method
-    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
         return super()._control_keys_()
 
     @_compat.cached_method
@@ -190,8 +194,8 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super()._parameter_names_() | tag_params
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.FrozenCircuit':
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> cirq.FrozenCircuit:
         resolved_circuit = super()._resolve_parameters_(resolver, recursive)
         resolved_tags = [
             protocols.resolve_parameters(tag, resolver, recursive) for tag in self.tags
@@ -201,23 +205,23 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
 
-    def __add__(self, other) -> 'cirq.FrozenCircuit':
+    def __add__(self, other) -> cirq.FrozenCircuit:
         return (self.unfreeze() + other).freeze()
 
-    def __radd__(self, other) -> 'cirq.FrozenCircuit':
+    def __radd__(self, other) -> cirq.FrozenCircuit:
         return (other + self.unfreeze()).freeze()
 
     # Needed for numpy to handle multiplication by np.int64 correctly.
     __array_priority__ = 10000
 
     # TODO: handle multiplication / powers differently?
-    def __mul__(self, other) -> 'cirq.FrozenCircuit':
+    def __mul__(self, other) -> cirq.FrozenCircuit:
         return (self.unfreeze() * other).freeze()
 
-    def __rmul__(self, other) -> 'cirq.FrozenCircuit':
+    def __rmul__(self, other) -> cirq.FrozenCircuit:
         return (other * self.unfreeze()).freeze()
 
-    def __pow__(self, other) -> 'cirq.FrozenCircuit':
+    def __pow__(self, other) -> cirq.FrozenCircuit:
         try:
             return (self.unfreeze() ** other).freeze()
         except:
@@ -238,20 +242,20 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return cls(moments, strategy=InsertStrategy.EARLIEST, tags=tags)
 
     def concat_ragged(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
-    ) -> 'cirq.FrozenCircuit':
+        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+    ) -> cirq.FrozenCircuit:
         return AbstractCircuit.concat_ragged(*circuits, align=align).freeze()
 
     concat_ragged.__doc__ = AbstractCircuit.concat_ragged.__doc__
 
     def zip(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
-    ) -> 'cirq.FrozenCircuit':
+        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+    ) -> cirq.FrozenCircuit:
         return AbstractCircuit.zip(*circuits, align=align).freeze()
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
-    def to_op(self) -> 'cirq.CircuitOperation':
+    def to_op(self) -> cirq.CircuitOperation:
         """Creates a CircuitOperation wrapping this circuit."""
         from cirq.circuits import CircuitOperation
 

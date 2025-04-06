@@ -14,9 +14,8 @@
 
 import functools
 from typing import Sequence
-from cirq_google.api.v2 import program_pb2
-from cirq_google.api.v2 import run_context_pb2
 
+from cirq_google.api.v2 import program_pb2, run_context_pb2
 
 # The special index of an empty directory path [].
 _EMPTY_RESOURCE_PATH_IDX = -1
@@ -28,7 +27,7 @@ def to_device_parameters_diff(
             run_context_pb2.DeviceParameter,
             program_pb2.ArgValue | run_context_pb2.DeviceParametersDiff.GenericValue,
         ]
-    ]
+    ],
 ) -> run_context_pb2.DeviceParametersDiff:
     """Constructs a DeviceParametersDiff from multiple DeviceParameters and values.
 

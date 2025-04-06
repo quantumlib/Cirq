@@ -14,13 +14,13 @@
 
 """Quantum gates to prepare a given target state."""
 
-from typing import Any, Dict, Tuple, Iterable, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import raw_types
 from cirq._compat import proper_repr
+from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq

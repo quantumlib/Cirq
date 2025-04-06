@@ -33,8 +33,7 @@ from typing import (
 import numpy as np
 import sympy
 
-from cirq import value, protocols
-from cirq.linalg import tolerance
+from cirq import protocols, value
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -122,7 +121,6 @@ class EigenGate(raw_types.Gate):
             exponent = exponent.real
         self._exponent = exponent
         self._global_shift = global_shift
-        self._canonical_exponent_cached = None
 
     @property
     def exponent(self) -> value.TParamVal:
@@ -302,33 +300,22 @@ class EigenGate(raw_types.Gate):
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return self._with_exponent(exponent=new_exponent)
 
-    @property
-    def _canonical_exponent(self):
-        if self._canonical_exponent_cached is None:
-            period = self._period()
-            if not period:
-                self._canonical_exponent_cached = self._exponent
-            elif protocols.is_parameterized(self._exponent):
-                self._canonical_exponent_cached = self._exponent
-                if isinstance(self._exponent, sympy.Number):
-                    self._canonical_exponent_cached = float(self._exponent)
-            else:
-                self._canonical_exponent_cached = self._exponent % period
-        return self._canonical_exponent_cached
-
     def _value_equality_values_(self):
-        return self._canonical_exponent, self._global_shift
+        """The phases by which we multiply the eigenspaces.
 
-    def _value_equality_approximate_values_(self):
-        period = self._period()
-        if not period or protocols.is_parameterized(self._exponent):
-            exponent = self._exponent
-        else:
-            exponent = value.PeriodicValue(self._exponent, period)
-        return exponent, self._global_shift
+        The default implementation assumes that the eigenspaces are constant
+        for the class, and the eigenphases are the only distinguishing
+        characteristics. For gates whose eigenspaces can change, such as
+        `PhasedISwapPowGate`, this must be overridden to provide the additional
+        fields that affect the eigenspaces.
+        """
+        symbolic = lambda x: isinstance(x, sympy.Expr) and x.free_symbols
+        f = lambda x: x if symbolic(x) else float(x)
+        shifts = (f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
+        return tuple(s if symbolic(s) else value.PeriodicValue(f(s), 2) for s in shifts)
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if protocols.is_parameterized(self._exponent):
@@ -359,7 +346,7 @@ class EigenGate(raw_types.Gate):
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
         exponent = resolver.value_of(self._exponent, recursive)
-        if isinstance(exponent, (complex, numbers.Complex)):
+        if isinstance(exponent, numbers.Complex):
             if isinstance(exponent, numbers.Real):
                 exponent = float(exponent)
             else:
@@ -378,20 +365,9 @@ class EigenGate(raw_types.Gate):
             return False
         self_without_phase = self._with_exponent(self.exponent)
         self_without_phase._global_shift = 0
-        self_without_exp_or_phase = self_without_phase._with_exponent(0)
-        self_without_exp_or_phase._global_shift = 0
         other_without_phase = other._with_exponent(other.exponent)
         other_without_phase._global_shift = 0
-        other_without_exp_or_phase = other_without_phase._with_exponent(0)
-        other_without_exp_or_phase._global_shift = 0
-        if not protocols.approx_eq(
-            self_without_exp_or_phase, other_without_exp_or_phase, atol=atol
-        ):
-            return False
-
-        period = self_without_phase._period()
-        exponents_diff = exponents[0] - exponents[1]
-        return tolerance.near_zero_mod(exponents_diff, period, atol=atol)
+        return protocols.approx_eq(self_without_phase, other_without_phase, atol=atol)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])

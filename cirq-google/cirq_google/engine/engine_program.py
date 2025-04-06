@@ -19,10 +19,9 @@ import duet
 from google.protobuf import any_pb2
 
 import cirq
-from cirq_google.engine import abstract_program, engine_client
-from cirq_google.cloud import quantum
 from cirq_google.api import v2
-from cirq_google.engine import engine_job
+from cirq_google.cloud import quantum
+from cirq_google.engine import abstract_program, engine_client, engine_job
 from cirq_google.serialization import circuit_serializer
 
 if TYPE_CHECKING:
@@ -372,7 +371,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         Raises:
             ValueError: if the program created was not a batch program.
         """
-        raise NotImplementedError("Batch programs are no longer supported.")  # pragma: no cover
+        raise NotImplementedError("Batch programs are no longer supported.")
 
     batch_size = duet.sync(batch_size_async)
 

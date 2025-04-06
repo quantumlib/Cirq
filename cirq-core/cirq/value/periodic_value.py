@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Any, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, TYPE_CHECKING
 
 import sympy
 
 from cirq._compat import proper_repr
-
 
 if TYPE_CHECKING:
     import cirq
@@ -36,7 +35,7 @@ class PeriodicValue:
     interval.
     """
 
-    def __init__(self, value: Union[int, float, sympy.Expr], period: Union[int, float, sympy.Expr]):
+    def __init__(self, value: 'cirq.TParamVal', period: 'cirq.TParamVal'):
         """Initializes the equivalence class.
 
         Args:

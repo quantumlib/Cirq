@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import (
     AbstractSet,
     cast,
@@ -24,20 +25,18 @@ from typing import (
     Union,
 )
 
-import numbers
-
 import sympy
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import (
-    raw_types,
     common_gates,
-    gate_operation,
     dense_pauli_string as dps,
-    pauli_string as ps,
-    pauli_gates,
+    gate_operation,
     op_tree,
+    pauli_gates,
+    pauli_string as ps,
+    raw_types,
 )
 
 if TYPE_CHECKING:
@@ -66,8 +65,8 @@ class PauliStringPhasor(gate_operation.GateOperation):
         pauli_string: ps.PauliString,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         *,
-        exponent_neg: Union[int, float, sympy.Expr] = 1,
-        exponent_pos: Union[int, float, sympy.Expr] = 0,
+        exponent_neg: 'cirq.TParamVal' = 1,
+        exponent_pos: 'cirq.TParamVal' = 0,
     ) -> None:
         """Initializes the operation.
 
@@ -112,12 +111,12 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return cast(PauliStringPhasorGate, self._gate)
 
     @property
-    def exponent_neg(self) -> Union[int, float, sympy.Expr]:
+    def exponent_neg(self) -> 'cirq.TParamVal':
         """The negative exponent."""
         return self.gate.exponent_neg
 
     @property
-    def exponent_pos(self) -> Union[int, float, sympy.Expr]:
+    def exponent_pos(self) -> 'cirq.TParamVal':
         """The positive exponent."""
         return self.gate.exponent_pos
 
@@ -127,7 +126,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return self._pauli_string
 
     @property
-    def exponent_relative(self) -> Union[int, float, sympy.Expr]:
+    def exponent_relative(self) -> 'cirq.TParamVal':
         """The relative exponent between negative and positive exponents."""
         return self.gate.exponent_relative
 
@@ -278,8 +277,8 @@ class PauliStringPhasorGate(raw_types.Gate):
         self,
         dense_pauli_string: dps.DensePauliString,
         *,
-        exponent_neg: Union[int, float, sympy.Expr] = 1,
-        exponent_pos: Union[int, float, sympy.Expr] = 0,
+        exponent_neg: 'cirq.TParamVal' = 1,
+        exponent_pos: 'cirq.TParamVal' = 0,
     ) -> None:
         """Initializes the PauliStringPhasorGate.
 
@@ -309,17 +308,17 @@ class PauliStringPhasorGate(raw_types.Gate):
         self._exponent_pos = value.canonicalize_half_turns(exponent_pos)
 
     @property
-    def exponent_relative(self) -> Union[int, float, sympy.Expr]:
+    def exponent_relative(self) -> 'cirq.TParamVal':
         """The relative exponent between negative and positive exponents."""
         return value.canonicalize_half_turns(self.exponent_neg - self.exponent_pos)
 
     @property
-    def exponent_neg(self) -> Union[int, float, sympy.Expr]:
+    def exponent_neg(self) -> 'cirq.TParamVal':
         """The negative exponent."""
         return self._exponent_neg
 
     @property
-    def exponent_pos(self) -> Union[int, float, sympy.Expr]:
+    def exponent_pos(self) -> 'cirq.TParamVal':
         """The positive exponent."""
         return self._exponent_pos
 
@@ -392,14 +391,14 @@ class PauliStringPhasorGate(raw_types.Gate):
     ) -> 'PauliStringPhasorGate':
         exponent_neg = resolver.value_of(self.exponent_neg, recursive)
         exponent_pos = resolver.value_of(self.exponent_pos, recursive)
-        if isinstance(exponent_neg, (complex, numbers.Complex)):
+        if isinstance(exponent_neg, numbers.Complex):
             if isinstance(exponent_neg, numbers.Real):
                 exponent_neg = float(exponent_neg)
             else:
                 raise ValueError(
                     f'PauliStringPhasorGate does not support complex exponent {exponent_neg}'
                 )
-        if isinstance(exponent_pos, (complex, numbers.Complex)):
+        if isinstance(exponent_pos, numbers.Complex):
             if isinstance(exponent_pos, numbers.Real):
                 exponent_pos = float(exponent_pos)
             else:

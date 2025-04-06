@@ -26,15 +26,15 @@
 
 import os
 import re
-import subprocess
 import shutil
+import subprocess
 import warnings
-from typing import Set, List
+from typing import List, Set
 
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_notebook
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
@@ -44,10 +44,12 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     # Requires pinned quimb from #6438
     'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    # Requires OpenQASM 3.0 support from cirq 1.6
+    # Requires OpenQASM 3.0 support from cirq 1.5
     'docs/build/interop.ipynb',
     # get_qcs_objects_for_notebook
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
+    # Requires features in cirq 1.5.
+    'docs/build/classical_control.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -85,6 +87,9 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.12",
+    # TODO: remove after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
+    "qcs-sdk-python<=0.21.12",
+    "numpy~=1.25",
 ]
 
 
@@ -168,7 +173,8 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs'). \n"
             f"If this is a new failure in this notebook due to a new change, "
-            f"that is only available in main for now, consider adding `pip install cirq~=1.0.dev` "
+            f"that is only available in main for now, consider adding "
+            f"`pip install --upgrade cirq~=1.0.dev` "
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
@@ -216,10 +222,10 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
         mandatory_matches = [
-            r"!pip install --quiet cirq(-google)?~=1.0.dev",
+            r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install cirq(-google)?~=1.0.dev`\.",
+            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\.",
         ]
 
         for m in mandatory_matches:

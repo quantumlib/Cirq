@@ -6,8 +6,8 @@ releases.
 Note that Cirq development takes place on the `main` branch in GitHub. If you
 want to use a more stable version of Cirq, you should use one of the
 [releases](https://github.com/quantumlib/Cirq/releases) or install the package
-from PyPI using `pip install cirq`. The release from the latest commit to main
-can be installed with `pip install cirq~=1.0.dev`.
+from PyPI using `pip install cirq`. The release from the latest commit to `main`
+can be installed with `pip install --upgrade cirq~=1.0.dev`.
 
 ## Versioning
 
@@ -21,7 +21,7 @@ numbers. The following guarantees are provided:
     ever becomes necessary to allow packages to have different version numbers,
     this policy will be updated.)
 
-1.  Libraries in the `cirq-core` directory (with the exception of
+2.  Libraries in the `cirq-core` directory (with the exception of
     `cirq-core/cirq/contrib`) adhere to the guarantees outlined in the Semantic
     Versioning specification. In summary:
 
@@ -34,14 +34,14 @@ numbers. The following guarantees are provided:
     *   Additions and/or changes that affect the API in a
         backwards-_incompatible_ way will increment the MAJOR version.
 
-1.  The contrib directory (at `cirq-core/cirq/contrib`) currently follows
+3.  The contrib directory (at `cirq-core/cirq/contrib`) currently follows
     Semantic Versioning except for the MINOR version increment policy: releases
     with MINOR version increments may contain backward-incompatible
     functionality changes to its public API. (They may be changed to strictly
     follow Semantic Versioning in the future, at which point this policy will
     be updated.)
 
-1.  Cirq vendor directories (`cirq-aqt`, `cirq-google`, `cirq-ionq`, etc.) follow
+4.  Cirq vendor directories (`cirq-aqt`, `cirq-google`, `cirq-ionq`, etc.) follow
     Semantic Versioning except the MINOR version increment policy: each vendor
     directory has a separate policy on whether MINOR version increments provide
     backward-compatibility guarantees, as described in `version_policy.md` in the
@@ -54,7 +54,7 @@ numbers. The following guarantees are provided:
     1.  For each vendor directory, version policies may be modified to strictly
         follow Semantic Versioning in the future.
 
-1.  Versions based on unreleased branches of `main` will be suffixed with `.dev`.
+5.  Versions based on unreleased branches of `main` will be suffixed with `.dev0`.
 
 The rules for version changes are:
 
@@ -76,16 +76,16 @@ We use GitHub's release system for creating releases.  Release are listed
 
 Our development process uses the branch named `main` for development. This
 branch will always use the next unreleased minor version number with the suffix
-of `.dev`. When a release is performed, the `.dev` will be removed and tagged
+of `.dev0`. When a release is performed, the `.dev0` will be removed and tagged
 in a release branch with a version tag (vX.X.X). Then, `main` will be updated
 to the next minor version. The version number of `main` can always be found in
 the [version file](./cirq-core/cirq/_version.py).
 
 ### Release Schedule
 
-Releases are made on an as-needed basis determined by Cirq maintainers. All Cirq
-packages (including vendor packages such as `cirq-aqt`) are released at the same
-time.
+Releases are made approximately every quarter (i.e., every 3 months). All Cirq
+packages (including vendor packages such as `cirq-aqt`) are released at the
+same time.
 
 ## Before you release: flush the deprecation backlog
 
@@ -141,7 +141,7 @@ NEXT_VER=NEXT_VERSION  # e.g. "0.8.0" (skip for PATCH releases)
 
 ### Create a release branch
 
-Create a release branch called "v${VERSION}-dev":
+Create a release branch called "v${VER}-dev":
 
 ```bash
 git checkout -b "v${VER}-dev"
@@ -158,28 +158,28 @@ git cherry-pick <commit>
 Bump the version number on the release branch:
 
 ```bash
-python dev_tools/modules.py replace_version --old ${VER}.dev --new ${VER}
+python dev_tools/modules.py replace_version --old ${VER}.dev0 --new ${VER}
 git add .
-git commit -m "Removing ${VER}.dev -> ${VER}"
+git commit -m "Removing ${VER}.dev0 -> ${VER}"
 git push origin "v${VER}-dev"
 ```
 
 ### Bump the main version
 
-WARNING: Only bump the main version for minor and major releases. For PATCH
+WARNING: Only bump the `main` version for minor and major releases. For PATCH
 updates, leave it as it is.
 
 ```bash
 git checkout main -b "version_bump_${NEXT_VER}"
-python dev_tools/modules.py replace_version --old ${VER}.dev --new ${NEXT_VER}.dev
+python dev_tools/modules.py replace_version --old ${VER}.dev0 --new ${NEXT_VER}.dev0
 git add .
 git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "version_bump_${NEXT_VER}"
 ```
 
-The main branch should never see a non-dev version specifier.
+The `main` branch should never see a non-dev version specifier.
 
-### Create distribution wheel
+### Create the distribution wheel
 
 From a release branch, create a binary distribution wheel. This is the package
 that will go to PyPI.
@@ -259,11 +259,6 @@ git log <previous version>..HEAD --pretty="%an" | sort |\
   uniq | sed ':a;N;$!ba;s/\n/, /g'
 ```
 
-### `cirq-google` Changelog
-
-Add `cirq-google` release notes to `cirq-google/CHANGELOG.md` following the
-[changelog format](https://keepachangelog.com/en/1.0.0/).
-
 ### Release to production PyPI
 
 Upload to prod PyPI using the following command:
@@ -289,7 +284,7 @@ pip install cirq
 python -c "import cirq; print(cirq.__version__)"
 ```
 
-### Create the release
+### Create the release on GitHub
 
 Using the information above, create the release on the
 [Release page](https://github.com/quantumlib/Cirq/releases).
@@ -302,18 +297,14 @@ If there are unreleased notebooks that are under testing (meaning that
 [`dev_tools/notebooks/isolated_notebook_test.py`](dev_tools/notebooks/isolated_notebook_test.py)),
 then follow the steps in our [notebooks guide](docs/dev/notebooks.md).
 
-### Create a Zenodo release
+### Verify the Zenodo archive
 
-Got to the [Zenodo release
-page](https://zenodo.org/record/6599601#.YpZCspPMLzc). Login using credentials
-stored in Google's internal password utility (or get someone from Google to do
-this). Click "New Version".
-
-*   Upload the new zip file (found in releases page under "assets").
-*   Remove old zip file.
-*   Update version.
-*   Double check all other fields.
-*   Click publish.
+Each new release should get archived in Zenodo automatically. To check it, [log
+in to Zenodo](https://zenodo.org) using credentials stored in Google's internal
+password utility (or get someone from Google to do this). Navigate to the [list
+of uploads](https://zenodo.org/me/uploads), and ensure an entry for the new
+release is present there. Open the page for the entry, verify the information,
+and edit it if necessary.
 
 ### Email cirq-announce
 

@@ -9,31 +9,40 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   pytest:
     name: Pytest Ubuntu
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - uses: actions/cache@v4
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+      - name: Install system requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get install libffi7
       - name: Install requirements
         run: |
-          pip install cirq~=1.0.dev &&
-          pip install \
-            -r dev_tools/requirements/deps/format.txt \
-            -r dev_tools/requirements/deps/pylint.txt \
-            -r dev_tools/requirements/deps/pytest.txt \
-            -r dev_tools/requirements/deps/notebook.txt
+          pip install --upgrade cirq~=1.0.dev &&
+            version=$(pip show cirq | sed -n "s/^Version: //p" | grep .) &&
+            pip install "cirq-rigetti==${version}" &&
+            pip install \
+              -r dev_tools/requirements/deps/format.txt \
+              -r dev_tools/requirements/deps/pylint.txt \
+              -r dev_tools/requirements/deps/pytest.txt \
+              -r dev_tools/requirements/deps/notebook.txt
       - name: Run Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
@@ -47,18 +56,19 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - uses: actions/cache@v4
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install cirq~=1.0.dev &&
+          pip install --upgrade cirq~=1.0.dev &&
+            pip install --upgrade cirq-rigetti~=1.0.dev &&
             pip install -r dev_tools/requirements/deps/format.txt &&
             pip install -r dev_tools/requirements/deps/pylint.txt &&
             pip install -r dev_tools/requirements/deps/pytest.txt &&
@@ -73,22 +83,24 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
     runs-on: macos-13
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - uses: actions/cache@v4
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install cirq~=1.0.dev &&
-          pip install \
-            -r dev_tools/requirements/deps/format.txt \
-            -r dev_tools/requirements/deps/pylint.txt \
-            -r dev_tools/requirements/deps/pytest.txt \
-            -r dev_tools/requirements/deps/notebook.txt
+          pip install --upgrade cirq~=1.0.dev &&
+            version=$(pip show cirq | sed -n "s/^Version: //p" | grep .) &&
+            pip install "cirq-rigetti==${version}" &&
+            pip install \
+              -r dev_tools/requirements/deps/format.txt \
+              -r dev_tools/requirements/deps/pylint.txt \
+              -r dev_tools/requirements/deps/pytest.txt \
+              -r dev_tools/requirements/deps/notebook.txt
       - name: Pytest check
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests

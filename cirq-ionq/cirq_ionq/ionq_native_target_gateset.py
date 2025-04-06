@@ -17,13 +17,11 @@
 from types import NotImplementedType
 from typing import Any, Dict, Iterator, List, Tuple, Union
 
-import cirq
 import numpy as np
 
-from cirq import linalg
-from cirq import ops
-
-from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
+import cirq
+from cirq import linalg, ops
+from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
 
 
 class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
@@ -121,13 +119,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         return [GPI2Gate(phi=0.25).on(qubit), GPIGate(phi=0).on(qubit)]
 
     def _cnot(self, *qubits):
-        return [
-            GPI2Gate(phi=1 / 4).on(qubits[0]),
-            MSGate(phi0=0, phi1=0).on(qubits[0], qubits[1]),
-            GPI2Gate(phi=1 / 2).on(qubits[1]),
-            GPI2Gate(phi=1 / 2).on(qubits[0]),
-            GPI2Gate(phi=-1 / 4).on(qubits[0]),
-        ]
+        raise NotImplementedError()
 
     def decompose_all_to_all_connect_ccz_gate(
         self, ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
@@ -199,13 +191,21 @@ class AriaNativeGateset(IonqNativeGatesetBase):
     def __repr__(self) -> str:
         return f'cirq_ionq.AriaNativeGateset(atol={self.atol})'
 
+    def _cnot(self, *qubits):
+        return [
+            GPI2Gate(phi=1 / 4).on(qubits[0]),
+            MSGate(phi0=0, phi1=0).on(qubits[0], qubits[1]),
+            GPI2Gate(phi=1 / 2).on(qubits[1]),
+            GPI2Gate(phi=1 / 2).on(qubits[0]),
+            GPI2Gate(phi=-1 / 4).on(qubits[0]),
+        ]
+
 
 class ForteNativeGateset(IonqNativeGatesetBase):
     """Target IonQ native gateset for compiling circuits.
 
     The gates forming this gateset are:
-    GPIGate, GPI2Gate, MSGate
-    Note: in the future ZZGate might be added here.
+    GPIGate, GPI2Gate, ZZGate
     """
 
     def __init__(self, *, atol: float = 1e-8):
@@ -214,7 +214,21 @@ class ForteNativeGateset(IonqNativeGatesetBase):
         Args:
             atol: A limit on the amount of absolute error introduced by the decomposition.
         """
-        super().__init__(GPIGate, GPI2Gate, MSGate, ops.MeasurementGate, atol=atol)
+        super().__init__(GPIGate, GPI2Gate, ZZGate, ops.MeasurementGate, atol=atol)
 
     def __repr__(self) -> str:
         return f'cirq_ionq.ForteNativeGateset(atol={self.atol})'
+
+    def _cnot(self, *qubits):
+        return [
+            GPI2Gate(phi=0).on(qubits[1]),
+            GPIGate(phi=-0.125).on(qubits[1]),
+            GPI2Gate(phi=0.5).on(qubits[1]),
+            ZZGate(theta=0.25).on(qubits[0], qubits[1]),
+            GPI2Gate(phi=0.75).on(qubits[0]),
+            GPIGate(phi=0.125).on(qubits[0]),
+            GPI2Gate(phi=0.5).on(qubits[0]),
+            GPI2Gate(phi=1.25).on(qubits[1]),
+            GPIGate(phi=0.5).on(qubits[1]),
+            GPI2Gate(phi=0.5).on(qubits[1]),
+        ]

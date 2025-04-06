@@ -15,15 +15,15 @@
 import cirq
 from cirq.contrib.paulistring import (
     convert_and_separate_circuit,
-    pauli_string_dag_from_circuit,
     move_pauli_strings_into_circuit,
+    pauli_string_dag_from_circuit,
 )
 
 
 def _assert_no_multi_qubit_pauli_strings(circuit: cirq.Circuit) -> None:
     for op in circuit.all_operations():
         if isinstance(op, cirq.PauliStringGateOperation):
-            assert len(op.pauli_string) == 1
+            assert len(op.pauli_string) == 1  # pragma: no cover
 
 
 def test_move_non_clifford_into_clifford():

@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence
 import functools
+from typing import List, Sequence
+
 import numpy as np
+
 import cirq
-from cirq.experiments.qubit_characterizations import _single_qubit_cliffords, _find_inv_matrix
+from cirq.experiments.qubit_characterizations import _find_inv_matrix, _single_qubit_cliffords
 
 
 def dot(args: Sequence[np.ndarray]) -> np.ndarray:

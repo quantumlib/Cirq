@@ -31,14 +31,14 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
-from typing_extensions import Self
 
 import numpy as np
 import sympy
+from typing_extensions import Self
 
-from cirq import protocols, linalg, value
+from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import raw_types, identity, pauli_gates, global_phase_op, pauli_string
+from cirq.ops import global_phase_op, identity, pauli_gates, pauli_string, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -116,7 +116,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return self._pauli_mask
 
     @property
-    def coefficient(self) -> Union[sympy.Expr, complex]:
+    def coefficient(self) -> 'cirq.TParamValComplex':
         """A complex coefficient or symbol."""
         return self._coefficient
 
@@ -203,7 +203,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __pos__(self):
         return self
 
-    def __pow__(self, power: Union[int, float]) -> Union[NotImplementedType, Self]:
+    def __pow__(self, power: float) -> Union[NotImplementedType, Self]:
         concrete_class = type(self)
         if isinstance(power, int):
             i_group = [1, +1j, -1, -1j]
@@ -359,7 +359,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             coef = '+'
         elif self.coefficient == -1:
             coef = '-'
-        elif isinstance(self.coefficient, (complex, sympy.Symbol)):
+        elif isinstance(self.coefficient, (numbers.Complex, sympy.Symbol)):
             coef = f'{self.coefficient}*'
         else:
             coef = f'({self.coefficient})*'
@@ -403,7 +403,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(
         self,
-        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
+        coefficient: Optional['cirq.TParamValComplex'] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> Self:
         """Returns a copy with possibly modified contents.
@@ -459,7 +459,7 @@ class DensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
+        coefficient: Optional['cirq.TParamValComplex'] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'DensePauliString':
         if pauli_mask is None and (coefficient is None or coefficient == self.coefficient):
@@ -559,7 +559,7 @@ class MutableDensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
+        coefficient: Optional['cirq.TParamValComplex'] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'MutableDensePauliString':
         return MutableDensePauliString(
@@ -627,7 +627,7 @@ def _attempt_value_to_pauli_index(v: 'cirq.Operation') -> Optional[Tuple[int, in
         return None
 
     if not isinstance(v.gate, pauli_gates.Pauli):
-        return None
+        return None  # pragma: no cover
 
     q = v.qubits[0]
     from cirq import devices
