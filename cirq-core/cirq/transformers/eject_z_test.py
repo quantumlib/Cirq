@@ -51,10 +51,10 @@ def assert_optimizes(
         cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(3).with_tags("preserve_tag")),
     )
     c_expected = cirq.Circuit(
-        cirq.PhasedXPowGate(phase_exponent=0, exponent=0.25).on_each(*q),
+        (cirq.X**0.25).on_each(*q),
         (cirq.Z**0.5).on_each(*q),
         cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(2).with_tags("ignore")),
-        cirq.PhasedXPowGate(phase_exponent=0, exponent=0.25).on_each(*q),
+        (cirq.X**0.25).on_each(*q),
         (cirq.Z**0.5).on_each(*q),
         cirq.Moment(cirq.CircuitOperation(expected.freeze()).repeat(3).with_tags("preserve_tag")),
     )
@@ -154,11 +154,7 @@ def test_z_pushes_past_xy_and_phases_it():
     assert_optimizes(
         before=cirq.Circuit([cirq.Moment([cirq.Z(q) ** 0.5]), cirq.Moment([cirq.Y(q) ** 0.25])]),
         expected=cirq.Circuit(
-            [
-                cirq.Moment(),
-                cirq.Moment([cirq.PhasedXPowGate(phase_exponent=0)(q) ** 0.25]),
-                cirq.Moment([cirq.Z(q) ** 0.5]),
-            ]
+            [cirq.Moment(), cirq.Moment([cirq.X(q) ** 0.25]), cirq.Moment([cirq.Z(q) ** 0.5])]
         ),
     )
 
