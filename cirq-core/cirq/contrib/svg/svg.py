@@ -223,7 +223,7 @@ def tdd_to_svg(
             stroke = 'black'  # pragma: no cover
         t += (
             f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1"'
-            f'{' filter="url(#double)"' if doubled else ''}'
+            f"{' filter="url(#double)"' if doubled else ''}"
             f' />'
         )
 
@@ -238,8 +238,8 @@ def tdd_to_svg(
         x = col_starts[xi] + col_widths[xi] / 2
         t += (
             f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" stroke="black" stroke-width="3"'
-            f'{' filter="url(#double)"' if doubled else ''}'
-            f'{' marker-end="url(#arrow)"' if arrow else ''}'
+            f"{' filter="url(#double)"' if doubled else ''}"
+            f"{' marker-end="url(#arrow)"' if arrow else ''}"
             f' />'
         )
 
