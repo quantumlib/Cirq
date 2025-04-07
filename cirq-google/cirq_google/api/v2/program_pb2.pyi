@@ -4,6 +4,7 @@ isort:skip_file
 """
 
 import builtins
+import cirq_google.api.v2.ndarrays_pb2
 import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
@@ -968,6 +969,9 @@ class ArgValue(google.protobuf.message.Message):
     VALUE_WITH_UNIT_FIELD_NUMBER: builtins.int
     BOOL_VALUE_FIELD_NUMBER: builtins.int
     BYTES_VALUE_FIELD_NUMBER: builtins.int
+    COMPLEX_VALUE_FIELD_NUMBER: builtins.int
+    TUPLE_VALUE_FIELD_NUMBER: builtins.int
+    NDARRAY_VALUE_FIELD_NUMBER: builtins.int
     float_value: builtins.float
     string_value: builtins.str
     double_value: builtins.float
@@ -983,6 +987,12 @@ class ArgValue(google.protobuf.message.Message):
     def string_values(self) -> global___RepeatedString: ...
     @property
     def value_with_unit(self) -> tunits.proto.tunits_pb2.Value: ...
+    @property
+    def complex_value(self) -> global___Complex: ...
+    @property
+    def tuple_value(self) -> global___Tuple: ...
+    @property
+    def ndarray_value(self) -> global___NDArray: ...
     def __init__(
         self,
         *,
@@ -996,10 +1006,13 @@ class ArgValue(google.protobuf.message.Message):
         value_with_unit: tunits.proto.tunits_pb2.Value | None = ...,
         bool_value: builtins.bool = ...,
         bytes_value: builtins.bytes = ...,
+        complex_value: global___Complex | None = ...,
+        tuple_value: global___Tuple | None = ...,
+        ndarray_value: global___NDArray | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values", "value_with_unit", b"value_with_unit"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values", "value_with_unit", b"value_with_unit"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing.Literal["arg_value", b"arg_value"]) -> typing.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values", "string_values", "value_with_unit", "bool_value", "bytes_value"] | None: ...
+    def HasField(self, field_name: typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "complex_value", b"complex_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "ndarray_value", b"ndarray_value", "string_value", b"string_value", "string_values", b"string_values", "tuple_value", b"tuple_value", "value_with_unit", b"value_with_unit"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "complex_value", b"complex_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "ndarray_value", b"ndarray_value", "string_value", b"string_value", "string_values", b"string_values", "tuple_value", b"tuple_value", "value_with_unit", b"value_with_unit"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["arg_value", b"arg_value"]) -> typing.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values", "string_values", "value_with_unit", "bool_value", "bytes_value", "complex_value", "tuple_value", "ndarray_value"] | None: ...
 
 global___ArgValue = ArgValue
 
@@ -1074,6 +1087,126 @@ class RepeatedBoolean(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["values", b"values"]) -> None: ...
 
 global___RepeatedBoolean = RepeatedBoolean
+
+@typing.final
+class Tuple(google.protobuf.message.Message):
+    """Representation of a mixed tuple of values"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _SequenceType:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _SequenceTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Tuple._SequenceType.ValueType], builtins.type):
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        UNSPECIFIED: Tuple._SequenceType.ValueType  # 0
+        LIST: Tuple._SequenceType.ValueType  # 1
+        TUPLE: Tuple._SequenceType.ValueType  # 2
+        SET: Tuple._SequenceType.ValueType  # 3
+        FROZENSET: Tuple._SequenceType.ValueType  # 4
+
+    class SequenceType(_SequenceType, metaclass=_SequenceTypeEnumTypeWrapper):
+        """Original (python) type of the data"""
+
+    UNSPECIFIED: Tuple.SequenceType.ValueType  # 0
+    LIST: Tuple.SequenceType.ValueType  # 1
+    TUPLE: Tuple.SequenceType.ValueType  # 2
+    SET: Tuple.SequenceType.ValueType  # 3
+    FROZENSET: Tuple.SequenceType.ValueType  # 4
+
+    SEQUENCE_TYPE_FIELD_NUMBER: builtins.int
+    VALUES_FIELD_NUMBER: builtins.int
+    sequence_type: global___Tuple.SequenceType.ValueType
+    @property
+    def values(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Arg]: ...
+    def __init__(
+        self,
+        *,
+        sequence_type: global___Tuple.SequenceType.ValueType = ...,
+        values: collections.abc.Iterable[global___Arg] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["sequence_type", b"sequence_type", "values", b"values"]) -> None: ...
+
+global___Tuple = Tuple
+
+@typing.final
+class Complex(google.protobuf.message.Message):
+    """Representation of a complex number"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    REAL_VALUE_FIELD_NUMBER: builtins.int
+    IMAG_VALUE_FIELD_NUMBER: builtins.int
+    real_value: builtins.float
+    imag_value: builtins.float
+    def __init__(
+        self,
+        *,
+        real_value: builtins.float = ...,
+        imag_value: builtins.float = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["imag_value", b"imag_value", "real_value", b"real_value"]) -> None: ...
+
+global___Complex = Complex
+
+@typing.final
+class NDArray(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    COMPLEX128_ARRAY_FIELD_NUMBER: builtins.int
+    COMPLEX64_ARRAY_FIELD_NUMBER: builtins.int
+    FLOAT16_ARRAY_FIELD_NUMBER: builtins.int
+    FLOAT32_ARRAY_FIELD_NUMBER: builtins.int
+    FLOAT64_ARRAY_FIELD_NUMBER: builtins.int
+    INT64_ARRAY_FIELD_NUMBER: builtins.int
+    INT32_ARRAY_FIELD_NUMBER: builtins.int
+    INT16_ARRAY_FIELD_NUMBER: builtins.int
+    INT8_ARRAY_FIELD_NUMBER: builtins.int
+    UINT8_ARRAY_FIELD_NUMBER: builtins.int
+    BIT_ARRAY_FIELD_NUMBER: builtins.int
+    @property
+    def complex128_array(self) -> cirq_google.api.v2.ndarrays_pb2.Complex128Array: ...
+    @property
+    def complex64_array(self) -> cirq_google.api.v2.ndarrays_pb2.Complex64Array: ...
+    @property
+    def float16_array(self) -> cirq_google.api.v2.ndarrays_pb2.Float16Array: ...
+    @property
+    def float32_array(self) -> cirq_google.api.v2.ndarrays_pb2.Float32Array: ...
+    @property
+    def float64_array(self) -> cirq_google.api.v2.ndarrays_pb2.Float64Array: ...
+    @property
+    def int64_array(self) -> cirq_google.api.v2.ndarrays_pb2.Int64Array: ...
+    @property
+    def int32_array(self) -> cirq_google.api.v2.ndarrays_pb2.Int32Array: ...
+    @property
+    def int16_array(self) -> cirq_google.api.v2.ndarrays_pb2.Int16Array: ...
+    @property
+    def int8_array(self) -> cirq_google.api.v2.ndarrays_pb2.Int8Array: ...
+    @property
+    def uint8_array(self) -> cirq_google.api.v2.ndarrays_pb2.UInt8Array: ...
+    @property
+    def bit_array(self) -> cirq_google.api.v2.ndarrays_pb2.BitArray: ...
+    def __init__(
+        self,
+        *,
+        complex128_array: cirq_google.api.v2.ndarrays_pb2.Complex128Array | None = ...,
+        complex64_array: cirq_google.api.v2.ndarrays_pb2.Complex64Array | None = ...,
+        float16_array: cirq_google.api.v2.ndarrays_pb2.Float16Array | None = ...,
+        float32_array: cirq_google.api.v2.ndarrays_pb2.Float32Array | None = ...,
+        float64_array: cirq_google.api.v2.ndarrays_pb2.Float64Array | None = ...,
+        int64_array: cirq_google.api.v2.ndarrays_pb2.Int64Array | None = ...,
+        int32_array: cirq_google.api.v2.ndarrays_pb2.Int32Array | None = ...,
+        int16_array: cirq_google.api.v2.ndarrays_pb2.Int16Array | None = ...,
+        int8_array: cirq_google.api.v2.ndarrays_pb2.Int8Array | None = ...,
+        uint8_array: cirq_google.api.v2.ndarrays_pb2.UInt8Array | None = ...,
+        bit_array: cirq_google.api.v2.ndarrays_pb2.BitArray | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["arr", b"arr", "bit_array", b"bit_array", "complex128_array", b"complex128_array", "complex64_array", b"complex64_array", "float16_array", b"float16_array", "float32_array", b"float32_array", "float64_array", b"float64_array", "int16_array", b"int16_array", "int32_array", b"int32_array", "int64_array", b"int64_array", "int8_array", b"int8_array", "uint8_array", b"uint8_array"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["arr", b"arr", "bit_array", b"bit_array", "complex128_array", b"complex128_array", "complex64_array", b"complex64_array", "float16_array", b"float16_array", "float32_array", b"float32_array", "float64_array", b"float64_array", "int16_array", b"int16_array", "int32_array", b"int32_array", "int64_array", b"int64_array", "int8_array", b"int8_array", "uint8_array", b"uint8_array"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["arr", b"arr"]) -> typing.Literal["complex128_array", "complex64_array", "float16_array", "float32_array", "float64_array", "int64_array", "int32_array", "int16_array", "int8_array", "uint8_array", "bit_array"] | None: ...
+
+global___NDArray = NDArray
 
 @typing.final
 class ArgFunction(google.protobuf.message.Message):
