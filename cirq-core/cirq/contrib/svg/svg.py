@@ -221,14 +221,13 @@ def tdd_to_svg(
             stroke = QBLUE
         else:
             stroke = 'black'  # pragma: no cover
-        t += (
-            f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1"'
-            f"{' filter="url(#double)"' if doubled else ''}"
-            f' />'
-        )
+        t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1"'
+        if doubled:
+            t += ' filter="url(#double)"'
+        t += ' />'
 
     for xi, yi1, yi2, _, doubled in tdd.vertical_lines:
-        arrow = doubled and tdd.entries[xi, yi2].text == 'V'
+        arrow = doubled and tdd.entries[int(xi), int(yi2)].text == 'V'
         yi1 = yi_map[yi1]
         yi2 = yi_map[yi2]
         y1 = row_starts[yi1] + row_heights[yi1] / 2
@@ -236,12 +235,12 @@ def tdd_to_svg(
 
         xi = cast(int, xi)
         x = col_starts[xi] + col_widths[xi] / 2
-        t += (
-            f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" stroke="black" stroke-width="3"'
-            f"{' filter="url(#double)"' if doubled else ''}"
-            f"{' marker-end="url(#arrow)"' if arrow else ''}"
-            f' />'
-        )
+        t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" stroke="black" stroke-width="3"'
+        if doubled:
+            t += ' filter="url(#double)"'
+        if arrow:
+            t += ' marker-end="url(#arrow)"'
+        t += ' />'
 
     for (xi, yi), v in tdd.entries.items():
         yi = yi_map[yi]
