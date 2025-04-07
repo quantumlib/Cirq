@@ -212,11 +212,7 @@ def test_crosses_czs():
             [cirq.CZ(a, b) ** 0.25],
         ),
         expected=quick_circuit(
-            [cirq.CZ(a, b) ** 0.25],
-            [
-                cirq.PhasedXPowGate(phase_exponent=0.5).on(b),
-                cirq.PhasedXPowGate(phase_exponent=0.25).on(a),
-            ],
+            [cirq.CZ(a, b) ** 0.25], [cirq.Y(b), cirq.PhasedXPowGate(phase_exponent=0.25).on(a)]
         ),
     )
     assert_optimizes(
@@ -387,8 +383,7 @@ def test_phases_partial_ws():
     assert_optimizes(
         before=quick_circuit([cirq.PhasedXPowGate(phase_exponent=0.25).on(q)], [cirq.X(q) ** 0.5]),
         expected=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.5).on(q)],
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)],
+            [cirq.Y(q) ** 0.5], [cirq.PhasedXPowGate(phase_exponent=0.25).on(q)]
         ),
     )
 
