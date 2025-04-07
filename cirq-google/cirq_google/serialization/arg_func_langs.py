@@ -136,45 +136,49 @@ def arg_to_proto(
         msg.arg_value.float_value = float(value)
     elif isinstance(value, complex):
         msg.arg_value.complex_value.real_value = value.real
-        msg.arg_value.complex_value.imaginary_value = value.imag
+        msg.arg_value.complex_value.imag_value = value.imag
     elif isinstance(value, bytes):
         msg.arg_value.bytes_value = value
     elif isinstance(value, str):
         msg.arg_value.string_value = value
-    elif isinstance(value, (list, tuple, np.ndarray)):
-        if len(value):
-            if isinstance(value, np.ndarray):
-                _ndarray_to_proto(value, out=msg)
-            elif isinstance(value[0], str):
-                if not all(isinstance(x, str) for x in value):
-                    # Not a uniform list, convert to tuple
-                    _tuple_to_proto(value, out=msg.arg_value.tuple_value)
-                    return msg
-                msg.arg_value.string_values.values.extend(str(x) for x in value)
-            else:
-                # This is a numerical field.
-                numerical_fields = [
-                    [msg.arg_value.bool_values.values, (bool, np.bool_)],
-                    [msg.arg_value.int64_values.values, (int, np.integer, bool)],
-                    [msg.arg_value.double_values.values, (float, np.floating, int, bool)],
-                ]
-                cur_index = 0
-                non_numerical = None
-                for v in value:
-                    while cur_index < len(numerical_fields) and not isinstance(
-                        v, numerical_fields[cur_index][1]
-                    ):
-                        cur_index += 1
-                    if cur_index == len(numerical_fields):
-                        non_numerical = v
-                        break
+    elif isinstance(value, (list, tuple, np.ndarray, set, frozenset)):
+        if isinstance(value, np.ndarray):
+            _ndarray_to_proto(value, out=msg)
+        elif len(value) == 0:
+            # Convert empty list or tuple
+            _tuple_to_proto(value, out=msg.arg_value.tuple_value)
+        elif isinstance(value, list) and isinstance(value[0], str):
+            # Note that we should not convert a tuple to a list here
+            # in order to preserve types
+            if not all(isinstance(x, str) for x in value):
+                # Not a uniform list, convert to tuple
+                _tuple_to_proto(value, out=msg.arg_value.tuple_value)
+                return msg
+            msg.arg_value.string_values.values.extend(str(x) for x in value)
+        else:
+            # This is a numerical field.
+            numerical_fields = [
+                [msg.arg_value.bool_values.values, (bool, np.bool_)],
+                [msg.arg_value.int64_values.values, (int, np.integer, bool)],
+                [msg.arg_value.double_values.values, (float, np.floating, int, bool)],
+            ]
+            cur_index = 0
+            non_numerical = None
+            for v in value:
+                while cur_index < len(numerical_fields) and not isinstance(
+                    v, numerical_fields[cur_index][1]
+                ):
+                    cur_index += 1
+                if cur_index == len(numerical_fields):
+                    non_numerical = v
+                    break
 
-                if non_numerical is not None:
-                    # Not a uniform list, convert to tuple
-                    _tuple_to_proto(value, out=msg.arg_value.tuple_value)
-                    return msg
-                field, types_tuple = numerical_fields[cur_index]
-                field.extend(types_tuple[0](x) for x in value)
+            if non_numerical is not None:
+                # Not a uniform list, convert to tuple
+                _tuple_to_proto(value, out=msg.arg_value.tuple_value)
+                return msg
+            field, types_tuple = numerical_fields[cur_index]
+            field.extend(types_tuple[0](x) for x in value)
     elif isinstance(value, tunits.Value):
         msg.arg_value.value_with_unit.MergeFrom(value.to_proto())
     else:
@@ -185,28 +189,28 @@ def arg_to_proto(
 
 def _ndarray_to_proto(value: np.ndarray, out: v2.program_pb2.Arg):
     ndarray_msg = out.arg_value.ndarray_value
-    match value.dtype.name:
-        case 'float64':
+    match value.dtype:
+        case np.float64:
             ndarrays.to_float64_array(value, out=ndarray_msg.float64_array)
-        case 'float32':
+        case np.float32:
             ndarrays.to_float32_array(value, out=ndarray_msg.float32_array)
-        case 'float16':
+        case np.float16:
             ndarrays.to_float16_array(value, out=ndarray_msg.float16_array)
-        case 'int64':
+        case np.int64:
             ndarrays.to_int64_array(value, out=ndarray_msg.int64_array)
-        case 'int32':
+        case np.int32:
             ndarrays.to_int32_array(value, out=ndarray_msg.int32_array)
-        case 'int16':
+        case np.int16:
             ndarrays.to_int16_array(value, out=ndarray_msg.int16_array)
-        case 'int8':
+        case np.int8:
             ndarrays.to_int8_array(value, out=ndarray_msg.int8_array)
-        case 'uint8':
+        case np.uint8:
             ndarrays.to_uint8_array(value, out=ndarray_msg.uint8_array)
-        case 'complex128':
+        case np.complex128:
             ndarrays.to_complex128_array(value, out=ndarray_msg.complex128_array)
-        case 'complex64':
+        case np.complex64:
             ndarrays.to_complex64_array(value, out=ndarray_msg.complex64_array)
-        case 'bool':
+        case np.bool_:
             ndarrays.to_bitarray(value, out=ndarray_msg.bit_array)
 
 
@@ -237,8 +241,16 @@ def _ndarray_from_proto(msg: v2.program_pb2.ArgValue):
             return ndarrays.from_bitarray(ndarray_msg.bit_array)
 
 
-def _tuple_to_proto(value: Union[list, tuple], out: v2.program_pb2.Tuple):
+def _tuple_to_proto(value: Union[list, tuple, set, frozenset], out: v2.program_pb2.Tuple):
     """Converts a tuple of mixed values to Arg protos."""
+    if isinstance(value, list):
+        out.sequence_type = v2.program_pb2.Tuple.SequenceType.LIST
+    elif isinstance(value, tuple):
+        out.sequence_type = v2.program_pb2.Tuple.SequenceType.TUPLE
+    elif isinstance(value, set):
+        out.sequence_type = v2.program_pb2.Tuple.SequenceType.SET
+    elif isinstance(value, frozenset):
+        out.sequence_type = v2.program_pb2.Tuple.SequenceType.FROZENSET
     for arg in value:
         new_arg = out.values.add()
         arg_to_proto(arg, out=new_arg)
@@ -368,14 +380,25 @@ def arg_from_proto(
                 case 'bytes_value':
                     return bytes(arg_value.bytes_value)
                 case 'complex_value':
-                    return (
-                        arg_value.complex_value.real_value
-                        + 1j * arg_value.complex_value.imaginary_value
+                    return complex(
+                        arg_value.complex_value.real_value, arg_value.complex_value.imag_value
                     )
                 case 'tuple_value':
-                    return tuple(
+                    values = (
                         arg_from_proto(tuple_proto) for tuple_proto in arg_value.tuple_value.values
                     )
+                    sequence_type = arg_value.tuple_value.sequence_type
+                    match sequence_type:
+                        case v2.program_pb2.Tuple.SequenceType.LIST:
+                            return list(values)
+                        case v2.program_pb2.Tuple.SequenceType.TUPLE:
+                            return tuple(values)
+                        case v2.program_pb2.Tuple.SequenceType.SET:
+                            return set(values)
+                        case v2.program_pb2.Tuple.SequenceType.FROZENSET:
+                            return frozenset(values)
+                    raise ValueError('Unrecognized type: {sequence_type}')  # pragma: no cover
+
                 case 'ndarray_value':
                     return _ndarray_from_proto(arg_value)
             raise ValueError(f'Unrecognized value type: {which_val!r}')  # pragma: no cover

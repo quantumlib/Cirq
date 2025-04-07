@@ -448,13 +448,25 @@ message RepeatedBoolean {
 
 // Representation of a mixed tuple of values
 message Tuple {
-  repeated Arg values = 1;
+
+  // Original (python) type of the data
+  enum SequenceType {
+    UNSPECIFIED = 0;
+    LIST = 1;
+    TUPLE = 2;
+    SET = 3;
+    FROZENSET = 4;
+  }
+
+  SequenceType sequence_type = 1;
+    
+  repeated Arg values = 2;
 }
 
 // Representation of a complex number
 message Complex {
     double real_value = 1;
-    double imaginary_value = 2;
+    double imag_value = 2;
 }
 
 message NDArray {

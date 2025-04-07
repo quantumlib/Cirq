@@ -1187,15 +1187,39 @@ class Tuple(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+    class _SequenceType:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _SequenceTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Tuple._SequenceType.ValueType], builtins.type):
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        UNSPECIFIED: Tuple._SequenceType.ValueType  # 0
+        LIST: Tuple._SequenceType.ValueType  # 1
+        TUPLE: Tuple._SequenceType.ValueType  # 2
+        SET: Tuple._SequenceType.ValueType  # 3
+        FROZENSET: Tuple._SequenceType.ValueType  # 4
+
+    class SequenceType(_SequenceType, metaclass=_SequenceTypeEnumTypeWrapper):
+        """Original (python) type of the data"""
+
+    UNSPECIFIED: Tuple.SequenceType.ValueType  # 0
+    LIST: Tuple.SequenceType.ValueType  # 1
+    TUPLE: Tuple.SequenceType.ValueType  # 2
+    SET: Tuple.SequenceType.ValueType  # 3
+    FROZENSET: Tuple.SequenceType.ValueType  # 4
+
+    SEQUENCE_TYPE_FIELD_NUMBER: builtins.int
     VALUES_FIELD_NUMBER: builtins.int
+    sequence_type: global___Tuple.SequenceType.ValueType
     @property
     def values(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Arg]: ...
     def __init__(
         self,
         *,
+        sequence_type: global___Tuple.SequenceType.ValueType = ...,
         values: collections.abc.Iterable[global___Arg] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["values", b"values"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["sequence_type", b"sequence_type", "values", b"values"]) -> None: ...
 
 global___Tuple = Tuple
 
@@ -1206,16 +1230,16 @@ class Complex(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     REAL_VALUE_FIELD_NUMBER: builtins.int
-    IMAGINARY_VALUE_FIELD_NUMBER: builtins.int
+    IMAG_VALUE_FIELD_NUMBER: builtins.int
     real_value: builtins.float
-    imaginary_value: builtins.float
+    imag_value: builtins.float
     def __init__(
         self,
         *,
         real_value: builtins.float = ...,
-        imaginary_value: builtins.float = ...,
+        imag_value: builtins.float = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["imaginary_value", b"imaginary_value", "real_value", b"real_value"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["imag_value", b"imag_value", "real_value", b"real_value"]) -> None: ...
 
 global___Complex = Complex
 

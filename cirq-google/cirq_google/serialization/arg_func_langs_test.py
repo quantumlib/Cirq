@@ -57,7 +57,7 @@ def _json_format_kwargs() -> Dict[str, bool]:
         (1.0, {'arg_value': {'float_value': 1.0}}),
         (1.5, {'arg_value': {'float_value': 1.5}}),
         (1, {'arg_value': {'float_value': 1.0}}),
-        (1 + 2j, {'arg_value': {'complex_value': {'real_value': 1.0, 'imaginary_value': 2.0}}}),
+        (1 + 2j, {'arg_value': {'complex_value': {'real_value': 1.0, 'imag_value': 2.0}}}),
         (b'abcdef', {'arg_value': {'bytes_value': base64.b64encode(b'abcdef').decode("ascii")}}),
         ('abc', {'arg_value': {'string_value': 'abc'}}),
         (True, {'arg_value': {'bool_value': True}}),
@@ -65,31 +65,47 @@ def _json_format_kwargs() -> Dict[str, bool]:
         ([42.9, 3.14], {'arg_value': {'double_values': {'values': [42.9, 3.14]}}}),
         ([3, 8], {'arg_value': {'int64_values': {'values': ['3', '8']}}}),
         (
+            ['a', 3],
+            {
+                'arg_value': {
+                    'tuple_value': {
+                        'sequence_type': 1,
+                        'values': [
+                            {'arg_value': {'string_value': 'a'}},
+                            {'arg_value': {'float_value': 3.0}},
+                        ],
+                    }
+                }
+            },
+        ),
+        (
             ('settings', 3.5, (True, 3 + 4.5j)),
             {
                 'arg_value': {
                     'tuple_value': {
+                        'sequence_type': 2,
                         'values': [
                             {'arg_value': {'string_value': 'settings'}},
                             {'arg_value': {'float_value': 3.5}},
                             {
                                 'arg_value': {
                                     'tuple_value': {
+                                        'sequence_type': 2,
                                         'values': [
                                             {'arg_value': {'bool_value': True}},
                                             {
                                                 'arg_value': {
                                                     'complex_value': {
                                                         'real_value': 3.0,
-                                                        'imaginary_value': 4.5,
+                                                        'imag_value': 4.5,
                                                     }
                                                 }
                                             },
-                                        ]
+                                        ],
                                     }
                                 }
                             },
-                        ]
+                        ],
                     }
                 }
             },
@@ -199,12 +215,31 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
         np.array([[2, 3], [76, 54]], dtype=np.uint8),
         np.array([[2 + 3j, 3 + 4.5j], [7 + 6j, 5 + 4.25j]], dtype=np.complex128),
         np.array([[2 + 3.5j, 3 + 4.125], [8 + 7j, 5 + 4.75j]], dtype=np.complex64),
+        np.array([], dtype=np.complex64),
+        np.array([], dtype=np.float64),
     ],
 )
 def test_ndarray_roundtrip(value: np.ndarray):
     msg = arg_to_proto(value)
     deserialized_value = cast(np.ndarray, arg_from_proto(msg))
     np.testing.assert_array_equal(value, deserialized_value)
+
+
+@pytest.mark.parametrize('value', [[], (), set(), frozenset()])
+def test_empty_sequence_roundtrip(value):
+    msg = arg_to_proto(value)
+    deserialized_value = arg_from_proto(msg)
+    assert value == deserialized_value
+
+
+@pytest.mark.parametrize(
+    'value', [{4, 'a'}, {'b', 5}, frozenset({4, 'a'}), {'a', ('b', 'c', 'd')}, {'a', (2, 'c', 'd')}]
+)
+def test_sets_roundtrip(value):
+    msg = arg_to_proto(value)
+    print(msg)
+    deserialized_value = arg_from_proto(msg)
+    assert value == deserialized_value
 
 
 @pytest.mark.parametrize(
