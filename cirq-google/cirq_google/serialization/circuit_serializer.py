@@ -676,9 +676,9 @@ class CircuitSerializer(serializer.Serializer):
             parsed_invert_mask = arg_func_langs.arg_from_proto(
                 operation_proto.measurementgate.invert_mask, required_arg_name=None
             )
-            if (isinstance(parsed_invert_mask, list) or parsed_invert_mask is None) and isinstance(
-                key, str
-            ):
+            if (
+                isinstance(parsed_invert_mask, (list, tuple)) or parsed_invert_mask is None
+            ) and isinstance(key, str):
                 invert_mask: tuple[bool, ...] = ()
                 if parsed_invert_mask is not None:
                     invert_mask = tuple(bool(x) for x in parsed_invert_mask)
