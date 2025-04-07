@@ -251,6 +251,8 @@ def _tuple_to_proto(value: Union[list, tuple, set, frozenset], out: v2.program_p
         out.sequence_type = v2.program_pb2.Tuple.SequenceType.SET
     elif isinstance(value, frozenset):
         out.sequence_type = v2.program_pb2.Tuple.SequenceType.FROZENSET
+    else:
+        out.sequence_type = v2.program_pb2.Tuple.SequenceType.UNSPECIFIED
     for arg in value:
         new_arg = out.values.add()
         arg_to_proto(arg, out=new_arg)
