@@ -138,7 +138,7 @@ def benchmark_2q_xeb_fidelities(
     else:
         groupby_names = ['cycle_depth']
 
-    return df.groupby(groupby_names).apply(per_cycle_depth).reset_index()
+    return df.groupby(groupby_names).apply(per_cycle_depth, include_groups=False).reset_index()
 
 
 class XEBCharacterizationOptions(ABC):
@@ -702,7 +702,7 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
         groupby = ['layer_i', 'pair_i', 'pair']
     else:
         groupby = ['pair']
-    return fidelities_df.groupby(groupby).apply(_per_pair)
+    return fidelities_df.groupby(groupby).apply(_per_pair, include_groups=False)
 
 
 def before_and_after_characterization(
