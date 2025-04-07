@@ -146,12 +146,12 @@ class DeviceMetadata:
         return self._qubits_set, graph_equality
 
     def _json_dict_(self):
-        graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph)
+        graph_payload = nx.readwrite.json_graph.node_link_data(self._nx_graph, edges='links')
         qubits_payload = sorted(list(self._qubits_set))
 
         return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 
     @classmethod
     def _from_json_dict_(cls, qubits: Iterable[cirq.Qid], nx_graph: nx.Graph, **kwargs):
-        graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
+        graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph, edges='links')
         return cls(qubits, graph_obj)
