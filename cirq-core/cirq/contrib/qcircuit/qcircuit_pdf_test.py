@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
+
+import pylatex
+
 import cirq
+import cirq.contrib.qcircuit.qcircuit_pdf as qcircuit_pdf
 
 
-def test_repr():
-    cirq.testing.assert_equivalent_repr(cirq.UNCONSTRAINED_DEVICE)
-
-
-def test_infinitely_fast():
-    assert cirq.UNCONSTRAINED_DEVICE.duration_of(cirq.X(cirq.NamedQubit('a'))) == cirq.Duration(
-        picos=0
+@mock.patch.object(pylatex.Document, "generate_pdf")
+def test_qcircuit_pdf(mock_generate_pdf):
+    circuit = cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))
+    qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, "/tmp/test_file")
+    mock_generate_pdf.assert_called_once_with(
+        "/tmp/test_file", compiler="latexmk", compiler_args=["-pdfps"]
     )
-
-
-def test_any_qubit_works():
-    moment = cirq.Moment([cirq.X(cirq.LineQubit(987654321))])
-    cirq.UNCONSTRAINED_DEVICE.validate_moment(moment)
-    cirq.UNCONSTRAINED_DEVICE.validate_circuit(cirq.Circuit(moment))

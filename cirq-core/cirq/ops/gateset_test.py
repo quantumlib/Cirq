@@ -443,3 +443,10 @@ def test_gateset_contains_with_tags():
     # Both tags to accept and tags to ignore
     assert op in cirq.Gateset(gf_accept, gf_ignore)
     assert op_with_tag in cirq.Gateset(gf_accept, gf_ignore)
+
+
+def test_gateset_contains_op_with_no_gate():
+    gf = cirq.GateFamily(cirq.ZPowGate)
+    op = cirq.X(cirq.q(1)).with_classical_controls('a')
+    assert op.gate is None
+    assert op not in gf

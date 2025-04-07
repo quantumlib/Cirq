@@ -21,6 +21,7 @@ import cirq
 
 def test_repr():
     assert repr(cirq.InsertStrategy.NEW) == 'cirq.InsertStrategy.NEW'
+    assert str(cirq.InsertStrategy.NEW) == 'NEW'
 
 
 @pytest.mark.parametrize(

@@ -130,22 +130,10 @@ def _pad_tableau(
     return padded_tableau
 
 
-def _gate_tableau(num_qubits: int, gate: raw_types.Gate) -> 'cirq.CliffordTableau':
-    qubits = devices.LineQubit.range(num_qubits)
-    t = qis.CliffordTableau(num_qubits=num_qubits)
-    args = sim.CliffordTableauSimulationState(
-        tableau=t, qubits=qubits, prng=np.random.RandomState()
-    )
-    protocols.act_on(gate, args, qubits, allow_decompose=False)
-    return args.tableau
-
-
 class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     # These are class properties so we define them as properties on a metaclass.
-    # Note that in python 3.9+ @classmethod can be used with @property, so these
-    # can be moved to CommonCliffordGates.
 
     @property
     def all_single_qubit_cliffords(cls) -> Sequence['cirq.SingleQubitCliffordGate']:
@@ -405,7 +393,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
 
     def __pow__(self, exponent: float) -> 'CliffordGate':
         if exponent != int(exponent):
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         exponent = int(exponent)
 
         if exponent == -1:
@@ -448,7 +436,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # )
         # For example: X.then(Z) and Z.then(X) both return same tableau
         # it is because Clifford tableau ignores the global phase information.
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         return transformers.analytical_decompositions.decompose_clifford_tableau_to_operations(
@@ -477,7 +465,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             # is aimed to fix that.
             return NotImplemented
 
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
 
 @dataclass(frozen=True, init=False, eq=False, repr=False)
@@ -748,7 +736,8 @@ class SingleQubitCliffordGate(CliffordGate):
     def __pow__(self, exponent: float) -> 'SingleQubitCliffordGate':
         if int(exponent) == exponent:
             # The single qubit Clifford gates are a group of size 24
-            ret_gate = super().__pow__(int(exponent) % 24)
+            exp = int(exponent) % 24
+            ret_gate = super().__pow__(exp if exp != 23 else -1)
             return SingleQubitCliffordGate.from_clifford_tableau(ret_gate.clifford_tableau)
         elif int(2 * exponent) == 2 * exponent:
             # If exponent = k/2 for integer k, then we compute the k-th power of the square root

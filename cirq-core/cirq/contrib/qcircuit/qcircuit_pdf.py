@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pragma: no cover
 
 import errno
 import os
@@ -65,4 +64,4 @@ def circuit_to_pdf_using_qcircuit_via_tex(
             os.remove(filepath + '.' + ext)
         except (OSError, IOError) as e:
             if e.errno != errno.ENOENT:
-                raise
+                raise  # pragma: nocover

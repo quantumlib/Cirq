@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import itertools
 import os
 import time
 from collections import defaultdict
 from random import randint, random, randrange, sample
-from typing import Iterator, Optional, Tuple, TYPE_CHECKING
+from typing import Iterator, Optional, Tuple
 
 import numpy as np
 import pytest
@@ -49,23 +50,7 @@ BCONE = ValidatingTestDevice(
 )
 
 
-if TYPE_CHECKING:
-    import cirq
-
 q0, q1, q2, q3 = cirq.LineQubit.range(4)
-
-
-class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
-    def validate_operation(self, operation):
-        if not isinstance(operation, cirq.Operation):
-            raise ValueError(f'not isinstance({operation!r}, {cirq.Operation!r})')
-
-    def validate_moment(self, moment):
-        if not isinstance(moment, cirq.Moment):
-            raise ValueError(f'not isinstance({moment!r}, {cirq.Moment!r})')
-
-
-moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
 def test_from_moments():
@@ -906,8 +891,8 @@ def test_insert_at_frontier():
             self.replacer = replacer
 
         def optimization_at(
-            self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
-        ) -> Optional['cirq.PointOptimizationSummary']:
+            self, circuit: cirq.Circuit, index: int, op: cirq.Operation
+        ) -> Optional[cirq.PointOptimizationSummary]:
             new_ops = self.replacer(op)
             return cirq.PointOptimizationSummary(
                 clear_span=1, clear_qubits=op.qubits, new_operations=new_ops
