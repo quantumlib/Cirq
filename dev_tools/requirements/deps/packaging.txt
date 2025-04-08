@@ -3,7 +3,7 @@ virtualenv
 
 # for creating packages
 # TODO (juhas) - remove when pyquil allows packaging-24
-setuptools<77
+setuptools>=70,<77
 wheel
 
 # for uploading packages to pypi
