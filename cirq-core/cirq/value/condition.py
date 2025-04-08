@@ -144,7 +144,7 @@ class BitMaskKeyCondition(Condition):
     after taking the bitwise and with a bitmask.
 
     Examples:
-        - BitMaskKeycondition('a') -> a != 0
+        - BitMaskKeyCondition('a') -> a != 0
         - BitMaskKeyCondition('a', bitmask=13) -> (a & 13) != 0
         - BitMaskKeyCondition('a', bitmask=13, target_value=9) -> (a & 13) != 9
         - BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=True) -> (a & 13) == 9
