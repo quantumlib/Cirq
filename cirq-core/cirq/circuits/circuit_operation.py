@@ -22,6 +22,7 @@ component operations in order, including any nested CircuitOperations.
 from __future__ import annotations
 
 import math
+import warnings
 from functools import cached_property
 from typing import (
     Any,
@@ -47,7 +48,6 @@ from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
-
 
 INT_CLASSES = (int, np.integer)
 INT_TYPE = Union[int, np.integer]
@@ -92,7 +92,7 @@ class CircuitOperation(ops.Operation):
         repetition_ids: Optional[Sequence[str]] = None,
         parent_path: Tuple[str, ...] = (),
         extern_keys: FrozenSet[cirq.MeasurementKey] = frozenset(),
-        use_repetition_ids: bool = True,
+        use_repetition_ids: Optional[bool] = None,
         repeat_until: Optional[cirq.Condition] = None,
     ):
         """Initializes a CircuitOperation.
@@ -123,7 +123,9 @@ class CircuitOperation(ops.Operation):
             use_repetition_ids: When True, any measurement key in the subcircuit
                 will have its path prepended with the repetition id for each
                 repetition. When False, this will not happen and the measurement
-                key will be repeated.
+                key will be repeated. The default is True, but it will be changed
+                to False in the next release.  Please pass an explicit argument
+                ``use_repetition_ids=True`` to preserve the current behavior.
             repeat_until: A condition that will be tested after each iteration of
                 the subcircuit. The subcircuit will repeat until condition returns
                 True, but will always run at least once, and the measurement key
@@ -159,7 +161,19 @@ class CircuitOperation(ops.Operation):
         # Ensure that the circuit is invertible if the repetitions are negative.
         self._repetitions = repetitions
         self._repetition_ids = None if repetition_ids is None else list(repetition_ids)
-        self._use_repetition_ids = use_repetition_ids
+        if use_repetition_ids is None:
+            if repetition_ids is None:
+                msg = (
+                    "In cirq 1.6 the default value of `use_repetition_ids` will change to\n"
+                    "`use_repetition_ids=False`. To make this warning go away, please pass\n"
+                    "explicit `use_repetition_ids`, e.g., to preserve current behavior, use\n"
+                    "\n"
+                    "  CircuitOperations(..., use_repetition_ids=True)"
+                )
+                warnings.warn(msg, FutureWarning)
+            self._use_repetition_ids = True
+        else:
+            self._use_repetition_ids = use_repetition_ids
         if isinstance(self._repetitions, float):
             if math.isclose(self._repetitions, round(self._repetitions)):
                 self._repetitions = round(self._repetitions)
