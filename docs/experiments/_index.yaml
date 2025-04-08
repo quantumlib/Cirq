@@ -28,7 +28,7 @@ landing_page:
       path: /cirq/experiments/shor
     - heading: Variational Quantum Eigensolver
       description: An example of computing the ground state of a Hamiltonian using the
-      variational principle.
+        variational principle.
       path: /cirq/experiments/variational_algorithm
     - heading: Quantum Walks
       description: An example of the quantum analog of a random walk algorithm.
