@@ -1223,10 +1223,7 @@ global___NDArray = NDArray
 
 @typing.final
 class ArgFunction(google.protobuf.message.Message):
-    """A measurement key.
-    Used for referencing
-
-    A function of arguments. This is an s-expression tree representing
+    """A function of arguments. This is an s-expression tree representing
     mathematically the function being evaluated.
 
     What language is supported is specified by the arg_function_language

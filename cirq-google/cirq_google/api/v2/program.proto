@@ -466,9 +466,6 @@ message NDArray {
   }
 }
 
-// A measurement key.
-// Used for referencing 
-
 
 // A function of arguments. This is an s-expression tree representing
 // mathematically the function being evaluated.

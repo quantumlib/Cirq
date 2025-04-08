@@ -78,7 +78,7 @@ as documentation, but also on internal code so that the mypy type checker can
 help catch coding errors.
 
 For documentation purposes in particular, type annotations should match the way
-classes and functions are accessed by cirq users, which is typically on the
+classes and functions are accessed by Cirq users, which is typically on the
 top-level `cirq` namespace (for example, users use `cirq.Sampler` even though
 the sampler class is defined in `cirq.work.sampler.Sampler`). Code in `cirq-core`
 typically cannot import and use `cirq.Sampler` directly because this could
