@@ -24,6 +24,7 @@ from google.protobuf import json_format
 
 import cirq_google
 from cirq.qis import CliffordTableau
+from cirq.value import BitMaskKeyCondition, KeyCondition, MeasurementKey, SympyCondition
 from cirq_google.api import v2
 from cirq_google.serialization.arg_func_langs import (
     arg_from_proto,
@@ -31,6 +32,8 @@ from cirq_google.serialization.arg_func_langs import (
     arg_to_proto,
     clifford_tableau_arg_to_proto,
     clifford_tableau_from_proto,
+    condition_from_proto,
+    condition_to_proto,
     float_arg_from_proto,
     float_arg_to_proto,
     internal_gate_arg_to_proto,
@@ -132,6 +135,30 @@ def _json_format_kwargs() -> Dict[str, bool]:
         (
             sympy.Symbol('x') ** sympy.Symbol('y'),
             {'func': {'type': 'pow', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
+            sympy.Symbol('x') > sympy.Symbol('y'),
+            {'func': {'type': '>', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
+            sympy.Symbol('x') >= sympy.Symbol('y'),
+            {'func': {'type': '>=', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
+            sympy.Symbol('x') < sympy.Symbol('y'),
+            {'func': {'type': '<', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
+            sympy.Symbol('x') <= sympy.Symbol('y'),
+            {'func': {'type': '<=', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
+            sympy.Eq(sympy.Symbol('x'), sympy.Symbol('y')),
+            {'func': {'type': '==', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
+            MeasurementKey(path=('nested',), name='key'),
+            {'measurement_key': {'string_key': 'key', 'path': ['nested']}},
         ),
     ],
 )
@@ -237,8 +264,32 @@ def test_empty_sequence_roundtrip(value):
 )
 def test_sets_roundtrip(value):
     msg = arg_to_proto(value)
-    print(msg)
     deserialized_value = arg_from_proto(msg)
+    assert value == deserialized_value
+
+
+@pytest.mark.parametrize(
+    'value',
+    [
+        KeyCondition(MeasurementKey('a')),
+        SympyCondition(sympy.Symbol('a') > sympy.Symbol('b')),
+        SympyCondition(sympy.Symbol('a') >= sympy.Symbol('b')),
+        SympyCondition(sympy.Symbol('a') < sympy.Symbol('b')),
+        SympyCondition(sympy.Symbol('a') <= sympy.Symbol('b')),
+        SympyCondition(sympy.Ne(sympy.Symbol('a'), sympy.Symbol('b'))),
+        SympyCondition(sympy.Eq(sympy.Symbol('a'), sympy.Symbol('b'))),
+        BitMaskKeyCondition('a'),
+        BitMaskKeyCondition('a', bitmask=13),
+        BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=False),
+        BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=True),
+        BitMaskKeyCondition.create_equal_mask(MeasurementKey('a'), 13),
+        BitMaskKeyCondition.create_not_equal_mask(MeasurementKey('a'), 13),
+    ],
+)
+def test_conditions_roundtrip(value):
+    msg = v2.program_pb2.Arg()
+    condition_to_proto(value, out=msg)
+    deserialized_value = condition_from_proto(msg)
     assert value == deserialized_value
 
 
@@ -279,6 +330,13 @@ def test_invalid_float_arg():
             v2.program_pb2.Arg(arg_value=v2.program_pb2.ArgValue(float_value=0.5)),
             required_arg_name='blah',
         )
+
+
+def test_invalid_sympy_func():
+    with pytest.raises(ValueError, match='Unrecognized sympy function'):
+        _ = arg_from_proto(v2.program_pb2.Arg(func=v2.program_pb2.ArgFunction(type='dingdong')))
+    with pytest.raises(ValueError, match='Unrecognized Sympy expression'):
+        _ = arg_to_proto(sympy.Quaternion(sympy.Symbol('a'), 1, 2, 3))
 
 
 @pytest.mark.parametrize('rotation_angles_arg', [{}, {'rotation_angles': [0.1, 0.3]}])

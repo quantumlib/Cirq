@@ -13,13 +13,14 @@
 # limitations under the License.
 import math
 import numbers
-from typing import cast, Iterable, Iterator, List, Optional, Sequence, Union
+from typing import cast, List, Optional, Sequence, Union
 
 import numpy as np
 import sympy
 import tunits
 
 from cirq.qis import CliffordTableau
+from cirq.value import BitMaskKeyCondition, Condition, KeyCondition, MeasurementKey, SympyCondition
 from cirq_google.api import v2
 from cirq_google.api.v2 import ndarrays
 from cirq_google.ops import InternalGate
@@ -46,44 +47,21 @@ FLOAT_TYPES = (
     sympy.NumberSymbol,
 )
 
-# Supported function languages in order from least to most flexible.
-# Clients should use the least flexible language they can, to make it easier
-# to gradually roll out new capabilities to clients and servers.
-LANGUAGE_ORDER = ['', 'linear', 'exp']
-
-
-def _max_lang(langs: Iterable[str]) -> str:
-    i = max((LANGUAGE_ORDER.index(e) for e in langs), default=0)
-    return LANGUAGE_ORDER[i]
-
-
-def _infer_function_language_from_circuit(value: v2.program_pb2.Circuit) -> str:
-    return _max_lang(
-        {
-            e
-            for moment in value.moments
-            for op in moment.operations
-            for e in _function_languages_from_operation(op)
-        }
-    )
-
-
-def _function_languages_from_operation(value: v2.program_pb2.Operation) -> Iterator[str]:
-    for arg in value.args.values():
-        yield from _function_languages_from_arg(arg)
-
-
-def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg) -> Iterator[str]:
-    which = arg_proto.WhichOneof('arg')  # pragma: no cover
-    if which == 'func':
-        if arg_proto.func.type in ['add', 'mul']:
-            yield 'linear'
-            for a in arg_proto.func.args:
-                yield from _function_languages_from_arg(a)
-        if arg_proto.func.type in ['pow']:
-            yield 'exp'
-            for a in arg_proto.func.args:
-                yield from _function_languages_from_arg(a)
+# The sympy operations supported by the proto format
+# and their corresponding operation types
+_SUPPORTED_SYMPY_TYPE_MAPPING = {
+    sympy.Add: "add",
+    sympy.Mul: "mul",
+    sympy.Pow: "pow",
+    sympy.Equality: "==",
+    sympy.Unequality: "!=",
+    sympy.GreaterThan: ">=",
+    sympy.StrictGreaterThan: ">",
+    sympy.LessThan: "<=",
+    sympy.StrictLessThan: "<",
+}
+_SYMPY_EXPR_PER_TYPE = {op_type: expr for expr, op_type in _SUPPORTED_SYMPY_TYPE_MAPPING.items()}
+_SUPPORTED_SYMPY_TYPES = tuple(_SUPPORTED_SYMPY_TYPE_MAPPING.keys())
 
 
 def float_arg_to_proto(
@@ -181,6 +159,9 @@ def arg_to_proto(
             field.extend(types_tuple[0](x) for x in value)
     elif isinstance(value, tunits.Value):
         msg.arg_value.value_with_unit.MergeFrom(value.to_proto())
+    elif isinstance(value, MeasurementKey):
+        msg.measurement_key.string_key = value.name
+        msg.measurement_key.path.extend(value.path)
     else:
         _arg_func_to_proto(value, msg)
 
@@ -263,23 +244,15 @@ def _arg_func_to_proto(
 ) -> None:
     if isinstance(value, sympy.Symbol):
         msg.symbol = str(value.free_symbols.pop())
-    elif isinstance(value, sympy.Add):
-        msg.func.type = 'add'
-        for arg in value.args:
-            arg_to_proto(arg, out=msg.func.args.add())
-    elif isinstance(value, sympy.Mul):
-        msg.func.type = 'mul'
-        for arg in value.args:
-            arg_to_proto(arg, out=msg.func.args.add())
-    elif isinstance(value, sympy.Pow):
-        msg.func.type = 'pow'
+    elif isinstance(value, _SUPPORTED_SYMPY_TYPES):
+        msg.func.type = _SUPPORTED_SYMPY_TYPE_MAPPING[type(value)]
         for arg in value.args:
             arg_to_proto(arg, out=msg.func.args.add())
     else:
         raise ValueError(
             f"Unrecognized Sympy expression type: {type(value)}."
             " Only the following types are recognized: 'sympy.Symbol', 'sympy.Add', 'sympy.Mul',"
-            " 'sympy.Pow'."
+            " 'sympy.Pow', and sympy comparison types."
         )
 
 
@@ -410,6 +383,11 @@ def arg_from_proto(
             func = _arg_func_from_proto(arg_proto.func, required_arg_name=required_arg_name)
             if func is not None:
                 return func
+        case 'measurement_key':
+            return MeasurementKey(
+                name=arg_proto.measurement_key.string_key,
+                path=tuple(arg_proto.measurement_key.path),
+            )
 
     if required_arg_name is not None:
         raise ValueError(
@@ -424,21 +402,66 @@ def _arg_func_from_proto(
     func: v2.program_pb2.ArgFunction, *, required_arg_name: Optional[str] = None
 ) -> Optional[ARG_RETURN_LIKE]:
 
-    if func.type == 'add':
-        return sympy.Add(
-            *[arg_from_proto(a, required_arg_name='An addition argument') for a in func.args]
+    if (op_expr := _SYMPY_EXPR_PER_TYPE.get(func.type, None)) is not None:
+        return op_expr(
+            *[arg_from_proto(a, required_arg_name=f'An {func.type} argument') for a in func.args]
         )
+    raise ValueError(f'Unrecognized sympy function {func}')
 
-    if func.type == 'mul':
-        return sympy.Mul(
-            *[arg_from_proto(a, required_arg_name='A multiplication argument') for a in func.args]
-        )
 
-    if func.type == 'pow':
-        return sympy.Pow(
-            *[arg_from_proto(a, required_arg_name='A power argument') for a in func.args]
+def condition_to_proto(control: Condition, *, out: v2.program_pb2.Arg) -> v2.program_pb2.Arg:
+    if isinstance(control, KeyCondition):
+        out.measurement_key.string_key = control.key.name
+        out.measurement_key.path.extend(control.key.path)
+        out.measurement_key.index = control.index
+    elif isinstance(control, SympyCondition):
+        arg_to_proto(control.expr, out=out)
+    elif isinstance(control, BitMaskKeyCondition):
+        if control.equal_target:
+            # Special function that represents (a & c) == b
+            out.func.type = "bitmask=="
+        else:
+            # Special function that represents (a & c) != b
+            out.func.type = "bitmask!="
+        key_proto = out.func.args.add().measurement_key
+        key_proto.string_key = control.key.name
+        key_proto.path.extend(control.key.path)
+        key_proto.index = control.index
+        target_proto = out.func.args.add()
+        arg_to_proto(control.target_value, out=target_proto)
+
+        if control.bitmask is not None:
+            bitmask_proto = out.func.args.add()
+            arg_to_proto(control.bitmask, out=bitmask_proto)
+    return out
+
+
+def condition_from_proto(condition: v2.program_pb2.Arg) -> Condition:
+    which = condition.WhichOneof("arg")
+    if which == 'measurement_key':
+        key = condition.measurement_key
+        return KeyCondition(
+            key=MeasurementKey(key.string_key, path=tuple(key.path)), index=key.index
         )
-    return None
+    elif which == 'func':
+        if condition.func.type == "bitmask==" or condition.func.type == "bitmask!=":
+            key = condition.func.args[0].measurement_key
+            if len(condition.func.args) > 2:
+                bitmask = int(arg_from_proto(condition.func.args[2]))  # type: ignore
+            else:
+                bitmask = None
+            return BitMaskKeyCondition(
+                key=MeasurementKey(key.string_key, path=tuple(key.path)),
+                index=key.index,
+                target_value=int(arg_from_proto(condition.func.args[1])),  # type: ignore
+                equal_target=(condition.func.type == "bitmask=="),
+                bitmask=bitmask,
+            )
+        else:
+            expr = arg_from_proto(condition)
+            return SympyCondition(expr)
+    else:
+        raise ValueError(f'Unrecognized condition {condition}')  # pragma: nocover
 
 
 def internal_gate_arg_to_proto(
