@@ -42,8 +42,6 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_no
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
-    # Requires OpenQASM 3.0 support from cirq 1.5
-    'docs/build/interop.ipynb',
     # Requires features in cirq 1.5.
     'docs/build/classical_control.ipynb',
 ]
