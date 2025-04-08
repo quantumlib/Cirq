@@ -332,6 +332,8 @@ def test_repeat(add_measurements: bool, use_default_ids_for_initial_rep: bool) -
     assert op_base.repeat(2.99999999999).repetitions == 3
 
 
+# TODO: #7232 - enable and fix immediately after the 1.5.0 release
+@pytest.mark.xfail(reason='broken by rollback of use_repetition_ids for #7232')
 def test_replace_repetition_ids() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b), cirq.M(b, key='mb'), cirq.M(a, key='ma'))
@@ -1231,6 +1233,8 @@ def test_repeat_until_protocols():
     op = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.H(q) ** sympy.Symbol('p'), cirq.measure(q, key='a')),
         repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 0)),
+        # TODO: #7232 - remove immediately after the 1.5.0 release
+        use_repetition_ids=False,
     )
     scoped = cirq.with_rescoped_keys(op, ('0',))
     # Ensure the _repeat_until has been mapped, the measurement has been mapped to the same key,
@@ -1263,6 +1267,8 @@ def test_inner_repeat_until_simulate():
     inner_loop = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.H(q), cirq.measure(q, key="inner_loop")),
         repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol("inner_loop"), 0)),
+        # TODO: #7232 - remove immediately after the 1.5.0 release
+        use_repetition_ids=False,
     )
     outer_loop = cirq.Circuit(inner_loop, cirq.X(q), cirq.measure(q, key="outer_loop"))
     circuit = cirq.Circuit(
