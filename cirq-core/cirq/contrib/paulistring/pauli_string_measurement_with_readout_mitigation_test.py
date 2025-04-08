@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 import random
 from typing import Dict, Sequence
 
@@ -32,8 +33,13 @@ def _create_ghz(number_of_qubits: int, qubits: Sequence[cirq.Qid]) -> cirq.Circu
     return ghz_circuit
 
 
-def _generate_random_pauli_string(qubits: Sequence[cirq.Qid], enable_coeff: bool = False):
+def _generate_random_pauli_string(
+    qubits: Sequence[cirq.Qid], enable_coeff: bool = False, allow_pauli_i: bool = True
+):
     pauli_ops = [cirq.I, cirq.X, cirq.Y, cirq.Z]
+
+    if not allow_pauli_i:
+        pauli_ops = [cirq.X, cirq.Y, cirq.Z]
 
     operators = {q: random.choice(pauli_ops) for q in qubits}
     # Ensure at least one non-identity.
@@ -43,6 +49,44 @@ def _generate_random_pauli_string(qubits: Sequence[cirq.Qid], enable_coeff: bool
         coefficient = (2 * random.random() - 1) * 100
         return coefficient * cirq.PauliString(operators)
     return cirq.PauliString(operators)
+
+
+def _generate_qwc_paulis(
+    input_pauli: cirq.PauliString, qubits: list[cirq.Qid]
+) -> list[cirq.PauliString]:
+    """
+    Generates all PauliStrings that are Qubit-Wise Commuting (QWC)
+    with the input_pauli.
+    """
+    allowed_paulis_per_qubit = []
+
+    for qubit in qubits:
+        pauli_op = input_pauli.get(qubit, cirq.I)
+
+        allowed_pauli_op = []
+        if pauli_op == cirq.I:
+            allowed_pauli_op = [cirq.I, cirq.X, cirq.Y, cirq.Z]
+        elif pauli_op == cirq.X:
+            allowed_pauli_op = [cirq.I, cirq.X]
+        elif pauli_op == cirq.Y:
+            allowed_pauli_op = [cirq.I, cirq.Y]
+        elif pauli_op == cirq.Z:
+            allowed_pauli_op = [cirq.I, cirq.Z]
+
+        allowed_paulis_per_qubit.append(allowed_pauli_op)
+
+    qwc_paulis: list[cirq.PauliString] = []
+
+    for pauli_combination in itertools.product(*allowed_paulis_per_qubit):
+        pauli_dict = {}
+        for i, qid in enumerate(qubits):
+            pauli_dict[qid] = pauli_combination[i]
+
+        qwc_pauli = cirq.PauliString(pauli_dict)
+        if not all(q == cirq.I for q in qwc_pauli):
+            qwc_paulis.append(qwc_pauli)
+
+    return qwc_paulis
 
 
 def _ideal_expectation_based_on_pauli_string(
@@ -149,6 +193,59 @@ def test_pauli_string_measurement_errors_with_coefficient_no_noise() -> None:
             }
 
 
+def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> None:
+    """Test that the mitigated expectation is close to the ideal expectation
+    based on the group of Pauli strings"""
+
+    qubits = cirq.LineQubit.range(5)
+    circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
+    sampler = cirq.Simulator()
+
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli[circuit] = [
+        _generate_qwc_paulis(
+            _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False), qubits
+        )
+        for _ in range(3)
+    ]
+
+    circuits_with_pauli_expectations = measure_pauli_strings(
+        circuits_to_pauli, sampler, 1000, 1000, 1000, 1000
+    )
+
+    for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
+        assert isinstance(circuit_with_pauli_expectations.circuit, cirq.FrozenCircuit)
+
+        expected_val_simulation = sampler.simulate(
+            circuit_with_pauli_expectations.circuit.unfreeze()
+        )
+        final_state_vector = expected_val_simulation.final_state_vector
+
+        for pauli_string_measurement_results in circuit_with_pauli_expectations.results:
+            # Since there is no noise, the mitigated and unmitigated expectations should be the same
+            assert np.isclose(
+                pauli_string_measurement_results.mitigated_expectation,
+                pauli_string_measurement_results.unmitigated_expectation,
+            )
+            assert np.isclose(
+                pauli_string_measurement_results.mitigated_expectation,
+                _ideal_expectation_based_on_pauli_string(
+                    pauli_string_measurement_results.pauli_string, final_state_vector
+                ),
+                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+            )
+            assert isinstance(
+                pauli_string_measurement_results.calibration_result,
+                SingleQubitReadoutCalibrationResult,
+            )
+            assert pauli_string_measurement_results.calibration_result.zero_state_errors == {
+                q: 0 for q in pauli_string_measurement_results.pauli_string.qubits
+            }
+            assert pauli_string_measurement_results.calibration_result.one_state_errors == {
+                q: 0 for q in pauli_string_measurement_results.pauli_string.qubits
+            }
+
+
 def test_pauli_string_measurement_errors_with_noise() -> None:
     """Test that the mitigated expectation is close to the ideal expectation
     based on the Pauli string"""
@@ -159,6 +256,59 @@ def test_pauli_string_measurement_errors_with_noise() -> None:
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
     circuits_to_pauli[circuit] = [_generate_random_pauli_string(qubits) for _ in range(3)]
+
+    circuits_with_pauli_expectations = measure_pauli_strings(
+        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng()
+    )
+
+    for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
+        assert isinstance(circuit_with_pauli_expectations.circuit, cirq.FrozenCircuit)
+
+        expected_val_simulation = simulator.simulate(
+            circuit_with_pauli_expectations.circuit.unfreeze()
+        )
+        final_state_vector = expected_val_simulation.final_state_vector
+
+        for pauli_string_measurement_results in circuit_with_pauli_expectations.results:
+            assert np.isclose(
+                pauli_string_measurement_results.mitigated_expectation,
+                _ideal_expectation_based_on_pauli_string(
+                    pauli_string_measurement_results.pauli_string, final_state_vector
+                ),
+                atol=4 * pauli_string_measurement_results.mitigated_stddev,
+            )
+
+            assert isinstance(
+                pauli_string_measurement_results.calibration_result,
+                SingleQubitReadoutCalibrationResult,
+            )
+
+            for (
+                error
+            ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
+                assert 0.08 < error < 0.12
+            for (
+                error
+            ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
+                assert 0.0045 < error < 0.0055
+
+
+def test_group_pauli_string_measurement_errors_with_noise() -> None:
+    """Test that the mitigated expectation is close to the ideal expectation
+    based on the group Pauli strings"""
+    qubits = cirq.LineQubit.range(7)
+    circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
+    sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
+    simulator = cirq.Simulator()
+
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli[circuit] = [
+        _generate_qwc_paulis(
+            _generate_random_pauli_string(qubits, enable_coeff=True,
+                                          allow_pauli_i=False), qubits
+        )
+        for _ in range(3)
+    ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
         circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng()
