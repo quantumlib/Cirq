@@ -87,9 +87,6 @@ PACKAGES = [
     "jupyter",
     # assumed to be part of colab
     "seaborn~=0.12",
-    # TODO: remove after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
-    "qcs-sdk-python<=0.21.12",
-    "numpy~=1.25",
 ]
 
 
