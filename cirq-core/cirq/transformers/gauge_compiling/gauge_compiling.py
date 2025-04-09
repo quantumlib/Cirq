@@ -25,11 +25,11 @@ import numpy as np
 import sympy
 from attrs import field, frozen
 
-from cirq.transformers import transformer_api
-from cirq import ops, circuits
+from cirq import circuits, ops
 from cirq.protocols import unitary_protocol
 from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.study.sweeps import Points, Sweep, Zip
+from cirq.transformers import transformer_api
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 
