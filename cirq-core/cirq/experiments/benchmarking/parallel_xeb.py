@@ -14,6 +14,8 @@
 
 """A module for performing and analysing parallel XEB."""
 
+from __future__ import annotations
+
 from concurrent import futures
 from typing import Dict, Optional, overload, Sequence, TYPE_CHECKING, Union
 
@@ -78,11 +80,11 @@ class XEBWideCircuitInfo:
 
     @staticmethod
     def from_narrow_circuits(
-        circuit_templates: Sequence['cirq.Circuit'],
+        circuit_templates: Sequence[cirq.Circuit],
         permutation: np.ndarray,
         pairs: Sequence[_QUBIT_PAIR_T],
         target: _CANONICAL_TARGET_T,
-    ) -> 'XEBWideCircuitInfo':
+    ) -> XEBWideCircuitInfo:
         """A static method that merges a sequence of narrow circuits into a wide circuit.
 
         Args:
@@ -134,7 +136,7 @@ class XEBWideCircuitInfo:
             zipped_circuit = circuits.Circuit.from_moments(*new_moments)
         return XEBWideCircuitInfo(zipped_circuit, pairs, narrow_template_indices=permutation)
 
-    def sliced_circuits(self, cycle_depths: Sequence[int]) -> Sequence['XEBWideCircuitInfo']:
+    def sliced_circuits(self, cycle_depths: Sequence[int]) -> Sequence[XEBWideCircuitInfo]:
         """Slices the wide circuit into the given cycle depths and appends necessary measurements.
 
         Args:
@@ -156,7 +158,7 @@ class XEBWideCircuitInfo:
         return xeb_circuits
 
 
-def _target_to_operation(target: _TARGET_T) -> 'cirq.Operation':
+def _target_to_operation(target: _TARGET_T) -> cirq.Operation:
     if isinstance(target, ops.Gate):
         return target(*devices.LineQid.for_gate(target))
     elif isinstance(target, circuits.AbstractCircuit):
@@ -194,7 +196,7 @@ def _transform_moment_with_circuit_ops_to_moment_with_single_op(
 
 
 def create_combination_circuits(
-    circuit_templates: Sequence['cirq.Circuit'],
+    circuit_templates: Sequence[cirq.Circuit],
     combinations_by_layer: Sequence[rqcg.CircuitLibraryCombination],
     target: _CANONICAL_TARGET_T,
 ) -> Sequence[XEBWideCircuitInfo]:
@@ -227,8 +229,8 @@ def create_combination_circuits(
 
 
 def simulate_circuit(
-    simulator: 'cirq.Simulator',
-    circuit: 'cirq.Circuit',
+    simulator: cirq.Simulator,
+    circuit: cirq.Circuit,
     cycle_depths: Sequence[int],
     circuit_id: Optional[int] = None,
 ) -> tuple[Optional[int], Sequence[np.ndarray]]:
@@ -266,7 +268,7 @@ def simulate_circuit(
 
 @overload
 def simulate_circuit_library(
-    circuit_templates: Sequence['cirq.Circuit'],
+    circuit_templates: Sequence[cirq.Circuit],
     target_or_dict: ops.Operation,
     cycle_depths: Sequence[int],
     pool: Optional[futures.Executor] = None,
@@ -275,7 +277,7 @@ def simulate_circuit_library(
 
 @overload
 def simulate_circuit_library(
-    circuit_templates: Sequence['cirq.Circuit'],
+    circuit_templates: Sequence[cirq.Circuit],
     target_or_dict: dict[_QUBIT_PAIR_T, ops.Operation],
     cycle_depths: Sequence[int],
     pool: Optional[futures.Executor] = None,
@@ -283,7 +285,7 @@ def simulate_circuit_library(
 
 
 def simulate_circuit_library(
-    circuit_templates: Sequence['cirq.Circuit'],
+    circuit_templates: Sequence[cirq.Circuit],
     target_or_dict: _CANONICAL_TARGET_T,
     cycle_depths: Sequence[int],
     pool: Optional[futures.Executor] = None,
@@ -363,7 +365,7 @@ def simulate_circuit_library(
 
 
 def sample_all_circuits(
-    sampler: 'cirq.Sampler', circuits: Sequence['cirq.Circuit'], repetitions: int
+    sampler: cirq.Sampler, circuits: Sequence[cirq.Circuit], repetitions: int
 ) -> Sequence[dict[str, np.ndarray]]:
     """Calls sampler.run_batch on the given circuits and estimates the state probabilities.
 
@@ -529,9 +531,9 @@ def estimate_fidelities(
 
 
 def _extract_pairs(
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
-    qubits: Optional[Sequence['cirq.GridQubit']],
+    qubits: Optional[Sequence[cirq.GridQubit]],
     pairs: Optional[Sequence[_QUBIT_PAIR_T]],
 ) -> Sequence[_QUBIT_PAIR_T]:
     if isinstance(target, dict):
@@ -549,10 +551,10 @@ def _extract_pairs(
 
 
 def parallel_xeb_workflow(
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
     ideal_target: Optional[Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]]] = None,
-    qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    qubits: Optional[Sequence[cirq.GridQubit]] = None,
     pairs: Optional[Sequence[_QUBIT_PAIR_T]] = None,
     parameters: XEBParameters = XEBParameters(),
     rng: Optional[np.random.Generator] = None,
@@ -648,10 +650,10 @@ def parallel_xeb_workflow(
 
 
 def parallel_two_qubit_xeb(
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
     ideal_target: Optional[Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]]] = None,
-    qubits: Optional[Sequence['cirq.GridQubit']] = None,
+    qubits: Optional[Sequence[cirq.GridQubit]] = None,
     pairs: Optional[Sequence[_QUBIT_PAIR_T]] = None,
     parameters: XEBParameters = XEBParameters(),
     rng: Optional[np.random.Generator] = None,
