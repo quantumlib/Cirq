@@ -60,7 +60,7 @@ class TestXEBWideCircuitInfo:
                 ],
             ),
             pairs=_PAIRS,
-            narrow_template_indicies=permutation,
+            narrow_template_indices=permutation,
         )
 
     def test_sliced_circuit(self):
@@ -83,7 +83,7 @@ class TestXEBWideCircuitInfo:
                 ],
             ),
             pairs=_PAIRS,
-            narrow_template_indicies=[1, 2, 0],
+            narrow_template_indices=[1, 2, 0],
         )
         sliced_circuit = xeb.XEBWideCircuitInfo(
             wide_circuit=cirq.Circuit.from_moments(
@@ -105,7 +105,7 @@ class TestXEBWideCircuitInfo:
                 [cirq.measure(p, key=str(p)) for p in _PAIRS],
             ),
             pairs=_PAIRS,
-            narrow_template_indicies=[1, 2, 0],
+            narrow_template_indices=[1, 2, 0],
             cycle_depth=1,
         )
 
@@ -135,7 +135,7 @@ def test_create_combination_circuits():
                 ],
             ),
             pairs=_PAIRS,
-            narrow_template_indicies=[1, 2, 0],
+            narrow_template_indices=[1, 2, 0],
         )
     ]
 
@@ -157,7 +157,7 @@ def test_create_combination_circuits_with_target_dict():
                 [cirq.Z.on_each(*_PAIRS[0]), cirq.X.on_each(*_PAIRS[1])],
             ),
             pairs=_PAIRS,
-            narrow_template_indicies=[1, 2, 0],
+            narrow_template_indices=[1, 2, 0],
         )
     ]
 
@@ -251,12 +251,12 @@ def test_sample_all_circuits():
     )  # |01>
 
 
-def test_estimate_fidilties():
+def test_estimate_fidelities():
     sampling_result = [{str(_PAIRS[0]): np.array([0.15, 0.15, 0.35, 0.35])}]
 
     simulation_results = [[np.array([0.1, 0.2, 0.3, 0.4])]]
 
-    result = xeb.estimate_fidilties(
+    result = xeb.estimate_fidelities(
         sampling_results=sampling_result,
         simulation_results=simulation_results,
         cycle_depths=(1,),
@@ -271,7 +271,7 @@ def test_estimate_fidilties():
                     cirq.measure(_PAIRS[0], key=str(_PAIRS[0])),
                 ),
                 cycle_depth=1,
-                narrow_template_indicies=(0,),
+                narrow_template_indices=(0,),
                 pairs=_PAIRS[:1],
             )
         ],
@@ -282,12 +282,12 @@ def test_estimate_fidilties():
     ]
 
 
-def test_estimate_fidilties_with_dict_target():
+def test_estimate_fidelities_with_dict_target():
     sampling_result = [{str(_PAIRS[0]): np.array([0.15, 0.15, 0.35, 0.35])}]
 
     simulation_results = {_PAIRS[0]: [[np.array([0.1, 0.2, 0.3, 0.4])]]}
 
-    result = xeb.estimate_fidilties(
+    result = xeb.estimate_fidelities(
         sampling_results=sampling_result,
         simulation_results=simulation_results,
         cycle_depths=(1,),
@@ -302,7 +302,7 @@ def test_estimate_fidilties_with_dict_target():
                     cirq.measure(_PAIRS[0], key=str(_PAIRS[0])),
                 ),
                 cycle_depth=1,
-                narrow_template_indicies=(0,),
+                narrow_template_indices=(0,),
                 pairs=_PAIRS[:1],
             )
         ],
@@ -316,7 +316,7 @@ def test_estimate_fidilties_with_dict_target():
 def _assert_fidelities_approx_equal(fids, expected: float, atol: float):
     fids = np.asarray(fids).tolist()
     fids.sort(reverse=True)
-    fids.pop()  # discard smallest to make the test rebust to randomness
+    fids.pop()  # discard smallest to make the test robust to randomness
     np.testing.assert_allclose(fids, expected, atol=atol)
 
 

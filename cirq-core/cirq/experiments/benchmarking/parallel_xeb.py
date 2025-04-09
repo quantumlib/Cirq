@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A module for peforming and analysing paralle XEB."""
+"""A module for performing and analysing parallel XEB."""
 
 from concurrent import futures
 from typing import Dict, Optional, overload, Sequence, TYPE_CHECKING, Union
@@ -64,7 +64,7 @@ class XEBWideCircuitInfo:
     Attributes:
         wide_circuit: The expanded circuit.
         pairs: A list of the pairs benchmarked by the given circuit.
-        narrow_template_indicies: Integer indices of the the circuits in the narrow circuit library
+        narrow_template_indices: Integer indices of the circuits in the narrow circuit library
             used to build the given wide circuit.
         cycle_depth: Optional, the depth of the cycle forming the wide circuit.
     """
@@ -73,7 +73,7 @@ class XEBWideCircuitInfo:
     pairs: Sequence[_QUBIT_PAIR_T] = attrs.field(
         converter=lambda seq: [_canonize_pair(pair) for pair in seq]
     )
-    narrow_template_indicies: tuple[int, ...] = attrs.field(converter=tuple)
+    narrow_template_indices: tuple[int, ...] = attrs.field(converter=tuple)
     cycle_depth: Optional[int] = None
 
     @staticmethod
@@ -88,7 +88,7 @@ class XEBWideCircuitInfo:
         Args:
             circuit_templates: A sequence of 2Q (i.e. narrow) circuits.
             permutation: A permutation that maps a qubit-pair to a narrow circuit.
-            pairs: The list of qubit-pais to benchmark.
+            pairs: The list of qubit-pairs to benchmark.
             target: The target 2Q operation to benchmark.
 
         Returns:
@@ -132,10 +132,10 @@ class XEBWideCircuitInfo:
                 else:
                     new_moments.append(moment)
             zipped_circuit = circuits.Circuit.from_moments(*new_moments)
-        return XEBWideCircuitInfo(zipped_circuit, pairs, narrow_template_indicies=permutation)
+        return XEBWideCircuitInfo(zipped_circuit, pairs, narrow_template_indices=permutation)
 
     def sliced_circuits(self, cycle_depths: Sequence[int]) -> Sequence['XEBWideCircuitInfo']:
-        """slices the widecircuit into the given cycle depths and appends the necessary measurements
+        """Slices the wide circuit into the given cycle depths and appends necessary measurements.
 
         Args:
             cycle_depths: the cycle depths to cut the wide circuit into.
@@ -239,7 +239,7 @@ def simulate_circuit(
         circuit: The circuit to simulate.
         cycle_depths: A sequence of integers representing the depths for which we need the
             state probabilities.
-        circuit_id: Optional id of the circuit being simulated circuit. This is returned as given.
+        circuit_id: Optional id of the simulated circuit. This is returned as given.
 
     Returns:
         - The cuircuit_id, same as given in input.
@@ -402,7 +402,7 @@ def _reshape_sampling_results(
         cycle_depth = info.cycle_depth
         assert cycle_depth is not None
         cycle_idx = cycle_depth_to_index[cycle_depth]
-        for template_idx, pair in zip(info.narrow_template_indicies, info.pairs, strict=True):
+        for template_idx, pair in zip(info.narrow_template_indices, info.pairs, strict=True):
             pair = _canonize_pair(pair)
             key = str(pair)
             sampled_prob = sampling_result.get(key, np.empty(0))
@@ -465,7 +465,7 @@ def _cross_entropy(p: np.ndarray, q: np.ndarray, eps: float = 1e-60) -> float:
     return -np.dot(p, np.log2(q))
 
 
-def estimate_fidilties(
+def estimate_fidelities(
     sampling_results: Sequence[dict[str, np.ndarray]],
     simulation_results: Union[
         Sequence[Sequence[np.ndarray]], dict[_QUBIT_PAIR_T, Sequence[Sequence[np.ndarray]]]
@@ -487,7 +487,7 @@ def estimate_fidilties(
         num_templates: The number of circuit templates used for benchmarking,
 
     Returns:
-        A sequence of XEBFidilty objects.
+        A sequence of XEBFidelity objects.
     """
 
     sampled_probabilities = _reshape_sampling_results(
@@ -564,7 +564,7 @@ def parallel_xeb_workflow(
         sampler: The quantum engine or simulator to run the circuits.
         target: The entangling gate, op, circuit or dict mapping pairs to ops.
         ideal_target: The ideal target(s) to branch mark against. If None, use `target`.
-        qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        qubits: Qubits under test. If None, uses all qubits on the sampler's device.
         pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
         parameters: An `XEBParameters` containing the parameters of the XEB experiment.
         rng: The random number generator to use.
@@ -636,7 +636,7 @@ def parallel_xeb_workflow(
         circuit_templates, canonical_ideal_target, parameters.cycle_depths, pool
     )
 
-    estimated_fidilties = estimate_fidilties(
+    estimated_fidelities = estimate_fidelities(
         sampling_results,
         simulation_results,
         parameters.cycle_depths,
@@ -644,7 +644,7 @@ def parallel_xeb_workflow(
         pairs,
         parameters.n_circuits,
     )
-    return estimated_fidilties
+    return estimated_fidelities
 
 
 def parallel_two_qubit_xeb(
@@ -663,7 +663,7 @@ def parallel_two_qubit_xeb(
         sampler: The quantum engine or simulator to run the circuits.
         target: The entangling gate, op, circuit or dict mapping pairs to ops.
         ideal_target: The ideal target(s) to branch mark against. If None, use `target`.
-        qubits: Qubits under test. If none, uses all qubits on the sampler's device.
+        qubits: Qubits under test. If None, uses all qubits on the sampler's device.
         pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
         parameters: An `XEBParameters` containing the parameters of the XEB experiment.
         rng: The random number generator to use.
@@ -675,8 +675,8 @@ def parallel_two_qubit_xeb(
     Raises:
         ValueError: If qubits are not specified and the sampler has no device.
     """
-    estimated_fidilties = parallel_xeb_workflow(
+    estimated_fidelities = parallel_xeb_workflow(
         sampler, target, ideal_target, qubits, pairs, parameters, rng, pool
     )
-    df = pd.DataFrame.from_records([attrs.asdict(ef) for ef in estimated_fidilties])
+    df = pd.DataFrame.from_records([attrs.asdict(ef) for ef in estimated_fidelities])
     return tqxeb.TwoQubitXEBResult(xeb_fitting.fit_exponential_decays(df))
