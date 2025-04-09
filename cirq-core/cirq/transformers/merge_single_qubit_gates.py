@@ -168,14 +168,14 @@ def _values_of_sweep(sweep: Sweep, key: str | sympy.Symbol):
     return [resolver.value_of(p) for resolver in sweep]
 
 
-def _merge_single_qubit_gates_to_circuit_op_symbolized(
+def _merge_single_qubit_gates_to_phxz_symbolized(
     resolved_circuits: List['cirq.AbstractCircuit'],
     symbolized_single_tag: str,
     context: Optional['cirq.TransformerContext'],
     atol: float,
 ) -> Tuple[List['cirq.Circuit'], frozenset[str], frozenset[str]]:
-    """Helper function to merge single qubit ops of resolved circuits to ops of CircuitOperation
-      type using merge_k_qubit_unitaries.
+    """Helper function to merge single qubit ops of resolved circuits to PhasedXZ ops
+      using merge_k_qubit_unitaries.
 
     Args:
         resolved_circuits: A list of circuits where symbols have been replaced with concrete values.
@@ -183,7 +183,8 @@ def _merge_single_qubit_gates_to_circuit_op_symbolized(
           contained symbols before parameterizations.
 
     Returns:
-        Tuple of merge counts, merged circuits, and merge tags.
+        Tuple of merge_counts, merged_circuits, and merge_tags, where
+        merged ops in merged_circuits are tagged by merge_tags.
     """
     merge_counts: list[int] = []  # number of merges per resolved_circuit
     merged_circuits: list['cirq.Circuit'] = []
@@ -391,7 +392,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     ]
 
     # Step 1, merge single qubit gates of resolved circuits using merge_k_qubit_unitaries.
-    merged_circuits, merge_tags, new_symbols = _merge_single_qubit_gates_to_circuit_op_symbolized(
+    merged_circuits, merge_tags, new_symbols = _merge_single_qubit_gates_to_phxz_symbolized(
         resolved_circuits, symbolized_single_tag, context, atol
     )
 
