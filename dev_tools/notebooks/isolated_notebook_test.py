@@ -42,12 +42,8 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_no
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
-    # Requires pinned quimb from #6438
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
     # Requires OpenQASM 3.0 support from cirq 1.5
     'docs/build/interop.ipynb',
-    # get_qcs_objects_for_notebook
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     # Requires features in cirq 1.5.
     'docs/build/classical_control.ipynb',
 ]
@@ -72,6 +68,8 @@ SKIP_NOTEBOOKS = [
     'examples/advanced/*quantum_utility*',
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
+    # get_qcs_objects_for_notebook
+    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     # An intentionally empty/template code notebook.
     "docs/simulate/qvm_builder_code.ipynb",
     *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
