@@ -37,7 +37,7 @@ If a moment contains only these "virtual" gates, it will disappear.
 
 For example, this circuit will execute the two gates in parallel:
 
-```
+```python
 cirq.Circuit(
   cirq.Moment(cirq.X(cirq.GridQubit(4,4)), cirq.X(cirq.GridQubit(4,5)))
 )
@@ -46,7 +46,7 @@ cirq.Circuit(
 This circuit will execute the two gates in serial:
 
 
-```
+```python
 cirq.Circuit(
   cirq.Moment(cirq.X(cirq.GridQubit(4,4))),
   cirq.Moment(cirq.X(cirq.GridQubit(4,5)))
@@ -56,7 +56,7 @@ cirq.Circuit(
 Lastly, this circuit will only execute one gate, since the first gate
 is virtual and its moment will disappear:
 
-```
+```python
 cirq.Circuit(
   cirq.Moment(cirq.Z(cirq.GridQubit(4,4))),
   cirq.Moment(cirq.X(cirq.GridQubit(4,5)))
@@ -88,7 +88,7 @@ following code will sweep qubit (4,8)'s pi amplitude from 0.0 to 1.0
 in 0.02 increments.
 
 
-```
+```python
 descriptor = cirq_google.study.DeviceParameter( ["q4_8", "piAmp"])
 sweep = cirq.Linspace("q4_8.piAmp", 0, 1, 51, metadata=descriptor)
 ```
@@ -153,7 +153,7 @@ to affect the frequency of the qubit.
 This can be done by applying a PhysicalZTag to the Z gate,
 such as in the following example:
 
-```
+```python
 cirq.Z(cirq.GridQubit(5, 5)).with_tags(cirq_google.PhysicalZTag())
 ```
 
