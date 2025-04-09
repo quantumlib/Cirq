@@ -59,6 +59,11 @@ _SUPPORTED_SYMPY_TYPE_MAPPING = {
     sympy.StrictGreaterThan: ">",
     sympy.LessThan: "<=",
     sympy.StrictLessThan: "<",
+    sympy.And: "&",
+    sympy.Or: "|",
+    sympy.Xor: "^",
+    sympy.Not: "!",
+    # Note that "sympy.Indexed": "[]" is handled as a special case.
 }
 _SYMPY_EXPR_PER_TYPE = {op_type: expr for expr, op_type in _SUPPORTED_SYMPY_TYPE_MAPPING.items()}
 _SUPPORTED_SYMPY_TYPES = tuple(_SUPPORTED_SYMPY_TYPE_MAPPING.keys())
@@ -248,6 +253,12 @@ def _arg_func_to_proto(
         msg.func.type = _SUPPORTED_SYMPY_TYPE_MAPPING[type(value)]
         for arg in value.args:
             arg_to_proto(arg, out=msg.func.args.add())
+    elif isinstance(value, sympy.Indexed):
+        # Sympy version of M[a, b]
+        msg.func.type = "[]"
+        arg_to_proto(value.base.label, out=msg.func.args.add())
+        for arg in value.indices:
+            arg_to_proto(arg, out=msg.func.args.add())
     else:
         raise ValueError(
             f"Unrecognized Sympy expression type: {type(value)}."
@@ -406,6 +417,11 @@ def _arg_func_from_proto(
         return op_expr(
             *[arg_from_proto(a, required_arg_name=f'An {func.type} argument') for a in func.args]
         )
+    if func.type == "[]":
+        # Handle sympy.Indexed i.e. M[a, b] as a special case.
+        base = sympy.IndexedBase(arg_from_proto(func.args[0]))
+        args = [arg_from_proto(a) for a in func.args[1:]]
+        return base[*args]
     raise ValueError(f'Unrecognized sympy function {func}')
 
 

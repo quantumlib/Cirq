@@ -157,6 +157,23 @@ def _json_format_kwargs() -> Dict[str, bool]:
             {'func': {'type': '==', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
         ),
         (
+            sympy.Or(sympy.Symbol('x'), sympy.Symbol('y')),
+            {'func': {'type': '|', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
+            sympy.And(sympy.Symbol('x'), sympy.Symbol('y')),
+            {'func': {'type': '&', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
+            sympy.Xor(sympy.Symbol('x'), sympy.Symbol('y')),
+            {'func': {'type': '^', 'args': [{'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (sympy.Not(sympy.Symbol('x')), {'func': {'type': '!', 'args': [{'symbol': 'x'}]}}),
+        (
+            sympy.IndexedBase('M')[sympy.Symbol('x'), sympy.Symbol('y')],
+            {'func': {'type': '[]', 'args': [{'symbol': 'M'}, {'symbol': 'x'}, {'symbol': 'y'}]}},
+        ),
+        (
             MeasurementKey(path=('nested',), name='key'),
             {'measurement_key': {'string_key': 'key', 'path': ['nested']}},
         ),
@@ -172,7 +189,6 @@ def test_correspondence(value: ARG_LIKE, proto: v2.program_pb2.Arg):
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
-
     assert parsed == value
     assert packed == proto
 
