@@ -54,9 +54,9 @@ def _generate_random_pauli_string(
 def _generate_qwc_paulis(
     input_pauli: cirq.PauliString, exclude_input_pauli: bool = False
 ) -> list[cirq.PauliString]:
-    """
-    Generates all PauliStrings that are Qubit-Wise Commuting (QWC)
+    """Generates all PauliStrings that are Qubit-Wise Commuting (QWC)
     with the input_pauli.
+
     All operations in input_pauli must not be pauli I.
     """
     allowed_paulis_per_qubit = []
@@ -674,8 +674,8 @@ def test_invalid_input_pauli_string_type() -> None:
     circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, cirq.FrozenCircuit] = {}
-    circuits_to_pauli[circuit_1] = [_generate_random_pauli_string(qubits_1)] # type: ignore
-    circuits_to_pauli[circuit_2] = [circuit_1, circuit_2] # type: ignore
+    circuits_to_pauli[circuit_1] = [_generate_random_pauli_string(qubits_1)]  # type: ignore
+    circuits_to_pauli[circuit_2] = [circuit_1, circuit_2]  # type: ignore
 
     with pytest.raises(
         TypeError,
@@ -792,7 +792,7 @@ def test_group_paulis_are_not_qwc() -> None:
     pauli_str2: cirq.PauliString = cirq.PauliString({qubits[0]: cirq.Y})
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]] # type: ignore
+    circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore
     with pytest.raises(
         ValueError,
         match="The group of Pauli strings are not " "Qubit-Wise Commuting with each other.",

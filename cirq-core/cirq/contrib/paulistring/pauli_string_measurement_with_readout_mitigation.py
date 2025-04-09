@@ -14,7 +14,7 @@
 """Tools for measuring expectation values of Pauli strings with readout error mitigation."""
 import itertools
 import time
-from typing import Dict, List, Optional, Tuple, Union, FrozenSet
+from typing import Dict, FrozenSet, List, Optional, Tuple, Union
 
 import attrs
 import numpy as np
@@ -69,7 +69,9 @@ def _commute_or_identity(
 
 
 def _are_two_qwc(
-    pauli_str1: ops.PauliString, pauli_str2: ops.PauliString, all_qubits: Union[list[ops.Qid], FrozenSet[ops.Qid]]
+    pauli_str1: ops.PauliString,
+    pauli_str2: ops.PauliString,
+    all_qubits: Union[list[ops.Qid], FrozenSet[ops.Qid]],
 ) -> bool:
     for qubit in all_qubits:
         op1 = pauli_str1.get(qubit, default=ops.I)
@@ -80,9 +82,10 @@ def _are_two_qwc(
     return True
 
 
-def _validate_group_paulis_qwc(pauli_strs: list[ops.PauliString], all_qubits: Union[list[ops.Qid], FrozenSet[ops.Qid]]):
-    """
-    Checks if a group of Pauli strings are Qubit-Wise Commuting.
+def _validate_group_paulis_qwc(
+    pauli_strs: list[ops.PauliString], all_qubits: Union[list[ops.Qid], FrozenSet[ops.Qid]]
+):
+    """Checks if a group of Pauli strings are Qubit-Wise Commuting.
 
     Args:
         pauli_strings: A list of cirq.PauliString objects.
@@ -144,7 +147,7 @@ def _validate_input(
                 f"Expect input pauli to be list[cirq.PauliString] or "
                 f"list[list[cirq.PauliString]]. Got {type(pauli_strs_list)}."
             )
-        if isinstance(first_value[0], list): # type: ignore[index]
+        if isinstance(first_value[0], list):  # type: ignore[index]
             for pauli_strs in pauli_strs_list:
                 if not pauli_strs:
                     raise ValueError("Empty group of Pauli strings is not allowed")
@@ -162,8 +165,8 @@ def _validate_input(
                     )
                 for pauli_str in pauli_strs:
                     _validate_single_pauli_string(pauli_str)
-        elif isinstance(first_value[0], ops.PauliString): # type: ignore
-            for pauli_str in pauli_strs_list: # type: ignore
+        elif isinstance(first_value[0], ops.PauliString):  # type: ignore
+            for pauli_str in pauli_strs_list:  # type: ignore
                 _validate_single_pauli_string(pauli_str)
         else:
             raise TypeError(
@@ -199,9 +202,9 @@ def _normalize_input_paulis(
     if isinstance(first_value, list) and isinstance(first_value[0], ops.PauliString):
         normalized_circuits_to_pauli: Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]] = {}
         for circuit, paulis in circuits_to_pauli.items():
-            normalized_circuits_to_pauli[circuit] = [[ps] for ps in paulis] #type: ignore[list-item]
+            normalized_circuits_to_pauli[circuit] = [[ps] for ps in paulis]  # type: ignore[list-item]
         return normalized_circuits_to_pauli
-    return circuits_to_pauli # type: ignore
+    return circuits_to_pauli  # type: ignore
 
 
 def _pauli_strings_to_basis_change_ops(
