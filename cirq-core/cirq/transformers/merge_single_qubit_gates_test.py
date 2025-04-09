@@ -13,11 +13,12 @@
 # limitations under the License.
 
 from typing import List
+from unittest.mock import Mock, patch
 
 import pytest
 import sympy
+
 import cirq
-from cirq.study.sweeps import Points
 
 
 def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCircuit):
@@ -236,9 +237,10 @@ def test_merge_single_qubit_moments_to_phased_x_and_z_global_phase():
     assert c == c2
 
 
-def test_merge_into_symbolized_phxz():
+def test_merge_single_qubit_gates_to_phxz_symbolized():
     """Test case diagram.
     Input circuit:
+    # pylint: disable=line-too-long
     0: ───X─────────@──────────H[ignore]───H───X───PhXZ(a=a0,x=x0,z=z0)───X───PhXZ(a=a1,x=x1,z=z1)───
                     │
     1: ───H^h_exp───@^cz_exp─────────────────────────────────────────────────────────────────────────
@@ -246,6 +248,7 @@ def test_merge_into_symbolized_phxz():
     0: ───PhXZ(a=-1,x=1,z=0)─────@──────────H[ignore]───PhXZ(a=a1,x=x1,z=z1)───
                                  │
     1: ───PhXZ(a=a0,x=x0,z=z0)───@^cz_exp──────────────────────────────────────
+    # pylint: enable=line-too-long
     """
     a, b = cirq.LineQubit.range(2)
     sa0, sa1 = [sympy.Symbol(a) for a in ["a0", "a1"]]
@@ -292,9 +295,101 @@ def test_merge_into_symbolized_phxz():
         )
 
 
-def test_merge_into_symbolized_phxz_non_symbolized_input():
-    a = cirq.NamedQubit('a')
-    with pytest.warns(UserWarning):
-        cirq.merge_single_qubit_gates_to_phxz_symbolized(
-            cirq.Circuit(cirq.H(a), cirq.H(a)), sweep=cirq.Points(key="a", points=[0.1, 0.2, 0.5])
-        )
+def test_merge_single_qubit_gates_to_phxz_symbolized_non_parameterized_singles():
+    """Test merge_single_qubit_gates_to_phxz_symbolized when all single qubit gates are not
+    parameterized."""
+
+    a, b = cirq.LineQubit.range(2)
+    input_circuit = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CZ(a, b) ** sympy.Symbol("exp"))
+    expected_circuit = cirq.merge_single_qubit_gates_to_phxz(input_circuit)
+    output_circuit, _ = cirq.merge_single_qubit_gates_to_phxz_symbolized(
+        input_circuit, sweep=cirq.Points(key="exp", points=[0.1, 0.2, 0.5])
+    )
+    assert_optimizes(output_circuit, expected_circuit)
+
+
+def test_merge_single_qubit_gates_to_phxz_symbolized_with_global_phases():
+    a = cirq.NamedQubit("a")
+    input_circuit = cirq.Circuit(
+        cirq.GlobalPhaseGate(1j).on(), cirq.X(a), cirq.Y(a) ** sympy.Symbol("y_exp")
+    )
+    new_circuit, _ = cirq.merge_single_qubit_gates_to_phxz_symbolized(
+        input_circuit, sweep=cirq.Points(key="y_exp", points=[0, 1])
+    )
+    expected_circuit = cirq.Circuit(
+        cirq.GlobalPhaseGate(1j).on(),
+        _phxz(sympy.Symbol("a0"), sympy.Symbol("x0"), sympy.Symbol("z0")).on(a),
+    )
+
+    assert_optimizes(new_circuit, expected_circuit)
+
+
+def test_merge_single_qubit_gates_to_phxz_symbolized_different_structures_error():
+    """Tests that the function raises a RuntimeError if merged structures of the circuit differ
+    for different parameterizations."""
+    a = cirq.NamedQubit("a")
+    circuit = cirq.Circuit(cirq.H(a) ** sympy.Symbol("exp"))
+    sweep = cirq.Points(key="exp", points=[0.1, 0.2])
+
+    with patch(
+        "cirq.protocols.resolve_parameters",
+        side_effect=[
+            cirq.Circuit(cirq.H(a).with_tags("_symbolized_single")),
+            cirq.Circuit(cirq.H(a)),
+        ],
+    ):
+        with pytest.raises(
+            RuntimeError,
+            match="Different resolvers in sweep resulted in different merged structures.",
+        ):
+            cirq.merge_single_qubit_gates_to_phxz_symbolized(circuit, sweep=sweep)
+
+
+def test_merge_single_qubit_gates_to_phxz_symbolized_multiple_phxz_tags_error():
+    """Tests that the function raises a RuntimeError of incorrect merges."""
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.H(a) ** sympy.Symbol("exp1"),
+        cirq.X(a),
+        cirq.CZ(a, b),
+        cirq.Y(a),
+        cirq.H(a) ** sympy.Symbol("exp2"),
+    )
+    sweep = cirq.Points(key="exp1", points=[0.1, 0.2]) * cirq.Points(key="exp2", points=[0.1, 0.2])
+
+    mock_iter = Mock()
+    mock_iter.__next__ = Mock(return_value=2)
+
+    with patch(
+        "cirq.transformers.merge_k_qubit_gates.merge_k_qubit_unitaries",
+        return_value=cirq.Circuit(cirq.H(a).with_tags("_phxz_0", "_phxz_1")),
+    ):
+        with patch("itertools.count", return_value=mock_iter):
+            with pytest.raises(RuntimeError, match="Multiple merge tags found."):
+                cirq.merge_single_qubit_gates_to_phxz_symbolized(circuit, sweep=sweep)
+
+
+def test_merge_single_qubit_gates_to_phxz_symbolized_unexpected_gate_error():
+    """Tests that the function raises a RuntimeError of unexpected gate."""
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.H(a) ** sympy.Symbol("exp1"),
+        cirq.X(a),
+        cirq.CZ(a, b),
+        cirq.Y(a),
+        cirq.H(a) ** sympy.Symbol("exp2"),
+    )
+    sweep = cirq.Points(key="exp1", points=[0.1, 0.2]) * cirq.Points(key="exp2", points=[0.1, 0.2])
+
+    mock_iter = Mock()
+    mock_iter.__next__ = Mock(return_value=2)
+
+    with patch(
+        "cirq.transformers.analytical_decompositions"
+        ".single_qubit_decompositions.single_qubit_matrix_to_phxz",
+        return_value=cirq.H,
+    ):
+        with pytest.raises(
+            RuntimeError, match="Expected the merged gate to be a PhasedXZGate or IdentityGate."
+        ):
+            cirq.merge_single_qubit_gates_to_phxz_symbolized(circuit, sweep=sweep)
