@@ -252,6 +252,11 @@ message Operation {
 
   // Indices in the constant table for tags associated with the operation
   repeated int32 tag_indices = 23;
+
+  // Classical conditions
+  // Note that this condition is not a sympy expression
+  // as it has a relation such as "==", "<" etc
+  repeated Arg conditioned_on = 25;
 }
 
 message DynamicalDecouplingTag {
@@ -382,6 +387,7 @@ message Arg {
     string symbol = 2;
     ArgFunction func = 3;
     int32 constant_index = 4;
+    MeasurementKey measurement_key = 5;
   }
 }
 
@@ -460,6 +466,7 @@ message NDArray {
   }
 }
 
+
 // A function of arguments. This is an s-expression tree representing
 // mathematically the function being evaluated.
 //
@@ -505,6 +512,15 @@ message CircuitOperation {
   // Map of args in the "inner" circuit (referenced by circuit_constant_index)
   // to args in the "outer" circuit (the one that contains this operation).
   ArgMapping arg_map = 5;
+  
+  // Classical conditions
+  // Condition for repeating the circuit until this condition is true. 
+  optional Arg repeat_until = 6;
+  
+  // Condition for executing the circuit operation only if this condition is true.
+  repeated Arg conditioned_on = 7;
+
+  bool use_repetition_ids = 8;
 }
 
 // A description of the repetitions of a subcircuit. IDs are used as suffixes
@@ -542,6 +558,17 @@ message QubitMapping {
 // A key for matching a measurement event to its results.
 message MeasurementKey {
   string string_key = 1;
+
+  // Used in conditional statements representing the path to the key
+  // in a multi-level circuit (with repeated or nested circuits).
+  // See cirq.MeasurementKey for more details.
+  repeated string path = 2;
+
+  // Used in classical conditions to specify which measurement
+  // should be used if the measurement is repeated.
+  // Specified as a negative number meaning how many measurements ago.
+  // If not specified, default is -1, meaning the last measured value.
+  optional int32 index = 3;
 }
 
 // A mapping of measurement keys from one value to another. All mappings are
