@@ -336,6 +336,53 @@ OPERATIONS = [
         cirq.H(Q0),
         op_proto({'hpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
+    (
+        cirq.H(Q0).with_classical_controls('a'),
+        op_proto(
+            {
+                'hpowgate': {'exponent': {'float_value': 1.0}},
+                'qubit_constant_index': [0],
+                'conditioned_on': [{'measurement_key': {'string_key': 'a', 'index': -1}}],
+            }
+        ),
+    ),
+    (
+        cirq.H(Q0).with_classical_controls(
+            cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), sympy.Symbol('b')))
+        ),
+        op_proto(
+            {
+                'hpowgate': {'exponent': {'float_value': 1.0}},
+                'qubit_constant_index': [0],
+                'conditioned_on': [
+                    {'func': {'type': '==', 'args': [{'symbol': 'a'}, {'symbol': 'b'}]}}
+                ],
+            }
+        ),
+    ),
+    (
+        cirq.H(Q0).with_classical_controls(
+            cirq.BitMaskKeyCondition('a', bitmask=13, target_value=9, equal_target=False)
+        ),
+        op_proto(
+            {
+                'hpowgate': {'exponent': {'float_value': 1.0}},
+                'qubit_constant_index': [0],
+                'conditioned_on': [
+                    {
+                        'func': {
+                            'type': 'bitmask!=',
+                            'args': [
+                                {'measurement_key': {'string_key': 'a', 'index': -1}},
+                                {'arg_value': {'float_value': 9}},
+                                {'arg_value': {'float_value': 13}},
+                            ],
+                        }
+                    }
+                ],
+            }
+        ),
+    ),
     (cirq.I(Q0), op_proto({'identitygate': {'qid_shape': [2]}, 'qubit_constant_index': [0]})),
 ]
 
@@ -361,6 +408,7 @@ def test_serialize_deserialize_ops(op, op_proto):
         ),
         constants=constants,
     )
+    print(serializer.serialize(circuit))
     assert circuit_proto == serializer.serialize(circuit)
     assert serializer.deserialize(circuit_proto) == circuit
 
@@ -584,8 +632,8 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     fcircuit = cirq.FrozenCircuit(cirq.XPowGate(exponent=2 * sympy.Symbol('t'))(Q0))
     circuit = cirq.Circuit(
         cirq.X(Q1).with_tags(tag1),
-        cirq.CircuitOperation(fcircuit).repeat(repetition_ids=['a', 'b']),
-        cirq.CircuitOperation(fcircuit).with_qubit_mapping({Q0: Q1}),
+        cirq.CircuitOperation(fcircuit, use_repetition_ids=True).repeat(repetition_ids=['a', 'b']),
+        cirq.CircuitOperation(fcircuit, use_repetition_ids=True).with_qubit_mapping({Q0: Q1}),
         cirq.X(Q0),
     )
 
@@ -604,12 +652,14 @@ def test_serialize_deserialize_circuit_with_subcircuit():
 
     c_op1 = v2.program_pb2.CircuitOperation()
     c_op1.circuit_constant_index = 3
+    c_op1.use_repetition_ids = True
     rep_spec = c_op1.repetition_specification
     rep_spec.repetition_count = 2
     rep_spec.repetition_ids.ids.extend(['a', 'b'])
 
     c_op2 = v2.program_pb2.CircuitOperation()
     c_op2.circuit_constant_index = 3
+    c_op2.use_repetition_ids = True
     c_op2.repetition_specification.repetition_count = 1
     qmap = c_op2.qubit_map.entries.add()
     qmap.key.id = '2_4'
@@ -637,6 +687,24 @@ def test_serialize_deserialize_circuit_with_subcircuit():
         ],
     )
     assert proto == serializer.serialize(circuit)
+    assert serializer.deserialize(proto) == circuit
+
+
+def test_circuit_operation_with_classical_controls():
+    serializer = cg.CircuitSerializer()
+    fcircuit = cirq.FrozenCircuit(cirq.X(Q1) ** 0.5, cirq.measure(Q1, key='a'))
+    fcircuit2 = cirq.FrozenCircuit(cirq.X(Q1) ** 0.5)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            fcircuit,
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        ),
+        cirq.CircuitOperation(fcircuit2, use_repetition_ids=False).with_classical_controls(
+            cirq.SympyCondition(sympy.Symbol('a') >= 1)
+        ),
+    )
+    proto = serializer.serialize(circuit)
     assert serializer.deserialize(proto) == circuit
 
 
