@@ -47,28 +47,21 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
-    "**/aqt/*.ipynb",
-    "**/azure-quantum/*.ipynb",
-    "**/google/*.ipynb",
-    "**/ionq/*.ipynb",
-    "**/pasqal/*.ipynb",
-    # Rigetti uses local simulation with docker, so should work
-    # if you run into issues locally, run
-    # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
-    "**/rigetti/*.ipynb",
-    # skipping fidelity estimation due to
-    # https://github.com/quantumlib/Cirq/issues/3502
-    "examples/*fidelity*",
+    '**/aqt/*.ipynb',
+    '**/azure-quantum/*.ipynb',
+    '**/ionq/*.ipynb',
+    '**/pasqal/*.ipynb',
+    '**/rigetti/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
-    # Also skipping stabilizer code testing.
-    "examples/*stabilizer_code*",
-    # get_qcs_objects_for_notebook
+    # tutorials that use QCS and arent skipped due to one or more cleared output cells
+    'docs/tutorials/google/identifying_hardware_changes.ipynb',
+    'docs/tutorials/google/echoes.ipynb',
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
-    # An intentionally empty/template code notebook.
-    "docs/simulate/qvm_builder_code.ipynb",
-    *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
-]
+    # temporary: need to fix QVM metrics and device spec
+    'docs/tutorials/google/spin_echoes.ipynb',
+    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
+] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
