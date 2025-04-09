@@ -336,7 +336,7 @@ def simulate_circuit_library(
             for circuit in all_circuits
         ]
     else:
-        simulation_results = [np.empty(0)] * len(all_circuits)  # type: ignore[list-item]
+        simulation_results = [[np.empty(0)] for _ in range(len(all_circuits))]
         tasks = [
             pool.submit(
                 simulate_circuit,
