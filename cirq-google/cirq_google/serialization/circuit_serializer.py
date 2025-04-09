@@ -260,7 +260,9 @@ class CircuitSerializer(serializer.Serializer):
                 msg.fsimgate.translate_via_model = True
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(gate.key, out=msg.measurementgate.key)
-            arg_func_langs.arg_to_proto(gate.invert_mask, out=msg.measurementgate.invert_mask)
+            if len(invert_mask):
+                # Do not serialize empty invert mask until servers support empty tuples
+                arg_func_langs.arg_to_proto(gate.invert_mask, out=msg.measurementgate.invert_mask)
         elif isinstance(gate, cirq.WaitGate):
             arg_func_langs.float_arg_to_proto(
                 gate.duration.total_nanos(), out=msg.waitgate.duration_nanos
