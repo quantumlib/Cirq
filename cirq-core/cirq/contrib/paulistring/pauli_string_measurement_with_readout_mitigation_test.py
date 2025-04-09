@@ -84,7 +84,7 @@ def _generate_qwc_paulis(
         for i, qid in enumerate(qubits):
             pauli_dict[qid] = pauli_combination[i]
 
-        qwc_pauli = cirq.PauliString(pauli_dict)
+        qwc_pauli: cirq.PauliString = cirq.PauliString(pauli_dict)
         if exclude_input_pauli and qwc_pauli == input_pauli:
             continue
         if all(q == cirq.I for q in qwc_pauli):
@@ -206,7 +206,7 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> No
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
     sampler = cirq.Simulator()
 
-    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit] = [
         _generate_qwc_paulis(
             _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False), True
@@ -306,7 +306,7 @@ def test_group_pauli_string_measurement_errors_with_noise() -> None:
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
     simulator = cirq.Simulator()
 
-    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit] = [
         _generate_qwc_paulis(
             _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False)
@@ -445,7 +445,7 @@ def test_allow_group_pauli_measurement_without_readout_mitigation() -> None:
     circuit = cirq.FrozenCircuit(_create_ghz(7, qubits))
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.005, seed=1234)
 
-    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit] = [
         _generate_qwc_paulis(_generate_random_pauli_string(qubits, True), True),
         _generate_qwc_paulis(_generate_random_pauli_string(qubits)),
@@ -545,7 +545,7 @@ def test_many_group_pauli_in_circuits_with_coefficient() -> None:
     circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
     circuit_3 = cirq.FrozenCircuit(_create_ghz(8, qubits_3))
 
-    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit_1] = [
         _generate_qwc_paulis(
             _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False)
@@ -674,8 +674,8 @@ def test_invalid_input_pauli_string_type() -> None:
     circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, cirq.FrozenCircuit] = {}
-    circuits_to_pauli[circuit_1] = [_generate_random_pauli_string(qubits_1)]
-    circuits_to_pauli[circuit_2] = [circuit_1, circuit_2]
+    circuits_to_pauli[circuit_1] = [_generate_random_pauli_string(qubits_1)] # type: ignore
+    circuits_to_pauli[circuit_2] = [circuit_1, circuit_2] # type: ignore
 
     with pytest.raises(
         TypeError,
@@ -788,11 +788,11 @@ def test_group_paulis_are_not_qwc() -> None:
 
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
 
-    pauli_str1 = cirq.PauliString({qubits[0]: cirq.X, qubits[1]: cirq.Y})
-    pauli_str2 = cirq.PauliString({qubits[0]: cirq.Y})
+    pauli_str1: cirq.PauliString = cirq.PauliString({qubits[0]: cirq.X, qubits[1]: cirq.Y})
+    pauli_str2: cirq.PauliString = cirq.PauliString({qubits[0]: cirq.Y})
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]
+    circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]] # type: ignore
     with pytest.raises(
         ValueError,
         match="The group of Pauli strings are not " "Qubit-Wise Commuting with each other.",
@@ -818,7 +818,7 @@ def test_group_paulis_type_mismatch() -> None:
     circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
     circuit_3 = cirq.FrozenCircuit(_create_ghz(8, qubits_3))
 
-    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit_1] = [
         _generate_qwc_paulis(
             _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False)
