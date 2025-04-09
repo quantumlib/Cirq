@@ -632,8 +632,8 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     fcircuit = cirq.FrozenCircuit(cirq.XPowGate(exponent=2 * sympy.Symbol('t'))(Q0))
     circuit = cirq.Circuit(
         cirq.X(Q1).with_tags(tag1),
-        cirq.CircuitOperation(fcircuit).repeat(repetition_ids=['a', 'b']),
-        cirq.CircuitOperation(fcircuit).with_qubit_mapping({Q0: Q1}),
+        cirq.CircuitOperation(fcircuit, use_repetition_ids=True).repeat(repetition_ids=['a', 'b']),
+        cirq.CircuitOperation(fcircuit, use_repetition_ids=True).with_qubit_mapping({Q0: Q1}),
         cirq.X(Q0),
     )
 
@@ -652,12 +652,14 @@ def test_serialize_deserialize_circuit_with_subcircuit():
 
     c_op1 = v2.program_pb2.CircuitOperation()
     c_op1.circuit_constant_index = 3
+    c_op1.use_repetition_ids = True
     rep_spec = c_op1.repetition_specification
     rep_spec.repetition_count = 2
     rep_spec.repetition_ids.ids.extend(['a', 'b'])
 
     c_op2 = v2.program_pb2.CircuitOperation()
     c_op2.circuit_constant_index = 3
+    c_op2.use_repetition_ids = True
     c_op2.repetition_specification.repetition_count = 1
     qmap = c_op2.qubit_map.entries.add()
     qmap.key.id = '2_4'
@@ -693,8 +695,12 @@ def test_circuit_operation_with_classical_controls():
     fcircuit = cirq.FrozenCircuit(cirq.X(Q1) ** 0.5, cirq.measure(Q1, key='a'))
     fcircuit2 = cirq.FrozenCircuit(cirq.X(Q1) ** 0.5)
     circuit = cirq.Circuit(
-        cirq.CircuitOperation(fcircuit, repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a'))),
-        cirq.CircuitOperation(fcircuit2).with_classical_controls(
+        cirq.CircuitOperation(
+            fcircuit,
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
+        ),
+        cirq.CircuitOperation(fcircuit2, use_repetition_ids=False).with_classical_controls(
             cirq.SympyCondition(sympy.Symbol('a') >= 1)
         ),
     )

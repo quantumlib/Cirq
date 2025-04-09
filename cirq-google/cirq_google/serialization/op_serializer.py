@@ -126,6 +126,8 @@ class CircuitOpSerializer(OpSerializer):
                     raise ValueError(f'Cannot serialize complex value {p2}')
             arg_to_proto(p2, out=entry.value)
 
+        msg.use_repetition_ids = op.use_repetition_ids
+
         if op.repeat_until:
             condition_to_proto(op.repeat_until, out=msg.repeat_until)
 

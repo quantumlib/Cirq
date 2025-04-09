@@ -1275,8 +1275,10 @@ class CircuitOperation(google.protobuf.message.Message):
     ARG_MAP_FIELD_NUMBER: builtins.int
     REPEAT_UNTIL_FIELD_NUMBER: builtins.int
     CONDITIONED_ON_FIELD_NUMBER: builtins.int
+    USE_REPETITION_IDS_FIELD_NUMBER: builtins.int
     circuit_constant_index: builtins.int
     """The index of the circuit in the top-level constant table."""
+    use_repetition_ids: builtins.bool
     @property
     def repetition_specification(self) -> global___RepetitionSpecification:
         """Specifier for repetitions of the circuit, which contains either a number
@@ -1306,7 +1308,6 @@ class CircuitOperation(google.protobuf.message.Message):
     @property
     def repeat_until(self) -> global___Arg:
         """Classical conditions
-
         Condition for repeating the circuit until this condition is true.
         """
 
@@ -1324,9 +1325,10 @@ class CircuitOperation(google.protobuf.message.Message):
         arg_map: global___ArgMapping | None = ...,
         repeat_until: global___Arg | None = ...,
         conditioned_on: collections.abc.Iterable[global___Arg] | None = ...,
+        use_repetition_ids: builtins.bool = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["_repeat_until", b"_repeat_until", "arg_map", b"arg_map", "measurement_key_map", b"measurement_key_map", "qubit_map", b"qubit_map", "repeat_until", b"repeat_until", "repetition_specification", b"repetition_specification"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["_repeat_until", b"_repeat_until", "arg_map", b"arg_map", "circuit_constant_index", b"circuit_constant_index", "conditioned_on", b"conditioned_on", "measurement_key_map", b"measurement_key_map", "qubit_map", b"qubit_map", "repeat_until", b"repeat_until", "repetition_specification", b"repetition_specification"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["_repeat_until", b"_repeat_until", "arg_map", b"arg_map", "circuit_constant_index", b"circuit_constant_index", "conditioned_on", b"conditioned_on", "measurement_key_map", b"measurement_key_map", "qubit_map", b"qubit_map", "repeat_until", b"repeat_until", "repetition_specification", b"repetition_specification", "use_repetition_ids", b"use_repetition_ids"]) -> None: ...
     def WhichOneof(self, oneof_group: typing.Literal["_repeat_until", b"_repeat_until"]) -> typing.Literal["repeat_until"] | None: ...
 
 global___CircuitOperation = CircuitOperation

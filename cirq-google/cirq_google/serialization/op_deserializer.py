@@ -143,6 +143,7 @@ class CircuitOpDeserializer(OpDeserializer):
             measurement_key_map,
             arg_map,
             rep_ids,
+            use_repetition_ids=proto.use_repetition_ids,
             repeat_until=repeat_until,
         )
         if len(proto.conditioned_on):

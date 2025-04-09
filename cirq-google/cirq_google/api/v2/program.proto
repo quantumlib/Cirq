@@ -514,12 +514,13 @@ message CircuitOperation {
   ArgMapping arg_map = 5;
   
   // Classical conditions
- 
   // Condition for repeating the circuit until this condition is true. 
   optional Arg repeat_until = 6;
   
   // Condition for executing the circuit operation only if this condition is true.
   repeated Arg conditioned_on = 7;
+
+  bool use_repetition_ids = 8;
 }
 
 // A description of the repetitions of a subcircuit. IDs are used as suffixes
