@@ -135,8 +135,12 @@ def _validate_input(
         if not isinstance(circuit, circuits.FrozenCircuit):
             raise TypeError("All keys in 'circuits_to_pauli' must be FrozenCircuit instances.")
 
+    first_value = next(iter(circuits_to_pauli.values()))
     for circuit, pauli_strs_list in circuits_to_pauli.items():
-        if isinstance(pauli_strs_list, list) and isinstance(pauli_strs_list[0], list):
+        if not isinstance(pauli_strs_list, list):
+            raise TypeError(f"Expect input pauli to be list[cirq.PauliString] or "
+                            f"list[list[cirq.PauliString]]. Got {type(pauli_strs_list)}.")
+        if isinstance(first_value[0], list):
             for pauli_strs in pauli_strs_list:
                 if not pauli_strs:
                     raise ValueError("Empty group of Pauli strings is not allowed")
@@ -154,9 +158,13 @@ def _validate_input(
                     )
                 for pauli_str in pauli_strs:
                     _validate_single_pauli_string(pauli_str)
-        else:
+        elif isinstance(first_value[0], ops.PauliString):
             for pauli_str in pauli_strs_list:
                 _validate_single_pauli_string(pauli_str)
+        else:
+            raise TypeError(f"Expected all elements to be either list of "
+                            f"ops.PauliStrings, or ops.PauliStrings. "
+                            f"Got {type(pauli_strs_list[0])} instead")
 
     # Check rng is a numpy random generator
     if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
@@ -319,8 +327,8 @@ def _process_pauli_measurement_results(
             parity = np.sum(relevant_bits, axis=1) % 2
             raw_unmitigated_values = 1 - 2 * np.mean(parity)
             raw_d_unmit = 2 * np.sqrt(np.mean(parity) * (1 - np.mean(parity)) / pauli_repetitions)
-            unmitigated_value_with_coefficient = raw_unmitigated_values * pauli_str.coefficient
-            d_unmit_with_coefficient = raw_d_unmit * abs(pauli_str.coefficient)
+            unmitigated_value_with_coefficient = raw_unmitigated_values * pauli_str.coefficient.real
+            d_unmit_with_coefficient = raw_d_unmit * abs(pauli_str.coefficient.real)
 
             pauli_measurement_results.append(
                 PauliStringMeasurementResult(
