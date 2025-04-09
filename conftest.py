@@ -17,7 +17,6 @@ import pytest
 from numpy.lib import NumpyVersion
 
 _NP_VERSION = NumpyVersion(np.__version__)
-_INCLUDE_PROMOTION_OPTION = NumpyVersion('2.0.0') < _NP_VERSION < NumpyVersion('2.2.0')
 
 
 def pytest_addoption(parser):
@@ -30,22 +29,22 @@ def pytest_addoption(parser):
     parser.addoption(
         "--enable-slow-tests", action="store_true", default=False, help="run slow tests"
     )
-    if _INCLUDE_PROMOTION_OPTION:
-        parser.addoption(
-            "--warn-numpy-data-promotion",
-            action="store_true",
-            default=False,
-            help="enable NumPy 2 data type promotion warnings",
-        )
+    parser.addoption(
+        "--warn-numpy-data-promotion",
+        action="store_true",
+        default=False,
+        help="enable NumPy 2 data type promotion warnings",
+    )
 
 
-if _INCLUDE_PROMOTION_OPTION:
-
-    def pytest_configure(config):
+def pytest_configure(config):
+    if config.option.warn_numpy_data_promotion:
         # If requested, globally enable verbose NumPy 2 warnings about data type
         # promotion. See https://numpy.org/doc/2.0/numpy_2_0_migration_guide.html.
-        if config.option.warn_numpy_data_promotion:
+        if NumpyVersion('2.0.0') < _NP_VERSION < NumpyVersion('2.2.0'):
             np._set_promotion_state("weak_and_warn")
+        else:
+            print('Note: --warn-numpy-data-promotion is a no-op in NumPy versions >= 2.2.0')
 
 
 def pytest_collection_modifyitems(config, items):
