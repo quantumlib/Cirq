@@ -138,8 +138,10 @@ def _validate_input(
     first_value = next(iter(circuits_to_pauli.values()))
     for circuit, pauli_strs_list in circuits_to_pauli.items():
         if not isinstance(pauli_strs_list, list):
-            raise TypeError(f"Expect input pauli to be list[cirq.PauliString] or "
-                            f"list[list[cirq.PauliString]]. Got {type(pauli_strs_list)}.")
+            raise TypeError(
+                f"Expect input pauli to be list[cirq.PauliString] or "
+                f"list[list[cirq.PauliString]]. Got {type(pauli_strs_list)}."
+            )
         if isinstance(first_value[0], list):
             for pauli_strs in pauli_strs_list:
                 if not pauli_strs:
@@ -162,9 +164,11 @@ def _validate_input(
             for pauli_str in pauli_strs_list:
                 _validate_single_pauli_string(pauli_str)
         else:
-            raise TypeError(f"Expected all elements to be either list of "
-                            f"ops.PauliStrings, or ops.PauliStrings. "
-                            f"Got {type(pauli_strs_list[0])} instead")
+            raise TypeError(
+                f"Expected all elements to be either list of "
+                f"ops.PauliStrings, or ops.PauliStrings. "
+                f"Got {type(pauli_strs_list[0])} instead"
+            )
 
     # Check rng is a numpy random generator
     if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
