@@ -179,8 +179,8 @@ def _merge_single_qubit_gates_to_circuit_op_symbolized(
 
     Args:
         resolved_circuits: A list of circuits where symbols have been replaced with concrete values.
-        symbolized_single_tag: The tag applied to single-qubit operations that originally contained symbols
-          before parameterizations.
+        symbolized_single_tag: The tag applied to single-qubit operations that originally
+          contained symbols before parameterizations.
 
     Returns:
         Tuple of merge counts, merged circuits, and merge tags.
