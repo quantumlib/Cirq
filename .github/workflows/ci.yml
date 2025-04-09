@@ -230,7 +230,7 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev-np2.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --warn-numpy-data-promotion --durations=20 --ignore=cirq-rigetti
+        run: check/pytest -n auto --durations=20 --ignore=cirq-rigetti
   pip-compile:
     name: Check consistency of requirements
     runs-on: ubuntu-22.04
