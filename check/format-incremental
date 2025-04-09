@@ -130,7 +130,7 @@ echo "Running the black formatter... (version: $BLACKVERSION)"
 
 args=("${arg_color[@]}")
 if (( only_print == 1 )); then
-    args+=("--check" "--diff", "--ipynb")
+    args+=("--check" "--diff" "--ipynb")
 fi
 
 black "${args[@]}" "${format_files[@]}"
