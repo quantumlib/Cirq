@@ -146,11 +146,19 @@ class CircuitSerializer(serializer.Serializer):
                 moment_proto = msg.moments.add()
 
             for op in moment:
-                if isinstance(op.untagged, cirq.CircuitOperation):
+                if isinstance(op.untagged, cirq.CircuitOperation) or (
+                    isinstance(op.untagged, cirq.ClassicallyControlledOperation)
+                    and isinstance(op.untagged.without_classical_controls(), cirq.CircuitOperation)
+                ):
                     op_pb = moment_proto.circuit_operations.add()
                     self._serialize_circuit_op(
-                        op.untagged, op_pb, constants=constants, raw_constants=raw_constants
+                        op.untagged.without_classical_controls(),  # type: ignore
+                        op_pb,
+                        constants=constants,
+                        raw_constants=raw_constants,
                     )
+                    for control in op.classical_controls:
+                        arg_func_langs.condition_to_proto(control, out=op_pb.conditioned_on.add())
                 elif self.use_constants_table_for_operations:
                     if (op_index := raw_constants.get(op, None)) is not None:
                         # Operation is already in the constants table
@@ -220,6 +228,10 @@ class CircuitSerializer(serializer.Serializer):
             ValueError: If the operation cannot be serialized.
         """
         gate = op.gate
+        if isinstance(op, cirq.ClassicallyControlledOperation):
+            gate = op.without_classical_controls().gate
+            for control in op.classical_controls:
+                arg_func_langs.condition_to_proto(control, out=msg.conditioned_on.add())
         if isinstance(gate, InternalGate):
             arg_func_langs.internal_gate_arg_to_proto(gate, out=msg.internalgate)
         elif isinstance(gate, cirq.XPowGate):
@@ -260,7 +272,9 @@ class CircuitSerializer(serializer.Serializer):
                 msg.fsimgate.translate_via_model = True
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(gate.key, out=msg.measurementgate.key)
-            arg_func_langs.arg_to_proto(gate.invert_mask, out=msg.measurementgate.invert_mask)
+            if len(gate.invert_mask):
+                # Do not serialize empty invert mask until servers support empty tuples
+                arg_func_langs.arg_to_proto(gate.invert_mask, out=msg.measurementgate.invert_mask)
         elif isinstance(gate, cirq.WaitGate):
             arg_func_langs.float_arg_to_proto(
                 gate.duration.total_nanos(), out=msg.waitgate.duration_nanos
@@ -762,6 +776,13 @@ class CircuitSerializer(serializer.Serializer):
         elif which == 'token_value':
             op = op.with_tags(CalibrationTag(operation_proto.token_value))
 
+        # Add conditions to op
+        if operation_proto.conditioned_on:
+            conditions = []
+            for condition in operation_proto.conditioned_on:
+                conditions.append(arg_func_langs.condition_from_proto(condition))
+                op = op.with_classical_controls(*conditions)
+
         # Add tags to op
         if operation_proto.tag_indices and deserialized_constants is not None:
             tags = [
@@ -793,7 +814,7 @@ class CircuitSerializer(serializer.Serializer):
         *,
         constants: List[v2.program_pb2.Constant],
         deserialized_constants: List[Any],
-    ) -> cirq.CircuitOperation:
+    ) -> cirq.Operation:
         """Deserialize a CircuitOperation from a
             cirq.google.api.v2.CircuitOperation.
 

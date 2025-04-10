@@ -310,7 +310,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
             ValueError: When one or more operations do not have stabilizer effect.
         """
         for op in operations:
-            if op.gate and op.gate._has_stabilizer_effect_():
+            if op.gate and protocols.has_stabilizer_effect(op.gate):
                 continue
             raise ValueError(
                 "Clifford Gate can only be constructed from the "
