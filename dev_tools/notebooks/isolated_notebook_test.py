@@ -61,7 +61,13 @@ SKIP_NOTEBOOKS = [
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
+]
+SKIP_NOTEBOOKS += [
+    # notebooks that import the examples module which is not installed with cirq
+    'examples/direct_fidelity_estimation.ipynb',
+    'examples/stabilizer_code.ipynb',
+]
+SKIP_NOTEBOOKS += NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
