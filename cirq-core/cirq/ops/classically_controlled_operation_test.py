@@ -358,7 +358,9 @@ def test_subcircuit_key_unset(sim):
         cirq.measure(q1, key='b'),
     )
     circuit = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=2, measurement_key_map={'c': 'a'})
+        cirq.CircuitOperation(
+            inner.freeze(), repetitions=2, use_repetition_ids=True, measurement_key_map={'c': 'a'}
+        )
     )
     result = sim.run(circuit)
     assert result.measurements['0:a'] == 0
@@ -377,7 +379,9 @@ def test_subcircuit_key_set(sim):
         cirq.measure(q1, key='b'),
     )
     circuit = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=4, measurement_key_map={'c': 'a'})
+        cirq.CircuitOperation(
+            inner.freeze(), repetitions=4, use_repetition_ids=True, measurement_key_map={'c': 'a'}
+        )
     )
     result = sim.run(circuit)
     assert result.measurements['0:a'] == 1
@@ -486,8 +490,12 @@ def test_str():
 def test_scope_local():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
-    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=True)
+    )
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=True
+    )
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
         str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
@@ -495,15 +503,17 @@ def test_scope_local():
     assert internal_control_keys == ['0:0:a', '0:1:a', '1:0:a', '1:1:a']
     assert not cirq.control_keys(outer_subcircuit)
     assert not cirq.control_keys(circuit)
+    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [       [ 0: ───M───X─── ]             ]
-0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────
-      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2)
+      [       [ 0: ───M───X─── ]                                      ]
+0: ───[ 0: ───[       ║   ║    ]───────────────────────────────────── ]─────────────────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2, use_repetition_ids=True)    ](loops=2, use_repetition_ids=True)
 """,
         use_unicode_characters=True,
     )
+    # pylint: enable=line-too-long
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -541,9 +551,9 @@ def test_scope_flatten_both():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [       [ 0: ───M───X─── ]                         ]
-0: ───[ 0: ───[       ║   ║    ]──────────────────────── ]────────────────────────
-      [       [ a: ═══@═══^═══ ](loops=2, no_rep_ids)    ](loops=2, no_rep_ids)
+      [       [ 0: ───M───X─── ]             ]
+0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────
+      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2)
 """,
         use_unicode_characters=True,
     )
@@ -561,10 +571,10 @@ a: ═══@═══^═══@═══^═══@═══^═══@══�
 def test_scope_flatten_inner():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
-    middle = cirq.Circuit(
-        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
+    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=True
     )
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
         str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
@@ -575,9 +585,9 @@ def test_scope_flatten_inner():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [       [ 0: ───M───X─── ]                         ]
-0: ───[ 0: ───[       ║   ║    ]──────────────────────── ]────────────
-      [       [ a: ═══@═══^═══ ](loops=2, no_rep_ids)    ](loops=2)
+      [       [ 0: ───M───X─── ]             ]
+0: ───[ 0: ───[       ║   ║    ]──────────── ]─────────────────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2, use_repetition_ids=True)
 """,
         use_unicode_characters=True,
     )
@@ -597,10 +607,10 @@ def test_scope_flatten_inner():
 def test_scope_flatten_outer():
     q = cirq.LineQubit(0)
     inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
-    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
-    outer_subcircuit = cirq.CircuitOperation(
-        middle.freeze(), repetitions=2, use_repetition_ids=False
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=True)
     )
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
         str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
@@ -611,9 +621,9 @@ def test_scope_flatten_outer():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [       [ 0: ───M───X─── ]             ]
-0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────────────────
-      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2, no_rep_ids)
+      [       [ 0: ───M───X─── ]                                      ]
+0: ───[ 0: ───[       ║   ║    ]───────────────────────────────────── ]────────────
+      [       [ a: ═══@═══^═══ ](loops=2, use_repetition_ids=True)    ](loops=2)
 """,
         use_unicode_characters=True,
     )
@@ -635,9 +645,11 @@ def test_scope_extern():
     inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('b'))
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('b')),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2),
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=True),
     )
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=True
+    )
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
         str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
@@ -645,17 +657,19 @@ def test_scope_extern():
     assert internal_control_keys == ['0:b', '0:b', '1:b', '1:b']
     assert not cirq.control_keys(outer_subcircuit)
     assert not cirq.control_keys(circuit)
+    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [           [ 0: ───M('a')───X─── ]             ]
-      [ 0: ───M───[                ║    ]──────────── ]
-0: ───[       ║   [ b: ════════════^═══ ](loops=2)    ]────────────
-      [       ║   ║                                   ]
-      [ b: ═══@═══╩══════════════════════════════════ ](loops=2)
+      [           [ 0: ───M('a')───X─── ]                                      ]
+      [ 0: ───M───[                ║    ]───────────────────────────────────── ]
+0: ───[       ║   [ b: ════════════^═══ ](loops=2, use_repetition_ids=True)    ]─────────────────────────────────────
+      [       ║   ║                                                            ]
+      [ b: ═══@═══╩═══════════════════════════════════════════════════════════ ](loops=2, use_repetition_ids=True)
 """,
         use_unicode_characters=True,
     )
+    # pylint: enable=line-too-long
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -683,9 +697,9 @@ def test_scope_extern_wrapping_with_non_repeating_subcircuits():
     )
     middle = wrap_frozen(
         wrap(cirq.measure(q, key=cirq.MeasurementKey('b'))),
-        wrap(cirq.CircuitOperation(inner, repetitions=2)),
+        wrap(cirq.CircuitOperation(inner, repetitions=2, use_repetition_ids=True)),
     )
-    outer_subcircuit = cirq.CircuitOperation(middle, repetitions=2)
+    outer_subcircuit = cirq.CircuitOperation(middle, repetitions=2, use_repetition_ids=True)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
         str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
@@ -738,9 +752,9 @@ b: ═══╩═════════════════════�
     cirq.testing.assert_has_diagram(
         circuit,
         """
-0: ───M('0:c')───M('0:0:a')───X───M('0:1:a')───X───M('1:c')───M('1:0:a')───X───M('1:1:a')───X───
-                              ║                ║                           ║                ║
-b: ═══════════════════════════^════════════════^═══════════════════════════^════════════════^═══
+0: ───M('c')───M('a')───X───M('a')───X───M('c')───M('a')───X───M('a')───X───
+                        ║            ║                     ║            ║
+b: ═════════════════════^════════════^═════════════════════^════════════^═══
 """,
         use_unicode_characters=True,
     )
@@ -752,9 +766,11 @@ def test_scope_extern_mismatch():
     inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('b'))
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('b', ('0',))),
-        cirq.CircuitOperation(inner.freeze(), repetitions=2),
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=True),
     )
-    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=True
+    )
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_control_keys = [
         str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
@@ -762,19 +778,21 @@ def test_scope_extern_mismatch():
     assert internal_control_keys == ['b', 'b', 'b', 'b']
     assert cirq.control_keys(outer_subcircuit) == {cirq.MeasurementKey('b')}
     assert cirq.control_keys(circuit) == {cirq.MeasurementKey('b')}
+    # pylint: disable=line-too-long
     cirq.testing.assert_has_diagram(
         cirq.Circuit(outer_subcircuit),
         """
-      [                  [ 0: ───M('a')───X─── ]             ]
-      [ 0: ───M('0:b')───[                ║    ]──────────── ]
-0: ───[                  [ b: ════════════^═══ ](loops=2)    ]────────────
-      [                  ║                                   ]
-      [ b: ══════════════╩══════════════════════════════════ ](loops=2)
+      [                  [ 0: ───M('a')───X─── ]                                      ]
+      [ 0: ───M('0:b')───[                ║    ]───────────────────────────────────── ]
+0: ───[                  [ b: ════════════^═══ ](loops=2, use_repetition_ids=True)    ]─────────────────────────────────────
+      [                  ║                                                            ]
+      [ b: ══════════════╩═══════════════════════════════════════════════════════════ ](loops=2, use_repetition_ids=True)
       ║
-b: ═══╩═══════════════════════════════════════════════════════════════════
+b: ═══╩═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 """,
         use_unicode_characters=True,
     )
+    # pylint: enable=line-too-long
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -934,7 +952,7 @@ def test_sympy_scope():
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
     internal_controls = [str(k) for op in circuit.all_operations() for k in cirq.control_keys(op)]
-    assert set(internal_controls) == {'0:0:a', '0:1:a', '1:0:a', '1:1:a', '0:b', '1:b', 'c', 'd'}
+    assert set(internal_controls) == {'a', 'b', 'c', 'd'}
     assert cirq.control_keys(outer_subcircuit) == {'c', 'd'}
     assert cirq.control_keys(circuit) == {'c', 'd'}
     assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
@@ -968,23 +986,15 @@ d: ═══╩═════════════════════�
     cirq.testing.assert_has_diagram(
         circuit,
         """
-0: ───────M───M('0:0:c')───M───X(conditions=[c | d, 0:0:a & 0:b])───M───X(conditions=[c | d, 0:1:a & 0:b])───M───M('1:0:c')───M───X(conditions=[c | d, 1:0:a & 1:b])───M───X(conditions=[c | d, 1:1:a & 1:b])───
-          ║                ║   ║                                    ║   ║                                    ║                ║   ║                                    ║   ║
-0:0:a: ═══╬════════════════@═══^════════════════════════════════════╬═══╬════════════════════════════════════╬════════════════╬═══╬════════════════════════════════════╬═══╬════════════════════════════════════
-          ║                    ║                                    ║   ║                                    ║                ║   ║                                    ║   ║
-0:1:a: ═══╬════════════════════╬════════════════════════════════════@═══^════════════════════════════════════╬════════════════╬═══╬════════════════════════════════════╬═══╬════════════════════════════════════
-          ║                    ║                                        ║                                    ║                ║   ║                                    ║   ║
-0:b: ═════@════════════════════^════════════════════════════════════════^════════════════════════════════════╬════════════════╬═══╬════════════════════════════════════╬═══╬════════════════════════════════════
-                               ║                                        ║                                    ║                ║   ║                                    ║   ║
-1:0:a: ════════════════════════╬════════════════════════════════════════╬════════════════════════════════════╬════════════════@═══^════════════════════════════════════╬═══╬════════════════════════════════════
-                               ║                                        ║                                    ║                    ║                                    ║   ║
-1:1:a: ════════════════════════╬════════════════════════════════════════╬════════════════════════════════════╬════════════════════╬════════════════════════════════════@═══^════════════════════════════════════
-                               ║                                        ║                                    ║                    ║                                        ║
-1:b: ══════════════════════════╬════════════════════════════════════════╬════════════════════════════════════@════════════════════^════════════════════════════════════════^════════════════════════════════════
-                               ║                                        ║                                                         ║                                        ║
-c: ════════════════════════════^════════════════════════════════════════^═════════════════════════════════════════════════════════^════════════════════════════════════════^════════════════════════════════════
-                               ║                                        ║                                                         ║                                        ║
-d: ════════════════════════════^════════════════════════════════════════^═════════════════════════════════════════════════════════^════════════════════════════════════════^════════════════════════════════════
+0: ───M───M('0:c')───M───X(conditions=[c | d, a & b])───M───X(conditions=[c | d, a & b])───M───M('0:c')───M───X(conditions=[c | d, a & b])───M───X(conditions=[c | d, a & b])───
+      ║              ║   ║                              ║   ║                              ║              ║   ║                              ║   ║
+a: ═══╬══════════════@═══^══════════════════════════════@═══^══════════════════════════════╬══════════════@═══^══════════════════════════════@═══^══════════════════════════════
+      ║                  ║                                  ║                              ║                  ║                                  ║
+b: ═══@══════════════════^══════════════════════════════════^══════════════════════════════@══════════════════^══════════════════════════════════^══════════════════════════════
+                         ║                                  ║                                                 ║                                  ║
+c: ══════════════════════^══════════════════════════════════^═════════════════════════════════════════════════^══════════════════════════════════^══════════════════════════════
+                         ║                                  ║                                                 ║                                  ║
+d: ══════════════════════^══════════════════════════════════^═════════════════════════════════════════════════^══════════════════════════════════^══════════════════════════════
 """,
         use_unicode_characters=True,
     )
