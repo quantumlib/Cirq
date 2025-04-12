@@ -203,7 +203,7 @@ file).
 
 ```bash
 twine upload --repository-url=https://test.pypi.org/legacy/ \
-  -u="$TEST_TWINE_USERNAME" -p="$TEST_TWINE_PASSWORD" "dist/*"
+  --password="$CIRQ_TEST_PYPI_TOKEN" "dist/*"
 ```
 
 Next, run automated verification. Note: sometimes the first verification from
@@ -221,7 +221,7 @@ any high-risk features that have changed this release.
 ```bash
 mkvirtualenv "verify_test_${VER}" --python=/usr/bin/python3
 pip install -r dev_tools/requirements/dev.env.txt
-pip install --index-url=https://test.pypi.org/simple/ cirq=="${VER}"
+pip install --extra-index-url=https://test.pypi.org/simple/ cirq=="${VER}"
 python -c "import cirq; print(cirq.__version__)"
 python  # just do some stuff checking that latest features are present
 ```
@@ -264,8 +264,7 @@ git log <previous version>..HEAD --pretty="%an" | sort |\
 Upload to prod PyPI using the following command:
 
 ```bash
-twine upload --username="$PROD_TWINE_USERNAME" \
-  --password="$PROD_TWINE_PASSWORD" "dist/*"
+twine upload --password="$CIRQ_PYPI_TOKEN" "dist/*"
 ```
 
 Perform automated verification tests:
