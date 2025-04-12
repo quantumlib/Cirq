@@ -126,11 +126,7 @@ distribution. This can be done by visiting https://test.pypi.org, logging in,
 and accessing the https://test.pypi.org/project/cirq page.
 
 For the following script to work, you will need the following environment
-variables defined: `TEST_TWINE_USERNAME`, `TEST_TWINE_PASSWORD`,
-`PROD_TWINE_USERNAME`, `PROD_TWINE_PASSWORD`.
-
-It is highly recommended to use different passwords for test and prod to avoid
-accidentally pushing to prod.
+variables defined: `CIRQ_TEST_PYPI_TOKEN`, `CIRQ_PYPI_TOKEN`.
 
 Also define these variables for the versions you are releasing:
 
