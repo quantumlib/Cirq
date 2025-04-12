@@ -18,6 +18,7 @@ from scipy.stats import unitary_group
 
 import cirq
 from cirq.ops import common_gates
+from cirq.testing import random_two_qubit_circuit_with_czs
 from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
     _msb_demuxer,
     _multiplexed_cossin,
@@ -201,3 +202,17 @@ def test_qft5():
     )
     new_unitary = cirq.unitary(shannon_circuit)
     np.testing.assert_allclose(new_unitary, desired_unitary, atol=1e-6)
+
+
+def test_random_circuit_decomposition():
+    qubits = cirq.LineQubit.range(3)
+    test_circuit = (
+        random_two_qubit_circuit_with_czs(3, qubits[0], qubits[1])
+        + random_two_qubit_circuit_with_czs(3, qubits[1], qubits[2])
+        + random_two_qubit_circuit_with_czs(3, qubits[0], qubits[2])
+    )
+    circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, test_circuit.unitary()))
+    # Test return is equal to initial unitary
+    assert cirq.approx_eq(test_circuit.unitary(), circuit.unitary(), atol=1e-9)
+    # Test all operations have at most 2 qubits.
+    assert all(cirq.num_qubits(op) <= 2 for op in circuit.all_operations())

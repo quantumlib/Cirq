@@ -259,6 +259,24 @@ def test_decompose_to_diagonal_and_circuit(v):
     cirq.testing.assert_allclose_up_to_global_phase(circuit_unitary, v, atol=2e-6)
 
 
+@pytest.mark.parametrize(
+    "mat, num_czs",
+    [
+        (cirq.unitary(random_two_qubit_circuit_with_czs(3)), 2),
+        (cirq.unitary(random_two_qubit_circuit_with_czs(2)), 2),
+        (cirq.unitary(random_two_qubit_circuit_with_czs(1)), 1),
+        (cirq.unitary(random_two_qubit_circuit_with_czs(0)), 0),
+    ],
+)
+def test_decompose_to_diagonal_and_circuit_returns_circuit_with_expected_number_of_czs(
+    mat, num_czs
+):
+    b, c = cirq.LineQubit.range(2)
+    _, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, mat, atol=1e-8)
+    circuit = cirq.Circuit(ops)
+    assert len(list(circuit.findall_operations_with_gate_type(cirq.CZPowGate))) == num_czs
+
+
 def test_remove_partial_czs_or_fail():
     CZ = cirq.CZ(*cirq.LineQubit.range(2))
     assert (

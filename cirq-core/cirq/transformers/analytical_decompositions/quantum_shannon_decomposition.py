@@ -19,6 +19,7 @@ Based on:
 Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
 https://arxiv.org/abs/quant-ph/0406176
 """
+from types import SimpleNamespace
 from typing import Callable, Iterable, List, TYPE_CHECKING
 
 import numpy as np
@@ -28,11 +29,9 @@ from cirq import ops
 from cirq.circuits.frozen_circuit import FrozenCircuit
 from cirq.linalg import decompositions, predicates
 from cirq.protocols import unitary_protocol
-from cirq.transformers.analytical_decompositions.three_qubit_decomposition import (
-    three_qubit_matrix_to_operations,
-)
 from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
     two_qubit_matrix_to_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations,
 )
 
 if TYPE_CHECKING:
@@ -42,7 +41,7 @@ if TYPE_CHECKING:
 def quantum_shannon_decomposition(
     qubits: 'List[cirq.Qid]', u: np.ndarray, atol: float = 1e-8
 ) -> Iterable['cirq.Operation']:
-    """Decomposes n-qubit unitary 1-q, 2-q and GlobalPhase gates, preserving global phase.
+    """Decomposes n-qubit unitary into 1-q, 2-q and GlobalPhase gates, preserving global phase.
 
     The gates used are CX/YPow/ZPow/CNOT/GlobalPhase/CZ/PhasedXZGate/PhasedXPowGate.
 
@@ -65,9 +64,7 @@ def quantum_shannon_decomposition(
         1. _single_qubit_decomposition
             OR
         (Recursive Case)
-        1. _msb_demuxer
-        2. _multiplexed_cossin
-        3. _msb_demuxer
+        1. _recursive_decomposition
 
     Yields:
         A single 2-qubit or 1-qubit operations from OP TREE
@@ -96,30 +93,94 @@ def quantum_shannon_decomposition(
         yield from _single_qubit_decomposition(qubits[0], u)
         return
 
-    if n == 4:
-        operations = tuple(
-            two_qubit_matrix_to_cz_operations(
-                qubits[0], qubits[1], u, allow_partial_czs=True, clean_operations=True, atol=atol
-            )
+    # Collect all operations from the recursive decomposition
+    shannon_decomp = [op for op in _recursive_decomposition(qubits, u)]
+    # Separate all 2-qubit generic gates while keeping track of location
+    two_qubit_mat = [
+        SimpleNamespace(location=loc, matrix=unitary_protocol.unitary(o))
+        for loc, o in enumerate(shannon_decomp)
+        if isinstance(o.gate, ops.MatrixGate)
+    ]
+    # Apply case A.2 from Shende et al.
+    q0 = qubits[-2]
+    q1 = qubits[-1]
+    for idx in range(len(two_qubit_mat) - 1, 0, -1):
+        diagonal, operations = two_qubit_matrix_to_diagonal_and_cz_operations(
+            q0,
+            q1,
+            two_qubit_mat[idx].matrix,
+            allow_partial_czs=True,
+            clean_operations=True,
+            atol=atol,
         )
-        yield from operations
-        i, j = np.unravel_index(np.argmax(np.abs(u)), u.shape)
-        new_unitary = unitary_protocol.unitary(FrozenCircuit.from_moments(*operations))
-        global_phase = np.angle(u[i, j]) - np.angle(new_unitary[i, j])
+        global_phase = _global_phase_difference(
+            two_qubit_mat[idx].matrix, [ops.MatrixGate(diagonal)(q0, q1), *operations]
+        )
         if np.abs(global_phase) > 1e-9:
-            yield ops.global_phase_operation(np.exp(1j * global_phase))
-        return
+            operations.append(ops.global_phase_operation(np.exp(1j * global_phase)))
+        # Replace the generic gate with ops from OP TREE
+        shannon_decomp[two_qubit_mat[idx].location] = operations
+        # Join the diagonal with the unitary to be decomposed in the next step
+        two_qubit_mat[idx - 1].matrix = diagonal @ two_qubit_mat[idx - 1].matrix
+    if len(two_qubit_mat) > 0:
+        operations = two_qubit_matrix_to_cz_operations(
+            q0,
+            q1,
+            two_qubit_mat[0].matrix,
+            allow_partial_czs=True,
+            clean_operations=True,
+            atol=atol,
+        )
+        global_phase = _global_phase_difference(two_qubit_mat[0].matrix, operations)
+        if np.abs(global_phase) > 1e-9:
+            operations.append(ops.global_phase_operation(np.exp(1j * global_phase)))
+        shannon_decomp[two_qubit_mat[0].location] = operations
+    # Yield the final operations in order
+    for op in shannon_decomp:
+        if isinstance(op, List):
+            yield from op
+        else:
+            yield op
 
-    if n == 8:
-        operations = tuple(
-            three_qubit_matrix_to_operations(qubits[0], qubits[1], qubits[2], u, atol=atol)
+
+def _recursive_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> Iterable['cirq.Operation']:
+    """Recursive step in the quantum shannon decomposition.
+
+    Decomposes n-qubit unitary into generic 2-qubit gates, CNOT and 1-qubit gates.
+    All generic 2-qubit gates are applied to the two least significant qubits and
+    are not decomposed further here.
+
+    Args:
+        qubits: List of qubits in order of significance
+        u: Numpy array for unitary matrix representing gate to be decomposed
+
+    Calls:
+        1. _msb_demuxer
+        2. _multiplexed_cossin
+        3. _msb_demuxer
+
+    Yields:
+        Generic 2-qubit gates or operations from {ry,rz,CNOT}.
+
+    Raises:
+        ValueError: If the u matrix is not of shape (2^n,2^n)
+        ValueError: If the u matrix is not of size at least 4
+    """
+    n = u.shape[0]
+    if n & (n - 1):
+        raise ValueError(
+            f"Expected input matrix u to be a (2^n x 2^n) shaped numpy array, \
+                but instead got shape {u.shape}"
         )
-        yield from operations
-        i, j = np.unravel_index(np.argmax(np.abs(u)), u.shape)
-        new_unitary = unitary_protocol.unitary(FrozenCircuit.from_moments(*operations))
-        global_phase = np.angle(u[i, j]) - np.angle(new_unitary[i, j])
-        if np.abs(global_phase) > 1e-9:
-            yield ops.global_phase_operation(np.exp(1j * global_phase))
+
+    if n <= 2:
+        raise ValueError(
+            f"Expected input matrix u for recursive step to have size at least 4, \
+                but it has size {n}"
+        )
+
+    if n == 4:
+        yield ops.MatrixGate(u).on(*qubits)
         return
 
     # Perform a cosine-sine (linalg) decomposition on u
@@ -137,6 +198,15 @@ def quantum_shannon_decomposition(
 
     # Yield ops from decomposition of multiplexed u1/u2 part
     yield from _msb_demuxer(qubits, u1, u2)
+
+
+def _global_phase_difference(u: np.ndarray, ops: List['cirq.Operation']) -> float:
+    """Returns the difference in global phase between unitary u and
+    a list of operations computing u.
+    """
+    i, j = np.unravel_index(np.argmax(np.abs(u)), u.shape)
+    new_unitary = unitary_protocol.unitary(FrozenCircuit.from_moments(*ops))
+    return np.angle(u[i, j]) - np.angle(new_unitary[i, j])
 
 
 def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> Iterable['cirq.Operation']:
@@ -200,11 +270,14 @@ def _msb_demuxer(
         u2: Lower-right quadrant of total unitary to be decomposed (see diagram)
 
     Calls:
-        1. quantum_shannon_decomposition
+        1. _recursive_decomposition
         2. _multiplexed_cossin
-        3. quantum_shannon_decomposition
+        3. _recursive_decomposition
 
-    Yields: Single operation from OP TREE of 2-qubit and 1-qubit operations
+    Yields:
+        Generic 2-qubit gates on the two least significant qubits,
+        CNOT gates with the target not on the two least significant qubits,
+        ry or rz
     """
     # Perform a diagonalization to find values
     u1 = u1.astype(np.complex128)
@@ -229,7 +302,7 @@ def _msb_demuxer(
     # Last term is given by ( I ⊗ W ), demultiplexed
     # Remove most-significant (demuxed) control-qubit
     # Yield operations for QSD on W
-    yield from quantum_shannon_decomposition(demux_qubits[1:], W, atol=1e-6)
+    yield from _recursive_decomposition(demux_qubits[1:], W)
 
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
     # Observe that middle part looks like Σ_i( Rz(theta_i)⊗|i><i| )
@@ -237,7 +310,7 @@ def _msb_demuxer(
     yield from _multiplexed_cossin(demux_qubits, -np.angle(d), ops.rz)
 
     # Yield operations for QSD on V
-    yield from quantum_shannon_decomposition(demux_qubits[1:], V, atol=1e-6)
+    yield from _recursive_decomposition(demux_qubits[1:], V)
 
 
 def _nth_gray(n: int) -> int:
