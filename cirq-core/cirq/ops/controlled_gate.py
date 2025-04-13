@@ -159,6 +159,12 @@ class ControlledGate(raw_types.Gate):
         self, qubits: Tuple['cirq.Qid', ...], context: Optional['cirq.DecompositionContext'] = None
     ) -> Union[None, NotImplementedType, 'cirq.OP_TREE']:
         control_qubits = list(qubits[: self.num_controls()])
+        controlled_sub_gate = self.sub_gate.controlled(
+            self.num_controls(), self.control_values, self.control_qid_shape
+        )
+        # Prefer the subgate controlled version if available
+        if controlled_sub_gate.__class__ != self.__class__:
+            return controlled_sub_gate.on(*qubits)
         if (
             protocols.has_unitary(self.sub_gate)
             and protocols.num_qubits(self.sub_gate) == 1
