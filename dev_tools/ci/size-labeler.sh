@@ -176,18 +176,15 @@ function parse_options() {
                 ;;
             --pr)
                 pr="$2"
-                shift
-                shift
+                shift 2
                 ;;
             --repo)
                 repo="$2"
-                shift
-                shift
+                shift 2
                 ;;
             --token)
                 token="$2"
-                shift
-                shift
+                shift 2
                 ;;
             -*)
                 error "Unrecognized option $1."
