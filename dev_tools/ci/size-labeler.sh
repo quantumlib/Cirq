@@ -33,7 +33,7 @@ environment variables GITHUB_REPOSITORY and GITHUB_TOKEN, respectively.
 Running this program with the option '-h', '--help', or 'help' will make it
 print this help text and exit with exit code 0 without doing anything else."
 
-declare -a LABELS=(
+declare -ar LABELS=(
     "Size: XS"
     "size: S"
     "size: M"
@@ -49,7 +49,7 @@ declare -A LIMITS=(
     ["${LABELS[4]}"]="$((2 ** 63 - 1))"
 )
 
-declare -a IGNORED=(
+declare -ar IGNORED=(
     "*_pb2.py"
     "*_pb2.pyi"
     "*_pb2_grpc.py"
