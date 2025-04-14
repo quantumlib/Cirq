@@ -61,14 +61,6 @@ class CircuitSerializer(serializer.Serializer):
     a `cirq.Circuit` object from a `Program` proto.
 
     Args:
-        USE_CONSTANTS_TABLE_FOR_MOMENTS: Temporary feature flag to enable
-            serialization of duplicate moments as entries in the constant table.
-            This flag will soon become the default and disappear as soon as
-            deserialization of this field is deployed.
-        USE_CONSTANTS_TABLE_FOR_MOMENTS: Temporary feature flag to enable
-            serialization of duplicate operations as entries in the constant table.
-            This flag will soon become the default and disappear as soon as
-            deserialization of this field is deployed.
         op_serializer: Optional custom serializer for serializing unknown gates.
         op_deserializer: Optional custom deserializer for deserializing unknown gates.
         tag_serializer: Optional custom serializer for serializing unknown tags.
@@ -77,17 +69,14 @@ class CircuitSerializer(serializer.Serializer):
 
     def __init__(
         self,
-        USE_CONSTANTS_TABLE_FOR_MOMENTS=False,
-        USE_CONSTANTS_TABLE_FOR_OPERATIONS=False,
         op_serializer: Optional[op_serializer.OpSerializer] = None,
         op_deserializer: Optional[op_deserializer.OpDeserializer] = None,
         tag_serializer: Optional[tag_serializer.TagSerializer] = None,
         tag_deserializer: Optional[tag_deserializer.TagDeserializer] = None,
+        **kwargs,
     ):
         """Construct the circuit serializer object."""
         super().__init__(gate_set_name=_SERIALIZER_NAME)
-        self.use_constants_table_for_moments = USE_CONSTANTS_TABLE_FOR_MOMENTS
-        self.use_constants_table_for_operations = USE_CONSTANTS_TABLE_FOR_OPERATIONS
         self.op_serializer = op_serializer
         self.op_deserializer = op_deserializer
         self.tag_serializer = tag_serializer
@@ -131,19 +120,14 @@ class CircuitSerializer(serializer.Serializer):
     ) -> None:
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
-            if self.use_constants_table_for_moments:
-
-                if (moment_index := raw_constants.get(moment, None)) is not None:
-                    # Moment is already in the constants table
-                    msg.moment_indices.append(moment_index)
-                    continue
-                else:
-                    # Moment is not yet in the constants table
-                    # Create it and we will add it to the table at the end
-                    moment_proto = v2.program_pb2.Moment()
+            if (moment_index := raw_constants.get(moment, None)) is not None:
+                # Moment is already in the constants table
+                msg.moment_indices.append(moment_index)
+                continue
             else:
-                # Constants table for moments disabled
-                moment_proto = msg.moments.add()
+                # Moment is not yet in the constants table
+                # Create it and we will add it to the table at the end
+                moment_proto = v2.program_pb2.Moment()
 
             for op in moment:
                 if isinstance(op.untagged, cirq.CircuitOperation) or (
@@ -159,7 +143,7 @@ class CircuitSerializer(serializer.Serializer):
                     )
                     for control in op.classical_controls:
                         arg_func_langs.condition_to_proto(control, out=op_pb.conditioned_on.add())
-                elif self.use_constants_table_for_operations:
+                else:
                     if (op_index := raw_constants.get(op, None)) is not None:
                         # Operation is already in the constants table
                         moment_proto.operation_indices.append(op_index)
@@ -181,27 +165,12 @@ class CircuitSerializer(serializer.Serializer):
                         op_index = len(constants) - 1
                         raw_constants[op] = op_index
                         moment_proto.operation_indices.append(op_index)
-                else:
-                    op_pb = moment_proto.operations.add()
-                    if self.op_serializer and self.op_serializer.can_serialize_operation(op):
-                        self.op_serializer.to_proto(
-                            op, op_pb, constants=constants, raw_constants=raw_constants
-                        )
-                    elif self.stimcirq_serializer.can_serialize_operation(op):
-                        self.stimcirq_serializer.to_proto(
-                            op, op_pb, constants=constants, raw_constants=raw_constants
-                        )
-                    else:
-                        self._serialize_gate_op(
-                            op, op_pb, constants=constants, raw_constants=raw_constants
-                        )
 
-            if self.use_constants_table_for_moments:
-                # Add this moment to the constants table
-                constants.append(v2.program_pb2.Constant(moment_value=moment_proto))
-                moment_index = len(constants) - 1
-                raw_constants[moment] = moment_index
-                msg.moment_indices.append(moment_index)
+            # Add this moment to the constants table
+            constants.append(v2.program_pb2.Constant(moment_value=moment_proto))
+            moment_index = len(constants) - 1
+            raw_constants[moment] = moment_index
+            msg.moment_indices.append(moment_index)
 
     def _serialize_gate_op(
         self,
