@@ -45,6 +45,7 @@ declare -a IGNORED=(
     "*_pb2.pyi"
     "*_pb2_grpc.py"
     ".*.lock"
+    "*.bundle.js"
 )
 
 function info() {
