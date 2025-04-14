@@ -178,7 +178,7 @@ function main() {
 }
 
 [[ "$#" -eq 1 ]] || { error "Missing required argument: the PR number." >&2; exit 1; }
-[[ -v GITHUB_TOKEN ]] || { error "Variable GITHUB_TOKEN is not set." >&2; exit 1; }
-[[ -v GITHUB_REPOSITORY ]] || { error "Variable GITHUB_REPOSITORY is not set." >&2; exit 1; }
+[[ -v GITHUB_TOKEN ]] || { error "Variable GITHUB_TOKEN is not set."; exit 1; }
+[[ -v GITHUB_REPOSITORY ]] || { error "Variable GITHUB_REPOSITORY is not set."; exit 1; }
 
 main "$*"
