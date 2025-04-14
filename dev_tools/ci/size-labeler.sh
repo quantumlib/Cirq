@@ -13,23 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Updates size labels on pull requests based on the number of lines changed.
-# Usage:
-#   label-pr-size.sh THE_PR_NUMBER
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 [[ "${BASH_VERSINFO[0]}" -ge 4 ]] || { echo "ERROR: Bash version 4+ required." >&2; exit 1; }
 
 set -euo pipefail -o errtrace
 shopt -s inherit_errexit
 
+declare -r usage="Usage:
+
+${0##*/} [-h | --help | help] [--pr NUMBER] [--repo REPO] [--token TOKEN]
+
+Updates the size labels on a pull request based on the number of lines it
+changes. The pull request is identified by the value given after the option
+'--pr' on the command line; if this option is not provided, the value of the
+environment variable PR_NUMBER is used instead. The repository and access
+tokens are determined by the values given to the options '--repo' and
+'--token', respectively, or if those are not given on the command line, the
+environment variables GITHUB_REPOSITORY and GITHUB_TOKEN, respectively.
+
+Running this program with the option '-h', '--help', or 'help' will make it
+print this help text and exit with exit code 0 without doing anything else."
+
 declare -a LABELS=(
     "Size: XS"
-    "Size: S"
-    "Size: M"
-    "Size: L"
-    "Size: XL"
+    "size: S"
+    "size: M"
+    "size: L"
+    "size: XL"
 )
 
 declare -A LIMITS=(
@@ -157,12 +166,63 @@ function prune_stale_labels() {
     echo "${correctly_labeled}"
 }
 
+function parse_options() {
+    local pr="" repo="" token=""
+    while (( $# > 0 )); do
+        case $1 in
+            -h | --help | help)
+                echo "$usage"
+                exit 0
+                ;;
+            --pr)
+                pr="$2"
+                shift
+                shift
+                ;;
+            --repo)
+                repo="$2"
+                shift
+                shift
+                ;;
+            --token)
+                token="$2"
+                shift
+                shift
+                ;;
+            -*)
+                error "Unrecognized option $1."
+                echo "$usage"
+                exit 1
+                ;;
+            *)
+                error "Too many arguments."
+                echo "$usage"
+                exit 1
+                ;;
+        esac
+    done
+    [[ -n "$pr" ]] && PR_NUMBER="$pr"
+    [[ -n "$repo" ]] && GITHUB_REPOSITORY="$repo"
+    [[ -n "$token" ]] && GITHUB_TOKEN="$token"
+}
+
 function main() {
-    local pr=$1
-    info "Labeling PR ${pr}"
+    local moreinfo="(Use --help option for more info.)"
+    if [[ -z "$PR_NUMBER" ]]; then
+        error "Missing pull request number. $moreinfo"
+        exit 1
+    fi
+    if [[ -z "$GITHUB_REPOSITORY" ]]; then
+        error "Missing repository identification. $moreinfo"
+        exit 1
+    fi
+    if [[ -z "$GITHUB_TOKEN" ]]; then
+        error "Missing GitHub access token. $moreinfo"
+        exit 1
+    fi
 
     local total_changes
-    total_changes="$(compute_changes "${pr}")"
+    total_changes="$(compute_changes "$PR_NUMBER")"
     info "Lines changed: ${total_changes}"
 
     local size_label
@@ -170,16 +230,13 @@ function main() {
     info "Appropriate label is '${size_label}'"
 
     local correctly_labeled
-    correctly_labeled="$(prune_stale_labels "${pr}" "${size_label}")"
+    correctly_labeled="$(prune_stale_labels "$PR_NUMBER" "${size_label}")"
 
     if [[ "${correctly_labeled}" != true ]]; then
-        api_call "issues/${pr}/labels" -X POST -d "{\"labels\":[\"${size_label}\"]}" &>/dev/null
+        api_call "issues/$PR_NUMBER/labels" -X POST -d "{\"labels\":[\"${size_label}\"]}" &>/dev/null
         info "Added label '${size_label}'"
     fi
 }
 
-[[ "$#" -eq 1 ]] || { error "Missing required argument: the PR number." >&2; exit 1; }
-[[ -v GITHUB_TOKEN ]] || { error "Variable GITHUB_TOKEN is not set."; exit 1; }
-[[ -v GITHUB_REPOSITORY ]] || { error "Variable GITHUB_REPOSITORY is not set."; exit 1; }
-
-main "$@"
+parse_options "$@"
+main
