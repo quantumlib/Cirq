@@ -181,4 +181,4 @@ function main() {
 [[ -v GITHUB_TOKEN ]] || { error "Variable GITHUB_TOKEN is not set."; exit 1; }
 [[ -v GITHUB_REPOSITORY ]] || { error "Variable GITHUB_REPOSITORY is not set."; exit 1; }
 
-main "$*"
+main "$@"
