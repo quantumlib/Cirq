@@ -16,20 +16,12 @@
 set -euo pipefail -o errtrace
 shopt -s inherit_errexit
 
-declare -r usage="Usage:
-
-${0##*/} [-h | --help | help] [--pr NUMBER] [--repo REPO] [--token TOKEN]
+declare -r usage="Usage: ${0##*/} [-h | --help | help]
 
 Updates the size labels on a pull request based on the number of lines it
-changes. The pull request is identified by the value given after the option
-'--pr' on the command line; if this option is not provided, the value of the
-environment variable PR_NUMBER is used instead. The repository and access
-tokens are determined by the values given to the options '--repo' and
-'--token', respectively, or if those are not given on the command line, the
-environment variables GITHUB_REPOSITORY and GITHUB_TOKEN, respectively.
-
-Running this program with the option '-h', '--help', or 'help' will make it
-print this help text and exit with exit code 0 without doing anything else."
+changes.  The script requires the following environment variables:
+PR_NUMBER, GITHUB_REPOSITORY, GITHUB_TOKEN.  The script is intended
+for automated execution from GitHub Actions workflow."
 
 declare -ar LABELS=(
     "Size: XS"
@@ -163,70 +155,31 @@ function prune_stale_labels() {
     echo "${correctly_labeled}"
 }
 
-function check_arg_value() {
-    if [[ -z "$2" || "$2" == -* ]]; then
-        error "Argument value for $1 is missing or looks like another option: '$2'"
-        exit 1
-    fi
-}
-
-function parse_options() {
-    local pr="" repo="" token=""
-    # Temporarily disable -u flag; this makes the code below much simpler.
-    set +u
-    while (( $# > 0 )); do
-        case $1 in
+function main() {
+    local moreinfo="(Use --help option for more info.)"
+    if (( $# )); then
+        case "$1" in
             -h | --help | help)
                 echo "$usage"
                 exit 0
                 ;;
-            --pr)
-                check_arg_value "$1" "$2"
-                pr="$2"
-                shift 2
-                ;;
-            --repo)
-                check_arg_value "$1" "$2"
-                repo="$2"
-                shift 2
-                ;;
-            --token)
-                check_arg_value "$1" "$2"
-                token="$2"
-                shift 2
-                ;;
-            -*)
-                error "Unrecognized option $1."
-                echo "$usage"
-                exit 1
-                ;;
             *)
-                error "Too many arguments."
-                echo "$usage"
-                exit 1
+                error "Invalid argument '$1'.  ${moreinfo}"
+                exit 2
                 ;;
         esac
+    fi
+    local env_var_name
+    local env_var_missing=0
+    for env_var_name in PR_NUMBER GITHUB_TOKEN GITHUB_REPOSITORY; do
+        if [[ ! -v "${env_var_name}" ]]; then
+            env_var_missing=1
+            error "Missing environment variable ${env_var_name}"
+        fi
     done
-    PR_NUMBER="${pr:-$PR_NUMBER}"
-    GITHUB_REPOSITORY="${repo:-$GITHUB_REPOSITORY}"
-    GITHUB_TOKEN="${token:-$GITHUB_TOKEN}"
-    # Reinstate error-exit for undefined variables.
-    set -u
-}
-
-function main() {
-    local moreinfo="(Use --help option for more info.)"
-    if [[ -z "$PR_NUMBER" ]]; then
-        error "Missing pull request number. $moreinfo"
-        exit 1
-    fi
-    if [[ -z "$GITHUB_REPOSITORY" ]]; then
-        error "Missing repository identification. $moreinfo"
-        exit 1
-    fi
-    if [[ -z "$GITHUB_TOKEN" ]]; then
-        error "Missing GitHub access token. $moreinfo"
-        exit 1
+    if (( env_var_missing )); then
+        error "${moreinfo}"
+        exit 2
     fi
 
     local total_changes
@@ -246,5 +199,4 @@ function main() {
     fi
 }
 
-parse_options "$@"
-main
+main "$@"
