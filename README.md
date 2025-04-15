@@ -124,7 +124,7 @@ documentation for Cirq is available.
 *   Docs for the [current stable release] correspond to what you get with
     `pip install cirq`.
 *   Docs for the [pre-release] correspond to what you get with
-    `pip install cirq~=1.0.dev`.
+    `pip install --upgrade cirq~=1.0.dev`.
 
 [current stable release]: https://quantumai.google/reference/python/cirq/all_symbols
 [pre-release]: https://quantumai.google/reference/python/cirq/all_symbols?version=nightly
@@ -176,15 +176,14 @@ develop quantum programs for a variety of applications.
 ## Community
 
 <a href="https://github.com/quantumlib/Cirq/graphs/contributors"><img
-width="160em" alt="Total number of contributors to Cirq"
+width="150em" alt="Total number of contributors to Cirq"
 src="https://img.shields.io/github/contributors/quantumlib/cirq?label=Contributors&logo=github&color=ccc&style=flat-square"/></a>
 
-Cirq has benefited from [open-source contributions] by over 200 people and
+Cirq has benefited from [contributions] by over 200 people and
 counting. We are dedicated to cultivating an open and inclusive community to
-build software for quantum computers, and have a [code of conduct] for our
-community.
+build software for quantum computers, and have a community [code of conduct].
 
-[open-source contributions]: https://github.com/quantumlib/Cirq/graphs/contributors
+[contributions]: https://github.com/quantumlib/Cirq/graphs/contributors
 [code of conduct]: https://github.com/quantumlib/cirq/blob/main/CODE_OF_CONDUCT.md
 
 ### Announcements
@@ -207,28 +206,28 @@ Cirq releases take place approximately every quarter.
 
 ### Questions and Discussions
 
-*   Do you have questions about using Cirq? Post them to the [Quantum Computing
-    Stack Exchange] and tag them with the [`cirq`] tag. You can also search past
+*   Have questions about Cirq? Post them to the [Quantum Computing
+    Stack Exchange] and tag them with [`cirq`]. You can also search past
     questions using that tag – it's a great way to learn!
-*   Would you like to get more involved in Cirq development? _Cirq Cynq_ is our
-    biweekly virtual meeting of contributors to discuss everything from issues to
-    ongoing efforts, as well as to ask questions. Become a member of
-    [_cirq-dev_](https://groups.google.com/forum/#!forum/cirq-dev) to get an
-    automatic meeting invitation!
+*   Want meet other Cirq developers and participate in discussions? Join
+    _Cirq Cynq_, our biweekly virtual meeting of contributors. Sign up
+    to [_cirq-dev_] to get an automatic meeting invitation!
 
 [Quantum Computing Stack Exchange]: https://quantumcomputing.stackexchange.com
 [`cirq`]: https://quantumcomputing.stackexchange.com/questions/tagged/cirq
+[_cirq-dev_]: https://groups.google.com/forum/#!forum/cirq-dev
 
-### Issues and Pull Requests
+### Contributions
 
-*   Do you have a feature request or want to report a bug? [Open an issue on
-    GitHub] to report it!
-*   Do you have a code contribution? Read our [contribution guidelines], then
-    open a [pull request]!
+*   Have a feature request or bug report? [Open an issue on GitHub]!
+*   Want to develop Cirq code? Look at the [list of good first issues] to
+    tackle, read our [contribution guidelines], and then start opening
+    [pull requests]!
 
 [Open an issue on GitHub]: https://github.com/quantumlib/Cirq/issues/new/choose
+[list of good first issues]: https://github.com/quantumlib/Cirq/contribute
 [contribution guidelines]: https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md
-[pull request]: https://help.github.com/articles/about-pull-requests
+[pull requests]: https://help.github.com/articles/about-pull-requests
 
 ## Citing Cirq<a name="how-to-cite-cirq"></a><a name="how-to-cite"></a>
 

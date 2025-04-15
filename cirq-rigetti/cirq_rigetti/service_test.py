@@ -1,6 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from unittest.mock import patch
+
 import pytest
+
 from cirq_rigetti import get_rigetti_qcs_service
 from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 

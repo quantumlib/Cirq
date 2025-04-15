@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Union
-import numbers
-
 import abc
+import numbers
+from typing import Any, Dict, List, Optional, Union
+
 import numpy as np
 
 import cirq
 from cirq.circuits import circuit_operation
 from cirq_google.api import v2
-from cirq_google.serialization.arg_func_langs import arg_to_proto
+from cirq_google.serialization.arg_func_langs import arg_to_proto, condition_to_proto
 
 
 class OpSerializer(abc.ABC):
@@ -125,5 +125,10 @@ class CircuitOpSerializer(OpSerializer):
                 else:
                     raise ValueError(f'Cannot serialize complex value {p2}')
             arg_to_proto(p2, out=entry.value)
+
+        msg.use_repetition_ids = op.use_repetition_ids
+
+        if op.repeat_until:
+            condition_to_proto(op.repeat_until, out=msg.repeat_until)
 
         return msg

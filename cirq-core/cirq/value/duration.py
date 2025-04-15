@@ -13,14 +13,14 @@
 # limitations under the License.
 """A typed time delta that supports picosecond accuracy."""
 
-from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union, List
 import datetime
+from typing import AbstractSet, Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
-import sympy
 import numpy as np
+import sympy
 
 from cirq import protocols
-from cirq._compat import proper_repr, cached_method
+from cirq._compat import cached_method, proper_repr
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -165,7 +165,7 @@ class Duration:
         if other_duration is not None:
             return self.total_picos() / other_duration.total_picos()
 
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def __eq__(self, other):
         other = _attempt_duration_like_to_duration(other)

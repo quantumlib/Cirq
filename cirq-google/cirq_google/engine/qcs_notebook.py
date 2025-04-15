@@ -16,12 +16,11 @@ import dataclasses
 from typing import cast, Optional, Sequence, Union
 
 import cirq
-
-from cirq_google import ProcessorSampler, get_engine
+from cirq_google import get_engine, ProcessorSampler
 from cirq_google.engine import (
     AbstractEngine,
-    AbstractProcessor,
     AbstractLocalProcessor,
+    AbstractProcessor,
     create_noiseless_virtual_engine_from_latest_templates,
     EngineProcessor,
 )

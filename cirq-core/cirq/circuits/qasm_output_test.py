@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
 import os
+import re
+
 import numpy as np
 import pytest
 
@@ -50,6 +51,11 @@ def test_qasm_u_qubit_gate_unitary():
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
 
+    cirq.testing.assert_implements_consistent_protocols(g)
+
+    u = cirq.unitary(cirq.Y)
+    g = QasmUGate.from_matrix(u)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
     cirq.testing.assert_implements_consistent_protocols(g)
 
 

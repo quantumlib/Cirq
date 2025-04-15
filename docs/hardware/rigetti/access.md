@@ -1,5 +1,7 @@
 # Access and Authentication
 
+**Warning: the `cirq-rigetti` module was deprecated in Cirq version 1.5**, and will be removed in a subsequent version.
+
 The Rigetti QCS API provides access to and descriptions of Rigetti quantum processors. The Rigetti QCS [online documentation](https://docs.rigetti.com) details:
 
 * installing `cirq-rigetti`'s non-Python dependencies, namely the Quil [compiler and QVM](https://docs.rigetti.com/qcs/getting-started/installing-locally#install-the-compiler-and-qvm)

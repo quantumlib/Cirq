@@ -14,15 +14,15 @@
 """Measures on and between quantum states and operations."""
 
 
-from typing import Optional, TYPE_CHECKING, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import protocols, value, _import
+from cirq import _import, protocols, value
 from cirq.qis.states import (
-    QuantumState,
     infer_qid_shape,
     quantum_state,
+    QuantumState,
     validate_density_matrix,
     validate_normalized_state_vector,
 )
@@ -247,7 +247,8 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         eigs = linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
         trace = np.sum(np.sqrt(np.abs(eigs)))
         return trace**2
-    raise ValueError(
+    # matrix is reshaped before this point
+    raise ValueError(  # pragma: no cover
         'The given arrays must be one- or two-dimensional. '
         f'Got shapes {state1.shape} and {state2.shape}.'
     )

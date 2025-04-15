@@ -14,7 +14,7 @@
 
 import cirq
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
-from cirq.devices.noise_utils import PHYSICAL_GATE_TAG, OpIdentifier
+from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 
 
 def test_insertion_noise():

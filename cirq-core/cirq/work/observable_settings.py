@@ -16,19 +16,19 @@ import dataclasses
 import numbers
 from typing import (
     AbstractSet,
-    Mapping,
-    Union,
-    Iterable,
     Dict,
-    Optional,
-    TYPE_CHECKING,
-    Tuple,
     FrozenSet,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
 )
 
 import sympy
 
-from cirq import ops, value, protocols
+from cirq import ops, protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -149,7 +149,8 @@ def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int
         raise ValueError(f'Cannot convert {val} to fixed precision in observable settings')
     if isinstance(val, (complex, numbers.Complex)):
         return int(val.real * precision), int(val.imag * precision)
-    return int(val * precision)
+    # Pretty much all numbers are instances of numbers.Complex
+    return int(val * precision)  # pragma: no cover
 
 
 def _hashable_param(

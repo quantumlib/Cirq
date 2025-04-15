@@ -28,4 +28,4 @@ if sys.version_info < (3, 10, 0):  # pragma: no cover
         'of cirq (e.g. "python -m pip install cirq==1.1.*")'
     )
 
-__version__ = "1.5.0.dev"
+__version__ = "1.6.0.dev0"

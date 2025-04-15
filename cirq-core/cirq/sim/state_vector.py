@@ -14,12 +14,12 @@
 """Helpers for handling quantum state vectors."""
 
 import abc
-from typing import List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
+from typing import List, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import linalg, qis, value
-from cirq.sim import simulator, simulation_utils
+from cirq.sim import simulation_utils, simulator
 
 if TYPE_CHECKING:
     import cirq

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterator, List, Sequence, TYPE_CHECKING, Tuple
+from typing import Any, Dict, Iterator, List, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, common_gates, eigen_gate, pauli_gates
+from cirq.ops import common_gates, eigen_gate, gate_features, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 if TYPE_CHECKING:
@@ -85,7 +85,13 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         return 2
 
     def _value_equality_values_(self):
-        return (self.pauli0, self.invert0, self.pauli1, self.invert1, self._canonical_exponent)
+        return (
+            self.pauli0,
+            self.invert0,
+            self.pauli1,
+            self.invert1,
+            value.PeriodicValue(self.exponent, 2),
+        )
 
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         if self.pauli0 == self.pauli1 and self.invert0 == self.invert1:

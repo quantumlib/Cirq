@@ -25,14 +25,13 @@ The -q argument suppresses all output except the final result line and any error
 messages.
 """
 
-from typing import Any, Dict, Iterable, List, Tuple
-from types import ModuleType
-
-import sys
+import doctest
 import glob
 import importlib.util
-import doctest
+import sys
 import warnings
+from types import ModuleType
+from typing import Any, Dict, Iterable, List, Tuple
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
@@ -122,11 +121,12 @@ def load_tests(
     else:
         try_print = lambda *args, **kwargs: None
     if include_modules:
+        import numpy
+        import pandas
+        import sympy
+
         import cirq
         import cirq_google
-        import numpy
-        import sympy
-        import pandas
 
         base_globals = {
             'cirq': cirq,

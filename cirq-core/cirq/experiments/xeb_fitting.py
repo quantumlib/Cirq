@@ -13,19 +13,22 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import sympy
-from cirq import circuits, ops, protocols, _import
+
+from cirq import _import, circuits, ops, protocols
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
 if TYPE_CHECKING:
-    import cirq
     import multiprocessing
+
     import scipy.optimize
+
+    import cirq
 
 # We initialize these lazily, otherwise they slow global import speed.
 optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
@@ -135,7 +138,7 @@ def benchmark_2q_xeb_fidelities(
     else:
         groupby_names = ['cycle_depth']
 
-    return df.groupby(groupby_names).apply(per_cycle_depth).reset_index()
+    return df.groupby(groupby_names).apply(per_cycle_depth, include_groups=False).reset_index()
 
 
 class XEBCharacterizationOptions(ABC):
@@ -699,7 +702,7 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
         groupby = ['layer_i', 'pair_i', 'pair']
     else:
         groupby = ['pair']
-    return fidelities_df.groupby(groupby).apply(_per_pair)
+    return fidelities_df.groupby(groupby).apply(_per_pair, include_groups=False)
 
 
 def before_and_after_characterization(

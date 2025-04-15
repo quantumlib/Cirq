@@ -14,13 +14,13 @@
 
 from typing import Any, Optional
 
-from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.ops.dense_pauli_string import DensePauliString
-from cirq._import import LazyLoader
-import cirq.protocols.unitary_protocol as unitary_protocol
+import cirq.protocols.decompose_protocol as decompose_protocol
 import cirq.protocols.has_unitary_protocol as has_unitary_protocol
 import cirq.protocols.qid_shape_protocol as qid_shape_protocol
-import cirq.protocols.decompose_protocol as decompose_protocol
+import cirq.protocols.unitary_protocol as unitary_protocol
+from cirq._import import LazyLoader
+from cirq.ops.clifford_gate import SingleQubitCliffordGate
+from cirq.ops.dense_pauli_string import DensePauliString
 
 pauli_string_decomposition = LazyLoader(
     "pauli_string_decomposition",

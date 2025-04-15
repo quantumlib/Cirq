@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pytest
 import numpy as np
+import pytest
 
 import cirq
 
@@ -103,6 +103,9 @@ def test_block_diag():
             [[1, 2, 0, 0, 0], [3, 4, 0, 0, 0], [0, 0, 4, 5, 6], [0, 0, 7, 8, 9], [0, 0, 10, 11, 12]]
         ),
     )
+
+    with pytest.raises(ValueError, match='Blocks must be square'):
+        _ = cirq.block_diag(np.array([[1, 2, 3], [3, 4, 5]]))
 
 
 def test_block_diag_dtype():

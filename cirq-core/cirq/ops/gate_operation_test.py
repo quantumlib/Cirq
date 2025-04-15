@@ -454,6 +454,7 @@ def test_is_parameterized():
             return True
 
     q = cirq.LineQubit(0)
+    assert No1().num_qubits() == 1
     assert not cirq.is_parameterized(No1().on(q))
     assert not cirq.is_parameterized(No2().on(q))
     assert cirq.is_parameterized(Yes().on(q))

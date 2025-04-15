@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
+from __future__ import annotations
 
 import functools
+from typing import Any, Callable, cast, Dict, Generic, Iterator, TypeVar
+
 import networkx
 
 import cirq
@@ -48,7 +50,7 @@ class Unique(Generic[T]):
         return id(self) < id(other)
 
 
-def _disjoint_qubits(op1: 'cirq.Operation', op2: 'cirq.Operation') -> bool:
+def _disjoint_qubits(op1: cirq.Operation, op2: cirq.Operation) -> bool:
     """Returns true only if the operations have qubits in common."""
     return not set(op1.qubits) & set(op2.qubits)
 
@@ -70,7 +72,7 @@ class CircuitDag(networkx.DiGraph):
 
     def __init__(
         self,
-        can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
+        can_reorder: Callable[[cirq.Operation, cirq.Operation], bool] = _disjoint_qubits,
         incoming_graph_data: Any = None,
     ) -> None:
         """Initializes a CircuitDag.
@@ -91,27 +93,27 @@ class CircuitDag(networkx.DiGraph):
         self.can_reorder = can_reorder
 
     @staticmethod
-    def make_node(op: 'cirq.Operation') -> Unique:
+    def make_node(op: cirq.Operation) -> Unique:
         return Unique(op)
 
     @staticmethod
     def from_circuit(
         circuit: cirq.Circuit,
-        can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
-    ) -> 'CircuitDag':
+        can_reorder: Callable[[cirq.Operation, cirq.Operation], bool] = _disjoint_qubits,
+    ) -> CircuitDag:
         return CircuitDag.from_ops(circuit.all_operations(), can_reorder=can_reorder)
 
     @staticmethod
     def from_ops(
-        *operations: 'cirq.OP_TREE',
-        can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
-    ) -> 'CircuitDag':
+        *operations: cirq.OP_TREE,
+        can_reorder: Callable[[cirq.Operation, cirq.Operation], bool] = _disjoint_qubits,
+    ) -> CircuitDag:
         dag = CircuitDag(can_reorder=can_reorder)
         for op in ops.flatten_op_tree(operations):
             dag.append(cast(ops.Operation, op))
         return dag
 
-    def append(self, op: 'cirq.Operation') -> None:
+    def append(self, op: cirq.Operation) -> None:
         new_node = self.make_node(op)
         for node in list(self.nodes()):
             if not self.can_reorder(node.val, op):
@@ -140,21 +142,21 @@ class CircuitDag(networkx.DiGraph):
 
     __hash__ = None  # type: ignore
 
-    def ordered_nodes(self) -> Iterator[Unique['cirq.Operation']]:
+    def ordered_nodes(self) -> Iterator[Unique[cirq.Operation]]:
         if not self.nodes():
             return
         g = self.copy()
 
-        def get_root_node(some_node: Unique['cirq.Operation']) -> Unique['cirq.Operation']:
+        def get_root_node(some_node: Unique[cirq.Operation]) -> Unique[cirq.Operation]:
             pred = g.pred
             while pred[some_node]:
                 some_node = next(iter(pred[some_node]))
             return some_node
 
-        def get_first_node() -> Unique['cirq.Operation']:
+        def get_first_node() -> Unique[cirq.Operation]:
             return get_root_node(next(iter(g.nodes())))
 
-        def get_next_node(succ: networkx.classes.coreviews.AtlasView) -> Unique['cirq.Operation']:
+        def get_next_node(succ: networkx.classes.coreviews.AtlasView) -> Unique[cirq.Operation]:
             if succ:
                 return get_root_node(next(iter(succ)))
 
@@ -171,7 +173,7 @@ class CircuitDag(networkx.DiGraph):
 
             node = get_next_node(succ)
 
-    def all_operations(self) -> Iterator['cirq.Operation']:
+    def all_operations(self) -> Iterator[cirq.Operation]:
         return (node.val for node in self.ordered_nodes())
 
     def all_qubits(self):
@@ -181,8 +183,8 @@ class CircuitDag(networkx.DiGraph):
         return cirq.Circuit(self.all_operations(), strategy=cirq.InsertStrategy.EARLIEST)
 
     def findall_nodes_until_blocked(
-        self, is_blocker: Callable[['cirq.Operation'], bool]
-    ) -> Iterator[Unique['cirq.Operation']]:
+        self, is_blocker: Callable[[cirq.Operation], bool]
+    ) -> Iterator[Unique[cirq.Operation]]:
         """Finds all nodes before blocking ones.
 
         Args:

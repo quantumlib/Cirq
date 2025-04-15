@@ -17,6 +17,7 @@
 import abc
 import dataclasses
 from typing import Iterable, List, Optional
+
 import cirq
 from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
 

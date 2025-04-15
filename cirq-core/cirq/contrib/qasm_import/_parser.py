@@ -25,19 +25,18 @@ from typing import (
     Optional,
     Set,
     Tuple,
-    Union,
     TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
 import sympy
 from ply import yacc
 
-from cirq import ops, value, Circuit, CircuitOperation, CX, FrozenCircuit, NamedQubit
+from cirq import Circuit, CircuitOperation, CX, FrozenCircuit, NamedQubit, ops, value
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
-
 
 if TYPE_CHECKING:
     import cirq

@@ -1,9 +1,11 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 from typing import cast
+
 import pytest
-import cirq
 from pyquil import get_qc
 from pyquil.api import QVM
+
+import cirq
 from cirq_rigetti import RigettiQCSSampler
 from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 

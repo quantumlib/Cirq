@@ -8,7 +8,7 @@ import os
 import sys
 import time
 import traceback
-from typing import Callable, Optional, List, Any, Dict, Set, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 from google.cloud import secretmanager_v1beta1
 

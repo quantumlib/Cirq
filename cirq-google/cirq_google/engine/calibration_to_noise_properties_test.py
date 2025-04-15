@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq, cirq_google
-from cirq.devices.noise_utils import OpIdentifier
-
-from google.protobuf.text_format import Merge
 import numpy as np
 import pytest
+from google.protobuf.text_format import Merge
+
+import cirq
+import cirq_google
+from cirq.devices.noise_utils import OpIdentifier
 
 
 def get_mock_calibration(

@@ -3,6 +3,7 @@ syntax = "proto3";
 package cirq.google.api.v2;
 
 import "tunits/proto/tunits.proto";
+import "cirq_google/api/v2/ndarrays.proto";
 
 option java_package = "com.google.cirq.google.api.v2";
 option java_outer_classname = "ProgramProto";
@@ -19,11 +20,10 @@ message Program {
     // moment having a set of gates that act on disjoint qubits. Circuits don't
     // have absolute times for their operations (gates acting on qubits).
     Circuit circuit = 2;
-
-    // Schedules are a list of operations (gates acting on qubits) that specify
-    // absolute start times for the operations.
-    Schedule schedule = 3;
   }
+
+  // Previously deprecated field.  Do not use.
+  reserved 3;
 
   // List to store global constants, such as strings used in many places.
   // constants are referred to their index in this list, starting at zero.
@@ -103,25 +103,6 @@ message Moment {
 
   // Deprecated field id, do not use.
   reserved 3;
-}
-
-// The quantum circuit, specified as a series of operations at specific
-// start times.
-message Schedule {
-  // A list of all the operations and their absolute start times.
-  repeated ScheduledOperation scheduled_operations = 3;
-}
-
-// An operation occurring at a specific start time.
-message ScheduledOperation {
-  // Which operation is to be scheduled.
-  Operation operation = 1;
-
-  // The start time of the operation, with zero representing the absolute
-  // start of the circuit.
-  //
-  // This must be consistent with the moment structure and must be positive.
-  int64 start_time_picos = 2;
 }
 
 // The language in which the program is expressed.
@@ -223,9 +204,8 @@ message WaitGate {
 
 // An operation acts on a set of qubits.
 message Operation {
-  // Which gate this operation corresponds to.
-  // Populated pre-v2.5+.
-  Gate gate = 1 [deprecated = true];
+  // Previously deprecated fields.  Do not use.
+  reserved 1, 2;
 
   // Each gate should populate one possible gate message
   // depending on the type desired.  Only populated in v2.5+.
@@ -248,17 +228,13 @@ message Operation {
     ResetGate resetgate = 24;
   }
 
-  // Map from the argument name to the Argument needed to fully specify
-  // the gate. Only populated pre-v2.5+.
-  map<string, Arg> args = 2 [deprecated = true];
-
   // Which qubits the operation acts on.
   // Operations should populate one of the following two
   // fields: either to specify the qubit directly or
   // to reference an index in the enclosing Program's
   // constant messages.  Note that qubit_constant_index
   // will only be populated in v2.5+
-  repeated Qubit qubits = 3;
+  repeated Qubit qubits = 3 [deprecated = true];
   repeated int32 qubit_constant_index = 6;
 
   // Token that can be used to specify a version of a gate.
@@ -276,6 +252,11 @@ message Operation {
 
   // Indices in the constant table for tags associated with the operation
   repeated int32 tag_indices = 23;
+
+  // Classical conditions
+  // Note that this condition is not a sympy expression
+  // as it has a relation such as "==", "<" etc
+  repeated Arg conditioned_on = 25;
 }
 
 message DynamicalDecouplingTag {
@@ -406,6 +387,7 @@ message Arg {
     string symbol = 2;
     ArgFunction func = 3;
     int32 constant_index = 4;
+    MeasurementKey measurement_key = 5;
   }
 }
 
@@ -421,6 +403,10 @@ message ArgValue {
     RepeatedString string_values = 7;
     tunits.Value value_with_unit = 8;
     bool bool_value = 9;
+    bytes bytes_value = 10;
+    Complex complex_value = 11;
+    Tuple tuple_value = 12;
+    NDArray ndarray_value = 13;
   }
 }
 
@@ -440,6 +426,46 @@ message RepeatedString {
 message RepeatedBoolean {
   repeated bool values = 1;
 }
+
+// Representation of a mixed tuple of values
+message Tuple {
+
+  // Original (python) type of the data
+  enum SequenceType {
+    UNSPECIFIED = 0;
+    LIST = 1;
+    TUPLE = 2;
+    SET = 3;
+    FROZENSET = 4;
+  }
+
+  SequenceType sequence_type = 1;
+    
+  repeated Arg values = 2;
+}
+
+// Representation of a complex number
+message Complex {
+    double real_value = 1;
+    double imag_value = 2;
+}
+
+message NDArray {
+  oneof arr {
+    Complex128Array complex128_array = 1;
+    Complex64Array complex64_array = 2;
+    Float16Array float16_array = 3;
+    Float32Array float32_array = 4;
+    Float64Array float64_array = 5;
+    Int64Array int64_array = 6;
+    Int32Array int32_array = 7;
+    Int16Array int16_array = 8;
+    Int8Array int8_array = 9;
+    UInt8Array uint8_array = 10;
+    BitArray bit_array = 11;
+  }
+}
+
 
 // A function of arguments. This is an s-expression tree representing
 // mathematically the function being evaluated.
@@ -486,6 +512,15 @@ message CircuitOperation {
   // Map of args in the "inner" circuit (referenced by circuit_constant_index)
   // to args in the "outer" circuit (the one that contains this operation).
   ArgMapping arg_map = 5;
+  
+  // Classical conditions
+  // Condition for repeating the circuit until this condition is true. 
+  optional Arg repeat_until = 6;
+  
+  // Condition for executing the circuit operation only if this condition is true.
+  repeated Arg conditioned_on = 7;
+
+  bool use_repetition_ids = 8;
 }
 
 // A description of the repetitions of a subcircuit. IDs are used as suffixes
@@ -523,6 +558,17 @@ message QubitMapping {
 // A key for matching a measurement event to its results.
 message MeasurementKey {
   string string_key = 1;
+
+  // Used in conditional statements representing the path to the key
+  // in a multi-level circuit (with repeated or nested circuits).
+  // See cirq.MeasurementKey for more details.
+  repeated string path = 2;
+
+  // Used in classical conditions to specify which measurement
+  // should be used if the measurement is repeated.
+  // Specified as a negative number meaning how many measurements ago.
+  // If not specified, default is -1, meaning the last measured value.
+  optional int32 index = 3;
 }
 
 // A mapping of measurement keys from one value to another. All mappings are

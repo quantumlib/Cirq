@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-from setuptools import setup
+import runpy
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
+from setuptools import setup
 
 from dev_tools import modules
 from dev_tools.requirements import explode
 
-exec(open('cirq-core/cirq/_version.py').read())
+# This reads the __version__ variable from cirq-core/cirq/_version.py
+__version__ = runpy.run_path('cirq-core/cirq/_version.py')['__version__']
+assert __version__, 'Version string cannot be empty'
 
 name = 'cirq'
 
@@ -32,26 +32,6 @@ description = (
 
 # README file as long_description.
 long_description = open('README.md', encoding='utf-8').read()
-
-# If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
-# It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
-# it will be a pre-release version on PyPi. See
-# https://packaging.python.org/guides/distributing-packages-using-setuptools/#pre-release-versioning
-# for more details.
-if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
-    __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
-    long_description = (
-        "<div align='center' width='50%'>\n\n"
-        "| ⚠️ WARNING |\n"
-        "|:----------:|\n"
-        "| **This is a development version of Cirq and may be<br>"
-        "unstable. For the latest stable release of Cirq,<br>"
-        "please visit** <https://pypi.org/project/cirq>.|\n"
-        "\n</div>\n\n" + long_description
-    )
-
-# Sanity check
-assert __version__, 'Version string cannot be empty'
 
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]

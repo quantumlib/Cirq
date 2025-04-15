@@ -14,8 +14,9 @@
 
 """Transformer pass that pushes Z gates later and later in the circuit."""
 
-from typing import Dict, Iterable, Iterator, Optional, Tuple, TYPE_CHECKING
 from collections import defaultdict
+from typing import Dict, Iterable, Iterator, Optional, Tuple, TYPE_CHECKING
+
 import numpy as np
 
 from cirq import ops, protocols

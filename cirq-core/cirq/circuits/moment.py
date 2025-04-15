@@ -14,6 +14,8 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
+from __future__ import annotations
+
 import itertools
 from functools import cached_property
 from types import NotImplementedType
@@ -28,21 +30,20 @@ from typing import (
     Iterator,
     List,
     Mapping,
-    overload,
     Optional,
+    overload,
     Sequence,
     Tuple,
     TYPE_CHECKING,
     Union,
 )
 
+import numpy as np
 from typing_extensions import Self
 
-import numpy as np
-
-from cirq import protocols, ops, qis, _compat
+from cirq import _compat, ops, protocols, qis
 from cirq._import import LazyLoader
-from cirq.ops import raw_types, op_tree
+from cirq.ops import op_tree, raw_types
 from cirq.protocols import circuit_diagram_info_protocol
 
 if TYPE_CHECKING:
@@ -56,7 +57,7 @@ text_diagram_drawer = LazyLoader(
 )
 
 
-def _default_breakdown(qid: 'cirq.Qid') -> Tuple[Any, Any]:
+def _default_breakdown(qid: cirq.Qid) -> Tuple[Any, Any]:
     # Attempt to convert into a position on the complex plane.
     try:
         plane_pos = complex(qid)  # type: ignore
@@ -83,7 +84,7 @@ class Moment:
             are no such operations, returns an empty Moment.
     """
 
-    def __init__(self, *contents: 'cirq.OP_TREE', _flatten_contents: bool = True) -> None:
+    def __init__(self, *contents: cirq.OP_TREE, _flatten_contents: bool = True) -> None:
         """Constructs a moment with the given operations.
 
         Args:
@@ -103,10 +104,10 @@ class Moment:
             if _flatten_contents
             else cast(Tuple['cirq.Operation'], contents)
         )
-        self._sorted_operations: Optional[Tuple['cirq.Operation', ...]] = None
+        self._sorted_operations: Optional[Tuple[cirq.Operation, ...]] = None
 
         # An internal dictionary to support efficient operation access by qubit.
-        self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
+        self._qubit_to_op: Dict[cirq.Qid, cirq.Operation] = {}
         for op in self.operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
@@ -114,11 +115,11 @@ class Moment:
                     raise ValueError(f'Overlapping operations: {self.operations}')
                 self._qubit_to_op[q] = op
 
-        self._measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = None
-        self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
+        self._measurement_key_objs: Optional[FrozenSet[cirq.MeasurementKey]] = None
+        self._control_keys: Optional[FrozenSet[cirq.MeasurementKey]] = None
 
     @classmethod
-    def from_ops(cls, *ops: 'cirq.Operation') -> 'cirq.Moment':
+    def from_ops(cls, *ops: cirq.Operation) -> cirq.Moment:
         """Construct a Moment from the given operations.
 
         This avoids calling `flatten_to_ops` in the moment constructor, which
@@ -132,14 +133,14 @@ class Moment:
         return cls(*ops, _flatten_contents=False)
 
     @property
-    def operations(self) -> Tuple['cirq.Operation', ...]:
+    def operations(self) -> Tuple[cirq.Operation, ...]:
         return self._operations
 
     @cached_property
-    def qubits(self) -> FrozenSet['cirq.Qid']:
+    def qubits(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self._qubit_to_op)
 
-    def operates_on_single_qubit(self, qubit: 'cirq.Qid') -> bool:
+    def operates_on_single_qubit(self, qubit: cirq.Qid) -> bool:
         """Determines if the moment has operations touching the given qubit.
         Args:
             qubit: The qubit that may or may not be touched by operations.
@@ -148,7 +149,7 @@ class Moment:
         """
         return qubit in self._qubit_to_op
 
-    def operates_on(self, qubits: Iterable['cirq.Qid']) -> bool:
+    def operates_on(self, qubits: Iterable[cirq.Qid]) -> bool:
         """Determines if the moment has operations touching the given qubits.
 
         Args:
@@ -159,7 +160,7 @@ class Moment:
         """
         return not self._qubit_to_op.keys().isdisjoint(qubits)
 
-    def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
+    def operation_at(self, qubit: raw_types.Qid) -> Optional[cirq.Operation]:
         """Returns the operation on a certain qubit for the moment.
 
         Args:
@@ -173,7 +174,7 @@ class Moment:
             return self.__getitem__(qubit)
         return None
 
-    def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
+    def with_operation(self, operation: cirq.Operation) -> cirq.Moment:
         """Returns an equal moment, but with the given op added.
 
         Args:
@@ -201,7 +202,7 @@ class Moment:
 
         return m
 
-    def with_operations(self, *contents: 'cirq.OP_TREE') -> 'cirq.Moment':
+    def with_operations(self, *contents: cirq.OP_TREE) -> cirq.Moment:
         """Returns a new moment with the given contents added.
 
         Args:
@@ -238,7 +239,7 @@ class Moment:
 
         return m
 
-    def without_operations_touching(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
+    def without_operations_touching(self, qubits: Iterable[cirq.Qid]) -> cirq.Moment:
         """Returns an equal moment, but without ops on the given qubits.
 
         Args:
@@ -264,11 +265,9 @@ class Moment:
     def _parameter_names_(self) -> AbstractSet[str]:
         return {name for op in self for name in protocols.parameter_names(op)}
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.Moment':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Moment:
         changed = False
-        resolved_ops: List['cirq.Operation'] = []
+        resolved_ops: List[cirq.Operation] = []
         for op in self:
             resolved_op = protocols.resolve_parameters(op, resolver, recursive)
             changed = (
@@ -295,21 +294,21 @@ class Moment:
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return frozenset(str(key) for key in self._measurement_key_objs_())
 
-    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
         if self._measurement_key_objs is None:
             self._measurement_key_objs = frozenset(
                 key for op in self.operations for key in protocols.measurement_key_objs(op)
             )
         return self._measurement_key_objs
 
-    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
         if self._control_keys is None:
             self._control_keys = frozenset(
                 k for op in self.operations for k in protocols.control_keys(op)
             )
         return self._control_keys
 
-    def _sorted_operations_(self) -> Tuple['cirq.Operation', ...]:
+    def _sorted_operations_(self) -> Tuple[cirq.Operation, ...]:
         if self._sorted_operations is None:
             self._sorted_operations = tuple(sorted(self._operations, key=lambda op: op.qubits))
         return self._sorted_operations
@@ -331,7 +330,7 @@ class Moment:
         )
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ):
         return Moment(
             protocols.with_rescoped_keys(op, path, bindable_keys) for op in self.operations
@@ -374,7 +373,7 @@ class Moment:
             del state[hash_attr]
         return state
 
-    def __iter__(self) -> Iterator['cirq.Operation']:
+    def __iter__(self) -> Iterator[cirq.Operation]:
         return iter(self.operations)
 
     def __pow__(self, power):
@@ -403,12 +402,12 @@ class Moment:
     def __str__(self) -> str:
         return self.to_text_diagram()
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
+    def _decompose_(self) -> cirq.OP_TREE:
         """See `cirq.SupportsDecompose`."""
         return self._operations
 
     def transform_qubits(
-        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
+        self, qubit_map: Union[Dict[cirq.Qid, cirq.Qid], Callable[[cirq.Qid], cirq.Qid]]
     ) -> Self:
         """Returns the same moment, but with different qubits.
 
@@ -422,7 +421,7 @@ class Moment:
         """
         return self.__class__(op.transform_qubits(qubit_map) for op in self.operations)
 
-    def expand_to(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
+    def expand_to(self, qubits: Iterable[cirq.Qid]) -> cirq.Moment:
         """Returns self expanded to given superset of qubits by making identities explicit.
 
         Args:
@@ -481,13 +480,13 @@ class Moment:
         qubit_to_row_subscript = dict(zip(qubits, 'abcdefghij'))
         qubit_to_col_subscript = dict(zip(qubits, 'ABCDEFGHIJ'))
 
-        def row_subscripts(qs: Sequence['cirq.Qid']) -> str:
+        def row_subscripts(qs: Sequence[cirq.Qid]) -> str:
             return ''.join(qubit_to_row_subscript[q] for q in qs)
 
-        def col_subscripts(qs: Sequence['cirq.Qid']) -> str:
+        def col_subscripts(qs: Sequence[cirq.Qid]) -> str:
             return ''.join(qubit_to_col_subscript[q] for q in qs)
 
-        def kraus_tensors(op: 'cirq.Operation') -> Sequence[np.ndarray]:
+        def kraus_tensors(op: cirq.Operation) -> Sequence[np.ndarray]:
             return tuple(np.reshape(k, (2, 2) * len(op.qubits)) for k in protocols.kraus(op))
 
         input_subscripts = ','.join(
@@ -524,12 +523,12 @@ class Moment:
     def _from_json_dict_(cls, operations, **kwargs):
         return cls.from_ops(*operations)
 
-    def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
+    def __add__(self, other: cirq.OP_TREE) -> cirq.Moment:
         if isinstance(other, circuit.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
-    def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
+    def __sub__(self, other: cirq.OP_TREE) -> cirq.Moment:
         must_remove = set(op_tree.flatten_to_ops(other))
         new_ops = []
         for op in self.operations:
@@ -547,11 +546,11 @@ class Moment:
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, key: raw_types.Qid) -> 'cirq.Operation':
+    def __getitem__(self, key: raw_types.Qid) -> cirq.Operation:
         pass
 
     @overload
-    def __getitem__(self, key: Iterable[raw_types.Qid]) -> 'cirq.Moment':
+    def __getitem__(self, key: Iterable[raw_types.Qid]) -> cirq.Moment:
         pass
 
     def __getitem__(self, key):
@@ -568,10 +567,10 @@ class Moment:
             return Moment(frozenset(ops_to_keep))
 
     def to_text_diagram(
-        self: 'cirq.Moment',
+        self: cirq.Moment,
         *,
-        xy_breakdown_func: Callable[['cirq.Qid'], Tuple[Any, Any]] = _default_breakdown,
-        extra_qubits: Iterable['cirq.Qid'] = (),
+        xy_breakdown_func: Callable[[cirq.Qid], Tuple[Any, Any]] = _default_breakdown,
+        extra_qubits: Iterable[cirq.Qid] = (),
         use_unicode_characters: bool = True,
         precision: Optional[int] = None,
         include_tags: bool = True,

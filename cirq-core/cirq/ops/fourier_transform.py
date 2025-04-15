@@ -18,7 +18,7 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq import value, _compat
+from cirq import _compat, value
 from cirq.ops import raw_types
 
 
@@ -170,8 +170,6 @@ class PhaseGradientGate(raw_types.Gate):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PhaseGradientGate':
         new_exponent = cirq.resolve_parameters(self.exponent, resolver, recursive)
-        if new_exponent is self.exponent:
-            return self
         return PhaseGradientGate(num_qubits=self._num_qubits, exponent=new_exponent)
 
     def __str__(self) -> str:

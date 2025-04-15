@@ -15,11 +15,13 @@
 """Utilities to compute readout confusion matrix and use it for readout error mitigation."""
 
 import time
-from typing import Any, Dict, Union, Sequence, List, Tuple, TYPE_CHECKING, Optional, cast
-import sympy
+from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
 import numpy as np
 import scipy.optimize
-from cirq import circuits, ops, vis, study
+import sympy
+
+from cirq import circuits, ops, study, vis
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -342,10 +344,10 @@ class TensoredConfusionMatrices:
             try:
                 idx = self.measure_qubits.index((qubit,))
             except:  # pragma: no cover
-                raise NotImplementedError(  # pragma: no cover
-                    "The response matrix must be a tensor product of single-qu"  # pragma: no cover
-                    + f"bit response matrices, including that of qubit {qubit}."  # pragma: no cover
-                )  # pragma: no cover
+                raise NotImplementedError(
+                    "The response matrix must be a tensor product of single-qu"
+                    + f"bit response matrices, including that of qubit {qubit}."
+                )
             cm_all.append(self.confusion_matrices[idx])
 
         # get the correction matrices, assuming uncorrelated readout:
