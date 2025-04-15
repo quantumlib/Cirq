@@ -53,7 +53,7 @@ jobs:
       contents: read
       pull-requests: write
     env:
-      PR: ${{inputs.pr-number || github.event.pull_request.number}}
+      PR_NUMBER: ${{inputs.pr-number || github.event.pull_request.number}}
     steps:
       - name: Check out a copy of the git repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -63,13 +63,13 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{inputs.token || github.token}}
-        run: ./dev_tools/ci/size-labeler.sh "$PR" |& tee action.out
+        run: ./dev_tools/ci/size-labeler.sh |& tee action.out
 
       - name: Detect and report errors in labeler action
         if: steps.label.outcome == 'failure' || steps.label.outcome == 'error'
         run: |
           {
-          echo "<h4>‼️ Failed to label PR $PR</h4>"
+          echo "<h4>‼️ Failed to label PR ${PR_NUMBER}</h4>"
           echo "<pre>"
           cat action.out
           echo "</pre>"
