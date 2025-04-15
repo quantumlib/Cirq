@@ -16,8 +16,8 @@
 # Label PRs with labels such as size.
 #
 # This workflow is designed not to fail if labeling actions encounter errors;
-# instead, the actions write annotations on the workflow run summary page. If
-# labels don't seem to be getting applied as expected, check there for errors.
+# instead, it writes error messages as annotations on the workflow's run summary
+# page. If labels don't seem to be getting applied, check there for errors.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 name: Pull request labeler
@@ -32,6 +32,14 @@ on:
 
   # Allow manual invocation.
   workflow_dispatch:
+    inputs:
+      pr-number:
+        description: 'The PR number of the PR to label:'
+        type: string
+        required: true
+      token:
+        description: 'Token to use for authentication:'
+        type: string
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -40,38 +48,29 @@ jobs:
   label-pr-size:
     name: Update PR size labels
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     permissions:
       contents: read
-      pull-requests: write
       issues: write
+      pull-requests: write
+    env:
+      PR_NUMBER: ${{inputs.pr-number || github.event.pull_request.number}}
     steps:
-      # We need a copy of the repo so the action can read the config file.
       - name: Check out a copy of the git repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Label the PR with a size label
         id: label
         continue-on-error: true
-        run: |
-          set -x +e
-          podman --out action.out run -v .github:/tmp/.github --rm -it \
-            ghcr.io/cbrgm/pr-size-labeler-action:v1 \
-            --githubtoken ${{secrets.PR_LABELER_TOKEN}} \
-            --eventname pull_request \
-            --reponame ${{github.repository}} \
-            --prnumber ${{github.event.number}} \
-            --configfilepath /tmp/.github/pr-size-labels.yaml
-          status=$?
-          echo '::group::Labeler action output'
-          cat action.out
-          echo '::endgroup::'
-          exit $status
+        env:
+          GITHUB_TOKEN: ${{inputs.token || github.token}}
+        run: ./dev_tools/ci/size-labeler.sh |& tee action.out
 
       - name: Detect and report errors in labeler action
         if: steps.label.outcome == 'failure' || steps.label.outcome == 'error'
         run: |
           {
-          echo "<h4>‼️ Failed to label PR ${{github.event.number}}</h4>"
+          echo "<h4>‼️ Failed to label PR ${PR_NUMBER}</h4>"
           echo "<pre>"
           cat action.out
           echo "</pre>"
