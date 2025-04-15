@@ -877,7 +877,7 @@ def test_circuit_with_tag(tag):
 
 
 @pytest.mark.filterwarnings('ignore:Unrecognized Tag .*DingDongTag')
-def test_unknown_tag_is_ignored():
+def test_unrecognized_tag_is_ignored():
     class DingDongTag:
         pass
 
@@ -888,7 +888,7 @@ def test_unknown_tag_is_ignored():
 
 
 @pytest.mark.filterwarnings('ignore:Unknown tag msg=phase_match')
-def test_unrecognized_tag_is_ignored():
+def test_unknown_tag_is_ignored():
     op_tag = v2.program_pb2.Operation()
     op_tag.xpowgate.exponent.float_value = 1.0
     op_tag.qubit_constant_index.append(0)
