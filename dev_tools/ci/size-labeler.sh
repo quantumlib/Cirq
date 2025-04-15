@@ -77,14 +77,13 @@ function jq_stdin() {
 function jq_file() {
     # Regardless of the success, store the return code.
     # Prepend each sttderr with command args and send back to stderr.
-    jq "${@}" 2> >(echo "$(date -Iseconds) stderr from jq ${*}: " 1>&2) &&
+    jq "${@}" 2> >(awk -v h="stderr from jq ${*}:" '{print h, $0}' 1>&2) &&
         rc="${?}" ||
         rc="${?}"
     if [[ "${rc}" != "0" ]]; then
         error "The jq program failed: ${*}"
         error "Note the quotes above may be wrong. Here was the (possibly empty) input in ${*: -1}:"
         cat "${@: -1}" # Assumes last argument is input file!!
-        exit 1
     fi
     return "${rc}"
 }
