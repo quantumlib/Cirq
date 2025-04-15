@@ -166,8 +166,17 @@ function prune_stale_labels() {
     echo "${correctly_labeled}"
 }
 
+function check_arg_value() {
+    if [[ -z "$2" || "$2" == -* ]]; then
+        error "Argument value for $1 is missing or looks like another option: '$2'"
+        exit 1
+    fi
+}
+
 function parse_options() {
     local pr="" repo="" token=""
+    # Temporarily disable -u flag; this makes the code below much simpler.
+    set +u
     while (( $# > 0 )); do
         case $1 in
             -h | --help | help)
@@ -175,14 +184,17 @@ function parse_options() {
                 exit 0
                 ;;
             --pr)
+                check_arg_value "$1" "$2"
                 pr="$2"
                 shift 2
                 ;;
             --repo)
+                check_arg_value "$1" "$2"
                 repo="$2"
                 shift 2
                 ;;
             --token)
+                check_arg_value "$1" "$2"
                 token="$2"
                 shift 2
                 ;;
@@ -198,9 +210,11 @@ function parse_options() {
                 ;;
         esac
     done
-    [[ -n "$pr" ]] && PR_NUMBER="$pr"
-    [[ -n "$repo" ]] && GITHUB_REPOSITORY="$repo"
-    [[ -n "$token" ]] && GITHUB_TOKEN="$token"
+    PR_NUMBER="${pr:-$PR_NUMBER}"
+    GITHUB_REPOSITORY="${repo:-$GITHUB_REPOSITORY}"
+    GITHUB_TOKEN="${token:-$GITHUB_TOKEN}"
+    # Reinstate error-exit for undefined variables.
+    set -u
 }
 
 function main() {
