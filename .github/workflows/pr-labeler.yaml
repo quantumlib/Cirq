@@ -51,7 +51,10 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+<<<<<<< HEAD
       issues: write
+=======
+>>>>>>> da2acc2a (Merge upstream/main into main)
       pull-requests: write
     env:
       PR_NUMBER: ${{inputs.pr-number || github.event.pull_request.number}}
