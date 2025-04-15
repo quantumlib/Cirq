@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[[ "${BASH_VERSINFO[0]}" -ge 4 ]] || { echo "ERROR: Bash version 4+ required." >&2; exit 1; }
-
 set -euo pipefail -o errtrace
 shopt -s inherit_errexit
 
