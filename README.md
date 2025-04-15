@@ -1,10 +1,7 @@
 <!-- H1 title omitted because our logo acts as the title. -->
 <div align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color_white_text.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
-  <img alt="Cirq logo" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg" width="300px">
-</picture>
+
+<img width="300px" alt="Cirq logo" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
 
 Python package for writing, manipulating, and running [quantum
 circuits](https://en.wikipedia.org/wiki/Quantum_circuit) on quantum computers
@@ -260,4 +257,8 @@ quantum-oss-maintainers@google.com.
 
 ## Disclaimer
 
-Cirq is not an official Google product. Copyright 2019 The Cirq Developers.
+This is not an officially supported Google product. This project is not
+eligible for the [Google Open Source Software Vulnerability Rewards
+Program](https://bughunters.google.com/open-source-security).
+
+Copyright 2019 The Cirq Developers.
