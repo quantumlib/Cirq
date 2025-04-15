@@ -51,10 +51,10 @@ def assert_optimizes(
         cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(3).with_tags("preserve_tag")),
     )
     c_expected = cirq.Circuit(
-        cirq.PhasedXPowGate(phase_exponent=0, exponent=0.25).on_each(*q),
+        (cirq.X**0.25).on_each(*q),
         (cirq.Z**0.5).on_each(*q),
         cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(2).with_tags("ignore")),
-        cirq.PhasedXPowGate(phase_exponent=0, exponent=0.25).on_each(*q),
+        (cirq.X**0.25).on_each(*q),
         (cirq.Z**0.5).on_each(*q),
         cirq.Moment(cirq.CircuitOperation(expected.freeze()).repeat(3).with_tags("preserve_tag")),
     )

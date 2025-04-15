@@ -82,9 +82,11 @@ from cirq.linalg.tolerance import (
 from cirq.linalg.transformations import (
     apply_matrix_to_slices as apply_matrix_to_slices,
     density_matrix_kronecker_product as density_matrix_kronecker_product,
+    can_numpy_support_shape as can_numpy_support_shape,
     match_global_phase as match_global_phase,
     partial_trace as partial_trace,
     partial_trace_of_state_vector_as_mixture as partial_trace_of_state_vector_as_mixture,
+    phase_delta as phase_delta,
     reflection_matrix_pow as reflection_matrix_pow,
     state_vector_kronecker_product as state_vector_kronecker_product,
     sub_state_vector as sub_state_vector,
@@ -92,5 +94,4 @@ from cirq.linalg.transformations import (
     targeted_left_multiply as targeted_left_multiply,
     to_special as to_special,
     transpose_flattened_array as transpose_flattened_array,
-    can_numpy_support_shape as can_numpy_support_shape,
 )

@@ -289,9 +289,7 @@ class XPowGate(eigen_gate.EigenGate):
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
-        return cirq.ops.phased_x_gate.PhasedXPowGate(
-            exponent=self._exponent, phase_exponent=phase_turns * 2
-        )
+        return _phased_x_or_pauli_gate(exponent=self._exponent, phase_exponent=phase_turns * 2)
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_() or self._dimension != 2:
@@ -325,12 +323,6 @@ class XPowGate(eigen_gate.EigenGate):
         if self.dimension != 2:
             d['dimension'] = self.dimension
         return d
-
-    def _value_equality_values_(self):
-        return (*super()._value_equality_values_(), self._dimension)
-
-    def _value_equality_approximate_values_(self):
-        return (*super()._value_equality_approximate_values_(), self._dimension)
 
 
 class Rx(XPowGate):
@@ -490,7 +482,7 @@ class YPowGate(eigen_gate.EigenGate):
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
-        return cirq.ops.phased_x_gate.PhasedXPowGate(
+        return _phased_x_or_pauli_gate(
             exponent=self._exponent, phase_exponent=0.5 + phase_turns * 2
         )
 
@@ -861,12 +853,6 @@ class ZPowGate(eigen_gate.EigenGate):
         if self.dimension != 2:
             d['dimension'] = self.dimension
         return d
-
-    def _value_equality_values_(self):
-        return (*super()._value_equality_values_(), self._dimension)
-
-    def _value_equality_approximate_values_(self):
-        return (*super()._value_equality_approximate_values_(), self._dimension)
 
 
 class Rz(ZPowGate):
@@ -1554,3 +1540,17 @@ document(
     $$
     """,
 )
+
+
+def _phased_x_or_pauli_gate(
+    exponent: Union[float, sympy.Expr], phase_exponent: Union[float, sympy.Expr]
+) -> Union['cirq.PhasedXPowGate', 'cirq.XPowGate', 'cirq.YPowGate']:
+    """Return PhasedXPowGate or X or Y gate if equivalent at the given phase_exponent."""
+    if not isinstance(phase_exponent, sympy.Expr) or phase_exponent.is_constant():
+        half_turns = value.canonicalize_half_turns(float(phase_exponent))
+        match half_turns:
+            case 0.0:
+                return XPowGate(exponent=exponent)
+            case 0.5:
+                return YPowGate(exponent=exponent)
+    return cirq.ops.PhasedXPowGate(exponent=exponent, phase_exponent=phase_exponent)

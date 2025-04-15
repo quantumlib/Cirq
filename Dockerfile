@@ -25,4 +25,4 @@ RUN pip3 install cirq "qcs-sdk-python<=0.21.12"
 ##cirq pre_release image
 FROM cirq_base AS cirq_pre_release
 # TODO: adjust after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
-RUN pip3 install cirq~=1.0.dev "qcs-sdk-python<=0.21.12"
+RUN pip3 install --upgrade cirq~=1.0.dev "qcs-sdk-python<=0.21.12"
