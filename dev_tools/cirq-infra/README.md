@@ -10,7 +10,7 @@ around the years 2020–2021 to implement several systems:
     triaging of GitHub issues and pull requests
 
 The automerge and automatic labeling capabilities were implemented using a homegrown tool called
-`pr_monitor`, whose source code was in the [`dev_tools`](../dev_tools) subdirectory of the Cirq
+`pr_monitor`, whose source code was in the [`dev_tools`](../) subdirectory of the Cirq
 repository. In 2025, the automerge system was discontinued in favor of using GitHub's "merge
 queues", and the size-labeling facility was reimplemented using a GitHub Actions workflow.
 `pr_monitor` was retired in the Cirq 1.5 release.
