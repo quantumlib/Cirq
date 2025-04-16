@@ -261,3 +261,10 @@ eligible for the [Google Open Source Software Vulnerability Rewards
 Program](https://bughunters.google.com/open-source-security).
 
 Copyright 2019 The Cirq Developers.
+
+<div align="center">
+  <a href="https://quantumai.google">
+    <img width="15%" alt="Google Quantum AI"
+         src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/quantum-ai-vertical.svg">
+  </a>
+</div>
