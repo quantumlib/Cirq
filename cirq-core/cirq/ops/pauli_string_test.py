@@ -2137,3 +2137,25 @@ def test_resolve(resolve_fn):
     pst = cirq.PauliString({q: 'x'}, coefficient=t)
     ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
     assert resolve_fn(pst, {'t': 1j}) == ps1
+
+def test_pauli_sum_identity_operations():
+    q = cirq.LineQubit(0)
+    paulis = tuple(cirq.PauliString(p) for p in (cirq.I(q), cirq.X(q), cirq.Y(q), cirq.Z(q)))
+
+    def add(x, y):
+        return x + y
+
+    def sub(x, y):
+        return x - y
+
+    def addm(x, y):
+        return x + (-1.0) * y
+
+    for p1 in paulis:
+        for p2 in paulis:
+            for op in (add, sub, addm):
+                try:
+                    _ = op(p1, p2)
+                except Exception as e:
+                    import pytest
+                    pytest.fail(f"Operation {p1.gate}{getattr(op, 'sym', op.__name__)}{p2.gate} raised {e}")
