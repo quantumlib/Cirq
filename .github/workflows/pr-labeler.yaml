@@ -51,6 +51,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      issues: write
       pull-requests: write
     env:
       PR_NUMBER: ${{inputs.pr-number || github.event.pull_request.number}}
