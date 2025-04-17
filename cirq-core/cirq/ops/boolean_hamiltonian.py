@@ -22,6 +22,9 @@ References:
 [4] Efficient Quantum Circuits for Diagonal Unitaries Without Ancillas by Jonathan Welch, Daniel
     Greenbaum, Sarah Mostame, and Alán Aspuru-Guzik, https://arxiv.org/abs/1306.3991
 """
+
+from __future__ import annotations
+
 import functools
 import itertools
 from typing import Any, Dict, Generator, List, Sequence, Tuple
@@ -93,10 +96,10 @@ class BooleanHamiltonianGate(raw_types.Gate):
     @classmethod
     def _from_json_dict_(
         cls, parameter_names, boolean_strs, theta, **kwargs
-    ) -> 'cirq.BooleanHamiltonianGate':
+    ) -> cirq.BooleanHamiltonianGate:
         return cls(parameter_names, boolean_strs, theta)
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         qubit_map = dict(zip(self._parameter_names, qubits))
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
         hamiltonian_polynomial_list = [
@@ -299,10 +302,8 @@ def _simplify_cnots(cnots: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
 
 
 def _get_gates_from_hamiltonians(
-    hamiltonian_polynomial_list: List['cirq.PauliSum'],
-    qubit_map: Dict[str, 'cirq.Qid'],
-    theta: float,
-) -> Generator['cirq.Operation', None, None]:
+    hamiltonian_polynomial_list: List[cirq.PauliSum], qubit_map: Dict[str, cirq.Qid], theta: float
+) -> Generator[cirq.Operation, None, None]:
     """Builds a circuit according to [1].
 
     Args:
