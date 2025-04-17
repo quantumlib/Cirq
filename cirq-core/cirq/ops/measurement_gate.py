@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import (
     Any,
     Dict,
@@ -48,7 +50,7 @@ class MeasurementGate(raw_types.Gate):
     def __init__(
         self,
         num_qubits: Optional[int] = None,
-        key: Union[str, 'cirq.MeasurementKey'] = '',
+        key: Union[str, cirq.MeasurementKey] = '',
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Optional[Tuple[int, ...]] = None,
         confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
@@ -100,7 +102,7 @@ class MeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @property
-    def mkey(self) -> 'cirq.MeasurementKey':
+    def mkey(self) -> cirq.MeasurementKey:
         return self._mkey
 
     @property
@@ -117,7 +119,7 @@ class MeasurementGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return False
 
-    def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'MeasurementGate':
+    def with_key(self, key: Union[str, cirq.MeasurementKey]) -> MeasurementGate:
         """Creates a measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
@@ -136,14 +138,14 @@ class MeasurementGate(raw_types.Gate):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ):
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
-    def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
+    def with_bits_flipped(self, *bit_positions: int) -> MeasurementGate:
         """Toggles whether or not the measurement inverts various outputs.
 
         This only affects the invert_mask, which is applied after confusion
@@ -182,7 +184,7 @@ class MeasurementGate(raw_types.Gate):
     def _measurement_key_name_(self) -> str:
         return self.key
 
-    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
+    def _measurement_key_obj_(self) -> cirq.MeasurementKey:
         return self.mkey
 
     def _kraus_(self):
@@ -198,9 +200,7 @@ class MeasurementGate(raw_types.Gate):
     def _has_kraus_(self):
         return True
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         symbols = ['M'] * self.num_qubits()
         flipped_indices = {i for i, x in enumerate(self.full_invert_mask()) if x}
         confused_indices = {x for idxs in self.confusion_map for x in idxs}
@@ -224,7 +224,7 @@ class MeasurementGate(raw_types.Gate):
 
         return protocols.CircuitDiagramInfo(symbols)
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         if self.confusion_map or not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         args.validate_version('2.0', '3.0')
@@ -243,7 +243,7 @@ class MeasurementGate(raw_types.Gate):
                 lines.append(args.format('x {0};  // Undo the inversion\n', qubit))
         return ''.join(lines)
 
-    def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
+    def _op_repr_(self, qubits: Sequence[cirq.Qid]) -> str:
         args = list(repr(q) for q in qubits)
         if self.key != _default_measurement_key(qubits):
             args.append(f'key={self.mkey!r}')
@@ -304,7 +304,7 @@ class MeasurementGate(raw_types.Gate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
-    def _act_on_(self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']) -> bool:
+    def _act_on_(self, sim_state: cirq.SimulationStateBase, qubits: Sequence[cirq.Qid]) -> bool:
         from cirq.sim import SimulationState
 
         if not isinstance(sim_state, SimulationState):

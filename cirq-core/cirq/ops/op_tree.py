@@ -14,6 +14,8 @@
 
 """A recursive type describing trees of operations, and utility methods for it."""
 
+from __future__ import annotations
+
 from typing import Callable, Iterable, Iterator, NoReturn, TYPE_CHECKING, Union
 
 from cirq._doc import document
@@ -47,7 +49,7 @@ document(
 
 def flatten_op_tree(
     root: OP_TREE, preserve_moments: bool = False
-) -> Iterator[Union[Operation, 'cirq.Moment']]:
+) -> Iterator[Union[Operation, cirq.Moment]]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
@@ -88,7 +90,7 @@ def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
         _bad_op_tree(root)
 
 
-def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, 'cirq.Moment']]:
+def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, cirq.Moment]]:
     """Performs an in-order iteration OP_TREE, yielding ops and moments.
 
     Args:

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import dataclasses
 from typing import Iterable, List, Tuple, TYPE_CHECKING
@@ -24,15 +26,15 @@ if TYPE_CHECKING:
 
 class QubitManager(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def qalloc(self, n: int, dim: int = 2) -> List['cirq.Qid']:
+    def qalloc(self, n: int, dim: int = 2) -> List[cirq.Qid]:
         """Allocate `n` clean qubits, i.e. qubits guaranteed to be in state |0>."""
 
     @abc.abstractmethod
-    def qborrow(self, n: int, dim: int = 2) -> List['cirq.Qid']:
+    def qborrow(self, n: int, dim: int = 2) -> List[cirq.Qid]:
         """Allocate `n` dirty qubits, i.e. the returned qubits can be in any state."""
 
     @abc.abstractmethod
-    def qfree(self, qubits: Iterable['cirq.Qid']) -> None:
+    def qfree(self, qubits: Iterable[cirq.Qid]) -> None:
         """Free pre-allocated clean or dirty qubits managed by this qubit manager."""
 
 
@@ -49,7 +51,7 @@ class _BaseAncillaQid(raw_types.Qid):
     def dimension(self) -> int:
         return self.dim
 
-    def with_dimension(self, dimension: int) -> '_BaseAncillaQid':
+    def with_dimension(self, dimension: int) -> _BaseAncillaQid:
         return dataclasses.replace(self, dim=dimension)
 
     def __repr__(self) -> str:
@@ -82,18 +84,18 @@ class SimpleQubitManager(QubitManager):
         self._borrow_id = 0
         self._prefix = prefix
 
-    def qalloc(self, n: int, dim: int = 2) -> List['cirq.Qid']:
+    def qalloc(self, n: int, dim: int = 2) -> List[cirq.Qid]:
         self._clean_id += n
         return [CleanQubit(i, dim, self._prefix) for i in range(self._clean_id - n, self._clean_id)]
 
-    def qborrow(self, n: int, dim: int = 2) -> List['cirq.Qid']:
+    def qborrow(self, n: int, dim: int = 2) -> List[cirq.Qid]:
         self._borrow_id = self._borrow_id + n
         return [
             BorrowableQubit(i, dim, self._prefix)
             for i in range(self._borrow_id - n, self._borrow_id)
         ]
 
-    def qfree(self, qubits: Iterable['cirq.Qid']) -> None:
+    def qfree(self, qubits: Iterable[cirq.Qid]) -> None:
         for q in qubits:
             good = isinstance(q, CleanQubit) and q.id < self._clean_id
             good |= isinstance(q, BorrowableQubit) and q.id < self._borrow_id
