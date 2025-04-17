@@ -14,7 +14,7 @@
 
 """Resolves ParameterValues to assigned values."""
 import numbers
-from typing import Any, cast, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union
+from typing import Any, cast, Dict, Iterator, Mapping, Optional, Set, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -67,7 +67,7 @@ class ParamResolver:
         return super().__new__(cls)
 
     def __init__(self, param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
-        if hasattr(self, 'param_dict'):
+        if hasattr(self, '_param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
         self._param_hash: Optional[int] = None
@@ -274,6 +274,15 @@ class ParamResolver:
     @classmethod
     def _from_json_dict_(cls, param_dict, **kwargs):
         return cls(dict(param_dict))
+
+    def filter(self, names: Set[Union[str, sympy.Symbol]]) -> 'cirq.ParamResolver':
+        """Returns a new ParamResolver that includes only the symbols from the given set."""
+        def get_name(symbol: Union[str, sympy.Symbol]) -> str:
+            return symbol if isinstance(symbol, str) else symbol.name
+
+        if not all(isinstance(name, str) for name in names):
+            names = {get_name(k) for k in names}
+        return ParamResolver({k: v for k, v in self.param_dict.items() if get_name(k) in names})
 
 
 def _resolve_value(val: Any) -> Any:

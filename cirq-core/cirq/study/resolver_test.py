@@ -313,6 +313,21 @@ def test_compose_associative(p1, p2, p3, resolve_fn):
     )
 
 
+@pytest.mark.parametrize(
+    "params, names, filtered",
+    [
+        ({"a": 1, "b": 2}, {"a"}, {"a": 1}),
+        ({"a": 1, "b": 2}, {sympy.Symbol("a")}, {"a": 1}),
+        ({sympy.Symbol("a"): 1, "b": 2}, {"a"}, {sympy.Symbol("a"): 1}),
+        ({sympy.Symbol("a"): 1, "b": 2}, {sympy.Symbol("a")}, {sympy.Symbol("a"): 1}),
+        ({"a": 1, "b": 2}, {"c"}, {}),
+        ({"a": 1, "b": 2}, {"a", "b", "c"}, {"a": 1, "b": 2}),
+    ]
+)
+def test_filter(params, names, filtered):
+    assert cirq.ParamResolver(params).filter(names) == cirq.ParamResolver(filtered)
+
+
 def test_equals():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(
