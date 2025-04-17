@@ -370,7 +370,7 @@ def decompose_once(
 
     method = getattr(val, '_decompose_with_context_', None)
     decomposed = NotImplemented if method is None else method(*args, **kwargs, context=context)
-    if decomposed is NotImplemented or None:
+    if decomposed is NotImplemented or decomposed is None:
         method = getattr(val, '_decompose_', None)
         decomposed = NotImplemented if method is None else method(*args, **kwargs)
 
@@ -386,7 +386,8 @@ def decompose_once(
         )
     raise TypeError(
         f"object of type {type(val)} does have a _decompose_ method, "
-        "but it returned NotImplemented or None."
+        "but it returned NotImplemented or None. The value is not "
+        "convertible to simpler operations."
     )
 
 
