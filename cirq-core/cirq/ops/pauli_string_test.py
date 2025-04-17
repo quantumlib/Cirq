@@ -2138,6 +2138,7 @@ def test_resolve(resolve_fn):
     ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
     assert resolve_fn(pst, {'t': 1j}) == ps1
 
+
 def test_pauli_ops_identity_gate_operation():
     q = cirq.LineQubit(0)
     paulis = (cirq.I(q), cirq.X(q), cirq.Y(q), cirq.Z(q))
