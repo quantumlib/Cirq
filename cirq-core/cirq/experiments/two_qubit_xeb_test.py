@@ -26,7 +26,7 @@ import cirq
 from cirq.experiments.qubit_characterizations import ParallelRandomizedBenchmarkingResult
 
 
-def _manhattan_distance(qubit1: 'cirq.GridQubit', qubit2: 'cirq.GridQubit') -> int:
+def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
