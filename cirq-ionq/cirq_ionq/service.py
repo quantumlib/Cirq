@@ -15,8 +15,8 @@
 
 import datetime
 import os
-from typing import List, Optional, Sequence
 from collections.abc import Iterable
+from typing import List, Optional, Sequence
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
