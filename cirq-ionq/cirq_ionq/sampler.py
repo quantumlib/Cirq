@@ -13,8 +13,7 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
-import itertools
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_ionq import results
@@ -107,7 +106,7 @@ class Sampler(cirq.Sampler):
             raw_results = [j.results() for j in jobs]
 
         # each element of `raw_results` might be a single result or a list
-        flattened_job_results = []
+        flattened_job_results: list[Union[results.QPUResult, results.SimulatorResult]] = []
         for r in raw_results:
             flattened_job_results.extend(r if isinstance(r, list) else [r])
         cirq_results = []

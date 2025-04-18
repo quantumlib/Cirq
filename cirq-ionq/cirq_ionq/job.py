@@ -16,7 +16,7 @@
 import json
 import time
 import warnings
-from typing import Dict, Optional, Sequence, TYPE_CHECKING, Union, List
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq._doc import document
