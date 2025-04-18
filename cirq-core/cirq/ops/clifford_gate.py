@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import functools
 from dataclasses import dataclass
 from types import NotImplementedType
@@ -136,7 +138,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     # These are class properties so we define them as properties on a metaclass.
 
     @property
-    def all_single_qubit_cliffords(cls) -> Sequence['cirq.SingleQubitCliffordGate']:
+    def all_single_qubit_cliffords(cls) -> Sequence[cirq.SingleQubitCliffordGate]:
         """All 24 single-qubit Clifford gates."""
         if not hasattr(cls, '_all_single_qubit_cliffords'):
             pX = (pauli_gates.X, False)
@@ -187,31 +189,31 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._all_single_qubit_cliffords
 
     @property
-    def I(cls) -> 'cirq.SingleQubitCliffordGate':
+    def I(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[0]
 
     @property
-    def X(cls) -> 'cirq.SingleQubitCliffordGate':
+    def X(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[1]
 
     @property
-    def Y(cls) -> 'cirq.SingleQubitCliffordGate':
+    def Y(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[2]
 
     @property
-    def Z(cls) -> 'cirq.SingleQubitCliffordGate':
+    def Z(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[3]
 
     @property
-    def H(cls) -> 'cirq.SingleQubitCliffordGate':
+    def H(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[10]
 
     @property
-    def S(cls) -> 'cirq.SingleQubitCliffordGate':
+    def S(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[6]
 
     @property
-    def CNOT(cls) -> 'cirq.CliffordGate':
+    def CNOT(cls) -> cirq.CliffordGate:
         if not hasattr(cls, '_CNOT'):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = np.array([[1, 1], [0, 1], [0, 0], [0, 0]])
@@ -220,7 +222,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._CNOT
 
     @property
-    def CZ(cls) -> 'cirq.CliffordGate':
+    def CZ(cls) -> cirq.CliffordGate:
         if not hasattr(cls, '_CZ'):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = np.array([[1, 0], [0, 1], [0, 0], [0, 0]])
@@ -229,7 +231,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._CZ
 
     @property
-    def SWAP(cls) -> 'cirq.CliffordGate':
+    def SWAP(cls) -> cirq.CliffordGate:
         if not hasattr(cls, '_SWAP'):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = np.array([[0, 1], [1, 0], [0, 0], [0, 0]])
@@ -238,33 +240,33 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._SWAP
 
     @property
-    def X_sqrt(cls) -> 'cirq.SingleQubitCliffordGate':
+    def X_sqrt(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[4]
 
     @property
-    def X_nsqrt(cls) -> 'cirq.SingleQubitCliffordGate':
+    def X_nsqrt(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[7]
 
     @property
-    def Y_sqrt(cls) -> 'cirq.SingleQubitCliffordGate':
+    def Y_sqrt(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[5]
 
     @property
-    def Y_nsqrt(cls) -> 'cirq.SingleQubitCliffordGate':
+    def Y_nsqrt(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[8]
 
     @property
-    def Z_sqrt(cls) -> 'cirq.SingleQubitCliffordGate':
+    def Z_sqrt(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[6]
 
     @property
-    def Z_nsqrt(cls) -> 'cirq.SingleQubitCliffordGate':
+    def Z_nsqrt(cls) -> cirq.SingleQubitCliffordGate:
         return cls.all_single_qubit_cliffords[9]
 
 
 class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     @classmethod
-    def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'CliffordGate':
+    def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> CliffordGate:
         """Create the CliffordGate instance from Clifford Tableau.
 
         Args:
@@ -293,7 +295,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     @classmethod
     def from_op_list(
         cls, operations: Sequence[raw_types.Operation], qubit_order: Sequence[raw_types.Qid]
-    ) -> 'CliffordGate':
+    ) -> CliffordGate:
         """Construct a new Clifford gates from several known operations.
 
         Args:
@@ -332,9 +334,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
         return cls(_clifford_tableau=_clifford_tableau)
 
     @classmethod
-    def _get_sqrt_map(
-        cls,
-    ) -> Dict[float, Dict['SingleQubitCliffordGate', 'SingleQubitCliffordGate']]:
+    def _get_sqrt_map(cls) -> Dict[float, Dict[SingleQubitCliffordGate, SingleQubitCliffordGate]]:
         """Returns a map containing two keys 0.5 and -0.5 for the sqrt mapping of Pauli gates."""
         return {
             0.5: {cls.X: cls.X_sqrt, cls.Y: cls.Y_sqrt, cls.Z: cls.Z_sqrt},
@@ -391,7 +391,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # By definition, Clifford Gate should always return True.
         return True
 
-    def __pow__(self, exponent: float) -> 'CliffordGate':
+    def __pow__(self, exponent: float) -> CliffordGate:
         if exponent != int(exponent):
             return NotImplemented  # pragma: no cover
         exponent = int(exponent)
@@ -438,13 +438,13 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         # it is because Clifford tableau ignores the global phase information.
         return NotImplemented  # pragma: no cover
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         return transformers.analytical_decompositions.decompose_clifford_tableau_to_operations(
             list(qubits), self.clifford_tableau
         )
 
     def _act_on_(
-        self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']
+        self, sim_state: cirq.SimulationStateBase, qubits: Sequence[cirq.Qid]
     ) -> Union[NotImplementedType, bool]:
         # Note the computation complexity difference between _decompose_ and _act_on_.
         # Suppose this Gate has `m` qubits, args has `n` qubits, and the decomposition of
@@ -481,7 +481,7 @@ class SingleQubitCliffordGate(CliffordGate):
 
     @staticmethod
     @functools.cache
-    def from_clifford_tableau(tableau: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
+    def from_clifford_tableau(tableau: qis.CliffordTableau) -> SingleQubitCliffordGate:
         if not isinstance(tableau, qis.CliffordTableau):
             raise ValueError('Input argument has to be a CliffordTableau instance.')
         if not tableau._validate():
@@ -493,9 +493,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return SingleQubitCliffordGate(_clifford_tableau=tableau)
 
     @staticmethod
-    def from_xz_map(
-        x_to: Tuple[Pauli, bool], z_to: Tuple[Pauli, bool]
-    ) -> 'SingleQubitCliffordGate':
+    def from_xz_map(x_to: Tuple[Pauli, bool], z_to: Tuple[Pauli, bool]) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the specified transforms.
         The Y transform is derived from the X and Z.
 
@@ -514,7 +512,7 @@ class SingleQubitCliffordGate(CliffordGate):
         x_to: Optional[Tuple[Pauli, bool]] = None,
         y_to: Optional[Tuple[Pauli, bool]] = None,
         z_to: Optional[Tuple[Pauli, bool]] = None,
-    ) -> 'SingleQubitCliffordGate':
+    ) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the
         specified transform with a 90 or 180 degree rotation.
 
@@ -547,7 +545,7 @@ class SingleQubitCliffordGate(CliffordGate):
         x_to: Optional[Tuple[Pauli, bool]] = None,
         y_to: Optional[Tuple[Pauli, bool]] = None,
         z_to: Optional[Tuple[Pauli, bool]] = None,
-    ) -> 'SingleQubitCliffordGate':
+    ) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the
         specified transform with a 90 or 180 degree rotation.
 
@@ -570,7 +568,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return SingleQubitCliffordGate.from_clifford_tableau(_to_clifford_tableau(rotation_map))
 
     @staticmethod
-    def from_pauli(pauli: Pauli, sqrt: bool = False) -> 'SingleQubitCliffordGate':
+    def from_pauli(pauli: Pauli, sqrt: bool = False) -> SingleQubitCliffordGate:
         prev_pauli = Pauli.by_relative_index(pauli, -1)
         next_pauli = Pauli.by_relative_index(pauli, 1)
         if sqrt:
@@ -588,7 +586,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return SingleQubitCliffordGate.from_clifford_tableau(_to_clifford_tableau(rotation_map))
 
     @staticmethod
-    def from_quarter_turns(pauli: Pauli, quarter_turns: int) -> 'SingleQubitCliffordGate':
+    def from_quarter_turns(pauli: Pauli, quarter_turns: int) -> SingleQubitCliffordGate:
         quarter_turns = quarter_turns % 4
         if quarter_turns == 0:
             return SingleQubitCliffordGate.I
@@ -600,7 +598,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return SingleQubitCliffordGate.from_pauli(pauli, True) ** -1
 
     @staticmethod
-    def from_unitary(u: np.ndarray) -> Optional['SingleQubitCliffordGate']:
+    def from_unitary(u: np.ndarray) -> Optional[SingleQubitCliffordGate]:
         """Creates Clifford gate with given unitary (up to global phase).
 
         Args:
@@ -626,7 +624,7 @@ class SingleQubitCliffordGate(CliffordGate):
     @classmethod
     def from_unitary_with_global_phase(
         cls, u: np.ndarray
-    ) -> Optional[Tuple['SingleQubitCliffordGate', complex]]:
+    ) -> Optional[Tuple[SingleQubitCliffordGate, complex]]:
         """Creates Clifford gate with given unitary, including global phase.
 
         Args:
@@ -667,7 +665,7 @@ class SingleQubitCliffordGate(CliffordGate):
         to_gate = Pauli._XYZ[to.pauli_mask[0] - 1]
         return (to_gate, bool(to.coefficient != 1.0))
 
-    def dense_pauli_string(self, pauli: Pauli) -> 'cirq.DensePauliString':
+    def dense_pauli_string(self, pauli: Pauli) -> cirq.DensePauliString:
         from cirq.ops import dense_pauli_string
 
         pauli_tuple = self.pauli_tuple(pauli)
@@ -733,7 +731,7 @@ class SingleQubitCliffordGate(CliffordGate):
             z = -0.5 if x_to_flip else 0.5
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
-    def __pow__(self, exponent: float) -> 'SingleQubitCliffordGate':
+    def __pow__(self, exponent: float) -> SingleQubitCliffordGate:
         if int(exponent) == exponent:
             # The single qubit Clifford gates are a group of size 24
             exp = int(exponent) % 24
@@ -753,14 +751,14 @@ class SingleQubitCliffordGate(CliffordGate):
 
     def _act_on_(
         self,
-        sim_state: 'cirq.SimulationStateBase',  # pylint: disable=unused-argument
-        qubits: Sequence['cirq.Qid'],  # pylint: disable=unused-argument
+        sim_state: cirq.SimulationStateBase,  # pylint: disable=unused-argument
+        qubits: Sequence[cirq.Qid],  # pylint: disable=unused-argument
     ):
         # TODO(#5256) Add the implementation of _act_on_ with CliffordTableauSimulationState.
         return NotImplemented
 
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         (qubit,) = qubits
         return tuple(gate.on(qubit) for gate in self.decompose_gate())
 
@@ -773,7 +771,7 @@ class SingleQubitCliffordGate(CliffordGate):
             return self.commutes_with_pauli(other)
         return NotImplemented
 
-    def commutes_with_single_qubit_gate(self, gate: 'SingleQubitCliffordGate') -> bool:
+    def commutes_with_single_qubit_gate(self, gate: SingleQubitCliffordGate) -> bool:
         """Tests if the two circuits would be equivalent up to global phase:
         --self--gate-- and --gate--self--"""
         self_then_gate = self.clifford_tableau.then(gate.clifford_tableau)
@@ -785,7 +783,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return to == pauli and not flip
 
     @cached_method
-    def merged_with(self, second: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
+    def merged_with(self, second: SingleQubitCliffordGate) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate such that the circuits
             --output-- and --self--second--
         are equivalent up to global phase."""
@@ -807,7 +805,7 @@ class SingleQubitCliffordGate(CliffordGate):
             mat = protocols.unitary(op).dot(mat)
         return mat
 
-    def decompose_gate(self) -> Sequence['cirq.Gate']:
+    def decompose_gate(self) -> Sequence[cirq.Gate]:
         """Decomposes this clifford into a series of H and pauli rotation gates.
 
         Returns:
@@ -818,7 +816,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return self._decompose_gate
 
     @functools.cached_property
-    def _decompose_gate(self) -> Sequence['cirq.Gate']:
+    def _decompose_gate(self) -> Sequence[cirq.Gate]:
         if self == SingleQubitCliffordGate.H:
             return [common_gates.H]
         rotations = self.decompose_rotation()
@@ -887,7 +885,7 @@ class SingleQubitCliffordGate(CliffordGate):
             False
         ), 'Impossible condition where this gate only rotates one Pauli to a different Pauli.'
 
-    def equivalent_gate_before(self, after: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
+    def equivalent_gate_before(self, after: SingleQubitCliffordGate) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
@@ -901,9 +899,7 @@ class SingleQubitCliffordGate(CliffordGate):
             f'zs=np.array({self._clifford_tableau.zs.tolist()!r})))'
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         well_known_map = {
             SingleQubitCliffordGate.I: 'I',
             SingleQubitCliffordGate.H: 'H',

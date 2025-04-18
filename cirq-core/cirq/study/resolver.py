@@ -285,7 +285,7 @@ def _resolve_value(val: Any) -> Any:
         return val.p
     if isinstance(val, sympy_numbers.RationalConstant):
         return val.p / val.q
-    if val == sympy.pi:
+    if val is sympy.pi:
         return np.pi
 
     getter = getattr(val, '_resolved_value_', None)

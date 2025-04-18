@@ -13,6 +13,8 @@
 # limitations under the License.
 """Helper class for implementing classical arithmetic operations."""
 
+from __future__ import annotations
+
 import abc
 import itertools
 from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING, Union
@@ -170,7 +172,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                     shape.append(i)
         return tuple(shape)
 
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
         registers = self.registers()
         input_ranges: List[Sequence[int]] = []
         shape: List[int] = []
@@ -231,7 +233,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
 
 
 def _describe_bad_arithmetic_changed_const(
-    registers: Sequence[Union[int, Sequence[Union['cirq.Qid', int]]]],
+    registers: Sequence[Union[int, Sequence[Union[cirq.Qid, int]]]],
     inputs: List[int],
     outputs: List[int],
 ) -> str:

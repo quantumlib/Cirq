@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import warnings
 from typing import Any, cast, Optional, Sequence, TYPE_CHECKING
 
@@ -31,14 +33,14 @@ optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
 
 
 def t1_decay(
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     *,
-    qubit: 'cirq.Qid',
+    qubit: cirq.Qid,
     num_points: int,
-    max_delay: 'cirq.DURATION_LIKE',
-    min_delay: 'cirq.DURATION_LIKE' = None,
+    max_delay: cirq.DURATION_LIKE,
+    min_delay: cirq.DURATION_LIKE = None,
     repetitions: int = 1000,
-) -> 'cirq.experiments.T1DecayResult':
+) -> cirq.experiments.T1DecayResult:
     """Runs a t1 decay experiment.
 
     Initializes a qubit into the |1⟩ state, waits for a variable amount of time,

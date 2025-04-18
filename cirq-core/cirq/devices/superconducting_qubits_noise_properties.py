@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 """Class for representing noise on a superconducting qubit device."""
+
+from __future__ import annotations
 
 import abc
 from dataclasses import dataclass, field
@@ -49,13 +50,13 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
     """
 
     gate_times_ns: Dict[type, float]
-    t1_ns: Dict['cirq.Qid', float]
-    tphi_ns: Dict['cirq.Qid', float]
-    readout_errors: Dict['cirq.Qid', List[float]]
+    t1_ns: Dict[cirq.Qid, float]
+    tphi_ns: Dict[cirq.Qid, float]
+    readout_errors: Dict[cirq.Qid, List[float]]
     gate_pauli_errors: Dict[noise_utils.OpIdentifier, float]
 
     validate: bool = True
-    _qubits: List['cirq.Qid'] = field(init=False, default_factory=list)
+    _qubits: List[cirq.Qid] = field(init=False, default_factory=list)
 
     def __post_init__(self):
         if not self.validate:
@@ -95,7 +96,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
                 )
 
     @property
-    def qubits(self) -> List['cirq.Qid']:
+    def qubits(self) -> List[cirq.Qid]:
         """Qubits for which we have data"""
         if not self._qubits:
             self._qubits = sorted(self.t1_ns)
@@ -150,8 +151,8 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
             depol_errors[op_id] = self._get_pauli_error(p_error, op_id)
         return depol_errors
 
-    def build_noise_models(self) -> List['cirq.NoiseModel']:
-        noise_models: List['cirq.NoiseModel'] = []
+    def build_noise_models(self) -> List[cirq.NoiseModel]:
+        noise_models: List[cirq.NoiseModel] = []
 
         if self.t1_ns:
             noise_models.append(
@@ -175,7 +176,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
 
         # This adds per-qubit measurement error BEFORE measurement on those qubits.
         if self.readout_errors:
-            added_measure_errors: Dict[noise_utils.OpIdentifier, 'cirq.Operation'] = {}
+            added_measure_errors: Dict[noise_utils.OpIdentifier, cirq.Operation] = {}
             for qubit in self.readout_errors:
                 p_00, p_11 = self.readout_errors[qubit]
                 p = p_11 / (p_00 + p_11)

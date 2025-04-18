@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 """Utility methods for breaking matrices into useful pieces."""
+
+from __future__ import annotations
 
 import cmath
 import math
@@ -271,7 +272,7 @@ class AxisAngleDecomposition:
         self.axis = tuple(axis)
         self.angle = float(angle)
 
-    def canonicalize(self, atol: float = 1e-8) -> 'AxisAngleDecomposition':
+    def canonicalize(self, atol: float = 1e-8) -> AxisAngleDecomposition:
         """Returns a standardized AxisAngleDecomposition with the same unitary.
 
         Ensures the axis (x, y, z) satisfies x+y+z >= 0.
@@ -524,7 +525,7 @@ class KakDecomposition:
 
 
 def scatter_plot_normalized_kak_interaction_coefficients(
-    interactions: Iterable[Union[np.ndarray, 'cirq.SupportsUnitary', 'KakDecomposition']],
+    interactions: Iterable[Union[np.ndarray, cirq.SupportsUnitary, KakDecomposition]],
     *,
     include_frame: bool = True,
     ax: Optional[mplot3d.axes3d.Axes3D] = None,
@@ -786,7 +787,7 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
 
 def kak_decomposition(
     unitary_object: Union[
-        np.ndarray, 'cirq.SupportsUnitary', 'cirq.Gate', 'cirq.Operation', KakDecomposition
+        np.ndarray, cirq.SupportsUnitary, cirq.Gate, cirq.Operation, KakDecomposition
     ],
     *,
     rtol: float = 1e-5,

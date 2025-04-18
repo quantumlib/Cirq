@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Utilities for manipulating linear operators as elements of vector space."""
+
+from __future__ import annotations
+
 from typing import Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -82,16 +85,13 @@ def matrix_from_basis_coefficients(
 
 
 def pow_pauli_combination(
-    ai: 'cirq.TParamValComplex',
-    ax: 'cirq.TParamValComplex',
-    ay: 'cirq.TParamValComplex',
-    az: 'cirq.TParamValComplex',
+    ai: cirq.TParamValComplex,
+    ax: cirq.TParamValComplex,
+    ay: cirq.TParamValComplex,
+    az: cirq.TParamValComplex,
     exponent: int,
 ) -> Tuple[
-    'cirq.TParamValComplex',
-    'cirq.TParamValComplex',
-    'cirq.TParamValComplex',
-    'cirq.TParamValComplex',
+    cirq.TParamValComplex, cirq.TParamValComplex, cirq.TParamValComplex, cirq.TParamValComplex
 ]:
     """Computes non-negative integer power of single-qubit Pauli combination.
 

@@ -72,10 +72,7 @@ class _TestSimulator(cirq.Simulator):
         self.replacement = replacement
 
     def _core_iterator(
-        self,
-        circuit: 'cirq.AbstractCircuit',
-        sim_state,
-        all_measurements_are_terminal: bool = False,
+        self, circuit: cirq.AbstractCircuit, sim_state, all_measurements_are_terminal: bool = False
     ):
         new_circuit = cirq.Circuit(
             [

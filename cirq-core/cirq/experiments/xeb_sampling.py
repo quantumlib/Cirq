@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Estimation of fidelity associated with experimental circuit executions."""
+
+from __future__ import annotations
+
 import os
 import time
 import uuid
@@ -52,14 +56,14 @@ class _Sample2qXEBTask:
     cycle_depth: int
     layer_i: int
     combination_i: int
-    prepared_circuit: 'cirq.AbstractCircuit'
+    prepared_circuit: cirq.AbstractCircuit
     combination: List[int]
 
 
 class _SampleInBatches:
     def __init__(
         self,
-        sampler: 'cirq.Sampler',
+        sampler: cirq.Sampler,
         repetitions: int,
         combinations_by_layer: List[CircuitLibraryCombination],
     ):
@@ -107,9 +111,9 @@ class _SampleInBatches:
         return records
 
 
-def _verify_and_get_two_qubits_from_circuits(circuits: Sequence['cirq.Circuit']):
+def _verify_and_get_two_qubits_from_circuits(circuits: Sequence[cirq.Circuit]):
     """Make sure each of the provided circuits uses the same two qubits and return them."""
-    all_qubits_set: Set['cirq.Qid'] = set()
+    all_qubits_set: Set[cirq.Qid] = set()
     all_qubits_set = all_qubits_set.union(*(circuit.all_qubits() for circuit in circuits))
     all_qubits_list = sorted(all_qubits_set)
     if len(all_qubits_list) != 2:
@@ -119,7 +123,7 @@ def _verify_and_get_two_qubits_from_circuits(circuits: Sequence['cirq.Circuit'])
     return all_qubits_list
 
 
-def _verify_two_line_qubits_from_circuits(circuits: Sequence['cirq.Circuit']):
+def _verify_two_line_qubits_from_circuits(circuits: Sequence[cirq.Circuit]):
     if _verify_and_get_two_qubits_from_circuits(circuits) != devices.LineQubit.range(2):
         raise ValueError(
             "`circuits` should be a sequence of circuits each operating "
@@ -165,16 +169,16 @@ class _ZippedCircuit:
             any behavior. It is propagated to the output result object.
     """
 
-    wide_circuit: 'cirq.Circuit'
-    pairs: List[Tuple['cirq.Qid', 'cirq.Qid']]
+    wide_circuit: cirq.Circuit
+    pairs: List[Tuple[cirq.Qid, cirq.Qid]]
     combination: List[int]
     layer_i: int
     combination_i: int
 
 
 def _get_combinations_by_layer_for_isolated_xeb(
-    circuits: Sequence['cirq.Circuit'],
-) -> Tuple[List[CircuitLibraryCombination], List['cirq.Circuit']]:
+    circuits: Sequence[cirq.Circuit],
+) -> Tuple[List[CircuitLibraryCombination], List[cirq.Circuit]]:
     """Helper function used in `sample_2q_xeb_circuits`.
 
     This creates a CircuitLibraryCombination object for isolated XEB. First, the qubits
@@ -195,7 +199,7 @@ def _get_combinations_by_layer_for_isolated_xeb(
 
 
 def _zip_circuits(
-    circuits: Sequence['cirq.Circuit'], combinations_by_layer: List[CircuitLibraryCombination]
+    circuits: Sequence[cirq.Circuit], combinations_by_layer: List[CircuitLibraryCombination]
 ) -> List[_ZippedCircuit]:
     """Helper function used in `sample_2q_xeb_circuits` to zip together circuits.
 
@@ -260,7 +264,7 @@ def _generate_sample_2q_xeb_tasks(
 
 def _execute_sample_2q_xeb_tasks_in_batches(
     tasks: List[_Sample2qXEBTask],
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     combinations_by_layer: List[CircuitLibraryCombination],
     repetitions: int,
     batch_size: int,
@@ -288,15 +292,15 @@ def _execute_sample_2q_xeb_tasks_in_batches(
 
 
 def sample_2q_xeb_circuits(
-    sampler: 'cirq.Sampler',
-    circuits: Sequence['cirq.Circuit'],
+    sampler: cirq.Sampler,
+    circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
     *,
     repetitions: int = 10_000,
     batch_size: int = 9,
     progress_bar: Optional[Callable[..., ContextManager]] = tqdm.tqdm,
     combinations_by_layer: Optional[List[CircuitLibraryCombination]] = None,
-    shuffle: Optional['cirq.RANDOM_STATE_OR_SEED_LIKE'] = None,
+    shuffle: Optional[cirq.RANDOM_STATE_OR_SEED_LIKE] = None,
     dataset_directory: Optional[str] = None,
 ):
     """Sample two-qubit XEB circuits given a sampler.
