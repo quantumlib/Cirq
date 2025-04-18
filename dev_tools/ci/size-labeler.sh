@@ -81,14 +81,26 @@ function jq_file() {
 function api_call() {
     local -r endpoint="${1// /%20}" # love that our label names have spaces...
     local -r uri="https://api.github.com/repos/${GITHUB_REPOSITORY}"
-    info "Calling: ${uri}/${endpoint}"
-    curl -sSL \
+    local -r url="${uri}/${endpoint}"
+    local -r curl_opts=(
+        -fsSL
+        --connect-timeout 10 --max-time 20
         -H "Authorization: token ${GITHUB_TOKEN}" \
         -H "Accept: application/vnd.github.v3.json" \
         -H "X-GitHub-Api-Version:2022-11-28" \
         -H "Content-Type: application/json" \
-        "${@:2}" \
-        "${uri}/${endpoint}"
+    )
+    info "Calling: ${url}"
+    set +e
+    response_body=$(curl "${curl_opts[@]}" "${@:2}" "${url}")
+    local exit_status=$?
+    set -e
+    if [[ $exit_status -ne 0 ]]; then
+        error "GitHub API call failed (curl exit $exit_status) for ${url}"
+        cat "$response_body"
+        exit $exit_status
+    fi
+    return "$response_body"
 }
 
 function compute_changes() {
