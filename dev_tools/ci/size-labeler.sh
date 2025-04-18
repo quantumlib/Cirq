@@ -79,6 +79,7 @@ function jq_file() {
 }
 
 function api_call() {
+    set -x
     local -r endpoint="${1// /%20}" # love that our label names have spaces...
     local -r uri="https://api.github.com/repos/${GITHUB_REPOSITORY}"
     local -r url="${uri}/${endpoint}"
@@ -97,10 +98,10 @@ function api_call() {
     set -e
     if [[ $exit_status -ne 0 ]]; then
         error "GitHub API call failed (curl exit $exit_status) for ${url}"
-        cat "$response_body"
+        cat "${response_body}"
         exit $exit_status
     fi
-    echo "$response_body"
+    echo "${response_body}"
 }
 
 function compute_changes() {
