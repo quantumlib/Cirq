@@ -100,7 +100,7 @@ function api_call() {
         cat "$response_body"
         exit $exit_status
     fi
-    return "$response_body"
+    echo "$response_body"
 }
 
 function compute_changes() {
