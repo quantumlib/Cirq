@@ -1,2 +1,0 @@
-requests~=2.32
-google-cloud-secret-manager==1.0.0

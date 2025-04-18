@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Estimation of fidelity associated with experimental circuit executions."""
+
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
@@ -32,14 +36,14 @@ class _Simulate2qXEBTask:
 
     circuit_i: int
     cycle_depths: Sequence[int]
-    circuit: 'cirq.Circuit'
-    param_resolver: 'cirq.ParamResolverOrSimilarType'
+    circuit: cirq.Circuit
+    param_resolver: cirq.ParamResolverOrSimilarType
 
 
 class _Simulate_2q_XEB_Circuit:
     """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
-    def __init__(self, simulator: 'cirq.SimulatesIntermediateState'):
+    def __init__(self, simulator: cirq.SimulatesIntermediateState):
         self.simulator = simulator
 
     def __call__(self, task: _Simulate2qXEBTask) -> List[Dict[str, Any]]:
@@ -77,11 +81,11 @@ class _Simulate_2q_XEB_Circuit:
 
 
 def simulate_2q_xeb_circuits(
-    circuits: Sequence['cirq.Circuit'],
+    circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
-    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
-    simulator: Optional['cirq.SimulatesIntermediateState'] = None,
+    param_resolver: cirq.ParamResolverOrSimilarType = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
+    simulator: Optional[cirq.SimulatesIntermediateState] = None,
 ):
     """Simulate two-qubit XEB circuits.
 
