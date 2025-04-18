@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import Iterator, TYPE_CHECKING
 
 from cirq import ops
@@ -28,5 +31,5 @@ def generate_all_scalar_cell_makers() -> Iterator[CellMaker]:
     yield _scalar("√-i", ops.global_phase_operation((-1j) ** 0.5))
 
 
-def _scalar(identifier: str, operation: 'cirq.Operation') -> CellMaker:
+def _scalar(identifier: str, operation: cirq.Operation) -> CellMaker:
     return CellMaker(identifier, size=1, maker=lambda _: operation)

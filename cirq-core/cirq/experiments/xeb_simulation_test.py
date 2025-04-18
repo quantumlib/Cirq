@@ -95,10 +95,10 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
 
 
 def _ref_simulate_2q_xeb_circuits(
-    circuits: Sequence['cirq.Circuit'],
+    circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
-    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    param_resolver: cirq.ParamResolverOrSimilarType = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ):
     """Reference implementation for `simulate_2q_xeb_circuits` that
     does each circuit independently instead of using intermediate states.

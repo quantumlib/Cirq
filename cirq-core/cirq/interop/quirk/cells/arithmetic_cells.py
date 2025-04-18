@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import inspect
 from typing import (
     Any,
@@ -80,7 +83,7 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
                 raise ValueError(f'Target too small for modulus.\nTarget: {target}\nModulus: {r}')
 
     @property
-    def operation(self) -> '_QuirkArithmeticCallable':
+    def operation(self) -> _QuirkArithmeticCallable:
         return ARITHMETIC_OP_TABLE[self.identifier]
 
     def _value_equality_values_(self) -> Any:
@@ -89,7 +92,7 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
         return [self.target, *self.inputs]
 
-    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> 'QuirkArithmeticGate':
+    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> QuirkArithmeticGate:
         if len(new_registers) != len(self.inputs) + 1:
             raise ValueError(
                 'Wrong number of registers.\n'
@@ -109,7 +112,7 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
     def apply(self, *registers: int) -> Union[int, Iterable[int]]:
         return self.operation(*registers)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> List[str]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> List[str]:
         lettered_args = list(zip(self.operation.letters, self.inputs))
 
         result: List[str] = []
@@ -183,8 +186,8 @@ class ArithmeticCell(Cell):
     def __init__(
         self,
         identifier: str,
-        target: Sequence['cirq.Qid'],
-        inputs: Sequence[Union[None, Sequence['cirq.Qid'], int]],
+        target: Sequence[cirq.Qid],
+        inputs: Sequence[Union[None, Sequence[cirq.Qid], int]],
     ):
         self.identifier = identifier
         self.target = tuple(target)
@@ -204,7 +207,7 @@ class ArithmeticCell(Cell):
             f'\n    {self.inputs!r})'
         )
 
-    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
         return ArithmeticCell(
             identifier=self.identifier,
             target=Cell._replace_qubits(self.target, qubits),
@@ -218,16 +221,14 @@ class ArithmeticCell(Cell):
     def operation(self):
         return ARITHMETIC_OP_TABLE[self.identifier]
 
-    def with_input(
-        self, letter: str, register: Union[Sequence['cirq.Qid'], int]
-    ) -> 'ArithmeticCell':
+    def with_input(self, letter: str, register: Union[Sequence[cirq.Qid], int]) -> ArithmeticCell:
         new_inputs = [
             reg if letter != reg_letter else register
             for reg, reg_letter in zip(self.inputs, self.operation.letters)
         ]
         return ArithmeticCell(self.identifier, self.target, new_inputs)
 
-    def operations(self) -> 'cirq.OP_TREE':
+    def operations(self) -> cirq.OP_TREE:
         missing_inputs = [
             letter for reg, letter in zip(self.inputs, self.operation.letters) if reg is None
         ]
