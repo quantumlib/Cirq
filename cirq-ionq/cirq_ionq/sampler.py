@@ -100,11 +100,16 @@ class Sampler(cirq.Sampler):
             )
             for resolver in resolvers
         ]
+        # ─── collect results ───────────────────────────────────────────
         if self._timeout_seconds is not None:
-            job_results = [job.results(timeout_seconds=self._timeout_seconds) for job in jobs]
+            raw_results = [j.results(timeout_seconds=self._timeout_seconds) for j in jobs]
         else:
-            job_results = [job.results() for job in jobs]
-        flattened_job_results = list(itertools.chain.from_iterable(job_results))
+            raw_results = [j.results() for j in jobs]
+
+        # each element of `raw_results` might be a single result or a list
+        flattened_job_results = []
+        for r in raw_results:
+            flattened_job_results.extend(r if isinstance(r, list) else [r])
         cirq_results = []
         for result, params in zip(flattened_job_results, resolvers):
             if isinstance(result, results.QPUResult):

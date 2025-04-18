@@ -124,7 +124,7 @@ class Service:
             A `cirq.Result` for running the circuit.
         """
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
-        job_results = self.create_job(
+        job_out = self.create_job(
             circuit=resolved_circuit,
             repetitions=repetitions,
             name=name,
@@ -132,13 +132,16 @@ class Service:
             error_mitigation=error_mitigation,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
-        if isinstance(job_results[0], results.QPUResult):
-            return job_results[0].to_cirq_result(params=cirq.ParamResolver(param_resolver))
-        if isinstance(job_results[0], results.SimulatorResult):
-            return job_results[0].to_cirq_result(
-                params=cirq.ParamResolver(param_resolver), seed=seed
-            )
-        raise NotImplementedError(f"Unrecognized job result type '{type(job_results[0])}'.")
+
+        # normalise: single‑circuit jobs should deliver one result
+        if isinstance(job_out, list):
+            job_out = job_out[0]
+
+        if isinstance(job_out, results.QPUResult):
+            return job_out.to_cirq_result(params=cirq.ParamResolver(param_resolver))
+        if isinstance(job_out, results.SimulatorResult):
+            return job_out.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+        raise NotImplementedError(f"Unrecognized job result type '{type(job_out)}'.")
 
     def run_batch(
         self,

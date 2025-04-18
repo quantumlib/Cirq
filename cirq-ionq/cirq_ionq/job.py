@@ -16,7 +16,7 @@
 import json
 import time
 import warnings
-from typing import Dict, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, Optional, Sequence, TYPE_CHECKING, Union, List
 
 import cirq
 from cirq._doc import document
@@ -195,7 +195,12 @@ class Job:
         polling_seconds: int = 1,
         sharpen: Optional[bool] = None,
         extra_query_params: Optional[dict] = None,
-    ) -> Union[list[results.QPUResult], list[results.SimulatorResult]]:
+    ) -> Union[
+        results.QPUResult,
+        results.SimulatorResult,
+        List[results.QPUResult],
+        List[results.SimulatorResult],
+    ]:
         """Polls the IonQ api for results.
 
         Args:
@@ -242,11 +247,10 @@ class Job:
             job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
         )
 
+        # is this a batch run (dict‑of‑dicts) or a single circuit?
         some_inner_value = next(iter(backend_results.values()))
-        if isinstance(some_inner_value, dict):
-            histograms = backend_results.values()
-        else:
-            histograms = [backend_results]
+        is_batch = isinstance(some_inner_value, dict)
+        histograms = list(backend_results.values()) if is_batch else [backend_results]
 
         # IonQ returns results in little endian, but
         # Cirq prefers to use big endian, so we convert.
@@ -267,7 +271,11 @@ class Job:
                         measurement_dict=self.measurement_dict(circuit_index=circuit_index),
                     )
                 )
-            return big_endian_results_qpu
+            return (
+                big_endian_results_qpu
+                if len(big_endian_results_qpu) > 1
+                else big_endian_results_qpu[0]
+            )
         else:
             big_endian_results_sim: list[results.SimulatorResult] = []
             for circuit_index, histogram in enumerate(histograms):
@@ -283,7 +291,11 @@ class Job:
                         repetitions=self.repetitions(),
                     )
                 )
-            return big_endian_results_sim
+            return (
+                big_endian_results_sim
+                if len(big_endian_results_sim) > 1
+                else big_endian_results_sim[0]
+            )
 
     def cancel(self):
         """Cancel the given job.
