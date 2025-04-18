@@ -133,7 +133,7 @@ class Service:
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
 
-        # normalise: single‑circuit jobs should deliver one result
+        # single‑circuit jobs should deliver one result
         if isinstance(job_out, list):
             job_out = job_out[0]
 
