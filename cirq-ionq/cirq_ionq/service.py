@@ -133,7 +133,10 @@ class Service:
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
 
-        # single‑circuit jobs should deliver one result
+        # `create_job()` always submits a single circuit, so the API either gives us:
+        #   - a QPUResult / SimulatorResult, or
+        #   - a list of length‑1 (the batch logic in Job.results still wraps it in a list).
+        #   In the latter case we unwrap it here.
         if isinstance(job_out, list):
             job_out = job_out[0]
 
