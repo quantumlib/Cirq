@@ -17,6 +17,7 @@ from __future__ import annotations
 import abc
 from typing import FrozenSet, Iterable, Optional, TYPE_CHECKING
 
+import duet
 import networkx as nx
 
 from cirq import value
@@ -67,7 +68,7 @@ class Device(metaclass=abc.ABCMeta):
         """
         return None
 
-    def validate_operation(self, operation: cirq.Operation) -> None:
+    def validate_operation_async(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
 
         Args:
@@ -77,7 +78,9 @@ class Device(metaclass=abc.ABCMeta):
             ValueError: The operation isn't valid for this device.
         """
 
-    def validate_circuit(self, circuit: cirq.AbstractCircuit) -> None:
+    validate_operation = duet.sync(validate_operation_async)
+
+    async def validate_circuit_async(self, circuit: cirq.AbstractCircuit) -> None:
         """Raises an exception if a circuit is not valid.
 
         Args:
@@ -87,9 +90,11 @@ class Device(metaclass=abc.ABCMeta):
             ValueError: The circuit isn't valid for this device.
         """
         for moment in circuit:
-            self.validate_moment(moment)
+            await self.validate_moment_async(moment)
 
-    def validate_moment(self, moment: cirq.Moment) -> None:
+    validate_circuit = duet.sync(validate_circuit_async)
+
+    async def validate_moment_async(self, moment: cirq.Moment) -> None:
         """Raises an exception if a moment is not valid.
 
         Args:
@@ -99,7 +104,9 @@ class Device(metaclass=abc.ABCMeta):
             ValueError: The moment isn't valid for this device.
         """
         for operation in moment.operations:
-            self.validate_operation(operation)
+            await self.validate_operation_async(operation)
+
+    validate_moment = duet.sync(validate_moment_async)
 
 
 @value.value_equality
