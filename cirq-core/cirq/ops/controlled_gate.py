@@ -163,35 +163,28 @@ class ControlledGate(raw_types.Gate):
         control_qubits = list(qubits[: self.num_controls()])
         if (
             protocols.has_unitary(self.sub_gate)
-            and protocols.num_qubits(self.sub_gate) == 1
             and self._qid_shape_() == (2,) * len(self._qid_shape_())
-            and isinstance(self.control_values, cv.ProductOfSums)
         ):
-            invert_ops: List[cirq.Operation] = []
-            for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
-                if set(cvals) == {0}:
-                    invert_ops.append(common_gates.X(cqbit))
-                elif set(cvals) == {0, 1}:
-                    control_qubits.remove(cqbit)
-            decomposed_ops = controlled_gate_decomposition.decompose_multi_controlled_rotation(
-                protocols.unitary(self.sub_gate), control_qubits, qubits[-1]
-            )
-            return invert_ops + decomposed_ops + invert_ops
-        # Handle global phase gates by checking if the unitary is a 1x1 matrix with a global phase
-        unitary = protocols.unitary(self.sub_gate, default=None)
-        if (
-            unitary is not None
-            and unitary.shape == (1, 1)
-            and np.isclose(np.abs(unitary[0, 0]), 1)
-        ):
-            shape = self.control_qid_shape
-            if protocols.is_parameterized(self.sub_gate) or set(shape) != {2}:
-                return NotImplemented
-            angle = np.angle(unitary[0, 0])
-            rads = np.zeros(shape=shape)
-            for hot in self.control_values.expand():
-                rads[hot] = angle
-            return dg.DiagonalGate(diag_angles_radians=[*rads.flatten()]).on(*qubits) 
+            n_qubits = protocols.num_qubits(self.sub_gate)
+            # Case 1: Multi-controlled single-qubit gate decomposition
+            if(n_qubits == 1 and isinstance(self.control_values, cv.ProductOfSums)):
+                invert_ops: List[cirq.Operation] = []
+                for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
+                    if set(cvals) == {0}:
+                        invert_ops.append(common_gates.X(cqbit))
+                    elif set(cvals) == {0, 1}:
+                        control_qubits.remove(cqbit)
+                decomposed_ops = controlled_gate_decomposition.decompose_multi_controlled_rotation(
+                    protocols.unitary(self.sub_gate), control_qubits, qubits[-1]
+                )
+                return invert_ops + decomposed_ops + invert_ops
+            # Case 2: Global Phase (1x1 Matrix)
+            if(n_qubits == 0):
+                angle = np.angle(protocols.unitary(self.sub_gate)[0, 0])
+                rads = np.zeros(shape=self.control_qid_shape)
+                for hot in self.control_values.expand():
+                    rads[hot] = angle
+                return dg.DiagonalGate(diag_angles_radians=[*rads.flatten()]).on(*qubits)
         if isinstance(self.sub_gate, common_gates.CZPowGate):
             z_sub_gate = common_gates.ZPowGate(exponent=self.sub_gate.exponent)
             num_controls = self.num_controls() + 1

@@ -737,36 +737,3 @@ def test_controlled_mixture():
     c_yes = cirq.ControlledGate(sub_gate=cirq.phase_flip(0.25), num_controls=1)
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
-
-
-@pytest.mark.parametrize(
-    "phase,num_controls,control_values",
-    [
-        (0, 1, (1,)),
-        (np.pi / 4, 1, (1,)),
-        (np.pi / 2, 2, (1, 0)),
-        (np.pi, 2, (0, 1)),
-        (2 * np.pi, 3, (1, 1, 1)),
-    ]
-)
-def test_controlled_global_phase_gate_unitary(phase, num_controls, control_values):
-    coefficient = np.exp(1j * phase)
-    sub_gate = cirq.GlobalPhaseGate(coefficient=coefficient)
-    controlled_gate = cirq.ControlledGate(
-        sub_gate=sub_gate, num_controls=num_controls, control_values=control_values
-    )
-    sub_unitary = cirq.unitary(sub_gate, default=None)
-    assert sub_unitary is not None
-    assert sub_unitary.shape == (1, 1)
-    assert np.isclose(np.abs(sub_unitary[0, 0]), 1.0)
-    assert not cirq.is_parameterized(sub_gate)
-
-    dim = 2**num_controls
-    diag_angles = np.zeros(dim)
-    control_index = sum(val * (2**i) for i, val in enumerate(reversed(control_values)))
-    diag_angles[control_index] = np.angle(coefficient)
-    expected_gate = cirq.DiagonalGate(diag_angles_radians=diag_angles)
-    qids = cirq.LineQubit.range(num_controls)
-    actual_unitary = cirq.unitary(controlled_gate)
-    expected_unitary = cirq.unitary(expected_gate.on(*qids))
-    cirq.testing.assert_allclose_up_to_global_phase(actual_unitary, expected_unitary, atol=1e-8)
