@@ -32,6 +32,8 @@ from typing import (
     Union,
 )
 
+import duet
+
 import cirq
 from cirq_google import ops, transformers
 from cirq_google.api import v2
@@ -601,7 +603,7 @@ class GridDevice(cirq.Device):
         """Get metadata information for the device."""
         return self._metadata
 
-    def validate_operation(self, operation: cirq.Operation) -> None:
+    async def validate_operation_async(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
 
         An operation is valid if
@@ -634,6 +636,8 @@ class GridDevice(cirq.Device):
             and frozenset(operation.qubits) not in self._metadata.qubit_pairs
         ):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
+
+    validate_operation = duet.sync(validate_operation_async)
 
     def __str__(self) -> str:
         diagram = cirq.TextDiagramDrawer()
