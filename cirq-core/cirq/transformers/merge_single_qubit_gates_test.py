@@ -345,30 +345,6 @@ def test_merge_single_qubit_gates_to_phxz_symbolized_different_structures_error(
             cirq.merge_single_qubit_gates_to_phxz_symbolized(circuit, sweep=sweep)
 
 
-def test_merge_single_qubit_gates_to_phxz_symbolized_multiple_phxz_tags_error():
-    """Tests that the function raises a RuntimeError of incorrect merges."""
-    a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.H(a) ** sympy.Symbol("exp1"),
-        cirq.X(a),
-        cirq.CZ(a, b),
-        cirq.Y(a),
-        cirq.H(a) ** sympy.Symbol("exp2"),
-    )
-    sweep = cirq.Points(key="exp1", points=[0.1, 0.2]) * cirq.Points(key="exp2", points=[0.1, 0.2])
-
-    mock_iter = Mock()
-    mock_iter.__next__ = Mock(return_value=2)
-
-    with patch(
-        "cirq.transformers.merge_k_qubit_gates.merge_k_qubit_unitaries",
-        return_value=cirq.Circuit(cirq.H(a).with_tags("_phxz_0", "_phxz_1")),
-    ):
-        with patch("itertools.count", return_value=mock_iter):
-            with pytest.raises(RuntimeError, match="Multiple merge tags found."):
-                cirq.merge_single_qubit_gates_to_phxz_symbolized(circuit, sweep=sweep)
-
-
 def test_merge_single_qubit_gates_to_phxz_symbolized_unexpected_gate_error():
     """Tests that the function raises a RuntimeError of unexpected gate."""
     a, b = cirq.LineQubit.range(2)
