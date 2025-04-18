@@ -161,6 +161,16 @@ class ControlledGate(raw_types.Gate):
         self, qubits: Tuple[cirq.Qid, ...], context: Optional[cirq.DecompositionContext] = None
     ) -> Union[None, NotImplementedType, cirq.OP_TREE]:
         control_qubits = list(qubits[: self.num_controls()])
+        controlled_sub_gate = self.sub_gate.controlled(
+            self.num_controls(), self.control_values, self.control_qid_shape
+        )
+        # Prefer the subgate controlled version if available
+        if self != controlled_sub_gate:
+            # Prevent 2-cycle from appearing in recursive decomposition
+            if not isinstance(controlled_sub_gate, ControlledGate) or not isinstance(
+                controlled_sub_gate.sub_gate, common_gates.CZPowGate
+            ):
+                return controlled_sub_gate.on(*qubits)
         if (
             protocols.has_unitary(self.sub_gate)
             and protocols.num_qubits(self.sub_gate) == 1
