@@ -16,6 +16,7 @@
 import datetime
 import os
 from typing import List, Optional, Sequence
+from collections.abc import Iterable
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
@@ -192,6 +193,10 @@ class Service:
             error_mitigation=error_mitigation,
             extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
+        assert isinstance(job_results, Iterable), (
+            "Expected job results to be iterable, but got type "
+            f"{type(job_results)}. This is a bug in the IonQ API."
+        )
 
         cirq_results = []
         for job_result in job_results:
