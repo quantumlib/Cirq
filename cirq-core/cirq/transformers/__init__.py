@@ -104,6 +104,12 @@ from cirq.transformers.merge_single_qubit_gates import (
     merge_single_qubit_moments_to_phxz as merge_single_qubit_moments_to_phxz,
 )
 
+from cirq.transformers.tag_transformers import index_tags as index_tags, remove_tags as remove_tags
+from cirq.transformers.symbolize import (
+    symbolize_single_qubit_gates_by_indexed_tags as symbolize_single_qubit_gates_by_indexed_tags,
+)
+
+
 from cirq.transformers.qubit_management_transformers import (
     map_clean_and_borrowable_qubits as map_clean_and_borrowable_qubits,
 )

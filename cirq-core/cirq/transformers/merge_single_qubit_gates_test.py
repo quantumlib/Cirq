@@ -308,22 +308,6 @@ def test_merge_single_qubit_gates_to_phxz_symbolized_non_parameterized_singles()
     assert_optimizes(output_circuit, expected_circuit)
 
 
-def test_merge_single_qubit_gates_to_phxz_symbolized_with_global_phases():
-    a = cirq.NamedQubit("a")
-    input_circuit = cirq.Circuit(
-        cirq.GlobalPhaseGate(1j).on(), cirq.X(a), cirq.Y(a) ** sympy.Symbol("y_exp")
-    )
-    new_circuit, _ = cirq.merge_single_qubit_gates_to_phxz_symbolized(
-        input_circuit, sweep=cirq.Points(key="y_exp", points=[0, 1])
-    )
-    expected_circuit = cirq.Circuit(
-        cirq.GlobalPhaseGate(1j).on(),
-        _phxz(sympy.Symbol("a0"), sympy.Symbol("x0"), sympy.Symbol("z0")).on(a),
-    )
-
-    assert_optimizes(new_circuit, expected_circuit)
-
-
 def test_merge_single_qubit_gates_to_phxz_symbolized_different_structures_error():
     """Tests that the function raises a RuntimeError if merged structures of the circuit differ
     for different parameterizations."""
@@ -334,7 +318,7 @@ def test_merge_single_qubit_gates_to_phxz_symbolized_different_structures_error(
     with patch(
         "cirq.protocols.resolve_parameters",
         side_effect=[
-            cirq.Circuit(cirq.H(a).with_tags("_symbolized_single")),
+            cirq.Circuit(cirq.H(a).with_tags("TMP-TAG-symbolized-single")),
             cirq.Circuit(cirq.H(a)),
         ],
     ):
@@ -343,30 +327,6 @@ def test_merge_single_qubit_gates_to_phxz_symbolized_different_structures_error(
             match="Different resolvers in sweep resulted in different merged structures.",
         ):
             cirq.merge_single_qubit_gates_to_phxz_symbolized(circuit, sweep=sweep)
-
-
-def test_merge_single_qubit_gates_to_phxz_symbolized_multiple_phxz_tags_error():
-    """Tests that the function raises a RuntimeError of incorrect merges."""
-    a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.H(a) ** sympy.Symbol("exp1"),
-        cirq.X(a),
-        cirq.CZ(a, b),
-        cirq.Y(a),
-        cirq.H(a) ** sympy.Symbol("exp2"),
-    )
-    sweep = cirq.Points(key="exp1", points=[0.1, 0.2]) * cirq.Points(key="exp2", points=[0.1, 0.2])
-
-    mock_iter = Mock()
-    mock_iter.__next__ = Mock(return_value=2)
-
-    with patch(
-        "cirq.transformers.merge_k_qubit_gates.merge_k_qubit_unitaries",
-        return_value=cirq.Circuit(cirq.H(a).with_tags("_phxz_0", "_phxz_1")),
-    ):
-        with patch("itertools.count", return_value=mock_iter):
-            with pytest.raises(RuntimeError, match="Multiple merge tags found."):
-                cirq.merge_single_qubit_gates_to_phxz_symbolized(circuit, sweep=sweep)
 
 
 def test_merge_single_qubit_gates_to_phxz_symbolized_unexpected_gate_error():

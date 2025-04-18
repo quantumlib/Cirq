@@ -14,15 +14,22 @@
 
 """Transformer passes to combine adjacent single-qubit rotations."""
 
-import itertools
-from typing import Dict, Hashable, List, Optional, Tuple, TYPE_CHECKING
+from typing import Callable, Dict, Hashable, List, Optional, Tuple, TYPE_CHECKING
 
 import sympy
 
 from cirq import circuits, ops, protocols
+from cirq.study.result import TMeasurementKey
 from cirq.study.sweeps import Points, Sweep, Zip
-from cirq.transformers import align, merge_k_qubit_gates, transformer_api, transformer_primitives
+from cirq.transformers import (
+    align,
+    merge_k_qubit_gates,
+    symbolize,
+    transformer_api,
+    transformer_primitives,
+)
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
+from cirq.transformers.tag_transformers import index_tags, remove_tags
 
 if TYPE_CHECKING:
     import cirq
@@ -69,6 +76,7 @@ def merge_single_qubit_gates_to_phxz(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
+    merge_tags_fn: Optional[Callable[['cirq.CircuitOperation'], List[Hashable]]] = None,
     atol: float = 1e-8,
 ) -> 'cirq.Circuit':
     """Replaces runs of single qubit rotations with a single optional `cirq.PhasedXZGate`.
@@ -79,6 +87,8 @@ def merge_single_qubit_gates_to_phxz(
     Args:
         circuit: Input circuit to transform. It will not be modified.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
+        merge_tag: If provided, tag merged PhXZ gate with it.
+        merge_tags_fn: A callable returns the tags to be added to the merged operation.
         atol: Absolute tolerance to angle error. Larger values allow more negligible gates to be
             dropped, smaller values increase accuracy.
 
@@ -86,12 +96,15 @@ def merge_single_qubit_gates_to_phxz(
         Copy of the transformed input circuit.
     """
 
-    def rewriter(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
-        u = protocols.unitary(op)
-        if protocols.num_qubits(op) == 0:
+    def rewriter(circuit_op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
+
+        u = protocols.unitary(circuit_op)
+        if protocols.num_qubits(circuit_op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
-        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol)
-        return gate(op.qubits[0]) if gate else []
+
+        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol) or ops.I
+        phxz_op = gate.on(circuit_op.qubits[0])
+        return phxz_op.with_tags(*merge_tags_fn(circuit_op)) if merge_tags_fn else phxz_op
 
     return merge_k_qubit_gates.merge_k_qubit_unitaries(
         circuit, k=1, context=context, rewriter=rewriter
@@ -158,141 +171,33 @@ def merge_single_qubit_moments_to_phxz(
     ).unfreeze(copy=False)
 
 
-# ----------------------------------------------------------------------
-# Impl merge_single_qubit_gates_to_phxz_symbolized: Start
-# ----------------------------------------------------------------------
-
-
-def _values_of_sweep(sweep: Sweep, key: str | sympy.Symbol):
+def _values_of_sweep(sweep: Sweep, key: TMeasurementKey):
     p = sympy.Symbol(key) if isinstance(key, str) else key
     return [resolver.value_of(p) for resolver in sweep]
 
 
-def _merge_single_qubit_gates_to_phxz_symbolized(
-    resolved_circuits: List['cirq.AbstractCircuit'],
-    symbolized_single_tag: str,
-    context: Optional['cirq.TransformerContext'],
-    atol: float,
-) -> Tuple[List['cirq.Circuit'], frozenset[str], frozenset[str]]:
-    """Helper function to merge single qubit ops of resolved circuits to PhasedXZ ops
-      using merge_k_qubit_unitaries.
-
-    Args:
-        resolved_circuits: A list of circuits where symbols have been replaced with concrete values.
-        symbolized_single_tag: The tag applied to single-qubit operations that originally
-          contained symbols before parameterizations.
-
-    Returns:
-        Tuple of merge_counts, merged_circuits, and merge_tags, where
-        merged ops in merged_circuits are tagged by merge_tags.
-    """
-    merge_counts: list[int] = []  # number of merges per resolved_circuit
-    merged_circuits: list['cirq.Circuit'] = []
-    tag_iter: itertools.count
-    phxz_tag_prefix = "_phxz"
-
-    def rewriter(circuit_op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
-        nonlocal tag_iter
-        tag: Optional[str] = None
-
-        u = protocols.unitary(circuit_op)
-        if protocols.num_qubits(circuit_op) == 0:
-            return ops.GlobalPhaseGate(u[0, 0]).on()
-        # If any of the op in the merged circuit_op is a symbolized single qubit gate,
-        # tag the merged phxz gate with next tag id, for further parameterization references.
-        for op in circuit_op.circuit.all_operations():
-            if symbolized_single_tag in op.tags:
-                tag = f"{phxz_tag_prefix}_{next(tag_iter)}"
-                break
-        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol) or ops.I
-        op = gate.on(circuit_op.qubits[0])
-        return op.with_tags(tag) if tag else op
-
-    for resolved_circuit in resolved_circuits:
-        tag_iter = itertools.count(start=0, step=1)
-        merged_circuits.append(
-            merge_k_qubit_gates.merge_k_qubit_unitaries(
-                resolved_circuit, k=1, context=context, rewriter=rewriter
-            )
-        )
-        merge_counts.append(next(tag_iter))
-
-    if not all(count == merge_counts[0] for count in merge_counts):
-        raise RuntimeError("Different resolvers in sweep resulted in different merged structures.")
-
-    merge_tags: frozenset[str] = frozenset(
-        {f"{phxz_tag_prefix}_{i}" for i in range(merge_counts[0])}
-    )
-    new_symbols: frozenset[str] = frozenset(
-        set().union(*[{f"x{i}", f"z{i}", f"a{i}"} for i in range(merge_counts[0])])
-    )
-
-    return merged_circuits, merge_tags, new_symbols
-
-
-def _get_merge_tag_id(merge_tags: frozenset[str], op_tags: Tuple[Hashable, ...]) -> Optional[str]:
-    """Extract the id `i` from the merge tag `_phxz_i` if it exists."""
-    the_merge_tag: set[str] = set(merge_tags.intersection(op_tags))
-    if len(the_merge_tag) == 0:
-        return None
-    if len(the_merge_tag) > 1:
-        raise RuntimeError("Multiple merge tags found.")
-    return the_merge_tag.pop().split("_")[-1]
-
-
-def _map_merged_ops_to_symbolized_phxz(
-    circuit: 'cirq.Circuit', merge_tags: frozenset[str], deep: bool
-) -> 'cirq.Circuit':
-    """Maps merged operations (tagged with merge_tags) in the circuit to symbolized PhasedXZGates.
-
-    Args:
-        circuit: Circuit with merge tags to be mapped.
-        merge_tags: The set of tags used to identify the merged PhasedXZ gates that need to be
-            symbolized.
-        deep: Whether to perform the mapping recursively within CircuitOperations.
-
-    Returns:
-        A new circuit where tagged PhasedXZ gates are replaced by symbolized versions.
-    """
-
-    # Map merged ops to `PhasedXZGate(xi,zi,ai)` based on the tag "_phxz_i".
-    def _map_func(op: 'cirq.Operation', _):
-        """Maps an op with tag `_phxz_i` to a symbolzied `PhasedXZGate(xi,zi,ai)`"""
-        sid = _get_merge_tag_id(merge_tags, op.tags)
-        if sid is None:
-            return op
-        phxz_params = {
-            "x_exponent": sympy.Symbol(f"x{sid}"),
-            "z_exponent": sympy.Symbol(f"z{sid}"),
-            "axis_phase_exponent": sympy.Symbol(f"a{sid}"),
-        }
-        return ops.PhasedXZGate(**phxz_params).on(*op.qubits)
-
-    return align.align_right(
-        transformer_primitives.map_operations(circuit.freeze(), _map_func, deep=deep)
-    )
-
-
-def _parameterize_merged_circuits(
-    merged_circuits: List['cirq.Circuit'],
-    merge_tags: frozenset[str],
-    new_symbols: frozenset[str],
-    remaining_symbols: frozenset[str],
+def _parameterize_phxz_in_circuits(
+    circuit_list: List['cirq.Circuit'],
+    merge_tag_prefix: str,
+    phxz_symbols: frozenset[sympy.Symbol],
+    remaining_symbols: frozenset[sympy.Symbol],
     sweep: Sweep,
 ) -> Sweep:
-    """Parameterizes the merged circuits and returns a new sweep."""
+    """Parameterizes the circuits and returns a new sweep."""
     values_by_params: Dict[str, List[float]] = {
-        **{s: [] for s in new_symbols},  # New symbols introduced during merging
-        **{
-            s: _values_of_sweep(sweep, s) for s in remaining_symbols
-        },  # Existing symbols in ops that were not merged, e.g., symbols in 2-qubit gates.
+        **{str(s): [] for s in phxz_symbols},
+        **{str(s): _values_of_sweep(sweep, s) for s in remaining_symbols},
     }
 
-    for merged_circuit in merged_circuits:
-        for op in merged_circuit.all_operations():
-            sid = _get_merge_tag_id(merge_tags, op.tags)
-            if sid is None:
+    for circuit in circuit_list:
+        for op in circuit.all_operations():
+            the_merge_tag: Optional[str] = None
+            for tag in op.tags:
+                if str(tag).startswith(merge_tag_prefix):
+                    the_merge_tag = str(tag)
+            if not the_merge_tag:
                 continue
+            sid = the_merge_tag.rsplit("_", maxsplit=-1)[-1]
             x, z, a = 0.0, 0.0, 0.0  # Identity gate's parameters
             if isinstance(op.gate, ops.PhasedXZGate):
                 x, z, a = op.gate.x_exponent, op.gate.z_exponent, op.gate.axis_phase_exponent
@@ -306,6 +211,15 @@ def _parameterize_merged_circuits(
             values_by_params[f"a{sid}"].append(a)
 
     return Zip(*[Points(key=key, points=values) for key, values in values_by_params.items()])
+
+
+def _all_tags_startswith(circuit: 'cirq.AbstractCircuit', startswith: str):
+    tag_set: set[Hashable] = set()
+    for op in circuit.all_operations():
+        for tag in op.tags:
+            if str(tag).startswith(startswith):
+                tag_set.add(tag)
+    return tag_set
 
 
 def merge_single_qubit_gates_to_phxz_symbolized(
@@ -353,7 +267,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     deep = context.deep if context else False
 
     # Tag symbolized single-qubit op.
-    symbolized_single_tag = "_symbolized_single"
+    symbolized_single_tag = "TMP-TAG-symbolized-single"
 
     circuit_tagged = transformer_primitives.map_operations(
         circuit,
@@ -366,7 +280,6 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     )
 
     # Step 0, isolate single qubit symbolized symbols and resolve the circuit on them.
-
     single_qubit_gate_symbols: frozenset[sympy.Symbol] = frozenset(
         set().union(
             *[
@@ -378,11 +291,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     # If all single qubit gates are not parameterized, call the nonparamerized version of
     # the transformer.
     if not single_qubit_gate_symbols:
-        return merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol), sweep
-    # Remaining symbols, e.g., 2 qubit gates' symbols. Sweep of those symbols keeps unchanged.
-    remaining_symbols: frozenset[sympy.Symbol] = frozenset(
-        protocols.parameter_symbols(circuit) - single_qubit_gate_symbols
-    )
+        return (merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol), sweep)
     sweep_of_single: Sweep = Zip(
         *[Points(key=k, points=_values_of_sweep(sweep, k)) for k in single_qubit_gate_symbols]
     )
@@ -391,22 +300,68 @@ def merge_single_qubit_gates_to_phxz_symbolized(
         protocols.resolve_parameters(circuit_tagged, resolver) for resolver in sweep_of_single
     ]
 
-    # Step 1, merge single qubit gates of resolved circuits using merge_k_qubit_unitaries.
-    merged_circuits, merge_tags, new_symbols = _merge_single_qubit_gates_to_phxz_symbolized(
-        resolved_circuits, symbolized_single_tag, context, atol
+    # Step 1, merge single qubit gates per resolved circuit, preserving the "symbolized_single_tag".
+    merged_circuits: List['cirq.Circuit'] = []
+    phxz_symbols: set[sympy.Symbols] = set()
+    for resolved_circuit in resolved_circuits:
+        merged_circuit = index_tags(
+            merge_single_qubit_gates_to_phxz(
+                resolved_circuit,
+                context=context,
+                merge_tags_fn=lambda circuit_op: (
+                    [symbolized_single_tag]
+                    if any(
+                        symbolized_single_tag in set(op.tags)
+                        for op in circuit_op.circuit.all_operations()
+                    )
+                    else []
+                ),
+                atol=atol,
+            ),
+            target_tags={symbolized_single_tag},
+            context=context,
+        )
+        merged_circuits.append(merged_circuit)
+
+    if not all(
+        _all_tags_startswith(merged_circuits[0], startswith=symbolized_single_tag)
+        == _all_tags_startswith(merged_circuit, startswith=symbolized_single_tag)
+        for merged_circuit in merged_circuits
+    ):
+        raise RuntimeError("Different resolvers in sweep resulted in different merged structures.")
+
+    # Step 2, get the new symbolized circuit by mapping merged operations.
+    new_circuit = align.align_right(
+        remove_tags(
+            symbolize.symbolize_single_qubit_gates_by_indexed_tags(
+                merged_circuits[0], tag_prefix=symbolized_single_tag
+            ),
+            remove_if=lambda tag: tag.startswith(symbolized_single_tag),
+        )
     )
 
-    # Step 2, get the new symbolzied circuit as new_sweep by mapping merged operations.
-    new_circuit = _map_merged_ops_to_symbolized_phxz(merged_circuits[0], merge_tags, deep)
-
     # Step 3, get N sets of parameterizations as new_sweep.
-    new_sweep = _parameterize_merged_circuits(
-        merged_circuits, merge_tags, new_symbols, remaining_symbols, sweep
+    phxz_symbols: frozenset[sympy.Symbol] = frozenset(
+        set().union(
+            *[
+                set(
+                    [
+                        sympy.Symbol(tag.replace(f"{symbolized_single_tag}_", s))
+                        for s in ["x", "z", "a"]
+                    ]
+                )
+                for tag in _all_tags_startswith(
+                    merged_circuits[0], startswith=symbolized_single_tag
+                )
+            ]
+        )
+    )
+    # Remaining symbols, e.g., 2 qubit gates' symbols. Sweep of those symbols keeps unchanged.
+    remaining_symbols: frozenset[sympy.Symbol] = frozenset(
+        protocols.parameter_symbols(circuit) - single_qubit_gate_symbols
+    )
+    new_sweep = _parameterize_phxz_in_circuits(
+        merged_circuits, symbolized_single_tag, phxz_symbols, remaining_symbols, sweep
     )
 
     return new_circuit.unfreeze(copy=False), new_sweep
-
-
-# ----------------------------------------------------------------------
-# Impl merge_single_qubit_gates_to_phxz_symbolized: End
-# ----------------------------------------------------------------------
