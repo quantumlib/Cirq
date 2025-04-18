@@ -161,13 +161,12 @@ class ControlledGate(raw_types.Gate):
         self, qubits: Tuple[cirq.Qid, ...], context: Optional[cirq.DecompositionContext] = None
     ) -> Union[None, NotImplementedType, cirq.OP_TREE]:
         control_qubits = list(qubits[: self.num_controls()])
-        if (
-            protocols.has_unitary(self.sub_gate)
-            and self._qid_shape_() == (2,) * len(self._qid_shape_())
+        if protocols.has_unitary(self.sub_gate) and self._qid_shape_() == (2,) * len(
+            self._qid_shape_()
         ):
             n_qubits = protocols.num_qubits(self.sub_gate)
             # Case 1: Multi-controlled single-qubit gate decomposition
-            if(n_qubits == 1 and isinstance(self.control_values, cv.ProductOfSums)):
+            if n_qubits == 1 and isinstance(self.control_values, cv.ProductOfSums):
                 invert_ops: List[cirq.Operation] = []
                 for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
                     if set(cvals) == {0}:
@@ -179,7 +178,7 @@ class ControlledGate(raw_types.Gate):
                 )
                 return invert_ops + decomposed_ops + invert_ops
             # Case 2: Global Phase (1x1 Matrix)
-            if(n_qubits == 0):
+            if n_qubits == 0:
                 angle = np.angle(protocols.unitary(self.sub_gate)[0, 0])
                 rads = np.zeros(shape=self.control_qid_shape)
                 for hot in self.control_values.expand():
