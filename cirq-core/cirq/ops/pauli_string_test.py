@@ -2153,4 +2153,3 @@ def test_pauli_ops_identity_gate_operation():
             assert isinstance(
                 p1 - p2, (cirq.PauliSum, cirq.PauliString)
             ), f"Subtraction failed for {p1} - {p2}"
-            
