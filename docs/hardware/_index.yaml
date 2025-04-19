@@ -96,7 +96,9 @@ landing_page:
       path: /cirq/hardware/pasqal/sampler
 
   - heading: Rigetti hardware
-    description: Cirq's interface with Rigetti hardware. (Note: this module was deprecated in Cirq version 1.5.)
+    description: >-
+      Cirq's interface with Rigetti hardware. (Note: this module was
+      deprecated in Cirq version 1.5.)
     options:
     - cards
     items:
