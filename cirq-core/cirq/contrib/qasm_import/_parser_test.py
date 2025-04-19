@@ -1512,3 +1512,90 @@ def test_nested_custom_gate_has_keyword_in_name():
     parser = QasmParser()
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
+
+
+def test_rzz_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    rzz(pi/2) q[0],q[1];
+    """
+    parser = QasmParser()
+    parsed = parser.parse(qasm)
+    ops = list(parsed.circuit.all_operations())
+    assert isinstance(ops[0].gate, cirq.ZZPowGate)
+    assert np.isclose(ops[0].gate.exponent, 0.5)
+
+
+def test_rxx_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    rxx(pi/4) q[0],q[1];
+    """
+    parser = QasmParser()
+    parsed = parser.parse(qasm)
+    ops = list(parsed.circuit.all_operations())
+    assert isinstance(ops[0].gate, cirq.XXPowGate)
+    assert np.isclose(ops[0].gate.exponent, 0.25)
+
+
+def test_ryy_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    ryy(pi/3) q[0],q[1];
+    """
+    parser = QasmParser()
+    parsed = parser.parse(qasm)
+    ops = list(parsed.circuit.all_operations())
+    assert isinstance(ops[0].gate, cirq.YYPowGate)
+    assert np.isclose(ops[0].gate.exponent, 1 / 3)
+
+
+def test_crx_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    crx(pi/7) q[0],q[1];
+    """
+    parser = QasmParser()
+    parsed = parser.parse(qasm)
+    ops = list(parsed.circuit.all_operations())
+    gate = ops[0].gate
+    assert isinstance(gate, cirq.ControlledGate)
+    assert isinstance(gate.sub_gate, cirq.Rx)
+    assert np.isclose(gate.sub_gate.exponent, 1 / 7)
+
+
+def test_cry_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    cry(pi/8) q[0],q[1];
+    """
+    parser = QasmParser()
+    parsed = parser.parse(qasm)
+    ops = list(parsed.circuit.all_operations())
+    gate = ops[0].gate
+    assert isinstance(gate, cirq.ControlledGate)
+    assert isinstance(gate.sub_gate, cirq.Ry)
+    assert np.isclose(gate.sub_gate.exponent, 1 / 8)
+
+
+def test_iswap_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    iswap q[0],q[1];
+    """
+    parser = QasmParser()
+    parsed = parser.parse(qasm)
+    ops = list(parsed.circuit.all_operations())
+    assert isinstance(ops[0].gate, cirq.ISwapPowGate)
