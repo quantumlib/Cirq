@@ -494,6 +494,22 @@ def _test_controlled_gate_is_consistent(
         np.testing.assert_allclose(cirq.unitary(cgate), cirq.unitary(circuit), atol=1e-13)
 
 
+@pytest.mark.parametrize(
+    'sub_gate, expected_decomposition',
+    [
+        (cirq.XPowGate(global_shift=0.22), [cirq.Y**-0.5, cirq.CZ, cirq.Y**0.5, cirq.Z**0.22]),
+        (cirq.ZPowGate(exponent=1.2, global_shift=0.3), [cirq.CZ**1.2, cirq.Z**0.36]),
+    ],
+)
+def test_decompose_takes_out_global_phase(
+    sub_gate: cirq.Gate, expected_decomposition: Sequence[cirq.Gate]
+):
+    cgate = cirq.ControlledGate(sub_gate, num_controls=1)
+    qubits = cirq.LineQubit.range(cgate.num_qubits())
+    dec = cirq.decompose(cgate.on(*qubits))
+    assert [op.gate for op in dec] == expected_decomposition
+
+
 def test_pow_inverse():
     assert cirq.inverse(CRestricted, None) is None
     assert cirq.pow(CRestricted, 1.5, None) is None

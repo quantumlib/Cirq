@@ -34,7 +34,7 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq.ops import raw_types
+from cirq.ops import global_phase_op, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -374,6 +374,24 @@ class EigenGate(raw_types.Gate):
 
     def _measurement_key_objs_(self):
         return frozenset()
+
+    def _decompose_(
+        self, qubits: Tuple['cirq.Qid', ...]
+    ) -> Union[NotImplementedType, 'cirq.OP_TREE']:
+        """Attempts to decompose the gate into a phase-free gate and a global phase gate.
+
+        Returns:
+            NotImplemented, if global phase or exponent are 0. Otherwise a phase-free gate
+            applied to the qubits followed by a global phase gate.
+        """
+        if self.global_shift == 0 or self.exponent == 0:
+            return NotImplemented
+        self_without_phase = self._with_exponent(self.exponent)
+        # This doesn't work for gates that fix global_shift, such as Rx. These gates must define
+        # their own _decompose_ method.
+        self_without_phase._global_shift = 0
+        global_phase = 1j ** (2 * self.global_shift * self.exponent)
+        return [self_without_phase.on(*qubits), global_phase_op.GlobalPhaseGate(global_phase)()]
 
 
 def _lcm(vals: Iterable[int]) -> int:

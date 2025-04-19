@@ -33,6 +33,7 @@ from cirq.ops import (
     control_values as cv,
     controlled_operation as cop,
     diagonal_gate as dg,
+    eigen_gate,
     global_phase_op as gp,
     op_tree,
     raw_types,
@@ -159,6 +160,12 @@ class ControlledGate(raw_types.Gate):
         self, qubits: Tuple['cirq.Qid', ...], context: Optional['cirq.DecompositionContext'] = None
     ) -> Union[None, NotImplementedType, 'cirq.OP_TREE']:
         control_qubits = list(qubits[: self.num_controls()])
+        # If the subgate is an EigenGate with non-zero phase, try to decompose it
+        # into a phase-free gate and a global phase gate.
+        if isinstance(self.sub_gate, eigen_gate.EigenGate) and self.sub_gate.global_shift != 0:
+            result = self._decompose_sub_gate_with_controls(qubits, context)
+            if result is not NotImplemented:
+                return result
         if (
             protocols.has_unitary(self.sub_gate)
             and protocols.num_qubits(self.sub_gate) == 1
@@ -219,6 +226,11 @@ class ControlledGate(raw_types.Gate):
                     control_qid_shape=self.control_qid_shape,
                 ).on(*control_qubits)
                 return [result, controlled_phase_op]
+        return self._decompose_sub_gate_with_controls(qubits, context)
+
+    def _decompose_sub_gate_with_controls(
+        self, qubits: Tuple['cirq.Qid', ...], context: Optional['cirq.DecompositionContext'] = None
+    ) -> Union[None, NotImplementedType, 'cirq.OP_TREE']:
         result = protocols.decompose_once_with_qubits(
             self.sub_gate,
             qubits[self.num_controls() :],

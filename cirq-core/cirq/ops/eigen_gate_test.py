@@ -20,6 +20,7 @@ import sympy
 
 import cirq
 from cirq import value
+from cirq.ops import global_phase_op
 from cirq.testing import assert_has_consistent_trace_distance_bound
 
 
@@ -421,3 +422,43 @@ class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
 )
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):
     assert cirq.equal_up_to_global_phase(gate1, gate2) == eq_up_to_global_phase
+
+
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.Z,
+        cirq.Z**2,
+        cirq.XPowGate(global_shift=0.0),
+        cirq.rx(0),
+        cirq.ry(0),
+        cirq.rz(0),
+        cirq.CZPowGate(exponent=0.0, global_shift=0.25),
+    ],
+)
+def test_decompose_once_returns_not_implemented(gate: cirq.Gate):
+    qubits = cirq.LineQubit.range(gate.num_qubits())
+    assert cirq.decompose_once(gate.on(*qubits), default=NotImplemented) == NotImplemented
+
+
+@pytest.mark.parametrize(
+    'gate, expected_decomposition',
+    [
+        (cirq.X, [cirq.X]),
+        (cirq.ZPowGate(global_shift=0.5), [cirq.Z, global_phase_op.GlobalPhaseGate(1j)]),
+        (
+            cirq.ZPowGate(global_shift=0.5) ** sympy.Symbol('e'),
+            [
+                cirq.Z ** sympy.Symbol('e'),
+                global_phase_op.GlobalPhaseGate(1j ** (1.0 * sympy.Symbol('e'))),
+            ],
+        ),
+        (cirq.rx(np.pi / 2), [cirq.rx(np.pi / 2)]),
+        (cirq.ry(np.pi / 2), [cirq.ry(np.pi / 2)]),
+        (cirq.rz(np.pi / 2), [cirq.rz(np.pi / 2)]),
+    ],
+)
+def test_decompose_takes_out_global_phase(gate: cirq.Gate, expected_decomposition: List[cirq.Gate]):
+    qubits = cirq.LineQubit.range(gate.num_qubits())
+    dec = cirq.decompose(gate.on(*qubits))
+    assert [op.gate for op in dec] == expected_decomposition

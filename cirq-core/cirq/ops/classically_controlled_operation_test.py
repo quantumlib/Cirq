@@ -473,7 +473,8 @@ def test_decompose():
     op = cirq.H(q0).with_classical_controls('a')
     assert cirq.decompose(op) == [
         (cirq.Y(q0) ** 0.5).with_classical_controls('a'),
-        cirq.XPowGate(exponent=1.0, global_shift=-0.25).on(q0).with_classical_controls('a'),
+        cirq.X(q0).with_classical_controls('a'),
+        cirq.global_phase_operation(1j**-0.5).with_classical_controls('a'),
     ]
 
 

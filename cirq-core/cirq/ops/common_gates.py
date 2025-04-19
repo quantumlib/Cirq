@@ -352,6 +352,12 @@ class Rx(XPowGate):
     def _with_exponent(self, exponent: value.TParamVal) -> 'Rx':
         return Rx(rads=exponent * _pi(exponent))
 
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> NotImplementedType:
+        """Returns:
+        NotImplemented, to signify the gate doesn't decompose further.
+        """
+        return NotImplemented
+
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
@@ -536,6 +542,12 @@ class Ry(YPowGate):
 
     def _with_exponent(self, exponent: value.TParamVal) -> 'Ry':
         return Ry(rads=exponent * _pi(exponent))
+
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> NotImplementedType:
+        """Returns:
+        NotImplemented, to signify the gate doesn't decompose further.
+        """
+        return NotImplemented
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -881,6 +893,12 @@ class Rz(ZPowGate):
 
     def _with_exponent(self, exponent: value.TParamVal) -> 'Rz':
         return Rz(rads=exponent * _pi(exponent))
+
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> NotImplementedType:
+        """Returns:
+        NotImplemented, to signify the gate doesn't decompose further.
+        """
+        return NotImplemented
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
