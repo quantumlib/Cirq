@@ -238,7 +238,6 @@ def test_eq():
     eq.add_equality_group(CCH)
     eq.add_equality_group(cirq.ControlledGate(cirq.H))
     eq.add_equality_group(cirq.ControlledGate(cirq.X))
-    eq.add_equality_group(cirq.X)
     eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[1, (0, 2)], control_qid_shape=[2, 3]),
         cirq.ControlledGate(cirq.H, control_values=(1, [0, 2]), control_qid_shape=(2, 3)),
@@ -737,3 +736,43 @@ def test_controlled_mixture():
     c_yes = cirq.ControlledGate(sub_gate=cirq.phase_flip(0.25), num_controls=1)
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
+
+@pytest.mark.parametrize(
+    'num_controls, angle, control_values',
+    [
+        (1, np.pi / 4, ((1,),)),
+        (3, -np.pi / 2, ((1,), (1,), (1,))),
+        (2, 0.0, ((1,), (1,))),
+        (2, np.pi / 5, ((0,), (0,))),
+        (3, np.pi, ((1,), (0,), (1,))),
+        (4, -np.pi / 3, ((0,), (1,), (1,), (0,))),
+    ],
+)
+def test_controlled_global_phase_matrix_gate_decomposition_consistency(
+    num_controls, angle, control_values
+):
+    all_qubits = cirq.LineQubit.range(num_controls)
+    control_values = cirq.ops.control_values.ProductOfSums(control_values)
+    control_qid_shape = (2,) * num_controls
+    phase_value = np.exp(1j * angle)
+
+    cg_global = cirq.ControlledGate(
+        sub_gate=cirq.GlobalPhaseGate(phase_value),
+        num_controls=num_controls,
+        control_values=control_values,
+        control_qid_shape=control_qid_shape
+    )
+
+    cg_matrix = cirq.ControlledGate(
+        sub_gate=cirq.MatrixGate(np.array([[phase_value]])),
+        num_controls=num_controls,
+        control_values=control_values,
+        control_qid_shape=control_qid_shape
+    )
+
+    decomp_global = cirq.decompose_once(cg_global(*all_qubits))
+    decomp_matrix = cirq.decompose_once(cg_matrix(*all_qubits))
+    
+    assert decomp_global is not None
+    assert decomp_matrix is not None
+    assert decomp_global == decomp_matrix

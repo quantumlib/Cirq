@@ -161,11 +161,16 @@ class ControlledGate(raw_types.Gate):
         self, qubits: Tuple[cirq.Qid, ...], context: Optional[cirq.DecompositionContext] = None
     ) -> Union[None, NotImplementedType, cirq.OP_TREE]:
         control_qubits = list(qubits[: self.num_controls()])
-        if protocols.has_unitary(self.sub_gate) and self._qid_shape_() == (2,) * len(
-            self._qid_shape_()
-        ):
+        if protocols.has_unitary(self.sub_gate) and all(q.dimension == 2 for q in qubits):
             n_qubits = protocols.num_qubits(self.sub_gate)
-            # Case 1: Multi-controlled single-qubit gate decomposition
+            # Case 1: Global Phase (1x1 Matrix)
+            if n_qubits == 0:
+                angle = np.angle(protocols.unitary(self.sub_gate)[0, 0])
+                rads = np.zeros(shape=self.control_qid_shape)
+                for hot in self.control_values.expand():
+                    rads[hot] = angle
+                return dg.DiagonalGate(diag_angles_radians=[*rads.flatten()]).on(*qubits)
+            # Case 2: Multi-controlled single-qubit gate decomposition
             if n_qubits == 1 and isinstance(self.control_values, cv.ProductOfSums):
                 invert_ops: List[cirq.Operation] = []
                 for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
@@ -177,13 +182,6 @@ class ControlledGate(raw_types.Gate):
                     protocols.unitary(self.sub_gate), control_qubits, qubits[-1]
                 )
                 return invert_ops + decomposed_ops + invert_ops
-            # Case 2: Global Phase (1x1 Matrix)
-            if n_qubits == 0:
-                angle = np.angle(protocols.unitary(self.sub_gate)[0, 0])
-                rads = np.zeros(shape=self.control_qid_shape)
-                for hot in self.control_values.expand():
-                    rads[hot] = angle
-                return dg.DiagonalGate(diag_angles_radians=[*rads.flatten()]).on(*qubits)
         if isinstance(self.sub_gate, common_gates.CZPowGate):
             z_sub_gate = common_gates.ZPowGate(exponent=self.sub_gate.exponent)
             num_controls = self.num_controls() + 1
