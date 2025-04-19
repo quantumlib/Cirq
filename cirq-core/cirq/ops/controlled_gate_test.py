@@ -238,6 +238,7 @@ def test_eq():
     eq.add_equality_group(CCH)
     eq.add_equality_group(cirq.ControlledGate(cirq.H))
     eq.add_equality_group(cirq.ControlledGate(cirq.X))
+    eq.add_equality_group(cirq.X)
     eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[1, (0, 2)], control_qid_shape=[2, 3]),
         cirq.ControlledGate(cirq.H, control_values=(1, [0, 2]), control_qid_shape=(2, 3)),
