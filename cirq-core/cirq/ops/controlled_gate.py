@@ -164,7 +164,8 @@ class ControlledGate(raw_types.Gate):
         )
         # Prefer the subgate controlled version if available
         if self != controlled_sub_gate:
-            # Prevent 2-cycle from appearing in recursive decomposition
+            # Prevent 2-cycle from appearing in the recursive decomposition
+            # TODO: Remove after #7241 is resolved
             if not isinstance(controlled_sub_gate, ControlledGate) or not isinstance(
                 controlled_sub_gate.sub_gate, common_gates.CZPowGate
             ):
