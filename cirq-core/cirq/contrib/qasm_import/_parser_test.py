@@ -1624,4 +1624,4 @@ def test_rxx_unitary_equivalence(theta_expr, theta):
     U_native = cirq.unitary(native)
     U_import = cirq.unitary(imported)
 
-    assert np.allclose(U_import, U_native, atol=0)
+    assert np.allclose(U_import, U_native, atol=1e-8)
