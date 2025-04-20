@@ -1599,3 +1599,29 @@ def test_iswap_gate():
     parsed = parser.parse(qasm)
     ops = list(parsed.circuit.all_operations())
     assert isinstance(ops[0].gate, cirq.ISwapPowGate)
+
+
+@pytest.mark.parametrize(
+    "theta_expr, theta",
+    [
+        ("pi/8", np.pi / 8),
+        ("pi/4", np.pi / 4),
+        ("pi/2", np.pi / 2),
+    ],
+)
+def test_rxx_unitary_equivalence(theta_expr, theta):
+    qasm = f"""
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    rxx({theta_expr}) q[0],q[1];
+    """
+    native = cirq.XXPowGate(exponent=theta / np.pi)
+    parsed_qasm = QasmParser().parse(qasm)
+    ops = list(parsed_qasm.circuit.all_operations())
+    imported = ops[0].gate
+
+    U_native = cirq.unitary(native)
+    U_import = cirq.unitary(imported)
+
+    assert np.allclose(U_import, U_native, atol=0)
