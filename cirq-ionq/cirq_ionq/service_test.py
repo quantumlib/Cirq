@@ -296,3 +296,27 @@ def test_service_remote_host_default():
 def test_service_remote_host_from_env_var_cirq_ionq_precedence():
     service = ionq.Service(api_key='tomyheart')
     assert service.remote_host == 'http://example.com'
+
+def test_service_run_unwraps_single_result_list():
+    """`Service.run` should unwrap `[result]` to `result`."""
+    # set up a real Service object (we'll monkey‑patch its create_job)
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+
+    # simple 1‑qubit circuit
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(q), cirq.measure(q, key="m"))
+
+    # fabricate a QPUResult and wrap it in a list to mimic an erroneous behavior
+    qpu_result = ionq.QPUResult(counts={1: 1}, num_qubits=1, measurement_dict={"m": [0]})
+    mock_job = mock.MagicMock()
+    mock_job.results.return_value = [qpu_result]  # <- list of length‑1
+
+    # monkey‑patch create_job so Service.run sees our mock_job
+    with mock.patch.object(service, "create_job", return_value=mock_job):
+        out = service.run(circuit=circuit, repetitions=1, target="qpu")
+
+    # expected Cirq result after unwrapping and conversion
+    expected = qpu_result.to_cirq_result(params=cirq.ParamResolver({}))
+
+    assert out == expected
+    mock_job.results.assert_called_once()
