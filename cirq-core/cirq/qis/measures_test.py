@@ -16,8 +16,8 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import partial_trace
 import cirq.qis.measures as measures
+from cirq import partial_trace
 
 N = 15
 VEC1 = cirq.testing.random_superposition(N)
