@@ -1602,12 +1602,7 @@ def test_iswap_gate():
 
 
 @pytest.mark.parametrize(
-    "theta_expr, theta",
-    [
-        ("pi/8", np.pi / 8),
-        ("pi/4", np.pi / 4),
-        ("pi/2", np.pi / 2),
-    ],
+    "theta_expr, theta", [("pi/8", np.pi / 8), ("pi/4", np.pi / 4), ("pi/2", np.pi / 2)]
 )
 def test_rxx_unitary_equivalence(theta_expr, theta):
     qasm = f"""
