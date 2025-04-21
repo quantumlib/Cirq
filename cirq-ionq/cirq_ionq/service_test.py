@@ -297,6 +297,7 @@ def test_service_remote_host_from_env_var_cirq_ionq_precedence():
     service = ionq.Service(api_key='tomyheart')
     assert service.remote_host == 'http://example.com'
 
+
 def test_service_run_unwraps_single_result_list():
     """`Service.run` should unwrap `[result]` to `result`."""
     # set up a real Service object (we'll monkey‑patch its create_job)
