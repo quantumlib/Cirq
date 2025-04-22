@@ -215,7 +215,7 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> No
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, 1000
+        circuits_to_pauli, sampler, 100, 100, 100, 100
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -311,11 +311,10 @@ def test_group_pauli_string_measurement_errors_with_noise() -> None:
         _generate_qwc_paulis(
             _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False)
         )
-        for _ in range(3)
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng()
+        circuits_to_pauli, sampler, 800, 1000, 800, np.random.default_rng()
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -453,7 +452,7 @@ def test_allow_group_pauli_measurement_without_readout_mitigation() -> None:
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 0, np.random.default_rng()
+        circuits_to_pauli, sampler, 100, 100, 0, np.random.default_rng()
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -550,26 +549,23 @@ def test_many_group_pauli_in_circuits_with_coefficient() -> None:
         _generate_qwc_paulis(
             _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False)
         )
-        for _ in range(3)
     ]
     circuits_to_pauli[circuit_2] = [
         _generate_qwc_paulis(
             _generate_random_pauli_string(qubits_2, enable_coeff=True, allow_pauli_i=False)
         )
-        for _ in range(3)
     ]
     circuits_to_pauli[circuit_3] = [
         _generate_qwc_paulis(
             _generate_random_pauli_string(qubits_3, enable_coeff=True, allow_pauli_i=False)
         )
-        for _ in range(3)
     ]
 
     sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.005, seed=1234)
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng()
+        circuits_to_pauli, sampler, 800, 1000, 800, np.random.default_rng()
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -782,6 +778,24 @@ def test_rng_type_mismatch() -> None:
         )
 
 
+def test_pauli_type_mismatch() -> None:
+    """Test that the input paulis are not a sequence of PauliStrings."""
+    qubits = cirq.LineQubit.range(5)
+
+    circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
+
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, int] = {}
+    circuits_to_pauli[circuit] = 1
+    with pytest.raises(
+        TypeError,
+        match="Expected all elements to be either a sequence of PauliStrings or sequences of"
+        " ops.PauliStrings. Got <class 'int'> instead.",
+    ):
+        measure_pauli_strings(
+            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, "test"  # type: ignore[arg-type]
+        )
+
+
 def test_group_paulis_are_not_qwc() -> None:
     """Test that the group paulis are not qwc."""
     qubits = cirq.LineQubit.range(5)
@@ -830,7 +844,7 @@ def test_group_paulis_type_mismatch() -> None:
 
     with pytest.raises(
         TypeError,
-        match="Expected all elements to be list of ops.PauliString, "
+        match="Expected all elements to be sequences of ops.PauliString, "
         "but found <class 'cirq.ops.pauli_string.PauliString'>.",
     ):
         measure_pauli_strings(

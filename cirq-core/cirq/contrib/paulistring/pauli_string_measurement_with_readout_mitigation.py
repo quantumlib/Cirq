@@ -14,7 +14,7 @@
 """Tools for measuring expectation values of Pauli strings with readout error mitigation."""
 import itertools
 import time
-from typing import Dict, FrozenSet, List, Optional, Tuple, Union
+from typing import cast, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
 
 import attrs
 import numpy as np
@@ -68,7 +68,7 @@ def _commute_or_identity(
     return op1 == op2
 
 
-def _are_two_qwc(
+def _are_two_pauli_strings_qubit_wise_commuting(
     pauli_str1: ops.PauliString,
     pauli_str2: ops.PauliString,
     all_qubits: Union[list[ops.Qid], FrozenSet[ops.Qid]],
@@ -98,7 +98,7 @@ def _validate_group_paulis_qwc(
     if len(pauli_strs) <= 1:
         return True
     for p1, p2 in itertools.combinations(pauli_strs, 2):
-        if not _are_two_qwc(p1, p2, all_qubits):
+        if not _are_two_pauli_strings_qubit_wise_commuting(p1, p2, all_qubits):
             return False
     return True
 
@@ -140,21 +140,20 @@ def _validate_input(
         if not isinstance(circuit, circuits.FrozenCircuit):
             raise TypeError("All keys in 'circuits_to_pauli' must be FrozenCircuit instances.")
 
-    first_value = next(iter(circuits_to_pauli.values()))
+    first_value: Union[list[ops.PauliString], list[list[ops.PauliString]]] = next(
+        iter(circuits_to_pauli.values())  # type: ignore
+    )
     for circuit, pauli_strs_list in circuits_to_pauli.items():
-        if not isinstance(pauli_strs_list, list):
-            raise TypeError(
-                f"Expect input pauli to be list[cirq.PauliString] or "
-                f"list[list[cirq.PauliString]]. Got {type(pauli_strs_list)}."
-            )
-        if isinstance(first_value[0], list):  # type: ignore[index]
+        if isinstance(pauli_strs_list, Sequence) and isinstance(first_value[0], Sequence):
             for pauli_strs in pauli_strs_list:
                 if not pauli_strs:
                     raise ValueError("Empty group of Pauli strings is not allowed")
-                if not isinstance(pauli_strs, list):
+                if not (
+                    isinstance(pauli_strs, Sequence) and isinstance(pauli_strs[0], ops.PauliString)
+                ):
                     raise TypeError(
                         f"Inconsistent type in list for circuit {circuit}. "
-                        f"Expected all elements to be list of ops.PauliString, "
+                        f"Expected all elements to be sequences of ops.PauliString, "
                         f"but found {type(pauli_strs)}."
                     )
                 if not _validate_group_paulis_qwc(pauli_strs, circuit.all_qubits()):
@@ -165,14 +164,14 @@ def _validate_input(
                     )
                 for pauli_str in pauli_strs:
                     _validate_single_pauli_string(pauli_str)
-        elif isinstance(first_value[0], ops.PauliString):  # type: ignore
+        elif isinstance(pauli_strs_list, Sequence) and isinstance(first_value[0], ops.PauliString):
             for pauli_str in pauli_strs_list:  # type: ignore
                 _validate_single_pauli_string(pauli_str)
         else:
             raise TypeError(
-                f"Expected all elements to be either list of "
-                f"ops.PauliStrings, or ops.PauliStrings. "
-                f"Got {type(pauli_strs_list[0])} instead"
+                f"Expected all elements to be either a sequence of PauliStrings"
+                f" or sequences of ops.PauliStrings. "
+                f"Got {type(pauli_strs_list)} instead."
             )
 
     # Check rng is a numpy random generator
@@ -199,12 +198,17 @@ def _normalize_input_paulis(
     ]
 ) -> Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]:
     first_value = next(iter(circuits_to_pauli.values()))
-    if isinstance(first_value, list) and isinstance(first_value[0], ops.PauliString):
+    if (
+        first_value
+        and isinstance(first_value, list)
+        and isinstance(first_value[0], ops.PauliString)
+    ):
+        input_dict = cast(Dict[circuits.FrozenCircuit, List[ops.PauliString]], circuits_to_pauli)
         normalized_circuits_to_pauli: Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]] = {}
-        for circuit, paulis in circuits_to_pauli.items():
-            normalized_circuits_to_pauli[circuit] = [[ps] for ps in paulis]  # type: ignore[list-item]
+        for circuit, paulis in input_dict.items():
+            normalized_circuits_to_pauli[circuit] = [[ps] for ps in paulis]
         return normalized_circuits_to_pauli
-    return circuits_to_pauli  # type: ignore
+    return cast(Dict[circuits.FrozenCircuit, List[List[ops.PauliString]]], circuits_to_pauli)
 
 
 def _pauli_strings_to_basis_change_ops(
