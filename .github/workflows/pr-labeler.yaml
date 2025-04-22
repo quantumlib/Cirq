@@ -37,9 +37,6 @@ on:
         description: 'The PR number of the PR to label:'
         type: string
         required: true
-      token:
-        description: 'Token to use for authentication:'
-        type: string
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -63,7 +60,7 @@ jobs:
         id: label
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{inputs.token || github.token}}
+          GITHUB_TOKEN: ${{github.token}}
         run: ./dev_tools/ci/size-labeler.sh |& tee action.out
 
       - name: Detect and report errors in labeler action
