@@ -12,37 +12,72 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union
-
 import pytest
 import numpy as np
 
 import cirq
 
 
-def _sample(prng):
-    return tuple(prng.random(10))
+def test_parse_prng_generator_passthrough():
+    """Test that passing an existing Generator returns the same object."""
+    rng = np.random.default_rng(12345)
+    assert cirq.value.parse_prng(rng) is rng
 
 
-def test_parse_rng() -> None:
+def test_parse_prng_none_singleton():
+    """Test that passing None returns a reusable singleton Generator."""
+    rng1 = cirq.value.parse_prng(None)
+    rng2 = cirq.value.parse_prng(None)
+    assert rng1 is rng2
+
+
+def test_parse_prng_int_seeding():
+    """Test that integer seeds create predictable Generators."""
+    rng_int = cirq.value.parse_prng(42)
+    rng_npint = cirq.value.parse_prng(np.int64(42))
+    assert rng_int.random() == rng_npint.random()
+
+    rng_different_seed = cirq.value.parse_prng(43)
+    rng_int = cirq.value.parse_prng(42)
+    assert rng_int.random() != rng_different_seed.random()
+
+
+def test_parse_prng_module_disallowed():
+    """Test that passing the np.random module raises TypeError."""
+    with pytest.raises(TypeError, match="not supported"):
+        cirq.value.parse_prng(np.random)
+
+
+def test_parse_prng_invalid_types():
+    """Test that unsupported types raise TypeError."""
+
+    match = "cannot be converted"
+    with pytest.raises(TypeError, match=match):
+        cirq.value.parse_prng(1.0)
+
+    with pytest.raises(TypeError, match=match):
+        cirq.value.parse_prng("not a seed")
+
+    with pytest.raises(TypeError, match=match):
+        cirq.value.parse_prng([1, 2, 3])
+
+    with pytest.raises(TypeError, match=match):
+        cirq.value.parse_prng(object())
+
+
+def test_parse_prng_equality_tester_on_output():
+    """Use EqualsTester to verify output consistency for valid inputs."""
     eq = cirq.testing.EqualsTester()
 
-    # An `np.random.Generator` or a seed.
-    group_inputs: List[Union[int, np.random.Generator]] = [42, np.random.default_rng(42)]
-    group: List[np.random.Generator] = [cirq.value.parse_prng(s) for s in group_inputs]
-    eq.add_equality_group(*[_sample(g) for g in group])
+    eq.add_equality_group(
+        cirq.value.parse_prng(42).random(),
+        cirq.value.parse_prng(np.int32(42)).random(),
+        cirq.value.parse_prng(np.random.default_rng(42)).random(),
+    )
 
-    # A None seed.
-    prng = cirq.value.parse_prng(None)
-    eq.add_equality_group(_sample(prng))
+    eq.add_equality_group(
+        cirq.value.parse_prng(np.random.RandomState(50)).random(),
+        cirq.value.parse_prng(np.random.RandomState(50)).random(),
+    )
 
-    # RandomState PRNG.
-    prng = cirq.value.parse_prng(np.random.RandomState(42))
-    eq.add_equality_group(_sample(prng))
-
-    # np.random module
-    prng = cirq.value.parse_prng(np.random)
-    eq.add_equality_group(_sample(prng))
-
-    with pytest.raises(TypeError):
-        _ = cirq.value.parse_prng(1.0)
+    eq.add_equality_group(cirq.value.parse_prng(None).random())

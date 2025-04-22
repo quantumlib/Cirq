@@ -12,55 +12,77 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
-
 import numbers
 import numpy as np
+from typing import Union
 
 from cirq._doc import document
-from cirq.value.random_state import RANDOM_STATE_OR_SEED_LIKE
+
 
 PRNG_OR_SEED_LIKE = Union[None, int, np.random.RandomState, np.random.Generator]
-
 document(
     PRNG_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
 
-    If is an integer or None, turns into a `np.random.Generator` seeded with that value.
-    If is an instance of `np.random.Generator` or a subclass of it, return as is.
-    If is an instance of `np.random.RandomState` or has a `randint` method, returns
-    `np.random.default_rng(rs.randint(2**31))`
+    Can be an instance of `np.random.Generator`, `np.random.RandomState`,
+    an integer seed, or None.
     """,
 )
 
+# Singleton generator instance for None input, created on demand.
+# Avoids creating many Generators if parse_prng(None) is called frequently.
+_NONE_PRNG_INSTANCE: np.random.Generator = None
 
-def parse_prng(
-    prng_or_seed: Union[PRNG_OR_SEED_LIKE, RANDOM_STATE_OR_SEED_LIKE]
-) -> np.random.Generator:
-    """Interpret an object as a pseudorandom number generator.
+def _get_none_prng_instance() -> np.random.Generator:
+    """Returns the singleton PRNG instance used for None inputs."""
+    global _NONE_PRNG_INSTANCE
+    if _NONE_PRNG_INSTANCE is None:
+        _NONE_PRNG_INSTANCE = np.random.default_rng(None)
+    return _NONE_PRNG_INSTANCE
 
-    If `prng_or_seed` is an `np.random.Generator`, return it unmodified.
-    If `prng_or_seed` is None or an integer, returns `np.random.default_rng(prng_or_seed)`.
-    If `prng_or_seed` is an instance of `np.random.RandomState` or has a `randint` method,
-        returns `np.random.default_rng(prng_or_seed.randint(2**31))`.
+def parse_prng(prng_or_seed: PRNG_OR_SEED_LIKE) -> np.random.Generator:
+    """Converts the input object into a `numpy.random.Generator`.
+
+    - If `prng_or_seed` is already a `np.random.Generator`, it's returned directly.
+    - If `prng_or_seed` is `None`, returns a singleton `np.random.Generator`
+      instance (seeded unpredictably by NumPy).
+    - If `prng_or_seed` is an integer, returns `np.random.default_rng(prng_or_seed)`.
+    - If `prng_or_seed` is an instance of `np.random.RandomState`, returns a `np.random.Generator` initialized with the RandomState's bit generator or falls back on a random seed.
+    - Passing the `np.random` module itself is explicitly disallowed.
 
     Args:
-        prng_or_seed: The object to be used as or converted to a pseudorandom
-            number generator.
+        prng_or_seed: The object to be used as or converted to a Generator.
 
     Returns:
-        The pseudorandom number generator object.
+        The `numpy.random.Generator` object.
 
     Raises:
-        TypeError: If `prng_or_seed` is can't be converted to an np.random.Generator.
+        TypeError: If `prng_or_seed` is the `np.random` module or cannot be
+            converted to a `np.random.Generator`.
     """
+    if prng_or_seed is np.random:
+        raise TypeError(
+            "Passing the 'np.random' module is not supported. "
+            "Use None to get a default np.random.Generator instance."
+        )
+
     if isinstance(prng_or_seed, np.random.Generator):
         return prng_or_seed
-    if prng_or_seed is None or isinstance(prng_or_seed, numbers.Integral):
-        return np.random.default_rng(prng_or_seed if prng_or_seed is None else int(prng_or_seed))
+
+    if prng_or_seed is None:
+        return _get_none_prng_instance()
+
+    if isinstance(prng_or_seed, numbers.Integral):
+        return np.random.default_rng(int(prng_or_seed))
+
     if isinstance(prng_or_seed, np.random.RandomState):
-        return np.random.default_rng(prng_or_seed.randint(2**31))
-    randint = getattr(prng_or_seed, "randint", None)
-    if randint is not None:
-        return np.random.default_rng(randint(2**31))
-    raise TypeError(f"{prng_or_seed} can't be converted to a pseudorandom number generator")
+        bit_gen = getattr(prng_or_seed, '_bit_generator', None)
+        if bit_gen is not None:
+            return np.random.default_rng(bit_gen)
+        seed_val = prng_or_seed.randint(2**31)
+        return np.random.default_rng(seed_val)
+
+    raise TypeError(
+        f"Input {prng_or_seed} (type: {type(prng_or_seed).__name__}) cannot be converted "
+        f"to a {np.random.Generator.__name__}"
+    )
