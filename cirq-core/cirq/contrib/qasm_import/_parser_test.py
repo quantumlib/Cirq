@@ -1636,10 +1636,12 @@ def test_iswap_gate():
         for name, stmt in QasmParser.qelib_gates.items()
     ],
 )
-def test_all_qelib_gates_unitary_equivalence(qasm_gate, cirq_gate, num_params, num_args):
-    theta = np.pi / 4
+@pytest.mark.parametrize("theta,theta_str", [(np.pi / 4, "pi/4"), (np.pi / 2, "pi/2")])
+def test_all_qelib_gates_unitary_equivalence(
+    qasm_gate, cirq_gate, num_params, num_args, theta, theta_str
+):
     thetas = [theta] * num_params
-    params_str = f"({','.join('pi/4' for _ in range(num_params))})" if num_params else ""
+    params_str = f"({','.join(theta_str for _ in range(num_params))})" if num_params else ""
     qubit_names, qubits = [], []
     for i in range(num_args):
         qubit_names.append(f"q[{i}]")
