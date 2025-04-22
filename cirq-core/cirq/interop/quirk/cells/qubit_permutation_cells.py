@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Callable, Iterator, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import ops, value
@@ -42,7 +44,7 @@ class QuirkQubitPermutationGate(ops.QubitPermutationGate):
     def _value_equality_values_(self):
         return self.identifier, self.name, self.permutation
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         return tuple(
             f'{self.name}[{i}>{self.permutation[i]}]' for i in range(len(self.permutation))
         )
