@@ -56,7 +56,7 @@ def index_tags(
         return op.untagged.with_tags(*tag_set)
 
     return transformer_primitives.map_operations(
-        circuit, _map_func, deep=context.deep if context else False
+        circuit, _map_func, deep=context.deep if context else False, tags_to_ignore=tags_to_ignore
     ).unfreeze(copy=False)
 
 
@@ -70,6 +70,8 @@ def remove_tags(
 ) -> 'cirq.Circuit':
     """Remove tags from the operations based on the input args.
 
+    Note: context.tags_to_ignore has higher priority than target_tags and remove_if.
+
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
@@ -81,8 +83,6 @@ def remove_tags(
         Copy of the transformed input circuit.
     """
     target_tags = target_tags or set()
-    if context and target_tags.intersection(context.tags_to_ignore or set()):
-        raise ValueError("Can't remove tags in context.tags_to_ignore.")
 
     def _map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         remaing_tags = set()
@@ -93,5 +93,8 @@ def remove_tags(
         return op.untagged.with_tags(*remaing_tags)
 
     return transformer_primitives.map_operations(
-        circuit, _map_func, deep=context.deep if context else False
+        circuit,
+        _map_func,
+        deep=context.deep if context else False,
+        tags_to_ignore=context.tags_to_ignore if context else [],
     ).unfreeze(copy=False)

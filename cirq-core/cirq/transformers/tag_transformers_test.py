@@ -48,7 +48,7 @@ def test_remove_tags():
     expected_circuit = cirq.Circuit(
         cirq.X(q0).with_tags("tag2"), cirq.Y(q1), cirq.CZ(q0, q1).with_tags("tag2")
     )
-    cirq.testing.assert_equivalent_op_tree(
+    check_same_circuit_with_same_tag_sets(
         cirq.remove_tags(input_circuit, target_tags={"tag1"}), expected_circuit
     )
 
@@ -61,7 +61,27 @@ def test_remove_tags_via_remove_if():
         cirq.CZ(q0, q1).with_tags("tag2"),
     )
     expected_circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q1).with_tags("not_tag1"), cirq.CZ(q0, q1))
-    cirq.testing.assert_equivalent_op_tree(
+    check_same_circuit_with_same_tag_sets(
         cirq.remove_tags(input_circuit, remove_if=lambda tag: tag.startswith("tag")),
+        expected_circuit,
+    )
+
+
+def test_remove_tags_with_tags_to_ignore():
+    q0, q1 = cirq.LineQubit.range(2)
+    input_circuit = cirq.Circuit(
+        cirq.X(q0).with_tags("tag1", "tag0"),
+        cirq.Y(q1).with_tags("not_tag1"),
+        cirq.CZ(q0, q1).with_tags("tag2"),
+    )
+    expected_circuit = cirq.Circuit(
+        cirq.X(q0).with_tags("tag1", "tag0"), cirq.Y(q1).with_tags("not_tag1"), cirq.CZ(q0, q1)
+    )
+    check_same_circuit_with_same_tag_sets(
+        cirq.remove_tags(
+            input_circuit,
+            remove_if=lambda tag: tag.startswith("tag"),
+            context=cirq.TransformerContext(tags_to_ignore=["tag0"]),
+        ),
         expected_circuit,
     )
