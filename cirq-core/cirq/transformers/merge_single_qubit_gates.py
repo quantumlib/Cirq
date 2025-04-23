@@ -87,7 +87,6 @@ def merge_single_qubit_gates_to_phxz(
     Args:
         circuit: Input circuit to transform. It will not be modified.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
-        merge_tag: If provided, tag merged PhXZ gate with it.
         merge_tags_fn: A callable returns the tags to be added to the merged operation.
         atol: Absolute tolerance to angle error. Larger values allow more negligible gates to be
             dropped, smaller values increase accuracy.
@@ -97,11 +96,9 @@ def merge_single_qubit_gates_to_phxz(
     """
 
     def rewriter(circuit_op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
-
         u = protocols.unitary(circuit_op)
         if protocols.num_qubits(circuit_op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
-
         gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol) or ops.I
         phxz_op = gate.on(circuit_op.qubits[0])
         return phxz_op.with_tags(*merge_tags_fn(circuit_op)) if merge_tags_fn else phxz_op
