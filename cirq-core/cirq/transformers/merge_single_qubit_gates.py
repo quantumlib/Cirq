@@ -171,11 +171,6 @@ def merge_single_qubit_moments_to_phxz(
     ).unfreeze(copy=False)
 
 
-def _values_of_sweep(sweep: Sweep, key: TMeasurementKey):
-    p = sympy.Symbol(key) if isinstance(key, str) else key
-    return [resolver.value_of(p) for resolver in sweep]
-
-
 def _parameterize_phxz_in_circuits(
     circuit_list: List['cirq.Circuit'],
     merge_tag_prefix: str,
@@ -186,7 +181,7 @@ def _parameterize_phxz_in_circuits(
     """Parameterizes the circuits and returns a new sweep."""
     values_by_params: Dict[str, List[float]] = {
         **{str(s): [] for s in phxz_symbols},
-        **{str(s): _values_of_sweep(sweep, s) for s in remaining_symbols},
+        **{str(s): [resolver.value_of(s) for resolver in sweep] for s in remaining_symbols},
     }
 
     for circuit in circuit_list:
@@ -291,7 +286,10 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     if not single_qubit_gate_symbols:
         return (merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol), sweep)
     sweep_of_single: Sweep = Zip(
-        *[Points(key=k, points=_values_of_sweep(sweep, k)) for k in single_qubit_gate_symbols]
+        *[
+            Points(key=k, points=[resolver.value_of(k) for resolver in sweep])
+            for k in single_qubit_gate_symbols
+        ]
     )
     # Get all resolved circuits from all sets of resolvers in the sweep.
     resolved_circuits = [
