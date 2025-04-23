@@ -42,11 +42,10 @@ def index_tags(
     """
     target_tags = target_tags or set()
     tag_iter_by_tags = {tag: itertools.count(start=0, step=1) for tag in target_tags}
-    tags_to_ignore = context.tags_to_ignore if context else set()
 
     def _map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         tag_set = set(op.tags)
-        if not index_if(op) or tag_set.intersection(tags_to_ignore):  # Skip indexing
+        if not index_if(op):
             return op
         nonlocal tag_iter_by_tags
         for tag in target_tags.intersection(op.tags):
@@ -56,7 +55,10 @@ def index_tags(
         return op.untagged.with_tags(*tag_set)
 
     return transformer_primitives.map_operations(
-        circuit, _map_func, deep=context.deep if context else False, tags_to_ignore=tags_to_ignore
+        circuit,
+        _map_func,
+        deep=context.deep if context else False,
+        tags_to_ignore=context.tags_to_ignore if context else [],
     ).unfreeze(copy=False)
 
 
