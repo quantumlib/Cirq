@@ -14,6 +14,7 @@
 
 import re
 from typing import Hashable, Optional, TYPE_CHECKING
+
 import sympy
 
 from cirq import ops
@@ -69,7 +70,7 @@ def symbolize_single_qubit_gates_by_indexed_tags(
                     tag_id = int(str(tag).rsplit("_", maxsplit=-1)[-1])
                 else:
                     raise ValueError(f"Multiple tags are prefixed with {tag_prefix}.")
-        if not tag_id:
+        if tag_id is None:
             return op
         tags.remove(f"{tag_prefix}_{tag_id}")
         phxz_params = {

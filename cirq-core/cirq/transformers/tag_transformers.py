@@ -13,8 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Callable, Hashable, Optional, Sequence, TYPE_CHECKING
-
+from typing import Callable, Hashable, Optional, TYPE_CHECKING
 
 from cirq.transformers import transformer_api, transformer_primitives
 
@@ -41,7 +40,7 @@ def index_tags(
     Returns:
         Copy of the transformed input circuit.
     """
-    target_tags = set(target_tags) if target_tags else set()
+    target_tags = target_tags or set()
     tag_iter_by_tags = {tag: itertools.count(start=0, step=1) for tag in target_tags}
     tags_to_ignore = context.tags_to_ignore if context else set()
 
@@ -81,7 +80,7 @@ def remove_tags(
     Returns:
         Copy of the transformed input circuit.
     """
-    target_tags = set(target_tags) if target_tags else set()
+    target_tags = target_tags or set()
     if context and target_tags.intersection(context.tags_to_ignore or set()):
         raise ValueError("Can't remove tags in context.tags_to_ignore.")
 

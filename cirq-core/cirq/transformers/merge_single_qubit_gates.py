@@ -327,6 +327,10 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     ):
         raise RuntimeError("Different resolvers in sweep resulted in different merged structures.")
 
+    import logging
+
+    logging.info(f"\n{merged_circuits[0]}")
+
     # Step 2, get the new symbolized circuit by mapping merged operations.
     new_circuit = align.align_right(
         remove_tags(
@@ -354,4 +358,4 @@ def merge_single_qubit_gates_to_phxz_symbolized(
         merged_circuits, symbolized_single_tag, phxz_symbols, remaining_symbols, sweep
     )
 
-    return new_circuit.unfreeze(copy=False), new_sweep
+    return new_circuit, new_sweep
