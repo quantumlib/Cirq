@@ -115,6 +115,13 @@ def test_circuit_diagram_info_pass_fail():
     assert cirq.circuit_diagram_info(E()) == cirq.CircuitDiagramInfo(('X',))
 
 
+def test_controlled_1x1_matrixgate_diagram_error():
+    q = cirq.LineQubit(0)
+    g = cirq.MatrixGate(np.array([[1j]])).controlled()
+    c = cirq.Circuit(g(q))
+    assert str(c) == "0: ───C[[0.+1.j]]───"
+
+
 def test_circuit_diagram_info_args_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)

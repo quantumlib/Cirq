@@ -187,6 +187,9 @@ class MatrixGate(raw_types.Gate):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         n_qubits = len(self._qid_shape)
+        # No diagram for zero-qubit gates; let fallback handle it
+        if n_qubits == 0:
+            return NotImplemented
         if self._name is not None:
             symbols = (
                 [self._name] if n_qubits == 1 else [f'{self._name}[{i+1}]' for i in range(n_qubits)]
