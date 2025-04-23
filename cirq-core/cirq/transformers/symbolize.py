@@ -41,9 +41,9 @@ def symbolize_single_qubit_gates_by_indexed_tags(
                     cirq.Y(q0).with_tags("phxz_1"),\
                     cirq.X(q0))
         >>> print(c)
-        0: ───X["phxz_0"]───@───Y["phxz_1"]───X───
-                            │
-        1: ─────────────────@─────────────────────
+        0: ───X[phxz_0]───@───Y[phxz_1]───X───
+                          │
+        1: ───────────────@───────────────────
         >>> new_circuit = cirq.symbolize_single_qubit_gates_by_indexed_tags(\
                 c, tag_prefix="phxz")
         >>> print(new_circuit)

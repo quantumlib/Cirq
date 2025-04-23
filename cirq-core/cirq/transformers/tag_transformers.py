@@ -27,7 +27,6 @@ def index_tags(
     *,
     context: Optional['cirq.TransformerContext'] = None,
     target_tags: Optional[set[Hashable]] = None,
-    index_if: Callable[[Hashable], bool] = lambda _: True,
 ) -> 'cirq.Circuit':
     """Indexes all the tags in target_tags tag_0, tag_1, ....
 
@@ -35,7 +34,6 @@ def index_tags(
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
         target_tags: Tags to be indexed.
-        index_if: A callable that returns True if its tags should be indexed. Defaults to True.
 
     Returns:
         Copy of the transformed input circuit.
@@ -45,8 +43,6 @@ def index_tags(
 
     def _map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         tag_set = set(op.tags)
-        if not index_if(op):
-            return op
         nonlocal tag_iter_by_tags
         for tag in target_tags.intersection(op.tags):
             tag_set.remove(tag)
