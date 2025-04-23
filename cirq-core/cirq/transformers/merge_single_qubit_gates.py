@@ -232,8 +232,8 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     sweep: Sweep,
     atol: float = 1e-8,
 ) -> Tuple['cirq.Circuit', Sweep]:
-    """Merge consecutive single qubit gates as PhasedXZ Gates. Symbolize if any of the consecutive
-      gates is symbolized.
+    """Merges consecutive single qubit gates as PhasedXZ Gates. Symbolizes if any of
+      the consecutive gates is symbolized.
 
     Example:
         >>> q0, q1 = cirq.LineQubit.range(2)
@@ -258,9 +258,9 @@ def merge_single_qubit_gates_to_phxz_symbolized(
 
     Args:
         circuit: Input circuit to transform. It will not be modified.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
         sweep: Sweep of the symbols in the input circuit, updated Sweep will be returned
             based on the transformation.
-        context: `cirq.TransformerContext` storing common configurable options for transformers.
         atol: Absolute tolerance to angle error. Larger values allow more negligible gates to be
             dropped, smaller values increase accuracy.
 
@@ -282,7 +282,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
         deep=deep,
     )
 
-    # Step 0, isolate single qubit symbolized symbols and resolve the circuit on them.
+    # Step 0, isolate single qubit symbols and resolve the circuit on them.
     single_qubit_gate_symbols: set[sympy.Symbol] = set().union(
         *[
             protocols.parameter_symbols(op) if symbolized_single_tag in op.tags else set()
@@ -294,7 +294,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     if not single_qubit_gate_symbols:
         return (merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol), sweep)
     sweep_of_single: Sweep = _sweep_on_symbols(sweep, single_qubit_gate_symbols)
-    # Get all resolved circuits from all sets of resolvers in the sweep.
+    # Get all resolved circuits from all sets of resolvers in sweep_of_single.
     resolved_circuits = [
         protocols.resolve_parameters(circuit_tagged, resolver) for resolver in sweep_of_single
     ]

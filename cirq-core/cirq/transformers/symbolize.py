@@ -31,7 +31,7 @@ def symbolize_single_qubit_gates_by_indexed_tags(
     context: Optional['cirq.TransformerContext'] = None,
     tag_prefix: Optional[str] = "TO-PHXZ",
 ) -> 'cirq.Circuit':
-    """Symbolize single qubit operations by indexed tags prefixed by tag_prefix.
+    """Symbolizes single qubit operations by indexed tags prefixed by tag_prefix.
 
     Example:
         >>> q0, q1 = cirq.LineQubit.range(2)

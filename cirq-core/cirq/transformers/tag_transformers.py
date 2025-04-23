@@ -28,7 +28,7 @@ def index_tags(
     context: Optional['cirq.TransformerContext'] = None,
     target_tags: Optional[set[Hashable]] = None,
 ) -> 'cirq.Circuit':
-    """Indexes all the tags in target_tags tag_0, tag_1, ....
+    """Indexes tags in target_tags as tag_0, tag_1, ... per tag.
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
@@ -66,7 +66,7 @@ def remove_tags(
     target_tags: Optional[set[Hashable]] = None,
     remove_if: Callable[[Hashable], bool] = lambda _: False,
 ) -> 'cirq.Circuit':
-    """Remove tags from the operations based on the input args.
+    """Removes tags from the operations based on the input args.
 
     Note: context.tags_to_ignore has higher priority than target_tags and remove_if.
 
