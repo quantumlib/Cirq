@@ -57,7 +57,7 @@ def index_tags(
 
     return transformer_primitives.map_operations(
         circuit, _map_func, deep=context.deep if context else False
-    ).freeze(copy=False)
+    ).unfreeze(copy=False)
 
 
 @transformer_api.transformer
@@ -92,4 +92,4 @@ def remove_tags(
 
     return transformer_primitives.map_operations(
         circuit, _map_func, deep=context.deep if context else False
-    ).freeze(copy=False)
+    ).unfreeze(copy=False)

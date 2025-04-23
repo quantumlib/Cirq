@@ -46,9 +46,9 @@ def symbolize_single_qubit_gates_by_indexed_tags(
         >>> new_circuit = cirq.symbolize_single_qubit_gates_by_indexed_tags(\
                 c, tag_prefix="phxz")
         >>> print(new_circuit)
-        0: ───PhXZ(a=a0,x=x0,z=z0)───@───PhXZ(a=a1,x=x1,z=z1)─X─
-                                   │
-        1: ────────────────────────@──────────────────────────
+        0: ───PhXZ(a=a0,x=x0,z=z0)───@───PhXZ(a=a1,x=x1,z=z1)───X───
+                                     │
+        1: ──────────────────────────@──────────────────────────────
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
