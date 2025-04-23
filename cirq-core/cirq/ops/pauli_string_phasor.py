@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import numbers
+import warnings
 from typing import (
     AbstractSet,
     cast,
@@ -199,6 +200,17 @@ class PauliStringPhasor(gate_operation.GateOperation):
         syms = tuple(sym(qubit) for qubit in qubits)
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
 
+    def conjugated_by(self, clifford: 'cirq.OP_TREE') -> 'PauliStringPhasor':
+        r"""Returns the Pauli string conjugated by a clifford operation.
+
+        The PauliStringPhasor $P$ conjugated by the Clifford operation $C$ is
+          $C^\dagger P C$.
+        """
+        new_pauli_string: ps.PauliString = self.pauli_string.conjugated_by(clifford)
+        pp = self.exponent_pos
+        pn = self.exponent_neg
+        return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)
+
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
     ) -> PauliStringPhasor:
@@ -228,7 +240,18 @@ class PauliStringPhasor(gate_operation.GateOperation):
                 pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
-        new_pauli_string = self.pauli_string.pass_operations_over(ops, after_to_before)
+        warnings.warn(
+            "PauliStringPhasor.pass_operations_over() is deprecated since v1.5.0 and"
+            " will be removed in v2.0. Use PauliStringPhasor.conjuagetd_by() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        new_pauli_string: ps.PauliString = ps.PauliString()
+        if after_to_before:
+            new_pauli_string = self.pauli_string.after(ops)
+        else:
+            all_ops = list(op_tree.flatten_to_ops(ops))
+            new_pauli_string = self.pauli_string.before(all_ops[::-1])
         pp = self.exponent_pos
         pn = self.exponent_neg
         return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)

@@ -17,6 +17,7 @@ from __future__ import annotations
 import cmath
 import math
 import numbers
+import warnings
 from types import NotImplementedType
 from typing import (
     AbstractSet,
@@ -1099,9 +1100,12 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
-        # TODO(#6946): deprecate this method.
-        # Note: This method is supposed to be replaced by conjugated_by()
-        #  (see #2351 for details).
+        warnings.warn(
+            "PauliString.pass_operations_over() is deprecated since v1.5.0 and"
+            " will be removed in v2.0. Use PauliString.conjuagetd_by() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if after_to_before:
             return self.after(ops)
 
