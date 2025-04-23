@@ -19,7 +19,6 @@ from typing import Callable, Dict, Hashable, List, Optional, Tuple, TYPE_CHECKIN
 import sympy
 
 from cirq import circuits, ops, protocols
-from cirq.study.result import TMeasurementKey
 from cirq.study.sweeps import Points, Sweep, Zip
 from cirq.transformers import (
     align,
@@ -179,7 +178,7 @@ def _parameterize_phxz_in_circuits(
     sweep: Sweep,
 ) -> Sweep:
     """Parameterizes the circuits and returns a new sweep."""
-    values_by_params: Dict[str, List[float]] = {
+    values_by_params: Dict[str, 'cirq.TParamValComplex'] = {
         **{str(s): [] for s in phxz_symbols},
         **{str(s): [resolver.value_of(s) for resolver in sweep] for s in remaining_symbols},
     }
@@ -287,7 +286,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
         return (merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol), sweep)
     sweep_of_single: Sweep = Zip(
         *[
-            Points(key=k, points=[resolver.value_of(k) for resolver in sweep])
+            Points(key=k, points=[float(resolver.value_of(k)) for resolver in sweep])
             for k in single_qubit_gate_symbols
         ]
     )
