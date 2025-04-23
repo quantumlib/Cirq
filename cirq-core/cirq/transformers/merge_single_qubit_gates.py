@@ -14,12 +14,13 @@
 
 """Transformer passes to combine adjacent single-qubit rotations."""
 
-from typing import Callable, Dict, Hashable, List, Optional, Tuple, TYPE_CHECKING
+from typing import Callable, cast, Dict, Hashable, List, Optional, Tuple, TYPE_CHECKING
 
 import sympy
 
 from cirq import circuits, ops, protocols
-from cirq.study.sweeps import Points, Sweep, Zip
+from cirq.study.sweeps import dict_to_zip_sweep, ListSweep, ProductOrZipSweepLike, Sweep, Zip
+from cirq.study.resolver import ParamResolver
 from cirq.transformers import (
     align,
     merge_k_qubit_gates,
@@ -170,6 +171,14 @@ def merge_single_qubit_moments_to_phxz(
     ).unfreeze(copy=False)
 
 
+def _sweep_on_symbols(sweep: Sweep, symbols: set[sympy.Symbol]) -> Sweep:
+    new_resolvers: List['cirq.ParamResolver'] = []
+    for resolver in sweep:
+        param_dict: 'cirq.ParamMappingType' = {s: resolver.value_of(s) for s in symbols}
+        new_resolvers.append(ParamResolver(param_dict))
+    return ListSweep(new_resolvers)
+
+
 def _parameterize_phxz_in_circuits(
     circuit_list: List['cirq.Circuit'],
     merge_tag_prefix: str,
@@ -178,10 +187,7 @@ def _parameterize_phxz_in_circuits(
     sweep: Sweep,
 ) -> Sweep:
     """Parameterizes the circuits and returns a new sweep."""
-    values_by_params: Dict[str, 'cirq.TParamValComplex'] = {
-        **{str(s): [] for s in phxz_symbols},
-        **{str(s): [resolver.value_of(s) for resolver in sweep] for s in remaining_symbols},
-    }
+    values_by_params: Dict[str, List[float]] = {**{str(s): [] for s in phxz_symbols}}
 
     for circuit in circuit_list:
         for op in circuit.all_operations():
@@ -204,7 +210,10 @@ def _parameterize_phxz_in_circuits(
             values_by_params[f"z{sid}"].append(z)
             values_by_params[f"a{sid}"].append(a)
 
-    return Zip(*[Points(key=key, points=values) for key, values in values_by_params.items()])
+    return Zip(
+        dict_to_zip_sweep(cast(ProductOrZipSweepLike, values_by_params)),
+        _sweep_on_symbols(sweep, remaining_symbols),
+    )
 
 
 def _all_tags_startswith(circuit: 'cirq.AbstractCircuit', startswith: str):
@@ -284,18 +293,14 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     # the transformer.
     if not single_qubit_gate_symbols:
         return (merge_single_qubit_gates_to_phxz(circuit, context=context, atol=atol), sweep)
-    sweep_of_single: Sweep = Zip(
-        *[
-            Points(key=k, points=[float(resolver.value_of(k)) for resolver in sweep])
-            for k in single_qubit_gate_symbols
-        ]
-    )
+    sweep_of_single: Sweep = _sweep_on_symbols(sweep, single_qubit_gate_symbols)
     # Get all resolved circuits from all sets of resolvers in the sweep.
     resolved_circuits = [
         protocols.resolve_parameters(circuit_tagged, resolver) for resolver in sweep_of_single
     ]
 
-    # Step 1, merge single qubit gates per resolved circuit, preserving the "symbolized_single_tag".
+    # Step 1, merge single qubit gates per resolved circuit, preserving
+    #  the symbolized_single_tag with indexes.
     merged_circuits: List['cirq.Circuit'] = []
     for resolved_circuit in resolved_circuits:
         merged_circuit = index_tags(
@@ -324,7 +329,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     ):
         raise RuntimeError("Different resolvers in sweep resulted in different merged structures.")
 
-    # Step 2, get the new symbolized circuit by mapping merged operations.
+    # Step 2, get the new symbolized circuit by symbolization on indexed symbolized_single_tag.
     new_circuit = align.align_right(
         remove_tags(
             symbolize.symbolize_single_qubit_gates_by_indexed_tags(
