@@ -19,8 +19,8 @@ from typing import Callable, cast, Dict, Hashable, List, Optional, Tuple, TYPE_C
 import sympy
 
 from cirq import circuits, ops, protocols
-from cirq.study.sweeps import dict_to_zip_sweep, ListSweep, ProductOrZipSweepLike, Sweep, Zip
 from cirq.study.resolver import ParamResolver
+from cirq.study.sweeps import dict_to_zip_sweep, ListSweep, ProductOrZipSweepLike, Sweep, Zip
 from cirq.transformers import (
     align,
     merge_k_qubit_gates,
