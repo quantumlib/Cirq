@@ -179,8 +179,8 @@ def _values_of_sweep(sweep: Sweep, key: TMeasurementKey):
 def _parameterize_phxz_in_circuits(
     circuit_list: List['cirq.Circuit'],
     merge_tag_prefix: str,
-    phxz_symbols: frozenset[sympy.Symbol],
-    remaining_symbols: frozenset[sympy.Symbol],
+    phxz_symbols: set[sympy.Symbol],
+    remaining_symbols: set[sympy.Symbol],
     sweep: Sweep,
 ) -> Sweep:
     """Parameterizes the circuits and returns a new sweep."""
@@ -280,13 +280,11 @@ def merge_single_qubit_gates_to_phxz_symbolized(
     )
 
     # Step 0, isolate single qubit symbolized symbols and resolve the circuit on them.
-    single_qubit_gate_symbols: frozenset[sympy.Symbol] = frozenset(
-        set().union(
-            *[
-                protocols.parameter_symbols(op) if symbolized_single_tag in op.tags else set()
-                for op in circuit_tagged.all_operations()
-            ]
-        )
+    single_qubit_gate_symbols: set[sympy.Symbol] = set().union(
+        *[
+            protocols.parameter_symbols(op) if symbolized_single_tag in op.tags else set()
+            for op in circuit_tagged.all_operations()
+        ]
     )
     # If all single qubit gates are not parameterized, call the nonparamerized version of
     # the transformer.
@@ -302,7 +300,6 @@ def merge_single_qubit_gates_to_phxz_symbolized(
 
     # Step 1, merge single qubit gates per resolved circuit, preserving the "symbolized_single_tag".
     merged_circuits: List['cirq.Circuit'] = []
-    phxz_symbols: set[sympy.Symbols] = set()
     for resolved_circuit in resolved_circuits:
         merged_circuit = index_tags(
             merge_single_qubit_gates_to_phxz(
@@ -336,28 +333,21 @@ def merge_single_qubit_gates_to_phxz_symbolized(
             symbolize.symbolize_single_qubit_gates_by_indexed_tags(
                 merged_circuits[0], tag_prefix=symbolized_single_tag
             ),
-            remove_if=lambda tag: tag.startswith(symbolized_single_tag),
+            remove_if=lambda tag: str(tag).startswith(symbolized_single_tag),
         )
     )
 
     # Step 3, get N sets of parameterizations as new_sweep.
-    phxz_symbols: frozenset[sympy.Symbol] = frozenset(
-        set().union(
-            *[
-                set(
-                    [
-                        sympy.Symbol(tag.replace(f"{symbolized_single_tag}_", s))
-                        for s in ["x", "z", "a"]
-                    ]
-                )
-                for tag in _all_tags_startswith(
-                    merged_circuits[0], startswith=symbolized_single_tag
-                )
-            ]
-        )
+    phxz_symbols: set[sympy.Symbol] = set().union(
+        *[
+            set(
+                [sympy.Symbol(tag.replace(f"{symbolized_single_tag}_", s)) for s in ["x", "z", "a"]]
+            )
+            for tag in _all_tags_startswith(merged_circuits[0], startswith=symbolized_single_tag)
+        ]
     )
     # Remaining symbols, e.g., 2 qubit gates' symbols. Sweep of those symbols keeps unchanged.
-    remaining_symbols: frozenset[sympy.Symbol] = frozenset(
+    remaining_symbols: set[sympy.Symbol] = set(
         protocols.parameter_symbols(circuit) - single_qubit_gate_symbols
     )
     new_sweep = _parameterize_phxz_in_circuits(

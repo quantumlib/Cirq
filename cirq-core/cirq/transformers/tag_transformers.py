@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Callable, Hashable, Optional, TYPE_CHECKING
+from typing import Callable, Hashable, Optional, Sequence, TYPE_CHECKING
 
 
 from cirq.transformers import transformer_api, transformer_primitives
@@ -27,7 +27,7 @@ def index_tags(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
-    target_tags: frozenset[Hashable] = frozenset(),
+    target_tags: Optional[set[Hashable]] = None,
     index_if: Callable[[Hashable], bool] = lambda _: True,
 ) -> 'cirq.Circuit':
     """Indexes all the tags in target_tags tag_0, tag_1, ....
@@ -41,6 +41,7 @@ def index_tags(
     Returns:
         Copy of the transformed input circuit.
     """
+    target_tags = set(target_tags) if target_tags else set()
     tag_iter_by_tags = {tag: itertools.count(start=0, step=1) for tag in target_tags}
     tags_to_ignore = context.tags_to_ignore if context else set()
 
@@ -65,7 +66,7 @@ def remove_tags(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
-    target_tags: frozenset[Hashable] = frozenset(),
+    target_tags: Optional[set[Hashable]] = None,
     remove_if: Callable[[Hashable], bool] = lambda _: False,
 ) -> 'cirq.Circuit':
     """Remove tags from the operations based on the input args.
@@ -74,11 +75,13 @@ def remove_tags(
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
         target_tags: Tags to be removed.
-        remove_if: A callable(tag) that returns True if the tag should be removed. Defaults to False.
+        remove_if: A callable(tag) that returns True if the tag should be removed.
+          Defaults to False.
 
     Returns:
         Copy of the transformed input circuit.
     """
+    target_tags = set(target_tags) if target_tags else set()
     if context and target_tags.intersection(context.tags_to_ignore or set()):
         raise ValueError("Can't remove tags in context.tags_to_ignore.")
 

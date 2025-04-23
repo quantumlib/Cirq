@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Hashable, Optional, TYPE_CHECKING
 import re
+from typing import Hashable, Optional, TYPE_CHECKING
 import sympy
 
 from cirq import ops
@@ -64,9 +64,9 @@ def symbolize_single_qubit_gates_by_indexed_tags(
         tags: set[Hashable] = set(op.tags)
         tag_id: None | int = None
         for tag in tags:
-            if re.fullmatch(f"{tag_prefix}_\\d+", tag):
+            if re.fullmatch(f"{tag_prefix}_\\d+", str(tag)):
                 if tag_id is None:
-                    tag_id = tag.split("_")[-1]
+                    tag_id = int(str(tag).rsplit("_", maxsplit=-1)[-1])
                 else:
                     raise ValueError(f"Multiple tags are prefixed with {tag_prefix}.")
         if not tag_id:
@@ -84,5 +84,5 @@ def symbolize_single_qubit_gates_by_indexed_tags(
         circuit.freeze(),
         _map_func,
         deep=context.deep if context else False,
-        tags_to_ignore=context.tags_to_ignore if context else set(),
+        tags_to_ignore=context.tags_to_ignore if context else [],
     ).unfreeze(copy=False)
