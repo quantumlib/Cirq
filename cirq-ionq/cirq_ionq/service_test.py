@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import datetime
 import os
 from unittest import mock
@@ -321,3 +322,52 @@ def test_service_run_unwraps_single_result_list():
 
     assert out == expected
     mock_job.results.assert_called_once()
+
+
+@pytest.mark.parametrize("target", ["qpu", "simulator"])
+def test_run_batch_preserves_order(target):
+    """``Service.run_batch`` must return results in the same order as the
+    input ``circuits`` list, regardless of how the IonQ API happens to order
+    its per‑circuit results.
+    """
+
+    # Service with a fully mocked HTTP client.
+    service = ionq.Service(remote_host="http://example.com", api_key="key")
+    client = mock.MagicMock()
+    service._client = client
+
+    # Three trivial 1‑qubit circuits, each measuring under a unique key.
+    keys = ["a", "b", "c"]
+    q = cirq.LineQubit(0)
+    circuits = [cirq.Circuit(cirq.measure(q, key=k)) for k in keys]
+
+    client.create_job.return_value = {"id": "job_id", "status": "ready"}
+
+    client.get_job.return_value = {
+        "id": "job_id",
+        "status": "completed",
+        "target": target,
+        "qubits": "1",
+        "metadata": {
+            "shots": "1",
+            "measurements": json.dumps([{"measurement0": f"{k}\u001f0"} for k in keys]),
+            "qubit_numbers": json.dumps([1, 1, 1]),
+        },
+    }
+
+    # Intentionally scramble the order returned by the API: b, a, c.
+    client.get_results.return_value = {
+        "res_b": {"0": "1"},
+        "res_a": {"0": "1"},
+        "res_c": {"0": "1"},
+    }
+
+    results = service.run_batch(circuits, repetitions=1, target=target)
+
+    # The order of measurement keys in the results should match the input
+    # circuit order exactly (a, b, c).
+    assert [next(iter(r.measurements)) for r in results] == keys
+
+    # Smoke‑test on the mocked client usage.
+    client.create_job.assert_called_once()
+    client.get_results.assert_called_once()
