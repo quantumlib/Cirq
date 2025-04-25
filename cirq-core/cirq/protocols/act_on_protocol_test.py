@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import Any, Sequence, Tuple
 
 import numpy as np
@@ -34,7 +37,7 @@ class ExampleSimulationState(cirq.SimulationState):
         self.fallback_result = fallback_result
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ):
         return self.fallback_result
 
@@ -62,10 +65,10 @@ def test_act_on_fallback_errors():
 def test_act_on_errors():
     class Op(cirq.Operation):
         @property
-        def qubits(self) -> Tuple['cirq.Qid', ...]:  # type: ignore[empty-body]
+        def qubits(self) -> Tuple[cirq.Qid, ...]:  # type: ignore[empty-body]
             pass
 
-        def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:  # type: ignore[empty-body]
+        def with_qubits(self, *new_qubits: cirq.Qid) -> Self:  # type: ignore[empty-body]
             pass
 
         def _act_on_(self, sim_state):
@@ -79,10 +82,10 @@ def test_act_on_errors():
 def test_qubits_not_allowed_for_operations():
     class Op(cirq.Operation):
         @property
-        def qubits(self) -> Tuple['cirq.Qid', ...]:  # type: ignore[empty-body]
+        def qubits(self) -> Tuple[cirq.Qid, ...]:  # type: ignore[empty-body]
             pass
 
-        def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:  # type: ignore[empty-body]
+        def with_qubits(self, *new_qubits: cirq.Qid) -> Self:  # type: ignore[empty-body]
             pass
 
     state = ExampleSimulationState()

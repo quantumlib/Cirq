@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Callable, Dict, Iterable, List, Optional, overload, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
@@ -31,7 +33,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 def measure_single_paulistring(
     pauli_observable: pauli_string.PauliString,
-    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
+    key: Optional[Union[str, cirq.MeasurementKey]] = None,
 ) -> raw_types.Operation:
     """Returns a single PauliMeasurementGate which measures the pauli observable
 
@@ -95,7 +97,7 @@ def measure_paulistring_terms(
 @overload
 def measure(
     *target: raw_types.Qid,
-    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
+    key: Optional[Union[str, cirq.MeasurementKey]] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     pass
@@ -105,7 +107,7 @@ def measure(
 def measure(
     __target: Iterable[raw_types.Qid],
     *,
-    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
+    key: Optional[Union[str, cirq.MeasurementKey]] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     pass
@@ -113,7 +115,7 @@ def measure(
 
 def measure(
     *target,
-    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
+    key: Optional[Union[str, cirq.MeasurementKey]] = None,
     invert_mask: Tuple[bool, ...] = (),
     confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
 ) -> raw_types.Operation:

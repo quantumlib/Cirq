@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 from typing import Any, Dict, FrozenSet, Iterable, Mapping, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
@@ -28,7 +31,7 @@ class MixedUnitaryChannel(raw_types.Gate):
     def __init__(
         self,
         mixture: Iterable[Tuple[float, np.ndarray]],
-        key: Union[str, 'cirq.MeasurementKey', None] = None,
+        key: Union[str, cirq.MeasurementKey, None] = None,
         validate: bool = False,
     ):
         mixture = list(mixture)
@@ -58,7 +61,7 @@ class MixedUnitaryChannel(raw_types.Gate):
 
     @staticmethod
     def from_mixture(
-        mixture: 'protocols.SupportsMixture', key: Union[str, 'cirq.MeasurementKey', None] = None
+        mixture: protocols.SupportsMixture, key: Union[str, cirq.MeasurementKey, None] = None
     ):
         """Creates a copy of a mixture with the given measurement key."""
         return MixedUnitaryChannel(mixture=list(protocols.mixture(mixture)), key=key)
@@ -85,7 +88,7 @@ class MixedUnitaryChannel(raw_types.Gate):
             return NotImplemented
         return str(self._key)
 
-    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
+    def _measurement_key_obj_(self) -> cirq.MeasurementKey:
         if self._key is None:
             return NotImplemented
         return self._key
@@ -108,7 +111,7 @@ class MixedUnitaryChannel(raw_types.Gate):
         )
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ):
         return MixedUnitaryChannel(
             mixture=self._mixture, key=protocols.with_rescoped_keys(self._key, path, bindable_keys)
