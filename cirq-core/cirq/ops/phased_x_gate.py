@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """An `XPowGate` conjugated by `ZPowGate`s."""
+
+from __future__ import annotations
 
 import math
 import numbers
@@ -64,7 +67,7 @@ class PhasedXPowGate(raw_types.Gate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
 
@@ -92,7 +95,7 @@ class PhasedXPowGate(raw_types.Gate):
             qubits[0],
         )
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
         z = cirq.Z(q) ** self._phase_exponent
@@ -113,7 +116,7 @@ class PhasedXPowGate(raw_types.Gate):
     def global_shift(self) -> float:
         return self._global_shift
 
-    def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'PhasedXPowGate':
+    def __pow__(self, exponent: Union[float, sympy.Expr]) -> PhasedXPowGate:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover
@@ -169,9 +172,7 @@ class PhasedXPowGate(raw_types.Gate):
             self._phase_exponent
         )
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'PhasedXPowGate':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> PhasedXPowGate:
         """See `cirq.SupportsParameterization`."""
         phase_exponent = resolver.value_of(self._phase_exponent, recursive)
         exponent = resolver.value_of(self._exponent, recursive)
@@ -198,9 +199,7 @@ class PhasedXPowGate(raw_types.Gate):
             global_shift=self._global_shift,
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
         return protocols.CircuitDiagramInfo(

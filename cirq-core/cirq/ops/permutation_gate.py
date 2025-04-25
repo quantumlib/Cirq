@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any, Dict, Iterator, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
@@ -73,7 +75,7 @@ class QubitPermutationGate(raw_types.Gate):
     def _has_unitary_(self):
         return True
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         permutation = [p for p in self.permutation]
 
         for i in range(len(permutation)):
@@ -90,7 +92,7 @@ class QubitPermutationGate(raw_types.Gate):
             for idx in cycle[1:]:
                 yield swap_gates.SWAP(qubits[cycle[0]], qubits[idx])
 
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
         # Compute the permutation index list.
         permuted_axes = list(range(len(args.target_tensor.shape)))
         for i in range(len(args.axes)):
@@ -104,7 +106,7 @@ class QubitPermutationGate(raw_types.Gate):
         args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
         return args.available_buffer
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         return tuple(f'[{i}>{self.permutation[i]}]' for i in range(len(self.permutation)))
 
     def __repr__(self) -> str:
