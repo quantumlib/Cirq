@@ -59,9 +59,12 @@ function jq_stdin() {
     local infile
     infile="$(mktemp)"
     readonly infile
+    local jq_status=0
 
     cat >"${infile}"
-    jq_file "$@" "${infile}"
+    jq_file "$@" "${infile}" || jq_status="${?}"
+    rm "${infile}"
+    return "${jq_status}"
 }
 
 function jq_file() {
