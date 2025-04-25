@@ -168,7 +168,7 @@ function prune_stale_labels() {
         # If there is another size label, we need to remove it
         if [[ -v "LIMITS[${label}]" ]]; then
             info "Label '${label}' is stale, removing it."
-            api_call "issues/${pr}/labels/${label}" -X DELETE &>/dev/null
+            api_call "issues/${pr}/labels/${label}" -X DELETE >/dev/null
             continue
         fi
         info "Label '${label}' is unknown, leaving it."
@@ -215,7 +215,7 @@ function main() {
     correctly_labeled="$(prune_stale_labels "$PR_NUMBER" "${size_label}")"
 
     if [[ "${correctly_labeled}" != true ]]; then
-        api_call "issues/$PR_NUMBER/labels" -X POST -d "{\"labels\":[\"${size_label}\"]}" &>/dev/null
+        api_call "issues/$PR_NUMBER/labels" -X POST -d "{\"labels\":[\"${size_label}\"]}" >/dev/null
         info "Added label '${size_label}'"
     fi
 }
