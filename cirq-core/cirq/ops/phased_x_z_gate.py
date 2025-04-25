@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numbers
 from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
@@ -69,7 +71,7 @@ class PhasedXZGate(raw_types.Gate):
         self._axis_phase_exponent = axis_phase_exponent
 
     @classmethod
-    def from_zyz_angles(cls, z0_rad: float, y_rad: float, z1_rad: float) -> 'cirq.PhasedXZGate':
+    def from_zyz_angles(cls, z0_rad: float, y_rad: float, z1_rad: float) -> cirq.PhasedXZGate:
         r"""Create a PhasedXZGate from ZYZ angles.
 
         The returned gate is equivalent to $Rz(z0\_rad) Ry(y\_rad) Rz(z1\_rad)$ (in time order).
@@ -77,14 +79,14 @@ class PhasedXZGate(raw_types.Gate):
         return cls.from_zyz_exponents(z0=z0_rad / np.pi, y=y_rad / np.pi, z1=z1_rad / np.pi)
 
     @classmethod
-    def from_zyz_exponents(cls, z0: float, y: float, z1: float) -> 'cirq.PhasedXZGate':
+    def from_zyz_exponents(cls, z0: float, y: float, z1: float) -> cirq.PhasedXZGate:
         """Create a PhasedXZGate from ZYZ exponents.
 
         The returned gate is equivalent to $Z^{z0} Y^y Z^{z1}$ (in time order).
         """
         return PhasedXZGate(axis_phase_exponent=-z0 + 0.5, x_exponent=y, z_exponent=z0 + z1)
 
-    def _canonical(self) -> 'cirq.PhasedXZGate':
+    def _canonical(self) -> cirq.PhasedXZGate:
         x = self.x_exponent
         z = self.z_exponent
         a = self.axis_phase_exponent
@@ -146,7 +148,7 @@ class PhasedXZGate(raw_types.Gate):
         )
 
     @staticmethod
-    def from_matrix(mat: np.ndarray) -> 'cirq.PhasedXZGate':
+    def from_matrix(mat: np.ndarray) -> cirq.PhasedXZGate:
         pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         pre_phase /= np.pi
         post_phase /= np.pi
@@ -157,14 +159,14 @@ class PhasedXZGate(raw_types.Gate):
             x_exponent=rotation, axis_phase_exponent=-pre_phase, z_exponent=post_phase + pre_phase
         )._canonical()
 
-    def with_z_exponent(self, z_exponent: Union[float, sympy.Expr]) -> 'cirq.PhasedXZGate':
+    def with_z_exponent(self, z_exponent: Union[float, sympy.Expr]) -> cirq.PhasedXZGate:
         return PhasedXZGate(
             axis_phase_exponent=self._axis_phase_exponent,
             x_exponent=self._x_exponent,
             z_exponent=z_exponent,
         )
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         from cirq.circuits import qasm_output
 
         qasm_gate = qasm_output.QasmUGate(
@@ -189,13 +191,13 @@ class PhasedXZGate(raw_types.Gate):
         z_post = protocols.unitary(ops.Z ** (self._axis_phase_exponent + self._z_exponent))
         return z_post @ x @ z_pre
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         q = qubits[0]
         yield ops.Z(q) ** -self._axis_phase_exponent
         yield ops.X(q) ** self._x_exponent
         yield ops.Z(q) ** (self._axis_phase_exponent + self._z_exponent)
 
-    def __pow__(self, exponent: float) -> 'PhasedXZGate':
+    def __pow__(self, exponent: float) -> PhasedXZGate:
         if exponent == 1:
             return self
         if exponent == -1:
@@ -223,8 +225,8 @@ class PhasedXZGate(raw_types.Gate):
         )
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.PhasedXZGate':
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> cirq.PhasedXZGate:
         """See `cirq.SupportsParameterization`."""
         z_exponent = resolver.value_of(self._z_exponent, recursive)
         x_exponent = resolver.value_of(self._x_exponent, recursive)
@@ -250,7 +252,7 @@ class PhasedXZGate(raw_types.Gate):
             z_exponent=z_exponent, x_exponent=x_exponent, axis_phase_exponent=axis_phase_exponent
         )
 
-    def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZGate':
+    def _phase_by_(self, phase_turns, qubit_index) -> cirq.PhasedXZGate:
         """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
         return PhasedXZGate(
@@ -259,7 +261,7 @@ class PhasedXZGate(raw_types.Gate):
             axis_phase_exponent=self._axis_phase_exponent + phase_turns * 2,
         )
 
-    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
+    def _pauli_expansion_(self) -> cirq.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         x_angle = np.pi * self._x_exponent / 2
@@ -278,7 +280,7 @@ class PhasedXZGate(raw_types.Gate):
             }
         )  # yapf: disable
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> str:
         """See `cirq.SupportsCircuitDiagramInfo`."""
         return (
             f'PhXZ('
