@@ -111,9 +111,11 @@ function api_call() {
 function compute_changes() {
     local -r pr="$1"
 
+    local response
     local change_info
     local -r keys_filter='with_entries(select([.key] | inside(["changes", "filename"])))'
-    change_info="$(jq_stdin "map(${keys_filter})" <<<"$(api_call "pulls/${pr}/files")")"
+    response="$(api_call "pulls/${pr}/files")"
+    change_info="$(jq_stdin "map(${keys_filter})" <<<"${response}")"
 
     local files total_changes
     readarray -t files < <(jq_stdin -c '.[]' <<<"${change_info}")
@@ -148,8 +150,10 @@ function get_size_label() {
 function prune_stale_labels() {
     local -r pr="$1"
     local -r size_label="$2"
+    local response
     local existing_labels
-    existing_labels="$(jq_stdin -r '.labels[] | .name' <<<"$(api_call "pulls/${pr}")")"
+    response="$(api_call "pulls/${pr}")"
+    existing_labels="$(jq_stdin -r '.labels[] | .name' <<<"${response}")"
     readarray -t existing_labels <<<"${existing_labels}"
 
     local correctly_labeled=false
