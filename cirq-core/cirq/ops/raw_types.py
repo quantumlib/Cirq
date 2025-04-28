@@ -203,8 +203,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     to create an Operation on q1 and q2 is equivalent to MyGate(q1,q2).
 
     Gates operate on a certain number of qubits. All implementations of gate
-    must implement the `num_qubits` method declaring how many qubits they
-    act on.
+    must implement a method to declare the number of qubits (if a gate acting
+    on qubits) or the qid shape (if acting on qudits).  In general, this means
+    that a Gate subclass should implement only `_qid_shape_` if it can act on
+    qudits, otherwise it should define only `_num_qubits_`.
 
     Linear combinations of gates can be created by adding gates together and
     multiplying them by scalars.
