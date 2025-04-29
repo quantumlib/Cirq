@@ -59,9 +59,12 @@ function jq_stdin() {
     local infile
     infile="$(mktemp)"
     readonly infile
+    local jq_status=0
 
     cat >"${infile}"
-    jq_file "$@" "${infile}"
+    jq_file "$@" "${infile}" || jq_status="${?}"
+    rm "${infile}"
+    return "${jq_status}"
 }
 
 function jq_file() {
@@ -81,22 +84,38 @@ function jq_file() {
 function api_call() {
     local -r endpoint="${1// /%20}" # love that our label names have spaces...
     local -r uri="https://api.github.com/repos/${GITHUB_REPOSITORY}"
+    local response
+    local curl_status=0
     info "Calling: ${uri}/${endpoint}"
-    curl -sSL \
+    response="$(curl -sSL \
+        --fail-with-body \
+        --connect-timeout 10 --max-time 20 \
         -H "Authorization: token ${GITHUB_TOKEN}" \
         -H "Accept: application/vnd.github.v3.json" \
         -H "X-GitHub-Api-Version:2022-11-28" \
         -H "Content-Type: application/json" \
         "${@:2}" \
         "${uri}/${endpoint}"
+    )" || curl_status="${?}"
+    if [[ -n "${response}" ]]; then
+        cat <<<"${response}"
+    fi
+    if (( curl_status )); then
+        error "GitHub API call failed (curl exit $curl_status) for ${uri}/${endpoint}"
+        error "Response body:"
+        cat >&2 <<<"${response}"
+    fi
+    return "${curl_status}"
 }
 
 function compute_changes() {
     local -r pr="$1"
 
+    local response
     local change_info
     local -r keys_filter='with_entries(select([.key] | inside(["changes", "filename"])))'
-    change_info="$(jq_stdin "map(${keys_filter})" <<<"$(api_call "pulls/${pr}/files")")"
+    response="$(api_call "pulls/${pr}/files")"
+    change_info="$(jq_stdin "map(${keys_filter})" <<<"${response}")"
 
     local files total_changes
     readarray -t files < <(jq_stdin -c '.[]' <<<"${change_info}")
@@ -131,8 +150,10 @@ function get_size_label() {
 function prune_stale_labels() {
     local -r pr="$1"
     local -r size_label="$2"
+    local response
     local existing_labels
-    existing_labels="$(jq_stdin -r '.labels[] | .name' <<<"$(api_call "pulls/${pr}")")"
+    response="$(api_call "pulls/${pr}")"
+    existing_labels="$(jq_stdin -r '.labels[] | .name' <<<"${response}")"
     readarray -t existing_labels <<<"${existing_labels}"
 
     local correctly_labeled=false
@@ -147,7 +168,7 @@ function prune_stale_labels() {
         # If there is another size label, we need to remove it
         if [[ -v "LIMITS[${label}]" ]]; then
             info "Label '${label}' is stale, removing it."
-            api_call "issues/${pr}/labels/${label}" -X DELETE &>/dev/null
+            api_call "issues/${pr}/labels/${label}" -X DELETE >/dev/null
             continue
         fi
         info "Label '${label}' is unknown, leaving it."
@@ -194,7 +215,7 @@ function main() {
     correctly_labeled="$(prune_stale_labels "$PR_NUMBER" "${size_label}")"
 
     if [[ "${correctly_labeled}" != true ]]; then
-        api_call "issues/$PR_NUMBER/labels" -X POST -d "{\"labels\":[\"${size_label}\"]}" &>/dev/null
+        api_call "issues/$PR_NUMBER/labels" -X POST -d "{\"labels\":[\"${size_label}\"]}" >/dev/null
         info "Added label '${size_label}'"
     fi
 }
