@@ -70,15 +70,4 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{secrets.PR_LABELER_TOKEN}}
-        # N.B.: GitHub runners set the `pipefail` option by default.
-        run: ./dev_tools/ci/size-labeler.sh |& tee action.out
-
-      - name: Detect and report errors in labeler action
-        if: steps.label.outcome == 'failure' || steps.label.outcome == 'error'
-        run: |
-          {
-          echo "<h4>‼️ Failed to label PR ${PR_NUMBER}</h4>"
-          echo "<pre>"
-          cat action.out
-          echo "</pre>"
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: ./dev_tools/ci/size-labeler.sh
