@@ -182,11 +182,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install system packages
         run: |
           sudo apt-get update
@@ -216,11 +215,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: numpy2-${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install system packages
         run: |
           sudo apt-get update
@@ -278,11 +276,10 @@ jobs:
         with:
           python-version: '3.10'
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install system requirements
         run: |
           sudo apt-get update
@@ -315,11 +312,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
@@ -343,11 +339,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
