@@ -193,8 +193,14 @@ jobs:
           sudo apt-get install libffi7
       - name: Install requirements
         run: |
+          set -o xtrace
+          which pip
+          pip --version
+          pip freeze --all
           pip install --upgrade setuptools wheel
+          pip freeze --all
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
+          pip freeze --all
       - name: Run Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
