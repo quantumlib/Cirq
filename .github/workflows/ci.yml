@@ -199,6 +199,10 @@ jobs:
           which pip
           pip --version
           pip freeze --all
+          declare -p pythonLocation
+          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
+          find "${pythonLocation}" -type f -name "*.pyc" -exec rm "{}" +
+          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
           pip install --upgrade setuptools wheel
           pip freeze --all
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
@@ -241,6 +245,10 @@ jobs:
           which pip
           pip --version
           pip freeze --all
+          declare -p pythonLocation
+          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
+          find "${pythonLocation}" -type f -name "*.pyc" -exec rm "{}" +
+          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
           pip install wheel
           pip freeze --all
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev-np2.env.txt
@@ -311,6 +319,10 @@ jobs:
           which pip
           pip --version
           pip freeze --all
+          declare -p pythonLocation
+          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
+          find "${pythonLocation}" -type f -name "*.pyc" -exec rm "{}" +
+          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
           pip install --upgrade setuptools wheel
           pip freeze --all
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
