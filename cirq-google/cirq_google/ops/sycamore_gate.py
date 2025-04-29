@@ -33,6 +33,12 @@ class SycamoreGate(cirq.FSimGate):
     is close to the gates that were used to demonstrate beyond
     classical resuts used in this paper:
     https://www.nature.com/articles/s41586-019-1666-5
+
+    Note that this gate will be transformed to a "ISWAP-like" gate
+    on hardware and that the C-phase value (phi) may change from
+    processor to processor.  In particular, if executed on newer
+    Willow processors, the phi value will be closer to π/10.
+    Use the Willow gate for simulation of this gate on newer devices.
     """
 
     def __init__(self):
