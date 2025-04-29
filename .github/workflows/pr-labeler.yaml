@@ -67,7 +67,7 @@ jobs:
         id: label
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{github.token}}
+          GITHUB_TOKEN: ${{secrets.PR_LABELER_TOKEN}}
         run: ./dev_tools/ci/size-labeler.sh |& tee action.out
 
       - name: Detect and report errors in labeler action
