@@ -375,7 +375,7 @@ class Zip(Sweep):
     def param_tuples(self) -> Iterator[Params]:
         iters = [sweep.param_tuples() for sweep in self.sweeps]
         for values in zip(*iters):
-            yield sum(values, ())
+            yield tuple(itertools.chain.from_iterable(values))
 
     def __repr__(self) -> str:
         sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
