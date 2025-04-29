@@ -25,7 +25,10 @@ run-name: >-
   Label pull request ${{github.event.pull_request.number}} by ${{github.actor}}
 
 on:
-  pull_request:
+  # Note: do not copy-paste this workflow with `pull_request_target` left as-is.
+  # Its use here is a special case where security implications are understood.
+  # Workflows should normally use `pull_request` instead.
+  pull_request_target:
     types:
       - opened
       - synchronize
@@ -69,5 +72,5 @@ jobs:
         id: label
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{secrets.PR_LABELER_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: ./dev_tools/ci/size-labeler.sh
