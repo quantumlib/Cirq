@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """An interface for quantum states as targets for operations."""
+
+from __future__ import annotations
+
 import abc
 from types import NotImplementedType
 from typing import (
@@ -47,8 +51,8 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     def __init__(
         self,
         *,
-        qubits: Sequence['cirq.Qid'],
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        qubits: Sequence[cirq.Qid],
+        classical_data: Optional[cirq.ClassicalDataStore] = None,
     ):
         """Initializes the class.
 
@@ -61,19 +65,19 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         return self._qubits
 
     @property
-    def qubit_map(self) -> Mapping['cirq.Qid', int]:
+    def qubit_map(self) -> Mapping[cirq.Qid, int]:
         return self._qubit_map
 
-    def _set_qubits(self, qubits: Sequence['cirq.Qid']):
+    def _set_qubits(self, qubits: Sequence[cirq.Qid]):
         self._qubits = tuple(qubits)
         self._qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
     @property
-    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
+    def classical_data(self) -> cirq.ClassicalDataStoreReader:
         return self._classical_data
 
     @abc.abstractmethod
@@ -82,7 +86,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> Union[bool, NotImplementedType]:
         """Handles the act_on protocol fallback implementation.
 
@@ -94,7 +98,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         Returns:
             True if the fallback applies, else NotImplemented."""
 
-    def apply_operation(self, op: 'cirq.Operation'):
+    def apply_operation(self, op: cirq.Operation):
         protocols.act_on(op, self)
 
     @abc.abstractmethod
@@ -118,14 +122,14 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def sample(
         self,
-        qubits: List['cirq.Qid'],
+        qubits: List[cirq.Qid],
         repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         """Samples the state value."""
 
     @abc.abstractmethod
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TSimulationState:
+    def __getitem__(self, item: Optional[cirq.Qid]) -> TSimulationState:
         """Gets the item associated with the qubit."""
 
     @abc.abstractmethod
@@ -133,5 +137,5 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         """Gets the number of items in the mapping."""
 
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
+    def __iter__(self) -> Iterator[Optional[cirq.Qid]]:
         """Iterates the keys of the mapping."""

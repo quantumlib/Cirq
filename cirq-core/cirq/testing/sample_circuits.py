@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
@@ -19,7 +22,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def nonoptimal_toffoli_circuit(q0: 'cirq.Qid', q1: 'cirq.Qid', q2: 'cirq.Qid') -> circuits.Circuit:
+def nonoptimal_toffoli_circuit(q0: cirq.Qid, q1: cirq.Qid, q2: cirq.Qid) -> circuits.Circuit:
     ret = circuits.Circuit(
         ops.Y(q2) ** 0.5,
         ops.X(q2),

@@ -14,6 +14,8 @@
 
 """Batteries-included class for Cirq's built-in simulators."""
 
+from __future__ import annotations
+
 import abc
 import collections
 from typing import (
@@ -92,8 +94,8 @@ class SimulatorBase(
         self,
         *,
         dtype: Type[np.complexfloating] = np.complex64,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = False,
     ):
         """Initializes the simulator.
@@ -112,15 +114,15 @@ class SimulatorBase(
         self._split_untangled_states = split_untangled_states
 
     @property
-    def noise(self) -> 'cirq.NoiseModel':
+    def noise(self) -> cirq.NoiseModel:
         return self._noise
 
     @abc.abstractmethod
     def _create_partial_simulation_state(
         self,
         initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
+        qubits: Sequence[cirq.Qid],
+        classical_data: cirq.ClassicalDataStore,
     ) -> TSimulationState:
         """Creates an instance of the TSimulationState class for the simulator.
 
@@ -171,14 +173,14 @@ class SimulatorBase(
         return protocols.has_unitary(val)
 
     def _base_iterator(
-        self, circuit: 'cirq.AbstractCircuit', qubits: Tuple['cirq.Qid', ...], initial_state: Any
+        self, circuit: cirq.AbstractCircuit, qubits: Tuple[cirq.Qid, ...], initial_state: Any
     ) -> Iterator[TStepResultBase]:
         sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
 
     def _core_iterator(
         self,
-        circuit: 'cirq.AbstractCircuit',
+        circuit: cirq.AbstractCircuit,
         sim_state: SimulationStateBase[TSimulationState],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResultBase]:
@@ -204,7 +206,7 @@ class SimulatorBase(
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        measured: Dict[Tuple['cirq.Qid', ...], bool] = collections.defaultdict(bool)
+        measured: Dict[Tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
         for moment in noisy_moments:
             for op in ops.flatten_to_ops(moment):
                 try:
@@ -224,10 +226,7 @@ class SimulatorBase(
             yield self._create_step_result(sim_state)
 
     def _run(
-        self,
-        circuit: 'cirq.AbstractCircuit',
-        param_resolver: 'cirq.ParamResolver',
-        repetitions: int,
+        self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
@@ -257,7 +256,7 @@ class SimulatorBase(
                 measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
             )
 
-        records: Dict['cirq.MeasurementKey', List[Sequence[Sequence[int]]]] = {}
+        records: Dict[cirq.MeasurementKey, List[Sequence[Sequence[int]]]] = {}
         for i in range(repetitions):
             for step_result in self._core_iterator(
                 general_suffix,
@@ -286,9 +285,9 @@ class SimulatorBase(
 
     def simulate_sweep_iter(
         self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
@@ -313,7 +312,7 @@ class SimulatorBase(
             possible parameter resolver.
         """
 
-        def sweep_prefixable(op: 'cirq.Operation'):
+        def sweep_prefixable(op: cirq.Operation):
             return self._can_be_in_run_prefix(op) and not protocols.is_parameterized(op)
 
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(program.all_qubits())
@@ -331,14 +330,14 @@ class SimulatorBase(
         yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
 
     def _create_simulation_state(
-        self, initial_state: Any, qubits: Sequence['cirq.Qid']
+        self, initial_state: Any, qubits: Sequence[cirq.Qid]
     ) -> SimulationStateBase[TSimulationState]:
         if isinstance(initial_state, SimulationStateBase):
             return initial_state
 
         classical_data = value.ClassicalDataDictionaryStore()
         if self._split_untangled_states:
-            args_map: Dict[Optional['cirq.Qid'], TSimulationState] = {}
+            args_map: Dict[Optional[cirq.Qid], TSimulationState] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
                     args_map[q] = self._create_partial_simulation_state(
@@ -393,9 +392,9 @@ class StepResultBase(
 
     def sample(
         self,
-        qubits: List['cirq.Qid'],
+        qubits: List[cirq.Qid],
         repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         return self._sim_state.sample(qubits, repetitions, seed)
 
@@ -409,7 +408,7 @@ class SimulationTrialResultBase(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+        final_simulator_state: cirq.SimulationStateBase[TSimulationState],
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
 
@@ -425,7 +424,7 @@ class SimulationTrialResultBase(
         super().__init__(params, measurements, final_simulator_state=final_simulator_state)
         self._merged_sim_state_cache: Optional[TSimulationState] = None
 
-    def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TSimulationState:
+    def get_state_containing_qubit(self, qubit: cirq.Qid) -> TSimulationState:
         """Returns the independent state space containing the qubit.
 
         Args:

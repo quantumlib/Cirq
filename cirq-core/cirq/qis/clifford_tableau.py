@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
@@ -286,10 +288,10 @@ class CliffordTableau(StabilizerState):
             and np.array_equal(self.zs, other.zs)
         )
 
-    def __copy__(self) -> 'CliffordTableau':
+    def __copy__(self) -> CliffordTableau:
         return self.copy()
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'CliffordTableau':
+    def copy(self, deep_copy_buffers: bool = True) -> CliffordTableau:
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()
@@ -364,7 +366,7 @@ class CliffordTableau(StabilizerState):
 
         return '\n'.join([title_row, divider, *contents]) + '\n'
 
-    def then(self, second: 'CliffordTableau') -> 'CliffordTableau':
+    def then(self, second: CliffordTableau) -> CliffordTableau:
         """Returns a composed CliffordTableau of this tableau and the second tableau.
 
         Then composed tableau is equal to (up to global phase) the composed
@@ -431,7 +433,7 @@ class CliffordTableau(StabilizerState):
 
         return merged_tableau
 
-    def inverse(self) -> 'CliffordTableau':
+    def inverse(self) -> CliffordTableau:
         """Returns the inverse Clifford tableau of this tableau."""
         ret_table = CliffordTableau(num_qubits=self.n)
         # It relies on the symplectic property of Clifford tableau.
@@ -450,7 +452,7 @@ class CliffordTableau(StabilizerState):
         ret_table.rs = ret_table.then(self).rs
         return ret_table
 
-    def __matmul__(self, second: 'CliffordTableau'):
+    def __matmul__(self, second: CliffordTableau):
         if not isinstance(second, CliffordTableau):
             return NotImplemented
         return second.then(self)
@@ -481,7 +483,7 @@ class CliffordTableau(StabilizerState):
         self._xs[q1, :] ^= self._xs[q2, :]
         self._zs[q1, :] ^= self._zs[q2, :]
 
-    def _row_to_dense_pauli(self, i: int) -> 'cirq.DensePauliString':
+    def _row_to_dense_pauli(self, i: int) -> cirq.DensePauliString:
         """Return a dense Pauli string for the given row in the tableau.
 
         Args:
@@ -509,12 +511,12 @@ class CliffordTableau(StabilizerState):
                 pauli_mask += "I"
         return DensePauliString(pauli_mask, coefficient=coefficient)
 
-    def stabilizers(self) -> List['cirq.DensePauliString']:
+    def stabilizers(self) -> List[cirq.DensePauliString]:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
 
-    def destabilizers(self) -> List['cirq.DensePauliString']:
+    def destabilizers(self) -> List[cirq.DensePauliString]:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
         generators above generate the full Pauli group on n qubits."""
@@ -662,7 +664,7 @@ class CliffordTableau(StabilizerState):
         pass
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> List[int]:
         return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
 
