@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Dict, List, Sequence
 
 import numpy as np
@@ -26,7 +28,7 @@ from cirq.work import sampler
 class StabilizerSampler(sampler.Sampler):
     """An efficient sampler for stabilizer circuits."""
 
-    def __init__(self, *, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(self, *, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Inits StabilizerSampler.
 
         Args:
@@ -36,8 +38,8 @@ class StabilizerSampler(sampler.Sampler):
         self._prng = value.parse_random_state(seed)
 
     def run_sweep(
-        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
-    ) -> Sequence['cirq.Result']:
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
         results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)
@@ -45,7 +47,7 @@ class StabilizerSampler(sampler.Sampler):
             results.append(cirq.ResultDict(params=param_resolver, measurements=measurements))
         return results
 
-    def _run(self, circuit: 'cirq.AbstractCircuit', repetitions: int) -> Dict[str, np.ndarray]:
+    def _run(self, circuit: cirq.AbstractCircuit, repetitions: int) -> Dict[str, np.ndarray]:
 
         measurements: Dict[str, List[np.ndarray]] = {
             key: [] for key in protocols.measurement_key_names(circuit)
