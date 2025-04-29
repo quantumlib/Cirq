@@ -37,7 +37,7 @@ class SycamoreGate(cirq.FSimGate):
     Note that this gate will be transformed to a "ISWAP-like" gate
     on hardware and that the C-phase value (phi) may change from
     processor to processor.  In particular, if executed on newer
-    Willow processors, the phi value will be closer to π/10.
+    Willow processors, the phi value will be closer to π/9.
     Use the Willow gate for simulation of this gate on newer devices.
     """
 

@@ -50,7 +50,6 @@ def test_willow_is_specific_fsim():
 def test_willow_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cg.WILLOW),
-        # fmt: off
         np.array(
             [
                 [1.0, 0.0, 0.0, 0.0],
@@ -59,6 +58,5 @@ def test_willow_unitary():
                 [0.0, 0.0, 0.0, np.exp(-1j * np.pi / 9)],
             ]
         ),
-        # fmt: on
         atol=1e-6,
     )
