@@ -44,7 +44,7 @@ def test_willow_circuit_diagram():
 
 
 def test_willow_is_specific_fsim():
-    assert cg.WILLOW == cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 10)
+    assert cg.WILLOW == cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 9)
 
 
 def test_willow_unitary():
@@ -56,7 +56,7 @@ def test_willow_unitary():
                 [1.0, 0.0, 0.0, 0.0],
                 [0.0, 0.0, -1.0j, 0.0],
                 [0.0, -1.0j, 0.0, 0.0],
-                [0.0, 0.0, 0.0, np.exp(-1j * np.pi / 10)],
+                [0.0, 0.0, 0.0, np.exp(-1j * np.pi / 9)],
             ]
         ),
         # fmt: on
