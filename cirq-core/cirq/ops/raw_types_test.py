@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import AbstractSet, Any, Iterator
 
 import numpy as np
@@ -76,6 +78,13 @@ def test_wrapped_qid():
         'qubit': ValidQubit('zz'),
         'dimension': 3,
     }
+
+    assert not ValidQubit('zz') == 4
+    assert ValidQubit('zz') != 4
+    assert ValidQubit('zz') > ValidQubit('aa')
+    assert ValidQubit('zz') <= ValidQubit('zz')
+    assert ValidQubit('zz') >= ValidQubit('zz')
+    assert ValidQubit('zz') >= ValidQubit('aa')
 
 
 def test_qid_dimension():
@@ -208,6 +217,21 @@ def test_default_validation_and_inverse():
     )
 
     cirq.testing.assert_implements_consistent_protocols(i, local_vals={'TestGate': TestGate})
+
+
+def test_default_no_qubits():
+    class TestOp(cirq.Operation):
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        @property
+        def qubits(self):
+            pass
+
+    op = TestOp()
+    assert op.controlled_by(*[]) is op
+    op = TestOp().with_tags("abc")
+    assert op.classical_controls == frozenset()
 
 
 def test_default_inverse():
@@ -357,7 +381,7 @@ def test_gate_shape_protocol():
 def test_operation_shape():
     class FixedQids(cirq.Operation):
         def with_qubits(self, *new_qids):
-            raise NotImplementedError  # pragma: no cover
+            raise NotImplementedError
 
     class QubitOp(FixedQids):
         @property
@@ -558,8 +582,8 @@ def test_circuit_diagram_tagged_global_phase():
     # Operation with no qubits and returns diagram info with no wire symbols
     class NoWireSymbols(cirq.GlobalPhaseGate):
         def _circuit_diagram_info_(
-            self, args: 'cirq.CircuitDiagramInfoArgs'
-        ) -> 'cirq.CircuitDiagramInfo':
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> cirq.CircuitDiagramInfo:
             return expected
 
     no_wire_symbol_op = NoWireSymbols(coefficient=-1.0)().with_tags('tag0')
@@ -659,6 +683,9 @@ def test_tagged_operation_forwards_protocols():
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
     classically_controlled_y = tagged_y.with_classical_controls("a")
+    assert classically_controlled_y.classical_controls == frozenset(
+        {cirq.KeyCondition(cirq.MeasurementKey(name='a'))}
+    )
     assert classically_controlled_y == y.with_classical_controls("a")
     assert isinstance(classically_controlled_y, cirq.Operation)
     assert not isinstance(classically_controlled_y, cirq.TaggedOperation)
@@ -712,8 +739,8 @@ class ParameterizableTag:
         return cirq.parameter_names(self.value)
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'ParameterizableTag':
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> ParameterizableTag:
         return ParameterizableTag(cirq.resolve_parameters(self.value, resolver, recursive))
 
 
@@ -735,7 +762,7 @@ def test_tagged_operation_resolves_parameterized_tags(resolve_fn):
 def test_inverse_composite_standards():
     @cirq.value_equality
     class Gate(cirq.Gate):
-        def __init__(self, param: 'cirq.TParamVal'):
+        def __init__(self, param: cirq.TParamVal):
             self._param = param
 
         def _decompose_(self, qubits):
@@ -756,7 +783,9 @@ def test_inverse_composite_standards():
         def _is_parameterized_(self) -> bool:
             return cirq.is_parameterized(self._param)
 
-        def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Gate':
+        def _resolve_parameters_(
+            self, resolver: cirq.ParamResolver, recursive: bool
+        ) -> Gate:  # pylint: disable=undefined-variable
             return Gate(cirq.resolve_parameters(self._param, resolver, recursive))
 
         def __repr__(self):

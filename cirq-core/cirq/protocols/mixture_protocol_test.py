@@ -17,6 +17,9 @@ import pytest
 
 import cirq
 
+a = np.array([1])
+b = np.array([1j])
+
 
 class NoMethod:
     pass
@@ -32,7 +35,7 @@ class ReturnsNotImplemented:
 
 class ReturnsValidTuple(cirq.SupportsMixture):
     def _mixture_(self):
-        return ((0.4, 'a'), (0.6, 'b'))
+        return ((0.4, a), (0.6, b))
 
     def _has_mixture_(self):
         return True
@@ -40,27 +43,27 @@ class ReturnsValidTuple(cirq.SupportsMixture):
 
 class ReturnsNonnormalizedTuple:
     def _mixture_(self):
-        return ((0.4, 'a'), (0.4, 'b'))
+        return ((0.4, a), (0.4, b))
 
 
 class ReturnsNegativeProbability:
     def _mixture_(self):
-        return ((0.4, 'a'), (-0.4, 'b'))
+        return ((0.4, a), (-0.4, b))
 
 
 class ReturnsGreaterThanUnityProbability:
     def _mixture_(self):
-        return ((1.2, 'a'), (0.4, 'b'))
+        return ((1.2, a), (0.4, b))
 
 
 class ReturnsMixtureButNoHasMixture:
     def _mixture_(self):
-        return ((0.4, 'a'), (0.6, 'b'))
+        return ((0.4, a), (0.6, b))
 
 
 class ReturnsUnitary:
     def _unitary_(self):
-        return np.ones((2, 2))
+        return np.eye(2)
 
     def _has_unitary_(self):
         return True
@@ -74,12 +77,18 @@ class ReturnsNotImplementedUnitary:
         return NotImplemented
 
 
+class ReturnsMixtureOfReturnsUnitary:
+    def _mixture_(self):
+        return ((0.4, ReturnsUnitary()), (0.6, ReturnsUnitary()))
+
+
 @pytest.mark.parametrize(
     'val,mixture',
     (
-        (ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
-        (ReturnsNonnormalizedTuple(), ((0.4, 'a'), (0.4, 'b'))),
-        (ReturnsUnitary(), ((1.0, np.ones((2, 2))),)),
+        (ReturnsValidTuple(), ((0.4, a), (0.6, b))),
+        (ReturnsNonnormalizedTuple(), ((0.4, a), (0.4, b))),
+        (ReturnsUnitary(), ((1.0, np.eye(2)),)),
+        (ReturnsMixtureOfReturnsUnitary(), ((0.4, np.eye(2)), (0.6, np.eye(2)))),
     ),
 )
 def test_objects_with_mixture(val, mixture):
@@ -88,7 +97,7 @@ def test_objects_with_mixture(val, mixture):
     np.testing.assert_almost_equal(keys, expected_keys)
     np.testing.assert_equal(values, expected_values)
 
-    keys, values = zip(*cirq.mixture(val, ((0.3, 'a'), (0.7, 'b'))))
+    keys, values = zip(*cirq.mixture(val, ((0.3, a), (0.7, b))))
     np.testing.assert_almost_equal(keys, expected_keys)
     np.testing.assert_equal(values, expected_values)
 
@@ -101,7 +110,7 @@ def test_objects_with_no_mixture(val):
         _ = cirq.mixture(val)
     assert cirq.mixture(val, None) is None
     assert cirq.mixture(val, NotImplemented) is NotImplemented
-    default = ((0.4, 'a'), (0.6, 'b'))
+    default = ((0.4, a), (0.6, b))
     assert cirq.mixture(val, default) == default
 
 

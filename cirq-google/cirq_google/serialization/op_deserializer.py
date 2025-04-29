@@ -54,7 +54,7 @@ class CircuitOpDeserializer(OpDeserializer):
     """Describes how to serialize CircuitOperations."""
 
     def can_deserialize_proto(self, proto):
-        return isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: nocover
+        return isinstance(proto, v2.program_pb2.CircuitOperation)  # pragma: no cover
 
     def from_proto(
         self,
@@ -62,7 +62,7 @@ class CircuitOpDeserializer(OpDeserializer):
         *,
         constants: List[v2.program_pb2.Constant],
         deserialized_constants: List[Any],
-    ) -> cirq.CircuitOperation:
+    ) -> cirq.Operation:
         """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation.
 
         Args:
@@ -131,6 +131,24 @@ class CircuitOpDeserializer(OpDeserializer):
                     f'\nFull arg: {arg}'
                 )
 
-        return cirq.CircuitOperation(
-            circuit, repetitions, qubit_map, measurement_key_map, arg_map, rep_ids
+        if proto.HasField('repeat_until'):
+            repeat_until = arg_func_langs.condition_from_proto(proto.repeat_until)
+        else:
+            repeat_until = None
+
+        circuit_op = cirq.CircuitOperation(
+            circuit,
+            repetitions,
+            qubit_map,
+            measurement_key_map,
+            arg_map,
+            rep_ids,
+            use_repetition_ids=proto.use_repetition_ids,
+            repeat_until=repeat_until,
         )
+        if len(proto.conditioned_on):
+            conditions = [
+                arg_func_langs.condition_from_proto(condition) for condition in proto.conditioned_on
+            ]
+            return circuit_op.with_classical_controls(*conditions)
+        return circuit_op

@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Measures on and between quantum states and operations."""
 
+from __future__ import annotations
 
 from typing import Optional, Tuple, TYPE_CHECKING
 
@@ -58,9 +60,7 @@ def _validate_int_state(state: int, qid_shape: Optional[Tuple[int, ...]]) -> Non
             )
 
 
-def _validate_product_state(
-    state: 'cirq.ProductState', qid_shape: Optional[Tuple[int, ...]]
-) -> None:
+def _validate_product_state(state: cirq.ProductState, qid_shape: Optional[Tuple[int, ...]]) -> None:
     if qid_shape is not None and qid_shape != (2,) * len(state):
         raise ValueError(
             'Invalid state for given qid shape: '
@@ -70,8 +70,8 @@ def _validate_product_state(
 
 
 def fidelity(
-    state1: 'cirq.QUANTUM_STATE_LIKE',
-    state2: 'cirq.QUANTUM_STATE_LIKE',
+    state1: cirq.QUANTUM_STATE_LIKE,
+    state2: cirq.QUANTUM_STATE_LIKE,
     qid_shape: Optional[Tuple[int, ...]] = None,
     validate: bool = True,
     atol: float = 1e-7,
@@ -247,14 +247,15 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         eigs = linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
         trace = np.sum(np.sqrt(np.abs(eigs)))
         return trace**2
-    raise ValueError(
+    # matrix is reshaped before this point
+    raise ValueError(  # pragma: no cover
         'The given arrays must be one- or two-dimensional. '
         f'Got shapes {state1.shape} and {state2.shape}.'
     )
 
 
 def von_neumann_entropy(
-    state: 'cirq.QUANTUM_STATE_LIKE',
+    state: cirq.QUANTUM_STATE_LIKE,
     qid_shape: Optional[Tuple[int, ...]] = None,
     validate: bool = True,
     atol: float = 1e-7,
@@ -297,7 +298,7 @@ def von_neumann_entropy(
     return 0.0
 
 
-def entanglement_fidelity(operation: 'cirq.SupportsKraus') -> float:
+def entanglement_fidelity(operation: cirq.SupportsKraus) -> float:
     r"""Returns entanglement fidelity of a given quantum channel.
 
     Entanglement fidelity $F_e$ of a quantum channel $E: L(H) \to L(H)$ is the overlap between

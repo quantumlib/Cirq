@@ -42,7 +42,7 @@ class EmptySimulationState(cirq.SimulationState):
         super().__init__(state=EmptyQuantumState(), qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
         return True
 
@@ -52,9 +52,9 @@ qs2 = cirq.LineQubit.range(2)
 
 
 def create_container(
-    qubits: Sequence['cirq.Qid'], split_untangled_states=True
+    qubits: Sequence[cirq.Qid], split_untangled_states=True
 ) -> cirq.SimulationProductState[EmptySimulationState]:
-    state_map: Dict[Optional['cirq.Qid'], EmptySimulationState] = {}
+    state_map: Dict[Optional[cirq.Qid], EmptySimulationState] = {}
     log = cirq.ClassicalDataDictionaryStore()
     if split_untangled_states:
         for q in reversed(qubits):

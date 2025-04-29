@@ -38,7 +38,7 @@ class ExampleSimulationState(cirq.SimulationState):
         super().__init__(state=ExampleQuantumState(), qubits=qubits)
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
         return True
 
@@ -66,7 +66,7 @@ class DelegatingAncillaZ(cirq.Gate):
 
 class Composite(cirq.Gate):
     def num_qubits(self) -> int:
-        return 1
+        return 1  # pragma: no cover
 
     def _decompose_(self, qubits):
         yield cirq.X(*qubits)

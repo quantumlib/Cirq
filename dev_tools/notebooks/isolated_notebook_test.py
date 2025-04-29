@@ -41,41 +41,33 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_no
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
-    # Requires pinned quimb from #6438
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    # Requires OpenQASM 3.0 support from cirq 1.6
-    'docs/build/interop.ipynb',
-    # get_qcs_objects_for_notebook
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
-    # Requires features the require cirq 1.5.
-    'docs/build/classical_control.ipynb',
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
-    "**/aqt/*.ipynb",
-    "**/azure-quantum/*.ipynb",
-    "**/google/*.ipynb",
-    "**/ionq/*.ipynb",
-    "**/pasqal/*.ipynb",
-    # Rigetti uses local simulation with docker, so should work
-    # if you run into issues locally, run
-    # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
-    "**/rigetti/*.ipynb",
-    # skipping fidelity estimation due to
-    # https://github.com/quantumlib/Cirq/issues/3502
-    "examples/*fidelity*",
+    '**/aqt/*.ipynb',
+    '**/azure-quantum/*.ipynb',
+    '**/ionq/*.ipynb',
+    '**/pasqal/*.ipynb',
+    '**/rigetti/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
-    # Also skipping stabilizer code testing.
-    "examples/*stabilizer_code*",
-    # An intentionally empty/template code notebook.
-    "docs/simulate/qvm_builder_code.ipynb",
-    *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
+    # tutorials that use QCS and arent skipped due to one or more cleared output cells
+    'docs/tutorials/google/identifying_hardware_changes.ipynb',
+    'docs/tutorials/google/echoes.ipynb',
+    'docs/noise/qcvv/xeb_calibration_example.ipynb',
+    # temporary: need to fix QVM metrics and device spec
+    'docs/tutorials/google/spin_echoes.ipynb',
+    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
 ]
+SKIP_NOTEBOOKS += [
+    # notebooks that import the examples module which is not installed with cirq
+    'examples/direct_fidelity_estimation.ipynb',
+    'examples/stabilizer_code.ipynb',
+]
+SKIP_NOTEBOOKS += NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
@@ -173,7 +165,8 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs'). \n"
             f"If this is a new failure in this notebook due to a new change, "
-            f"that is only available in main for now, consider adding `pip install cirq~=1.0.dev` "
+            f"that is only available in main for now, consider adding "
+            f"`pip install --upgrade cirq~=1.0.dev` "
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
@@ -221,10 +214,10 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
     with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
         mandatory_matches = [
-            r"!pip install --quiet cirq(-google)?~=1\.\d*\.dev",
+            r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install cirq(-google)?~=1\.\d*\.dev`\.",
+            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\.",
         ]
 
         for m in mandatory_matches:

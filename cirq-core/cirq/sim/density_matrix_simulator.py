@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Simulator for density matrices that simulates noisy quantum circuits."""
+
+from __future__ import annotations
+
 from typing import Any, Dict, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
@@ -116,8 +120,8 @@ class DensityMatrixSimulator(
         self,
         *,
         dtype: Type[np.complexfloating] = np.complex64,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = True,
     ):
         """Density matrix simulator.
@@ -147,12 +151,10 @@ class DensityMatrixSimulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[
-            np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.DensityMatrixSimulationState'
-        ],
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
-    ) -> 'cirq.DensityMatrixSimulationState':
+        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE, cirq.DensityMatrixSimulationState],
+        qubits: Sequence[cirq.Qid],
+        classical_data: cirq.ClassicalDataStore,
+    ) -> cirq.DensityMatrixSimulationState:
         """Creates the DensityMatrixSimulationState for a circuit.
 
         Args:
@@ -168,7 +170,8 @@ class DensityMatrixSimulator(
             DensityMatrixSimulationState for the circuit.
         """
         if isinstance(initial_state, density_matrix_simulation_state.DensityMatrixSimulationState):
-            return initial_state
+            # Instances of SimulationStateBase usually returned before this point
+            return initial_state  # pragma: no cover
 
         return density_matrix_simulation_state.DensityMatrixSimulationState(
             qubits=qubits,
@@ -182,16 +185,16 @@ class DensityMatrixSimulator(
         return not protocols.measurement_keys_touched(val)
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]'
+        self, sim_state: cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]
     ):
         return DensityMatrixStepResult(sim_state=sim_state, dtype=self._dtype)
 
     def _create_simulator_trial_result(
         self,
-        params: 'cirq.ParamResolver',
+        params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
-    ) -> 'cirq.DensityMatrixTrialResult':
+        final_simulator_state: cirq.SimulationStateBase[cirq.DensityMatrixSimulationState],
+    ) -> cirq.DensityMatrixTrialResult:
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
@@ -199,10 +202,10 @@ class DensityMatrixSimulator(
     # TODO(#4209): Deduplicate with identical code in sparse_simulator.
     def simulate_expectation_values_sweep(
         self,
-        program: 'cirq.AbstractCircuit',
-        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
-        params: 'cirq.Sweepable',
-        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        program: cirq.AbstractCircuit,
+        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        params: cirq.Sweepable,
+        qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> List[List[float]]:
@@ -241,7 +244,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
 
     def __init__(
         self,
-        sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
+        sim_state: cirq.SimulationStateBase[cirq.DensityMatrixSimulationState],
         dtype: Type[np.complexfloating] = np.complex64,
     ):
         """DensityMatrixStepResult.
@@ -352,9 +355,9 @@ class DensityMatrixTrialResult(
 
     def __init__(
         self,
-        params: 'cirq.ParamResolver',
+        params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
+        final_simulator_state: cirq.SimulationStateBase[cirq.DensityMatrixSimulationState],
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state

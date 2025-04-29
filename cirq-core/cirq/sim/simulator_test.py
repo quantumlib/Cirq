@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for simulator.py"""
+
+from __future__ import annotations
+
 import abc
 from typing import Any, Dict, Generic, List, Sequence, Union
 from unittest import mock
@@ -50,7 +54,7 @@ class FakeStepResult(cirq.StepResult):
         self._final_state = final_state
 
     def _simulator_state(self):
-        return self._final_state
+        return self._final_state  # pragma: no cover
 
     def state_vector(self):
         pass
@@ -64,7 +68,7 @@ class FakeStepResult(cirq.StepResult):
 
 class SimulatesIntermediateStateImpl(
     Generic[TStepResult, TSimulationState],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulationState],
+    SimulatesIntermediateState[TStepResult, SimulationTrialResult, TSimulationState],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
@@ -73,8 +77,8 @@ class SimulatesIntermediateStateImpl(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
-    ) -> 'SimulationTrialResult':
+        final_simulator_state: cirq.SimulationStateBase[TSimulationState],
+    ) -> SimulationTrialResult:
         """This method creates a default trial result.
 
         Args:
@@ -455,7 +459,7 @@ def test_iter_definitions():
 
         def compute_amplitudes_sweep(
             self,
-            program: 'cirq.AbstractCircuit',
+            program: cirq.AbstractCircuit,
             bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
@@ -464,9 +468,9 @@ def test_iter_definitions():
 
         def simulate_expectation_values_sweep(
             self,
-            program: 'cirq.AbstractCircuit',
-            observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
-            params: 'study.Sweepable',
+            program: cirq.AbstractCircuit,
+            observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+            params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,
             permit_terminal_measurements: bool = False,
@@ -475,7 +479,7 @@ def test_iter_definitions():
 
         def simulate_sweep(
             self,
-            program: 'cirq.AbstractCircuit',
+            program: cirq.AbstractCircuit,
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,

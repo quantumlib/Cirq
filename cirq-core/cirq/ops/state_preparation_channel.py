@@ -14,6 +14,8 @@
 
 """Quantum gates to prepare a given target state."""
 
+from __future__ import annotations
+
 from typing import Any, Dict, Iterable, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -64,7 +66,7 @@ class StatePreparationChannel(raw_types.Gate):
     @classmethod
     def _from_json_dict_(
         cls, target_state: np.ndarray, name: str, **kwargs
-    ) -> 'StatePreparationChannel':
+    ) -> StatePreparationChannel:
         """Recreates the channel object from it's serialized form
 
         Args:
@@ -80,9 +82,7 @@ class StatePreparationChannel(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def _circuit_diagram_info_(
-        self, _args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, _args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """Returns the information required to draw out the circuit diagram for this channel."""
         symbols = (
             [self._name]

@@ -12,27 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, value
 from cirq._doc import document
-from cirq.ops import Qid
 
 if TYPE_CHECKING:
     import cirq
 
 DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
-    ops.CNOT: 2,
-    ops.CZ: 2,
-    ops.H: 1,
-    ops.ISWAP: 2,
+    ops.CNOT: 2,  # type: ignore[has-type]
+    ops.CZ: 2,  # type: ignore[has-type]
+    ops.H: 1,  # type: ignore[has-type]
+    ops.ISWAP: 2,  # type: ignore[has-type]
     ops.CZPowGate(): 2,
-    ops.S: 1,
-    ops.SWAP: 2,
-    ops.T: 1,
-    ops.X: 1,
-    ops.Y: 1,
-    ops.Z: 1,
+    ops.S: 1,  # type: ignore[has-type]
+    ops.SWAP: 2,  # type: ignore[has-type]
+    ops.T: 1,  # type: ignore[has-type]
+    ops.X: 1,  # type: ignore[has-type]
+    ops.Y: 1,  # type: ignore[has-type]
+    ops.Z: 1,  # type: ignore[has-type]
 }
 document(
     DEFAULT_GATE_DOMAIN,
@@ -45,11 +46,11 @@ and Z gates.
 
 
 def random_circuit(
-    qubits: Union[Sequence[ops.Qid], int],
+    qubits: Union[Sequence[cirq.Qid], int],
     n_moments: int,
     op_density: float,
     gate_domain: Optional[Dict[ops.Gate, int]] = None,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> circuits.Circuit:
     """Generates a random circuit.
 
@@ -125,9 +126,9 @@ def random_circuit(
 
 def random_two_qubit_circuit_with_czs(
     num_czs: int = 3,
-    q0: Optional[Qid] = None,
-    q1: Optional[Qid] = None,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    q0: Optional[cirq.Qid] = None,
+    q1: Optional[cirq.Qid] = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> circuits.Circuit:
     """Creates a random two qubit circuit with the given number of CNOTs.
 

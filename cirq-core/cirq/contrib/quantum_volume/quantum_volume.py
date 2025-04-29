@@ -4,7 +4,7 @@ https://arxiv.org/abs/1811.12926.
 """
 
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 import numpy as np
@@ -15,7 +15,7 @@ import cirq.contrib.routing as ccr
 
 
 def generate_model_circuit(
-    num_qubits: int, depth: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    num_qubits: int, depth: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
 ) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
@@ -277,7 +277,7 @@ def compile_circuit(
     # Replace the PermutationGates with regular gates, so we don't proliferate
     # the routing implementation details to the compiler and the device itself.
 
-    def replace_swap_permutation_gate(op: 'cirq.Operation', _):
+    def replace_swap_permutation_gate(op: cirq.Operation, _):
         if isinstance(op.gate, cirq.contrib.acquaintance.SwapPermutationGate):
             return [op.gate.swap_gate.on(*op.qubits)]
         return op
@@ -327,7 +327,7 @@ def prepare_circuits(
     num_qubits: int,
     depth: int,
     num_circuits: int,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> List[Tuple[cirq.Circuit, List[int]]]:
     """Generates circuits and computes their heavy set.
 
@@ -416,11 +416,6 @@ def execute_circuits(
     return results
 
 
-def _get_device_graph(device_or_qubits: Any):
-    qubits = device_or_qubits if isinstance(device_or_qubits, list) else device_or_qubits.qubits
-    return ccr.gridqubits_to_graph_device(qubits)
-
-
 def calculate_quantum_volume(
     *,
     num_qubits: int,
@@ -428,7 +423,7 @@ def calculate_quantum_volume(
     num_circuits: int,
     device_graph: nx.Graph,
     samplers: List[cirq.Sampler],
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
     repetitions=10_000,
     routing_attempts=30,

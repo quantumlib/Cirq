@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2025 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Replacements to apply during testing. See devtools/notebook_test.py for syntax.
+from unittest import mock
 
-samples_per_term=10_000,samples_per_term=10
+import pylatex
+
+import cirq
+import cirq.contrib.qcircuit.qcircuit_pdf as qcircuit_pdf
+
+
+@mock.patch.object(pylatex.Document, "generate_pdf")
+def test_qcircuit_pdf(mock_generate_pdf):
+    circuit = cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))
+    qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, "/tmp/test_file")
+    mock_generate_pdf.assert_called_once_with(
+        "/tmp/test_file", compiler="latexmk", compiler_args=["-pdfps"]
+    )

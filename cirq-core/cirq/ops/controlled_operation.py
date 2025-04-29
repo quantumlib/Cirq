@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from types import NotImplementedType
+from __future__ import annotations
+
+from types import EllipsisType, NotImplementedType
 from typing import (
     AbstractSet,
     Any,
@@ -53,8 +55,8 @@ class ControlledOperation(raw_types.Operation):
 
     def __init__(
         self,
-        controls: Sequence['cirq.Qid'],
-        sub_operation: 'cirq.Operation',
+        controls: Sequence[cirq.Qid],
+        sub_operation: cirq.Operation,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -114,7 +116,7 @@ class ControlledOperation(raw_types.Operation):
             self._control_values = self._control_values & sub_operation.control_values
 
     @property
-    def controls(self) -> Tuple['cirq.Qid', ...]:
+    def controls(self) -> Tuple[cirq.Qid, ...]:
         return self._controls
 
     @property
@@ -122,11 +124,11 @@ class ControlledOperation(raw_types.Operation):
         return self._control_values
 
     @property
-    def sub_operation(self) -> 'cirq.Operation':
+    def sub_operation(self) -> cirq.Operation:
         return self._sub_operation
 
     @property
-    def gate(self) -> Optional['cirq.ControlledGate']:
+    def gate(self) -> Optional[cirq.ControlledGate]:
         if self.sub_operation.gate is None:
             return None
         return controlled_gate.ControlledGate(
@@ -148,7 +150,7 @@ class ControlledOperation(raw_types.Operation):
     def _decompose_(self):
         return self._decompose_with_context_()
 
-    def _decompose_with_context_(self, context: Optional['cirq.DecompositionContext'] = None):
+    def _decompose_with_context_(self, context: Optional[cirq.DecompositionContext] = None):
         result = protocols.decompose_once_with_qubits(
             self.gate, self.qubits, NotImplemented, flatten=False, context=context
         )
@@ -176,12 +178,12 @@ class ControlledOperation(raw_types.Operation):
         )
         return sorted_controls, tuple(expanded_cvals), self.sub_operation
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         n = len(self.controls)
         sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]
         for control_vals in self.control_values.expand():
-            active: Tuple[Union['ellipsis', slice], ...] = (
+            active: Tuple[Union[EllipsisType, slice], ...] = (
                 ...,
                 *(slice(v, v + 1) for v in control_vals),
                 *(slice(None),) * sub_n,
@@ -207,7 +209,7 @@ class ControlledOperation(raw_types.Operation):
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
 
-    def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs) -> Optional[str]:
         if (
             hasattr(self._sub_operation, "gate")
             and len(self._controls) == 1
@@ -287,8 +289,8 @@ class ControlledOperation(raw_types.Operation):
         return protocols.parameter_names(self.sub_operation)
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'ControlledOperation':
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> ControlledOperation:
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
         return ControlledOperation(self.controls, new_sub_op, self.control_values)
 
@@ -297,19 +299,19 @@ class ControlledOperation(raw_types.Operation):
             return None
         u = protocols.unitary(self.sub_operation, default=None)
         if u is None:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 
-    def __pow__(self, exponent: Any) -> 'ControlledOperation':
+    def __pow__(self, exponent: Any) -> ControlledOperation:
         new_sub_op = protocols.pow(self.sub_operation, exponent, NotImplemented)
         if new_sub_op is NotImplemented:
             return NotImplemented
         return ControlledOperation(self.controls, new_sub_op, self.control_values)
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Optional['protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Optional[protocols.CircuitDiagramInfo]:
         n = len(self.controls)
 
         sub_args = protocols.CircuitDiagramInfoArgs(

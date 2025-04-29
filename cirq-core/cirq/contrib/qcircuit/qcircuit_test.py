@@ -53,7 +53,7 @@ def test_fallback_diagram():
             self._qubits = qubits
 
         def with_qubits(self, *new_qubits):
-            return MagicOp(*new_qubits)
+            return MagicOp(*new_qubits)  # pragma: no cover
 
         @property
         def qubits(self):

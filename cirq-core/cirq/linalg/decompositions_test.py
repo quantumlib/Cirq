@@ -39,11 +39,6 @@ def assert_kronecker_factorization_within_tolerance(matrix, g, f1, f2):
     assert np.allclose(restored, matrix), "Can't factor kronecker product."
 
 
-def assert_kronecker_factorization_not_within_tolerance(matrix, g, f1, f2):
-    restored = g * cirq.linalg.combinators.kron(f1, f2)
-    assert np.any(np.isnan(restored) or not np.allclose(restored, matrix))
-
-
 def assert_magic_su2_within_tolerance(mat, a, b):
     recon = cirq.linalg.combinators.dot(MAGIC_CONJ_T, cirq.linalg.combinators.kron(a, b), MAGIC)
     assert np.allclose(recon, mat), "Failed to decompose within tolerance."
@@ -587,7 +582,7 @@ def _local_two_qubit_unitaries(samples, random_state):
 _kak_gens = np.array([np.kron(X, X), np.kron(Y, Y), np.kron(Z, Z)])
 
 
-def _random_two_qubit_unitaries(num_samples: int, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE'):
+def _random_two_qubit_unitaries(num_samples: int, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE):
     # Randomly generated two-qubit unitaries and the KAK vectors (not canonical)
     kl = _local_two_qubit_unitaries(num_samples, random_state)
 

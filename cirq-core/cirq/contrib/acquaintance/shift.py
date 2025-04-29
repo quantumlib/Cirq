@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 from typing import Any, Dict, Iterator, Sequence, Tuple, TYPE_CHECKING
 
@@ -26,7 +28,7 @@ if TYPE_CHECKING:
 class CircularShiftGate(PermutationGate):
     """Performs a cyclical permutation of the qubits to the left by a specified amount."""
 
-    def __init__(self, num_qubits: int, shift: int, swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
+    def __init__(self, num_qubits: int, shift: int, swap_gate: cirq.Gate = ops.SWAP) -> None:
         """Construct a circular shift gate.
 
         Args:
@@ -47,7 +49,7 @@ class CircularShiftGate(PermutationGate):
     def _value_equality_values_(self) -> Any:
         return self.shift, self.swap_gate, self.num_qubits()
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         n = len(qubits)
         left_shift = self.shift % n
         right_shift = n - left_shift
@@ -58,9 +60,9 @@ class CircularShiftGate(PermutationGate):
             for k in range(i, j, 2):
                 yield swap_gate(*qubits[k : k + 2])
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         direction_symbols = ('╲', '╱') if args.use_unicode_characters else ('\\', '/')
         wire_symbols = tuple(
             direction_symbols[int(i >= self.shift)]

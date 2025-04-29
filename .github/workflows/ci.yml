@@ -193,7 +193,7 @@ jobs:
           sudo apt-get install libffi7
       - name: Install requirements
         run: |
-          pip install wheel
+          pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
@@ -230,7 +230,7 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev-np2.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --warn-numpy-data-promotion --durations=20 --ignore=cirq-rigetti
+        run: check/pytest -n auto --durations=20 --ignore=cirq-rigetti
   pip-compile:
     name: Check consistency of requirements
     runs-on: ubuntu-22.04
@@ -289,7 +289,7 @@ jobs:
           sudo apt-get install libffi7
       - name: Install requirements
         run: |
-          pip install wheel
+          pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
@@ -322,7 +322,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install wheel
+          pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         run: |
@@ -350,7 +350,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
       - name: Install requirements
         run: |
-          pip install wheel
+          pip install --upgrade setuptools wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib

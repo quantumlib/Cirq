@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
@@ -33,9 +35,9 @@ class StabilizerChFormSimulationState(
         self,
         *,
         prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        qubits: Optional[Sequence[cirq.Qid]] = None,
+        initial_state: Union[int, cirq.StabilizerStateChForm] = 0,
+        classical_data: Optional[cirq.ClassicalDataStore] = None,
     ):
         """Initializes with the given state and the axes for the operation.
 

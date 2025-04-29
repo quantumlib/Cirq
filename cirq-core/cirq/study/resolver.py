@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
+
+from __future__ import annotations
+
 import numbers
 from typing import Any, cast, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union
 
@@ -44,10 +47,6 @@ _NOT_FOUND = object()
 _RECURSION_FLAG = object()
 
 
-def _is_param_resolver_or_similar_type(obj: Any):
-    return obj is None or isinstance(obj, (ParamResolver, dict))
-
-
 class ParamResolver:
     """Resolves parameters to actual values.
 
@@ -65,12 +64,12 @@ class ParamResolver:
         TypeError if formulas are passed as keys.
     """
 
-    def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
+    def __new__(cls, param_dict: cirq.ParamResolverOrSimilarType = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
+    def __init__(self, param_dict: cirq.ParamResolverOrSimilarType = None) -> None:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
@@ -86,8 +85,8 @@ class ParamResolver:
         return self._param_dict
 
     def value_of(
-        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = True
-    ) -> 'cirq.TParamValComplex':
+        self, value: Union[cirq.TParamKey, cirq.TParamValComplex], recursive: bool = True
+    ) -> cirq.TParamValComplex:
         """Attempt to resolve a parameter to its assigned value.
 
         Scalars are returned without modification.  Strings are resolved via
@@ -197,7 +196,7 @@ class ParamResolver:
 
         return self._value_of_recursive(value)
 
-    def _value_of_recursive(self, value: 'cirq.TParamKey') -> 'cirq.TParamValComplex':
+    def _value_of_recursive(self, value: cirq.TParamKey) -> cirq.TParamValComplex:
         # Recursive parameter resolution. We can safely assume that value is a
         # single symbol, since combinations are handled earlier in the method.
         if value in self._deep_eval_map:
@@ -217,8 +216,8 @@ class ParamResolver:
             self._deep_eval_map[value] = self.value_of(v, recursive=True)
         return self._deep_eval_map[value]
 
-    def _resolve_parameters_(self, resolver: 'ParamResolver', recursive: bool) -> 'ParamResolver':
-        new_dict: Dict['cirq.TParamKey', Union[float, str, sympy.Symbol, sympy.Expr]] = {
+    def _resolve_parameters_(self, resolver: ParamResolver, recursive: bool) -> ParamResolver:
+        new_dict: Dict[cirq.TParamKey, Union[float, str, sympy.Symbol, sympy.Expr]] = {
             k: k for k in resolver
         }
         new_dict.update({k: self.value_of(k, recursive) for k in self})
@@ -236,8 +235,8 @@ class ParamResolver:
         return bool(self._param_dict)
 
     def __getitem__(
-        self, key: Union['cirq.TParamKey', 'cirq.TParamValComplex']
-    ) -> 'cirq.TParamValComplex':
+        self, key: Union[cirq.TParamKey, cirq.TParamValComplex]
+    ) -> cirq.TParamValComplex:
         return self.value_of(key)
 
     def __hash__(self) -> int:
@@ -289,7 +288,7 @@ def _resolve_value(val: Any) -> Any:
         return val.p
     if isinstance(val, sympy_numbers.RationalConstant):
         return val.p / val.q
-    if val == sympy.pi:
+    if val is sympy.pi:
         return np.pi
 
     getter = getattr(val, '_resolved_value_', None)

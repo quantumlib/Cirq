@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import itertools
 from typing import cast, Iterable, Optional, Tuple, TYPE_CHECKING
@@ -28,11 +30,11 @@ class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def duration_of(self, operation: ops.Operation) -> value.Duration:
-        pass  # pragma: no cover
+        pass
 
     @abc.abstractmethod
     def validate_operation(self, operation: ops.Operation) -> None:
-        pass  # pragma: no cover
+        pass
 
 
 @value.value_equality
@@ -60,7 +62,7 @@ class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
         return value.Duration(picos=0)
 
     def validate_operation(self, operation: ops.Operation) -> None:
-        pass  # pragma: no cover
+        pass
 
     def __eq__(self, other):
         return self.__class__ == other.__class__
@@ -150,7 +152,7 @@ class UndirectedGraphDevice(devices.Device):
         self.crosstalk_graph = crosstalk_graph
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
     @property
@@ -192,7 +194,7 @@ class UndirectedGraphDevice(devices.Device):
             ):
                 validator(operation, *crosstalk_operations)
 
-    def validate_moment(self, moment: 'cirq.Moment'):
+    def validate_moment(self, moment: cirq.Moment):
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):

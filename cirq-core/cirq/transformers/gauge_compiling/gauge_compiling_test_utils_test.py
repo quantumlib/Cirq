@@ -31,7 +31,7 @@ class ExampleSweepGate(cirq.testing.TwoQubitGate):
     unitary = cirq.unitary(cirq.CZ)
 
     def _unitary_(self) -> np.ndarray:
-        return self.unitary
+        return self.unitary  # pragma: no cover
 
 
 _EXAMPLE_TARGET = ExampleGate()

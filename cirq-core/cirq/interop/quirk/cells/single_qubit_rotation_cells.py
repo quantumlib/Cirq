@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 from typing import Callable, Iterator, TYPE_CHECKING
 
 import sympy
@@ -91,14 +94,14 @@ def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:
     yield _formula_gate("Rzft", "pi*t*t", ops.rz)
 
 
-def _gate(identifier: str, gate: 'cirq.Gate') -> CellMaker:
+def _gate(identifier: str, gate: cirq.Gate) -> CellMaker:
     return CellMaker(
         identifier=identifier, size=gate.num_qubits(), maker=lambda args: gate.on(*args.qubits)
     )
 
 
 def _formula_gate(
-    identifier: str, default_formula: str, gate_func: Callable[['cirq.TParamVal'], 'cirq.Gate']
+    identifier: str, default_formula: str, gate_func: Callable[[cirq.TParamVal], cirq.Gate]
 ) -> CellMaker:
     return CellMaker(
         identifier=identifier,

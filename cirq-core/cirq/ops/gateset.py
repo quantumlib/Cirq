@@ -14,6 +14,8 @@
 
 """Functionality for grouping and validating Cirq gates."""
 
+from __future__ import annotations
+
 from typing import (
     Any,
     Callable,
@@ -37,7 +39,7 @@ if TYPE_CHECKING:
 
 
 def _gate_str(
-    gate: Union[raw_types.Gate, Type[raw_types.Gate], 'cirq.GateFamily'],
+    gate: Union[raw_types.Gate, Type[raw_types.Gate], cirq.GateFamily],
     gettr: Callable[[Any], str] = str,
 ) -> str:
     return gettr(gate) if not isinstance(gate, type) else f'{gate.__module__}.{gate.__name__}'
@@ -291,7 +293,7 @@ class GateFamily:
         tags_to_accept=(),
         tags_to_ignore=(),
         **kwargs,
-    ) -> 'GateFamily':
+    ) -> GateFamily:
         if isinstance(gate, str):
             gate = protocols.cirq_type_from_json(gate)
         return cls(
@@ -370,7 +372,7 @@ class Gateset:
 
     def with_params(
         self, *, name: Optional[str] = None, unroll_circuit_op: Optional[bool] = None
-    ) -> 'Gateset':
+    ) -> Gateset:
         """Returns a copy of this Gateset with identical gates and new values for named arguments.
 
         If a named argument is None then corresponding value of this Gateset is used instead.
@@ -445,7 +447,7 @@ class Gateset:
 
         return any(item in gate_family for gate_family in self._gates)
 
-    def validate(self, circuit_or_optree: Union['cirq.AbstractCircuit', op_tree.OP_TREE]) -> bool:
+    def validate(self, circuit_or_optree: Union[cirq.AbstractCircuit, op_tree.OP_TREE]) -> bool:
         """Validates gates forming `circuit_or_optree` should be contained in Gateset.
 
         Args:
@@ -518,7 +520,7 @@ class Gateset:
         }
 
     @classmethod
-    def _from_json_dict_(cls, gates, name, unroll_circuit_op, **kwargs) -> 'Gateset':
+    def _from_json_dict_(cls, gates, name, unroll_circuit_op, **kwargs) -> Gateset:
         # This parameter was deprecated in 0.16, but we keep this logic here for backwards
         # compatibility.
         if 'accept_global_phase_op' in kwargs:

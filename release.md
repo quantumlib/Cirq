@@ -7,7 +7,7 @@ Note that Cirq development takes place on the `main` branch in GitHub. If you
 want to use a more stable version of Cirq, you should use one of the
 [releases](https://github.com/quantumlib/Cirq/releases) or install the package
 from PyPI using `pip install cirq`. The release from the latest commit to `main`
-can be installed with `pip install cirq~=1.0.dev`.
+can be installed with `pip install --upgrade cirq~=1.0.dev`.
 
 ## Versioning
 
@@ -126,11 +126,7 @@ distribution. This can be done by visiting https://test.pypi.org, logging in,
 and accessing the https://test.pypi.org/project/cirq page.
 
 For the following script to work, you will need the following environment
-variables defined: `TEST_TWINE_USERNAME`, `TEST_TWINE_PASSWORD`,
-`PROD_TWINE_USERNAME`, `PROD_TWINE_PASSWORD`.
-
-It is highly recommended to use different passwords for test and prod to avoid
-accidentally pushing to prod.
+variables defined: `CIRQ_TEST_PYPI_TOKEN`, `CIRQ_PYPI_TOKEN`.
 
 Also define these variables for the versions you are releasing:
 
@@ -203,7 +199,7 @@ file).
 
 ```bash
 twine upload --repository-url=https://test.pypi.org/legacy/ \
-  -u="$TEST_TWINE_USERNAME" -p="$TEST_TWINE_PASSWORD" "dist/*"
+  --password="$CIRQ_TEST_PYPI_TOKEN" "dist/*"
 ```
 
 Next, run automated verification. Note: sometimes the first verification from
@@ -221,7 +217,7 @@ any high-risk features that have changed this release.
 ```bash
 mkvirtualenv "verify_test_${VER}" --python=/usr/bin/python3
 pip install -r dev_tools/requirements/dev.env.txt
-pip install --index-url=https://test.pypi.org/simple/ cirq=="${VER}"
+pip install --extra-index-url=https://test.pypi.org/simple/ cirq=="${VER}"
 python -c "import cirq; print(cirq.__version__)"
 python  # just do some stuff checking that latest features are present
 ```
@@ -264,8 +260,7 @@ git log <previous version>..HEAD --pretty="%an" | sort |\
 Upload to prod PyPI using the following command:
 
 ```bash
-twine upload --username="$PROD_TWINE_USERNAME" \
-  --password="$PROD_TWINE_PASSWORD" "dist/*"
+twine upload --password="$CIRQ_PYPI_TOKEN" "dist/*"
 ```
 
 Perform automated verification tests:

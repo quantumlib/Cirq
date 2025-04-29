@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """An `XPowGate` conjugated by `ZPowGate`s."""
+
+from __future__ import annotations
 
 import math
 import numbers
@@ -24,10 +27,10 @@ import sympy
 import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import common_gates, raw_types
+from cirq.ops import raw_types
 
 
-@value.value_equality(manual_cls=True, approximate=True)
+@value.value_equality(approximate=True)
 class PhasedXPowGate(raw_types.Gate):
     r"""A gate equivalent to $Z^{-p} X^t Z^{p}$ (in time order).
 
@@ -64,7 +67,7 @@ class PhasedXPowGate(raw_types.Gate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
 
@@ -92,7 +95,7 @@ class PhasedXPowGate(raw_types.Gate):
             qubits[0],
         )
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
         z = cirq.Z(q) ** self._phase_exponent
@@ -113,10 +116,10 @@ class PhasedXPowGate(raw_types.Gate):
     def global_shift(self) -> float:
         return self._global_shift
 
-    def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'PhasedXPowGate':
+    def __pow__(self, exponent: Union[float, sympy.Expr]) -> PhasedXPowGate:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
         return PhasedXPowGate(
             phase_exponent=self._phase_exponent,
             exponent=new_exponent,
@@ -169,9 +172,7 @@ class PhasedXPowGate(raw_types.Gate):
             self._phase_exponent
         )
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'PhasedXPowGate':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> PhasedXPowGate:
         """See `cirq.SupportsParameterization`."""
         phase_exponent = resolver.value_of(self._phase_exponent, recursive)
         exponent = resolver.value_of(self._exponent, recursive)
@@ -198,9 +199,7 @@ class PhasedXPowGate(raw_types.Gate):
             global_shift=self._global_shift,
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
         return protocols.CircuitDiagramInfo(
@@ -241,22 +240,7 @@ class PhasedXPowGate(raw_types.Gate):
 
         return self._exponent % period
 
-    def _value_equality_values_cls_(self):
-        if self.phase_exponent == 0:
-            return common_gates.XPowGate
-        if self.phase_exponent == 0.5:
-            return common_gates.YPowGate
-        return PhasedXPowGate
-
     def _value_equality_values_(self):
-        if self.phase_exponent == 0:
-            return common_gates.XPowGate(
-                exponent=self._exponent, global_shift=self._global_shift
-            )._value_equality_values_()
-        if self.phase_exponent == 0.5:
-            return common_gates.YPowGate(
-                exponent=self._exponent, global_shift=self._global_shift
-            )._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
 
     def _json_dict_(self) -> Dict[str, Any]:

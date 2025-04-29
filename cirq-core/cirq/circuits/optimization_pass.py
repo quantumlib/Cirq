@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
+
+from __future__ import annotations
+
 import abc
 from collections import defaultdict
 from typing import Callable, cast, Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING
@@ -21,7 +24,6 @@ from cirq import ops
 
 if TYPE_CHECKING:
     import cirq
-    from cirq.ops import Qid
 
 
 class PointOptimizationSummary:
@@ -30,8 +32,8 @@ class PointOptimizationSummary:
     def __init__(
         self,
         clear_span: int,
-        clear_qubits: Iterable['cirq.Qid'],
-        new_operations: 'cirq.OP_TREE',
+        clear_qubits: Iterable[cirq.Qid],
+        new_operations: cirq.OP_TREE,
         preserve_moments: bool = False,
     ) -> None:
         """Inits PointOptimizationSummary.
@@ -87,9 +89,7 @@ class PointOptimizer:
 
     def __init__(
         self,
-        post_clean_up: Callable[
-            [Sequence['cirq.Operation']], 'cirq.OP_TREE'
-        ] = lambda op_list: op_list,
+        post_clean_up: Callable[[Sequence[cirq.Operation]], cirq.OP_TREE] = lambda op_list: op_list,
     ) -> None:
         """Inits PointOptimizer.
 
@@ -100,13 +100,13 @@ class PointOptimizer:
         """
         self.post_clean_up = post_clean_up
 
-    def __call__(self, circuit: 'cirq.Circuit'):
+    def __call__(self, circuit: cirq.Circuit):
         return self.optimize_circuit(circuit)
 
     @abc.abstractmethod
     def optimization_at(
-        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
-    ) -> Optional['cirq.PointOptimizationSummary']:
+        self, circuit: cirq.Circuit, index: int, op: cirq.Operation
+    ) -> Optional[cirq.PointOptimizationSummary]:
         """Describes how to change operations near the given location.
 
         For example, this method could realize that the given operation is an
@@ -126,8 +126,8 @@ class PointOptimizer:
             change should be made.
         """
 
-    def optimize_circuit(self, circuit: 'cirq.Circuit'):
-        frontier: Dict['Qid', int] = defaultdict(lambda: 0)
+    def optimize_circuit(self, circuit: cirq.Circuit):
+        frontier: Dict[cirq.Qid, int] = defaultdict(lambda: 0)
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
             for op in circuit[i].operations:
@@ -137,14 +137,14 @@ class PointOptimizer:
 
                 # Skip if an optimization removed the circuit underneath us.
                 if i >= len(circuit):
-                    continue
+                    continue  # pragma: no cover
                 # Skip if an optimization removed the op we're considering.
                 if op not in circuit[i].operations:
-                    continue
+                    continue  # pragma: no cover
                 opt = self.optimization_at(circuit, i, op)
                 # Skip if the optimization did nothing.
                 if opt is None:
-                    continue
+                    continue  # pragma: no cover
 
                 # Clear target area, and insert new operations.
                 circuit.clear_operations_touching(
