@@ -55,6 +55,8 @@ jobs:
       pull-requests: write
     env:
       PR_NUMBER: ${{inputs.pr-number || github.event.pull_request.number}}
+      # The next var is used by Bash. We add 'xtrace' to the options if this run
+      # is a workflow_dispatch invocation and the user set the 'trace' option.
       SHELLOPTS: ${{inputs.trace && 'xtrace' || '' }}
     steps:
       - name: Check out a copy of the git repository
@@ -68,6 +70,7 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{secrets.PR_LABELER_TOKEN}}
+        # N.B.: GitHub runners set the `pipefail` option by default.
         run: ./dev_tools/ci/size-labeler.sh |& tee action.out
 
       - name: Detect and report errors in labeler action
