@@ -55,14 +55,14 @@ class WillowGate(cirq.FSimGate):
 WILLOW = WillowGate()
 document(
     WILLOW,
-    """The Willow gate is a two-qubit gate equivalent to FSimGate(π/2, π/10).
+    """The Willow gate is a two-qubit gate equivalent to FSimGate(π/2, π/9).
 
     The unitary of this gate is simulated as:
 
         [[1, 0, 0, 0],
          [0, 0, -1j, 0],
          [0, -1j, 0, 0],
-         [0, 0, 0, exp(- 1j * π/10)]]
+         [0, 0, 0, exp(- 1j * π/9)]]
 
     This gate can be performed on the Google's Willow chip.  Note that
     this gate will be transformed to a "ISWAP-like" gate on hardware
