@@ -56,9 +56,9 @@ WILLOW = WillowGate()
 document(
     WILLOW,
     """The Willow gate is a two-qubit gate equivalent to FSimGate(π/2, π/10).
-        
+
     The unitary of this gate is simulated as:
-    
+
         [[1, 0, 0, 0],
          [0, 0, -1j, 0],
          [0, -1j, 0, 0],
