@@ -182,31 +182,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install system packages
         run: |
           sudo apt-get update
           sudo apt-get install libffi7
       - name: Install requirements
-        env:
-          PYTHONDONTWRITEBYTECODE: 1
         run: |
-          set -o xtrace
-          which pip
-          pip --version
-          pip freeze --all
-          declare -p pythonLocation
-          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
-          find "${pythonLocation}" -type f -name "*.pyc" -exec rm "{}" +
-          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
           pip install --upgrade setuptools wheel
-          pip freeze --all
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
-          pip freeze --all
       - name: Run Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
@@ -228,31 +215,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: numpy2-${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install system packages
         run: |
           sudo apt-get update
           sudo apt-get install libffi7
       - name: Install requirements
-        env:
-          PYTHONDONTWRITEBYTECODE: 1
         run: |
-          set -o xtrace
-          which pip
-          pip --version
-          pip freeze --all
-          declare -p pythonLocation
-          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
-          find "${pythonLocation}" -type f -name "*.pyc" -exec rm "{}" +
-          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
           pip install wheel
-          pip freeze --all
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev-np2.env.txt
-          pip freeze --all
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-rigetti
   pip-compile:
@@ -302,31 +276,18 @@ jobs:
         with:
           python-version: '3.10'
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install system requirements
         run: |
           sudo apt-get update
           sudo apt-get install libffi7
       - name: Install requirements
-        env:
-          PYTHONDONTWRITEBYTECODE: 1
         run: |
-          set -o xtrace
-          which pip
-          pip --version
-          pip freeze --all
-          declare -p pythonLocation
-          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
-          find "${pythonLocation}" -type f -name "*.pyc" -exec rm "{}" +
-          find "${pythonLocation}" -type f -name "*.pyc" | wc -l
           pip install --upgrade setuptools wheel
-          pip freeze --all
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
-          pip freeze --all
       - name: Run Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
@@ -351,11 +312,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
@@ -379,11 +339,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Set up caching of dependencies
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements.txt
+            dev_tools/requirements/**/*.txt
       - name: Install requirements
         run: |
           pip install --upgrade setuptools wheel
