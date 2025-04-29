@@ -1,8 +1,7 @@
-# <!-- H1 title omitted because our logo acts as the title. -->
-
+<!-- H1 title omitted because our logo acts as the title. -->
 <div align="center">
-<img width="280px" height="135px" alt="Cirq logo"
-src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
+
+<img width="300px" alt="Cirq logo" src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
 
 Python package for writing, manipulating, and running [quantum
 circuits](https://en.wikipedia.org/wiki/Quantum_circuit) on quantum computers
@@ -230,7 +229,7 @@ Cirq releases take place approximately every quarter.
 [contribution guidelines]: https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md
 [pull requests]: https://help.github.com/articles/about-pull-requests
 
-## Citing Cirq<a name="how-to-cite-cirq"></a>
+## Citing Cirq<a name="how-to-cite-cirq"></a><a name="how-to-cite"></a>
 
 When publishing articles or otherwise writing about Cirq, please cite the Cirq
 version you use – it will help others reproduce your results. We use Zenodo to
@@ -253,8 +252,19 @@ Zenodo](https://doi.org/10.5281/zenodo.4062499).
 ## Contact
 
 For any questions or concerns not addressed here, please email
-<quantum-oss-maintainers@google.com>.
+quantum-oss-maintainers@google.com.
 
 ## Disclaimer
 
-Cirq is not an official Google product. Copyright 2019 The Cirq Developers.
+This is not an officially supported Google product. This project is not
+eligible for the [Google Open Source Software Vulnerability Rewards
+Program](https://bughunters.google.com/open-source-security).
+
+Copyright 2019 The Cirq Developers.
+
+<div align="center">
+  <a href="https://quantumai.google">
+    <img width="15%" alt="Google Quantum AI"
+         src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/quantum-ai-vertical.svg">
+  </a>
+</div>

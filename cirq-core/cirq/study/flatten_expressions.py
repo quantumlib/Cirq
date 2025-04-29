@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Resolves symbolic expressions to unique symbols."""
+
+from __future__ import annotations
 
 import numbers
 from typing import Any, Callable, List, Optional, Tuple, TYPE_CHECKING, Union
@@ -25,7 +28,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
+def flatten(val: Any) -> Tuple[Any, ExpressionMap]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.
@@ -250,8 +253,8 @@ class _ParamFlattener(resolver.ParamResolver):
         return symbol
 
     def value_of(
-        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = False
-    ) -> 'cirq.TParamValComplex':
+        self, value: Union[cirq.TParamKey, cirq.TParamValComplex], recursive: bool = False
+    ) -> cirq.TParamValComplex:
         """Resolves a symbol or expression to a new symbol unique to that value.
 
         - If value is a float, returns it.
@@ -380,8 +383,8 @@ class ExpressionMap(dict):
 
 
 def _ensure_not_str(
-    param: Union[sympy.Expr, 'cirq.TParamValComplex', str],
-) -> Union[sympy.Expr, 'cirq.TParamValComplex']:
+    param: Union[sympy.Expr, cirq.TParamValComplex, str],
+) -> Union[sympy.Expr, cirq.TParamValComplex]:
     if isinstance(param, str):
         return sympy.Symbol(param)
     return param

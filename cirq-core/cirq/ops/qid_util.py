@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import overload, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
@@ -19,18 +21,18 @@ if TYPE_CHECKING:
 
 
 @overload
-def q(__x: int) -> 'cirq.LineQubit': ...
+def q(__x: int) -> cirq.LineQubit: ...
 
 
 @overload
-def q(__row: int, __col: int) -> 'cirq.GridQubit': ...
+def q(__row: int, __col: int) -> cirq.GridQubit: ...
 
 
 @overload
-def q(__name: str) -> 'cirq.NamedQubit': ...
+def q(__name: str) -> cirq.NamedQubit: ...
 
 
-def q(*args: Union[int, str]) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:
+def q(*args: Union[int, str]) -> Union[cirq.LineQubit, cirq.GridQubit, cirq.NamedQubit]:
     """Constructs a qubit id of the appropriate type based on args.
 
     This is shorthand for constructing qubit ids of common types:
