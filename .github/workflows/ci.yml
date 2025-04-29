@@ -192,6 +192,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install libffi7
       - name: Install requirements
+        env:
+          PYTHONDONTWRITEBYTECODE: 1
         run: |
           set -o xtrace
           which pip
@@ -232,6 +234,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install libffi7
       - name: Install requirements
+        env:
+          PYTHONDONTWRITEBYTECODE: 1
         run: |
           set -o xtrace
           which pip
@@ -300,6 +304,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install libffi7
       - name: Install requirements
+        env:
+          PYTHONDONTWRITEBYTECODE: 1
         run: |
           set -o xtrace
           which pip
