@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Abstract classes for simulations which keep track of state vector."""
+
+from __future__ import annotations
 
 import abc
 import warnings
@@ -48,8 +51,8 @@ class SimulatesIntermediateStateVector(
         self,
         *,
         dtype: Type[np.complexfloating] = np.complex64,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = False,
     ):
         super().__init__(
@@ -58,20 +61,20 @@ class SimulatesIntermediateStateVector(
 
     def _create_simulator_trial_result(
         self,
-        params: 'cirq.ParamResolver',
+        params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
-    ) -> 'cirq.StateVectorTrialResult':
+        final_simulator_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState],
+    ) -> cirq.StateVectorTrialResult:
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     def compute_amplitudes_sweep_iter(
         self,
-        program: 'cirq.AbstractCircuit',
+        program: cirq.AbstractCircuit,
         bitstrings: Sequence[int],
-        params: 'cirq.Sweepable',
-        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        params: cirq.Sweepable,
+        qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> Iterator[Sequence[complex]]:
         if isinstance(bitstrings, np.ndarray) and len(bitstrings.shape) > 1:
             raise ValueError(
@@ -112,9 +115,9 @@ class StateVectorTrialResult(
 
     def __init__(
         self,
-        params: 'cirq.ParamResolver',
+        params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        final_simulator_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState],
     ) -> None:
         super().__init__(
             params=params,
