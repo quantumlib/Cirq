@@ -26,7 +26,7 @@ def index_tags(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
-    target_tags: set[Hashable],
+    target_tags: Optional[set[Hashable]] = None,
 ) -> 'cirq.Circuit':
     """Indexes tags in target_tags as tag_0, tag_1, ... per tag.
 
@@ -41,7 +41,7 @@ def index_tags(
     if context and context.tags_to_ignore:
         raise ValueError("index_tags doesn't support tags_to_ignore, use function args instead.")
     if not target_tags:
-        return circuit
+        return circuit.unfreeze(copy=False)
     tag_iter_by_tags = {tag: itertools.count(start=0, step=1) for tag in target_tags}
 
     def _map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
