@@ -195,7 +195,7 @@ def _normalize_input_paulis(
     circuits_to_pauli: Union[
         Dict[circuits.FrozenCircuit, list[ops.PauliString]],
         Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
-    ]
+    ],
 ) -> Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]:
     first_value = next(iter(circuits_to_pauli.values()))
     if (

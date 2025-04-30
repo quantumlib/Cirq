@@ -52,9 +52,9 @@ def _generate_random_pauli_string(
 
 
 def _generate_qwc_paulis(
-    input_pauli: cirq.PauliString, exclude_input_pauli: bool = False
+    input_pauli: cirq.PauliString, num_output: int, exclude_input_pauli: bool = False
 ) -> list[cirq.PauliString]:
-    """Generates all PauliStrings that are Qubit-Wise Commuting (QWC)
+    """Generates PauliStrings that are Qubit-Wise Commuting (QWC)
     with the input_pauli.
 
     All operations in input_pauli must not be pauli I.
@@ -67,7 +67,7 @@ def _generate_qwc_paulis(
 
         allowed_pauli_op = []
         if pauli_op == cirq.I:
-            allowed_pauli_op = [cirq.I, cirq.X, cirq.Y, cirq.Z]
+            allowed_pauli_op = [cirq.I, cirq.X, cirq.Y, cirq.Z]  # pragma: no cover
         elif pauli_op == cirq.X:
             allowed_pauli_op = [cirq.I, cirq.X]
         elif pauli_op == cirq.Y:
@@ -86,12 +86,12 @@ def _generate_qwc_paulis(
 
         qwc_pauli: cirq.PauliString = cirq.PauliString(pauli_dict)
         if exclude_input_pauli and qwc_pauli == input_pauli:
-            continue
+            continue  # pragma: no cover
         if all(q == cirq.I for q in qwc_pauli):
             continue
         qwc_paulis.append(qwc_pauli)
 
-    return qwc_paulis
+    return qwc_paulis if num_output > len(qwc_paulis) else random.sample(qwc_paulis, num_output)
 
 
 def _ideal_expectation_based_on_pauli_string(
@@ -209,10 +209,11 @@ def test_group_pauli_string_measurement_errors_no_noise_with_coefficient() -> No
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False), True
+            _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False), 100, True
         )
         for _ in range(3)
     ]
+    circuits_to_pauli[circuit].append([cirq.PauliString({q: cirq.X for q in qubits})])
 
     circuits_with_pauli_expectations = measure_pauli_strings(
         circuits_to_pauli, sampler, 100, 100, 100, 100
@@ -309,7 +310,7 @@ def test_group_pauli_string_measurement_errors_with_noise() -> None:
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False)
+            _generate_random_pauli_string(qubits, enable_coeff=True, allow_pauli_i=False), 5
         )
     ]
 
@@ -446,9 +447,9 @@ def test_allow_group_pauli_measurement_without_readout_mitigation() -> None:
 
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit] = [
-        _generate_qwc_paulis(_generate_random_pauli_string(qubits, True), True),
-        _generate_qwc_paulis(_generate_random_pauli_string(qubits)),
-        _generate_qwc_paulis(_generate_random_pauli_string(qubits)),
+        _generate_qwc_paulis(_generate_random_pauli_string(qubits, True), 2, True),
+        _generate_qwc_paulis(_generate_random_pauli_string(qubits), 4),
+        _generate_qwc_paulis(_generate_random_pauli_string(qubits), 6),
     ]
 
     circuits_with_pauli_expectations = measure_pauli_strings(
@@ -547,17 +548,17 @@ def test_many_group_pauli_in_circuits_with_coefficient() -> None:
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit_1] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False)
+            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False), 4
         )
     ]
     circuits_to_pauli[circuit_2] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_2, enable_coeff=True, allow_pauli_i=False)
+            _generate_random_pauli_string(qubits_2, enable_coeff=True, allow_pauli_i=False), 5
         )
     ]
     circuits_to_pauli[circuit_3] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_3, enable_coeff=True, allow_pauli_i=False)
+            _generate_random_pauli_string(qubits_3, enable_coeff=True, allow_pauli_i=False), 6
         )
     ]
 
@@ -565,7 +566,7 @@ def test_many_group_pauli_in_circuits_with_coefficient() -> None:
     simulator = cirq.Simulator()
 
     circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli, sampler, 800, 1000, 800, np.random.default_rng()
+        circuits_to_pauli, sampler, 1000, 1000, 1000, np.random.default_rng()
     )
 
     for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
@@ -816,6 +817,20 @@ def test_group_paulis_are_not_qwc() -> None:
         )
 
 
+def test_empty_group_paulis_not_allowed() -> None:
+    """Test that the group paulis are empty"""
+    qubits = cirq.LineQubit.range(5)
+
+    circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
+
+    circuits_to_pauli: Dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
+    circuits_to_pauli[circuit] = [[]]  # type: ignore
+    with pytest.raises(ValueError, match="Empty group of Pauli strings is not allowed"):
+        measure_pauli_strings(
+            circuits_to_pauli, cirq.Simulator(), 1000, 1000, 1000, np.random.default_rng()
+        )
+
+
 def test_group_paulis_type_mismatch() -> None:
     """Test that the group paulis type is not correct"""
     qubits_1 = cirq.LineQubit.range(3)
@@ -835,7 +850,7 @@ def test_group_paulis_type_mismatch() -> None:
     circuits_to_pauli: Dict[cirq.FrozenCircuit, list[list[cirq.PauliString]]] = {}
     circuits_to_pauli[circuit_1] = [
         _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False)
+            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False), 6
         )
         for _ in range(3)
     ]
