@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq
 
 
@@ -35,6 +37,18 @@ def test_index_tags():
     )
     check_same_circuit_with_same_tag_sets(
         cirq.index_tags(input_circuit, target_tags={"tag1", "tag2"}), expected_circuit
+    )
+
+
+def test_index_tags_empty_target_tags():
+    q0, q1 = cirq.LineQubit.range(2)
+    input_circuit = cirq.Circuit(
+        cirq.X(q0).with_tags("tag1", "tag2"),
+        cirq.Y(q1).with_tags("tag1"),
+        cirq.CZ(q0, q1).with_tags("tag2"),
+    )
+    check_same_circuit_with_same_tag_sets(
+        cirq.index_tags(input_circuit, target_tags={}), input_circuit
     )
 
 
@@ -67,21 +81,21 @@ def test_remove_tags_via_remove_if():
     )
 
 
-def test_remove_tags_with_tags_to_ignore():
-    q0, q1 = cirq.LineQubit.range(2)
-    input_circuit = cirq.Circuit(
-        cirq.X(q0).with_tags("tag1", "tag0"),
-        cirq.Y(q1).with_tags("not_tag1"),
-        cirq.CZ(q0, q1).with_tags("tag2"),
-    )
-    expected_circuit = cirq.Circuit(
-        cirq.X(q0).with_tags("tag1", "tag0"), cirq.Y(q1).with_tags("not_tag1"), cirq.CZ(q0, q1)
-    )
-    check_same_circuit_with_same_tag_sets(
-        cirq.remove_tags(
-            input_circuit,
-            remove_if=lambda tag: tag.startswith("tag"),
+def test_index_tags_with_tags_to_ignore():
+    with pytest.raises(
+        ValueError, match="index_tags doesn't support tags_to_ignore, use function args instead."
+    ):
+        cirq.index_tags(
+            circuit=cirq.Circuit(),
+            target_tags={"tag0"},
             context=cirq.TransformerContext(tags_to_ignore=["tag0"]),
-        ),
-        expected_circuit,
-    )
+        )
+
+
+def test_remove_tags_with_tags_to_ignore():
+    with pytest.raises(
+        ValueError, match="remove_tags doesn't support tags_to_ignore, use function args instead."
+    ):
+        cirq.remove_tags(
+            circuit=cirq.Circuit(), context=cirq.TransformerContext(tags_to_ignore=["tag0"])
+        )

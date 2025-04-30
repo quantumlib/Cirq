@@ -26,7 +26,7 @@ def index_tags(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
-    target_tags: Optional[set[Hashable]] = None,
+    target_tags: set[Hashable],
 ) -> 'cirq.Circuit':
     """Indexes tags in target_tags as tag_0, tag_1, ... per tag.
 
@@ -38,7 +38,10 @@ def index_tags(
     Returns:
         Copy of the transformed input circuit.
     """
-    target_tags = target_tags or set()
+    if context and context.tags_to_ignore:
+        raise ValueError("index_tags doesn't support tags_to_ignore, use function args instead.")
+    if not target_tags:
+        return circuit
     tag_iter_by_tags = {tag: itertools.count(start=0, step=1) for tag in target_tags}
 
     def _map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
@@ -51,10 +54,7 @@ def index_tags(
         return op.untagged.with_tags(*tag_set)
 
     return transformer_primitives.map_operations(
-        circuit,
-        _map_func,
-        deep=context.deep if context else False,
-        tags_to_ignore=context.tags_to_ignore if context else [],
+        circuit, _map_func, deep=context.deep if context else False
     ).unfreeze(copy=False)
 
 
@@ -68,8 +68,6 @@ def remove_tags(
 ) -> 'cirq.Circuit':
     """Removes tags from the operations based on the input args.
 
-    Note: context.tags_to_ignore has higher priority than target_tags and remove_if.
-
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
@@ -80,6 +78,8 @@ def remove_tags(
     Returns:
         Copy of the transformed input circuit.
     """
+    if context and context.tags_to_ignore:
+        raise ValueError("remove_tags doesn't support tags_to_ignore, use function args instead.")
     target_tags = target_tags or set()
 
     def _map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
@@ -91,8 +91,5 @@ def remove_tags(
         return op.untagged.with_tags(*remaing_tags)
 
     return transformer_primitives.map_operations(
-        circuit,
-        _map_func,
-        deep=context.deep if context else False,
-        tags_to_ignore=context.tags_to_ignore if context else [],
+        circuit, _map_func, deep=context.deep if context else False
     ).unfreeze(copy=False)
