@@ -14,6 +14,8 @@
 
 """Transformer pass that pushes Z gates later and later in the circuit."""
 
+from __future__ import annotations
+
 from collections import defaultdict
 from typing import Dict, Iterable, Iterator, Optional, Tuple, TYPE_CHECKING
 
@@ -31,7 +33,7 @@ def _is_integer(n):
     return np.isclose(n, np.round(n))
 
 
-def _is_swaplike(gate: 'cirq.Gate'):
+def _is_swaplike(gate: cirq.Gate):
     if isinstance(gate, ops.SwapPowGate):
         return gate.exponent == 1
 
@@ -46,12 +48,12 @@ def _is_swaplike(gate: 'cirq.Gate'):
 
 @transformer_api.transformer(add_deep_support=True)
 def eject_z(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: Optional[cirq.TransformerContext] = None,
     atol: float = 0.0,
     eject_parameterized: bool = False,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Pushes Z gates towards the end of the circuit.
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into
@@ -77,7 +79,7 @@ def eject_z(
         lambda: None
     )
 
-    def dump_tracked_phase(qubits: Iterable[ops.Qid]) -> Iterator['cirq.OP_TREE']:
+    def dump_tracked_phase(qubits: Iterable[ops.Qid]) -> Iterator[cirq.OP_TREE]:
         """Zeroes qubit_phase entries by emitting Z gates."""
         for q in qubits:
             p, key = qubit_phase[q], last_phased_xz_op[q]
@@ -87,7 +89,7 @@ def eject_z(
             elif key:
                 phased_xz_replacements[key] = phased_xz_replacements[key].with_z_exponent(p * 2)
 
-    def map_func(op: 'cirq.Operation', moment_index: int) -> 'cirq.OP_TREE':
+    def map_func(op: cirq.Operation, moment_index: int) -> cirq.OP_TREE:
         last_phased_xz_op.update({q: None for q in op.qubits})
 
         if tags_to_ignore & set(op.tags):

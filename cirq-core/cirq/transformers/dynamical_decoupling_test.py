@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Sequence, Tuple, Union
 
 import numpy as np
@@ -21,7 +23,7 @@ import cirq
 from cirq import add_dynamical_decoupling
 
 
-def assert_sim_eq(circuit1: 'cirq.AbstractCircuit', circuit2: 'cirq.AbstractCircuit'):
+def assert_sim_eq(circuit1: cirq.AbstractCircuit, circuit2: cirq.AbstractCircuit):
     # Simulate 2 circuits and compare final states.
     sampler = cirq.Simulator(dtype=np.complex128)
     psi0 = sampler.simulate(cirq.drop_terminal_measurements(circuit1)).final_state_vector
@@ -31,9 +33,9 @@ def assert_sim_eq(circuit1: 'cirq.AbstractCircuit', circuit2: 'cirq.AbstractCirc
 
 
 def assert_dd(
-    input_circuit: 'cirq.AbstractCircuit',
-    expected_circuit: Union[str, 'cirq.AbstractCircuit'],
-    schema: Union[str, Tuple['cirq.Gate', ...]] = 'DEFAULT',
+    input_circuit: cirq.AbstractCircuit,
+    expected_circuit: Union[str, cirq.AbstractCircuit],
+    schema: Union[str, Tuple[cirq.Gate, ...]] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
 ):
     transformed_circuit = add_dynamical_decoupling(
@@ -86,7 +88,7 @@ def test_no_insertion():
         ('Y_YINV', (cirq.Y, cirq.Y**-1)),
     ],
 )
-def test_insert_provided_schema(schema: str, inserted_gates: Sequence['cirq.Gate']):
+def test_insert_provided_schema(schema: str, inserted_gates: Sequence[cirq.Gate]):
     """Test case diagrams.
     Input:
     a: ───H───@───────────M───
@@ -252,7 +254,7 @@ def test_pull_through_h_gate_case2(single_qubit_gate_moments_only: bool):
         ),
     ],
 )
-def test_invalid_dd_schema(schema: Union[str, Tuple['cirq.Gate', ...]], error_msg_regex):
+def test_invalid_dd_schema(schema: Union[str, Tuple[cirq.Gate, ...]], error_msg_regex):
     a = cirq.NamedQubit('a')
     input_circuit = cirq.Circuit(cirq.H(a))
     with pytest.raises(ValueError, match=error_msg_regex):
