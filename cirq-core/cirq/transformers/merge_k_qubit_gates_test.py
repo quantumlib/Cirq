@@ -14,6 +14,8 @@
 
 # pylint: skip-file
 
+from __future__ import annotations
+
 from typing import List
 
 import numpy as np
@@ -133,7 +135,7 @@ a: ═════════════════════════�
     )
     component_id = 0
 
-    def rewriter_merge_to_circuit_op(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
+    def rewriter_merge_to_circuit_op(op: cirq.CircuitOperation) -> cirq.OP_TREE:
         nonlocal component_id
         component_id = component_id + 1
         return op.with_tags(f'{component_id}')
@@ -160,7 +162,7 @@ a: ═════════════════════════�
 
     component_id = 0
 
-    def rewriter_replace_with_decomp(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
+    def rewriter_replace_with_decomp(op: cirq.CircuitOperation) -> cirq.OP_TREE:
         nonlocal component_id
         component_id = component_id + 1
         tag = f'{component_id}'
@@ -220,7 +222,7 @@ def test_merge_k_qubit_unitaries_deep():
 
     component_id = 0
 
-    def rewriter_merge_to_circuit_op(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
+    def rewriter_merge_to_circuit_op(op: cirq.CircuitOperation) -> cirq.OP_TREE:
         nonlocal component_id
         component_id = component_id + 1
         return op.with_tags(f'{component_id}')

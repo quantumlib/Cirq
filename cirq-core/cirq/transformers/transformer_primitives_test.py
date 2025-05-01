@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Iterator, List, Optional
 
 import pytest
@@ -721,7 +723,7 @@ def test_merge_operations_to_circuit_op_merges_connected_component():
 ''',
     )
 
-    def can_merge(ops1: List['cirq.Operation'], ops2: List['cirq.Operation']) -> bool:
+    def can_merge(ops1: List[cirq.Operation], ops2: List[cirq.Operation]) -> bool:
         """Artificial example where a CZ will absorb any merge-able operation."""
         return any(o.gate == cirq.CZ for op_list in [ops1, ops2] for o in op_list)
 

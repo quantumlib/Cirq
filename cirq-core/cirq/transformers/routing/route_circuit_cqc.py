@@ -14,6 +14,8 @@
 
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
+from __future__ import annotations
+
 import itertools
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING
 
@@ -108,13 +110,13 @@ class RouteCQC:
 
     def __call__(
         self,
-        circuit: 'cirq.AbstractCircuit',
+        circuit: cirq.AbstractCircuit,
         *,
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
-        initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
-        context: Optional['cirq.TransformerContext'] = None,
-    ) -> 'cirq.AbstractCircuit':
+        initial_mapper: Optional[cirq.AbstractInitialMapper] = None,
+        context: Optional[cirq.TransformerContext] = None,
+    ) -> cirq.AbstractCircuit:
         """Transforms the given circuit to make it executable on the device.
 
         This method calls self.route_circuit and returns the routed circuit. See docstring of
@@ -150,13 +152,13 @@ class RouteCQC:
 
     def route_circuit(
         self,
-        circuit: 'cirq.AbstractCircuit',
+        circuit: cirq.AbstractCircuit,
         *,
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
-        initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
-        context: Optional['cirq.TransformerContext'] = None,
-    ) -> Tuple['cirq.AbstractCircuit', Dict['cirq.Qid', 'cirq.Qid'], Dict['cirq.Qid', 'cirq.Qid']]:
+        initial_mapper: Optional[cirq.AbstractInitialMapper] = None,
+        context: Optional[cirq.TransformerContext] = None,
+    ) -> Tuple[cirq.AbstractCircuit, Dict[cirq.Qid, cirq.Qid], Dict[cirq.Qid, cirq.Qid]]:
         """Transforms the given circuit to make it executable on the device.
 
         This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
@@ -241,8 +243,8 @@ class RouteCQC:
 
     @classmethod
     def _get_one_and_two_qubit_ops_as_timesteps(
-        cls, circuit: 'cirq.AbstractCircuit'
-    ) -> Tuple[List[List['cirq.Operation']], List[List['cirq.Operation']]]:
+        cls, circuit: cirq.AbstractCircuit
+    ) -> Tuple[List[List[cirq.Operation]], List[List[cirq.Operation]]]:
         """Gets the single and two qubit operations of the circuit factored into timesteps.
 
         The i'th entry in the nested two-qubit and single-qubit ops correspond to the two-qubit
@@ -286,11 +288,11 @@ class RouteCQC:
     def _route(
         cls,
         mm: mapping_manager.MappingManager,
-        two_qubit_ops: List[List['cirq.Operation']],
-        single_qubit_ops: List[List['cirq.Operation']],
+        two_qubit_ops: List[List[cirq.Operation]],
+        single_qubit_ops: List[List[cirq.Operation]],
         lookahead_radius: int,
         tag_inserted_swaps: bool = False,
-    ) -> List[List['cirq.Operation']]:
+    ) -> List[List[cirq.Operation]]:
         """Main routing procedure that inserts necessary swaps on the given timesteps.
 
         The i'th element of the returned list corresponds to the routed operatiosn in the i'th
@@ -316,10 +318,10 @@ class RouteCQC:
             ]
             for timestep_ops in two_qubit_ops
         ]
-        routed_ops: List[List['cirq.Operation']] = []
+        routed_ops: List[List[cirq.Operation]] = []
 
         def process_executable_two_qubit_ops(timestep: int) -> int:
-            unexecutable_ops: List['cirq.Operation'] = []
+            unexecutable_ops: List[cirq.Operation] = []
             unexecutable_ops_ints: List[QidIntPair] = []
             for op, op_ints in zip(two_qubit_ops[timestep], two_qubit_ops_ints[timestep]):
                 if mm.is_adjacent(*op_ints):
