@@ -213,7 +213,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     @deprecated(deadline="v2.0", fix="Use conjuagetd_by() instead.")
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
-    ) -> PauliStringPhasor:
+    ) -> PauliStringPhasor:  # pragma: no cover
         """Determines how the Pauli phasor changes when conjugated by Cliffords.
 
         The output and input pauli phasors are related by a circuit equivalence.

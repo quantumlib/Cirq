@@ -1074,7 +1074,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     @deprecated(deadline="v2.0", fix="Use conjuagetd_by()/before()/after() instead.")
     def pass_operations_over(
         self, ops: Iterable[cirq.Operation], after_to_before: bool = False
-    ) -> PauliString:
+    ) -> PauliString:  # pragma: no cover
         """Determines how the Pauli string changes when conjugated by Cliffords.
 
         The output and input pauli strings are related by a circuit equivalence.
