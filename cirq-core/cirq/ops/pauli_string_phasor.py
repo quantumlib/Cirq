@@ -241,12 +241,6 @@ class PauliStringPhasor(gate_operation.GateOperation):
                 pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
-        warnings.warn(
-            "PauliStringPhasor.pass_operations_over() is deprecated since v1.5.0 and"
-            " will be removed in v2.0. Use PauliStringPhasor.conjuagetd_by() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         new_pauli_string: ps.PauliString = ps.PauliString()
         if after_to_before:
             new_pauli_string = self.pauli_string.after(ops)
