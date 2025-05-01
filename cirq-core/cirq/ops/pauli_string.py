@@ -17,7 +17,6 @@ from __future__ import annotations
 import cmath
 import math
 import numbers
-import warnings
 from types import NotImplementedType
 from typing import (
     AbstractSet,
@@ -46,6 +45,7 @@ import numpy as np
 import sympy
 
 from cirq import _compat, linalg, protocols, qis, value
+from cirq._compat import deprecated
 from cirq._doc import document
 from cirq._import import LazyLoader
 from cirq.ops import (
@@ -1071,6 +1071,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """
         return self.conjugated_by(ops)
 
+    @deprecated(deadline="v2.0", fix="Use conjuagetd_by()/before()/after() instead.")
     def pass_operations_over(
         self, ops: Iterable[cirq.Operation], after_to_before: bool = False
     ) -> PauliString:
@@ -1100,12 +1101,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
-        warnings.warn(
-            "PauliString.pass_operations_over() is deprecated since v1.5.0 and"
-            " will be removed in v2.0. Use PauliString.conjuagetd_by() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         if after_to_before:
             return self.after(ops)
 
