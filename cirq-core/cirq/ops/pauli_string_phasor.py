@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import numbers
-import warnings
 from typing import (
     AbstractSet,
     cast,
