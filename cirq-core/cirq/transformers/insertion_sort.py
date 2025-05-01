@@ -14,6 +14,8 @@
 
 """Transformer that sorts commuting operations in increasing order of their `.qubits` tuple."""
 
+from __future__ import annotations
+
 from typing import Dict, List, Optional, TYPE_CHECKING
 
 from cirq import circuits, protocols
@@ -25,8 +27,8 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer(add_deep_support=True)
 def insertion_sort_transformer(
-    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
-) -> 'cirq.Circuit':
+    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+) -> cirq.Circuit:
     """Sorts the operations using their sorted `.qubits` property as comparison key.
 
     Operations are swapped only if they commute.
@@ -35,8 +37,8 @@ def insertion_sort_transformer(
         circuit: input circuit.
         context: optional TransformerContext (not used),
     """
-    final_operations: List['cirq.Operation'] = []
-    qubit_index: Dict['cirq.Qid', int] = {
+    final_operations: List[cirq.Operation] = []
+    qubit_index: Dict[cirq.Qid, int] = {
         q: idx for idx, q in enumerate(sorted(circuit.all_qubits()))
     }
     cached_qubit_indices: Dict[int, List[int]] = {}

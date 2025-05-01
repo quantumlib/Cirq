@@ -14,6 +14,8 @@
 
 """Transformer pass that adds dynamical decoupling operations to a circuit."""
 
+from __future__ import annotations
+
 from functools import reduce
 from itertools import cycle
 from typing import Dict, Optional, Tuple, TYPE_CHECKING, Union
@@ -204,12 +206,12 @@ def _need_merge_pulled_through(op_at_q: ops.Operation, is_at_last_busy_moment: b
 
 @transformer_api.transformer
 def add_dynamical_decoupling(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: Optional[cirq.TransformerContext] = None,
     schema: Union[str, Tuple[ops.Gate, ...]] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Adds dynamical decoupling gate operations to a given circuit.
     This transformer might add new moments thus change structure of the original circuit.
 
@@ -284,7 +286,7 @@ def add_dynamical_decoupling(
             transformed_moments.extend(moments_to_be_appended)
 
         # Step 2, calc updated_moment with insertions / merges.
-        updated_moment_ops: set['cirq.Operation'] = set()
+        updated_moment_ops: set[cirq.Operation] = set()
         for q in orig_circuit.all_qubits():
             op_at_q = moment.operation_at(q)
             remaining_pulled_through_gate = pulled_through.get(q)
