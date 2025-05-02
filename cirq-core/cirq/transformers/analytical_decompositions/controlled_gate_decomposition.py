@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import itertools
 from typing import List, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -36,7 +37,7 @@ def _is_identity(matrix):
 
 
 def _flatten(x):
-    return sum(x, [])
+    return list(itertools.chain.from_iterable(x))
 
 
 def _decompose_abc(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float]:
