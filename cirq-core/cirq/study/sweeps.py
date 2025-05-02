@@ -237,7 +237,7 @@ class Product(Sweep):
 
     @property
     def keys(self) -> List[cirq.TParamKey]:
-        return sum((factor.keys for factor in self.factors), [])
+        return list(itertools.chain.from_iterable(factor.keys for factor in self.factors))
 
     def __len__(self) -> int:
         length = 1
@@ -365,7 +365,7 @@ class Zip(Sweep):
 
     @property
     def keys(self) -> List[cirq.TParamKey]:
-        return sum((sweep.keys for sweep in self.sweeps), [])
+        return list(itertools.chain.from_iterable(sweep.keys for sweep in self.sweeps))
 
     def __len__(self) -> int:
         if not self.sweeps:
