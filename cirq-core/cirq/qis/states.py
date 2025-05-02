@@ -14,6 +14,8 @@
 
 """Classes and methods for quantum states."""
 
+from __future__ import annotations
+
 import itertools
 from typing import Any, cast, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 
@@ -64,7 +66,7 @@ class QuantumState:
         data: np.ndarray,
         qid_shape: Optional[Tuple[int, ...]] = None,
         *,  # Force keyword arguments
-        dtype: Optional['DTypeLike'] = None,
+        dtype: Optional[DTypeLike] = None,
         validate: bool = True,
         atol: float = 1e-7,
     ) -> None:
@@ -156,7 +158,7 @@ class QuantumState:
         return self.data.shape == (self._dim, self._dim)
 
     def validate(
-        self, *, dtype: Optional['DTypeLike'] = None, atol=1e-7  # Force keyword arguments
+        self, *, dtype: Optional[DTypeLike] = None, atol=1e-7  # Force keyword arguments
     ) -> None:
         """Check if this quantum state is valid.
 
@@ -188,12 +190,12 @@ class QuantumState:
 
 
 def quantum_state(
-    state: 'cirq.QUANTUM_STATE_LIKE',
+    state: cirq.QUANTUM_STATE_LIKE,
     qid_shape: Optional[Tuple[int, ...]] = None,
     *,  # Force keyword arguments
     copy: bool = False,
     validate: bool = True,
-    dtype: Optional['DTypeLike'] = None,
+    dtype: Optional[DTypeLike] = None,
     atol: float = 1e-7,
 ) -> QuantumState:
     """Create a QuantumState object from a state-like object.
@@ -297,7 +299,7 @@ def density_matrix(
     *,  # Force keyword arguments
     copy: bool = False,
     validate: bool = True,
-    dtype: Optional['DTypeLike'] = None,
+    dtype: Optional[DTypeLike] = None,
     atol: float = 1e-7,
 ) -> QuantumState:
     """Create a QuantumState object from a density matrix.
@@ -350,7 +352,7 @@ _NON_INT_STATE_LIKE = Union[
 ]
 
 
-def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
+def infer_qid_shape(*states: cirq.QUANTUM_STATE_LIKE) -> Tuple[int, ...]:
     """Infer the qid shape of a set of states.
 
     This is a heuristic to determine a qid shape compatible with all of the
@@ -410,7 +412,7 @@ def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
     return qid_shape
 
 
-def _potential_qid_shapes(state: _NON_INT_STATE_LIKE) -> '_QidShapeSet':
+def _potential_qid_shapes(state: _NON_INT_STATE_LIKE) -> _QidShapeSet:
     """Return a set of qid shapes compatible with a given state."""
     if isinstance(state, QuantumState):
         return _QidShapeSet(explicit_qid_shapes={state.qid_shape})
@@ -472,7 +474,7 @@ class _QidShapeSet:
         self.unfactorized_total_dimension = unfactorized_total_dimension
         self.min_qudit_dimensions = min_qudit_dimensions
 
-    def intersection_subset(self, other: '_QidShapeSet'):
+    def intersection_subset(self, other: _QidShapeSet):
         """Return a subset of the intersection with other qid shape set."""
         explicit_qid_shapes = self.explicit_qid_shapes & other.explicit_qid_shapes
         unfactorized_total_dimension = None
@@ -761,11 +763,11 @@ def dirac_notation(
 
 
 def to_valid_state_vector(
-    state_rep: 'cirq.STATE_VECTOR_LIKE',
+    state_rep: cirq.STATE_VECTOR_LIKE,
     num_qubits: Optional[int] = None,
     *,  # Force keyword arguments
     qid_shape: Optional[Sequence[int]] = None,
-    dtype: Optional['DTypeLike'] = None,
+    dtype: Optional[DTypeLike] = None,
     atol: float = 1e-7,
 ) -> np.ndarray:
     """Verifies the state_rep is valid and converts it to ndarray form.
@@ -830,7 +832,7 @@ def to_valid_state_vector(
 
 
 def _qudit_values_to_state_tensor(
-    *, state_vector: np.ndarray, qid_shape: Tuple[int, ...], dtype: Optional['DTypeLike']
+    *, state_vector: np.ndarray, qid_shape: Tuple[int, ...], dtype: Optional[DTypeLike]
 ) -> np.ndarray:
     for i in range(len(qid_shape)):
         s = state_vector[i]
@@ -863,7 +865,7 @@ def validate_normalized_state_vector(
     state_vector: np.ndarray,
     *,  # Force keyword arguments
     qid_shape: Tuple[int, ...],
-    dtype: Optional['DTypeLike'] = None,
+    dtype: Optional[DTypeLike] = None,
     atol: float = 1e-7,
 ) -> None:
     """Checks that the given state vector is valid.
@@ -928,11 +930,11 @@ def validate_indices(num_qubits: int, indices: Sequence[int]) -> None:
 
 
 def to_valid_density_matrix(
-    density_matrix_rep: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
+    density_matrix_rep: Union[np.ndarray, cirq.STATE_VECTOR_LIKE],
     num_qubits: Optional[int] = None,
     *,  # Force keyword arguments
     qid_shape: Optional[Tuple[int, ...]] = None,
-    dtype: Optional['DTypeLike'] = None,
+    dtype: Optional[DTypeLike] = None,
     atol: float = 1e-7,
 ) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
@@ -981,7 +983,7 @@ def validate_density_matrix(
     density_matrix: np.ndarray,
     *,  # Force keyword arguments
     qid_shape: Tuple[int, ...],
-    dtype: Optional['DTypeLike'] = None,
+    dtype: Optional[DTypeLike] = None,
     atol: float = 1e-7,
 ) -> None:
     """Checks that the given density matrix is valid.
@@ -1049,7 +1051,7 @@ def one_hot(
     index: Union[None, int, Sequence[int]] = None,
     shape: Union[int, Sequence[int]],
     value: Any = 1,
-    dtype: 'DTypeLike',
+    dtype: DTypeLike,
 ) -> np.ndarray:
     """Returns a numpy array with all 0s and a single non-zero entry(default 1).
 
@@ -1070,7 +1072,7 @@ def one_hot(
     return result
 
 
-def eye_tensor(half_shape: Tuple[int, ...], *, dtype: 'DTypeLike') -> np.ndarray:
+def eye_tensor(half_shape: Tuple[int, ...], *, dtype: DTypeLike) -> np.ndarray:
     """Returns an identity matrix reshaped into a tensor.
 
     Args:

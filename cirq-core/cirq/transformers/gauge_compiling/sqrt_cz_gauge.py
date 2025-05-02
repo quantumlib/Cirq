@@ -15,6 +15,8 @@
 """A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
 
+from __future__ import annotations
+
 from numbers import Real
 from typing import Dict, Sequence, Tuple, TYPE_CHECKING
 
@@ -42,7 +44,7 @@ class SqrtCZGauge(Gauge):
     def weight(self) -> float:
         return 3.0
 
-    def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: cirq.Gate, prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
             return ConstantGauge(two_qubit_gate=gate)
         swap_qubits = prng.choice([True, False])

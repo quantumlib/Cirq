@@ -14,6 +14,8 @@
 
 """Objects and methods for acting efficiently on a density matrix."""
 
+from __future__ import annotations
+
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
 
 import numpy as np
@@ -55,7 +57,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
     def create(
         cls,
         *,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
+        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
         qid_shape: Optional[Tuple[int, ...]] = None,
         dtype: Optional[Type[np.complexfloating]] = None,
         buffer: Optional[List[np.ndarray]] = None,
@@ -91,7 +93,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         density_matrix = density_matrix.astype(dtype, copy=False)
         return cls(density_matrix, buffer)
 
-    def copy(self, deep_copy_buffers: bool = True) -> '_BufferedDensityMatrix':
+    def copy(self, deep_copy_buffers: bool = True) -> _BufferedDensityMatrix:
         """Copies the object.
 
         Args:
@@ -104,7 +106,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
             buffer=[b.copy() for b in self._buffer] if deep_copy_buffers else self._buffer,
         )
 
-    def kron(self, other: '_BufferedDensityMatrix') -> '_BufferedDensityMatrix':
+    def kron(self, other: _BufferedDensityMatrix) -> _BufferedDensityMatrix:
         """Creates the Kronecker product with the other density matrix.
 
         Args:
@@ -119,7 +121,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple['_BufferedDensityMatrix', '_BufferedDensityMatrix']:
+    ) -> Tuple[_BufferedDensityMatrix, _BufferedDensityMatrix]:
         """Factors out the desired axes.
 
         Args:
@@ -141,7 +143,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         remainder = _BufferedDensityMatrix(density_matrix=remainder_tensor)
         return extracted, remainder
 
-    def reindex(self, axes: Sequence[int]) -> '_BufferedDensityMatrix':
+    def reindex(self, axes: Sequence[int]) -> _BufferedDensityMatrix:
         """Transposes the axes of a density matrix to a specified order.
 
         Args:
@@ -185,7 +187,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         return True
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> List[int]:
         """Measures the density matrix.
 
@@ -205,10 +207,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         return bits
 
     def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> np.ndarray:
         """Samples the density matrix.
 
@@ -248,10 +247,10 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         *,
         available_buffer: Optional[List[np.ndarray]] = None,
         prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
+        qubits: Optional[Sequence[cirq.Qid]] = None,
+        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
         dtype: Type[np.complexfloating] = np.complex64,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        classical_data: Optional[cirq.ClassicalDataStore] = None,
     ):
         """Inits DensityMatrixSimulationState.
 
@@ -285,7 +284,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         )
         super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
-    def add_qubits(self, qubits: Sequence['cirq.Qid']):
+    def add_qubits(self, qubits: Sequence[cirq.Qid]):
         ret = super().add_qubits(qubits)
         return (
             self.kronecker_product(type(self)(qubits=qubits), inplace=True)
@@ -293,7 +292,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
             else ret
         )
 
-    def remove_qubits(self, qubits: Sequence['cirq.Qid']):
+    def remove_qubits(self, qubits: Sequence[cirq.Qid]):
         ret = super().remove_qubits(qubits)
         if ret is not NotImplemented:
             return ret
@@ -302,9 +301,9 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         return remainder
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
-        strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
+        strats: List[Callable[[Any, Any, Sequence[cirq.Qid]], bool]] = [
             _strat_apply_channel_to_state
         ]
         if allow_decompose:
@@ -346,7 +345,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
 
 
 def _strat_apply_channel_to_state(
-    action: Any, args: 'cirq.DensityMatrixSimulationState', qubits: Sequence['cirq.Qid']
+    action: Any, args: cirq.DensityMatrixSimulationState, qubits: Sequence[cirq.Qid]
 ) -> bool:
     """Apply channel to state."""
     if not args._state.apply_channel(action, args.get_axes(qubits)):

@@ -25,7 +25,10 @@ run-name: >-
   Label pull request ${{github.event.pull_request.number}} by ${{github.actor}}
 
 on:
-  pull_request:
+  # Note: do not copy-paste this workflow with `pull_request_target` left as-is.
+  # Its use here is a special case where security implications are understood.
+  # Workflows should normally use `pull_request` instead.
+  pull_request_target:
     types:
       - opened
       - synchronize
@@ -37,9 +40,9 @@ on:
         description: 'The PR number of the PR to label:'
         type: string
         required: true
-      token:
-        description: 'Token to use for authentication:'
-        type: string
+      trace:
+        description: 'Turn on shell script debugging'
+        type: boolean
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -55,23 +58,19 @@ jobs:
       pull-requests: write
     env:
       PR_NUMBER: ${{inputs.pr-number || github.event.pull_request.number}}
+      # The next var is used by Bash. We add 'xtrace' to the options if this run
+      # is a workflow_dispatch invocation and the user set the 'trace' option.
+      SHELLOPTS: ${{inputs.trace && 'xtrace' || '' }}
     steps:
       - name: Check out a copy of the git repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          sparse-checkout: |
+            ./dev_tools/ci/size-labeler.sh
 
       - name: Label the PR with a size label
         id: label
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{inputs.token || github.token}}
-        run: ./dev_tools/ci/size-labeler.sh |& tee action.out
-
-      - name: Detect and report errors in labeler action
-        if: steps.label.outcome == 'failure' || steps.label.outcome == 'error'
-        run: |
-          {
-          echo "<h4>‼️ Failed to label PR ${PR_NUMBER}</h4>"
-          echo "<pre>"
-          cat action.out
-          echo "</pre>"
-          } >> "$GITHUB_STEP_SUMMARY"
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: ./dev_tools/ci/size-labeler.sh

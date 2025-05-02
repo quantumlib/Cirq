@@ -14,6 +14,8 @@
 
 """Transformer pass that expands composite operations via `cirq.decompose`."""
 
+from __future__ import annotations
+
 from typing import Callable, Optional, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
@@ -25,9 +27,9 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer
 def expand_composite(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: Optional[cirq.TransformerContext] = None,
     no_decomp: Callable[[ops.Operation], bool] = (lambda _: False),
 ):
     """A transformer that expands composite operations via `cirq.decompose`.
@@ -48,7 +50,7 @@ def expand_composite(
           Copy of the transformed input circuit.
     """
 
-    def map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+    def map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
         if context and context.deep and isinstance(op.untagged, circuits.CircuitOperation):
             return op
         return protocols.decompose(op, keep=no_decomp, on_stuck_raise=None)

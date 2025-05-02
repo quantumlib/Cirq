@@ -14,6 +14,8 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
+from __future__ import annotations
+
 from typing import Any, Iterator, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
@@ -126,8 +128,8 @@ class Simulator(
         self,
         *,
         dtype: Type[np.complexfloating] = np.complex64,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = True,
     ):
         """A sparse matrix simulator.
@@ -152,9 +154,9 @@ class Simulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.StateVectorSimulationState'],
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
+        initial_state: Union[cirq.STATE_VECTOR_LIKE, cirq.StateVectorSimulationState],
+        qubits: Sequence[cirq.Qid],
+        classical_data: cirq.ClassicalDataStore,
     ):
         """Creates the StateVectorSimulationState for a circuit.
 
@@ -183,16 +185,16 @@ class Simulator(
         )
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]'
+        self, sim_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState]
     ):
         return SparseSimulatorStep(sim_state=sim_state, dtype=self._dtype)
 
     def simulate_expectation_values_sweep_iter(
         self,
-        program: 'cirq.AbstractCircuit',
-        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
-        params: 'cirq.Sweepable',
-        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        program: cirq.AbstractCircuit,
+        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        params: cirq.Sweepable,
+        qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> Iterator[List[float]]:
@@ -222,7 +224,7 @@ class SparseSimulatorStep(
 
     def __init__(
         self,
-        sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        sim_state: cirq.SimulationStateBase[cirq.StateVectorSimulationState],
         dtype: Type[np.complexfloating] = np.complex64,
     ):
         """Results of a step of the simulator.
