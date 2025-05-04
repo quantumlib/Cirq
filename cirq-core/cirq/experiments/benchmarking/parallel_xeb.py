@@ -229,10 +229,7 @@ def create_combination_circuits(
 
 
 def simulate_circuit(
-    simulator: cirq.Simulator,
-    circuit: cirq.Circuit,
-    cycle_depths: Sequence[int],
-    circuit_id: Optional[int] = None,
+    simulator: cirq.Simulator, circuit: cirq.Circuit, cycle_depths: Sequence[int]
 ) -> tuple[Optional[int], Sequence[np.ndarray]]:
     """Simulates the given circuit and returns the state probabilities for each cycle depth.
 
@@ -241,7 +238,6 @@ def simulate_circuit(
         circuit: The circuit to simulate.
         cycle_depths: A sequence of integers representing the depths for which we need the
             state probabilities.
-        circuit_id: Optional id of the simulated circuit. This is returned as given.
 
     Returns:
         - The cuircuit_id, same as given in input.
@@ -263,7 +259,7 @@ def simulate_circuit(
         pure_probs = value.state_vector_to_probabilities(psi)
 
         result.append(pure_probs)
-    return circuit_id, result
+    return result
 
 
 @overload
@@ -333,8 +329,7 @@ def simulate_circuit_library(
                 sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
                 circuit=circuit,
                 cycle_depths=cycle_depths,
-                circuit_id=-1,
-            )[1]
+            )
             for circuit in all_circuits
         ]
     else:
@@ -345,13 +340,13 @@ def simulate_circuit_library(
                 simulator=sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
                 circuit=circuit,
                 cycle_depths=cycle_depths,
-                circuit_id=i,
             )
-            for i, circuit in enumerate(all_circuits)
+            for circuit in all_circuits
         ]
-        for result in futures.as_completed(tasks):
-            i, sim_result = result.result()
-            assert i is not None
+        tasks_index = {t: i for i, t in enumerate(tasks)}
+        for task in futures.as_completed(tasks):
+            sim_result = task.result()
+            i = tasks_index[task]
             simulation_results[i] = sim_result
 
     if keys is None:

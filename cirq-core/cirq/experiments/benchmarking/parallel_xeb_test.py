@@ -164,7 +164,6 @@ def test_create_combination_circuits_with_target_dict():
 
 def test_simulate_circuit():
     sim = cirq.Simulator()
-    circuit_id = 123
     circuit = cirq.Circuit.from_moments(
         cirq.X.on_each(_QUBITS),
         cirq.CNOT(*_QUBITS),
@@ -175,7 +174,7 @@ def test_simulate_circuit():
         cirq.X.on_each(_QUBITS),
     )
 
-    circuit_id, result = xeb.simulate_circuit(sim, circuit, [1, 3], circuit_id)
+    result = xeb.simulate_circuit(sim, circuit, [1, 3])
     np.testing.assert_allclose(result, [[0, 1, 0, 0], [1, 0, 0, 0]])  # |01>  # |00>
 
 
@@ -335,7 +334,7 @@ def test_parallel_two_qubit_xeb(target, pairs):
     _assert_fidelities_approx_equal(result.fidelities.layer_fid, 0.9, atol=0.3)
 
 
-class MockDevice(cirq.Device):
+class ExampleDevice(cirq.Device):
     @property
     def metadata(self) -> cirq.DeviceMetadata:
         qubits = cirq.GridQubit.rect(3, 2, 4, 3)
@@ -347,15 +346,15 @@ class MockDevice(cirq.Device):
         return cirq.DeviceMetadata(qubits, graph)
 
 
-class MockProcessor:
+class ExampleProcessor:
     def get_device(self):
-        return MockDevice()
+        return ExampleDevice()
 
 
 class DensityMatrixSimulatorWithProcessor(cirq.DensityMatrixSimulator):
     @property
     def processor(self):
-        return MockProcessor()
+        return ExampleProcessor()
 
 
 def test_parallel_two_qubit_xeb_with_device():

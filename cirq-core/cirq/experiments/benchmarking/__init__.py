@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A subpackage with modules and methods for error mitigation."""
+"""Tools for branchmarking NISQ circuits."""
 
 from cirq.experiments.benchmarking.parallel_xeb import parallel_two_qubit_xeb
