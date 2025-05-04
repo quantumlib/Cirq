@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from __future__ import annotations
+
+from typing import List, TYPE_CHECKING
 
 import pytest
 
 import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
+
+if TYPE_CHECKING:
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 def test_compilation_target_gateset():
@@ -29,7 +33,7 @@ def test_compilation_target_gateset():
         def num_qubits(self) -> int:
             return 2
 
-        def decompose_to_target_gateset(self, op: 'cirq.Operation', _) -> DecomposeResult:
+        def decompose_to_target_gateset(self, op: cirq.Operation, _) -> DecomposeResult:
             return op if cirq.num_qubits(op) == 2 and cirq.has_unitary(op) else NotImplemented
 
         @property
@@ -63,7 +67,7 @@ class ExampleCXTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     def __init__(self):
         super().__init__(cirq.AnyUnitaryGateFamily(1), cirq.CNOT)
 
-    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
+    def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> DecomposeResult:
         if not cirq.has_unitary(op):
             return NotImplemented
 
@@ -77,7 +81,7 @@ class ExampleCXTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             cirq.Z.on_each(q0, q1),
         ]
 
-    def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
+    def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> DecomposeResult:
         if not cirq.has_unitary(op):
             return NotImplemented
         assert self._intermediate_result_tag in op.tags
@@ -209,11 +213,11 @@ def test_two_qubit_compilation_replaces_only_if_2q_gate_count_is_less():
         def __init__(self):
             super().__init__(cirq.X, cirq.CNOT)
 
-        def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
+        def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> DecomposeResult:
             q0, q1 = op.qubits
             return [cirq.X.on_each(q0, q1), cirq.CNOT(q0, q1)] * 10
 
-        def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
+        def _decompose_single_qubit_operation(self, op: cirq.Operation, _) -> DecomposeResult:
             return cirq.X(*op.qubits) if op.gate == cirq.Y else NotImplemented
 
     q = cirq.LineQubit.range(2)

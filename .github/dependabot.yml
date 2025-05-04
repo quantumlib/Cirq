@@ -33,6 +33,17 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    groups:
+      # Ideally, we would group all monthly updates together into 1 group,
+      # but Dependabot does not support that. The best we can do is 2 groups.
+      actions-version-updates:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+      actions-security-updates:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
     labels:
       - "area/dependencies"
       - "area/github"

@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Methods for resolving JSON types during serialization."""
+
+from __future__ import annotations
+
 import datetime
 import functools
 from typing import Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
-
-from cirq.protocols.json_serialization import ObjectFactory
 
 if TYPE_CHECKING:
     import cirq
     import cirq.devices.unconstrained_device
     import cirq.ops.pauli_gates
+    from cirq.protocols.json_serialization import ObjectFactory
 
 
 # Needed for backwards compatible named tuples of CrossEntropyResult
@@ -80,7 +82,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         )
 
     def _cross_entropy_result_dict(
-        results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]], **kwargs
+        results: List[Tuple[List[cirq.Qid], CrossEntropyResult]], **kwargs
     ) -> CrossEntropyResultDict:
         return CrossEntropyResultDict(results={tuple(qubits): result for qubits, result in results})
 

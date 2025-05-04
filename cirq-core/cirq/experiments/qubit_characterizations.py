@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 import functools
 import itertools
@@ -150,10 +152,10 @@ class RandomizedBenchMarkResult:
 class ParallelRandomizedBenchmarkingResult:
     """Results from a parallel randomized benchmarking experiment."""
 
-    results_dictionary: Mapping['cirq.Qid', 'RandomizedBenchMarkResult']
+    results_dictionary: Mapping[cirq.Qid, RandomizedBenchMarkResult]
 
     def plot_single_qubit(
-        self, qubit: 'cirq.Qid', ax: Optional[plt.Axes] = None, **plot_kwargs: Any
+        self, qubit: cirq.Qid, ax: Optional[plt.Axes] = None, **plot_kwargs: Any
     ) -> plt.Axes:
         """Plot the raw data for the specified qubit.
 
@@ -168,7 +170,7 @@ class ParallelRandomizedBenchmarkingResult:
 
         return self.results_dictionary[qubit].plot(ax, **plot_kwargs)
 
-    def pauli_error(self) -> Mapping['cirq.Qid', float]:
+    def pauli_error(self) -> Mapping[cirq.Qid, float]:
         """Return a dictionary of Pauli errors.
         Returns:
             A dictionary containing the Pauli errors for all qubits.
@@ -342,8 +344,8 @@ class TomographyResult:
 
 
 def single_qubit_randomized_benchmarking(
-    sampler: 'cirq.Sampler',
-    qubit: 'cirq.Qid',
+    sampler: cirq.Sampler,
+    qubit: cirq.Qid,
     use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(np.logspace(np.log10(5), 3, 5, dtype=int)),
@@ -396,8 +398,8 @@ def single_qubit_randomized_benchmarking(
 
 
 def parallel_single_qubit_randomized_benchmarking(
-    sampler: 'cirq.Sampler',
-    qubits: Sequence['cirq.Qid'],
+    sampler: cirq.Sampler,
+    qubits: Sequence[cirq.Qid],
     use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = tuple(
@@ -405,7 +407,7 @@ def parallel_single_qubit_randomized_benchmarking(
     ),
     num_circuits: int = 10,
     repetitions: int = 1000,
-) -> 'ParallelRandomizedBenchmarkingResult':
+) -> ParallelRandomizedBenchmarkingResult:
     """Clifford-based randomized benchmarking (RB) single qubits in parallel.
 
     This is the same as `single_qubit_randomized_benchmarking` except on all
@@ -430,7 +432,7 @@ def parallel_single_qubit_randomized_benchmarking(
     c1 = clifford_group.c1_in_xy if use_xy_basis else clifford_group.c1_in_xz
 
     # create circuits
-    circuits_all: List['cirq.AbstractCircuit'] = []
+    circuits_all: List[cirq.AbstractCircuit] = []
     for num_cliffords in num_clifford_range:
         for _ in range(num_circuits):
             circuits_all.append(_create_parallel_rb_circuit(qubits, num_cliffords, c1))
@@ -440,7 +442,7 @@ def parallel_single_qubit_randomized_benchmarking(
     gnd_probs: dict = {q: [] for q in qubits}
     idx = 0
     for num_cliffords in num_clifford_range:
-        excited_probs: Dict['cirq.Qid', List[float]] = {q: [] for q in qubits}
+        excited_probs: Dict[cirq.Qid, List[float]] = {q: [] for q in qubits}
         for _ in range(num_circuits):
             result = results[idx][0]
             for qubit in qubits:
@@ -454,9 +456,9 @@ def parallel_single_qubit_randomized_benchmarking(
 
 
 def two_qubit_randomized_benchmarking(
-    sampler: 'cirq.Sampler',
-    first_qubit: 'cirq.Qid',
-    second_qubit: 'cirq.Qid',
+    sampler: cirq.Sampler,
+    first_qubit: cirq.Qid,
+    second_qubit: cirq.Qid,
     *,
     num_clifford_range: Sequence[int] = range(5, 50, 5),
     num_circuits: int = 20,
@@ -514,10 +516,7 @@ def two_qubit_randomized_benchmarking(
 
 
 def single_qubit_state_tomography(
-    sampler: 'cirq.Sampler',
-    qubit: 'cirq.Qid',
-    circuit: 'cirq.AbstractCircuit',
-    repetitions: int = 1000,
+    sampler: cirq.Sampler, qubit: cirq.Qid, circuit: cirq.AbstractCircuit, repetitions: int = 1000
 ) -> TomographyResult:
     """Single-qubit state tomography.
 
@@ -560,10 +559,10 @@ def single_qubit_state_tomography(
 
 
 def two_qubit_state_tomography(
-    sampler: 'cirq.Sampler',
-    first_qubit: 'cirq.Qid',
-    second_qubit: 'cirq.Qid',
-    circuit: 'cirq.AbstractCircuit',
+    sampler: cirq.Sampler,
+    first_qubit: cirq.Qid,
+    second_qubit: cirq.Qid,
+    circuit: cirq.AbstractCircuit,
     repetitions: int = 1000,
 ) -> TomographyResult:
     r"""Two-qubit state tomography.
@@ -688,8 +687,8 @@ def two_qubit_state_tomography(
 
 
 def _create_parallel_rb_circuit(
-    qubits: Sequence['cirq.Qid'], num_cliffords: int, c1: list
-) -> 'cirq.Circuit':
+    qubits: Sequence[cirq.Qid], num_cliffords: int, c1: list
+) -> cirq.Circuit:
     sequences_to_zip = [_random_single_q_clifford(qubit, num_cliffords, c1) for qubit in qubits]
     # Ensure each sequence has the same number of moments.
     num_moments = max(len(sequence) for sequence in sequences_to_zip)
@@ -711,9 +710,7 @@ def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int], Sequen
     return mat_idx, indices, signs
 
 
-def _two_qubit_clifford_matrices(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', cliffords: Cliffords
-) -> np.ndarray:
+def _two_qubit_clifford_matrices(q_0: cirq.Qid, q_1: cirq.Qid, cliffords: Cliffords) -> np.ndarray:
     mats = []
 
     # Total number of different gates in the two-qubit Clifford group.
@@ -743,8 +740,8 @@ def _two_qubit_clifford_matrices(
 
 
 def _random_single_q_clifford(
-    qubit: 'cirq.Qid', num_cfds: int, cfds: Sequence[Sequence['cirq.ops.SingleQubitCliffordGate']]
-) -> List['cirq.Operation']:
+    qubit: cirq.Qid, num_cfds: int, cfds: Sequence[Sequence[cirq.ops.SingleQubitCliffordGate]]
+) -> List[cirq.Operation]:
     clifford_group_size = 24
     operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
@@ -755,8 +752,8 @@ def _random_single_q_clifford(
 
 
 def _random_two_q_clifford(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', num_cfds: int, cfd_matrices: np.ndarray, cliffords: Cliffords
-) -> 'cirq.Circuit':
+    q_0: cirq.Qid, q_1: cirq.Qid, num_cfds: int, cfd_matrices: np.ndarray, cliffords: Cliffords
+) -> cirq.Circuit:
     clifford_group_size = 11520
     idx_list = list(np.random.choice(clifford_group_size, num_cfds))
     circuit = circuits.Circuit()
@@ -819,8 +816,8 @@ def _reduce_gate_seq(
 
 
 def _two_qubit_clifford(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Generates a two-qubit Clifford gate.
 
     An integer (idx) from 0 to 11519 is used to generate a two-qubit Clifford
@@ -875,8 +872,8 @@ def _split_two_q_clifford_idx(idx: int):
 
 
 def _two_qubit_clifford_starters(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx_0: int, idx_1: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx_0: int, idx_1: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Fulfills part (a) for two-qubit Cliffords."""
     c1 = cliffords.c1_in_xy
     yield _single_qubit_gates(c1[idx_0], q_0)
@@ -884,8 +881,8 @@ def _two_qubit_clifford_starters(
 
 
 def _two_qubit_clifford_mixers(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx_2: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx_2: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Fulfills parts (b-d) for two-qubit Cliffords."""
     s1 = cliffords.s1
     s1_x = cliffords.s1_x
@@ -916,9 +913,7 @@ def _two_qubit_clifford_mixers(
         yield _single_qubit_gates(s1_x[idx_4], q_1)
 
 
-def _single_qubit_gates(
-    gate_seq: Sequence['cirq.Gate'], qubit: 'cirq.Qid'
-) -> Iterator['cirq.OP_TREE']:
+def _single_qubit_gates(gate_seq: Sequence[cirq.Gate], qubit: cirq.Qid) -> Iterator[cirq.OP_TREE]:
     for gate in gate_seq:
         yield gate(qubit)
 

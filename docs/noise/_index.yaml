@@ -20,7 +20,7 @@ landing_page:
     options:
     - cards
     items:
-    - heading: Cross Entropy Benchmarking (XEB)
+    - heading: Cross-Entropy Benchmarking (XEB)
       description: A characterization benchmarking method using cross entropy.
       path: /cirq/noise/qcvv/xeb_theory
   - heading: Visualizing noise

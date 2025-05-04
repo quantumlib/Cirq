@@ -14,6 +14,8 @@
 
 """Transformer pass to merge connected components of k-qubit unitary operations."""
 
+from __future__ import annotations
+
 from typing import Callable, cast, Optional, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
@@ -24,16 +26,16 @@ if TYPE_CHECKING:
 
 
 def _rewrite_merged_k_qubit_unitaries(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: Optional[cirq.TransformerContext] = None,
     k: int = 0,
-    rewriter: Optional[Callable[['cirq.CircuitOperation'], 'cirq.OP_TREE']] = None,
+    rewriter: Optional[Callable[[cirq.CircuitOperation], cirq.OP_TREE]] = None,
     merged_circuit_op_tag: str = "_merged_k_qubit_unitaries_component",
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     deep = context.deep if context else False
 
-    def map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+    def map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
         op_untagged = op.untagged
         if (
             deep
@@ -66,12 +68,12 @@ def _rewrite_merged_k_qubit_unitaries(
 
 @transformer_api.transformer
 def merge_k_qubit_unitaries(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: Optional[cirq.TransformerContext] = None,
     k: int = 0,
-    rewriter: Optional[Callable[['cirq.CircuitOperation'], 'cirq.OP_TREE']] = None,
-) -> 'cirq.Circuit':
+    rewriter: Optional[Callable[[cirq.CircuitOperation], cirq.OP_TREE]] = None,
+) -> cirq.Circuit:
     """Merges connected components of unitary operations, acting on <= k qubits.
 
     Uses rewriter to convert a connected component of unitary operations acting on <= k-qubits

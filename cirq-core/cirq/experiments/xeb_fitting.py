@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Estimation of fidelity associated with experimental circuit executions."""
+
+from __future__ import annotations
+
 import dataclasses
 from abc import ABC, abstractmethod
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
@@ -41,10 +45,10 @@ THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
 
 def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
-    circuits: Sequence['cirq.Circuit'],
+    circuits: Sequence[cirq.Circuit],
     cycle_depths: Optional[Sequence[int]] = None,
-    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    param_resolver: cirq.ParamResolverOrSimilarType = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> pd.DataFrame:
     """Simulate and benchmark two-qubit XEB circuits.
 
@@ -138,17 +142,17 @@ def benchmark_2q_xeb_fidelities(
     else:
         groupby_names = ['cycle_depth']
 
-    return df.groupby(groupby_names).apply(per_cycle_depth).reset_index()
+    return df.groupby(groupby_names).apply(per_cycle_depth, include_groups=False).reset_index()
 
 
 class XEBCharacterizationOptions(ABC):
     @staticmethod
     @abstractmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
+    def should_parameterize(op: cirq.Operation) -> bool:
         """Whether to replace `op` with a parameterized version."""
 
     @abstractmethod
-    def get_parameterized_gate(self) -> 'cirq.Gate':
+    def get_parameterized_gate(self) -> cirq.Gate:
         """The parameterized gate to use."""
 
     @abstractmethod
@@ -158,7 +162,7 @@ class XEBCharacterizationOptions(ABC):
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
-def _try_defaults_from_unitary(gate: 'cirq.Gate') -> Optional[Dict[str, 'cirq.TParamVal']]:
+def _try_defaults_from_unitary(gate: cirq.Gate) -> Optional[Dict[str, cirq.TParamVal]]:
     r"""Try to figure out the PhasedFSim angles from the unitary of the gate.
 
     The unitary of a PhasedFSimGate has the form:
@@ -221,10 +225,10 @@ def _try_defaults_from_unitary(gate: 'cirq.Gate') -> Optional[Dict[str, 'cirq.TP
     return None
 
 
-def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal']:
+def phased_fsim_angles_from_gate(gate: cirq.Gate) -> Dict[str, cirq.TParamVal]:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
-    defaults: Dict[str, 'cirq.TParamVal'] = {
+    defaults: Dict[str, cirq.TParamVal] = {
         'theta_default': 0.0,
         'zeta_default': 0.0,
         'chi_default': 0.0,
@@ -290,7 +294,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     gamma_default: Optional[float] = None
     phi_default: Optional[float] = None
 
-    def _iter_angles(self) -> Iterable[Tuple[bool, Optional[float], 'sympy.Symbol']]:
+    def _iter_angles(self) -> Iterable[Tuple[bool, Optional[float], sympy.Symbol]]:
         yield from (
             (self.characterize_theta, self.theta_default, THETA_SYMBOL),
             (self.characterize_zeta, self.zeta_default, ZETA_SYMBOL),
@@ -299,7 +303,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
             (self.characterize_phi, self.phi_default, PHI_SYMBOL),
         )
 
-    def _iter_angles_for_characterization(self) -> Iterable[Tuple[Optional[float], 'sympy.Symbol']]:
+    def _iter_angles_for_characterization(self) -> Iterable[Tuple[Optional[float], sympy.Symbol]]:
         yield from (
             (default, symbol)
             for characterize, default, symbol in self._iter_angles()
@@ -347,7 +351,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         return ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
 
     @staticmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
+    def should_parameterize(op: cirq.Operation) -> bool:
         return isinstance(op.gate, (ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate))
 
     def defaults_set(self) -> bool:
@@ -369,7 +373,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         return False
 
     def with_defaults_from_gate(
-        self, gate: 'cirq.Gate', gate_to_angles_func=phased_fsim_angles_from_gate
+        self, gate: cirq.Gate, gate_to_angles_func=phased_fsim_angles_from_gate
     ):
         """A new Options class with {angle}_defaults inferred from `gate`.
 
@@ -397,10 +401,10 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit',
+    circuit: cirq.Circuit,
     options: XEBCharacterizationOptions,
     target_gatefamily: Optional[ops.GateFamily] = None,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
@@ -432,21 +436,21 @@ class XEBCharacterizationResult:
             fitting the characterization.
     """
 
-    optimization_results: Dict[QPair_T, 'scipy.optimize.OptimizeResult']
+    optimization_results: Dict[QPair_T, scipy.optimize.OptimizeResult]
     final_params: Dict[QPair_T, Dict[str, float]]
     fidelities_df: pd.DataFrame
 
 
 def characterize_phased_fsim_parameters_with_xeb(
     sampled_df: pd.DataFrame,
-    parameterized_circuits: List['cirq.Circuit'],
+    parameterized_circuits: List[cirq.Circuit],
     cycle_depths: Sequence[int],
     options: XEBCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
     verbose: bool = True,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates.
@@ -496,7 +500,7 @@ def characterize_phased_fsim_parameters_with_xeb(
         method='nelder-mead',
     )
 
-    final_params: 'cirq.ParamDictType' = dict(zip(names, optimization_result.x))
+    final_params: cirq.ParamDictType = dict(zip(names, optimization_result.x))
     fidelities_df = benchmark_2q_xeb_fidelities(
         sampled_df, parameterized_circuits, cycle_depths, param_resolver=final_params
     )
@@ -512,7 +516,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
     """A closure object to wrap `characterize_phased_fsim_parameters_with_xeb` for use in
     multiprocessing."""
 
-    parameterized_circuits: List['cirq.Circuit']
+    parameterized_circuits: List[cirq.Circuit]
     cycle_depths: Sequence[int]
     options: XEBCharacterizationOptions
     initial_simplex_step_size: float = 0.1
@@ -535,13 +539,13 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
 
 def characterize_phased_fsim_parameters_with_xeb_by_pair(
     sampled_df: pd.DataFrame,
-    parameterized_circuits: List['cirq.Circuit'],
+    parameterized_circuits: List[cirq.Circuit],
     cycle_depths: Sequence[int],
     options: XEBCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates grouped by pairs.
@@ -702,7 +706,7 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
         groupby = ['layer_i', 'pair_i', 'pair']
     else:
         groupby = ['pair']
-    return fidelities_df.groupby(groupby).apply(_per_pair)
+    return fidelities_df.groupby(groupby).apply(_per_pair, include_groups=False)
 
 
 def before_and_after_characterization(

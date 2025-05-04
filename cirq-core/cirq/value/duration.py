@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A typed time delta that supports picosecond accuracy."""
+
+from __future__ import annotations
 
 import datetime
 from typing import AbstractSet, Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
@@ -98,7 +101,7 @@ class Duration:
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._time_vals)
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Duration':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Duration:
         return _duration_from_time_vals(
             protocols.resolve_parameters(self._time_vals, resolver, recursive)
         )
@@ -121,16 +124,16 @@ class Duration:
         """Returns the number of milliseconds that the duration spans."""
         return self.total_picos() / 1000_000_000
 
-    def __add__(self, other) -> 'Duration':
+    def __add__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
         return _duration_from_time_vals(_add_time_vals(self._time_vals, other._time_vals))
 
-    def __radd__(self, other) -> 'Duration':
+    def __radd__(self, other) -> Duration:
         return self.__add__(other)
 
-    def __sub__(self, other) -> 'Duration':
+    def __sub__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
@@ -138,7 +141,7 @@ class Duration:
             _add_time_vals(self._time_vals, [-x for x in other._time_vals])
         )
 
-    def __rsub__(self, other) -> 'Duration':
+    def __rsub__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
@@ -146,17 +149,17 @@ class Duration:
             _add_time_vals(other._time_vals, [-x for x in self._time_vals])
         )
 
-    def __mul__(self, other) -> 'Duration':
+    def __mul__(self, other) -> Duration:
         if not isinstance(other, (int, float, sympy.Expr)):
             return NotImplemented
         if other == 0:
             return _duration_from_time_vals([0] * 4)
         return _duration_from_time_vals([x * other for x in self._time_vals])
 
-    def __rmul__(self, other) -> 'Duration':
+    def __rmul__(self, other) -> Duration:
         return self.__mul__(other)
 
-    def __truediv__(self, other) -> Union['Duration', float]:
+    def __truediv__(self, other) -> Union[Duration, float]:
         if isinstance(other, (int, float, sympy.Expr)):
             new_time_vals = [x / other for x in self._time_vals]
             return _duration_from_time_vals(new_time_vals)

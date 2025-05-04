@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import dataclasses
 from typing import Iterable, TYPE_CHECKING, Union
 
@@ -12,7 +15,7 @@ if TYPE_CHECKING:
 
 def calibrate_readout_error(
     qubits: Iterable[ops.Qid],
-    sampler: Union['cirq.Simulator', 'cirq.Sampler'],
+    sampler: Union[cirq.Simulator, cirq.Sampler],
     stopping_criteria: StoppingCriteria,
 ):
     # We know there won't be any fancy sweeps or observables so we can
