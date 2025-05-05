@@ -230,7 +230,7 @@ def create_combination_circuits(
 
 def simulate_circuit(
     simulator: cirq.Simulator, circuit: cirq.Circuit, cycle_depths: Sequence[int]
-) -> tuple[Optional[int], Sequence[np.ndarray]]:
+) -> Sequence[np.ndarray]:
     """Simulates the given circuit and returns the state probabilities for each cycle depth.
 
     Args:
