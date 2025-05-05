@@ -163,7 +163,7 @@ def test_create_combination_circuits_with_target_dict():
 
 
 def test_simulate_circuit():
-    sim = cirq.Simulator()
+    sim = cirq.Simulator(seed=0)
     circuit = cirq.Circuit.from_moments(
         cirq.X.on_each(_QUBITS),
         cirq.CNOT(*_QUBITS),
@@ -236,7 +236,7 @@ def test_sample_all_circuits():
             [cirq.measure(p, key=str(p)) for p in _PAIRS],
         )
     ]
-    result = xeb.sample_all_circuits(cirq.Simulator(), circuits=wide_circuits, repetitions=10)
+    result = xeb.sample_all_circuits(cirq.Simulator(seed=0), circuits=wide_circuits, repetitions=10)
     assert len(result) == len(wide_circuits)
     assert result[0].keys() == {str(p) for p in _PAIRS}
     np.testing.assert_allclose(
@@ -322,7 +322,7 @@ def _assert_fidelities_approx_equal(fids, expected: float, atol: float):
 @pytest.mark.parametrize('target', [cirq.CZ, cirq.Circuit(cirq.CZ(*_QUBITS)), cirq.CZ(*_QUBITS)])
 @pytest.mark.parametrize('pairs', [_PAIRS[:1], _PAIRS[:2]])
 def test_parallel_two_qubit_xeb(target, pairs):
-    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03))
+    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03), seed=0)
     result = xeb.parallel_two_qubit_xeb(
         sampler=sampler,
         target=target,
@@ -359,7 +359,7 @@ class DensityMatrixSimulatorWithProcessor(cirq.DensityMatrixSimulator):
 
 def test_parallel_two_qubit_xeb_with_device():
     target = cirq.CZ
-    sampler = DensityMatrixSimulatorWithProcessor(noise=cirq.depolarize(0.03))
+    sampler = DensityMatrixSimulatorWithProcessor(noise=cirq.depolarize(0.03), seed=0)
     result = xeb.parallel_two_qubit_xeb(
         sampler=sampler,
         target=target,
@@ -381,7 +381,7 @@ def test_parallel_two_qubit_xeb_with_device():
 def test_parallel_two_qubit_xeb_with_dict_target():
     target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS[:2]}
     target[_PAIRS[2]] = cirq.CZ(*_QUBITS)
-    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03))
+    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03), seed=0)
     result = xeb.parallel_two_qubit_xeb(
         sampler=sampler,
         target=target,
@@ -396,7 +396,7 @@ def test_parallel_two_qubit_xeb_with_dict_target():
 def test_parallel_two_qubit_xeb_with_ideal_target():
     target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS[:2]}
     target[_PAIRS[2]] = cirq.CZ(*_QUBITS)
-    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03))
+    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03), seed=0)
     result = xeb.parallel_two_qubit_xeb(
         sampler=sampler,
         target=target,
@@ -417,7 +417,7 @@ def threading_pool() -> Iterator[futures.Executor]:
 
 def test_parallel_two_qubit_xeb_with_dict_target_and_pool(threading_pool):
     target = {p: cirq.Circuit(cirq.CZ(*_QUBITS)) for p in _PAIRS}
-    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03))
+    sampler = cirq.DensityMatrixSimulator(noise=cirq.depolarize(0.03), seed=0)
     result = xeb.parallel_two_qubit_xeb(
         sampler=sampler,
         target=target,
@@ -433,12 +433,12 @@ def test_parallel_two_qubit_xeb_with_dict_target_and_pool(threading_pool):
 def test_parallel_two_qubit_xeb_with_invalid_input_raises():
     with pytest.raises(AssertionError):
         _ = xeb.parallel_two_qubit_xeb(
-            sampler=cirq.Simulator(), target={_PAIRS[0]: cirq.CZ}, pairs=_PAIRS
+            sampler=cirq.Simulator(seed=0), target={_PAIRS[0]: cirq.CZ}, pairs=_PAIRS
         )
 
     with pytest.raises(AssertionError):
         _ = xeb.parallel_two_qubit_xeb(
-            sampler=cirq.Simulator(),
+            sampler=cirq.Simulator(seed=0),
             target=cirq.CZ,
             ideal_target={_PAIRS[0]: cirq.CZ},
             pairs=_PAIRS,
