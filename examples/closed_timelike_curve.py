@@ -25,50 +25,67 @@ solution exists.
 
 With CTC qubits however, non-linearity can be taken advantage of to quickly
 guide the probability of each sample toward 0.5 if the expression is
-satisfiable independent of how many solutions the problem has, while remaining
+satisfiable, independent of how many solutions the problem has, while remaining
 at 0 if the expression is unsatisfiable. Thus done, the resulting circuit can
 be sampled K times. If the circuit is not solvable, all samples will be
 negative. If the circuit is solvable, at least one sample will be positive,
-with error probability 0.5^K.
+with error probability 0.5^K, which can be made arbitrarily small in linear
+time.
 
 [1] D. Bacon. Quantum Computational Complexity in the Presence of Closed
 Timelike Curves (arXiv:quant-ph/0309189v2)
 
 === EXAMPLE OUTPUT ===
-Expression: x0 & x1
-Solutions: 1 of 4 possibilities
-x0: ─────────X^0.5──────────@───────────────────────────────────────────
-                            │
-x1: ─────────X^0.5──────────@───────────────────────────────────────────
-                            │
-z_target: ──────────────────X───@───×───@───×───@───×───@───×───@───×───
-                                │   │   │   │   │   │   │   │   │   │
-zz_ctc0: ────BF(0.25+0j)────────X───×───┼───┼───┼───┼───┼───┼───┼───┼───
-                                        │   │   │   │   │   │   │   │
-zz_ctc1: ────BF(0.375+0j)───────────────X───×───┼───┼───┼───┼───┼───┼───
-                                                │   │   │   │   │   │
-zz_ctc2: ────BF(0.469+0j)───────────────────────X───×───┼───┼───┼───┼───
-                                                        │   │   │   │
-zz_ctc3: ────BF(0.498+0j)───────────────────────────────X───×───┼───┼───
-                                                                │   │
-zz_ctc4: ────BF(0.5+0j)─────────────────────────────────────────X───×───
-Samples: 53/100 returned True
+Expression: x0 & x1 & x2 & x3 & x4
+Solutions: 1  (of 32 possible inputs)
+x0: ─────────X^0.5───────────@───────────────────────────────────────────────────────────────────
+                             │
+x1: ─────────X^0.5───────────@───────────────────────────────────────────────────────────────────
+                             │
+x2: ─────────X^0.5───────────@───────────────────────────────────────────────────────────────────
+                             │
+x3: ─────────X^0.5───────────@───────────────────────────────────────────────────────────────────
+                             │
+x4: ─────────X^0.5───────────@───────────────────────────────────────────────────────────────────
+                             │
+z_target: ───────────────────X───@───×───@───×───@───×───@───×───@───×───@───×───@───×───@───×───
+                                 │   │   │   │   │   │   │   │   │   │   │   │   │   │   │   │
+zz_ctc0: ────BF(0.0312+0j)───────X───×───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───
+                                         │   │   │   │   │   │   │   │   │   │   │   │   │   │
+zz_ctc1: ────BF(0.0605+0j)───────────────X───×───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───
+                                                 │   │   │   │   │   │   │   │   │   │   │   │
+zz_ctc2: ────BF(0.114+0j)────────────────────────X───×───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───
+                                                         │   │   │   │   │   │   │   │   │   │
+zz_ctc3: ────BF(0.202+0j)────────────────────────────────X───×───┼───┼───┼───┼───┼───┼───┼───┼───
+                                                                 │   │   │   │   │   │   │   │
+zz_ctc4: ────BF(0.322+0j)────────────────────────────────────────X───×───┼───┼───┼───┼───┼───┼───
+                                                                         │   │   │   │   │   │
+zz_ctc5: ────BF(0.437+0j)────────────────────────────────────────────────X───×───┼───┼───┼───┼───
+                                                                                 │   │   │   │
+zz_ctc6: ────BF(0.492+0j)────────────────────────────────────────────────────────X───×───┼───┼───
+                                                                                         │   │
+zz_ctc7: ────BF(0.5+0j)──────────────────────────────────────────────────────────────────X───×───
+Samples: 52/100 returned True
 Satisfiable: True
 
 
-Expression: x0 & ~x0
-Solutions: 0 of 2 possibilities
-x0: ─────────X^0.5──────────────────────────────────────
+Expression: (x0 | x1) & (x0 | ~x1) & (~x0 | x1) & (~x0 | ~x1)
+Solutions: 0  (of 4 possible inputs)
+x0: ─────────X^0.5──────────────────────────────────────────────
 
-z_target: ───I──────────@───×───@───×───@───×───@───×───
-                        │   │   │   │   │   │   │   │
-zz_ctc0: ────BF(0+0j)───X───×───┼───┼───┼───┼───┼───┼───
-                                │   │   │   │   │   │
-zz_ctc1: ────BF(0+0j)───────────X───×───┼───┼───┼───┼───
-                                        │   │   │   │
-zz_ctc2: ────BF(0+0j)───────────────────X───×───┼───┼───
-                                                │   │
-zz_ctc3: ────BF(0+0j)───────────────────────────X───×───
+x1: ─────────X^0.5──────────────────────────────────────────────
+
+z_target: ───I──────────@───×───@───×───@───×───@───×───@───×───
+                        │   │   │   │   │   │   │   │   │   │
+zz_ctc0: ────BF(0+0j)───X───×───┼───┼───┼───┼───┼───┼───┼───┼───
+                                │   │   │   │   │   │   │   │
+zz_ctc1: ────BF(0+0j)───────────X───×───┼───┼───┼───┼───┼───┼───
+                                        │   │   │   │   │   │
+zz_ctc2: ────BF(0+0j)───────────────────X───×───┼───┼───┼───┼───
+                                                │   │   │   │
+zz_ctc3: ────BF(0+0j)───────────────────────────X───×───┼───┼───
+                                                        │   │
+zz_ctc4: ────BF(0+0j)───────────────────────────────────X───×───
 Samples: 0/100 returned True
 Satisfiable: False
 """
@@ -83,72 +100,83 @@ import cirq
 
 
 def solve_with_closed_timelike_curves(boolean_str, expected):
-    print()
+    print('\n\n')
     print('Expression: ' + boolean_str)
+
     # First use sympy to parse the expression.
     boolean_expr = sympy_parser.parse_expr(boolean_str)
     var_names = cirq.parameter_names(boolean_expr)
-    n = len(var_names)
+    n_inputs = len(var_names)
 
     # Now create the initial circuit from the paper: a qubit for each variable and set quantum state
-    # to be the power set of combinations. In other words, a half X on each.
+    # to be the power set of all possible inputs, superposed with equal probability and no cross-
+    # correlations. In other words, a half X on each.
     circuit = cirq.Circuit()
     q_inputs = [cirq.NamedQubit(name) for name in var_names]
     circuit.append((cirq.X**0.5).on_each(*q_inputs))
 
     # Now, we need the initial unitary that sets up a `target` qubit with a CX whose controls are
     # exactly those that satisfy the boolean expression. Note that the paper suggests there is a
-    # quadratic algorithm for this, though here we specify it as a single controlled X gate with the
-    # matching control values. (So, here requiring exponential time to configure the gate).
+    # polynomial algorithm for this, though here we specify it as a single controlled X gate with
+    # the matching control values. (So, here requiring exponential time to configure the gate). It
+    # seems like cheating, but ultimately *how* the target qubit gets initialized is non-material to
+    # the satisfiability checker algorithm presented subsequently.
     q_target = cirq.NamedQubit('z_target')
-    solvers = []
-    for binary_inputs in itertools.product([0, 1], repeat=n):
+    solutions = []
+    for binary_inputs in itertools.product([0, 1], repeat=n_inputs):
         subbed_expr = boolean_expr
         binary_inputs = list(binary_inputs)
         for var_name, binary_input in zip(var_names, binary_inputs):
             subbed_expr = subbed_expr.subs(var_name, binary_input)
         if bool(subbed_expr):
-            solvers.append(binary_inputs)
-    if solvers:
-        cx = cirq.X(q_target).controlled_by(*q_inputs, control_values=cirq.SumOfProducts(solvers))
+            solutions.append(binary_inputs)
+    if solutions:
+        cx = cirq.X(q_target).controlled_by(*q_inputs, control_values=cirq.SumOfProducts(solutions))
     else:
         cx = cirq.I(q_target)  # `SumOfProducts` does not accept an empty control set.
     circuit.append(cx)
-    match_count = len(solvers)
-    print(f'Solutions: {match_count} of {2**n} possibilities')
+    print(f'Solutions: {len(solutions)}  (of {2**n_inputs} possible inputs)')
 
     # Now we append the CTC qubits and their interactions with the target qubit according to the
     # paper.
     initial_ctc_traces = []  # Store these for later check that CTC rules were not violated.
-    n_ctc = n + 3  # Gets us very close to `target` being 50/50 if there's any solution.
+    n_ctc = n_inputs + 3  # Gets us very close to `target` being 50/50 if there's any solution.
+    q_count = n_inputs + 1  # Rolling counter of total qubits in circuit.
+    i_target = n_inputs  # The index of the `target` qubit.
+
     for i in range(n_ctc):
         # To find the initial trace of the next CTC qubit, we have to measure what the trace of
         # the target qubit would be at this point of circuit execution.
-        dm = cirq.final_density_matrix(circuit).reshape((2,) * (n + 1 + i) * 2)
-        target_trace = cirq.partial_trace(dm, [n])
+        dm = cirq.final_density_matrix(circuit).reshape((2,) * q_count * 2)
+        target_trace = cirq.partial_trace(dm, [i_target])
+
         # The circuit as defined in the paper should only have identity and pauli-Z components
         # in the trace, thus it should be diagonal. Sanity check that this is the case.
         assert target_trace[0, 1] == target_trace[1, 0] == 0
+
         # Now we have to create and initialize the CTC qubit. Though the paper doesn't
-        # thoroughly explain the algorithm for doing so, equation (1) could be used to solve it
+        # explicitly provide the algorithm for doing so, equation (1) could be used to solve it
         # analytically. However, here, we can cheat heuristically: given the interaction between
         # the target and the CTC is a CX with `target` as the control (leaving `target`
         # unchanged), followed by a SWAP, it is clear that the trace of CTC at the end of the
         # operation will be the trace of `target` currently. Since the CTC is required to have
         # the same trace at the start and the end of the operation, that means the initial trace
         # of the CTC must equal the current trace of `target`. Since `target's` trace is
-        # diagonal, that corresponds to a bit flip with probability of the [1,1] element.
-        q_ctc = cirq.NamedQubit(f'zz_ctc{i}')
-        circuit.append(cirq.bit_flip(target_trace[1, 1]).on(q_ctc))
+        # diagonal, that corresponds to a bit flip with probability of the [1, 1] element.
+        q_new_ctc = cirq.NamedQubit(f'zz_ctc{i}')
+        circuit.append(cirq.bit_flip(target_trace[1, 1]).on(q_new_ctc))
+        q_count += 1
+
         # Sanity check that the traces are the same, and store it to check initial vs final
         # traces at the end of the algorithm.
-        dm = cirq.final_density_matrix(circuit).reshape((2,) * (n + 2 + i) * 2)
-        new_ctc_trace = cirq.partial_trace(dm, [n + i + 1])
+        dm = cirq.final_density_matrix(circuit).reshape((2,) * q_count * 2)
+        new_ctc_trace = cirq.partial_trace(dm, [q_count - 1])
         np.testing.assert_allclose(target_trace, new_ctc_trace, atol=1e-5)
         initial_ctc_traces.append(new_ctc_trace)
-        # Finally add the interaction between `target` and the new CTC.
-        circuit.append(cirq.CX(q_target, q_ctc))
-        circuit.append(cirq.SWAP(q_target, q_ctc))
+
+        # Finally add the specified interaction between `target` and the new CTC.
+        circuit.append(cirq.CX(q_target, q_new_ctc))
+        circuit.append(cirq.SWAP(q_target, q_new_ctc))
 
     # One can see from the CTC initializers in the circuit diagram that, assuming `target` and the
     # initial CTC traces are equal at each step, the target trends exponentially toward a 50/50
@@ -156,13 +184,13 @@ def solve_with_closed_timelike_curves(boolean_str, expected):
     print(circuit)
 
     # Calculate the final density matrix, and check that traces were preserved on all CTC qubits.
-    dm = cirq.final_density_matrix(circuit).reshape((2,) * (n + 1 + n_ctc) * 2)
-    final_ctc_traces = [cirq.partial_trace(dm, [n + i + 1]) for i in range(n_ctc)]
+    dm = cirq.final_density_matrix(circuit).reshape((2,) * q_count * 2)
+    final_ctc_traces = [cirq.partial_trace(dm, [i_target + 1 + i]) for i in range(n_ctc)]
     np.testing.assert_allclose(final_ctc_traces, initial_ctc_traces, atol=1e-5)
 
     # Finally, sample the density matrix of `target`. If *any* are True, then there is a solution.
     # If none are True, then the probability that there's a solution is roughly one in 2**100.
-    results = cirq.sample_density_matrix(dm, [n], repetitions=100)
+    results = cirq.sample_density_matrix(dm, [i_target], repetitions=100)
     n_passed = len([r for r in results if r[0]])
     print(f'Samples: {n_passed}/{len(results)} returned True')
     satisfiable = n_passed > 0
@@ -177,7 +205,7 @@ def main(seed=None):
         seed: The seed to use for the simulation.
     """
     random.seed(seed)
-    satisfiable = ['x0', '~x0', 'x0 ^ x1', 'x0 & x1', 'x0 | x1', 'x0 & x1 & x2 & x3 & x4']
+    satisfiable = ['x0', '~x0', 'x0 ^ x1', 'x0 & x1', 'x0 | x1', 'x0 & x1 & x2']
     unsatisfiable = ['x0 & ~x0', '(x0 | x1) & (x0 | ~x1) & (~x0 | x1) & (~x0 | ~x1)']
     for expr in satisfiable:
         solve_with_closed_timelike_curves(expr, expected=True)
@@ -186,4 +214,4 @@ def main(seed=None):
 
 
 if __name__ == '__main__':
-    main()
+    main()  # pragma: no cover
