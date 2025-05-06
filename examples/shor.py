@@ -268,6 +268,8 @@ def quantum_order_finder(x: int, n: int) -> Optional[int]:
     r = f.denominator
     if x**r % n != 1:
         return None  # pragma: no cover
+    while r % 2 == 0 and x ** (r // 2) > n:
+        r //= 2  # pragma: no cover
     return r
 
 
