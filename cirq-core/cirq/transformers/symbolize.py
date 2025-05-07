@@ -15,6 +15,7 @@
 import re
 from typing import Hashable, Optional, TYPE_CHECKING
 
+import attr
 import sympy
 
 from cirq import ops
@@ -24,12 +25,17 @@ if TYPE_CHECKING:
     import cirq
 
 
+@attr.frozen
+class SymbolizeTag:
+    prefix: str
+
+
 @transformer_api.transformer
 def symbolize_single_qubit_gates_by_indexed_tags(
     circuit: 'cirq.AbstractCircuit',
     *,
     context: Optional['cirq.TransformerContext'] = None,
-    tag_prefix: Optional[str] = "TO-PHXZ",
+    symbolize_tag: SymbolizeTag = SymbolizeTag(prefix="TO-PHXZ"),
 ) -> 'cirq.Circuit':
     """Symbolizes single qubit operations by indexed tags prefixed by tag_prefix.
 
@@ -45,7 +51,7 @@ def symbolize_single_qubit_gates_by_indexed_tags(
                           │
         1: ───────────────@───────────────────
         >>> new_circuit = cirq.symbolize_single_qubit_gates_by_indexed_tags(\
-                c, tag_prefix="phxz")
+                c, symbolize_tag=cirq.transformers.symbolize.SymbolizeTag(prefix="phxz"))
         >>> print(new_circuit)
         0: ───PhXZ(a=a0,x=x0,z=z0)───@───PhXZ(a=a1,x=x1,z=z1)───X───
                                      │
@@ -54,25 +60,28 @@ def symbolize_single_qubit_gates_by_indexed_tags(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         context: `cirq.TransformerContext` storing common configurable options for transformers.
-        tag_prefix: The prefix of the tag.
+        symbolize_tag: The tag info used to symbolize the phxz gate. Prefix is required.
 
     Returns:
         Copy of the transformed input circuit.
     """
+
+    if not symbolize_tag.prefix:
+        raise ValueError("Tag prefix cannot be empty to symbolize phxz gates.")
 
     def _map_func(op: 'cirq.Operation', _):
         """Maps an op with tag `{tag_prefix}_i` to a symbolzied `PhasedXZGate(xi,zi,ai)`."""
         tags: set[Hashable] = set(op.tags)
         tag_id: None | int = None
         for tag in tags:
-            if re.fullmatch(f"{tag_prefix}_\\d+", str(tag)):
+            if re.fullmatch(f"{symbolize_tag.prefix}_\\d+", str(tag)):
                 if tag_id is None:
                     tag_id = int(str(tag).rsplit("_", maxsplit=-1)[-1])
                 else:
-                    raise ValueError(f"Multiple tags are prefixed with {tag_prefix}.")
+                    raise ValueError(f"Multiple tags are prefixed with {symbolize_tag.prefix}.")
         if tag_id is None:
             return op
-        tags.remove(f"{tag_prefix}_{tag_id}")
+        tags.remove(f"{symbolize_tag.prefix}_{tag_id}")
         phxz_params = {
             "x_exponent": sympy.Symbol(f"x{tag_id}"),
             "z_exponent": sympy.Symbol(f"z{tag_id}"),

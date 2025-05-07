@@ -17,6 +17,8 @@ import sympy
 
 import cirq
 
+from cirq.transformers.symbolize import SymbolizeTag
+
 
 def test_symbolize_single_qubit_gates_by_indexed_tags_success():
     q = cirq.NamedQubit("a")
@@ -50,3 +52,10 @@ def test_symbolize_single_qubit_gates_by_indexed_tags_multiple_tags():
 
     with pytest.raises(ValueError, match="Multiple tags are prefixed with TO-PHXZ."):
         cirq.symbolize_single_qubit_gates_by_indexed_tags(input_circuit)
+
+
+def test_symbolize_single_qubit_gates_by_indexed_tags_empty_prefix():
+    with pytest.raises(ValueError, match="Tag prefix cannot be empty to symbolize phxz gates."):
+        cirq.symbolize_single_qubit_gates_by_indexed_tags(
+            cirq.Circuit(), symbolize_tag=SymbolizeTag("")
+        )
