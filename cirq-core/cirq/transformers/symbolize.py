@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Transformers that symbolizes operations."""
+
 import re
 from typing import Hashable, Optional, TYPE_CHECKING
 
@@ -37,21 +39,22 @@ def symbolize_single_qubit_gates_by_indexed_tags(
     context: Optional['cirq.TransformerContext'] = None,
     symbolize_tag: SymbolizeTag = SymbolizeTag(prefix="TO-PHXZ"),
 ) -> 'cirq.Circuit':
-    """Symbolizes single qubit operations by indexed tags prefixed by tag_prefix.
+    """Symbolizes single qubit operations by indexed tags prefixed by symbolize_tag.prefix.
 
     Example:
+        >>> from cirq import transformers
         >>> q0, q1 = cirq.LineQubit.range(2)
-        >>> c = cirq.Circuit(\
-                    cirq.X(q0).with_tags("phxz_0"),\
-                    cirq.CZ(q0,q1),\
-                    cirq.Y(q0).with_tags("phxz_1"),\
-                    cirq.X(q0))
+        >>> c = cirq.Circuit(
+        ...         cirq.X(q0).with_tags("phxz_0"),
+        ...         cirq.CZ(q0,q1),
+        ...         cirq.Y(q0).with_tags("phxz_1"),
+        ...         cirq.X(q0))
         >>> print(c)
         0: ───X[phxz_0]───@───Y[phxz_1]───X───
                           │
         1: ───────────────@───────────────────
-        >>> new_circuit = cirq.symbolize_single_qubit_gates_by_indexed_tags(\
-                c, symbolize_tag=cirq.transformers.symbolize.SymbolizeTag(prefix="phxz"))
+        >>> new_circuit = cirq.symbolize_single_qubit_gates_by_indexed_tags(
+        ...     c, symbolize_tag=transformers.SymbolizeTag(prefix="phxz"))
         >>> print(new_circuit)
         0: ───PhXZ(a=a0,x=x0,z=z0)───@───PhXZ(a=a1,x=x1,z=z1)───X───
                                      │
