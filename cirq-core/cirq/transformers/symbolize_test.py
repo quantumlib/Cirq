@@ -23,11 +23,11 @@ from cirq.transformers.symbolize import SymbolizeTag
 def test_symbolize_single_qubit_gates_by_indexed_tags_success():
     q = cirq.NamedQubit("a")
     input_circuit = cirq.Circuit(
-        cirq.X(q).with_tags("TO-PHXZ_1"),
-        cirq.Y(q).with_tags("tag1"),
-        cirq.Z(q).with_tags("TO-PHXZ_0"),
+        cirq.X(q).with_tags("phxz_1"), cirq.Y(q).with_tags("tag1"), cirq.Z(q).with_tags("phxz_0")
     )
-    output_circuit = cirq.symbolize_single_qubit_gates_by_indexed_tags(input_circuit)
+    output_circuit = cirq.symbolize_single_qubit_gates_by_indexed_tags(
+        input_circuit, symbolize_tag=SymbolizeTag(prefix="phxz")
+    )
     cirq.testing.assert_same_circuits(
         output_circuit,
         cirq.Circuit(
