@@ -89,8 +89,9 @@ def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
 
 
 def _pull_non_clifford_before(circuit: circuits.Circuit) -> Iterator[ops.OP_TREE]:
-    def _iter_ops_range_reversed(moment_end):
-        for i in reversed(range(moment_end)):
+
+    def _iter_ops_range(moment_end):
+        for i in range(moment_end):
             moment = circuit[i]
             for op in moment.operations:
                 if not isinstance(op, ops.PauliStringPhasor):
@@ -99,5 +100,5 @@ def _pull_non_clifford_before(circuit: circuits.Circuit) -> Iterator[ops.OP_TREE
     for i, moment in enumerate(circuit):
         for op in moment.operations:
             if isinstance(op, ops.PauliStringPhasor):
-                ops_to_cross = _iter_ops_range_reversed(i)
-                yield op.pass_operations_over(ops_to_cross)
+                ops_to_cross = _iter_ops_range(i)
+                yield op.conjugated_by(ops_to_cross)

@@ -65,7 +65,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
                     furthest_i = i
                 break
             if cont_cond == CONTINUE:
-                modified_op = modified_op.pass_operations_over([op], after_to_before=True)
+                modified_op = modified_op.conjugated_by(protocols.inverse(op))
             num_passed_over += 1
             if len(modified_op.pauli_string) == 1:
                 furthest_op = modified_op
@@ -122,7 +122,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
                 all_ops.insert(merge_i + 1, part_cliff_gate(qubit))
             elif isinstance(other_op, ops.PauliStringPhasor):
                 # Pass over a non-Clifford gate
-                mod_op = other_op.pass_operations_over([part_cliff_gate(qubit)])
+                mod_op = other_op.conjugated_by([part_cliff_gate(qubit)])
                 all_ops[merge_i] = mod_op
                 all_ops.insert(merge_i + 1, part_cliff_gate(qubit))
             elif merge_i > start_i + 1 and num_passed > 0:
