@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tests for cirq.Sampler."""
+
+from __future__ import annotations
+
 from typing import Sequence
 
 import duet
@@ -285,8 +289,8 @@ def test_sampler_sample_expectation_values_calculation():
         """
 
         def run_sweep(
-            self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
-        ) -> Sequence['cirq.Result']:
+            self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        ) -> Sequence[cirq.Result]:
             results = np.zeros((repetitions, 1), dtype=bool)
             for idx in range(repetitions // 4):
                 results[idx][0] = 1

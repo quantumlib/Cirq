@@ -11,15 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Estimation of fidelity associated with experimental circuit executions."""
-from typing import Callable, Mapping, Optional, Sequence
+
+from __future__ import annotations
+
+from typing import Callable, Mapping, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
-from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
 from cirq.value import state_vector_to_probabilities
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def linear_xeb_fidelity_from_probabilities(
@@ -132,7 +138,7 @@ def hog_score_xeb_fidelity_from_probabilities(
 
 
 def xeb_fidelity(
-    circuit: Circuit,
+    circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
     amplitudes: Optional[Mapping[int, complex]] = None,
@@ -197,7 +203,7 @@ def xeb_fidelity(
 
 
 def linear_xeb_fidelity(
-    circuit: Circuit,
+    circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
     amplitudes: Optional[Mapping[int, complex]] = None,
@@ -213,7 +219,7 @@ def linear_xeb_fidelity(
 
 
 def log_xeb_fidelity(
-    circuit: Circuit,
+    circuit: cirq.Circuit,
     bitstrings: Sequence[int],
     qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
     amplitudes: Optional[Mapping[int, complex]] = None,

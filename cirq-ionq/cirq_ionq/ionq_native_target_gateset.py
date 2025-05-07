@@ -14,6 +14,8 @@
 
 """Target gateset used for compiling circuits to IonQ native gates."""
 
+from __future__ import annotations
+
 from types import NotImplementedType
 from typing import Any, Dict, Iterator, List, Tuple, Union
 
@@ -77,7 +79,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         return NotImplemented
 
     @property
-    def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         """List of transformers which should be run before decomposing individual operations.
 
         Decompose to three qubit gates because three qubit gates have different decomposition
@@ -90,7 +92,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         ]
 
     @property
-    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
         return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
 
@@ -122,8 +124,8 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         raise NotImplementedError()
 
     def decompose_all_to_all_connect_ccz_gate(
-        self, ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
-    ) -> 'cirq.OP_TREE':
+        self, ccz_gate: cirq.CCZPowGate, qubits: Tuple[cirq.Qid, ...]
+    ) -> cirq.OP_TREE:
         """Decomposition of all-to-all connected qubits are different from line
          qubits or grid qubits, ckeckout IonQTargetGateset.
 

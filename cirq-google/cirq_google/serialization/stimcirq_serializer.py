@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Optional, Union
+from __future__ import annotations
 
-import cirq
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+
 from cirq_google.api import v2
 from cirq_google.serialization.arg_func_langs import arg_to_proto
 from cirq_google.serialization.op_serializer import OpSerializer
+
+if TYPE_CHECKING:
+    import cirq
 
 # Package name for stimcirq
 _STIMCIRQ_MODULE = "stimcirq"
