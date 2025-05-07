@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any, Dict, Sequence, Union
 
 import networkx as nx
@@ -125,7 +127,7 @@ class PasqalDevice(cirq.devices.Device):
                     "Measurements on Pasqal devices don't support invert_mask."
                 )
 
-    def validate_circuit(self, circuit: 'cirq.AbstractCircuit') -> None:
+    def validate_circuit(self, circuit: cirq.AbstractCircuit) -> None:
         """Raises an error if the given circuit is invalid on this device.
 
         A circuit is invalid if any of its moments are invalid or if there

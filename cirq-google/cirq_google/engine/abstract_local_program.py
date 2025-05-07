@@ -43,7 +43,7 @@ class AbstractLocalProgram(AbstractProgram):
         self._description = ''
         self._labels: Dict[str, str] = {}
         self._engine = engine
-        self._jobs: Dict[str, 'AbstractLocalJob'] = {}
+        self._jobs: Dict[str, AbstractLocalJob] = {}
         self._circuits = circuits
 
     def engine(self) -> 'AbstractLocalEngine':

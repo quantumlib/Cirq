@@ -23,6 +23,8 @@ In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
 """
 
+from __future__ import annotations
+
 import datetime
 import enum
 import random
@@ -35,7 +37,6 @@ from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.cloud import quantum
 from cirq_google.engine import (
     abstract_engine,
     abstract_program,
@@ -51,6 +52,7 @@ if TYPE_CHECKING:
     import google.protobuf
 
     import cirq_google
+    from cirq_google.cloud import quantum
 
 TYPE_PREFIX = 'type.googleapis.com/'
 
@@ -83,7 +85,7 @@ class EngineContext:
         proto_version: Optional[ProtoVersion] = None,
         service_args: Optional[Dict] = None,
         verbose: Optional[bool] = None,
-        client: 'Optional[engine_client.EngineClient]' = None,
+        client: Optional[engine_client.EngineClient] = None,
         timeout: Optional[int] = None,
         serializer: Serializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
@@ -125,7 +127,7 @@ class EngineContext:
         self.client = client
         self.timeout = timeout
 
-    def copy(self) -> 'EngineContext':
+    def copy(self) -> EngineContext:
         return EngineContext(proto_version=self.proto_version, client=self.client)
 
     def _value_equality_values_(self):
@@ -138,7 +140,7 @@ class EngineContext:
             raise ValueError(f'invalid program proto version: {self.proto_version}')
         return util.pack_any(self.serializer.serialize(program))
 
-    def _serialize_run_context(self, sweeps: 'cirq.Sweepable', repetitions: int) -> any_pb2.Any:
+    def _serialize_run_context(self, sweeps: cirq.Sweepable, repetitions: int) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid run context proto version: {self.proto_version}')
         return util.pack_any(v2.run_context_to_proto(sweeps, repetitions))
@@ -581,7 +583,7 @@ class Engine(abstract_engine.AbstractEngine):
         run_name: str = "",
         device_config_name: str = "",
         snapshot_id: str = "",
-    ) -> 'cirq_google.ProcessorSampler':
+    ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 
         Args:
@@ -659,7 +661,7 @@ def get_engine_device(processor_id: str, project_id: Optional[str] = None) -> ci
 
 def get_engine_calibration(
     processor_id: str, project_id: Optional[str] = None
-) -> Optional['cirq_google.Calibration']:
+) -> Optional[cirq_google.Calibration]:
     """Returns calibration metrics for a given processor.
 
     This is a short-cut for creating an engine object, getting the
@@ -671,7 +673,7 @@ def get_engine_calibration(
 
 def get_engine_sampler(
     processor_id: str, project_id: Optional[str] = None
-) -> 'cirq_google.ProcessorSampler':
+) -> cirq_google.ProcessorSampler:
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine

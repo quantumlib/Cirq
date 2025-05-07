@@ -22,11 +22,11 @@ import cirq
 from cirq_google.api import v1, v2
 from cirq_google.cloud import quantum
 from cirq_google.engine import abstract_job, calibration, engine_client
-from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.engine_result import EngineResult
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
+    from cirq_google.engine.calibration_result import CalibrationResult
     from cirq_google.engine.engine import engine_processor, engine_program
 
 TERMINAL_STATES = [
