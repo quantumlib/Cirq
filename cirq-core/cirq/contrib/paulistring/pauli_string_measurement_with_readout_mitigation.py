@@ -11,19 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tools for measuring expectation values of Pauli strings with readout error mitigation."""
+
+from __future__ import annotations
+
 import itertools
 import time
-from typing import cast, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
+from typing import cast, Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import attrs
 import numpy as np
 
 from cirq import circuits, ops, work
 from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
-from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
-from cirq.study import ResultDict
+
+if TYPE_CHECKING:
+    from cirq.experiments import SingleQubitReadoutCalibrationResult
+    from cirq.study import ResultDict
 
 
 @attrs.frozen

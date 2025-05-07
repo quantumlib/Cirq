@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import collections
 import dataclasses
 import importlib.metadata
@@ -635,7 +638,7 @@ _repeated_child_deprecation_msg = [
 ] + _deprecation_origin
 
 
-def _trace_unhandled_exceptions(*args, queue: 'multiprocessing.Queue', func: Callable):
+def _trace_unhandled_exceptions(*args, queue: multiprocessing.Queue, func: Callable):
     try:
         func(*args)
         queue.put(None)

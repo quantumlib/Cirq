@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from datetime import timedelta
 from typing import List
 
@@ -38,7 +40,7 @@ def device(qubits) -> aqt_device.AQTDevice:
 
 
 class NotImplementedOperation(cirq.Operation):
-    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+    def with_qubits(self, *new_qubits) -> NotImplementedOperation:
         raise NotImplementedError()
 
     @property

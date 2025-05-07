@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import functools
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TYPE_CHECKING
 
 import cirq
-from cirq_google.api import v2
 from cirq_google.serialization import arg_func_langs
 from cirq_google.serialization.op_deserializer import OpDeserializer
+
+if TYPE_CHECKING:
+    from cirq_google.api import v2
 
 
 @functools.cache
