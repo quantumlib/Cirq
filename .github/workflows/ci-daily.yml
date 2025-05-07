@@ -14,6 +14,7 @@ permissions: read-all
 
 jobs:
   pytest:
+    if: github.repository == 'quantumlib/Cirq'
     name: Pytest Ubuntu
     strategy:
       matrix:
@@ -50,6 +51,7 @@ jobs:
       - name: Stop Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
+    if: github.repository == 'quantumlib/Cirq'
     name: Pytest Windows
     strategy:
       matrix:
@@ -77,6 +79,7 @@ jobs:
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --enable-slow-tests
         shell: bash
   macos:
+    if: github.repository == 'quantumlib/Cirq'
     name: Pytest MacOS
     strategy:
       matrix:

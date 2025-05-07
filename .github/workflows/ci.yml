@@ -20,6 +20,7 @@ permissions: read-all
 
 jobs:
   quick_test:
+    if: github.repository == 'quantumlib/Cirq'
     name: Misc check
     runs-on: ubuntu-22.04
     steps:
@@ -33,6 +34,7 @@ jobs:
       - name: Misc
         run: check/misc
   packaging_test:
+    if: github.repository == 'quantumlib/Cirq'
     name: Packaging test
     runs-on: ubuntu-22.04
     steps:
@@ -48,6 +50,7 @@ jobs:
       - name: Run packaging test
         run: ./dev_tools/packaging/packaging_test.sh
   format:
+    if: github.repository == 'quantumlib/Cirq'
     name: Format check
     runs-on: ubuntu-22.04
     steps:
@@ -65,6 +68,7 @@ jobs:
       - name: Format
         run: check/format-incremental
   mypy:
+    if: github.repository == 'quantumlib/Cirq'
     name: Type check
     runs-on: ubuntu-22.04
     steps:
@@ -80,6 +84,7 @@ jobs:
       - name: Type check
         run: check/mypy
   changed_files:
+    if: github.repository == 'quantumlib/Cirq'
     name: Changed files test
     runs-on: ubuntu-22.04
     steps:
@@ -97,6 +102,7 @@ jobs:
       - name: Changed files test
         run: check/pytest-changed-files -n auto
   lint:
+    if: github.repository == 'quantumlib/Cirq'
     name: Lint check
     runs-on: ubuntu-22.04
     steps:
@@ -114,6 +120,7 @@ jobs:
       - name: Lint
         run: check/pylint -v
   doc_test:
+    if: github.repository == 'quantumlib/Cirq'
     name: Doc test
     runs-on: ubuntu-22.04
     steps:
@@ -129,6 +136,7 @@ jobs:
       - name: Doc check
         run: check/doctest -q
   nbformat:
+    if: github.repository == 'quantumlib/Cirq'
     name: Notebook formatting
     runs-on: ubuntu-22.04
     steps:
@@ -144,6 +152,7 @@ jobs:
       - name: Doc check
         run: check/nbformat
   shellcheck:
+    if: github.repository == 'quantumlib/Cirq'
     name: Shell check
     runs-on: ubuntu-22.04
     steps:
@@ -154,6 +163,7 @@ jobs:
       - name: Run shellcheck
         run: check/shellcheck
   isolated-modules:
+    if: github.repository == 'quantumlib/Cirq'
     name: Isolated pytest Ubuntu
     runs-on: ubuntu-22.04
     steps:
@@ -169,6 +179,7 @@ jobs:
       - name: Test each module in isolation
         run: pytest -n auto --enable-slow-tests dev_tools/packaging/isolated_packages_test.py
   pytest:
+    if: github.repository == 'quantumlib/Cirq'
     name: Pytest Ubuntu
     strategy:
       matrix:
@@ -202,6 +213,7 @@ jobs:
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
   # TODO(#6706) remove after we start using NumPy 2.0 in regular pytest
   pytest-numpy-2:
+    if: github.repository == 'quantumlib/Cirq'
     name: Pytest Ubuntu with NumPy-2
     strategy:
       matrix:
@@ -230,6 +242,7 @@ jobs:
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-rigetti
   pip-compile:
+    if: github.repository == 'quantumlib/Cirq'
     name: Check consistency of requirements
     runs-on: ubuntu-22.04
     steps:
@@ -246,6 +259,7 @@ jobs:
         run: |
           pip-compile --resolver=backtracking dev_tools/requirements/deps/cirq-all.txt -o-
   build_protos:
+    if: github.repository == 'quantumlib/Cirq'
     name: Build protos
     runs-on: ubuntu-22.04
     steps:
@@ -264,6 +278,7 @@ jobs:
       - name: Build protos
         run: check/protos-up-to-date
   coverage:
+    if: github.repository == 'quantumlib/Cirq'
     name: Coverage check
     runs-on: ubuntu-22.04
     steps:
@@ -299,6 +314,7 @@ jobs:
       - name: Stop Quil dependencies
         run: docker compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
+    if: github.repository == 'quantumlib/Cirq'
     name: Pytest Windows
     strategy:
       matrix:
@@ -326,6 +342,7 @@ jobs:
           check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
+    if: github.repository == 'quantumlib/Cirq'
     name: Pytest MacOS
     strategy:
       matrix:
@@ -350,6 +367,7 @@ jobs:
       - name: Pytest check
         run: check/pytest -n auto --durations=20 --ignore=cirq-core/cirq/contrib
   notebooks-stable:
+    if: github.repository == 'quantumlib/Cirq'
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
       NOTEBOOK_PARTITIONS: 4
@@ -379,6 +397,7 @@ jobs:
           name: notebook-outputs
           path: out
   notebooks-branch:
+    if: github.repository == 'quantumlib/Cirq'
     name: Notebook Tests against PR
     runs-on: ubuntu-22.04
     steps:
@@ -400,6 +419,7 @@ jobs:
           name: notebook-outputs
           path: out
   ts-build:
+    if: github.repository == 'quantumlib/Cirq'
     name: Bundle file consistency
     runs-on: ubuntu-22.04
     steps:
@@ -414,6 +434,7 @@ jobs:
       - name: Check build matches the current
         run: check/ts-build-current
   ts-lint:
+    if: github.repository == 'quantumlib/Cirq'
     name: Typescript lint check
     runs-on: ubuntu-22.04
     steps:
@@ -428,6 +449,7 @@ jobs:
       - name: Lint Typescript files
         run: check/ts-lint
   ts-test:
+    if: github.repository == 'quantumlib/Cirq'
     name: Typescript tests
     runs-on: ubuntu-22.04
     steps:
@@ -444,6 +466,7 @@ jobs:
       - name: Run end-to-end tests
         run: check/ts-test-e2e
   ts-coverage:
+    if: github.repository == 'quantumlib/Cirq'
     name: Typescript tests coverage
     runs-on: ubuntu-22.04
     steps:
