@@ -136,6 +136,7 @@ from cirq.transformers.transformer_primitives import (
 )
 
 from cirq.transformers.symbolize import (
+    SymbolizeTag as SymbolizeTag,
     symbolize_single_qubit_gates_by_indexed_tags as symbolize_single_qubit_gates_by_indexed_tags,
 )
 
