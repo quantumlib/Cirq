@@ -18,7 +18,6 @@ import functools
 import warnings
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 import sympy
 
 import cirq
@@ -30,7 +29,8 @@ from cirq_google.ops import (
     InternalGate,
     InternalTag,
     PhysicalZTag,
-    SYC,
+    SycamoreGate,
+    WillowGate,
 )
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.serialization import (
@@ -234,6 +234,10 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.float_arg_to_proto(gate.exponent, out=msg.czpowgate.exponent)
         elif isinstance(gate, cirq.ISwapPowGate):
             arg_func_langs.float_arg_to_proto(gate.exponent, out=msg.iswappowgate.exponent)
+        elif isinstance(gate, SycamoreGate):
+            msg.iswaplikegate.original_gate = v2.program_pb2.ISwapLikeGate.OriginalCirqGate.SYCAMORE
+        elif isinstance(gate, WillowGate):
+            msg.iswaplikegate.original_gate = v2.program_pb2.ISwapLikeGate.OriginalCirqGate.WILLOW
         elif isinstance(gate, cirq.FSimGate):
             arg_func_langs.float_arg_to_proto(gate.theta, out=msg.fsimgate.theta)
             arg_func_langs.float_arg_to_proto(gate.phi, out=msg.fsimgate.phi)
@@ -628,6 +632,14 @@ class CircuitSerializer(serializer.Serializer):
                 )
                 or 0.0
             )(*qubits)
+        elif which_gate_type == 'iswaplikegate':
+            if (
+                operation_proto.iswaplikegate.original_gate
+                == v2.program_pb2.ISwapLikeGate.OriginalCirqGate.WILLOW
+            ):
+                op = WillowGate()(*qubits)
+            else:
+                op = SycamoreGate()(*qubits)
         elif which_gate_type == 'fsimgate':
             theta = arg_func_langs.float_arg_from_proto(
                 operation_proto.fsimgate.theta, required_arg_name=None
@@ -638,16 +650,7 @@ class CircuitSerializer(serializer.Serializer):
             if isinstance(theta, (int, float, sympy.Basic)) and isinstance(
                 phi, (int, float, sympy.Basic)
             ):
-                if (
-                    isinstance(theta, float)
-                    and isinstance(phi, float)
-                    and np.isclose(theta, np.pi / 2)
-                    and np.isclose(phi, np.pi / 6)
-                    and not operation_proto.fsimgate.translate_via_model
-                ):
-                    op = SYC(*qubits)
-                else:
-                    op = cirq.FSimGate(theta=theta, phi=phi)(*qubits)
+                op = cirq.FSimGate(theta=theta, phi=phi)(*qubits)
             else:
                 raise ValueError('theta and phi must be specified for FSimGate')
             if operation_proto.fsimgate.translate_via_model:

@@ -1016,6 +1016,15 @@ def test_serdes_preserves_syc():
     assert isinstance(c[0][cirq.q(0, 0)].gate, cg.SycamoreGate)
 
 
+def test_serdes_preserves_willow():
+    serializer = cg.CircuitSerializer()
+    c = cirq.Circuit(cg.WILLOW(cirq.q(0, 0), cirq.q(0, 1)))
+    msg = serializer.serialize(c)
+    deserialized_circuit = serializer.deserialize(msg)
+    assert deserialized_circuit == c
+    assert isinstance(c[0][cirq.q(0, 0)].gate, cg.WillowGate)
+
+
 def test_custom_op_serializer():
     c = cirq.Circuit(BingBongGate(param=2.5)(cirq.q(0, 0)))
     serializer = cg.CircuitSerializer(
