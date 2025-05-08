@@ -17,7 +17,7 @@ import cirq
 from cirq.contrib.paulistring import optimized_circuit
 
 
-def test_optimize():
+def test_optimize() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
         cirq.X(q0) ** 0.5,
@@ -61,7 +61,7 @@ def test_optimize():
     )
 
 
-def test_optimize_large_circuit():
+def test_optimize_large_circuit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
 
@@ -79,7 +79,7 @@ def test_optimize_large_circuit():
     )
 
 
-def test_repeat_limit():
+def test_repeat_limit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
 

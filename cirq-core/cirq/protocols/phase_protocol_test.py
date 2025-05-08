@@ -17,7 +17,7 @@ import pytest
 import cirq
 
 
-def test_phase_by():
+def test_phase_by() -> None:
     class NoMethod:
         pass
 

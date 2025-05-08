@@ -40,7 +40,7 @@ class ExpectsArgsQubits:
         return 'text'
 
 
-def test_qasm():
+def test_qasm() -> None:
     assert cirq.qasm(NoMethod(), default=None) is None
     assert cirq.qasm(NoMethod(), default=5) == 5
     assert cirq.qasm(ReturnsText()) == 'text'
@@ -54,12 +54,12 @@ def test_qasm():
     assert cirq.qasm(ExpectsArgsQubits(), args=cirq.QasmArgs(), qubits=()) == 'text'
 
 
-def test_qasm_qubits_improperly_supplied():
+def test_qasm_qubits_improperly_supplied() -> None:
     with pytest.raises(TypeError, match="does not expect qubits or args to be specified"):
         _ = cirq.qasm(cirq.Circuit(), qubits=[cirq.LineQubit(1)])
 
 
-def test_qasm_args_formatting():
+def test_qasm_args_formatting() -> None:
     args = cirq.QasmArgs()
     assert args.format_field(0.01, '') == '0.01'
     assert args.format_field(0.01, 'half_turns') == 'pi*0.01'

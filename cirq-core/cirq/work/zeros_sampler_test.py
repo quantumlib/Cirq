@@ -21,7 +21,7 @@ import sympy
 import cirq
 
 
-def test_run_sweep():
+def test_run_sweep() -> None:
     a, b, c = [cirq.NamedQubit(s) for s in ['a', 'b', 'c']]
     circuit = cirq.Circuit([cirq.measure(a)], [cirq.measure(b, c)])
     sampler = cirq.ZerosSampler()
@@ -36,7 +36,7 @@ def test_run_sweep():
     assert np.all(result[0].measurements['b,c'] == 0)
 
 
-def test_sample():
+def test_sample() -> None:
     # Create a circuit whose measurements are always zeros, and check that
     # results of ZeroSampler on this circuit are identical to results of
     # actual simulation.
@@ -54,7 +54,7 @@ def test_sample():
     assert np.all(result1 == result2)
 
 
-def test_repeated_keys():
+def test_repeated_keys() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
 
     c = cirq.Circuit(
@@ -79,7 +79,7 @@ class OnlyMeasurementsDevice(cirq.Device):
             raise ValueError(f'{operation} is not a measurement and this device only measures!')
 
 
-def test_validate_device():
+def test_validate_device() -> None:
     device = OnlyMeasurementsDevice()
     sampler = cirq.ZerosSampler(device)
 

@@ -43,7 +43,7 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
     )
 
 
-def test_fallback_diagram():
+def test_fallback_diagram() -> None:
     class MagicGate(cirq.testing.ThreeQubitGate):
         def __str__(self):
             return 'MagicGate'
@@ -77,7 +77,7 @@ def test_fallback_diagram():
     assert_has_qcircuit_diagram(circuit, expected_diagram)
 
 
-def test_teleportation_diagram():
+def test_teleportation_diagram() -> None:
     ali = cirq.NamedQubit('alice')
     car = cirq.NamedQubit('carrier')
     bob = cirq.NamedQubit('bob')
@@ -106,7 +106,7 @@ def test_teleportation_diagram():
     )
 
 
-def test_other_diagram():
+def test_other_diagram() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
     circuit = cirq.Circuit(cirq.X(a), cirq.Y(b), cirq.Z(c))
@@ -122,7 +122,7 @@ def test_other_diagram():
     assert_has_qcircuit_diagram(circuit, expected_diagram)
 
 
-def test_qcircuit_qubit_namer():
+def test_qcircuit_qubit_namer() -> None:
     from cirq.contrib.qcircuit import qcircuit_diagram
 
     assert qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q')) == r'\lstick{\text{q}}&'
@@ -137,7 +137,7 @@ def test_qcircuit_qubit_namer():
     )
 
 
-def test_two_cx_diagram():
+def test_two_cx_diagram() -> None:
     # test for no moment indication
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(cirq.CX(q0, q2), cirq.CX(q1, q3), cirq.CX(q0, q2), cirq.CX(q1, q3))
@@ -153,7 +153,7 @@ def test_two_cx_diagram():
     assert_has_qcircuit_diagram(circuit, expected_diagram)
 
 
-def test_sqrt_iswap_diagram():
+def test_sqrt_iswap_diagram() -> None:
     # test for proper rendering of ISWAP^{0.5}
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.ISWAP(q0, q1) ** 0.5)
