@@ -16,7 +16,6 @@ import pytest
 import sympy
 
 import cirq
-
 from cirq.transformers.symbolize import SymbolizeTag
 
 
