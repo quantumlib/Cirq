@@ -135,6 +135,11 @@ from cirq.transformers.transformer_primitives import (
     unroll_circuit_op_greedy_frontier as unroll_circuit_op_greedy_frontier,
 )
 
+from cirq.transformers.symbolize import (
+    SymbolizeTag as SymbolizeTag,
+    symbolize_single_qubit_gates_by_indexed_tags as symbolize_single_qubit_gates_by_indexed_tags,
+)
+
 from cirq.transformers.gauge_compiling import (
     CZGaugeTransformer as CZGaugeTransformer,
     ConstantGauge as ConstantGauge,
