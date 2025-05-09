@@ -14,7 +14,9 @@
 
 """A Gauge Transformer for the CZ gate."""
 
-from cirq import ops
+from typing import List
+
+from cirq import circuits, ops
 from cirq.ops.common_gates import CZ
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
@@ -43,4 +45,28 @@ CZGaugeSelector = GaugeSelector(
     ]
 )
 
+
+def _multi_layer_pull_through_cz(
+    left: List[circuits.Moment], moments: List[circuits.Moment]
+) -> List[circuits.Moment]:
+    # Check all the ops are CZ first
+    if not all(op.gate is CZ for moment in moments for op in moment):
+        raise ValueError("Input moments must only contains CZ gates.")
+    if len(left) > 1:
+        raise ValueError("CZ's gauge only has one pre_q0 gate, and one pre_q1 gate.")
+
+    ps: ops.PauliString = ops.PauliString(left[0])
+    pulled_through: ops.PauliString = ps.after(moments)
+    ret = moments
+    ret.append(circuits.Moment([pauli_gate(q) for q, pauli_gate in pulled_through.items()]))
+    return ret
+
+
 CZGaugeTransformer = GaugeTransformer(target=CZ, gauge_selector=CZGaugeSelector)
+
+# Multi-layer pull through version of CZGaugeTransformer
+CZGaugeTransformerML = GaugeTransformer(
+    target=CZ,
+    gauge_selector=CZGaugeSelector,
+    multi_layer_pull_thourgh_fn=_multi_layer_pull_through_cz,
+)

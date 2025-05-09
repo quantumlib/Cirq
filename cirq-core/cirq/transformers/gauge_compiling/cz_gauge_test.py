@@ -12,12 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 
 import cirq
-from cirq.transformers.gauge_compiling import CZGaugeTransformer
+from cirq.transformers.gauge_compiling import CZGaugeTransformer, CZGaugeTransformerML
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
 
 
 class TestCZGauge(GaugeTester):
     two_qubit_gate = cirq.CZ
     gauge_transformer = CZGaugeTransformer
+
+
+def test_multi_player_pull_through():
+    """Test case.
+    Input:
+             ┌──┐
+    0: ───@────@─────H───@───@───@───
+          │    │         │   │   │
+    1: ───@────┼@────────@───@───@───
+               ││
+    2: ───@────@┼────────@───@───@───
+          │     │        │   │   │
+    3: ───@─────@────────@───@───@───
+              └──┘
+    An example output:
+                  ┌──┐
+    0: ───X───@────@─────X───H───Z───@───@───@───────
+              │    │                 │   │   │
+    1: ───I───@────┼@────Z───────Y───@───@───@───Y───
+                   ││
+    2: ───I───@────@┼────Z───────Y───@───@───@───Y───
+              │     │                │   │   │
+    3: ───I───@─────@────────────Z───@───@───@───────
+                  └──┘
+    """
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    input_circuit = cirq.Circuit(
+        cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
+        cirq.Moment(cirq.CZ(q0, q2), cirq.CZ(q1, q3)),
+        cirq.Moment(cirq.H(q0)),
+        cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
+        cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
+        cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
+    )
+    transformer = CZGaugeTransformerML
+
+    output_circuit = transformer(input_circuit, prng=np.random.default_rng(0))
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
+    )
