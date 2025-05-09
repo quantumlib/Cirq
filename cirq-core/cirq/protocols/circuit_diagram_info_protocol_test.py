@@ -18,7 +18,7 @@ import sympy
 import cirq
 
 
-def test_circuit_diagram_info_value_wrapping():
+def test_circuit_diagram_info_value_wrapping() -> None:
     single_info = cirq.CircuitDiagramInfo(('Single',))
 
     class ReturnInfo:
@@ -67,20 +67,20 @@ def test_circuit_diagram_info_value_wrapping():
     )
 
 
-def test_circuit_diagram_info_init():
+def test_circuit_diagram_info_init() -> None:
     assert cirq.CircuitDiagramInfo(['a', 'b']).wire_symbols == ('a', 'b')
 
 
-def test_circuit_diagram_info_validate():
+def test_circuit_diagram_info_validate() -> None:
     with pytest.raises(ValueError):
         _ = cirq.CircuitDiagramInfo('X')
 
 
-def test_circuit_diagram_info_repr():
+def test_circuit_diagram_info_repr() -> None:
     cirq.testing.assert_equivalent_repr(cirq.CircuitDiagramInfo(('X', 'Y'), 2))
 
 
-def test_circuit_diagram_info_eq():
+def test_circuit_diagram_info_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: cirq.CircuitDiagramInfo(('X',)))
     eq.add_equality_group(
@@ -92,7 +92,7 @@ def test_circuit_diagram_info_eq():
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z',), 3, auto_exponent_parens=False))
 
 
-def test_circuit_diagram_info_pass_fail():
+def test_circuit_diagram_info_pass_fail() -> None:
     class C:
         pass
 
@@ -115,14 +115,14 @@ def test_circuit_diagram_info_pass_fail():
     assert cirq.circuit_diagram_info(E()) == cirq.CircuitDiagramInfo(('X',))
 
 
-def test_controlled_1x1_matrixgate_diagram_error():
+def test_controlled_1x1_matrixgate_diagram_error() -> None:
     q = cirq.LineQubit(0)
     g = cirq.MatrixGate(np.array([[1j]])).controlled()
     c = cirq.Circuit(g(q))
     assert str(c) == "0: ───C[[0.+1.j]]───"
 
 
-def test_circuit_diagram_info_args_eq():
+def test_circuit_diagram_info_args_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
     eq.add_equality_group(
@@ -192,7 +192,7 @@ def test_circuit_diagram_info_args_eq():
     )
 
 
-def test_circuit_diagram_info_args_repr():
+def test_circuit_diagram_info_args_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         cirq.CircuitDiagramInfoArgs(
             known_qubits=cirq.LineQubit.range(2),
@@ -206,7 +206,7 @@ def test_circuit_diagram_info_args_repr():
     )
 
 
-def test_format_real():
+def test_format_real() -> None:
     args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
     assert args.format_real(1) == '1'
     assert args.format_real(1.1) == '1.1'
@@ -227,7 +227,7 @@ def test_format_real():
     assert args.format_real(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
 
 
-def test_format_complex():
+def test_format_complex() -> None:
     args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
     assert args.format_complex(1) == '1+0i'
     assert args.format_complex(1.1) == '1.1+0i'
@@ -250,7 +250,7 @@ def test_format_complex():
     assert args.format_complex(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
 
 
-def test_format_radians_without_precision():
+def test_format_radians_without_precision() -> None:
     args = cirq.CircuitDiagramInfoArgs(
         known_qubits=None,
         known_qubit_count=None,
@@ -278,7 +278,7 @@ def test_format_radians_without_precision():
     assert args.format_radians(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
 
 
-def test_format_radians_with_precision():
+def test_format_radians_with_precision() -> None:
     args = cirq.CircuitDiagramInfoArgs(
         known_qubits=None,
         known_qubit_count=None,

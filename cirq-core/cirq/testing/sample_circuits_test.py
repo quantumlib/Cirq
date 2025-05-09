@@ -15,7 +15,7 @@
 import cirq
 
 
-def test_nonoptimal_toffoli_circuit():
+def test_nonoptimal_toffoli_circuit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2).unitary(),

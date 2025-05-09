@@ -18,7 +18,7 @@ import cirq
 from cirq.contrib.hacks.disable_validation import disable_op_validation
 
 
-def test_disable_op_validation():
+def test_disable_op_validation() -> None:
     q0, q1 = cirq.LineQubit.range(2)
 
     # Fails normally.

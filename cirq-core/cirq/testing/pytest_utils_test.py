@@ -19,7 +19,7 @@ import pytest
 import cirq
 
 
-def test_retry_once_after_timeout():
+def test_retry_once_after_timeout() -> None:
     testfunc = Mock(side_effect=[TimeoutError("first call fails"), None])
     decoratedfunc = cirq.testing.retry_once_after_timeout(testfunc)
     with pytest.warns(UserWarning, match="Retrying.*transitive TimeoutError"):
@@ -27,7 +27,7 @@ def test_retry_once_after_timeout():
     assert testfunc.call_count == 2
 
 
-def test_retry_once_with_later_random_values():
+def test_retry_once_with_later_random_values() -> None:
     testfunc = Mock(side_effect=[AssertionError("first call fails"), None])
     decoratedfunc = cirq.testing.retry_once_with_later_random_values(testfunc)
     with pytest.warns(UserWarning, match="Retrying.*failing seed.*pytest-randomly"):

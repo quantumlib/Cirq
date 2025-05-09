@@ -21,7 +21,7 @@ from cirq.circuits._box_drawing_character_data import (
 )
 
 
-def test_chars():
+def test_chars() -> None:
     assert NORMAL_BOX_CHARS.char() is None
     assert NORMAL_BOX_CHARS.char(top=True, bottom=True) == '│'
     assert NORMAL_THEN_BOLD_MIXED_BOX_CHARS.char() is None

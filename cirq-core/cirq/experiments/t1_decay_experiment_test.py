@@ -20,7 +20,7 @@ import sympy
 import cirq
 
 
-def test_init_result():
+def test_init_result() -> None:
     data = pd.DataFrame(
         columns=['delay_ns', 'false_count', 'true_count'],
         index=range(2),
@@ -31,7 +31,7 @@ def test_init_result():
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_plot_does_not_raise_error():
+def test_plot_does_not_raise_error() -> None:
     class _TimeDependentDecay(cirq.NoiseModel):
         def noisy_moment(self, moment, system_qubits):
             duration = max(
@@ -55,7 +55,7 @@ def test_plot_does_not_raise_error():
     results.plot(include_fit=True)
 
 
-def test_result_eq():
+def test_result_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
         lambda: cirq.experiments.T1DecayResult(
@@ -75,7 +75,7 @@ def test_result_eq():
     )
 
 
-def test_sudden_decay_results():
+def test_sudden_decay_results() -> None:
     class _SuddenDecay(cirq.NoiseModel):
         def noisy_moment(self, moment, system_qubits):
             duration = max(
@@ -107,7 +107,7 @@ def test_sudden_decay_results():
     )
 
 
-def test_all_on_results():
+def test_all_on_results() -> None:
     results = cirq.experiments.t1_decay(
         sampler=cirq.Simulator(),
         qubit=cirq.GridQubit(0, 0),
@@ -126,7 +126,7 @@ def test_all_on_results():
     assert results == desired, f'{results.data=} {desired.data=}'
 
 
-def test_all_off_results():
+def test_all_off_results() -> None:
     results = cirq.experiments.t1_decay(
         sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
         qubit=cirq.GridQubit(0, 0),
@@ -146,7 +146,7 @@ def test_all_off_results():
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_curve_fit_plot_works():
+def test_curve_fit_plot_works() -> None:
     good_fit = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],
@@ -159,7 +159,7 @@ def test_curve_fit_plot_works():
 
 
 @pytest.mark.parametrize('t1', [200.0, 500.0, 700.0])
-def test_noise_model_continous(t1):
+def test_noise_model_continous(t1) -> None:
     class GradualDecay(cirq.NoiseModel):
         def __init__(self, t1: float):
             self.t1 = t1
@@ -193,7 +193,7 @@ def test_noise_model_continous(t1):
 
 
 @pytest.mark.parametrize('gamma', [0.01, 0.05, 0.1])
-def test_noise_model_discrete(gamma):
+def test_noise_model_discrete(gamma) -> None:
     results = cirq.experiments.t1_decay(
         sampler=cirq.DensityMatrixSimulator(
             noise=cirq.NoiseModel.from_noise_model_like(cirq.amplitude_damp(gamma))
@@ -212,7 +212,7 @@ def test_noise_model_discrete(gamma):
     np.testing.assert_allclose(probs, np.mean(probs), atol=0.2)
 
 
-def test_bad_args():
+def test_bad_args() -> None:
     with pytest.raises(ValueError, match='repetitions <= 0'):
         _ = cirq.experiments.t1_decay(
             sampler=cirq.Simulator(),
@@ -253,7 +253,7 @@ def test_bad_args():
         )
 
 
-def test_str():
+def test_str() -> None:
     result = cirq.experiments.T1DecayResult(
         data=pd.DataFrame(
             columns=['delay_ns', 'false_count', 'true_count'],

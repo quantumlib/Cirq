@@ -24,7 +24,7 @@ from cirq.devices import GridQubit
 from cirq.vis import state_histogram
 
 
-def test_get_state_histogram():
+def test_get_state_histogram() -> None:
     simulator = cirq.Simulator()
 
     q0 = GridQubit(0, 0)
@@ -40,7 +40,7 @@ def test_get_state_histogram():
     np.testing.assert_equal(values_to_plot, expected_values)
 
 
-def test_get_state_histogram_multi_1():
+def test_get_state_histogram_multi_1() -> None:
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(
         cirq.X.on_each(*qubits[1:]), cirq.measure(*qubits)  # One multi-qubit measurement
@@ -51,7 +51,7 @@ def test_get_state_histogram_multi_1():
     np.testing.assert_equal(values_to_plot, expected_values)
 
 
-def test_get_state_histogram_multi_2():
+def test_get_state_histogram_multi_2() -> None:
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(
         cirq.X.on_each(*qubits[1:]),
@@ -65,7 +65,7 @@ def test_get_state_histogram_multi_2():
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_plot_state_histogram_result():
+def test_plot_state_histogram_result() -> None:
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(
         cirq.X.on_each(*qubits[1:]), cirq.measure(*qubits)  # One multi-qubit measurement
@@ -83,7 +83,7 @@ def test_plot_state_histogram_result():
 
 
 @pytest.mark.usefixtures('closefigures')
-def test_plot_state_histogram_collection():
+def test_plot_state_histogram_collection() -> None:
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(
         cirq.X.on_each(*qubits[1:]), cirq.measure(*qubits)  # One multi-qubit measurement

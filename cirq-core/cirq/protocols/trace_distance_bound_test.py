@@ -17,7 +17,7 @@ import numpy as np
 import cirq
 
 
-def test_trace_distance_bound():
+def test_trace_distance_bound() -> None:
     class NoMethod:
         pass
 

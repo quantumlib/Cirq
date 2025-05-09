@@ -21,7 +21,7 @@ from cirq import Operation, PointOptimizationSummary, PointOptimizer
 from cirq.testing import EqualsTester
 
 
-def test_equality():
+def test_equality() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     xa = cirq.X(a)
@@ -86,7 +86,7 @@ class ReplaceWithXGates(PointOptimizer):
         )
 
 
-def test_point_optimizer_can_write_new_gates_inline():
+def test_point_optimizer_can_write_new_gates_inline() -> None:
     x = cirq.NamedQubit('x')
     y = cirq.NamedQubit('y')
     z = cirq.NamedQubit('z')
@@ -116,7 +116,7 @@ z: ───────────────────X───X───
     assert actual_text_diagram == expected_text_diagram
 
 
-def test_point_optimizer_post_clean_up():
+def test_point_optimizer_post_clean_up() -> None:
     x = cirq.NamedQubit('x')
     y = cirq.NamedQubit('y')
     z = cirq.NamedQubit('z')
@@ -150,7 +150,7 @@ z: ─────────────────────────�
     assert actual_text_diagram == expected_text_diagram
 
 
-def test_point_optimizer_raises_on_gates_changing_qubits():
+def test_point_optimizer_raises_on_gates_changing_qubits() -> None:
     class EverythingIs42(cirq.PointOptimizer):
         """Changes all single qubit operations to act on LineQubit(42)"""
 
@@ -171,7 +171,7 @@ def test_point_optimizer_raises_on_gates_changing_qubits():
         EverythingIs42().optimize_circuit(c)
 
 
-def test_repr():
+def test_repr() -> None:
     assert (
         repr(cirq.PointOptimizationSummary(clear_span=0, clear_qubits=[], new_operations=[]))
         == 'cirq.PointOptimizationSummary(0, (), ())'

@@ -21,7 +21,7 @@ import cirq
 Q0, Q1, Q2, Q3 = cirq.LineQubit.range(4)
 
 
-def test_state_tomography_diagonal():
+def test_state_tomography_diagonal() -> None:
     n = 2
     qubits = cirq.LineQubit.range(n)
     for state in range(2**n):
@@ -42,7 +42,7 @@ def test_state_tomography_diagonal():
         assert np.allclose(res.data, should_be, atol=0.05)
 
 
-def test_state_tomography_ghz_state():
+def test_state_tomography_ghz_state() -> None:
     circuit = cirq.Circuit()
     circuit.append(cirq.H(cirq.LineQubit(0)))
     circuit.append(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
@@ -61,7 +61,7 @@ def test_state_tomography_ghz_state():
     assert np.allclose(res.data, should_be, atol=0.05)
 
 
-def test_make_experiment_no_rots():
+def test_make_experiment_no_rots() -> None:
     exp = cirq.experiments.StateTomographyExperiment(
         [cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)]
     )
@@ -97,7 +97,7 @@ def compute_density_matrix(circuit: cirq.Circuit, qubits: Sequence[cirq.Qid]) ->
         ),
     ),
 )
-def test_density_matrix_from_state_tomography_is_correct(circuit, qubits):
+def test_density_matrix_from_state_tomography_is_correct(circuit, qubits) -> None:
     sim = cirq.Simulator(seed=87539319)
     tomography_result = cirq.experiments.state_tomography(sim, qubits, circuit, repetitions=5000)
     actual_rho = tomography_result.data
@@ -115,7 +115,7 @@ def test_density_matrix_from_state_tomography_is_correct(circuit, qubits):
         cirq.Circuit(cirq.X(Q0) ** 0.25, cirq.ISWAP(Q0, Q1)),
     ),
 )
-def test_agrees_with_two_qubit_state_tomography(circuit):
+def test_agrees_with_two_qubit_state_tomography(circuit) -> None:
     qubits = (Q0, Q1)
     sim = cirq.Simulator(seed=87539319)
     tomography_result = cirq.experiments.state_tomography(sim, qubits, circuit, repetitions=5000)

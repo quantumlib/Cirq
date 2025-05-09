@@ -35,7 +35,7 @@ class BadGateDecompose(cirq.testing.SingleQubitGate):
         return np.array([[0, 1], [1, 0]])
 
 
-def test_assert_decompose_is_consistent_with_unitary():
+def test_assert_decompose_is_consistent_with_unitary() -> None:
     cirq.testing.assert_decompose_is_consistent_with_unitary(GoodGateDecompose())
 
     cirq.testing.assert_decompose_is_consistent_with_unitary(
@@ -89,7 +89,7 @@ class ParameterizedGate(cirq.Gate):
         yield cirq.Y(qubits[1]) ** sympy.Symbol("y")
 
 
-def test_assert_decompose_ends_at_default_gateset():
+def test_assert_decompose_ends_at_default_gateset() -> None:
     cirq.testing.assert_decompose_ends_at_default_gateset(GateDecomposesToDefaultGateset())
     cirq.testing.assert_decompose_ends_at_default_gateset(
         GateDecomposesToDefaultGateset().on(*cirq.LineQubit.range(2))

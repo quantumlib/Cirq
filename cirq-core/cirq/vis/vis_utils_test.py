@@ -16,7 +16,7 @@ import numpy as np
 import cirq
 
 
-def test_relative_luminance():
+def test_relative_luminance() -> None:
     rl = cirq.vis.relative_luminance([100, 100, 100])
     assert np.isclose(rl, 55560.6360)
     rl = cirq.vis.relative_luminance([0, 1, 2])

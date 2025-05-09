@@ -48,14 +48,14 @@ def assert_optimizes(before, after, measure_only_moment=True, with_context=False
     cirq.testing.assert_same_circuits(transformed_circuit, c_expected)
 
 
-def test_no_move():
+def test_no_move() -> None:
     q1 = cirq.NamedQubit('q1')
     before = cirq.Circuit([cirq.Moment([cirq.H(q1)])])
     after = before
     assert_optimizes(before=before, after=after)
 
 
-def test_simple_align():
+def test_simple_align() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     before = cirq.Circuit(
@@ -76,7 +76,7 @@ def test_simple_align():
     assert_optimizes(before=before, after=before, with_context=True)
 
 
-def test_simple_partial_align():
+def test_simple_partial_align() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     before = cirq.Circuit(
@@ -96,7 +96,7 @@ def test_simple_partial_align():
     assert_optimizes(before=before, after=before, with_context=True)
 
 
-def test_slide_forward_one():
+def test_slide_forward_one() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -119,7 +119,7 @@ def test_slide_forward_one():
     assert_optimizes(before=before, after=after_no_compile, with_context=True)
 
 
-def test_no_slide_forward_one():
+def test_no_slide_forward_one() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -128,7 +128,7 @@ def test_no_slide_forward_one():
     assert_optimizes(before=before, after=after, measure_only_moment=False)
 
 
-def test_blocked_shift_one():
+def test_blocked_shift_one() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     before = cirq.Circuit(
@@ -150,7 +150,7 @@ def test_blocked_shift_one():
     assert_optimizes(before=before, after=before, with_context=True)
 
 
-def test_complex_move():
+def test_complex_move() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -182,7 +182,7 @@ def test_complex_move():
     assert_optimizes(before=before, after=before, with_context=True)
 
 
-def test_complex_move_no_slide():
+def test_complex_move_no_slide() -> None:
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -208,13 +208,13 @@ def test_complex_move_no_slide():
     assert_optimizes(before=before, after=before, measure_only_moment=False, with_context=True)
 
 
-def test_multi_qubit():
+def test_multi_qubit() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q1), cirq.measure(q0, q1, key='m'))
     assert_optimizes(before=circuit, after=circuit)
 
 
-def test_classically_controlled_op():
+def test_classically_controlled_op() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.H(q0), cirq.measure(q0, key='m'), cirq.X(q1).with_classical_controls('m')

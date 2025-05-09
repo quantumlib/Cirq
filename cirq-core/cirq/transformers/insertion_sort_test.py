@@ -16,7 +16,7 @@ import cirq
 import cirq.transformers
 
 
-def test_insertion_sort():
+def test_insertion_sort() -> None:
     c = cirq.Circuit(
         cirq.CZ(cirq.q(2), cirq.q(1)),
         cirq.CZ(cirq.q(2), cirq.q(4)),

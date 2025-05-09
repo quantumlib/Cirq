@@ -16,7 +16,7 @@ import cirq
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_measurement_gates():
+def test_measurement_gates() -> None:
     a, b, c = cirq.LineQubit.range(3)
     assert_url_to_circuit_returns(
         '{"cols":[["Measure","Measure"],["Measure","Measure"]]}',

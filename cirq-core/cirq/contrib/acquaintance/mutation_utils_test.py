@@ -20,7 +20,7 @@ import cirq
 import cirq.contrib.acquaintance as cca
 
 
-def test_complete_acquaintance_strategy():
+def test_complete_acquaintance_strategy() -> None:
     qubits = [cirq.NamedQubit(s) for s in alphabet]
 
     with pytest.raises(ValueError):
@@ -136,7 +136,7 @@ a      b      c      d
     assert cca.get_acquaintance_size(cubic_strategy) == 3
 
 
-def test_rectification():
+def test_rectification() -> None:
     qubits = cirq.LineQubit.range(4)
 
     perm_gate = cca.SwapPermutationGate()

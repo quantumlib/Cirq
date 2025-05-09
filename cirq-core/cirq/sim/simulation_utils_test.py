@@ -19,7 +19,7 @@ from cirq.sim import simulation_utils
 
 
 @pytest.mark.parametrize('n,m', [(n, m) for n in range(1, 4) for m in range(1, n + 1)])
-def test_state_probabilities_by_indices(n: int, m: int):
+def test_state_probabilities_by_indices(n: int, m: int) -> None:
     np.random.seed(0)
     state = testing.random_superposition(1 << n)
     d = (state.conj() * state).real

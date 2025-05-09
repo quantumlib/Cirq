@@ -54,7 +54,7 @@ class HasQuditUnitary:
 @pytest.mark.parametrize(
     'val', (NoMethod(), ReturnsNotImplemented(), HasQuditUnitary(), 123, np.eye(2), object(), cirq)
 )
-def test_raises_no_pauli_expansion(val):
+def test_raises_no_pauli_expansion(val) -> None:
     assert cirq.pauli_expansion(val, default=None) is None
     with pytest.raises(TypeError, match='No Pauli expansion'):
         cirq.pauli_expansion(val)
@@ -78,7 +78,7 @@ def test_raises_no_pauli_expansion(val):
         ),
     ),
 )
-def test_pauli_expansion(val, expected_expansion):
+def test_pauli_expansion(val, expected_expansion) -> None:
     actual_expansion = cirq.pauli_expansion(val)
     assert cirq.approx_eq(actual_expansion, expected_expansion, atol=1e-12)
     assert set(actual_expansion.keys()) == set(expected_expansion.keys())

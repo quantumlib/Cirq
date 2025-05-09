@@ -17,7 +17,7 @@ import cirq
 from cirq.contrib.paulistring import clifford_optimized_circuit, CliffordTargetGateset
 
 
-def test_optimize():
+def test_optimize() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.X(q1) ** 0.5,
@@ -49,7 +49,7 @@ def test_optimize():
     )
 
 
-def test_remove_czs():
+def test_remove_czs() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(cirq.CZ(q0, q1), cirq.Z(q0) ** 0.5, cirq.CZ(q0, q1))
     c_expected = cirq.optimize_for_target_gateset(
@@ -72,7 +72,7 @@ def test_remove_czs():
     )
 
 
-def test_remove_staggered_czs():
+def test_remove_staggered_czs() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(cirq.CZ(q0, q1), cirq.CZ(q1, q2), cirq.CZ(q0, q1))
     c_expected = cirq.optimize_for_target_gateset(
@@ -97,7 +97,7 @@ def test_remove_staggered_czs():
     )
 
 
-def test_with_measurements():
+def test_with_measurements() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(cirq.X(q0), cirq.CZ(q0, q1), cirq.measure(q0, q1, key='m'))
     c_expected = cirq.optimize_for_target_gateset(
@@ -121,7 +121,7 @@ def test_with_measurements():
     )
 
 
-def test_optimize_large_circuit():
+def test_optimize_large_circuit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
 

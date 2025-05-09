@@ -105,7 +105,7 @@ def test_exclude_json_files_has_valid_entries() -> None:
         if _is_included(f"{abs_path}.json")
     ],
 )
-def test_hash_from_pickle(json_filename: str, pool: multiprocessing.pool.Pool):
+def test_hash_from_pickle(json_filename: str, pool: multiprocessing.pool.Pool) -> None:
     obj_local = _read_json(json_filename)
     if not isinstance(obj_local, Hashable):
         return

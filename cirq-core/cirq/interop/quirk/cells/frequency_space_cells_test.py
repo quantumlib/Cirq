@@ -18,7 +18,7 @@ import cirq
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_frequency_space_gates():
+def test_frequency_space_gates() -> None:
     a, b, c = cirq.LineQubit.range(3)
 
     assert_url_to_circuit_returns('{"cols":[["QFT3"]]}', cirq.Circuit(cirq.qft(a, b, c)))

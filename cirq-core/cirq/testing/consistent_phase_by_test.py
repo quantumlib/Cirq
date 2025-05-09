@@ -89,7 +89,7 @@ class SemiBadPhaser:
         return SemiBadPhaser([resolver.value_of(val, recursive) for val in self.e])
 
 
-def test_assert_phase_by_is_consistent_with_unitary():
+def test_assert_phase_by_is_consistent_with_unitary() -> None:
     cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodPhaser(0.5))
 
     cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodQuditPhaser(0.5))

@@ -29,7 +29,7 @@ import cirq.contrib.acquaintance as cca
         for _ in range(5)
     ],
 )
-def test_topological_sort(circuit_dag, sorted_nodes):
+def test_topological_sort(circuit_dag, sorted_nodes) -> None:
     sorted_nodes = list(sorted_nodes)
     assert cca.is_topologically_sorted(circuit_dag, (node.val for node in sorted_nodes))
 

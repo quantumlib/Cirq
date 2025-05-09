@@ -20,7 +20,7 @@ from cirq.study import ParamResolver
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_resolve_parameters(resolve_fn):
+def test_resolve_parameters(resolve_fn) -> None:
     class NoMethod:
         pass
 
@@ -74,7 +74,7 @@ def test_resolve_parameters(resolve_fn):
     assert resolve_fn(1j, resolver) == 1j
 
 
-def test_is_parameterized():
+def test_is_parameterized() -> None:
     a, b = tuple(sympy.Symbol(l) for l in 'ab')
     x, y = 0, 4
     assert not cirq.is_parameterized((x, y))
@@ -90,7 +90,7 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(1j)
 
 
-def test_parameter_names():
+def test_parameter_names() -> None:
     a, b, c = tuple(sympy.Symbol(l) for l in 'abc')
     x, y, z = 0, 4, 7
     assert cirq.parameter_names((a, b, c)) == {'a', 'b', 'c'}
@@ -105,7 +105,7 @@ def test_parameter_names():
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_skips_empty_resolution(resolve_fn):
+def test_skips_empty_resolution(resolve_fn) -> None:
     class Tester:
         def _resolve_parameters_(self, resolver, recursive):
             return 5
@@ -115,7 +115,7 @@ def test_skips_empty_resolution(resolve_fn):
     assert resolve_fn(t, {'x': 2}) == 5
 
 
-def test_recursive_resolve():
+def test_recursive_resolve() -> None:
     a, b, c = [sympy.Symbol(l) for l in 'abc']
     resolver = cirq.ParamResolver({a: b + 3, b: c + 2, c: 1})
     assert cirq.resolve_parameters_once(a, resolver) == b + 3

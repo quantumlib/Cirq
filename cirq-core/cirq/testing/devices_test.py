@@ -17,7 +17,7 @@ import cirq
 from cirq.testing.devices import ValidatingTestDevice
 
 
-def test_validating_types_and_qubits():
+def test_validating_types_and_qubits() -> None:
     dev = ValidatingTestDevice(
         allowed_qubit_types=(cirq.GridQubit,),
         allowed_gates=(cirq.XPowGate,),
@@ -37,7 +37,7 @@ def test_validating_types_and_qubits():
         dev.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
 
 
-def test_validating_locality():
+def test_validating_locality() -> None:
     dev = ValidatingTestDevice(
         allowed_qubit_types=(cirq.GridQubit,),
         allowed_gates=(cirq.CZPowGate, cirq.MeasurementGate),
@@ -62,7 +62,7 @@ def test_validating_locality():
         )
 
 
-def test_repr():
+def test_repr() -> None:
     dev = ValidatingTestDevice(
         allowed_qubit_types=(cirq.GridQubit,),
         allowed_gates=(cirq.CZPowGate, cirq.MeasurementGate),
@@ -73,7 +73,7 @@ def test_repr():
     assert repr(dev) == 'test'
 
 
-def test_defaults():
+def test_defaults() -> None:
     dev = ValidatingTestDevice(qubits={cirq.GridQubit(0, 0)})
     assert repr(dev) == 'ValidatingTestDevice'
     assert dev.allowed_qubit_types == (cirq.GridQubit,)

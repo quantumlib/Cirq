@@ -16,7 +16,7 @@ import cirq
 from cirq.contrib.paulistring import convert_and_separate_circuit, pauli_string_dag_from_circuit
 
 
-def test_pauli_string_dag_from_circuit():
+def test_pauli_string_dag_from_circuit() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
     c_left, _ = convert_and_separate_circuit(c_orig)

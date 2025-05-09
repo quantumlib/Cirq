@@ -21,7 +21,7 @@ import cirq
 import cirq.testing
 
 
-def test_random_circuit_errors():
+def test_random_circuit_errors() -> None:
     with pytest.raises(ValueError, match='but was -1'):
         _ = cirq.testing.random_circuit(qubits=5, n_moments=5, op_density=-1)
 
@@ -92,7 +92,7 @@ def test_random_circuit(
 
 
 @pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
-def test_random_circuit_reproducible_with_seed(seed):
+def test_random_circuit_reproducible_with_seed(seed) -> None:
     wrappers = (lambda s: s, np.random.RandomState)
     circuits = [
         cirq.testing.random_circuit(
@@ -105,7 +105,7 @@ def test_random_circuit_reproducible_with_seed(seed):
     eq.add_equality_group(*circuits)
 
 
-def test_random_circuit_not_expected_number_of_qubits():
+def test_random_circuit_not_expected_number_of_qubits() -> None:
     circuit = cirq.testing.random_circuit(
         qubits=3, n_moments=1, op_density=1.0, gate_domain={cirq.CNOT: 2}
     )
@@ -114,7 +114,7 @@ def test_random_circuit_not_expected_number_of_qubits():
     assert len(circuit.all_qubits()) == 2
 
 
-def test_random_circuit_reproducible_between_runs():
+def test_random_circuit_reproducible_between_runs() -> None:
     circuit = cirq.testing.random_circuit(5, 8, 0.5, random_state=77)
     expected_diagram = """
                   ┌──┐
@@ -132,7 +132,7 @@ def test_random_circuit_reproducible_between_runs():
     cirq.testing.assert_has_diagram(circuit, expected_diagram)
 
 
-def test_random_two_qubit_circuit_with_czs():
+def test_random_two_qubit_circuit_with_czs() -> None:
     num_czs = lambda circuit: len(
         [o for o in circuit.all_operations() if isinstance(o.gate, cirq.CZPowGate)]
     )
