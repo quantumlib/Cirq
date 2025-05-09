@@ -50,8 +50,8 @@ def _multi_layer_pull_through_cz(
     left: List[circuits.Moment], moments: List[circuits.Moment]
 ) -> List[circuits.Moment]:
     # Check all the ops are CZ first
-    if not all(op.gate is CZ for moment in moments for op in moment):
-        raise ValueError("Input moments must only contains CZ gates.")
+    if not all(op.gate == CZ for moment in moments for op in moment):
+        raise ValueError(f"Input moments must only contain CZ gates:\nmoments = {moments}.")
     if len(left) > 1:
         raise ValueError("CZ's gauge only has one pre_q0 gate, and one pre_q1 gate.")
 

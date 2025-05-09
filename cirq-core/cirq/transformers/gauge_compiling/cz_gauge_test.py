@@ -24,7 +24,7 @@ class TestCZGauge(GaugeTester):
     gauge_transformer = CZGaugeTransformer
 
 
-def test_multi_player_pull_through():
+def test_multi_layer_pull_through():
     """Test case.
     Input:
              ┌──┐
