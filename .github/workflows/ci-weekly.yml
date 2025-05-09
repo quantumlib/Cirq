@@ -14,7 +14,7 @@ permissions: read-all
 
 jobs:
   notebooks-stable:
-    if: github.repository == 'quantumlib/Cirq'
+    if: github.repository_owner == 'quantumlib'
     name: All Notebooks Isolated Test against Cirq stable
     env:
       NOTEBOOK_PARTITIONS: 4
