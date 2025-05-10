@@ -12,6 +12,7 @@ import examples.bb84
 import examples.bcs_mean_field
 import examples.bell_inequality
 import examples.bernstein_vazirani
+import examples.closed_timelike_curve
 import examples.deutsch
 import examples.grover
 import examples.heatmaps
@@ -47,6 +48,10 @@ def test_example_runs_simon():
 
 def test_example_runs_hidden_shift():
     examples.hidden_shift_algorithm.main()
+
+
+def test_example_runs_closed_timelike_curve():
+    examples.closed_timelike_curve.main()
 
 
 def test_example_runs_deutsch():
