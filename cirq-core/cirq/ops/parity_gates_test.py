@@ -14,6 +14,8 @@
 
 """Tests for `parity_gates.py`."""
 
+from typing import List
+
 import numpy as np
 import pytest
 import sympy
@@ -348,3 +350,60 @@ def test_clifford_protocols(gate_cls: type[cirq.EigenGate], exponent: float, is_
     else:
         assert not cirq.has_stabilizer_effect(gate)
         assert gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2)) is NotImplemented
+
+
+@pytest.mark.parametrize(
+    'gate, expected_decomposition',
+    [
+        (
+            cirq.XXPowGate(),
+            [
+                (cirq.Y**-0.5).on(cirq.LineQubit(0)),
+                (cirq.Y**-0.5).on(cirq.LineQubit(1)),
+                cirq.Z(cirq.LineQubit(0)),
+                cirq.Z(cirq.LineQubit(1)),
+                (cirq.CZ**-2.0).on(cirq.LineQubit(0), cirq.LineQubit(1)),
+                (cirq.Y**0.5).on(cirq.LineQubit(0)),
+                (cirq.Y**0.5).on(cirq.LineQubit(1)),
+            ],
+        ),
+        (
+            cirq.YYPowGate(),
+            [
+                (cirq.X**0.5).on(cirq.LineQubit(0)),
+                (cirq.X**0.5).on(cirq.LineQubit(1)),
+                cirq.Z(cirq.LineQubit(0)),
+                cirq.Z(cirq.LineQubit(1)),
+                (cirq.CZ**-2.0).on(cirq.LineQubit(0), cirq.LineQubit(1)),
+                (cirq.X**-0.5).on(cirq.LineQubit(0)),
+                (cirq.X**-0.5).on(cirq.LineQubit(1)),
+            ],
+        ),
+        (
+            cirq.ZZPowGate(),
+            [
+                cirq.Z(cirq.LineQubit(0)),
+                cirq.Z(cirq.LineQubit(1)),
+                (cirq.CZ**-2.0).on(cirq.LineQubit(0), cirq.LineQubit(1)),
+            ],
+        ),
+        (
+            cirq.MSGate(rads=0),
+            [
+                (cirq.Y**-0.5).on(cirq.LineQubit(0)),
+                (cirq.Y**-0.5).on(cirq.LineQubit(1)),
+                (cirq.Z**0.0).on(cirq.LineQubit(0)),
+                (cirq.Z**0.0).on(cirq.LineQubit(1)),
+                cirq.CZPowGate(exponent=-0.0, global_shift=0.25).on(
+                    cirq.LineQubit(0), cirq.LineQubit(1)
+                ),
+                (cirq.Y**0.5).on(cirq.LineQubit(0)),
+                (cirq.Y**0.5).on(cirq.LineQubit(1)),
+            ],
+        ),
+    ],
+)
+def test_gate_decomposition(gate: cirq.Gate, expected_decomposition: List[cirq.Gate]):
+    qubits = cirq.LineQubit.range(gate.num_qubits())
+    dec = cirq.decompose(gate.on(*qubits))
+    assert [op for op in dec] == expected_decomposition
