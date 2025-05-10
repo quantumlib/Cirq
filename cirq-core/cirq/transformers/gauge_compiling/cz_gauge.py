@@ -16,6 +16,8 @@
 
 from typing import List
 
+import numpy as np
+
 from cirq import circuits, ops
 from cirq.ops.common_gates import CZ
 from cirq.transformers.gauge_compiling.gauge_compiling import (
@@ -47,17 +49,22 @@ CZGaugeSelector = GaugeSelector(
 
 
 def _multi_layer_pull_through_cz(
-    left: List[circuits.Moment], moments: List[circuits.Moment]
+    moments: List[circuits.Moment], rng: np.random.Generator
 ) -> List[circuits.Moment]:
     # Check all the ops are CZ first
     if not all(op.gate == CZ for moment in moments for op in moment):
         raise ValueError(f"Input moments must only contain CZ gates:\nmoments = {moments}.")
-    if len(left) > 1:
-        raise ValueError("CZ's gauge only has one pre_q0 gate, and one pre_q1 gate.")
 
-    ps: ops.PauliString = ops.PauliString(left[0])
+    left: List[ops.Operation] = [
+        rng.choice([ops.I, ops.X, ops.Y, ops.Z]).on(q)
+        for q in circuits.Circuit(moments).all_qubits()
+    ]
+    if not left:
+        return moments
+
+    ps: ops.PauliString = ops.PauliString(left)
     pulled_through: ops.PauliString = ps.after(moments)
-    ret = moments
+    ret = [circuits.Moment(left)] + moments
     ret.append(circuits.Moment([pauli_gate(q) for q, pauli_gate in pulled_through.items()]))
     return ret
 

@@ -230,18 +230,6 @@ class GaugeTransformer:
         right: List[List[ops.Operation]] = []
         all_target_moments: List[circuits.Moment] = []
 
-        def _build_multi_layer_gc_moments(moments: List[circuits.Moment]) -> List[circuits.Moment]:
-            left_ops: List[List[ops.Operation]] = []
-            for op in all_target_moments[0]:
-                if op.gate is not None:
-                    gauge = self.gauge_selector(rng).sample(op.gate, rng)
-                    left_ops.extend([g(q) for g in gs] for q, gs in zip(op.qubits, gauge.pre))
-            if left_ops:
-                left_moments = _build_moments(left_ops)
-                return left_moments + self.multi_layer_pull_thourgh_fn(left_moments, moments)
-            else:
-                return moments
-
         for moment in circuit:
             if self.multi_layer_pull_thourgh_fn and all(
                 [
@@ -252,7 +240,7 @@ class GaugeTransformer:
                 all_target_moments.append(moment)
                 continue
             if all_target_moments:
-                new_moments.extend(_build_multi_layer_gc_moments(all_target_moments))
+                new_moments.extend(self.multi_layer_pull_thourgh_fn(all_target_moments, rng))
                 all_target_moments.clear()
 
             left.clear()
@@ -278,7 +266,7 @@ class GaugeTransformer:
             if right:
                 new_moments.extend(_build_moments(right))
         if all_target_moments:
-            new_moments.extend(_build_multi_layer_gc_moments(all_target_moments))
+            new_moments.extend(self.multi_layer_pull_thourgh_fn(all_target_moments, rng))
         return circuits.Circuit.from_moments(*new_moments)
 
     def as_sweep(

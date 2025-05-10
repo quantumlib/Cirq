@@ -27,24 +27,24 @@ class TestCZGauge(GaugeTester):
 def test_multi_layer_pull_through():
     """Test case.
     Input:
-             ┌──┐
-    0: ───@────@─────H───@───@───@───
-          │    │         │   │   │
-    1: ───@────┼@────────@───@───@───
+              ┌──┐
+    0: ───@────@─────H───────@───@───
+          │    │             │   │
+    1: ───@────┼@────────────@───@───
                ││
     2: ───@────@┼────────@───@───@───
           │     │        │   │   │
     3: ───@─────@────────@───@───@───
               └──┘
-    An example output:
+        An example output:
                   ┌──┐
-    0: ───X───@────@─────X───H───Z───@───@───@───────
-              │    │                 │   │   │
-    1: ───I───@────┼@────Z───────Y───@───@───@───Y───
+    0: ───Z───@────@─────Z───H───X───────@───@───X───
+              │    │                     │   │
+    1: ───Y───@────┼@────X───────I───────@───@───────
                    ││
-    2: ───I───@────@┼────Z───────Y───@───@───@───Y───
+    2: ───Y───@────@┼────X───────I───@───@───@───────
               │     │                │   │   │
-    3: ───I───@─────@────────────Z───@───@───@───────
+    3: ───X───@─────@────X───────I───@───@───@───────
                   └──┘
     """
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
@@ -52,13 +52,13 @@ def test_multi_layer_pull_through():
         cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
         cirq.Moment(cirq.CZ(q0, q2), cirq.CZ(q1, q3)),
         cirq.Moment(cirq.H(q0)),
-        cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
+        cirq.Moment(cirq.CZ(q2, q3)),
         cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
         cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
     )
     transformer = CZGaugeTransformerML
 
-    output_circuit = transformer(input_circuit, prng=np.random.default_rng(0))
+    output_circuit = transformer(input_circuit, prng=np.random.default_rng())
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
         input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
     )
