@@ -196,6 +196,9 @@ class GaugeTransformer:
         target: Union[ops.Gate, ops.Gateset, ops.GateFamily],
         gauge_selector: Callable[[np.random.Generator], Gauge],
         two_qubit_gate_symbolizer: Optional[TwoQubitGateSymbolizer] = None,
+        multi_layer_pull_thourgh_fn: Optional[
+            Callable[[List[circuits.Moment], List[circuits.Moment]], List[circuits.Moment]]
+        ] = None,
     ) -> None:
         """Constructs a GaugeTransformer.
 
@@ -208,6 +211,7 @@ class GaugeTransformer:
         self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
         self.gauge_selector = gauge_selector
         self.two_qubit_gate_symbolizer = two_qubit_gate_symbolizer
+        self.multi_layer_pull_thourgh_fn = multi_layer_pull_thourgh_fn
 
     def __call__(
         self,
@@ -224,7 +228,21 @@ class GaugeTransformer:
         new_moments = []
         left: List[List[ops.Operation]] = []
         right: List[List[ops.Operation]] = []
+        all_target_moments: List[circuits.Moment] = []
+
         for moment in circuit:
+            if self.multi_layer_pull_thourgh_fn and all(
+                [
+                    op in self.target and not set(op.tags).intersection(context.tags_to_ignore)
+                    for op in moment
+                ]
+            ):  # all ops are target 2-qubit gates
+                all_target_moments.append(moment)
+                continue
+            if all_target_moments:
+                new_moments.extend(self.multi_layer_pull_thourgh_fn(all_target_moments, rng))
+                all_target_moments.clear()
+
             left.clear()
             right.clear()
             center: List[ops.Operation] = []
@@ -247,6 +265,8 @@ class GaugeTransformer:
             new_moments.append(center)
             if right:
                 new_moments.extend(_build_moments(right))
+        if all_target_moments:
+            new_moments.extend(self.multi_layer_pull_thourgh_fn(all_target_moments, rng))
         return circuits.Circuit.from_moments(*new_moments)
 
     def as_sweep(
