@@ -62,7 +62,7 @@ class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         return ret
 
 
-def test_assert_controlled_and_controlled_by_identical():
+def test_assert_controlled_and_controlled_by_identical() -> None:
     cirq.testing.assert_controlled_and_controlled_by_identical(GoodGate())
 
     with pytest.raises(AssertionError):
@@ -79,7 +79,7 @@ def test_assert_controlled_and_controlled_by_identical():
         )
 
 
-def test_assert_controlled_unitary_consistent():
+def test_assert_controlled_unitary_consistent() -> None:
     cirq.testing.assert_controlled_and_controlled_by_identical(
         GoodGate(exponent=0.5, global_shift=1 / 3)
     )

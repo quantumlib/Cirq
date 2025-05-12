@@ -20,7 +20,7 @@ import sympy
 import cirq
 
 
-def test_apply_gate():
+def test_apply_gate() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     state = mock.Mock()
     args = cirq.StabilizerSimulationState(state=state, qubits=[q0, q1])
@@ -89,7 +89,7 @@ def test_apply_gate():
     state.apply_x.assert_not_called()
 
 
-def test_apply_mixture():
+def test_apply_mixture() -> None:
     q0 = cirq.LineQubit(0)
     state = mock.Mock()
     args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
@@ -100,7 +100,7 @@ def test_apply_mixture():
     assert 10 < state.apply_x.call_count < 90
 
 
-def test_act_from_single_qubit_decompose():
+def test_act_from_single_qubit_decompose() -> None:
     q0 = cirq.LineQubit(0)
     state = mock.Mock()
     args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
@@ -113,7 +113,7 @@ def test_act_from_single_qubit_decompose():
     state.apply_x.assert_called_with(0, 1.0, 0.0)
 
 
-def test_decompose():
+def test_decompose() -> None:
     class XContainer(cirq.Gate):
         def _decompose_(self, qs):
             return [cirq.X(*qs)]

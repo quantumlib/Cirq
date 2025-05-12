@@ -4,14 +4,14 @@ import networkx as nx
 import cirq
 
 
-def test_device_metadata():
+def test_device_metadata() -> None:
     class RawDevice(cirq.Device):
         pass
 
     assert RawDevice().metadata is None
 
 
-def test_metadata():
+def test_metadata() -> None:
     qubits = cirq.LineQubit.range(4)
     graph = nx.star_graph(3)
     metadata = cirq.DeviceMetadata(qubits, graph)
@@ -19,7 +19,7 @@ def test_metadata():
     assert metadata.nx_graph == graph
 
 
-def test_metadata_json_load_logic():
+def test_metadata_json_load_logic() -> None:
     qubits = cirq.LineQubit.range(4)
     graph = nx.star_graph(3)
     metadata = cirq.DeviceMetadata(qubits, graph)
@@ -27,7 +27,7 @@ def test_metadata_json_load_logic():
     assert metadata == cirq.read_json(json_text=str_rep)
 
 
-def test_metadata_equality():
+def test_metadata_equality() -> None:
     qubits = cirq.LineQubit.range(4)
     graph = nx.star_graph(3)
     graph2 = nx.star_graph(3)

@@ -36,7 +36,7 @@ def adder_matrix(target_width: int, source_width: int) -> np.ndarray:
     return result
 
 
-def test_the_tests():
+def test_the_tests() -> None:
     # fmt: off
     np.testing.assert_allclose(
         shift_matrix(4, 1),
@@ -85,7 +85,7 @@ def test_the_tests():
     )
 
 
-def test_arithmetic_gate_apply_unitary():
+def test_arithmetic_gate_apply_unitary() -> None:
     class Add(cirq.ArithmeticGate):
         def __init__(
             self,
