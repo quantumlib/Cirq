@@ -16,7 +16,7 @@ import cirq
 import cirq.contrib.acquaintance as cca
 
 
-def test_circular_shift_gate_init():
+def test_circular_shift_gate_init() -> None:
     g = cca.CircularShiftGate(4, 2)
     assert g.num_qubits() == 4
     assert g.shift == 2
@@ -25,7 +25,7 @@ def test_circular_shift_gate_init():
     assert g.swap_gate == cirq.CZ
 
 
-def test_circular_shift_gate_eq():
+def test_circular_shift_gate_eq() -> None:
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.add_equality_group(cca.CircularShiftGate(4, 1), cca.CircularShiftGate(4, 1))
     equals_tester.add_equality_group(cca.CircularShiftGate(4, 1, swap_gate=cirq.CZ))
@@ -34,19 +34,19 @@ def test_circular_shift_gate_eq():
     equals_tester.add_equality_group(cca.CircularShiftGate(3, 2, swap_gate=cirq.CZ))
 
 
-def test_circular_shift_gate_permutation():
+def test_circular_shift_gate_permutation() -> None:
     assert cca.CircularShiftGate(3, 4).permutation() == {0: 2, 1: 0, 2: 1}
     assert cca.CircularShiftGate(4, 0).permutation() == {0: 0, 1: 1, 2: 2, 3: 3}
 
     assert cca.CircularShiftGate(5, 2).permutation() == {0: 3, 1: 4, 2: 0, 3: 1, 4: 2}
 
 
-def test_circular_shift_gate_repr():
+def test_circular_shift_gate_repr() -> None:
     g = cca.CircularShiftGate(3, 2)
     cirq.testing.assert_equivalent_repr(g)
 
 
-def test_circular_shift_gate_decomposition():
+def test_circular_shift_gate_decomposition() -> None:
     qubits = [cirq.NamedQubit(q) for q in 'abcdef']
 
     circular_shift = cca.CircularShiftGate(2, 1, cirq.CZ)(*qubits[:2])
@@ -92,7 +92,7 @@ f: ───────────────×───────
     assert actual_text_diagram == expected_text_diagram
 
 
-def test_circular_shift_gate_wire_symbols():
+def test_circular_shift_gate_wire_symbols() -> None:
     qubits = [cirq.NamedQubit(q) for q in 'xyz']
     circuit = cirq.Circuit(cca.CircularShiftGate(3, 2)(*qubits))
     actual_text_diagram = circuit.to_text_diagram().strip()

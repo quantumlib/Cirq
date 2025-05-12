@@ -16,7 +16,7 @@ import cirq.contrib.acquaintance as cca
 import cirq.testing as ct
 
 
-def test_remove_redundant_acquaintance_opportunities():
+def test_remove_redundant_acquaintance_opportunities() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     swap = cca.SwapPermutationGate()
 

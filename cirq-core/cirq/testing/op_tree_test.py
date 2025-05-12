@@ -17,7 +17,7 @@ import cirq
 from cirq.testing import assert_equivalent_op_tree
 
 
-def test_assert_equivalent_op_tree():
+def test_assert_equivalent_op_tree() -> None:
     assert_equivalent_op_tree([], [])
     a = cirq.NamedQubit("a")
     assert_equivalent_op_tree([cirq.X(a)], [cirq.X(a)])
