@@ -979,7 +979,7 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate) -
 )
 def test_two_qubit_param_gates(
     qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate, num_params: int
-):
+) -> None:
     params = '(0.1, 0.2, 0.3)' if num_params == 3 else '(0.1)'
     qasm = f"""
     OPENQASM 2.0;

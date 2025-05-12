@@ -149,7 +149,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
 )
 def test_two_to_ops_equivalent_and_bounded_for_known_and_random(
     max_partial_cz_depth, max_full_cz_depth, effect
-):
+) -> None:
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
 
