@@ -27,3 +27,6 @@ cb6940a40141dba95cba84f5acc27acbeb65b17c
 
 # Sort import statements - no change in the effective code (#7195)
 250f12964f027c68775c5c7989f7b6000f989f06
+
+# Format proto files (#7133)
+5cf0e8df8f3e097b8d496cba1c2d4bd04cb83546
