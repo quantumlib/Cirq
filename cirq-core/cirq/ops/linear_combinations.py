@@ -302,7 +302,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
             workspace = np.empty_like(identity)
             axes = tuple(qubit_to_axis[q] for q in op.qubits)
             u = protocols.apply_unitary(op, protocols.ApplyUnitaryArgs(identity, workspace, axes))
-            result += coefficient * u
+            result += complex(coefficient) * u
         return result.reshape((num_dim, num_dim))
 
     def _has_unitary_(self) -> bool:

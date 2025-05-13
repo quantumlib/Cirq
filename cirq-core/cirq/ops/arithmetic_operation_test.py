@@ -32,8 +32,7 @@ def adder_matrix(target_width: int, source_width: int) -> np.ndarray:
     result = np.zeros((t, s, t, s))
     for k in range(s):
         result[:, k, :, k] = shift_matrix(t, k)
-    result.shape = (t * s, t * s)
-    return result
+    return result.reshape(t * s, t * s)
 
 
 def test_the_tests() -> None:
