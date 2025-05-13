@@ -995,3 +995,21 @@ def test_single_qubit_clifford_gate_repr():
         'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
         'zs=np.array([[True], [True]])))'
     )
+
+def test_cxswap_czswap():
+
+    # cirq unitary for CNOT then SWAP (big endian)
+    cxswap_expected = np.asarray([
+        [1,0,0,0],
+        [0,0,0,1],
+        [0,1,0,0],
+        [0,0,1,0]])
+    print(cirq.unitary(cirq.CXSWAP))
+    assert np.allclose(cirq.unitary(cirq.CXSWAP),cxswap_expected)
+
+    czswap_expected = np.asarray([
+        [1,0,0,0],
+        [0,0,1,0],
+        [0,1,0,0],
+        [0,0,0,-1]])
+    assert np.allclose(cirq.unitary(cirq.CZSWAP),czswap_expected)

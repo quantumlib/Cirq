@@ -941,3 +941,32 @@ class SingleQubitCliffordGate(CliffordGate):
     def _value_equality_values_cls_(self):
         """To make it with compatible to compare with clifford gate."""
         return CliffordGate
+
+
+CXSWAP = CliffordGate.from_clifford_tableau(
+    qis.CliffordTableau(
+        2,
+        rs=np.array([False, False, False, False], dtype=np.dtype('bool')),
+        xs=np.array(
+            [[True, True], [True, False], [False, False], [False, False]], dtype=np.dtype('bool')
+        ),
+        zs=np.array(
+            [[False, False], [False, False], [False, True], [True, True]], dtype=np.dtype('bool')
+        ),
+        initial_state=0,
+    )
+)
+
+CZSWAP = CliffordGate.from_clifford_tableau(
+    qis.CliffordTableau(
+        2,
+        rs=np.array([False, False, False, False], dtype=np.dtype('bool')),
+        xs=np.array(
+            [[False, True], [True, False], [False, False], [False, False]], dtype=np.dtype('bool')
+        ),
+        zs=np.array(
+            [[True, False], [False, True], [False, True], [True, False]], dtype=np.dtype('bool')
+        ),
+        initial_state=0,
+    )
+)
