@@ -159,7 +159,7 @@ glob_mapper = cirq.LineInitialMapper(glob_device_graph)
 )
 def test_random_circuits_grid_device(
     qubits: int, n_moments: int, op_density: float, random_state: int
-):
+) -> None:
     c_orig = cirq.testing.random_circuit(
         qubits=qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
     )
@@ -176,7 +176,7 @@ def test_random_circuits_grid_device(
 )
 def test_large_random_circuits_grid_device(
     qubits: int, n_moments: int, op_density: float, random_state: int
-):
+) -> None:
     c_orig = cirq.testing.random_circuit(
         qubits=qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
     )

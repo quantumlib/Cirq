@@ -77,7 +77,7 @@ def test_random_circuit(
     op_density: float,
     gate_domain: Optional[Dict[cirq.Gate, int]],
     pass_qubits: bool,
-):
+) -> None:
     qubit_set = cirq.LineQubit.range(n_qubits)
     qubit_arg = qubit_set if pass_qubits else n_qubits
     circuit = cirq.testing.random_circuit(qubit_arg, n_moments, op_density, gate_domain)
