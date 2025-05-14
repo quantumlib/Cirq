@@ -35,7 +35,7 @@ class SampleNoiseProperties(NoiseProperties):
         return [add_h, add_iswap]
 
 
-def test_sample_model():
+def test_sample_model() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     props = SampleNoiseProperties([q0, q1], [(q0, q1), (q1, q0)])
     model = NoiseModelFromNoiseProperties(props)

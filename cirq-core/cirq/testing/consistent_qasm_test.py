@@ -51,7 +51,7 @@ class QuditGate(cirq.Gate):
         return NotImplemented
 
 
-def test_assert_qasm_is_consistent_with_unitary():
+def test_assert_qasm_is_consistent_with_unitary() -> None:
     try:
         import qiskit as _
     except ImportError:  # pragma: no cover

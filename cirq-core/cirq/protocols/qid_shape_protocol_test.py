@@ -17,7 +17,7 @@ import pytest
 import cirq
 
 
-def test_qid_shape():
+def test_qid_shape() -> None:
     class ShapeObj:
         def _qid_shape_(self):
             return (1, 2, 3)
