@@ -45,7 +45,7 @@ def _check_and_get_real_coef(observable: cirq.PauliString, atol: float):
 
 def _obs_vals_from_measurements(
     bitstrings: np.ndarray,
-    qubit_to_index: Dict[cirq.Qid, int],
+    qubit_to_index: Mapping[cirq.Qid, int],
     observable: cirq.PauliString,
     atol: float,
 ):
@@ -63,7 +63,7 @@ def _obs_vals_from_measurements(
 
 def _stats_from_measurements(
     bitstrings: np.ndarray,
-    qubit_to_index: Dict[cirq.Qid, int],
+    qubit_to_index: Mapping[cirq.Qid, int],
     observable: cirq.PauliString,
     atol: float,
 ) -> Tuple[float, float]:
@@ -216,7 +216,7 @@ class BitstringAccumulator:
         self,
         meas_spec: _MeasurementSpec,
         simul_settings: List[InitObsSetting],
-        qubit_to_index: Dict[cirq.Qid, int],
+        qubit_to_index: Mapping[cirq.Qid, int],
         bitstrings: Optional[np.ndarray] = None,
         chunksizes: Optional[np.ndarray] = None,
         timestamps: Optional[np.ndarray] = None,
@@ -229,17 +229,17 @@ class BitstringAccumulator:
 
         if bitstrings is None:
             n_bits = len(qubit_to_index)
-            self.bitstrings = np.zeros((0, n_bits), dtype=np.uint8)
+            self.bitstrings: np.ndarray = np.zeros((0, n_bits), dtype=np.uint8)
         else:
             self.bitstrings = np.asarray(bitstrings, dtype=np.uint8)
 
         if chunksizes is None:
-            self.chunksizes = np.zeros((0,), dtype=np.int64)
+            self.chunksizes: np.ndarray = np.zeros((0,), dtype=np.int64)
         else:
             self.chunksizes = np.asarray(chunksizes, dtype=np.int64)
 
         if timestamps is None:
-            self.timestamps = np.zeros((0,), dtype='datetime64[us]')
+            self.timestamps: np.ndarray = np.zeros((0,), dtype='datetime64[us]')
         else:
             self.timestamps = np.asarray(timestamps, dtype='datetime64[us]')
 

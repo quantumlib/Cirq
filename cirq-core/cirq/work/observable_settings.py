@@ -17,12 +17,12 @@ from __future__ import annotations
 import dataclasses
 import numbers
 from typing import (
-    AbstractSet,
     Dict,
     FrozenSet,
     Iterable,
     Mapping,
     Optional,
+    Sequence,
     Tuple,
     TYPE_CHECKING,
     Union,
@@ -156,7 +156,7 @@ def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int
 
 
 def _hashable_param(
-    param_tuples: AbstractSet[Tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
+    param_tuples: Sequence[Tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
     precision=1e7,
 ) -> FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]]:
     """Hash circuit parameters using fixed precision.

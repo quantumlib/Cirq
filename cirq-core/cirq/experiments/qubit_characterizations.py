@@ -745,7 +745,7 @@ def _random_single_q_clifford(
     clifford_group_size = 24
     operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
+    adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[int(gate_id)]]) ** -1
     return [op for gate_id in gate_ids for op in operations[gate_id]] + [
         adjoint.to_phased_xz_gate()(qubit)
     ]
@@ -758,7 +758,7 @@ def _random_two_q_clifford(
     idx_list = list(np.random.choice(clifford_group_size, num_cfds))
     circuit = circuits.Circuit()
     for idx in idx_list:
-        circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
+        circuit.append(_two_qubit_clifford(q_0, q_1, int(idx), cliffords))
     inv_idx = _find_inv_matrix(protocols.unitary(circuit), cfd_matrices)
     circuit.append(_two_qubit_clifford(q_0, q_1, inv_idx, cliffords))
     return circuit

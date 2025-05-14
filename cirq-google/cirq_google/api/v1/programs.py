@@ -235,12 +235,12 @@ def unpack_results(
 
     byte_arr = np.frombuffer(data, dtype='uint8').reshape((len(data), 1))
     bits = np.unpackbits(byte_arr, axis=1)[:, ::-1].reshape(-1).astype(bool)
-    bits = bits[:total_bits].reshape((repetitions, bits_per_rep))
+    reshaped_bits = bits[:total_bits].reshape((repetitions, bits_per_rep))
 
     results = {}
     ofs = 0
     for key, size in key_sizes:
-        results[key] = bits[:, ofs : ofs + size]
+        results[key] = reshaped_bits[:, ofs : ofs + size]
         ofs += size
 
     return results

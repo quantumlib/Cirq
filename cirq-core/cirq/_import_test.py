@@ -15,9 +15,9 @@
 from cirq import _import
 
 
-def test_lazy_loader():
+def test_lazy_loader() -> None:
     linalg = _import.LazyLoader("linalg", globals(), "scipy.linalg")
-    linalg.fun = 1
+    linalg.fun = 1  # type: ignore
     assert linalg._module is None
     assert "linalg" not in linalg.__dict__
 

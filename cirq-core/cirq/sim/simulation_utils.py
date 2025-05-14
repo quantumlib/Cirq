@@ -37,7 +37,7 @@ def state_probabilities_by_indices(
     Returns:
         State probabilities.
     """
-    probs = state_probability.reshape((-1,))
+    probs: np.ndarray = state_probability.reshape((-1,))
     not_measured = [i for i in range(len(qid_shape)) if i not in indices]
     if linalg.can_numpy_support_shape(qid_shape):
         # Use numpy transpose if we can since it's more efficient.
