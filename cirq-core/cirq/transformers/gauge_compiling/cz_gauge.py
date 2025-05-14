@@ -48,7 +48,7 @@ CZGaugeSelector = GaugeSelector(
 )
 
 
-def _multi_layer_pull_through_cz(
+def _multi_moment_pull_through(
     moments: List[circuits.Moment], rng: np.random.Generator
 ) -> List[circuits.Moment]:
     # Check all the ops are CZ first
@@ -71,9 +71,9 @@ def _multi_layer_pull_through_cz(
 
 CZGaugeTransformer = GaugeTransformer(target=CZ, gauge_selector=CZGaugeSelector)
 
-# Multi-layer pull through version of CZGaugeTransformer
-CZGaugeTransformerML = GaugeTransformer(
+# Multi-moments pull through version of CZGaugeTransformer
+CZGaugeTransformerMM = GaugeTransformer(
     target=CZ,
     gauge_selector=CZGaugeSelector,
-    multi_layer_pull_thourgh_fn=_multi_layer_pull_through_cz,
+    multi_moment_pull_thourgh_fn=_multi_moment_pull_through,
 )

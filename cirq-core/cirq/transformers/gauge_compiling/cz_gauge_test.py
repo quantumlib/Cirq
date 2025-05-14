@@ -15,7 +15,7 @@
 import numpy as np
 
 import cirq
-from cirq.transformers.gauge_compiling import CZGaugeTransformer, CZGaugeTransformerML
+from cirq.transformers.gauge_compiling import CZGaugeTransformer, CZGaugeTransformerMM
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
 
 
@@ -56,7 +56,7 @@ def test_multi_layer_pull_through():
         cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
         cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3)),
     )
-    transformer = CZGaugeTransformerML
+    transformer = CZGaugeTransformerMM
 
     output_circuit = transformer(input_circuit, prng=np.random.default_rng())
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(

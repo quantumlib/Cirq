@@ -31,7 +31,7 @@ from cirq.transformers.gauge_compiling.spin_inversion_gauge import (
 
 from cirq.transformers.gauge_compiling.cz_gauge import (
     CZGaugeTransformer as CZGaugeTransformer,
-    CZGaugeTransformerML as CZGaugeTransformerML,
+    CZGaugeTransformerMM as CZGaugeTransformerMM,
 )
 
 from cirq.transformers.gauge_compiling.iswap_gauge import (
