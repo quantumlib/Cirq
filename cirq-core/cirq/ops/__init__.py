@@ -17,6 +17,8 @@ from cirq.ops.arithmetic_operation import ArithmeticGate as ArithmeticGate
 
 from cirq.ops.clifford_gate import (
     CliffordGate as CliffordGate,
+    CXSWAP as CXSWAP,
+    CZSWAP as CZSWAP,
     SingleQubitCliffordGate as SingleQubitCliffordGate,
 )
 
