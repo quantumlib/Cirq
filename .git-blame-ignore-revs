@@ -27,3 +27,6 @@ cb6940a40141dba95cba84f5acc27acbeb65b17c
 
 # Sort import statements - no change in the effective code (#7195)
 250f12964f027c68775c5c7989f7b6000f989f06
+
+# Add typing to test functions (#7327)
+d1e68b15fd2a6bf40d286bc0439dc7ce9cbd127c
