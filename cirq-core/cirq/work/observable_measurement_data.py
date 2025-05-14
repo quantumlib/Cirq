@@ -227,17 +227,20 @@ class BitstringAccumulator:
         self._qubit_to_index = qubit_to_index
         self._readout_calibration = readout_calibration
 
+        self.bitstrings: np.ndarray[Tuple[int, ...], np.dtype[np.uint8]]
         if bitstrings is None:
             n_bits = len(qubit_to_index)
             self.bitstrings: np.ndarray = np.zeros((0, n_bits), dtype=np.uint8)
         else:
             self.bitstrings = np.asarray(bitstrings, dtype=np.uint8)
 
+        self.chunksizes: np.ndarray[Tuple[int, ...], np.dtype[np.int64]]
         if chunksizes is None:
             self.chunksizes: np.ndarray = np.zeros((0,), dtype=np.int64)
         else:
             self.chunksizes = np.asarray(chunksizes, dtype=np.int64)
 
+        self.timestamps: np.ndarray[Tuple[int, ...], np.dtype[np.datetime64]]
         if timestamps is None:
             self.timestamps: np.ndarray = np.zeros((0,), dtype='datetime64[us]')
         else:

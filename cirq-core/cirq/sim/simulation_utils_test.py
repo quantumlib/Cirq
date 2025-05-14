@@ -23,7 +23,7 @@ def test_state_probabilities_by_indices(n: int, m: int) -> None:
     np.random.seed(0)
     state = testing.random_superposition(1 << n)
     d = (state.conj() * state).real
-    desired_axes = list(int(axis) for axis in np.random.choice(n, m, replace=False))
+    desired_axes = list(int(axis) for axis in np.random.choice(n, m, replace=False).tolist())
     not_wanted = [i for i in range(n) if i not in desired_axes]
     got = simulation_utils.state_probabilities_by_indices(d, desired_axes, (2,) * n)
     want = np.transpose(d.reshape((2,) * n), desired_axes + not_wanted)
