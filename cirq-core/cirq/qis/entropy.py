@@ -21,7 +21,9 @@ import numpy as np
 import numpy.typing as npt
 
 
-def _get_hamming_distance(bitstring_1: np.int8, bitstring_2: np.int8) -> int:
+def _get_hamming_distance(
+    bitstring_1: npt.NDArray[np.int8], bitstring_2: npt.NDArray[np.int8]
+) -> int:
     """Calculates the Hamming distance between two bitstrings.
     Args:
         bitstring_1: Bitstring 1
