@@ -16,7 +16,7 @@ import cirq
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_controls():
+def test_controls() -> None:
     a, b = cirq.LineQubit.range(2)
 
     assert_url_to_circuit_returns('{"cols":[["•","X"]]}', cirq.Circuit(cirq.X(b).controlled_by(a)))
@@ -86,7 +86,7 @@ def test_controls():
     )
 
 
-def test_parity_controls():
+def test_parity_controls() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
 
     assert_url_to_circuit_returns(
@@ -106,7 +106,7 @@ def test_parity_controls():
     )
 
 
-def test_control_with_line_qubits_mapped_to():
+def test_control_with_line_qubits_mapped_to() -> None:
     a, b = cirq.LineQubit.range(2)
     a2, b2 = cirq.NamedQubit.range(2, prefix='q')
     cell = cirq.interop.quirk.cells.control_cells.ControlCell(a, [cirq.Y(b) ** 0.5])
@@ -115,7 +115,7 @@ def test_control_with_line_qubits_mapped_to():
     assert cell.with_line_qubits_mapped_to([a2, b2]) == mapped_cell
 
 
-def test_parity_control_with_line_qubits_mapped_to():
+def test_parity_control_with_line_qubits_mapped_to() -> None:
     a, b, c = cirq.LineQubit.range(3)
     a2, b2, c2 = cirq.NamedQubit.range(3, prefix='q')
     cell = cirq.interop.quirk.cells.control_cells.ParityControlCell([a, b], [cirq.Y(c) ** 0.5])
@@ -126,7 +126,7 @@ def test_parity_control_with_line_qubits_mapped_to():
     assert cell.with_line_qubits_mapped_to([a2, b2, c2]) == mapped_cell
 
 
-def test_repr():
+def test_repr() -> None:
     a, b, c = cirq.LineQubit.range(3)
     cirq.testing.assert_equivalent_repr(
         cirq.interop.quirk.cells.control_cells.ControlCell(a, [cirq.Y(b) ** 0.5])

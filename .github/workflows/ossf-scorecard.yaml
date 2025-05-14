@@ -29,6 +29,7 @@ concurrency:
 
 jobs:
   scorecard:
+    if: github.repository_owner == 'quantumlib'
     name: Perform Scorecard analysis
     runs-on: ubuntu-22.04
     timeout-minutes: 10

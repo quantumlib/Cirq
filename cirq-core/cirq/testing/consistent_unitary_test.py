@@ -78,7 +78,7 @@ class CleanCorrectButBorrowableIncorrectGate(cirq.Gate):
         (CleanCorrectButBorrowableIncorrectGate(use_clean_ancilla=False), False),
     ],
 )
-def test_assert_unitary_is_consistent(g, ignore_phase, is_consistent):
+def test_assert_unitary_is_consistent(g, ignore_phase, is_consistent) -> None:
     if is_consistent:
         cirq.testing.assert_unitary_is_consistent(g, ignore_phase)
         cirq.testing.assert_unitary_is_consistent(g.on(*cirq.LineQid.for_gate(g)), ignore_phase)
@@ -89,7 +89,7 @@ def test_assert_unitary_is_consistent(g, ignore_phase, is_consistent):
             cirq.testing.assert_unitary_is_consistent(g.on(*cirq.LineQid.for_gate(g)), ignore_phase)
 
 
-def test_failed_decomposition():
+def test_failed_decomposition() -> None:
     with pytest.raises(ValueError):
         cirq.testing.assert_unitary_is_consistent(FailsOnDecompostion())
 

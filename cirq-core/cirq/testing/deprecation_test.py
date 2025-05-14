@@ -18,14 +18,14 @@ import pytest
 from cirq.testing import assert_deprecated
 
 
-def test_nested_assert_deprecation():
+def test_nested_assert_deprecation() -> None:
     with assert_deprecated(deadline="v1.2", count=1):
         with assert_deprecated(deadline="v1.2", count=1):
             with assert_deprecated(deadline="v1.2", count=1):
                 warnings.warn("hello, this is deprecated in v1.2")
 
 
-def test_assert_deprecated_log_handling():
+def test_assert_deprecated_log_handling() -> None:
     # correct deprecation message
     with assert_deprecated("hello", deadline="v1.2"):
         warnings.warn("hello, this is deprecated in v1.2")

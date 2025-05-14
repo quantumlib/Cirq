@@ -5,4 +5,5 @@ pylatex~=1.4
 
 # quimb
 quimb>=1.8
+cotengra==0.7.0
 opt_einsum
