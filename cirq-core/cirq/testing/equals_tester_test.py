@@ -137,6 +137,7 @@ def test_fails_when_equal_to_everything() -> None:
         def __ne__(self, other):
             return False
 
+    assert hash(AllEqual()) == 0
     with pytest.raises(AssertionError, match="can't be in different"):
         eq.add_equality_group(AllEqual())
 
