@@ -295,10 +295,9 @@ It can be accessed by using `cirq_google.Sycamore`. This device has two possible
 two-qubits gates that can be used.
 
 *  Square root of ISWAP. The gate `cirq.ISWAP ** 0.5` or `cirq.ISWAP ** -0.5` can be
-used on `cirq_google.optimized_for_sycamore` with optimizer type `sqrt_iswap`
+used on this device.
 *  Sycamore gate. This gate, equivalent to FSimGate(π/2, π/6) can be used as `cirq_google.SYC`
-or by using `cirq.FsimGate(numpy.pi/2,numpy.pi/6)`. Circuits can be compiled to use this gate
-by using `cirq_google.optimized_for_sycamore` with optimizer type `sycamore`
+or by using `cirq.FsimGate(numpy.pi/2,numpy.pi/6)`. 
 
 
 ### Sycamore23
