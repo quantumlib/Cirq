@@ -579,7 +579,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     )
     assert result.returncode == 0
     assert 'INTERCEPTED isort --color --check --diff alt.py' in result.stdout
-    assert 'INTERCEPTED black --color --check --diff alt.py' in result.stdout
+    assert 'INTERCEPTED black --color --check --diff --ipynb alt.py' in result.stdout
     assert result.stderr.startswith("Comparing against revision 'main' (merge base ")
 
 
