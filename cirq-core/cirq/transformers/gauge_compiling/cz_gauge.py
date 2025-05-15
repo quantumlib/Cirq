@@ -48,7 +48,7 @@ CZGaugeSelector = GaugeSelector(
 )
 
 
-def _multi_moment_pull_through(
+def _multi_moment_gauge_fn(
     moments: List[circuits.Moment], rng: np.random.Generator
 ) -> List[circuits.Moment]:
     # Check all the ops are CZ first
@@ -56,7 +56,9 @@ def _multi_moment_pull_through(
         raise ValueError(f"Input moments must only contain CZ gates:\nmoments = {moments}.")
 
     left: List[ops.Operation] = [
-        rng.choice([ops.I, ops.X, ops.Y, ops.Z]).on(q)
+        rng.choice(
+            np.array([ops.I, ops.X, ops.Y, ops.Z], dtype=ops.Gate), p=[0.25, 0.25, 0.25, 0.25]
+        ).on(q)
         for q in circuits.Circuit(moments).all_qubits()
     ]
     if not left:
@@ -73,7 +75,5 @@ CZGaugeTransformer = GaugeTransformer(target=CZ, gauge_selector=CZGaugeSelector)
 
 # Multi-moments pull through version of CZGaugeTransformer
 CZGaugeTransformerMM = GaugeTransformer(
-    target=CZ,
-    gauge_selector=CZGaugeSelector,
-    multi_moment_pull_thourgh_fn=_multi_moment_pull_through,
+    target=CZ, gauge_selector=CZGaugeSelector, multi_moment_gauge_fn=_multi_moment_gauge_fn
 )

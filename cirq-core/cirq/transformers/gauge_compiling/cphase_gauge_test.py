@@ -13,13 +13,14 @@
 # limitations under the License.
 
 from copy import deepcopy
+
 import numpy as np
 
 import cirq
 from cirq.transformers.gauge_compiling.cphase_gauge import (
+    _PhasedXYAndRz,
     CPhaseGaugeTransformer,
     CPhaseGaugeTransformerMM,
-    _PhasedXYAndRz,
 )
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
 
@@ -115,23 +116,23 @@ def test_multi_layer_pull_through():
     """Test case.
     Input:
                   ┌──┐
-    0: ───@────────@─────H───────────@───────@───────
-          │        │                 │       │
-    1: ───@^0.2────┼@────────────────@^0.1───@───────
+    0: ───@────────@─────H───Rz(-0.255π)───@───────@───────
+          │        │                       │       │
+    1: ───@^0.2────┼@──────────────────────@^0.1───@───────
                    ││
-    2: ───@────────@┼────────@───────@───────@───────
-          │         │        │       │       │
-    3: ───@─────────@────────@^0.2───@───────@^0.2───
+    2: ───@────────@┼────────@─────────────@───────@───────
+          │         │        │             │       │
+    3: ───@─────────@────────@^0.2─────────@───────@^0.2───
                   └──┘
     Example output:
                        ┌──┐
-    0: ───Y───@─────────@─────PhXZ(a=0.5,x=1,z=0)───H───Y────────────@────────@────────PhXZ(a=0.5,x=1,z=0)───
-              │         │                                            │        │
-    1: ───Z───@^-0.2────┼@────Z^-0.8────────────────────I────────────@^-0.1───@────────Z^-0.9────────────────
+    0: ───Z───@─────────@─────Z^0.2────────────────H───I───────────@────────@───────Z^0.845──────────────────  # pylint: disable=line-too-long
+              │         │                                          │        │
+    1: ───X───@^-0.2────┼@────PhXZ(a=0,x=1,z=1)────────X───────────@^-0.1───@───────PhXZ(a=0,x=1,z=0)────────  # pylint: disable=line-too-long
                         ││
-    2: ───Z───@─────────@┼────Z^0───────────────────────Y───@────────@────────@────────PhXZ(a=0.5,x=1,z=0)───
-              │          │                                  │        │        │
-    3: ───I───@──────────@────Z^0───────────────────────I───@^-0.2───@────────@^-0.2───Z^-0.6────────────────
+    2: ───X───@─────────@┼────PhXZ(a=0,x=1,z=1)────────Y───@───────@────────@───────PhXZ(a=0.5,x=1,z=1.4)────  # pylint: disable=line-too-long
+              │          │                                 │       │        │
+    3: ───X───@──────────@────PhXZ(a=2,x=1,z=-2)───────Y───@^0.2───@────────@^0.2───PhXZ(a=1.9,x=1,z=-1.4)───  # pylint: disable=line-too-long
                        └──┘
     """
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
@@ -140,7 +141,7 @@ def test_multi_layer_pull_through():
             cirq.Moment(cirq.CZ(q0, q1) ** 0.2, cirq.CZ(q2, q3)),
             cirq.Moment(cirq.CZ(q0, q2), cirq.CZ(q1, q3)),
             cirq.Moment(cirq.H(q0)),
-            cirq.Moment(cirq.CZ(q2, q3) ** 0.2),
+            cirq.Moment(cirq.CZ(q2, q3) ** 0.2, cirq.Rz(rads=-0.8).on(q0)),
             cirq.Moment(cirq.CZ(q0, q1) ** 0.1, cirq.CZ(q2, q3)),
             cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3) ** 0.2),
         )

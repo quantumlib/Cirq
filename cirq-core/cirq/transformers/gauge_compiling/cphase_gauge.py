@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import cast, List
 
 import numpy as np
 
@@ -156,12 +156,12 @@ class _PhasedXYAndRz:
     The order is --(X|Y|I)--Rz(rad)--phase--.
     """
 
-    pauli: ops.X | ops.Y | ops.I
+    pauli: ops.Pauli | ops.IdentityGate  # X|Y|I
     rz_rads: float
     phase_exp: float  # phase of the qubit is e^{i*phase_exp*pi}
 
     def __init__(
-        self, pauli: ops.Pauli | ops.I = ops.I, rz_rads: float = 0, phase_exp: float = 0
+        self, pauli: ops.Pauli | ops.IdentityGate = ops.I, rz_rads: float = 0, phase_exp: float = 0
     ) -> None:
         if pauli == ops.Z:  # Merge Z gates to Rz where Z = Rz(π) * e^{iπ/2}
             self.pauli = ops.I
@@ -183,7 +183,7 @@ class _PhasedXYAndRz:
         """Merges Rz(rads) from right."""
         self.rz_rads += rads
 
-    def _merge_left_xy(self, other: ops.X | ops.Y):
+    def _merge_left_xy(self, other: ops.Pauli):
         """Merges --(X|Y)--self--."""
         if self.pauli == other:
             self.pauli = ops.I
@@ -202,7 +202,7 @@ class _PhasedXYAndRz:
             self.rz_rads -= np.pi
             return
 
-    def _merge_right_xy(self, other: ops.X | ops.Y):
+    def _merge_right_xy(self, other: ops.Pauli):
         """Merges --self--(X|Y)--."""
         self.rz_rads *= -1
         if self.pauli == other:
@@ -227,13 +227,13 @@ class _PhasedXYAndRz:
         self._merge_left_rz(other.rz_rads)
         self.phase_exp += other.phase_exp
         if other.pauli != ops.I:
-            self._merge_left_xy(other.pauli)
+            self._merge_left_xy(cast(ops.Pauli, other.pauli))
 
     def merge_right(self, other: _PhasedXYAndRz) -> None:
         """Inplace merge other from right."""
         self.phase_exp += other.phase_exp
         if other.pauli != ops.I:
-            self._merge_right_xy(other.pauli)
+            self._merge_right_xy(cast(ops.Pauli, other.pauli))
         self._merge_right_rz(other.rz_rads)
 
     def after_cphase(
@@ -259,7 +259,7 @@ class _PhasedXYAndRz:
                 # Similarly for X|Y on qubit 0/1, the result is always flipping cphase and
                 # add an extra Rz rotation on the other qubit.
                 return (
-                    cphase**-1,
+                    cast(ops.CZPowGate, cphase**-1),
                     self,
                     _PhasedXYAndRz(rz_rads=cphase.exponent * np.pi, phase_exp=-cphase.exponent / 2),
                 )
@@ -267,33 +267,39 @@ class _PhasedXYAndRz:
     def __str__(self) -> str:
         return f"─{self.pauli}──Rz({self.rz_rads})──phase(e^{{i{self.phase_exp}π}})─"
 
-    def __eq__(self, other: _PhasedXYAndRz) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, _PhasedXYAndRz):
+            raise NotImplementedError
         return (
             self.pauli == other.pauli
-            and np.isclose(self.rz_rads, other.rz_rads, atol=1e-10)
-            and np.isclose(self.phase_exp, other.phase_exp, atol=1e-10)
+            and bool(np.isclose(self.rz_rads, other.rz_rads, atol=1e-10))
+            and bool(np.isclose(self.phase_exp, other.phase_exp, atol=1e-10))
         )
 
     def to_single_gate(self) -> ops.PhasedXZGate | ops.ZPowGate:
-        if self.pauli == ops.I:
-            rz_rads = self.rz_rads
-            if np.isclose(self.rz_rads, 0, atol=1e-2):
-                rz_rads = self.rz_rads + 4 * np.pi
-            return ops.ZPowGate(
-                exponent=rz_rads / np.pi, global_shift=np.pi * self.phase_exp / rz_rads - 0.5
-            )
-        if self.pauli == ops.X:
-            return ops.PhasedXZGate(
-                x_exponent=1,
-                z_exponent=2 * self.phase_exp,
-                axis_phase_exponent=self.rz_rads / 2 / np.pi - self.phase_exp,
-            )
-        if self.pauli == ops.Y:
-            return ops.PhasedXZGate(
-                x_exponent=1,
-                z_exponent=2 * self.phase_exp,
-                axis_phase_exponent=1 / 2 - self.phase_exp + self.rz_rads / 2 / np.pi,
-            )
+        """Converts the _PhasedXYAndRz to a single-qubit gate."""
+        match self.pauli:
+            case ops.I:
+                rz_rads = self.rz_rads
+                if np.isclose(self.rz_rads, 0, atol=1e-2):
+                    rz_rads = self.rz_rads + 4 * np.pi
+                return ops.ZPowGate(
+                    exponent=rz_rads / np.pi, global_shift=np.pi * self.phase_exp / rz_rads - 0.5
+                )
+            case ops.X:
+                return ops.PhasedXZGate(
+                    x_exponent=1,
+                    z_exponent=2 * self.phase_exp,
+                    axis_phase_exponent=self.rz_rads / 2 / np.pi - self.phase_exp,
+                )
+            case ops.Y:
+                return ops.PhasedXZGate(
+                    x_exponent=1,
+                    z_exponent=2 * self.phase_exp,
+                    axis_phase_exponent=1 / 2 - self.phase_exp + self.rz_rads / 2 / np.pi,
+                )
+            case _:
+                raise ValueError("Invalid self.pauli.")
 
 
 def _pull_through_single_cphase(
@@ -327,26 +333,31 @@ def _pull_through_single_cphase(
     return output_cphase, output0, output1
 
 
-def _multi_moment_pull_through(
+def _multi_moment_gauge_fn(
     moments: List[circuits.Moment], rng: np.random.Generator
 ) -> List[circuits.Moment]:
-    """TO FILL."""
+    """Generates a left layer with random generator, then pulling through all the moments."""
     all_qubits = [q for q in circuits.Circuit(moments).all_qubits()]
     if not all_qubits:
         return moments
     if not any(isinstance(op.gate, ops.CZPowGate) for moment in moments for op in moment):
         return moments
 
-    left_moment = circuits.Moment(
-        [rng.choice([ops.I, ops.X, ops.Y, ops.Z]).on(q) for q in all_qubits]
-    )
-    prev: map[ops.Qid, ops.Gate] = {
-        op.qubits[0]: _PhasedXYAndRz(pauli=op.gate) for op in left_moment
+    left_moment: List[ops.Operation] = [
+        rng.choice(
+            np.array([ops.I, ops.X, ops.Y, ops.Z], dtype=ops.Gate), p=[0.25, 0.25, 0.25, 0.25]
+        ).on(q)
+        for q in all_qubits
+    ]
+    prev: dict[ops.Qid, _PhasedXYAndRz] = {
+        op.qubits[0]: _PhasedXYAndRz(pauli=cast(ops.Pauli | ops.IdentityGate, op.gate))
+        for op in left_moment
+        if op.gate
     }
 
-    new_moments: List[circuits.Moment] = [left_moment]
+    new_moments: List[circuits.Moment] = [circuits.Moment(left_moment)]
 
-    pulled: map[ops.Qid, ops.Gate]
+    pulled: dict[ops.Qid, _PhasedXYAndRz]
     for moment in moments:
         pulled = {}
         new_moment: List[ops.Operation] = []
@@ -368,7 +379,7 @@ def _multi_moment_pull_through(
             if q not in pulled:
                 pulled[q] = prev[q]
         prev = pulled
-        new_moments.append(new_moment)
+        new_moments.append(circuits.Moment(new_moment))
 
     last_moment = circuits.Moment([pulled[q].to_single_gate().on(q) for q in all_qubits])
 
@@ -377,9 +388,9 @@ def _multi_moment_pull_through(
     return new_moments
 
 
-# Multi-moments pull through version of CZGaugeTransformer
+# Multi-moments pull through version of CPhaseGaugeTransformer
 CPhaseGaugeTransformerMM = GaugeTransformer(
     target=ops.Gateset(ops.CZPowGate, ops.ZPowGate),
     gauge_selector=CPhaseGaugeSelector,
-    multi_moment_pull_thourgh_fn=_multi_moment_pull_through,
+    multi_moment_gauge_fn=_multi_moment_gauge_fn,
 )

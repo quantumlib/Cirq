@@ -196,8 +196,8 @@ class GaugeTransformer:
         target: Union[ops.Gate, ops.Gateset, ops.GateFamily],
         gauge_selector: Callable[[np.random.Generator], Gauge],
         two_qubit_gate_symbolizer: Optional[TwoQubitGateSymbolizer] = None,
-        multi_moment_pull_thourgh_fn: Optional[
-            Callable[[List[circuits.Moment], List[circuits.Moment]], List[circuits.Moment]]
+        multi_moment_gauge_fn: Optional[
+            Callable[[List[circuits.Moment], np.random.Generator], List[circuits.Moment]]
         ] = None,
     ) -> None:
         """Constructs a GaugeTransformer.
@@ -211,7 +211,7 @@ class GaugeTransformer:
         self.target = ops.GateFamily(target) if isinstance(target, ops.Gate) else target
         self.gauge_selector = gauge_selector
         self.two_qubit_gate_symbolizer = two_qubit_gate_symbolizer
-        self.multi_moment_pull_thourgh_fn = multi_moment_pull_thourgh_fn
+        self.multi_moment_gauge_fn = multi_moment_gauge_fn
 
     def __call__(
         self,
@@ -225,13 +225,13 @@ class GaugeTransformer:
             context = transformer_api.TransformerContext(deep=False)
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
-        new_moments = []
+        new_moments: List[circuits.Moment] = []
         left: List[List[ops.Operation]] = []
         right: List[List[ops.Operation]] = []
         all_target_moments: List[circuits.Moment] = []
 
         for moment in circuit:
-            if self.multi_moment_pull_thourgh_fn and all(
+            if self.multi_moment_gauge_fn and all(
                 [
                     op in self.target and not set(op.tags).intersection(context.tags_to_ignore)
                     for op in moment
@@ -239,8 +239,8 @@ class GaugeTransformer:
             ):  # all ops are target 2-qubit gates
                 all_target_moments.append(moment)
                 continue
-            if all_target_moments:
-                new_moments.extend(self.multi_moment_pull_thourgh_fn(all_target_moments, rng))
+            if all_target_moments and self.multi_moment_gauge_fn:
+                new_moments.extend(self.multi_moment_gauge_fn(all_target_moments, rng))
                 all_target_moments.clear()
 
             left.clear()
@@ -262,11 +262,11 @@ class GaugeTransformer:
                     center.append(op)
             if left:
                 new_moments.extend(_build_moments(left))
-            new_moments.append(center)
+            new_moments.append(circuits.Moment(center))
             if right:
                 new_moments.extend(_build_moments(right))
-        if all_target_moments:
-            new_moments.extend(self.multi_moment_pull_thourgh_fn(all_target_moments, rng))
+        if all_target_moments and self.multi_moment_gauge_fn:
+            new_moments.extend(self.multi_moment_gauge_fn(all_target_moments, rng))
         return circuits.Circuit.from_moments(*new_moments)
 
     def as_sweep(
@@ -412,7 +412,7 @@ class GaugeTransformer:
         return circuits.Circuit.from_moments(*new_moments), Zip(*sweeps)
 
 
-def _build_moments(operation_by_qubits: List[List[ops.Operation]]) -> List[List[ops.Operation]]:
+def _build_moments(operation_by_qubits: List[List[ops.Operation]]) -> List[circuits.Moment]:
     """Builds moments from a list of operations grouped by qubits.
 
     Returns a list of moments from a list whose ith element is a list of operations applied
@@ -420,7 +420,7 @@ def _build_moments(operation_by_qubits: List[List[ops.Operation]]) -> List[List[
     """
     moments = []
     for moment in itertools.zip_longest(*operation_by_qubits):
-        moments.append([op for op in moment if op is not None])
+        moments.append(circuits.Moment([op for op in moment if op is not None]))
     return moments
 
 
