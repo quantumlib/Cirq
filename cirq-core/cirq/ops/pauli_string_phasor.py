@@ -199,7 +199,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         syms = tuple(sym(qubit) for qubit in qubits)
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
 
-    def conjugated_by(self, clifford: 'cirq.OP_TREE') -> 'PauliStringPhasor':
+    def conjugated_by(self, clifford: cirq.OP_TREE) -> PauliStringPhasor:
         r"""Returns the Pauli string conjugated by a clifford operation.
 
         The PauliStringPhasor $P$ conjugated by the Clifford operation $C$ is

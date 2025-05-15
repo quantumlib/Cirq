@@ -3,6 +3,8 @@
 https://arxiv.org/abs/1811.12926.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Set, Tuple
 

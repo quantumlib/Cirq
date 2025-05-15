@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from __future__ import annotations
+
 import cirq
 from cirq.contrib.paulistring import clifford_optimized_circuit, CliffordTargetGateset
 
