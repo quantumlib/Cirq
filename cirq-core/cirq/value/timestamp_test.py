@@ -118,6 +118,6 @@ def test_sub() -> None:
     with pytest.raises(TypeError):
         _ = Duration() - Timestamp()
     with pytest.raises(TypeError):
-        _ = 1 - Timestamp()  # type: ignore
+        _ = 1 - Timestamp()  # type: ignore[operator]
     with pytest.raises(TypeError):
-        _ = Timestamp() - 1  # type: ignore
+        _ = Timestamp() - 1  # type: ignore[operator]

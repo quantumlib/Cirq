@@ -60,10 +60,10 @@ def test_parse_real_formula() -> None:
 
 def test_parse_formula_failures() -> None:
     with pytest.raises(TypeError, match='formula must be a string'):
-        _ = parse_formula(2)  # type: ignore
+        _ = parse_formula(2)  # type: ignore[arg-type]
 
     with pytest.raises(TypeError, match='formula must be a string'):
-        _ = parse_formula([])  # type: ignore
+        _ = parse_formula([])  # type: ignore[arg-type]
 
     with pytest.raises(ValueError, match='Unrecognized token'):
         _ = parse_formula('5*__**DSA **)SADD')

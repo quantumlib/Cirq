@@ -34,11 +34,11 @@ def test_parse_random_state() -> None:
     eq.add_equality_group(*vals)
 
     seed = np.random.randint(2**31)
-    prngs = [
+    prngs1 = [
         np.random.RandomState(seed),
         cirq.value.parse_random_state(np.random.RandomState(seed)),
         cirq.value.parse_random_state(seed),
     ]
-    vals = [prng.rand() for prng in prngs]  # type: ignore
+    vals = [prng.rand() for prng in prngs1]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)

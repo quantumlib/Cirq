@@ -334,7 +334,7 @@ def test_sampler_sample_expectation_values_complex_param() -> None:
         circuit,
         [obs],
         num_samples=5,
-        params=cirq.Points('t', [1, 1j, (1 + 1j) / np.sqrt(2)]),  # type:ignore
+        params=cirq.Points('t', [1, 1j, (1 + 1j) / np.sqrt(2)]),  # type: ignore[list-item]
     )
 
     assert np.allclose(results, [[1], [1], [1]])
