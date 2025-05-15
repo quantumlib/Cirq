@@ -1,4 +1,4 @@
-FROM python:3.10-slim AS cirq_base
+FROM python:3.11-slim AS cirq_base
 
 # Install dependencies.
 # rm -rf /var/lib/apt/lists/* cleans up apt cache. See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
@@ -19,10 +19,8 @@ RUN rm -f /usr/bin/python \
      && ln -s /usr/bin/python3 /usr/bin/python
 #cirq stable image
 FROM cirq_base AS cirq_stable
-# TODO: adjust after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
-RUN pip3 install cirq "qcs-sdk-python<=0.21.12"
+RUN pip3 install --root-user-action=ignore cirq
 
 ##cirq pre_release image
 FROM cirq_base AS cirq_pre_release
-# TODO: adjust after the fix of https://github.com/rigetti/qcs-sdk-rust/issues/531
-RUN pip3 install --upgrade cirq~=1.0.dev "qcs-sdk-python<=0.21.12"
+RUN pip3 install --root-user-action=ignore --upgrade cirq~=1.0.dev
