@@ -23,24 +23,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 Note that if you are using PyCharm, you might have to use the command Restart & Invalidate Caches to have the change be picked up.
 
-## Docker
-You can build the stable and pre-release Docker images with our `Dockerfile`.
-
-```bash
-docker build -t cirq --target cirq_stable .
-docker run -it cirq python -c "import cirq_google; print(cirq_google.Sycamore23)"
-```
-
-```bash
-docker build -t cirq_pre --target cirq_pre_release .
-docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Sycamore23)"
-```
-
-If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
-
-
-
-## Forking the repository
+## ## Forking the repository
 
 1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
@@ -100,11 +83,6 @@ See the previous section for instructions.
     ```bash
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
-
-    This installs Docker, among other things. You may need to restart
-    Docker or configure permissions on your system; see the
-    [Docker installation instructions](https://docs.docker.com/engine/install/ubuntu/)
-    for more information.
 
     There are some extra steps if Protocol Buffers are changed; see the next section.
 
