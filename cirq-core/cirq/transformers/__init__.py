@@ -119,6 +119,8 @@ from cirq.transformers.transformer_api import (
     transformer as transformer,
 )
 
+from cirq.transformers.tag_transformers import index_tags as index_tags, remove_tags as remove_tags
+
 from cirq.transformers.transformer_primitives import (
     map_moments as map_moments,
     map_operations as map_operations,

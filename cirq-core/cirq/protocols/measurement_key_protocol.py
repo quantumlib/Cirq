@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Protocol for object that have measurement keys."""
+
+from __future__ import annotations
 
 from types import NotImplementedType
 from typing import Any, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING, Union
@@ -60,7 +63,7 @@ class SupportsMeasurementKey(Protocol):
         """Return if this object is (or contains) a measurement."""
 
     @doc_private
-    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
+    def _measurement_key_obj_(self) -> cirq.MeasurementKey:
         """Return the key object that will be used to identify this measurement.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -71,7 +74,7 @@ class SupportsMeasurementKey(Protocol):
     @doc_private
     def _measurement_key_objs_(
         self,
-    ) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
+    ) -> Union[FrozenSet[cirq.MeasurementKey], NotImplementedType, None]:
         """Return the key objects for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -175,7 +178,7 @@ def measurement_key_name(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
 
 def _measurement_key_objs_from_magic_methods(
     val: Any,
-) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
+) -> Union[FrozenSet[cirq.MeasurementKey], NotImplementedType, None]:
     """Uses the measurement key related magic methods to get the `MeasurementKey`s for this
     object."""
 
@@ -209,7 +212,7 @@ def _measurement_key_names_from_magic_methods(
     return result
 
 
-def measurement_key_objs(val: Any) -> FrozenSet['cirq.MeasurementKey']:
+def measurement_key_objs(val: Any) -> FrozenSet[cirq.MeasurementKey]:
     """Gets the measurement key objects of measurements within the given value.
 
     Args:
@@ -316,9 +319,7 @@ def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
 
 
 def with_rescoped_keys(
-    val: Any,
-    path: Tuple[str, ...],
-    bindable_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None,
+    val: Any, path: Tuple[str, ...], bindable_keys: Optional[FrozenSet[cirq.MeasurementKey]] = None
 ):
     """Rescopes any measurement and control keys to the provided path, given the existing keys.
 

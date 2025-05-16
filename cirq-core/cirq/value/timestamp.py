@@ -64,6 +64,10 @@ class Timestamp:
     def __sub__(self, other: Duration) -> 'Timestamp':
         pass
 
+    @overload
+    def __sub__(self, other: timedelta) -> 'Timestamp':
+        pass
+
     def __sub__(self, other):
         if isinstance(other, Duration):
             return Timestamp(picos=self._picos - other.total_picos())

@@ -155,7 +155,7 @@ def test_consistent():
     cirq.testing.assert_implements_consistent_protocols(p)
 
 
-def test_pass_operations_over():
+def test_conjugated_by():
     q0, q1 = _make_qubits(2)
     op = cirq.SingleQubitCliffordGate.from_double_map(
         {cirq.Z: (cirq.X, False), cirq.X: (cirq.Z, False)}
@@ -164,10 +164,7 @@ def test_pass_operations_over():
     ps_after = cirq.PauliString({q0: cirq.Z, q1: cirq.Y}, -1)
     before = cirq.PauliStringPhasor(ps_before, exponent_neg=0.1)
     after = cirq.PauliStringPhasor(ps_after, exponent_neg=0.1)
-    assert before.pass_operations_over([op]).pauli_string == after.pauli_string
-    assert (
-        after.pass_operations_over([op], after_to_before=True).pauli_string == before.pauli_string
-    )
+    assert before.conjugated_by(op).pauli_string == after.pauli_string
 
 
 def test_extrapolate_effect():

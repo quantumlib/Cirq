@@ -14,6 +14,8 @@
 
 """Features for placing qubits onto devices."""
 
+from __future__ import annotations
+
 import abc
 import dataclasses
 from functools import lru_cache
@@ -40,10 +42,10 @@ class QubitPlacer(metaclass=abc.ABCMeta):
     def place_circuit(
         self,
         circuit: cirq.AbstractCircuit,
-        problem_topology: 'cirq.NamedTopology',
-        shared_rt_info: 'cg.SharedRuntimeInfo',
+        problem_topology: cirq.NamedTopology,
+        shared_rt_info: cg.SharedRuntimeInfo,
         rs: np.random.RandomState,
-    ) -> Tuple['cirq.FrozenCircuit', Dict[Any, 'cirq.Qid']]:
+    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
         """Place a circuit with a given topology.
 
         Args:
@@ -65,11 +67,11 @@ class NaiveQubitPlacer(QubitPlacer):
 
     def place_circuit(
         self,
-        circuit: 'cirq.AbstractCircuit',
-        problem_topology: 'cirq.NamedTopology',
-        shared_rt_info: 'cg.SharedRuntimeInfo',
+        circuit: cirq.AbstractCircuit,
+        problem_topology: cirq.NamedTopology,
+        shared_rt_info: cg.SharedRuntimeInfo,
         rs: np.random.RandomState,
-    ) -> Tuple['cirq.FrozenCircuit', Dict[Any, 'cirq.Qid']]:
+    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
         return circuit.freeze(), {q: q for q in circuit.all_qubits()}
 
     @classmethod
@@ -138,7 +140,7 @@ class HardcodedQubitPlacer(QubitPlacer):
         self,
         circuit: cirq.AbstractCircuit,
         problem_topology: NamedTopology,
-        shared_rt_info: 'cg.SharedRuntimeInfo',
+        shared_rt_info: cg.SharedRuntimeInfo,
         rs: np.random.RandomState,
     ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
         """Place a circuit according to the hardcoded placements.
@@ -187,11 +189,11 @@ class HardcodedQubitPlacer(QubitPlacer):
         return d
 
     @classmethod
-    def _from_json_dict_(cls, **kwargs) -> 'HardcodedQubitPlacer':
+    def _from_json_dict_(cls, **kwargs) -> HardcodedQubitPlacer:
         # From nested list(key_value_pair) to dictionary
-        mapping: Dict[cirq.NamedTopology, Dict[Any, 'cirq.Qid']] = {}
+        mapping: Dict[cirq.NamedTopology, Dict[Any, cirq.Qid]] = {}
         for topo, placement_kvs in kwargs['mapping']:
-            placement: Dict[Hashable, 'cirq.Qid'] = {}
+            placement: Dict[Hashable, cirq.Qid] = {}
             for k, v in placement_kvs:
                 if isinstance(k, list):
                     k = tuple(k)
@@ -209,8 +211,8 @@ class HardcodedQubitPlacer(QubitPlacer):
 
 @lru_cache()
 def _cached_get_placements(
-    problem_topo: 'cirq.NamedTopology', device: 'cirq.Device'
-) -> List[Dict[Any, 'cirq.Qid']]:
+    problem_topo: cirq.NamedTopology, device: cirq.Device
+) -> List[Dict[Any, cirq.Qid]]:
     """Cache `cirq.get_placements` onto the specific device."""
     return get_placements(
         big_graph=_Device_dot_get_nx_graph(device), small_graph=problem_topo.graph
@@ -218,11 +220,11 @@ def _cached_get_placements(
 
 
 def _get_random_placement(
-    problem_topology: 'cirq.NamedTopology',
-    device: 'cirq.Device',
+    problem_topology: cirq.NamedTopology,
+    device: cirq.Device,
     rs: np.random.RandomState,
-    topo_node_to_qubit_func: Callable[[Any], 'cirq.Qid'] = default_topo_node_to_qubit,
-) -> Dict['cirq.Qid', 'cirq.Qid']:
+    topo_node_to_qubit_func: Callable[[Any], cirq.Qid] = default_topo_node_to_qubit,
+) -> Dict[cirq.Qid, cirq.Qid]:
     """Place `problem_topology` randomly onto a device.
 
     This is a helper function used by `RandomDevicePlacer.place_circuit`.
@@ -258,11 +260,11 @@ class RandomDevicePlacer(QubitPlacer):
 
     def place_circuit(
         self,
-        circuit: 'cirq.AbstractCircuit',
-        problem_topology: 'cirq.NamedTopology',
-        shared_rt_info: 'cg.SharedRuntimeInfo',
+        circuit: cirq.AbstractCircuit,
+        problem_topology: cirq.NamedTopology,
+        shared_rt_info: cg.SharedRuntimeInfo,
         rs: np.random.RandomState,
-    ) -> Tuple['cirq.FrozenCircuit', Dict[Any, 'cirq.Qid']]:
+    ) -> Tuple[cirq.FrozenCircuit, Dict[Any, cirq.Qid]]:
         """Place a circuit with a given topology onto a device via `cirq.get_placements` with
         randomized selection of the placement each time.
 

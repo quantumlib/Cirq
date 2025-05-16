@@ -188,6 +188,19 @@ message ISwapPowGate {
   FloatArg exponent = 1;
 }
 
+// Representation of an iswap-like gate
+// with theta=pi/2 and a non-zero hardware-dependent phi angle
+message ISwapLikeGate {
+  // Original gate, for deserializing faithfully.
+  enum OriginalCirqGate {
+    UNSPECIFIED = 0;
+    SYCAMORE = 1;
+    WILLOW = 2;
+  }
+
+  OriginalCirqGate original_gate = 1;
+}
+
 // Representation of cirq.MeasurementGate
 // i.e. cirq.measure
 message MeasurementGate {
@@ -195,7 +208,7 @@ message MeasurementGate {
   Arg invert_mask = 2;
 }
 
-// Representation of cirq.WAitGate
+// Representation of cirq.WaitGate
 message WaitGate {
   // Duration of the waiting period,
   // serialized to the number of nanoseconds
@@ -203,6 +216,7 @@ message WaitGate {
 }
 
 // An operation acts on a set of qubits.
+// next available id = 27
 message Operation {
   // Previously deprecated fields.  Do not use.
   reserved 1, 2;
@@ -226,6 +240,7 @@ message Operation {
     HPowGate hpowgate = 20;
     SingleQubitCliffordGate singlequbitcliffordgate = 21;
     ResetGate resetgate = 24;
+    ISwapLikeGate iswaplikegate = 26;
   }
 
   // Which qubits the operation acts on.

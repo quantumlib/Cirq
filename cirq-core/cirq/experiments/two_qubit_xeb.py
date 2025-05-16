@@ -107,6 +107,10 @@ class TwoQubitXEBResult:
 
     @functools.cached_property
     def _qubit_pair_map(self) -> Dict[Tuple[cirq.GridQubit, cirq.GridQubit], int]:
+        if isinstance(self.fidelities.index[0][0], ops.Qid):
+            return {
+                (min(q0, q1), max(q0, q1)): i for i, (q0, q1) in enumerate(self.fidelities.index)
+            }
         return {
             (min(q0, q1), max(q0, q1)): i
             for i, (_, _, (q0, q1)) in enumerate(self.fidelities.index)

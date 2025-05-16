@@ -11,15 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tools for running circuits in a shuffled order with readout error benchmarking."""
+
+from __future__ import annotations
+
 import time
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import circuits, ops, protocols, work
 from cirq.experiments import SingleQubitReadoutCalibrationResult
-from cirq.study import ResultDict
+
+if TYPE_CHECKING:
+    from cirq.study import ResultDict
 
 
 def _validate_input(

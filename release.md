@@ -101,7 +101,7 @@ release.
 
 ### Preparation
 
-System requirements: Linux, Python 3.10.
+System requirements: Linux, Python 3.11.
 
 For MINOR/MAJOR releases: make sure you're on an up-to-date `main` branch and
 in Cirq's root directory.

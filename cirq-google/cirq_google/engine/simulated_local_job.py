@@ -11,8 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """An implementation of AbstractJob that uses in-memory constructs
 and a provided sampler to execute circuits."""
+
+from __future__ import annotations
+
 import concurrent.futures
 import datetime
 from typing import cast, List, Optional, Sequence, Tuple
@@ -31,7 +35,7 @@ def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]) -> List[En
 
 
 def _to_engine_results(
-    batch_results: Sequence[Sequence['cirq.Result']],
+    batch_results: Sequence[Sequence[cirq.Result]],
     *,
     job_id: str,
     job_finished_time: Optional[datetime.datetime] = None,

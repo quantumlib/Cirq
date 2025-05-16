@@ -98,7 +98,7 @@ def quick_circuit(*moments: Iterable[cirq.OP_TREE]) -> cirq.Circuit:
     )
 
 
-def test_absorbs_z():
+def test_absorbs_z() -> None:
     q = cirq.NamedQubit('q')
     x = sympy.Symbol('x')
 
@@ -165,7 +165,7 @@ def test_absorbs_z():
     )
 
 
-def test_crosses_czs():
+def test_crosses_czs() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     x = sympy.Symbol('x')
@@ -232,7 +232,7 @@ def test_crosses_czs():
     )
 
 
-def test_toggles_measurements():
+def test_toggles_measurements() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     x = sympy.Symbol('x')
@@ -289,7 +289,7 @@ def test_toggles_measurements():
     )
 
 
-def test_eject_phased_xz():
+def test_eject_phased_xz() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.Circuit(
@@ -305,7 +305,7 @@ def test_eject_phased_xz():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c, c_expected, 1e-8)
 
 
-def test_cancels_other_full_w():
+def test_cancels_other_full_w() -> None:
     q = cirq.NamedQubit('q')
     x = sympy.Symbol('x')
     y = sympy.Symbol('y')
@@ -365,7 +365,7 @@ def test_cancels_other_full_w():
     )
 
 
-def test_phases_partial_ws():
+def test_phases_partial_ws() -> None:
     q = cirq.NamedQubit('q')
     x = sympy.Symbol('x')
     y = sympy.Symbol('y')
@@ -420,7 +420,7 @@ def test_phases_partial_ws():
 
 
 @pytest.mark.parametrize('sym', [sympy.Symbol('x'), sympy.Symbol('x') + 1])
-def test_blocked_by_unknown_and_symbols(sym):
+def test_blocked_by_unknown_and_symbols(sym) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -442,7 +442,7 @@ def test_blocked_by_unknown_and_symbols(sym):
     )
 
 
-def test_blocked_by_nocompile_tag():
+def test_blocked_by_nocompile_tag() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -453,7 +453,7 @@ def test_blocked_by_nocompile_tag():
     )
 
 
-def test_zero_x_rotation():
+def test_zero_x_rotation() -> None:
     a = cirq.NamedQubit('a')
 
     assert_optimizes(before=quick_circuit([cirq.rx(0)(a)]), expected=quick_circuit([cirq.rx(0)(a)]))

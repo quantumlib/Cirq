@@ -242,11 +242,11 @@ def calibrate_z_phases(
 
 def plot_z_phase_calibration_result(
     before_after_df: pd.DataFrame,
-    axes: Optional[np.ndarray[Sequence[Sequence[plt.Axes]], np.dtype[np.object_]]] = None,
+    axes: Optional[np.ndarray[Tuple[int, int], np.dtype[np.object_]]] = None,
     pairs: Optional[Sequence[Tuple[cirq.Qid, cirq.Qid]]] = None,
     *,
     with_error_bars: bool = False,
-) -> np.ndarray[Sequence[Sequence[plt.Axes]], np.dtype[np.object_]]:
+) -> np.ndarray[Tuple[int, int], np.dtype[np.object_]]:
     """A helper method to plot the result of running z-phase calibration.
 
     Note that the plotted fidelity is a statistical estimate of the true fidelity and as a result

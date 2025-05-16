@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import warnings
 from typing import cast, Dict, List, Optional, Sequence, Tuple, Union
 
@@ -28,7 +31,7 @@ def circuit_to_tensors(
     circuit: cirq.Circuit,
     qubits: Optional[Sequence[cirq.Qid]] = None,
     initial_state: Union[int, None] = 0,
-) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], None]:
+) -> Tuple[List[qtn.Tensor], Dict[cirq.Qid, int], None]:
     """Given a circuit, construct a tensor network representation.
 
     Indices are named "i{i}_q{x}" where i is a time index and x is a

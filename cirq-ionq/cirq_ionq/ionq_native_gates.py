@@ -13,6 +13,8 @@
 # limitations under the License.
 """Native gates for IonQ hardware"""
 
+from __future__ import annotations
+
 import cmath
 import math
 from typing import Any, Dict, Sequence, Union
@@ -67,8 +69,8 @@ class GPIGate(cirq.Gate):
         return self.phi
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, protocols.CircuitDiagramInfo]:
         return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI({self.phase!r})',))
 
     def __pow__(self, power):
@@ -131,8 +133,8 @@ class GPI2Gate(cirq.Gate):
         return 'GPI2'
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, protocols.CircuitDiagramInfo]:
         return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI2({self.phase!r})',))
 
     def _num_qubits_(self) -> int:
@@ -226,8 +228,8 @@ class MSGate(cirq.Gate):
         return 2
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, protocols.CircuitDiagramInfo]:
         return protocols.CircuitDiagramInfo(
             wire_symbols=(f'MS({self.phi0!r})', f'MS({self.phi1!r})')
         )
@@ -318,8 +320,8 @@ class ZZGate(cirq.Gate):
         return 2
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, protocols.CircuitDiagramInfo]:
         return protocols.CircuitDiagramInfo(wire_symbols=(f'ZZ({self.theta!r})', 'ZZ'))
 
     def __repr__(self) -> str:

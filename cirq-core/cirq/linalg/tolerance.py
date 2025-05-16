@@ -14,6 +14,9 @@
 
 """Utility for testing approximate equality of matrices and scalars within
 tolerances."""
+
+from __future__ import annotations
+
 from typing import Iterable, TYPE_CHECKING, Union
 
 import numpy as np
@@ -22,7 +25,7 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
 
-def all_near_zero(a: 'ArrayLike', *, atol: float = 1e-8) -> bool:
+def all_near_zero(a: ArrayLike, *, atol: float = 1e-8) -> bool:
     """Checks if the tensor's elements are all near zero.
 
     Args:

@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import cirq
 import cirq.contrib.acquaintance as cca
 import cirq.testing as ct
 
 
-def test_remove_redundant_acquaintance_opportunities():
+def test_remove_redundant_acquaintance_opportunities() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     swap = cca.SwapPermutationGate()
 

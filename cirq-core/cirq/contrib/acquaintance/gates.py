@@ -51,7 +51,7 @@ def operations_to_part_lens(
     part_sort_key = lambda p: min(qubit_sort_key(q) for q in p)
     parts = tuple(tuple(part) for part in sorted(singletons + op_parts, key=part_sort_key))
 
-    if sum(parts, ()) != tuple(qubit_order):
+    if tuple(itertools.chain.from_iterable(parts)) != tuple(qubit_order):
         raise ValueError('sum(parts, ()) != tuple(qubit_order)')
 
     return tuple(len(part) for part in parts)

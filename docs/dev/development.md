@@ -94,7 +94,7 @@ See the previous section for instructions.
 
 1. Install system dependencies.
 
-    Make sure you have Python 3.10 or greater.
+    Make sure you have Python 3.11 or greater.
     You can install most other dependencies via `apt-get`:
 
     ```bash

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import functools
 import itertools
 from typing import Tuple, Type
@@ -59,7 +61,7 @@ def _all_rotation_pairs():
 
 
 @functools.lru_cache()
-def _all_clifford_gates() -> Tuple['cirq.SingleQubitCliffordGate', ...]:
+def _all_clifford_gates() -> Tuple[cirq.SingleQubitCliffordGate, ...]:
     return tuple(
         cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
         for trans_x, trans_z in _all_rotation_pairs()
@@ -993,3 +995,14 @@ def test_single_qubit_clifford_gate_repr():
         'rs=np.array([False, True]), xs=np.array([[True], [False]]), '
         'zs=np.array([[True], [True]])))'
     )
+
+
+def test_cxswap_czswap():
+
+    # cirq unitary for CNOT then SWAP (big endian)
+    cxswap_expected = np.asarray([[1, 0, 0, 0], [0, 0, 0, 1], [0, 1, 0, 0], [0, 0, 1, 0]])
+    print(cirq.unitary(cirq.CXSWAP))
+    assert np.allclose(cirq.unitary(cirq.CXSWAP), cxswap_expected)
+
+    czswap_expected = np.asarray([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, -1]])
+    assert np.allclose(cirq.unitary(cirq.CZSWAP), czswap_expected)
