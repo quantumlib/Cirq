@@ -379,7 +379,8 @@ def _multi_moment_gauge_fn(
             if q not in pulled:
                 pulled[q] = prev[q]
         prev = pulled
-        new_moments.append(circuits.Moment(new_moment))
+        if new_moment:
+            new_moments.append(circuits.Moment(new_moment))
 
     last_moment = circuits.Moment([pulled[q].to_single_gate().on(q) for q in all_qubits])
 

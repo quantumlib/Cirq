@@ -195,3 +195,15 @@ def test_phxyrz_merge():
                 cirq.unitary(merge1.to_single_gate()),
                 atol=1e-10,
             )
+
+
+def test_rz_mix_with_cphase():
+    q0, q1 = cirq.LineQubit.range(2)
+    input_circuit = cirq.Circuit(
+        cirq.Moment(cirq.CZ(q0, q1) ** 0.2), cirq.Moment(cirq.Rz(rads=0.1).on(q0))
+    )
+    output_circuit = CPhaseGaugeTransformerMM(input_circuit)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        input_circuit, output_circuit, {q: q for q in input_circuit.all_qubits()}
+    )
+    assert len(output_circuit) == 3
