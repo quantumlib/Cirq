@@ -211,6 +211,7 @@ def add_dynamical_decoupling(
     context: Optional[cirq.TransformerContext] = None,
     schema: Union[str, Tuple[ops.Gate, ...]] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
+    # pulling_through_mode = "through_all_cliffords" | "stop_at_non_clifford_moments",
 ) -> cirq.Circuit:
     """Adds dynamical decoupling gate operations to a given circuit.
     This transformer might add new moments thus change structure of the original circuit.
@@ -266,6 +267,8 @@ def add_dynamical_decoupling(
         # unitary representation (e.g., measure gates). If there are remaining pulled through ops,
         # insert into a new moment before current moment.
         stop_pulling_through_qubits: set[ops.Qid] = _get_stop_qubits(moment)
+        if stop_pulling_through_qubits:
+            stop_pulling_through_qubits = orig_circuit.all_qubits()
         new_moment_ops = []
         for q in stop_pulling_through_qubits:
             # Insert the remaining pulled_through
