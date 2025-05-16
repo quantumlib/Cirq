@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.devices.grid_qubit_test import _test_qid_pickled_hash
 from cirq.ops.named_qubit import _pad_digits
