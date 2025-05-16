@@ -16,8 +16,9 @@ import time
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+import sympy
 
-from cirq import circuits, ops, protocols, work
+from cirq import circuits, ops, protocols, work, study
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.study import ResultDict
 
@@ -59,6 +60,24 @@ def _validate_input(
         raise ValueError("Must provide non-zero readout_repetitions for readout calibration.")
 
 
+def _validate_input_with_sweep(
+    input_circuits: list[circuits.Circuit],
+    sweep_params: list[study.Sweepable],
+    circuit_repetitions: Union[int, list[int]],
+    rng_or_seed: Union[np.random.Generator, int],
+    num_random_bitstrings: int,
+    readout_repetitions: int,
+):
+    """Validates the input for the run_sweep_with_readout_benchmarking function."""
+    # if len(input_circuits) != len(sweep_params):
+    #     raise ValueError(
+    #         "Number of input parameterized circuits must match the number of sweep parameters."
+    #     )
+    return _validate_input(
+        input_circuits, circuit_repetitions, rng_or_seed, num_random_bitstrings, readout_repetitions
+    )
+
+
 def _generate_readout_calibration_circuits(
     qubits: list[ops.Qid], rng: np.random.Generator, num_random_bitstrings: int
 ) -> tuple[list[circuits.Circuit], np.ndarray]:
@@ -76,6 +95,82 @@ def _generate_readout_calibration_circuits(
             )
         )
     return readout_calibration_circuits, random_bitstrings
+
+
+def _generate_parameterized_readout_calibration_circuit_with_sweep(
+    qubits: list[ops.Qid], rng: np.random.Generator, num_random_bitstrings: int
+) -> tuple[circuits.Circuit, study.Sweepable, np.ndarray]:
+    """Generates a parameterized readout calibration circuit, sweep parameters,
+    and the random bitstrings."""
+    random_bitstrings = rng.integers(0, 2, size=(num_random_bitstrings, len(qubits)))
+
+    exp_symbols = [sympy.Symbol(f'exp_{qubit}') for qubit in qubits]
+    parameterized_readout_calibration_circuit = circuits.Circuit(
+        [ops.X(qubit) ** exp for exp, qubit in zip(exp_symbols, qubits)], ops.M(*qubits, key="m")
+    )
+    sweep_params = []
+    for bitstr in random_bitstrings:
+        sweep_params.append({exp: bit for exp, bit in zip(exp_symbols, bitstr)})
+
+    return parameterized_readout_calibration_circuit, sweep_params, random_bitstrings
+
+
+def _generate_all_readout_calibration_circuits(
+    rng: np.random.Generator,
+    num_random_bitstrings: int,
+    qubits_to_measure: List[List[ops.Qid]],
+    is_sweep: bool,
+) -> Tuple[List[circuits.Circuit], List[List[List[int]]], List[List[study.Sweepable]]]:
+    """Generates all readout calibration circuits and random bitstrings."""
+    all_readout_calibration_circuits = []
+    all_random_bitstrings = []
+    all_readout_sweep_params = []
+
+    if num_random_bitstrings <= 0:
+        return all_readout_calibration_circuits, all_random_bitstrings, all_readout_sweep_params
+
+    if not is_sweep:
+        for qubit_group in qubits_to_measure:
+            readout_calibration_circuits, random_bitstrings = (
+                _generate_readout_calibration_circuits(qubit_group, rng, num_random_bitstrings)
+            )
+            all_readout_calibration_circuits.extend(readout_calibration_circuits)
+            all_random_bitstrings.append(random_bitstrings)
+    else:
+        for qubit_group in qubits_to_measure:
+            (parameterized_readout_calibration_circuit, readout_sweep_params, random_bitstrings) = (
+                _generate_parameterized_readout_calibration_circuit_with_sweep(
+                    qubit_group, rng, num_random_bitstrings
+                )
+            )
+            all_readout_calibration_circuits.append(parameterized_readout_calibration_circuit)
+            all_readout_sweep_params.append([readout_sweep_params])
+            all_random_bitstrings.append(random_bitstrings)
+
+    return all_readout_calibration_circuits, all_random_bitstrings, all_readout_sweep_params
+
+
+def _determine_qubits_to_measure(
+    input_circuits: list[circuits.Circuit],
+    qubits: Optional[Union[List[ops.Qid], List[List[ops.Qid]]]],
+) -> List[List[ops.Qid]]:
+    """Determine the qubits to measure based on the input circuits and provided qubits."""
+    # If input qubits is None, extract qubits from input circuits
+    qubits_to_measure: List[List[ops.Qid]] = []
+    if qubits is None:
+        qubits_set: set[ops.Qid] = set()
+        for circuit in input_circuits:
+            qubits_set.update(circuit.all_qubits())
+        qubits_to_measure = [sorted(qubits_set)]
+
+    elif isinstance(qubits[0], ops.Qid):
+        qubits_to_measure = [qubits]  # type: ignore
+    else:
+        qubits_to_measure = qubits  # type: ignore
+    return qubits_to_measure
+
+
+# def _get_rng(rng_or_seed: Union[np.random.Generator, int]) -> np.random.Generator:
 
 
 def _shuffle_circuits(
@@ -185,35 +280,21 @@ def run_shuffled_with_readout_benchmarking(
         input_circuits, circuit_repetitions, rng_or_seed, num_random_bitstrings, readout_repetitions
     )
 
-    # If input qubits is None, extract qubits from input circuits
-    qubits_to_measure: List[List[ops.Qid]] = []
-    if qubits is None:
-        qubits_set: set[ops.Qid] = set()
-        for circuit in input_circuits:
-            qubits_set.update(circuit.all_qubits())
-        qubits_to_measure = [sorted(qubits_set)]
-    elif isinstance(qubits[0], ops.Qid):
-        qubits_to_measure = [qubits]  # type: ignore
-    else:
-        qubits_to_measure = qubits  # type: ignore
+    qubits_to_measure = _determine_qubits_to_measure(input_circuits, qubits)
 
     # Generate the readout calibration circuits if num_random_bitstrings>0
     # Else all_readout_calibration_circuits and all_random_bitstrings are empty
-    all_readout_calibration_circuits = []
-    all_random_bitstrings = []
-
     rng = (
         rng_or_seed
         if isinstance(rng_or_seed, np.random.Generator)
         else np.random.default_rng(rng_or_seed)
     )
-    if num_random_bitstrings > 0:
-        for qubit_group in qubits_to_measure:
-            readout_calibration_circuits, random_bitstrings = (
-                _generate_readout_calibration_circuits(qubit_group, rng, num_random_bitstrings)
-            )
-            all_readout_calibration_circuits.extend(readout_calibration_circuits)
-            all_random_bitstrings.append(random_bitstrings)
+
+    all_readout_calibration_circuits, all_random_bitstrings, _ = (
+        _generate_all_readout_calibration_circuits(
+            rng, num_random_bitstrings, qubits_to_measure, False
+        )
+    )
 
     # Shuffle the circuits
     if isinstance(circuit_repetitions, int):
@@ -248,3 +329,92 @@ def run_shuffled_with_readout_benchmarking(
         start_idx = end_idx
 
     return unshuffled_input_circuits_measiurements, readout_calibration_results
+
+
+def run_sweep_with_readout_benchmarking(
+    input_circuits: list[circuits.Circuit],
+    sweep_params: list[study.Sweepable],
+    sampler: work.Sampler,
+    circuit_repetitions: Union[int, list[int]],
+    rng_or_seed: Union[np.random.Generator, int],
+    num_random_bitstrings: int = 100,
+    readout_repetitions: int = 1000,
+    qubits: Optional[Union[List[ops.Qid], List[List[ops.Qid]]]] = None,
+) -> tuple[list[list[ResultDict]], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
+    """Run the sweep circuits with readout error benchmarking (no shuffling).
+    Args:
+        input_circuits: The circuits to run.
+        sweep_params: The sweep parameters for the input circuits.
+        sampler: The sampler to use.
+        circuit_repetitions: The repetitions for `circuits`.
+        rng_or_seed: A random number generator used to generate readout circuits.
+                     Or an integer seed.
+        num_random_bitstrings: The number of random bitstrings for measuring readout.
+            If set to 0, no readout calibration circuits are generated.
+        readout_repetitions: The number of repetitions for each readout bitstring.
+        qubits: The qubits to benchmark readout errors. If None, all qubits in the
+                input_circuits are used. Can be a list of qubits or a list of tuples
+                of qubits.
+    Returns:
+        A tuple containing:
+        - A list of lists of dictionaries with the measurement results.
+        - A dictionary mapping each tuple of qubits to a SingleQubitReadoutCalibrationResult.
+    """
+
+    _validate_input_with_sweep(
+        input_circuits,
+        sweep_params,
+        circuit_repetitions,
+        rng_or_seed,
+        num_random_bitstrings,
+        readout_repetitions,
+    )
+
+    qubits_to_measure = _determine_qubits_to_measure(input_circuits, qubits)
+
+    # Generate the readout calibration circuits (parameterized circuits) and sweep params
+    # if num_random_bitstrings>0
+    # Else all_readout_calibration_circuits and all_random_bitstrings are empty
+    rng = (
+        rng_or_seed
+        if isinstance(rng_or_seed, np.random.Generator)
+        else np.random.default_rng(rng_or_seed)
+    )
+
+    all_readout_calibration_circuits, all_random_bitstrings, all_readout_sweep_params = (
+        _generate_all_readout_calibration_circuits(
+            rng, num_random_bitstrings, qubits_to_measure, True
+        )
+    )
+
+    if isinstance(circuit_repetitions, int):
+        circuit_repetitions = [circuit_repetitions] * len(input_circuits)
+    all_repetitions = circuit_repetitions + [readout_repetitions] * len(
+        all_readout_calibration_circuits
+    )
+
+    # Run the sweep circuits and measure
+    results = sampler.run_batch(
+        input_circuits + all_readout_calibration_circuits,
+        sweep_params + all_readout_sweep_params,
+        repetitions=all_repetitions,
+    )
+
+    timestamp = time.time()
+
+    input_circuits_measiurements = results[: len(input_circuits)]
+    readout_measurements = results[len(input_circuits) :]
+
+    # Analyze results
+    readout_calibration_results = {}
+    i = 0
+    for qubit_group, random_bitstrings in zip(qubits_to_measure, all_random_bitstrings):
+        group_measurements = readout_measurements[i]
+        i += 1
+
+        calibration_result = _analyze_readout_results(
+            group_measurements, random_bitstrings, readout_repetitions, qubit_group, timestamp
+        )
+        readout_calibration_results[tuple(qubit_group)] = calibration_result
+
+    return input_circuits_measiurements, readout_calibration_results
