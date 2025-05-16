@@ -45,7 +45,7 @@ def _check_and_get_real_coef(observable: cirq.PauliString, atol: float):
 
 def _obs_vals_from_measurements(
     bitstrings: np.ndarray,
-    qubit_to_index: Dict[cirq.Qid, int],
+    qubit_to_index: Mapping[cirq.Qid, int],
     observable: cirq.PauliString,
     atol: float,
 ):
@@ -63,7 +63,7 @@ def _obs_vals_from_measurements(
 
 def _stats_from_measurements(
     bitstrings: np.ndarray,
-    qubit_to_index: Dict[cirq.Qid, int],
+    qubit_to_index: Mapping[cirq.Qid, int],
     observable: cirq.PauliString,
     atol: float,
 ) -> Tuple[float, float]:
@@ -216,7 +216,7 @@ class BitstringAccumulator:
         self,
         meas_spec: _MeasurementSpec,
         simul_settings: List[InitObsSetting],
-        qubit_to_index: Dict[cirq.Qid, int],
+        qubit_to_index: Mapping[cirq.Qid, int],
         bitstrings: Optional[np.ndarray] = None,
         chunksizes: Optional[np.ndarray] = None,
         timestamps: Optional[np.ndarray] = None,
