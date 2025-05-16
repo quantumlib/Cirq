@@ -94,7 +94,7 @@ def quantum_shannon_decomposition(
         return
 
     # Collect all operations from the recursive decomposition
-    shannon_decomp = [op for op in _recursive_decomposition(qubits, u)]
+    shannon_decomp = [*_recursive_decomposition(qubits, u)]
     # Separate all 2-qubit generic gates while keeping track of location
     two_qubit_mat = [
         SimpleNamespace(location=loc, matrix=unitary_protocol.unitary(o))
