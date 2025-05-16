@@ -89,8 +89,7 @@ These instructions are primarily for Linux-based environments that use the `apt`
 package manager.
 
 0. First clone the repository, if you have not already done so.
-See the previous section for instructions.
-
+   See the previous section for instructions.
 
 1. Install system dependencies.
 
