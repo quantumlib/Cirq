@@ -23,7 +23,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 Note that if you are using PyCharm, you might have to use the command Restart & Invalidate Caches to have the change be picked up.
 
-## ## Forking the repository
+## Forking the repository
 
 1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
