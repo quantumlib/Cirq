@@ -16,6 +16,8 @@
 Behavior shared with Circuit is tested with parameters in circuit_test.py.
 """
 
+from __future__ import annotations
+
 import pytest
 import sympy
 

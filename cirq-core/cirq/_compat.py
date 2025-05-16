@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
+
+from __future__ import annotations
+
 import contextlib
 import contextvars
 import dataclasses

@@ -14,6 +14,8 @@
 
 """Tests for AQTDeviceMetadata."""
 
+from __future__ import annotations
+
 from typing import List
 
 import pytest

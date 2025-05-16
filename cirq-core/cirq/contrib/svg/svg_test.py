@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import IPython.display
 import numpy as np
 import pytest

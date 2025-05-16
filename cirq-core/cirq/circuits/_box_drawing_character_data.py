@@ -14,6 +14,8 @@
 
 """Exposes structured data about unicode/ascii box drawing characters."""
 
+from __future__ import annotations
+
 from typing import List, NamedTuple, Optional
 
 _BoxDrawCharacterSet = NamedTuple(

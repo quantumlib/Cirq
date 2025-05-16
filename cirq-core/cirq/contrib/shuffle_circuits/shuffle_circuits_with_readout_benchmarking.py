@@ -17,13 +17,15 @@
 from __future__ import annotations
 
 import time
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import circuits, ops, protocols, work
 from cirq.experiments import SingleQubitReadoutCalibrationResult
-from cirq.study import ResultDict
+
+if TYPE_CHECKING:
+    from cirq.study import ResultDict
 
 
 def _validate_input(

@@ -14,13 +14,15 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional
+from typing import Callable, Optional, TYPE_CHECKING
 
 import networkx as nx
 
 from cirq import circuits, protocols
 from cirq.contrib.routing.greedy import route_circuit_greedily
-from cirq.contrib.routing.swap_network import SwapNetwork
+
+if TYPE_CHECKING:
+    from cirq.contrib.routing.swap_network import SwapNetwork
 
 ROUTERS = {'greedy': route_circuit_greedily}
 
