@@ -24,6 +24,8 @@ arbitrary connectivity. For more information see:
 The native gate set consists of the local gates: X, Y, and XX entangling gates
 """
 
+from __future__ import annotations
+
 import json
 from enum import Enum
 from typing import Any, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union

@@ -13,6 +13,8 @@
 # limitations under the License.
 """Workaround for associating docstrings with public constants."""
 
+from __future__ import annotations
+
 from typing import Any, Dict
 
 RECORDED_CONST_DOCS: Dict[int, str] = {}

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.contrib.paulistring import CliffordTargetGateset, pauli_string_optimized_circuit
 
