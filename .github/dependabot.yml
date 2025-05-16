@@ -16,17 +16,6 @@
 
 version: 2
 updates:
-  - package-ecosystem: "docker"
-    # The "docker" ecosystem directive makes Dependabot look for a Dockerfile
-    # in the specified directory.
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    labels:
-      - "area/dependencies"
-      - "area/docker"
-      - "kind/health"
-
   - package-ecosystem: "github-actions"
     # The "github-actions" code explicitly looks in /.github/workflows if the
     # value "/" is given for the directory attribute. Yes, that's confusing.
