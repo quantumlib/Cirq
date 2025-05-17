@@ -53,8 +53,8 @@ def test_symbolize_single_qubit_gates_by_indexed_tags_multiple_tags():
         cirq.symbolize_single_qubit_gates_by_indexed_tags(input_circuit)
 
 
-def test_symbolize_single_qubit_gates_by_indexed_tags_empty_prefix():
-    with pytest.raises(ValueError, match="Tag prefix cannot be empty to symbolize phxz gates."):
-        cirq.symbolize_single_qubit_gates_by_indexed_tags(
-            cirq.Circuit(), symbolize_tag=SymbolizeTag("")
-        )
+def test_symbolize_tag_invalid_prefix():
+    with pytest.raises(ValueError, match="Length of 'prefix' must be >= 1: 0"):
+        SymbolizeTag(prefix="")
+    with pytest.raises(TypeError, match="'prefix' must be <class 'str'>"):
+        SymbolizeTag(prefix=[1])

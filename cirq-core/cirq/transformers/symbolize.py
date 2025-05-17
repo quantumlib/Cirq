@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Transformers that symbolizes operations."""
+"""Transformers that symbolize operations."""
 
 import re
 from typing import Hashable, Optional, TYPE_CHECKING
 
-import attr
+import attrs
 import sympy
+from attrs import validators
 
 from cirq import ops
 from cirq.transformers import transformer_api, transformer_primitives
@@ -27,9 +28,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-@attr.frozen
+@attrs.frozen
 class SymbolizeTag:
-    prefix: str
+    prefix: str = attrs.field(
+        validator=validators.and_(validators.instance_of(str), validators.min_len(1))
+    )
 
 
 @transformer_api.transformer
@@ -68,9 +71,6 @@ def symbolize_single_qubit_gates_by_indexed_tags(
     Returns:
         Copy of the transformed input circuit.
     """
-
-    if not symbolize_tag.prefix:
-        raise ValueError("Tag prefix cannot be empty to symbolize phxz gates.")
 
     def _map_func(op: 'cirq.Operation', _):
         """Maps an op with tag `{tag_prefix}_i` to a symbolzied `PhasedXZGate(xi,zi,ai)`."""
