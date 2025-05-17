@@ -494,6 +494,36 @@ def _test_controlled_gate_is_consistent(
         np.testing.assert_allclose(cirq.unitary(cgate), cirq.unitary(circuit), atol=1e-13)
 
 
+@pytest.mark.parametrize(
+    'sub_gate, expected_decomposition',
+    [
+        (cirq.X, [cirq.CX]),
+        (cirq.CX, [cirq.CCX]),
+        (cirq.XPowGate(), [cirq.CXPowGate()]),
+        (cirq.CXPowGate(), [cirq.CCXPowGate()]),
+        (cirq.Z, [cirq.CZ]),
+        (cirq.CZ, [cirq.CCZ]),
+        (cirq.ZPowGate(), [cirq.CZPowGate()]),
+        (cirq.CZPowGate(), [cirq.CCZPowGate()]),
+    ],
+)
+def test_controlled_gate_decomposition_uses_canonical_version(sub_gate, expected_decomposition):
+    cgate = cirq.ControlledGate(sub_gate, num_controls=1)
+    qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
+    dec = cirq.decompose_once(cgate.on(*qubits))
+    assert [op.gate for op in dec] == expected_decomposition
+
+
+@pytest.mark.parametrize(
+    'sub_gate, expected_decomposition', [(cirq.Z, [cirq.CZ]), (cirq.ZPowGate(), [cirq.CZPowGate()])]
+)
+def test_controlled_gate_full_decomposition(sub_gate, expected_decomposition):
+    cgate = cirq.ControlledGate(sub_gate, num_controls=1)
+    qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
+    dec = cirq.decompose(cgate.on(*qubits))
+    assert [op.gate for op in dec] == expected_decomposition
+
+
 def test_pow_inverse():
     assert cirq.inverse(CRestricted, None) is None
     assert cirq.pow(CRestricted, 1.5, None) is None
