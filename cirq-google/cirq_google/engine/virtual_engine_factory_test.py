@@ -208,3 +208,12 @@ def test_create_default_noisy_quantum_virtual_machine():
         expected = factory.create_device_spec_from_processor_id(processor_id)
         assert device_specification is not None
         assert device_specification == expected
+
+
+def test_extract_gate_times_ns_from_device():
+    device = factory.create_device_from_processor_id('rainbow')
+    gate_times_ns = factory.extract_gate_times_ns_from_device(device)
+    assert gate_times_ns[cirq.MeasurementGate] == 4_000_000
+    assert gate_times_ns[cg.SycamoreGate] == 12
+    assert cirq.IdentityGate not in gate_times_ns
+    assert cirq.WaitGate not in gate_times_ns
