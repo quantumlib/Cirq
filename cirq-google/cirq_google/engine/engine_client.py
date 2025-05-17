@@ -16,18 +16,7 @@ import datetime
 import sys
 import warnings
 from functools import cached_property
-from typing import (
-    AsyncIterable,
-    Awaitable,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import AsyncIterable, Awaitable, Callable, Optional, Set, TypeVar, Union
 
 import duet
 import proto
@@ -63,7 +52,7 @@ class EngineClient:
 
     def __init__(
         self,
-        service_args: Optional[Dict] = None,
+        service_args: Optional[dict] = None,
         verbose: Optional[bool] = None,
         max_retry_delay_seconds: int = 3600,  # 1 hour
     ) -> None:
@@ -115,14 +104,14 @@ class EngineClient:
 
     async def _send_list_request_async(
         self, func: Callable[[_M], Awaitable[AsyncIterable[_R]]], request: _M
-    ) -> List[_R]:
+    ) -> list[_R]:
         """Sends a request by invoking an asyncio callable and collecting results.
 
         This is used for requests that return paged results. Inside the asyncio
         event loop, we iterate over all results and collect then into a list.
         """
 
-        async def new_func(request: _M) -> List[_R]:
+        async def new_func(request: _M) -> list[_R]:
             pager = await func(request)
             return [item async for item in pager]
 
@@ -158,8 +147,8 @@ class EngineClient:
         program_id: Optional[str],
         code: any_pb2.Any,
         description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> Tuple[str, quantum.QuantumProgram]:
+        labels: Optional[dict[str, str]] = None,
+    ) -> tuple[str, quantum.QuantumProgram]:
         """Creates a Quantum Engine program.
 
         Args:
@@ -209,7 +198,7 @@ class EngineClient:
         project_id: str,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
+        has_labels: Optional[dict[str, str]] = None,
     ):
         """Returns a list of previously executed quantum programs.
 
@@ -271,7 +260,7 @@ class EngineClient:
     set_program_description = duet.sync(set_program_description_async)
 
     async def _set_program_labels_async(
-        self, project_id: str, program_id: str, labels: Dict[str, str], fingerprint: str
+        self, project_id: str, program_id: str, labels: dict[str, str], fingerprint: str
     ) -> quantum.QuantumProgram:
         program_resource_name = _program_name_from_ids(project_id, program_id)
         request = quantum.UpdateQuantumProgramRequest(
@@ -284,7 +273,7 @@ class EngineClient:
         return await self._send_request_async(self.grpc_client.update_quantum_program, request)
 
     async def set_program_labels_async(
-        self, project_id: str, program_id: str, labels: Dict[str, str]
+        self, project_id: str, program_id: str, labels: dict[str, str]
     ) -> quantum.QuantumProgram:
         """Sets (overwriting) the labels for a previously created quantum
         program.
@@ -305,7 +294,7 @@ class EngineClient:
     set_program_labels = duet.sync(set_program_labels_async)
 
     async def add_program_labels_async(
-        self, project_id: str, program_id: str, labels: Dict[str, str]
+        self, project_id: str, program_id: str, labels: dict[str, str]
     ) -> quantum.QuantumProgram:
         """Adds new labels to a previously created quantum program.
 
@@ -331,7 +320,7 @@ class EngineClient:
     add_program_labels = duet.sync(add_program_labels_async)
 
     async def remove_program_labels_async(
-        self, project_id: str, program_id: str, label_keys: List[str]
+        self, project_id: str, program_id: str, label_keys: list[str]
     ) -> quantum.QuantumProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
@@ -385,12 +374,12 @@ class EngineClient:
         run_context: any_pb2.Any = any_pb2.Any(),
         priority: Optional[int] = None,
         description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         *,
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",
-    ) -> Tuple[str, quantum.QuantumJob]:
+    ) -> tuple[str, quantum.QuantumJob]:
         """Creates and runs a job on Quantum Engine.
 
         Either both `run_name` and `device_config_name` must be set, or neither
@@ -480,10 +469,10 @@ class EngineClient:
         program_id: Optional[str] = None,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
+        has_labels: Optional[dict[str, str]] = None,
         execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
-        executed_processor_ids: Optional[List[str]] = None,
-        scheduled_processor_ids: Optional[List[str]] = None,
+        executed_processor_ids: Optional[list[str]] = None,
+        scheduled_processor_ids: Optional[list[str]] = None,
     ):
         """Returns the list of jobs for a given program.
 
@@ -598,7 +587,7 @@ class EngineClient:
         project_id: str,
         program_id: str,
         job_id: str,
-        labels: Dict[str, str],
+        labels: dict[str, str],
         fingerprint: str,
     ) -> quantum.QuantumJob:
         job_resource_name = _job_name_from_ids(project_id, program_id, job_id)
@@ -612,7 +601,7 @@ class EngineClient:
         return await self._send_request_async(self.grpc_client.update_quantum_job, request)
 
     async def set_job_labels_async(
-        self, project_id: str, program_id: str, job_id: str, labels: Dict[str, str]
+        self, project_id: str, program_id: str, job_id: str, labels: dict[str, str]
     ) -> quantum.QuantumJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
@@ -633,7 +622,7 @@ class EngineClient:
     set_job_labels = duet.sync(set_job_labels_async)
 
     async def add_job_labels_async(
-        self, project_id: str, program_id: str, job_id: str, labels: Dict[str, str]
+        self, project_id: str, program_id: str, job_id: str, labels: dict[str, str]
     ) -> quantum.QuantumJob:
         """Adds new labels to a previously created quantum job.
 
@@ -660,7 +649,7 @@ class EngineClient:
     add_job_labels = duet.sync(add_job_labels_async)
 
     async def remove_job_labels_async(
-        self, project_id: str, program_id: str, job_id: str, label_keys: List[str]
+        self, project_id: str, program_id: str, job_id: str, label_keys: list[str]
     ) -> quantum.QuantumJob:
         """Removes labels with given keys from the labels of a previously
         created quantum job.
@@ -746,11 +735,11 @@ class EngineClient:
         code: any_pb2.Any,
         run_context: any_pb2.Any,
         program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
+        program_labels: Optional[dict[str, str]] = None,
         job_id: str,
         priority: Optional[int] = None,
         job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        job_labels: Optional[dict[str, str]] = None,
         processor_id: str = "",
         run_name: str = "",
         snapshot_id: str = "",
@@ -844,7 +833,7 @@ class EngineClient:
 
         return self._stream_manager.submit(project_name, program, job)
 
-    async def list_processors_async(self, project_id: str) -> List[quantum.QuantumProcessor]:
+    async def list_processors_async(self, project_id: str) -> list[quantum.QuantumProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
@@ -883,7 +872,7 @@ class EngineClient:
 
     async def list_calibrations_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
-    ) -> List[quantum.QuantumCalibration]:
+    ) -> list[quantum.QuantumCalibration]:
         """Returns a list of quantum calibrations.
 
         Args:
@@ -960,7 +949,7 @@ class EngineClient:
         processor_id: str,
         start: datetime.datetime,
         end: datetime.datetime,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: Optional[list[str]] = None,
     ):
         """Creates a quantum reservation and returns the created object.
 
@@ -1064,7 +1053,7 @@ class EngineClient:
 
     async def list_reservations_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
-    ) -> List[quantum.QuantumReservation]:
+    ) -> list[quantum.QuantumReservation]:
         """Returns a list of quantum reservations.
 
         Only reservations owned by this project will be returned.
@@ -1099,7 +1088,7 @@ class EngineClient:
         reservation_id: str,
         start: Optional[datetime.datetime] = None,
         end: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: Optional[list[str]] = None,
     ):
         """Updates a quantum reservation.
 
@@ -1146,7 +1135,7 @@ class EngineClient:
 
     async def list_time_slots_async(
         self, project_id: str, processor_id: str, filter_str: str = ''
-    ) -> List[quantum.QuantumTimeSlot]:
+    ) -> list[quantum.QuantumTimeSlot]:
         """Returns a list of quantum time slots on a processor.
 
         Args:
@@ -1197,22 +1186,22 @@ def _reservation_name_from_ids(project_id: str, processor_id: str, reservation_i
     return f'projects/{project_id}/processors/{processor_id}/reservations/{reservation_id}'
 
 
-def _ids_from_program_name(program_name: str) -> Tuple[str, str]:
+def _ids_from_program_name(program_name: str) -> tuple[str, str]:
     parts = program_name.split('/')
     return parts[1], parts[3]
 
 
-def _ids_from_job_name(job_name: str) -> Tuple[str, str, str]:
+def _ids_from_job_name(job_name: str) -> tuple[str, str, str]:
     parts = job_name.split('/')
     return parts[1], parts[3], parts[5]
 
 
-def _ids_from_processor_name(processor_name: str) -> Tuple[str, str]:
+def _ids_from_processor_name(processor_name: str) -> tuple[str, str]:
     parts = processor_name.split('/')
     return parts[1], parts[3]
 
 
-def _ids_from_calibration_name(calibration_name: str) -> Tuple[str, str, int]:
+def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     parts = calibration_name.split('/')
     return parts[1], parts[3], int(parts[5])
 

@@ -14,7 +14,7 @@
 
 import asyncio
 import concurrent
-from typing import AsyncIterable, AsyncIterator, Awaitable, List, Sequence, Union
+from typing import AsyncIterable, AsyncIterator, Awaitable, Sequence, Union
 from unittest import mock
 
 import duet
@@ -70,8 +70,8 @@ class FakeQuantumRunStream:
     _REQUEST_STOPPED = 'REQUEST_STOPPED'
 
     def __init__(self) -> None:
-        self.all_stream_requests: List[quantum.QuantumRunStreamRequest] = []
-        self.all_cancel_requests: List[quantum.CancelQuantumJobRequest] = []
+        self.all_stream_requests: list[quantum.QuantumRunStreamRequest] = []
+        self.all_cancel_requests: list[quantum.CancelQuantumJobRequest] = []
         self._executor = AsyncioExecutor.instance()
         self._request_buffer = duet.AsyncCollector[quantum.QuantumRunStreamRequest]()
         self._request_iterator_stopped: duet.AwaitableFuture[None] = duet.AwaitableFuture()

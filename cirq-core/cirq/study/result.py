@@ -23,7 +23,6 @@ from typing import (
     Any,
     Callable,
     cast,
-    Dict,
     Iterable,
     Mapping,
     Optional,
@@ -48,7 +47,7 @@ T = TypeVar('T')
 TMeasurementKey = Union[str, 'cirq.Qid', Iterable['cirq.Qid']]
 
 
-def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
+def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> tuple[int, ...]:
     """Returns the big-endian integers specified by groups of bits.
 
     Args:
@@ -291,7 +290,7 @@ class Result(abc.ABC):
             raise ValueError(
                 f'Cannot add results with different measurement shapes: {shape} != {other_shape}'
             )
-        all_records: Dict[str, np.ndarray] = {}
+        all_records: dict[str, np.ndarray] = {}
         for key in other.records:
             all_records[key] = np.append(self.records[key], other.records[key], axis=0)
         return ResultDict(params=self.params, records=all_records)
@@ -435,7 +434,7 @@ class ResultDict(Result):
         return cls._from_packed_records(params=params, records=kwargs['records'])
 
 
-def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:
+def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> tuple[str, bool]:
     """Returns a string of packed digits and a boolean indicating whether the
     digits were packed as binary values.
 

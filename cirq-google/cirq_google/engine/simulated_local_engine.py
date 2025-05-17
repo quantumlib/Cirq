@@ -22,7 +22,7 @@ As an example, to run a circuit against the xmon simulator on the cloud,
 In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
 """
-from typing import List
+
 
 from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
@@ -41,5 +41,5 @@ class SimulatedLocalEngine(AbstractLocalEngine):
 
     """
 
-    def __init__(self, processors: List[AbstractLocalProcessor]):
+    def __init__(self, processors: list[AbstractLocalProcessor]):
         super().__init__(processors)

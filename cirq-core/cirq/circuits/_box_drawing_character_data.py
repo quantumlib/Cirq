@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import List, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
 _BoxDrawCharacterSet = NamedTuple(
     '_BoxDrawCharacterSet',
@@ -121,7 +121,7 @@ class MixedBoxDrawCharacterSet(_MixedBoxDrawCharacterSet):
     def char(
         self, *, top: int = 0, bottom: int = 0, left: int = 0, right: int = 0
     ) -> Optional[str]:
-        def parts_with(val: int) -> List[str]:
+        def parts_with(val: int) -> list[str]:
             parts = []
             if top == val:
                 parts.append('top')

@@ -20,7 +20,7 @@ when combined with a run context, will become a quantum job.
 
 import abc
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google.cloud import quantum
@@ -66,7 +66,7 @@ class AbstractProgram(abc.ABC):
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
+        has_labels: Optional[dict[str, str]] = None,
         execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ) -> Sequence['abstract_job.AbstractJob']:
         """Returns the list of jobs for this program.
@@ -118,11 +118,11 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
 
     @abc.abstractmethod
-    def set_labels(self, labels: Dict[str, str]) -> 'AbstractProgram':
+    def set_labels(self, labels: dict[str, str]) -> 'AbstractProgram':
         """Sets (overwriting) the labels for a previously created quantum program.
 
         Params:
@@ -133,7 +133,7 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def add_labels(self, labels: Dict[str, str]) -> 'AbstractProgram':
+    def add_labels(self, labels: dict[str, str]) -> 'AbstractProgram':
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -144,7 +144,7 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def remove_labels(self, keys: List[str]) -> 'AbstractProgram':
+    def remove_labels(self, keys: list[str]) -> 'AbstractProgram':
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 

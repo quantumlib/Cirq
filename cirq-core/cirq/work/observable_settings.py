@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import numbers
-from typing import Dict, FrozenSet, Iterable, Mapping, Optional, Tuple, TYPE_CHECKING, Union
+from typing import FrozenSet, Iterable, Mapping, Optional, TYPE_CHECKING, Union
 
 import sympy
 
@@ -80,7 +80,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Optional[o
     The returned value need not actually be present in the input observables.
     Coefficients from input observables will be dropped.
     """
-    qubit_pauli_map: Dict[ops.Qid, ops.Pauli] = {}
+    qubit_pauli_map: dict[ops.Qid, ops.Pauli] = {}
     for observable in observables:
         for qubit, pauli in observable.items():
             if qubit in qubit_pauli_map:
@@ -104,7 +104,7 @@ def _max_weight_state(states: Iterable[value.ProductState]) -> Optional[value.Pr
     "+X(0) * -Z(1)". Asking for the max weight state of something like
     [+X(0), +Z(0)] will return None.
     """
-    qubit_state_map: Dict[ops.Qid, _NamedOneQubitState] = {}
+    qubit_state_map: dict[ops.Qid, _NamedOneQubitState] = {}
     for state in states:
         for qubit, named_state in state:
             if qubit in qubit_state_map:
@@ -130,7 +130,7 @@ def observables_to_settings(
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
-def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int, Tuple[int, int]]:
+def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int, tuple[int, int]]:
     """Convert floating point or complex numbers to (implicitly) fixed point
     integers. Complex numbers will return fixed-point (real, imag) tuples.
 
@@ -146,9 +146,9 @@ def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int
 
 
 def _hashable_param(
-    param_tuples: Iterable[Tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
+    param_tuples: Iterable[tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
     precision=1e7,
-) -> FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]]:
+) -> FrozenSet[tuple[str, Union[int, tuple[int, int]]]]:
     """Hash circuit parameters using fixed precision.
 
     Circuit parameters can be complex but we also need to use them as

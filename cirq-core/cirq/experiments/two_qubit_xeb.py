@@ -20,7 +20,7 @@ import functools
 import itertools
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, cast, Dict, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, cast, Mapping, Optional, Sequence, TYPE_CHECKING
 
 import networkx as nx
 import numpy as np
@@ -63,7 +63,7 @@ def qubits_and_pairs(
     sampler: cirq.Sampler,
     qubits: Optional[Sequence[cirq.GridQubit]] = None,
     pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]] = None,
-) -> Tuple[Sequence[cirq.GridQubit], Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]]:
+) -> tuple[Sequence[cirq.GridQubit], Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]]:
     """Extract qubits and pairs from sampler.
 
 
@@ -106,7 +106,7 @@ class TwoQubitXEBResult:
     fidelities: pd.DataFrame
 
     @functools.cached_property
-    def _qubit_pair_map(self) -> Dict[Tuple[cirq.GridQubit, cirq.GridQubit], int]:
+    def _qubit_pair_map(self) -> dict[tuple[cirq.GridQubit, cirq.GridQubit], int]:
         if isinstance(self.fidelities.index[0][0], ops.Qid):
             return {
                 (min(q0, q1), max(q0, q1)): i for i, (q0, q1) in enumerate(self.fidelities.index)
@@ -117,7 +117,7 @@ class TwoQubitXEBResult:
         }
 
     @functools.cached_property
-    def all_qubit_pairs(self) -> Tuple[Tuple[cirq.GridQubit, cirq.GridQubit], ...]:
+    def all_qubit_pairs(self) -> tuple[tuple[cirq.GridQubit, cirq.GridQubit], ...]:
         return tuple(sorted(self._qubit_pair_map.keys()))
 
     def plot_heatmap(self, ax: Optional[plt.Axes] = None, **plot_kwargs) -> plt.Axes:
@@ -134,7 +134,7 @@ class TwoQubitXEBResult:
         show_plot = not ax
         if not isinstance(ax, plt.Axes):
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        heatmap_data: Dict[Tuple[cirq.GridQubit, ...], float] = {
+        heatmap_data: dict[tuple[cirq.GridQubit, ...], float] = {
             pair: self.xeb_error(*pair) for pair in self.all_qubit_pairs
         }
 
@@ -198,7 +198,7 @@ class TwoQubitXEBResult:
         """Return the XEB error of a qubit pair."""
         return 1 - self.xeb_fidelity(q0, q1)
 
-    def all_errors(self) -> Dict[Tuple[cirq.GridQubit, cirq.GridQubit], float]:
+    def all_errors(self) -> dict[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the XEB error of all qubit pairs."""
         return {(q0, q1): self.xeb_error(q0, q1) for q0, q1 in self.all_qubit_pairs}
 
@@ -222,7 +222,7 @@ class TwoQubitXEBResult:
         return ax
 
     @cached_method
-    def pauli_error(self) -> Dict[Tuple[cirq.GridQubit, cirq.GridQubit], float]:
+    def pauli_error(self) -> dict[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the Pauli error of all qubit pairs."""
         return {
             pair: noise_utils.decay_constant_to_pauli_error(
@@ -245,7 +245,7 @@ class InferredXEBResult:
     xeb_result: TwoQubitXEBResult
 
     @property
-    def all_qubit_pairs(self) -> Sequence[Tuple[cirq.GridQubit, cirq.GridQubit]]:
+    def all_qubit_pairs(self) -> Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]:
         return self.xeb_result.all_qubit_pairs
 
     @cached_method
@@ -254,12 +254,12 @@ class InferredXEBResult:
         return self.rb_result.pauli_error()
 
     @cached_method
-    def two_qubit_pauli_error(self) -> Mapping[Tuple[cirq.GridQubit, cirq.GridQubit], float]:
+    def two_qubit_pauli_error(self) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the two-qubit Pauli error for all pairs."""
         return MappingProxyType(self.xeb_result.pauli_error())
 
     @cached_method
-    def inferred_pauli_error(self) -> Mapping[Tuple[cirq.GridQubit, cirq.GridQubit], float]:
+    def inferred_pauli_error(self) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the inferred Pauli error for all pairs."""
         single_q_paulis = self.rb_result.pauli_error()
         xeb = self.xeb_result.pauli_error()
@@ -271,7 +271,7 @@ class InferredXEBResult:
         return MappingProxyType({pair: _pauli_error(*pair) for pair in self.all_qubit_pairs})
 
     @cached_method
-    def inferred_decay_constant(self) -> Mapping[Tuple[cirq.GridQubit, cirq.GridQubit], float]:
+    def inferred_decay_constant(self) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the inferred decay constant for all pairs."""
         return MappingProxyType(
             {
@@ -281,7 +281,7 @@ class InferredXEBResult:
         )
 
     @cached_method
-    def inferred_xeb_error(self) -> Mapping[Tuple[cirq.GridQubit, cirq.GridQubit], float]:
+    def inferred_xeb_error(self) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Return the inferred XEB error for all pairs."""
         return MappingProxyType(
             {
@@ -292,7 +292,7 @@ class InferredXEBResult:
 
     def _target_errors(
         self, target_error: str
-    ) -> Mapping[Tuple[cirq.GridQubit, cirq.GridQubit], float]:
+    ) -> Mapping[tuple[cirq.GridQubit, cirq.GridQubit], float]:
         """Returns requested error.
 
         The requested error must be one of 'pauli', 'decay_constant', or 'xeb'.
@@ -328,7 +328,7 @@ class InferredXEBResult:
         if not isinstance(ax, plt.Axes):
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         heatmap_data = cast(
-            Mapping[Tuple['cirq.GridQubit', ...], float], self._target_errors(target_error)
+            Mapping[tuple['cirq.GridQubit', ...], float], self._target_errors(target_error)
         )
 
         name = f'{target_error} error' if target_error != 'decay_constant' else 'decay constant'
@@ -410,7 +410,7 @@ def parallel_xeb_workflow(
     batch_size: int = 9,
     tags: Sequence[Any] = (),
     **plot_kwargs,
-) -> Tuple[pd.DataFrame, Sequence[cirq.Circuit], pd.DataFrame]:
+) -> tuple[pd.DataFrame, Sequence[cirq.Circuit], pd.DataFrame]:
     """A utility method that runs the full XEB workflow.
 
     Args:

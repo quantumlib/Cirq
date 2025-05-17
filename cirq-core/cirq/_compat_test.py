@@ -27,7 +27,7 @@ import types
 import warnings
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Optional
 from unittest import mock
 
 import duet
@@ -1017,16 +1017,16 @@ def test_block_overlapping_deprecation():
 
 class Bar:
     def __init__(self) -> None:
-        self.foo_calls: Dict[int, int] = collections.Counter()
-        self.bar_calls: Dict[int, int] = collections.Counter()
+        self.foo_calls: dict[int, int] = collections.Counter()
+        self.bar_calls: dict[int, int] = collections.Counter()
 
     @cached_method
-    def foo(self, n: int) -> Tuple[int, int]:
+    def foo(self, n: int) -> tuple[int, int]:
         self.foo_calls[n] += 1
         return (id(self), n)
 
     @cached_method(maxsize=1)
-    def bar(self, n: int) -> Tuple[int, int]:
+    def bar(self, n: int) -> tuple[int, int]:
         self.bar_calls[n] += 1
         return (id(self), 2 * n)
 

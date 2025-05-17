@@ -14,7 +14,7 @@
 """Wraps Parallel Two Qubit XEB into a few convenience methods."""
 import io
 import itertools
-from typing import Dict, Optional, Sequence
+from typing import Optional, Sequence
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -158,7 +158,7 @@ def test_pauli_error(q0: cirq.GridQubit, q1: cirq.GridQubit, pauli: float):
 
 
 class MockParallelRandomizedBenchmarkingResult(ParallelRandomizedBenchmarkingResult):
-    def pauli_error(self) -> Dict[cirq.Qid, float]:
+    def pauli_error(self) -> dict[cirq.Qid, float]:
         return {
             cirq.GridQubit(4, 4): 0.01,
             cirq.GridQubit(5, 4): 0.02,

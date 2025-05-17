@@ -15,20 +15,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Callable, cast, Iterable, Iterator, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
@@ -68,8 +55,8 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
                 too small modulus.
         """
         self.identifier = identifier
-        self.target: Tuple[int, ...] = tuple(target)
-        self.inputs: Tuple[Union[Sequence[int], int], ...] = tuple(
+        self.target: tuple[int, ...] = tuple(target)
+        self.inputs: tuple[Union[Sequence[int], int], ...] = tuple(
             e if isinstance(e, int) else tuple(e) for e in inputs
         )
 
@@ -112,10 +99,10 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
     def apply(self, *registers: int) -> Union[int, Iterable[int]]:
         return self.operation(*registers)
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> List[str]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
         lettered_args = list(zip(self.operation.letters, self.inputs))
 
-        result: List[str] = []
+        result: list[str] = []
 
         # Target register labels.
         consts = ''.join(
@@ -161,7 +148,7 @@ class _QuirkArithmeticCallable:
         self.func = func
 
         # The lambda parameter names indicate the input letter to match.
-        letters: List[str] = list(inspect.signature(self.func).parameters)
+        letters: list[str] = list(inspect.signature(self.func).parameters)
         # The target is always first, and should be ignored.
         assert letters and letters[0] == 'x'
         self.letters = tuple(letters[1:])
@@ -207,7 +194,7 @@ class ArithmeticCell(Cell):
             f'\n    {self.inputs!r})'
         )
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return ArithmeticCell(
             identifier=self.identifier,
             target=Cell._replace_qubits(self.target, qubits),
@@ -304,7 +291,7 @@ def _generate_helper() -> Iterator[CellMaker]:
     )
 
 
-def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
+def _extended_gcd(a: int, b: int) -> tuple[int, int, int]:
     if a == 0:
         return b, 0, 1
     gcd, y, x = _extended_gcd(b % a, a)
@@ -360,9 +347,9 @@ def _arithmetic_gate(identifier: str, size: int, func: _IntsToIntCallable) -> Ce
     )
 
 
-ARITHMETIC_OP_TABLE: Dict[str, _QuirkArithmeticCallable] = {}
+ARITHMETIC_OP_TABLE: dict[str, _QuirkArithmeticCallable] = {}
 # Caching is necessary in order to avoid overwriting entries in the table.
-_cached_cells: Optional[Tuple[CellMaker, ...]] = None
+_cached_cells: Optional[tuple[CellMaker, ...]] = None
 
 
 def generate_all_arithmetic_cell_makers() -> Iterable[CellMaker]:

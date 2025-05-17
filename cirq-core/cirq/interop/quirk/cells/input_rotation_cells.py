@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Iterable, Iterator, Optional, Sequence, Union
 
 import numpy as np
 
@@ -54,7 +54,7 @@ class InputRotationCell(Cell):
     def gate_count(self) -> int:
         return 1
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return InputRotationCell(
             self.identifier,
             None if self.register is None else Cell._replace_qubits(self.register, qubits),
@@ -115,7 +115,7 @@ class QuirkInputRotationOperation(ops.Operation):
         return (self.identifier, self.register, self.base_operation, self.exponent_sign)
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return tuple(self.base_operation.qubits) + self.register
 
     def with_qubits(self, *new_qubits):

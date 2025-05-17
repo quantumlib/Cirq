@@ -20,10 +20,8 @@ from typing import (
     Any,
     Callable,
     cast,
-    Dict,
     FrozenSet,
     Hashable,
-    List,
     Optional,
     Sequence,
     Type,
@@ -270,8 +268,8 @@ class GateFamily:
             self._tags_to_ignore,
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
+    def _json_dict_(self) -> dict[str, Any]:
+        d: dict[str, Any] = {
             'gate': self._gate_json(),
             'name': self.name,
             'description': self.description,
@@ -346,10 +344,10 @@ class Gateset:
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
-        self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
-        self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
+        self._instance_gate_families: dict[raw_types.Gate, GateFamily] = {}
+        self._type_gate_families: dict[Type[raw_types.Gate], GateFamily] = {}
         self._gates_repr_str = ", ".join([_gate_str(g, repr) for g in gates])
-        unique_gate_list: List[GateFamily] = list(
+        unique_gate_list: list[GateFamily] = list(
             dict.fromkeys(g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates)
         )
 
@@ -512,7 +510,7 @@ class Gateset:
             header += self.name
         return f'{header}\n' + "\n\n".join([str(g) for g in self._unique_gate_list])
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'gates': self._unique_gate_list,
             'name': self.name,

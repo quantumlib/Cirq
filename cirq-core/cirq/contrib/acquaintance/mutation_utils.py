@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import collections
-from typing import cast, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import cast, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, transformers
 from cirq.contrib.acquaintance.devices import get_acquaintance_size
@@ -43,7 +43,7 @@ def rectify_acquaintance_strategy(circuit: cirq.Circuit, acquaint_first: bool = 
     """
     rectified_moments = []
     for moment in circuit:
-        gate_type_to_ops: Dict[bool, List[ops.GateOperation]] = collections.defaultdict(list)
+        gate_type_to_ops: dict[bool, list[ops.GateOperation]] = collections.defaultdict(list)
         for op in moment.operations:
             gate_op = cast(ops.GateOperation, op)
             is_acquaintance = isinstance(gate_op.gate, AcquaintanceOpportunityGate)

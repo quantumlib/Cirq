@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from types import NotImplementedType
-from typing import AbstractSet, List, Sequence, Tuple, Union
+from typing import AbstractSet, Sequence, Union
 
 import numpy as np
 import pytest
@@ -176,7 +176,7 @@ class BadGateRepr(GoodGate):
 
 
 class GoodEigenGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def __repr__(self):

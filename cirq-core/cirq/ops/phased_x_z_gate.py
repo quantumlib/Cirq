@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Iterator, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -166,7 +166,7 @@ class PhasedXZGate(raw_types.Gate):
             z_exponent=z_exponent,
         )
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         from cirq.circuits import qasm_output
 
         qasm_gate = qasm_output.QasmUGate(
@@ -300,7 +300,7 @@ class PhasedXZGate(raw_types.Gate):
             f'z_exponent={proper_repr(self._z_exponent)})'
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent']
         )

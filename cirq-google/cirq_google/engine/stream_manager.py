@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import asyncio
-from typing import AsyncIterator, Dict, Optional, Union
+from typing import AsyncIterator, Optional, Union
 
 import duet
 import google.api_core.exceptions as google_exceptions
@@ -49,7 +49,7 @@ class ResponseDemux:
 
     def __init__(self) -> None:
         # [message ID] : [subscriber future]
-        self._subscribers: Dict[str, asyncio.Future] = {}
+        self._subscribers: dict[str, asyncio.Future] = {}
 
     def subscribe(self, message_id: str) -> asyncio.Future:
         """Subscribes to the QuantumRunStreamResponse with a matching ID.

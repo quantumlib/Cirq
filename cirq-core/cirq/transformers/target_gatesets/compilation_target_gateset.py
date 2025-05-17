@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Hashable, List, Optional, Type, TYPE_CHECKING, Union
+from typing import Hashable, Optional, Type, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
@@ -155,7 +155,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         return "_default_merged_k_qubit_unitaries"
 
     @property
-    def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run before decomposing individual operations."""
         reorder_transfomers = (
             [transformers.insertion_sort_transformer] if self._reorder_operations else []
@@ -174,9 +174,9 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         ]
 
     @property
-    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
-        processors: List[cirq.TRANSFORMER] = [
+        processors: list[cirq.TRANSFORMER] = [
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
             transformers.drop_negligible_operations,
             transformers.drop_empty_moments,
@@ -250,7 +250,7 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         )
         if switch_to_new:
             return new_optree
-        mapped_old_optree: List[cirq.OP_TREE] = []
+        mapped_old_optree: list[cirq.OP_TREE] = []
         for old_op in ops.flatten_to_ops(old_optree):
             if old_op in self:
                 mapped_old_optree.append(old_op)

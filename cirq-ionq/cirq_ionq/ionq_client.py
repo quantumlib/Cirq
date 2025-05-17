@@ -19,7 +19,7 @@ import platform
 import sys
 import time
 import urllib
-from typing import Any, Callable, cast, Dict, List, Optional
+from typing import Any, Callable, cast, Optional
 
 import requests
 
@@ -133,7 +133,7 @@ class _IonQClient:
         """
         actual_target = self._target(target)
 
-        json: Dict[str, Any] = {
+        json: dict[str, Any] = {
             'target': actual_target,
             'lang': 'json',
             'body': serialized_program.body,
@@ -216,7 +216,7 @@ class _IonQClient:
 
     def list_jobs(
         self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Lists jobs from the IonQ API.
 
         Args:
@@ -285,7 +285,7 @@ class _IonQClient:
         end: Optional[datetime.datetime] = None,
         limit: int = 100,
         batch_size: int = 1000,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """Lists calibrations from the IonQ API.
 
         Args:
@@ -415,7 +415,7 @@ class _IonQClient:
 
     def _list(
         self, resource_path: str, params: dict, response_key: str, limit: int, batch_size: int
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Helper method for list calls.
 
         Args:
@@ -431,7 +431,7 @@ class _IonQClient:
         """
         json = {'limit': batch_size}
         token: Optional[str] = None
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
         while len(results) < limit:
             full_params = params.copy()
             if token:

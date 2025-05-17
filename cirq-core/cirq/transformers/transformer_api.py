@@ -26,10 +26,8 @@ from typing import (
     Callable,
     cast,
     Hashable,
-    List,
     Optional,
     overload,
-    Tuple,
     Type,
     TYPE_CHECKING,
     TypeVar,
@@ -87,8 +85,8 @@ class _LoggerNode:
     transformer_name: str
     initial_circuit: cirq.AbstractCircuit
     final_circuit: cirq.AbstractCircuit
-    logs: List[Tuple[LogLevel, Tuple[str, ...]]] = dataclasses.field(default_factory=list)
-    nested_loggers: List[int] = dataclasses.field(default_factory=list)
+    logs: list[tuple[LogLevel, tuple[str, ...]]] = dataclasses.field(default_factory=list)
+    nested_loggers: list[int] = dataclasses.field(default_factory=list)
 
 
 class TransformerLogger:
@@ -115,8 +113,8 @@ class TransformerLogger:
     def __init__(self) -> None:
         """Initializes TransformerLogger."""
         self._curr_id: int = 0
-        self._logs: List[_LoggerNode] = []
-        self._stack: List[int] = []
+        self._logs: list[_LoggerNode] = []
+        self._stack: list[int] = []
 
     def register_initial(self, circuit: cirq.AbstractCircuit, transformer_name: str) -> None:
         """Register the beginning of a new transformer stage.
@@ -227,7 +225,7 @@ class TransformerContext:
     """
 
     logger: TransformerLogger = NoOpTransformerLogger()
-    tags_to_ignore: Tuple[Hashable, ...] = ()
+    tags_to_ignore: tuple[Hashable, ...] = ()
     deep: bool = False
 
 

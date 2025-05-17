@@ -15,7 +15,7 @@
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 
 from types import NotImplementedType
-from typing import Any, Sequence, Tuple, Union
+from typing import Any, Sequence, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -27,14 +27,14 @@ from cirq.protocols.unitary_protocol import unitary
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided: Sequence[Tuple[float, Any]] = ((0.0, []),)
+RaiseTypeErrorIfNotProvided: Sequence[tuple[float, Any]] = ((0.0, []),)
 
 
 class SupportsMixture(Protocol):
     """An object that decomposes into a probability distribution of unitaries."""
 
     @doc_private
-    def _mixture_(self) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
+    def _mixture_(self) -> Union[Sequence[tuple[float, Any]], NotImplementedType]:
         """Decompose into a probability distribution of unitaries.
 
         This method is used by the global `cirq.mixture` method.
@@ -65,7 +65,7 @@ class SupportsMixture(Protocol):
 
 def mixture(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
-) -> Sequence[Tuple[float, np.ndarray]]:
+) -> Sequence[tuple[float, np.ndarray]]:
     """Return a sequence of tuples representing a probabilistic unitary.
 
     A mixture is described by an iterable of tuples of the form

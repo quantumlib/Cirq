@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import json
-from typing import Any, cast, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, cast, Iterator, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -33,7 +33,7 @@ def _load_json_bool(b: Any):
 
 
 def gate_to_proto(
-    gate: cirq.Gate, qubits: Tuple[cirq.Qid, ...], delay: int
+    gate: cirq.Gate, qubits: tuple[cirq.Qid, ...], delay: int
 ) -> operations_pb2.Operation:
     if isinstance(gate, cirq.MeasurementGate):
         return operations_pb2.Operation(
@@ -173,7 +173,7 @@ def circuit_from_schedule_from_protos(ops) -> cirq.Circuit:
     return ret
 
 
-def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
+def pack_results(measurements: Sequence[tuple[str, np.ndarray]]) -> bytes:
     """Pack measurement results into a byte string.
 
     Args:
@@ -215,8 +215,8 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
 
 
 def unpack_results(
-    data: bytes, repetitions: int, key_sizes: Sequence[Tuple[str, int]]
-) -> Dict[str, np.ndarray]:
+    data: bytes, repetitions: int, key_sizes: Sequence[tuple[str, int]]
+) -> dict[str, np.ndarray]:
     """Unpack data from a bitstring into individual measurement results.
 
     Args:
@@ -234,7 +234,7 @@ def unpack_results(
     total_bits = repetitions * bits_per_rep
 
     byte_arr = np.frombuffer(data, dtype='uint8').reshape((len(data), 1))
-    bits: np.ndarray[Tuple[int, ...], np.dtype[Any]]
+    bits: np.ndarray[tuple[int, ...], np.dtype[Any]]
     bits = np.unpackbits(byte_arr, axis=1)[:, ::-1].reshape(-1).astype(bool)
     bits = bits[:total_bits].reshape((repetitions, bits_per_rep))
 

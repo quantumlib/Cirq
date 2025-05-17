@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, List, Optional, overload, Union
+from typing import Any, Iterable, Optional, overload, Union
 
 
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
@@ -46,7 +46,7 @@ def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
     return result
 
 
-def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
+def big_endian_int_to_bits(val: int, *, bit_count: int) -> list[int]:
     """Returns the big-endian bits of an integer.
 
     Args:
@@ -120,18 +120,18 @@ def big_endian_digits_to_int(digits: Iterable[int], *, base: Union[int, Iterable
 
 # pylint: disable=function-redefined
 @overload
-def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> List[int]:
+def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> list[int]:
     pass
 
 
 @overload
-def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> List[int]:
+def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> list[int]:
     pass
 
 
 def big_endian_int_to_digits(
     val: int, *, digit_count: Optional[int] = None, base: Union[int, Iterable[int]]
-) -> List[int]:
+) -> list[int]:
     """Separates an integer into big-endian digits.
 
     Args:

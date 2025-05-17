@@ -20,7 +20,6 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
-    Dict,
     Generic,
     ItemsView,
     Iterable,
@@ -30,7 +29,6 @@ from typing import (
     MutableMapping,
     Optional,
     overload,
-    Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
@@ -95,7 +93,7 @@ def _format_term(format_spec: str, vector: TVector, coefficient: cirq.TParamValC
     return '+' + result
 
 
-def _format_terms(terms: Iterable[Tuple[TVector, cirq.TParamValComplex]], format_spec: str):
+def _format_terms(terms: Iterable[tuple[TVector, cirq.TParamValComplex]], format_spec: str):
     formatted_terms = [_format_term(format_spec, vector, coeff) for vector, coeff in terms]
     s = ''.join(formatted_terms)
     if not s:
@@ -138,7 +136,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         """
         self._has_validator = validator is not None
         self._is_valid = validator or (lambda x: True)
-        self._terms: Dict[TVector, cirq.TParamValComplex] = {}
+        self._terms: dict[TVector, cirq.TParamValComplex] = {}
         if terms is not None:
             self.update(terms)
 
@@ -192,7 +190,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     @overload
     def update(
         self,
-        other: Iterable[Tuple[TVector, cirq.TParamValComplex]],
+        other: Iterable[tuple[TVector, cirq.TParamValComplex]],
         **kwargs: cirq.TParamValComplex,
     ) -> None:
         pass
@@ -354,7 +352,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         else:
             p.text(str(self))
 
-    def _json_dict_(self) -> Dict[Any, Any]:
+    def _json_dict_(self) -> dict[Any, Any]:
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
         return {

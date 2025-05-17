@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List, Sequence, Tuple
+from typing import Sequence
 
 import numpy as np
 import sympy
@@ -24,7 +24,7 @@ from cirq.contrib.custom_simulators.custom_state_simulator import CustomStateSim
 
 
 class ComputationalBasisState(cirq.qis.QuantumStateRepresentation):
-    def __init__(self, initial_state: List[int]):
+    def __init__(self, initial_state: list[int]):
         self.basis = initial_state
 
     def copy(self, deep_copy_buffers: bool = True) -> ComputationalBasisState:
@@ -136,7 +136,7 @@ def test_parameterized_repetitions():
 
 
 class ComputationalBasisProductState(cirq.qis.QuantumStateRepresentation):
-    def __init__(self, initial_state: List[int]):
+    def __init__(self, initial_state: list[int]):
         self.basis = initial_state
 
     def copy(self, deep_copy_buffers: bool = True) -> ComputationalBasisProductState:
@@ -150,7 +150,7 @@ class ComputationalBasisProductState(cirq.qis.QuantumStateRepresentation):
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple[ComputationalBasisProductState, ComputationalBasisProductState]:
+    ) -> tuple[ComputationalBasisProductState, ComputationalBasisProductState]:
         extracted = ComputationalBasisProductState(
             [self.basis[i] for i in axes]
         )  # pragma: no cover

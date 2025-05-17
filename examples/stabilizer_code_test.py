@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import cast, List, Optional
+from typing import cast, Optional
 
 import numpy as np
 import pytest
@@ -15,13 +15,13 @@ def encode_corrupt_correct(
     error_loc: int,
 ):
     circuit = cirq.Circuit()
-    additional_qubits: List[cirq.Qid] = cast(
-        List[cirq.Qid], [cirq.NamedQubit(str(i)) for i in range(code.n - code.k)]
+    additional_qubits: list[cirq.Qid] = cast(
+        list[cirq.Qid], [cirq.NamedQubit(str(i)) for i in range(code.n - code.k)]
     )
-    unencoded_qubits: List[cirq.Qid] = cast(List[cirq.Qid], [cirq.NamedQubit('c')])
+    unencoded_qubits: list[cirq.Qid] = cast(list[cirq.Qid], [cirq.NamedQubit('c')])
     qubits = additional_qubits + unencoded_qubits
-    ancillas: List[cirq.Qid] = cast(
-        List[cirq.Qid], [cirq.NamedQubit(f"d{i}") for i in range(code.n - code.k)]
+    ancillas: list[cirq.Qid] = cast(
+        list[cirq.Qid], [cirq.NamedQubit(f"d{i}") for i in range(code.n - code.k)]
     )
 
     circuit += code.encode(additional_qubits, unencoded_qubits)

@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, List, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Any, Iterator, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -192,12 +192,12 @@ class Simulator(
     def simulate_expectation_values_sweep_iter(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        observables: Union[cirq.PauliSumLike, list[cirq.PauliSumLike]],
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> Iterator[List[float]]:
+    ) -> Iterator[list[float]]:
         if not permit_terminal_measurements and program.are_any_measurements_terminal():
             raise ValueError(
                 'Provided circuit has terminal measurements, which may '
@@ -206,7 +206,7 @@ class Simulator(
             )
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
-        if not isinstance(observables, List):
+        if not isinstance(observables, list):
             observables = [observables]
         pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
         yield from (

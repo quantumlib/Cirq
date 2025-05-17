@@ -14,7 +14,7 @@
 """Helper for testing python logging statements."""
 import contextlib
 import logging
-from typing import Iterator, List, Optional
+from typing import Iterator, Optional
 
 
 @contextlib.contextmanager
@@ -24,7 +24,7 @@ def assert_logs(
     min_level: int = logging.WARNING,
     max_level: int = logging.CRITICAL,
     capture_warnings: bool = True,
-) -> Iterator[List[logging.LogRecord]]:
+) -> Iterator[list[logging.LogRecord]]:
     """A context manager for testing logging and warning events.
 
     To use this one wraps the code that is to be tested for log events within

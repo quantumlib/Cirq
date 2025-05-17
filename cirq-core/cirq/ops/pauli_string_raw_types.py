@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 from typing_extensions import Self
 
@@ -43,7 +43,7 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         return self.map_qubits(dict(zip(self.pauli_string.qubits, new_qubits)))
 
     @abc.abstractmethod
-    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]) -> Self:
+    def map_qubits(self, qubit_map: dict[raw_types.Qid, raw_types.Qid]) -> Self:
         """Return an equivalent operation on new qubits with its Pauli string
         mapped to new qubits.
 
@@ -51,7 +51,7 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         """
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> tuple[raw_types.Qid, ...]:
         return tuple(self.pauli_string)
 
     def _pauli_string_diagram_info(

@@ -14,19 +14,7 @@
 
 from __future__ import annotations
 
-from typing import (
-    Any,
-    cast,
-    Dict,
-    FrozenSet,
-    Iterable,
-    Iterator,
-    Mapping,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, cast, FrozenSet, Iterable, Iterator, Mapping, Sequence, TYPE_CHECKING, Union
 
 from cirq import protocols, value
 from cirq.ops import (
@@ -94,7 +82,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def mkey(self) -> cirq.MeasurementKey:
         return self._mkey
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return (2,) * len(self._observable)
 
     def _has_unitary_(self) -> bool:
@@ -106,14 +94,14 @@ class PauliMeasurementGate(raw_types.Gate):
             return self
         return PauliMeasurementGate(self._observable, key=key)
 
-    def _with_key_path_(self, path: Tuple[str, ...]) -> PauliMeasurementGate:
+    def _with_key_path_(self, path: tuple[str, ...]) -> PauliMeasurementGate:
         return self.with_key(self.mkey._with_key_path_(path))
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> PauliMeasurementGate:
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]) -> PauliMeasurementGate:
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ) -> PauliMeasurementGate:
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
@@ -146,7 +134,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return self._observable
 
     def _decompose_(
-        self, qubits: Tuple[cirq.Qid, ...]
+        self, qubits: tuple[cirq.Qid, ...]
     ) -> Iterator[protocols.decompose_protocol.DecomposeResult]:
         any_qubit = qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._observable.on(*qubits).to_z_basis_ops())
@@ -189,7 +177,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def _value_equality_values_(self) -> Any:
         return self.key, self._observable
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'observable': self._observable, 'key': self.key}
 
     @classmethod

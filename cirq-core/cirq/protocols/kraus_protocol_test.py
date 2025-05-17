@@ -14,14 +14,14 @@
 
 """Tests for kraus_protocol.py."""
 
-from typing import Iterable, List, Sequence, Tuple
+from typing import Iterable, Sequence
 
 import numpy as np
 import pytest
 
 import cirq
 
-LOCAL_DEFAULT: List[np.ndarray] = [np.array([])]
+LOCAL_DEFAULT: list[np.ndarray] = [np.array([])]
 
 
 def test_kraus_no_methods() -> None:
@@ -102,7 +102,7 @@ def test_kraus_fallback_to_mixture() -> None:
     m = ((0.3, cirq.unitary(cirq.X)), (0.4, cirq.unitary(cirq.Y)), (0.3, cirq.unitary(cirq.Z)))
 
     class ReturnsMixture:
-        def _mixture_(self) -> Iterable[Tuple[float, np.ndarray]]:
+        def _mixture_(self) -> Iterable[tuple[float, np.ndarray]]:
             return m
 
     c = (

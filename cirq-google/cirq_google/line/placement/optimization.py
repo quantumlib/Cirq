@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import math
-from typing import Callable, Optional, Tuple, TypeVar
+from typing import Callable, Optional, TypeVar
 
 T = TypeVar('T')
 
 
-def _accept(random_sample: float, cost_diff: float, temp: float) -> Tuple[bool, float]:
+def _accept(random_sample: float, cost_diff: float, temp: float) -> tuple[bool, float]:
     """Calculates probability and draws if solution should be accepted.
 
     Based on exp(-Delta*E/T) formula.

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A class that can be used to denote FSim gate implementation using polynomial model."""
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import cirq
 from cirq_google.api.v2 import program_pb2
@@ -35,7 +35,7 @@ class FSimViaModelTag:
     def __repr__(self) -> str:
         return 'cirq_google.FSimViaModelTag()'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, [])
 
     def __eq__(self, other) -> bool:

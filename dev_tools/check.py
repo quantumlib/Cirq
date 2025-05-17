@@ -14,7 +14,7 @@
 
 import abc
 import os.path
-from typing import cast, Optional, Set, Tuple
+from typing import cast, Optional, Set
 
 from dev_tools import env_tools, shell_tools
 
@@ -52,7 +52,7 @@ class Check(metaclass=abc.ABCMeta):
         """The name of this status check, as shown on github."""
 
     @abc.abstractmethod
-    def perform_check(self, env: env_tools.PreparedEnv, verbose: bool) -> Tuple[bool, str]:
+    def perform_check(self, env: env_tools.PreparedEnv, verbose: bool) -> tuple[bool, str]:
         """Evaluates the status check and returns a pass/fail with message.
 
         Args:

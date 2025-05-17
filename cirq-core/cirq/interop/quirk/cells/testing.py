@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -26,8 +26,8 @@ def assert_url_to_circuit_returns(
     *,
     unitary: Optional[np.ndarray] = None,
     diagram: Optional[str] = None,
-    output_amplitudes_from_quirk: Optional[List[Dict[str, float]]] = None,
-    maps: Optional[Dict[int, int]] = None,
+    output_amplitudes_from_quirk: Optional[list[dict[str, float]]] = None,
+    maps: Optional[dict[int, int]] = None,
 ):
     """Assert that `quirk_url_to_circuit` functions correctly.
 

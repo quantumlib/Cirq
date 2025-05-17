@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -54,7 +54,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         cls,
         *,
         initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        qid_shape: Optional[Tuple[int, ...]] = None,
+        qid_shape: Optional[tuple[int, ...]] = None,
         dtype: Optional[Type[np.complexfloating]] = None,
         buffer: Optional[np.ndarray] = None,
     ):
@@ -116,7 +116,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple[_BufferedStateVector, _BufferedStateVector]:
+    ) -> tuple[_BufferedStateVector, _BufferedStateVector]:
         """Factors a state vector into two independent state vectors.
 
         This function should only be called on state vectors that are known to be separable, such
@@ -257,7 +257,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
 
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         """Measures the state vector.
 
         Args:
@@ -375,7 +375,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:
-        strats: List[Callable[[Any, Any, Sequence[cirq.Qid]], bool]] = [
+        strats: list[Callable[[Any, Any, Sequence[cirq.Qid]], bool]] = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,
             _strat_act_on_state_vector_from_channel,

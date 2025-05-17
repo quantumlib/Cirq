@@ -20,14 +20,11 @@ import abc
 from types import NotImplementedType
 from typing import (
     Any,
-    Dict,
     Generic,
     Iterator,
-    List,
     Mapping,
     Optional,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
@@ -65,7 +62,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
 
     @property
@@ -115,14 +112,14 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         """
 
     @property
-    def log_of_measurement_results(self) -> Dict[str, List[int]]:
+    def log_of_measurement_results(self) -> dict[str, list[int]]:
         """Gets the log of measurement results."""
         return {str(k): list(self.classical_data.get_digits(k)) for k in self.classical_data.keys()}
 
     @abc.abstractmethod
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:

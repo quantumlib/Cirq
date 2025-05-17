@@ -18,10 +18,8 @@ from typing import (
     Any,
     Callable,
     cast,
-    Dict,
     Iterable,
     Iterator,
-    List,
     Mapping,
     Optional,
     SupportsFloat,
@@ -33,7 +31,7 @@ import numpy as np
 import sympy
 
 
-def _merge_scientific_float_tokens(tokens: Iterable[str]) -> List[str]:
+def _merge_scientific_float_tokens(tokens: Iterable[str]) -> list[str]:
     tokens = list(tokens)
     i = 0
     while 'e' in tokens[i + 1 :]:
@@ -54,8 +52,8 @@ def _merge_scientific_float_tokens(tokens: Iterable[str]) -> List[str]:
 T = TypeVar('T')
 
 
-def _segment_by(seq: Iterable[T], *, key: Callable[[T], Any]) -> Iterator[List[T]]:
-    group: List[T] = []
+def _segment_by(seq: Iterable[T], *, key: Callable[[T], Any]) -> Iterator[list[T]]:
+    group: list[T] = []
     last_key = None
     for item in seq:
         item_key = key(item)
@@ -68,7 +66,7 @@ def _segment_by(seq: Iterable[T], *, key: Callable[[T], Any]) -> Iterator[List[T
         yield group
 
 
-def _tokenize(text: str) -> List[str]:
+def _tokenize(text: str) -> list[str]:
     def classify(e: str) -> Union[str, float]:
         assert e.strip() != ''  # Because _segment_by drops empty entries.
         if re.match(r'[.0-9]', e):
@@ -122,10 +120,10 @@ def _translate_token(token_id: str, token_map: Mapping[str, _HangingToken]) -> _
 
 
 def _parse_formula_using_token_map(
-    text: str, token_map: Dict[str, _HangingToken]
+    text: str, token_map: dict[str, _HangingToken]
 ) -> _ResolvedToken:
     """Parses a value from an infix arithmetic expression."""
-    tokens: List[_HangingToken] = [_translate_token(e, token_map) for e in _tokenize(text)]
+    tokens: list[_HangingToken] = [_translate_token(e, token_map) for e in _tokenize(text)]
 
     # Cut off trailing operation, so parse fails less often as users are typing.
     if (
@@ -135,8 +133,8 @@ def _parse_formula_using_token_map(
     ):
         tokens = tokens[:-1]
 
-    ops: List[Union[str, _HangingNode]] = []
-    vals: List[Optional[_HangingToken]] = []
+    ops: list[Union[str, _HangingNode]] = []
+    vals: list[Optional[_HangingToken]] = []
 
     # Hack: use the 'priority' field as a signal of 'is an operation'
     def is_valid_end_token(tok: _HangingToken) -> bool:
@@ -237,7 +235,7 @@ UNICODE_FRACTIONS = {
     "⅒": 1 / 10,
 }
 
-PARSE_COMPLEX_TOKEN_MAP_ALL: Dict[str, _HangingToken] = {
+PARSE_COMPLEX_TOKEN_MAP_ALL: dict[str, _HangingToken] = {
     **UNICODE_FRACTIONS,
     'i': 1j,
     'e': sympy.E,
@@ -265,7 +263,7 @@ PARSE_COMPLEX_TOKEN_MAP_ALL: Dict[str, _HangingToken] = {
 }
 PARSE_COMPLEX_TOKEN_MAP_ALL["√"] = PARSE_COMPLEX_TOKEN_MAP_ALL["sqrt"]
 
-PARSE_COMPLEX_TOKEN_MAP_DEG: Dict[str, _HangingToken] = {
+PARSE_COMPLEX_TOKEN_MAP_DEG: dict[str, _HangingToken] = {
     **PARSE_COMPLEX_TOKEN_MAP_ALL,
     "cos": _CustomQuirkOperationToken(
         unary_action=lambda e: sympy.cos(e * sympy.pi / 180), binary_action=None, priority=4
@@ -283,7 +281,7 @@ PARSE_COMPLEX_TOKEN_MAP_DEG: Dict[str, _HangingToken] = {
 PARSE_COMPLEX_TOKEN_MAP_DEG["arccos"] = PARSE_COMPLEX_TOKEN_MAP_DEG["acos"]
 PARSE_COMPLEX_TOKEN_MAP_DEG["arcsin"] = PARSE_COMPLEX_TOKEN_MAP_DEG["asin"]
 
-PARSE_COMPLEX_TOKEN_MAP_RAD: Dict[str, _HangingToken] = {
+PARSE_COMPLEX_TOKEN_MAP_RAD: dict[str, _HangingToken] = {
     **PARSE_COMPLEX_TOKEN_MAP_ALL,
     "cos": _CustomQuirkOperationToken(
         unary_action=lambda e: sympy.cos(e) if isinstance(e, sympy.Basic) else cmath.cos(e),
@@ -342,7 +340,7 @@ def parse_formula(formula: str) -> Union[float, sympy.Expr]:
     if not isinstance(formula, str):
         raise TypeError('formula must be a string')
 
-    token_map: Dict[str, _HangingToken] = {**PARSE_COMPLEX_TOKEN_MAP_RAD, 't': sympy.Symbol('t')}
+    token_map: dict[str, _HangingToken] = {**PARSE_COMPLEX_TOKEN_MAP_RAD, 't': sympy.Symbol('t')}
     result = _parse_formula_using_token_map(formula, token_map)
 
     if isinstance(result, sympy.Basic):

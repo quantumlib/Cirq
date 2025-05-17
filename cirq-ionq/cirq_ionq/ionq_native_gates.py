@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import Any, Dict, Sequence, Union
+from typing import Any, Sequence, Union
 
 import numpy as np
 
@@ -62,7 +62,7 @@ class GPIGate(cirq.Gate):
     def __repr__(self) -> str:
         return f'cirq_ionq.GPIGate(phi={self.phi!r})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi'])
 
     def _value_equality_values_(self) -> Any:
@@ -143,7 +143,7 @@ class GPI2Gate(cirq.Gate):
     def __repr__(self) -> str:
         return f'cirq_ionq.GPI2Gate(phi={self.phi!r})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi'])
 
     def _value_equality_values_(self) -> Any:
@@ -237,7 +237,7 @@ class MSGate(cirq.Gate):
     def __repr__(self) -> str:
         return f'cirq_ionq.MSGate(phi0={self.phi0!r}, phi1={self.phi1!r})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi0', 'phi1', 'theta'])
 
     def _value_equality_values_(self) -> Any:
@@ -327,7 +327,7 @@ class ZZGate(cirq.Gate):
     def __repr__(self) -> str:
         return f'cirq_ionq.ZZGate(theta={self.theta!r})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['theta'])
 
     def _value_equality_values_(self) -> Any:

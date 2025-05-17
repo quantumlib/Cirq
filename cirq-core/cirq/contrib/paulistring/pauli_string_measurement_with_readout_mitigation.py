@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import itertools
 import time
-from typing import cast, Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import cast, FrozenSet, Optional, Sequence, TYPE_CHECKING, Union
 
 import attrs
 import numpy as np
@@ -63,7 +63,7 @@ class CircuitToPauliStringsMeasurementResult:
     """
 
     circuit: circuits.FrozenCircuit
-    results: List[PauliStringMeasurementResult]
+    results: list[PauliStringMeasurementResult]
 
 
 def _commute_or_identity(
@@ -131,8 +131,8 @@ def _validate_single_pauli_string(pauli_str: ops.PauliString):
 
 def _validate_input(
     circuits_to_pauli: Union[
-        Dict[circuits.FrozenCircuit, list[ops.PauliString]],
-        Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+        dict[circuits.FrozenCircuit, list[ops.PauliString]],
+        dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
     ],
     pauli_repetitions: int,
     readout_repetitions: int,
@@ -199,22 +199,22 @@ def _validate_input(
 
 def _normalize_input_paulis(
     circuits_to_pauli: Union[
-        Dict[circuits.FrozenCircuit, list[ops.PauliString]],
-        Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+        dict[circuits.FrozenCircuit, list[ops.PauliString]],
+        dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
     ],
-) -> Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]:
+) -> dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]:
     first_value = next(iter(circuits_to_pauli.values()))
     if (
         first_value
         and isinstance(first_value, list)
         and isinstance(first_value[0], ops.PauliString)
     ):
-        input_dict = cast(Dict[circuits.FrozenCircuit, List[ops.PauliString]], circuits_to_pauli)
-        normalized_circuits_to_pauli: Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]] = {}
+        input_dict = cast(dict[circuits.FrozenCircuit, list[ops.PauliString]], circuits_to_pauli)
+        normalized_circuits_to_pauli: dict[circuits.FrozenCircuit, list[list[ops.PauliString]]] = {}
         for circuit, paulis in input_dict.items():
             normalized_circuits_to_pauli[circuit] = [[ps] for ps in paulis]
         return normalized_circuits_to_pauli
-    return cast(Dict[circuits.FrozenCircuit, List[List[ops.PauliString]]], circuits_to_pauli)
+    return cast(dict[circuits.FrozenCircuit, list[list[ops.PauliString]]], circuits_to_pauli)
 
 
 def _pauli_strings_to_basis_change_ops(
@@ -282,7 +282,7 @@ def _process_pauli_measurement_results(
     qubits: list[ops.Qid],
     pauli_string_groups: list[list[ops.PauliString]],
     circuit_results: list[ResultDict],
-    calibration_results: Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
+    calibration_results: dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult],
     pauli_repetitions: int,
     timestamp: float,
     disable_readout_mitigation: bool = False,
@@ -310,7 +310,7 @@ def _process_pauli_measurement_results(
         A list of PauliStringMeasurementResult.
     """
 
-    pauli_measurement_results: List[PauliStringMeasurementResult] = []
+    pauli_measurement_results: list[PauliStringMeasurementResult] = []
 
     for pauli_group_index, circuit_result in enumerate(circuit_results):
         measurement_results = circuit_result.measurements["m"]
@@ -369,15 +369,15 @@ def _process_pauli_measurement_results(
 
 def measure_pauli_strings(
     circuits_to_pauli: Union[
-        Dict[circuits.FrozenCircuit, List[ops.PauliString]],
-        Dict[circuits.FrozenCircuit, List[List[ops.PauliString]]],
+        dict[circuits.FrozenCircuit, list[ops.PauliString]],
+        dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
     ],
     sampler: work.Sampler,
     pauli_repetitions: int,
     readout_repetitions: int,
     num_random_bitstrings: int,
     rng_or_seed: Union[np.random.Generator, int],
-) -> List[CircuitToPauliStringsMeasurementResult]:
+) -> list[CircuitToPauliStringsMeasurementResult]:
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.
 
@@ -392,11 +392,11 @@ def measure_pauli_strings(
 
     Args:
         circuits_to_pauli: A dictionary mapping circuits to either:
-            - A list of QWC groups (List[List[ops.PauliString]]). Each QWC group
+            - A list of QWC groups (list[list[ops.PauliString]]). Each QWC group
               is a list of PauliStrings that are mutually Qubit-Wise Commuting.
               Pauli strings within the same group will be calculated using the
               same measurement results.
-            - A list of PauliStrings (List[ops.PauliString]). In this case, each
+            - A list of PauliStrings (list[ops.PauliString]). In this case, each
               PauliString is treated as its own measurement group.
         sampler: The sampler to use.
         pauli_repetitions: The number of repetitions for each circuit when measuring
@@ -460,7 +460,7 @@ def measure_pauli_strings(
     )
 
     # Process the results to calculate expectation values
-    results: List[CircuitToPauliStringsMeasurementResult] = []
+    results: list[CircuitToPauliStringsMeasurementResult] = []
     circuit_result_index = 0
     for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
 

@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+from typing import Any, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import numpy as np
 import quimb.tensor as qtn
@@ -63,7 +63,7 @@ class MPSSimulator(
         noise: cirq.NOISE_MODEL_LIKE = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         simulation_options: MPSOptions = MPSOptions(),
-        grouping: Optional[Dict[cirq.Qid, int]] = None,
+        grouping: Optional[dict[cirq.Qid, int]] = None,
     ):
         """Creates instance of `MPSSimulator`.
 
@@ -122,7 +122,7 @@ class MPSSimulator(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[MPSState],
     ) -> MPSTrialResult:
         """Creates a single trial results with the measurements.
@@ -147,7 +147,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
     def __init__(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[MPSState],
     ) -> None:
         super().__init__(
@@ -212,11 +212,11 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
     def __init__(
         self,
-        qid_shape: Tuple[int, ...],
-        grouping: Dict[int, int],
-        M: List[qtn.Tensor],
+        qid_shape: tuple[int, ...],
+        grouping: dict[int, int],
+        M: list[qtn.Tensor],
         format_i: str,
-        estimated_gate_error_list: List[float],
+        estimated_gate_error_list: list[float],
         simulation_options: MPSOptions = MPSOptions(),
     ):
         """Creates an MPSQuantumState
@@ -241,8 +241,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
     def create(
         cls,
         *,
-        qid_shape: Tuple[int, ...],
-        grouping: Dict[int, int],
+        qid_shape: tuple[int, ...],
+        grouping: dict[int, int],
         initial_state: int = 0,
         simulation_options: MPSOptions = MPSOptions(),
     ):
@@ -484,8 +484,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
     def _measure(
         self, axes: Sequence[int], prng: np.random.RandomState, collapse_state_vector=True
-    ) -> List[int]:
-        results: List[int] = []
+    ) -> list[int]:
+        results: list[int] = []
 
         if collapse_state_vector:
             state = self
@@ -523,7 +523,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         """Measures the MPS.
 
         Args:
@@ -547,7 +547,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
             The samples in order.
         """
 
-        measurements: List[List[int]] = []
+        measurements: list[list[int]] = []
         prng = value.parse_random_state(seed)
 
         for _ in range(repetitions):
@@ -566,7 +566,7 @@ class MPSState(SimulationState[_MPSHandler]):
         qubits: Sequence[cirq.Qid],
         prng: np.random.RandomState,
         simulation_options: MPSOptions = MPSOptions(),
-        grouping: Optional[Dict[cirq.Qid, int]] = None,
+        grouping: Optional[dict[cirq.Qid, int]] = None,
         initial_state: int = 0,
         classical_data: Optional[cirq.ClassicalDataStore] = None,
     ):

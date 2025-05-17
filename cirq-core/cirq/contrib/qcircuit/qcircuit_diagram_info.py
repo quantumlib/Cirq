@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Optional
 
 from cirq import ops, protocols
 
@@ -35,7 +35,7 @@ def escape_text_for_latex(text):
     return r'\text{' + escaped + '}'
 
 
-def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional[Tuple[int, int]]:
+def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional[tuple[int, int]]:
     if (args.label_map is None) or (args.known_qubits is None):
         return None
 

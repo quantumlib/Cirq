@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, Dict, Mapping, Optional, TYPE_CHECKING
+from typing import Any, Mapping, Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -101,7 +101,7 @@ class EngineResult(study.ResultDict):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = super()._json_dict_()
         d['job_id'] = self.job_id
         d['job_finished_time'] = self.job_finished_time

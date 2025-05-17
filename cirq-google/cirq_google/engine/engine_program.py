@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import duet
 from google.protobuf import any_pb2
@@ -70,7 +70,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         params: cirq.Sweepable = None,
         repetitions: int = 1,
         description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
     ) -> engine_job.EngineJob:
         """Runs the program on the QuantumEngine.
 
@@ -142,7 +142,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
@@ -216,7 +216,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
+        has_labels: Optional[dict[str, str]] = None,
         execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ) -> Sequence[engine_job.EngineJob]:
         """Returns the list of jobs for this program.
@@ -296,11 +296,11 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     set_description = duet.sync(set_description_async)
 
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
         return self._inner_program().labels
 
-    async def set_labels_async(self, labels: Dict[str, str]) -> 'EngineProgram':
+    async def set_labels_async(self, labels: dict[str, str]) -> 'EngineProgram':
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
@@ -317,7 +317,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     set_labels = duet.sync(set_labels_async)
 
-    async def add_labels_async(self, labels: Dict[str, str]) -> 'EngineProgram':
+    async def add_labels_async(self, labels: dict[str, str]) -> 'EngineProgram':
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -333,7 +333,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     add_labels = duet.sync(add_labels_async)
 
-    async def remove_labels_async(self, keys: List[str]) -> 'EngineProgram':
+    async def remove_labels_async(self, keys: list[str]) -> 'EngineProgram':
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 

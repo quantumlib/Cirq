@@ -37,10 +37,10 @@ document(
     `cirq.OP_TREE` argument:
 
     - A single operation (a `cirq.Operation`).
-    - A list of operations (a `List[cirq.Operation]`).
-    - A list of lists of operations (a `List[List[cirq.Operation]]`).
+    - A list of operations (a `list[cirq.Operation]`).
+    - A list of lists of operations (a `list[list[cirq.Operation]]`).
     - A list mixing operations and generators of operations
-        (a `List[Union[cirq.Operation, Iterator[cirq.Operation]]]`).
+        (a `list[Union[cirq.Operation, Iterator[cirq.Operation]]]`).
     - Generally anything that can be iterated, and its items iterated, and
         so forth recursively until a bottom layer of operations is found.
     """,

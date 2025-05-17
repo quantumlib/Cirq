@@ -16,7 +16,7 @@
 
 import dataclasses
 import functools
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, Optional, Sequence, Union
 
 import numpy as np
 
@@ -59,7 +59,7 @@ def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     return pos_part_raised + neg_part_raised
 
 
-def match_global_phase(a: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def match_global_phase(a: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Phases the given matrices so that they agree on the phase of one entry.
 
     To maximize precision, the position with the largest entry from one of the
@@ -176,7 +176,7 @@ class _SliceConfig:
 
 @dataclasses.dataclass
 class _BuildFromSlicesArgs:
-    slices: Tuple[_SliceConfig, ...]
+    slices: tuple[_SliceConfig, ...]
     scale: complex
 
 
@@ -234,8 +234,8 @@ def _build_from_slices(
     d = len(source.shape)
     out[...] = 0
     for arg in args:
-        source_slice: List[Any] = [slice(None)] * d
-        target_slice: List[Any] = [slice(None)] * d
+        source_slice: list[Any] = [slice(None)] * d
+        target_slice: list[Any] = [slice(None)] * d
         for sleis in arg.slices:
             source_slice[sleis.axis] = sleis.source_index
             target_slice[sleis.axis] = sleis.target_index
@@ -417,8 +417,8 @@ class EntangledStateError(ValueError):
 
 
 def partial_trace_of_state_vector_as_mixture(
-    state_vector: np.ndarray, keep_indices: List[int], *, atol: float = 1e-8
-) -> Tuple[Tuple[float, np.ndarray], ...]:
+    state_vector: np.ndarray, keep_indices: list[int], *, atol: float = 1e-8
+) -> tuple[tuple[float, np.ndarray], ...]:
     """Returns a mixture representing a state vector with only some qubits kept.
 
     The input state vector can have any shape, but if it is one-dimensional it
@@ -452,7 +452,7 @@ def partial_trace_of_state_vector_as_mixture(
         if 2**dims != state_vector.size:
             raise ValueError(f'Cannot infer underlying shape of {state_vector.shape}.')
         state_vector = state_vector.reshape((2,) * dims)
-        ret_shape: Tuple[int, ...] = (2 ** len(keep_indices),)
+        ret_shape: tuple[int, ...] = (2 ** len(keep_indices),)
     else:
         ret_shape = tuple(state_vector.shape[i] for i in keep_indices)
 
@@ -473,7 +473,7 @@ def partial_trace_of_state_vector_as_mixture(
 
 def sub_state_vector(
     state_vector: np.ndarray,
-    keep_indices: List[int],
+    keep_indices: list[int],
     *,
     default: np.ndarray = RaiseValueErrorIfNotProvided,
     atol: float = 1e-6,
@@ -533,7 +533,7 @@ def sub_state_vector(
 
     n_qubits = int(np.log2(state_vector.size))
     keep_dims = 1 << len(keep_indices)
-    ret_shape: Union[Tuple[int], Tuple[int, ...]]
+    ret_shape: Union[tuple[int], tuple[int, ...]]
     if state_vector.shape == (state_vector.size,):
         ret_shape = (keep_dims,)
         state_vector = state_vector.reshape((2,) * n_qubits)
@@ -631,7 +631,7 @@ def density_matrix_kronecker_product(t1: np.ndarray, t2: np.ndarray) -> np.ndarr
 
 def factor_state_vector(
     t: np.ndarray, axes: Sequence[int], *, validate=True, atol=1e-07
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Factors a state vector into two independent state vectors.
 
     This function should only be called on state vectors that are known to be
@@ -677,7 +677,7 @@ def factor_state_vector(
 
 def factor_density_matrix(
     t: np.ndarray, axes: Sequence[int], *, validate=True, atol=1e-07
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Factors a density matrix into two independent density matrices.
 
     This function should only be called on density matrices that are known to
@@ -745,7 +745,7 @@ def transpose_density_matrix_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     return transpose_state_vector_to_axis_order(t, axes)
 
 
-def _volumes(shape: Sequence[int]) -> List[int]:
+def _volumes(shape: Sequence[int]) -> list[int]:
     r"""Returns a list of the volume spanned by each dimension.
 
     Given a shape=[d_0, d_1, .., d_n] the volume spanned by each dimension is

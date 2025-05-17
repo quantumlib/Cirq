@@ -15,7 +15,7 @@
 
 import datetime
 import os
-from typing import List, Optional, Sequence
+from typing import Optional, Sequence
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
@@ -142,7 +142,7 @@ class Service:
 
     def run_batch(
         self,
-        circuits: List[cirq.AbstractCircuit],
+        circuits: list[cirq.AbstractCircuit],
         repetitions: int,
         name: Optional[str] = None,
         target: Optional[str] = None,
@@ -151,7 +151,7 @@ class Service:
         error_mitigation: Optional[dict] = None,
         sharpen: Optional[bool] = None,
         extra_query_params: Optional[dict] = None,
-    ) -> List[cirq.Result]:
+    ) -> list[cirq.Result]:
         """Run the given circuits on the IonQ API.
 
         Args:
@@ -260,7 +260,7 @@ class Service:
 
     def create_batch_job(
         self,
-        circuits: List[cirq.AbstractCircuit],
+        circuits: list[cirq.AbstractCircuit],
         repetitions: int = 100,
         name: Optional[str] = None,
         target: Optional[str] = None,

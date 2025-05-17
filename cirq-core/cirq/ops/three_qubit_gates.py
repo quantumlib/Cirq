@@ -16,19 +16,7 @@
 
 from __future__ import annotations
 
-from typing import (
-    AbstractSet,
-    Any,
-    Collection,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, Any, Collection, Iterator, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -72,7 +60,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     $$
     """
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 1, 1, 1, 1, 1, 1, 0])), (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1]))]
 
     def _trace_distance_bound_(self) -> Optional[float]:
@@ -159,7 +147,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(('@', '@', '@'), exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -195,7 +183,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        control_qid_shape: Optional[tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `ZPowGate` with two additional controls.
 
@@ -238,10 +226,10 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_7)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_7})$.
         """
-        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
 
     @property
-    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+    def diag_angles_radians(self) -> tuple[value.TParamVal, ...]:
         return self._diag_angles_radians
 
     def _is_parameterized_(self) -> bool:
@@ -380,7 +368,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
             }
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:
@@ -411,7 +399,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     $$
     """
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [
             (0, linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]), np.array([[0.5, 0.5], [0.5, 0.5]]))),
             (
@@ -474,7 +462,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             ('@', '@', 'X'), exponent=self._diagram_exponent(args), exponent_qubit_index=2
         )
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -505,7 +493,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        control_qid_shape: Optional[tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `XPowGate` with two additional controls.
 
@@ -653,7 +641,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             return protocols.CircuitDiagramInfo(('@', 'swap', 'swap'))
         return protocols.CircuitDiagramInfo(('@', '×', '×'))
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0', '3.0')
         return args.format('cswap {0},{1},{2};\n', qubits[0], qubits[1], qubits[2])
 
@@ -680,7 +668,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        control_qid_shape: Optional[tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `SWAP` with one additional control.
 

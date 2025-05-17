@@ -28,7 +28,7 @@ raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, cast, Collection, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, cast, Collection, Optional, Sequence, Union
 
 import numpy as np
 import sympy
@@ -75,7 +75,7 @@ class XPowGate(eigen_gate.EigenGate):
     `cirq.X`, the Pauli X gate, is an instance of this gate at `exponent=1`.
     """
 
-    _eigencomponents: Dict[int, List[Tuple[float, np.ndarray]]] = {}
+    _eigencomponents: dict[int, list[tuple[float, np.ndarray]]] = {}
 
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
@@ -134,10 +134,10 @@ class XPowGate(eigen_gate.EigenGate):
         """Returns an equal-up-global-phase standardized form of the gate."""
         return XPowGate(exponent=self._exponent, dimension=self._dimension)
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return (self._dimension,)
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         if self._dimension not in XPowGate._eigencomponents:
             components = []
             root = 1j ** (4 / self._dimension)
@@ -178,7 +178,7 @@ class XPowGate(eigen_gate.EigenGate):
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        control_qid_shape: Optional[tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `XPowGate`, using a `CXPowGate` where possible.
 
@@ -260,7 +260,7 @@ class XPowGate(eigen_gate.EigenGate):
             wire_symbols=('X',), exponent=self._diagram_exponent(args)
         )
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0', '3.0')
         if self._global_shift == 0:
             if self._exponent == 1:
@@ -306,7 +306,7 @@ class XPowGate(eigen_gate.EigenGate):
         all_args = ', '.join(args)
         return f'cirq.XPowGate({all_args})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
         if self.dimension != 2:
             d['dimension'] = self.dimension
@@ -354,11 +354,11 @@ class Rx(XPowGate):
     def __repr__(self) -> str:
         return f'cirq.Rx(rads={proper_repr(self._rads)})'
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0', '3.0')
         return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'rads': self._rads}
 
     @classmethod
@@ -433,7 +433,7 @@ class YPowGate(eigen_gate.EigenGate):
             return SingleQubitCliffordGate.Y_nsqrt.on(*qubits)
         return NotImplemented  # pragma: no cover
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
@@ -457,7 +457,7 @@ class YPowGate(eigen_gate.EigenGate):
             wire_symbols=('Y',), exponent=self._diagram_exponent(args)
         )
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0', '3.0')
         if self._exponent == 1 and self.global_shift != -0.5:
             return args.format('y {0};\n', qubits[0])
@@ -539,11 +539,11 @@ class Ry(YPowGate):
     def __repr__(self) -> str:
         return f'cirq.Ry(rads={proper_repr(self._rads)})'
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0', '3.0')
         return args.format('ry({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'rads': self._rads}
 
     @classmethod
@@ -573,7 +573,7 @@ class ZPowGate(eigen_gate.EigenGate):
     `cirq.Z`, the Pauli Z gate, is an instance of this gate at `exponent=1`.
     """
 
-    _eigencomponents: Dict[int, List[Tuple[float, np.ndarray]]] = {}
+    _eigencomponents: dict[int, list[tuple[float, np.ndarray]]] = {}
 
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
@@ -652,7 +652,7 @@ class ZPowGate(eigen_gate.EigenGate):
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        control_qid_shape: Optional[tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `ZPowGate`, using a `CZPowGate` where possible.
 
@@ -719,10 +719,10 @@ class ZPowGate(eigen_gate.EigenGate):
             )
         return result
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return (self._dimension,)
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         if self._dimension not in ZPowGate._eigencomponents:
             components = []
             for i in range(self._dimension):
@@ -771,7 +771,7 @@ class ZPowGate(eigen_gate.EigenGate):
 
         return protocols.CircuitDiagramInfo(wire_symbols=('Z',), exponent=e)
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0', '3.0')
 
         if self.global_shift == 0:
@@ -836,7 +836,7 @@ class ZPowGate(eigen_gate.EigenGate):
             return NotImplemented
         return True
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
         if self.dimension != 2:
             d['dimension'] = self.dimension
@@ -884,11 +884,11 @@ class Rz(ZPowGate):
     def __repr__(self) -> str:
         return f'cirq.Rz(rads={proper_repr(self._rads)})'
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0', '3.0')
         return args.format('rz({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'rads': self._rads}
 
     @classmethod
@@ -919,7 +919,7 @@ class HPowGate(eigen_gate.EigenGate):
     `cirq.H`, the Hadamard gate, is an instance of this gate at `exponent=1`.
     """
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         s = np.sqrt(2)
 
         component0 = np.array([[3 + 2 * s, 1 + s], [1 + s, 1]]) / (4 + 2 * s)
@@ -988,7 +988,7 @@ class HPowGate(eigen_gate.EigenGate):
             wire_symbols=('H',), exponent=self._diagram_exponent(args)
         )
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0', '3.0')
         if self._exponent == 0:
             return args.format('id {0};\n', qubits[0])
@@ -1054,7 +1054,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             return []
         return NotImplemented  # pragma: no cover
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 1, 1, 0])), (1, np.diag([0, 0, 0, 1]))]
 
     def _trace_distance_bound_(self) -> Optional[float]:
@@ -1100,7 +1100,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        control_qid_shape: Optional[tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `CZPowGate`, using a `CCZPowGate` where possible.
 
@@ -1172,7 +1172,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             wire_symbols=('@', '@'), exponent=self._diagram_exponent(args)
         )
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0', '3.0')
@@ -1253,7 +1253,7 @@ class CXPowGate(eigen_gate.EigenGate):
         yield cirq.CZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c, t)
         yield YPowGate(exponent=0.5).on(t)
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [
             (0, np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0.5, 0.5], [0, 0, 0.5, 0.5]])),
             (1, np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.5, -0.5], [0, 0, -0.5, 0.5]])),
@@ -1304,7 +1304,7 @@ class CXPowGate(eigen_gate.EigenGate):
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        control_qid_shape: Optional[tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `CXPowGate`, using a `CCXPowGate` where possible.
 
@@ -1371,7 +1371,7 @@ class CXPowGate(eigen_gate.EigenGate):
             )
         return result
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0', '3.0')

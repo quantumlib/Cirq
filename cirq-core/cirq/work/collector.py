@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Iterator, Optional, TYPE_CHECKING, Union
 
 import duet
 import numpy as np
@@ -169,10 +169,10 @@ class Collector(metaclass=abc.ABCMeta):
             The collector's result after all desired samples have been
             collected.
         """
-        results: duet.AsyncCollector[Tuple[CircuitSampleJob, cirq.Result]] = duet.AsyncCollector()
+        results: duet.AsyncCollector[tuple[CircuitSampleJob, cirq.Result]] = duet.AsyncCollector()
         job_error = None
         running_jobs = 0
-        queued_jobs: List[CircuitSampleJob] = []
+        queued_jobs: list[CircuitSampleJob] = []
         remaining_samples = np.inf if max_total_samples is None else max_total_samples
 
         async def run_job(job):

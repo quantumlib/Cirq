@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from itertools import combinations
 from string import ascii_lowercase
-from typing import Dict, Sequence, Tuple
+from typing import Sequence
 
 import numpy as np
 import pytest
@@ -87,7 +87,7 @@ def test_executor_explicit():
 
 def random_diagonal_gates(
     num_qubits: int, acquaintance_size: int
-) -> Dict[Tuple[cirq.Qid, ...], cirq.Gate]:
+) -> dict[tuple[cirq.Qid, ...], cirq.Gate]:
 
     return {
         Q: cirq.DiagonalGate(np.random.random(2**acquaintance_size))
@@ -106,7 +106,7 @@ def random_diagonal_gates(
     ],
 )
 def test_executor_random(
-    num_qubits: int, acquaintance_size: int, gates: Dict[Tuple[cirq.Qid, ...], cirq.Gate]
+    num_qubits: int, acquaintance_size: int, gates: dict[tuple[cirq.Qid, ...], cirq.Gate]
 ):
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, acquaintance_size)

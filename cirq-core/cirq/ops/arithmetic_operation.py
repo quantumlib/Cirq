@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import cast, Iterable, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 from typing_extensions import Self
@@ -164,7 +164,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         shape = []
         for r in self.registers():
             if isinstance(r, Sequence):
@@ -174,9 +174,9 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
         registers = self.registers()
-        input_ranges: List[Sequence[int]] = []
-        shape: List[int] = []
-        overflow_sizes: List[int] = []
+        input_ranges: list[Sequence[int]] = []
+        shape: list[int] = []
+        overflow_sizes: list[int] = []
         for register in registers:
             if isinstance(register, int):
                 input_ranges.append([register])
@@ -198,8 +198,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
             output = self.apply(*input_seq)
 
             # Wrap into list.
-            inputs: List[int] = list(input_seq)
-            outputs: List[int] = [output] if isinstance(output, int) else list(output)
+            inputs: list[int] = list(input_seq)
+            outputs: list[int] = [output] if isinstance(output, int) else list(output)
 
             # Omitted tail values default to the corresponding input value.
             if len(outputs) < len(inputs):
@@ -221,8 +221,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                     outputs[i] %= overflow_sizes[i]
 
             # Copy amplitude to new location.
-            cast(List[Union[int, slice]], outputs).append(slice(None))
-            cast(List[Union[int, slice]], inputs).append(slice(None))
+            cast(list[Union[int, slice]], outputs).append(slice(None))
+            cast(list[Union[int, slice]], inputs).append(slice(None))
             dst[tuple(outputs)] = src[tuple(inputs)]
 
         # In case the reshaped arrays were copies instead of views.
@@ -234,8 +234,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
 
 def _describe_bad_arithmetic_changed_const(
     registers: Sequence[Union[int, Sequence[Union[cirq.Qid, int]]]],
-    inputs: List[int],
-    outputs: List[int],
+    inputs: list[int],
+    outputs: list[int],
 ) -> str:
     from cirq.circuits import TextDiagramDrawer
 

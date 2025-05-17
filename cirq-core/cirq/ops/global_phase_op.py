@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Collection, Dict, Optional, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Collection, Optional, Sequence, Union
 
 import numpy as np
 import sympy
@@ -74,10 +74,10 @@ class GlobalPhaseGate(raw_types.Gate):
     def _op_repr_(self, qubits: Sequence[cirq.Qid]) -> str:
         return f'cirq.global_phase_operation({proper_repr(self.coefficient)})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['coefficient'])
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return tuple()
 
     def _is_parameterized_(self) -> bool:
@@ -98,7 +98,7 @@ class GlobalPhaseGate(raw_types.Gate):
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
-        control_qid_shape: Optional[Tuple[int, ...]] = None,
+        control_qid_shape: Optional[tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (

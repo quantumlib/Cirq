@@ -24,7 +24,7 @@ import math
 import random
 import sys
 from dataclasses import dataclass
-from typing import cast, List, Optional, Tuple
+from typing import cast, Optional
 
 import duet
 import numpy as np
@@ -33,11 +33,11 @@ import cirq
 from cirq.sim import clifford
 
 
-def build_circuit() -> Tuple[cirq.Circuit, List[cirq.Qid]]:
+def build_circuit() -> tuple[cirq.Circuit, list[cirq.Qid]]:
     # Builds an arbitrary circuit to test. Do not include a measurement gate.
     # The circuit need not be Clifford, but if it is, simulations will be
     # faster.
-    qubits: List[cirq.Qid] = cast(List[cirq.Qid], cirq.LineQubit.range(3))
+    qubits: list[cirq.Qid] = cast(list[cirq.Qid], cirq.LineQubit.range(3))
     circuit: cirq.Circuit = cirq.Circuit(
         cirq.CNOT(qubits[0], qubits[2]),
         cirq.Z(qubits[0]),
@@ -53,7 +53,7 @@ def build_circuit() -> Tuple[cirq.Circuit, List[cirq.Qid]]:
 
 
 def compute_characteristic_function(
-    pauli_string: cirq.PauliString, qubits: List[cirq.Qid], density_matrix: np.ndarray
+    pauli_string: cirq.PauliString, qubits: list[cirq.Qid], density_matrix: np.ndarray
 ):
     n_qubits = len(qubits)
     d = 2**n_qubits
@@ -100,7 +100,7 @@ async def estimate_characteristic_function(
 
 
 def _randomly_sample_from_stabilizer_bases(
-    stabilizer_basis: List[cirq.DensePauliString], n_measured_operators: int, n_qubits: int
+    stabilizer_basis: list[cirq.DensePauliString], n_measured_operators: int, n_qubits: int
 ):
     """Randomly creates Pauli states by including or not the given stabilizer basis.
 
@@ -126,7 +126,7 @@ def _randomly_sample_from_stabilizer_bases(
 
 
 def _enumerate_all_from_stabilizer_bases(
-    stabilizer_basis: List[cirq.DensePauliString], n_qubits: int
+    stabilizer_basis: list[cirq.DensePauliString], n_qubits: int
 ):
     """Return the list of Pauli state that are spanned by the given Pauli basis.
 
@@ -167,9 +167,9 @@ class PauliTrace:
 
 def _estimate_pauli_traces_clifford(
     n_qubits: int,
-    stabilizer_basis: List[cirq.DensePauliString],
+    stabilizer_basis: list[cirq.DensePauliString],
     n_measured_operators: Optional[int],
-) -> List[PauliTrace]:
+) -> list[PauliTrace]:
     """Estimates the Pauli traces in case the circuit is Clifford.
 
     When we have a Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
@@ -204,7 +204,7 @@ def _estimate_pauli_traces_clifford(
         dense_pauli_strings = _enumerate_all_from_stabilizer_bases(stabilizer_basis, n_qubits)
         assert len(dense_pauli_strings) == 2**n_qubits
 
-    pauli_traces: List[PauliTrace] = []
+    pauli_traces: list[PauliTrace] = []
     for dense_pauli_string in dense_pauli_strings:
         # The code below is equivalent to getting the state vectors from the
         # Clifford tableau and then calling compute_characteristic_function()
@@ -226,8 +226,8 @@ def _estimate_pauli_traces_clifford(
 
 
 def _estimate_pauli_traces_general(
-    qubits: List[cirq.Qid], circuit: cirq.Circuit, n_measured_operators: Optional[int]
-) -> List[PauliTrace]:
+    qubits: list[cirq.Qid], circuit: cirq.Circuit, n_measured_operators: Optional[int]
+) -> list[PauliTrace]:
     """Estimates the Pauli traces in case the circuit is not Clifford.
 
     In this case we cannot use the speedup implemented in the function
@@ -257,7 +257,7 @@ def _estimate_pauli_traces_general(
     else:
         dense_operators = list(all_operators)
 
-    pauli_traces: List[PauliTrace] = []
+    pauli_traces: list[PauliTrace] = []
     for P_i in dense_operators:
         pauli_string: cirq.PauliString[cirq.Qid] = cirq.PauliString(dict(zip(qubits, P_i)))
         rho_i, Pr_i = compute_characteristic_function(pauli_string, qubits, clean_density_matrix)
@@ -265,7 +265,7 @@ def _estimate_pauli_traces_general(
     return pauli_traces
 
 
-def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[Optional[float], float]:
+def _estimate_std_devs_clifford(fidelity: float, n: int) -> tuple[Optional[float], float]:
     """Estimates the standard deviation of the measurement for Clifford circuits.
 
     Args:
@@ -319,9 +319,9 @@ class DFEIntermediateResult:
     # a list of Pauli strings for a basis of the stabilizers.
     clifford_tableau: Optional[cirq.CliffordTableau]
     # The list of Pauli traces we can sample from.
-    pauli_traces: List[PauliTrace]
+    pauli_traces: list[PauliTrace]
     # Measurement results from sampling the circuit.
-    trial_results: List[Result]
+    trial_results: list[Result]
     # Standard deviations (estimate based on fidelity and bound)
     std_dev_estimate: Optional[float]
     std_dev_bound: Optional[float]
@@ -329,7 +329,7 @@ class DFEIntermediateResult:
 
 def direct_fidelity_estimation(
     circuit: cirq.Circuit,
-    qubits: List[cirq.Qid],
+    qubits: list[cirq.Qid],
     sampler: cirq.Sampler,
     n_measured_operators: Optional[int],
     samples_per_term: int,
@@ -383,7 +383,7 @@ def direct_fidelity_estimation(
         # example, if we have n=3 qubits, then we should have 2**n=8 Pauli
         # states that we can sample, but the basis will still have 3 entries. We
         # must flip a coin for each, whether or not to include them.
-        stabilizer_basis: List[cirq.DensePauliString] = clifford_tableau.stabilizers()
+        stabilizer_basis: list[cirq.DensePauliString] = clifford_tableau.stabilizers()
 
         pauli_traces = _estimate_pauli_traces_clifford(
             n_qubits, stabilizer_basis, n_measured_operators
@@ -419,7 +419,7 @@ def direct_fidelity_estimation(
             pauli_traces, size=len(pauli_traces), p=p  # type: ignore[arg-type]
         ).tolist()
 
-    trial_results: List[Result] = []
+    trial_results: list[Result] = []
     for pauli_trace in measured_pauli_traces:
         measure_pauli_string: cirq.PauliString = pauli_trace.P_i
         rho_i = pauli_trace.rho_i

@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Dict, Iterator, List, Tuple, Union
+from typing import Any, Iterator, Union
 
 import numpy as np
 
@@ -79,7 +79,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         return NotImplemented
 
     @property
-    def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run before decomposing individual operations.
 
         Decompose to three qubit gates because three qubit gates have different decomposition
@@ -92,11 +92,11 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         ]
 
     @property
-    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
         return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
 
-    def single_qubit_matrix_to_native_gates(self, mat: np.ndarray) -> List[cirq.Gate]:
+    def single_qubit_matrix_to_native_gates(self, mat: np.ndarray) -> list[cirq.Gate]:
         z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return [
             GPI2Gate(phi=(np.pi - z_rad_before) / (2.0 * np.pi)),
@@ -110,7 +110,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
     def _value_equality_values_cls_(self) -> Any:
         return type(self)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['atol'])
 
     @classmethod
@@ -124,7 +124,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         raise NotImplementedError()
 
     def decompose_all_to_all_connect_ccz_gate(
-        self, ccz_gate: cirq.CCZPowGate, qubits: Tuple[cirq.Qid, ...]
+        self, ccz_gate: cirq.CCZPowGate, qubits: tuple[cirq.Qid, ...]
     ) -> cirq.OP_TREE:
         """Decomposition of all-to-all connected qubits are different from line
          qubits or grid qubits, ckeckout IonQTargetGateset.

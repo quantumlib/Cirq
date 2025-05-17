@@ -20,7 +20,7 @@ methods.
 
 import abc
 import datetime
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union
 
 import duet
 
@@ -65,9 +65,9 @@ class AbstractProcessor(abc.ABC):
         param_resolver: Optional[cirq.ParamResolver] = None,
         repetitions: int = 1,
         program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
+        program_labels: Optional[dict[str, str]] = None,
         job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        job_labels: Optional[dict[str, str]] = None,
     ) -> cirq.Result:
         """Runs the supplied Circuit on this processor.
 
@@ -135,9 +135,9 @@ class AbstractProcessor(abc.ABC):
         params: cirq.Sweepable = None,
         repetitions: int = 1,
         program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
+        program_labels: Optional[dict[str, str]] = None,
         job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        job_labels: Optional[dict[str, str]] = None,
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
@@ -215,7 +215,7 @@ class AbstractProcessor(abc.ABC):
         """Returns the expected the processor should be available, if set."""
 
     @abc.abstractmethod
-    def supported_languages(self) -> List[str]:
+    def supported_languages(self) -> list[str]:
         """Returns the list of processor supported program languages."""
 
     @abc.abstractmethod
@@ -247,7 +247,7 @@ class AbstractProcessor(abc.ABC):
         self,
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-    ) -> List[calibration.Calibration]:
+    ) -> list[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
         Args:
@@ -285,7 +285,7 @@ class AbstractProcessor(abc.ABC):
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: Optional[list[str]] = None,
     ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
@@ -311,7 +311,7 @@ class AbstractProcessor(abc.ABC):
         reservation_id: str,
         start_time: Optional[datetime.datetime] = None,
         end_time: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: Optional[list[str]] = None,
     ):
         """Updates a reservation with new information.
 
@@ -325,7 +325,7 @@ class AbstractProcessor(abc.ABC):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta],
         to_time: Union[None, datetime.datetime, datetime.timedelta],
-    ) -> List[quantum.QuantumReservation]:
+    ) -> list[quantum.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -353,7 +353,7 @@ class AbstractProcessor(abc.ABC):
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
         time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.QuantumTimeSlot]:
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.

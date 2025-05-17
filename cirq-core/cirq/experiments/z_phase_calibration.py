@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import multiprocessing
 import multiprocessing.pool
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,9 +46,9 @@ def z_phase_calibration_workflow(
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     atol: float = 1e-3,
     num_workers_or_pool: Union[int, multiprocessing.pool.Pool] = -1,
-    pairs: Optional[Sequence[Tuple[cirq.GridQubit, cirq.GridQubit]]] = None,
+    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]] = None,
     tags: Sequence[Any] = (),
-) -> Tuple[xeb_fitting.XEBCharacterizationResult, pd.DataFrame]:
+) -> tuple[xeb_fitting.XEBCharacterizationResult, pd.DataFrame]:
     """Perform z-phase calibration for excitation-preserving gates.
 
     For a given excitation-preserving two-qubit gate we assume an error model that can be described
@@ -159,9 +159,9 @@ def calibrate_z_phases(
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     atol: float = 1e-3,
     num_workers_or_pool: Union[int, multiprocessing.pool.Pool] = -1,
-    pairs: Optional[Sequence[Tuple[cirq.GridQubit, cirq.GridQubit]]] = None,
+    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]] = None,
     tags: Sequence[Any] = (),
-) -> Dict[Tuple[cirq.Qid, cirq.Qid], cirq.PhasedFSimGate]:
+) -> dict[tuple[cirq.Qid, cirq.Qid], cirq.PhasedFSimGate]:
     """Perform z-phase calibration for excitation-preserving gates.
 
     For a given excitation-preserving two-qubit gate we assume an error model that can be described
@@ -242,11 +242,11 @@ def calibrate_z_phases(
 
 def plot_z_phase_calibration_result(
     before_after_df: pd.DataFrame,
-    axes: Optional[np.ndarray[Tuple[int, int], np.dtype[np.object_]]] = None,
-    pairs: Optional[Sequence[Tuple[cirq.Qid, cirq.Qid]]] = None,
+    axes: Optional[np.ndarray[tuple[int, int], np.dtype[np.object_]]] = None,
+    pairs: Optional[Sequence[tuple[cirq.Qid, cirq.Qid]]] = None,
     *,
     with_error_bars: bool = False,
-) -> np.ndarray[Tuple[int, int], np.dtype[np.object_]]:
+) -> np.ndarray[tuple[int, int], np.dtype[np.object_]]:
     """A helper method to plot the result of running z-phase calibration.
 
     Note that the plotted fidelity is a statistical estimate of the true fidelity and as a result
@@ -290,7 +290,7 @@ def plot_z_phase_calibration_result(
     return axes
 
 
-def _z_angles(old: ops.PhasedFSimGate, new: ops.PhasedFSimGate) -> Tuple[float, float, float]:
+def _z_angles(old: ops.PhasedFSimGate, new: ops.PhasedFSimGate) -> tuple[float, float, float]:
     """Computes a set of possible 3 z-phases that result in the change in gamma, zeta, and chi."""
     # This procedure is the inverse of PhasedFSimGate.from_fsim_rz
     delta_gamma = new.gamma - old.gamma
@@ -305,7 +305,7 @@ class CalibrationTransformer:
     def __init__(
         self,
         target: cirq.Gate,
-        calibration_map: Dict[Tuple[cirq.Qid, cirq.Qid], cirq.PhasedFSimGate],
+        calibration_map: dict[tuple[cirq.Qid, cirq.Qid], cirq.PhasedFSimGate],
     ):
         """Create a CalibrationTransformer.
 
@@ -343,7 +343,7 @@ class CalibrationTransformer:
         Returns:
             New circuit with the extra ZPowGates.
         """
-        new_moments: List[Union[List[cirq.Operation], cirq.Moment]] = []
+        new_moments: list[Union[list[cirq.Operation], cirq.Moment]] = []
         for moment in circuit:
             before = []
             after = []

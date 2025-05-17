@@ -18,19 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Collection,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Type,
-    Union,
-)
+from typing import Any, Callable, cast, Collection, Iterator, Optional, Sequence, Type, Union
 
 import numpy as np
 import sympy
@@ -78,7 +66,7 @@ class Serializer:
                 should be serialized as a gate rounded to that parameter. Defaults to 1e-8.
         """
         self.atol = atol
-        self._dispatch: Dict[Type[cirq.Gate], Callable] = {
+        self._dispatch: dict[Type[cirq.Gate], Callable] = {
             cirq.XPowGate: self._serialize_x_pow_gate,
             cirq.YPowGate: self._serialize_y_pow_gate,
             cirq.ZPowGate: self._serialize_z_pow_gate,
@@ -134,7 +122,7 @@ class Serializer:
 
     def serialize_many_circuits(
         self,
-        circuits: List[cirq.AbstractCircuit],
+        circuits: list[cirq.AbstractCircuit],
         job_settings: Optional[dict] = None,
         error_mitigation: Optional[dict] = None,
     ) -> SerializedProgram:
@@ -328,7 +316,7 @@ class Serializer:
         """
         return abs((cast(float, e) - t + 1) % n - 1) <= self.atol
 
-    def _serialize_measurements(self, meas_ops: Iterator) -> Dict[str, str]:
+    def _serialize_measurements(self, meas_ops: Iterator) -> dict[str, str]:
         """Serializes measurement ops into a form suitable to be passed via metadata.
 
         IonQ API does not contain measurement gates, so we serialize measurement gate keys

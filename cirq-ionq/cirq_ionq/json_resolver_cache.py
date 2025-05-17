@@ -13,14 +13,13 @@
 # limitations under the License.
 
 import functools
-from typing import Dict
 
 import cirq_ionq
 from cirq.protocols.json_serialization import ObjectFactory
 
 
 @functools.lru_cache()  # pragma: no cover
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # pragma: no cover
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:  # pragma: no cover
     return {
         "GPIGate": cirq_ionq.GPIGate,
         "GPI2Gate": cirq_ionq.GPI2Gate,

@@ -14,19 +14,7 @@
 
 from __future__ import annotations
 
-from typing import (
-    AbstractSet,
-    Any,
-    Dict,
-    FrozenSet,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, Any, FrozenSet, Mapping, Optional, Sequence, TYPE_CHECKING, Union
 
 import sympy
 
@@ -109,7 +97,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         if isinstance(sub_operation, ClassicallyControlledOperation):
             conditions += sub_operation._conditions
             sub_operation = sub_operation._sub_operation
-        conds: List[cirq.Condition] = []
+        conds: list[cirq.Condition] = []
         for c in conditions:
             if isinstance(c, str):
                 c = value.MeasurementKey.parse_serialized(c)
@@ -118,7 +106,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
             if isinstance(c, sympy.Basic):
                 c = value.SympyCondition(c)
             conds.append(c)
-        self._conditions: Tuple[cirq.Condition, ...] = tuple(conds)
+        self._conditions: tuple[cirq.Condition, ...] = tuple(conds)
         self._sub_operation: cirq.Operation = sub_operation
 
     @property
@@ -210,7 +198,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
             wire_symbols=wire_symbols, exponent=sub_info.exponent, exponent_qubit_index=exp_index
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'conditions': self._conditions, 'sub_operation': self._sub_operation}
 
     def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
@@ -226,14 +214,14 @@ class ClassicallyControlledOperation(raw_types.Operation):
         sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
         return sub_operation.with_classical_controls(*conditions)
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> ClassicallyControlledOperation:
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]) -> ClassicallyControlledOperation:
         conditions = [protocols.with_key_path_prefix(c, prefix) for c in self._conditions]
         sub_operation = protocols.with_key_path_prefix(self._sub_operation, prefix)
         sub_operation = self._sub_operation if sub_operation is NotImplemented else sub_operation
         return sub_operation.with_classical_controls(*conditions)
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ) -> ClassicallyControlledOperation:
         conds = [protocols.with_rescoped_keys(c, path, bindable_keys) for c in self._conditions]
         sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)

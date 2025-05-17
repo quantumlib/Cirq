@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import string
-from typing import Any, Callable, cast, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, cast, Optional, Set, Union
 
 import numpy as np
 
@@ -34,7 +34,7 @@ class QuilFormatter(string.Formatter):
     """A unique formatter to correctly output values to QUIL."""
 
     def __init__(
-        self, qubit_id_map: Dict['cirq.Qid', str], measurement_id_map: Dict[str, str]
+        self, qubit_id_map: dict['cirq.Qid', str], measurement_id_map: dict[str, str]
     ) -> None:
         """Inits QuilFormatter.
 
@@ -348,7 +348,7 @@ class QuilOutput:
     circuit.
     """
 
-    def __init__(self, operations: 'cirq.OP_TREE', qubits: Tuple['cirq.Qid', ...]) -> None:
+    def __init__(self, operations: 'cirq.OP_TREE', qubits: tuple['cirq.Qid', ...]) -> None:
         """Inits QuilOutput.
 
         Args:
@@ -366,12 +366,12 @@ class QuilOutput:
             qubit_id_map=self.qubit_id_map, measurement_id_map=self.measurement_id_map
         )
 
-    def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
+    def _generate_qubit_ids(self) -> dict['cirq.Qid', str]:
         return {qubit: str(i) for i, qubit in enumerate(self.qubits)}
 
-    def _generate_measurement_ids(self) -> Dict[str, str]:
+    def _generate_measurement_ids(self) -> dict[str, str]:
         index = 0
-        measurement_id_map: Dict[str, str] = {}
+        measurement_id_map: dict[str, str] = {}
         for op in self.operations:
             if isinstance(op.gate, ops.MeasurementGate):
                 key = protocols.measurement_key_name(op)
@@ -501,9 +501,9 @@ class RigettiQCSQuilOutput(QuilOutput):
         self,
         *,
         operations: cirq.OP_TREE,
-        qubits: Tuple[cirq.Qid, ...],
-        decompose_operation: Optional[Callable[[cirq.Operation], List[cirq.Operation]]] = None,
-        qubit_id_map: Optional[Dict[cirq.Qid, str]] = None,
+        qubits: tuple[cirq.Qid, ...],
+        decompose_operation: Optional[Callable[[cirq.Operation], list[cirq.Operation]]] = None,
+        qubit_id_map: Optional[dict[cirq.Qid, str]] = None,
     ):
         """Initializes an instance of `RigettiQCSQuilOutput`.
 

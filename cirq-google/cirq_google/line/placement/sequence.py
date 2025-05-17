@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, List
+from typing import Iterable
 
 import cirq
 
-LineSequence = List[cirq.GridQubit]
+LineSequence = list[cirq.GridQubit]
 
 
 class NotFoundError(Exception):

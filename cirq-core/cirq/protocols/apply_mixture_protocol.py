@@ -15,7 +15,7 @@
 """A protocol for implementing high performance mixture evolutions."""
 
 from types import NotImplementedType
-from typing import Any, cast, Iterable, Optional, Tuple, TypeVar, Union
+from typing import Any, cast, Iterable, Optional, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -273,7 +273,7 @@ def apply_mixture(
     )
 
 
-def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixtureArgs', bool]:
+def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> tuple[Any, 'ApplyMixtureArgs', bool]:
     """Validate args input and determine if we are operating on a
     density matrix or a state vector.
     """
@@ -325,7 +325,7 @@ def _apply_unitary_strat(
     right_args = ApplyUnitaryArgs(
         target_tensor=np.conjugate(left_result),
         available_buffer=args.auxiliary_buffer0,
-        axes=cast(Tuple[int], args.right_axes),
+        axes=cast(tuple[int], args.right_axes),
     )
     right_result = apply_unitary(val, right_args)
     np.conjugate(right_result, out=right_result)
@@ -352,7 +352,7 @@ def _apply_unitary_from_matrix_strat(
     linalg.targeted_left_multiply(
         np.conjugate(matrix_tensor),
         args.auxiliary_buffer0,
-        cast(Tuple[int], args.right_axes),
+        cast(tuple[int], args.right_axes),
         out=args.target_tensor,
     )
     return args.target_tensor

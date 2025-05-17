@@ -17,7 +17,7 @@
 import datetime
 from collections import abc, defaultdict
 from itertools import cycle
-from typing import Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, cast, Iterator, Optional, Sequence, Union
 
 import google.protobuf.json_format as json_format
 import matplotlib as mpl
@@ -27,10 +27,10 @@ import cirq
 from cirq_google.api import v2
 
 # Calibration Metric types
-METRIC_KEY = Tuple[Union[cirq.GridQubit, str], ...]
-METRIC_VALUE = List[Union[str, int, float]]
-METRIC_DICT = Dict[METRIC_KEY, METRIC_VALUE]
-ALL_METRICS = Dict[str, METRIC_DICT]
+METRIC_KEY = tuple[Union[cirq.GridQubit, str], ...]
+METRIC_VALUE = list[Union[str, int, float]]
+METRIC_DICT = dict[METRIC_KEY, METRIC_VALUE]
+ALL_METRICS = dict[str, METRIC_DICT]
 
 
 class Calibration(abc.Mapping):
@@ -152,7 +152,7 @@ class Calibration(abc.Mapping):
         metric_proto = v2.metrics_pb2.MetricsSnapshot()
         return cls(json_format.ParseDict(metrics, metric_proto))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {'metrics': json_format.MessageToDict(self.to_proto())}
 
@@ -194,7 +194,7 @@ class Calibration(abc.Mapping):
         raise ValueError(f'The metric target {target} was not a tuple of qubits')
 
     @staticmethod
-    def key_to_qubits(target: METRIC_KEY) -> Tuple[cirq.GridQubit, ...]:
+    def key_to_qubits(target: METRIC_KEY) -> tuple[cirq.GridQubit, ...]:
         """Returns a tuple of qubits from a metric key.
 
         Raises:
@@ -304,7 +304,7 @@ class Calibration(abc.Mapping):
 
     def plot(
         self, key: str, fig: Optional[mpl.figure.Figure] = None
-    ) -> Tuple[mpl.figure.Figure, List[plt.Axes]]:
+    ) -> tuple[mpl.figure.Figure, list[plt.Axes]]:
         """Plots a heatmap and an integrated histogram for the given key.
 
         Args:
@@ -321,7 +321,7 @@ class Calibration(abc.Mapping):
         show_plot = not fig
         if fig is None:
             fig = plt.figure()
-        axs = cast(List[plt.Axes], fig.subplots(1, 2))
+        axs = cast(list[plt.Axes], fig.subplots(1, 2))
         self.heatmap(key).plot(axs[0])
         self.plot_histograms(key, axs[1])
         if show_plot:

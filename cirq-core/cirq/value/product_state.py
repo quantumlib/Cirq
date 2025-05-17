@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from dataclasses import dataclass
-from typing import Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Iterator, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -59,7 +59,7 @@ class ProductState:
     with `cirq.KET_PLUS(q0)`.
     """
 
-    states: Dict[cirq.Qid, _NamedOneQubitState]
+    states: dict[cirq.Qid, _NamedOneQubitState]
 
     def __init__(self, states=None):
         if states is None:
@@ -99,7 +99,7 @@ class ProductState:
         """Return the _NamedOneQubitState at the given qubit."""
         return self.states[qubit]
 
-    def __iter__(self) -> Iterator[Tuple[cirq.Qid, _NamedOneQubitState]]:
+    def __iter__(self) -> Iterator[tuple[cirq.Qid, _NamedOneQubitState]]:
         yield from self.states.items()
 
     def __len__(self) -> int:
@@ -176,7 +176,7 @@ class _PauliEigenState(_NamedOneQubitState):
         return f'cirq.{self._symbol}.basis[{self.eigenvalue:+d}]'
 
     @abc.abstractmethod
-    def stabilized_by(self) -> Tuple[int, cirq.Pauli]:
+    def stabilized_by(self) -> tuple[int, cirq.Pauli]:
         pass
 
     def __eq__(self, other) -> bool:
@@ -203,7 +203,7 @@ class _XEigenState(_PauliEigenState):
             return np.array([1, -1]) / np.sqrt(2)
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
-    def stabilized_by(self) -> Tuple[int, cirq.Pauli]:
+    def stabilized_by(self) -> tuple[int, cirq.Pauli]:
         # Prevent circular import from `value.value_equality`
         from cirq import ops
 
@@ -220,7 +220,7 @@ class _YEigenState(_PauliEigenState):
             return np.array([1, -1j]) / np.sqrt(2)
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
-    def stabilized_by(self) -> Tuple[int, cirq.Pauli]:
+    def stabilized_by(self) -> tuple[int, cirq.Pauli]:
         from cirq import ops
 
         return self.eigenvalue, ops.Y
@@ -236,7 +236,7 @@ class _ZEigenState(_PauliEigenState):
             return np.array([0, 1])
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")  # pragma: no cover
 
-    def stabilized_by(self) -> Tuple[int, cirq.Pauli]:
+    def stabilized_by(self) -> tuple[int, cirq.Pauli]:
         from cirq import ops
 
         return self.eigenvalue, ops.Z

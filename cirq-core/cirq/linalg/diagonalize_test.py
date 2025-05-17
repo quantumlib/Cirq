@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import random
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import pytest
@@ -49,7 +49,7 @@ def random_block_diagonal_symmetric_matrix(*ns: int) -> np.ndarray:
 
 def random_bi_diagonalizable_pair(
     n: int, d1: Optional[int] = None, d2: Optional[int] = None
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     u = cirq.testing.random_orthogonal(n)
     s = random_real_diagonal_matrix(n, d1)
     z = random_real_diagonal_matrix(n, d2)

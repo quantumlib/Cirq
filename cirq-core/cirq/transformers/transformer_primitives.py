@@ -19,19 +19,7 @@ from __future__ import annotations
 import bisect
 import dataclasses
 from collections import defaultdict
-from typing import (
-    Callable,
-    cast,
-    Dict,
-    Hashable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Callable, cast, Hashable, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
@@ -159,7 +147,7 @@ def _map_operations_impl(
     """
     tags_to_ignore_set = set(tags_to_ignore)
 
-    def apply_map_func(op: cirq.Operation, idx: int) -> List[cirq.Operation]:
+    def apply_map_func(op: cirq.Operation, idx: int) -> list[cirq.Operation]:
         if tags_to_ignore_set.intersection(op.tags):
             return [op]
         if deep and isinstance(op.untagged, circuits.CircuitOperation):
@@ -196,9 +184,9 @@ def _map_operations_impl(
             ]
         return mapped_ops
 
-    new_moments: List[List[cirq.Operation]] = []
+    new_moments: list[list[cirq.Operation]] = []
     for idx, moment in enumerate(circuit):
-        curr_moments: List[List[cirq.Operation]] = [[]] if wrap_in_circuit_op else []
+        curr_moments: list[list[cirq.Operation]] = [[]] if wrap_in_circuit_op else []
         placement_cache = circuits.circuit._PlacementCache()
         for op in moment:
             mapped_ops = apply_map_func(op, idx)
@@ -307,16 +295,16 @@ class _MergedCircuit:
             of a set to store operations to preserve insertion order.
     """
 
-    qubit_indexes: Dict[cirq.Qid, List[int]] = dataclasses.field(
+    qubit_indexes: dict[cirq.Qid, list[int]] = dataclasses.field(
         default_factory=lambda: defaultdict(lambda: [-1])
     )
-    mkey_indexes: Dict[cirq.MeasurementKey, List[int]] = dataclasses.field(
+    mkey_indexes: dict[cirq.MeasurementKey, list[int]] = dataclasses.field(
         default_factory=lambda: defaultdict(lambda: [-1])
     )
-    ckey_indexes: Dict[cirq.MeasurementKey, List[int]] = dataclasses.field(
+    ckey_indexes: dict[cirq.MeasurementKey, list[int]] = dataclasses.field(
         default_factory=lambda: defaultdict(lambda: [-1])
     )
-    ops_by_index: List[Dict[cirq.Operation, int]] = dataclasses.field(default_factory=list)
+    ops_by_index: list[dict[cirq.Operation, int]] = dataclasses.field(default_factory=list)
 
     def append_empty_moment(self) -> None:
         self.ops_by_index.append({})
@@ -347,7 +335,7 @@ class _MergedCircuit:
 
     def get_mergeable_ops(
         self, op: cirq.Operation, op_qs: Set[cirq.Qid]
-    ) -> Tuple[int, List[cirq.Operation]]:
+    ) -> tuple[int, list[cirq.Operation]]:
         # Find the index of previous moment which can be merged with `op`.
         idx = max([self.qubit_indexes[q][-1] for q in op_qs], default=-1)
         idx = max([idx] + [self.mkey_indexes[ckey][-1] for ckey in protocols.control_keys(op)])
@@ -435,7 +423,7 @@ def merge_operations(
         return new_op
 
     merged_circuit = _MergedCircuit()
-    for moment_idx, current_moment in enumerate(cast(List['cirq.Moment'], circuit)):
+    for moment_idx, current_moment in enumerate(cast(list['cirq.Moment'], circuit)):
         merged_circuit.append_empty_moment()
         for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             if (
@@ -628,7 +616,7 @@ def merge_moments(
             ),
             tags_to_ignore=tags_to_ignore,
         )
-    merged_moments: List[circuits.Moment] = [circuit[0]]
+    merged_moments: list[circuits.Moment] = [circuit[0]]
     for current_moment in circuit[1:]:
         merged_moment = merge_func(merged_moments[-1], current_moment)
         if merged_moment is None:
@@ -661,7 +649,7 @@ def unroll_circuit_op(
     """
 
     def map_func(m: circuits.Moment, _: int):
-        to_zip: List[cirq.AbstractCircuit] = []
+        to_zip: list[cirq.AbstractCircuit] = []
         for op in m:
             op_untagged = op.untagged
             if isinstance(op_untagged, circuits.CircuitOperation):
@@ -753,7 +741,7 @@ def unroll_circuit_op_greedy_frontier(
         Copy of input circuit with (Tagged) CircuitOperation's expanded inline at qubit frontier.
     """
     unrolled_circuit = circuit.unfreeze(copy=True)
-    frontier: Dict[cirq.Qid, int] = defaultdict(lambda: 0)
+    frontier: dict[cirq.Qid, int] = defaultdict(lambda: 0)
     idx = 0
     while idx < len(unrolled_circuit):
         for op in unrolled_circuit[idx].operations:

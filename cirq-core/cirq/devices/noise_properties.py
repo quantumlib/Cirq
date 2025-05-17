@@ -22,7 +22,7 @@ noise models to produce a single noise model which replicates device noise.
 from __future__ import annotations
 
 import abc
-from typing import Iterable, List, Sequence, TYPE_CHECKING
+from typing import Iterable, Sequence, TYPE_CHECKING
 
 from cirq import _import, devices, ops, protocols
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
@@ -37,7 +37,7 @@ class NoiseProperties(abc.ABC):
     """Noise-defining properties for a quantum device."""
 
     @abc.abstractmethod
-    def build_noise_models(self) -> List[cirq.NoiseModel]:
+    def build_noise_models(self) -> list[cirq.NoiseModel]:
         """Construct all NoiseModels associated with this NoiseProperties."""
 
 

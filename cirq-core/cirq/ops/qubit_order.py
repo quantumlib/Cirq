@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Any, Callable, Iterable, Optional, Tuple, TYPE_CHECKING, TypeVar
+from typing import Any, Callable, Iterable, Optional, TYPE_CHECKING, TypeVar
 
 from cirq.ops import raw_types
 
@@ -29,7 +29,7 @@ class QubitOrder:
     """Defines the kronecker product order of qubits."""
 
     def __init__(
-        self, explicit_func: Callable[[Iterable[raw_types.Qid]], Tuple[raw_types.Qid, ...]]
+        self, explicit_func: Callable[[Iterable[raw_types.Qid]], tuple[raw_types.Qid, ...]]
     ) -> None:
         self._explicit_func = explicit_func
 
@@ -89,7 +89,7 @@ class QubitOrder:
         """
         return QubitOrder(lambda qubits: tuple(sorted(qubits, key=key)))
 
-    def order_for(self, qubits: Iterable[raw_types.Qid]) -> Tuple[raw_types.Qid, ...]:
+    def order_for(self, qubits: Iterable[raw_types.Qid]) -> tuple[raw_types.Qid, ...]:
         """Returns a qubit tuple ordered corresponding to the basis.
 
         Args:

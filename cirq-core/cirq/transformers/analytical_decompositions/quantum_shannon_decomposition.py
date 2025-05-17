@@ -21,7 +21,7 @@ https://arxiv.org/abs/quant-ph/0406176
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, List, TYPE_CHECKING
+from typing import Callable, Iterable, TYPE_CHECKING
 
 import numpy as np
 from scipy.linalg import cossin
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 def quantum_shannon_decomposition(
-    qubits: List[cirq.Qid], u: np.ndarray, atol: float = 1e-8
+    qubits: list[cirq.Qid], u: np.ndarray, atol: float = 1e-8
 ) -> Iterable[cirq.Operation]:
     """Decomposes n-qubit unitary 1-q, 2-q and GlobalPhase gates, preserving global phase.
 
@@ -185,7 +185,7 @@ def _single_qubit_decomposition(qubit: cirq.Qid, u: np.ndarray) -> Iterable[cirq
 
 
 def _msb_demuxer(
-    demux_qubits: List[cirq.Qid], u1: np.ndarray, u2: np.ndarray
+    demux_qubits: list[cirq.Qid], u1: np.ndarray, u2: np.ndarray
 ) -> Iterable[cirq.Operation]:
     """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
 
@@ -248,7 +248,7 @@ def _nth_gray(n: int) -> int:
 
 
 def _multiplexed_cossin(
-    cossin_qubits: List[cirq.Qid], angles: List[float], rot_func: Callable = ops.ry
+    cossin_qubits: list[cirq.Qid], angles: list[float], rot_func: Callable = ops.ry
 ) -> Iterable[cirq.Operation]:
     """Performs a multiplexed rotation over all qubits in this unitary matrix,
 

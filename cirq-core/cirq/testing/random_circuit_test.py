@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import random
-from typing import cast, Dict, Optional, Sequence, Union
+from typing import cast, Optional, Sequence, Union
 
 import numpy as np
 import pytest
@@ -75,7 +75,7 @@ def test_random_circuit(
     n_qubits: Union[int, Sequence[cirq.Qid]],
     n_moments: int,
     op_density: float,
-    gate_domain: Optional[Dict[cirq.Gate, int]],
+    gate_domain: Optional[dict[cirq.Gate, int]],
     pass_qubits: bool,
 ) -> None:
     qubit_set = cirq.LineQubit.range(n_qubits)

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from enum import Enum
 from types import NotImplementedType
-from typing import cast, List, Type, TYPE_CHECKING, Union
+from typing import cast, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -48,7 +48,7 @@ def _matrix_to_pauli_string_phasors(
     mat: np.ndarray, qubit: cirq.Qid, *, keep_clifford: bool, atol: float
 ) -> ops.OP_TREE:
     rotations = transformers.single_qubit_matrix_to_pauli_rotations(mat, atol)
-    out_ops: List[ops.GateOperation] = []
+    out_ops: list[ops.GateOperation] = []
     for pauli, half_turns in rotations:
         if keep_clifford and linalg.all_near_zero_mod(half_turns, 0.5):
             cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
@@ -97,7 +97,7 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
         """
         self.atol = atol
         self.single_qubit_target = single_qubit_target
-        gates: List[Union[cirq.Gate, Type[cirq.Gate]]] = [ops.CZ, ops.MeasurementGate]
+        gates: list[Union[cirq.Gate, Type[cirq.Gate]]] = [ops.CZ, ops.MeasurementGate]
         if single_qubit_target in [
             self.SingleQubitTarget.SINGLE_QUBIT_CLIFFORDS,
             self.SingleQubitTarget.PAULI_STRING_PHASORS_AND_CLIFFORDS,
@@ -141,7 +141,7 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
         )
 
     @property
-    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
 
         def rewriter(o: cirq.CircuitOperation):

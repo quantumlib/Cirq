@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 import numpy as np
 import pytest
 
@@ -26,7 +24,7 @@ import cirq
 
 def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCircuit):
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_transformers: List[cirq.TRANSFORMER] = [
+    followup_transformers: list[cirq.TRANSFORMER] = [
         cirq.drop_negligible_operations,
         cirq.drop_empty_moments,
     ]

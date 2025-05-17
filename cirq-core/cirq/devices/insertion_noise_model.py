@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Optional, Sequence, TYPE_CHECKING
 
 from cirq import devices
 from cirq.devices import noise_utils
@@ -44,14 +44,14 @@ class InsertionNoiseModel(devices.NoiseModel):
             with PHYSICAL_GATE_TAG.
     """
 
-    ops_added: Dict[noise_utils.OpIdentifier, cirq.Operation] = dataclasses.field(
+    ops_added: dict[noise_utils.OpIdentifier, cirq.Operation] = dataclasses.field(
         default_factory=dict
     )
     prepend: bool = False
     require_physical_tag: bool = True
 
     def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
-        noise_ops: List[cirq.Operation] = []
+        noise_ops: list[cirq.Operation] = []
         candidate_ops = [
             op
             for op in moment
@@ -82,7 +82,7 @@ class InsertionNoiseModel(devices.NoiseModel):
             + f' require_physical_tag={self.require_physical_tag})'
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'ops_added': list(self.ops_added.items()),
             'prepend': self.prepend,

@@ -20,13 +20,10 @@ from typing import (
     AbstractSet,
     Any,
     DefaultDict,
-    Dict,
     FrozenSet,
     Iterable,
-    List,
     Mapping,
     Optional,
-    Tuple,
     TYPE_CHECKING,
     Union,
 )
@@ -48,7 +45,7 @@ from cirq.value.linear_dict import _format_terms
 if TYPE_CHECKING:
     import cirq
 
-UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
+UnitPauliStringT = FrozenSet[tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[
     complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
@@ -239,7 +236,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return isinstance(operation, raw_types.Operation)
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> tuple[raw_types.Qid, ...]:
         """Returns qubits acted on self."""
         if not self:
             return ()
@@ -319,7 +316,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         """Computes Pauli expansion of self from Pauli expansions of terms."""
 
         def extend_term(
-            pauli_names: str, qubits: Tuple[cirq.Qid, ...], all_qubits: Tuple[cirq.Qid, ...]
+            pauli_names: str, qubits: tuple[cirq.Qid, ...], all_qubits: tuple[cirq.Qid, ...]
         ) -> str:
             """Extends Pauli product on qubits to product on all_qubits."""
             assert len(pauli_names) == len(qubits)
@@ -328,8 +325,8 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
 
         def extend(
             expansion: value.LinearDict[str],
-            qubits: Tuple[cirq.Qid, ...],
-            all_qubits: Tuple[cirq.Qid, ...],
+            qubits: tuple[cirq.Qid, ...],
+            all_qubits: tuple[cirq.Qid, ...],
         ) -> value.LinearDict[str]:
             """Extends Pauli expansion on qubits to expansion on all_qubits."""
             return value.LinearDict(
@@ -470,7 +467,7 @@ class PauliSum:
         return PauliSum() + val
 
     @classmethod
-    def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) -> PauliSum:
+    def from_pauli_strings(cls, terms: Union[PauliString, list[PauliString]]) -> PauliSum:
         """Returns a PauliSum by combining `cirq.PauliString` terms.
 
         Args:
@@ -490,7 +487,7 @@ class PauliSum:
 
     @classmethod
     def from_boolean_expression(
-        cls, boolean_expr: Expr, qubit_map: Dict[str, cirq.Qid]
+        cls, boolean_expr: Expr, qubit_map: dict[str, cirq.Qid]
     ) -> PauliSum:
         """Builds the Hamiltonian representation of a Boolean expression.
 
@@ -542,7 +539,7 @@ class PauliSum:
         raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> tuple[raw_types.Qid, ...]:
         """The sorted list of qubits used in this PauliSum."""
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
@@ -883,7 +880,7 @@ class ProjectorSum:
     """List of mappings representing a sum of projector operators."""
 
     def __init__(
-        self, linear_dict: Optional[value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]]] = None
+        self, linear_dict: Optional[value.LinearDict[FrozenSet[tuple[raw_types.Qid, int]]]] = None
     ):
         """Constructor for ProjectorSum
 
@@ -892,7 +889,7 @@ class ProjectorSum:
                 number. The tuple is a projector onto the qubit and the complex number is the
                 weight of these projections.
         """
-        self._linear_dict: value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]] = (
+        self._linear_dict: value.LinearDict[FrozenSet[tuple[raw_types.Qid, int]]] = (
             linear_dict if linear_dict is not None else value.LinearDict({})
         )
 
@@ -900,11 +897,11 @@ class ProjectorSum:
         return self._linear_dict
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> tuple[raw_types.Qid, ...]:
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         linear_dict = []
         for projector_dict, scalar in dict(self._linear_dict).items():
             key = [[k, v] for k, v in dict(projector_dict).items()]
@@ -923,7 +920,7 @@ class ProjectorSum:
 
     @classmethod
     def from_projector_strings(
-        cls, terms: Union[ProjectorString, List[ProjectorString]]
+        cls, terms: Union[ProjectorString, list[ProjectorString]]
     ) -> ProjectorSum:
         """Builds a ProjectorSum from one or more ProjectorString(s).
 
@@ -935,7 +932,7 @@ class ProjectorSum:
         """
         if isinstance(terms, ProjectorString):
             terms = [terms]
-        termdict: DefaultDict[FrozenSet[Tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
+        termdict: DefaultDict[FrozenSet[tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
             lambda: 0.0
         )
         for pstring in terms:

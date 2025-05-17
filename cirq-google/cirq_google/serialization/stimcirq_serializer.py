@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Optional, TYPE_CHECKING, Union
 
 from cirq_google.api import v2
 from cirq_google.serialization.arg_func_langs import arg_to_proto
@@ -59,8 +59,8 @@ class StimCirqSerializer(OpSerializer):
         op: cirq.Operation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.Operation:
         """Returns the stimcirq object as a proto."""
         msg = msg or v2.program_pb2.Operation()

@@ -18,7 +18,7 @@ import dataclasses
 import datetime
 import time
 import uuid
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -59,7 +59,7 @@ class SharedRuntimeInfo:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -90,14 +90,14 @@ class RuntimeInfo:
     """
 
     execution_index: int
-    qubit_placement: Optional[Dict[Any, cirq.Qid]] = None
-    timings_s: Dict[str, float] = dataclasses.field(default_factory=dict)
+    qubit_placement: Optional[dict[Any, cirq.Qid]] = None
+    timings_s: dict[str, float] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         d = dataclass_json_dict(self)
         if d['qubit_placement']:
             d['qubit_placement'] = list(d['qubit_placement'].items())
@@ -136,7 +136,7 @@ class ExecutableResult:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -159,13 +159,13 @@ class ExecutableGroupResult:
 
     runtime_configuration: 'QuantumRuntimeConfiguration'
     shared_runtime_info: SharedRuntimeInfo
-    executable_results: List[ExecutableResult]
+    executable_results: list[ExecutableResult]
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -201,7 +201,7 @@ class QuantumRuntimeConfiguration:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:

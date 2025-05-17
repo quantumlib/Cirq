@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import cirq
 from cirq_google.api import v2
@@ -88,7 +88,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         validator: Optional[validating_sampler.VALIDATOR_TYPE] = None,
         program_validator: Optional[engine_validator.PROGRAM_VALIDATOR_TYPE] = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
-        calibrations: Optional[Dict[int, calibration.Calibration]] = None,
+        calibrations: Optional[dict[int, calibration.Calibration]] = None,
         device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
         **kwargs,
     ):
@@ -101,7 +101,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._sampler = validating_sampler.ValidatingSampler(
             device=self._device, validator=self._validator, sampler=sampler
         )
-        self._programs: Dict[str, AbstractLocalProgram] = {}
+        self._programs: dict[str, AbstractLocalProgram] = {}
         self._device_specification = device_specification
 
     def remove_program(self, program_id: str):
@@ -140,7 +140,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         **kwargs,
-    ) -> List[calibration.Calibration]:
+    ) -> list[calibration.Calibration]:
         earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp) or 0
         latest_timestamp_seconds = (
             _date_to_timestamp(latest_timestamp)
@@ -157,15 +157,15 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             processor=self, run_name=run_name, device_config_name=device_config_name
         )
 
-    def supported_languages(self) -> List[str]:
+    def supported_languages(self) -> list[str]:
         return VALID_LANGUAGES
 
     def list_programs(
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[AbstractLocalProgram]:
+        has_labels: Optional[dict[str, str]] = None,
+    ) -> list[AbstractLocalProgram]:
         before_limit = created_before or datetime.datetime(datetime.MAXYEAR, 1, 1)
         after_limit = created_after or datetime.datetime(datetime.MINYEAR, 1, 1)
         labels = has_labels or {}
@@ -202,9 +202,9 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         params: cirq.Sweepable = None,
         repetitions: int = 1,
         program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
+        program_labels: Optional[dict[str, str]] = None,
         job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        job_labels: Optional[dict[str, str]] = None,
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",

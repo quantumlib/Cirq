@@ -36,7 +36,6 @@ import os.path
 import subprocess
 import sys
 import time
-from typing import List
 
 parser = argparse.ArgumentParser(
     description="Locates imports that violate cirq's submodule dependencies."
@@ -112,8 +111,8 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
     fail_list = []
     start_times = {}
     load_times = {}
-    current_path: List[str] = []
-    currently_running_paths: List[List[str]] = [[]]
+    current_path: list[str] = []
+    currently_running_paths: list[list[str]] = [[]]
     import_depth = 0
     indent = ' ' * 2
 

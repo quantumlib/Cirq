@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import time
-from typing import List, Optional
+from typing import Optional
 
 import requests
 
@@ -103,7 +103,7 @@ class PasqalSampler(cirq.work.Sampler):
 
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
-    ) -> List[cirq.study.Result]:
+    ) -> list[cirq.study.Result]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
         values.

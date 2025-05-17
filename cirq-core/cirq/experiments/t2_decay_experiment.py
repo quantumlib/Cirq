@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import enum
-from typing import Any, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Optional, TYPE_CHECKING, Union
 
 import pandas as pd
 import sympy
@@ -47,8 +47,8 @@ def t2_decay(
     min_delay: cirq.DURATION_LIKE = None,
     repetitions: int = 1000,
     delay_sweep: Optional[study.Sweep] = None,
-    num_pulses: Optional[List[int]] = None,
-) -> Union[cirq.experiments.T2DecayResult, List[cirq.experiments.T2DecayResult]]:
+    num_pulses: Optional[list[int]] = None,
+) -> Union[cirq.experiments.T2DecayResult, list[cirq.experiments.T2DecayResult]]:
     """Runs a t2 transverse relaxation experiment.
 
     Initializes a qubit into a superposition state, evolves the system using
@@ -259,7 +259,7 @@ def _cpmg_circuit(qubit: cirq.Qid, delay_var: sympy.Symbol, max_pulses: int) -> 
     return circuit
 
 
-def _cpmg_sweep(num_pulses: List[int]):
+def _cpmg_sweep(num_pulses: list[int]):
     """Returns a sweep for a circuit created by _cpmg_circuit.
 
     The circuit in _cpmg_circuit parameterizes the pulses, so this function

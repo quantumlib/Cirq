@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Iterator, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Iterable, Iterator, Optional, TYPE_CHECKING, Union
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import Cell, CellMaker
@@ -44,7 +44,7 @@ class ControlCell(Cell):
     def gate_count(self) -> int:
         return 0
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return ControlCell(
             qubit=Cell._replace_qubit(self.qubit, qubits),
             basis_change=tuple(
@@ -53,7 +53,7 @@ class ControlCell(Cell):
             ),
         )
 
-    def modify_column(self, column: List[Optional[Cell]]):
+    def modify_column(self, column: list[Optional[Cell]]):
         for i in range(len(column)):
             gate = column[i]
             if gate is not None:
@@ -88,7 +88,7 @@ class ParityControlCell(Cell):
     def gate_count(self) -> int:
         return 0
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return ParityControlCell(
             qubits=Cell._replace_qubits(self.qubits, qubits),
             basis_change=tuple(
@@ -97,7 +97,7 @@ class ParityControlCell(Cell):
             ),
         )
 
-    def modify_column(self, column: List[Optional[Cell]]):
+    def modify_column(self, column: list[Optional[Cell]]):
         for i in range(len(column)):
             gate = column[i]
             if gate is self:

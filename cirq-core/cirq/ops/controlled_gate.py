@@ -15,18 +15,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    Collection,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, Any, Collection, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -135,7 +124,7 @@ class ControlledGate(raw_types.Gate):
             self._sub_gate = sub_gate
 
     @property
-    def control_qid_shape(self) -> Tuple[int, ...]:
+    def control_qid_shape(self) -> tuple[int, ...]:
         return self._control_qid_shape
 
     @property
@@ -149,16 +138,16 @@ class ControlledGate(raw_types.Gate):
     def num_controls(self) -> int:
         return len(self.control_qid_shape)
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return self.control_qid_shape + protocols.qid_shape(self.sub_gate)
 
     def _decompose_(
-        self, qubits: Tuple[cirq.Qid, ...]
+        self, qubits: tuple[cirq.Qid, ...]
     ) -> Union[None, NotImplementedType, cirq.OP_TREE]:
         return self._decompose_with_context_(qubits)
 
     def _decompose_with_context_(
-        self, qubits: Tuple[cirq.Qid, ...], context: Optional[cirq.DecompositionContext] = None
+        self, qubits: tuple[cirq.Qid, ...], context: Optional[cirq.DecompositionContext] = None
     ) -> Union[None, NotImplementedType, cirq.OP_TREE]:
         control_qubits = list(qubits[: self.num_controls()])
         if (
@@ -167,7 +156,7 @@ class ControlledGate(raw_types.Gate):
             and self._qid_shape_() == (2,) * len(self._qid_shape_())
             and isinstance(self.control_values, cv.ProductOfSums)
         ):
-            invert_ops: List[cirq.Operation] = []
+            invert_ops: list[cirq.Operation] = []
             for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
                 if set(cvals) == {0}:
                     invert_ops.append(common_gates.X(cqbit))
@@ -353,7 +342,7 @@ class ControlledGate(raw_types.Gate):
             f'control_qid_shape={self.control_qid_shape!r})'
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'control_values': self.control_values,
             'control_qid_shape': self.control_qid_shape,

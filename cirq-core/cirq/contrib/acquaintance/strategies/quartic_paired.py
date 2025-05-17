@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING
+from typing import cast, Iterable, Sequence, TYPE_CHECKING
 
 from cirq import circuits
 from cirq.contrib.acquaintance.gates import acquaint, SwapNetworkGate
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence[cirq.Qid]]) -> List[cirq.Qid]:
+def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence[cirq.Qid]]) -> list[cirq.Qid]:
     """Takes a sequence of qubit pairs and returns a sequence in which every
     pair is at distance two.
 
@@ -35,7 +35,7 @@ def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence[cirq.Qid]]) -> Lis
     if set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,)):
         raise ValueError('set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,))')
     n_pairs = len(qubit_pairs)
-    qubits: List[cirq.Qid] = []
+    qubits: list[cirq.Qid] = []
     for i in range(0, 2 * (n_pairs // 2), 2):
         qubits += [
             qubit_pairs[i][0],
@@ -49,15 +49,15 @@ def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence[cirq.Qid]]) -> Lis
 
 
 def quartic_paired_acquaintance_strategy(
-    qubit_pairs: Iterable[Tuple[cirq.Qid, cirq.Qid]],
-) -> Tuple[cirq.Circuit, Sequence[cirq.Qid]]:
+    qubit_pairs: Iterable[tuple[cirq.Qid, cirq.Qid]],
+) -> tuple[cirq.Circuit, Sequence[cirq.Qid]]:
     """Acquaintance strategy for pairs of pairs.
 
     Implements UpCCGSD ansatz from arXiv:1810.02327.
     """
 
     qubit_pairs = tuple(
-        cast(Tuple['cirq.Qid', 'cirq.Qid'], tuple(qubit_pair)) for qubit_pair in qubit_pairs
+        cast(tuple['cirq.Qid', 'cirq.Qid'], tuple(qubit_pair)) for qubit_pair in qubit_pairs
     )
     qubits = qubit_pairs_to_qubit_order(qubit_pairs)
     n_qubits = len(qubits)

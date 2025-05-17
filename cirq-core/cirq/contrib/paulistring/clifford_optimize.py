@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Tuple
+from typing import cast
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
@@ -31,7 +31,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
 
     def find_merge_point(
         start_i: int, string_op: ops.PauliStringPhasor, stop_at_cz: bool
-    ) -> Tuple[int, ops.PauliStringPhasor, int]:
+    ) -> tuple[int, ops.PauliStringPhasor, int]:
         STOP = 0
         CONTINUE = 1
         SKIP = 2

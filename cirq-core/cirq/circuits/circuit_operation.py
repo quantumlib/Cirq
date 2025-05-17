@@ -27,14 +27,11 @@ from typing import (
     Any,
     Callable,
     cast,
-    Dict,
     FrozenSet,
     Iterator,
-    List,
     Mapping,
     Optional,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     Union,
 )
@@ -55,7 +52,7 @@ IntParam = Union[INT_TYPE, sympy.Expr]
 REPETITION_ID_SEPARATOR = '-'
 
 
-def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
+def default_repetition_ids(repetitions: IntParam) -> Optional[list[str]]:
     if isinstance(repetitions, INT_CLASSES) and abs(repetitions) != 1:
         abs_repetitions: int = abs(int(repetitions))
         return [str(i) for i in range(abs_repetitions)]
@@ -86,11 +83,11 @@ class CircuitOperation(ops.Operation):
         self,
         circuit: cirq.FrozenCircuit,
         repetitions: INT_TYPE = 1,
-        qubit_map: Optional[Dict[cirq.Qid, cirq.Qid]] = None,
-        measurement_key_map: Optional[Dict[str, str]] = None,
+        qubit_map: Optional[dict[cirq.Qid, cirq.Qid]] = None,
+        measurement_key_map: Optional[dict[str, str]] = None,
         param_resolver: Optional[study.ParamResolverOrSimilarType] = None,
         repetition_ids: Optional[Sequence[str]] = None,
-        parent_path: Tuple[str, ...] = (),
+        parent_path: tuple[str, ...] = (),
         extern_keys: FrozenSet[cirq.MeasurementKey] = frozenset(),
         use_repetition_ids: Optional[bool] = None,
         repeat_until: Optional[cirq.Condition] = None,
@@ -249,7 +246,7 @@ class CircuitOperation(ops.Operation):
         return self._param_resolver
 
     @property
-    def parent_path(self) -> Tuple[str, ...]:
+    def parent_path(self) -> tuple[str, ...]:
         return self._parent_path
 
     def base_operation(self) -> cirq.CircuitOperation:
@@ -296,15 +293,15 @@ class CircuitOperation(ops.Operation):
     # Methods for getting post-mapping properties of the contained circuit.
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         """Returns the qubits operated on by this object."""
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
         return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
 
-    def _default_repetition_ids(self) -> Optional[List[str]]:
+    def _default_repetition_ids(self) -> Optional[list[str]]:
         return default_repetition_ids(self.repetitions) if self.use_repetition_ids else None
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return tuple(q.dimension for q in self.qubits)
 
     def _is_measurement_(self) -> bool:
@@ -536,7 +533,7 @@ class CircuitOperation(ops.Operation):
     def __hash__(self) -> int:
         return self._hash
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         # cached_property stores value in the property-named attribute
@@ -662,14 +659,14 @@ class CircuitOperation(ops.Operation):
     def __pow__(self, power: IntParam) -> cirq.CircuitOperation:
         return self.repeat(power)
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]):
         return self.replace(parent_path=path)
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         return self.replace(parent_path=prefix + self.parent_path)
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ):
         # The following line prevents binding to measurement keys in previous repeated subcircuits
         # "just because their repetition ids matched". If we eventually decide to change that
@@ -681,7 +678,7 @@ class CircuitOperation(ops.Operation):
         path += self.parent_path
         return self.replace(parent_path=path, extern_keys=bindable_keys)
 
-    def with_key_path(self, path: Tuple[str, ...]):
+    def with_key_path(self, path: tuple[str, ...]):
         """Alias for `cirq.with_key_path(self, path)`.
 
         Args:
@@ -693,7 +690,7 @@ class CircuitOperation(ops.Operation):
         """
         return self._with_key_path_(path)
 
-    def with_repetition_ids(self, repetition_ids: List[str]) -> cirq.CircuitOperation:
+    def with_repetition_ids(self, repetition_ids: list[str]) -> cirq.CircuitOperation:
         """Returns a copy of this `CircuitOperation` with the given repetition IDs.
 
         Args:

@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, cast, Dict, Generic, Iterator, TypeVar
+from typing import Any, Callable, cast, Generic, Iterator, TypeVar
 
 import networkx
 
@@ -132,7 +132,7 @@ class CircuitDag(networkx.DiGraph):
         for node, attr in g2.nodes(data=True):
             attr['val'] = node.val
 
-        def node_match(attr1: Dict[Any, Any], attr2: Dict[Any, Any]) -> bool:
+        def node_match(attr1: dict[Any, Any], attr2: dict[Any, Any]) -> bool:
             return attr1['val'] == attr2['val']
 
         return networkx.is_isomorphic(g1, g2, node_match=node_match)

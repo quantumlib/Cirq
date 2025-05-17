@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, Sequence, Type, TYPE_CHECKING
+from typing import Any, Generic, Sequence, Type, TYPE_CHECKING
 
 import numpy as np
 
@@ -66,7 +66,7 @@ class CustomStateSimulator(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[TSimulationState],
     ) -> CustomStateTrialResult[TSimulationState]:
         return CustomStateTrialResult(

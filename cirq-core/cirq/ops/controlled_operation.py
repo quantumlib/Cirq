@@ -15,18 +15,7 @@
 from __future__ import annotations
 
 from types import EllipsisType, NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    Collection,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, Any, Collection, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -116,7 +105,7 @@ class ControlledOperation(raw_types.Operation):
             self._control_values = self._control_values & sub_operation.control_values
 
     @property
-    def controls(self) -> Tuple[cirq.Qid, ...]:
+    def controls(self) -> tuple[cirq.Qid, ...]:
         return self._controls
 
     @property
@@ -183,7 +172,7 @@ class ControlledOperation(raw_types.Operation):
         sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]
         for control_vals in self.control_values.expand():
-            active: Tuple[Union[EllipsisType, slice], ...] = (
+            active: tuple[Union[EllipsisType, slice], ...] = (
                 ...,
                 *(slice(v, v + 1) for v in control_vals),
                 *(slice(None),) * sub_n,
@@ -255,7 +244,7 @@ class ControlledOperation(raw_types.Operation):
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.sub_operation)
 
-    def _mixture_(self) -> Optional[List[Tuple[float, np.ndarray]]]:
+    def _mixture_(self) -> Optional[list[tuple[float, np.ndarray]]]:
         sub_mixture = protocols.mixture(self.sub_operation, None)
         if sub_mixture is None:
             return None
@@ -346,7 +335,7 @@ class ControlledOperation(raw_types.Operation):
             exponent_qubit_index=exponent_qubit_index,
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'controls': self.controls,
             'control_values': self.control_values,

@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Callable, cast, Iterable, Optional, Sequence, Set
 
 import networkx as nx
 import numpy as np
@@ -35,7 +35,7 @@ from cirq.experiments.random_quantum_circuit_generation import (
     random_rotations_between_two_qubit_circuit,
 )
 
-SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]
+SINGLE_QUBIT_LAYER = dict[cirq.GridQubit, Optional[cirq.Gate]]
 
 
 def test_random_rotation_between_two_qubit_circuit():
@@ -448,7 +448,7 @@ def _validate_two_qubit_layers(
 
 def _coupled_qubit_pairs(
     qubits: Set[cirq.GridQubit],
-) -> List[Tuple[cirq.GridQubit, cirq.GridQubit]]:
+) -> list[tuple[cirq.GridQubit, cirq.GridQubit]]:
     pairs = []
     for qubit in qubits:
 

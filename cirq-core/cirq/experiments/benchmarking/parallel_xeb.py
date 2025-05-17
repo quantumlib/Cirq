@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from concurrent import futures
-from typing import Dict, Optional, overload, Sequence, TYPE_CHECKING, Union
+from typing import Optional, overload, Sequence, TYPE_CHECKING, Union
 
 import attrs
 import networkx as nx
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 _TARGET_T = Union['cirq.Gate', 'cirq.Operation', 'cirq.AbstractCircuit']
 _QUBIT_PAIR_T = tuple['cirq.GridQubit', 'cirq.GridQubit']
-_CANONICAL_TARGET_T = Union['cirq.Operation', Dict[_QUBIT_PAIR_T, 'cirq.Operation']]
+_CANONICAL_TARGET_T = Union['cirq.Operation', dict[_QUBIT_PAIR_T, 'cirq.Operation']]
 _PROBABILITIES_DICT_T = dict[_QUBIT_PAIR_T, list[list[np.ndarray]]]
 
 
@@ -167,7 +167,7 @@ def _target_to_operation(target: _TARGET_T) -> cirq.Operation:
 
 
 def _canonize_target(
-    target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
+    target: Union[_TARGET_T, dict[_QUBIT_PAIR_T, _TARGET_T]],
 ) -> _CANONICAL_TARGET_T:
     if isinstance(target, (ops.Gate, ops.Operation, circuits.AbstractCircuit)):
         return _target_to_operation(target)
@@ -527,7 +527,7 @@ def estimate_fidelities(
 
 def _extract_pairs(
     sampler: cirq.Sampler,
-    target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
+    target: Union[_TARGET_T, dict[_QUBIT_PAIR_T, _TARGET_T]],
     qubits: Optional[Sequence[cirq.GridQubit]],
     pairs: Optional[Sequence[_QUBIT_PAIR_T]],
 ) -> Sequence[_QUBIT_PAIR_T]:
@@ -547,8 +547,8 @@ def _extract_pairs(
 
 def parallel_xeb_workflow(
     sampler: cirq.Sampler,
-    target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
-    ideal_target: Optional[Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]]] = None,
+    target: Union[_TARGET_T, dict[_QUBIT_PAIR_T, _TARGET_T]],
+    ideal_target: Optional[Union[_TARGET_T, dict[_QUBIT_PAIR_T, _TARGET_T]]] = None,
     qubits: Optional[Sequence[cirq.GridQubit]] = None,
     pairs: Optional[Sequence[_QUBIT_PAIR_T]] = None,
     parameters: XEBParameters = XEBParameters(),
@@ -646,8 +646,8 @@ def parallel_xeb_workflow(
 
 def parallel_two_qubit_xeb(
     sampler: cirq.Sampler,
-    target: Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]],
-    ideal_target: Optional[Union[_TARGET_T, Dict[_QUBIT_PAIR_T, _TARGET_T]]] = None,
+    target: Union[_TARGET_T, dict[_QUBIT_PAIR_T, _TARGET_T]],
+    ideal_target: Optional[Union[_TARGET_T, dict[_QUBIT_PAIR_T, _TARGET_T]]] = None,
     qubits: Optional[Sequence[cirq.GridQubit]] = None,
     pairs: Optional[Sequence[_QUBIT_PAIR_T]] = None,
     parameters: XEBParameters = XEBParameters(),

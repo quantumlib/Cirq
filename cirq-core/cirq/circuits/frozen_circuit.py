@@ -25,7 +25,6 @@ from typing import (
     Iterable,
     Iterator,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     Union,
 )
@@ -91,7 +90,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return Circuit._from_moments(self._moments)
 
     @property
-    def tags(self) -> Tuple[Hashable, ...]:
+    def tags(self) -> tuple[Hashable, ...]:
         """Returns a tuple of the Circuit's tags."""
         return self._tags
 
@@ -134,7 +133,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return len(self.all_qubits())
 
     @_compat.cached_method
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return super()._qid_shape_()
 
     @_compat.cached_method
@@ -154,7 +153,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super().all_qubits()
 
     @cached_property
-    def _all_operations(self) -> Tuple[cirq.Operation, ...]:
+    def _all_operations(self) -> tuple[cirq.Operation, ...]:
         return tuple(super().all_operations())
 
     def all_operations(self) -> Iterator[cirq.Operation]:

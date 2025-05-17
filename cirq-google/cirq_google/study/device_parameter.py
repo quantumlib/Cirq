@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import dataclasses
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from typing_extensions import Protocol
 
@@ -73,7 +73,7 @@ class DeviceParameter(SupportsDeviceParameter):
             path=path, idx=idx, value=value, units=kwargs["units"] if "units" in kwargs else None
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ["path", "idx", "value", "units"])
 
 
@@ -117,5 +117,5 @@ class Metadata:
     ):
         return Metadata(device_parameters=device_parameters, is_const=is_const, label=label)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ["device_parameters", "is_const", "label", "unit"])

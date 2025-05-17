@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections import abc
-from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Generic, Iterator, Mapping, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -34,7 +34,7 @@ class SimulationProductState(
 
     def __init__(
         self,
-        sim_states: Dict[Optional[cirq.Qid], TSimulationState],
+        sim_states: dict[Optional[cirq.Qid], TSimulationState],
         qubits: Sequence[cirq.Qid],
         split_untangled_states: bool,
         classical_data: Optional[cirq.ClassicalDataStore] = None,
@@ -152,12 +152,12 @@ class SimulationProductState(
 
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: list[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         columns = []
-        selected_order: List[ops.Qid] = []
+        selected_order: list[ops.Qid] = []
         q_set = set(qubits)
         for v in dict.fromkeys(self.sim_states.values()):
             qs = [q for q in v.qubits if q in q_set]
