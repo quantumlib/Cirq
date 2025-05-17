@@ -14,8 +14,11 @@
 
 """Utility methods for transforming matrices or vectors."""
 
+from __future__ import annotations
+
 import dataclasses
 import functools
+from types import EllipsisType
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -298,7 +301,7 @@ def targeted_conjugate_about(
     return targeted_left_multiply(np.conjugate(tensor), first_multiply, conj_indices, out=out)
 
 
-_TSliceAtom = Union[int, slice, 'ellipsis']
+_TSliceAtom = Union[int, slice, EllipsisType]
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
 

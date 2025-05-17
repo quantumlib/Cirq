@@ -14,6 +14,8 @@
 
 """A protocol for implementing high performance mixture evolutions."""
 
+from __future__ import annotations
+
 from types import NotImplementedType
 from typing import Any, cast, Iterable, Optional, Tuple, TypeVar, Union
 
@@ -273,7 +275,7 @@ def apply_mixture(
     )
 
 
-def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixtureArgs', bool]:
+def _validate_input(val: Any, args: ApplyMixtureArgs) -> Tuple[Any, ApplyMixtureArgs, bool]:
     """Validate args input and determine if we are operating on a
     density matrix or a state vector.
     """
@@ -303,7 +305,7 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixt
 
 
 def _apply_unitary_strat(
-    val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
+    val: Any, args: ApplyMixtureArgs, is_density_matrix: bool
 ) -> Optional[np.ndarray]:
     """Attempt to use `apply_unitary` and return the result.
 
@@ -333,7 +335,7 @@ def _apply_unitary_strat(
 
 
 def _apply_unitary_from_matrix_strat(
-    val: np.ndarray, args: 'ApplyMixtureArgs', is_density_matrix: bool
+    val: np.ndarray, args: ApplyMixtureArgs, is_density_matrix: bool
 ) -> Optional[np.ndarray]:
     """Used to enact mixture tuples that are given as (probability, np.ndarray)
 
@@ -359,7 +361,7 @@ def _apply_unitary_from_matrix_strat(
 
 
 def _apply_mixture_from_mixture_strat(
-    val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
+    val: Any, args: ApplyMixtureArgs, is_density_matrix: bool
 ) -> Optional[np.ndarray]:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
     method = getattr(val, '_mixture_', None)

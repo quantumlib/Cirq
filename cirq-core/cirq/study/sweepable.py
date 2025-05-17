@@ -14,6 +14,8 @@
 
 """Defines which types are Sweepable."""
 
+from __future__ import annotations
+
 import warnings
 from typing import cast, Iterable, Iterator, List, Optional, Sequence, Union
 
@@ -31,7 +33,7 @@ class _Sweepable(Protocol):
     """An intermediate class allowing for recursive definition of Sweepable,
     since recursive union definitions are not yet supported in mypy."""
 
-    def __iter__(self) -> Iterator[Union[SweepLike, '_Sweepable']]:
+    def __iter__(self) -> Iterator[Union[SweepLike, _Sweepable]]:
         pass
 
 
@@ -72,9 +74,9 @@ def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> List[Swe
 
 def to_sweep(
     sweep_or_resolver_list: Union[
-        'Sweep', ParamResolverOrSimilarType, Iterable[ParamResolverOrSimilarType]
+        Sweep, ParamResolverOrSimilarType, Iterable[ParamResolverOrSimilarType]
     ],
-) -> 'Sweep':
+) -> Sweep:
     """Converts the argument into a ``cirq.Sweep``.
 
     Args:

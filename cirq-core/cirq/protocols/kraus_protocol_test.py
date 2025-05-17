@@ -14,6 +14,8 @@
 
 """Tests for kraus_protocol.py."""
 
+from __future__ import annotations
+
 from typing import Iterable, List, Sequence, Tuple
 
 import numpy as np

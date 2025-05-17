@@ -14,6 +14,8 @@
 
 """Tests for parameter resolvers."""
 
+from __future__ import annotations
+
 import fractions
 
 import numpy as np

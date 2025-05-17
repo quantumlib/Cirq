@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Tools for analyzing and manipulating quantum channels."""
+
+from __future__ import annotations
+
 from typing import Sequence
 
 import numpy as np
@@ -280,7 +284,7 @@ def superoperator_to_choi(superoperator: np.ndarray) -> np.ndarray:
     return np.reshape(c, (d * d, d * d))
 
 
-def operation_to_choi(operation: 'protocols.SupportsKraus') -> np.ndarray:
+def operation_to_choi(operation: protocols.SupportsKraus) -> np.ndarray:
     r"""Returns the unique Choi matrix associated with an operation .
 
     Choi matrix J(E) of a linear map E: L(H1) -> L(H2) which takes linear operators
@@ -302,7 +306,7 @@ def operation_to_choi(operation: 'protocols.SupportsKraus') -> np.ndarray:
     return kraus_to_choi(protocols.kraus(operation))
 
 
-def operation_to_superoperator(operation: 'protocols.SupportsKraus') -> np.ndarray:
+def operation_to_superoperator(operation: protocols.SupportsKraus) -> np.ndarray:
     """Returns the matrix representation of an operation in standard basis.
 
     Let E: L(H1) -> L(H2) denote a linear map which takes linear operators on Hilbert space H1

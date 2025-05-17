@@ -18,6 +18,8 @@ This type is defined in its own file to work around an "invalid type" bug in
 mypy.
 """
 
+from __future__ import annotations
+
 from typing import Iterable, Union
 
 from cirq._doc import document

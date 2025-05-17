@@ -17,6 +17,8 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
+from __future__ import annotations
+
 import abc
 
 

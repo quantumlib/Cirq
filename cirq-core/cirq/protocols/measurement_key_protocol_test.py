@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -99,7 +101,8 @@ def test_is_measurement() -> None:
     assert not cirq.is_measurement(cirq.bit_flip(1))
 
     class NotImplementedOperation(cirq.Operation):
-        def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+        # pylint: disable=undefined-variable
+        def with_qubits(self, *new_qubits) -> NotImplementedOperation:
             raise NotImplementedError()
 
         @property
