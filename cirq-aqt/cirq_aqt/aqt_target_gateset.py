@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 import numpy as np
 
 import cirq
@@ -67,6 +65,6 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         return NotImplemented
 
     @property
-    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations."""
         return [cirq.drop_negligible_operations, cirq.drop_empty_moments]

@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import List
 
 import pytest
 
@@ -24,7 +23,7 @@ from cirq_aqt import aqt_device, aqt_device_metadata
 
 
 @pytest.fixture
-def qubits() -> List[cirq.LineQubit]:
+def qubits() -> list[cirq.LineQubit]:
     return cirq.LineQubit.range(3)
 
 
