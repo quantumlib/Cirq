@@ -1053,7 +1053,7 @@ def test_two_qubit_gates_not_enough_args(qasm_gate: str) -> None:
      include "qelib1.inc";
      qreg q[2];
      {qasm_gate} q[0];
-"""
+    """
 
     parser = QasmParser()
 
@@ -1514,3 +1514,159 @@ def test_nested_custom_gate_has_keyword_in_name() -> None:
     parser = QasmParser()
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
+
+
+def test_rzz_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    rzz(pi/2) q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.ZZPowGate(exponent=0.5).on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+def test_rxx_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    rxx(pi/4) q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.XXPowGate(exponent=0.25).on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+def test_ryy_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    ryy(pi/3) q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.YYPowGate(exponent=1 / 3).on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+def test_crx_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    crx(pi/7) q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.ControlledGate(cirq.rx(np.pi / 7)).on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+def test_iswap_gate():
+    qasm = """
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[2];
+    iswap q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q0, q1 = cirq.NamedQubit('q_0'), cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.ISwapPowGate().on(q0, q1))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+@pytest.mark.parametrize(
+    "qasm_gate,cirq_gate,num_params,num_args",
+    [
+        (name, stmt.cirq_gate, stmt.num_params, stmt.num_args)
+        for name, stmt in QasmParser.qelib_gates.items()
+    ],
+)
+@pytest.mark.parametrize(
+    "theta,theta_str", [(np.pi / 4, "pi/4"), (np.pi / 2, "pi/2"), (np.pi, "pi")]
+)
+def test_all_qelib_gates_unitary_equivalence(
+    qasm_gate, cirq_gate, num_params, num_args, theta, theta_str
+):
+    thetas = [theta] * num_params
+    params_str = f"({','.join(theta_str for _ in range(num_params))})" if num_params else ""
+    qubit_names, qubits = [], []
+    for i in range(num_args):
+        qubit_names.append(f"q[{i}]")
+        qubits.append(cirq.NamedQubit(f"q_{i}"))
+    qasm = f"""
+        OPENQASM 2.0;
+        include "qelib1.inc";
+        qreg q[{num_args}];
+        {qasm_gate}{params_str} {','.join(qubit_names)};
+    """
+
+    parser = QasmParser()
+    parsed_qasm = parser.parse(qasm)
+    if num_params:
+        gate = cirq_gate(thetas)
+    else:
+        gate = cirq_gate
+    expected = Circuit()
+    expected.append(gate.on(*qubits))
+    imported = list(parsed_qasm.circuit.all_operations())[0].gate
+    U_native = cirq.unitary(gate)
+    U_import = cirq.unitary(imported)
+    assert np.allclose(U_import, U_native, atol=1e-8)
+    assert parsed_qasm.qregs == {'q': num_args}
