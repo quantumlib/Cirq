@@ -1,13 +1,27 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # -*- coding: utf-8 -*-
 r"""Converts Cirq circuits to Quantikz LaTeX (using modern quantikz syntax).
 
-This module provides a class, `CirqToQuantikz`, to translate `cirq.Circuit`
+This module provides a class, `CircuitToQuantikz`, to translate `cirq.Circuit`
 objects into LaTeX code using the `quantikz` package. It aims to offer
 flexible customization for gate styles, wire labels, and circuit folding.
 
 Example:
     >>> import cirq
-    >>> from cirq.vis.circuit_to_latex_quantikz import CirqToQuantikz
+    >>> from cirq.vis.circuit_to_latex_quantikz import CircuitToQuantikz
     >>> q0, q1 = cirq.LineQubit.range(2)
     >>> circuit = cirq.Circuit(
     ...     cirq.H(q0),
@@ -15,7 +29,7 @@ Example:
     ...     cirq.measure(q0, key='m0'),
     ...     cirq.Rx(rads=0.5).on(q1)
     ... )
-    >>> converter = CirqToQuantikz(circuit, fold_at=2)
+    >>> converter = CircuitToQuantikz(circuit, fold_at=2)
     >>> latex_code = converter.generate_latex_document()
     >>> print(latex_code) # doctest: +SKIP
     \documentclass[preview, border=2pt]{standalone}
@@ -46,19 +60,18 @@ Example:
     \end{quantikz}
     \end{document}
 """
-# mypy: ignore-errors
-
 
 import math
 import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-import cirq
 import numpy as np
 import sympy
 
-__all__ = ["CirqToQuantikz", "DEFAULT_PREAMBLE_TEMPLATE", "GATE_STYLES_COLORFUL1"]
+from cirq import circuits, devices, ops, protocols
+
+__all__ = ["CircuitToQuantikz", "DEFAULT_PREAMBLE_TEMPLATE", "GATE_STYLES_COLORFUL1"]
 
 
 # =============================================================================
@@ -91,9 +104,9 @@ _noisy_channel_style = r"style={fill=red!20}"
 
 GATE_STYLES_COLORFUL1 = {
     "H": _yellow_gate_style,
-    "_PauliX": _Pauli_gate_style,  # cirq.X(q_param)
-    "_PauliY": _Pauli_gate_style,  # cirq.Y(q_param)
-    "_PauliZ": _Pauli_gate_style,  # cirq.Z(q_param)
+    "_PauliX": _Pauli_gate_style,  # ops.X(q_param)
+    "_PauliY": _Pauli_gate_style,  # ops.Y(q_param)
+    "_PauliZ": _Pauli_gate_style,  # ops.Z(q_param)
     "X": _Pauli_gate_style,  # For XPowGate(exponent=1)
     "Y": _Pauli_gate_style,  # For YPowGate(exponent=1)
     "Z": _Pauli_gate_style,  # For ZPowGate(exponent=1)
@@ -121,10 +134,36 @@ GATE_STYLES_COLORFUL1 = {
 }
 
 
+# Initialize gate maps globally as recommended
+_SIMPLE_GATE_MAP: Dict[Type[ops.Gate], str] = {ops.MeasurementGate: "Measure"}
+_EXPONENT_GATE_MAP: Dict[Type[ops.Gate], str] = {
+    ops.XPowGate: "X",
+    ops.YPowGate: "Y",
+    ops.ZPowGate: "Z",
+    ops.HPowGate: "H",
+    ops.CNotPowGate: "CX",
+    ops.CZPowGate: "CZ",
+    ops.SwapPowGate: "Swap",
+    ops.ISwapPowGate: "iSwap",
+}
+_PARAMETERIZED_GATE_BASE_NAMES: Dict[Type[ops.Gate], str] = {}
+_param_gate_specs = [
+    ("Rx", getattr(ops, "Rx", None)),
+    ("Ry", getattr(ops, "Ry", None)),
+    ("Rz", getattr(ops, "Rz", None)),
+    ("PhasedXZ", getattr(ops, "PhasedXZGate", None)),
+    ("FSim", getattr(ops, "FSimGate", None)),
+]
+if _param_gate_specs:
+    for _name, _gate_cls in _param_gate_specs:
+        if _gate_cls:
+            _PARAMETERIZED_GATE_BASE_NAMES[_gate_cls] = _name
+
+
 # =============================================================================
 # Cirq to Quantikz Conversion Class
 # =============================================================================
-class CirqToQuantikz:
+class CircuitToQuantikz:
     r"""Converts a Cirq Circuit object to a Quantikz LaTeX string.
 
     This class facilitates the conversion of a `cirq.Circuit` into a LaTeX
@@ -181,7 +220,7 @@ class CirqToQuantikz:
 
     def __init__(
         self,
-        circuit: "cirq.Circuit",
+        circuit: circuits.Circuit,
         *,
         gate_styles: Optional[Dict[str, str]] = None,
         quantikz_options: Optional[str] = None,
@@ -215,34 +254,12 @@ class CirqToQuantikz:
         self.float_precision_exps = float_precision_exps
         self.float_precision_angles = float_precision_angles
 
-        # Initialize gate maps here to avoid circular import issues
-        self._SIMPLE_GATE_MAP: Dict[Type["cirq.Gate"], str] = {cirq.MeasurementGate: "Measure"}
-        self._EXPONENT_GATE_MAP: Dict[Type["cirq.Gate"], str] = {
-            cirq.XPowGate: "X",
-            cirq.YPowGate: "Y",
-            cirq.ZPowGate: "Z",
-            cirq.HPowGate: "H",
-            cirq.CNotPowGate: "CX",
-            cirq.CZPowGate: "CZ",
-            cirq.SwapPowGate: "Swap",
-            cirq.ISwapPowGate: "iSwap",
-        }
-        self._PARAMETERIZED_GATE_BASE_NAMES: Dict[Type["cirq.Gate"], str] = {}
-        _param_gate_specs = [
-            ("Rx", getattr(cirq, "Rx", None)),
-            ("Ry", getattr(cirq, "Ry", None)),
-            ("Rz", getattr(cirq, "Rz", None)),
-            ("PhasedXZ", getattr(cirq, "PhasedXZGate", None)),
-            ("FSim", getattr(cirq, "FSimGate", None)),
-        ]
-        if _param_gate_specs:
-            for _name, _gate_cls in _param_gate_specs:
-                if _gate_cls:
-                    self._PARAMETERIZED_GATE_BASE_NAMES[_gate_cls] = _name
-            # Clean up temporary variables
-            del _param_gate_specs, _name, _gate_cls  # type: ignore
+        # Gate maps are now global, no need to initialize here.
+        self._SIMPLE_GATE_MAP = _SIMPLE_GATE_MAP
+        self._EXPONENT_GATE_MAP = _EXPONENT_GATE_MAP
+        self._PARAMETERIZED_GATE_BASE_NAMES = _PARAMETERIZED_GATE_BASE_NAMES
 
-    def _get_sorted_qubits(self) -> List["cirq.Qid"]:
+    def _get_sorted_qubits(self) -> List[ops.Qid]:
         """Determines and returns a sorted list of all unique qubits in the circuit.
 
         Returns:
@@ -252,7 +269,7 @@ class CirqToQuantikz:
         qubits = set(q for moment in self.circuit for op in moment for q in op.qubits)
         return sorted(list(qubits))
 
-    def _map_qubits_to_indices(self) -> Dict["cirq.Qid", int]:
+    def _map_qubits_to_indices(self) -> Dict[ops.Qid, int]:
         """Creates a mapping from `cirq.Qid` objects to their corresponding
         integer indices based on the sorted qubit order.
 
@@ -262,7 +279,7 @@ class CirqToQuantikz:
         """
         return {q: i for i, q in enumerate(self.sorted_qubits)}
 
-    def _get_wire_label(self, qubit: "cirq.Qid", index: int) -> str:
+    def _get_wire_label(self, qubit: ops.Qid, index: int) -> str:
         r"""Generates the LaTeX string for a qubit wire label.
 
         Args:
@@ -316,7 +333,7 @@ class CirqToQuantikz:
                 # e.g., if precision is 2, 0.318 -> "0.32" -> 0.32 -> "0.32"
                 exp_str = str(float(rounded_str))
         # Check for sympy.Basic, assuming sympy is imported if this path is taken
-        elif isinstance(exponent, sympy.Basic):  # type: ignore
+        elif isinstance(exponent, sympy.Basic):
             s_exponent = str(exponent)
             # Heuristic: check for letters to identify symbolic expressions
             is_symbolic_or_special = any(
@@ -326,7 +343,7 @@ class CirqToQuantikz:
             )
             if not is_symbolic_or_special:  # If it looks like a number
                 try:
-                    py_float = float(sympy.N(exponent))  # type: ignore
+                    py_float = float(sympy.N(exponent))
                     # If the sympy evaluated float is an integer value
                     if py_float.is_integer():
                         exp_str = str(int(py_float))
@@ -335,8 +352,9 @@ class CirqToQuantikz:
                         rounded_str = format(py_float, float_format_string)
                         # Convert back to float and then to string to remove unnecessary trailing zeros
                         exp_str = str(float(rounded_str))
-                except (TypeError, ValueError, AttributeError, sympy.SympifyError):  # type: ignore
-                    exp_str = s_exponent  # Fallback to Sympy's string representation
+                except (TypeError, ValueError, AttributeError, sympy.SympifyError):
+                    # Fallback to Sympy's string representation if conversion fails
+                    exp_str = s_exponent
             else:  # Symbolic expression
                 exp_str = s_exponent
         else:  # For other types (int, strings not sympy objects)
@@ -350,7 +368,7 @@ class CirqToQuantikz:
             exp_str = exp_str.replace("_", r"\_")
         return exp_str
 
-    def _get_gate_name(self, gate: "cirq.Gate") -> str:
+    def _get_gate_name(self, gate: ops.Gate) -> str:
         """Determines the appropriate LaTeX string for a given Cirq gate.
 
         This method attempts to derive a suitable LaTeX name for the gate,
@@ -379,28 +397,29 @@ class CirqToQuantikz:
             if not self.show_parameters:
                 return mapped_name
             try:
-                info_src = cirq.protocols if hasattr(cirq, "protocols") else cirq
-                info = info_src.circuit_diagram_info(gate, default=NotImplemented)  # type: ignore
+                # Use protocols directly
+                info = protocols.circuit_diagram_info(gate, default=NotImplemented)
                 if info is not NotImplemented and info.wire_symbols:
                     s_diag = info.wire_symbols[0]
                     if (op_idx := s_diag.find("(")) != -1 and (
                         cp_idx := s_diag.rfind(")")
                     ) > op_idx:
                         return f"{mapped_name}({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
-            except Exception:
+            except (ValueError, AttributeError, IndexError):
+                # Fallback to default string representation if diagram info parsing fails.
                 pass
             if hasattr(gate, "exponent") and not math.isclose(gate.exponent, 1.0):
                 return f"{mapped_name}({self._format_exponent_for_display(gate.exponent)})"
             return mapped_name
 
         try:
-            info_src = cirq.protocols if hasattr(cirq, "protocols") else cirq
-            info = info_src.circuit_diagram_info(gate, default=NotImplemented)  # type: ignore
+            # Use protocols directly
+            info = protocols.circuit_diagram_info(gate, default=NotImplemented)
             if info is not NotImplemented and info.wire_symbols:
                 name_cand = info.wire_symbols[0]
                 if not self.show_parameters:
                     base_part = name_cand.split("^")[0].split("**")[0].split("(")[0].strip()
-                    if isinstance(gate, cirq.CZPowGate) and base_part == "@":
+                    if isinstance(gate, ops.CZPowGate) and base_part == "@":
                         base_part = "CZ"
                     mapped_base = self.current_gate_name_map.get(base_part, base_part)
                     return self._format_exponent_for_display(mapped_base)
@@ -414,7 +433,7 @@ class CirqToQuantikz:
                     if not has_exp_in_cand and base_key:
                         recon_base = self.current_gate_name_map.get(base_key, base_key)
                         needs_recon = (name_cand == base_key) or (
-                            isinstance(gate, cirq.CZPowGate) and name_cand == "@"
+                            isinstance(gate, ops.CZPowGate) and name_cand == "@"
                         )
                         if needs_recon:
                             name_cand = f"{recon_base}^{{{self._format_exponent_for_display(gate.exponent)}}}"
@@ -427,7 +446,8 @@ class CirqToQuantikz:
                     if len(parts) == 2:
                         fmt_name = f"{parts[0]}^{{{self._format_exponent_for_display(parts[1])}}}"
                 return fmt_name
-        except Exception:
+        except (ValueError, AttributeError, IndexError):
+            # Fallback to default string representation if diagram info parsing fails.
             pass
 
         name_fb = str(gate)
@@ -458,38 +478,43 @@ class CirqToQuantikz:
     def _get_quantikz_options_string(self) -> str:
         return f"[{self.quantikz_options}]" if self.quantikz_options else ""
 
-    def _render_operation(self, op: "cirq.Operation") -> Dict[int, str]:
+    def _render_operation(self, op: ops.Operation) -> Dict[int, str]:
+        """Renders a single Cirq operation into its Quantikz LaTeX string representation.
+
+        Handles various gate types, including single-qubit gates, multi-qubit gates,
+        measurement gates, and special control/target gates (CNOT, CZ, SWAP).
+        Applies appropriate styles and labels based on the gate type and
+        `CircuitToQuantikz` instance settings.
+
+        Args:
+            op: The `cirq.Operation` object to render.
+
+        Returns:
+            A dictionary mapping qubit indices to their corresponding LaTeX strings
+            for the current moment.
+        """
         output, q_indices = {}, sorted([self.qubit_to_index[q] for q in op.qubits])
         gate, gate_name_render = op.gate, self._get_gate_name(op.gate)
 
         gate_type = type(gate)
         style_key = gate_type.__name__  # Default style key
 
-        # 1. Gates with dedicated Quantikz commands & specific style keys (exp=1)
-        if isinstance(gate, cirq.CNotPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        # Determine style key based on gate type and properties
+        if isinstance(gate, ops.CNotPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             style_key = "CXideal"
-        elif isinstance(gate, cirq.CZPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        elif isinstance(gate, ops.CZPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             style_key = "CZideal"
-        elif (
-            isinstance(gate, cirq.SwapPowGate) and hasattr(gate, "exponent") and gate.exponent == 1
-        ):
+        elif isinstance(gate, ops.SwapPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             style_key = "Swapideal"
-        # 2. MeasurementGate
-        elif isinstance(gate, cirq.MeasurementGate):
+        elif isinstance(gate, ops.MeasurementGate):
             style_key = "Measure"
-        # 3. Specific named parameterized gates (Rx, FSim, etc.)
         elif (param_base_name := self._PARAMETERIZED_GATE_BASE_NAMES.get(gate_type)) is not None:
             style_key = param_base_name
-        # 4. General PowGates (X, Y, Z, H, and controlled versions if not exp=1)
         elif (base_key_for_pow := self._EXPONENT_GATE_MAP.get(gate_type)) is not None:
-            # At this point, if it's a PowGate from the map, its exponent is either != 1,
-            # or it's a gate like X, Y, Z, H, ISWAP that renders with \gate{}
             if hasattr(gate, "exponent"):
                 if gate.exponent == 1:
-                    # This covers X, Y, Z, H, ISWAP (exp=1)
-                    style_key = base_key_for_pow  # "X", "Y", "Z", "H", "iSwap"
+                    style_key = base_key_for_pow
                 else:
-                    # This covers X_pow, Y_pow, Z_pow, H_pow, CZ_pow, CX_pow, iSWAP_pow
                     style_key = {
                         "X": "X_pow",
                         "Y": "Y_pow",
@@ -498,15 +523,11 @@ class CirqToQuantikz:
                         "CZ": "CZ_pow",
                         "CX": "CX_pow",
                         "iSwap": "iSWAP_pow",
-                    }.get(
-                        base_key_for_pow, f"{base_key_for_pow}_pow"
-                    )  # Fallback to base_key_pow
-            else:  # Should not happen for gates in _EXPONENT_GATE_MAP as they are PowGates
+                    }.get(base_key_for_pow, f"{base_key_for_pow}_pow")
+            else:
                 style_key = base_key_for_pow
-        # else: style_key remains gate_type.__name__ (e.g., for unknown custom gates)
 
         style_opts_str = self.gate_styles.get(style_key, "")
-        # Alias lookup for convenience if primary style_key not found
         if not style_opts_str:
             if gate_type.__name__ == "FSimGate":
                 style_opts_str = self.gate_styles.get("FSim", "")
@@ -515,13 +536,13 @@ class CirqToQuantikz:
 
         final_style_tikz = f"[{style_opts_str}]" if style_opts_str else ""
 
-        # --- Special Quantikz commands ---
-        if isinstance(gate, cirq.MeasurementGate):
+        # Apply special Quantikz commands for specific gate types
+        if isinstance(gate, ops.MeasurementGate):
             lbl = gate.key.replace("_", r"\_") if gate.key else ""
             for i in q_indices:
                 output[i] = f"\\meter{final_style_tikz}{{{lbl}}}"
             return output
-        if isinstance(gate, cirq.CNotPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        if isinstance(gate, ops.CNotPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             c, t = (
                 (self.qubit_to_index[op.qubits[0]], self.qubit_to_index[op.qubits[1]])
                 if len(op.qubits) == 2
@@ -532,7 +553,7 @@ class CirqToQuantikz:
                 f"\\targ{final_style_tikz}{{}}",
             )
             return output
-        if isinstance(gate, cirq.CZPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        if isinstance(gate, ops.CZPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             i1, i2 = (
                 (q_indices[0], q_indices[1])
                 if len(q_indices) >= 2
@@ -543,7 +564,7 @@ class CirqToQuantikz:
                 f"\\control{final_style_tikz}{{}}",
             )
             return output
-        if isinstance(gate, cirq.SwapPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
+        if isinstance(gate, ops.SwapPowGate) and hasattr(gate, "exponent") and gate.exponent == 1:
             i1, i2 = (
                 (q_indices[0], q_indices[1])
                 if len(q_indices) >= 2
@@ -555,7 +576,7 @@ class CirqToQuantikz:
             )
             return output
 
-        # --- Generic \gate command ---
+        # Handle generic \gate command for single and multi-qubit gates
         if not q_indices:
             warnings.warn(f"Op {op} has no qubits.")
             return output
@@ -563,10 +584,9 @@ class CirqToQuantikz:
             output[q_indices[0]] = f"\\gate{final_style_tikz}{{{gate_name_render}}}"
         else:  # Multi-qubit gate
             wires_opt = f"wires={q_indices[-1]-q_indices[0]+1}"
-            # style_opts_str is already the TikZ style string part, e.g., "fill=blue!20"
-            if style_opts_str:  # If there are actual style options
+            if style_opts_str:
                 combined_opts = f"{wires_opt}, {style_opts_str}"
-            else:  # Only wires option
+            else:
                 combined_opts = wires_opt
             output[q_indices[0]] = f"\\gate[{combined_opts}]{{{gate_name_render}}}"
             for i in range(1, len(q_indices)):
@@ -574,7 +594,15 @@ class CirqToQuantikz:
         return output
 
     def _generate_latex_body(self) -> str:
+        """Generates the main LaTeX body for the circuit diagram.
+
+        Iterates through the circuit's moments, renders each operation, and
+        arranges them into Quantikz environments. Supports circuit folding
+        into multiple rows if `fold_at` is specified.
+        Handles qubit wire labels and ensures correct LaTeX syntax.
+        """
         chunks, m_count, active_chunk = [], 0, [[] for _ in range(self.num_qubits)]
+        # Add initial wire labels for the first chunk
         for i in range(self.num_qubits):
             active_chunk[i].append(f"\\lstick{{{self._get_wire_label(self.sorted_qubits[i], i)}}}")
 
@@ -582,6 +610,7 @@ class CirqToQuantikz:
             m_count += 1
             moment_out = ["\\qw"] * self.num_qubits
             processed_indices = set()
+
             for op in moment:
                 q_idx_op = sorted([self.qubit_to_index[q] for q in op.qubits])
                 if not q_idx_op:
@@ -695,6 +724,18 @@ class CirqToQuantikz:
         return "\n\n\\vspace{1em}\n\n".join(final_parts)
 
     def generate_latex_document(self, preamble_template: Optional[str] = None) -> str:
+        """Generates the complete LaTeX document string for the circuit.
+
+        Combines the preamble, custom preamble, generated circuit body,
+        and custom postamble into a single LaTeX document string.
+
+        Args:
+            preamble_template: An optional string to use as the base LaTeX
+                preamble. If `None`, `DEFAULT_PREAMBLE_TEMPLATE` is used.
+
+        Returns:
+            A string containing the full LaTeX document, ready to be compiled.
+        """
         preamble = preamble_template or DEFAULT_PREAMBLE_TEMPLATE
         preamble += f"\n% --- Custom Preamble Injection Point ---\n{self.custom_preamble}\n% --- End Custom Preamble ---\n"
         doc_parts = [preamble, "\\begin{document}", self._generate_latex_body()]
