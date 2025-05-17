@@ -217,3 +217,8 @@ def test_extract_gate_times_ns_from_device():
     assert gate_times_ns[cg.SycamoreGate] == 12
     assert cirq.IdentityGate not in gate_times_ns
     assert cirq.WaitGate not in gate_times_ns
+    metadata_without_durations = cirq.GridDeviceMetadata(
+        qubit_pairs=[tuple(cirq.GridQubit.rect(2, 1))], gateset=cirq.Gateset(cirq.XPowGate)
+    )
+    device_without_durations = cg.GridDevice(metadata_without_durations)
+    assert factory.extract_gate_times_ns_from_device(device_without_durations) == {}

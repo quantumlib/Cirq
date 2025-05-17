@@ -451,11 +451,12 @@ def extract_gate_times_ns_from_device(
     gate_times_ns: Dict[Type[cirq.Gate], float] = {}
     if not device.metadata.gate_durations:
         return gate_times_ns
-    gtype: Type[cirq.Gate]
+    gtype: Type[cirq.Gate]  # pragma: no cover
     for gate_family, duration in device.metadata.gate_durations.items():
         if isinstance(gate_family, fsim_gate_family.FSimGateFamily):
             for g in gate_family.gates_to_accept:
                 gtype = g if isinstance(g, type) else type(g)
+                gate_times_ns[gtype] = duration.total_nanos()
             continue
         # ordinary GateFamily here
         gtype = gate_family.gate if isinstance(gate_family.gate, type) else type(gate_family.gate)
