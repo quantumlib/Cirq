@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import pytest
@@ -32,7 +32,7 @@ from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 class ProgramDictProcessor(AbstractLocalProcessor):
     """A processor that has a dictionary of programs for testing."""
 
-    def __init__(self, programs: Dict[str, AbstractProgram], **kwargs):
+    def __init__(self, programs: dict[str, AbstractProgram], **kwargs):
         super().__init__(**kwargs)
         self._programs = programs
 
@@ -70,7 +70,7 @@ class ProgramDictProcessor(AbstractLocalProcessor):
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
+        has_labels: Optional[dict[str, str]] = None,
     ):
         """Lists all programs regardless of filters.
 

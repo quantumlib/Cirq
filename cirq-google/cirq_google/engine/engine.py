@@ -29,7 +29,7 @@ import datetime
 import enum
 import random
 import string
-from typing import Dict, List, Optional, Set, TYPE_CHECKING, TypeVar, Union
+from typing import Optional, Set, TYPE_CHECKING, TypeVar, Union
 
 import duet
 import google.auth
@@ -83,7 +83,7 @@ class EngineContext:
     def __init__(
         self,
         proto_version: Optional[ProtoVersion] = None,
-        service_args: Optional[Dict] = None,
+        service_args: Optional[dict] = None,
         verbose: Optional[bool] = None,
         client: Optional[engine_client.EngineClient] = None,
         timeout: Optional[int] = None,
@@ -170,7 +170,7 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         project_id: str,
         proto_version: Optional[ProtoVersion] = None,
-        service_args: Optional[Dict] = None,
+        service_args: Optional[dict] = None,
         verbose: Optional[bool] = None,
         timeout: Optional[int] = None,
         context: Optional[EngineContext] = None,
@@ -221,9 +221,9 @@ class Engine(abstract_engine.AbstractEngine):
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
+        program_labels: Optional[dict[str, str]] = None,
         job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        job_labels: Optional[dict[str, str]] = None,
         *,
         run_name: str = "",
         snapshot_id: str = "",
@@ -298,9 +298,9 @@ class Engine(abstract_engine.AbstractEngine):
         params: cirq.Sweepable = None,
         repetitions: int = 1,
         program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
+        program_labels: Optional[dict[str, str]] = None,
         job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        job_labels: Optional[dict[str, str]] = None,
         *,
         run_name: str = "",
         snapshot_id: str = "",
@@ -405,7 +405,7 @@ class Engine(abstract_engine.AbstractEngine):
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         description: Optional[str] = None,
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
         """Wraps a Circuit for use with the Quantum Engine.
 
@@ -457,8 +457,8 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[abstract_program.AbstractProgram]:
+        has_labels: Optional[dict[str, str]] = None,
+    ) -> list[abstract_program.AbstractProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -497,7 +497,7 @@ class Engine(abstract_engine.AbstractEngine):
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
+        has_labels: Optional[dict[str, str]] = None,
         execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ):
         """Returns the list of jobs in the project.
@@ -547,7 +547,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     list_jobs = duet.sync(list_jobs_async)
 
-    async def list_processors_async(self) -> List[engine_processor.EngineProcessor]:
+    async def list_processors_async(self) -> list[engine_processor.EngineProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
@@ -579,7 +579,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     def get_sampler(
         self,
-        processor_id: Union[str, List[str]],
+        processor_id: Union[str, list[str]],
         run_name: str = "",
         device_config_name: str = "",
         snapshot_id: str = "",

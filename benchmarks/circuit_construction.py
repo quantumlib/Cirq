@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-from typing import Sequence, Set, Tuple
+from typing import Sequence, Set
 
 import cirq
 
@@ -21,8 +21,8 @@ def rotated_surface_code_memory_z_cycle(
     data_qubits: Set[cirq.Qid],
     z_measure_qubits: Set[cirq.Qid],
     x_measure_qubits: Set[cirq.Qid],
-    z_order: Sequence[Tuple[int, int]],
-    x_order: Sequence[Tuple[int, int]],
+    z_order: Sequence[tuple[int, int]],
+    x_order: Sequence[tuple[int, int]],
 ) -> cirq.Circuit:
     """Constructs a circuit for a single round of rotated memory Z surface code.
 
@@ -77,7 +77,7 @@ def surface_code_circuit(
         A `cirq.Circuit` for surface code memory Z experiment for `distance` and `num_rounds`.
     """
 
-    def ndrange(*ranges: Tuple[int, ...]):
+    def ndrange(*ranges: tuple[int, ...]):
         return itertools.product(*[range(*r) for r in ranges])
 
     data_qubits = {cirq.q(2 * x + 1, 2 * y + 1) for x, y in ndrange((distance,), (distance,))}

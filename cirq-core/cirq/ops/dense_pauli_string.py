@@ -22,14 +22,11 @@ from typing import (
     Any,
     Callable,
     cast,
-    Dict,
     Iterable,
     Iterator,
-    List,
     Optional,
     overload,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     Union,
 )
@@ -47,7 +44,7 @@ if TYPE_CHECKING:
 
 # Order is important! Index equals numeric value.
 PAULI_CHARS = 'IXYZ'
-PAULI_GATES: List[Union[cirq.Pauli, cirq.IdentityGate]] = [
+PAULI_GATES: list[Union[cirq.Pauli, cirq.IdentityGate]] = [
     identity.I,
     pauli_gates.X,
     pauli_gates.Y,
@@ -122,7 +119,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         """A complex coefficient or symbol."""
         return self._coefficient
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli_mask', 'coefficient'])
 
     def _value_equality_values_(self):
@@ -574,7 +571,7 @@ class MutableDensePauliString(BaseDensePauliString):
         return self.coefficient, tuple(PAULI_CHARS[p] for p in self.pauli_mask)
 
     @classmethod
-    def inline_gaussian_elimination(cls, rows: List[MutableDensePauliString]) -> None:
+    def inline_gaussian_elimination(cls, rows: list[MutableDensePauliString]) -> None:
         if not rows:
             return
 
@@ -622,7 +619,7 @@ def _as_pauli_mask(val: Union[Iterable[cirq.PAULI_GATE_LIKE], np.ndarray]) -> np
     return np.array([_pauli_index(v) for v in val], dtype=np.uint8)
 
 
-def _attempt_value_to_pauli_index(v: cirq.Operation) -> Optional[Tuple[int, int]]:
+def _attempt_value_to_pauli_index(v: cirq.Operation) -> Optional[tuple[int, int]]:
     if not isinstance(v, raw_types.Operation):
         return None
 

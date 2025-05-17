@@ -15,7 +15,7 @@
 """A protocol for implementing high performance channel evolutions."""
 
 from types import NotImplementedType
-from typing import Any, Iterable, Optional, Sequence, Tuple, TypeVar, Union
+from typing import Any, Iterable, Optional, Sequence, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -297,7 +297,7 @@ def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
 
 
 def _apply_kraus(
-    kraus: Union[Tuple[np.ndarray], Sequence[Any]], args: 'ApplyChannelArgs'
+    kraus: Union[tuple[np.ndarray], Sequence[Any]], args: 'ApplyChannelArgs'
 ) -> np.ndarray:
     """Directly apply the kraus operators to the target tensor."""
     # Initialize output.
@@ -313,7 +313,7 @@ def _apply_kraus(
 
 
 def _apply_kraus_single_qubit(
-    kraus: Union[Tuple[Any], Sequence[Any]], args: 'ApplyChannelArgs'
+    kraus: Union[tuple[Any], Sequence[Any]], args: 'ApplyChannelArgs'
 ) -> np.ndarray:
     """Use slicing to apply single qubit channel.  Only for two-level qubits."""
     zero_left = linalg.slice_for_qubits_equal_to(args.left_axes, 0)
@@ -338,7 +338,7 @@ def _apply_kraus_single_qubit(
 
 
 def _apply_kraus_multi_qubit(
-    kraus: Union[Tuple[Any], Sequence[Any]], args: 'ApplyChannelArgs'
+    kraus: Union[tuple[Any], Sequence[Any]], args: 'ApplyChannelArgs'
 ) -> np.ndarray:
     """Use numpy's einsum to apply a multi-qubit channel."""
     qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)

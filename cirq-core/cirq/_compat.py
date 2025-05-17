@@ -28,7 +28,7 @@ import sys
 import traceback
 import warnings
 from types import ModuleType
-from typing import Any, Callable, Dict, Iterator, Optional, overload, Set, Tuple, Type, TypeVar
+from typing import Any, Callable, Iterator, Optional, overload, Set, Type, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -195,7 +195,7 @@ def proper_repr(value: Any) -> str:
             f'\n)'
         )
 
-    if isinstance(value, Dict):
+    if isinstance(value, dict):
         return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
 
     if hasattr(value, "__qualname__"):
@@ -380,9 +380,9 @@ def deprecated_parameter(
     fix: str,
     func_name: Optional[str] = None,
     parameter_desc: str,
-    match: Callable[[Tuple[Any, ...], Dict[str, Any]], bool],
+    match: Callable[[tuple[Any, ...], dict[str, Any]], bool],
     rewrite: Optional[
-        Callable[[Tuple[Any, ...], Dict[str, Any]], Tuple[Tuple[Any, ...], Dict[str, Any]]]
+        Callable[[tuple[Any, ...], dict[str, Any]], tuple[tuple[Any, ...], dict[str, Any]]]
     ] = None,
 ) -> Callable[[Callable], Callable]:
     """Marks a function parameter as deprecated.
@@ -447,7 +447,7 @@ def deprecated_parameter(
     return decorator
 
 
-def deprecate_attributes(module_name: str, deprecated_attributes: Dict[str, Tuple[str, str]]):
+def deprecate_attributes(module_name: str, deprecated_attributes: dict[str, tuple[str, str]]):
     """Replace module with a wrapper that gives warnings for deprecated attributes.
 
     Args:

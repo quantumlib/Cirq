@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from typing import DefaultDict, Dict, Iterator, Optional, Sequence, TYPE_CHECKING
+from typing import DefaultDict, Iterator, Optional, Sequence, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, transformers
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
@@ -214,7 +214,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
                 yield gate(*[index_to_qubit[i] for i in gate_indices])
 
     @staticmethod
-    def canonicalize_gates(gates: LogicalGates) -> Dict[frozenset, LogicalGates]:
+    def canonicalize_gates(gates: LogicalGates) -> dict[frozenset, LogicalGates]:
         """Canonicalizes a set of gates by the qubits they act on.
 
         Takes a set of gates specified by ordered sequences of logical

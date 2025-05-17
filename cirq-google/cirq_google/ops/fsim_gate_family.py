@@ -14,7 +14,7 @@
 
 """Define FSimGateFamily used to convert/accept `cirq.FSimGate` and other related gate types"""
 
-from typing import Any, Callable, cast, Dict, Iterable, Optional, Sequence, Type, TypeVar, Union
+from typing import Any, Callable, cast, Iterable, Optional, Sequence, Type, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -138,7 +138,7 @@ class FSimGateFamily(cirq.GateFamily):
             ValueError: If any gate type in `gate_types_to_check` is not one of
                 `POSSIBLE_FSIM_GATES`.
         """
-        self._supported_types: Dict[
+        self._supported_types: dict[
             Type[POSSIBLE_FSIM_GATES],
             Callable[[POSSIBLE_FSIM_GATES], Optional[POSSIBLE_FSIM_GATES]],
         ] = {

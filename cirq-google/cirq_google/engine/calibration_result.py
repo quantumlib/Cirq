@@ -14,7 +14,7 @@
 #
 import dataclasses
 import datetime
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq_google
@@ -58,7 +58,7 @@ class CalibrationResult:
         )
         return cls(code, error_message, token, valid_until, metrics)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         utc_valid_until = (
             self.valid_until.replace(tzinfo=datetime.timezone.utc).timestamp()

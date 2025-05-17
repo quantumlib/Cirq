@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import cast, Iterable, Optional, TYPE_CHECKING
 
 from cirq import devices, ops, value
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
@@ -152,8 +152,8 @@ class UndirectedGraphDevice(devices.Device):
         self.crosstalk_graph = crosstalk_graph
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
-        return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
+    def qubits(self) -> tuple[cirq.Qid, ...]:
+        return cast(tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
     @property
     def edges(self):

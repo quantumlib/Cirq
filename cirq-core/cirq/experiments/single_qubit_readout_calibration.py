@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 import time
-from typing import Any, cast, Dict, Iterable, List, Optional, TYPE_CHECKING
+from typing import Any, cast, Iterable, Optional, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -47,12 +47,12 @@ class SingleQubitReadoutCalibrationResult:
         timestamp: The time the data was taken, in seconds since the epoch.
     """
 
-    zero_state_errors: Dict[cirq.Qid, float]
-    one_state_errors: Dict[cirq.Qid, float]
+    zero_state_errors: dict[cirq.Qid, float]
+    one_state_errors: dict[cirq.Qid, float]
     repetitions: int
     timestamp: float
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'zero_state_errors': list(self.zero_state_errors.items()),
             'one_state_errors': list(self.one_state_errors.items()),
@@ -300,7 +300,7 @@ def estimate_parallel_single_qubit_readout_errors(
     if trials_per_batch <= 0:
         raise ValueError("Must provide non-zero trials_per_batch for readout calibration.")
 
-    all_sweeps: List[study.Sweepable] = []
+    all_sweeps: list[study.Sweepable] = []
     num_batches = (trials + trials_per_batch - 1) // trials_per_batch
 
     # Initialize circuits

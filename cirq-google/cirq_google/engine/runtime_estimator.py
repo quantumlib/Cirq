@@ -30,7 +30,7 @@ Model was then fitted by hand, correcting for anomalies and outliers
 when possible.
 """
 
-from typing import List, Optional, Sequence
+from typing import Optional, Sequence
 
 import cirq
 
@@ -161,7 +161,7 @@ def estimate_run_sweep_time(
 
 def estimate_run_batch_time(
     programs: Sequence[cirq.AbstractCircuit],
-    params_list: List[cirq.Sweepable],
+    params_list: list[cirq.Sweepable],
     repetitions: int = 1000,
     latency: float = _BASE_LATENCY,
 ) -> float:

@@ -13,7 +13,7 @@
 # limitations under the License.
 import abc
 import datetime
-from typing import Dict, List, Optional, overload, TYPE_CHECKING, Union
+from typing import Optional, overload, TYPE_CHECKING, Union
 
 from google.protobuf.timestamp_pb2 import Timestamp
 
@@ -70,13 +70,13 @@ class AbstractLocalProcessor(AbstractProcessor):
         engine: Optional['AbstractEngine'] = None,
         expected_down_time: Optional[datetime.datetime] = None,
         expected_recovery_time: Optional[datetime.datetime] = None,
-        schedule: Optional[List[quantum.QuantumTimeSlot]] = None,
+        schedule: Optional[list[quantum.QuantumTimeSlot]] = None,
         project_name: str = 'fake_project',
     ):
         self._engine = engine
         self._expected_recovery_time = expected_recovery_time
         self._expected_down_time = expected_down_time
-        self._reservations: Dict[str, quantum.QuantumReservation] = {}
+        self._reservations: dict[str, quantum.QuantumReservation] = {}
         self._resource_id_counter = 0
         self._processor_id = processor_id
         self._project_name = project_name
@@ -235,7 +235,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: Optional[list[str]] = None,
     ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
@@ -283,7 +283,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         reservation_id: str,
         start_time: Optional[datetime.datetime] = None,
         end_time: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: Optional[list[str]] = None,
     ) -> None:
         """Updates a reservation with new information.
 
@@ -321,7 +321,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-    ) -> List[quantum.QuantumReservation]:
+    ) -> list[quantum.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -358,7 +358,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
         time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.QuantumTimeSlot]:
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
@@ -381,7 +381,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         Returns:
             Time slots that fit the criteria.
         """
-        time_slots: List[quantum.QuantumTimeSlot] = []
+        time_slots: list[quantum.QuantumTimeSlot] = []
         start_timestamp = _to_timestamp(from_time)
         end_timestamp = _to_timestamp(to_time)
         for slot in self._schedule:
@@ -412,8 +412,8 @@ class AbstractLocalProcessor(AbstractProcessor):
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-    ) -> List['AbstractLocalProgram']:
+        has_labels: Optional[dict[str, str]] = None,
+    ) -> list['AbstractLocalProgram']:
         """Returns a list of previously executed quantum programs.
 
         Args:

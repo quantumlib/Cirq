@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Iterable, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -158,11 +158,11 @@ class XEBCharacterizationOptions(ABC):
     @abstractmethod
     def get_initial_simplex_and_names(
         self, initial_simplex_step_size: float = 0.1
-    ) -> Tuple[np.ndarray, List[str]]:
+    ) -> tuple[np.ndarray, list[str]]:
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
-def _try_defaults_from_unitary(gate: cirq.Gate) -> Optional[Dict[str, cirq.TParamVal]]:
+def _try_defaults_from_unitary(gate: cirq.Gate) -> Optional[dict[str, cirq.TParamVal]]:
     r"""Try to figure out the PhasedFSim angles from the unitary of the gate.
 
     The unitary of a PhasedFSimGate has the form:
@@ -225,10 +225,10 @@ def _try_defaults_from_unitary(gate: cirq.Gate) -> Optional[Dict[str, cirq.TPara
     return None
 
 
-def phased_fsim_angles_from_gate(gate: cirq.Gate) -> Dict[str, cirq.TParamVal]:
+def phased_fsim_angles_from_gate(gate: cirq.Gate) -> dict[str, cirq.TParamVal]:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
-    defaults: Dict[str, cirq.TParamVal] = {
+    defaults: dict[str, cirq.TParamVal] = {
         'theta_default': 0.0,
         'zeta_default': 0.0,
         'chi_default': 0.0,
@@ -294,7 +294,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     gamma_default: Optional[float] = None
     phi_default: Optional[float] = None
 
-    def _iter_angles(self) -> Iterable[Tuple[bool, Optional[float], sympy.Symbol]]:
+    def _iter_angles(self) -> Iterable[tuple[bool, Optional[float], sympy.Symbol]]:
         yield from (
             (self.characterize_theta, self.theta_default, THETA_SYMBOL),
             (self.characterize_zeta, self.zeta_default, ZETA_SYMBOL),
@@ -303,7 +303,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
             (self.characterize_phi, self.phi_default, PHI_SYMBOL),
         )
 
-    def _iter_angles_for_characterization(self) -> Iterable[Tuple[Optional[float], sympy.Symbol]]:
+    def _iter_angles_for_characterization(self) -> Iterable[tuple[Optional[float], sympy.Symbol]]:
         yield from (
             (default, symbol)
             for characterize, default, symbol in self._iter_angles()
@@ -312,7 +312,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
 
     def get_initial_simplex_and_names(
         self, initial_simplex_step_size: float = 0.1
-    ) -> Tuple[np.ndarray, List[str]]:
+    ) -> tuple[np.ndarray, list[str]]:
         """Get an initial simplex and parameter names for the optimization implied by these options.
 
         The initial simplex initiates the Nelder-Mead optimization parameter. We
@@ -421,7 +421,7 @@ def parameterize_circuit(
     )
 
 
-QPair_T = Tuple['cirq.Qid', 'cirq.Qid']
+QPair_T = tuple['cirq.Qid', 'cirq.Qid']
 
 
 @dataclasses.dataclass(frozen=True)
@@ -436,14 +436,14 @@ class XEBCharacterizationResult:
             fitting the characterization.
     """
 
-    optimization_results: Dict[QPair_T, scipy.optimize.OptimizeResult]
-    final_params: Dict[QPair_T, Dict[str, float]]
+    optimization_results: dict[QPair_T, scipy.optimize.OptimizeResult]
+    final_params: dict[QPair_T, dict[str, float]]
     fidelities_df: pd.DataFrame
 
 
 def characterize_phased_fsim_parameters_with_xeb(
     sampled_df: pd.DataFrame,
-    parameterized_circuits: List[cirq.Circuit],
+    parameterized_circuits: list[cirq.Circuit],
     cycle_depths: Sequence[int],
     options: XEBCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
@@ -516,7 +516,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
     """A closure object to wrap `characterize_phased_fsim_parameters_with_xeb` for use in
     multiprocessing."""
 
-    parameterized_circuits: List[cirq.Circuit]
+    parameterized_circuits: list[cirq.Circuit]
     cycle_depths: Sequence[int]
     options: XEBCharacterizationOptions
     initial_simplex_step_size: float = 0.1
@@ -539,7 +539,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
 
 def characterize_phased_fsim_parameters_with_xeb_by_pair(
     sampled_df: pd.DataFrame,
-    parameterized_circuits: List[cirq.Circuit],
+    parameterized_circuits: list[cirq.Circuit],
     cycle_depths: Sequence[int],
     options: XEBCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
@@ -618,7 +618,7 @@ def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> n
 
 def _fit_exponential_decay(
     cycle_depths: np.ndarray, fidelities: np.ndarray
-) -> Tuple[float, float, float, float]:
+) -> tuple[float, float, float, float]:
     """Fit an exponential model fidelity = a * layer_fid**x using nonlinear least squares.
 
     This uses `exponential_decay` as the function to fit with parameters `a` and `layer_fid`.

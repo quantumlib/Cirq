@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import time
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -163,8 +163,8 @@ def run_shuffled_with_readout_benchmarking(
     rng_or_seed: Union[np.random.Generator, int],
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
-    qubits: Optional[Union[List[ops.Qid], List[List[ops.Qid]]]] = None,
-) -> tuple[list[ResultDict], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
+    qubits: Optional[Union[list[ops.Qid], list[list[ops.Qid]]]] = None,
+) -> tuple[list[ResultDict], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
     Args:
@@ -192,7 +192,7 @@ def run_shuffled_with_readout_benchmarking(
     )
 
     # If input qubits is None, extract qubits from input circuits
-    qubits_to_measure: List[List[ops.Qid]] = []
+    qubits_to_measure: list[list[ops.Qid]] = []
     if qubits is None:
         qubits_set: set[ops.Qid] = set()
         for circuit in input_circuits:

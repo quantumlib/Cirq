@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, cast, Optional, Type, Union
 
 import numpy as np
 import sympy
@@ -256,7 +256,7 @@ RESET directives have special meaning on QCS, to enable active reset.
 
 
 # Parameterized gates map to functions that produce Gate constructors.
-SUPPORTED_GATES: Dict[str, Union[Gate, Callable[..., Gate]]] = {
+SUPPORTED_GATES: dict[str, Union[Gate, Callable[..., Gate]]] = {
     "CCNOT": CCNOT,
     "CNOT": CNOT,
     "CSWAP": CSWAP,
@@ -288,7 +288,7 @@ SUPPORTED_GATES: Dict[str, Union[Gate, Callable[..., Gate]]] = {
 }
 
 # Gate parameters must be transformed to Cirq units
-PARAMETRIC_TRANSFORMERS: Dict[str, Callable] = {
+PARAMETRIC_TRANSFORMERS: dict[str, Callable] = {
     "CPHASE": lambda theta: dict(exponent=theta / np.pi, global_shift=0.0),
     "CPHASE00": lambda phi: dict(phi=phi),
     "CPHASE01": lambda phi: dict(phi=phi),
@@ -334,8 +334,8 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
     defined_gates, parameter_transformers = get_defined_gates(program)
 
-    kraus_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex128]]] = {}
-    confusion_maps: Dict[int, NDArray[np.float64]] = {}
+    kraus_model: dict[tuple[QubitDesignator, ...], list[NDArray[np.complex128]]] = {}
+    confusion_maps: dict[int, NDArray[np.float64]] = {}
 
     # Interpret the Pragmas
     for inst in program:
@@ -414,12 +414,12 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
                 )
             quil_memory_reference = inst.classical_reg.out()
             if qubit in confusion_maps:
-                cmap: Dict[Tuple[int, ...], NDArray[np.float64]] = {(qubit,): confusion_maps[qubit]}
+                cmap: dict[tuple[int, ...], NDArray[np.float64]] = {(qubit,): confusion_maps[qubit]}
                 """
                 Argument "confusion_map" to "MeasurementGate" has incompatible type
-                    "         Dict[Tuple[int],      ndarray[Any, dtype[floating[Any]]]]"
+                    "         dict[tuple[int],      ndarray[Any, dtype[floating[Any]]]]"
                 expected
-                    "Optional[Dict[Tuple[int, ...], ndarray[Any, Any]]]"
+                    "Optional[dict[tuple[int, ...], ndarray[Any, Any]]]"
                 """
                 circuit += MeasurementGate(1, key=quil_memory_reference, confusion_map=cmap)(
                     line_qubit
@@ -457,7 +457,7 @@ def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
 
 
 @deprecated_cirq_rigetti_function()
-def get_defined_gates(program: Program) -> Tuple[Dict, Dict]:
+def get_defined_gates(program: Program) -> tuple[dict, dict]:
     """Get the gate definitions for the program. Will include the default SUPPORTED_GATES, in
     addition to any gates defined in the Quil
 
@@ -485,8 +485,8 @@ def get_defined_gates(program: Program) -> Tuple[Dict, Dict]:
 
 @deprecated_cirq_rigetti_function()
 def kraus_noise_model_to_cirq(
-    kraus_noise_model: Dict[Tuple[QubitDesignator, ...], List[NDArray[np.complex128]]],
-    defined_gates: Optional[Dict[QubitDesignator, Gate]] = None,
+    kraus_noise_model: dict[tuple[QubitDesignator, ...], list[NDArray[np.complex128]]],
+    defined_gates: Optional[dict[QubitDesignator, Gate]] = None,
 ) -> InsertionNoiseModel:  # pragma: no cover
     """Construct a Cirq noise model from the provided Kraus operators.
 
@@ -648,7 +648,7 @@ def defgate_to_cirq(defgate: DefGate):
 
 @deprecated_cirq_rigetti_function()
 def remove_gate_from_kraus(
-    kraus_ops: List[NDArray[np.complex128]], gate_matrix: NDArray[np.complex128]
+    kraus_ops: list[NDArray[np.complex128]], gate_matrix: NDArray[np.complex128]
 ):  # pragma: no cover
     """Recover the kraus operators from a kraus composed with a gate.
     This function is the reverse of append_kraus_to_gate.

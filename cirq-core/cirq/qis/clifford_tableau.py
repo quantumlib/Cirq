@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -260,7 +260,7 @@ class CliffordTableau(StabilizerState):
         """Returns the 2n * 2n matrix representation of the Clifford tableau."""
         return np.concatenate([self.xs, self.zs], axis=1)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
 
     @classmethod
@@ -511,12 +511,12 @@ class CliffordTableau(StabilizerState):
                 pauli_mask += "I"
         return DensePauliString(pauli_mask, coefficient=coefficient)
 
-    def stabilizers(self) -> List[cirq.DensePauliString]:
+    def stabilizers(self) -> list[cirq.DensePauliString]:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
 
-    def destabilizers(self) -> List[cirq.DensePauliString]:
+    def destabilizers(self) -> list[cirq.DensePauliString]:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
         generators above generate the full Pauli group on n qubits."""
@@ -665,14 +665,14 @@ class CliffordTableau(StabilizerState):
 
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
 
     @cached_method
     def __hash__(self) -> int:
         return hash(self.matrix().tobytes() + self.rs.tobytes())
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         hash_attr = _method_cache_name(self.__hash__)

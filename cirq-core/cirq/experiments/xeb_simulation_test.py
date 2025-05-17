@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import multiprocessing
-from typing import Any, Dict, Iterator, Optional, Sequence
+from typing import Any, Iterator, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -74,7 +74,7 @@ def test_simulate_circuit_length_validation():
         _ = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths)
 
 
-def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
+def _ref_simulate_2q_xeb_circuit(task: dict[str, Any]):
     """Helper function for simulating a given (circuit, cycle_depth)."""
     circuit_i = task['circuit_i']
     cycle_depth = task['cycle_depth']

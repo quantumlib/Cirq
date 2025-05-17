@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import datetime
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union
 
 from google.protobuf import any_pb2
 
@@ -150,9 +150,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         params: cirq.Sweepable = None,
         repetitions: int = 1,
         program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
+        program_labels: Optional[dict[str, str]] = None,
         job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
+        job_labels: Optional[dict[str, str]] = None,
     ) -> 'abstract_job.AbstractJob':
         """Runs the supplied Circuit on this processor.
 
@@ -231,7 +231,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         """Returns the expected the processor should be available, if set."""
         return self._inner_processor().expected_recovery_time
 
-    def supported_languages(self) -> List[str]:
+    def supported_languages(self) -> list[str]:
         """Returns the list of processor supported program languages."""
         return self._inner_processor().supported_languages
 
@@ -264,7 +264,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
         latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-    ) -> List[calibration.Calibration]:
+    ) -> list[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
         Params:
@@ -324,7 +324,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: Optional[list[str]] = None,
     ):
         """Creates a reservation on this processor.
 
@@ -393,7 +393,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         reservation_id: str,
         start_time: Optional[datetime.datetime] = None,
         end_time: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[List[str]] = None,
+        whitelisted_users: Optional[list[str]] = None,
     ):
         """Updates a reservation with new information.
 
@@ -414,7 +414,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-    ) -> List[quantum.QuantumTimeSlot]:
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -444,7 +444,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
         time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.QuantumTimeSlot]:
+    ) -> list[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
@@ -490,7 +490,7 @@ def _to_calibration(calibration_any: any_pb2.Any) -> calibration.Calibration:
 def _to_date_time_filters(
     from_time: Union[None, datetime.datetime, datetime.timedelta],
     to_time: Union[None, datetime.datetime, datetime.timedelta],
-) -> List[str]:
+) -> list[str]:
     now = datetime.datetime.now()
 
     if from_time is None:

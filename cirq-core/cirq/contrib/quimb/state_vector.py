@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import cast, Dict, List, Optional, Sequence, Tuple, Union
+from typing import cast, Optional, Sequence, Union
 
 import numpy as np
 import quimb
@@ -31,7 +31,7 @@ def circuit_to_tensors(
     circuit: cirq.Circuit,
     qubits: Optional[Sequence[cirq.Qid]] = None,
     initial_state: Union[int, None] = 0,
-) -> Tuple[List[qtn.Tensor], Dict[cirq.Qid, int], None]:
+) -> tuple[list[qtn.Tensor], dict[cirq.Qid, int], None]:
     """Given a circuit, construct a tensor network representation.
 
     Indices are named "i{i}_q{x}" where i is a time index and x is a
@@ -65,7 +65,7 @@ def circuit_to_tensors(
 
     qubit_frontier = {q: 0 for q in qubits}
     positions = None
-    tensors: List[qtn.Tensor] = []
+    tensors: list[qtn.Tensor] = []
 
     if initial_state == 0:
         for q in qubits:

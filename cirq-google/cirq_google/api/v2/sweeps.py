@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, Dict, List, Optional
+from typing import Any, Callable, cast, Optional
 
 import sympy
 import tunits
@@ -151,7 +151,7 @@ def sweep_to_proto(
             if sweep.metadata and getattr(sweep.metadata, 'units', None):
                 out.single_sweep.parameter.units = sweep.metadata.units
     elif isinstance(sweep, cirq.ListSweep):
-        sweep_dict: Dict[str, List[float]] = {}
+        sweep_dict: dict[str, list[float]] = {}
         for param_resolver in sweep:
             for key in param_resolver:
                 if key not in sweep_dict:

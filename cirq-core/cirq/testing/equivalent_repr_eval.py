@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 def assert_equivalent_repr(
@@ -21,8 +21,8 @@ def assert_equivalent_repr(
     setup_code: str = (
         'import cirq\nimport numpy as np\nimport sympy\nimport pandas as pd\nimport datetime\n'
     ),
-    global_vals: Optional[Dict[str, Any]] = None,
-    local_vals: Optional[Dict[str, Any]] = None,
+    global_vals: Optional[dict[str, Any]] = None,
+    local_vals: Optional[dict[str, Any]] = None,
 ) -> None:
     """Checks that eval(repr(v)) == v.
 

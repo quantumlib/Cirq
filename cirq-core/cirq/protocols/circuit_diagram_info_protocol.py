@@ -16,18 +16,7 @@ from __future__ import annotations
 
 import re
 from fractions import Fraction
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    overload,
-    Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from typing import Any, Iterable, Optional, overload, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -107,7 +96,7 @@ class CircuitDiagramInfo:
 
     def _wire_symbols_including_formatted_exponent(
         self, args: cirq.CircuitDiagramInfoArgs, *, preferred_exponent_index: Optional[int] = None
-    ) -> List[str]:
+    ) -> list[str]:
         result = list(self.wire_symbols)
         exponent = self._formatted_exponent(args)
         if exponent is not None:
@@ -205,7 +194,7 @@ class CircuitDiagramInfoArgs:
         known_qubit_count: Optional[int],
         use_unicode_characters: bool,
         precision: Optional[int],
-        label_map: Optional[Dict[cirq.LabelEntity, int]],
+        label_map: Optional[dict[cirq.LabelEntity, int]],
         include_tags: bool = True,
         transpose: bool = False,
     ) -> None:
@@ -341,7 +330,7 @@ def _op_info_with_fallback(
     op: cirq.Operation, args: cirq.CircuitDiagramInfoArgs
 ) -> cirq.CircuitDiagramInfo:
     info = protocols.circuit_diagram_info(op, args, None)
-    rows: List[LabelEntity] = list(op.qubits)
+    rows: list[LabelEntity] = list(op.qubits)
     if args.label_map is not None:
         rows += protocols.measurement_keys_touched(op) & args.label_map.keys()
     if info is not None and info.wire_symbols:

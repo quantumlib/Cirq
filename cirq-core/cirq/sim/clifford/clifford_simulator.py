@@ -32,7 +32,7 @@ The quantum state is specified in two forms:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Sequence, Union
+from typing import Any, Sequence, Union
 
 import numpy as np
 
@@ -110,7 +110,7 @@ class CliffordSimulator(
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState],
     ):
         return CliffordTrialResult(
@@ -124,7 +124,7 @@ class CliffordTrialResult(
     def __init__(
         self,
         params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: dict[str, np.ndarray],
         final_simulator_state: cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState],
     ) -> None:
         super().__init__(
@@ -256,7 +256,7 @@ class CliffordState:
     def apply_measurement(
         self,
         op: cirq.Operation,
-        measurements: Dict[str, List[int]],
+        measurements: dict[str, list[int]],
         prng: np.random.RandomState,
         collapse_state_vector=True,
     ):

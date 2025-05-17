@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, cast, Dict, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Iterator, Optional, Sequence, Union
 
 import numpy as np
 import sympy
@@ -87,7 +87,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
     def _num_qubits_(self) -> int:
         return 2
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'phase_exponent': self._phase_exponent,
             'exponent': self._exponent,
@@ -126,14 +126,14 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             phase_exponent=self.phase_exponent, exponent=exponent, global_shift=self.global_shift
         )
 
-    def _eigen_shifts(self) -> List[float]:
+    def _eigen_shifts(self) -> list[float]:
         return [0.0, +0.5, -0.5]
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         phase = np.exp(1j * np.pi * self.phase_exponent)
         phase_matrix = np.diag([1, phase, phase.conjugate(), 1])
         inverse_phase_matrix = np.conjugate(phase_matrix)
-        eigen_components: List[Tuple[float, np.ndarray]] = []
+        eigen_components: list[tuple[float, np.ndarray]] = []
         for eigenvalue, projector in self._iswap._eigen_components():
             new_projector = phase_matrix @ projector @ inverse_phase_matrix
             eigen_components.append((eigenvalue, new_projector))

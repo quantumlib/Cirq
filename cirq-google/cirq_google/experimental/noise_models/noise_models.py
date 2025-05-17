@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from math import exp
-from typing import Dict, Optional, Sequence, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING
 
 import cirq
 from cirq.devices.noise_model import validate_all_measurements
@@ -35,9 +35,9 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
 
     def __init__(
         self,
-        depol_probs: Optional[Dict[cirq.Qid, float]] = None,
-        bitflip_probs: Optional[Dict[cirq.Qid, float]] = None,
-        decay_probs: Optional[Dict[cirq.Qid, float]] = None,
+        depol_probs: Optional[dict[cirq.Qid, float]] = None,
+        bitflip_probs: Optional[dict[cirq.Qid, float]] = None,
+        decay_probs: Optional[dict[cirq.Qid, float]] = None,
     ):
         """A depolarizing noise model with damped readout error.
 
@@ -127,9 +127,9 @@ def simple_noise_from_calibration_metrics(
     if not any([depol_noise, damping_noise, readout_decay_noise, readout_error_noise]):
         raise ValueError('At least one error type must be specified.')
     assert calibration is not None
-    depol_probs: Dict[cirq.Qid, float] = {}
-    readout_decay_probs: Dict[cirq.Qid, float] = {}
-    readout_error_probs: Dict[cirq.Qid, float] = {}
+    depol_probs: dict[cirq.Qid, float] = {}
+    readout_decay_probs: dict[cirq.Qid, float] = {}
+    readout_error_probs: dict[cirq.Qid, float] = {}
 
     if depol_noise:
         # In the single-qubit case, Pauli error and the depolarization fidelity

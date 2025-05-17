@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Optional, Sequence, Union
 
 import numpy as np
 
@@ -78,7 +78,7 @@ class InternalGate(ops.Gate):
             f"{gate_args})"
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if self.custom_args:
             raise ValueError('InternalGate with custom args are not json serializable')
         return dict(

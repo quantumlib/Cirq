@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Dict, Iterable, Iterator, Optional, Tuple, TYPE_CHECKING
+from typing import Iterable, Iterator, Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -72,10 +72,10 @@ def eject_z(
         Copy of the transformed input circuit.
     """
     # Tracks qubit phases (in half turns; multiply by pi to get radians).
-    qubit_phase: Dict[ops.Qid, float] = defaultdict(lambda: 0)
+    qubit_phase: dict[ops.Qid, float] = defaultdict(lambda: 0)
     tags_to_ignore = set(context.tags_to_ignore) if context else set()
-    phased_xz_replacements: Dict[Tuple[int, ops.Operation], ops.PhasedXZGate] = {}
-    last_phased_xz_op: Dict[ops.Qid, Optional[Tuple[int, ops.Operation]]] = defaultdict(
+    phased_xz_replacements: dict[tuple[int, ops.Operation], ops.PhasedXZGate] = {}
+    last_phased_xz_op: dict[ops.Qid, Optional[tuple[int, ops.Operation]]] = defaultdict(
         lambda: None
     )
 

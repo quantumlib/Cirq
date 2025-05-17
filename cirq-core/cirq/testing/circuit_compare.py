@@ -15,7 +15,7 @@
 import itertools
 import random
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
+from typing import Any, Iterable, Optional, Sequence, Union
 
 import numpy as np
 import sympy
@@ -78,7 +78,7 @@ def _measurement_subspaces(
         measurement_mask |= 1 << i
 
     # Keyed by computational basis state with lowest index.
-    measurement_subspaces: Dict[int, List[int]] = defaultdict(list)
+    measurement_subspaces: dict[int, list[int]] = defaultdict(list)
     computational_basis = range(1 << n_qubits)
 
     for basis_state in computational_basis:
@@ -223,7 +223,7 @@ def _first_differing_moment_index(
 def assert_circuits_have_same_unitary_given_final_permutation(
     actual: circuits.AbstractCircuit,
     expected: circuits.AbstractCircuit,
-    qubit_map: Dict[ops.Qid, ops.Qid],
+    qubit_map: dict[ops.Qid, ops.Qid],
 ) -> None:
     """Asserts two circuits have the same unitary up to a final permutation of qubits.
 

@@ -22,14 +22,11 @@ from types import NotImplementedType
 from typing import (
     Any,
     Callable,
-    Dict,
     Iterable,
     Iterator,
-    List,
     Optional,
     overload,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
@@ -154,11 +151,11 @@ class SupportsDecomposeWithQubits(Protocol):
     implements `SupportsDecomposeWithQubits`.
     """
 
-    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> DecomposeResult:
+    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> DecomposeResult:
         pass
 
     def _decompose_with_context_(
-        self, qubits: Tuple[cirq.Qid, ...], *, context: Optional[DecompositionContext] = None
+        self, qubits: tuple[cirq.Qid, ...], *, context: Optional[DecompositionContext] = None
     ) -> DecomposeResult:
         pass
 
@@ -235,7 +232,7 @@ def decompose(
     ] = _value_error_describing_bad_operation,
     preserve_structure: bool = False,
     context: Optional[DecompositionContext] = None,
-) -> List[cirq.Operation]:
+) -> list[cirq.Operation]:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
     Args:
@@ -316,14 +313,14 @@ def decompose(
 
 
 @overload
-def decompose_once(val: Any, **kwargs) -> List[cirq.Operation]:
+def decompose_once(val: Any, **kwargs) -> list[cirq.Operation]:
     pass
 
 
 @overload
 def decompose_once(
     val: Any, default: TDefault, *args, flatten: bool = True, **kwargs
-) -> Union[TDefault, List[cirq.Operation]]:
+) -> Union[TDefault, list[cirq.Operation]]:
     pass
 
 
@@ -401,7 +398,7 @@ def decompose_once_with_qubits(
     *,
     flatten: bool = True,
     context: Optional[DecompositionContext] = None,
-) -> List[cirq.Operation]:
+) -> list[cirq.Operation]:
     pass
 
 
@@ -413,7 +410,7 @@ def decompose_once_with_qubits(
     *,
     flatten: bool = True,
     context: Optional[DecompositionContext] = None,
-) -> Union[TDefault, List[cirq.Operation]]:
+) -> Union[TDefault, list[cirq.Operation]]:
     pass
 
 
@@ -461,7 +458,7 @@ def decompose_once_with_qubits(
 
 def _try_decompose_into_operations_and_qubits(
     val: Any,
-) -> Tuple[Optional[List[cirq.Operation]], Sequence[cirq.Qid], Tuple[int, ...]]:
+) -> tuple[Optional[list[cirq.Operation]], Sequence[cirq.Qid], tuple[int, ...]]:
     """Returns the value's decomposition (if any) and the qubits it applies to."""
 
     if isinstance(val, ops.Gate):
@@ -477,7 +474,7 @@ def _try_decompose_into_operations_and_qubits(
     result = decompose_once(val, None)
     if result is not None:
         qubit_set = set()
-        qid_shape_dict: Dict[cirq.Qid, int] = defaultdict(lambda: 1)
+        qid_shape_dict: dict[cirq.Qid, int] = defaultdict(lambda: 1)
         for op in result:
             for level, q in zip(qid_shape_protocol.qid_shape(op), op.qubits):
                 qubit_set.add(q)

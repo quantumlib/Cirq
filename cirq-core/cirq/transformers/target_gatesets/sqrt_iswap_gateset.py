@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Any, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 from cirq import ops, protocols
 from cirq.transformers.analytical_decompositions import two_qubit_to_sqrt_iswap
@@ -125,8 +125,8 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             frozenset(self.additional_gates),
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
+    def _json_dict_(self) -> dict[str, Any]:
+        d: dict[str, Any] = {
             'atol': self.atol,
             'required_sqrt_iswap_count': self.required_sqrt_iswap_count,
             'use_sqrt_iswap_inv': self.use_sqrt_iswap_inv,

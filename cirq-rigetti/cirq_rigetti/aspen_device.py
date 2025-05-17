@@ -14,7 +14,7 @@
 import functools
 import json
 from math import sqrt
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import networkx as nx
 import numpy as np
@@ -58,7 +58,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
 
     isa: InstructionSetArchitecture
 
-    def __init__(self, isa: Union[InstructionSetArchitecture, Dict[str, Any]]) -> None:
+    def __init__(self, isa: Union[InstructionSetArchitecture, dict[str, Any]]) -> None:
         """Initializes a RigettiQCSAspenDevice with its Rigetti QCS `InstructionSetArchitecture`.
 
         Args:
@@ -82,7 +82,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
             quantum_processor_id=self.isa.name, isa=self.isa
         )
 
-    def qubits(self) -> List['AspenQubit']:
+    def qubits(self) -> list['AspenQubit']:
         """Return list of `AspenQubit`s within device topology.
 
         Returns:
@@ -111,8 +111,8 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         return max([node.node_id for node in self.isa.architecture.nodes])
 
     @functools.lru_cache(maxsize=2)
-    def _line_qubit_mapping(self) -> List[int]:
-        mapping: List[int] = []
+    def _line_qubit_mapping(self) -> list[int]:
+        mapping: list[int] = []
         for i in range(self._number_octagons):
             base = i * 10
             mapping = mapping + [base + index for index in _forward_line_qubit_mapping]

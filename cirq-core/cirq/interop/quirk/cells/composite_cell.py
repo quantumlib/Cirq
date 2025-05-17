@@ -19,7 +19,6 @@ from typing import (
     cast,
     Iterable,
     Iterator,
-    List,
     Optional,
     Sequence,
     TYPE_CHECKING,
@@ -43,7 +42,7 @@ class CompositeCell(Cell):
     def __init__(
         self,
         height: int,
-        sub_cell_cols_generator: Iterable[List[Optional[Cell]]],
+        sub_cell_cols_generator: Iterable[list[Optional[Cell]]],
         *,
         gate_count: int,
     ):
@@ -93,12 +92,12 @@ class CompositeCell(Cell):
             gate_count=self._gate_count,
         )
 
-    def _sub_cell_cols_sealed(self) -> List[List[Optional[Cell]]]:
+    def _sub_cell_cols_sealed(self) -> list[list[Optional[Cell]]]:
         if not isinstance(self._sub_cell_cols_generator, list):
             self._sub_cell_cols_generator = list(self._sub_cell_cols_generator)
-        return cast(List[List[Optional[Cell]]], self._sub_cell_cols_generator)
+        return cast(list[list[Optional[Cell]]], self._sub_cell_cols_generator)
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return self._transform_cells(lambda cell: cell.with_line_qubits_mapped_to(qubits))
 
     def with_input(self, letter: str, register: Union[Sequence[cirq.Qid], int]) -> CompositeCell:
@@ -129,7 +128,7 @@ T = TypeVar('T')
 
 def _iterator_to_iterable(iterator: Iterator[T]) -> Iterable[T]:
     done = False
-    items: List[T] = []
+    items: list[T] = []
 
     class IterIntoItems:
         def __iter__(self):

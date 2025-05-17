@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Dict, Optional, Union
+from typing import Any, Callable, cast, Optional, Union
 
 import numpy as np
 import sympy
@@ -224,7 +224,7 @@ def controlled_unwrap(op: ops.ControlledOperation) -> Optional[QuirkOp]:
 
 
 _known_gate_conversions = cast(
-    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]],
+    dict[type, Callable[[ops.Gate], Optional[QuirkOp]]],
     {
         ops.CCXPowGate: ccx_to_quirk_op,
         ops.CCZPowGate: ccz_to_quirk_op,

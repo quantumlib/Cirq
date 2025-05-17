@@ -27,7 +27,7 @@ EigenGate.
 
 from __future__ import annotations
 
-from typing import cast, List, Optional, Tuple, TYPE_CHECKING
+from typing import cast, Optional, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -83,7 +83,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
         )
         yield common_gates.CNOT(a, b)
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         # yapf: disable
         return [
             (0, np.array([[1, 0,   0,   0],
@@ -145,7 +145,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             wire_symbols=('×', '×'), exponent=self._diagram_exponent(args)
         )
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0', '3.0')
@@ -204,7 +204,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
     def _num_qubits_(self) -> int:
         return 2
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         # yapf: disable
         return [
             (0, np.diag([1, 0, 0, 1])),

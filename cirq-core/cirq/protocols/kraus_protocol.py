@@ -16,7 +16,7 @@
 
 import warnings
 from types import NotImplementedType
-from typing import Any, Sequence, Tuple, TypeVar, Union
+from typing import Any, Sequence, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -31,7 +31,7 @@ from cirq.protocols.unitary_protocol import unitary
 # Sequence[np.ndarray] to ensure the method has the correct type signature in
 # that case. It is checked for using `is`, so it won't have a false positive
 # if the user provides a different (np.array([]),) value.
-RaiseTypeErrorIfNotProvided: Tuple[np.ndarray] = (np.array([]),)
+RaiseTypeErrorIfNotProvided: tuple[np.ndarray] = (np.array([]),)
 
 
 TDefault = TypeVar('TDefault')
@@ -94,7 +94,7 @@ class SupportsKraus(Protocol):
 
 def kraus(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
-) -> Union[Tuple[np.ndarray, ...], TDefault]:
+) -> Union[tuple[np.ndarray, ...], TDefault]:
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of

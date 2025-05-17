@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import Any, Callable, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
 
 import sympy
 
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def flatten(val: Any) -> Tuple[Any, ExpressionMap]:
+def flatten(val: Any) -> tuple[Any, ExpressionMap]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.
@@ -114,8 +114,8 @@ def flatten(val: Any) -> Tuple[Any, ExpressionMap]:
 
 
 def flatten_with_sweep(
-    val: Any, sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
-) -> Tuple[Any, sweeps.Sweep]:
+    val: Any, sweep: Union[sweeps.Sweep, list[resolver.ParamResolver]]
+) -> tuple[Any, sweeps.Sweep]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.  Also transforms a sweep over the symbols in `val` to a sweep over the
@@ -149,7 +149,7 @@ def flatten_with_sweep(
 
 def flatten_with_params(
     val: Any, params: resolver.ParamResolverOrSimilarType
-) -> Tuple[Any, resolver.ParamDictType]:
+) -> tuple[Any, resolver.ParamDictType]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.  Also transforms a dictionary of symbol values for `val` to an
@@ -330,7 +330,7 @@ class ExpressionMap(dict):
         super().__init__(*args, **kwargs)
 
     def transform_sweep(
-        self, sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
+        self, sweep: Union[sweeps.Sweep, list[resolver.ParamResolver]]
     ) -> sweeps.Sweep:
         """Returns a sweep to use with a circuit flattened earlier with
         `cirq.flatten`.
@@ -346,7 +346,7 @@ class ExpressionMap(dict):
             sweep: The sweep to transform.
         """
         sweep = sweepable.to_sweep(sweep)
-        param_list: List[resolver.ParamDictType] = []
+        param_list: list[resolver.ParamDictType] = []
         for r in sweep:
             param_dict: resolver.ParamDictType = {}
             for formula, sym in self.items():

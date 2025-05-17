@@ -14,7 +14,7 @@
 
 import abc
 import numbers
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 
@@ -38,8 +38,8 @@ class OpSerializer(abc.ABC):
         op,
         msg=None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> Optional[Union[v2.program_pb2.CircuitOperation, v2.program_pb2.Operation]]:
         """Converts op to proto using this serializer.
 
@@ -74,8 +74,8 @@ class CircuitOpSerializer(OpSerializer):
         op: cirq.CircuitOperation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.CircuitOperation:
         """Returns the cirq.google.api.v2.CircuitOperation message as a proto dict.
 

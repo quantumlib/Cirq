@@ -21,7 +21,7 @@ import json
 import os
 import pathlib
 import warnings
-from typing import Dict, List, Optional, Tuple, Type
+from typing import Optional, Type
 from unittest import mock
 
 import attrs
@@ -46,7 +46,7 @@ class _ModuleDeprecation:
 
 
 # tested modules and their deprecation settings
-TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
+TESTED_MODULES: dict[str, Optional[_ModuleDeprecation]] = {
     'cirq_aqt': None,
     'cirq_ionq': None,
     'cirq_google': None,
@@ -64,7 +64,7 @@ if np.__version__.startswith("2."):  # pragma: no cover
     del TESTED_MODULES["cirq_rigetti"]
 
 
-def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
+def _get_testspecs_for_modules() -> list[ModuleJsonTestSpec]:
     modules = []
     for m in TESTED_MODULES.keys():
         try:
@@ -357,9 +357,9 @@ class SBKImpl(cirq.SerializableByKey):
     def __init__(
         self,
         name: str,
-        data_list: Optional[List] = None,
-        data_tuple: Optional[Tuple] = None,
-        data_dict: Optional[Dict] = None,
+        data_list: Optional[list] = None,
+        data_tuple: Optional[tuple] = None,
+        data_dict: Optional[dict] = None,
     ):
         self.name = name
         self.data_list = data_list or []
@@ -607,7 +607,7 @@ def test_to_from_json_gzip():
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
     content = path.read_text()
-    ctx_managers: List[contextlib.AbstractContextManager] = [contextlib.suppress()]
+    ctx_managers: list[contextlib.AbstractContextManager] = [contextlib.suppress()]
     if deprecation_deadline:  # pragma: no cover
         # we ignore coverage here, because sometimes there are no deprecations at all in any of the
         # modules

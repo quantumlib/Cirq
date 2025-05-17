@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests for SimulatedLocalProcessor"""
 import datetime
-from typing import List
 
 import numpy as np
 import pytest
@@ -160,7 +159,7 @@ def test_run_sweep():
     assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
 
-def _no_y_gates(circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable], repetitions: int):
+def _no_y_gates(circuits: list[cirq.Circuit], sweeps: list[cirq.Sweepable], repetitions: int):
     for circuit in circuits:
         for moment in circuit:
             for op in moment:

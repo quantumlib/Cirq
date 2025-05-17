@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import List, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -39,7 +39,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
 
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: study.Sweepable, repetitions: int = 1
-    ) -> List[study.Result]:
+    ) -> list[study.Result]:
         """Samples circuit as if every measurement resulted in zero.
 
         Args:

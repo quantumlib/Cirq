@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, Iterator, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 from typing_extensions import Self
@@ -73,7 +73,7 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _num_qubits_(self) -> int:
         return 2
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [
             (
                 0.0,
@@ -119,7 +119,7 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
 
-    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> Iterator[cirq.OP_TREE]:
+    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> Iterator[cirq.OP_TREE]:
         yield common_gates.YPowGate(exponent=-0.5).on_each(*qubits)
         yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
         yield common_gates.YPowGate(exponent=0.5).on_each(*qubits)
@@ -180,7 +180,7 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _num_qubits_(self) -> int:
         return 2
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [
             (
                 0.0,
@@ -228,7 +228,7 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
 
-    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> Iterator[cirq.OP_TREE]:
+    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> Iterator[cirq.OP_TREE]:
         yield common_gates.XPowGate(exponent=0.5).on_each(*qubits)
         yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
         yield common_gates.XPowGate(exponent=-0.5).on_each(*qubits)
@@ -308,7 +308,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
 
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 0, 0, 1])), (1, np.diag([0, 1, 1, 0]))]
 
     def _eigen_shifts(self):
@@ -401,7 +401,7 @@ class MSGate(XXPowGate):
     def _json_namespace_(cls) -> str:
         return 'cirq'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ["rads"])
 
     @classmethod

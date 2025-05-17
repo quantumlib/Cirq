@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import Any, cast, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union
+from typing import Any, cast, Iterator, Mapping, Optional, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamValComplex']
+ParamDictType = dict['cirq.TParamKey', 'cirq.TParamValComplex']
 ParamMappingType = Mapping['cirq.TParamKey', 'cirq.TParamValComplex']
 document(ParamDictType, """Dictionary from symbols to values.""")
 document(ParamMappingType, """Immutable map from symbols to values.""")
@@ -217,7 +217,7 @@ class ParamResolver:
         return self._deep_eval_map[value]
 
     def _resolve_parameters_(self, resolver: ParamResolver, recursive: bool) -> ParamResolver:
-        new_dict: Dict[cirq.TParamKey, Union[float, str, sympy.Symbol, sympy.Expr]] = {
+        new_dict: dict[cirq.TParamKey, Union[float, str, sympy.Symbol, sympy.Expr]] = {
             k: k for k in resolver
         }
         new_dict.update({k: self.value_of(k, recursive) for k in self})
@@ -244,7 +244,7 @@ class ParamResolver:
             self._param_hash = hash(frozenset(self._param_dict.items()))
         return self._param_hash
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         if state["_param_hash"] is not None:
@@ -268,7 +268,7 @@ class ParamResolver:
         )
         return f'cirq.ParamResolver({param_dict_repr})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             # JSON requires mappings to have keys of basic types.
             'param_dict': list(self._param_dict.items())

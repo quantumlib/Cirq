@@ -19,19 +19,7 @@ import fractions
 import math
 import numbers
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    cast,
-    Dict,
-    Iterable,
-    List,
-    NamedTuple,
-    Optional,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, Any, cast, Iterable, NamedTuple, Optional, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -219,7 +207,7 @@ class EigenGate(raw_types.Gate):
         return args.format_radians(radians=2 * pi * exponent / order)
 
     # virtual method
-    def _eigen_shifts(self) -> List[float]:
+    def _eigen_shifts(self) -> list[float]:
         """Describes the eigenvalues of the gate's matrix.
 
         By default, this just extracts the shifts by calling
@@ -235,7 +223,7 @@ class EigenGate(raw_types.Gate):
         return [e[0] for e in self._eigen_components()]
 
     @abc.abstractmethod
-    def _eigen_components(self) -> List[Union[EigenComponent, Tuple[float, np.ndarray]]]:
+    def _eigen_components(self) -> list[Union[EigenComponent, tuple[float, np.ndarray]]]:
         """Describes the eigendecomposition of the gate's matrix.
 
         Returns:
@@ -372,7 +360,7 @@ class EigenGate(raw_types.Gate):
         other_without_phase._global_shift = 0
         return protocols.approx_eq(self_without_phase, other_without_phase, atol=atol)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
 
     def _measurement_key_objs_(self):
@@ -387,7 +375,7 @@ def _lcm(vals: Iterable[int]) -> int:
 
 
 def _approximate_common_period(
-    periods: List[float], approx_denom: int = 60, reject_atol: float = 1e-8
+    periods: list[float], approx_denom: int = 60, reject_atol: float = 1e-8
 ) -> Optional[float]:
     """Finds a value that is nearly an integer multiple of multiple periods.
 
@@ -432,7 +420,7 @@ def _approximate_common_period(
     return common
 
 
-def _common_rational_period(rational_periods: List[fractions.Fraction]) -> fractions.Fraction:
+def _common_rational_period(rational_periods: list[fractions.Fraction]) -> fractions.Fraction:
     """Finds the least common integer multiple of some fractions.
 
     The solution is the smallest positive integer c such that there

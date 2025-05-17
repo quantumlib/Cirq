@@ -19,7 +19,7 @@ This class is an abstract class which all Engine implementations
 
 import abc
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, Union
+from typing import Optional, Sequence, Set, Union
 
 import cirq
 from cirq_google.cloud import quantum
@@ -57,8 +57,8 @@ class AbstractEngine(abc.ABC):
         self,
         created_before: Optional[VALID_DATE_TYPE] = None,
         created_after: Optional[VALID_DATE_TYPE] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-    ) -> List[abstract_program.AbstractProgram]:
+        has_labels: Optional[dict[str, str]] = None,
+    ) -> list[abstract_program.AbstractProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -79,9 +79,9 @@ class AbstractEngine(abc.ABC):
         self,
         created_before: Optional[VALID_DATE_TYPE] = None,
         created_after: Optional[VALID_DATE_TYPE] = None,
-        has_labels: Optional[Dict[str, str]] = None,
+        has_labels: Optional[dict[str, str]] = None,
         execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
-    ) -> List[abstract_job.AbstractJob]:
+    ) -> list[abstract_job.AbstractJob]:
         """Returns the list of jobs that match the specified criteria.
 
         All historical jobs can be retrieved using this method and filtering
@@ -124,7 +124,7 @@ class AbstractEngine(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_sampler(self, processor_id: Union[str, List[str]]) -> cirq.Sampler:
+    def get_sampler(self, processor_id: Union[str, list[str]]) -> cirq.Sampler:
         """Returns a sampler backed by the engine.
 
         Args:

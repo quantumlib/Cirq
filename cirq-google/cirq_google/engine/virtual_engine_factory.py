@@ -16,7 +16,7 @@
 import json
 import pathlib
 import time
-from typing import cast, List, Optional, Type, Union
+from typing import cast, Optional, Type, Union
 
 import google.protobuf.text_format as text_format
 
@@ -239,9 +239,9 @@ def create_noiseless_virtual_processor_from_proto(
 
 
 def create_noiseless_virtual_engine_from_proto(
-    processor_ids: Union[str, List[str]],
+    processor_ids: Union[str, list[str]],
     device_specifications: Union[
-        v2.device_pb2.DeviceSpecification, List[v2.device_pb2.DeviceSpecification]
+        v2.device_pb2.DeviceSpecification, list[v2.device_pb2.DeviceSpecification]
     ],
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification proto.
@@ -335,7 +335,7 @@ def create_noiseless_virtual_processor_from_template(
 
 
 def create_noiseless_virtual_engine_from_templates(
-    processor_ids: Union[str, List[str]], template_names: Union[str, List[str]]
+    processor_ids: Union[str, list[str]], template_names: Union[str, list[str]]
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification template.
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Defines `@cirq.value_equality`, for easy __eq__/__hash__ methods."""
 
-from typing import Any, Callable, Dict, Optional, overload, Union
+from typing import Any, Callable, Optional, overload, Union
 
 from typing_extensions import Protocol
 
@@ -110,7 +110,7 @@ def _value_equality_approx_eq(
     )
 
 
-def _value_equality_getstate(self: _SupportsValueEquality) -> Dict[str, Any]:
+def _value_equality_getstate(self: _SupportsValueEquality) -> dict[str, Any]:
     # clear cached hash value when pickling, see #6674
     state = self.__dict__
     hash_attr = _compat._method_cache_name(self.__hash__)

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Hashable, Iterable, Mapping, Optional
+from typing import Any, Hashable, Iterable, Mapping, Optional
 
 from cirq import devices, ops
 from cirq.contrib.graph_device.graph_device import UndirectedGraphDevice, UndirectedGraphDeviceEdge
@@ -31,7 +31,7 @@ def uniform_undirected_graph_device(
         edge_label: The label to apply to all edges. Defaults to None.
     """
 
-    labelled_edges: Dict[Iterable[Hashable], Any] = {frozenset(edge): edge_label for edge in edges}
+    labelled_edges: dict[Iterable[Hashable], Any] = {frozenset(edge): edge_label for edge in edges}
     device_graph = UndirectedHypergraph(labelled_edges=labelled_edges)
     return UndirectedGraphDevice(device_graph=device_graph)
 

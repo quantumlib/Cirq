@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Sequence, Type, TYPE_CHECKING, Union
+from typing import Any, Sequence, Type, TYPE_CHECKING, Union
 
 from cirq import ops, protocols
 from cirq.transformers.analytical_decompositions import two_qubit_to_cz
@@ -108,8 +108,8 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
     def _value_equality_values_(self) -> Any:
         return self.atol, self.allow_partial_czs, frozenset(self.additional_gates)
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {'atol': self.atol, 'allow_partial_czs': self.allow_partial_czs}
+    def _json_dict_(self) -> dict[str, Any]:
+        d: dict[str, Any] = {'atol': self.atol, 'allow_partial_czs': self.allow_partial_czs}
         if self.additional_gates:
             d['additional_gates'] = list(self.additional_gates)
         return d

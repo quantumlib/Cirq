@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from types import NotImplementedType
-from typing import Any, cast, Optional, Sequence, Tuple, Union
+from typing import Any, cast, Optional, Sequence, Union
 
 import numpy as np
 import pytest
@@ -45,7 +45,7 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...], (slice(None),))
+        seed = cast(tuple[Union[int, slice, 'ellipsis'], ...], (slice(None),))
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)

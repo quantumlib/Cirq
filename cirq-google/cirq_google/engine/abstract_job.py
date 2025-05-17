@@ -14,7 +14,7 @@
 """A helper for jobs that have been created on the Quantum Engine."""
 
 import abc
-from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
+from typing import Iterator, Optional, overload, Sequence, TYPE_CHECKING
 
 import duet
 
@@ -89,11 +89,11 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
 
     @abc.abstractmethod
-    def set_labels(self, labels: Dict[str, str]) -> 'AbstractJob':
+    def set_labels(self, labels: dict[str, str]) -> 'AbstractJob':
         """Sets (overwriting) the labels for a previously created quantum job.
 
         Params:
@@ -104,7 +104,7 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def add_labels(self, labels: Dict[str, str]) -> 'AbstractJob':
+    def add_labels(self, labels: dict[str, str]) -> 'AbstractJob':
         """Adds new labels to a previously created quantum job.
 
         Params:
@@ -115,7 +115,7 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def remove_labels(self, keys: List[str]) -> 'AbstractJob':
+    def remove_labels(self, keys: list[str]) -> 'AbstractJob':
         """Removes labels with given keys.
 
         Params:
@@ -126,7 +126,7 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def processor_ids(self) -> List[str]:
+    def processor_ids(self) -> list[str]:
         """Returns the processor ids provided when the job was created."""
 
     @abc.abstractmethod
@@ -134,11 +134,11 @@ class AbstractJob(abc.ABC):
         """Return the execution status of the job."""
 
     @abc.abstractmethod
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> Optional[tuple[str, str]]:
         """Return failure code and message of the job if present."""
 
     @abc.abstractmethod
-    def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the job.
 
         Returns:

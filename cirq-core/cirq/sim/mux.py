@@ -19,7 +19,7 @@ Filename is a reference to multiplexing.
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -206,7 +206,7 @@ def sample_sweep(
     """
     prng = value.parse_random_state(seed)
 
-    trial_results: List[study.Result] = []
+    trial_results: list[study.Result] = []
     for param_resolver in study.to_resolvers(params):
         measurements = sample(
             program,

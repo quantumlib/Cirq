@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, FrozenSet, Mapping, Optional, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
@@ -292,7 +292,7 @@ def with_measurement_key_mapping(val: Any, key_map: Mapping[str, str]):
     return NotImplemented if getter is None else getter(key_map)
 
 
-def with_key_path(val: Any, path: Tuple[str, ...]):
+def with_key_path(val: Any, path: tuple[str, ...]):
     """Adds the path to the target's measurement keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
@@ -303,7 +303,7 @@ def with_key_path(val: Any, path: Tuple[str, ...]):
     return NotImplemented if getter is None else getter(path)
 
 
-def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
+def with_key_path_prefix(val: Any, prefix: tuple[str, ...]):
     """Prefixes the path to the target's measurement keys.
 
     The path usually refers to an identifier or a list of identifiers from a subcircuit that
@@ -319,7 +319,7 @@ def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
 
 
 def with_rescoped_keys(
-    val: Any, path: Tuple[str, ...], bindable_keys: Optional[FrozenSet[cirq.MeasurementKey]] = None
+    val: Any, path: tuple[str, ...], bindable_keys: Optional[FrozenSet[cirq.MeasurementKey]] = None
 ):
     """Rescopes any measurement and control keys to the provided path, given the existing keys.
 

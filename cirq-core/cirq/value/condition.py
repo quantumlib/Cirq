@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING
+from typing import Any, FrozenSet, Mapping, Optional, TYPE_CHECKING
 
 import attrs
 import sympy
@@ -34,7 +34,7 @@ class Condition(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def keys(self) -> Tuple[cirq.MeasurementKey, ...]:
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
         """Gets the control keys."""
 
     @abc.abstractmethod
@@ -59,14 +59,14 @@ class Condition(abc.ABC):
             condition = condition.replace_key(k, mkp.with_measurement_key_mapping(k, key_map))
         return condition
 
-    def _with_key_path_prefix_(self, path: Tuple[str, ...]) -> cirq.Condition:
+    def _with_key_path_prefix_(self, path: tuple[str, ...]) -> cirq.Condition:
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_key_path_prefix(k, path))
         return condition
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ) -> cirq.Condition:
         condition = self
         for key in self.keys:
@@ -285,7 +285,7 @@ class SympyCondition(Condition):
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')
 
-        replacements: Dict[str, Any] = {}
+        replacements: dict[str, Any] = {}
         for symbol in self.expr.free_symbols:
             if isinstance(symbol, sympy.Symbol):
                 name = symbol.name

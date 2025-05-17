@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Set
+from typing import Optional, Set
 
 import pytest
 
@@ -73,7 +73,7 @@ class ReplaceWithXGates(PointOptimizer):
             if n is None:
                 break
             next_ops: Set[Optional[Operation]] = {circuit.operation_at(q, n) for q in op.qubits}
-            next_ops_list: List[Operation] = [e for e in next_ops if e]
+            next_ops_list: list[Operation] = [e for e in next_ops if e]
             next_ops_sorted = sorted(next_ops_list, key=lambda e: str(e.qubits))
             for next_op in next_ops_sorted:
                 if next_op:

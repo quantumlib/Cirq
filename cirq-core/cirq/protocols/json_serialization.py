@@ -18,21 +18,7 @@ import json
 import numbers
 import pathlib
 from types import NotImplementedType
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    IO,
-    Iterable,
-    List,
-    Optional,
-    overload,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, Callable, cast, IO, Iterable, Optional, overload, Sequence, Type, Union
 
 import attrs
 import numpy as np
@@ -51,7 +37,7 @@ class JsonResolver(Protocol):
     def __call__(self, cirq_type: str) -> Optional[ObjectFactory]: ...
 
 
-def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> JsonResolver:
+def _lazy_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> JsonResolver:
     """A lazy JsonResolver based on a dict_factory.
 
     It only calls dict_factory when the first key is accessed.
@@ -67,7 +53,7 @@ def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> Json
     return json_resolver
 
 
-DEFAULT_RESOLVERS: List[JsonResolver] = []
+DEFAULT_RESOLVERS: list[JsonResolver] = []
 """A default list of 'JsonResolver' functions for use in read_json.
 
 For more information about cirq_type resolution during deserialization
@@ -87,7 +73,7 @@ prepended to this list:
 """
 
 
-def _register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> None:
+def _register_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> None:
     """Register a resolver based on a dict factory for lazy initialization.
 
     Cirq modules are the ones referred in cirq/__init__.py. If a Cirq module
@@ -124,7 +110,7 @@ class SupportsJSON(Protocol):
     """
 
     @doc_private
-    def _json_dict_(self) -> Union[None, NotImplementedType, Dict[Any, Any]]:
+    def _json_dict_(self) -> Union[None, NotImplementedType, dict[Any, Any]]:
         pass
 
 
@@ -145,7 +131,7 @@ class HasJSONNamespace(Protocol):
         pass
 
 
-def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
+def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> dict[str, Any]:
     """Construct a dictionary containing attributes from obj
 
     This is useful as a helper function in objects implementing the
@@ -167,7 +153,7 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, An
 
 
 # pylint: enable=redefined-builtin
-def dataclass_json_dict(obj: Any) -> Dict[str, Any]:
+def dataclass_json_dict(obj: Any) -> dict[str, Any]:
     """Return a dictionary suitable for `_json_dict_` from a dataclass.
 
     Dataclasses keep track of their relevant fields, so we can automatically generate these.
@@ -183,7 +169,7 @@ def dataclass_json_dict(obj: Any) -> Dict[str, Any]:
     return obj_to_dict_helper(obj, attribute_names)
 
 
-def attrs_json_dict(obj: Any) -> Dict[str, Any]:
+def attrs_json_dict(obj: Any) -> dict[str, Any]:
     """Return a dictionary suitable for `_json_dict_` from an attrs dataclass."""
     attribute_names = [f.name for f in attrs.fields(type(obj))]
     return obj_to_dict_helper(obj, attribute_names)
@@ -336,8 +322,8 @@ class ObjectHook:
 
     def __init__(self, resolvers: Sequence[JsonResolver]) -> None:
         self.resolvers = resolvers
-        self.memo: Dict[int, SerializableByKey] = {}
-        self.context_map: Dict[int, SerializableByKey] = {}
+        self.memo: dict[int, SerializableByKey] = {}
+        self.context_map: dict[int, SerializableByKey] = {}
 
     def __call__(self, d):
         cirq_type = d.get('cirq_type')
@@ -496,7 +482,7 @@ def to_json(
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
     indent: Optional[int] = 2,
-    separators: Optional[Tuple[str, str]] = None,
+    separators: Optional[tuple[str, str]] = None,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[str]:
     """Write a JSON file containing a representation of obj.

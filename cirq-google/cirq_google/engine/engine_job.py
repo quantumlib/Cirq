@@ -13,7 +13,7 @@
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
 import datetime
-from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 import duet
 from google.protobuf import any_pb2
@@ -36,7 +36,7 @@ TERMINAL_STATES = [
 ]
 
 
-def _flatten(result: Sequence[Sequence[EngineResult]]) -> List[EngineResult]:
+def _flatten(result: Sequence[Sequence[EngineResult]]) -> list[EngineResult]:
     return [res for result_list in result for res in result_list]
 
 
@@ -152,11 +152,11 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
         return self._inner_job().labels
 
-    def set_labels(self, labels: Dict[str, str]) -> 'EngineJob':
+    def set_labels(self, labels: dict[str, str]) -> 'EngineJob':
         """Sets (overwriting) the labels for a previously created quantum job.
 
         Params:
@@ -170,7 +170,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> 'EngineJob':
+    def add_labels(self, labels: dict[str, str]) -> 'EngineJob':
         """Adds new labels to a previously created quantum job.
 
         Params:
@@ -184,7 +184,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def remove_labels(self, keys: List[str]) -> 'EngineJob':
+    def remove_labels(self, keys: list[str]) -> 'EngineJob':
         """Removes labels with given keys from the labels of a previously
         created quantum job.
 
@@ -199,7 +199,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def processor_ids(self) -> List[str]:
+    def processor_ids(self) -> list[str]:
         """Returns the processor ids provided when the job was created."""
         return [
             engine_client._ids_from_processor_name(p)[1]
@@ -214,14 +214,14 @@ class EngineJob(abstract_job.AbstractJob):
         """Return the execution status of the job."""
         return self._refresh_job().execution_status.state.name
 
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> Optional[tuple[str, str]]:
         """Return failure code and message of the job if present."""
         if self._inner_job().execution_status.failure:
             failure = self._inner_job().execution_status.failure
             return (failure.error_code.name, failure.error_message)
         return None
 
-    def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the Quantum Engine job.
 
         Returns:
@@ -351,7 +351,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
 
 
-def _deserialize_run_context(run_context: any_pb2.Any) -> Tuple[int, List[cirq.Sweep]]:
+def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[int, list[cirq.Sweep]]:
     import cirq_google.engine.engine as engine_base
 
     run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]

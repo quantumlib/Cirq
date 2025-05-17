@@ -14,7 +14,7 @@
 
 """Utility methods for decomposing three-qubit unitaries."""
 
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Optional, Sequence, Union
 
 import numpy as np
 
@@ -24,7 +24,7 @@ from cirq import ops, transformers as opt
 
 def three_qubit_matrix_to_operations(
     q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, u: np.ndarray, atol: float = 1e-8
-) -> List[ops.Operation]:
+) -> list[ops.Operation]:
     """Returns operations for a 3 qubit unitary.
 
     The algorithm is described in Shende et al.:
@@ -85,7 +85,7 @@ def three_qubit_matrix_to_operations(
     return list(cirq.Circuit(vdh_ops + cs_ops + ud_ops).all_operations())
 
 
-def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List[ops.Operation]:
+def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> list[ops.Operation]:
     """Converts theta angles based Cosine Sine matrix to operations.
 
     Using the optimization as per Appendix A.1, it uses CZ gates instead of
@@ -126,7 +126,7 @@ def _two_qubit_multiplexor_to_ops(
     shift_left: bool = True,
     diagonal: Optional[np.ndarray] = None,
     atol: float = 1e-8,
-) -> Tuple[Optional[np.ndarray], List[ops.Operation]]:
+) -> tuple[Optional[np.ndarray], list[ops.Operation]]:
     r"""Converts a two qubit double multiplexor to circuit.
     Input: U_1 ⊕ U_2, with select qubit a (i.e. a = |0> => U_1(b,c),
     a = |1> => U_2(b,c).

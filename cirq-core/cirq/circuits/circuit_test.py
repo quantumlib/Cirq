@@ -19,7 +19,7 @@ import os
 import time
 from collections import defaultdict
 from random import randint, random, randrange, sample
-from typing import Iterator, Optional, Tuple
+from typing import Iterator, Optional
 
 import numpy as np
 import pytest
@@ -2122,7 +2122,7 @@ M('msg')─M──────M
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols(circuit_cls):
     class BadGate(cirq.testing.ThreeQubitGate):
-        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, str]:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, str]:
             return 'a', 'a'
 
     q1 = cirq.NamedQubit('(0, 0)')
@@ -2724,7 +2724,7 @@ def test_expanding_gate_symbols(circuit_cls):
         def num_qubits(self) -> int:
             return self._num_qubits
 
-        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
             assert args.known_qubit_count is not None
             return ('@',) + ('Z',) * (args.known_qubit_count - 1)
 

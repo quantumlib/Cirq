@@ -13,7 +13,7 @@
 # limitations under the License.
 import math
 import numbers
-from typing import cast, List, Optional, Sequence, Union
+from typing import cast, Optional, Sequence, Union
 
 import numpy as np
 import sympy
@@ -30,7 +30,7 @@ SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 # Argument types for gates.
 ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr, tunits.Value]
 ARG_RETURN_LIKE = Union[
-    float, int, str, List[bool], List[int], List[float], List[str], sympy.Expr, tunits.Value
+    float, int, str, list[bool], list[int], list[float], list[str], sympy.Expr, tunits.Value
 ]
 FLOAT_ARG_LIKE = Union[float, sympy.Expr]
 

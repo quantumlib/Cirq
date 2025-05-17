@@ -18,14 +18,11 @@ from typing import (
     Any,
     Callable,
     cast,
-    Dict,
     Iterable,
-    List,
     Mapping,
     NamedTuple,
     Optional,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
 )
 
@@ -73,25 +70,25 @@ class TextDiagramDrawer:
 
     def __init__(
         self,
-        entries: Optional[Mapping[Tuple[int, int], _DiagramText]] = None,
+        entries: Optional[Mapping[tuple[int, int], _DiagramText]] = None,
         horizontal_lines: Optional[Iterable[_HorizontalLine]] = None,
         vertical_lines: Optional[Iterable[_VerticalLine]] = None,
         horizontal_padding: Optional[Mapping[int, int]] = None,
         vertical_padding: Optional[Mapping[int, int]] = None,
     ) -> None:
-        self.entries: Dict[Tuple[int, int], _DiagramText] = (
+        self.entries: dict[tuple[int, int], _DiagramText] = (
             dict() if entries is None else dict(entries)
         )
-        self.horizontal_lines: List[_HorizontalLine] = (
+        self.horizontal_lines: list[_HorizontalLine] = (
             [] if horizontal_lines is None else list(horizontal_lines)
         )
-        self.vertical_lines: List[_VerticalLine] = (
+        self.vertical_lines: list[_VerticalLine] = (
             [] if vertical_lines is None else list(vertical_lines)
         )
-        self.horizontal_padding: Dict[int, float] = (
+        self.horizontal_padding: dict[int, float] = (
             dict() if horizontal_padding is None else dict(horizontal_padding)
         )
-        self.vertical_padding: Dict[int, float] = (
+        self.vertical_padding: dict[int, float] = (
             dict() if vertical_padding is None else dict(vertical_padding)
         )
 
@@ -215,7 +212,7 @@ class TextDiagramDrawer:
         """Change the padding after the given row."""
         self.vertical_padding[index] = padding
 
-    def _transform_coordinates(self, func: Callable[[float, float], Tuple[float, float]]) -> None:
+    def _transform_coordinates(self, func: Callable[[float, float], tuple[float, float]]) -> None:
         """Helper method to transformer either row or column coordinates."""
 
         def func_x(x: float) -> float:
@@ -225,7 +222,7 @@ class TextDiagramDrawer:
             return func(0, y)[1]
 
         self.entries = {
-            cast(Tuple[int, int], func(int(x), int(y))): v for (x, y), v in self.entries.items()
+            cast(tuple[int, int], func(int(x), int(y))): v for (x, y), v in self.entries.items()
         }
         self.vertical_lines = [
             _VerticalLine(func_x(x), func_y(y1), func_y(y2), emph, doubled)
@@ -245,7 +242,7 @@ class TextDiagramDrawer:
     def insert_empty_columns(self, x: int, amount: int = 1) -> None:
         """Insert a number of columns after the given column."""
 
-        def transform_columns(column: float, row: float) -> Tuple[float, float]:
+        def transform_columns(column: float, row: float) -> tuple[float, float]:
             return column + (amount if column >= x else 0), row
 
         self._transform_coordinates(transform_columns)
@@ -253,7 +250,7 @@ class TextDiagramDrawer:
     def insert_empty_rows(self, y: int, amount: int = 1) -> None:
         """Insert a number of rows after the given row."""
 
-        def transform_rows(column: float, row: float) -> Tuple[float, float]:
+        def transform_rows(column: float, row: float) -> tuple[float, float]:
             return column, row + (amount if row >= y else 0)
 
         self._transform_coordinates(transform_rows)

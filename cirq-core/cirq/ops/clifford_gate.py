@@ -17,7 +17,7 @@ from __future__ import annotations
 import functools
 from dataclasses import dataclass
 from types import NotImplementedType
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -36,7 +36,7 @@ sim = LazyLoader("sim", globals(), "cirq.sim")
 transformers = LazyLoader("transformers", globals(), "cirq.transformers")
 
 
-def _to_pauli_tuple(matrix: np.ndarray) -> Optional[Tuple[Pauli, bool]]:
+def _to_pauli_tuple(matrix: np.ndarray) -> Optional[tuple[Pauli, bool]]:
     """Converts matrix to Pauli gate.
 
     If matrix is not ±Pauli matrix, returns None.
@@ -51,10 +51,10 @@ def _to_pauli_tuple(matrix: np.ndarray) -> Optional[Tuple[Pauli, bool]]:
 
 
 def _to_clifford_tableau(
-    rotation_map: Optional[Dict[Pauli, Tuple[Pauli, bool]]] = None,
+    rotation_map: Optional[dict[Pauli, tuple[Pauli, bool]]] = None,
     *,
-    x_to: Optional[Tuple[Pauli, bool]] = None,
-    z_to: Optional[Tuple[Pauli, bool]] = None,
+    x_to: Optional[tuple[Pauli, bool]] = None,
+    z_to: Optional[tuple[Pauli, bool]] = None,
 ) -> qis.CliffordTableau:
     """Transfer the rotation map to clifford tableau representation"""
     if x_to is None and z_to is None and rotation_map is None:
@@ -81,11 +81,11 @@ def _to_clifford_tableau(
 
 def _validate_map_input(
     required_transform_count: int,
-    pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]],
-    x_to: Optional[Tuple[Pauli, bool]],
-    y_to: Optional[Tuple[Pauli, bool]],
-    z_to: Optional[Tuple[Pauli, bool]],
-) -> Dict[Pauli, Tuple[Pauli, bool]]:
+    pauli_map_to: Optional[dict[Pauli, tuple[Pauli, bool]]],
+    x_to: Optional[tuple[Pauli, bool]],
+    y_to: Optional[tuple[Pauli, bool]],
+    z_to: Optional[tuple[Pauli, bool]],
+) -> dict[Pauli, tuple[Pauli, bool]]:
     if pauli_map_to is None:
         xyz_to = {pauli_gates.X: x_to, pauli_gates.Y: y_to, pauli_gates.Z: z_to}
         pauli_map_to = {p: trans for p, trans in xyz_to.items() if trans is not None}
@@ -110,7 +110,7 @@ def _validate_map_input(
 
 
 def _pad_tableau(
-    clifford_tableau: qis.CliffordTableau, num_qubits_after_padding: int, axes: List[int]
+    clifford_tableau: qis.CliffordTableau, num_qubits_after_padding: int, axes: list[int]
 ) -> qis.CliffordTableau:
     """Roughly, this function copies self.tableau into the "identity" matrix."""
     # Sanity check
@@ -334,7 +334,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
         return cls(_clifford_tableau=_clifford_tableau)
 
     @classmethod
-    def _get_sqrt_map(cls) -> Dict[float, Dict[SingleQubitCliffordGate, SingleQubitCliffordGate]]:
+    def _get_sqrt_map(cls) -> dict[float, dict[SingleQubitCliffordGate, SingleQubitCliffordGate]]:
         """Returns a map containing two keys 0.5 and -0.5 for the sqrt mapping of Pauli gates."""
         return {
             0.5: {cls.X: cls.X_sqrt, cls.Y: cls.Y_sqrt, cls.Z: cls.Z_sqrt},
@@ -377,7 +377,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
     def clifford_tableau(self):
         return self._clifford_tableau
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         json_dict = self._clifford_tableau._json_dict_()
         return json_dict
 
@@ -493,7 +493,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return SingleQubitCliffordGate(_clifford_tableau=tableau)
 
     @staticmethod
-    def from_xz_map(x_to: Tuple[Pauli, bool], z_to: Tuple[Pauli, bool]) -> SingleQubitCliffordGate:
+    def from_xz_map(x_to: tuple[Pauli, bool], z_to: tuple[Pauli, bool]) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the specified transforms.
         The Y transform is derived from the X and Z.
 
@@ -507,11 +507,11 @@ class SingleQubitCliffordGate(CliffordGate):
 
     @staticmethod
     def from_single_map(
-        pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]] = None,
+        pauli_map_to: Optional[dict[Pauli, tuple[Pauli, bool]]] = None,
         *,
-        x_to: Optional[Tuple[Pauli, bool]] = None,
-        y_to: Optional[Tuple[Pauli, bool]] = None,
-        z_to: Optional[Tuple[Pauli, bool]] = None,
+        x_to: Optional[tuple[Pauli, bool]] = None,
+        y_to: Optional[tuple[Pauli, bool]] = None,
+        z_to: Optional[tuple[Pauli, bool]] = None,
     ) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the
         specified transform with a 90 or 180 degree rotation.
@@ -540,11 +540,11 @@ class SingleQubitCliffordGate(CliffordGate):
 
     @staticmethod
     def from_double_map(
-        pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]] = None,
+        pauli_map_to: Optional[dict[Pauli, tuple[Pauli, bool]]] = None,
         *,
-        x_to: Optional[Tuple[Pauli, bool]] = None,
-        y_to: Optional[Tuple[Pauli, bool]] = None,
-        z_to: Optional[Tuple[Pauli, bool]] = None,
+        x_to: Optional[tuple[Pauli, bool]] = None,
+        y_to: Optional[tuple[Pauli, bool]] = None,
+        z_to: Optional[tuple[Pauli, bool]] = None,
     ) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the
         specified transform with a 90 or 180 degree rotation.
@@ -624,7 +624,7 @@ class SingleQubitCliffordGate(CliffordGate):
     @classmethod
     def from_unitary_with_global_phase(
         cls, u: np.ndarray
-    ) -> Optional[Tuple[SingleQubitCliffordGate, complex]]:
+    ) -> Optional[tuple[SingleQubitCliffordGate, complex]]:
         """Creates Clifford gate with given unitary, including global phase.
 
         Args:
@@ -644,7 +644,7 @@ class SingleQubitCliffordGate(CliffordGate):
         k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
         return gate, u[k] / protocols.unitary(gate)[k]
 
-    def pauli_tuple(self, pauli: Pauli) -> Tuple[Pauli, bool]:
+    def pauli_tuple(self, pauli: Pauli) -> tuple[Pauli, bool]:
         """Returns a tuple of a Pauli operator and a boolean.
 
         The pauli is the operator of the transform and the boolean
@@ -822,7 +822,7 @@ class SingleQubitCliffordGate(CliffordGate):
         rotations = self.decompose_rotation()
         return [r ** (qt / 2) for r, qt in rotations]
 
-    def decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
+    def decompose_rotation(self) -> Sequence[tuple[Pauli, int]]:
         """Decomposes this clifford into a series of pauli rotations.
 
         Each rotation is given as a tuple of (axis, quarter_turns),
@@ -835,7 +835,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return self._decompose_rotation
 
     @functools.cached_property
-    def _decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
+    def _decompose_rotation(self) -> Sequence[tuple[Pauli, int]]:
         x_rot = self.pauli_tuple(pauli_gates.X)
         y_rot = self.pauli_tuple(pauli_gates.Y)
         z_rot = self.pauli_tuple(pauli_gates.Z)

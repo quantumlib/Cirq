@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Type, Union
+from typing import Any, Type, Union
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
@@ -34,7 +34,7 @@ class PasqalGateset(cirq.CompilationTargetGateset):
     """
 
     def __init__(self, include_additional_controlled_ops: bool = True):
-        gate_families: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = [
+        gate_families: list[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = [
             cirq.ParallelGateFamily(cirq.H),
             cirq.ParallelGateFamily(cirq.PhasedXPowGate),
             cirq.ParallelGateFamily(cirq.XPowGate),
@@ -81,11 +81,11 @@ class PasqalGateset(cirq.CompilationTargetGateset):
         return NotImplemented
 
     @property
-    def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         return []
 
     @property
-    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         return []
 
     def __repr__(self):
@@ -98,5 +98,5 @@ class PasqalGateset(cirq.CompilationTargetGateset):
     def _from_json_dict_(cls, include_additional_controlled_ops, **kwargs):
         return cls(include_additional_controlled_ops=include_additional_controlled_ops)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['include_additional_controlled_ops'])

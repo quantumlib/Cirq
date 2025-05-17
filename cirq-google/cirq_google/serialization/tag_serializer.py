@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from cirq_google.api import v2
@@ -34,8 +34,8 @@ class TagSerializer(abc.ABC):
         tag,
         msg=None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> Optional[v2.program_pb2.Tag]:
         """Converts tag to proto using this serializer.
 

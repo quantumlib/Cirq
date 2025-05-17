@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import cast, FrozenSet, Iterable, Mapping, Optional, Tuple, TYPE_CHECKING
+from typing import cast, FrozenSet, Iterable, Mapping, Optional, TYPE_CHECKING
 
 import networkx as nx
 
@@ -33,7 +33,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
     def __init__(
         self,
-        qubit_pairs: Iterable[Tuple[cirq.GridQubit, cirq.GridQubit]],
+        qubit_pairs: Iterable[tuple[cirq.GridQubit, cirq.GridQubit]],
         gateset: cirq.Gateset,
         gate_durations: Optional[Mapping[cirq.GateFamily, cirq.Duration]] = None,
         all_qubits: Optional[Iterable[cirq.GridQubit]] = None,
@@ -146,7 +146,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._gateset
 
     @property
-    def compilation_target_gatesets(self) -> Tuple[cirq.CompilationTargetGateset, ...]:
+    def compilation_target_gatesets(self) -> tuple[cirq.CompilationTargetGateset, ...]:
         """Returns a sequence of valid `cirq.CompilationTargetGateset`s for this device."""
         return self._compilation_target_gatesets
 

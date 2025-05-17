@@ -21,7 +21,7 @@ from importlib import abc
 from importlib.abc import Loader
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Any, Callable, cast, List, Optional
+from typing import Any, Callable, cast, Optional
 
 
 class InstrumentedFinder(abc.MetaPathFinder):
@@ -56,7 +56,7 @@ class InstrumentedFinder(abc.MetaPathFinder):
 
         self.finder = finder
         self.module_name = module_name
-        self.match_components: List[str] = []
+        self.match_components: list[str] = []
         if self.module_name:
             self.match_components = self.module_name.split('.')
         self.wrap_module = wrap_module

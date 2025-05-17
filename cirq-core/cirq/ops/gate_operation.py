@@ -24,13 +24,10 @@ from typing import (
     Any,
     cast,
     Collection,
-    Dict,
     FrozenSet,
-    List,
     Mapping,
     Optional,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
@@ -70,7 +67,7 @@ class GateOperation(raw_types.Operation):
         return self._gate
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         """The qubits targeted by the operation."""
         return self._qubits
 
@@ -92,7 +89,7 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]):
         new_gate = protocols.with_key_path(self.gate, path)
         if new_gate is NotImplemented:
             return NotImplemented
@@ -101,7 +98,7 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         new_gate = protocols.with_key_path_prefix(self.gate, prefix)
         if new_gate is NotImplemented:
             return NotImplemented
@@ -111,7 +108,7 @@ class GateOperation(raw_types.Operation):
         return new_gate.on(*self.qubits)
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
     ):
         new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
         if new_gate is self.gate:
@@ -139,15 +136,15 @@ class GateOperation(raw_types.Operation):
         qubits = ', '.join(str(e) for e in self.qubits)
         return f'{self.gate}({qubits})' if qubits else str(self.gate)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
 
     def _group_interchangeable_qubits(
         self,
-    ) -> Tuple[Union[cirq.Qid, Tuple[int, FrozenSet[cirq.Qid]]], ...]:
+    ) -> tuple[Union[cirq.Qid, tuple[int, FrozenSet[cirq.Qid]]], ...]:
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
-        groups: Dict[int, List[cirq.Qid]] = {}
+        groups: dict[int, list[cirq.Qid]] = {}
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
             groups.setdefault(k, []).append(q)
@@ -213,7 +210,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+    def _mixture_(self) -> Sequence[tuple[float, Any]]:
         getter = getattr(self.gate, '_mixture_', None)
         if getter is not None:
             return getter()
@@ -233,7 +230,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+    def _kraus_(self) -> Union[tuple[np.ndarray], NotImplementedType]:
         getter = getattr(self.gate, '_kraus_', None)
         if getter is not None:
             return getter()

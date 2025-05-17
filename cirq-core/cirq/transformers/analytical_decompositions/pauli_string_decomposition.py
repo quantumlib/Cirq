@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Optional, Tuple
+from typing import cast, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -21,7 +21,7 @@ from cirq import protocols
 from cirq.ops import DensePauliString
 
 
-def _argmax(V: npt.NDArray) -> Tuple[int, float]:
+def _argmax(V: npt.NDArray) -> tuple[int, float]:
     """Returns a tuple (index of max number, max number)."""
     V = (V * V.conj()).real
     idx_max = np.argmax(V)

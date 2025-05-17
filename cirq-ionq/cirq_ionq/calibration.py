@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import datetime
-from typing import Optional, Set, Tuple
+from typing import Optional, Set
 
 import cirq
 
@@ -55,7 +55,7 @@ class Calibration:
         """Returns the gate, measurement, and resetting timings."""
         return self._calibration_dict['timing']
 
-    def connectivity(self) -> Set[Tuple[cirq.LineQubit, cirq.LineQubit]]:
+    def connectivity(self) -> Set[tuple[cirq.LineQubit, cirq.LineQubit]]:
         """Returns which qubits and can interact with which.
 
         Returns:

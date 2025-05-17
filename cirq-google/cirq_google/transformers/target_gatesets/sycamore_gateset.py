@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
@@ -132,7 +132,7 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         self.tabulation = tabulation
 
     @property
-    def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         return [
             cirq.create_transformer_with_kwargs(
                 cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits
@@ -165,7 +165,7 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             f'tabulation={self.tabulation})'
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'atol': self.atol, 'tabulation': self.tabulation}
 
     @classmethod

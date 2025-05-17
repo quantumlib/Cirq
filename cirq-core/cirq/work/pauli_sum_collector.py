@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import collections
-from typing import cast, Dict, Optional, TYPE_CHECKING, Union
+from typing import cast, Optional, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -60,8 +60,8 @@ class PauliSumCollector(collector.Collector):
             if not p:
                 self._identity_offset += p.coefficient
 
-        self._zeros: Dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
-        self._ones: Dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
+        self._zeros: dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
+        self._ones: dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, Optional, Sequence, Type
+from typing import Any, Optional, Sequence, Type
 
 import numpy as np
 import sympy
@@ -50,8 +50,8 @@ def assert_implements_consistent_protocols(
     qubit_count: Optional[int] = None,
     ignoring_global_phase: bool = False,
     setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
-    global_vals: Optional[Dict[str, Any]] = None,
-    local_vals: Optional[Dict[str, Any]] = None,
+    global_vals: Optional[dict[str, Any]] = None,
+    local_vals: Optional[dict[str, Any]] = None,
     ignore_decompose_to_default_gateset: bool = False,
 ) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
@@ -88,8 +88,8 @@ def assert_eigengate_implements_consistent_protocols(
     qubit_count: Optional[int] = None,
     ignoring_global_phase: bool = False,
     setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
-    global_vals: Optional[Dict[str, Any]] = None,
-    local_vals: Optional[Dict[str, Any]] = None,
+    global_vals: Optional[dict[str, Any]] = None,
+    local_vals: Optional[dict[str, Any]] = None,
     ignore_decompose_to_default_gateset: bool = False,
 ) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a
@@ -143,8 +143,8 @@ def _assert_meets_standards_helper(
     *,
     ignoring_global_phase: bool,
     setup_code: str,
-    global_vals: Optional[Dict[str, Any]],
-    local_vals: Optional[Dict[str, Any]],
+    global_vals: Optional[dict[str, Any]],
+    local_vals: Optional[dict[str, Any]],
     ignore_decompose_to_default_gateset: bool,
 ) -> None:
     __tracebackhide__ = True  # pylint: disable=unused-variable

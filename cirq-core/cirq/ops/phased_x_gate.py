@@ -19,7 +19,7 @@ from __future__ import annotations
 import math
 import numbers
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Optional, Sequence, Union
 
 import numpy as np
 import sympy
@@ -67,7 +67,7 @@ class PhasedXPowGate(raw_types.Gate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
 
@@ -243,5 +243,5 @@ class PhasedXPowGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.phase_exponent, self._canonical_exponent, self._global_shift
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['phase_exponent', 'exponent', 'global_shift'])

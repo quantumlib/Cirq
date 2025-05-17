@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Canonical tags for the TaggedOperation class."""
-from typing import Dict
 
 
 class VirtualTag:
@@ -38,7 +37,7 @@ class VirtualTag:
     def __repr__(self) -> str:
         return 'cirq.VirtualTag()'
 
-    def _json_dict_(self) -> Dict[str, str]:
+    def _json_dict_(self) -> dict[str, str]:
         return {}
 
     def __hash__(self):
@@ -61,7 +60,7 @@ class RoutingSwapTag:
     def __repr__(self) -> str:
         return 'cirq.RoutingSwapTag()'
 
-    def _json_dict_(self) -> Dict[str, str]:
+    def _json_dict_(self) -> dict[str, str]:
         return {}
 
     def __hash__(self):

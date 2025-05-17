@@ -15,7 +15,7 @@
 """Defines which types are Sweepable."""
 
 import warnings
-from typing import cast, Iterable, Iterator, List, Optional, Sequence, Union
+from typing import cast, Iterable, Iterator, Optional, Sequence, Union
 
 from typing_extensions import Protocol
 
@@ -45,7 +45,7 @@ def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
         yield from sweep
 
 
-def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> List[Sweep]:
+def to_sweeps(sweepable: Sweepable, metadata: Optional[dict] = None) -> list[Sweep]:
     """Converts a Sweepable to a list of Sweeps."""
     if sweepable is None:
         return [UnitSweep]

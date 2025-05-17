@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 import random
-from typing import Any, Dict, FrozenSet, Hashable, Iterable, Mapping, Optional, Set, Tuple, Union
+from typing import Any, FrozenSet, Hashable, Iterable, Mapping, Optional, Set, Union
 
 AdjacencyList = Set[FrozenSet[Hashable]]
 
@@ -26,7 +26,7 @@ class UndirectedHypergraph:
         self,
         *,
         vertices: Optional[Iterable[Hashable]] = None,
-        labelled_edges: Optional[Dict[Iterable[Hashable], Any]] = None,
+        labelled_edges: Optional[dict[Iterable[Hashable], Any]] = None,
     ) -> None:
         """A labelled, undirected hypergraph.
 
@@ -37,23 +37,23 @@ class UndirectedHypergraph:
                 automatically added.
         """
 
-        self._adjacency_lists: Dict[Hashable, AdjacencyList] = {}
-        self._labelled_edges: Dict[FrozenSet[Hashable], Any] = {}
+        self._adjacency_lists: dict[Hashable, AdjacencyList] = {}
+        self._labelled_edges: dict[FrozenSet[Hashable], Any] = {}
         if vertices is not None:
             self.add_vertices(vertices)
         if labelled_edges is not None:
             self.add_edges(labelled_edges)
 
     @property
-    def vertices(self) -> Tuple[Hashable, ...]:
+    def vertices(self) -> tuple[Hashable, ...]:
         return tuple(self._adjacency_lists.keys())
 
     @property
-    def edges(self) -> Tuple[FrozenSet[Hashable], ...]:
+    def edges(self) -> tuple[FrozenSet[Hashable], ...]:
         return tuple(self._labelled_edges.keys())
 
     @property
-    def labelled_edges(self) -> Dict[FrozenSet, Any]:
+    def labelled_edges(self) -> dict[FrozenSet, Any]:
         return dict(self._labelled_edges)
 
     def add_vertex(self, vertex: Hashable) -> None:
@@ -82,7 +82,7 @@ class UndirectedHypergraph:
             self._adjacency_lists[vertex].update((vertices,))
         self._labelled_edges[vertices] = label
 
-    def add_edges(self, edges: Dict[Iterable[Hashable], Any]):
+    def add_edges(self, edges: dict[Iterable[Hashable], Any]):
         for vertices, label in edges.items():
             self.add_edge(vertices, label)
 
@@ -127,5 +127,5 @@ class UndirectedHypergraph:
             for potential_edge in itertools.combinations(vertices, edge_size):
                 if random.random() < edge_prob:
                     edges.append(potential_edge)
-        labelled_edges: Dict[Iterable[Hashable], Any] = {edge: None for edge in edges}
+        labelled_edges: dict[Iterable[Hashable], Any] = {edge: None for edge in edges}
         return cls(vertices=vertices, labelled_edges=labelled_edges)

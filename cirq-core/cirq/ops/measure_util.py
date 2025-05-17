@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, Iterable, List, Optional, overload, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Iterable, Optional, overload, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -68,7 +68,7 @@ def measure_single_paulistring(
 
 def measure_paulistring_terms(
     pauli_basis: pauli_string.PauliString, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+) -> list[raw_types.Operation]:
     """Returns a list of operations individually measuring qubits in the pauli basis.
 
     Args:
@@ -98,7 +98,7 @@ def measure_paulistring_terms(
 def measure(
     *target: raw_types.Qid,
     key: Optional[Union[str, cirq.MeasurementKey]] = None,
-    invert_mask: Tuple[bool, ...] = (),
+    invert_mask: tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     pass
 
@@ -108,7 +108,7 @@ def measure(
     __target: Iterable[raw_types.Qid],
     *,
     key: Optional[Union[str, cirq.MeasurementKey]] = None,
-    invert_mask: Tuple[bool, ...] = (),
+    invert_mask: tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     pass
 
@@ -116,8 +116,8 @@ def measure(
 def measure(
     *target,
     key: Optional[Union[str, cirq.MeasurementKey]] = None,
-    invert_mask: Tuple[bool, ...] = (),
-    confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
+    invert_mask: tuple[bool, ...] = (),
+    confusion_map: Optional[dict[tuple[int, ...], np.ndarray]] = None,
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
@@ -172,20 +172,20 @@ M = measure
 @overload
 def measure_each(
     *qubits: raw_types.Qid, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+) -> list[raw_types.Operation]:
     pass
 
 
 @overload
 def measure_each(
     __qubits: Iterable[raw_types.Qid], *, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+) -> list[raw_types.Operation]:
     pass
 
 
 def measure_each(
     *qubits, key_func: Callable[[raw_types.Qid], str] = str
-) -> List[raw_types.Operation]:
+) -> list[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.

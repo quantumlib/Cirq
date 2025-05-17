@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional
+from typing import Optional
 
 from pyquil import get_qc
 from pyquil.api import QuantumComputer
@@ -97,7 +97,7 @@ class RigettiQCSService:
         )
 
     @staticmethod
-    def list_quantum_processors(client: Optional[QCSClient] = None) -> List[str]:
+    def list_quantum_processors(client: Optional[QCSClient] = None) -> list[str]:
         """Retrieve a list of available Rigetti quantum processors.
 
         Args:

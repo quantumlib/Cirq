@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, List, overload, Tuple, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Iterable, overload, TYPE_CHECKING, TypeVar, Union
 
 from cirq import ops
 
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided: Tuple[List[Any]] = ([],)
+RaiseTypeErrorIfNotProvided: tuple[list[Any]] = ([],)
 
 TDefault = TypeVar('TDefault')
 
@@ -108,7 +108,7 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     # Maybe it's an iterable of invertible items?
     # Note: we avoid str because 'a'[0] == 'a', which creates an infinite loop.
     if isinstance(val, Iterable) and not isinstance(val, (str, ops.Operation)):
-        unique_indicator: List[Any] = []
+        unique_indicator: list[Any] = []
         results = tuple(inverse(e, unique_indicator) for e in val)
         if all(e is not unique_indicator for e in results):
             return results[::-1]

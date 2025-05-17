@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, cast, Iterable, Optional, Tuple
+from typing import Any, cast, Iterable, Optional
 
 import numpy as np
 import pytest
@@ -94,8 +94,8 @@ def test_apply_mixture_simple():
         def _apply_mixture_(self, args: cirq.ApplyMixtureArgs):
             zero_left = cirq.slice_for_qubits_equal_to(args.left_axes, 0)
             one_left = cirq.slice_for_qubits_equal_to(args.left_axes, 1)
-            zero_right = cirq.slice_for_qubits_equal_to(cast(Tuple[int], args.right_axes), 0)
-            one_right = cirq.slice_for_qubits_equal_to(cast(Tuple[int], args.right_axes), 1)
+            zero_right = cirq.slice_for_qubits_equal_to(cast(tuple[int], args.right_axes), 0)
+            one_right = cirq.slice_for_qubits_equal_to(cast(tuple[int], args.right_axes), 1)
             args.out_buffer[:] = 0
             np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
             for kraus_op in [np.sqrt(0.5) * np.eye(2, dtype=np.complex128), np.sqrt(0.5) * x]:

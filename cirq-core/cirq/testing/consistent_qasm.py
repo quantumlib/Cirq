@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import warnings
-from typing import Any, List, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 import numpy as np
 
@@ -125,7 +125,7 @@ def _indent(*content: str) -> str:
     return '    ' + '\n'.join(content).replace('\n', '\n    ')
 
 
-def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
+def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: list[int]):
     num_qubits = matrix.shape[0].bit_length() - 1
     matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
     all_indices = range(2 * num_qubits)

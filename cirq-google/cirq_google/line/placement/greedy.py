@@ -14,7 +14,7 @@
 
 import abc
 import collections
-from typing import Dict, List, Optional, Set, TYPE_CHECKING
+from typing import Optional, Set, TYPE_CHECKING
 
 from cirq.devices import GridQubit
 from cirq_google.line.placement import place_strategy
@@ -49,9 +49,9 @@ class GreedySequenceSearch:
         self._c = device.metadata.qubit_set
         self._c_adj = chip_as_adjacency_list(device)
         self._start = start
-        self._sequence: Optional[List[GridQubit]] = None
+        self._sequence: Optional[list[GridQubit]] = None
 
-    def get_or_search(self) -> List[GridQubit]:
+    def get_or_search(self) -> list[GridQubit]:
         """Starts the search or gives previously calculated sequence.
 
         Returns:
@@ -77,7 +77,7 @@ class GreedySequenceSearch:
             more qubits are available and search should stop.
         """
 
-    def _find_sequence(self) -> List[GridQubit]:
+    def _find_sequence(self) -> list[GridQubit]:
         """Looks for a sequence starting at a given qubit.
 
         Search is issued twice from the starting qubit, so that longest possible
@@ -97,7 +97,7 @@ class GreedySequenceSearch:
 
         return self._expand_sequence(head + tail)
 
-    def _sequence_search(self, start: GridQubit, current: List[GridQubit]) -> List[GridQubit]:
+    def _sequence_search(self, start: GridQubit, current: list[GridQubit]) -> list[GridQubit]:
         """Search for the continuous linear sequence from the given qubit.
 
         This method is called twice for the same starting qubit, so that
@@ -123,7 +123,7 @@ class GreedySequenceSearch:
             n = self._choose_next_qubit(n, used)
         return seq
 
-    def _expand_sequence(self, seq: List[GridQubit]) -> List[GridQubit]:
+    def _expand_sequence(self, seq: list[GridQubit]) -> list[GridQubit]:
         """Tries to expand given sequence with more qubits.
 
         Args:
@@ -144,7 +144,7 @@ class GreedySequenceSearch:
 
     def _find_path_between(
         self, p: GridQubit, q: GridQubit, used: Set[GridQubit]
-    ) -> Optional[List[GridQubit]]:
+    ) -> Optional[list[GridQubit]]:
         """Searches for continuous sequence between two qubits.
 
         This method runs two BFS algorithms in parallel (alternating variable s
@@ -163,7 +163,7 @@ class GreedySequenceSearch:
             if no path was found.
         """
 
-        def assemble_path(n: GridQubit, parent: Dict[GridQubit, GridQubit]):
+        def assemble_path(n: GridQubit, parent: dict[GridQubit, GridQubit]):
             path = [n]
             while n in parent:
                 n = parent[n]
@@ -171,8 +171,8 @@ class GreedySequenceSearch:
             return path
 
         other = {p: q, q: p}
-        parents: Dict[GridQubit, Dict[GridQubit, GridQubit]] = {p: {}, q: {}}
-        visited: Dict[GridQubit, Set[GridQubit]] = {p: set(), q: set()}
+        parents: dict[GridQubit, dict[GridQubit, GridQubit]] = {p: {}, q: {}}
+        visited: dict[GridQubit, Set[GridQubit]] = {p: set(), q: set()}
 
         queue = collections.deque([(p, p), (q, q)])
 
@@ -196,7 +196,7 @@ class GreedySequenceSearch:
 
         return None
 
-    def _neighbors_of_excluding(self, qubit: GridQubit, used: Set[GridQubit]) -> List[GridQubit]:
+    def _neighbors_of_excluding(self, qubit: GridQubit, used: Set[GridQubit]) -> list[GridQubit]:
         return [n for n in self._c_adj[qubit] if n not in used]
 
 
@@ -304,8 +304,8 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
             return GridQubitLineTuple()
 
         start: GridQubit = min(device.metadata.qubit_set)
-        sequences: List[LineSequence] = []
-        greedy_search: Dict[str, List[GreedySequenceSearch]] = {
+        sequences: list[LineSequence] = []
+        greedy_search: dict[str, list[GreedySequenceSearch]] = {
             'minimal_connectivity': [_PickFewestNeighbors(device, start)],
             'largest_area': [_PickLargestArea(device, start)],
             'best': [_PickFewestNeighbors(device, start), _PickLargestArea(device, start)],

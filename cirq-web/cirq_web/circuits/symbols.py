@@ -16,7 +16,7 @@
 # official color schemes in follow-ups.
 import abc
 import dataclasses
-from typing import Iterable, List, Optional
+from typing import Iterable, Optional
 
 import cirq
 from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
@@ -26,8 +26,8 @@ from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
 class SymbolInfo:
     """Organizes information about a symbol."""
 
-    labels: List[str]
-    colors: List[str]
+    labels: list[str]
+    colors: list[str]
 
     @staticmethod
     def unknown_operation(num_qubits: int) -> 'SymbolInfo':

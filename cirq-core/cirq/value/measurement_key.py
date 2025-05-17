@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import dataclasses
-from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple
+from typing import Any, FrozenSet, Mapping, Optional
 
 MEASUREMENT_KEY_SEPARATOR = ':'
 
@@ -37,7 +37,7 @@ class MeasurementKey:
     _str: Optional[str] = dataclasses.field(default=None, init=False)
 
     name: str
-    path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
+    path: tuple[str, ...] = dataclasses.field(default_factory=tuple)
 
     def __post_init__(self):
         if not isinstance(self.name, str):
@@ -76,7 +76,7 @@ class MeasurementKey:
             object.__setattr__(self, '_hash', hash(str(self)))
         return self._hash
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         if "_hash" in state:
@@ -110,10 +110,10 @@ class MeasurementKey:
         components = key_str.split(MEASUREMENT_KEY_SEPARATOR)
         return MeasurementKey(name=components[-1], path=tuple(components[:-1]))
 
-    def _with_key_path_(self, path: Tuple[str, ...]):
+    def _with_key_path_(self, path: tuple[str, ...]):
         return self.replace(path=path)
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]):
         return self._with_key_path_(path=prefix + self.path)
 
     def with_key_path_prefix(self, *path_component: str):
@@ -125,7 +125,7 @@ class MeasurementKey:
         return self.replace(path=path_component + self.path)
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['MeasurementKey']
+        self, path: tuple[str, ...], bindable_keys: FrozenSet['MeasurementKey']
     ):
         return self.replace(path=path + self.path)
 

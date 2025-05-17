@@ -13,7 +13,7 @@
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
 import datetime
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence
 
 import cirq
 from cirq_google.cloud import quantum
@@ -31,7 +31,7 @@ class NothingJob(AbstractLocalJob):
     def execution_status(self) -> quantum.ExecutionStatus.State:
         return self._status
 
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> Optional[tuple[str, str]]:
         return ('failed', 'failure code')  # pragma: no cover
 
     def cancel(self) -> None:

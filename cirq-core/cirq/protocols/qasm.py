@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import string
 from types import NotImplementedType
-from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Iterable, Optional, TYPE_CHECKING, TypeVar, Union
 
 from typing_extensions import Protocol
 
@@ -38,9 +38,9 @@ class QasmArgs(string.Formatter):
         self,
         precision: int = 10,
         version: str = '2.0',
-        qubit_id_map: Optional[Dict[cirq.Qid, str]] = None,
-        meas_key_id_map: Optional[Dict[str, str]] = None,
-        meas_key_bitcount: Optional[Dict[str, int]] = None,
+        qubit_id_map: Optional[dict[cirq.Qid, str]] = None,
+        meas_key_id_map: Optional[dict[str, str]] = None,
+        meas_key_bitcount: Optional[dict[str, int]] = None,
     ) -> None:
         """Inits QasmArgs.
 
@@ -126,7 +126,7 @@ class SupportsQasmWithArgsAndQubits(Protocol):
 
     @doc_private
     def _qasm_(
-        self, qubits: Tuple[cirq.Qid], args: QasmArgs
+        self, qubits: tuple[cirq.Qid], args: QasmArgs
     ) -> Union[None, NotImplementedType, str]:
         pass
 
@@ -171,7 +171,7 @@ def qasm(
     method = getattr(val, '_qasm_', None)
     result = NotImplemented
     if method is not None:
-        kwargs: Dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
         if args is not None:
             kwargs['args'] = args
         # pylint: disable=not-callable

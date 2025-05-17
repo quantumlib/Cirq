@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Sequence, Type, Union
+from typing import Any, Sequence, Type, Union
 
 import cirq
 
@@ -49,14 +49,14 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
         )
 
     @property
-    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def postprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations.
 
         If `eject_paulis` is enabled in the constructor, adds `cirq.eject_phased_paulis` and
         `cirq.eject_z` in addition to postprocess_transformers already available in
         `cirq.CompilationTargetGateset`.
         """
-        transformers: List[cirq.TRANSFORMER] = [
+        transformers: list[cirq.TRANSFORMER] = [
             cirq.create_transformer_with_kwargs(
                 cirq.merge_single_qubit_moments_to_phxz, atol=self.atol
             ),
@@ -91,7 +91,7 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'atol': self.atol,
             'eject_paulis': self.eject_paulis,

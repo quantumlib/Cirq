@@ -15,17 +15,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import (
-    AbstractSet,
-    cast,
-    Dict,
-    Iterable,
-    Iterator,
-    Optional,
-    Sequence,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, cast, Iterable, Iterator, Optional, Sequence, TYPE_CHECKING, Union
 
 import sympy
 
@@ -145,7 +135,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
             )
         return False
 
-    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]) -> PauliStringPhasor:
+    def map_qubits(self, qubit_map: dict[raw_types.Qid, raw_types.Qid]) -> PauliStringPhasor:
         """Maps the qubits inside the PauliStringPhasor.
 
         Args:
