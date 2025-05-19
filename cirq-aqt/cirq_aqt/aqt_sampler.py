@@ -27,7 +27,7 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from typing import Callable, cast, Dict, Literal, Sequence, TypedDict, Union
+from typing import Callable, cast, Dict, List, Literal, Sequence, Tuple, TypedDict, Union
 from urllib.parse import urljoin
 
 import numpy as np
@@ -251,12 +251,12 @@ class AQTSampler(cirq.Sampler):
             RuntimeError: If the circuit is empty.
         """
 
-        seq_list: list[Union[tuple[str, float, list[int]], tuple[str, float, float, list[int]]]] = (
+        seq_list: List[Union[Tuple[str, float, List[int]], Tuple[str, float, float, List[int]]]] = (
             []
         )
         circuit = cirq.resolve_parameters(circuit, param_resolver)
         for op in circuit.all_operations():
-            line_qubit = cast(tuple[cirq.LineQubit], op.qubits)
+            line_qubit = cast(Tuple[cirq.LineQubit], op.qubits)
             op = cast(cirq.GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
             op_str = get_op_string(op)
@@ -426,7 +426,7 @@ class AQTSampler(cirq.Sampler):
         # TODO: Use measurement name from circuit.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'
-        trial_results: list[cirq.Result] = []
+        trial_results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             id_str = str(uuid.uuid1())
             num_qubits = len(program.all_qubits())

@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import json
 from enum import Enum
-from typing import Any, cast, Iterable, Optional, Sequence, Set, Union
+from typing import Any, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -89,7 +89,7 @@ class AQTNoiseModel(cirq.NoiseModel):
 
     def noisy_moment(
         self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]
-    ) -> list[cirq.Operation]:
+    ) -> List[cirq.Operation]:
         """Returns a list of noisy moments.
 
         The model includes
@@ -117,7 +117,7 @@ class AQTNoiseModel(cirq.NoiseModel):
 
     def get_crosstalk_operation(
         self, operation: cirq.Operation, system_qubits: Sequence[cirq.Qid]
-    ) -> list[cirq.Operation]:
+    ) -> List[cirq.Operation]:
         """Returns a list of operations including crosstalk
 
         Args:
@@ -127,7 +127,7 @@ class AQTNoiseModel(cirq.NoiseModel):
         Returns:
             List of operations including crosstalk
         """
-        cast(tuple[cirq.LineQubit], system_qubits)
+        cast(Tuple[cirq.LineQubit], system_qubits)
         num_qubits = len(system_qubits)
         xtlk_arr = np.zeros(num_qubits)
         idx_list = []
@@ -169,7 +169,7 @@ class AQTSimulator:
         num_qubits: int,
         circuit: cirq.Circuit = cirq.Circuit(),
         simulate_ideal: bool = False,
-        noise_dict: Optional[dict] = None,
+        noise_dict: Optional[Dict] = None,
     ):
         """Initializes the AQT simulator.
 
@@ -341,7 +341,7 @@ class AQTDevice(cirq.Device):
         p.text("AQTDevice(...)" if cycle else self.__str__())
 
 
-def get_aqt_device(num_qubits: int) -> tuple[AQTDevice, list[cirq.LineQubit]]:
+def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
     """Returns an AQT ion device
 
     Args:
@@ -361,7 +361,7 @@ def get_aqt_device(num_qubits: int) -> tuple[AQTDevice, list[cirq.LineQubit]]:
     return ion_device, qubit_list
 
 
-def get_default_noise_dict() -> dict[str, Any]:
+def get_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
         OperationString.R.value: cirq.depolarize(1e-3),
