@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Optional, Type
+from __future__ import annotations
+
+from typing import Any, cast, Optional, Type, TYPE_CHECKING
 
 import numpy as np
 
@@ -20,7 +22,6 @@ from cirq import protocols
 from cirq.circuits.circuit import Circuit
 from cirq.devices import LineQubit
 from cirq.ops import common_gates
-from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.qis import clifford_tableau
 from cirq.sim import final_state_vector, state_vector_simulation_state
 from cirq.sim.clifford import (
@@ -29,8 +30,13 @@ from cirq.sim.clifford import (
     stabilizer_state_ch_form,
 )
 
+if TYPE_CHECKING:
+    import cirq
 
-def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauliString) -> bool:
+
+def state_vector_has_stabilizer(
+    state_vector: np.ndarray, stabilizer: cirq.DensePauliString
+) -> bool:
     """Checks that the state_vector is stabilized by the given stabilizer.
 
     The stabilizer should not modify the value of the state_vector, up to the

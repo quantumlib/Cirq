@@ -14,6 +14,8 @@
 
 """Common Gate Families used in cirq-core"""
 
+from __future__ import annotations
+
 from typing import Any, cast, Optional, Type, Union
 
 from cirq import protocols
