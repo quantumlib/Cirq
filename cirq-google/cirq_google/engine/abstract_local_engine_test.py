@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
 import pytest
 
@@ -22,7 +25,9 @@ from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
 from cirq_google.engine.abstract_local_job_test import NothingJob
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program_test import NothingProgram
-from cirq_google.engine.abstract_program import AbstractProgram
+
+if TYPE_CHECKING:
+    from cirq_google.engine.abstract_program import AbstractProgram
 
 
 class ProgramDictProcessor(AbstractLocalProcessor):

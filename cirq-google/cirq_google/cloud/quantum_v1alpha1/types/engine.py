@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from __future__ import annotations
+
 import proto
 from google.protobuf import duration_pb2, field_mask_pb2
 

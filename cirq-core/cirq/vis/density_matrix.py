@@ -14,6 +14,8 @@
 
 """Tool to visualize the magnitudes and phases in the density matrix"""
 
+from __future__ import annotations
+
 from typing import Optional
 
 import matplotlib.pyplot as plt

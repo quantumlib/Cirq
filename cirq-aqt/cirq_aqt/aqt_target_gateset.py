@@ -16,10 +16,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
+
+if TYPE_CHECKING:
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):

@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A helper for jobs that have been created on the Quantum Engine."""
+
+from __future__ import annotations
+
 import datetime
 from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import duet
-from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.api import v1, v2
@@ -25,6 +28,8 @@ from cirq_google.engine import abstract_job, calibration, engine_client
 from cirq_google.engine.engine_result import EngineResult
 
 if TYPE_CHECKING:
+    from google.protobuf import any_pb2
+
     import cirq_google.engine.engine as engine_base
     from cirq_google.engine.calibration_result import CalibrationResult
     from cirq_google.engine.engine import engine_processor, engine_program
@@ -62,7 +67,7 @@ class EngineJob(abstract_job.AbstractJob):
         project_id: str,
         program_id: str,
         job_id: str,
-        context: 'engine_base.EngineContext',
+        context: engine_base.EngineContext,
         _job: Optional[quantum.QuantumJob] = None,
         job_result_future: Optional[
             duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]
@@ -94,13 +99,13 @@ class EngineJob(abstract_job.AbstractJob):
         """Returns the job id."""
         return self.job_id
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object."""
         import cirq_google.engine.engine as engine_base
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    def program(self) -> 'engine_program.EngineProgram':
+    def program(self) -> engine_program.EngineProgram:
         """Returns the parent EngineProgram object."""
         import cirq_google.engine.engine_program as engine_program
 
@@ -138,7 +143,7 @@ class EngineJob(abstract_job.AbstractJob):
         """Returns the description of the job."""
         return self._inner_job().description
 
-    def set_description(self, description: str) -> 'EngineJob':
+    def set_description(self, description: str) -> EngineJob:
         """Sets the description of the job.
 
         Params:
@@ -156,7 +161,7 @@ class EngineJob(abstract_job.AbstractJob):
         """Returns the labels of the job."""
         return self._inner_job().labels
 
-    def set_labels(self, labels: Dict[str, str]) -> 'EngineJob':
+    def set_labels(self, labels: Dict[str, str]) -> EngineJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
         Params:
@@ -170,7 +175,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> 'EngineJob':
+    def add_labels(self, labels: Dict[str, str]) -> EngineJob:
         """Adds new labels to a previously created quantum job.
 
         Params:
@@ -184,7 +189,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def remove_labels(self, keys: List[str]) -> 'EngineJob':
+    def remove_labels(self, keys: List[str]) -> EngineJob:
         """Removes labels with given keys from the labels of a previously
         created quantum job.
 
@@ -231,7 +236,7 @@ class EngineJob(abstract_job.AbstractJob):
             self._job = self._get_job(return_run_context=True)
         return _deserialize_run_context(self._job.run_context)
 
-    def get_processor(self) -> 'Optional[engine_processor.EngineProcessor]':
+    def get_processor(self) -> Optional[engine_processor.EngineProcessor]:
         """Returns the EngineProcessor for the processor the job is/was run on,
         if available, else None."""
         status = self._inner_job().execution_status

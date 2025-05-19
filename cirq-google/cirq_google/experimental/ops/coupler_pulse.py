@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Any, Optional, Tuple
+from __future__ import annotations
 
-import numpy as np
+from typing import AbstractSet, Any, Optional, Tuple, TYPE_CHECKING
 
 import cirq
 from cirq._compat import proper_repr
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @cirq.value_equality(approximate=True)
@@ -127,7 +130,7 @@ class CouplerPulse(cirq.ops.Gate):
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
-    ) -> 'CouplerPulse':
+    ) -> CouplerPulse:
         return CouplerPulse(
             hold_time=cirq.resolve_parameters(self.hold_time, resolver, recursive=recursive),
             coupling_mhz=cirq.resolve_parameters(self.coupling_mhz, resolver, recursive=recursive),

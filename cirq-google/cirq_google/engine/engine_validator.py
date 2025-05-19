@@ -11,13 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Sequence, Union
+
+from __future__ import annotations
+
+from typing import Callable, Sequence, TYPE_CHECKING, Union
 
 from google.protobuf import any_pb2
 
 import cirq
-from cirq_google.engine.validating_sampler import VALIDATOR_TYPE
-from cirq_google.serialization.serializer import Serializer
+
+if TYPE_CHECKING:
+    from cirq_google import Serializer
+    from cirq_google.engine.validating_sampler import VALIDATOR_TYPE
 
 MAX_MESSAGE_SIZE = 10_000_000
 MAX_MOMENTS = 10000

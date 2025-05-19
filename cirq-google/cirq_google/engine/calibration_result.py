@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from __future__ import annotations
+
 import dataclasses
 import datetime
 from typing import Any, Dict, Optional, TYPE_CHECKING
@@ -38,7 +41,7 @@ class CalibrationResult:
     error_message: Optional[str]
     token: Optional[str]
     valid_until: Optional[datetime.datetime]
-    metrics: 'cirq_google.Calibration'
+    metrics: cirq_google.Calibration
 
     @classmethod
     def _from_json_dict_(
@@ -47,9 +50,9 @@ class CalibrationResult:
         error_message: Optional[str],
         token: Optional[str],
         utc_valid_until: float,
-        metrics: 'cirq_google.Calibration',
+        metrics: cirq_google.Calibration,
         **kwargs,
-    ) -> 'CalibrationResult':
+    ) -> CalibrationResult:
         """Magic method for the JSON serialization protocol."""
         valid_until = (
             datetime.datetime.utcfromtimestamp(utc_valid_until)

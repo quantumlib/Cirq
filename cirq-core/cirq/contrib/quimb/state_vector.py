@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import warnings
-from typing import cast, Dict, List, Optional, Sequence, Tuple, Union
+from typing import cast, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
-import numpy as np
 import quimb
 import quimb.tensor as qtn
 
 import cirq
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def _get_quimb_version():
