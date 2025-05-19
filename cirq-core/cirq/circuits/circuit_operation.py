@@ -23,15 +23,7 @@ from __future__ import annotations
 
 import math
 from functools import cached_property
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Iterator,
-    Mapping,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import Any, Callable, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy

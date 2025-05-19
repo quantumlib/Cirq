@@ -19,16 +19,7 @@ from __future__ import annotations
 import re
 import warnings
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    cast,
-    Collection,
-    Mapping,
-    Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-)
+from typing import AbstractSet, Any, cast, Collection, Mapping, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
 from typing_extensions import Self

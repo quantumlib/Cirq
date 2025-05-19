@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 import re
-from types import NotImplementedType
+from types import EllipsisType, NotImplementedType
 from typing import cast, Union
 
 import numpy as np
@@ -48,7 +50,7 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(tuple[Union[int, slice, 'ellipsis'], ...], (slice(None),))
+        seed = cast(tuple[Union[int, slice, EllipsisType], ...], (slice(None),))
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)

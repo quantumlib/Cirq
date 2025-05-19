@@ -881,7 +881,6 @@ def _test_new_module_is_top_level_inner():
     # imports a top level module that was also deprecated
     from freezegun import api
 
-
     assert api.real_time == time.time
 
 

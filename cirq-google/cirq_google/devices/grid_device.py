@@ -152,6 +152,9 @@ _GATES: list[_GateRepresentations] = [
     _GateRepresentations(
         gate_spec_name='internal_gate', supported_gates=[cirq.GateFamily(ops.InternalGate)]
     ),
+    _GateRepresentations(
+        gate_spec_name='reset', supported_gates=[cirq.GateFamily(cirq.ResetChannel)]
+    ),
 ]
 
 

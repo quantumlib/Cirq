@@ -18,15 +18,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import (
-    Any,
-    Generic,
-    Iterator,
-    Mapping,
-    Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-)
+from typing import Any, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
 from typing_extensions import Self

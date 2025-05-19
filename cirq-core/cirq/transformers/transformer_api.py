@@ -21,15 +21,7 @@ import enum
 import functools
 import inspect
 import textwrap
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Hashable,
-    overload,
-    TYPE_CHECKING,
-    TypeVar,
-)
+from typing import Any, Callable, cast, Hashable, overload, TYPE_CHECKING, TypeVar
 
 from typing_extensions import Protocol
 

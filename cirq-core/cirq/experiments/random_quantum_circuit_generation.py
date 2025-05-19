@@ -17,16 +17,7 @@ from __future__ import annotations
 
 import dataclasses
 import itertools
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Container,
-    Iterable,
-    Iterator,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import Any, Callable, cast, Container, Iterable, Iterator, Sequence, TYPE_CHECKING
 
 import networkx as nx
 import numpy as np

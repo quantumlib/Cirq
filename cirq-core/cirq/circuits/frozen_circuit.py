@@ -18,14 +18,7 @@ from __future__ import annotations
 
 from functools import cached_property
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Hashable,
-    Iterable,
-    Iterator,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import AbstractSet, Hashable, Iterable, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 

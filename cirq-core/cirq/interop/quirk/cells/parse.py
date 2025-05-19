@@ -12,18 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cmath
 import re
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Iterable,
-    Iterator,
-    Mapping,
-    SupportsFloat,
-    TypeVar,
-)
+from typing import Any, Callable, cast, Iterable, Iterator, Mapping, SupportsFloat, TypeVar
 
 import numpy as np
 import sympy

@@ -16,14 +16,7 @@ from __future__ import annotations
 
 import numbers
 from collections import defaultdict
-from typing import (
-    AbstractSet,
-    Any,
-    Iterable,
-    Mapping,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import AbstractSet, Any, Iterable, Mapping, TYPE_CHECKING, Union
 
 import numpy as np
 from scipy.sparse import csr_matrix

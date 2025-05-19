@@ -14,6 +14,8 @@
 
 """Protocol and methods for obtaining Kraus representation of quantum channels."""
 
+from __future__ import annotations
+
 import warnings
 from types import NotImplementedType
 from typing import Any, Sequence, TypeVar

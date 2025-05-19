@@ -14,6 +14,8 @@
 
 """A protocol for implementing high performance mixture evolutions."""
 
+from __future__ import annotations
+
 from types import NotImplementedType
 from typing import Any, cast, Iterable, TypeVar
 
