@@ -14,6 +14,8 @@
 
 """Target gateset for ion trap device with mutually linked qubits placed on a line."""
 
+from __future__ import annotations
+
 from typing import List
 
 import numpy as np

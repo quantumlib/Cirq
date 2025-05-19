@@ -20,7 +20,19 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 import pandas as pd
@@ -246,7 +258,7 @@ def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
 
 def _check_meas_specs_still_todo(
     meas_specs: List[_MeasurementSpec],
-    accumulators: Dict[_MeasurementSpec, BitstringAccumulator],
+    accumulators: Mapping[_MeasurementSpec, BitstringAccumulator],
     stopping_criteria: StoppingCriteria,
 ) -> Tuple[List[_MeasurementSpec], int]:
     """Filter `meas_specs` in case some are done.

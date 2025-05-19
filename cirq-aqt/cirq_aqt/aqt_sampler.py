@@ -22,6 +22,8 @@ API keys for classical simulators and quantum devices can be obtained at:
 
 """
 
+from __future__ import annotations
+
 import json
 import time
 import uuid

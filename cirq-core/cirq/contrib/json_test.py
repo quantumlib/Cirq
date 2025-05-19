@@ -1,4 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import cirq
 from cirq.contrib.acquaintance import SwapPermutationGate
 from cirq.contrib.bayesian_network import BayesianNetworkGate

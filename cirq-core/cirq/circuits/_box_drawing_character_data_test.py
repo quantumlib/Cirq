@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from cirq.circuits._box_drawing_character_data import (
     BOLD_BOX_CHARS,
     box_draw_character,
