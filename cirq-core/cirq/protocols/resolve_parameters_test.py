@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 import sympy
 
 import cirq
-from cirq.study import ParamResolver
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
@@ -38,7 +39,7 @@ def test_resolve_parameters(resolve_fn) -> None:
         def _is_parameterized_(self) -> bool:
             return self.parameter != 0
 
-        def _resolve_parameters_(self, resolver: ParamResolver, recursive: bool):
+        def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool):
             self.parameter = resolver.value_of(self.parameter, recursive)
             return self
 
