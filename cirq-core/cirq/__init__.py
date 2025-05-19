@@ -397,6 +397,7 @@ from cirq.transformers import (
     single_qubit_matrix_to_phxz as single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form as single_qubit_op_to_framed_phase_form,
     stratified_circuit as stratified_circuit,
+    symbolize_single_qubit_gates_by_indexed_tags as symbolize_single_qubit_gates_by_indexed_tags,
     synchronize_terminal_measurements as synchronize_terminal_measurements,
     TRANSFORMER as TRANSFORMER,
     TransformerContext as TransformerContext,
