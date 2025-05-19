@@ -81,6 +81,7 @@ message GateSpecification {
   // This gate gets mapped to the internal representation corresponding
   // to <gate_module.gate_name>.
   message InternalGate {}
+  // This gate resets qubit to its |0> state.
   message Reset {}
 }
 

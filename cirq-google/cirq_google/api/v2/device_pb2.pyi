@@ -202,6 +202,8 @@ class GateSpecification(google.protobuf.message.Message):
 
     @typing.final
     class Reset(google.protobuf.message.Message):
+        """This gate resets qubit to its |0> state."""
+
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
         def __init__(
