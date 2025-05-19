@@ -13,8 +13,7 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
-import itertools
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_ionq import results
@@ -88,8 +87,8 @@ class Sampler(cirq.Sampler):
             repetitions: The number of times to sample.
 
         Returns:
-            Either a list of `cirq_ionq.QPUResult` or a list of `cirq_ionq.SimulatorResult`
-            depending on whether the job was running on an actual quantum processor or a simulator.
+            Either a single scalar or list of `cirq_ionq.QPUResult` or `cirq_ionq.SimulatorResult`
+            depending on whether the job or jobs ran on an actual quantum processor or a simulator.
         """
         resolvers = [r for r in cirq.to_resolvers(params)]
         jobs = [
@@ -100,11 +99,16 @@ class Sampler(cirq.Sampler):
             )
             for resolver in resolvers
         ]
+        # collect results
         if self._timeout_seconds is not None:
-            job_results = [job.results(timeout_seconds=self._timeout_seconds) for job in jobs]
+            raw_results = [j.results(timeout_seconds=self._timeout_seconds) for j in jobs]
         else:
-            job_results = [job.results() for job in jobs]
-        flattened_job_results = list(itertools.chain.from_iterable(job_results))
+            raw_results = [j.results() for j in jobs]
+
+        # each element of `raw_results` might be a single result or a list
+        flattened_job_results: list[Union[results.QPUResult, results.SimulatorResult]] = []
+        for r in raw_results:
+            flattened_job_results.extend(r if isinstance(r, list) else [r])
         cirq_results = []
         for result, params in zip(flattened_job_results, resolvers):
             if isinstance(result, results.QPUResult):
