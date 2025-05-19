@@ -14,6 +14,8 @@
 
 """Utility methods for diagonalizing matrices."""
 
+from __future__ import annotations
+
 from typing import Callable, List, Tuple
 
 import numpy as np
