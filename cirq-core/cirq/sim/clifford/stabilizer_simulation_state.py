@@ -18,7 +18,6 @@ import abc
 from types import NotImplementedType
 from typing import Any, cast, Generic, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
 
-import numpy as np
 import sympy
 
 from cirq import linalg, ops, protocols
@@ -28,6 +27,8 @@ from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.simulation_state import SimulationState
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

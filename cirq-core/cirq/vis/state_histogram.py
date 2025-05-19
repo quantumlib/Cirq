@@ -14,6 +14,8 @@
 
 """Tool to visualize the results of a study."""
 
+from __future__ import annotations
+
 import collections
 from typing import Optional, Sequence, SupportsFloat, Union
 
@@ -23,7 +25,7 @@ import numpy as np
 import cirq.study.result as result
 
 
-def get_state_histogram(result: 'result.Result') -> np.ndarray:
+def get_state_histogram(result: result.Result) -> np.ndarray:
     """Computes a state histogram from a single result with repetitions.
 
     Args:
@@ -52,7 +54,7 @@ def get_state_histogram(result: 'result.Result') -> np.ndarray:
 
 
 def plot_state_histogram(
-    data: Union['result.Result', collections.Counter, Sequence[SupportsFloat]],
+    data: Union[result.Result, collections.Counter, Sequence[SupportsFloat]],
     ax: Optional[plt.Axes] = None,
     *,
     tick_label: Optional[Sequence[str]] = None,

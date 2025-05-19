@@ -29,16 +29,19 @@ from typing import (
     Optional,
     Sequence,
     Type,
+    TYPE_CHECKING,
     Union,
 )
 
 import numpy as np
-import sympy
 
 import cirq
 from cirq.devices import line_qubit
 from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
 from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
+
+if TYPE_CHECKING:
+    import sympy
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False

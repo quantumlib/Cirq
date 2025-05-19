@@ -20,9 +20,6 @@ from __future__ import annotations
 from numbers import Real
 from typing import Dict, Sequence, Tuple, TYPE_CHECKING
 
-import numpy as np
-import sympy
-
 from cirq.ops import CZ, CZPowGate, Gate, Gateset, S, X
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
@@ -33,6 +30,9 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
 )
 
 if TYPE_CHECKING:
+    import numpy as np
+    import sympy
+
     import cirq
 
 _SQRT_CZ = CZ**0.5

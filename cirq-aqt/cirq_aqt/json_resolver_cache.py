@@ -15,8 +15,10 @@
 from __future__ import annotations
 
 import functools
+from typing import TYPE_CHECKING
 
-from cirq.protocols.json_serialization import ObjectFactory
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
 
 
 @functools.lru_cache()

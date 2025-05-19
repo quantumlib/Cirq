@@ -33,12 +33,13 @@ from typing import (
     Union,
 )
 
-import numpy as np
 from typing_extensions import Self
 
 from cirq import protocols, value
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

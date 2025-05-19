@@ -17,13 +17,16 @@ This class is an abstract class which all Engine implementations
 (production API or locally simulated) should follow.
 """
 
+from __future__ import annotations
+
 import abc
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, Union
+from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
-import cirq
-from cirq_google.cloud import quantum
-from cirq_google.engine import abstract_job, abstract_processor, abstract_program
+if TYPE_CHECKING:
+    import cirq
+    from cirq_google.cloud import quantum
+    from cirq_google.engine import abstract_job, abstract_processor, abstract_program
 
 VALID_DATE_TYPE = Union[datetime.datetime, datetime.date]
 

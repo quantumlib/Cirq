@@ -33,13 +33,14 @@ from typing import (
     Union,
 )
 
-import networkx as nx
 import numpy as np
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
+    import networkx as nx
+
     import cirq
 
 QidPairT = Tuple['cirq.Qid', 'cirq.Qid']

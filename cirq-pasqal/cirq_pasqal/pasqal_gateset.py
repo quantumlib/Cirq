@@ -14,10 +14,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Type, Union
+from typing import Any, Dict, List, Type, TYPE_CHECKING, Union
 
 import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
+
+if TYPE_CHECKING:
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 class PasqalGateset(cirq.CompilationTargetGateset):

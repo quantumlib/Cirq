@@ -14,6 +14,8 @@
 
 """Tests for the expand composite transformer pass."""
 
+from __future__ import annotations
+
 import cirq
 
 

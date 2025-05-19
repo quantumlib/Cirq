@@ -36,13 +36,14 @@ from typing import (
     Union,
 )
 
-import numpy as np
 from typing_extensions import Self
 
 from cirq import ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

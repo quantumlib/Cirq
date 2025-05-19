@@ -24,7 +24,6 @@ from typing import Any, cast, Dict, Mapping, Optional, Sequence, Tuple, TYPE_CHE
 
 import networkx as nx
 import numpy as np
-import pandas as pd
 from matplotlib import pyplot as plt
 
 from cirq import ops, value, vis
@@ -44,6 +43,8 @@ from cirq.qis import noise_utils
 
 if TYPE_CHECKING:
     import multiprocessing
+
+    import pandas as pd
 
     import cirq
 

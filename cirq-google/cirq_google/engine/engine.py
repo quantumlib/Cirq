@@ -33,7 +33,6 @@ from typing import Dict, List, Optional, Set, TYPE_CHECKING, TypeVar, Union
 
 import duet
 import google.auth
-from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.api import v2
@@ -50,6 +49,7 @@ from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
 
 if TYPE_CHECKING:
     import google.protobuf
+    from google.protobuf import any_pb2
 
     import cirq_google
     from cirq_google.cloud import quantum
