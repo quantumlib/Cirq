@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Provides test devices that can validate circuits."""
+
+from __future__ import annotations
+
 from typing import AbstractSet, cast, Tuple
 
 from cirq import devices, ops

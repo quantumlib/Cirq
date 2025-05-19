@@ -27,8 +27,6 @@ from typing import (
     Union,
 )
 
-import sympy
-
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
 from cirq.ops import (
@@ -42,6 +40,8 @@ from cirq.ops import (
 )
 
 if TYPE_CHECKING:
+    import sympy
+
     import cirq
 
 

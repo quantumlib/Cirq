@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from math import exp
 from typing import Dict, Optional, Sequence, TYPE_CHECKING
 
@@ -96,7 +98,7 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
 
 
 def simple_noise_from_calibration_metrics(
-    calibration: 'calibration.Calibration',
+    calibration: calibration.Calibration,
     depol_noise: bool = False,
     damping_noise: bool = False,
     readout_decay_noise: bool = False,

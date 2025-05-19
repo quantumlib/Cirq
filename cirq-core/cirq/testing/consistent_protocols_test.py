@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from types import NotImplementedType
 from typing import AbstractSet, List, Sequence, Tuple, Union
 
@@ -83,7 +85,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
             exponent=self.exponent, phase_exponent=self.phase_exponent + phase_turns * 2
         )
 
-    def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'GoodGate':
+    def __pow__(self, exponent: Union[float, sympy.Expr]) -> GoodGate:
         new_exponent = cirq.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover
@@ -101,7 +103,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.exponent) | cirq.parameter_names(self.phase_exponent)
 
-    def _resolve_parameters_(self, resolver, recursive) -> 'GoodGate':
+    def _resolve_parameters_(self, resolver, recursive) -> GoodGate:
         return GoodGate(
             phase_exponent=resolver.value_of(self.phase_exponent, recursive),
             exponent=resolver.value_of(self.exponent, recursive),

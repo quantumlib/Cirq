@@ -19,12 +19,12 @@ from __future__ import annotations
 
 from typing import Optional, Sequence, TYPE_CHECKING
 
-import numpy as np
-
 from cirq.qis import clifford_tableau
 from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

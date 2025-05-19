@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import abc
 import datetime
 from typing import Dict, List, Optional, overload, TYPE_CHECKING, Union
@@ -18,13 +21,13 @@ from typing import Dict, List, Optional, overload, TYPE_CHECKING, Union
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq_google.cloud import quantum
-from cirq_google.engine import calibration
 from cirq_google.engine.abstract_processor import AbstractProcessor
-from cirq_google.engine.abstract_program import AbstractProgram
 
 if TYPE_CHECKING:
+    import cirq_google.engine.calibration as calibration
     from cirq_google.engine.abstract_engine import AbstractEngine
     from cirq_google.engine.abstract_local_program import AbstractLocalProgram
+    from cirq_google.engine.abstract_program import AbstractProgram
 
 
 @overload
@@ -67,7 +70,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         self,
         *,
         processor_id: str,
-        engine: Optional['AbstractEngine'] = None,
+        engine: Optional[AbstractEngine] = None,
         expected_down_time: Optional[datetime.datetime] = None,
         expected_recovery_time: Optional[datetime.datetime] = None,
         schedule: Optional[List[quantum.QuantumTimeSlot]] = None,
@@ -107,7 +110,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         """Unique string id of the processor."""
         return self._processor_id
 
-    def engine(self) -> Optional['AbstractEngine']:
+    def engine(self) -> Optional[AbstractEngine]:
         """Returns the parent Engine object.
 
         Returns:
@@ -122,12 +125,12 @@ class AbstractLocalProcessor(AbstractProcessor):
         """Sets the parent processor."""
         self._engine = engine
 
-    def expected_down_time(self) -> 'Optional[datetime.datetime]':
+    def expected_down_time(self) -> Optional[datetime.datetime]:
         """Returns the start of the next expected down time of the processor, if
         set."""
         return self._expected_down_time
 
-    def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
+    def expected_recovery_time(self) -> Optional[datetime.datetime]:
         """Returns the expected the processor should be available, if set."""
         return self._expected_recovery_time
 
@@ -413,7 +416,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-    ) -> List['AbstractLocalProgram']:
+    ) -> List[AbstractLocalProgram]:
         """Returns a list of previously executed quantum programs.
 
         Args:

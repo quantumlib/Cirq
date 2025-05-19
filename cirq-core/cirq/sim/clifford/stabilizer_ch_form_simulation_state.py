@@ -16,13 +16,13 @@ from __future__ import annotations
 
 from typing import Optional, Sequence, TYPE_CHECKING, Union
 
-import numpy as np
-
 from cirq._compat import proper_repr
 from cirq.sim.clifford import stabilizer_state_ch_form
 from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

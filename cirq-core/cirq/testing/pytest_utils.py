@@ -14,6 +14,8 @@
 
 """Support one retry of tests that fail for a specific seed from pytest-randomly."""
 
+from __future__ import annotations
+
 import functools
 import warnings
 from typing import Any, Callable

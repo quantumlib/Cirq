@@ -14,6 +14,8 @@
 
 """A more flexible abstract base class metaclass ABCMetaImplementAnyOneOf."""
 
+from __future__ import annotations
+
 import abc
 import functools
 from typing import Callable, cast, Set, TypeVar

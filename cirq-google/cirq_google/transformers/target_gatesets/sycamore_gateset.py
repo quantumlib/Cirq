@@ -17,12 +17,14 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq_google import ops
 from cirq_google.transformers.analytical_decompositions import two_qubit_to_sycamore
+
+if TYPE_CHECKING:
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 @cirq.transformer
