@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Generic, Iterable, Iterator, Optional, Set, TypeVar
+from typing import Any, Generic, Iterable, Iterator, TypeVar
 
 TItem = TypeVar('TItem')
 
@@ -53,7 +53,7 @@ class BucketPriorityQueue(Generic[TItem]):
         self._buckets: list[list[TItem]] = []
         self._offset = 0
         self._len = 0
-        self._drop_set: Optional[Set[tuple[int, TItem]]] = set() if drop_duplicate_entries else None
+        self._drop_set: set[tuple[int, TItem]] | None = set() if drop_duplicate_entries else None
 
         for p, e in entries:
             self.enqueue(p, e)

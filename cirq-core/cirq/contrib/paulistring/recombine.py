@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Iterable, Sequence, Union
+from typing import Any, Callable, cast, Iterable, Sequence
 
 from cirq import circuits, ops, protocols
 from cirq.contrib import circuitdag
@@ -66,7 +66,7 @@ def _sorted_best_string_placements(
 
 
 def move_pauli_strings_into_circuit(
-    circuit_left: Union[circuits.Circuit, circuitdag.CircuitDag], circuit_right: circuits.Circuit
+    circuit_left: circuits.Circuit | circuitdag.CircuitDag, circuit_right: circuits.Circuit
 ) -> circuits.Circuit:
     if isinstance(circuit_left, circuitdag.CircuitDag):
         string_dag = circuitdag.CircuitDag(pauli_string_reorder_pred, circuit_left)

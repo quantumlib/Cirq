@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast, FrozenSet, Iterable, Iterator, Mapping, Sequence, TYPE_CHECKING, Union
+from typing import Any, cast, Iterable, Iterator, Mapping, Sequence, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import (
@@ -40,8 +40,8 @@ class PauliMeasurementGate(raw_types.Gate):
 
     def __init__(
         self,
-        observable: Union[cirq.BaseDensePauliString, Iterable[cirq.Pauli]],
-        key: Union[str, cirq.MeasurementKey] = '',
+        observable: cirq.BaseDensePauliString | Iterable[cirq.Pauli],
+        key: str | cirq.MeasurementKey = '',
     ) -> None:
         """Inits PauliMeasurementGate.
 
@@ -88,7 +88,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return False
 
-    def with_key(self, key: Union[str, cirq.MeasurementKey]) -> PauliMeasurementGate:
+    def with_key(self, key: str | cirq.MeasurementKey) -> PauliMeasurementGate:
         """Creates a pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
@@ -101,7 +101,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ) -> PauliMeasurementGate:
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
@@ -109,7 +109,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
     def with_observable(
-        self, observable: Union[cirq.BaseDensePauliString, Iterable[cirq.Pauli]]
+        self, observable: cirq.BaseDensePauliString | Iterable[cirq.Pauli]
     ) -> PauliMeasurementGate:
         """Creates a pauli measurement gate with the new observable and same key."""
         if (

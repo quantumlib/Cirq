@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import cast, Optional
+from typing import cast
 
 import numpy as np
 import pytest
@@ -11,7 +11,7 @@ import examples.stabilizer_code as sc
 def encode_corrupt_correct(
     code: sc.StabilizerCode,
     input_val: int,
-    error_gate: Optional[cirq.SingleQubitCliffordGate],
+    error_gate: cirq.SingleQubitCliffordGate | None,
     error_loc: int,
 ):
     circuit = cirq.Circuit()

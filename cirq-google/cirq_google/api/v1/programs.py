@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import json
-from typing import Any, cast, Iterator, Optional, Sequence, TYPE_CHECKING
+from typing import Any, cast, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -22,7 +22,7 @@ import cirq
 from cirq_google.api.v1 import operations_pb2
 
 if TYPE_CHECKING:
-    import cirq_google
+    pass
 
 
 def _load_json_bool(b: Any):
@@ -150,7 +150,7 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
     Yields:
         An Operation proto.
     """
-    last_picos: Optional[int] = None
+    last_picos: int | None = None
     time_picos = 0
     for op in circuit.all_operations():
         if last_picos is None:

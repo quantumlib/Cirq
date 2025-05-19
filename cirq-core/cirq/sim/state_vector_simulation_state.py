@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 class _BufferedStateVector(qis.QuantumStateRepresentation):
     """Contains the state vector and buffer for efficient state evolution."""
 
-    def __init__(self, state_vector: np.ndarray, buffer: Optional[np.ndarray] = None):
+    def __init__(self, state_vector: np.ndarray, buffer: np.ndarray | None = None):
         """Initializes the object with the inputs.
 
         This initializer creates the buffer if necessary.
@@ -53,10 +53,10 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
     def create(
         cls,
         *,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        qid_shape: Optional[tuple[int, ...]] = None,
-        dtype: Optional[Type[np.complexfloating]] = None,
-        buffer: Optional[np.ndarray] = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        qid_shape: tuple[int, ...] | None = None,
+        dtype: type[np.complexfloating] | None = None,
+        buffer: np.ndarray | None = None,
     ):
         """Initializes the object with the inputs.
 
@@ -179,7 +179,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         self._swap_target_tensor_for(new_target_tensor)
         return True
 
-    def apply_mixture(self, action: Any, axes: Sequence[int], prng) -> Optional[int]:
+    def apply_mixture(self, action: Any, axes: Sequence[int], prng) -> int | None:
         """Apply mixture to state.
 
         Args:
@@ -201,7 +201,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         self._swap_target_tensor_for(self._buffer)
         return index
 
-    def apply_channel(self, action: Any, axes: Sequence[int], prng) -> Optional[int]:
+    def apply_channel(self, action: Any, axes: Sequence[int], prng) -> int | None:
         """Apply channel to state.
 
         Args:
@@ -320,12 +320,12 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     def __init__(
         self,
         *,
-        available_buffer: Optional[np.ndarray] = None,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        dtype: Type[np.complexfloating] = np.complex64,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        available_buffer: np.ndarray | None = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        dtype: type[np.complexfloating] = np.complex64,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits StateVectorSimulationState.
 

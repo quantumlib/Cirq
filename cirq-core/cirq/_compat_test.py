@@ -27,7 +27,7 @@ import types
 import warnings
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 from unittest import mock
 
 import duet
@@ -764,7 +764,6 @@ def test_metadata_search_path():
 def _test_metadata_search_path_inner():  # pragma: no cover
     # initialize the DeprecatedModuleFinders
     # pylint: disable=unused-import
-    import cirq.testing._compat_test_data.module_a
 
     assert importlib.metadata.metadata('numpy')
 
@@ -829,7 +828,7 @@ def _test_broken_module_1_inner():
         DeprecatedModuleImportError, match="missing_module cannot be imported. The typical reasons"
     ):
         # pylint: disable=unused-import
-        import cirq.testing._compat_test_data.broken_ref as br  # type: ignore
+        pass  # type: ignore
 
 
 def _test_broken_module_2_inner():
@@ -882,7 +881,6 @@ def _test_new_module_is_top_level_inner():
     # imports a top level module that was also deprecated
     from freezegun import api
 
-    import cirq.testing._compat_test_data
 
     assert api.real_time == time.time
 
@@ -925,7 +923,7 @@ def test_loader_create_module():
     fake_mod = ModuleType('hello')
 
     class CreateModuleLoader(importlib.abc.Loader):
-        def create_module(self, spec: ModuleSpec) -> Optional[ModuleType]:
+        def create_module(self, spec: ModuleSpec) -> ModuleType | None:
             return fake_mod
 
     assert (

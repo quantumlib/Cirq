@@ -14,13 +14,13 @@
 """Helper for testing python logging statements."""
 import contextlib
 import logging
-from typing import Iterator, Optional
+from typing import Iterator
 
 
 @contextlib.contextmanager
 def assert_logs(
     *matches: str,
-    count: Optional[int] = 1,
+    count: int | None = 1,
     min_level: int = logging.WARNING,
     max_level: int = logging.CRITICAL,
     capture_warnings: bool = True,

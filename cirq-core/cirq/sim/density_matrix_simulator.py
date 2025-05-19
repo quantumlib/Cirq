@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -119,7 +119,7 @@ class DensityMatrixSimulator(
     def __init__(
         self,
         *,
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] = np.complex64,
         noise: cirq.NOISE_MODEL_LIKE = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = True,
@@ -151,7 +151,7 @@ class DensityMatrixSimulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE, cirq.DensityMatrixSimulationState],
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE | cirq.DensityMatrixSimulationState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
     ) -> cirq.DensityMatrixSimulationState:
@@ -203,7 +203,7 @@ class DensityMatrixSimulator(
     def simulate_expectation_values_sweep(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, list[cirq.PauliSumLike]],
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
@@ -245,7 +245,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
     def __init__(
         self,
         sim_state: cirq.SimulationStateBase[cirq.DensityMatrixSimulationState],
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] = np.complex64,
     ):
         """DensityMatrixStepResult.
 
@@ -256,7 +256,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
         """
         super().__init__(sim_state)
         self._dtype = dtype
-        self._density_matrix: Optional[np.ndarray] = None
+        self._density_matrix: np.ndarray | None = None
 
     def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
@@ -362,7 +362,7 @@ class DensityMatrixTrialResult(
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
-        self._final_density_matrix: Optional[np.ndarray] = None
+        self._final_density_matrix: np.ndarray | None = None
 
     @property
     def final_density_matrix(self) -> np.ndarray:

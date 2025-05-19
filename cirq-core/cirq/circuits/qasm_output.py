@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import re
-from typing import Callable, Iterator, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Callable, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -208,10 +208,10 @@ class QasmOutput:
             meas_key_bitcount={k: v[0] for k, v in self.cregs.items()},
         )
 
-    def _generate_measurement_ids(self) -> tuple[dict[str, str], dict[str, Optional[str]]]:
+    def _generate_measurement_ids(self) -> tuple[dict[str, str], dict[str, str | None]]:
         # Pick an id for the creg that will store each measurement
         meas_key_id_map: dict[str, str] = {}
-        meas_comments: dict[str, Optional[str]] = {}
+        meas_comments: dict[str, str | None] = {}
         meas_i = 0
         for meas in self.measurements:
             key = protocols.measurement_key_name(meas)
@@ -258,7 +258,7 @@ class QasmOutput:
         """Test if id_str is a valid id in QASM grammar."""
         return self.valid_id_re.match(id_str) is not None
 
-    def save(self, path: Union[str, bytes, int]) -> None:
+    def save(self, path: str | bytes | int) -> None:
         """Write QASM output to a file specified by path."""
         with open(path, 'w') as f:
 

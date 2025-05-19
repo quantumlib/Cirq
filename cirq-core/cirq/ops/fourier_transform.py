@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Union
+from typing import AbstractSet, Any
 
 import numpy as np
 import sympy
@@ -112,12 +112,12 @@ class PhaseGradientGate(raw_types.Gate):
     This gate makes up a portion of the quantum fourier transform.
     """
 
-    def __init__(self, *, num_qubits: int, exponent: Union[float, sympy.Basic]):
+    def __init__(self, *, num_qubits: int, exponent: float | sympy.Basic):
         self._num_qubits = num_qubits
         self._exponent = exponent
 
     @property
-    def exponent(self) -> Union[float, sympy.Basic]:
+    def exponent(self) -> float | sympy.Basic:
         return self._exponent
 
     def _json_dict_(self) -> dict[str, Any]:

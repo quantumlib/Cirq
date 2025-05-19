@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, Iterator, Optional, TYPE_CHECKING
+from typing import Iterable, Iterator, TYPE_CHECKING
 
 import numpy as np
 
@@ -50,7 +50,7 @@ def _is_swaplike(gate: cirq.Gate):
 def eject_z(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 0.0,
     eject_parameterized: bool = False,
 ) -> cirq.Circuit:
@@ -75,9 +75,7 @@ def eject_z(
     qubit_phase: dict[ops.Qid, float] = defaultdict(lambda: 0)
     tags_to_ignore = set(context.tags_to_ignore) if context else set()
     phased_xz_replacements: dict[tuple[int, ops.Operation], ops.PhasedXZGate] = {}
-    last_phased_xz_op: dict[ops.Qid, Optional[tuple[int, ops.Operation]]] = defaultdict(
-        lambda: None
-    )
+    last_phased_xz_op: dict[ops.Qid, tuple[int, ops.Operation] | None] = defaultdict(lambda: None)
 
     def dump_tracked_phase(qubits: Iterable[ops.Qid]) -> Iterator[cirq.OP_TREE]:
         """Zeroes qubit_phase entries by emitting Z gates."""

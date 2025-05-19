@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, Optional
+from typing import Any, Callable, cast
 
 import sympy
 import tunits
@@ -58,7 +58,7 @@ def _recover_sweep_const(const_pb: run_context_pb2.ConstValue) -> Any:
 def sweep_to_proto(
     sweep: cirq.Sweep,
     *,
-    out: Optional[run_context_pb2.Sweep] = None,
+    out: run_context_pb2.Sweep | None = None,
     sweep_transformer: Callable[[sweeps.SingleSweep], sweeps.SingleSweep] = lambda x: x,
 ) -> run_context_pb2.Sweep:
     """Converts a Sweep to v2 protobuf message.
@@ -289,7 +289,7 @@ def metadata_from_proto(metadata_pb: run_context_pb2.Metadata) -> Metadata:
 
 
 def run_context_to_proto(
-    sweepable: cirq.Sweepable, repetitions: int, *, out: Optional[run_context_pb2.RunContext] = None
+    sweepable: cirq.Sweepable, repetitions: int, *, out: run_context_pb2.RunContext | None = None
 ) -> run_context_pb2.RunContext:
     """Populates a RunContext protobuf message.
 

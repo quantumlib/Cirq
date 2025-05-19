@@ -14,7 +14,7 @@
 
 import abc
 import collections
-from typing import Optional, Set, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq.devices import GridQubit
 from cirq_google.line.placement import place_strategy
@@ -49,7 +49,7 @@ class GreedySequenceSearch:
         self._c = device.metadata.qubit_set
         self._c_adj = chip_as_adjacency_list(device)
         self._start = start
-        self._sequence: Optional[list[GridQubit]] = None
+        self._sequence: list[GridQubit] | None = None
 
     def get_or_search(self) -> list[GridQubit]:
         """Starts the search or gives previously calculated sequence.
@@ -62,7 +62,7 @@ class GreedySequenceSearch:
         return self._sequence
 
     @abc.abstractmethod
-    def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
+    def _choose_next_qubit(self, qubit: GridQubit, used: set[GridQubit]) -> GridQubit | None:
         """Selects next qubit on the linear sequence.
 
         Args:
@@ -114,7 +114,7 @@ class GreedySequenceSearch:
         """
         used = set(current)
         seq = []
-        n: Optional[GridQubit] = start
+        n: GridQubit | None = start
         while n is not None:
             # Append qubit n to the sequence and mark it is as visited.
             seq.append(n)
@@ -143,8 +143,8 @@ class GreedySequenceSearch:
         return seq
 
     def _find_path_between(
-        self, p: GridQubit, q: GridQubit, used: Set[GridQubit]
-    ) -> Optional[list[GridQubit]]:
+        self, p: GridQubit, q: GridQubit, used: set[GridQubit]
+    ) -> list[GridQubit] | None:
         """Searches for continuous sequence between two qubits.
 
         This method runs two BFS algorithms in parallel (alternating variable s
@@ -172,7 +172,7 @@ class GreedySequenceSearch:
 
         other = {p: q, q: p}
         parents: dict[GridQubit, dict[GridQubit, GridQubit]] = {p: {}, q: {}}
-        visited: dict[GridQubit, Set[GridQubit]] = {p: set(), q: set()}
+        visited: dict[GridQubit, set[GridQubit]] = {p: set(), q: set()}
 
         queue = collections.deque([(p, p), (q, q)])
 
@@ -196,7 +196,7 @@ class GreedySequenceSearch:
 
         return None
 
-    def _neighbors_of_excluding(self, qubit: GridQubit, used: Set[GridQubit]) -> list[GridQubit]:
+    def _neighbors_of_excluding(self, qubit: GridQubit, used: set[GridQubit]) -> list[GridQubit]:
         return [n for n in self._c_adj[qubit] if n not in used]
 
 
@@ -210,7 +210,7 @@ class _PickFewestNeighbors(GreedySequenceSearch):
     obvious traps.
     """
 
-    def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
+    def _choose_next_qubit(self, qubit: GridQubit, used: set[GridQubit]) -> GridQubit | None:
         neighbors = self._neighbors_of_excluding(qubit, used)
         if not neighbors:
             return None
@@ -226,8 +226,8 @@ class _PickLargestArea(GreedySequenceSearch):
     part of the chip, when this qubit is added to the sequence.
     """
 
-    def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
-        analyzed: Set[GridQubit] = set()
+    def _choose_next_qubit(self, qubit: GridQubit, used: set[GridQubit]) -> GridQubit | None:
+        analyzed: set[GridQubit] = set()
         best = None
         best_size = 0
         for m in self._c_adj[qubit]:
@@ -244,7 +244,7 @@ class _PickLargestArea(GreedySequenceSearch):
 
         return best
 
-    def _collect_unused(self, start: GridQubit, used: Set[GridQubit]) -> Set[GridQubit]:
+    def _collect_unused(self, start: GridQubit, used: set[GridQubit]) -> set[GridQubit]:
         """Lists all the qubits that are reachable from given qubit.
 
         Args:
@@ -258,13 +258,13 @@ class _PickLargestArea(GreedySequenceSearch):
             traversing any of the used qubits.
         """
 
-        def collect(n: GridQubit, visited: Set[GridQubit]):
+        def collect(n: GridQubit, visited: set[GridQubit]):
             visited.add(n)
             for m in self._c_adj[n]:
                 if m not in used and m not in visited:
                     collect(m, visited)
 
-        visited: Set[GridQubit] = set()
+        visited: set[GridQubit] = set()
         collect(start, visited)
         return visited
 

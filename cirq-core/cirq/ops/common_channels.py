@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Iterable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -53,10 +53,10 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
 
     def __init__(
         self,
-        p_x: Optional[float] = None,
-        p_y: Optional[float] = None,
-        p_z: Optional[float] = None,
-        error_probabilities: Optional[dict[str, float]] = None,
+        p_x: float | None = None,
+        p_y: float | None = None,
+        p_z: float | None = None,
+        error_probabilities: dict[str, float] | None = None,
         tol: float = 1e-8,
     ) -> None:
         r"""The asymmetric depolarizing channel.
@@ -141,9 +141,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     def __str__(self) -> str:
         return 'asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> Union[str, Iterable[str]]:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str | Iterable[str]:
         if self._num_qubits == 1:
             if args.precision is not None:
                 return (
@@ -200,10 +198,10 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
 
 
 def asymmetric_depolarize(
-    p_x: Optional[float] = None,
-    p_y: Optional[float] = None,
-    p_z: Optional[float] = None,
-    error_probabilities: Optional[dict[str, float]] = None,
+    p_x: float | None = None,
+    p_y: float | None = None,
+    p_z: float | None = None,
+    error_probabilities: dict[str, float] | None = None,
     tol: float = 1e-8,
 ) -> AsymmetricDepolarizingChannel:
     r"""Returns an `AsymmetricDepolarizingChannel` with the given parameters.
@@ -683,10 +681,10 @@ class ResetChannel(raw_types.Gate):
         """
         self._dimension = dimension
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
+    def _has_stabilizer_effect_(self) -> bool | None:
         return True
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         args.validate_version('2.0', '3.0')
         return args.format('reset {0};\n', qubits[0])
 
@@ -1013,7 +1011,7 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
     return PhaseFlipChannel(p)
 
 
-def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
+def phase_flip(p: float | None = None) -> common_gates.ZPowGate | PhaseFlipChannel:
     r"""Returns a PhaseFlipChannel that flips a qubit's phase with probability p.
 
     If `p` is None, return a guaranteed phase flip in the form of a Z operation.
@@ -1159,7 +1157,7 @@ def _bit_flip(p: float) -> BitFlipChannel:
     return BitFlipChannel(p)
 
 
-def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipChannel]:
+def bit_flip(p: float | None = None) -> common_gates.XPowGate | BitFlipChannel:
     r"""Construct a BitFlipChannel that flips a qubit state with probability p.
 
     If p is None, this returns a guaranteed flip in the form of an X operation.

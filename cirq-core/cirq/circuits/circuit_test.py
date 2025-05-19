@@ -19,7 +19,7 @@ import os
 import time
 from collections import defaultdict
 from random import randint, random, randrange, sample
-from typing import Iterator, Optional
+from typing import Iterator
 
 import numpy as np
 import pytest
@@ -894,7 +894,7 @@ def test_insert_at_frontier():
 
         def optimization_at(
             self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-        ) -> Optional[cirq.PointOptimizationSummary]:
+        ) -> cirq.PointOptimizationSummary | None:
             new_ops = self.replacer(op)
             return cirq.PointOptimizationSummary(
                 clear_span=1, clear_qubits=op.qubits, new_operations=new_ops

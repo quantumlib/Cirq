@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Type, Union
+from typing import Any
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
@@ -34,7 +34,7 @@ class PasqalGateset(cirq.CompilationTargetGateset):
     """
 
     def __init__(self, include_additional_controlled_ops: bool = True):
-        gate_families: list[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = [
+        gate_families: list[type[cirq.Gate] | cirq.Gate | cirq.GateFamily] = [
             cirq.ParallelGateFamily(cirq.H),
             cirq.ParallelGateFamily(cirq.PhasedXPowGate),
             cirq.ParallelGateFamily(cirq.XPowGate),

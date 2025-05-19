@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Optional, TYPE_CHECKING
+from typing import AbstractSet, Any, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types
@@ -34,8 +34,8 @@ class WaitGate(raw_types.Gate):
     def __init__(
         self,
         duration: cirq.DURATION_LIKE,
-        num_qubits: Optional[int] = None,
-        qid_shape: Optional[tuple[int, ...]] = None,
+        num_qubits: int | None = None,
+        qid_shape: tuple[int, ...] | None = None,
     ) -> None:
         """Initialize a wait gate with the given duration.
 

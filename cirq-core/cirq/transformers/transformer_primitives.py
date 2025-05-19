@@ -19,7 +19,7 @@ from __future__ import annotations
 import bisect
 import dataclasses
 from collections import defaultdict
-from typing import Callable, cast, Hashable, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Callable, cast, Hashable, Sequence, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
@@ -51,7 +51,7 @@ def _create_target_circuit_type(ops: ops.OP_TREE, target_circuit: CIRCUIT_TYPE) 
 
 def map_moments(
     circuit: CIRCUIT_TYPE,
-    map_func: Callable[[circuits.Moment, int], Union[circuits.Moment, Sequence[circuits.Moment]]],
+    map_func: Callable[[circuits.Moment, int], circuits.Moment | Sequence[circuits.Moment]],
     *,
     tags_to_ignore: Sequence[Hashable] = (),
     deep: bool = False,
@@ -163,7 +163,7 @@ def _map_operations_impl(
             ).with_tags(*op.tags)
         mapped_ops = [*ops.flatten_to_ops(map_func(op, idx))]
         op_qubits = set(op.qubits)
-        mapped_ops_qubits: Set[cirq.Qid] = set()
+        mapped_ops_qubits: set[cirq.Qid] = set()
         has_overlapping_ops = False
         for mapped_op in mapped_ops:
             if raise_if_add_qubits and not op_qubits.issuperset(mapped_op.qubits):
@@ -334,7 +334,7 @@ class _MergedCircuit:
             self.ckey_indexes[ckey].remove(moment_index)
 
     def get_mergeable_ops(
-        self, op: cirq.Operation, op_qs: Set[cirq.Qid]
+        self, op: cirq.Operation, op_qs: set[cirq.Qid]
     ) -> tuple[int, list[cirq.Operation]]:
         # Find the index of previous moment which can be merged with `op`.
         idx = max([self.qubit_indexes[q][-1] for q in op_qs], default=-1)
@@ -356,7 +356,7 @@ class _MergedCircuit:
 
 def merge_operations(
     circuit: CIRCUIT_TYPE,
-    merge_func: Callable[[ops.Operation, ops.Operation], Optional[ops.Operation]],
+    merge_func: Callable[[ops.Operation, ops.Operation], ops.Operation | None],
     *,
     tags_to_ignore: Sequence[Hashable] = (),
     deep: bool = False,
@@ -410,7 +410,7 @@ def merge_operations(
     _circuit_op_tag = "_internal_tag_to_mark_circuit_ops_in_circuit"
     tags_to_ignore_set = set(tags_to_ignore) | {_circuit_op_tag}
 
-    def apply_merge_func(op1: ops.Operation, op2: ops.Operation) -> Optional[ops.Operation]:
+    def apply_merge_func(op1: ops.Operation, op2: ops.Operation) -> ops.Operation | None:
         if not all(tags_to_ignore_set.isdisjoint(op.tags) for op in [op1, op2]):
             return None
         new_op = merge_func(op1, op2)
@@ -514,7 +514,7 @@ def merge_operations_to_circuit_op(
         Copy of input circuit with valid connected components wrapped in tagged circuit operations.
     """
 
-    def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> Optional[cirq.Operation]:
+    def merge_func(op1: cirq.Operation, op2: cirq.Operation) -> cirq.Operation | None:
         def get_ops(op: cirq.Operation):
             op_untagged = op.untagged
             return (
@@ -539,7 +539,7 @@ def merge_k_qubit_unitaries_to_circuit_op(
     k: int,
     *,
     tags_to_ignore: Sequence[Hashable] = (),
-    merged_circuit_op_tag: Optional[str] = None,
+    merged_circuit_op_tag: str | None = None,
     deep: bool = False,
 ) -> CIRCUIT_TYPE:
     """Merges connected components of operations, acting on <= k qubits, into circuit operations.
@@ -581,7 +581,7 @@ def merge_k_qubit_unitaries_to_circuit_op(
 
 def merge_moments(
     circuit: CIRCUIT_TYPE,
-    merge_func: Callable[[circuits.Moment, circuits.Moment], Optional[circuits.Moment]],
+    merge_func: Callable[[circuits.Moment, circuits.Moment], circuits.Moment | None],
     *,
     tags_to_ignore: Sequence[Hashable] = (),
     deep: bool = False,
@@ -630,7 +630,7 @@ def unroll_circuit_op(
     circuit: CIRCUIT_TYPE,
     *,
     deep: bool = False,
-    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
+    tags_to_check: Sequence[Hashable] | None = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s while preserving the moment structure.
 
@@ -675,7 +675,7 @@ def unroll_circuit_op_greedy_earliest(
     circuit: CIRCUIT_TYPE,
     *,
     deep: bool = False,
-    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
+    tags_to_check: Sequence[Hashable] | None = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s by inserting operations using EARLIEST strategy.
 
@@ -722,7 +722,7 @@ def unroll_circuit_op_greedy_frontier(
     circuit: CIRCUIT_TYPE,
     *,
     deep: bool = False,
-    tags_to_check: Optional[Sequence[Hashable]] = (MAPPED_CIRCUIT_OP_TAG,),
+    tags_to_check: Sequence[Hashable] | None = (MAPPED_CIRCUIT_OP_TAG,),
 ) -> CIRCUIT_TYPE:
     """Unrolls (tagged) `cirq.CircuitOperation`s by inserting operations inline at qubit frontier.
 

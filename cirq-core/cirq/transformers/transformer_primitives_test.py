@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Iterator, Optional
+from typing import Iterator
 
 import pytest
 
@@ -503,7 +503,7 @@ def test_map_moments_drop_empty_moments_deep():
     cirq.testing.assert_same_circuits(c_mapped, c_expected)
 
 
-def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
+def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> cirq.Moment | None:
     if any(op.gate != cirq.Z for m in [m1, m2] for op in m):
         return None
     return cirq.Moment(

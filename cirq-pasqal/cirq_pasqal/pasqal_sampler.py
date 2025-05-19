@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import time
-from typing import Optional
 
 import requests
 
@@ -25,7 +24,7 @@ class PasqalSampler(cirq.work.Sampler):
         self,
         remote_host: str,
         access_token: str = '',
-        device: Optional[cirq_pasqal.PasqalDevice] = None,
+        device: cirq_pasqal.PasqalDevice | None = None,
     ) -> None:
         """Inits PasqalSampler.
 

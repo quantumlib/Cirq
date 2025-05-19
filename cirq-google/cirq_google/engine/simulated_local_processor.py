@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from typing import Optional, Union
 
 import cirq
 from cirq_google.api import v2
@@ -29,9 +28,7 @@ from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
 VALID_LANGUAGES = ['type.googleapis.com/cirq.google.api.v2.Program']
 
 
-def _date_to_timestamp(
-    union_time: Optional[Union[datetime.datetime, datetime.date, int]],
-) -> Optional[int]:
+def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:
     if isinstance(union_time, int):
         return union_time
     elif isinstance(union_time, datetime.datetime):
@@ -85,11 +82,11 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         *args,
         sampler: cirq.Sampler = cirq.Simulator(),
         device: cirq.Device = cirq.UNCONSTRAINED_DEVICE,
-        validator: Optional[validating_sampler.VALIDATOR_TYPE] = None,
-        program_validator: Optional[engine_validator.PROGRAM_VALIDATOR_TYPE] = None,
+        validator: validating_sampler.VALIDATOR_TYPE | None = None,
+        program_validator: engine_validator.PROGRAM_VALIDATOR_TYPE | None = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
-        calibrations: Optional[dict[int, calibration.Calibration]] = None,
-        device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
+        calibrations: dict[int, calibration.Calibration] | None = None,
+        device_specification: v2.device_pb2.DeviceSpecification | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -112,12 +109,12 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
         return self._calibrations[calibration_timestamp_seconds]
 
-    def get_latest_calibration(self, timestamp: int) -> Optional[calibration.Calibration]:
+    def get_latest_calibration(self, timestamp: int) -> calibration.Calibration | None:
         if not self._calibrations:
             return None
         return self._calibrations[max(self._calibrations)]
 
-    def get_current_calibration(self) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> calibration.Calibration | None:
         return self.get_latest_calibration(int(datetime.datetime.now().timestamp()))
 
     def get_device(self) -> cirq.Device:
@@ -129,7 +126,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """
         return self._device
 
-    def get_device_specification(self) -> Optional[v2.device_pb2.DeviceSpecification]:
+    def get_device_specification(self) -> v2.device_pb2.DeviceSpecification | None:
         return self._device_specification
 
     def health(self):
@@ -137,8 +134,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     def list_calibrations(
         self,
-        earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
-        latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
+        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
+        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
         **kwargs,
     ) -> list[calibration.Calibration]:
         earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp) or 0
@@ -162,9 +159,9 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     def list_programs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[dict[str, str]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
     ) -> list[AbstractLocalProgram]:
         before_limit = created_before or datetime.datetime(datetime.MAXYEAR, 1, 1)
         after_limit = created_after or datetime.datetime(datetime.MINYEAR, 1, 1)
@@ -197,14 +194,14 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self,
         program: cirq.AbstractCircuit,
         *,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
+        program_id: str | None = None,
+        job_id: str | None = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[dict[str, str]] = None,
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",

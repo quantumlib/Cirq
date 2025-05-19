@@ -6,7 +6,7 @@ https://arxiv.org/abs/1811.12926.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Optional, Set
+from typing import Callable
 
 import networkx as nx
 import numpy as np
@@ -178,7 +178,7 @@ def process_results(
 
     # Calculate all the invalid parity pairs.
     data = trial_result.data
-    bad_measurements: Set[int] = set()
+    bad_measurements: set[int] = set()
     for final_qubit, original_qubit in mapping.items():
         if original_qubit in parity_mapping:
             final_parity_qubit = inverse_mapping[parity_mapping[original_qubit]]
@@ -202,9 +202,9 @@ def compile_circuit(
     *,
     device_graph: nx.Graph,
     routing_attempts: int,
-    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
-    routing_algo_name: Optional[str] = None,
-    router: Optional[Callable[..., ccr.SwapNetwork]] = None,
+    compiler: Callable[[cirq.Circuit], cirq.Circuit] | None = None,
+    routing_algo_name: str | None = None,
+    router: Callable[..., ccr.SwapNetwork] | None = None,
     add_readout_error_correction=False,
 ) -> CompilationResult:
     """Compile the given model circuit onto the given device graph. This uses a
@@ -359,7 +359,7 @@ def execute_circuits(
     samplers: list[cirq.Sampler],
     circuits: list[tuple[cirq.Circuit, list[int]]],
     routing_attempts: int,
-    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
+    compiler: Callable[[cirq.Circuit], cirq.Circuit] | None = None,
     repetitions: int = 10_000,
     add_readout_error_correction=False,
 ) -> list[QuantumVolumeResult]:
@@ -426,7 +426,7 @@ def calculate_quantum_volume(
     device_graph: nx.Graph,
     samplers: list[cirq.Sampler],
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
+    compiler: Callable[[cirq.Circuit], cirq.Circuit] | None = None,
     repetitions=10_000,
     routing_attempts=30,
     add_readout_error_correction=False,

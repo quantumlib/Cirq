@@ -17,7 +17,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import itertools
-from typing import Any, cast, Iterator, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Any, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -83,7 +83,7 @@ class RandomizedBenchMarkResult:
         """
         return [(num, prob) for num, prob in zip(self._num_cfds_seq, self._gnd_state_probs)]
 
-    def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: plt.Axes | None = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the average ground state probability vs the number of
         Cliffords in the RB study.
 
@@ -144,7 +144,7 @@ class ParallelRandomizedBenchmarkingResult:
     results_dictionary: Mapping[cirq.Qid, RandomizedBenchMarkResult]
 
     def plot_single_qubit(
-        self, qubit: cirq.Qid, ax: Optional[plt.Axes] = None, **plot_kwargs: Any
+        self, qubit: cirq.Qid, ax: plt.Axes | None = None, **plot_kwargs: Any
     ) -> plt.Axes:
         """Plot the raw data for the specified qubit.
 
@@ -171,7 +171,7 @@ class ParallelRandomizedBenchmarkingResult:
 
     def plot_heatmap(
         self,
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         annotation_format: str = '0.1%',
         title: str = 'Single-qubit Pauli error',
         **plot_kwargs: Any,
@@ -204,16 +204,16 @@ class ParallelRandomizedBenchmarkingResult:
 
     def plot_integrated_histogram(
         self,
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         cdf_on_x: bool = False,
         axis_label: str = 'Pauli error',
         semilog: bool = True,
         median_line: bool = True,
-        median_label: Optional[str] = 'median',
+        median_label: str | None = 'median',
         mean_line: bool = False,
-        mean_label: Optional[str] = 'mean',
+        mean_label: str | None = 'mean',
         show_zero: bool = False,
-        title: Optional[str] = None,
+        title: str | None = None,
         **kwargs,
     ) -> plt.Axes:
         """Plot the Pauli errors using cirq.integrated_histogram().
@@ -277,7 +277,7 @@ class TomographyResult:
         return self._density_matrix
 
     def plot(
-        self, axes: Optional[list[plt.Axes]] = None, **plot_kwargs: Any
+        self, axes: list[plt.Axes] | None = None, **plot_kwargs: Any
     ) -> list[plt.Axes]:  # pragma: no cover
         """Plots the real and imaginary parts of the density matrix as two 3D bar plots.
 
@@ -764,8 +764,8 @@ def _matrix_bar_plot(
     mat: np.ndarray,
     z_label: str,
     ax: mplot3d.axes3d.Axes3D,
-    kets: Optional[Sequence[str]] = None,
-    title: Optional[str] = None,
+    kets: Sequence[str] | None = None,
+    title: str | None = None,
     ylim: tuple[int, int] = (-1, 1),
     **bar3d_kwargs: Any,
 ) -> None:  # pragma: no cover

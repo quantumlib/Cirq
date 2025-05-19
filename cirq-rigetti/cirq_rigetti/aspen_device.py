@@ -14,7 +14,7 @@
 import functools
 import json
 from math import sqrt
-from typing import Any, Optional, Union
+from typing import Any
 
 import networkx as nx
 import numpy as np
@@ -58,7 +58,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
 
     isa: InstructionSetArchitecture
 
-    def __init__(self, isa: Union[InstructionSetArchitecture, dict[str, Any]]) -> None:
+    def __init__(self, isa: InstructionSetArchitecture | dict[str, Any]) -> None:
         """Initializes a RigettiQCSAspenDevice with its Rigetti QCS `InstructionSetArchitecture`.
 
         Args:
@@ -241,7 +241,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
 
 @deprecated_cirq_rigetti_function()
 def get_rigetti_qcs_aspen_device(
-    quantum_processor_id: str, client: Optional[QCSClient] = None
+    quantum_processor_id: str, client: QCSClient | None = None
 ) -> RigettiQCSAspenDevice:
     """Retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti
     QCS API and uses it to initialize a RigettiQCSAspenDevice.

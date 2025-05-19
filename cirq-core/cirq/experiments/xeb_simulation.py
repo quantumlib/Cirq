@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -84,8 +84,8 @@ def simulate_2q_xeb_circuits(
     circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
     param_resolver: cirq.ParamResolverOrSimilarType = None,
-    pool: Optional[multiprocessing.pool.Pool] = None,
-    simulator: Optional[cirq.SimulatesIntermediateState] = None,
+    pool: multiprocessing.pool.Pool | None = None,
+    simulator: cirq.SimulatesIntermediateState | None = None,
 ):
     """Simulate two-qubit XEB circuits.
 

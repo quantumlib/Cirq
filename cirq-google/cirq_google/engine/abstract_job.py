@@ -134,7 +134,7 @@ class AbstractJob(abc.ABC):
         """Return the execution status of the job."""
 
     @abc.abstractmethod
-    def failure(self) -> Optional[tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         """Return failure code and message of the job if present."""
 
     @abc.abstractmethod
@@ -156,11 +156,11 @@ class AbstractJob(abc.ABC):
         one was captured, else None."""
 
     @abc.abstractmethod
-    def cancel(self) -> Optional[bool]:
+    def cancel(self) -> bool | None:
         """Cancel the job."""
 
     @abc.abstractmethod
-    def delete(self) -> Optional[bool]:
+    def delete(self) -> bool | None:
         """Deletes the job and result, if any."""
 
     @abc.abstractmethod

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from functools import reduce
 from itertools import cycle
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -50,7 +50,7 @@ def _get_dd_sequence_from_schema_name(schema: str) -> tuple[ops.Gate, ...]:
             raise ValueError('Invalid schema name.')
 
 
-def _pauli_up_to_global_phase(gate: ops.Gate) -> Union[ops.Pauli, None]:
+def _pauli_up_to_global_phase(gate: ops.Gate) -> ops.Pauli | None:
     for pauli_gate in [ops.X, ops.Y, ops.Z]:
         if protocols.equal_up_to_global_phase(gate, pauli_gate):
             return pauli_gate
@@ -87,7 +87,7 @@ def _validate_dd_sequence(dd_sequence: tuple[ops.Gate, ...]) -> None:
 
 
 def _parse_dd_sequence(
-    schema: Union[str, tuple[ops.Gate, ...]],
+    schema: str | tuple[ops.Gate, ...],
 ) -> tuple[tuple[ops.Gate, ...], dict[ops.Gate, ops.Pauli]]:
     """Parses and returns dynamical decoupling sequence and its associated pauli map from schema."""
     dd_sequence = None
@@ -208,8 +208,8 @@ def _need_merge_pulled_through(op_at_q: ops.Operation, is_at_last_busy_moment: b
 def add_dynamical_decoupling(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
-    schema: Union[str, tuple[ops.Gate, ...]] = 'DEFAULT',
+    context: cirq.TransformerContext | None = None,
+    schema: str | tuple[ops.Gate, ...] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
 ) -> cirq.Circuit:
     """Adds dynamical decoupling gate operations to a given circuit.

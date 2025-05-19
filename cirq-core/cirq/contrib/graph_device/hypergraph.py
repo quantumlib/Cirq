@@ -16,17 +16,17 @@ from __future__ import annotations
 
 import itertools
 import random
-from typing import Any, FrozenSet, Hashable, Iterable, Mapping, Optional, Set, Union
+from typing import Any, Hashable, Iterable, Mapping
 
-AdjacencyList = Set[FrozenSet[Hashable]]
+AdjacencyList = set[frozenset[Hashable]]
 
 
 class UndirectedHypergraph:
     def __init__(
         self,
         *,
-        vertices: Optional[Iterable[Hashable]] = None,
-        labelled_edges: Optional[dict[Iterable[Hashable], Any]] = None,
+        vertices: Iterable[Hashable] | None = None,
+        labelled_edges: dict[Iterable[Hashable], Any] | None = None,
     ) -> None:
         """A labelled, undirected hypergraph.
 
@@ -38,7 +38,7 @@ class UndirectedHypergraph:
         """
 
         self._adjacency_lists: dict[Hashable, AdjacencyList] = {}
-        self._labelled_edges: dict[FrozenSet[Hashable], Any] = {}
+        self._labelled_edges: dict[frozenset[Hashable], Any] = {}
         if vertices is not None:
             self.add_vertices(vertices)
         if labelled_edges is not None:
@@ -49,11 +49,11 @@ class UndirectedHypergraph:
         return tuple(self._adjacency_lists.keys())
 
     @property
-    def edges(self) -> tuple[FrozenSet[Hashable], ...]:
+    def edges(self) -> tuple[frozenset[Hashable], ...]:
         return tuple(self._labelled_edges.keys())
 
     @property
-    def labelled_edges(self) -> dict[FrozenSet, Any]:
+    def labelled_edges(self) -> dict[frozenset, Any]:
         return dict(self._labelled_edges)
 
     def add_vertex(self, vertex: Hashable) -> None:
@@ -104,7 +104,7 @@ class UndirectedHypergraph:
 
     @classmethod
     def random(
-        cls, vertices: Union[int, Iterable], edge_probs: Mapping[int, float]
+        cls, vertices: int | Iterable, edge_probs: Mapping[int, float]
     ) -> UndirectedHypergraph:
         """A random hypergraph.
 

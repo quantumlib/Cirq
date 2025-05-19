@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 import collections
-from typing import Any, cast, Generic, Iterator, Optional, Sequence, Type, TYPE_CHECKING, TypeVar
+from typing import Any, cast, Generic, Iterator, Sequence, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -80,7 +80,7 @@ class SimulatorBase(
     def __init__(
         self,
         *,
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] = np.complex64,
         noise: cirq.NOISE_MODEL_LIKE = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = False,
@@ -324,7 +324,7 @@ class SimulatorBase(
 
         classical_data = value.ClassicalDataDictionaryStore()
         if self._split_untangled_states:
-            args_map: dict[Optional[cirq.Qid], TSimulationState] = {}
+            args_map: dict[cirq.Qid | None, TSimulationState] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
                     args_map[q] = self._create_partial_simulation_state(
@@ -361,7 +361,7 @@ class StepResultBase(
             sim_state: The `SimulationStateBase` for this step.
         """
         super().__init__(sim_state)
-        self._merged_sim_state_cache: Optional[TSimulationState] = None
+        self._merged_sim_state_cache: TSimulationState | None = None
         qubits = sim_state.qubits
         self._qubits = qubits
         self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
@@ -409,7 +409,7 @@ class SimulationTrialResultBase(
                 trial finishes.
         """
         super().__init__(params, measurements, final_simulator_state=final_simulator_state)
-        self._merged_sim_state_cache: Optional[TSimulationState] = None
+        self._merged_sim_state_cache: TSimulationState | None = None
 
     def get_state_containing_qubit(self, qubit: cirq.Qid) -> TSimulationState:
         """Returns the independent state space containing the qubit.

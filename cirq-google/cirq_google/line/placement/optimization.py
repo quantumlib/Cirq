@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import math
-from typing import Callable, Optional, TypeVar
+from typing import Callable, TypeVar
 
 T = TypeVar('T')
 
@@ -50,7 +50,7 @@ def anneal_minimize(
     temp_final: float = 1e-6,
     cooling_factor: float = 0.99,
     repeat: int = 100,
-    trace_func: Optional[Callable[[T, float, float, float, bool], None]] = None,
+    trace_func: Callable[[T, float, float, float, bool], None] | None = None,
 ) -> T:
     """Minimize solution using Simulated Annealing meta-heuristic.
 

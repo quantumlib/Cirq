@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from enum import Enum
 from types import NotImplementedType
-from typing import cast, Type, TYPE_CHECKING, Union
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 def _matrix_to_clifford_op(
     mat: np.ndarray, qubit: cirq.Qid, *, atol: float
-) -> Union[ops.Operation, NotImplementedType]:
+) -> ops.Operation | NotImplementedType:
     rotations = transformers.single_qubit_matrix_to_pauli_rotations(mat, atol)
     clifford_gate = ops.SingleQubitCliffordGate.I
     for pauli, half_turns in rotations:
@@ -97,7 +97,7 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
         """
         self.atol = atol
         self.single_qubit_target = single_qubit_target
-        gates: list[Union[cirq.Gate, Type[cirq.Gate]]] = [ops.CZ, ops.MeasurementGate]
+        gates: list[cirq.Gate | type[cirq.Gate]] = [ops.CZ, ops.MeasurementGate]
         if single_qubit_target in [
             self.SingleQubitTarget.SINGLE_QUBIT_CLIFFORDS,
             self.SingleQubitTarget.PAULI_STRING_PHASORS_AND_CLIFFORDS,
@@ -112,7 +112,7 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
 
     def _decompose_single_qubit_operation(
         self, op: cirq.Operation, _
-    ) -> Union[NotImplementedType, cirq.OP_TREE]:
+    ) -> NotImplementedType | cirq.OP_TREE:
         if not protocols.has_unitary(op):
             return NotImplemented
         mat = protocols.unitary(op)
@@ -129,7 +129,7 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
 
     def _decompose_two_qubit_operation(
         self, op: cirq.Operation, _
-    ) -> Union[NotImplementedType, cirq.OP_TREE]:
+    ) -> NotImplementedType | cirq.OP_TREE:
         if not protocols.has_unitary(op):
             return NotImplemented
         return transformers.two_qubit_matrix_to_cz_operations(

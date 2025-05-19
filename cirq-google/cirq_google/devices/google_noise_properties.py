@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 from functools import cached_property
-from typing import Any, Sequence, Set, Type, TypeVar, Union
+from typing import Any, Sequence, TypeVar
 
 import numpy as np
 
@@ -32,7 +32,7 @@ T = TypeVar('T')
 V = TypeVar('V')
 
 
-def _with_values(original: dict[T, V], val: Union[V, dict[T, V]]) -> dict[T, V]:
+def _with_values(original: dict[T, V], val: V | dict[T, V]) -> dict[T, V]:
     """Returns a copy of `original` using values from `val`.
 
     If val is a single value, all keys are mapped to that value. If val is a
@@ -104,18 +104,18 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
     def with_params(
         self,
         *,
-        gate_times_ns: Union[None, float, dict[Type[cirq.Gate], float]] = None,
-        t1_ns: Union[None, float, dict[cirq.Qid, float]] = None,
-        tphi_ns: Union[None, float, dict[cirq.Qid, float]] = None,
-        readout_errors: Union[None, Sequence[float], dict[cirq.Qid, Sequence[float]]] = None,
-        gate_pauli_errors: Union[
-            None, float, dict[Union[Type[cirq.Gate], noise_utils.OpIdentifier], float]
-        ] = None,
-        fsim_errors: Union[
-            None,
-            cirq.PhasedFSimGate,
-            dict[Union[Type[cirq.Gate], noise_utils.OpIdentifier], cirq.PhasedFSimGate],
-        ] = None,
+        gate_times_ns: None | float | dict[type[cirq.Gate], float] = None,
+        t1_ns: None | float | dict[cirq.Qid, float] = None,
+        tphi_ns: None | float | dict[cirq.Qid, float] = None,
+        readout_errors: None | Sequence[float] | dict[cirq.Qid, Sequence[float]] = None,
+        gate_pauli_errors: (
+            None | float | dict[type[cirq.Gate] | noise_utils.OpIdentifier, float]
+        ) = None,
+        fsim_errors: (
+            None
+            | cirq.PhasedFSimGate
+            | dict[type[cirq.Gate] | noise_utils.OpIdentifier, cirq.PhasedFSimGate]
+        ) = None,
     ):
         """Returns a copy of this object with the given params overridden.
 
@@ -158,9 +158,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
                 )
         if gate_pauli_errors is not None:
             if isinstance(gate_pauli_errors, dict):
-                combined_pauli_errors: dict[
-                    Union[Type[cirq.Gate], noise_utils.OpIdentifier], float
-                ] = {}
+                combined_pauli_errors: dict[type[cirq.Gate] | noise_utils.OpIdentifier, float] = {}
                 for op_id in self.gate_pauli_errors:
                     if op_id in gate_pauli_errors:
                         combined_pauli_errors[op_id] = gate_pauli_errors[op_id]
@@ -173,7 +171,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         if fsim_errors is not None:
             if isinstance(fsim_errors, dict):
                 combined_fsim_errors: dict[
-                    Union[Type[cirq.Gate], noise_utils.OpIdentifier], cirq.PhasedFSimGate
+                    type[cirq.Gate] | noise_utils.OpIdentifier, cirq.PhasedFSimGate
                 ] = {}
                 for op_id in self.fsim_errors:
                     op_id_swapped = noise_utils.OpIdentifier(op_id.gate_type, *op_id.qubits[::-1])
@@ -190,11 +188,11 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         return dataclasses.replace(self, **replace_args)
 
     @classmethod
-    def single_qubit_gates(cls) -> Set[type]:
+    def single_qubit_gates(cls) -> set[type]:
         return {cirq.ZPowGate, cirq.PhasedXZGate, cirq.MeasurementGate, cirq.ResetChannel}
 
     @classmethod
-    def symmetric_two_qubit_gates(cls) -> Set[type]:
+    def symmetric_two_qubit_gates(cls) -> set[type]:
         return {
             cirq_google.SycamoreGate,
             cirq.FSimGate,
@@ -204,7 +202,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         }
 
     @classmethod
-    def asymmetric_two_qubit_gates(cls) -> Set[type]:
+    def asymmetric_two_qubit_gates(cls) -> set[type]:
         return set()
 
     @cached_property

@@ -17,7 +17,7 @@
 import datetime
 from collections import abc, defaultdict
 from itertools import cycle
-from typing import Any, cast, Iterator, Optional, Sequence, Union
+from typing import Any, cast, Iterator, Sequence
 
 import google.protobuf.json_format as json_format
 import matplotlib as mpl
@@ -27,8 +27,8 @@ import cirq
 from cirq_google.api import v2
 
 # Calibration Metric types
-METRIC_KEY = tuple[Union[cirq.GridQubit, str], ...]
-METRIC_VALUE = list[Union[str, int, float]]
+METRIC_KEY = tuple[cirq.GridQubit | str, ...]
+METRIC_VALUE = list[str | int | float]
 METRIC_DICT = dict[METRIC_KEY, METRIC_VALUE]
 ALL_METRICS = dict[str, METRIC_DICT]
 
@@ -62,7 +62,7 @@ class Calibration(abc.Mapping):
     def __init__(
         self,
         calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.MetricsSnapshot(),
-        metrics: Optional[ALL_METRICS] = None,
+        metrics: ALL_METRICS | None = None,
     ) -> None:
         self.timestamp = calibration.timestamp_ms
         if metrics is None:
@@ -156,7 +156,7 @@ class Calibration(abc.Mapping):
         """Magic method for the JSON serialization protocol."""
         return {'metrics': json_format.MessageToDict(self.to_proto())}
 
-    def timestamp_str(self, tz: Optional[datetime.tzinfo] = None, timespec: str = 'auto') -> str:
+    def timestamp_str(self, tz: datetime.tzinfo | None = None, timespec: str = 'auto') -> str:
         """Return a string for the calibration timestamp.
 
         Args:
@@ -171,7 +171,7 @@ class Calibration(abc.Mapping):
         dt += datetime.timedelta(microseconds=self.timestamp % 1000000)
         return dt.isoformat(sep=' ', timespec=timespec)
 
-    def str_to_key(self, target: str) -> Union[cirq.GridQubit, str]:
+    def str_to_key(self, target: str) -> cirq.GridQubit | str:
         """Turns a string into a calibration key.
 
         Attempts to parse it as a GridQubit.  If this fails,
@@ -256,9 +256,9 @@ class Calibration(abc.Mapping):
     def plot_histograms(
         self,
         keys: Sequence[str],
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         *,
-        labels: Optional[Sequence[str]] = None,
+        labels: Sequence[str] | None = None,
     ) -> plt.Axes:
         """Plots integrated histograms of metric values corresponding to keys
 
@@ -303,7 +303,7 @@ class Calibration(abc.Mapping):
         return ax
 
     def plot(
-        self, key: str, fig: Optional[mpl.figure.Figure] = None
+        self, key: str, fig: mpl.figure.Figure | None = None
     ) -> tuple[mpl.figure.Figure, list[plt.Axes]]:
         """Plots a heatmap and an integrated histogram for the given key.
 

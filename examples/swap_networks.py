@@ -21,13 +21,13 @@ implied graph is not a subgraph of the hardware adjacency graph.
 
 import itertools
 import random
-from typing import Sequence, TypeVar, Union
+from typing import Sequence, TypeVar
 
 import cirq
 import cirq.contrib.acquaintance as cca
 
 LogicalIndex = TypeVar('LogicalIndex', int, cirq.Qid)
-LogicalIndexSequence = Union[Sequence[int], Sequence[cirq.Qid]]
+LogicalIndexSequence = Sequence[int] | Sequence[cirq.Qid]
 LogicalGates = dict[tuple[LogicalIndex, ...], cirq.Gate]
 LogicalMappingKey = TypeVar('LogicalMappingKey', bound=cirq.Qid)
 LogicalMapping = dict[LogicalMappingKey, LogicalIndex]

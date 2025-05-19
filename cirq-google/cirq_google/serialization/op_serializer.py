@@ -14,7 +14,7 @@
 
 import abc
 import numbers
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class OpSerializer(abc.ABC):
         *,
         constants: list[v2.program_pb2.Constant],
         raw_constants: dict[Any, int],
-    ) -> Optional[Union[v2.program_pb2.CircuitOperation, v2.program_pb2.Operation]]:
+    ) -> v2.program_pb2.CircuitOperation | v2.program_pb2.Operation | None:
         """Converts op to proto using this serializer.
 
         If self.can_serialize_operation(op) == false, this should return None.
@@ -72,7 +72,7 @@ class CircuitOpSerializer(OpSerializer):
     def to_proto(
         self,
         op: cirq.CircuitOperation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
         constants: list[v2.program_pb2.Constant],
         raw_constants: dict[Any, int],

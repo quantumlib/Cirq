@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 from cirq import devices
 from cirq.devices import noise_utils
@@ -58,7 +58,7 @@ class InsertionNoiseModel(devices.NoiseModel):
             if (not self.require_physical_tag) or noise_utils.PHYSICAL_GATE_TAG in op.tags
         ]
         for op in candidate_ops:
-            match_id: Optional[noise_utils.OpIdentifier] = None
+            match_id: noise_utils.OpIdentifier | None = None
             candidate_ids = [op_id for op_id in self.ops_added if op in op_id]
             for op_id in candidate_ids:
                 if match_id is None or op_id.is_proper_subtype_of(match_id):

@@ -32,7 +32,7 @@ The quantum state is specified in two forms:
 
 from __future__ import annotations
 
-from typing import Any, Sequence, Union
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -72,7 +72,7 @@ class CliffordSimulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[int, cirq.StabilizerChFormSimulationState],
+        initial_state: int | cirq.StabilizerChFormSimulationState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
     ) -> cirq.StabilizerChFormSimulationState:
@@ -201,7 +201,7 @@ class CliffordState:
     Gates and measurements are applied to each representation in O(n^2) time.
     """
 
-    def __init__(self, qubit_map, initial_state: Union[int, cirq.StabilizerStateChForm] = 0):
+    def __init__(self, qubit_map, initial_state: int | cirq.StabilizerStateChForm = 0):
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 

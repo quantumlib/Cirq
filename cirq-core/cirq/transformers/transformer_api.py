@@ -26,12 +26,9 @@ from typing import (
     Callable,
     cast,
     Hashable,
-    Optional,
     overload,
-    Type,
     TYPE_CHECKING,
     TypeVar,
-    Union,
 )
 
 from typing_extensions import Protocol
@@ -262,15 +259,13 @@ class TRANSFORMER(Protocol):
     """
 
     def __call__(
-        self, circuit: cirq.AbstractCircuit, *, context: Optional[TransformerContext] = None
+        self, circuit: cirq.AbstractCircuit, *, context: TransformerContext | None = None
     ) -> cirq.AbstractCircuit: ...
 
 
 _TRANSFORMER_T = TypeVar('_TRANSFORMER_T', bound=TRANSFORMER)
-_TRANSFORMER_CLS_T = TypeVar('_TRANSFORMER_CLS_T', bound=Type[TRANSFORMER])
-_TRANSFORMER_OR_CLS_T = TypeVar(
-    '_TRANSFORMER_OR_CLS_T', bound=Union[TRANSFORMER, Type[TRANSFORMER]]
-)
+_TRANSFORMER_CLS_T = TypeVar('_TRANSFORMER_CLS_T', bound=type[TRANSFORMER])
+_TRANSFORMER_OR_CLS_T = TypeVar('_TRANSFORMER_OR_CLS_T', bound=TRANSFORMER | type[TRANSFORMER])
 
 
 @overload
@@ -402,7 +397,7 @@ def _run_transformer_on_circuit(
     add_deep_support: bool,
     func: TRANSFORMER,
     circuit: cirq.AbstractCircuit,
-    extracted_context: Optional[TransformerContext],
+    extracted_context: TransformerContext | None,
     **kwargs,
 ) -> cirq.AbstractCircuit:
     mutable_circuit = None
@@ -430,7 +425,7 @@ def _transform_and_log(
     func: TRANSFORMER,
     transformer_name: str,
     circuit: cirq.AbstractCircuit,
-    extracted_context: Optional[TransformerContext],
+    extracted_context: TransformerContext | None,
     **kwargs,
 ) -> cirq.AbstractCircuit:
     """Helper to log initial and final circuits before and after calling the transformer."""

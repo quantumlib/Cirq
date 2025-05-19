@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import datetime
-from typing import Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import duet
 from google.protobuf import any_pb2
@@ -44,7 +44,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         project_id: str,
         program_id: str,
         context: 'engine_base.EngineContext',
-        _program: Optional[quantum.QuantumProgram] = None,
+        _program: quantum.QuantumProgram | None = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -66,11 +66,11 @@ class EngineProgram(abstract_program.AbstractProgram):
         device_config_name: str,
         run_name: str = "",
         snapshot_id: str = "",
-        job_id: Optional[str] = None,
+        job_id: str | None = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        description: Optional[str] = None,
-        labels: Optional[dict[str, str]] = None,
+        description: str | None = None,
+        labels: dict[str, str] | None = None,
     ) -> engine_job.EngineJob:
         """Runs the program on the QuantumEngine.
 
@@ -138,11 +138,11 @@ class EngineProgram(abstract_program.AbstractProgram):
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str,
-        job_id: Optional[str] = None,
+        job_id: str | None = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
-        description: Optional[str] = None,
-        labels: Optional[dict[str, str]] = None,
+        description: str | None = None,
+        labels: dict[str, str] | None = None,
     ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
@@ -214,10 +214,10 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     async def list_jobs_async(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
     ) -> Sequence[engine_job.EngineJob]:
         """Returns the list of jobs for this program.
 

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, Optional, overload, TYPE_CHECKING, Union
+from typing import Callable, Iterable, overload, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,8 +32,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 
 def measure_single_paulistring(
-    pauli_observable: pauli_string.PauliString,
-    key: Optional[Union[str, cirq.MeasurementKey]] = None,
+    pauli_observable: pauli_string.PauliString, key: str | cirq.MeasurementKey | None = None
 ) -> raw_types.Operation:
     """Returns a single PauliMeasurementGate which measures the pauli observable
 
@@ -97,7 +96,7 @@ def measure_paulistring_terms(
 @overload
 def measure(
     *target: raw_types.Qid,
-    key: Optional[Union[str, cirq.MeasurementKey]] = None,
+    key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     pass
@@ -107,7 +106,7 @@ def measure(
 def measure(
     __target: Iterable[raw_types.Qid],
     *,
-    key: Optional[Union[str, cirq.MeasurementKey]] = None,
+    key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
 ) -> raw_types.Operation:
     pass
@@ -115,9 +114,9 @@ def measure(
 
 def measure(
     *target,
-    key: Optional[Union[str, cirq.MeasurementKey]] = None,
+    key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
-    confusion_map: Optional[dict[tuple[int, ...], np.ndarray]] = None,
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 

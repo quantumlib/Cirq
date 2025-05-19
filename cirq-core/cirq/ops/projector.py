@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import itertools
 import math
-from typing import Any, Iterable, Mapping, Optional, TYPE_CHECKING
+from typing import Any, Iterable, Mapping, TYPE_CHECKING
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -46,7 +46,7 @@ class ProjectorString:
     def coefficient(self) -> complex:
         return self._coefficient
 
-    def matrix(self, projector_qids: Optional[Iterable[cirq.Qid]] = None) -> csr_matrix:
+    def matrix(self, projector_qids: Iterable[cirq.Qid] | None = None) -> csr_matrix:
         """Returns the matrix of self in computational basis of qubits.
 
         Args:

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+from typing import Any
 
 import attrs
 import numpy as np
@@ -959,7 +959,7 @@ class BingBongSerializer(OpSerializer):
     def to_proto(
         self,
         op: cirq.Operation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
         constants: list[v2.program_pb2.Constant],
         raw_constants: dict[Any, int],
@@ -1054,7 +1054,7 @@ class DiscountTagSerializer(TagSerializer):
     def to_proto(
         self,
         tag: Any,
-        msg: Optional[v2.program_pb2.Tag] = None,
+        msg: v2.program_pb2.Tag | None = None,
         *,
         constants: list[v2.program_pb2.Constant],
         raw_constants: dict[Any, int],

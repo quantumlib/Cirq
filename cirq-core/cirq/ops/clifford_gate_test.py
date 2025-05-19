@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import functools
 import itertools
-from typing import Type
 
 import numpy as np
 import pytest
@@ -430,7 +429,7 @@ def test_known_matrix(gate, gate_equiv):
         ('SWAP', cirq.CliffordGate),
     ],
 )
-def test_common_clifford_types(name: str, expected_cls: Type) -> None:
+def test_common_clifford_types(name: str, expected_cls: type) -> None:
     assert isinstance(getattr(cirq.CliffordGate, name), expected_cls)
     assert isinstance(getattr(cirq.SingleQubitCliffordGate, name), expected_cls)
 

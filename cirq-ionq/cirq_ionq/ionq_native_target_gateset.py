@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Iterator, Union
+from typing import Any, Iterator
 
 import numpy as np
 
@@ -47,7 +47,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     def _decompose_two_qubit_operation(
         self, op: cirq.Operation, _
-    ) -> Union[NotImplementedType, cirq.OP_TREE]:
+    ) -> NotImplementedType | cirq.OP_TREE:
         if not cirq.has_unitary(op):
             return NotImplemented
         mat = cirq.unitary(op)
@@ -73,7 +73,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
 
     def _decompose_multi_qubit_operation(
         self, op: cirq.Operation, _
-    ) -> Union[NotImplementedType, cirq.OP_TREE]:
+    ) -> NotImplementedType | cirq.OP_TREE:
         if isinstance(op.gate, cirq.CCZPowGate):
             return self.decompose_all_to_all_connect_ccz_gate(op.gate, op.qubits)
         return NotImplemented

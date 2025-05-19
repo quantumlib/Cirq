@@ -24,7 +24,7 @@ import math
 import random
 import sys
 from dataclasses import dataclass
-from typing import cast, Optional
+from typing import cast
 
 import duet
 import numpy as np
@@ -166,9 +166,7 @@ class PauliTrace:
 
 
 def _estimate_pauli_traces_clifford(
-    n_qubits: int,
-    stabilizer_basis: list[cirq.DensePauliString],
-    n_measured_operators: Optional[int],
+    n_qubits: int, stabilizer_basis: list[cirq.DensePauliString], n_measured_operators: int | None
 ) -> list[PauliTrace]:
     """Estimates the Pauli traces in case the circuit is Clifford.
 
@@ -226,7 +224,7 @@ def _estimate_pauli_traces_clifford(
 
 
 def _estimate_pauli_traces_general(
-    qubits: list[cirq.Qid], circuit: cirq.Circuit, n_measured_operators: Optional[int]
+    qubits: list[cirq.Qid], circuit: cirq.Circuit, n_measured_operators: int | None
 ) -> list[PauliTrace]:
     """Estimates the Pauli traces in case the circuit is not Clifford.
 
@@ -265,7 +263,7 @@ def _estimate_pauli_traces_general(
     return pauli_traces
 
 
-def _estimate_std_devs_clifford(fidelity: float, n: int) -> tuple[Optional[float], float]:
+def _estimate_std_devs_clifford(fidelity: float, n: int) -> tuple[float | None, float]:
     """Estimates the standard deviation of the measurement for Clifford circuits.
 
     Args:
@@ -317,21 +315,21 @@ class DFEIntermediateResult:
 
     # If the circuit is Clifford, the Clifford tableau from which we can extract
     # a list of Pauli strings for a basis of the stabilizers.
-    clifford_tableau: Optional[cirq.CliffordTableau]
+    clifford_tableau: cirq.CliffordTableau | None
     # The list of Pauli traces we can sample from.
     pauli_traces: list[PauliTrace]
     # Measurement results from sampling the circuit.
     trial_results: list[Result]
     # Standard deviations (estimate based on fidelity and bound)
-    std_dev_estimate: Optional[float]
-    std_dev_bound: Optional[float]
+    std_dev_estimate: float | None
+    std_dev_bound: float | None
 
 
 def direct_fidelity_estimation(
     circuit: cirq.Circuit,
     qubits: list[cirq.Qid],
     sampler: cirq.Sampler,
-    n_measured_operators: Optional[int],
+    n_measured_operators: int | None,
     samples_per_term: int,
 ):
     """Perform a direct fidelity estimation.
@@ -443,8 +441,8 @@ def direct_fidelity_estimation(
 
     estimated_fidelity = fidelity / len(pauli_traces)
 
-    std_dev_estimate: Optional[float]
-    std_dev_bound: Optional[float]
+    std_dev_estimate: float | None
+    std_dev_bound: float | None
     if clifford_circuit:
         std_dev_estimate, std_dev_bound = _estimate_std_devs_clifford(
             estimated_fidelity, len(measured_pauli_traces)
@@ -495,7 +493,7 @@ def parse_arguments(args):
     return vars(parser.parse_args(args))
 
 
-def main(*, n_measured_operators: Optional[int], samples_per_term: int):
+def main(*, n_measured_operators: int | None, samples_per_term: int):
     circuit, qubits = build_circuit()
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))

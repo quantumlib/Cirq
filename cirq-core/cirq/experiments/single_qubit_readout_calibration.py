@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 import time
-from typing import Any, cast, Iterable, Optional, TYPE_CHECKING
+from typing import Any, cast, Iterable, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -62,7 +62,7 @@ class SingleQubitReadoutCalibrationResult:
 
     def plot_heatmap(
         self,
-        axs: Optional[tuple[plt.Axes, plt.Axes]] = None,
+        axs: tuple[plt.Axes, plt.Axes] | None = None,
         annotation_format: str = '0.1%',
         **plot_kwargs: Any,
     ) -> tuple[plt.Axes, plt.Axes]:
@@ -110,16 +110,16 @@ class SingleQubitReadoutCalibrationResult:
 
     def plot_integrated_histogram(
         self,
-        ax: Optional[plt.Axes] = None,
+        ax: plt.Axes | None = None,
         cdf_on_x: bool = False,
         axis_label: str = 'Readout error rate',
         semilog: bool = True,
         median_line: bool = True,
-        median_label: Optional[str] = 'median',
+        median_label: str | None = 'median',
         mean_line: bool = False,
-        mean_label: Optional[str] = 'mean',
+        mean_label: str | None = 'mean',
         show_zero: bool = False,
-        title: Optional[str] = None,
+        title: str | None = None,
         **kwargs,
     ) -> plt.Axes:
         """Plot the readout errors using cirq.integrated_histogram().
@@ -238,8 +238,8 @@ def estimate_parallel_single_qubit_readout_errors(
     qubits: Iterable[cirq.Qid],
     trials: int = 20,
     repetitions: int = 1000,
-    trials_per_batch: Optional[int] = None,
-    bit_strings: Optional[np.ndarray] = None,
+    trials_per_batch: int | None = None,
+    bit_strings: np.ndarray | None = None,
 ) -> SingleQubitReadoutCalibrationResult:
     """Estimate single qubit readout error using parallel operations.
 

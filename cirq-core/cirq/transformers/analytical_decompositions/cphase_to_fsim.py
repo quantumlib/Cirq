@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -98,7 +98,7 @@ def decompose_cphase_into_two_fsim(
     cphase_gate: cirq.CZPowGate,
     *,
     fsim_gate: cirq.FSimGate,
-    qubits: Optional[Sequence[cirq.Qid]] = None,
+    qubits: Sequence[cirq.Qid] | None = None,
     atol: float = 1e-8,
 ) -> cirq.OP_TREE:
     """Decomposes CZPowGate into two FSimGates.

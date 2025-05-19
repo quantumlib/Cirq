@@ -20,7 +20,7 @@ passed as a list.
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Iterator, Optional, Sequence, TYPE_CHECKING
+from typing import AbstractSet, Any, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -91,7 +91,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if self._is_parameterized_():
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])

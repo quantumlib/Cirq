@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 
 from pyquil import get_qc
 from pyquil.api import QuantumComputer
@@ -97,7 +96,7 @@ class RigettiQCSService:
         )
 
     @staticmethod
-    def list_quantum_processors(client: Optional[QCSClient] = None) -> list[str]:
+    def list_quantum_processors(client: QCSClient | None = None) -> list[str]:
         """Retrieve a list of available Rigetti quantum processors.
 
         Args:
@@ -114,7 +113,7 @@ class RigettiQCSService:
 
     @staticmethod
     def get_quilt_calibrations(
-        quantum_processor_id: str, client: Optional[QCSClient] = None
+        quantum_processor_id: str, client: QCSClient | None = None
     ) -> str:  # pragma: no cover
         """Retrieve the calibration data used for client-side Quil-T generation.
 
@@ -133,7 +132,7 @@ class RigettiQCSService:
 
     @staticmethod
     def get_instruction_set_architecture(
-        quantum_processor_id: str, client: Optional[QCSClient] = None
+        quantum_processor_id: str, client: QCSClient | None = None
     ) -> InstructionSetArchitecture:  # pragma: no cover
         """Retrieve the Instruction Set Architecture of a QuantumProcessor by ID. This
         includes site specific operations and native gate capabilities.
@@ -157,8 +156,8 @@ class RigettiQCSService:
 def get_rigetti_qcs_service(
     quantum_processor_id: str,
     *,
-    as_qvm: Optional[bool] = None,
-    noisy: Optional[bool] = None,
+    as_qvm: bool | None = None,
+    noisy: bool | None = None,
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
 ) -> RigettiQCSService:

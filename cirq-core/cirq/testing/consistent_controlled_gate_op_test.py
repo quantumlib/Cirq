@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Collection, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Collection, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -34,9 +34,7 @@ class BadGateOperation(cirq.GateOperation):
     def controlled_by(
         self,
         *control_qubits: cirq.Qid,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
     ) -> cirq.Operation:
         return cirq.ControlledOperation(control_qubits, self, control_values)
 
@@ -50,11 +48,9 @@ class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
 
     def controlled(
         self,
-        num_controls: Optional[int] = None,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
-        control_qid_shape: Optional[tuple[int, ...]] = None,
+        num_controls: int | None = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
+        control_qid_shape: tuple[int, ...] | None = None,
     ) -> cirq.Gate:
         ret = super().controlled(num_controls, control_values, control_qid_shape)
         if num_controls == 1 and control_values is None:

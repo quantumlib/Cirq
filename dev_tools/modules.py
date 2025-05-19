@@ -48,7 +48,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
@@ -117,7 +117,7 @@ def list_modules(
     return result
 
 
-def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> Optional[str]:
+def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str | None:
     """Check for all versions are the same and return that version.
 
     Lists all the modules within `search_dir` (default the current working directory), checks that

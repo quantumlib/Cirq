@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import Any, Sequence, Union
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -70,7 +70,7 @@ class GPIGate(cirq.Gate):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Union[str, protocols.CircuitDiagramInfo]:
+    ) -> str | protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI({self.phase!r})',))
 
     def __pow__(self, power):
@@ -134,7 +134,7 @@ class GPI2Gate(cirq.Gate):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Union[str, protocols.CircuitDiagramInfo]:
+    ) -> str | protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI2({self.phase!r})',))
 
     def _num_qubits_(self) -> int:
@@ -229,7 +229,7 @@ class MSGate(cirq.Gate):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Union[str, protocols.CircuitDiagramInfo]:
+    ) -> str | protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=(f'MS({self.phi0!r})', f'MS({self.phi1!r})')
         )
@@ -321,7 +321,7 @@ class ZZGate(cirq.Gate):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Union[str, protocols.CircuitDiagramInfo]:
+    ) -> str | protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(wire_symbols=(f'ZZ({self.theta!r})', 'ZZ'))
 
     def __repr__(self) -> str:

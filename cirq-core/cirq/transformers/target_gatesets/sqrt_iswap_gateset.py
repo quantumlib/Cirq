@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING
 
 from cirq import ops, protocols
 from cirq.transformers.analytical_decompositions import two_qubit_to_sqrt_iswap
@@ -49,9 +49,9 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         self,
         *,
         atol: float = 1e-8,
-        required_sqrt_iswap_count: Optional[int] = None,
+        required_sqrt_iswap_count: int | None = None,
         use_sqrt_iswap_inv: bool = False,
-        additional_gates: Sequence[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = (),
+        additional_gates: Sequence[type[cirq.Gate] | cirq.Gate | cirq.GateFamily] = (),
     ):
         """Initializes `cirq.SqrtIswapTargetGateset`
 

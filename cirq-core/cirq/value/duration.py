@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import AbstractSet, Any, Optional, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -45,8 +45,8 @@ document(
 )
 
 
-_NUMERIC_INPUT_TYPE = Union[int, float, sympy.Expr, np.number]
-_NUMERIC_OUTPUT_TYPE = Union[int, float, sympy.Expr]
+_NUMERIC_INPUT_TYPE = int | float | sympy.Expr | np.number
+_NUMERIC_OUTPUT_TYPE = int | float | sympy.Expr
 
 
 class Duration:
@@ -159,7 +159,7 @@ class Duration:
     def __rmul__(self, other) -> Duration:
         return self.__mul__(other)
 
-    def __truediv__(self, other) -> Union[Duration, float]:
+    def __truediv__(self, other) -> Duration | float:
         if isinstance(other, (int, float, sympy.Expr)):
             new_time_vals = [x / other for x in self._time_vals]
             return _duration_from_time_vals(new_time_vals)
@@ -265,7 +265,7 @@ class Duration:
         return {'picos': self.total_picos()}
 
 
-def _attempt_duration_like_to_duration(value: Any) -> Optional[Duration]:
+def _attempt_duration_like_to_duration(value: Any) -> Duration | None:
     if isinstance(value, Duration):
         return value
     if isinstance(value, datetime.timedelta):

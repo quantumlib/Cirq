@@ -15,7 +15,6 @@
 """Utility methods related to optimizing quantum circuits."""
 
 import math
-from typing import Optional
 
 import numpy as np
 import sympy
@@ -196,7 +195,7 @@ def single_qubit_matrix_to_phased_x_z(mat: np.ndarray, atol: float = 0) -> list[
     return result
 
 
-def single_qubit_matrix_to_phxz(mat: np.ndarray, atol: float = 0) -> Optional[ops.PhasedXZGate]:
+def single_qubit_matrix_to_phxz(mat: np.ndarray, atol: float = 0) -> ops.PhasedXZGate | None:
     """Implements a single-qubit operation with a PhasedXZ gate.
 
     Under the hood, this uses deconstruct_single_qubit_matrix_into_angles which

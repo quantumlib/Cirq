@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, Iterator, Optional, TYPE_CHECKING, Union
+from typing import cast, Iterable, Iterator, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 def eject_phased_paulis(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 1e-8,
     eject_parameterized: bool = False,
 ) -> cirq.Circuit:
@@ -296,7 +296,7 @@ def _double_cross_over_cz(
 
 def _try_get_known_cz_half_turns(
     op: ops.Operation, no_symbolic: bool = False
-) -> Optional[value.TParamVal]:
+) -> value.TParamVal | None:
     if not isinstance(op.gate, ops.CZPowGate):
         return None
     h = op.gate.exponent
@@ -307,7 +307,7 @@ def _try_get_known_cz_half_turns(
 
 def _try_get_known_phased_pauli(
     op: ops.Operation, no_symbolic: bool = False
-) -> Optional[tuple[value.TParamVal, value.TParamVal]]:
+) -> tuple[value.TParamVal, value.TParamVal] | None:
     if no_symbolic and protocols.is_parameterized(op):
         return None
     gate = op.gate
@@ -335,7 +335,7 @@ def _try_get_known_phased_pauli(
 
 def _try_get_known_z_half_turns(
     op: ops.Operation, no_symbolic: bool = False
-) -> Optional[value.TParamVal]:
+) -> value.TParamVal | None:
     g = op.gate
     if (
         isinstance(g, ops.PhasedXZGate)
@@ -356,8 +356,8 @@ def _try_get_known_z_half_turns(
 
 
 def _phased_x_or_pauli_gate(
-    exponent: Union[float, sympy.Expr], phase_exponent: Union[float, sympy.Expr], atol: float
-) -> Union[cirq.PhasedXPowGate, cirq.XPowGate, cirq.YPowGate]:
+    exponent: float | sympy.Expr, phase_exponent: float | sympy.Expr, atol: float
+) -> cirq.PhasedXPowGate | cirq.XPowGate | cirq.YPowGate:
     """Return PhasedXPowGate or X or Y gate if equivalent within atol in z-axis turns."""
     if not isinstance(phase_exponent, sympy.Expr) or phase_exponent.is_constant():
         half_turns = value.canonicalize_half_turns(float(phase_exponent))

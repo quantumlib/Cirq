@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 class StateVectorMixin:
     """A mixin that provide methods for objects that have a state vector."""
 
-    def __init__(self, qubit_map: Optional[Mapping[cirq.Qid, int]] = None, *args, **kwargs):
+    def __init__(self, qubit_map: Mapping[cirq.Qid, int] | None = None, *args, **kwargs):
         """Inits StateVectorMixin.
 
         Args:
@@ -105,7 +105,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: Optional[list[cirq.Qid]] = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: list[cirq.Qid] | None = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the qubits provided.
@@ -172,7 +172,7 @@ def sample_state_vector(
     state_vector: np.ndarray,
     indices: Sequence[int],
     *,  # Force keyword args
-    qid_shape: Optional[tuple[int, ...]] = None,
+    qid_shape: tuple[int, ...] | None = None,
     repetitions: int = 1,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
@@ -237,8 +237,8 @@ def measure_state_vector(
     state_vector: np.ndarray,
     indices: Sequence[int],
     *,  # Force keyword args
-    qid_shape: Optional[tuple[int, ...]] = None,
-    out: Optional[np.ndarray] = None,
+    qid_shape: tuple[int, ...] | None = None,
+    out: np.ndarray | None = None,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> tuple[list[int], np.ndarray]:
     """Performs a measurement of the state in the computational basis.

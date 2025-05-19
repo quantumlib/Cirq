@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import datetime
-from typing import cast, Optional, Sequence
+from typing import cast, Sequence
 
 import duet
 
@@ -38,7 +38,7 @@ def _to_engine_results(
     batch_results: Sequence[Sequence[cirq.Result]],
     *,
     job_id: str,
-    job_finished_time: Optional[datetime.datetime] = None,
+    job_finished_time: datetime.datetime | None = None,
 ) -> list[list[EngineResult]]:
     """Convert cirq.Result from simulators into (simulated) EngineResults."""
 
@@ -76,7 +76,7 @@ class SimulatedLocalJob(AbstractLocalJob):
     def __init__(
         self,
         *args,
-        sampler: Optional[cirq.Sampler] = None,
+        sampler: cirq.Sampler | None = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
         **kwargs,
     ):
@@ -104,7 +104,7 @@ class SimulatedLocalJob(AbstractLocalJob):
         # See https://github.com/python/mypy/issues/6037.
         return self._state  # type: ignore[return-value]
 
-    def failure(self) -> Optional[tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         """Return failure code and message of the job if present."""
         return (self._failure_code, self._failure_message)
 

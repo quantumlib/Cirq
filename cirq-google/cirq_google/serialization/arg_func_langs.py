@@ -13,7 +13,7 @@
 # limitations under the License.
 import math
 import numbers
-from typing import cast, Optional, Sequence, Union
+from typing import cast, Sequence
 
 import numpy as np
 import sympy
@@ -28,11 +28,11 @@ from cirq_google.ops import InternalGate
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
-ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr, tunits.Value]
-ARG_RETURN_LIKE = Union[
-    float, int, str, list[bool], list[int], list[float], list[str], sympy.Expr, tunits.Value
-]
-FLOAT_ARG_LIKE = Union[float, sympy.Expr]
+ARG_LIKE = int | float | numbers.Real | Sequence[bool] | str | sympy.Expr | tunits.Value
+ARG_RETURN_LIKE = (
+    float | int | str | list[bool] | list[int] | list[float] | list[str] | sympy.Expr | tunits.Value
+)
+FLOAT_ARG_LIKE = float | sympy.Expr
 
 # Types for comparing floats
 # Includes sympy types.  Needed for arg parsing.
@@ -70,7 +70,7 @@ _SUPPORTED_SYMPY_TYPES = tuple(_SUPPORTED_SYMPY_TYPE_MAPPING.keys())
 
 
 def float_arg_to_proto(
-    value: ARG_LIKE, *, out: Optional[v2.program_pb2.FloatArg] = None
+    value: ARG_LIKE, *, out: v2.program_pb2.FloatArg | None = None
 ) -> v2.program_pb2.FloatArg:
     """Writes an argument value into an FloatArg proto.
 
@@ -96,9 +96,7 @@ def float_arg_to_proto(
     return msg
 
 
-def arg_to_proto(
-    value: ARG_LIKE, *, out: Optional[v2.program_pb2.Arg] = None
-) -> v2.program_pb2.Arg:
+def arg_to_proto(value: ARG_LIKE, *, out: v2.program_pb2.Arg | None = None) -> v2.program_pb2.Arg:
     """Writes an argument value into an Arg proto.
 
     Args:
@@ -227,7 +225,7 @@ def _ndarray_from_proto(msg: v2.program_pb2.ArgValue):
             return ndarrays.from_bitarray(ndarray_msg.bit_array)
 
 
-def _tuple_to_proto(value: Union[list, tuple, set, frozenset], out: v2.program_pb2.Tuple):
+def _tuple_to_proto(value: list | tuple | set | frozenset, out: v2.program_pb2.Tuple):
     """Converts a tuple of mixed values to Arg protos."""
     if isinstance(value, list):
         out.sequence_type = v2.program_pb2.Tuple.SequenceType.LIST
@@ -244,9 +242,7 @@ def _tuple_to_proto(value: Union[list, tuple, set, frozenset], out: v2.program_p
         arg_to_proto(arg, out=new_arg)
 
 
-def _arg_func_to_proto(
-    value: ARG_LIKE, msg: Union[v2.program_pb2.Arg, v2.program_pb2.FloatArg]
-) -> None:
+def _arg_func_to_proto(value: ARG_LIKE, msg: v2.program_pb2.Arg | v2.program_pb2.FloatArg) -> None:
     if isinstance(value, sympy.Symbol):
         msg.symbol = str(value.free_symbols.pop())
     elif isinstance(value, _SUPPORTED_SYMPY_TYPES):
@@ -268,8 +264,8 @@ def _arg_func_to_proto(
 
 
 def float_arg_from_proto(
-    arg_proto: v2.program_pb2.FloatArg, *, required_arg_name: Optional[str] = None
-) -> Optional[FLOAT_ARG_LIKE]:
+    arg_proto: v2.program_pb2.FloatArg, *, required_arg_name: str | None = None
+) -> FLOAT_ARG_LIKE | None:
     """Extracts a python value from an argument value proto.
 
     This function handles `FloatArg` protos, that are required
@@ -313,8 +309,8 @@ def float_arg_from_proto(
 
 
 def arg_from_proto(
-    arg_proto: v2.program_pb2.Arg, *, required_arg_name: Optional[str] = None
-) -> Optional[ARG_RETURN_LIKE]:
+    arg_proto: v2.program_pb2.Arg, *, required_arg_name: str | None = None
+) -> ARG_RETURN_LIKE | None:
     """Extracts a python value from an argument value proto.
 
     Args:
@@ -410,8 +406,8 @@ def arg_from_proto(
 
 
 def _arg_func_from_proto(
-    func: v2.program_pb2.ArgFunction, *, required_arg_name: Optional[str] = None
-) -> Optional[ARG_RETURN_LIKE]:
+    func: v2.program_pb2.ArgFunction, *, required_arg_name: str | None = None
+) -> ARG_RETURN_LIKE | None:
 
     if (op_expr := _SYMPY_EXPR_PER_TYPE.get(func.type, None)) is not None:
         return op_expr(
@@ -481,7 +477,7 @@ def condition_from_proto(condition: v2.program_pb2.Arg) -> Condition:
 
 
 def internal_gate_arg_to_proto(
-    value: InternalGate, *, out: Optional[v2.program_pb2.InternalGate] = None
+    value: InternalGate, *, out: v2.program_pb2.InternalGate | None = None
 ):
     """Writes an InternalGate object into an InternalGate proto.
 
@@ -531,7 +527,7 @@ def internal_gate_from_proto(msg: v2.program_pb2.InternalGate) -> InternalGate:
 
 
 def clifford_tableau_arg_to_proto(
-    value: CliffordTableau, *, out: Optional[v2.program_pb2.CliffordTableau] = None
+    value: CliffordTableau, *, out: v2.program_pb2.CliffordTableau | None = None
 ):
     """Writes an CliffordTableau object into an CliffordTableau proto.
     Args:

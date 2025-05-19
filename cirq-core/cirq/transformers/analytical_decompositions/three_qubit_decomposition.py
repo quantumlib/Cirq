@@ -14,7 +14,7 @@
 
 """Utility methods for decomposing three-qubit unitaries."""
 
-from typing import Optional, Sequence, Union
+from typing import Sequence
 
 import numpy as np
 
@@ -124,9 +124,9 @@ def _two_qubit_multiplexor_to_ops(
     u1: np.ndarray,
     u2: np.ndarray,
     shift_left: bool = True,
-    diagonal: Optional[np.ndarray] = None,
+    diagonal: np.ndarray | None = None,
     atol: float = 1e-8,
-) -> tuple[Optional[np.ndarray], list[ops.Operation]]:
+) -> tuple[np.ndarray | None, list[ops.Operation]]:
     r"""Converts a two qubit double multiplexor to circuit.
     Input: U_1 ⊕ U_2, with select qubit a (i.e. a = |0> => U_1(b,c),
     a = |1> => U_2(b,c).
@@ -185,7 +185,7 @@ def _two_qubit_multiplexor_to_ops(
 
     w = d_v @ w
 
-    d_w: Optional[np.ndarray]
+    d_w: np.ndarray | None
 
     # if it's interesting to extract the diagonal then let's do it
     if shift_left:
@@ -258,7 +258,7 @@ def _middle_multiplexor_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, eigvals: n
     return _optimize_multiplexed_angles_circuit(ops)
 
 
-def _multiplexed_angles(theta: Union[Sequence[float], np.ndarray]) -> np.ndarray:
+def _multiplexed_angles(theta: Sequence[float] | np.ndarray) -> np.ndarray:
     """Calculates the angles for a 4-way multiplexed rotation.
 
     For example, if we want rz(theta[i]) if the select qubits are in state

@@ -16,7 +16,7 @@
 
 import warnings
 from types import NotImplementedType
-from typing import Any, Sequence, TypeVar, Union
+from typing import Any, Sequence, TypeVar
 
 import numpy as np
 from typing_extensions import Protocol
@@ -41,7 +41,7 @@ class SupportsKraus(Protocol):
     """An object that may be describable as a quantum channel."""
 
     @doc_private
-    def _kraus_(self) -> Union[Sequence[np.ndarray], NotImplementedType]:
+    def _kraus_(self) -> Sequence[np.ndarray] | NotImplementedType:
         r"""A list of Kraus matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of a
@@ -94,7 +94,7 @@ class SupportsKraus(Protocol):
 
 def kraus(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
-) -> Union[tuple[np.ndarray, ...], TDefault]:
+) -> tuple[np.ndarray, ...] | TDefault:
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of

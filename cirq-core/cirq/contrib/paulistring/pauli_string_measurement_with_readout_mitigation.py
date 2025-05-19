@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import itertools
 import time
-from typing import cast, FrozenSet, Optional, Sequence, TYPE_CHECKING, Union
+from typing import cast, Sequence, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -50,7 +50,7 @@ class PauliStringMeasurementResult:
     mitigated_stddev: float
     unmitigated_expectation: float
     unmitigated_stddev: float
-    calibration_result: Optional[SingleQubitReadoutCalibrationResult] = None
+    calibration_result: SingleQubitReadoutCalibrationResult | None = None
 
 
 @attrs.frozen
@@ -67,7 +67,7 @@ class CircuitToPauliStringsMeasurementResult:
 
 
 def _commute_or_identity(
-    op1: Union[ops.Pauli, ops.IdentityGate], op2: Union[ops.Pauli, ops.IdentityGate]
+    op1: ops.Pauli | ops.IdentityGate, op2: ops.Pauli | ops.IdentityGate
 ) -> bool:
     if op1 == ops.I or op2 == ops.I:
         return True
@@ -77,7 +77,7 @@ def _commute_or_identity(
 def _are_two_pauli_strings_qubit_wise_commuting(
     pauli_str1: ops.PauliString,
     pauli_str2: ops.PauliString,
-    all_qubits: Union[list[ops.Qid], FrozenSet[ops.Qid]],
+    all_qubits: list[ops.Qid] | frozenset[ops.Qid],
 ) -> bool:
     for qubit in all_qubits:
         op1 = pauli_str1.get(qubit, default=ops.I)
@@ -89,7 +89,7 @@ def _are_two_pauli_strings_qubit_wise_commuting(
 
 
 def _validate_group_paulis_qwc(
-    pauli_strs: list[ops.PauliString], all_qubits: Union[list[ops.Qid], FrozenSet[ops.Qid]]
+    pauli_strs: list[ops.PauliString], all_qubits: list[ops.Qid] | frozenset[ops.Qid]
 ):
     """Checks if a group of Pauli strings are Qubit-Wise Commuting.
 
@@ -130,14 +130,14 @@ def _validate_single_pauli_string(pauli_str: ops.PauliString):
 
 
 def _validate_input(
-    circuits_to_pauli: Union[
-        dict[circuits.FrozenCircuit, list[ops.PauliString]],
-        dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
-    ],
+    circuits_to_pauli: (
+        dict[circuits.FrozenCircuit, list[ops.PauliString]]
+        | dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]
+    ),
     pauli_repetitions: int,
     readout_repetitions: int,
     num_random_bitstrings: int,
-    rng_or_seed: Union[np.random.Generator, int],
+    rng_or_seed: np.random.Generator | int,
 ):
     if not circuits_to_pauli:
         raise ValueError("Input circuits must not be empty.")
@@ -146,7 +146,7 @@ def _validate_input(
         if not isinstance(circuit, circuits.FrozenCircuit):
             raise TypeError("All keys in 'circuits_to_pauli' must be FrozenCircuit instances.")
 
-    first_value: Union[list[ops.PauliString], list[list[ops.PauliString]]] = next(
+    first_value: list[ops.PauliString] | list[list[ops.PauliString]] = next(
         iter(circuits_to_pauli.values())  # type: ignore
     )
     for circuit, pauli_strs_list in circuits_to_pauli.items():
@@ -198,10 +198,10 @@ def _validate_input(
 
 
 def _normalize_input_paulis(
-    circuits_to_pauli: Union[
-        dict[circuits.FrozenCircuit, list[ops.PauliString]],
-        dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
-    ],
+    circuits_to_pauli: (
+        dict[circuits.FrozenCircuit, list[ops.PauliString]]
+        | dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]
+    ),
 ) -> dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]:
     first_value = next(iter(circuits_to_pauli.values()))
     if (
@@ -368,15 +368,15 @@ def _process_pauli_measurement_results(
 
 
 def measure_pauli_strings(
-    circuits_to_pauli: Union[
-        dict[circuits.FrozenCircuit, list[ops.PauliString]],
-        dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
-    ],
+    circuits_to_pauli: (
+        dict[circuits.FrozenCircuit, list[ops.PauliString]]
+        | dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]
+    ),
     sampler: work.Sampler,
     pauli_repetitions: int,
     readout_repetitions: int,
     num_random_bitstrings: int,
-    rng_or_seed: Union[np.random.Generator, int],
+    rng_or_seed: np.random.Generator | int,
 ) -> list[CircuitToPauliStringsMeasurementResult]:
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Set
 
 import numpy as np
 import pytest
@@ -63,15 +62,15 @@ class ExampleNoiseProperties(SuperconductingQubitsNoiseProperties):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def single_qubit_gates(cls) -> Set[type]:
+    def single_qubit_gates(cls) -> set[type]:
         return {cirq.ZPowGate, cirq.PhasedXZGate, cirq.MeasurementGate, cirq.ResetChannel}
 
     @classmethod
-    def symmetric_two_qubit_gates(cls) -> Set[type]:
+    def symmetric_two_qubit_gates(cls) -> set[type]:
         return {cirq.FSimGate, cirq.PhasedFSimGate, cirq.ISwapPowGate, cirq.CZPowGate}
 
     @classmethod
-    def asymmetric_two_qubit_gates(cls) -> Set[type]:
+    def asymmetric_two_qubit_gates(cls) -> set[type]:
         return set()
 
 

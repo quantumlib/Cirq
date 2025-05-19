@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Collection, Optional, Set
+from typing import cast, Collection
 
 import cirq
 from cirq_google.api import v2
@@ -27,7 +27,7 @@ _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"
 
 
-def _parse_device(s: str) -> tuple[list[cirq.GridQubit], dict[str, Set[cirq.GridQubit]]]:
+def _parse_device(s: str) -> tuple[list[cirq.GridQubit], dict[str, set[cirq.GridQubit]]]:
     """Parse ASCIIart device layout into info about qubits and connectivity.
 
     Args:
@@ -44,7 +44,7 @@ def _parse_device(s: str) -> tuple[list[cirq.GridQubit], dict[str, Set[cirq.Grid
     """
     lines = s.strip().split('\n')
     qubits: list[cirq.GridQubit] = []
-    measurement_lines: dict[str, Set[cirq.GridQubit]] = {}
+    measurement_lines: dict[str, set[cirq.GridQubit]] = {}
     for row, line in enumerate(lines):
         for col, c in enumerate(line.strip()):
             if c != '-':
@@ -58,7 +58,7 @@ def _parse_device(s: str) -> tuple[list[cirq.GridQubit], dict[str, Set[cirq.Grid
 def _create_grid_device_from_diagram(
     ascii_grid: str,
     gateset: cirq.Gateset,
-    gate_durations: Optional[dict[cirq.GateFamily, cirq.Duration]] = None,
+    gate_durations: dict[cirq.GateFamily, cirq.Duration] | None = None,
 ) -> grid_device.GridDevice:
     """Parse ASCIIart device layout into a GridDevice instance.
 

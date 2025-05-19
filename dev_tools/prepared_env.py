@@ -14,7 +14,6 @@
 
 import os
 import sys
-from typing import Optional
 
 import requests
 
@@ -26,11 +25,11 @@ class PreparedEnv:
 
     def __init__(
         self,
-        github_repo: Optional[github_repository.GithubRepository],
-        actual_commit_id: Optional[str],
+        github_repo: github_repository.GithubRepository | None,
+        actual_commit_id: str | None,
         compare_commit_id: str,
-        destination_directory: Optional[str],
-        virtual_env_path: Optional[str],
+        destination_directory: str | None,
+        virtual_env_path: str | None,
     ) -> None:
         """Initializes a description of a prepared (or desired) environment.
 
@@ -64,7 +63,7 @@ class PreparedEnv:
         return os.path.join(self.virtual_env_path, 'bin', program)
 
     def report_status_to_github(
-        self, state: str, description: str, context: str, target_url: Optional[str] = None
+        self, state: str, description: str, context: str, target_url: str | None = None
     ):
         """Sets a commit status indicator on github.
 

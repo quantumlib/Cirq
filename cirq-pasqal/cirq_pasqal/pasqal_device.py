@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence, Union
+from typing import Any, Sequence
 
 import networkx as nx
 import numpy as np
@@ -171,7 +171,7 @@ class PasqalVirtualDevice(PasqalDevice):
     """
 
     def __init__(
-        self, control_radius: float, qubits: Sequence[Union[ThreeDQubit, GridQubit, LineQubit]]
+        self, control_radius: float, qubits: Sequence[ThreeDQubit | GridQubit | LineQubit]
     ) -> None:
         """Initializes a device with some qubits.
 

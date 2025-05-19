@@ -13,7 +13,7 @@
 # limitations under the License.
 import copy
 import datetime
-from typing import Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import cirq
 from cirq_google.cloud import quantum
@@ -75,10 +75,10 @@ class AbstractLocalProgram(AbstractProgram):
 
     def list_jobs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
     ) -> Sequence['AbstractLocalJob']:
         """Returns the list of jobs for this program.
 
@@ -186,7 +186,7 @@ class AbstractLocalProgram(AbstractProgram):
             del self._labels[key]
         return self
 
-    def get_circuit(self, program_num: Optional[int] = None) -> cirq.Circuit:
+    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
 

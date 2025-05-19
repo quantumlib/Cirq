@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Callable, cast, Iterable, Iterator, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Callable, cast, Iterable, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
@@ -39,7 +39,7 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
     """
 
     def __init__(
-        self, identifier: str, target: Sequence[int], inputs: Sequence[Union[Sequence[int], int]]
+        self, identifier: str, target: Sequence[int], inputs: Sequence[Sequence[int] | int]
     ):
         """Inits QuirkArithmeticGate.
 
@@ -56,7 +56,7 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
         """
         self.identifier = identifier
         self.target: tuple[int, ...] = tuple(target)
-        self.inputs: tuple[Union[Sequence[int], int], ...] = tuple(
+        self.inputs: tuple[Sequence[int] | int, ...] = tuple(
             e if isinstance(e, int) else tuple(e) for e in inputs
         )
 
@@ -76,10 +76,10 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
     def _value_equality_values_(self) -> Any:
         return self.identifier, self.target, self.inputs
 
-    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
+    def registers(self) -> Sequence[int | Sequence[int]]:
         return [self.target, *self.inputs]
 
-    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> QuirkArithmeticGate:
+    def with_registers(self, *new_registers: int | Sequence[int]) -> QuirkArithmeticGate:
         if len(new_registers) != len(self.inputs) + 1:
             raise ValueError(
                 'Wrong number of registers.\n'
@@ -96,7 +96,7 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
 
         return QuirkArithmeticGate(self.identifier, new_registers[0], new_registers[1:])
 
-    def apply(self, *registers: int) -> Union[int, Iterable[int]]:
+    def apply(self, *registers: int) -> int | Iterable[int]:
         return self.operation(*registers)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
@@ -128,12 +128,12 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
         )
 
 
-_IntsToIntCallable = Union[
-    Callable[[int], int],
-    Callable[[int, int], int],
-    Callable[[int, int, int], int],
-    Callable[[int, int, int, int], int],
-]
+_IntsToIntCallable = (
+    Callable[[int], int]
+    | Callable[[int, int], int]
+    | Callable[[int, int, int], int]
+    | Callable[[int, int, int, int], int]
+)
 
 
 class _QuirkArithmeticCallable:
@@ -174,7 +174,7 @@ class ArithmeticCell(Cell):
         self,
         identifier: str,
         target: Sequence[cirq.Qid],
-        inputs: Sequence[Union[None, Sequence[cirq.Qid], int]],
+        inputs: Sequence[None | Sequence[cirq.Qid] | int],
     ):
         self.identifier = identifier
         self.target = tuple(target)
@@ -208,7 +208,7 @@ class ArithmeticCell(Cell):
     def operation(self):
         return ARITHMETIC_OP_TABLE[self.identifier]
 
-    def with_input(self, letter: str, register: Union[Sequence[cirq.Qid], int]) -> ArithmeticCell:
+    def with_input(self, letter: str, register: Sequence[cirq.Qid] | int) -> ArithmeticCell:
         new_inputs = [
             reg if letter != reg_letter else register
             for reg, reg_letter in zip(self.inputs, self.operation.letters)
@@ -222,7 +222,7 @@ class ArithmeticCell(Cell):
         if missing_inputs:
             raise ValueError(f'Missing input: {sorted(missing_inputs)}')
 
-        inputs = cast(Sequence[Union[Sequence['cirq.Qid'], int]], self.inputs)
+        inputs = cast(Sequence[Sequence['cirq.Qid'] | int], self.inputs)
         qubits = self.target + tuple(q for i in self.inputs if isinstance(i, Sequence) for q in i)
         return QuirkArithmeticGate(
             self.identifier,
@@ -349,7 +349,7 @@ def _arithmetic_gate(identifier: str, size: int, func: _IntsToIntCallable) -> Ce
 
 ARITHMETIC_OP_TABLE: dict[str, _QuirkArithmeticCallable] = {}
 # Caching is necessary in order to avoid overwriting entries in the table.
-_cached_cells: Optional[tuple[CellMaker, ...]] = None
+_cached_cells: tuple[CellMaker, ...] | None = None
 
 
 def generate_all_arithmetic_cell_makers() -> Iterable[CellMaker]:

@@ -24,10 +24,8 @@ from typing import (
     Container,
     Iterable,
     Iterator,
-    Optional,
     Sequence,
     TYPE_CHECKING,
-    Union,
 )
 
 import networkx as nx
@@ -305,7 +303,7 @@ class CircuitLibraryCombination:
     `get_random_combinations_for_pairs`.
     """
 
-    layer: Optional[Any]
+    layer: Any | None
     combinations: np.ndarray
     pairs: list[QidPairT]
 
@@ -664,7 +662,7 @@ class _FixedSingleQubitLayerFactory:
         return circuits.Moment(v.on(q) for q, v in self.fixed_single_qubit_layer.items())
 
 
-_SingleQubitLayerFactory = Union[_FixedSingleQubitLayerFactory, _RandomSingleQubitLayerFactory]
+_SingleQubitLayerFactory = _FixedSingleQubitLayerFactory | _RandomSingleQubitLayerFactory
 
 
 def _single_qubit_gates_arg_to_factory(

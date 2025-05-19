@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import functools
 import weakref
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -31,8 +31,8 @@ class _BaseNamedQid(raw_types.Qid):
 
     _name: str
     _dimension: int
-    _comp_key: Optional[str] = None
-    _hash: Optional[int] = None
+    _comp_key: str | None = None
+    _hash: int | None = None
 
     def __hash__(self) -> int:
         if self._hash is None:

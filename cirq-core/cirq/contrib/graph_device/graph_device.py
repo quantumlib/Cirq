@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, Optional, TYPE_CHECKING
+from typing import cast, Iterable, TYPE_CHECKING
 
 from cirq import devices, ops, value
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
@@ -122,8 +122,8 @@ class UndirectedGraphDevice(devices.Device):
 
     def __init__(
         self,
-        device_graph: Optional[UndirectedHypergraph] = None,
-        crosstalk_graph: Optional[UndirectedHypergraph] = None,
+        device_graph: UndirectedHypergraph | None = None,
+        crosstalk_graph: UndirectedHypergraph | None = None,
     ) -> None:
         """Inits UndirectedGraphDevice.
 

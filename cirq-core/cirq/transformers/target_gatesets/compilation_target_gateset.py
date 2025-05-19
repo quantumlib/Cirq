@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Hashable, Optional, Type, TYPE_CHECKING, Union
+from typing import Hashable, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
@@ -67,7 +67,7 @@ def create_transformer_with_kwargs(transformer: cirq.TRANSFORMER, **kwargs) -> c
         raise SyntaxError('**kwargs to be captured must not contain `context`.')
 
     def transformer_with_kwargs(
-        circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+        circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
     ) -> cirq.AbstractCircuit:
         return transformer(circuit, context=context, **kwargs)
 
@@ -83,8 +83,8 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        *gates: Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily],
-        name: Optional[str] = None,
+        *gates: type[cirq.Gate] | cirq.Gate | cirq.GateFamily,
+        name: str | None = None,
         unroll_circuit_op: bool = True,
         preserve_moment_structure: bool = True,
         reorder_operations: bool = False,

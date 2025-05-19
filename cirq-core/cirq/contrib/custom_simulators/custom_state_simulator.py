@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Generic, Sequence, Type, TYPE_CHECKING
+from typing import Any, Generic, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -47,7 +47,7 @@ class CustomStateSimulator(
 
     def __init__(
         self,
-        state_type: Type[TSimulationState],
+        state_type: type[TSimulationState],
         *,
         noise: cirq.NOISE_MODEL_LIKE = None,
         split_untangled_states: bool = False,

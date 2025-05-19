@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import collections
-from typing import FrozenSet, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Sequence, TYPE_CHECKING, TypeVar
 
 import duet
 import pandas as pd
@@ -237,8 +237,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
     ) -> Sequence[Sequence[cirq.Result]]:
         """Runs the supplied circuits asynchronously.
 
@@ -288,8 +288,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     def _normalize_batch_args(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[Sequence[cirq.Sweepable]] = None,
-        repetitions: Union[int, Sequence[int]] = 1,
+        params_list: Sequence[cirq.Sweepable] | None = None,
+        repetitions: int | Sequence[int] = 1,
     ) -> tuple[Sequence[cirq.Sweepable], Sequence[int]]:
         if params_list is None:
             params_list = [None] * len(programs)
@@ -310,7 +310,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     def sample_expectation_values(
         self,
         program: cirq.AbstractCircuit,
-        observables: Union[cirq.PauliSumLike, list[cirq.PauliSumLike]],
+        observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
         *,
         num_samples: int,
         params: cirq.Sweepable = None,
@@ -380,7 +380,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         flat_params: list[cirq.ParamMappingType] = [
             pr.param_dict for pr in study.to_resolvers(params)
         ]
-        circuit_param_to_sweep_i: dict[FrozenSet[tuple[str, Union[int, tuple[int, int]]]], int] = {
+        circuit_param_to_sweep_i: dict[frozenset[tuple[str, int | tuple[int, int]]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
 

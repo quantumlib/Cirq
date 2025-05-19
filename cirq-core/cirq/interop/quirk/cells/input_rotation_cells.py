@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Iterator, Optional, Sequence, Union
+from typing import Any, Iterable, Iterator, Sequence
 
 import numpy as np
 
@@ -30,7 +30,7 @@ class InputRotationCell(Cell):
     def __init__(
         self,
         identifier: str,
-        register: Optional[Sequence[cirq.Qid]],
+        register: Sequence[cirq.Qid] | None,
         base_operation: cirq.Operation,
         exponent_sign: int,
     ):
@@ -64,7 +64,7 @@ class InputRotationCell(Cell):
             exponent_sign=self.exponent_sign,
         )
 
-    def with_input(self, letter: str, register: Union[Sequence[cirq.Qid], int]) -> Cell:
+    def with_input(self, letter: str, register: Sequence[cirq.Qid] | int) -> Cell:
         # Parameterized rotations use input A as their parameter.
         if self.register is None and letter == 'a':
             if isinstance(register, int):

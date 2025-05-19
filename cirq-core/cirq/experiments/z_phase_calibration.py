@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import multiprocessing
 import multiprocessing.pool
-from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,17 +36,17 @@ if TYPE_CHECKING:
 
 def z_phase_calibration_workflow(
     sampler: cirq.Sampler,
-    qubits: Optional[Sequence[cirq.GridQubit]] = None,
+    qubits: Sequence[cirq.GridQubit] | None = None,
     two_qubit_gate: cirq.Gate = ops.CZ,
-    options: Optional[xeb_fitting.XEBPhasedFSimCharacterizationOptions] = None,
+    options: xeb_fitting.XEBPhasedFSimCharacterizationOptions | None = None,
     n_repetitions: int = 10**4,
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     atol: float = 1e-3,
-    num_workers_or_pool: Union[int, multiprocessing.pool.Pool] = -1,
-    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]] = None,
+    num_workers_or_pool: int | multiprocessing.pool.Pool = -1,
+    pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     tags: Sequence[Any] = (),
 ) -> tuple[xeb_fitting.XEBCharacterizationResult, pd.DataFrame]:
     """Perform z-phase calibration for excitation-preserving gates.
@@ -91,7 +91,7 @@ def z_phase_calibration_workflow(
         - A `pd.DataFrame` comparing the before and after fidelities.
     """
 
-    pool: Optional[multiprocessing.pool.Pool] = None
+    pool: multiprocessing.pool.Pool | None = None
     local_pool = False
     if isinstance(num_workers_or_pool, multiprocessing.pool.Pool):
         pool = num_workers_or_pool  # pragma: no cover
@@ -149,17 +149,17 @@ def z_phase_calibration_workflow(
 
 def calibrate_z_phases(
     sampler: cirq.Sampler,
-    qubits: Optional[Sequence[cirq.GridQubit]] = None,
+    qubits: Sequence[cirq.GridQubit] | None = None,
     two_qubit_gate: cirq.Gate = ops.CZ,
-    options: Optional[xeb_fitting.XEBPhasedFSimCharacterizationOptions] = None,
+    options: xeb_fitting.XEBPhasedFSimCharacterizationOptions | None = None,
     n_repetitions: int = 10**4,
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     atol: float = 1e-3,
-    num_workers_or_pool: Union[int, multiprocessing.pool.Pool] = -1,
-    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]] = None,
+    num_workers_or_pool: int | multiprocessing.pool.Pool = -1,
+    pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     tags: Sequence[Any] = (),
 ) -> dict[tuple[cirq.Qid, cirq.Qid], cirq.PhasedFSimGate]:
     """Perform z-phase calibration for excitation-preserving gates.
@@ -242,8 +242,8 @@ def calibrate_z_phases(
 
 def plot_z_phase_calibration_result(
     before_after_df: pd.DataFrame,
-    axes: Optional[np.ndarray[tuple[int, int], np.dtype[np.object_]]] = None,
-    pairs: Optional[Sequence[tuple[cirq.Qid, cirq.Qid]]] = None,
+    axes: np.ndarray[tuple[int, int], np.dtype[np.object_]] | None = None,
+    pairs: Sequence[tuple[cirq.Qid, cirq.Qid]] | None = None,
     *,
     with_error_bars: bool = False,
 ) -> np.ndarray[tuple[int, int], np.dtype[np.object_]]:
@@ -332,7 +332,7 @@ class CalibrationTransformer:
         self,
         circuit: cirq.AbstractCircuit,
         *,
-        context: Optional[transformer_api.TransformerContext] = None,
+        context: transformer_api.TransformerContext | None = None,
     ) -> cirq.Circuit:
         """Adds 3 ZPowGates around each calibrated gate to cancel the effect of Z phases.
 
@@ -343,7 +343,7 @@ class CalibrationTransformer:
         Returns:
             New circuit with the extra ZPowGates.
         """
-        new_moments: list[Union[list[cirq.Operation], cirq.Moment]] = []
+        new_moments: list[list[cirq.Operation] | cirq.Moment] = []
         for moment in circuit:
             before = []
             after = []

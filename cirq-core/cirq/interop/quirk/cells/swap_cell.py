@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Iterator, Optional, TYPE_CHECKING
+from typing import Any, Iterable, Iterator, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import Cell, CellMaker
@@ -38,7 +38,7 @@ class SwapCell(Cell):
             controls=Cell._replace_qubits(self._controls, qubits),
         )
 
-    def modify_column(self, column: list[Optional[Cell]]):
+    def modify_column(self, column: list[Cell | None]):
         # Swallow other swap cells.
         for i in range(len(column)):
             gate = column[i]

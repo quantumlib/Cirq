@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import cast, FrozenSet, Sequence, Set, TYPE_CHECKING
+from typing import cast, Sequence, TYPE_CHECKING
 
 from cirq import circuits
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation
@@ -37,7 +37,7 @@ def remove_redundant_acquaintance_opportunities(strategy: cirq.Circuit) -> int:
     LogicalAnnotator(mapping)(annotated_strategy)
 
     new_moments: list[cirq.Moment] = []
-    acquaintance_opps: Set[FrozenSet[int]] = set()
+    acquaintance_opps: set[frozenset[int]] = set()
     n_removed = 0
     for moment in annotated_strategy:
         new_moment: list[cirq.Operation] = []

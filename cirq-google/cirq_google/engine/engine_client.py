@@ -16,7 +16,7 @@ import datetime
 import sys
 import warnings
 from functools import cached_property
-from typing import AsyncIterable, Awaitable, Callable, Optional, Set, TypeVar, Union
+from typing import AsyncIterable, Awaitable, Callable, TypeVar
 
 import duet
 import proto
@@ -52,8 +52,8 @@ class EngineClient:
 
     def __init__(
         self,
-        service_args: Optional[dict] = None,
-        verbose: Optional[bool] = None,
+        service_args: dict | None = None,
+        verbose: bool | None = None,
         max_retry_delay_seconds: int = 3600,  # 1 hour
     ) -> None:
         """Constructs a client for the Quantum Engine API.
@@ -144,10 +144,10 @@ class EngineClient:
     async def create_program_async(
         self,
         project_id: str,
-        program_id: Optional[str],
+        program_id: str | None,
         code: any_pb2.Any,
-        description: Optional[str] = None,
-        labels: Optional[dict[str, str]] = None,
+        description: str | None = None,
+        labels: dict[str, str] | None = None,
     ) -> tuple[str, quantum.QuantumProgram]:
         """Creates a Quantum Engine program.
 
@@ -196,9 +196,9 @@ class EngineClient:
     async def list_programs_async(
         self,
         project_id: str,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[dict[str, str]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
     ):
         """Returns a list of previously executed quantum programs.
 
@@ -369,12 +369,12 @@ class EngineClient:
         self,
         project_id: str,
         program_id: str,
-        job_id: Optional[str],
+        job_id: str | None,
         processor_id: str,
         run_context: any_pb2.Any = any_pb2.Any(),
-        priority: Optional[int] = None,
-        description: Optional[str] = None,
-        labels: Optional[dict[str, str]] = None,
+        priority: int | None = None,
+        description: str | None = None,
+        labels: dict[str, str] | None = None,
         *,
         run_name: str = "",
         snapshot_id: str = "",
@@ -466,13 +466,13 @@ class EngineClient:
     async def list_jobs_async(
         self,
         project_id: str,
-        program_id: Optional[str] = None,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
-        executed_processor_ids: Optional[list[str]] = None,
-        scheduled_processor_ids: Optional[list[str]] = None,
+        program_id: str | None = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
+        executed_processor_ids: list[str] | None = None,
+        scheduled_processor_ids: list[str] | None = None,
     ):
         """Returns the list of jobs for a given program.
 
@@ -734,17 +734,17 @@ class EngineClient:
         program_id: str,
         code: any_pb2.Any,
         run_context: any_pb2.Any,
-        program_description: Optional[str] = None,
-        program_labels: Optional[dict[str, str]] = None,
+        program_description: str | None = None,
+        program_labels: dict[str, str] | None = None,
         job_id: str,
-        priority: Optional[int] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[dict[str, str]] = None,
+        priority: int | None = None,
+        job_description: str | None = None,
+        job_labels: dict[str, str] | None = None,
         processor_id: str = "",
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",
-    ) -> duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]:
+    ) -> duet.AwaitableFuture[quantum.QuantumResult | quantum.QuantumJob]:
         """Runs a job with the given program and job information over a stream.
 
         Sends the request over the Quantum Engine QuantumRunStream bidirectional stream, and returns
@@ -918,7 +918,7 @@ class EngineClient:
 
     async def get_current_calibration_async(
         self, project_id: str, processor_id: str
-    ) -> Optional[quantum.QuantumCalibration]:
+    ) -> quantum.QuantumCalibration | None:
         """Returns the current quantum calibration for a processor if it has one.
 
         Args:
@@ -949,7 +949,7 @@ class EngineClient:
         processor_id: str,
         start: datetime.datetime,
         end: datetime.datetime,
-        whitelisted_users: Optional[list[str]] = None,
+        whitelisted_users: list[str] | None = None,
     ):
         """Creates a quantum reservation and returns the created object.
 
@@ -1029,7 +1029,7 @@ class EngineClient:
 
     async def get_reservation_async(
         self, project_id: str, processor_id: str, reservation_id: str
-    ) -> Optional[quantum.QuantumReservation]:
+    ) -> quantum.QuantumReservation | None:
         """Gets a quantum reservation from the engine.
 
         Args:
@@ -1086,9 +1086,9 @@ class EngineClient:
         project_id: str,
         processor_id: str,
         reservation_id: str,
-        start: Optional[datetime.datetime] = None,
-        end: Optional[datetime.datetime] = None,
-        whitelisted_users: Optional[list[str]] = None,
+        start: datetime.datetime | None = None,
+        end: datetime.datetime | None = None,
+        whitelisted_users: list[str] | None = None,
     ):
         """Updates a quantum reservation.
 
@@ -1206,7 +1206,7 @@ def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
     return parts[1], parts[3], int(parts[5])
 
 
-def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime, datetime.date]):
+def _date_or_time_to_filter_expr(param_name: str, param: datetime.datetime | datetime.date):
     """Formats datetime or date to filter expressions.
 
     Args:

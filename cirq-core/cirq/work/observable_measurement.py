@@ -20,7 +20,7 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import Any, Iterable, Mapping, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Any, Iterable, Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -229,7 +229,7 @@ def _pad_setting(
     return InitObsSetting(init_state=init_state, observable=obs)
 
 
-def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
+def _aggregate_n_repetitions(next_chunk_repetitions: set[int]) -> int:
     """A stopping criteria can request a different number of more_repetitions for each
     measurement spec. For batching efficiency, we take the max and issue a warning in this case."""
     if len(next_chunk_repetitions) == 1:
@@ -256,7 +256,7 @@ def _check_meas_specs_still_todo(
     removing `meas_spec`s from the loop if they are done.
     """
     still_todo = []
-    repetitions_set: Set[int] = set()
+    repetitions_set: set[int] = set()
     for meas_spec in meas_specs:
         accumulator = accumulators[meas_spec]
         more_repetitions = stopping_criteria.more_repetitions(accumulator)
@@ -356,8 +356,8 @@ def _to_sweep(param_tuples):
 
 
 def _parse_checkpoint_options(
-    checkpoint: bool, checkpoint_fn: Optional[str], checkpoint_other_fn: Optional[str]
-) -> tuple[Optional[str], Optional[str]]:
+    checkpoint: bool, checkpoint_fn: str | None, checkpoint_other_fn: str | None
+) -> tuple[str | None, str | None]:
     """Parse the checkpoint-oriented options in `measure_grouped_settings`.
 
     This function contains the validation and defaults logic. Please see
@@ -435,8 +435,8 @@ class CheckpointFileOptions:
     """
 
     checkpoint: bool = False
-    checkpoint_fn: Optional[str] = None
-    checkpoint_other_fn: Optional[str] = None
+    checkpoint_fn: str | None = None
+    checkpoint_other_fn: str | None = None
 
     def __post_init__(self):
         fn, other_fn = _parse_checkpoint_options(
@@ -477,7 +477,7 @@ def measure_grouped_settings(
     *,
     readout_symmetrization: bool = False,
     circuit_sweep: cirq.Sweepable = None,
-    readout_calibrations: Optional[BitstringAccumulator] = None,
+    readout_calibrations: BitstringAccumulator | None = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ) -> list[BitstringAccumulator]:
     """Measure a suite of grouped InitObsSetting settings.
@@ -587,7 +587,7 @@ def measure_grouped_settings(
 _GROUPING_FUNCS: dict[str, GROUPER_T] = {'greedy': group_settings_greedy}
 
 
-def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GROUPER_T:
+def _parse_grouper(grouper: str | GROUPER_T = group_settings_greedy) -> GROUPER_T:
     """Logic for turning a named grouper into one of the build-in groupers in support of the
     high-level `measure_observables` API."""
     if isinstance(grouper, str):
@@ -613,13 +613,13 @@ def _get_all_qubits(
 def measure_observables(
     circuit: cirq.AbstractCircuit,
     observables: Iterable[cirq.PauliString],
-    sampler: Union[cirq.Simulator, cirq.Sampler],
+    sampler: cirq.Simulator | cirq.Sampler,
     stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = False,
-    circuit_sweep: Optional[cirq.Sweepable] = None,
-    grouper: Union[str, GROUPER_T] = group_settings_greedy,
-    readout_calibrations: Optional[BitstringAccumulator] = None,
+    circuit_sweep: cirq.Sweepable | None = None,
+    grouper: str | GROUPER_T = group_settings_greedy,
+    readout_calibrations: BitstringAccumulator | None = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ) -> list[ObservableMeasuredResult]:
     """Measure a collection of PauliString observables for a state prepared by a Circuit.
@@ -675,13 +675,13 @@ def measure_observables(
 def measure_observables_df(
     circuit: cirq.AbstractCircuit,
     observables: Iterable[cirq.PauliString],
-    sampler: Union[cirq.Simulator, cirq.Sampler],
+    sampler: cirq.Simulator | cirq.Sampler,
     stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = False,
-    circuit_sweep: Optional[cirq.Sweepable] = None,
-    grouper: Union[str, GROUPER_T] = group_settings_greedy,
-    readout_calibrations: Optional[BitstringAccumulator] = None,
+    circuit_sweep: cirq.Sweepable | None = None,
+    grouper: str | GROUPER_T = group_settings_greedy,
+    readout_calibrations: BitstringAccumulator | None = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ):
     """Measure observables and return resulting data as a Pandas dataframe.

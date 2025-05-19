@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 from collections import defaultdict
-from typing import Any, cast, Iterable, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, cast, Iterable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -35,7 +35,7 @@ class _MeasurementQid(ops.Qid):
     Exactly one qubit will be created per qubit in the measurement gate.
     """
 
-    def __init__(self, key: Union[str, cirq.MeasurementKey], qid: cirq.Qid, index: int = 0):
+    def __init__(self, key: str | cirq.MeasurementKey, qid: cirq.Qid, index: int = 0):
         """Initializes the qubit.
 
         Args:
@@ -65,7 +65,7 @@ class _MeasurementQid(ops.Qid):
 
 @transformer_api.transformer
 def defer_measurements(
-    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Implements the Deferred Measurement Principle.
 
@@ -216,7 +216,7 @@ def _all_possible_datastore_states(
 def dephase_measurements(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = transformer_api.TransformerContext(deep=True),
+    context: cirq.TransformerContext | None = transformer_api.TransformerContext(deep=True),
 ) -> cirq.Circuit:
     """Changes all measurements to a dephase operation.
 
@@ -259,7 +259,7 @@ def dephase_measurements(
 def drop_terminal_measurements(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = transformer_api.TransformerContext(deep=True),
+    context: cirq.TransformerContext | None = transformer_api.TransformerContext(deep=True),
 ) -> cirq.Circuit:
     """Removes terminal measurements from a circuit.
 

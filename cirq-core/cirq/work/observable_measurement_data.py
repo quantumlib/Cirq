@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime
-from typing import Any, Iterable, Mapping, Optional, TYPE_CHECKING, Union
+from typing import Any, Iterable, Mapping, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -109,7 +109,7 @@ class ObservableMeasuredResult:
     mean: float
     variance: float
     repetitions: int
-    circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
+    circuit_params: Mapping[str | sympy.Expr, value.Scalar | sympy.Expr]
 
     # unhashable because of the mapping-type circuit_params attribute
     __hash__ = None  # type: ignore
@@ -217,10 +217,10 @@ class BitstringAccumulator:
         meas_spec: _MeasurementSpec,
         simul_settings: list[InitObsSetting],
         qubit_to_index: Mapping[cirq.Qid, int],
-        bitstrings: Optional[np.ndarray] = None,
-        chunksizes: Optional[np.ndarray] = None,
-        timestamps: Optional[np.ndarray] = None,
-        readout_calibration: Optional[BitstringAccumulator] = None,
+        bitstrings: np.ndarray | None = None,
+        chunksizes: np.ndarray | None = None,
+        timestamps: np.ndarray | None = None,
+        readout_calibration: BitstringAccumulator | None = None,
     ):
         self._meas_spec = meas_spec
         self._simul_settings = simul_settings

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Optional, overload, Union
+from typing import Any, Iterable, overload
 
 
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
@@ -72,7 +72,7 @@ def big_endian_int_to_bits(val: int, *, bit_count: int) -> list[int]:
     return [(val >> i) & 1 for i in range(bit_count)[::-1]]
 
 
-def big_endian_digits_to_int(digits: Iterable[int], *, base: Union[int, Iterable[int]]) -> int:
+def big_endian_digits_to_int(digits: Iterable[int], *, base: int | Iterable[int]) -> int:
     """Returns the big-endian integer specified by the given digits and base.
 
     Args:
@@ -130,7 +130,7 @@ def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> list[int]:
 
 
 def big_endian_int_to_digits(
-    val: int, *, digit_count: Optional[int] = None, base: Union[int, Iterable[int]]
+    val: int, *, digit_count: int | None = None, base: int | Iterable[int]
 ) -> list[int]:
     """Separates an integer into big-endian digits.
 

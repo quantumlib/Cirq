@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 from fractions import Fraction
-from typing import Any, Iterable, Optional, overload, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Iterable, overload, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -41,7 +41,7 @@ class CircuitDiagramInfo:
         wire_symbols: Iterable[str],
         exponent: Any = 1,
         connected: bool = True,
-        exponent_qubit_index: Optional[int] = None,
+        exponent_qubit_index: int | None = None,
         auto_exponent_parens: bool = True,
     ) -> None:
         """Inits CircuitDiagramInfo.
@@ -95,7 +95,7 @@ class CircuitDiagramInfo:
         )
 
     def _wire_symbols_including_formatted_exponent(
-        self, args: cirq.CircuitDiagramInfoArgs, *, preferred_exponent_index: Optional[int] = None
+        self, args: cirq.CircuitDiagramInfoArgs, *, preferred_exponent_index: int | None = None
     ) -> list[str]:
         result = list(self.wire_symbols)
         exponent = self._formatted_exponent(args)
@@ -113,7 +113,7 @@ class CircuitDiagramInfo:
                 result[k] += f"^{exponent}"
         return result
 
-    def _formatted_exponent(self, args: cirq.CircuitDiagramInfoArgs) -> Optional[str]:
+    def _formatted_exponent(self, args: cirq.CircuitDiagramInfoArgs) -> str | None:
         if protocols.is_parameterized(self.exponent):
             name = str(self.exponent)
             return f'({name})' if _is_exposed_formula(name) else name
@@ -190,11 +190,11 @@ class CircuitDiagramInfoArgs:
 
     def __init__(
         self,
-        known_qubits: Optional[Iterable[cirq.Qid]],
-        known_qubit_count: Optional[int],
+        known_qubits: Iterable[cirq.Qid] | None,
+        known_qubit_count: int | None,
         use_unicode_characters: bool,
-        precision: Optional[int],
-        label_map: Optional[dict[cirq.LabelEntity, int]],
+        precision: int | None,
+        label_map: dict[cirq.LabelEntity, int] | None,
         include_tags: bool = True,
         transpose: bool = False,
     ) -> None:
@@ -233,7 +233,7 @@ class CircuitDiagramInfoArgs:
             f'transpose={self.transpose!r})'
         )
 
-    def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
+    def format_real(self, val: sympy.Basic | int | float) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         if val == int(val):
@@ -242,7 +242,7 @@ class CircuitDiagramInfoArgs:
             return str(val)
         return f'{float(val):.{self.precision}}'
 
-    def format_complex(self, val: Union[sympy.Basic, int, float, cirq.TParamValComplex]) -> str:
+    def format_complex(self, val: sympy.Basic | int | float | cirq.TParamValComplex) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         c = complex(val)
@@ -254,7 +254,7 @@ class CircuitDiagramInfoArgs:
         imag_str = '' if abs_imag == 1 else self.format_real(abs_imag)
         return f'{self.format_real(c.real)}{joiner}{imag_str}i'
 
-    def format_radians(self, radians: Union[sympy.Basic, int, float]) -> str:
+    def format_radians(self, radians: sympy.Basic | int | float) -> str:
         """Returns angle in radians as a human-readable string."""
         if protocols.is_parameterized(radians):
             return str(radians)
@@ -305,7 +305,7 @@ class SupportsCircuitDiagramInfo(Protocol):
     @doc_private
     def _circuit_diagram_info_(
         self, args: CircuitDiagramInfoArgs
-    ) -> Union[str, Iterable[str], CircuitDiagramInfo]:
+    ) -> str | Iterable[str] | CircuitDiagramInfo:
         """Describes how to draw an operation in a circuit diagram.
 
         This method is used by the global `cirq.diagram_info` method. If this
@@ -360,25 +360,25 @@ def _op_info_with_fallback(
 # pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(
-    val: Any, args: Optional[CircuitDiagramInfoArgs] = None
+    val: Any, args: CircuitDiagramInfoArgs | None = None
 ) -> CircuitDiagramInfo:
     pass
 
 
 @overload
 def circuit_diagram_info(
-    val: Any, args: Optional[CircuitDiagramInfoArgs], default: TDefault
-) -> Union[CircuitDiagramInfo, TDefault]:
+    val: Any, args: CircuitDiagramInfoArgs | None, default: TDefault
+) -> CircuitDiagramInfo | TDefault:
     pass
 
 
 @overload
-def circuit_diagram_info(val: Any, *, default: TDefault) -> Union[CircuitDiagramInfo, TDefault]:
+def circuit_diagram_info(val: Any, *, default: TDefault) -> CircuitDiagramInfo | TDefault:
     pass
 
 
 def circuit_diagram_info(
-    val: Any, args: Optional[CircuitDiagramInfoArgs] = None, default=RaiseTypeErrorIfNotProvided
+    val: Any, args: CircuitDiagramInfoArgs | None = None, default=RaiseTypeErrorIfNotProvided
 ):
     """Requests information on drawing an operation in a circuit diagram.
 

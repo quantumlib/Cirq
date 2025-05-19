@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import dataclasses
-from typing import Any, FrozenSet, Mapping, Optional
+from typing import Any, Mapping
 
 MEASUREMENT_KEY_SEPARATOR = ':'
 
@@ -33,8 +33,8 @@ class MeasurementKey:
             appears first in the tuple.
     """
 
-    _hash: Optional[int] = dataclasses.field(default=None, init=False)
-    _str: Optional[str] = dataclasses.field(default=None, init=False)
+    _hash: int | None = dataclasses.field(default=None, init=False)
+    _str: str | None = dataclasses.field(default=None, init=False)
 
     name: str
     path: tuple[str, ...] = dataclasses.field(default_factory=tuple)
@@ -125,7 +125,7 @@ class MeasurementKey:
         return self.replace(path=path_component + self.path)
 
     def _with_rescoped_keys_(
-        self, path: tuple[str, ...], bindable_keys: FrozenSet['MeasurementKey']
+        self, path: tuple[str, ...], bindable_keys: frozenset['MeasurementKey']
     ):
         return self.replace(path=path + self.path)
 

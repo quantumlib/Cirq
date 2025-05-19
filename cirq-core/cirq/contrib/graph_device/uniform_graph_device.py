@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Hashable, Iterable, Mapping, Optional
+from typing import Any, Hashable, Iterable, Mapping
 
 from cirq import devices, ops
 from cirq.contrib.graph_device.graph_device import UndirectedGraphDevice, UndirectedGraphDeviceEdge
@@ -22,7 +22,7 @@ from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
 
 def uniform_undirected_graph_device(
-    edges: Iterable[Iterable[ops.Qid]], edge_label: Optional[UndirectedGraphDeviceEdge] = None
+    edges: Iterable[Iterable[ops.Qid]], edge_label: UndirectedGraphDeviceEdge | None = None
 ) -> UndirectedGraphDevice:
     """An undirected graph device all of whose edges are the same.
 
@@ -37,7 +37,7 @@ def uniform_undirected_graph_device(
 
 
 def uniform_undirected_linear_device(
-    n_qubits: int, edge_labels: Mapping[int, Optional[UndirectedGraphDeviceEdge]]
+    n_qubits: int, edge_labels: Mapping[int, UndirectedGraphDeviceEdge | None]
 ) -> UndirectedGraphDevice:
     """A uniform , undirected graph device whose qubits are arranged
     on a line.

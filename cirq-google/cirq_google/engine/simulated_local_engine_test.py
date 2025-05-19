@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from typing import Optional, Union
 
 import numpy as np
 import pytest
@@ -68,9 +67,9 @@ class ProgramDictProcessor(AbstractLocalProcessor):
 
     def list_programs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[dict[str, str]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
     ):
         """Lists all programs regardless of filters.
 

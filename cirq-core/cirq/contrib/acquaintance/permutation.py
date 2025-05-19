@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import Any, cast, Iterable, Iterator, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, Iterable, Iterator, Sequence, TYPE_CHECKING, TypeVar
 
 from cirq import circuits, ops, protocols, transformers, value
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 LogicalIndex = TypeVar('LogicalIndex', int, ops.Qid)
-LogicalIndexSequence = Union[Sequence[int], Sequence['cirq.Qid']]
+LogicalIndexSequence = Sequence[int] | Sequence['cirq.Qid']
 LogicalGates = dict[tuple[LogicalIndex, ...], ops.Gate]
 LogicalMappingKey = TypeVar('LogicalMappingKey', bound=ops.Qid)
 LogicalMapping = dict[LogicalMappingKey, LogicalIndex]
@@ -74,7 +74,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
                 mapping[new_key] = old_element
 
     @staticmethod
-    def validate_permutation(permutation: dict[int, int], n_elements: Optional[int] = None) -> None:
+    def validate_permutation(permutation: dict[int, int], n_elements: int | None = None) -> None:
         if not permutation:
             return
         if set(permutation.values()) != set(permutation):
@@ -87,7 +87,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Union[str, Iterable[str], cirq.CircuitDiagramInfo]:
+    ) -> str | Iterable[str] | cirq.CircuitDiagramInfo:
         if args.known_qubit_count is None:
             return NotImplemented
         permutation = self.permutation()
@@ -154,7 +154,7 @@ class SwapPermutationGate(PermutationGate):
     def _value_equality_values_(self) -> Any:
         return (self.swap_gate,)
 
-    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType:
         if (
             isinstance(other, ops.Gate)
             and isinstance(other, ops.InterchangeableQubitsGate)

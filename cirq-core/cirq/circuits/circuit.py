@@ -33,16 +33,12 @@ from typing import (
     Any,
     Callable,
     cast,
-    FrozenSet,
     Iterable,
     Iterator,
     Mapping,
     MutableSequence,
-    Optional,
     overload,
     Sequence,
-    Set,
-    Type,
     TYPE_CHECKING,
     TypeVar,
     Union,
@@ -90,7 +86,7 @@ document(
     """,
 )
 
-_INT_TYPE = Union[int, np.integer]
+_INT_TYPE = int | np.integer
 
 
 class Alignment(enum.Enum):
@@ -145,7 +141,7 @@ class AbstractCircuit(abc.ABC):
     """
 
     @classmethod
-    def from_moments(cls: Type[CIRCUIT_TYPE], *moments: Optional[cirq.OP_TREE]) -> CIRCUIT_TYPE:
+    def from_moments(cls: type[CIRCUIT_TYPE], *moments: cirq.OP_TREE | None) -> CIRCUIT_TYPE:
         """Create a circuit from moment op trees.
 
         Args:
@@ -163,7 +159,7 @@ class AbstractCircuit(abc.ABC):
         return cls._from_moments(cls._make_moments(moments))
 
     @staticmethod
-    def _make_moments(moments: Iterable[Optional[cirq.OP_TREE]]) -> Iterator[cirq.Moment]:
+    def _make_moments(moments: Iterable[cirq.OP_TREE | None]) -> Iterator[cirq.Moment]:
         for m in moments:
             if isinstance(m, Moment):
                 yield m
@@ -174,7 +170,7 @@ class AbstractCircuit(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def _from_moments(cls: Type[CIRCUIT_TYPE], moments: Iterable[cirq.Moment]) -> CIRCUIT_TYPE:
+    def _from_moments(cls: type[CIRCUIT_TYPE], moments: Iterable[cirq.Moment]) -> CIRCUIT_TYPE:
         """Create a circuit from moments.
 
         This must be implemented by subclasses. It provides a more efficient way
@@ -315,7 +311,7 @@ class AbstractCircuit(abc.ABC):
 
     def _first_moment_operating_on(
         self, qubits: Iterable[cirq.Qid], indices: Iterable[int]
-    ) -> Optional[int]:
+    ) -> int | None:
         qubits = frozenset(qubits)
         for m in indices:
             if self._has_op_at(m, qubits):
@@ -326,8 +322,8 @@ class AbstractCircuit(abc.ABC):
         self,
         qubits: Iterable[cirq.Qid],
         start_moment_index: int = 0,
-        max_distance: Optional[int] = None,
-    ) -> Optional[int]:
+        max_distance: int | None = None,
+    ) -> int | None:
         """Finds the index of the next moment that touches the given qubits.
 
         Args:
@@ -380,9 +376,9 @@ class AbstractCircuit(abc.ABC):
     def prev_moment_operating_on(
         self,
         qubits: Sequence[cirq.Qid],
-        end_moment_index: Optional[int] = None,
-        max_distance: Optional[int] = None,
-    ) -> Optional[int]:
+        end_moment_index: int | None = None,
+        max_distance: int | None = None,
+    ) -> int | None:
         """Finds the index of the previous moment that touches the given qubits.
 
         Args:
@@ -563,7 +559,7 @@ class AbstractCircuit(abc.ABC):
             where i is the moment index, q is the qubit, and end_frontier is the
             result of this method.
         """
-        active: Set[cirq.Qid] = set()
+        active: set[cirq.Qid] = set()
         end_frontier = {}
         queue = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
 
@@ -747,7 +743,7 @@ class AbstractCircuit(abc.ABC):
         if not start_frontier:
             return op_list
         start_index = min(start_frontier.values())
-        blocked_qubits: Set[cirq.Qid] = set()
+        blocked_qubits: set[cirq.Qid] = set()
         for index, moment in enumerate(self[start_index:], start_index):
             active_qubits = set(q for q, s in start_frontier.items() if s <= index)
             for op in moment.operations:
@@ -759,7 +755,7 @@ class AbstractCircuit(abc.ABC):
                 break
         return op_list
 
-    def operation_at(self, qubit: cirq.Qid, moment_index: int) -> Optional[cirq.Operation]:
+    def operation_at(self, qubit: cirq.Qid, moment_index: int) -> cirq.Operation | None:
         """Finds the operation on a qubit within a moment, if any.
 
         Args:
@@ -797,7 +793,7 @@ class AbstractCircuit(abc.ABC):
                     yield index, op
 
     def findall_operations_with_gate_type(
-        self, gate_type: Type[_TGate]
+        self, gate_type: type[_TGate]
     ) -> Iterable[tuple[int, cirq.GateOperation, _TGate]]:
         """Find the locations of all gate operations of a given type.
 
@@ -919,7 +915,7 @@ class AbstractCircuit(abc.ABC):
             qubits
         )
 
-    def all_qubits(self) -> FrozenSet[cirq.Qid]:
+    def all_qubits(self) -> frozenset[cirq.Qid]:
         """Returns the qubits acted upon by Operations in this circuit.
 
         Returns: FrozenSet of `cirq.Qid` objects acted on by all operations
@@ -962,12 +958,12 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_key_objs(self) -> FrozenSet[cirq.MeasurementKey]:
+    def all_measurement_key_objs(self) -> frozenset[cirq.MeasurementKey]:
         return frozenset(
             key for op in self.all_operations() for key in protocols.measurement_key_objs(op)
         )
 
-    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         """Returns the set of all measurement keys in this circuit.
 
         Returns: FrozenSet of `cirq.MeasurementKey` objects that are
@@ -975,7 +971,7 @@ class AbstractCircuit(abc.ABC):
         """
         return self.all_measurement_key_objs()
 
-    def all_measurement_key_names(self) -> FrozenSet[str]:
+    def all_measurement_key_names(self) -> frozenset[str]:
         """Returns the set of all measurement key names in this circuit.
 
         Returns: FrozenSet of strings that are the measurement key
@@ -985,7 +981,7 @@ class AbstractCircuit(abc.ABC):
             key for op in self.all_operations() for key in protocols.measurement_key_names(op)
         )
 
-    def _measurement_key_names_(self) -> FrozenSet[str]:
+    def _measurement_key_names_(self) -> frozenset[str]:
         return self.all_measurement_key_names()
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
@@ -1002,7 +998,7 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _with_rescoped_keys_(
-        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ):
         moments = []
         for moment in self.moments:
@@ -1026,7 +1022,7 @@ class AbstractCircuit(abc.ABC):
         )
         return all(protocols.has_unitary(e) for e in unitary_ops)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         """Converts the circuit into a unitary matrix, if possible.
 
         If the circuit contains any non-terminal measurements, the conversion
@@ -1044,7 +1040,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable[cirq.Qid] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.complexfloating] = np.complex128,
+        dtype: type[np.complexfloating] = np.complex128,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1121,7 +1117,7 @@ class AbstractCircuit(abc.ABC):
         initial_state: cirq.STATE_VECTOR_LIKE = 0,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         ignore_terminal_measurements: bool = False,
-        dtype: Type[np.complexfloating] = np.complex128,
+        dtype: type[np.complexfloating] = np.complex128,
         param_resolver: cirq.ParamResolverOrSimilarType = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
@@ -1180,7 +1176,7 @@ class AbstractCircuit(abc.ABC):
         use_unicode_characters: bool = True,
         transpose: bool = False,
         include_tags: bool = True,
-        precision: Optional[int] = 3,
+        precision: int | None = 3,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> str:
         """Returns text containing a diagram describing the circuit.
@@ -1214,15 +1210,15 @@ class AbstractCircuit(abc.ABC):
         self,
         *,
         use_unicode_characters: bool = True,
-        qubit_namer: Optional[Callable[[cirq.Qid], str]] = None,
+        qubit_namer: Callable[[cirq.Qid], str] | None = None,
         transpose: bool = False,
         include_tags: bool = True,
         draw_moment_groups: bool = True,
-        precision: Optional[int] = 3,
+        precision: int | None = 3,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        get_circuit_diagram_info: Optional[
-            Callable[[cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo]
-        ] = None,
+        get_circuit_diagram_info: (
+            Callable[[cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo] | None
+        ) = None,
     ) -> cirq.TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -1318,7 +1314,7 @@ class AbstractCircuit(abc.ABC):
             return self  # pragma: no cover
         return self._from_moments(resolved_moments)
 
-    def _qasm_(self, args: Optional[cirq.QasmArgs] = None) -> str:
+    def _qasm_(self, args: cirq.QasmArgs | None = None) -> str:
         if args is None:
             output = self._to_qasm_output()
         else:
@@ -1327,7 +1323,7 @@ class AbstractCircuit(abc.ABC):
 
     def _to_qasm_output(
         self,
-        header: Optional[str] = None,
+        header: str | None = None,
         precision: int = 10,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         version: str = '2.0',
@@ -1356,7 +1352,7 @@ class AbstractCircuit(abc.ABC):
 
     def to_qasm(
         self,
-        header: Optional[str] = None,
+        header: str | None = None,
         precision: int = 10,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         version: str = '2.0',
@@ -1377,8 +1373,8 @@ class AbstractCircuit(abc.ABC):
 
     def save_qasm(
         self,
-        file_path: Union[str, bytes, int],
-        header: Optional[str] = None,
+        file_path: str | bytes | int,
+        header: str | None = None,
         precision: int = 10,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> None:
@@ -1402,7 +1398,7 @@ class AbstractCircuit(abc.ABC):
         return cls(moments, strategy=InsertStrategy.EARLIEST)
 
     def zip(
-        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+        *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
     ) -> cirq.AbstractCircuit:
         """Combines operations from circuits in a moment-by-moment fashion.
 
@@ -1478,7 +1474,7 @@ class AbstractCircuit(abc.ABC):
         return result
 
     def concat_ragged(
-        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+        *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
     ) -> cirq.AbstractCircuit:
         """Concatenates circuits, overlapping them if possible due to ragged edges.
 
@@ -1534,7 +1530,7 @@ class AbstractCircuit(abc.ABC):
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
-    def get_independent_qubit_sets(self) -> list[Set[cirq.Qid]]:
+    def get_independent_qubit_sets(self) -> list[set[cirq.Qid]]:
         """Divide circuit's qubits into independent qubit sets.
 
         Independent qubit sets are the qubit sets such that there are
@@ -1613,7 +1609,7 @@ class AbstractCircuit(abc.ABC):
         # moments.
         return (self._from_moments(m[qubits] for m in self.moments) for qubits in qubit_factors)
 
-    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
         return controls - protocols.measurement_key_objs(self)
 
@@ -1769,17 +1765,17 @@ class Circuit(AbstractCircuit):
                 together. This option does not affect later insertions into the
                 circuit.
         """
-        self._placement_cache: Optional[_PlacementCache] = _PlacementCache()
+        self._placement_cache: _PlacementCache | None = _PlacementCache()
         self._moments: list[cirq.Moment] = []
 
         # Implementation note: the following cached properties are set lazily and then
         # invalidated and reset to None in `self._mutated()`, which is called any time
         # `self._moments` is changed.
-        self._all_qubits: Optional[FrozenSet[cirq.Qid]] = None
-        self._frozen: Optional[cirq.FrozenCircuit] = None
-        self._is_measurement: Optional[bool] = None
-        self._is_parameterized: Optional[bool] = None
-        self._parameter_names: Optional[AbstractSet[str]] = None
+        self._all_qubits: frozenset[cirq.Qid] | None = None
+        self._frozen: cirq.FrozenCircuit | None = None
+        self._is_measurement: bool | None = None
+        self._is_parameterized: bool | None = None
+        self._parameter_names: AbstractSet[str] | None = None
         if not contents:
             return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
@@ -1872,7 +1868,7 @@ class Circuit(AbstractCircuit):
     def unfreeze(self, copy: bool = True) -> cirq.Circuit:
         return self.copy() if copy else self
 
-    def all_qubits(self) -> FrozenSet[cirq.Qid]:
+    def all_qubits(self) -> frozenset[cirq.Qid]:
         if self._all_qubits is None:
             self._all_qubits = super().all_qubits()
         return self._all_qubits
@@ -1922,7 +1918,7 @@ class Circuit(AbstractCircuit):
 
     # pylint: enable=function-redefined
 
-    def __delitem__(self, key: Union[int, slice]):
+    def __delitem__(self, key: int | slice):
         del self._moments[key]
         self._mutated()
 
@@ -1990,21 +1986,21 @@ class Circuit(AbstractCircuit):
     __hash__ = None  # type: ignore
 
     def concat_ragged(
-        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+        *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
     ) -> cirq.Circuit:
         return AbstractCircuit.concat_ragged(*circuits, align=align).unfreeze(copy=False)
 
     concat_ragged.__doc__ = AbstractCircuit.concat_ragged.__doc__
 
     def zip(
-        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+        *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
     ) -> cirq.Circuit:
         return AbstractCircuit.zip(*circuits, align=align).unfreeze(copy=False)
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
     def transform_qubits(
-        self, qubit_map: Union[dict[cirq.Qid, cirq.Qid], Callable[[cirq.Qid], cirq.Qid]]
+        self, qubit_map: dict[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
     ) -> cirq.Circuit:
         """Returns the same circuit, but with different qubits.
 
@@ -2052,7 +2048,7 @@ class Circuit(AbstractCircuit):
         return Circuit(op_list)
 
     def earliest_available_moment(
-        self, op: cirq.Operation, *, end_moment_index: Optional[int] = None
+        self, op: cirq.Operation, *, end_moment_index: int | None = None
     ) -> int:
         """Finds the index of the earliest (i.e. left most) moment which can accommodate `op`.
 
@@ -2226,7 +2222,7 @@ class Circuit(AbstractCircuit):
         self,
         early_frontier: dict[cirq.Qid, int],
         late_frontier: dict[cirq.Qid, int],
-        update_qubits: Optional[Iterable[cirq.Qid]] = None,
+        update_qubits: Iterable[cirq.Qid] | None = None,
     ) -> tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
@@ -2296,7 +2292,7 @@ class Circuit(AbstractCircuit):
             self._moments[moment_index] = self._moments[moment_index].with_operations(*new_ops)
 
     def insert_at_frontier(
-        self, operations: cirq.OP_TREE, start: int, frontier: Optional[dict[cirq.Qid, int]] = None
+        self, operations: cirq.OP_TREE, start: int, frontier: dict[cirq.Qid, int] | None = None
     ) -> dict[cirq.Qid, int]:
         """Inserts operations inline at frontier.
 
@@ -2492,7 +2488,7 @@ class Circuit(AbstractCircuit):
 def _pick_inserted_ops_moment_indices(
     operations: Sequence[cirq.Operation],
     start: int = 0,
-    frontier: Optional[dict[cirq.Qid, int]] = None,
+    frontier: dict[cirq.Qid, int] | None = None,
 ) -> tuple[Sequence[int], dict[cirq.Qid, int]]:
     """Greedily assigns operations to moments.
 
@@ -2540,7 +2536,7 @@ def _draw_moment_annotations(
     use_unicode_characters: bool,
     label_map: dict[cirq.LabelEntity, int],
     out_diagram: cirq.TextDiagramDrawer,
-    precision: Optional[int],
+    precision: int | None,
     get_circuit_diagram_info: Callable[
         [cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo
     ],
@@ -2571,11 +2567,11 @@ def _draw_moment_in_diagram(
     use_unicode_characters: bool,
     label_map: dict[cirq.LabelEntity, int],
     out_diagram: cirq.TextDiagramDrawer,
-    precision: Optional[int],
+    precision: int | None,
     moment_groups: list[tuple[int, int]],
-    get_circuit_diagram_info: Optional[
-        Callable[[cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo]
-    ],
+    get_circuit_diagram_info: (
+        Callable[[cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo] | None
+    ),
     include_tags: bool,
     first_annotation_row: int,
     transpose: bool,
@@ -2659,7 +2655,7 @@ def _draw_moment_in_diagram(
         moment_groups.append((x0, max_x))
 
 
-def _get_global_phase_and_tags_for_op(op: cirq.Operation) -> tuple[Optional[complex], list[Any]]:
+def _get_global_phase_and_tags_for_op(op: cirq.Operation) -> tuple[complex | None, list[Any]]:
     if isinstance(op.gate, ops.GlobalPhaseGate):
         return complex(op.gate.coefficient), list(op.tags)
     elif isinstance(op.untagged, CircuitOperation):
@@ -2668,8 +2664,8 @@ def _get_global_phase_and_tags_for_op(op: cirq.Operation) -> tuple[Optional[comp
     return None, []
 
 
-def _get_global_phase_and_tags_for_ops(op_list: Any) -> tuple[Optional[complex], list[Any]]:
-    global_phase: Optional[complex] = None
+def _get_global_phase_and_tags_for_ops(op_list: Any) -> tuple[complex | None, list[Any]]:
+    global_phase: complex | None = None
     tags: list[Any] = []
     for op in op_list:
         op_phase, op_tags = _get_global_phase_and_tags_for_op(op)
@@ -2682,7 +2678,7 @@ def _get_global_phase_and_tags_for_ops(op_list: Any) -> tuple[Optional[complex],
     return global_phase, tags
 
 
-def _formatted_phase(coefficient: complex, unicode: bool, precision: Optional[int]) -> str:
+def _formatted_phase(coefficient: complex, unicode: bool, precision: int | None) -> str:
     h = math.atan2(coefficient.imag, coefficient.real) / math.pi
     unit = 'π' if unicode else 'pi'
     if h == 1:
@@ -2726,7 +2722,7 @@ def _apply_unitary_circuit(
     circuit: cirq.AbstractCircuit,
     state: np.ndarray,
     qubits: tuple[cirq.Qid, ...],
-    dtype: Type[np.complexfloating],
+    dtype: type[np.complexfloating],
 ) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
@@ -2842,7 +2838,7 @@ def _group_into_moment_compatible(inputs: Sequence[_MOMENT_OR_OP]) -> Iterator[l
         [X(a), Moment(X(b)), X(c)] -> [[X(a)], [Moment(X(b))], [X(c)]]
     """
     batch: list[_MOMENT_OR_OP] = []
-    batch_qubits: Set[cirq.Qid] = set()
+    batch_qubits: set[cirq.Qid] = set()
     for mop in inputs:
         is_moment = isinstance(mop, cirq.Moment)
         if (is_moment and batch) or not batch_qubits.isdisjoint(mop.qubits):
@@ -2863,7 +2859,7 @@ def get_earliest_accommodating_moment_index(
     qubit_indices: dict[cirq.Qid, int],
     mkey_indices: dict[cirq.MeasurementKey, int],
     ckey_indices: dict[cirq.MeasurementKey, int],
-    length: Optional[int] = None,
+    length: int | None = None,
 ) -> int:
     """Get the index of the earliest moment that can accommodate the given moment or operation.
 

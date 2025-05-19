@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import datetime
-from typing import Optional, Set
 
 import cirq
 
@@ -32,7 +31,7 @@ class Calibration:
         """The name of the QPU."""
         return self._calibration_dict['target']
 
-    def calibration_time(self, tz: Optional[datetime.tzinfo] = None) -> datetime.datetime:
+    def calibration_time(self, tz: datetime.tzinfo | None = None) -> datetime.datetime:
         """Return a python datetime object for the calibration time.
 
         Args:
@@ -55,7 +54,7 @@ class Calibration:
         """Returns the gate, measurement, and resetting timings."""
         return self._calibration_dict['timing']
 
-    def connectivity(self) -> Set[tuple[cirq.LineQubit, cirq.LineQubit]]:
+    def connectivity(self) -> set[tuple[cirq.LineQubit, cirq.LineQubit]]:
         """Returns which qubits and can interact with which.
 
         Returns:

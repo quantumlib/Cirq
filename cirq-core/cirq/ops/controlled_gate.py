@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import AbstractSet, Any, Collection, Optional, Sequence, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Collection, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -49,11 +49,9 @@ class ControlledGate(raw_types.Gate):
     def __init__(
         self,
         sub_gate: cirq.Gate,
-        num_controls: Optional[int] = None,
-        control_values: Optional[
-            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
-        ] = None,
-        control_qid_shape: Optional[Sequence[int]] = None,
+        num_controls: int | None = None,
+        control_values: cv.AbstractControlValues | Sequence[int | Collection[int]] | None = None,
+        control_qid_shape: Sequence[int] | None = None,
     ) -> None:
         """Initializes the controlled gate. If no arguments are specified for
            the controls, defaults to a single qubit control.
@@ -141,14 +139,12 @@ class ControlledGate(raw_types.Gate):
     def _qid_shape_(self) -> tuple[int, ...]:
         return self.control_qid_shape + protocols.qid_shape(self.sub_gate)
 
-    def _decompose_(
-        self, qubits: tuple[cirq.Qid, ...]
-    ) -> Union[None, NotImplementedType, cirq.OP_TREE]:
+    def _decompose_(self, qubits: tuple[cirq.Qid, ...]) -> None | NotImplementedType | cirq.OP_TREE:
         return self._decompose_with_context_(qubits)
 
     def _decompose_with_context_(
-        self, qubits: tuple[cirq.Qid, ...], context: Optional[cirq.DecompositionContext] = None
-    ) -> Union[None, NotImplementedType, cirq.OP_TREE]:
+        self, qubits: tuple[cirq.Qid, ...], context: cirq.DecompositionContext | None = None
+    ) -> None | NotImplementedType | cirq.OP_TREE:
         control_qubits = list(qubits[: self.num_controls()])
         if (
             protocols.has_unitary(self.sub_gate)
@@ -249,7 +245,7 @@ class ControlledGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_gate)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         qubits = line_qubit.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
@@ -259,7 +255,7 @@ class ControlledGate(raw_types.Gate):
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.sub_gate)
 
-    def _mixture_(self) -> Union[Sequence[tuple[float, np.ndarray]], NotImplementedType]:
+    def _mixture_(self) -> Sequence[tuple[float, np.ndarray]] | NotImplementedType:
         qubits = line_qubit.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
@@ -291,7 +287,7 @@ class ControlledGate(raw_types.Gate):
             control_qid_shape=self.control_qid_shape,
         )
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_():
             return None
         u = protocols.unitary(self.sub_gate, default=None)
@@ -350,7 +346,7 @@ class ControlledGate(raw_types.Gate):
         }
 
 
-def _validate_sub_object(sub_object: Union[cirq.Gate, cirq.Operation]):
+def _validate_sub_object(sub_object: cirq.Gate | cirq.Operation):
     if protocols.is_measurement(sub_object):
         raise ValueError(f'Cannot control measurement {sub_object}')
     if not protocols.has_mixture(sub_object) and not protocols.is_parameterized(sub_object):

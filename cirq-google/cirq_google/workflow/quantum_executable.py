@@ -17,7 +17,7 @@
 import abc
 import dataclasses
 from dataclasses import dataclass
-from typing import Any, cast, Iterator, Optional, Sequence, Union
+from typing import Any, cast, Iterator, Sequence
 
 import cirq
 from cirq import _compat
@@ -72,7 +72,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
 
     @classmethod
     def _from_json_dict_(
-        cls, executable_family: str, key_value_pairs: list[list[Union[str, Any]]], **kwargs
+        cls, executable_family: str, key_value_pairs: list[list[str | Any]], **kwargs
     ) -> 'KeyValueExecutableSpec':
         return cls(
             executable_family=executable_family,
@@ -142,20 +142,20 @@ class QuantumExecutable:
 
     circuit: cirq.FrozenCircuit
     measurement: BitstringsMeasurement
-    params: Optional[tuple[TParamPair, ...]] = None
-    spec: Optional[ExecutableSpec] = None
-    problem_topology: Optional[cirq.NamedTopology] = None
-    initial_state: Optional[cirq.ProductState] = None
+    params: tuple[TParamPair, ...] | None = None
+    spec: ExecutableSpec | None = None
+    problem_topology: cirq.NamedTopology | None = None
+    initial_state: cirq.ProductState | None = None
 
     # pylint: disable=missing-raises-doc
     def __init__(
         self,
         circuit: cirq.AbstractCircuit,
         measurement: BitstringsMeasurement,
-        params: Union[Sequence[TParamPair], cirq.ParamResolverOrSimilarType] = None,
-        spec: Optional[ExecutableSpec] = None,
-        problem_topology: Optional[cirq.NamedTopology] = None,
-        initial_state: Optional[cirq.ProductState] = None,
+        params: Sequence[TParamPair] | cirq.ParamResolverOrSimilarType = None,
+        spec: ExecutableSpec | None = None,
+        problem_topology: cirq.NamedTopology | None = None,
+        initial_state: cirq.ProductState | None = None,
     ):
         """Initialize the quantum executable.
 

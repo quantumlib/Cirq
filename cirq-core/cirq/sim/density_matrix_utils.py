@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -31,7 +31,7 @@ def sample_density_matrix(
     density_matrix: np.ndarray,
     indices: Sequence[int],
     *,  # Force keyword arguments
-    qid_shape: Optional[tuple[int, ...]] = None,
+    qid_shape: tuple[int, ...] | None = None,
     repetitions: int = 1,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
@@ -96,8 +96,8 @@ def sample_density_matrix(
 def measure_density_matrix(
     density_matrix: np.ndarray,
     indices: Sequence[int],
-    qid_shape: Optional[tuple[int, ...]] = None,
-    out: Optional[np.ndarray] = None,
+    qid_shape: tuple[int, ...] | None = None,
+    out: np.ndarray | None = None,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> tuple[list[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.

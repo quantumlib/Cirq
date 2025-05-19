@@ -20,13 +20,11 @@ from functools import cached_property
 from types import NotImplementedType
 from typing import (
     AbstractSet,
-    FrozenSet,
     Hashable,
     Iterable,
     Iterator,
     Sequence,
     TYPE_CHECKING,
-    Union,
 )
 
 import numpy as np
@@ -141,7 +139,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super()._has_unitary_()
 
     @_compat.cached_method
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         return super()._unitary_()
 
     @_compat.cached_method
@@ -149,7 +147,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return protocols.is_measurement(self.unfreeze())
 
     @_compat.cached_method
-    def all_qubits(self) -> FrozenSet[cirq.Qid]:
+    def all_qubits(self) -> frozenset[cirq.Qid]:
         return super().all_qubits()
 
     @cached_property
@@ -163,14 +161,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self._is_measurement_()
 
     @_compat.cached_method
-    def all_measurement_key_objs(self) -> FrozenSet[cirq.MeasurementKey]:
+    def all_measurement_key_objs(self) -> frozenset[cirq.MeasurementKey]:
         return super().all_measurement_key_objs()
 
-    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         return self.all_measurement_key_objs()
 
     @_compat.cached_method
-    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         return super()._control_keys_()
 
     @_compat.cached_method
@@ -178,7 +176,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super().are_all_measurements_terminal()
 
     @_compat.cached_method
-    def all_measurement_key_names(self) -> FrozenSet[str]:
+    def all_measurement_key_names(self) -> frozenset[str]:
         return frozenset(str(key) for key in self.all_measurement_key_objs())
 
     @_compat.cached_method
@@ -201,7 +199,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         ]
         return resolved_circuit.with_tags(*resolved_tags)
 
-    def _measurement_key_names_(self) -> FrozenSet[str]:
+    def _measurement_key_names_(self) -> frozenset[str]:
         return self.all_measurement_key_names()
 
     def __add__(self, other) -> cirq.FrozenCircuit:
@@ -241,14 +239,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return cls(moments, strategy=InsertStrategy.EARLIEST, tags=tags)
 
     def concat_ragged(
-        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+        *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
     ) -> cirq.FrozenCircuit:
         return AbstractCircuit.concat_ragged(*circuits, align=align).freeze()
 
     concat_ragged.__doc__ = AbstractCircuit.concat_ragged.__doc__
 
     def zip(
-        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+        *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
     ) -> cirq.FrozenCircuit:
         return AbstractCircuit.zip(*circuits, align=align).freeze()
 

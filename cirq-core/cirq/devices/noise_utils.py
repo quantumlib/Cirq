@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Type, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING
 
 from cirq import ops, protocols, qis, value
 from cirq._compat import deprecated, proper_repr
@@ -31,13 +31,13 @@ PHYSICAL_GATE_TAG = 'physical_gate'
 class OpIdentifier:
     """Identifies an operation by gate and (optionally) target qubits."""
 
-    def __init__(self, gate_type: Type[cirq.Gate], *qubits: cirq.Qid):
+    def __init__(self, gate_type: type[cirq.Gate], *qubits: cirq.Qid):
         self._gate_type = gate_type
         self._gate_family = ops.GateFamily(gate_type)
         self._qubits: tuple[cirq.Qid, ...] = tuple(qubits)
 
     @property
-    def gate_type(self) -> Type[cirq.Gate]:
+    def gate_type(self) -> type[cirq.Gate]:
         # set to a type during initialization, never modified
         return self._gate_type
 
@@ -67,7 +67,7 @@ class OpIdentifier:
         else:
             return False
 
-    def __contains__(self, item: Union[ops.Gate, ops.Operation]) -> bool:
+    def __contains__(self, item: ops.Gate | ops.Operation) -> bool:
         if isinstance(item, ops.Gate):
             return (not self._qubits) and self._predicate(item)
         return (

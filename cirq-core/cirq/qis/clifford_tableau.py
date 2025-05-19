@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -147,9 +147,9 @@ class CliffordTableau(StabilizerState):
         self,
         num_qubits,
         initial_state: int = 0,
-        rs: Optional[np.ndarray] = None,
-        xs: Optional[np.ndarray] = None,
-        zs: Optional[np.ndarray] = None,
+        rs: np.ndarray | None = None,
+        xs: np.ndarray | None = None,
+        zs: np.ndarray | None = None,
     ):
         """Initializes CliffordTableau
         Args:
@@ -166,7 +166,7 @@ class CliffordTableau(StabilizerState):
         self._xs = self._reconstruct_xs(xs)
         self._zs = self._reconstruct_zs(zs)
 
-    def _reconstruct_rs(self, rs: Optional[np.ndarray]) -> np.ndarray:
+    def _reconstruct_rs(self, rs: np.ndarray | None) -> np.ndarray:
         if rs is None:
             new_rs = np.zeros(2 * self.n + 1, dtype=bool)
             for i, val in enumerate(
@@ -185,7 +185,7 @@ class CliffordTableau(StabilizerState):
                 )
         return new_rs
 
-    def _reconstruct_xs(self, xs: Optional[np.ndarray]) -> np.ndarray:
+    def _reconstruct_xs(self, xs: np.ndarray | None) -> np.ndarray:
         if xs is None:
             new_xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
             for i in range(self.n):
@@ -207,7 +207,7 @@ class CliffordTableau(StabilizerState):
                 )
         return new_xs
 
-    def _reconstruct_zs(self, zs: Optional[np.ndarray]) -> np.ndarray:
+    def _reconstruct_zs(self, zs: np.ndarray | None) -> np.ndarray:
         if zs is None:
             new_zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
             for i in range(self.n):

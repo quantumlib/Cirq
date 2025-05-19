@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import datetime
 import functools
-from typing import NamedTuple, Optional, TYPE_CHECKING
+from typing import NamedTuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
@@ -34,7 +34,7 @@ CrossEntropyResult = NamedTuple(
     [
         ('data', list[CrossEntropyPair]),
         ('repetitions', int),
-        ('purity_data', Optional[list[SpecklePurityPair]]),
+        ('purity_data', list[SpecklePurityPair] | None),
     ],
 )
 CrossEntropyResultDict = NamedTuple(

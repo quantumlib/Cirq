@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Any, Callable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
     """Contains the density matrix and buffers for efficient state evolution."""
 
-    def __init__(self, density_matrix: np.ndarray, buffer: Optional[list[np.ndarray]] = None):
+    def __init__(self, density_matrix: np.ndarray, buffer: list[np.ndarray] | None = None):
         """Initializes the object with the inputs.
 
         This initializer creates the buffer if necessary.
@@ -57,10 +57,10 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
     def create(
         cls,
         *,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        qid_shape: Optional[tuple[int, ...]] = None,
-        dtype: Optional[Type[np.complexfloating]] = None,
-        buffer: Optional[list[np.ndarray]] = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        qid_shape: tuple[int, ...] | None = None,
+        dtype: type[np.complexfloating] | None = None,
+        buffer: list[np.ndarray] | None = None,
     ):
         """Creates a buffered density matrix with the requested state.
 
@@ -245,12 +245,12 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
     def __init__(
         self,
         *,
-        available_buffer: Optional[list[np.ndarray]] = None,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE] = 0,
-        dtype: Type[np.complexfloating] = np.complex64,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        available_buffer: list[np.ndarray] | None = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
+        dtype: type[np.complexfloating] = np.complex64,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits DensityMatrixSimulationState.
 

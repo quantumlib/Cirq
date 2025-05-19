@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Generic, Sequence, Union
+from typing import Any, Generic, Sequence
 from unittest import mock
 
 import duet
@@ -469,7 +469,7 @@ def test_iter_definitions():
         def simulate_expectation_values_sweep(
             self,
             program: cirq.AbstractCircuit,
-            observables: Union[cirq.PauliSumLike, list[cirq.PauliSumLike]],
+            observables: cirq.PauliSumLike | list[cirq.PauliSumLike],
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,

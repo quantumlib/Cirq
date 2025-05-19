@@ -21,7 +21,7 @@ Gate compilation methods implemented here are following the paper below:
 
 from __future__ import annotations
 
-from typing import cast, Iterable, Optional, TYPE_CHECKING
+from typing import cast, Iterable, TYPE_CHECKING
 
 import numpy as np
 
@@ -78,7 +78,7 @@ def _do_single_on(u: np.ndarray, q: cirq.Qid, atol: float = 1e-8):
 
 
 def _parity_interaction(
-    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: Optional[ops.Gate] = None
+    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: ops.Gate | None = None
 ):
     """Yields an XX interaction framed by the given operation."""
 

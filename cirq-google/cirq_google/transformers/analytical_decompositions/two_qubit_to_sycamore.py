@@ -16,7 +16,7 @@
 
 import itertools
 import math
-from typing import Iterator, Optional
+from typing import Iterator
 
 import numpy as np
 
@@ -93,7 +93,7 @@ def two_qubit_matrix_to_sycamore_operations(
     )
 
 
-def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> Optional[cirq.OP_TREE]:
+def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> cirq.OP_TREE | None:
     """Synthesizes a known two-qubit operation using `cirq_google.SYC` + single qubit rotations.
 
     This function dispatches to various known gate decompositions based on gate type. Currently,

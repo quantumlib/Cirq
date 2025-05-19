@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import enum
-from typing import Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Mapping, Sequence, TYPE_CHECKING
 
 from typing_extensions import Self
 
@@ -143,10 +143,10 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
     def __init__(
         self,
         *,
-        _records: Optional[dict[cirq.MeasurementKey, list[tuple[int, ...]]]] = None,
-        _measured_qubits: Optional[dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]]] = None,
-        _channel_records: Optional[dict[cirq.MeasurementKey, list[int]]] = None,
-        _measurement_types: Optional[dict[cirq.MeasurementKey, cirq.MeasurementType]] = None,
+        _records: dict[cirq.MeasurementKey, list[tuple[int, ...]]] | None = None,
+        _measured_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]] | None = None,
+        _channel_records: dict[cirq.MeasurementKey, list[int]] | None = None,
+        _measurement_types: dict[cirq.MeasurementKey, cirq.MeasurementType] | None = None,
     ):
         """Initializes a `ClassicalDataDictionaryStore` object."""
         if not _measurement_types:

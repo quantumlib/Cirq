@@ -16,7 +16,7 @@
 
 import dataclasses
 import functools
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -101,7 +101,7 @@ def targeted_left_multiply(
     left_matrix: np.ndarray,
     right_target: np.ndarray,
     target_axes: Sequence[int],
-    out: Optional[np.ndarray] = None,
+    out: np.ndarray | None = None,
 ) -> np.ndarray:
     """Left-multiplies the given axes of the target tensor by the given matrix.
 
@@ -247,9 +247,9 @@ def targeted_conjugate_about(
     tensor: np.ndarray,
     target: np.ndarray,
     indices: Sequence[int],
-    conj_indices: Optional[Sequence[int]] = None,
-    buffer: Optional[np.ndarray] = None,
-    out: Optional[np.ndarray] = None,
+    conj_indices: Sequence[int] | None = None,
+    buffer: np.ndarray | None = None,
+    out: np.ndarray | None = None,
 ) -> np.ndarray:
     r"""Conjugates the given tensor about the target tensor.
 
@@ -298,8 +298,8 @@ def targeted_conjugate_about(
     return targeted_left_multiply(np.conjugate(tensor), first_multiply, conj_indices, out=out)
 
 
-_TSliceAtom = Union[int, slice, 'ellipsis']
-_TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
+_TSliceAtom = int | slice | 'ellipsis'
+_TSlice = _TSliceAtom | Sequence[_TSliceAtom]
 
 
 def apply_matrix_to_slices(
@@ -307,7 +307,7 @@ def apply_matrix_to_slices(
     matrix: np.ndarray,
     slices: Sequence[_TSlice],
     *,
-    out: Optional[np.ndarray] = None,
+    out: np.ndarray | None = None,
 ) -> np.ndarray:
     r"""Left-multiplies an NxN matrix onto N slices of a numpy array.
 
@@ -533,7 +533,7 @@ def sub_state_vector(
 
     n_qubits = int(np.log2(state_vector.size))
     keep_dims = 1 << len(keep_indices)
-    ret_shape: Union[tuple[int], tuple[int, ...]]
+    ret_shape: tuple[int] | tuple[int, ...]
     if state_vector.shape == (state_vector.size,):
         ret_shape = (keep_dims,)
         state_vector = state_vector.reshape((2,) * n_qubits)

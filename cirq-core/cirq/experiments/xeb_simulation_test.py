@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import multiprocessing
-from typing import Any, Iterator, Optional, Sequence
+from typing import Any, Iterator, Sequence
 
 import numpy as np
 import pandas as pd
@@ -98,7 +98,7 @@ def _ref_simulate_2q_xeb_circuits(
     circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
     param_resolver: cirq.ParamResolverOrSimilarType = None,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+    pool: multiprocessing.pool.Pool | None = None,
 ):
     """Reference implementation for `simulate_2q_xeb_circuits` that
     does each circuit independently instead of using intermediate states.

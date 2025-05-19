@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 
 from cirq import ops, protocols
 
@@ -35,7 +34,7 @@ def escape_text_for_latex(text):
     return r'\text{' + escaped + '}'
 
 
-def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional[tuple[int, int]]:
+def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> tuple[int, int] | None:
     if (args.label_map is None) or (args.known_qubits is None):
         return None
 
@@ -47,7 +46,7 @@ def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional
     return min_index, n_qubits
 
 
-def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> Optional[protocols.CircuitDiagramInfo]:
+def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> protocols.CircuitDiagramInfo | None:
     if not isinstance(op, ops.GateOperation):
         return None
     symbols = (
@@ -78,7 +77,7 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
 
 def multigate_qcircuit_diagram_info(
     op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
-) -> Optional[protocols.CircuitDiagramInfo]:
+) -> protocols.CircuitDiagramInfo | None:
     if not (
         isinstance(op, ops.GateOperation) and isinstance(op.gate, ops.InterchangeableQubitsGate)
     ):

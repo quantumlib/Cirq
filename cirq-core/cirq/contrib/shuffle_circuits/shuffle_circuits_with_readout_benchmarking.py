@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import time
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -30,8 +30,8 @@ if TYPE_CHECKING:
 
 def _validate_input(
     input_circuits: list[circuits.Circuit],
-    circuit_repetitions: Union[int, list[int]],
-    rng_or_seed: Union[np.random.Generator, int],
+    circuit_repetitions: int | list[int],
+    rng_or_seed: np.random.Generator | int,
     num_random_bitstrings: int,
     readout_repetitions: int,
 ):
@@ -159,11 +159,11 @@ def _analyze_readout_results(
 def run_shuffled_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
     sampler: work.Sampler,
-    circuit_repetitions: Union[int, list[int]],
-    rng_or_seed: Union[np.random.Generator, int],
+    circuit_repetitions: int | list[int],
+    rng_or_seed: np.random.Generator | int,
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
-    qubits: Optional[Union[list[ops.Qid], list[list[ops.Qid]]]] = None,
+    qubits: list[ops.Qid] | list[list[ops.Qid]] | None = None,
 ) -> tuple[list[ResultDict], dict[tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 

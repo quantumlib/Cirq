@@ -13,7 +13,7 @@
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
 import datetime
-from typing import Optional, Sequence, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import duet
 from google.protobuf import any_pb2
@@ -63,10 +63,10 @@ class EngineJob(abstract_job.AbstractJob):
         program_id: str,
         job_id: str,
         context: 'engine_base.EngineContext',
-        _job: Optional[quantum.QuantumJob] = None,
-        job_result_future: Optional[
-            duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]
-        ] = None,
+        _job: quantum.QuantumJob | None = None,
+        job_result_future: (
+            duet.AwaitableFuture[quantum.QuantumResult | quantum.QuantumJob] | None
+        ) = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -85,9 +85,9 @@ class EngineJob(abstract_job.AbstractJob):
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[Sequence[EngineResult]] = None
-        self._calibration_results: Optional[Sequence[CalibrationResult]] = None
-        self._batched_results: Optional[Sequence[Sequence[EngineResult]]] = None
+        self._results: Sequence[EngineResult] | None = None
+        self._calibration_results: Sequence[CalibrationResult] | None = None
+        self._batched_results: Sequence[Sequence[EngineResult]] | None = None
         self._job_result_future = job_result_future
 
     def id(self) -> str:
@@ -214,7 +214,7 @@ class EngineJob(abstract_job.AbstractJob):
         """Return the execution status of the job."""
         return self._refresh_job().execution_status.state.name
 
-    def failure(self) -> Optional[tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         """Return failure code and message of the job if present."""
         if self._inner_job().execution_status.failure:
             failure = self._inner_job().execution_status.failure
@@ -231,7 +231,7 @@ class EngineJob(abstract_job.AbstractJob):
             self._job = self._get_job(return_run_context=True)
         return _deserialize_run_context(self._job.run_context)
 
-    def get_processor(self) -> 'Optional[engine_processor.EngineProcessor]':
+    def get_processor(self) -> 'engine_processor.EngineProcessor | None':
         """Returns the EngineProcessor for the processor the job is/was run on,
         if available, else None."""
         status = self._inner_job().execution_status
@@ -242,7 +242,7 @@ class EngineJob(abstract_job.AbstractJob):
         ids = engine_client._ids_from_processor_name(status.processor_name)
         return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
 
-    def get_calibration(self) -> Optional[calibration.Calibration]:
+    def get_calibration(self) -> calibration.Calibration | None:
         """Returns the recorded calibration at the time when the job was run, if
         one was captured, else None."""
         status = self._inner_job().execution_status

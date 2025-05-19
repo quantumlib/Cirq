@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import dataclasses
-from typing import Any, Optional, Sequence
+from typing import Any, Sequence
 
 from typing_extensions import Protocol
 
@@ -31,8 +31,8 @@ class SupportsDeviceParameter(Protocol):
     """
 
     path: Sequence[str]
-    idx: Optional[int] = None
-    value: Optional[Any] = None
+    idx: int | None = None
+    value: Any | None = None
 
 
 @dataclasses.dataclass
@@ -53,9 +53,9 @@ class DeviceParameter(SupportsDeviceParameter):
     """
 
     path: Sequence[str]
-    idx: Optional[int] = None
-    value: Optional[Any] = None
-    units: Optional[str] = None
+    idx: int | None = None
+    value: Any | None = None
+    units: str | None = None
 
     def __repr__(self) -> str:
         return (
@@ -90,10 +90,10 @@ class Metadata:
             In this case, we should not keep unit information in metadata.
     """
 
-    device_parameters: Optional[Sequence[DeviceParameter]] = None
+    device_parameters: Sequence[DeviceParameter] | None = None
     is_const: bool = False
-    label: Optional[str] = None
-    unit: Optional[str] = None
+    label: str | None = None
+    unit: str | None = None
 
     def __repr__(self) -> str:
         return (
@@ -109,10 +109,10 @@ class Metadata:
     @classmethod
     def _from_json_dict_(
         cls,
-        device_parameters: Optional[Sequence[DeviceParameter]] = None,
+        device_parameters: Sequence[DeviceParameter] | None = None,
         is_const: bool = False,
-        label: Optional[str] = None,
-        unit: Optional[str] = None,
+        label: str | None = None,
+        unit: str | None = None,
         **kwargs,
     ):
         return Metadata(device_parameters=device_parameters, is_const=is_const, label=label)

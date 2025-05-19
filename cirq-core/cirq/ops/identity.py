@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import numbers
 from types import NotImplementedType
-from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -41,7 +41,7 @@ class IdentityGate(raw_types.Gate):
     """
 
     def __init__(
-        self, num_qubits: Optional[int] = None, qid_shape: Optional[tuple[int, ...]] = None
+        self, num_qubits: int | None = None, qid_shape: tuple[int, ...] | None = None
     ) -> None:
         """Inits IdentityGate.
 
@@ -79,7 +79,7 @@ class IdentityGate(raw_types.Gate):
             return self
         return NotImplemented
 
-    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType:
         """The identity gate commutes with all other gates."""
         if not isinstance(other, raw_types.Gate):
             return NotImplemented
@@ -91,7 +91,7 @@ class IdentityGate(raw_types.Gate):
     def _unitary_(self) -> np.ndarray:
         return np.identity(np.prod(self._qid_shape, dtype=np.int64).item())
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray | None:
         return args.target_tensor
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -142,7 +142,7 @@ class IdentityGate(raw_types.Gate):
             return NotImplemented
         return ('I',) * self.num_qubits()
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         args.validate_version('2.0', '3.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
 

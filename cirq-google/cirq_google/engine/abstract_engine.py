@@ -19,13 +19,13 @@ This class is an abstract class which all Engine implementations
 
 import abc
 import datetime
-from typing import Optional, Sequence, Set, Union
+from typing import Sequence
 
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine import abstract_job, abstract_processor, abstract_program
 
-VALID_DATE_TYPE = Union[datetime.datetime, datetime.date]
+VALID_DATE_TYPE = datetime.datetime | datetime.date
 
 
 class AbstractEngine(abc.ABC):
@@ -55,9 +55,9 @@ class AbstractEngine(abc.ABC):
     @abc.abstractmethod
     def list_programs(
         self,
-        created_before: Optional[VALID_DATE_TYPE] = None,
-        created_after: Optional[VALID_DATE_TYPE] = None,
-        has_labels: Optional[dict[str, str]] = None,
+        created_before: VALID_DATE_TYPE | None = None,
+        created_after: VALID_DATE_TYPE | None = None,
+        has_labels: dict[str, str] | None = None,
     ) -> list[abstract_program.AbstractProgram]:
         """Returns a list of previously executed quantum programs.
 
@@ -77,10 +77,10 @@ class AbstractEngine(abc.ABC):
     @abc.abstractmethod
     def list_jobs(
         self,
-        created_before: Optional[VALID_DATE_TYPE] = None,
-        created_after: Optional[VALID_DATE_TYPE] = None,
-        has_labels: Optional[dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
+        created_before: VALID_DATE_TYPE | None = None,
+        created_after: VALID_DATE_TYPE | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
     ) -> list[abstract_job.AbstractJob]:
         """Returns the list of jobs that match the specified criteria.
 
@@ -124,7 +124,7 @@ class AbstractEngine(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_sampler(self, processor_id: Union[str, list[str]]) -> cirq.Sampler:
+    def get_sampler(self, processor_id: str | list[str]) -> cirq.Sampler:
         """Returns a sampler backed by the engine.
 
         Args:

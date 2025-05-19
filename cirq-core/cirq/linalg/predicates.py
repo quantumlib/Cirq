@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import EllipsisType
-from typing import cast, Optional, Sequence, Union
+from typing import cast, Sequence, Union
 
 import numpy as np
 
@@ -231,9 +231,9 @@ def slice_for_qubits_equal_to(
     little_endian_qureg_value: int = 0,
     *,  # Forces keyword args.
     big_endian_qureg_value: int = 0,
-    num_qubits: Optional[int] = None,
-    qid_shape: Optional[tuple[int, ...]] = None,
-) -> tuple[Union[slice, int, EllipsisType], ...]:
+    num_qubits: int | None = None,
+    qid_shape: tuple[int, ...] | None = None,
+) -> tuple[slice | int | EllipsisType, ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).

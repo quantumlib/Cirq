@@ -18,7 +18,7 @@ import functools
 import itertools
 import math
 import operator
-from typing import Iterable, Iterator, NamedTuple, Optional, Sequence, TYPE_CHECKING
+from typing import Iterable, Iterator, NamedTuple, Sequence, TYPE_CHECKING
 
 from cirq import ops, protocols, value
 from cirq.contrib.acquaintance.permutation import (
@@ -145,7 +145,7 @@ def _get_max_reach(size: int, round_up: bool = True) -> int:
 def acquaint_and_shift(
     parts: tuple[list[cirq.Qid], list[cirq.Qid]],
     layers: Layers,
-    acquaintance_size: Optional[int],
+    acquaintance_size: int | None,
     swap_gate: cirq.Gate,
     mapping: dict[ops.Qid, int],
 ):
@@ -266,7 +266,7 @@ class SwapNetworkGate(PermutationGate):
     def __init__(
         self,
         part_lens: Sequence[int],
-        acquaintance_size: Optional[int] = 0,
+        acquaintance_size: int | None = 0,
         swap_gate: cirq.Gate = ops.SWAP,
     ) -> None:
         super().__init__(sum(part_lens), swap_gate)
@@ -336,7 +336,7 @@ class SwapNetworkGate(PermutationGate):
     def from_operations(
         qubit_order: Sequence[cirq.Qid],
         operations: Sequence[cirq.Operation],
-        acquaintance_size: Optional[int] = 0,
+        acquaintance_size: int | None = 0,
         swap_gate: cirq.Gate = ops.SWAP,
     ) -> SwapNetworkGate:
         part_sizes = operations_to_part_lens(qubit_order, operations)

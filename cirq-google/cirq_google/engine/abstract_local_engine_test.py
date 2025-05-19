@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from typing import Optional, Union
 
 import pytest
 
@@ -35,7 +34,7 @@ class ProgramDictProcessor(AbstractLocalProcessor):
     def get_calibration(self, *args, **kwargs):
         pass
 
-    def get_latest_calibration(self, timestamp: int) -> Optional[calibration.Calibration]:
+    def get_latest_calibration(self, timestamp: int) -> calibration.Calibration | None:
         return calibration.Calibration()
 
     def get_current_calibration(self, *args, **kwargs):
@@ -64,9 +63,9 @@ class ProgramDictProcessor(AbstractLocalProcessor):
 
     def list_programs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[dict[str, str]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
     ):
         """Lists all programs regardless of filters.
 

@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 from typing_extensions import Self
@@ -90,7 +90,7 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -126,7 +126,7 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Union[str, protocols.CircuitDiagramInfo]:
+    ) -> str | protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'), exponent=self._diagram_exponent(args)
         )
@@ -199,7 +199,7 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -282,7 +282,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def _decompose_into_clifford_with_qubits_(
         self, qubits: Sequence[cirq.Qid]
-    ) -> Sequence[Union[cirq.Operation, Sequence[cirq.Operation]]]:
+    ) -> Sequence[cirq.Operation | Sequence[cirq.Operation]]:
         if not self._has_stabilizer_effect_():
             return NotImplemented
         if self.exponent % 2 == 0:
@@ -314,7 +314,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -324,7 +324,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             wire_symbols=('ZZ', 'ZZ'), exponent=self._diagram_exponent(args)
         )
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray | None:
         if protocols.is_parameterized(self):
             return None
 
@@ -381,7 +381,7 @@ class MSGate(XXPowGate):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Union[str, protocols.CircuitDiagramInfo]:
+    ) -> str | protocols.CircuitDiagramInfo:
         angle_str = self._format_exponent_as_angle(args, order=4)
         symbol = f'MS({angle_str})'
         return protocols.CircuitDiagramInfo(wire_symbols=(symbol, symbol))

@@ -17,7 +17,7 @@ from __future__ import annotations
 import abc
 import functools
 import weakref
-from typing import Any, Iterable, Optional, Set, TYPE_CHECKING, Union
+from typing import Any, Iterable, TYPE_CHECKING
 
 import numpy as np
 from typing_extensions import Self
@@ -35,7 +35,7 @@ class _BaseGridQid(ops.Qid):
     _row: int
     _col: int
     _dimension: int
-    _comp_key: Optional[tuple[int, int]] = None
+    _comp_key: tuple[int, int] | None = None
     _hash: int
 
     def __hash__(self) -> int:
@@ -116,7 +116,7 @@ class _BaseGridQid(ops.Qid):
             and abs(self._row - other._row) + abs(self._col - other._col) == 1
         )
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set[_BaseGridQid]:
+    def neighbors(self, qids: Iterable[ops.Qid] | None = None) -> set[_BaseGridQid]:
         """Returns qubits that are potential neighbors to this GridQid
 
         Args:
@@ -135,7 +135,7 @@ class _BaseGridQid(ops.Qid):
     def __complex__(self) -> complex:
         return self._col + 1j * self._row
 
-    def __add__(self, other: Union[tuple[int, int], Self]) -> Self:
+    def __add__(self, other: tuple[int, int] | Self) -> Self:
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -154,7 +154,7 @@ class _BaseGridQid(ops.Qid):
             )
         return self._with_row_col(row=self._row + other[0], col=self._col + other[1])
 
-    def __sub__(self, other: Union[tuple[int, int], Self]) -> Self:
+    def __sub__(self, other: tuple[int, int] | Self) -> Self:
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(

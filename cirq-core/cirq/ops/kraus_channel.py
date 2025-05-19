@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, FrozenSet, Iterable, Mapping, TYPE_CHECKING, Union
+from typing import Any, Iterable, Mapping, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,7 +32,7 @@ class KrausChannel(raw_types.Gate):
     def __init__(
         self,
         kraus_ops: Iterable[np.ndarray],
-        key: Union[str, cirq.MeasurementKey, None] = None,
+        key: str | cirq.MeasurementKey | None = None,
         validate: bool = False,
     ):
         kraus_ops = list(kraus_ops)
@@ -59,7 +59,7 @@ class KrausChannel(raw_types.Gate):
         self._key = key
 
     @staticmethod
-    def from_channel(channel: cirq.Gate, key: Union[str, cirq.MeasurementKey, None] = None):
+    def from_channel(channel: cirq.Gate, key: str | cirq.MeasurementKey | None = None):
         """Creates a copy of a channel with the given measurement key."""
         return KrausChannel(kraus_ops=list(protocols.kraus(channel)), key=key)
 
@@ -104,7 +104,7 @@ class KrausChannel(raw_types.Gate):
         )
 
     def _with_rescoped_keys_(
-        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ):
         return KrausChannel(
             kraus_ops=self._kraus_ops,

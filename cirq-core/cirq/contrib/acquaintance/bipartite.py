@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import enum
 import itertools
-from typing import Iterator, Sequence, TYPE_CHECKING, Union
+from typing import Iterator, Sequence, TYPE_CHECKING
 
 from cirq import ops
 from cirq.contrib.acquaintance.gates import acquaint
@@ -61,10 +61,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
     """
 
     def __init__(
-        self,
-        subgraph: Union[str, BipartiteGraphType],
-        part_size: int,
-        swap_gate: cirq.Gate = ops.SWAP,
+        self, subgraph: str | BipartiteGraphType, part_size: int, swap_gate: cirq.Gate = ops.SWAP
     ) -> None:
         super().__init__(2 * part_size, swap_gate)
         self.part_size = part_size

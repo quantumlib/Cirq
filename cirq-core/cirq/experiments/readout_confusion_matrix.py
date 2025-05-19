@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import time
-from typing import Any, cast, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, cast, Sequence, TYPE_CHECKING
 
 import numpy as np
 import scipy.optimize
@@ -61,8 +61,8 @@ class TensoredConfusionMatrices:
 
     def __init__(
         self,
-        confusion_matrices: Union[np.ndarray, Sequence[np.ndarray]],
-        measure_qubits: Union[Sequence[cirq.Qid], Sequence[Sequence[cirq.Qid]]],
+        confusion_matrices: np.ndarray | Sequence[np.ndarray],
+        measure_qubits: Sequence[cirq.Qid] | Sequence[Sequence[cirq.Qid]],
         *,
         repetitions: int,
         timestamp: float,
@@ -185,7 +185,7 @@ class TensoredConfusionMatrices:
         ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)
         return ret / ret.sum(axis=1)
 
-    def confusion_matrix(self, qubits: Optional[Sequence[cirq.Qid]] = None) -> np.ndarray:
+    def confusion_matrix(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         """Returns a single confusion matrix constructed for the given set of qubits.
 
         The single `2 ** len(qubits) x 2 ** len(qubits)` confusion matrix is constructed
@@ -213,7 +213,7 @@ class TensoredConfusionMatrices:
             self._cache[key] = self._confusion_matrix(qubits)
         return self._cache[key]
 
-    def correction_matrix(self, qubits: Optional[Sequence[cirq.Qid]] = None) -> np.ndarray:
+    def correction_matrix(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         """Returns a single correction matrix constructed for the given set of qubits.
 
         A correction matrix is the inverse of confusion matrix and can be used to apply corrections
@@ -242,7 +242,7 @@ class TensoredConfusionMatrices:
     def apply(
         self,
         result: np.ndarray,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
+        qubits: Sequence[cirq.Qid] | None = None,
         *,
         method='least_squares',
     ) -> np.ndarray:
@@ -426,7 +426,7 @@ class TensoredConfusionMatrices:
 
 def measure_confusion_matrix(
     sampler: cirq.Sampler,
-    qubits: Union[Sequence[cirq.Qid], Sequence[Sequence[cirq.Qid]]],
+    qubits: Sequence[cirq.Qid] | Sequence[Sequence[cirq.Qid]],
     repetitions: int = 1000,
 ) -> TensoredConfusionMatrices:
     """Prepares `TensoredConfusionMatrices` for the n qubits in the input.

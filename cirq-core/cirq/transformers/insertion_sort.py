@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import circuits, protocols
 from cirq.transformers import transformer_api
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer(add_deep_support=True)
 def insertion_sort_transformer(
-    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Sorts the operations using their sorted `.qubits` property as comparison key.
 

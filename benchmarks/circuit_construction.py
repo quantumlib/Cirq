@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-from typing import Sequence, Set
+from typing import Sequence
 
 import cirq
 
 
 def rotated_surface_code_memory_z_cycle(
-    data_qubits: Set[cirq.Qid],
-    z_measure_qubits: Set[cirq.Qid],
-    x_measure_qubits: Set[cirq.Qid],
+    data_qubits: set[cirq.Qid],
+    z_measure_qubits: set[cirq.Qid],
+    x_measure_qubits: set[cirq.Qid],
     z_order: Sequence[tuple[int, int]],
     x_order: Sequence[tuple[int, int]],
 ) -> cirq.Circuit:

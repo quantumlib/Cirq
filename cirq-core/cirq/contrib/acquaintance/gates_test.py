@@ -17,7 +17,7 @@ from __future__ import annotations
 from itertools import combinations, product
 from random import randint
 from string import ascii_lowercase as alphabet
-from typing import Optional, Sequence
+from typing import Sequence
 
 import numpy
 import pytest
@@ -141,7 +141,7 @@ def test_acquaint_part_pairs(part_lens):
     assert expected_opps == actual_opps
 
 
-acquaintance_sizes: tuple[Optional[int], ...] = (None,)
+acquaintance_sizes: tuple[int | None, ...] = (None,)
 acquaintance_sizes += tuple(range(5))
 
 

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from dataclasses import dataclass
-from typing import Iterator, Optional, Sequence, TYPE_CHECKING
+from typing import Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -121,7 +121,7 @@ class ProductState:
     def _from_json_dict_(cls, states, **kwargs):
         return cls(states=dict(states))
 
-    def state_vector(self, qubit_order: Optional[cirq.QubitOrder] = None) -> np.ndarray:
+    def state_vector(self, qubit_order: cirq.QubitOrder | None = None) -> np.ndarray:
         """The state-vector representation of this state."""
         from cirq import ops
 
@@ -138,7 +138,7 @@ class ProductState:
 
         return mat
 
-    def projector(self, qubit_order: Optional[cirq.QubitOrder] = None) -> np.ndarray:
+    def projector(self, qubit_order: cirq.QubitOrder | None = None) -> np.ndarray:
         """The projector associated with this state expressed as a matrix.
 
         This is |s⟩⟨s| where |s⟩ is this state.

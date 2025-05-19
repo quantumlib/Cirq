@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, cast, Optional, SupportsFloat, TYPE_CHECKING
+from typing import AbstractSet, Any, cast, SupportsFloat, TYPE_CHECKING
 
 import numpy as np
 
@@ -132,7 +132,7 @@ class RandomGateChannel(raw_types.Gate):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Optional[cirq.CircuitDiagramInfo]:
+    ) -> cirq.CircuitDiagramInfo | None:
         result = protocols.circuit_diagram_info(self.sub_gate, args, None)
         if result is None:
             return None

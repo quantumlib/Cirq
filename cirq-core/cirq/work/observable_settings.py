@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import numbers
-from typing import FrozenSet, Iterable, Mapping, Optional, TYPE_CHECKING, Union
+from typing import Iterable, Mapping, TYPE_CHECKING
 
 import sympy
 
@@ -64,7 +64,7 @@ class InitObsSetting:
         return protocols.dataclass_json_dict(self)
 
 
-def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Optional[ops.PauliString]:
+def _max_weight_observable(observables: Iterable[ops.PauliString]) -> ops.PauliString | None:
     """Create a new observable that is compatible with all input observables
     and has the maximum non-identity elements.
 
@@ -91,7 +91,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Optional[o
     return ops.PauliString(qubit_pauli_map)
 
 
-def _max_weight_state(states: Iterable[value.ProductState]) -> Optional[value.ProductState]:
+def _max_weight_state(states: Iterable[value.ProductState]) -> value.ProductState | None:
     """Create a new state that is compatible with all input states
     and has the maximum weight.
 
@@ -130,7 +130,7 @@ def observables_to_settings(
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
-def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int, tuple[int, int]]:
+def _fix_precision(val: value.Scalar | sympy.Expr, precision) -> int | tuple[int, int]:
     """Convert floating point or complex numbers to (implicitly) fixed point
     integers. Complex numbers will return fixed-point (real, imag) tuples.
 
@@ -146,9 +146,8 @@ def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int
 
 
 def _hashable_param(
-    param_tuples: Iterable[tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
-    precision=1e7,
-) -> FrozenSet[tuple[str, Union[int, tuple[int, int]]]]:
+    param_tuples: Iterable[tuple[str | sympy.Expr, value.Scalar | sympy.Expr]], precision=1e7
+) -> frozenset[tuple[str, int | tuple[int, int]]]:
     """Hash circuit parameters using fixed precision.
 
     Circuit parameters can be complex but we also need to use them as
@@ -170,7 +169,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
+    circuit_params: Mapping[str | sympy.Expr, value.Scalar | sympy.Expr]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

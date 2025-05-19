@@ -27,11 +27,9 @@ from typing import (
     KeysView,
     Mapping,
     MutableMapping,
-    Optional,
     overload,
     TYPE_CHECKING,
     TypeVar,
-    Union,
     ValuesView,
 )
 
@@ -44,7 +42,7 @@ from cirq import protocols
 if TYPE_CHECKING:
     import cirq
 
-Scalar = Union[complex, np.number]
+Scalar = complex | np.number
 TVector = TypeVar('TVector')
 
 TDefault = TypeVar('TDefault')
@@ -120,8 +118,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
 
     def __init__(
         self,
-        terms: Optional[Mapping[TVector, cirq.TParamValComplex]] = None,
-        validator: Optional[Callable[[TVector], bool]] = None,
+        terms: Mapping[TVector, cirq.TParamValComplex] | None = None,
+        validator: Callable[[TVector], bool] | None = None,
     ) -> None:
         """Initializes linear combination from a collection of terms.
 
@@ -215,7 +213,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         pass
 
     @overload
-    def get(self, vector: TVector, default: TDefault) -> Union[cirq.TParamValComplex, TDefault]:
+    def get(self, vector: TVector, default: TDefault) -> cirq.TParamValComplex | TDefault:
         pass
 
     def get(self, vector, default=0):

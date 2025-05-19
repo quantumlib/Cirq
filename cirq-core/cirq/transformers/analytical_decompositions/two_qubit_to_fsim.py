@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Iterator, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Iterable, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -27,10 +27,10 @@ if TYPE_CHECKING:
 
 
 def decompose_two_qubit_interaction_into_four_fsim_gates(
-    interaction: Union[cirq.SupportsUnitary, np.ndarray],
+    interaction: cirq.SupportsUnitary | np.ndarray,
     *,
-    fsim_gate: Union[cirq.FSimGate, cirq.ISwapPowGate],
-    qubits: Optional[Sequence[cirq.Qid]] = None,
+    fsim_gate: cirq.FSimGate | cirq.ISwapPowGate,
+    qubits: Sequence[cirq.Qid] | None = None,
 ) -> cirq.Circuit:
     """Decomposes operations into an FSimGate near theta=pi/2, phi=0.
 
@@ -100,7 +100,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
     return result
 
 
-def _sticky_0_to_1(v: float, *, atol: float) -> Optional[float]:
+def _sticky_0_to_1(v: float, *, atol: float) -> float | None:
     if 0 <= v <= 1:
         return v
     if 1 < v <= 1 + atol:
@@ -176,7 +176,7 @@ _B = _BGate()
 
 
 def _decompose_two_qubit_interaction_into_two_b_gates(
-    interaction: Union[cirq.SupportsUnitary, np.ndarray, cirq.KakDecomposition],
+    interaction: cirq.SupportsUnitary | np.ndarray | cirq.KakDecomposition,
     *,
     qubits: Sequence[cirq.Qid],
 ) -> list[cirq.Operation]:

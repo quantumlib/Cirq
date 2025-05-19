@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, Iterable, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Callable, Iterable, Sequence, TYPE_CHECKING, Union
 
 from cirq import _import, circuits, ops, protocols
 from cirq.transformers import transformer_api
@@ -33,7 +33,7 @@ Classifier = Callable[['cirq.Operation'], bool]
 
 # Any of the possible operation categories that we can stratify on.
 Category = Union[
-    'cirq.Gate', 'cirq.Operation', Type['cirq.Gate'], Type['cirq.Operation'], Classifier
+    'cirq.Gate', 'cirq.Operation', type['cirq.Gate'], type['cirq.Operation'], Classifier
 ]
 
 
@@ -41,7 +41,7 @@ Category = Union[
 def stratified_circuit(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     categories: Iterable[Category] = (),
 ) -> cirq.Circuit:
     """Repacks avoiding simultaneous operations with different classes.

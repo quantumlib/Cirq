@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from copy import copy, deepcopy
-from typing import Any, Generic, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Generic, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -38,7 +38,7 @@ def _is_identity(action) -> bool:
 class ClassicalBasisState(qis.QuantumStateRepresentation):
     """Represents a classical basis state for efficient state evolution."""
 
-    def __init__(self, initial_state: Union[list[int], np.ndarray]):
+    def __init__(self, initial_state: list[int] | np.ndarray):
         """Initializes the ClassicalBasisState object.
 
         Args:
@@ -77,9 +77,9 @@ class ClassicalBasisSimState(SimulationState[ClassicalBasisState]):
 
     def __init__(
         self,
-        initial_state: Union[int, list[int]] = 0,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        initial_state: int | list[int] = 0,
+        qubits: Sequence[cirq.Qid] | None = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Initializes the ClassicalBasisSimState object.
 

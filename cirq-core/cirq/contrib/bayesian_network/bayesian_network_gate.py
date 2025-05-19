@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, cast, Iterator, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, cast, Iterator, Sequence, TYPE_CHECKING
 
 from sympy.combinatorics import GrayCode
 
@@ -96,7 +96,7 @@ class BayesianNetworkGate(raw_types.Gate):
 
     def __init__(
         self,
-        init_probs: list[tuple[str, Optional[float]]],
+        init_probs: list[tuple[str, float | None]],
         arc_probs: list[tuple[str, tuple[str], list[float]]],
     ):
         """Builds a BayesianNetworkGate.
@@ -187,13 +187,12 @@ class BayesianNetworkGate(raw_types.Gate):
     @classmethod
     def _from_json_dict_(
         cls,
-        init_probs: list[list[Union[str, Optional[float]]]],
-        arc_probs: list[list[Union[str, list[str], list[float]]]],
+        init_probs: list[list[str | float | None]],
+        arc_probs: list[list[str | list[str] | list[float]]],
         **kwargs,
     ) -> BayesianNetworkGate:
         converted_init_probs = cast(
-            list[tuple[str, Optional[float]]],
-            [(param, init_prob) for param, init_prob in init_probs],
+            list[tuple[str, float | None]], [(param, init_prob) for param, init_prob in init_probs]
         )
         converted_cond_probs = cast(
             list[tuple[str, tuple[str], list[float]]],

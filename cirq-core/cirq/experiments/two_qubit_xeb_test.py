@@ -14,7 +14,7 @@
 """Wraps Parallel Two Qubit XEB into a few convenience methods."""
 import io
 import itertools
-from typing import Optional, Sequence
+from typing import Sequence
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -86,7 +86,7 @@ def test_parallel_two_qubit_xeb_simulator_without_processor_fails():
         ),
     ],
 )
-def test_parallel_two_qubit_xeb(sampler: cirq.Sampler, qubits: Optional[Sequence[cirq.GridQubit]]):
+def test_parallel_two_qubit_xeb(sampler: cirq.Sampler, qubits: Sequence[cirq.GridQubit] | None):
     res = cirq.experiments.parallel_two_qubit_xeb(
         sampler=sampler,
         qubits=qubits,
@@ -290,8 +290,8 @@ def test_inferred_plots(ax, target_error, kind):
 )
 def test_run_rb_and_xeb(
     sampler: cirq.Sampler,
-    qubits: Optional[Sequence[cirq.GridQubit]],
-    pairs: Optional[Sequence[tuple[cirq.GridQubit, cirq.GridQubit]]],
+    qubits: Sequence[cirq.GridQubit] | None,
+    pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None,
 ):
     res = cirq.experiments.run_rb_and_xeb(
         sampler=sampler,

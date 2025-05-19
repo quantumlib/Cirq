@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import Any, cast, TYPE_CHECKING, Union
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -59,9 +59,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return 1
 
-    def _commutes_(
-        self, other: Any, *, atol: float = 1e-8
-    ) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType | None:
         if not isinstance(other, Pauli):
             return NotImplemented
         return self is other
@@ -74,8 +72,8 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         return (self._index - second._index + 1) % 3 - 1
 
     def phased_pauli_product(
-        self, other: Union[cirq.Pauli, identity.IdentityGate]
-    ) -> tuple[complex, Union[cirq.Pauli, identity.IdentityGate]]:
+        self, other: cirq.Pauli | identity.IdentityGate
+    ) -> tuple[complex, cirq.Pauli | identity.IdentityGate]:
         if self == other:
             return 1, identity.I
         if other is identity.I:

@@ -17,7 +17,7 @@
 import re
 import warnings
 from dataclasses import dataclass
-from typing import Any, cast, Collection, Mapping, Optional, Sequence, Set, Type, Union
+from typing import Any, cast, Collection, Mapping, Sequence
 
 import cirq
 from cirq_google import ops, transformers
@@ -71,7 +71,7 @@ _SQRT_ISWAP_TARGET_GATES = [
 _VARIADIC_GATE_FAMILIES = [_MEASUREMENT_GATE_FAMILY, _WAIT_GATE_FAMILY]
 
 
-GateOrFamily = Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]
+GateOrFamily = type[cirq.Gate] | cirq.Gate | cirq.GateFamily
 
 
 @dataclass
@@ -477,7 +477,7 @@ class GridDevice(cirq.Device):
         return GridDevice(metadata)
 
     def to_proto(
-        self, out: Optional[v2.device_pb2.DeviceSpecification] = None
+        self, out: v2.device_pb2.DeviceSpecification | None = None
     ) -> v2.device_pb2.DeviceSpecification:
         """Serializes the GridDevice to a DeviceSpecification.
 
@@ -520,8 +520,8 @@ class GridDevice(cirq.Device):
         *,
         qubit_pairs: Collection[tuple[cirq.GridQubit, cirq.GridQubit]],
         gateset: cirq.Gateset,
-        gate_durations: Optional[Mapping[cirq.GateFamily, cirq.Duration]] = None,
-        all_qubits: Optional[Collection[cirq.GridQubit]] = None,
+        gate_durations: Mapping[cirq.GateFamily, cirq.Duration] | None = None,
+        all_qubits: Collection[cirq.GridQubit] | None = None,
     ) -> 'GridDevice':
         """Constructs a GridDevice using the device information provided.
 
@@ -625,7 +625,7 @@ class GridDevice(cirq.Device):
     def __str__(self) -> str:
         diagram = cirq.TextDiagramDrawer()
 
-        qubits = cast(Set[cirq.GridQubit], self._metadata.qubit_set)
+        qubits = cast(set[cirq.GridQubit], self._metadata.qubit_set)
 
         # Don't print out extras newlines if the row/col doesn't start at 0
         min_col = min(q.col for q in qubits)

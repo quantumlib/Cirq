@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import ops, protocols
 
@@ -27,8 +27,8 @@ class Coupler(ops.Qid):
 
     _qubit0: ops.Qid
     _qubit1: ops.Qid
-    _hash: Optional[int] = None
-    _comp_key: Optional[tuple[Any, Any]] = None
+    _hash: int | None = None
+    _comp_key: tuple[Any, Any] | None = None
 
     def __new__(cls, qubit0: ops.Qid, qubit1: ops.Qid) -> Coupler:
         """Creates a grid coupler between two qubits.

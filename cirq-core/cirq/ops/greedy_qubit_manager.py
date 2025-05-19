@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Set, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 
 from cirq.ops import named_qubit, qid_util, qubit_manager
 
@@ -51,7 +51,7 @@ class GreedyQubitManager(qubit_manager.QubitManager):
             maximize_reuse: Flag to control a FIFO vs LIFO strategy, defaults to False (FIFO).
         """
         self._prefix = prefix
-        self._used_qubits: Set[cirq.Qid] = set()
+        self._used_qubits: set[cirq.Qid] = set()
         self._free_qubits: list[cirq.Qid] = []
         self._size = 0
         self.maximize_reuse = maximize_reuse

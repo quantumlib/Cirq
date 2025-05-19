@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable, Iterable, NamedTuple, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Callable, Iterable, NamedTuple, Sequence, TYPE_CHECKING, Union
 
 from cirq import devices, ops, value
 
@@ -75,7 +75,7 @@ class Cell(metaclass=abc.ABCMeta):
         extremely adversarial conditions.
         """
 
-    def with_input(self, letter: str, register: Union[Sequence[cirq.Qid], int]) -> Cell:
+    def with_input(self, letter: str, register: Sequence[cirq.Qid] | int) -> Cell:
         """The same cell, but linked to an explicit input register or constant.
 
         If the cell doesn't need the input, it is returned unchanged.
@@ -134,7 +134,7 @@ class Cell(metaclass=abc.ABCMeta):
         """
         return ()
 
-    def modify_column(self, column: list[Optional[Cell]]) -> None:
+    def modify_column(self, column: list[Cell | None]) -> None:
         """Applies this cell's modification to its column.
 
         For example, a control cell will add a control qubit to other operations

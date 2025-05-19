@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, Optional, Sequence, TYPE_CHECKING
+from typing import cast, Iterable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -232,7 +232,7 @@ def _is_trivial_angle(rad: float, atol: float) -> bool:
 
 
 def _parity_interaction(
-    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: Optional[ops.Gate] = None
+    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: ops.Gate | None = None
 ):
     """Yields a ZZ interaction framed by the given operation."""
     if abs(rads) < atol:

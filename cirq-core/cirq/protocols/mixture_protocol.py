@@ -15,7 +15,7 @@
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 
 from types import NotImplementedType
-from typing import Any, Sequence, Union
+from typing import Any, Sequence
 
 import numpy as np
 from typing_extensions import Protocol
@@ -34,7 +34,7 @@ class SupportsMixture(Protocol):
     """An object that decomposes into a probability distribution of unitaries."""
 
     @doc_private
-    def _mixture_(self) -> Union[Sequence[tuple[float, Any]], NotImplementedType]:
+    def _mixture_(self) -> Sequence[tuple[float, Any]] | NotImplementedType:
         """Decompose into a probability distribution of unitaries.
 
         This method is used by the global `cirq.mixture` method.

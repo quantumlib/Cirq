@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
-from typing import Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -131,7 +131,7 @@ def _decoherence_matrix(
 
 
 def _as_rate_dict(
-    rate_or_dict: Optional[Union[float, dict[cirq.Qid, float]]], qubits: Set[cirq.Qid]
+    rate_or_dict: float | dict[cirq.Qid, float] | None, qubits: set[cirq.Qid]
 ) -> dict[cirq.Qid, float]:
     """Convert float or None input into dictionary form.
 
@@ -145,7 +145,7 @@ def _as_rate_dict(
         return {q: rate_or_dict for q in qubits}
 
 
-def _validate_rates(qubits: Set[cirq.Qid], rates: dict[cirq.Qid, np.ndarray]) -> None:
+def _validate_rates(qubits: set[cirq.Qid], rates: dict[cirq.Qid, np.ndarray]) -> None:
     """Check all rate matrices are square and of appropriate dimension.
 
     We check rates are positive in the class validator.
@@ -171,11 +171,11 @@ class ThermalNoiseModel(devices.NoiseModel):
 
     def __init__(
         self,
-        qubits: Set[cirq.Qid],
+        qubits: set[cirq.Qid],
         gate_durations_ns: dict[type, float],
-        heat_rate_GHz: Union[float, dict[cirq.Qid, float], None] = None,
-        cool_rate_GHz: Union[float, dict[cirq.Qid, float], None] = None,
-        dephase_rate_GHz: Union[float, dict[cirq.Qid, float], None] = None,
+        heat_rate_GHz: float | dict[cirq.Qid, float] | None = None,
+        cool_rate_GHz: float | dict[cirq.Qid, float] | None = None,
+        dephase_rate_GHz: float | dict[cirq.Qid, float] | None = None,
         require_physical_tag: bool = True,
         skip_measurements: bool = True,
         prepend: bool = False,
@@ -253,7 +253,7 @@ class ThermalNoiseModel(devices.NoiseModel):
         # to be as long as the longest gate it contains.
         moment_ns: float = 0
         for op in moment:
-            op_duration: Optional[float] = None
+            op_duration: float | None = None
             for key, duration in self.gate_durations_ns.items():
                 if not issubclass(type(op.gate), key):
                     continue  # gate type doesn't match

@@ -23,11 +23,9 @@ from typing import (
     Generic,
     Iterator,
     Mapping,
-    Optional,
     Sequence,
     TYPE_CHECKING,
     TypeVar,
-    Union,
 )
 
 import numpy as np
@@ -46,10 +44,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
     def __init__(
-        self,
-        *,
-        qubits: Sequence[cirq.Qid],
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        self, *, qubits: Sequence[cirq.Qid], classical_data: cirq.ClassicalDataStore | None = None
     ):
         """Initializes the class.
 
@@ -84,7 +79,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
-    ) -> Union[bool, NotImplementedType]:
+    ) -> bool | NotImplementedType:
         """Handles the act_on protocol fallback implementation.
 
         Args:
@@ -126,7 +121,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         """Samples the state value."""
 
     @abc.abstractmethod
-    def __getitem__(self, item: Optional[cirq.Qid]) -> TSimulationState:
+    def __getitem__(self, item: cirq.Qid | None) -> TSimulationState:
         """Gets the item associated with the qubit."""
 
     @abc.abstractmethod
@@ -134,5 +129,5 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         """Gets the number of items in the mapping."""
 
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[Optional[cirq.Qid]]:
+    def __iter__(self) -> Iterator[cirq.Qid | None]:
         """Iterates the keys of the mapping."""

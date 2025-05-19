@@ -16,7 +16,7 @@
 
 import functools
 import warnings
-from typing import Any, Optional
+from typing import Any
 
 import sympy
 
@@ -69,10 +69,10 @@ class CircuitSerializer(serializer.Serializer):
 
     def __init__(
         self,
-        op_serializer: Optional[op_serializer.OpSerializer] = None,
-        op_deserializer: Optional[op_deserializer.OpDeserializer] = None,
-        tag_serializer: Optional[tag_serializer.TagSerializer] = None,
-        tag_deserializer: Optional[tag_deserializer.TagDeserializer] = None,
+        op_serializer: op_serializer.OpSerializer | None = None,
+        op_deserializer: op_deserializer.OpDeserializer | None = None,
+        tag_serializer: tag_serializer.TagSerializer | None = None,
+        tag_deserializer: tag_deserializer.TagDeserializer | None = None,
         **kwargs,
     ):
         """Construct the circuit serializer object."""
@@ -85,7 +85,7 @@ class CircuitSerializer(serializer.Serializer):
         self.stimcirq_deserializer = stimcirq_deserializer.StimCirqDeserializer()
 
     def serialize(
-        self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
+        self, program: cirq.AbstractCircuit, msg: v2.program_pb2.Program | None = None
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 
@@ -326,10 +326,10 @@ class CircuitSerializer(serializer.Serializer):
     def _serialize_circuit_op(
         self,
         op: cirq.CircuitOperation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
-        constants: Optional[list[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[dict[Any, int]] = None,
+        constants: list[v2.program_pb2.Constant] | None = None,
+        raw_constants: dict[Any, int] | None = None,
     ) -> v2.program_pb2.CircuitOperation:
         """Serialize a CircuitOperation to cirq.google.api.v2.CircuitOperation proto.
 
@@ -513,8 +513,8 @@ class CircuitSerializer(serializer.Serializer):
         self,
         operation_proto: v2.program_pb2.Operation,
         *,
-        constants: Optional[list[v2.program_pb2.Constant]] = None,
-        deserialized_constants: Optional[list[Any]] = None,
+        constants: list[v2.program_pb2.Constant] | None = None,
+        deserialized_constants: list[Any] | None = None,
     ) -> cirq.Operation:
         """Deserialize an Operation from a cirq_google.api.v2.Operation.
 

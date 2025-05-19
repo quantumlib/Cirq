@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 from cirq import circuits, ops, value
 from cirq._doc import document
@@ -46,10 +46,10 @@ and Z gates.
 
 
 def random_circuit(
-    qubits: Union[Sequence[cirq.Qid], int],
+    qubits: Sequence[cirq.Qid] | int,
     n_moments: int,
     op_density: float,
-    gate_domain: Optional[dict[ops.Gate, int]] = None,
+    gate_domain: dict[ops.Gate, int] | None = None,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> circuits.Circuit:
     """Generates a random circuit.
@@ -126,8 +126,8 @@ def random_circuit(
 
 def random_two_qubit_circuit_with_czs(
     num_czs: int = 3,
-    q0: Optional[cirq.Qid] = None,
-    q1: Optional[cirq.Qid] = None,
+    q0: cirq.Qid | None = None,
+    q1: cirq.Qid | None = None,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> circuits.Circuit:
     """Creates a random two qubit circuit with the given number of CNOTs.

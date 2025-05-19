@@ -18,7 +18,7 @@ import json
 import numbers
 import pathlib
 from types import NotImplementedType
-from typing import Any, Callable, cast, IO, Iterable, Optional, overload, Sequence, Type, Union
+from typing import Any, Callable, cast, IO, Iterable, overload, Sequence
 
 import attrs
 import numpy as np
@@ -28,13 +28,13 @@ from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 
-ObjectFactory = Union[Type, Callable[..., Any]]
+ObjectFactory = type | Callable[..., Any]
 
 
 class JsonResolver(Protocol):
     """Protocol for json resolver functions passed to read_json."""
 
-    def __call__(self, cirq_type: str) -> Optional[ObjectFactory]: ...
+    def __call__(self, cirq_type: str) -> ObjectFactory | None: ...
 
 
 def _lazy_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> JsonResolver:
@@ -47,7 +47,7 @@ def _lazy_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> Json
           class resolution map - it is assumed to be cached
     """
 
-    def json_resolver(cirq_type: str) -> Optional[ObjectFactory]:
+    def json_resolver(cirq_type: str) -> ObjectFactory | None:
         return dict_factory().get(cirq_type, None)
 
     return json_resolver
@@ -110,7 +110,7 @@ class SupportsJSON(Protocol):
     """
 
     @doc_private
-    def _json_dict_(self) -> Union[None, NotImplementedType, dict[Any, Any]]:
+    def _json_dict_(self) -> None | NotImplementedType | dict[Any, Any]:
         pass
 
 
@@ -366,7 +366,7 @@ class SerializableByKey(SupportsJSON):
     """
 
 
-def json_namespace(type_obj: Type) -> str:
+def json_namespace(type_obj: type) -> str:
     """Returns a namespace for JSON serialization of `type_obj`.
 
     Types can provide custom namespaces with `_json_namespace_`; otherwise, a
@@ -390,7 +390,7 @@ def json_namespace(type_obj: Type) -> str:
     raise ValueError(f'{type_obj} is not a Cirq type, and does not define _json_namespace_.')
 
 
-def json_cirq_type(type_obj: Type) -> str:
+def json_cirq_type(type_obj: type) -> str:
     """Returns a string type for JSON serialization of `type_obj`.
 
     This method is not part of the base serialization path. Together with
@@ -404,7 +404,7 @@ def json_cirq_type(type_obj: Type) -> str:
 
 
 def factory_from_json(
-    type_str: str, resolvers: Optional[Sequence[JsonResolver]] = None
+    type_str: str, resolvers: Sequence[JsonResolver] | None = None
 ) -> ObjectFactory:
     """Returns a factory for constructing objects of type `type_str`.
 
@@ -430,7 +430,7 @@ def factory_from_json(
     raise ValueError(f"Could not resolve type '{type_str}' during deserialization")
 
 
-def cirq_type_from_json(type_str: str, resolvers: Optional[Sequence[JsonResolver]] = None) -> Type:
+def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None = None) -> type:
     """Returns a type object for JSON deserialization of `type_str`.
 
     This method is not part of the base deserialization path. Together with
@@ -460,12 +460,7 @@ def cirq_type_from_json(type_str: str, resolvers: Optional[Sequence[JsonResolver
 # pylint: disable=function-redefined
 @overload
 def to_json(
-    obj: Any,
-    file_or_fn: Union[IO, pathlib.Path, str],
-    *,
-    indent=2,
-    separators=None,
-    cls=CirqEncoder,
+    obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
 ) -> None:
     pass
 
@@ -479,12 +474,12 @@ def to_json(
 
 def to_json(
     obj: Any,
-    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    indent: Optional[int] = 2,
-    separators: Optional[tuple[str, str]] = None,
-    cls: Type[json.JSONEncoder] = CirqEncoder,
-) -> Optional[str]:
+    indent: int | None = 2,
+    separators: tuple[str, str] | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> str | None:
     """Write a JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
@@ -521,10 +516,10 @@ def to_json(
 
 # pylint: enable=function-redefined
 def read_json(
-    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    json_text: Optional[str] = None,
-    resolvers: Optional[Sequence[JsonResolver]] = None,
+    json_text: str | None = None,
+    resolvers: Sequence[JsonResolver] | None = None,
 ):
     """Read a JSON file that optionally contains cirq objects.
 
@@ -568,11 +563,11 @@ def read_json(
 
 def to_json_gzip(
     obj: Any,
-    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    file_or_fn: None | IO | pathlib.Path | str = None,
     *,
     indent: int = 2,
-    cls: Type[json.JSONEncoder] = CirqEncoder,
-) -> Optional[bytes]:
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> bytes | None:
     """Write a gzipped JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
@@ -607,10 +602,10 @@ def to_json_gzip(
 
 
 def read_json_gzip(
-    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    gzip_raw: Optional[bytes] = None,
-    resolvers: Optional[Sequence[JsonResolver]] = None,
+    gzip_raw: bytes | None = None,
+    resolvers: Sequence[JsonResolver] | None = None,
 ):
     """Read a gzipped JSON file that optionally contains cirq objects.
 

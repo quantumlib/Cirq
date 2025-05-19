@@ -24,7 +24,6 @@ from typing import (
     Callable,
     Iterable,
     Iterator,
-    Optional,
     overload,
     Sequence,
     TYPE_CHECKING,
@@ -55,11 +54,11 @@ _CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset th
 @runtime_checkable
 class OpDecomposerWithContext(Protocol):
     def __call__(
-        self, __op: cirq.Operation, *, context: Optional[cirq.DecompositionContext] = None
+        self, __op: cirq.Operation, *, context: cirq.DecompositionContext | None = None
     ) -> DecomposeResult: ...
 
 
-OpDecomposer = Union[Callable[['cirq.Operation'], DecomposeResult], OpDecomposerWithContext]
+OpDecomposer = Callable[['cirq.Operation'], DecomposeResult] | OpDecomposerWithContext
 
 DECOMPOSE_TARGET_GATESET = ops.Gateset(
     ops.XPowGate,
@@ -127,7 +126,7 @@ class SupportsDecompose(Protocol):
         pass
 
     def _decompose_with_context_(
-        self, *, context: Optional[DecompositionContext] = None
+        self, *, context: DecompositionContext | None = None
     ) -> DecomposeResult:
         pass
 
@@ -155,13 +154,13 @@ class SupportsDecomposeWithQubits(Protocol):
         pass
 
     def _decompose_with_context_(
-        self, qubits: tuple[cirq.Qid, ...], *, context: Optional[DecompositionContext] = None
+        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext | None = None
     ) -> DecomposeResult:
         pass
 
 
 def _try_op_decomposer(
-    val: Any, decomposer: Optional[OpDecomposer], *, context: Optional[DecompositionContext] = None
+    val: Any, decomposer: OpDecomposer | None, *, context: DecompositionContext | None = None
 ) -> DecomposeResult:
     if decomposer is None or not isinstance(val, ops.Operation):
         return None
@@ -174,11 +173,11 @@ def _try_op_decomposer(
 
 @dataclasses.dataclass(frozen=True)
 class _DecomposeArgs:
-    context: Optional[DecompositionContext]
-    intercepting_decomposer: Optional[OpDecomposer]
-    fallback_decomposer: Optional[OpDecomposer]
-    keep: Optional[Callable[[cirq.Operation], bool]]
-    on_stuck_raise: Union[None, Exception, Callable[[cirq.Operation], Optional[Exception]]]
+    context: DecompositionContext | None
+    intercepting_decomposer: OpDecomposer | None
+    fallback_decomposer: OpDecomposer | None
+    keep: Callable[[cirq.Operation], bool] | None
+    on_stuck_raise: None | Exception | Callable[[cirq.Operation], Exception | None]
     preserve_structure: bool
 
 
@@ -224,14 +223,14 @@ def _decompose_dfs(item: Any, args: _DecomposeArgs) -> Iterator[cirq.Operation]:
 def decompose(
     val: Any,
     *,
-    intercepting_decomposer: Optional[OpDecomposer] = None,
-    fallback_decomposer: Optional[OpDecomposer] = None,
-    keep: Optional[Callable[[cirq.Operation], bool]] = None,
-    on_stuck_raise: Union[
-        None, Exception, Callable[[cirq.Operation], Optional[Exception]]
-    ] = _value_error_describing_bad_operation,
+    intercepting_decomposer: OpDecomposer | None = None,
+    fallback_decomposer: OpDecomposer | None = None,
+    keep: Callable[[cirq.Operation], bool] | None = None,
+    on_stuck_raise: (
+        None | Exception | Callable[[cirq.Operation], Exception | None]
+    ) = _value_error_describing_bad_operation,
     preserve_structure: bool = False,
-    context: Optional[DecompositionContext] = None,
+    context: DecompositionContext | None = None,
 ) -> list[cirq.Operation]:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
@@ -320,7 +319,7 @@ def decompose_once(val: Any, **kwargs) -> list[cirq.Operation]:
 @overload
 def decompose_once(
     val: Any, default: TDefault, *args, flatten: bool = True, **kwargs
-) -> Union[TDefault, list[cirq.Operation]]:
+) -> TDefault | list[cirq.Operation]:
     pass
 
 
@@ -329,7 +328,7 @@ def decompose_once(
     default=RaiseTypeErrorIfNotProvided,
     *args,
     flatten: bool = True,
-    context: Optional[DecompositionContext] = None,
+    context: DecompositionContext | None = None,
     **kwargs,
 ):
     """Decomposes a value into operations, if possible.
@@ -397,7 +396,7 @@ def decompose_once_with_qubits(
     qubits: Iterable[cirq.Qid],
     *,
     flatten: bool = True,
-    context: Optional[DecompositionContext] = None,
+    context: DecompositionContext | None = None,
 ) -> list[cirq.Operation]:
     pass
 
@@ -406,11 +405,11 @@ def decompose_once_with_qubits(
 def decompose_once_with_qubits(
     val: Any,
     qubits: Iterable[cirq.Qid],
-    default: Optional[TDefault],
+    default: TDefault | None,
     *,
     flatten: bool = True,
-    context: Optional[DecompositionContext] = None,
-) -> Union[TDefault, list[cirq.Operation]]:
+    context: DecompositionContext | None = None,
+) -> TDefault | list[cirq.Operation]:
     pass
 
 
@@ -419,7 +418,7 @@ def decompose_once_with_qubits(
     qubits: Iterable[cirq.Qid],
     default=RaiseTypeErrorIfNotProvided,
     flatten: bool = True,
-    context: Optional[DecompositionContext] = None,
+    context: DecompositionContext | None = None,
 ):
     """Decomposes a value into operations on the given qubits.
 
@@ -458,7 +457,7 @@ def decompose_once_with_qubits(
 
 def _try_decompose_into_operations_and_qubits(
     val: Any,
-) -> tuple[Optional[list[cirq.Operation]], Sequence[cirq.Qid], tuple[int, ...]]:
+) -> tuple[list[cirq.Operation] | None, Sequence[cirq.Qid], tuple[int, ...]]:
     """Returns the value's decomposition (if any) and the qubits it applies to."""
 
     if isinstance(val, ops.Gate):

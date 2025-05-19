@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import astuple, dataclass
-from typing import Any, cast, Mapping, Optional, overload, Sequence, SupportsFloat, Union
+from typing import Any, cast, Mapping, overload, Sequence, SupportsFloat
 
 import matplotlib as mpl
 import matplotlib.collections as mpl_collections
@@ -59,7 +59,7 @@ class PolygonUnit:
     polygon: Polygon
     value: float
     center: Point
-    annot: Optional[str]
+    annot: str | None
 
 
 class Heatmap:
@@ -76,9 +76,9 @@ class Heatmap:
 
     def __init__(
         self,
-        value_map: Union[
-            Mapping[QubitTuple, SupportsFloat], Mapping[grid_qubit.GridQubit, SupportsFloat]
-        ],
+        value_map: (
+            Mapping[QubitTuple, SupportsFloat] | Mapping[grid_qubit.GridQubit, SupportsFloat]
+        ),
         **kwargs,
     ):
         """2D qubit grid Heatmaps
@@ -175,7 +175,7 @@ class Heatmap:
             Point(y, x),
         )
 
-    def _get_annotation_value(self, key, value) -> Optional[str]:
+    def _get_annotation_value(self, key, value) -> str | None:
         if self._config.get('annotation_map'):
             return self._config['annotation_map'].get(key)
         elif self._config.get('annotation_format'):
@@ -219,7 +219,7 @@ class Heatmap:
 
     def _write_annotations(
         self,
-        centers_and_annot: list[tuple[Point, Optional[str]]],
+        centers_and_annot: list[tuple[Point, str | None]],
         collection: mpl_collections.Collection,
         ax: plt.Axes,
     ) -> None:
@@ -274,7 +274,7 @@ class Heatmap:
         return collection
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, **kwargs: Any
+        self, ax: plt.Axes | None = None, **kwargs: Any
     ) -> tuple[plt.Axes, mpl_collections.Collection]:
         """Plots the heatmap on the given Axes.
         Args:
@@ -391,7 +391,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         return (polygon, Point((col1 + col2) / 2.0, (row1 + row2) / 2.0))
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, **kwargs: Any
+        self, ax: plt.Axes | None = None, **kwargs: Any
     ) -> tuple[plt.Axes, mpl_collections.Collection]:
         """Plots the heatmap on the given Axes.
         Args:

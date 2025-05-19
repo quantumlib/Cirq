@@ -25,9 +25,7 @@ from typing import (
     cast,
     Iterable,
     Mapping,
-    Optional,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
     TypeVar,
     Union,
@@ -169,7 +167,7 @@ class Result(abc.ABC):
         self,
         *,  # Forces keyword args.
         keys: Iterable[TMeasurementKey],
-        fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T], _tuple_of_big_endian_int),
+        fold_func: Callable[[tuple], T] = cast(Callable[[tuple], T], _tuple_of_big_endian_int),
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
 
@@ -228,7 +226,7 @@ class Result(abc.ABC):
         self,
         *,  # Forces keyword args.
         key: TMeasurementKey,
-        fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T], value.big_endian_bits_to_int),
+        fold_func: Callable[[tuple], T] = cast(Callable[[tuple], T], value.big_endian_bits_to_int),
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
@@ -311,9 +309,9 @@ class ResultDict(Result):
     def __init__(
         self,
         *,  # Forces keyword args.
-        params: Optional[resolver.ParamResolver] = None,
-        measurements: Optional[Mapping[str, np.ndarray]] = None,
-        records: Optional[Mapping[str, np.ndarray]] = None,
+        params: resolver.ParamResolver | None = None,
+        measurements: Mapping[str, np.ndarray] | None = None,
+        records: Mapping[str, np.ndarray] | None = None,
     ) -> None:
         """Inits Result.
 
@@ -340,7 +338,7 @@ class ResultDict(Result):
         self._params = params
         self._measurements = measurements
         self._records = records
-        self._data: Optional[pd.DataFrame] = None
+        self._data: pd.DataFrame | None = None
 
     @property
     def params(self) -> cirq.ParamResolver:
@@ -473,7 +471,7 @@ def _pack_bits(bits: np.ndarray) -> str:
 
 
 def _unpack_digits(
-    packed_digits: str, binary: bool, dtype: Union[None, str], shape: Union[None, Sequence[int]]
+    packed_digits: str, binary: bool, dtype: None | str, shape: None | Sequence[int]
 ) -> np.ndarray:
     """The opposite of `_pack_digits`.
 

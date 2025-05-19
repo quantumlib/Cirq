@@ -20,7 +20,7 @@ when combined with a run context, will become a quantum job.
 
 import abc
 import datetime
-from typing import Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import cirq
 from cirq_google.cloud import quantum
@@ -64,10 +64,10 @@ class AbstractProgram(abc.ABC):
     @abc.abstractmethod
     def list_jobs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
     ) -> Sequence['abstract_job.AbstractJob']:
         """Returns the list of jobs for this program.
 

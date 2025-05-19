@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional
 
 from cirq.circuits._box_drawing_character_data import box_draw_character, BoxDrawCharacterSet
 
@@ -57,7 +56,7 @@ class Block:
         left: bool = False,
         right: bool = False,
         bottom: bool = False,
-        crossing_char: Optional[str] = None,
+        crossing_char: str | None = None,
     ):
         """Draws lines in the box using the given character set.
 
@@ -189,8 +188,8 @@ class BlockDiagramDrawer:
     def render(
         self,
         *,
-        block_span_x: Optional[int] = None,
-        block_span_y: Optional[int] = None,
+        block_span_x: int | None = None,
+        block_span_y: int | None = None,
         min_block_width: int = 0,
         min_block_height: int = 0,
     ) -> str:

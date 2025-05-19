@@ -16,7 +16,7 @@
 import json
 import pathlib
 import time
-from typing import cast, Optional, Type, Union
+from typing import cast
 
 import google.protobuf.text_format as text_format
 
@@ -167,7 +167,7 @@ def load_sample_device_zphase(processor_id: str) -> util.ZPhaseDataType:
 def _create_virtual_processor_from_device(
     processor_id: str,
     device: cirq.Device,
-    device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
+    device_specification: v2.device_pb2.DeviceSpecification | None = None,
 ) -> simulated_local_processor.SimulatedLocalProcessor:
     """Creates a Processor object that is backed by a noiseless simulator.
 
@@ -196,7 +196,7 @@ def _create_virtual_processor_from_device(
 def create_noiseless_virtual_engine_from_device(
     processor_id: str,
     device: cirq.Device,
-    device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
+    device_specification: v2.device_pb2.DeviceSpecification | None = None,
 ) -> SimulatedLocalEngine:
     """Creates an Engine object with a single processor backed by a noiseless simulator.
 
@@ -239,10 +239,10 @@ def create_noiseless_virtual_processor_from_proto(
 
 
 def create_noiseless_virtual_engine_from_proto(
-    processor_ids: Union[str, list[str]],
-    device_specifications: Union[
-        v2.device_pb2.DeviceSpecification, list[v2.device_pb2.DeviceSpecification]
-    ],
+    processor_ids: str | list[str],
+    device_specifications: (
+        v2.device_pb2.DeviceSpecification | list[v2.device_pb2.DeviceSpecification]
+    ),
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification proto.
 
@@ -335,7 +335,7 @@ def create_noiseless_virtual_processor_from_template(
 
 
 def create_noiseless_virtual_engine_from_templates(
-    processor_ids: Union[str, list[str]], template_names: Union[str, list[str]]
+    processor_ids: str | list[str], template_names: str | list[str]
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification template.
 
@@ -385,7 +385,7 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
 
 
 def create_default_noisy_quantum_virtual_machine(
-    processor_id: str, simulator_class: Optional[Type[SimulatesSamples]] = None, **kwargs
+    processor_id: str, simulator_class: type[SimulatesSamples] | None = None, **kwargs
 ) -> SimulatedLocalEngine:
     """Creates a virtual engine with a noisy simulator based on a processor id.
 

@@ -17,7 +17,7 @@ from __future__ import annotations
 import abc
 import functools
 import weakref
-from typing import Any, Iterable, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Any, Iterable, Sequence, TYPE_CHECKING
 
 from typing_extensions import Self
 
@@ -108,7 +108,7 @@ class _BaseLineQid(ops.Qid):
         """
         return isinstance(other, _BaseLineQid) and abs(self._x - other._x) == 1
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set[_BaseLineQid]:
+    def neighbors(self, qids: Iterable[ops.Qid] | None = None) -> set[_BaseLineQid]:
         """Returns qubits that are potential neighbors to this LineQubit
 
         Args:
@@ -120,7 +120,7 @@ class _BaseLineQid(ops.Qid):
     def _with_x(self, x: int) -> Self:
         """Returns a qubit with the same type but a different value of `x`."""
 
-    def __add__(self, other: Union[int, Self]) -> Self:
+    def __add__(self, other: int | Self) -> Self:
         if isinstance(other, _BaseLineQid):
             if self._dimension != other._dimension:
                 raise TypeError(
@@ -132,7 +132,7 @@ class _BaseLineQid(ops.Qid):
             raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
         return self._with_x(self._x + other)
 
-    def __sub__(self, other: Union[int, Self]) -> Self:
+    def __sub__(self, other: int | Self) -> Self:
         if isinstance(other, _BaseLineQid):
             if self._dimension != other._dimension:
                 raise TypeError(

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from typing import Callable, cast, Iterable, Optional, Sequence, TYPE_CHECKING
+from typing import Callable, cast, Iterable, Sequence, TYPE_CHECKING
 
 from cirq import ops
 
@@ -106,7 +106,7 @@ class PointOptimizer:
     @abc.abstractmethod
     def optimization_at(
         self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-    ) -> Optional[cirq.PointOptimizationSummary]:
+    ) -> cirq.PointOptimizationSummary | None:
         """Describes how to change operations near the given location.
 
         For example, this method could realize that the given operation is an

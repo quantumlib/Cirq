@@ -17,7 +17,7 @@ from __future__ import annotations
 import abc
 import warnings
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Callable, Iterable, Sequence, TYPE_CHECKING, Union
 
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -65,7 +65,7 @@ def _node_and_coordinates(
 
 
 def draw_gridlike(
-    graph: nx.Graph, ax: Optional[plt.Axes] = None, tilted: bool = True, **kwargs
+    graph: nx.Graph, ax: plt.Axes | None = None, tilted: bool = True, **kwargs
 ) -> dict[Any, tuple[int, int]]:
     """Draw a grid-like graph using Matplotlib.
 
@@ -335,9 +335,9 @@ def draw_placements(
     small_graph: nx.Graph,
     small_to_big_mappings: Sequence[dict],
     max_plots: int = 20,
-    axes: Optional[Sequence[plt.Axes]] = None,
+    axes: Sequence[plt.Axes] | None = None,
     tilted: bool = True,
-    bad_placement_callback: Optional[Callable[[plt.Axes, int], None]] = None,
+    bad_placement_callback: Callable[[plt.Axes, int], None] | None = None,
 ):
     """Draw a visualization of placements from small_graph onto big_graph using Matplotlib.
 

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from typing import Any, FrozenSet, Mapping, Optional, TYPE_CHECKING
+from typing import Any, Mapping, TYPE_CHECKING
 
 import attrs
 import sympy
@@ -50,7 +50,7 @@ class Condition(abc.ABC):
     def qasm(self):
         """Returns the qasm of this condition."""
 
-    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
         return self.qasm
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> cirq.Condition:
@@ -66,7 +66,7 @@ class Condition(abc.ABC):
         return condition
 
     def _with_rescoped_keys_(
-        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ) -> cirq.Condition:
         condition = self
         for key in self.keys:
@@ -121,7 +121,7 @@ class KeyCondition(Condition):
     def qasm(self):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
-    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
         args.validate_version('2.0', '3.0')
         key_str = str(self.key)
         if key_str not in args.meas_key_id_map:
@@ -174,7 +174,7 @@ class BitMaskKeyCondition(Condition):
     index: int = -1
     target_value: int = 0
     equal_target: bool = False
-    bitmask: Optional[int] = None
+    bitmask: int | None = None
 
     @property
     def keys(self):

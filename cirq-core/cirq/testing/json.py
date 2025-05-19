@@ -18,7 +18,7 @@ import io
 import pathlib
 from dataclasses import dataclass
 from types import ModuleType
-from typing import Iterator, Set, Type
+from typing import Iterator
 
 import numpy as np
 import pandas as pd
@@ -65,7 +65,7 @@ class ModuleJsonTestSpec:
     def __repr__(self):
         return self.name
 
-    def _get_all_public_classes(self) -> Iterator[tuple[str, Type]]:
+    def _get_all_public_classes(self) -> Iterator[tuple[str, type]]:
         for module in self.packages:
             for name, obj in inspect.getmembers(module):
                 if inspect.isfunction(obj) or inspect.ismodule(obj):
@@ -87,16 +87,16 @@ class ModuleJsonTestSpec:
                 name = self.custom_class_name_to_cirq_type.get(name, name)
                 yield name, obj
 
-    def find_classes_that_should_serialize(self) -> Set[tuple[str, Type]]:
-        result: Set[tuple[str, Type]] = set()
+    def find_classes_that_should_serialize(self) -> set[tuple[str, type]]:
+        result: set[tuple[str, type]] = set()
 
         result.update({(name, obj) for name, obj in self._get_all_public_classes()})
         result.update(self.get_resolver_cache_types())
 
         return result
 
-    def get_resolver_cache_types(self) -> Set[tuple[str, Type]]:
-        result: Set[tuple[str, Type]] = set()
+    def get_resolver_cache_types(self) -> set[tuple[str, type]]:
+        result: set[tuple[str, type]] = set()
         for k, v in self.resolver_cache.items():
             if isinstance(v, type):
                 result.add((k, v))

@@ -29,7 +29,6 @@ import re
 import shutil
 import subprocess
 import warnings
-from typing import Set
 
 import pytest
 
@@ -98,7 +97,7 @@ def _find_base_revision():
     raise ValueError("Can't find a base revision to compare the files with.")
 
 
-def _list_changed_notebooks() -> Set[str]:
+def _list_changed_notebooks() -> set[str]:
     try:
         rev = _find_base_revision()
         output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())

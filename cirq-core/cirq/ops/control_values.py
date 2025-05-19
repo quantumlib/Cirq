@@ -17,7 +17,7 @@ from __future__ import annotations
 import abc
 import itertools
 from functools import cached_property
-from typing import Any, Collection, Iterator, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Collection, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import protocols, value
 
@@ -141,7 +141,7 @@ class AbstractControlValues(abc.ABC):
 class ProductOfSums(AbstractControlValues):
     """Represents control values as N OR (sum) clauses, each of which applies to one qubit."""
 
-    def __init__(self, data: Sequence[Union[int, Collection[int]]]):
+    def __init__(self, data: Sequence[int | Collection[int]]):
         self._qubit_sums: tuple[tuple[int, ...], ...] = tuple(
             (cv,) if isinstance(cv, int) else tuple(sorted(set(cv))) for cv in data
         )
@@ -162,7 +162,7 @@ class ProductOfSums(AbstractControlValues):
     def _num_qubits_(self) -> int:
         return len(self._qubit_sums)
 
-    def __getitem__(self, key: Union[int, slice]) -> Union[ProductOfSums, tuple[int, ...]]:
+    def __getitem__(self, key: int | slice) -> ProductOfSums | tuple[int, ...]:
         if isinstance(key, slice):
             return ProductOfSums(self._qubit_sums[key])
         return self._qubit_sums[key]
@@ -241,7 +241,7 @@ class SumOfProducts(AbstractControlValues):
         >>> nand_cop = cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
     """
 
-    def __init__(self, data: Collection[Sequence[int]], *, name: Optional[str] = None):
+    def __init__(self, data: Collection[Sequence[int]], *, name: str | None = None):
         self._conjunctions: tuple[tuple[int, ...], ...] = tuple(
             sorted(set(tuple(cv) for cv in data))
         )

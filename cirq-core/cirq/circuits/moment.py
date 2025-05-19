@@ -24,15 +24,12 @@ from typing import (
     Any,
     Callable,
     cast,
-    FrozenSet,
     Iterable,
     Iterator,
     Mapping,
-    Optional,
     overload,
     Sequence,
     TYPE_CHECKING,
-    Union,
 )
 
 import numpy as np
@@ -101,7 +98,7 @@ class Moment:
             if _flatten_contents
             else cast(tuple['cirq.Operation'], contents)
         )
-        self._sorted_operations: Optional[tuple[cirq.Operation, ...]] = None
+        self._sorted_operations: tuple[cirq.Operation, ...] | None = None
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: dict[cirq.Qid, cirq.Operation] = {}
@@ -112,8 +109,8 @@ class Moment:
                     raise ValueError(f'Overlapping operations: {self.operations}')
                 self._qubit_to_op[q] = op
 
-        self._measurement_key_objs: Optional[FrozenSet[cirq.MeasurementKey]] = None
-        self._control_keys: Optional[FrozenSet[cirq.MeasurementKey]] = None
+        self._measurement_key_objs: frozenset[cirq.MeasurementKey] | None = None
+        self._control_keys: frozenset[cirq.MeasurementKey] | None = None
 
     @classmethod
     def from_ops(cls, *ops: cirq.Operation) -> cirq.Moment:
@@ -134,7 +131,7 @@ class Moment:
         return self._operations
 
     @cached_property
-    def qubits(self) -> FrozenSet[cirq.Qid]:
+    def qubits(self) -> frozenset[cirq.Qid]:
         return frozenset(self._qubit_to_op)
 
     def operates_on_single_qubit(self, qubit: cirq.Qid) -> bool:
@@ -157,7 +154,7 @@ class Moment:
         """
         return not self._qubit_to_op.keys().isdisjoint(qubits)
 
-    def operation_at(self, qubit: raw_types.Qid) -> Optional[cirq.Operation]:
+    def operation_at(self, qubit: raw_types.Qid) -> cirq.Operation | None:
         """Returns the operation on a certain qubit for the moment.
 
         Args:
@@ -288,17 +285,17 @@ class Moment:
         )
 
     @_compat.cached_method()
-    def _measurement_key_names_(self) -> FrozenSet[str]:
+    def _measurement_key_names_(self) -> frozenset[str]:
         return frozenset(str(key) for key in self._measurement_key_objs_())
 
-    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         if self._measurement_key_objs is None:
             self._measurement_key_objs = frozenset(
                 key for op in self.operations for key in protocols.measurement_key_objs(op)
             )
         return self._measurement_key_objs
 
-    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         if self._control_keys is None:
             self._control_keys = frozenset(
                 k for op in self.operations for k in protocols.control_keys(op)
@@ -327,7 +324,7 @@ class Moment:
         )
 
     def _with_rescoped_keys_(
-        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ):
         return Moment(
             protocols.with_rescoped_keys(op, path, bindable_keys) for op in self.operations
@@ -404,7 +401,7 @@ class Moment:
         return self._operations
 
     def transform_qubits(
-        self, qubit_map: Union[dict[cirq.Qid, cirq.Qid], Callable[[cirq.Qid], cirq.Qid]]
+        self, qubit_map: dict[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
     ) -> Self:
         """Returns the same moment, but with different qubits.
 
@@ -569,7 +566,7 @@ class Moment:
         xy_breakdown_func: Callable[[cirq.Qid], tuple[Any, Any]] = _default_breakdown,
         extra_qubits: Iterable[cirq.Qid] = (),
         use_unicode_characters: bool = True,
-        precision: Optional[int] = None,
+        precision: int | None = None,
         include_tags: bool = True,
     ) -> str:
         """Create a text diagram for the moment.
@@ -654,7 +651,7 @@ class Moment:
 
         return diagram.render()
 
-    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> bool | NotImplementedType:
         """Determines whether Moment commutes with the other Moment or Operation.
 
         Args:

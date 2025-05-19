@@ -19,11 +19,8 @@ from collections import defaultdict
 from typing import (
     AbstractSet,
     Any,
-    DefaultDict,
-    FrozenSet,
     Iterable,
     Mapping,
-    Optional,
     TYPE_CHECKING,
     Union,
 )
@@ -45,7 +42,7 @@ from cirq.value.linear_dict import _format_terms
 if TYPE_CHECKING:
     import cirq
 
-UnitPauliStringT = FrozenSet[tuple[raw_types.Qid, pauli_gates.Pauli]]
+UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[
     complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
@@ -89,7 +86,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         """
         super().__init__(terms, validator=self._is_compatible)
 
-    def num_qubits(self) -> Optional[int]:
+    def num_qubits(self) -> int | None:
         """Returns number of qubits in the domain if known, None if unknown."""
         if not self:
             return None
@@ -99,29 +96,25 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
     def _is_compatible(self, gate: cirq.Gate) -> bool:
         return self.num_qubits() is None or self.num_qubits() == gate.num_qubits()
 
-    def __add__(
-        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
-    ) -> LinearCombinationOfGates:
+    def __add__(self, other: raw_types.Gate | LinearCombinationOfGates) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__add__(other)
 
     def __iadd__(
-        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
+        self, other: raw_types.Gate | LinearCombinationOfGates
     ) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__iadd__(other)
 
-    def __sub__(
-        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
-    ) -> LinearCombinationOfGates:
+    def __sub__(self, other: raw_types.Gate | LinearCombinationOfGates) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__sub__(other)
 
     def __isub__(
-        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
+        self, other: raw_types.Gate | LinearCombinationOfGates
     ) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
@@ -357,7 +350,7 @@ def _is_linear_dict_of_unit_pauli_string(linear_dict: value.LinearDict[UnitPauli
 
 
 def _pauli_string_from_unit(
-    unit: UnitPauliStringT, coefficient: Union[int, float, cirq.TParamValComplex] = 1
+    unit: UnitPauliStringT, coefficient: int | float | cirq.TParamValComplex = 1
 ):
     return PauliString(qubit_pauli_map=dict(unit), coefficient=coefficient)
 
@@ -415,7 +408,7 @@ class PauliSum:
     4.0+0.0j
     """
 
-    def __init__(self, linear_dict: Optional[value.LinearDict[UnitPauliStringT]] = None):
+    def __init__(self, linear_dict: value.LinearDict[UnitPauliStringT] | None = None):
         """Construct a PauliSum from a linear dictionary.
 
         Note, the preferred method of constructing PauliSum objects is either implicitly
@@ -467,7 +460,7 @@ class PauliSum:
         return PauliSum() + val
 
     @classmethod
-    def from_pauli_strings(cls, terms: Union[PauliString, list[PauliString]]) -> PauliSum:
+    def from_pauli_strings(cls, terms: PauliString | list[PauliString]) -> PauliSum:
         """Returns a PauliSum by combining `cirq.PauliString` terms.
 
         Args:
@@ -479,7 +472,7 @@ class PauliSum:
         """
         if isinstance(terms, PauliString):
             terms = [terms]
-        termdict: DefaultDict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
+        termdict: defaultdict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
         for pstring in terms:
             key = frozenset(pstring._qubit_pauli_map.items())
             termdict[key] += pstring.coefficient
@@ -576,7 +569,7 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
+    def matrix(self, qubits: Iterable[raw_types.Qid] | None = None) -> np.ndarray:
         """Returns the matrix of this PauliSum in computational basis of qubits.
 
         Args:
@@ -880,7 +873,7 @@ class ProjectorSum:
     """List of mappings representing a sum of projector operators."""
 
     def __init__(
-        self, linear_dict: Optional[value.LinearDict[FrozenSet[tuple[raw_types.Qid, int]]]] = None
+        self, linear_dict: value.LinearDict[frozenset[tuple[raw_types.Qid, int]]] | None = None
     ):
         """Constructor for ProjectorSum
 
@@ -889,7 +882,7 @@ class ProjectorSum:
                 number. The tuple is a projector onto the qubit and the complex number is the
                 weight of these projections.
         """
-        self._linear_dict: value.LinearDict[FrozenSet[tuple[raw_types.Qid, int]]] = (
+        self._linear_dict: value.LinearDict[frozenset[tuple[raw_types.Qid, int]]] = (
             linear_dict if linear_dict is not None else value.LinearDict({})
         )
 
@@ -919,9 +912,7 @@ class ProjectorSum:
         return cls(linear_dict=value.LinearDict(converted_dict))
 
     @classmethod
-    def from_projector_strings(
-        cls, terms: Union[ProjectorString, list[ProjectorString]]
-    ) -> ProjectorSum:
+    def from_projector_strings(cls, terms: ProjectorString | list[ProjectorString]) -> ProjectorSum:
         """Builds a ProjectorSum from one or more ProjectorString(s).
 
         Args:
@@ -932,7 +923,7 @@ class ProjectorSum:
         """
         if isinstance(terms, ProjectorString):
             terms = [terms]
-        termdict: DefaultDict[FrozenSet[tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
+        termdict: defaultdict[frozenset[tuple[raw_types.Qid, int]], value.Scalar] = defaultdict(
             lambda: 0.0
         )
         for pstring in terms:
@@ -943,7 +934,7 @@ class ProjectorSum:
     def copy(self) -> ProjectorSum:
         return ProjectorSum(self._linear_dict.copy())
 
-    def matrix(self, projector_qids: Optional[Iterable[raw_types.Qid]] = None) -> csr_matrix:
+    def matrix(self, projector_qids: Iterable[raw_types.Qid] | None = None) -> csr_matrix:
         """Returns the matrix of self in computational basis of qubits.
 
         Args:
@@ -1021,7 +1012,7 @@ class ProjectorSum:
     def __bool__(self) -> bool:
         return bool(self._linear_dict)
 
-    def __iadd__(self, other: Union[ProjectorString, ProjectorSum]):
+    def __iadd__(self, other: ProjectorString | ProjectorSum):
         if isinstance(other, ProjectorString):
             other = ProjectorSum.from_projector_strings(other)
         elif not isinstance(other, ProjectorSum):
@@ -1029,7 +1020,7 @@ class ProjectorSum:
         self._linear_dict += other._linear_dict
         return self
 
-    def __add__(self, other: Union[ProjectorString, ProjectorSum]):
+    def __add__(self, other: ProjectorString | ProjectorSum):
         if isinstance(other, ProjectorString):
             other = ProjectorSum.from_projector_strings(other)
         elif not isinstance(other, ProjectorSum):
@@ -1038,7 +1029,7 @@ class ProjectorSum:
         result += other
         return result
 
-    def __isub__(self, other: Union[ProjectorString, ProjectorSum]):
+    def __isub__(self, other: ProjectorString | ProjectorSum):
         if isinstance(other, ProjectorString):
             other = ProjectorSum.from_projector_strings(other)
         elif not isinstance(other, ProjectorSum):
@@ -1046,7 +1037,7 @@ class ProjectorSum:
         self._linear_dict -= other._linear_dict
         return self
 
-    def __sub__(self, other: Union[ProjectorString, ProjectorSum]):
+    def __sub__(self, other: ProjectorString | ProjectorSum):
         if isinstance(other, ProjectorString):
             other = ProjectorSum.from_projector_strings(other)
         elif not isinstance(other, ProjectorSum):

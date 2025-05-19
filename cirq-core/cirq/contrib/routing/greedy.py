@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, cast, Iterable, Optional, Sequence, Set, TYPE_CHECKING
+from typing import Callable, cast, Iterable, Sequence, TYPE_CHECKING
 
 import networkx as nx
 import numpy as np
@@ -95,7 +95,7 @@ class _GreedyRouter:
         *,
         max_search_radius: int = 1,
         max_num_empty_steps: int = 5,
-        initial_mapping: Optional[dict[ops.Qid, ops.Qid]] = None,
+        initial_mapping: dict[ops.Qid, ops.Qid] | None = None,
         can_reorder: Callable[[ops.Operation, ops.Operation], bool] = lambda op1, op2: not set(
             op1.qubits
         )
@@ -144,7 +144,7 @@ class _GreedyRouter:
         logical qubits."""
         return (self._log_to_phys[q] for q in qubits)
 
-    def phys_to_log(self, *qubits: cirq.Qid) -> Iterable[Optional[ops.Qid]]:
+    def phys_to_log(self, *qubits: cirq.Qid) -> Iterable[ops.Qid | None]:
         """Returns an iterator over the logical qubits that map to the given
         physical qubits."""
         return (self._phys_to_log[q] for q in qubits)
@@ -165,7 +165,7 @@ class _GreedyRouter:
                 if l is not None:
                     self._log_to_phys[l] = p
 
-    def set_initial_mapping(self, initial_mapping: Optional[dict[ops.Qid, ops.Qid]] = None):
+    def set_initial_mapping(self, initial_mapping: dict[ops.Qid, ops.Qid] | None = None):
         """Sets the internal state according to an initial mapping.
 
         Args:
@@ -306,7 +306,7 @@ class _GreedyRouter:
         assert ops_are_consistent_with_device_graph(self.physical_ops, self.device_graph)
 
 
-def _get_dominated_indices(vectors: list[np.ndarray]) -> Set[int]:
+def _get_dominated_indices(vectors: list[np.ndarray]) -> set[int]:
     """Get the indices of vectors that are element-wise at least some other
     vector.
     """

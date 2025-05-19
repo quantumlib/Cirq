@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import AbstractSet, Any, Optional, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -98,7 +98,7 @@ class ParallelGate(raw_types.Gate):
             sub_gate=protocols.resolve_parameters(self.sub_gate, resolver, recursive)
         )
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         # Obtain the unitary for the single qubit gate
         single_unitary = protocols.unitary(self.sub_gate, NotImplemented)
 
@@ -114,7 +114,7 @@ class ParallelGate(raw_types.Gate):
 
         return unitary
 
-    def _trace_distance_bound_(self) -> Optional[float]:
+    def _trace_distance_bound_(self) -> float | None:
         if protocols.is_parameterized(self.sub_gate):
             return None
         angle = self._num_copies * np.arcsin(protocols.trace_distance_bound(self.sub_gate))

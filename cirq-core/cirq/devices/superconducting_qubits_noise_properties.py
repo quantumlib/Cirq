@@ -19,7 +19,7 @@ from __future__ import annotations
 import abc
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Set, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import devices, ops, qis
 from cirq.devices import noise_utils
@@ -104,26 +104,26 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def single_qubit_gates(cls) -> Set[Type[ops.Gate]]:
+    def single_qubit_gates(cls) -> set[type[ops.Gate]]:
         """Returns the set of single-qubit gates this class supports."""
 
     @classmethod
     @abc.abstractmethod
-    def symmetric_two_qubit_gates(cls) -> Set[Type[ops.Gate]]:
+    def symmetric_two_qubit_gates(cls) -> set[type[ops.Gate]]:
         """Returns the set of symmetric two-qubit gates this class supports."""
 
     @classmethod
     @abc.abstractmethod
-    def asymmetric_two_qubit_gates(cls) -> Set[Type[ops.Gate]]:
+    def asymmetric_two_qubit_gates(cls) -> set[type[ops.Gate]]:
         """Returns the set of asymmetric two-qubit gates this class supports."""
 
     @classmethod
-    def two_qubit_gates(cls) -> Set[Type[ops.Gate]]:
+    def two_qubit_gates(cls) -> set[type[ops.Gate]]:
         """Returns the set of all two-qubit gates this class supports."""
         return cls.symmetric_two_qubit_gates() | cls.asymmetric_two_qubit_gates()
 
     @classmethod
-    def expected_gates(cls) -> Set[Type[ops.Gate]]:
+    def expected_gates(cls) -> set[type[ops.Gate]]:
         """Returns the set of all gates this class supports."""
         return cls.single_qubit_gates() | cls.two_qubit_gates()
 

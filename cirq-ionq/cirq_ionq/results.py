@@ -14,7 +14,7 @@
 """Result types for the IonQ API."""
 
 import collections
-from typing import Counter, Optional, Sequence
+from typing import Counter, Sequence
 
 import numpy as np
 
@@ -42,7 +42,7 @@ class QPUResult:
         """Returns the number of times the circuit was run."""
         return self._repetitions
 
-    def ordered_results(self, key: Optional[str] = None) -> list[int]:
+    def ordered_results(self, key: str | None = None) -> list[int]:
         """Returns a list of arbitrarily but consistently ordered results as big endian ints.
 
         If a key parameter is supplied, these are the counts for the measurement results for
@@ -72,7 +72,7 @@ class QPUResult:
             result.extend([bit_value] * count)
         return result
 
-    def counts(self, key: Optional[str] = None) -> Counter[int]:
+    def counts(self, key: str | None = None) -> Counter[int]:
         """Returns the processed counts of the measurement results.
 
         If a key parameter is supplied, these are the counts for the measurement results for
@@ -107,7 +107,7 @@ class QPUResult:
         """Returns a map from measurement keys to target qubit indices for this measurement."""
         return self._measurement_dict
 
-    def to_cirq_result(self, params: Optional[cirq.ParamResolver] = None) -> cirq.Result:
+    def to_cirq_result(self, params: cirq.ParamResolver | None = None) -> cirq.Result:
         """Returns a `cirq.Result` for these results.
 
         `cirq.Result` contains a less dense representation of results than that returned by
@@ -185,7 +185,7 @@ class SimulatorResult:
         """
         return self._repetitions
 
-    def probabilities(self, key: Optional[str] = None) -> dict[int, float]:
+    def probabilities(self, key: str | None = None) -> dict[int, float]:
         """Returns the probabilities of the measurement results.
 
         If a key parameter is supplied, these are the probabilities for the measurement results for
@@ -229,7 +229,7 @@ class SimulatorResult:
 
     def to_cirq_result(
         self,
-        params: Optional[cirq.ParamResolver] = None,
+        params: cirq.ParamResolver | None = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         override_repetitions=None,
     ) -> cirq.Result:

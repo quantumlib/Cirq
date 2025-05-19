@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, FrozenSet, Mapping, Optional, Sequence, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Mapping, Sequence, TYPE_CHECKING
 
 import sympy
 
@@ -71,7 +71,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def __init__(
         self,
         sub_operation: cirq.Operation,
-        conditions: Sequence[Union[str, cirq.MeasurementKey, cirq.Condition, sympy.Basic]],
+        conditions: Sequence[str | cirq.MeasurementKey | cirq.Condition | sympy.Basic],
     ):
         """Initializes a `ClassicallyControlledOperation`.
 
@@ -110,7 +110,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         self._sub_operation: cirq.Operation = sub_operation
 
     @property
-    def classical_controls(self) -> FrozenSet[cirq.Condition]:
+    def classical_controls(self) -> frozenset[cirq.Condition]:
         return frozenset(self._conditions).union(self._sub_operation.classical_controls)
 
     def without_classical_controls(self) -> cirq.Operation:
@@ -128,7 +128,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _decompose_(self):
         return self._decompose_with_context_()
 
-    def _decompose_with_context_(self, context: Optional[cirq.DecompositionContext] = None):
+    def _decompose_with_context_(self, context: cirq.DecompositionContext | None = None):
         result = protocols.decompose_once(
             self._sub_operation, NotImplemented, flatten=False, context=context
         )
@@ -166,7 +166,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _circuit_diagram_info_(
         self, args: cirq.CircuitDiagramInfoArgs
-    ) -> Optional[protocols.CircuitDiagramInfo]:
+    ) -> protocols.CircuitDiagramInfo | None:
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=args.known_qubit_count,
             known_qubits=args.known_qubits,
@@ -221,19 +221,19 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return sub_operation.with_classical_controls(*conditions)
 
     def _with_rescoped_keys_(
-        self, path: tuple[str, ...], bindable_keys: FrozenSet[cirq.MeasurementKey]
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ) -> ClassicallyControlledOperation:
         conds = [protocols.with_rescoped_keys(c, path, bindable_keys) for c in self._conditions]
         sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)
         return sub_operation.with_classical_controls(*conds)
 
-    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
-        local_keys: FrozenSet[cirq.MeasurementKey] = frozenset(
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
+        local_keys: frozenset[cirq.MeasurementKey] = frozenset(
             k for condition in self._conditions for k in condition.keys
         )
         return local_keys.union(protocols.control_keys(self._sub_operation))
 
-    def _qasm_(self, args: cirq.QasmArgs) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs) -> str | None:
         args.validate_version('2.0', '3.0')
         if len(self._conditions) > 1:
             raise ValueError('QASM does not support multiple conditions.')

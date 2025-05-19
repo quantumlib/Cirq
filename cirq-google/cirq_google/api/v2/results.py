@@ -13,7 +13,7 @@
 # limitations under the License.
 import dataclasses
 from collections import OrderedDict
-from typing import cast, Hashable, Iterable, Optional, Sequence
+from typing import cast, Hashable, Iterable, Sequence
 
 import numpy as np
 
@@ -111,7 +111,7 @@ def results_to_proto(
     trial_sweeps: Iterable[Iterable[cirq.Result]],
     measurements: list[MeasureInfo],
     *,
-    out: Optional[result_pb2.Result] = None,
+    out: result_pb2.Result | None = None,
 ) -> result_pb2.Result:
     """Converts trial results from multiple sweeps to v2 protobuf message.
 
@@ -149,7 +149,7 @@ def results_to_proto(
 
 
 def results_from_proto(
-    msg: result_pb2.Result, measurements: Optional[list[MeasureInfo]] = None
+    msg: result_pb2.Result, measurements: list[MeasureInfo] | None = None
 ) -> Sequence[Sequence[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
@@ -171,7 +171,7 @@ def results_from_proto(
 
 
 def _trial_sweep_from_proto(
-    msg: result_pb2.SweepResult, measure_map: Optional[dict[str, MeasureInfo]] = None
+    msg: result_pb2.SweepResult, measure_map: dict[str, MeasureInfo] | None = None
 ) -> Sequence[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 

@@ -19,7 +19,7 @@ import functools
 import itertools
 from dataclasses import dataclass
 from numbers import Real
-from typing import Callable, Optional, Sequence, Union
+from typing import Callable, Sequence
 
 import numpy as np
 import sympy
@@ -193,9 +193,9 @@ class GaugeTransformer:
         self,
         # target can be either a specific gate, gatefamily or gateset
         # which allows matching parametric gates.
-        target: Union[ops.Gate, ops.Gateset, ops.GateFamily],
+        target: ops.Gate | ops.Gateset | ops.GateFamily,
         gauge_selector: Callable[[np.random.Generator], Gauge],
-        two_qubit_gate_symbolizer: Optional[TwoQubitGateSymbolizer] = None,
+        two_qubit_gate_symbolizer: TwoQubitGateSymbolizer | None = None,
     ) -> None:
         """Constructs a GaugeTransformer.
 
@@ -213,8 +213,8 @@ class GaugeTransformer:
         self,
         circuit: circuits.AbstractCircuit,
         *,
-        context: Optional[transformer_api.TransformerContext] = None,
-        prng: Optional[np.random.Generator] = None,
+        context: transformer_api.TransformerContext | None = None,
+        prng: np.random.Generator | None = None,
     ) -> circuits.AbstractCircuit:
         rng = np.random.default_rng() if prng is None else prng
         if context is None:
@@ -254,8 +254,8 @@ class GaugeTransformer:
         circuit: circuits.AbstractCircuit,
         *,
         N: int,
-        context: Optional[transformer_api.TransformerContext] = None,
-        prng: Optional[np.random.Generator] = None,
+        context: transformer_api.TransformerContext | None = None,
+        prng: np.random.Generator | None = None,
     ) -> tuple[circuits.AbstractCircuit, sweepable.Sweepable]:
         """Generates a parameterized circuit with *N* sets of sweepable parameters.
 

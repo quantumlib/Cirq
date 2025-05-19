@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, cast, Iterable, Optional
+from typing import Any, cast, Iterable
 
 import numpy as np
 import pytest
@@ -31,9 +31,9 @@ def assert_apply_mixture_returns(
     val: Any,
     rho: np.ndarray,
     left_axes: Iterable[int],
-    right_axes: Optional[Iterable[int]],
+    right_axes: Iterable[int] | None,
     assert_result_is_out_buf: bool = False,
-    expected_result: Optional[np.ndarray] = None,
+    expected_result: np.ndarray | None = None,
 ):
     out_buf, buf0, buf1 = make_buffers(rho.shape, rho.dtype)
     result = cirq.apply_mixture(

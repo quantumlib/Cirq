@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, Mapping, Optional, TYPE_CHECKING
+from typing import Any, Mapping, TYPE_CHECKING
 
 import numpy as np
 
@@ -40,9 +40,9 @@ class EngineResult(study.ResultDict):
         *,  # Forces keyword args.
         job_id: str,
         job_finished_time: datetime.datetime,
-        params: Optional[study.ParamResolver] = None,
-        measurements: Optional[Mapping[str, np.ndarray]] = None,
-        records: Optional[Mapping[str, np.ndarray]] = None,
+        params: study.ParamResolver | None = None,
+        measurements: Mapping[str, np.ndarray] | None = None,
+        records: Mapping[str, np.ndarray] | None = None,
     ):
         """Initialize the result.
 

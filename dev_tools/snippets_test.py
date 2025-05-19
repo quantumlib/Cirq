@@ -52,7 +52,7 @@ import inspect
 import os
 import pathlib
 import re
-from typing import Any, Iterator, Optional, Pattern
+from typing import Any, Iterator, Pattern
 
 import pytest
 
@@ -336,7 +336,7 @@ def test_canonicalize_printed_line():
 
 
 def assert_code_snippet_executes_correctly(
-    snippet: str, state: dict, line_number: Optional[int] = None
+    snippet: str, state: dict, line_number: int | None = None
 ):
     """Executes a snippet and compares output / errors to annotations."""
 
@@ -359,7 +359,7 @@ def assert_code_snippet_executes_correctly(
 
 
 def assert_code_snippet_runs_and_prints_expected(
-    snippet: str, state: dict, line_number: Optional[int] = None
+    snippet: str, state: dict, line_number: int | None = None
 ):
     """Executes a snippet and compares captured output to annotated output."""
     output_lines: list[str] = []

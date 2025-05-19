@@ -22,14 +22,14 @@ equal to each other. It will also check that a==b implies hash(a)==hash(b).
 
 import collections
 import itertools
-from typing import Any, Callable, Union
+from typing import Any, Callable
 
 
 class EqualsTester:
     """Tests equality against user-provided disjoint equivalence groups."""
 
     def __init__(self) -> None:
-        self._groups: list[tuple[Union[Any, _ClassUnknownToSubjects], ...]] = [
+        self._groups: list[tuple[Any | _ClassUnknownToSubjects, ...]] = [
             (_ClassUnknownToSubjects(),)
         ]
 

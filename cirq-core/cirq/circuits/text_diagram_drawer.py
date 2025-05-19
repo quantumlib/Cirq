@@ -21,7 +21,6 @@ from typing import (
     Iterable,
     Mapping,
     NamedTuple,
-    Optional,
     Sequence,
     TYPE_CHECKING,
 )
@@ -70,11 +69,11 @@ class TextDiagramDrawer:
 
     def __init__(
         self,
-        entries: Optional[Mapping[tuple[int, int], _DiagramText]] = None,
-        horizontal_lines: Optional[Iterable[_HorizontalLine]] = None,
-        vertical_lines: Optional[Iterable[_VerticalLine]] = None,
-        horizontal_padding: Optional[Mapping[int, int]] = None,
-        vertical_padding: Optional[Mapping[int, int]] = None,
+        entries: Mapping[tuple[int, int], _DiagramText] | None = None,
+        horizontal_lines: Iterable[_HorizontalLine] | None = None,
+        vertical_lines: Iterable[_VerticalLine] | None = None,
+        horizontal_padding: Mapping[int, int] | None = None,
+        vertical_padding: Mapping[int, int] | None = None,
     ) -> None:
         self.entries: dict[tuple[int, int], _DiagramText] = (
             dict() if entries is None else dict(entries)
@@ -105,7 +104,7 @@ class TextDiagramDrawer:
     def __bool__(self):
         return any(self._value_equality_values_())
 
-    def write(self, x: int, y: int, text: str, transposed_text: Optional[str] = None):
+    def write(self, x: int, y: int, text: str, transposed_text: str | None = None):
         """Adds text to the given location.
 
         Args:
@@ -259,7 +258,7 @@ class TextDiagramDrawer:
         self,
         horizontal_spacing: int = 1,
         vertical_spacing: int = 1,
-        crossing_char: Optional[str] = None,
+        crossing_char: str | None = None,
         use_unicode_characters: bool = True,
     ) -> str:
         """Outputs text containing the diagram."""
@@ -354,7 +353,7 @@ class TextDiagramDrawer:
     def vstack(
         cls,
         diagrams: Sequence[cirq.TextDiagramDrawer],
-        padding_resolver: Optional[Callable[[Sequence[Optional[int]]], int]] = None,
+        padding_resolver: Callable[[Sequence[int | None]], int] | None = None,
     ):
         """Vertically stack text diagrams.
 
@@ -383,9 +382,7 @@ class TextDiagramDrawer:
             dy += diagram.height()
         for x in stacked.horizontal_padding:
             resolved_padding = padding_resolver(
-                tuple(
-                    cast(Optional[int], diagram.horizontal_padding.get(x)) for diagram in diagrams
-                )
+                tuple(cast(int | None, diagram.horizontal_padding.get(x)) for diagram in diagrams)
             )
             if resolved_padding is not None:
                 stacked.horizontal_padding[x] = resolved_padding
@@ -395,7 +392,7 @@ class TextDiagramDrawer:
     def hstack(
         cls,
         diagrams: Sequence[cirq.TextDiagramDrawer],
-        padding_resolver: Optional[Callable[[Sequence[Optional[int]]], int]] = None,
+        padding_resolver: Callable[[Sequence[int | None]], int] | None = None,
     ):
         """Horizontally stack text diagrams.
 
@@ -424,7 +421,7 @@ class TextDiagramDrawer:
             dx += diagram.width()
         for y in stacked.vertical_padding:
             resolved_padding = padding_resolver(
-                tuple(cast(Optional[int], diagram.vertical_padding.get(y)) for diagram in diagrams)
+                tuple(cast(int | None, diagram.vertical_padding.get(y)) for diagram in diagrams)
             )
             if resolved_padding is not None:
                 stacked.vertical_padding[y] = resolved_padding

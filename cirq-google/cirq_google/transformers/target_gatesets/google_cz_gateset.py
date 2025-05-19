@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Sequence, Type, Union
+from typing import Any, Sequence
 
 import cirq
 
@@ -30,7 +30,7 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
         self,
         atol: float = 1e-8,
         eject_paulis: bool = False,
-        additional_gates: Sequence[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = (),
+        additional_gates: Sequence[type[cirq.Gate] | cirq.Gate | cirq.GateFamily] = (),
     ):
         """Initializes GoogleCZTargetGateset.
 

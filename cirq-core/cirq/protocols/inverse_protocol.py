@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, overload, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Iterable, overload, TYPE_CHECKING, TypeVar
 
 from cirq import ops
 
@@ -50,22 +50,22 @@ def inverse(val: cirq.OP_TREE) -> cirq.OP_TREE:
 
 
 @overload
-def inverse(val: cirq.Gate, default: TDefault) -> Union[TDefault, cirq.Gate]:
+def inverse(val: cirq.Gate, default: TDefault) -> TDefault | cirq.Gate:
     pass
 
 
 @overload
-def inverse(val: cirq.Operation, default: TDefault) -> Union[TDefault, cirq.Operation]:
+def inverse(val: cirq.Operation, default: TDefault) -> TDefault | cirq.Operation:
     pass
 
 
 @overload
-def inverse(val: cirq.Circuit, default: TDefault) -> Union[TDefault, cirq.Circuit]:
+def inverse(val: cirq.Circuit, default: TDefault) -> TDefault | cirq.Circuit:
     pass
 
 
 @overload
-def inverse(val: cirq.OP_TREE, default: TDefault) -> Union[TDefault, cirq.OP_TREE]:
+def inverse(val: cirq.OP_TREE, default: TDefault) -> TDefault | cirq.OP_TREE:
     pass
 
 

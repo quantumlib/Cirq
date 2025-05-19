@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, Sequence, TYPE_CHECKING, Union
+from typing import cast, Iterable, Sequence, TYPE_CHECKING
 
 import numpy as np
 from typing_extensions import Self
@@ -88,7 +88,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
+    def registers(self) -> Sequence[int | Sequence[int]]:
         """The data acted upon by the arithmetic gate.
 
         Each register in the list can either be a classical constant (an `int`),
@@ -105,7 +105,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> Self:
+    def with_registers(self, *new_registers: int | Sequence[int]) -> Self:
         """Returns the same fate targeting different registers.
 
         Args:
@@ -119,7 +119,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def apply(self, *register_values: int) -> Union[int, Iterable[int]]:
+    def apply(self, *register_values: int) -> int | Iterable[int]:
         """Returns the result of the gate operating on classical values.
 
         For example, an addition takes two values (the target and the source),
@@ -221,8 +221,8 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                     outputs[i] %= overflow_sizes[i]
 
             # Copy amplitude to new location.
-            cast(list[Union[int, slice]], outputs).append(slice(None))
-            cast(list[Union[int, slice]], inputs).append(slice(None))
+            cast(list[int | slice], outputs).append(slice(None))
+            cast(list[int | slice], inputs).append(slice(None))
             dst[tuple(outputs)] = src[tuple(inputs)]
 
         # In case the reshaped arrays were copies instead of views.
@@ -233,9 +233,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
 
 
 def _describe_bad_arithmetic_changed_const(
-    registers: Sequence[Union[int, Sequence[Union[cirq.Qid, int]]]],
-    inputs: list[int],
-    outputs: list[int],
+    registers: Sequence[int | Sequence[cirq.Qid | int]], inputs: list[int], outputs: list[int]
 ) -> str:
     from cirq.circuits import TextDiagramDrawer
 

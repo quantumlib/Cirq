@@ -14,7 +14,7 @@
 #
 import dataclasses
 import datetime
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq_google
@@ -35,17 +35,17 @@ class CalibrationResult:
     """
 
     code: Any
-    error_message: Optional[str]
-    token: Optional[str]
-    valid_until: Optional[datetime.datetime]
+    error_message: str | None
+    token: str | None
+    valid_until: datetime.datetime | None
     metrics: 'cirq_google.Calibration'
 
     @classmethod
     def _from_json_dict_(
         cls,
         code: Any,
-        error_message: Optional[str],
-        token: Optional[str],
+        error_message: str | None,
+        token: str | None,
         utc_valid_until: float,
         metrics: 'cirq_google.Calibration',
         **kwargs,

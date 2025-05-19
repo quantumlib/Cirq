@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import functools
 import itertools
-from typing import Iterable, Iterator, Optional, Sequence, TYPE_CHECKING
+from typing import Iterable, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import ops
 from cirq.contrib.acquaintance.gates import acquaint
@@ -93,7 +93,7 @@ class ShiftSwapNetworkGate(PermutationGate):
                 parts[k] = parts_qubits[: len(right_part)]
                 parts[k + 1] = parts_qubits[len(right_part) :]
 
-    def qubit_count(self, side: Optional[str] = None) -> int:
+    def qubit_count(self, side: str | None = None) -> int:
         if side is None:
             return sum(self.qubit_count(side) for side in self.part_lens)
         return sum(self.part_lens[side])

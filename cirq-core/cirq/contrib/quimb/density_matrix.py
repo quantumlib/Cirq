@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Optional, Sequence, Union
+from typing import Sequence
 
 import numpy as np
 import quimb
@@ -13,7 +13,7 @@ import cirq
 
 
 @lru_cache()
-def _qpos_tag(qubits: Union[cirq.Qid, tuple[cirq.Qid]]):
+def _qpos_tag(qubits: cirq.Qid | tuple[cirq.Qid]):
     """Given a qubit or qubits, return a "position tag" (used for drawing).
 
     For multiple qubits, the tag is for the first qubit.
@@ -25,9 +25,7 @@ def _qpos_tag(qubits: Union[cirq.Qid, tuple[cirq.Qid]]):
 
 
 @lru_cache()
-def _qpos_y(
-    qubits: Union[cirq.Qid, tuple[cirq.Qid, ...]], all_qubits: tuple[cirq.Qid, ...]
-) -> float:
+def _qpos_y(qubits: cirq.Qid | tuple[cirq.Qid, ...], all_qubits: tuple[cirq.Qid, ...]) -> float:
     """Given a qubit or qubits, return the position y value (used for drawing).
 
     For multiple qubits, the position is the mean of the qubit indices.
@@ -49,7 +47,7 @@ def _qpos_y(
 def _add_to_positions(
     positions: dict[tuple[str, str], tuple[float, float]],
     mi: int,
-    qubits: Union[cirq.Qid, tuple[cirq.Qid]],
+    qubits: cirq.Qid | tuple[cirq.Qid],
     *,
     all_qubits: tuple[cirq.Qid, ...],
     x_scale,
@@ -79,7 +77,7 @@ def _add_to_positions(
 
 
 def circuit_to_density_matrix_tensors(
-    circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
+    circuit: cirq.Circuit, qubits: Sequence[cirq.Qid] | None = None
 ) -> tuple[list[qtn.Tensor], dict[cirq.Qid, int], dict[tuple[str, str], tuple[float, float]]]:
     """Given a circuit with mixtures or channels, construct a tensor network
     representation of the density matrix.
@@ -199,7 +197,7 @@ def circuit_to_density_matrix_tensors(
 
 
 def tensor_density_matrix(
-    circuit: cirq.Circuit, qubits: Optional[list[cirq.Qid]] = None
+    circuit: cirq.Circuit, qubits: list[cirq.Qid] | None = None
 ) -> np.ndarray:
     """Given a circuit with mixtures or channels, contract a tensor network
     representing the resultant density matrix.

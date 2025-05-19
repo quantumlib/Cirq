@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import dataclasses
 import math
-from typing import Any, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING
 
 import numpy as np
 import quimb.tensor as qtn
@@ -43,7 +43,7 @@ class MPSOptions:
     # How to split the tensor. Refer to the Quimb documentation for the exact meaning.
     method: str = 'svds'
     # If integer, the maxmimum number of singular values to keep, regardless of ``cutoff``.
-    max_bond: Optional[int] = None
+    max_bond: int | None = None
     # Method with which to apply the cutoff threshold. Refer to the Quimb documentation.
     cutoff_mode: str = 'rsum2'
     # The threshold below which to discard singular values. Refer to the Quimb documentation.
@@ -63,7 +63,7 @@ class MPSSimulator(
         noise: cirq.NOISE_MODEL_LIKE = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         simulation_options: MPSOptions = MPSOptions(),
-        grouping: Optional[dict[cirq.Qid, int]] = None,
+        grouping: dict[cirq.Qid, int] | None = None,
     ):
         """Creates instance of `MPSSimulator`.
 
@@ -86,7 +86,7 @@ class MPSSimulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[int, MPSState],
+        initial_state: int | MPSState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
     ) -> MPSState:
@@ -342,7 +342,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         sorted_ind = tuple(sorted(state_vector.inds))
         return state_vector.fuse({'i': sorted_ind}).data
 
-    def partial_trace(self, keep_axes: Set[int]) -> np.ndarray:
+    def partial_trace(self, keep_axes: set[int]) -> np.ndarray:
         """Traces out all qubits except keep_axes.
 
         Args:
@@ -566,9 +566,9 @@ class MPSState(SimulationState[_MPSHandler]):
         qubits: Sequence[cirq.Qid],
         prng: np.random.RandomState,
         simulation_options: MPSOptions = MPSOptions(),
-        grouping: Optional[dict[cirq.Qid, int]] = None,
+        grouping: dict[cirq.Qid, int] | None = None,
         initial_state: int = 0,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Creates and MPSState
 
@@ -622,7 +622,7 @@ class MPSState(SimulationState[_MPSHandler]):
         """
         return self._state.state_vector()
 
-    def partial_trace(self, keep_qubits: Set[cirq.Qid]) -> np.ndarray:
+    def partial_trace(self, keep_qubits: set[cirq.Qid]) -> np.ndarray:
         """Traces out all qubits except keep_qubits.
 
         Args:

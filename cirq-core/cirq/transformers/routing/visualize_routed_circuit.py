@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 
@@ -36,7 +36,7 @@ class _SwapPrintGate(ops.Gate):
 
 
 def routed_circuit_with_mapping(
-    routed_circuit: cirq.AbstractCircuit, initial_map: Optional[dict[cirq.Qid, cirq.Qid]] = None
+    routed_circuit: cirq.AbstractCircuit, initial_map: dict[cirq.Qid, cirq.Qid] | None = None
 ) -> cirq.AbstractCircuit:
     """Returns the same circuits with information about the permutation of qubits after each swap.
 

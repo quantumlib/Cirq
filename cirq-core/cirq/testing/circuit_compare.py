@@ -15,7 +15,7 @@
 import itertools
 import random
 from collections import defaultdict
-from typing import Any, Iterable, Optional, Sequence, Union
+from typing import Any, Iterable, Sequence
 
 import numpy as np
 import sympy
@@ -213,7 +213,7 @@ def assert_same_circuits(
 
 def _first_differing_moment_index(
     circuit1: circuits.AbstractCircuit, circuit2: circuits.AbstractCircuit
-) -> Optional[int]:
+) -> int | None:
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i
@@ -255,7 +255,7 @@ def assert_circuits_have_same_unitary_given_final_permutation(
 
 
 def assert_has_diagram(
-    actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
+    actual: circuits.AbstractCircuit | circuits.Moment, desired: str, **kwargs
 ) -> None:
     """Determines if a given circuit has the desired text diagram.
 

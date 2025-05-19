@@ -14,7 +14,7 @@
 """A collection of `CircuitTransformer` s that the client may pass to `RigettiQCSService` or
 `RigettiQCSSampler` as `transformer`.
 """
-from typing import Callable, cast, Optional
+from typing import Callable, cast
 
 from pyquil import Program
 from typing_extensions import Protocol
@@ -35,10 +35,10 @@ class _PostTransformationHook(Protocol):
 def _transform_cirq_circuit_to_pyquil_program(
     *,
     circuit: cirq.Circuit,
-    qubits: Optional[tuple[cirq.Qid, ...]] = None,
-    decompose_operation: Optional[Callable[[cirq.Operation], list[cirq.Operation]]] = None,
-    qubit_id_map: Optional[dict[cirq.Qid, str]] = None,
-    post_transformation_hooks: Optional[list[_PostTransformationHook]] = None,
+    qubits: tuple[cirq.Qid, ...] | None = None,
+    decompose_operation: Callable[[cirq.Operation], list[cirq.Operation]] | None = None,
+    qubit_id_map: dict[cirq.Qid, str] | None = None,
+    post_transformation_hooks: list[_PostTransformationHook] | None = None,
 ) -> tuple[Program, dict[str, str]]:
     if qubits is None:
         qubits = cirq.QubitOrder.as_qubit_order(cirq.ops.QubitOrder.DEFAULT).order_for(
@@ -80,10 +80,10 @@ class CircuitTransformer(Protocol):
 @deprecated_cirq_rigetti_function()
 def build(
     *,
-    qubits: Optional[tuple[cirq.Qid, ...]] = None,
-    decompose_operation: Optional[Callable[[cirq.Operation], list[cirq.Operation]]] = None,
-    qubit_id_map: Optional[dict[cirq.Qid, str]] = None,
-    post_transformation_hooks: Optional[list[_PostTransformationHook]] = None,
+    qubits: tuple[cirq.Qid, ...] | None = None,
+    decompose_operation: Callable[[cirq.Operation], list[cirq.Operation]] | None = None,
+    qubit_id_map: dict[cirq.Qid, str] | None = None,
+    post_transformation_hooks: list[_PostTransformationHook] | None = None,
 ) -> CircuitTransformer:
     """This builds a `CircuitTransformer` that the client may use over multiple sweeps of
     `cirq.Sweepable`.

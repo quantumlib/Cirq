@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import AbstractSet, Any, Iterator, Optional
+from typing import AbstractSet, Any, Iterator
 
 import numpy as np
 import sympy
@@ -131,7 +131,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def _has_unitary_(self):
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if self._is_parameterized_():
             return None
         a = math.cos(self.theta)
@@ -171,7 +171,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             protocols.resolve_parameters(self.phi, resolver, recursive),
         )
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | None:
         if cirq.is_parameterized(self):
             return None
         if self.theta != 0:
@@ -349,7 +349,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         return PhasedFSimGate(theta, zeta, chi, gamma, phi)
 
     @staticmethod
-    def from_matrix(u: np.ndarray) -> Optional[PhasedFSimGate]:
+    def from_matrix(u: np.ndarray) -> PhasedFSimGate | None:
         """Contruct a PhasedFSimGate from unitary.
 
         Args:
@@ -434,7 +434,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def _has_unitary_(self):
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if self._is_parameterized_():
             return None
         a = math.cos(self.theta)
@@ -467,7 +467,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             protocols.resolve_parameters(self.phi, resolver, recursive),
         )
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | None:
         if cirq.is_parameterized(self):
             return None
         oi = args.subspace_index(0b01)

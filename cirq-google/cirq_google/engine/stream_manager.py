@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import asyncio
-from typing import AsyncIterator, Optional, Union
+from typing import AsyncIterator
 
 import duet
 import google.api_core.exceptions as google_exceptions
@@ -106,7 +106,7 @@ class StreamManager:
         self._grpc_client = grpc_client
         # Used to determine whether the stream coroutine is actively running, and provides a way to
         # cancel it.
-        self._manage_stream_loop_future: Optional[duet.AwaitableFuture[None]] = None
+        self._manage_stream_loop_future: duet.AwaitableFuture[None] | None = None
         # TODO(#5996) consider making the scope of response futures local to the relevant tasks
         # rather than all of StreamManager.
         # Currently, this field is being written to from both duet and asyncio threads. While the
@@ -118,7 +118,7 @@ class StreamManager:
         # is used by asyncio coroutines.
         self._request_queue = self._executor.submit(self._make_request_queue).result()
 
-    async def _make_request_queue(self) -> asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]]:
+    async def _make_request_queue(self) -> asyncio.Queue[quantum.QuantumRunStreamRequest | None]:
         """Returns a queue used to back the request iterator passed to the stream.
 
         If `None` is put into the queue, the request iterator will stop.
@@ -127,7 +127,7 @@ class StreamManager:
 
     def submit(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
-    ) -> duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]:
+    ) -> duet.AwaitableFuture[quantum.QuantumResult | quantum.QuantumJob]:
         """Submits a job over the stream and returns a future for the result.
 
         If submit() is called for the first time since StreamManager instantiation or since the last
@@ -185,7 +185,7 @@ class StreamManager:
         return AsyncioExecutor.instance()
 
     async def _manage_stream(
-        self, request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]]
+        self, request_queue: asyncio.Queue[quantum.QuantumRunStreamRequest | None]
     ) -> None:
         """The stream coroutine, an asyncio coroutine to manage QuantumRunStream.
 
@@ -217,11 +217,11 @@ class StreamManager:
 
     async def _manage_execution(
         self,
-        request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]],
+        request_queue: asyncio.Queue[quantum.QuantumRunStreamRequest | None],
         project_name: str,
         program: quantum.QuantumProgram,
         job: quantum.QuantumJob,
-    ) -> Union[quantum.QuantumResult, quantum.QuantumJob]:
+    ) -> quantum.QuantumResult | quantum.QuantumJob:
         """The execution coroutine, an asyncio coroutine to manage the lifecycle of a job execution.
 
         This coroutine sends QuantumRunStream requests to the request iterator and receives
@@ -347,7 +347,7 @@ def _is_retryable_error(e: google_exceptions.GoogleAPICallError) -> bool:
 
 
 async def _request_iterator(
-    request_queue: asyncio.Queue[Optional[quantum.QuantumRunStreamRequest]],
+    request_queue: asyncio.Queue[quantum.QuantumRunStreamRequest | None],
 ) -> AsyncIterator[quantum.QuantumRunStreamRequest]:
     """The request iterator for Quantum Engine client RPC quantum_run_stream().
 

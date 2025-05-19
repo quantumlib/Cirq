@@ -20,7 +20,7 @@ import os
 import time
 import uuid
 from dataclasses import dataclass
-from typing import Any, Callable, ContextManager, Optional, Sequence, Set, TYPE_CHECKING
+from typing import Any, Callable, ContextManager, Sequence, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -102,7 +102,7 @@ class _SampleInBatches:
 
 def _verify_and_get_two_qubits_from_circuits(circuits: Sequence[cirq.Circuit]):
     """Make sure each of the provided circuits uses the same two qubits and return them."""
-    all_qubits_set: Set[cirq.Qid] = set()
+    all_qubits_set: set[cirq.Qid] = set()
     all_qubits_set = all_qubits_set.union(*(circuit.all_qubits() for circuit in circuits))
     all_qubits_list = sorted(all_qubits_set)
     if len(all_qubits_list) != 2:
@@ -258,7 +258,7 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     repetitions: int,
     batch_size: int,
     progress_bar: Callable[..., ContextManager],
-    dataset_directory: Optional[str] = None,
+    dataset_directory: str | None = None,
 ) -> list[dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
     n_tasks = len(tasks)
@@ -287,10 +287,10 @@ def sample_2q_xeb_circuits(
     *,
     repetitions: int = 10_000,
     batch_size: int = 9,
-    progress_bar: Optional[Callable[..., ContextManager]] = tqdm.tqdm,
-    combinations_by_layer: Optional[list[CircuitLibraryCombination]] = None,
-    shuffle: Optional[cirq.RANDOM_STATE_OR_SEED_LIKE] = None,
-    dataset_directory: Optional[str] = None,
+    progress_bar: Callable[..., ContextManager] | None = tqdm.tqdm,
+    combinations_by_layer: list[CircuitLibraryCombination] | None = None,
+    shuffle: cirq.RANDOM_STATE_OR_SEED_LIKE | None = None,
+    dataset_directory: str | None = None,
 ):
     """Sample two-qubit XEB circuits given a sampler.
 

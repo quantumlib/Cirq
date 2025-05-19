@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Optional, Set, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING
 
 import numpy as np
 
@@ -24,7 +24,7 @@ from cirq_google.line.placement.sequence import GridQubitLineTuple, LineSequence
 if TYPE_CHECKING:
     import cirq_google
 
-_STATE = tuple[list[list[cirq.GridQubit]], Set[EDGE]]
+_STATE = tuple[list[list[cirq.GridQubit]], set[EDGE]]
 
 
 class AnnealSequenceSearch:
@@ -43,9 +43,7 @@ class AnnealSequenceSearch:
 
     def search(
         self,
-        trace_func: Optional[
-            Callable[[list[LineSequence], float, float, float, bool], None]
-        ] = None,
+        trace_func: Callable[[list[LineSequence], float, float, float, bool], None] | None = None,
     ) -> list[LineSequence]:
         """Issues new linear sequence search.
 
@@ -266,7 +264,7 @@ class AnnealSequenceSearch:
                 seqs.append(seq)
             return seqs
 
-        def assemble_edges() -> Set[EDGE]:
+        def assemble_edges() -> set[EDGE]:
             """Creates list of edges for initial state.
 
             Returns:
@@ -304,7 +302,7 @@ class AnnealSequenceSearch:
         n1, n2 = edge
         return (n1, n2) if lower(n1, n2) else (n2, n1)
 
-    def _choose_random_edge(self, edges: Set[EDGE]) -> Optional[EDGE]:
+    def _choose_random_edge(self, edges: set[EDGE]) -> EDGE | None:
         """Picks random edge from the set of edges.
 
         Args:
@@ -332,10 +330,8 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
     def __init__(
         self,
-        trace_func: Optional[
-            Callable[[list[LineSequence], float, float, float, bool], None]
-        ] = None,
-        seed: Optional[int] = None,
+        trace_func: Callable[[list[LineSequence], float, float, float, bool], None] | None = None,
+        seed: int | None = None,
     ) -> None:
         """Linearized sequence search using simulated annealing method.
 

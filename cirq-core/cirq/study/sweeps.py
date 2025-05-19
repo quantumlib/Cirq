@@ -17,7 +17,7 @@ from __future__ import annotations
 import abc
 import collections
 import itertools
-from typing import Any, cast, Iterable, Iterator, Optional, overload, Sequence, TYPE_CHECKING, Union
+from typing import Any, cast, Iterable, Iterator, overload, Sequence, TYPE_CHECKING, Union
 
 import sympy
 
@@ -118,7 +118,7 @@ class Sweep(metaclass=abc.ABCMeta):
     def __getitem__(self, val: slice) -> Sweep:
         pass
 
-    def __getitem__(self, val: Union[int, slice]) -> Union[resolver.ParamResolver, Sweep]:
+    def __getitem__(self, val: int | slice) -> resolver.ParamResolver | Sweep:
         n = len(self)
         if isinstance(val, int):
             if val < -n or val >= n:
@@ -473,7 +473,7 @@ class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
     def __init__(
-        self, key: cirq.TParamKey, points: Sequence[float], metadata: Optional[Any] = None
+        self, key: cirq.TParamKey, points: Sequence[float], metadata: Any | None = None
     ) -> None:
         """Creates a sweep on a variable with supplied values.
 
@@ -490,7 +490,7 @@ class Points(SingleSweep):
         self.points = points
         self.metadata = metadata
 
-    def _tuple(self) -> tuple[Union[str, sympy.Expr], Sequence[float]]:
+    def _tuple(self) -> tuple[str | sympy.Expr, Sequence[float]]:
         return self.key, tuple(self.points)
 
     def __len__(self) -> int:
@@ -518,7 +518,7 @@ class Linspace(SingleSweep):
         start: float,
         stop: float,
         length: int,
-        metadata: Optional[Any] = None,
+        metadata: Any | None = None,
     ) -> None:
         """Creates a linear-spaced sweep for a given key.
 
@@ -539,7 +539,7 @@ class Linspace(SingleSweep):
         self.length = length
         self.metadata = metadata
 
-    def _tuple(self) -> tuple[Union[str, sympy.Expr], float, float, int]:
+    def _tuple(self) -> tuple[str | sympy.Expr, float, float, int]:
         return (self.key, self.start, self.stop, self.length)
 
     def __len__(self) -> int:

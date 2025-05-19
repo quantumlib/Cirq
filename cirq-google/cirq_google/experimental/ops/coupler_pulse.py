@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Any, Optional
+from typing import AbstractSet, Any
 
 import numpy as np
 
@@ -55,8 +55,8 @@ class CouplerPulse(cirq.ops.Gate):
         self,
         hold_time: cirq.Duration,
         coupling_mhz: cirq.TParamVal,
-        rise_time: Optional[cirq.Duration] = cirq.Duration(nanos=8),
-        padding_time: Optional[cirq.Duration] = cirq.Duration(nanos=2.5),
+        rise_time: cirq.Duration | None = cirq.Duration(nanos=8),
+        padding_time: cirq.Duration | None = cirq.Duration(nanos=2.5),
         q0_detune_mhz: cirq.TParamVal = 0.0,
         q1_detune_mhz: cirq.TParamVal = 0.0,
     ):

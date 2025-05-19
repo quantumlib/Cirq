@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Optional
+from typing import cast
 
 import numpy as np
 import numpy.typing as npt
@@ -60,7 +60,7 @@ def _conjugate_with_hadamard(U: npt.NDArray) -> npt.NDArray:
     return U
 
 
-def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[DensePauliString]:
+def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> DensePauliString | None:
     """Attempts to find a pauli string (with possible phase) equivalent to U up to eps.
 
         Based on this answer https://shorturl.at/aA079.

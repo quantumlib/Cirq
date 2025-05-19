@@ -22,7 +22,7 @@ References:
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -233,7 +233,7 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     q1: cirq.Qid,
     mat: np.ndarray,
     *,
-    required_sqrt_iswap_count: Optional[int] = None,
+    required_sqrt_iswap_count: int | None = None,
     use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,
     check_preconditions: bool = True,
@@ -303,7 +303,7 @@ def _kak_decomposition_to_sqrt_iswap_operations(
     q0: cirq.Qid,
     q1: cirq.Qid,
     kak: linalg.KakDecomposition,
-    required_sqrt_iswap_count: Optional[int] = None,
+    required_sqrt_iswap_count: int | None = None,
     use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,
 ) -> Sequence[cirq.Operation]:
@@ -401,7 +401,7 @@ def _decomp_to_operations(
 
 
 def _single_qubit_matrices_with_sqrt_iswap(
-    kak: cirq.KakDecomposition, required_sqrt_iswap_count: Optional[int] = None, atol: float = 1e-8
+    kak: cirq.KakDecomposition, required_sqrt_iswap_count: int | None = None, atol: float = 1e-8
 ) -> tuple[Sequence[tuple[np.ndarray, np.ndarray]], complex]:
     """Computes the sequence of interleaved single-qubit unitary matrices in the
     sqrt-iSWAP decomposition."""

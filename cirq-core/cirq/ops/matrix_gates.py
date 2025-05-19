@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Optional, TYPE_CHECKING
+from typing import Any, Iterable, TYPE_CHECKING
 
 import numpy as np
 
@@ -55,8 +55,8 @@ class MatrixGate(raw_types.Gate):
         self,
         matrix: np.ndarray,
         *,
-        name: Optional[str] = None,
-        qid_shape: Optional[Iterable[int]] = None,
+        name: str | None = None,
+        qid_shape: Iterable[int] | None = None,
         unitary_check: bool = True,
         unitary_check_rtol: float = 1e-5,
         unitary_check_atol: float = 1e-8,
@@ -199,7 +199,7 @@ class MatrixGate(raw_types.Gate):
         rest = [f'#{i+1}' for i in range(1, n_qubits)]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         args.validate_version('2.0', '3.0')
         if self._qid_shape == (2,):
             return protocols.qasm(

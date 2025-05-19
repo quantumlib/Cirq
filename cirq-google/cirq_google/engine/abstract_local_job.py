@@ -14,7 +14,7 @@
 """A helper for jobs that have been created on the Quantum Engine."""
 import copy
 import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import cirq
 from cirq_google.engine import calibration
@@ -166,7 +166,7 @@ class AbstractLocalJob(AbstractJob):
         if available, else None."""
         return self.engine().get_processor(self._processor_id)
 
-    def get_calibration(self) -> Optional[calibration.Calibration]:
+    def get_calibration(self) -> calibration.Calibration | None:
         """Returns the recorded calibration at the time when the job was created,
         from the parent Engine object."""
         return self.get_processor().get_latest_calibration(int(self._create_time.timestamp()))

@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, cast, Iterator, Optional, Sequence, Union
+from typing import AbstractSet, Any, cast, Iterator, Sequence
 
 import numpy as np
 import sympy
@@ -62,8 +62,8 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
     def __init__(
         self,
         *,
-        phase_exponent: Union[float, sympy.Expr] = 0.25,
-        exponent: Union[float, sympy.Expr] = 1.0,
+        phase_exponent: float | sympy.Expr = 0.25,
+        exponent: float | sympy.Expr = 1.0,
         global_shift: float = 0.0,
     ):
         """Inits PhasedISwapPowGate.
@@ -81,7 +81,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         super().__init__(exponent=exponent, global_shift=global_shift)
 
     @property
-    def phase_exponent(self) -> Union[float, sympy.Expr]:
+    def phase_exponent(self) -> float | sympy.Expr:
         return self._phase_exponent
 
     def _num_qubits_(self) -> int:
@@ -139,7 +139,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             eigen_components.append((eigenvalue, new_projector))
         return eigen_components
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray | None:
         if protocols.is_parameterized(self):
             return NotImplemented
 

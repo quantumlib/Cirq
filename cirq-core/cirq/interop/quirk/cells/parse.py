@@ -21,10 +21,8 @@ from typing import (
     Iterable,
     Iterator,
     Mapping,
-    Optional,
     SupportsFloat,
     TypeVar,
-    Union,
 )
 
 import numpy as np
@@ -67,7 +65,7 @@ def _segment_by(seq: Iterable[T], *, key: Callable[[T], Any]) -> Iterator[list[T
 
 
 def _tokenize(text: str) -> list[str]:
-    def classify(e: str) -> Union[str, float]:
+    def classify(e: str) -> str | float:
         assert e.strip() != ''  # Because _segment_by drops empty entries.
         if re.match(r'[.0-9]', e):
             return "#"
@@ -83,14 +81,14 @@ def _tokenize(text: str) -> list[str]:
     return _merge_scientific_float_tokens(g for g in result if g.strip())
 
 
-_ResolvedToken = Union[sympy.Expr, complex]
+_ResolvedToken = sympy.Expr | complex
 
 
 class _CustomQuirkOperationToken:
     def __init__(
         self,
-        unary_action: Optional[Callable[[_ResolvedToken], _ResolvedToken]],
-        binary_action: Optional[Callable[[_ResolvedToken, _ResolvedToken], _ResolvedToken]],
+        unary_action: Callable[[_ResolvedToken], _ResolvedToken] | None,
+        binary_action: Callable[[_ResolvedToken, _ResolvedToken], _ResolvedToken] | None,
         priority: float,
     ):
         self.unary_action = unary_action
@@ -106,7 +104,7 @@ class _HangingNode:
         self.weight = weight
 
 
-_HangingToken = Union[_ResolvedToken, str, _CustomQuirkOperationToken]
+_HangingToken = _ResolvedToken | str | _CustomQuirkOperationToken
 
 
 def _translate_token(token_id: str, token_map: Mapping[str, _HangingToken]) -> _HangingToken:
@@ -133,8 +131,8 @@ def _parse_formula_using_token_map(
     ):
         tokens = tokens[:-1]
 
-    ops: list[Union[str, _HangingNode]] = []
-    vals: list[Optional[_HangingToken]] = []
+    ops: list[str | _HangingNode] = []
+    vals: list[_HangingToken | None] = []
 
     # Hack: use the 'priority' field as a signal of 'is an operation'
     def is_valid_end_token(tok: _HangingToken) -> bool:
@@ -143,7 +141,7 @@ def _parse_formula_using_token_map(
     def is_valid_end_state() -> bool:
         return len(vals) == 1 and len(ops) == 0
 
-    def apply(op: Union[str, _HangingNode]) -> None:
+    def apply(op: str | _HangingNode) -> None:
         assert isinstance(op, _HangingNode)
         if len(vals) < 2:
             raise ValueError("Bad expression: operated on nothing.\ntext={text!r}")
@@ -335,7 +333,7 @@ def parse_complex(text: str) -> complex:
         raise ValueError(f'Failed to parse complex from {text!r}') from ex
 
 
-def parse_formula(formula: str) -> Union[float, sympy.Expr]:
+def parse_formula(formula: str) -> float | sympy.Expr:
     """Attempts to parse formula text in exactly the same way as Quirk."""
     if not isinstance(formula, str):
         raise TypeError('formula must be a string')

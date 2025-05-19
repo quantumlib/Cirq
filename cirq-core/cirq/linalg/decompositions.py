@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import Any, Callable, cast, Iterable, Optional, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Callable, cast, Iterable, TYPE_CHECKING, TypeVar
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -402,9 +402,9 @@ class KakDecomposition:
         self,
         *,
         global_phase: complex = complex(1),
-        single_qubit_operations_before: Optional[tuple[np.ndarray, np.ndarray]] = None,
+        single_qubit_operations_before: tuple[np.ndarray, np.ndarray] | None = None,
         interaction_coefficients: tuple[float, float, float],
-        single_qubit_operations_after: Optional[tuple[np.ndarray, np.ndarray]] = None,
+        single_qubit_operations_after: tuple[np.ndarray, np.ndarray] | None = None,
     ):
         """Initializes a decomposition for a two-qubit operation U.
 
@@ -514,10 +514,10 @@ class KakDecomposition:
 
 
 def scatter_plot_normalized_kak_interaction_coefficients(
-    interactions: Iterable[Union[np.ndarray, cirq.SupportsUnitary, KakDecomposition]],
+    interactions: Iterable[np.ndarray | cirq.SupportsUnitary | KakDecomposition],
     *,
     include_frame: bool = True,
-    ax: Optional[mplot3d.axes3d.Axes3D] = None,
+    ax: mplot3d.axes3d.Axes3D | None = None,
     **kwargs,
 ):
     r"""Plots the interaction coefficients of many two-qubit operations.
@@ -599,7 +599,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = cast(mplot3d.axes3d.Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
     def coord_transform(
-        pts: Union[list[tuple[int, int, int]], np.ndarray],
+        pts: list[tuple[int, int, int]] | np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         if len(pts) == 0:
             return np.array([]), np.array([]), np.array([])
@@ -775,9 +775,9 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
 
 
 def kak_decomposition(
-    unitary_object: Union[
-        np.ndarray, cirq.SupportsUnitary, cirq.Gate, cirq.Operation, KakDecomposition
-    ],
+    unitary_object: (
+        np.ndarray | cirq.SupportsUnitary | cirq.Gate | cirq.Operation | KakDecomposition
+    ),
     *,
     rtol: float = 1e-5,
     atol: float = 1e-8,
@@ -847,7 +847,7 @@ def kak_decomposition(
 
 
 def kak_vector(
-    unitary: Union[Iterable[np.ndarray], np.ndarray],
+    unitary: Iterable[np.ndarray] | np.ndarray,
     *,
     rtol: float = 1e-5,
     atol: float = 1e-8,

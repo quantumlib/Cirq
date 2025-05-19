@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from types import NotImplementedType
-from typing import AbstractSet, Sequence, Union
+from typing import AbstractSet, Sequence
 
 import numpy as np
 import pytest
@@ -26,7 +26,7 @@ from cirq._compat import proper_repr
 
 class GoodGate(cirq.testing.SingleQubitGate):
     def __init__(
-        self, *, phase_exponent: Union[float, sympy.Expr], exponent: Union[float, sympy.Expr] = 1.0
+        self, *, phase_exponent: float | sympy.Expr, exponent: float | sympy.Expr = 1.0
     ) -> None:
         self.phase_exponent = cirq.canonicalize_half_turns(phase_exponent)
         self.exponent = exponent
@@ -34,14 +34,14 @@ class GoodGate(cirq.testing.SingleQubitGate):
     def _has_unitary_(self):
         return not cirq.is_parameterized(self)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         if cirq.is_parameterized(self):
             return NotImplemented
         z = cirq.unitary(cirq.Z**self.phase_exponent)
         x = cirq.unitary(cirq.X**self.exponent)
         return np.dot(np.dot(z, x), np.conj(z))
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         if self.exponent != 1 or cirq.is_parameterized(self):
             return NotImplemented
 
@@ -83,7 +83,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
             exponent=self.exponent, phase_exponent=self.phase_exponent + phase_turns * 2
         )
 
-    def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'GoodGate':
+    def __pow__(self, exponent: float | sympy.Expr) -> 'GoodGate':
         new_exponent = cirq.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented  # pragma: no cover
@@ -127,7 +127,7 @@ class BadGateParameterNames(GoodGate):
 
 
 class BadGateApplyUnitaryToTensor(GoodGate):
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         if self.exponent != 1 or cirq.is_parameterized(self):
             return NotImplemented  # pragma: no cover
 

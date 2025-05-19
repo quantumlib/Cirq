@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Optional, Sequence, Set, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import networkx as nx
 
@@ -114,8 +114,8 @@ class RouteCQC:
         *,
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
-        initial_mapper: Optional[cirq.AbstractInitialMapper] = None,
-        context: Optional[cirq.TransformerContext] = None,
+        initial_mapper: cirq.AbstractInitialMapper | None = None,
+        context: cirq.TransformerContext | None = None,
     ) -> cirq.AbstractCircuit:
         """Transforms the given circuit to make it executable on the device.
 
@@ -156,8 +156,8 @@ class RouteCQC:
         *,
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
-        initial_mapper: Optional[cirq.AbstractInitialMapper] = None,
-        context: Optional[cirq.TransformerContext] = None,
+        initial_mapper: cirq.AbstractInitialMapper | None = None,
+        context: cirq.TransformerContext | None = None,
     ) -> tuple[cirq.AbstractCircuit, dict[cirq.Qid, cirq.Qid], dict[cirq.Qid, cirq.Qid]]:
         """Transforms the given circuit to make it executable on the device.
 
@@ -341,10 +341,10 @@ class RouteCQC:
 
             # swaps applied in the current timestep thus far. This ensures the same swaps
             # don't get executed twice in the same timestep.
-            seen: Set[tuple[QidIntPair, ...]] = set()
+            seen: set[tuple[QidIntPair, ...]] = set()
 
             while process_executable_two_qubit_ops(timestep):
-                chosen_swaps: Optional[tuple[QidIntPair, ...]] = None
+                chosen_swaps: tuple[QidIntPair, ...] | None = None
                 for strat in strats:
                     chosen_swaps = strat(mm, two_qubit_ops_ints, timestep, lookahead_radius)
                     if chosen_swaps is not None:
@@ -390,7 +390,7 @@ class RouteCQC:
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
         lookahead_radius: int,
-    ) -> Optional[tuple[QidIntPair, ...]]:
+    ) -> tuple[QidIntPair, ...] | None:
         """Computes cost function with pairs of candidate swaps that act on disjoint qubits."""
         pair_sigma = _disjoint_nc2_combinations(
             cls._initial_candidate_swaps(mm, two_qubit_ops_ints[timestep])
@@ -406,7 +406,7 @@ class RouteCQC:
         two_qubit_ops_ints: Sequence[Sequence[QidIntPair]],
         timestep: int,
         lookahead_radius: int,
-    ) -> Optional[tuple[QidIntPair, ...]]:
+    ) -> tuple[QidIntPair, ...] | None:
         """Computes cost function with list of single candidate swaps."""
         sigma: list[tuple[QidIntPair, ...]] = [
             (swap,) for swap in cls._initial_candidate_swaps(mm, two_qubit_ops_ints[timestep])
@@ -421,7 +421,7 @@ class RouteCQC:
         timestep: int,
         lookahead_radius: int,
         sigma: Sequence[tuple[QidIntPair, ...]],
-    ) -> Optional[tuple[QidIntPair, ...]]:
+    ) -> tuple[QidIntPair, ...] | None:
         """Optionally returns the swap with minimum cost from a list of n-tuple candidate swaps.
 
         Computes a cost (as defined by the overridable function `_cost`) for each candidate swap

@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 import pytest
@@ -63,7 +63,7 @@ def test_with_quilc_parametric_compilation(
     parametric_circuit, sweepable = parametric_circuit_with_params
     repetitions = 2
 
-    param_resolvers: list[Union[cirq.ParamResolver, cirq.ParamDictType]]
+    param_resolvers: list[cirq.ParamResolver | cirq.ParamDictType]
     if pass_dict:
         param_resolvers = [dict(params.param_dict) for params in sweepable]
     else:

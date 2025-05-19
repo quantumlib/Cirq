@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, cast, Iterable, Iterator, Optional, Sequence, TYPE_CHECKING, Union
+from typing import AbstractSet, cast, Iterable, Iterator, Sequence, TYPE_CHECKING
 
 import sympy
 
@@ -55,7 +55,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def __init__(
         self,
         pauli_string: ps.PauliString,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
+        qubits: Sequence[cirq.Qid] | None = None,
         *,
         exponent_neg: cirq.TParamVal = 1,
         exponent_pos: cirq.TParamVal = 0,
@@ -345,7 +345,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             return rel1 == rel2 and self.dense_pauli_string == other.dense_pauli_string
         return False
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> PauliStringPhasorGate:
+    def __pow__(self, exponent: float | sympy.Symbol) -> PauliStringPhasorGate:
         pn = protocols.mul(self.exponent_neg, exponent, None)
         pp = protocols.mul(self.exponent_pos, exponent, None)
         if pn is None or pp is None:

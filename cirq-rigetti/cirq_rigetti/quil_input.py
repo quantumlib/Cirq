@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast, Optional, Type, Union
+from typing import Any, Callable, cast
 
 import numpy as np
 import sympy
@@ -256,7 +256,7 @@ RESET directives have special meaning on QCS, to enable active reset.
 
 
 # Parameterized gates map to functions that produce Gate constructors.
-SUPPORTED_GATES: dict[str, Union[Gate, Callable[..., Gate]]] = {
+SUPPORTED_GATES: dict[str, Gate | Callable[..., Gate]] = {
     "CCNOT": CCNOT,
     "CNOT": CNOT,
     "CSWAP": CSWAP,
@@ -310,7 +310,7 @@ PARAMETRIC_TRANSFORMERS: dict[str, Callable] = {
 
 
 @deprecated_cirq_rigetti_function()
-def circuit_from_quil(quil: Union[str, Program]) -> Circuit:
+def circuit_from_quil(quil: str | Program) -> Circuit:
     """Convert a Quil program to a Cirq Circuit.
 
     Args:
@@ -486,7 +486,7 @@ def get_defined_gates(program: Program) -> tuple[dict, dict]:
 @deprecated_cirq_rigetti_function()
 def kraus_noise_model_to_cirq(
     kraus_noise_model: dict[tuple[QubitDesignator, ...], list[NDArray[np.complex128]]],
-    defined_gates: Optional[dict[QubitDesignator, Gate]] = None,
+    defined_gates: dict[QubitDesignator, Gate] | None = None,
 ) -> InsertionNoiseModel:  # pragma: no cover
     """Construct a Cirq noise model from the provided Kraus operators.
 
@@ -513,7 +513,7 @@ def kraus_noise_model_to_cirq(
         qubits = [LineQubit(q) for q in qubit_indices]
 
         # defined_gates is not None by this point
-        gate: Type[Gate] = defined_gates[gate_name]  # type: ignore
+        gate: type[Gate] = defined_gates[gate_name]  # type: ignore
         target_op = OpIdentifier(gate, *qubits)
 
         insert_op = KrausChannel(kraus_ops, validate=True).on(*qubits)

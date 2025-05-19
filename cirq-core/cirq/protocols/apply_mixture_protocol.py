@@ -15,7 +15,7 @@
 """A protocol for implementing high performance mixture evolutions."""
 
 from types import NotImplementedType
-from typing import Any, cast, Iterable, Optional, TypeVar, Union
+from typing import Any, cast, Iterable, TypeVar
 
 import numpy as np
 from typing_extensions import Protocol
@@ -73,7 +73,7 @@ class ApplyMixtureArgs:
         auxiliary_buffer0: np.ndarray,
         auxiliary_buffer1: np.ndarray,
         left_axes: Iterable[int],
-        right_axes: Optional[Iterable[int]] = None,
+        right_axes: Iterable[int] | None = None,
     ):
         """Args for apply mixture.
 
@@ -112,9 +112,7 @@ class SupportsApplyMixture(Protocol):
     """An object that can efficiently implement a mixture."""
 
     @doc_private
-    def _apply_mixture_(
-        self, args: ApplyMixtureArgs
-    ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_mixture_(self, args: ApplyMixtureArgs) -> np.ndarray | None | NotImplementedType:
         """Efficiently applies a mixture.
 
         This method is given both the target tensor and workspace of the same
@@ -157,8 +155,8 @@ def apply_mixture(
     val: Any,
     args: ApplyMixtureArgs,
     *,
-    default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided,
-) -> Union[np.ndarray, TDefault]:
+    default: np.ndarray | TDefault = RaiseTypeErrorIfNotProvided,
+) -> np.ndarray | TDefault:
     """High performance evolution under a mixture of unitaries evolution.
 
     Follows the steps below to attempt to apply a mixture:
@@ -304,7 +302,7 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> tuple[Any, 'ApplyMixt
 
 def _apply_unitary_strat(
     val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     """Attempt to use `apply_unitary` and return the result.
 
     If `val` does not support `apply_unitary` returns None.
@@ -334,7 +332,7 @@ def _apply_unitary_strat(
 
 def _apply_unitary_from_matrix_strat(
     val: np.ndarray, args: 'ApplyMixtureArgs', is_density_matrix: bool
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     """Used to enact mixture tuples that are given as (probability, np.ndarray)
 
     If `val` does not support `apply_unitary` returns None.
@@ -360,7 +358,7 @@ def _apply_unitary_from_matrix_strat(
 
 def _apply_mixture_from_mixture_strat(
     val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
     method = getattr(val, '_mixture_', None)
     if method is None:

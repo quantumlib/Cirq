@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Set, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 
@@ -48,7 +48,7 @@ def _is_temp(q: cirq.Qid) -> bool:
 
 
 def map_clean_and_borrowable_qubits(
-    circuit: cirq.AbstractCircuit, *, qm: Optional[cirq.QubitManager] = None
+    circuit: cirq.AbstractCircuit, *, qm: cirq.QubitManager | None = None
 ) -> cirq.Circuit:
     """Uses `qm: QubitManager` to map all `CleanQubit`/`BorrowableQubit`s to system qubits.
 
@@ -100,7 +100,7 @@ def map_clean_and_borrowable_qubits(
     # `allocated_map` maintains the mapping of all temporary qubits seen so far, mapping each of
     # them to either a newly allocated managed ancilla or an existing borrowed system qubit.
     allocated_map: dict[cirq.Qid, cirq.Qid] = {}
-    to_free: Set[cirq.Qid] = set()
+    to_free: set[cirq.Qid] = set()
     last_op_idx = -1
 
     def map_func(op: cirq.Operation, idx: int) -> cirq.OP_TREE:

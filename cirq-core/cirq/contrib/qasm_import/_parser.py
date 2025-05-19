@@ -17,7 +17,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import operator
-from typing import Any, Callable, cast, Iterable, Optional, Set, TYPE_CHECKING, Union
+from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -86,7 +86,7 @@ class QasmGateStatement:
     def __init__(
         self,
         qasm_gate: str,
-        cirq_gate: Union[ops.Gate, Callable[[list[float]], ops.Gate]],
+        cirq_gate: ops.Gate | Callable[[list[float]], ops.Gate],
         num_params: int,
         num_args: int,
     ):
@@ -179,13 +179,13 @@ class QasmParser:
         self.circuit = Circuit()
         self.qregs: dict[str, int] = {}
         self.cregs: dict[str, int] = {}
-        self.gate_set: dict[str, Union[CustomGate, QasmGateStatement]] = {**self.basic_gates}
+        self.gate_set: dict[str, CustomGate | QasmGateStatement] = {**self.basic_gates}
         """The gates available to use in the circuit, including those from libraries, and
          user-defined ones."""
         self.in_custom_gate_scope = False
         """This is set to True when the parser is in the middle of parsing a custom gate
          definition."""
-        self.custom_gate_scoped_params: Set[str] = set()
+        self.custom_gate_scoped_params: set[str] = set()
         """The params declared within the current custom gate definition. Empty if not in
          custom gate scope."""
         self.custom_gate_scoped_qubits: dict[str, ops.Qid] = {}
@@ -194,7 +194,7 @@ class QasmParser:
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
-        self.parsedQasm: Optional[Qasm] = None
+        self.parsedQasm: Qasm | None = None
         self.qubits: dict[str, ops.Qid] = {}
         self.functions = {
             'sin': np.sin,
