@@ -451,16 +451,18 @@ def extract_gate_times_ns_from_device(
     gate_times_ns: Dict[Type[cirq.Gate], float] = {}
     if not device.metadata.gate_durations:
         return gate_times_ns
-    gtype: Type[cirq.Gate]  # pragma: no cover
+    gate_type: Type[cirq.Gate]  # pragma: no cover
     for gate_family, duration in device.metadata.gate_durations.items():
         if isinstance(gate_family, fsim_gate_family.FSimGateFamily):
             for g in gate_family.gates_to_accept:
-                gtype = g if isinstance(g, type) else type(g)
-                gate_times_ns[gtype] = duration.total_nanos()
+                gate_type = g if isinstance(g, type) else type(g)
+                gate_times_ns[gate_type] = duration.total_nanos()
             continue
         # ordinary GateFamily here
-        gtype = gate_family.gate if isinstance(gate_family.gate, type) else type(gate_family.gate)
-        gate_times_ns[gtype] = duration.total_nanos()
+        gate_type = (
+            gate_family.gate if isinstance(gate_family.gate, type) else type(gate_family.gate)
+        )
+        gate_times_ns[gate_type] = duration.total_nanos()
     # cirq.IdentityGate can leak from FSimGateFamily.  Exclude to default to zero duration.
     _ = gate_times_ns.pop(cirq.IdentityGate, None)
     # cirq.WaitGate has variable duration and should not be included here.
