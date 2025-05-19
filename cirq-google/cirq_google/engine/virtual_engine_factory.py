@@ -391,7 +391,7 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
 
 
 def create_default_noisy_quantum_virtual_machine(
-    processor_id: str, simulator_class: type[SimulatesSamples] | None = None, **kwargs
+    processor_id: str, simulator_class: type[cirq.SimulatesSamples] | None = None, **kwargs
 ) -> SimulatedLocalEngine:
     """Creates a virtual engine with a noisy simulator based on a processor id.
 
@@ -435,7 +435,7 @@ def create_default_noisy_quantum_virtual_machine(
 
 def extract_gate_times_ns_from_device(
     device: cirq_google.GridDevice,
-) -> Dict[Type[cirq.Gate], float]:
+) -> dict[Type[cirq.Gate], float]:
     """Extract a dictionary of gate durations in nanoseconds from GridDevice object.
 
     The durations are obtained from `GridDevice.metadata` field which is
@@ -448,7 +448,7 @@ def extract_gate_times_ns_from_device(
         A dictionary of gate durations versus supported gate types.  Returns an
         empty dictionary when `device.metadata` do not provide gate durations.
     """
-    gate_times_ns: Dict[Type[cirq.Gate], float] = {}
+    gate_times_ns: dict[Type[cirq.Gate], float] = {}
     if not device.metadata.gate_durations:
         return gate_times_ns
     gate_type: Type[cirq.Gate]  # pragma: no cover
