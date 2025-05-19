@@ -13,7 +13,7 @@
 # limitations under the License.
 import math
 import numbers
-from typing import cast, Sequence
+from typing import cast, Sequence, TypeAlias
 
 import numpy as np
 import sympy
@@ -28,11 +28,11 @@ from cirq_google.ops import InternalGate
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
-ARG_LIKE = int | float | numbers.Real | Sequence[bool] | str | sympy.Expr | tunits.Value
-ARG_RETURN_LIKE = (
+ARG_LIKE: TypeAlias = int | float | numbers.Real | Sequence[bool] | str | sympy.Expr | tunits.Value
+ARG_RETURN_LIKE: TypeAlias = (
     float | int | str | list[bool] | list[int] | list[float] | list[str] | sympy.Expr | tunits.Value
 )
-FLOAT_ARG_LIKE = float | sympy.Expr
+FLOAT_ARG_LIKE: TypeAlias = float | sympy.Expr
 
 # Types for comparing floats
 # Includes sympy types.  Needed for arg parsing.

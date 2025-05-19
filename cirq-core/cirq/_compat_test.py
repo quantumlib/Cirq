@@ -828,7 +828,7 @@ def _test_broken_module_1_inner():
         DeprecatedModuleImportError, match="missing_module cannot be imported. The typical reasons"
     ):
         # pylint: disable=unused-import
-        pass  # type: ignore
+        pass
 
 
 def _test_broken_module_2_inner():

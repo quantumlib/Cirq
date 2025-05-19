@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import math
 from functools import cached_property
-from typing import Any, Callable, cast, Iterator, Mapping, Sequence, TYPE_CHECKING
+from typing import Any, Callable, cast, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeAlias
 
 import numpy as np
 import sympy
@@ -36,8 +36,8 @@ if TYPE_CHECKING:
 
 
 INT_CLASSES = (int, np.integer)
-INT_TYPE = int | np.integer
-IntParam = INT_TYPE | sympy.Expr
+INT_TYPE: TypeAlias = int | np.integer
+IntParam: TypeAlias = INT_TYPE | sympy.Expr
 REPETITION_ID_SEPARATOR = '-'
 
 

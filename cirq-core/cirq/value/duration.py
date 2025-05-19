@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import AbstractSet, Any, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, TYPE_CHECKING, TypeAlias, Union
 
 import numpy as np
 import sympy
@@ -45,8 +45,8 @@ document(
 )
 
 
-_NUMERIC_INPUT_TYPE = int | float | sympy.Expr | np.number
-_NUMERIC_OUTPUT_TYPE = int | float | sympy.Expr
+_NUMERIC_INPUT_TYPE: TypeAlias = int | float | sympy.Expr | np.number
+_NUMERIC_OUTPUT_TYPE: TypeAlias = int | float | sympy.Expr
 
 
 class Duration:

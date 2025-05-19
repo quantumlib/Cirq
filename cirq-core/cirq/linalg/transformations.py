@@ -302,7 +302,7 @@ def targeted_conjugate_about(
 
 
 _TSliceAtom = int | slice | EllipsisType
-_TSlice = _TSliceAtom| Sequence[_TSliceAtom]
+_TSlice = _TSliceAtom | Sequence[_TSliceAtom]
 
 
 def apply_matrix_to_slices(

@@ -16,7 +16,17 @@ from __future__ import annotations
 
 import cmath
 import re
-from typing import Any, Callable, cast, Iterable, Iterator, Mapping, SupportsFloat, TypeVar
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Iterable,
+    Iterator,
+    Mapping,
+    SupportsFloat,
+    TypeAlias,
+    TypeVar,
+)
 
 import numpy as np
 import sympy
@@ -74,7 +84,7 @@ def _tokenize(text: str) -> list[str]:
     return _merge_scientific_float_tokens(g for g in result if g.strip())
 
 
-_ResolvedToken = sympy.Expr | complex
+_ResolvedToken: TypeAlias = sympy.Expr | complex
 
 
 class _CustomQuirkOperationToken:
@@ -97,7 +107,7 @@ class _HangingNode:
         self.weight = weight
 
 
-_HangingToken = _ResolvedToken | str | _CustomQuirkOperationToken
+_HangingToken: TypeAlias = _ResolvedToken | str | _CustomQuirkOperationToken
 
 
 def _translate_token(token_id: str, token_map: Mapping[str, _HangingToken]) -> _HangingToken:
