@@ -30,3 +30,6 @@ cb6940a40141dba95cba84f5acc27acbeb65b17c
 
 # Add typing to test functions (#7327)
 d1e68b15fd2a6bf40d286bc0439dc7ce9cbd127c
+
+# Update typing for PEP-585 
+9c376c4e72ec924ee909a6c31147d703e69f1078
