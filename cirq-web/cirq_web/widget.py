@@ -22,7 +22,7 @@ from pathlib import Path
 import cirq_web
 
 # Resolve the path so the bundle file can be accessed properly
-_DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_ts" / "dist"
+_DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_web" / "dist"
 
 
 class Env(Enum):
