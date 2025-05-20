@@ -13,6 +13,8 @@
 # limitations under the License.
 """Client for making requests to IonQ's API."""
 
+from __future__ import annotations
+
 import datetime
 import json.decoder as jd
 import platform

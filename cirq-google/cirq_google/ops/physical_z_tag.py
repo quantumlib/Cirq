@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A class that can be used to denote a physical Z gate."""
+
+from __future__ import annotations
+
 from typing import Any
 
 import cirq
@@ -54,5 +58,5 @@ class PhysicalZTag:
         return msg
 
     @staticmethod
-    def from_proto(msg: program_pb2.Tag) -> 'PhysicalZTag':
+    def from_proto(msg: program_pb2.Tag) -> PhysicalZTag:
         return PhysicalZTag()

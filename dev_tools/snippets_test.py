@@ -48,6 +48,8 @@ In addition to checking that the code executes:
       substitution is the replacement string.
 """
 
+from __future__ import annotations
+
 import inspect
 import os
 import pathlib

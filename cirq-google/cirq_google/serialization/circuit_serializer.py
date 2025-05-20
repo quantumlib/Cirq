@@ -14,6 +14,8 @@
 
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
+from __future__ import annotations
+
 import functools
 import warnings
 from typing import Any

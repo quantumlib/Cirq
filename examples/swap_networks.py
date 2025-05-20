@@ -19,6 +19,8 @@ say that we want to apply a 2-qubit gate to pairs of qubits, even when the
 implied graph is not a subgraph of the hardware adjacency graph.
 """
 
+from __future__ import annotations
+
 import itertools
 import random
 from typing import Sequence, TypeVar

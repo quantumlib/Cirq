@@ -18,6 +18,8 @@ This code implements the algorithm proposed for an example circuit (defined in
 the function build_circuit()) and a noise (defines in the variable noise).
 """
 
+from __future__ import annotations
+
 import argparse
 import itertools
 import math

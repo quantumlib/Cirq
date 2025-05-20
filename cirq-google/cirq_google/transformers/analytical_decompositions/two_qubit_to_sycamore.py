@@ -14,6 +14,8 @@
 
 """Utility methods for decomposing two-qubit unitaries into Sycamore gates."""
 
+from __future__ import annotations
+
 import itertools
 import math
 from typing import Iterator

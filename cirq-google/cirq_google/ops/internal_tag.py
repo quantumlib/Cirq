@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any
 
 from cirq import value
@@ -72,7 +74,7 @@ class InternalTag:
         return msg
 
     @staticmethod
-    def from_proto(msg: program_pb2.Tag) -> 'InternalTag':
+    def from_proto(msg: program_pb2.Tag) -> InternalTag:
         # To avoid circular import
         from cirq_google.serialization import arg_func_langs
 

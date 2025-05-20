@@ -14,6 +14,8 @@
 
 """Tool to benchmarking simulators against a random circuit."""
 
+from __future__ import annotations
+
 import argparse
 import sys
 import timeit

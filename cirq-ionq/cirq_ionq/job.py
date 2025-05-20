@@ -13,6 +13,8 @@
 # limitations under the License.
 """Represents a job created via the IonQ API."""
 
+from __future__ import annotations
+
 import json
 import time
 import warnings
@@ -65,7 +67,7 @@ class Job:
         'data associated with it beyond an id and a status.',
     )
 
-    def __init__(self, client: 'cirq_ionq.ionq_client._IonQClient', job_dict: dict):
+    def __init__(self, client: cirq_ionq.ionq_client._IonQClient, job_dict: dict):
         """Construct an IonQJob.
 
         Users should not call this themselves. If you only know the `job_id`, use `get_job`
