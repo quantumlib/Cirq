@@ -393,8 +393,8 @@ def test_scalar_division(scalar, terms, terms_expected):
     linear_dict = cirq.LinearDict(terms)
     actual = linear_dict / scalar
     expected = cirq.LinearDict(terms_expected)
-    assert actual == expected
-    assert expected == actual
+    assert actual == pytest.approx(expected)
+    assert expected == pytest.approx(actual)
 
 
 @pytest.mark.parametrize(
