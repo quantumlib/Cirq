@@ -18,9 +18,13 @@ from typing import cast, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
 
 import attrs
 import numpy as np
+import sympy
 
-from cirq import circuits, ops, work
-from cirq.contrib.shuffle_circuits import run_shuffled_with_readout_benchmarking
+from cirq import circuits, ops, work, study
+from cirq.contrib.shuffle_circuits import (
+    run_shuffled_with_readout_benchmarking,
+    run_sweep_with_readout_benchmarking,
+)
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 from cirq.study import ResultDict
@@ -227,6 +231,74 @@ def _pauli_strings_to_basis_change_ops(
     return operations
 
 
+def _pauli_strings_to_basis_change_with_sweep(
+    pauli_strings: list[ops.PauliString], qid_list: list[ops.Qid]
+) -> list[Dict[str, float]]:
+    params_dict = {}
+
+    for qid, qubit in enumerate(qid_list):
+        params_dict[f"phi{qid}"] = 1
+        params_dict[f"theta{qid}"] = 0
+        for pauli_str in pauli_strings:
+            pauli_op = pauli_str.get(qubit, default=ops.I)
+            if pauli_op == ops.X:
+                params_dict[f"phi{qid}"] = 0
+                params_dict[f"theta{qid}"] = 1 / 2
+                break
+            elif pauli_op == ops.Y:
+                params_dict[f"phi{qid}"] = 1
+                params_dict[f"theta{qid}"] = 1 / 2
+                break
+    return params_dict
+
+
+def _generate_basis_change_circuits(
+    normalized_circuits_to_pauli: Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+):
+    pauli_measurement_circuits = list[circuits.Circuit]()
+
+    for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
+        qid_list = list(sorted(input_circuit.all_qubits()))
+        basis_change_circuits = []
+        input_circuit_unfrozen = input_circuit.unfreeze()
+        for pauli_strings in pauli_string_groups:
+            basis_change_circuit = (
+                input_circuit_unfrozen
+                + _pauli_strings_to_basis_change_ops(pauli_strings, qid_list)
+                + ops.measure(*qid_list, key="m")
+            )
+            basis_change_circuits.append(basis_change_circuit)
+        pauli_measurement_circuits.extend(basis_change_circuits)
+
+    return pauli_measurement_circuits
+
+
+def _generate_basis_change_circuits_with_sweep(
+    normalized_circuits_to_pauli: Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+) -> Tuple[list[circuits.Circuit], list[study.Sweepable]]:
+    parameterized_circuits = list[circuits.Circuit]()
+    sweep_params = list[study.Sweepable]()
+    for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
+        qid_list = list(sorted(input_circuit.all_qubits()))
+        phi_symbols = sympy.symbols(f"phi:{len(qid_list)}")
+        theta_symbols = sympy.symbols(f"theta:{len(qid_list)}")
+
+        parameterized_circuit = input_circuit.unfreeze() + circuits.Circuit(
+            [
+                ops.PhasedXPowGate(phase_exponent=(a - 1) / 2, exponent=b)(qubit)
+                for a, b, qubit in zip(phi_symbols, theta_symbols, qid_list)
+            ],
+            ops.M(*qid_list, key="m"),
+        )
+        sweep_param = []
+        for pauli_strings in pauli_string_groups:
+            sweep_param.append(_pauli_strings_to_basis_change_with_sweep(pauli_strings, qid_list))
+        sweep_params.append(sweep_param)
+        parameterized_circuits.append(parameterized_circuit)
+
+    return parameterized_circuits, sweep_params
+
+
 def _build_one_qubit_confusion_matrix(e0: float, e1: float) -> np.ndarray:
     """Builds a 2x2 confusion matrix for a single qubit.
 
@@ -371,6 +443,7 @@ def measure_pauli_strings(
     readout_repetitions: int,
     num_random_bitstrings: int,
     rng_or_seed: Union[np.random.Generator, int],
+    use_sweep: bool = False,
 ) -> List[CircuitToPauliStringsMeasurementResult]:
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.
@@ -400,6 +473,8 @@ def measure_pauli_strings(
         num_random_bitstrings: The number of random bitstrings to use in readout
             benchmarking.
         rng_or_seed: A random number generator or seed for the readout benchmarking.
+        use_sweep: If True, the function will use parameterized circuits and sweep
+            parameters.
 
     Returns:
         A list of CircuitToPauliStringsMeasurementResult objects, where each object contains:
@@ -429,45 +504,62 @@ def measure_pauli_strings(
 
     # Build the basis-change circuits for each Pauli string group
     pauli_measurement_circuits = list[circuits.Circuit]()
-    for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
-        qid_list = list(sorted(input_circuit.all_qubits()))
-        basis_change_circuits = []
-        input_circuit_unfrozen = input_circuit.unfreeze()
-        for pauli_strings in pauli_string_groups:
-            basis_change_circuit = (
-                input_circuit_unfrozen
-                + _pauli_strings_to_basis_change_ops(pauli_strings, qid_list)
-                + ops.measure(*qid_list, key="m")
-            )
-            basis_change_circuits.append(basis_change_circuit)
-        pauli_measurement_circuits.extend(basis_change_circuits)
+    sweep_params = list[study.Sweepable]()
+    circuits_results = list[list[ResultDict]]()
+    calibration_results = list[Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]()
 
-    # Run shuffled benchmarking for readout calibration
-    circuits_results, calibration_results = run_shuffled_with_readout_benchmarking(
-        input_circuits=pauli_measurement_circuits,
-        sampler=sampler,
-        circuit_repetitions=pauli_repetitions,
-        rng_or_seed=rng_or_seed,
-        qubits=[list(qubits) for qubits in qubits_list],
-        num_random_bitstrings=num_random_bitstrings,
-        readout_repetitions=readout_repetitions,
-    )
+    if use_sweep:
+        pauli_measurement_circuits, sweep_params = _generate_basis_change_circuits_with_sweep(
+            normalized_circuits_to_pauli
+        )
+
+        # Run benchmarking using sweep for readout calibration
+        circuits_results, calibration_results = run_sweep_with_readout_benchmarking(
+            input_circuits=pauli_measurement_circuits,
+            sweep_params=sweep_params,
+            sampler=sampler,
+            circuit_repetitions=pauli_repetitions,
+            rng_or_seed=rng_or_seed,
+            qubits=[list(qubits) for qubits in qubits_list],
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
+        )
+
+    else:
+        pauli_measurement_circuits = _generate_basis_change_circuits(normalized_circuits_to_pauli)
+
+        # Run shuffled benchmarking for readout calibration
+        circuits_results, calibration_results = run_shuffled_with_readout_benchmarking(
+            input_circuits=pauli_measurement_circuits,
+            sampler=sampler,
+            circuit_repetitions=pauli_repetitions,
+            rng_or_seed=rng_or_seed,
+            qubits=[list(qubits) for qubits in qubits_list],
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
+        )
 
     # Process the results to calculate expectation values
     results: List[CircuitToPauliStringsMeasurementResult] = []
     circuit_result_index = 0
-    for input_circuit, pauli_string_groups in normalized_circuits_to_pauli.items():
+    for i, (input_circuit, pauli_string_groups) in enumerate(normalized_circuits_to_pauli.items()):
 
         qubits_in_circuit = tuple(sorted(input_circuit.all_qubits()))
 
         disable_readout_mitigation = False if num_random_bitstrings != 0 else True
 
+        circuits_results_for_group = []
+        if use_sweep:
+            circuits_results_for_group = circuits_results[i]
+        else:
+            circuits_results_for_group = circuits_results[
+                circuit_result_index : circuit_result_index + len(pauli_string_groups)
+            ]
+
         pauli_measurement_results = _process_pauli_measurement_results(
             list(qubits_in_circuit),
             pauli_string_groups,
-            circuits_results[
-                circuit_result_index : circuit_result_index + len(pauli_string_groups)
-            ],
+            circuits_results_for_group,
             calibration_results,
             pauli_repetitions,
             time.time(),
