@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import cast, Tuple
+from typing import cast
 
 import pytest
 from pyquil import get_qc
@@ -13,7 +13,7 @@ from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 @pytest.mark.rigetti_integration
 @allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_circuit_through_service(
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
+    parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
     """test that RigettiQCSService can run a basic parametric circuit on
     the QVM and return an accurate `cirq.study.Result`.

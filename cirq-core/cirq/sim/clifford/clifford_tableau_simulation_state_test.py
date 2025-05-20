@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 import pytest
 
@@ -28,7 +26,7 @@ def test_unitary_fallback() -> None:
             return np.array([[0, 1], [1, 0]])
 
     class UnitaryYGate(cirq.Gate):
-        def _qid_shape_(self) -> Tuple[int, ...]:
+        def _qid_shape_(self) -> tuple[int, ...]:
             return (2,)
 
         def _unitary_(self):

@@ -19,7 +19,7 @@ from __future__ import annotations
 import abc
 import dataclasses
 import os
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq import _compat
@@ -43,7 +43,7 @@ class ExecutableGroupResultFilesystemRecord:
 
     runtime_configuration_path: str
     shared_runtime_info_path: str
-    executable_result_paths: List[str]
+    executable_result_paths: list[str]
 
     run_id: str
 
@@ -90,7 +90,7 @@ class ExecutableGroupResultFilesystemRecord:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from typing import Any, Dict
+from typing import Any
 
 import cirq
 import cirq_google as cg
@@ -141,7 +141,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
     def __str__(self) -> str:

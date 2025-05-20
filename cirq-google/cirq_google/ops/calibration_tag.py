@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import cirq
 
@@ -38,7 +38,7 @@ class CalibrationTag:
     def __repr__(self) -> str:
         return f'cirq_google.CalibrationTag({self.token!r})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['token'])
 
     def __eq__(self, other) -> bool:

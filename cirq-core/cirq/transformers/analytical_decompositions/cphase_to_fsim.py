@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -35,7 +35,7 @@ def _asinsin(x: float) -> float:
 
 def compute_cphase_exponents_for_fsim_decomposition(
     fsim_gate: cirq.FSimGate,
-) -> Sequence[Tuple[float, float]]:
+) -> Sequence[tuple[float, float]]:
     """Returns intervals of CZPowGate exponents valid for FSim decomposition.
 
     Ideal intervals associated with the constraints are closed, but due to
@@ -58,8 +58,8 @@ def compute_cphase_exponents_for_fsim_decomposition(
     """
 
     def nonempty_intervals(
-        intervals: Sequence[Tuple[float, float]],
-    ) -> Sequence[Tuple[float, float]]:
+        intervals: Sequence[tuple[float, float]],
+    ) -> Sequence[tuple[float, float]]:
         return tuple((a, b) for a, b in intervals if a < b)
 
     # Each of the two FSimGate parameters sets a bound on phase angle.
@@ -98,7 +98,7 @@ def decompose_cphase_into_two_fsim(
     cphase_gate: cirq.CZPowGate,
     *,
     fsim_gate: cirq.FSimGate,
-    qubits: Optional[Sequence[cirq.Qid]] = None,
+    qubits: Sequence[cirq.Qid] | None = None,
     atol: float = 1e-8,
 ) -> cirq.OP_TREE:
     """Decomposes CZPowGate into two FSimGates.

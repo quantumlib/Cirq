@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from typing import List, Union
-
 import numpy as np
 import pytest
 import sympy
@@ -84,7 +82,7 @@ VALID_ISWAP_GATES = [
     *VALID_IDENTITY,
 ]
 
-P_VALUES: List[Union[float, sympy.Expr]] = [np.pi / 4, 0.01, THETA, PHI]
+P_VALUES: list[float | sympy.Expr] = [np.pi / 4, 0.01, THETA, PHI]
 
 VALID_PHASED_ISWAP_GATES = [
     (cirq.PhasedISwapPowGate(exponent=0.1, phase_exponent=PHI), {PHI: 0.24}),

@@ -13,19 +13,7 @@
 # limitations under the License.
 
 import os
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Any, Generic, Iterable, Mapping, Sequence, TypeVar
 from unittest.mock import create_autospec, Mock
 
 import networkx as nx
@@ -57,29 +45,29 @@ def pytest_configure(config):
 
 class MockQAM(QAM, Generic[T]):
     _run_count: int
-    _mock_results: Dict[str, np.ndarray]
+    _mock_results: dict[str, np.ndarray]
 
     def __init__(self, *args, **kwargs) -> None:
         self._run_count = 0
-        self._mock_results: Dict[str, np.ndarray] = {}
+        self._mock_results: dict[str, np.ndarray] = {}
 
     def execute(
         self,
-        executable: Union[EncryptedProgram, Program],
-        memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ...,
+        executable: EncryptedProgram | Program,
+        memory_map: Mapping[str, Sequence[int] | Sequence[float]] | None = ...,
         **kwargs: Any,
     ) -> Any:
         pass
 
     def execute_with_memory_map_batch(  # type: ignore[empty-body]
         self, executable: QuantumExecutable, memory_maps: Iterable[MemoryMap], **kwargs: Any
-    ) -> List[T]:
+    ) -> list[T]:
         pass
 
     def run(
         self,
-        executable: Union[EncryptedProgram, Program],
-        memory_map: Optional[Mapping[str, Union[Sequence[int], Sequence[float]]]] = ...,
+        executable: EncryptedProgram | Program,
+        memory_map: Mapping[str, Sequence[int] | Sequence[float]] | None = ...,
         **kwargs: Any,
     ) -> Any:
         raise NotImplementedError
@@ -89,7 +77,7 @@ class MockQAM(QAM, Generic[T]):
 
 
 class MockCompiler(AbstractCompiler):
-    def quil_to_native_quil(self, program: Program, *, protoquil: Optional[bool] = None) -> Program:
+    def quil_to_native_quil(self, program: Program, *, protoquil: bool | None = None) -> Program:
         raise NotImplementedError
 
     def native_quil_to_executable(self, nq_program: Program, **kwargs: Any) -> QuantumExecutable:
@@ -128,7 +116,7 @@ def quantum_computer(qam: QAM, compiler: AbstractCompiler) -> QuantumComputer:
 
 
 @pytest.fixture
-def bell_circuit_with_qids() -> Tuple[cirq.Circuit, List[cirq.LineQubit]]:
+def bell_circuit_with_qids() -> tuple[cirq.Circuit, list[cirq.LineQubit]]:
     bell_circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(2)
     bell_circuit.append(cirq.H(qubits[0]))
@@ -139,12 +127,12 @@ def bell_circuit_with_qids() -> Tuple[cirq.Circuit, List[cirq.LineQubit]]:
 
 
 @pytest.fixture
-def bell_circuit(bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.LineQubit]]) -> cirq.Circuit:
+def bell_circuit(bell_circuit_with_qids: tuple[cirq.Circuit, list[cirq.LineQubit]]) -> cirq.Circuit:
     return bell_circuit_with_qids[0]
 
 
 @pytest.fixture
-def parametric_circuit_with_params() -> Tuple[cirq.Circuit, cirq.Linspace]:
+def parametric_circuit_with_params() -> tuple[cirq.Circuit, cirq.Linspace]:
     q = cirq.GridQubit(1, 1)
     circuit = cirq.Circuit(cirq.X(q) ** sympy.Symbol('t'), cirq.measure(q, key='m'))
 
@@ -164,7 +152,7 @@ class MockQPUImplementer:
         self.quantum_computer = quantum_computer
 
     def implement_passive_quantum_computer_with_results(
-        self, results: List[np.ndarray]
+        self, results: list[np.ndarray]
     ) -> QuantumComputer:
         """Mocks compilation methods on the `quantum_computer.compiler`, passively passing the
         `Program` through. Sequentially adds results to the
@@ -178,7 +166,7 @@ class MockQPUImplementer:
         """
         quantum_computer = self.quantum_computer
 
-        def quil_to_native_quil(program: Program, *, protoquil: Optional[bool] = None) -> Program:
+        def quil_to_native_quil(program: Program, *, protoquil: bool | None = None) -> Program:
             return program
 
         quantum_computer.compiler.quil_to_native_quil = create_autospec(  # type: ignore
@@ -194,9 +182,7 @@ class MockQPUImplementer:
             side_effect=native_quil_to_executable,
         )
 
-        def run(
-            program: Union[Program, EncryptedProgram], memory_map: MemoryMap
-        ) -> QAMExecutionResult:
+        def run(program: Program | EncryptedProgram, memory_map: MemoryMap) -> QAMExecutionResult:
             qam = quantum_computer.qam
             qam._mock_results = qam._mock_results or {}  # type: ignore
             qam._mock_results["m0"] = results[qam._run_count]  # type: ignore

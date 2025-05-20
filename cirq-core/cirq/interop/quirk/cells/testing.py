@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 import numpy as np
 
 import cirq
@@ -24,12 +22,12 @@ from cirq import quirk_url_to_circuit
 
 def assert_url_to_circuit_returns(
     json_text: str,
-    circuit: Optional[cirq.Circuit] = None,
+    circuit: cirq.Circuit | None = None,
     *,
-    unitary: Optional[np.ndarray] = None,
-    diagram: Optional[str] = None,
-    output_amplitudes_from_quirk: Optional[List[Dict[str, float]]] = None,
-    maps: Optional[Dict[int, int]] = None,
+    unitary: np.ndarray | None = None,
+    diagram: str | None = None,
+    output_amplitudes_from_quirk: list[dict[str, float]] | None = None,
+    maps: dict[int, int] | None = None,
 ):
     """Assert that `quirk_url_to_circuit` functions correctly.
 

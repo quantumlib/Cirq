@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import cast, FrozenSet, Iterable, Mapping, Optional, Tuple, TYPE_CHECKING
+from typing import cast, Iterable, Mapping, TYPE_CHECKING
 
 import networkx as nx
 
@@ -33,10 +33,10 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
     def __init__(
         self,
-        qubit_pairs: Iterable[Tuple[cirq.GridQubit, cirq.GridQubit]],
+        qubit_pairs: Iterable[tuple[cirq.GridQubit, cirq.GridQubit]],
         gateset: cirq.Gateset,
-        gate_durations: Optional[Mapping[cirq.GateFamily, cirq.Duration]] = None,
-        all_qubits: Optional[Iterable[cirq.GridQubit]] = None,
+        gate_durations: Mapping[cirq.GateFamily, cirq.Duration] | None = None,
+        all_qubits: Iterable[cirq.GridQubit] | None = None,
         compilation_target_gatesets: Iterable[cirq.CompilationTargetGateset] = (),
     ):
         """Create a GridDeviceMetadata object.
@@ -118,16 +118,16 @@ class GridDeviceMetadata(device.DeviceMetadata):
         self._gate_durations = gate_durations
 
     @property
-    def qubit_set(self) -> FrozenSet[cirq.GridQubit]:
+    def qubit_set(self) -> frozenset[cirq.GridQubit]:
         """Returns the set of grid qubits on the device.
 
         Returns:
             Frozenset of qubits on device.
         """
-        return cast(FrozenSet['cirq.GridQubit'], super().qubit_set)
+        return cast(frozenset['cirq.GridQubit'], super().qubit_set)
 
     @property
-    def qubit_pairs(self) -> FrozenSet[FrozenSet[cirq.GridQubit]]:
+    def qubit_pairs(self) -> frozenset[frozenset[cirq.GridQubit]]:
         """Returns the set of all couple-able qubits on the device.
 
         Each element in the outer frozenset is a 2-element frozenset representing a bidirectional
@@ -136,7 +136,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._qubit_pairs
 
     @property
-    def isolated_qubits(self) -> FrozenSet[cirq.GridQubit]:
+    def isolated_qubits(self) -> frozenset[cirq.GridQubit]:
         """Returns the set of all isolated qubits on the device (if applicable)."""
         return self._isolated_qubits
 
@@ -146,12 +146,12 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._gateset
 
     @property
-    def compilation_target_gatesets(self) -> Tuple[cirq.CompilationTargetGateset, ...]:
+    def compilation_target_gatesets(self) -> tuple[cirq.CompilationTargetGateset, ...]:
         """Returns a sequence of valid `cirq.CompilationTargetGateset`s for this device."""
         return self._compilation_target_gatesets
 
     @property
-    def gate_durations(self) -> Optional[Mapping[cirq.GateFamily, cirq.Duration]]:
+    def gate_durations(self) -> Mapping[cirq.GateFamily, cirq.Duration] | None:
         """Get a dictionary mapping from gate family to duration for gates.
 
         To look up the duration of a specific gate instance / gate type / operation which is part of

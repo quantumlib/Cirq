@@ -24,14 +24,14 @@ from __future__ import annotations
 
 import collections
 import itertools
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable
 
 
 class EqualsTester:
     """Tests equality against user-provided disjoint equivalence groups."""
 
     def __init__(self) -> None:
-        self._groups: List[Tuple[Union[Any, _ClassUnknownToSubjects], ...]] = [
+        self._groups: list[tuple[Any | _ClassUnknownToSubjects, ...]] = [
             (_ClassUnknownToSubjects(),)
         ]
 

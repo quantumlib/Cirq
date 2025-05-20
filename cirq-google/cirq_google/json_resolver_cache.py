@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import functools
 import warnings
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
     TwoQubitGateTabulation,
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     def _old_xmon(*args, **kwargs):
         d_type = kwargs['constant']
         warnings.warn(

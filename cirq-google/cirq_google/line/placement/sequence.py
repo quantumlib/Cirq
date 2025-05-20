@@ -14,11 +14,11 @@
 
 from __future__ import annotations
 
-from typing import Iterable, List
+from typing import Iterable
 
 import cirq
 
-LineSequence = List[cirq.GridQubit]
+LineSequence = list[cirq.GridQubit]
 
 
 class NotFoundError(Exception):

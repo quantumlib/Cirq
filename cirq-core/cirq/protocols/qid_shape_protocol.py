@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Sequence, Tuple, TypeVar, Union
+from typing import Any, Sequence, TypeVar
 
 from typing_extensions import Protocol
 
@@ -24,7 +24,7 @@ from cirq._doc import doc_private, document
 
 # This is a special indicator value used by the methods to determine whether or
 # not the caller provided a 'default' argument. It must be of type
-# Tuple[int, ...] to ensure the method has the correct type signature in that
+# tuple[int, ...] to ensure the method has the correct type signature in that
 # case. It is checked for using `is`, so it won't have a false positive if the
 # user provides a different (0,) value.
 RaiseTypeErrorIfNotProvided: Any = (0,)
@@ -39,7 +39,7 @@ class SupportsExplicitQidShape(Protocol):
     number qubits/qudits/qids, each with a specific number of quantum levels."""
 
     @doc_private
-    def _qid_shape_(self) -> Union[Tuple[int, ...], NotImplementedType]:
+    def _qid_shape_(self) -> tuple[int, ...] | NotImplementedType:
         """A tuple specifying the number of quantum levels of each qid this
         object operates on, e.g. (2, 2, 2) for a three-qubit gate.
 
@@ -67,7 +67,7 @@ class SupportsExplicitNumQubits(Protocol):
     number of qubits."""
 
     @document
-    def _num_qubits_(self) -> Union[int, NotImplementedType]:
+    def _num_qubits_(self) -> int | NotImplementedType:
         """The number of qubits, qudits, or qids this object operates on.
 
         This method is used by the global `cirq.num_qubits` method (and by
@@ -82,7 +82,7 @@ class SupportsExplicitNumQubits(Protocol):
 
 def qid_shape(
     val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
-) -> Union[Tuple[int, ...], TDefault]:
+) -> tuple[int, ...] | TDefault:
     """Returns a tuple describing the number of quantum levels of each
     qubit/qudit/qid `val` operates on.
 
@@ -136,9 +136,7 @@ def qid_shape(
     raise TypeError(f"object of type '{type(val)}' has no _num_qubits_ or _qid_shape_ methods.")
 
 
-def num_qubits(
-    val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
-) -> Union[int, TDefault]:
+def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt) -> int | TDefault:
     """Returns the number of qubits, qudits, or qids `val` operates on.
 
     Args:

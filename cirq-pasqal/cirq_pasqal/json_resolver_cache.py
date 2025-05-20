@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import cirq_pasqal
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     return {
         'PasqalDevice': cirq_pasqal.PasqalDevice,
         'PasqalGateset': cirq_pasqal.PasqalGateset,

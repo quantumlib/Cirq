@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import copy
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 from cirq_google.engine.abstract_program import AbstractProgram
 
@@ -38,15 +38,15 @@ class AbstractLocalProgram(AbstractProgram):
     need to implement abstract methods.
     """
 
-    def __init__(self, circuits: List[cirq.Circuit], engine: AbstractLocalEngine):
+    def __init__(self, circuits: list[cirq.Circuit], engine: AbstractLocalEngine):
         if not circuits:
             raise ValueError('No circuits provided to program.')
         self._create_time = datetime.datetime.now()
         self._update_time = datetime.datetime.now()
         self._description = ''
-        self._labels: Dict[str, str] = {}
+        self._labels: dict[str, str] = {}
         self._engine = engine
-        self._jobs: Dict[str, AbstractLocalJob] = {}
+        self._jobs: dict[str, AbstractLocalJob] = {}
         self._circuits = circuits
 
     def engine(self) -> AbstractLocalEngine:
@@ -78,10 +78,10 @@ class AbstractLocalProgram(AbstractProgram):
 
     def list_jobs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
     ) -> Sequence[AbstractLocalJob]:
         """Returns the list of jobs for this program.
 
@@ -145,11 +145,11 @@ class AbstractLocalProgram(AbstractProgram):
         self._description = description
         return self
 
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
         return copy.copy(self._labels)
 
-    def set_labels(self, labels: Dict[str, str]) -> AbstractProgram:
+    def set_labels(self, labels: dict[str, str]) -> AbstractProgram:
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
@@ -162,7 +162,7 @@ class AbstractLocalProgram(AbstractProgram):
         self._labels = copy.copy(labels)
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> AbstractProgram:
+    def add_labels(self, labels: dict[str, str]) -> AbstractProgram:
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -175,7 +175,7 @@ class AbstractLocalProgram(AbstractProgram):
             self._labels[key] = labels[key]
         return self
 
-    def remove_labels(self, keys: List[str]) -> AbstractProgram:
+    def remove_labels(self, keys: list[str]) -> AbstractProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 
@@ -189,7 +189,7 @@ class AbstractLocalProgram(AbstractProgram):
             del self._labels[key]
         return self
 
-    def get_circuit(self, program_num: Optional[int] = None) -> cirq.Circuit:
+    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
 

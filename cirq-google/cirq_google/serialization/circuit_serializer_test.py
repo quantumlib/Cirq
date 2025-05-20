@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import attrs
 import numpy as np
@@ -38,13 +38,13 @@ class FakeDevice(cirq.Device):
         pass
 
 
-def op_proto(json: Dict) -> v2.program_pb2.Operation:
+def op_proto(json: dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json, op)
     return op
 
 
-def circuit_proto(json: Dict, qubits: List[str]):
+def circuit_proto(json: dict, qubits: list[str]):
     constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id=q)) for q in qubits]
     return v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
@@ -961,10 +961,10 @@ class BingBongSerializer(OpSerializer):
     def to_proto(
         self,
         op: cirq.Operation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.CircuitOperation:
         assert isinstance(op.gate, BingBongGate)
         if msg is None:
@@ -1001,8 +1001,8 @@ class BingBongDeserializer(OpDeserializer):
         self,
         proto: v2.program_pb2.Operation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Operation:
         return BingBongGate(param=proto.internalgate.gate_args["param"].arg_value.float_value).on(
             deserialized_constants[proto.qubit_constant_index[0]]
@@ -1056,10 +1056,10 @@ class DiscountTagSerializer(TagSerializer):
     def to_proto(
         self,
         tag: Any,
-        msg: Optional[v2.program_pb2.Tag] = None,
+        msg: v2.program_pb2.Tag | None = None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.Tag:
         assert isinstance(tag, DiscountTag)
         if msg is None:
@@ -1084,8 +1084,8 @@ class DiscountTagDeserializer(TagDeserializer):
         self,
         proto: v2.program_pb2.Operation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> DiscountTag:
         return DiscountTag(discount=proto.internal_tag.tag_args["discount"].arg_value.float_value)
 

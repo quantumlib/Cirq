@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
-
 import numpy as np
 
 import cirq
@@ -20,7 +18,7 @@ import cirq
 # "Quantum Computation and Quantum Information" by Michael Nielsen and Isaac Chuang.
 
 
-def _build_by_code(mat: np.ndarray) -> List[str]:
+def _build_by_code(mat: np.ndarray) -> list[str]:
     """Transforms a matrix of Booleans into a list of Pauli strings.
 
     Takes into input a matrix of Boolean interpreted as row-vectors, each having dimension 2 * n.
@@ -118,7 +116,7 @@ def _gaussian_elimination(
 
 def _transfer_to_standard_form(
     M: np.ndarray, n: int, k: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
     """Puts the stabilizer matrix in its standardized form, as in section 4.1 of the thesis.
 
     Args:
@@ -167,7 +165,7 @@ def _transfer_to_standard_form(
 
 
 class StabilizerCode(object):
-    def __init__(self, group_generators: List[str], correctable_errors: List[str]):
+    def __init__(self, group_generators: list[str], correctable_errors: list[str]):
         n = len(group_generators[0])
         k = n - len(group_generators)
 
@@ -188,11 +186,11 @@ class StabilizerCode(object):
         self.n: int = n
         self.k: int = k
         self.r: int = r
-        self.M: List[str] = _build_by_code(M)
-        self.logical_Xs: List[str] = _build_by_code(X)
-        self.logical_Zs: List[str] = _build_by_code(Z)
+        self.M: list[str] = _build_by_code(M)
+        self.logical_Xs: list[str] = _build_by_code(X)
+        self.logical_Zs: list[str] = _build_by_code(Z)
 
-        self.syndromes_to_corrections: Dict[Tuple[int, ...], Tuple[str, int]] = {}
+        self.syndromes_to_corrections: dict[tuple[int, ...], tuple[str, int]] = {}
 
         for qid in range(self.n):
             for op in correctable_errors:
@@ -203,7 +201,7 @@ class StabilizerCode(object):
                 self.syndromes_to_corrections[syndrome] = (op, qid)
 
     def encode(
-        self, additional_qubits: List[cirq.Qid], unencoded_qubits: List[cirq.Qid]
+        self, additional_qubits: list[cirq.Qid], unencoded_qubits: list[cirq.Qid]
     ) -> cirq.Circuit:
         """Creates a circuit that encodes the qubits using the code words.
 
@@ -267,7 +265,7 @@ class StabilizerCode(object):
 
         return circuit
 
-    def correct(self, qubits: List[cirq.Qid], ancillas: List[cirq.Qid]) -> cirq.Circuit:
+    def correct(self, qubits: list[cirq.Qid], ancillas: list[cirq.Qid]) -> cirq.Circuit:
         """Corrects the code word.
 
         Creates a correction circuit by computing the syndrome on the ancillas, and then using this
@@ -323,7 +321,7 @@ class StabilizerCode(object):
 
         return circuit
 
-    def decode(self, qubits: List[cirq.Qid], ancillas: List[cirq.Qid], state_vector) -> List[int]:
+    def decode(self, qubits: list[cirq.Qid], ancillas: list[cirq.Qid], state_vector) -> list[int]:
         """Computes the output of the circuit by projecting onto the \bar{Z}.
 
         Args:

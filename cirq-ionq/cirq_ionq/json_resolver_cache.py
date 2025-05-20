@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import cirq_ionq
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 @functools.lru_cache()  # pragma: no cover
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # pragma: no cover
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:  # pragma: no cover
     return {
         "GPIGate": cirq_ionq.GPIGate,
         "GPI2Gate": cirq_ionq.GPI2Gate,

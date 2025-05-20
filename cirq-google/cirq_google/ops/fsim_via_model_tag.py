@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 import cirq
 from cirq_google.api.v2 import program_pb2
@@ -39,7 +39,7 @@ class FSimViaModelTag:
     def __repr__(self) -> str:
         return 'cirq_google.FSimViaModelTag()'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, [])
 
     def __eq__(self, other) -> bool:
@@ -48,7 +48,7 @@ class FSimViaModelTag:
     def __hash__(self) -> int:
         return hash("FSimViaModelTag")
 
-    def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
+    def to_proto(self, msg: program_pb2.Tag | None = None) -> program_pb2.Tag:
         if msg is None:
             msg = program_pb2.Tag()
         msg.fsim_via_model.SetInParent()

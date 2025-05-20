@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -52,9 +52,9 @@ class PhasedXZGate(raw_types.Gate):
     def __init__(
         self,
         *,
-        x_exponent: Union[float, sympy.Expr],
-        z_exponent: Union[float, sympy.Expr],
-        axis_phase_exponent: Union[float, sympy.Expr],
+        x_exponent: float | sympy.Expr,
+        z_exponent: float | sympy.Expr,
+        axis_phase_exponent: float | sympy.Expr,
     ) -> None:
         """Inits PhasedXZGate.
 
@@ -128,15 +128,15 @@ class PhasedXZGate(raw_types.Gate):
         return PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     @property
-    def x_exponent(self) -> Union[float, sympy.Expr]:
+    def x_exponent(self) -> float | sympy.Expr:
         return self._x_exponent
 
     @property
-    def z_exponent(self) -> Union[float, sympy.Expr]:
+    def z_exponent(self) -> float | sympy.Expr:
         return self._z_exponent
 
     @property
-    def axis_phase_exponent(self) -> Union[float, sympy.Expr]:
+    def axis_phase_exponent(self) -> float | sympy.Expr:
         return self._axis_phase_exponent
 
     def _value_equality_values_(self):
@@ -159,14 +159,14 @@ class PhasedXZGate(raw_types.Gate):
             x_exponent=rotation, axis_phase_exponent=-pre_phase, z_exponent=post_phase + pre_phase
         )._canonical()
 
-    def with_z_exponent(self, z_exponent: Union[float, sympy.Expr]) -> cirq.PhasedXZGate:
+    def with_z_exponent(self, z_exponent: float | sympy.Expr) -> cirq.PhasedXZGate:
         return PhasedXZGate(
             axis_phase_exponent=self._axis_phase_exponent,
             x_exponent=self._x_exponent,
             z_exponent=z_exponent,
         )
 
-    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str | None:
         from cirq.circuits import qasm_output
 
         qasm_gate = qasm_output.QasmUGate(
@@ -182,7 +182,7 @@ class PhasedXZGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
@@ -300,7 +300,7 @@ class PhasedXZGate(raw_types.Gate):
             f'z_exponent={proper_repr(self._z_exponent)})'
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent']
         )
