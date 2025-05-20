@@ -11,10 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import abc
 import itertools
 from functools import cached_property
-from typing import Any, Collection, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, Collection, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import protocols, value
 
@@ -47,7 +50,7 @@ class AbstractControlValues(abc.ABC):
         """Validates that all control values for ith qubit are in range [0, qid_shaped[i])"""
 
     @abc.abstractmethod
-    def expand(self) -> 'SumOfProducts':
+    def expand(self) -> SumOfProducts:
         """Returns an expanded `cirq.SumOfProduct` representation of this control values."""
 
     @property
@@ -64,17 +67,15 @@ class AbstractControlValues(abc.ABC):
         """Returns the number of qubits for which control values are stored by this object."""
 
     @abc.abstractmethod
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         """Returns a dictionary used for serializing this object."""
 
     @abc.abstractmethod
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """Returns information used to draw this object in circuit diagrams."""
 
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[Tuple[int, ...]]:
+    def __iter__(self) -> Iterator[tuple[int, ...]]:
         """Iterator on internal representation of control values used by the derived classes.
 
         Note: Be careful that the terms iterated upon by this iterator will have different
@@ -88,7 +89,7 @@ class AbstractControlValues(abc.ABC):
     def _value_equality_values_(self) -> Any:
         return tuple(v for v in self.expand())
 
-    def __and__(self, other: 'AbstractControlValues') -> 'AbstractControlValues':
+    def __and__(self, other: AbstractControlValues) -> AbstractControlValues:
         """Returns a cartesian product of all control values predicates in `self` x `other`.
 
         The `and` of two control values `cv1` and `cv2` represents a control value object
@@ -109,7 +110,7 @@ class AbstractControlValues(abc.ABC):
             tuple(x + y for (x, y) in itertools.product(self.expand(), other.expand()))
         )
 
-    def __or__(self, other: 'AbstractControlValues') -> 'AbstractControlValues':
+    def __or__(self, other: AbstractControlValues) -> AbstractControlValues:
         """Returns a union of all control values predicates in `self` + `other`.
 
         Both `self` and `other` must represent control values for the same set of qubits and
@@ -140,8 +141,8 @@ class AbstractControlValues(abc.ABC):
 class ProductOfSums(AbstractControlValues):
     """Represents control values as N OR (sum) clauses, each of which applies to one qubit."""
 
-    def __init__(self, data: Sequence[Union[int, Collection[int]]]):
-        self._qubit_sums: Tuple[Tuple[int, ...], ...] = tuple(
+    def __init__(self, data: Sequence[int | Collection[int]]):
+        self._qubit_sums: tuple[tuple[int, ...], ...] = tuple(
             (cv,) if isinstance(cv, int) else tuple(sorted(set(cv))) for cv in data
         )
 
@@ -149,10 +150,10 @@ class ProductOfSums(AbstractControlValues):
     def is_trivial(self) -> bool:
         return self._qubit_sums == ((1,),) * self._num_qubits_()
 
-    def __iter__(self) -> Iterator[Tuple[int, ...]]:
+    def __iter__(self) -> Iterator[tuple[int, ...]]:
         return iter(self._qubit_sums)
 
-    def expand(self) -> 'SumOfProducts':
+    def expand(self) -> SumOfProducts:
         return SumOfProducts(tuple(itertools.product(*self._qubit_sums)))
 
     def __repr__(self) -> str:
@@ -161,7 +162,7 @@ class ProductOfSums(AbstractControlValues):
     def _num_qubits_(self) -> int:
         return len(self._qubit_sums)
 
-    def __getitem__(self, key: Union[int, slice]) -> Union['ProductOfSums', Tuple[int, ...]]:
+    def __getitem__(self, key: int | slice) -> ProductOfSums | tuple[int, ...]:
         if isinstance(key, slice):
             return ProductOfSums(self._qubit_sums[key])
         return self._qubit_sums[key]
@@ -175,9 +176,7 @@ class ProductOfSums(AbstractControlValues):
                 )
                 raise ValueError(message)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """Returns a string representation to be used in circuit diagrams."""
 
         def get_symbol(vals):
@@ -195,7 +194,7 @@ class ProductOfSums(AbstractControlValues):
 
         return ''.join(get_prefix(t) for t in self._qubit_sums)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {"data": self._qubit_sums}
 
     def __and__(self, other: AbstractControlValues) -> AbstractControlValues:
@@ -242,8 +241,8 @@ class SumOfProducts(AbstractControlValues):
         >>> nand_cop = cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
     """
 
-    def __init__(self, data: Collection[Sequence[int]], *, name: Optional[str] = None):
-        self._conjunctions: Tuple[Tuple[int, ...], ...] = tuple(
+    def __init__(self, data: Collection[Sequence[int]], *, name: str | None = None):
+        self._conjunctions: tuple[tuple[int, ...], ...] = tuple(
             sorted(set(tuple(cv) for cv in data))
         )
         self._name = name
@@ -257,16 +256,14 @@ class SumOfProducts(AbstractControlValues):
     def is_trivial(self) -> bool:
         return self._conjunctions == ((1,) * self._num_qubits_(),)
 
-    def expand(self) -> 'SumOfProducts':
+    def expand(self) -> SumOfProducts:
         return self
 
-    def __iter__(self) -> Iterator[Tuple[int, ...]]:
+    def __iter__(self) -> Iterator[tuple[int, ...]]:
         """Returns the combinations tracked by the object."""
         return iter(self._conjunctions)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """Returns a string representation to be used in circuit diagrams."""
         if self._name is not None:
             wire_symbols = ['@'] * self._num_qubits_()
@@ -316,5 +313,5 @@ class SumOfProducts(AbstractControlValues):
                         f' of range [0, {qid_shapes[q_i]}) for control qubit number <{q_i}>.'
                     )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'data': self._conjunctions, 'name': self._name}

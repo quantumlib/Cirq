@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 import sympy
@@ -19,7 +21,7 @@ import sympy
 from cirq.interop.quirk.cells.parse import parse_complex, parse_formula, parse_matrix
 
 
-def test_parse_matrix():
+def test_parse_matrix() -> None:
     s = np.sqrt(0.5)
     np.testing.assert_allclose(
         parse_matrix('{{√½,√½},{-√½,√½}}'), np.array([[s, s], [-s, s]]), atol=1e-8
@@ -32,7 +34,7 @@ def test_parse_matrix():
     )
 
 
-def test_parse_matrix_failures():
+def test_parse_matrix_failures() -> None:
     with pytest.raises(ValueError, match='Not surrounded by {{}}'):
         _ = parse_matrix('1')
     with pytest.raises(ValueError, match='Not surrounded by {{}}'):
@@ -45,7 +47,7 @@ def test_parse_matrix_failures():
         _ = parse_matrix('{{x}}')
 
 
-def test_parse_real_formula():
+def test_parse_real_formula() -> None:
     t = sympy.Symbol('t')
     assert parse_formula('1/2') == 0.5
     assert parse_formula('t*t + ln(t)') == t * t + sympy.ln(t)
@@ -58,12 +60,12 @@ def test_parse_real_formula():
         _ = parse_formula('i')
 
 
-def test_parse_formula_failures():
+def test_parse_formula_failures() -> None:
     with pytest.raises(TypeError, match='formula must be a string'):
-        _ = parse_formula(2)
+        _ = parse_formula(2)  # type: ignore[arg-type]
 
     with pytest.raises(TypeError, match='formula must be a string'):
-        _ = parse_formula([])
+        _ = parse_formula([])  # type: ignore[arg-type]
 
     with pytest.raises(ValueError, match='Unrecognized token'):
         _ = parse_formula('5*__**DSA **)SADD')
@@ -72,7 +74,7 @@ def test_parse_formula_failures():
         _ = parse_formula('5*x')
 
 
-def test_parse_complex():
+def test_parse_complex() -> None:
     assert parse_complex('0') == 0
     assert parse_complex('1') == 1
     assert parse_complex('i') == 1j
@@ -84,7 +86,7 @@ def test_parse_complex():
     np.testing.assert_allclose(parse_complex('exp 2'), np.e**2, atol=1e-8)
 
 
-def test_parse_complex_raw_cases_from_quirk():
+def test_parse_complex_raw_cases_from_quirk() -> None:
     assert parse_complex("0") == 0
     assert parse_complex("1") == 1
     assert parse_complex("-1") == -1
@@ -116,7 +118,7 @@ def test_parse_complex_raw_cases_from_quirk():
     np.testing.assert_allclose(parse_complex("2       pi"), 2 * np.pi)
 
 
-def test_parse_complex_expression_cases_from_quirk():
+def test_parse_complex_expression_cases_from_quirk() -> None:
     np.testing.assert_allclose(parse_complex("1/3"), 1 / 3)
     np.testing.assert_allclose(parse_complex("2/3/5"), (2 / 3) / 5)
     np.testing.assert_allclose(parse_complex("2/3/5*7/13"), ((((2 / 3) / 5)) * 7) / 13)
@@ -152,7 +154,7 @@ def test_parse_complex_expression_cases_from_quirk():
     np.testing.assert_allclose(parse_complex("cos(acos(0.5))"), 0.5, atol=1e-8)
 
 
-def test_parse_complex_expression_failures():
+def test_parse_complex_expression_failures() -> None:
     with pytest.raises(ValueError, match='Incomplete expression'):
         _ = parse_formula('(')
     with pytest.raises(ValueError, match=r"unmatched '\)'"):

@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Methods for resolving JSON types during serialization."""
+
+from __future__ import annotations
+
 import datetime
 import functools
-from typing import Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
-
-from cirq.protocols.json_serialization import ObjectFactory
+from typing import NamedTuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
     import cirq.devices.unconstrained_device
     import cirq.ops.pauli_gates
+    from cirq.protocols.json_serialization import ObjectFactory
 
 
 # Needed for backwards compatible named tuples of CrossEntropyResult
@@ -30,18 +32,18 @@ SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int), ('purit
 CrossEntropyResult = NamedTuple(
     'CrossEntropyResult',
     [
-        ('data', List[CrossEntropyPair]),
+        ('data', list[CrossEntropyPair]),
         ('repetitions', int),
-        ('purity_data', Optional[List[SpecklePurityPair]]),
+        ('purity_data', list[SpecklePurityPair] | None),
     ],
 )
 CrossEntropyResultDict = NamedTuple(
-    'CrossEntropyResultDict', [('results', Dict[Tuple['cirq.Qid', ...], CrossEntropyResult])]
+    'CrossEntropyResultDict', [('results', dict[tuple['cirq.Qid', ...], CrossEntropyResult])]
 )
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     import numpy as np
     import pandas as pd
 
@@ -80,7 +82,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         )
 
     def _cross_entropy_result_dict(
-        results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]], **kwargs
+        results: list[tuple[list[cirq.Qid], CrossEntropyResult]], **kwargs
     ) -> CrossEntropyResultDict:
         return CrossEntropyResultDict(results={tuple(qubits): result for qubits, result in results})
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Set, Tuple
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -24,7 +24,7 @@ from cirq.devices.superconducting_qubits_noise_properties import (
     SuperconductingQubitsNoiseProperties,
 )
 
-DEFAULT_GATE_NS: Dict[type, float] = {
+DEFAULT_GATE_NS: dict[type, float] = {
     cirq.ZPowGate: 25.0,
     cirq.MeasurementGate: 4000.0,
     cirq.ResetChannel: 250.0,
@@ -37,7 +37,7 @@ DEFAULT_GATE_NS: Dict[type, float] = {
 }
 
 
-def default_props(system_qubits: List[cirq.Qid], qubit_pairs: List[Tuple[cirq.Qid, cirq.Qid]]):
+def default_props(system_qubits: list[cirq.Qid], qubit_pairs: list[tuple[cirq.Qid, cirq.Qid]]):
     return {
         'gate_times_ns': DEFAULT_GATE_NS,
         't1_ns': {q: 1e5 for q in system_qubits},
@@ -63,15 +63,15 @@ class ExampleNoiseProperties(SuperconductingQubitsNoiseProperties):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def single_qubit_gates(cls) -> Set[type]:
+    def single_qubit_gates(cls) -> set[type]:
         return {cirq.ZPowGate, cirq.PhasedXZGate, cirq.MeasurementGate, cirq.ResetChannel}
 
     @classmethod
-    def symmetric_two_qubit_gates(cls) -> Set[type]:
+    def symmetric_two_qubit_gates(cls) -> set[type]:
         return {cirq.FSimGate, cirq.PhasedFSimGate, cirq.ISwapPowGate, cirq.CZPowGate}
 
     @classmethod
-    def asymmetric_two_qubit_gates(cls) -> Set[type]:
+    def asymmetric_two_qubit_gates(cls) -> set[type]:
         return set()
 
 

@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Measures on and between quantum states and operations."""
 
+from __future__ import annotations
 
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -42,7 +44,7 @@ def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
     return vecs @ (np.sqrt(np.abs(eigs)) * vecs).T.conj()
 
 
-def _validate_int_state(state: int, qid_shape: Optional[Tuple[int, ...]]) -> None:
+def _validate_int_state(state: int, qid_shape: tuple[int, ...] | None) -> None:
     if state < 0:
         raise ValueError(
             'Invalid state: A state specified as an integer must be non-negative, '
@@ -58,9 +60,7 @@ def _validate_int_state(state: int, qid_shape: Optional[Tuple[int, ...]]) -> Non
             )
 
 
-def _validate_product_state(
-    state: 'cirq.ProductState', qid_shape: Optional[Tuple[int, ...]]
-) -> None:
+def _validate_product_state(state: cirq.ProductState, qid_shape: tuple[int, ...] | None) -> None:
     if qid_shape is not None and qid_shape != (2,) * len(state):
         raise ValueError(
             'Invalid state for given qid shape: '
@@ -70,9 +70,9 @@ def _validate_product_state(
 
 
 def fidelity(
-    state1: 'cirq.QUANTUM_STATE_LIKE',
-    state2: 'cirq.QUANTUM_STATE_LIKE',
-    qid_shape: Optional[Tuple[int, ...]] = None,
+    state1: cirq.QUANTUM_STATE_LIKE,
+    state2: cirq.QUANTUM_STATE_LIKE,
+    qid_shape: tuple[int, ...] | None = None,
     validate: bool = True,
     atol: float = 1e-7,
 ) -> float:
@@ -156,10 +156,10 @@ def fidelity(
 def _numpy_arrays_to_state_vectors_or_density_matrices(
     state1: np.ndarray,
     state2: np.ndarray,
-    qid_shape: Optional[Tuple[int, ...]],
+    qid_shape: tuple[int, ...] | None,
     validate: bool,
     atol: float,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     if state1.ndim > 2 or (state1.ndim == 2 and state1.shape[0] != state1.shape[1]):
         # State tensor, convert to state vector
         state1 = state1.reshape(-1)
@@ -255,8 +255,8 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
 
 
 def von_neumann_entropy(
-    state: 'cirq.QUANTUM_STATE_LIKE',
-    qid_shape: Optional[Tuple[int, ...]] = None,
+    state: cirq.QUANTUM_STATE_LIKE,
+    qid_shape: tuple[int, ...] | None = None,
     validate: bool = True,
     atol: float = 1e-7,
 ) -> float:
@@ -298,7 +298,7 @@ def von_neumann_entropy(
     return 0.0
 
 
-def entanglement_fidelity(operation: 'cirq.SupportsKraus') -> float:
+def entanglement_fidelity(operation: cirq.SupportsKraus) -> float:
     r"""Returns entanglement fidelity of a given quantum channel.
 
     Entanglement fidelity $F_e$ of a quantum channel $E: L(H) \to L(H)$ is the overlap between

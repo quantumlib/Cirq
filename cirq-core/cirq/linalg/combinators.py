@@ -14,6 +14,8 @@
 
 """Utility methods for combining matrices."""
 
+from __future__ import annotations
+
 import functools
 from typing import TYPE_CHECKING, Union
 
@@ -107,7 +109,7 @@ def kron_with_controls(*factors: Union[np.ndarray, complex]) -> np.ndarray:
     return product
 
 
-def dot(*values: 'ArrayLike') -> np.ndarray:
+def dot(*values: ArrayLike) -> np.ndarray:
     """Computes the dot/matrix product of a sequence of values.
 
     Performs the computation in serial order without regard to the matrix
@@ -136,7 +138,7 @@ def dot(*values: 'ArrayLike') -> np.ndarray:
     return result
 
 
-def _merge_dtypes(dtype1: 'DTypeLike', dtype2: 'DTypeLike') -> np.dtype:
+def _merge_dtypes(dtype1: DTypeLike, dtype2: DTypeLike) -> np.dtype:
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 
 

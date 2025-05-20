@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
 
 import numpy as np
@@ -32,11 +34,11 @@ def _all_interaction_gates(exponents=(1,)):
 
 
 @pytest.mark.parametrize('gate', _all_interaction_gates())
-def test_pauli_interaction_gates_consistent_protocols(gate):
+def test_pauli_interaction_gates_consistent_protocols(gate) -> None:
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
-def test_eq_ne_and_hash():
+def test_eq_ne_and_hash() -> None:
     eq = cirq.testing.EqualsTester()
     for pauli0, invert0, pauli1, invert1, e in itertools.product(
         _paulis, _bools, _paulis, _bools, (0.125, -0.25, 1)
@@ -46,7 +48,7 @@ def test_eq_ne_and_hash():
         )
 
 
-def test_exponent_shifts_are_equal():
+def test_exponent_shifts_are_equal() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         cirq.PauliInteractionGate(cirq.X, False, cirq.X, False, exponent=e)
@@ -67,7 +69,7 @@ def test_exponent_shifts_are_equal():
 
 
 @pytest.mark.parametrize('gate', _all_interaction_gates(exponents=(0.1, -0.25, 0.5, 1)))
-def test_interchangeable_qubits(gate):
+def test_interchangeable_qubits(gate) -> None:
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     op0 = gate(q0, q1)
     op1 = gate(q1, q0)
@@ -78,7 +80,7 @@ def test_interchangeable_qubits(gate):
     assert same == same_check
 
 
-def test_exponent():
+def test_exponent() -> None:
     cnot = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False)
     np.testing.assert_almost_equal(
         cirq.unitary(cnot**0.5),
@@ -93,18 +95,18 @@ def test_exponent():
     )
 
 
-def test_repr():
+def test_repr() -> None:
     cnot = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False)
     cirq.testing.assert_equivalent_repr(cnot)
 
 
-def test_decomposes_despite_symbol():
+def test_decomposes_despite_symbol() -> None:
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     gate = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False, exponent=sympy.Symbol('x'))
     assert cirq.decompose_once_with_qubits(gate, [q0, q1])
 
 
-def test_text_diagrams():
+def test_text_diagrams() -> None:
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     circuit = cirq.Circuit(
         cirq.PauliInteractionGate(cirq.X, False, cirq.X, False)(q0, q1),

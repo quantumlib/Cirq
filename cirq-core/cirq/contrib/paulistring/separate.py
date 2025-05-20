@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterator, Tuple
+from __future__ import annotations
+
+from typing import Iterator
 
 from cirq import circuits, ops, transformers
 from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
@@ -20,7 +22,7 @@ from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGates
 
 def convert_and_separate_circuit(
     circuit: circuits.Circuit, leave_cliffords: bool = True, atol: float = 1e-8
-) -> Tuple[circuits.Circuit, circuits.Circuit]:
+) -> tuple[circuits.Circuit, circuits.Circuit]:
     """Converts a circuit into two, one made of PauliStringPhasor and the other Clifford gates.
 
     Args:
@@ -89,8 +91,9 @@ def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
 
 
 def _pull_non_clifford_before(circuit: circuits.Circuit) -> Iterator[ops.OP_TREE]:
-    def _iter_ops_range_reversed(moment_end):
-        for i in reversed(range(moment_end)):
+
+    def _iter_ops_range(moment_end):
+        for i in range(moment_end):
             moment = circuit[i]
             for op in moment.operations:
                 if not isinstance(op, ops.PauliStringPhasor):
@@ -99,5 +102,5 @@ def _pull_non_clifford_before(circuit: circuits.Circuit) -> Iterator[ops.OP_TREE
     for i, moment in enumerate(circuit):
         for op in moment.operations:
             if isinstance(op, ops.PauliStringPhasor):
-                ops_to_cross = _iter_ops_range_reversed(i)
-                yield op.pass_operations_over(ops_to_cross)
+                ops_to_cross = _iter_ops_range(i)
+                yield op.conjugated_by(ops_to_cross)

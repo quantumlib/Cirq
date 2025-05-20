@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import pytest
 import sympy
 
@@ -76,6 +79,11 @@ def test_zip():
     assert len(sweep) == 3
     assert _values(sweep, 'a') == [1, 2, 3]
     assert _values(sweep, 'b') == [4, 5, 6]
+    assert list(sweep.param_tuples()) == [
+        (('a', 1), ('b', 4)),
+        (('a', 2), ('b', 5)),
+        (('a', 3), ('b', 6)),
+    ]
 
 
 def test_zip_longest():

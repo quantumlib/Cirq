@@ -14,18 +14,33 @@
 # limitations under the License.
 #
 
+from __future__ import annotations
+
 import importlib.metadata
-from typing import AsyncIterable, AsyncIterator, Awaitable, Optional, Sequence, Tuple, Union
+from typing import (
+    AsyncIterable,
+    AsyncIterator,
+    Awaitable,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 from google.api_core import gapic_v1, retry as retries
-from google.api_core.client_options import ClientOptions
-from google.auth import credentials as ga_credentials
 
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service import pagers
 from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 from .client import QuantumEngineServiceClient
-from .transports.base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
+from .transports.base import DEFAULT_CLIENT_INFO
+
+if TYPE_CHECKING:
+    from google.api_core.client_options import ClientOptions
+    from google.auth import credentials as ga_credentials
+
+    from .transports.base import QuantumEngineServiceTransport
 
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]

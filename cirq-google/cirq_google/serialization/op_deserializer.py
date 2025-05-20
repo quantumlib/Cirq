@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Any, List
+from typing import Any
 
 import sympy
 
@@ -35,7 +35,7 @@ class OpDeserializer(abc.ABC):
 
     @abc.abstractmethod
     def from_proto(
-        self, proto, *, constants: List[v2.program_pb2.Constant], deserialized_constants: List[Any]
+        self, proto, *, constants: list[v2.program_pb2.Constant], deserialized_constants: list[Any]
     ) -> cirq.Operation:
         """Converts a proto-formatted operation into a Cirq operation.
 
@@ -60,9 +60,9 @@ class CircuitOpDeserializer(OpDeserializer):
         self,
         proto: v2.program_pb2.CircuitOperation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
-    ) -> cirq.CircuitOperation:
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
+    ) -> cirq.Operation:
         """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation.
 
         Args:
@@ -131,6 +131,24 @@ class CircuitOpDeserializer(OpDeserializer):
                     f'\nFull arg: {arg}'
                 )
 
-        return cirq.CircuitOperation(
-            circuit, repetitions, qubit_map, measurement_key_map, arg_map, rep_ids
+        if proto.HasField('repeat_until'):
+            repeat_until = arg_func_langs.condition_from_proto(proto.repeat_until)
+        else:
+            repeat_until = None
+
+        circuit_op = cirq.CircuitOperation(
+            circuit,
+            repetitions,
+            qubit_map,
+            measurement_key_map,
+            arg_map,
+            rep_ids,
+            use_repetition_ids=proto.use_repetition_ids,
+            repeat_until=repeat_until,
         )
+        if len(proto.conditioned_on):
+            conditions = [
+                arg_func_langs.condition_from_proto(condition) for condition in proto.conditioned_on
+            ]
+            return circuit_op.with_classical_controls(*conditions)
+        return circuit_op

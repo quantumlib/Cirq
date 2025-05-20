@@ -18,25 +18,15 @@ from __future__ import annotations
 
 from functools import cached_property
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    FrozenSet,
-    Hashable,
-    Iterable,
-    Iterator,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
-
-import numpy as np
+from typing import AbstractSet, Hashable, Iterable, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -91,7 +81,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return Circuit._from_moments(self._moments)
 
     @property
-    def tags(self) -> Tuple[Hashable, ...]:
+    def tags(self) -> tuple[Hashable, ...]:
         """Returns a tuple of the Circuit's tags."""
         return self._tags
 
@@ -134,7 +124,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return len(self.all_qubits())
 
     @_compat.cached_method
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return super()._qid_shape_()
 
     @_compat.cached_method
@@ -142,7 +132,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super()._has_unitary_()
 
     @_compat.cached_method
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         return super()._unitary_()
 
     @_compat.cached_method
@@ -150,11 +140,11 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return protocols.is_measurement(self.unfreeze())
 
     @_compat.cached_method
-    def all_qubits(self) -> FrozenSet[cirq.Qid]:
+    def all_qubits(self) -> frozenset[cirq.Qid]:
         return super().all_qubits()
 
     @cached_property
-    def _all_operations(self) -> Tuple[cirq.Operation, ...]:
+    def _all_operations(self) -> tuple[cirq.Operation, ...]:
         return tuple(super().all_operations())
 
     def all_operations(self) -> Iterator[cirq.Operation]:
@@ -164,14 +154,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self._is_measurement_()
 
     @_compat.cached_method
-    def all_measurement_key_objs(self) -> FrozenSet[cirq.MeasurementKey]:
+    def all_measurement_key_objs(self) -> frozenset[cirq.MeasurementKey]:
         return super().all_measurement_key_objs()
 
-    def _measurement_key_objs_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
         return self.all_measurement_key_objs()
 
     @_compat.cached_method
-    def _control_keys_(self) -> FrozenSet[cirq.MeasurementKey]:
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         return super()._control_keys_()
 
     @_compat.cached_method
@@ -179,7 +169,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super().are_all_measurements_terminal()
 
     @_compat.cached_method
-    def all_measurement_key_names(self) -> FrozenSet[str]:
+    def all_measurement_key_names(self) -> frozenset[str]:
         return frozenset(str(key) for key in self.all_measurement_key_objs())
 
     @_compat.cached_method
@@ -202,7 +192,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         ]
         return resolved_circuit.with_tags(*resolved_tags)
 
-    def _measurement_key_names_(self) -> FrozenSet[str]:
+    def _measurement_key_names_(self) -> frozenset[str]:
         return self.all_measurement_key_names()
 
     def __add__(self, other) -> cirq.FrozenCircuit:
@@ -242,14 +232,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return cls(moments, strategy=InsertStrategy.EARLIEST, tags=tags)
 
     def concat_ragged(
-        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+        *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
     ) -> cirq.FrozenCircuit:
         return AbstractCircuit.concat_ragged(*circuits, align=align).freeze()
 
     concat_ragged.__doc__ = AbstractCircuit.concat_ragged.__doc__
 
     def zip(
-        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+        *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
     ) -> cirq.FrozenCircuit:
         return AbstractCircuit.zip(*circuits, align=align).freeze()
 

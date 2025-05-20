@@ -14,8 +14,9 @@
 
 """Utility methods related to optimizing quantum circuits."""
 
+from __future__ import annotations
+
 import math
-from typing import List, Optional, Tuple
 
 import numpy as np
 import sympy
@@ -39,7 +40,7 @@ def _signed_mod_1(x: float) -> float:
 
 def single_qubit_matrix_to_pauli_rotations(
     mat: np.ndarray, atol: float = 0
-) -> List[Tuple[ops.Pauli, float]]:
+) -> list[tuple[ops.Pauli, float]]:
     """Implements a single-qubit operation with few rotations.
 
     Args:
@@ -98,7 +99,7 @@ def single_qubit_matrix_to_pauli_rotations(
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
 
 
-def single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float = 0) -> List[ops.Gate]:
+def single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float = 0) -> list[ops.Gate]:
     """Implements a single-qubit operation with few gates.
 
     Args:
@@ -114,7 +115,7 @@ def single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float = 0) -> List[
     return [pauli**ht for pauli, ht in rotations]
 
 
-def single_qubit_op_to_framed_phase_form(mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
+def single_qubit_op_to_framed_phase_form(mat: np.ndarray) -> tuple[np.ndarray, complex, complex]:
     """Decomposes a 2x2 unitary M into U^-1 * diag(1, r) * U * diag(g, g).
 
     U translates the rotation axis of M to the Z axis.
@@ -141,7 +142,7 @@ def single_qubit_op_to_framed_phase_form(mat: np.ndarray) -> Tuple[np.ndarray, c
     return u, r, g
 
 
-def _deconstruct_single_qubit_matrix_into_gate_turns(mat: np.ndarray) -> Tuple[float, float, float]:
+def _deconstruct_single_qubit_matrix_into_gate_turns(mat: np.ndarray) -> tuple[float, float, float]:
     """Breaks down a 2x2 unitary into gate parameters.
 
     Args:
@@ -165,7 +166,7 @@ def _deconstruct_single_qubit_matrix_into_gate_turns(mat: np.ndarray) -> Tuple[f
     return (_signed_mod_1(xy_turn), _signed_mod_1(xy_phase_turn), _signed_mod_1(total_z_turn))
 
 
-def single_qubit_matrix_to_phased_x_z(mat: np.ndarray, atol: float = 0) -> List[ops.Gate]:
+def single_qubit_matrix_to_phased_x_z(mat: np.ndarray, atol: float = 0) -> list[ops.Gate]:
     """Implements a single-qubit operation with a PhasedX and Z gate.
 
     If one of the gates isn't needed, it will be omitted.
@@ -196,7 +197,7 @@ def single_qubit_matrix_to_phased_x_z(mat: np.ndarray, atol: float = 0) -> List[
     return result
 
 
-def single_qubit_matrix_to_phxz(mat: np.ndarray, atol: float = 0) -> Optional[ops.PhasedXZGate]:
+def single_qubit_matrix_to_phxz(mat: np.ndarray, atol: float = 0) -> ops.PhasedXZGate | None:
     """Implements a single-qubit operation with a PhasedXZ gate.
 
     Under the hood, this uses deconstruct_single_qubit_matrix_into_angles which

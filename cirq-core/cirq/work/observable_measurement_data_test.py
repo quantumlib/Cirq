@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import dataclasses
 import datetime
 import time
@@ -113,7 +116,7 @@ def test_observable_measured_result():
 
 
 @pytest.fixture
-def example_bsa() -> 'cw.BitstringAccumulator':
+def example_bsa() -> cw.BitstringAccumulator:
     """Test fixture to create an (empty) example BitstringAccumulator"""
     q0, q1 = cirq.LineQubit.range(2)
     setting = cw.InitObsSetting(

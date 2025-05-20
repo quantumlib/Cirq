@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Sequence, Tuple
+
+from __future__ import annotations
+
+from typing import Any, Sequence
 
 import numpy as np
 import pytest
@@ -34,7 +37,7 @@ class ExampleSimulationState(cirq.SimulationState):
         self.fallback_result = fallback_result
 
     def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ):
         return self.fallback_result
 
@@ -42,30 +45,30 @@ class ExampleSimulationState(cirq.SimulationState):
 op = cirq.X(cirq.LineQubit(0))
 
 
-def test_act_on_fallback_succeeds():
+def test_act_on_fallback_succeeds() -> None:
     state = ExampleSimulationState(fallback_result=True)
     cirq.act_on(op, state)
 
 
-def test_act_on_fallback_fails():
+def test_act_on_fallback_fails() -> None:
     state = ExampleSimulationState(fallback_result=NotImplemented)
     with pytest.raises(TypeError, match='Failed to act'):
         cirq.act_on(op, state)
 
 
-def test_act_on_fallback_errors():
+def test_act_on_fallback_errors() -> None:
     state = ExampleSimulationState(fallback_result=False)
     with pytest.raises(ValueError, match='_act_on_fallback_ must return True or NotImplemented'):
         cirq.act_on(op, state)
 
 
-def test_act_on_errors():
+def test_act_on_errors() -> None:
     class Op(cirq.Operation):
         @property
-        def qubits(self) -> Tuple['cirq.Qid', ...]:  # type: ignore[empty-body]
+        def qubits(self) -> tuple[cirq.Qid, ...]:  # type: ignore[empty-body]
             pass
 
-        def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:  # type: ignore[empty-body]
+        def with_qubits(self, *new_qubits: cirq.Qid) -> Self:  # type: ignore[empty-body]
             pass
 
         def _act_on_(self, sim_state):
@@ -76,13 +79,13 @@ def test_act_on_errors():
         cirq.act_on(Op(), state)
 
 
-def test_qubits_not_allowed_for_operations():
+def test_qubits_not_allowed_for_operations() -> None:
     class Op(cirq.Operation):
         @property
-        def qubits(self) -> Tuple['cirq.Qid', ...]:  # type: ignore[empty-body]
+        def qubits(self) -> tuple[cirq.Qid, ...]:  # type: ignore[empty-body]
             pass
 
-        def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:  # type: ignore[empty-body]
+        def with_qubits(self, *new_qubits: cirq.Qid) -> Self:  # type: ignore[empty-body]
             pass
 
     state = ExampleSimulationState()
@@ -92,7 +95,7 @@ def test_qubits_not_allowed_for_operations():
         cirq.act_on(Op(), state, qubits=[])
 
 
-def test_qubits_should_be_defined_for_operations():
+def test_qubits_should_be_defined_for_operations() -> None:
     state = ExampleSimulationState()
     with pytest.raises(ValueError, match='Calls to act_on should'):
         cirq.act_on(cirq.KrausChannel([np.array([[1, 0], [0, 0]])]), state, qubits=None)

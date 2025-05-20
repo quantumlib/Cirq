@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from __future__ import annotations
+
 import importlib.metadata
 import os
 import re
 from collections import OrderedDict
-from typing import Dict, Iterable, Iterator, Optional, Sequence, Tuple, Type, Union
+from typing import Dict, Iterable, Iterator, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
 
 from google.api_core import client_options as client_options_lib, gapic_v1, retry as retries
-from google.auth import credentials as ga_credentials
 from google.auth.exceptions import MutualTLSChannelError
 from google.auth.transport import mtls
 from google.oauth2 import service_account
@@ -31,6 +33,9 @@ from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 from .transports.base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
 from .transports.grpc import QuantumEngineServiceGrpcTransport
 from .transports.grpc_asyncio import QuantumEngineServiceGrpcAsyncIOTransport
+
+if TYPE_CHECKING:
+    from google.auth import credentials as ga_credentials
 
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]

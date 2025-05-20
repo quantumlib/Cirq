@@ -1,0 +1,13 @@
+cirq.CliffordGate(_clifford_tableau=
+    cirq.CliffordTableau(
+        2,
+        rs=np.array([False, False, False, False], dtype=np.dtype('bool')),
+        xs=np.array(
+            [[True, True], [True, False], [False, False], [False, False]], dtype=np.dtype('bool')
+        ),
+        zs=np.array(
+            [[False, False], [False, False], [False, True], [True, True]], dtype=np.dtype('bool')
+        ),
+        initial_state=0,
+    )
+)

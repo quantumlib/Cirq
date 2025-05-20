@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import itertools
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
 
 import networkx as nx
 
-import cirq
+if TYPE_CHECKING:
+    import cirq
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
@@ -26,7 +29,7 @@ def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
     )
 
 
-def _Device_dot_get_nx_graph(device: 'cirq.Device') -> nx.Graph:
+def _Device_dot_get_nx_graph(device: cirq.Device) -> nx.Graph:
     """Shim over future `cirq.Device` method to get a NetworkX graph."""
     if device.metadata is not None:
         return device.metadata.nx_graph
