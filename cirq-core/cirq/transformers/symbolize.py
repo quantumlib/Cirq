@@ -14,6 +14,8 @@
 
 """Transformers that symbolize operations."""
 
+from __future__ import annotations
+
 import re
 from typing import Hashable, Optional, TYPE_CHECKING
 
@@ -37,11 +39,11 @@ class SymbolizeTag:
 
 @transformer_api.transformer
 def symbolize_single_qubit_gates_by_indexed_tags(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: Optional[cirq.TransformerContext] = None,
     symbolize_tag: SymbolizeTag = SymbolizeTag(prefix="TO-PHXZ"),
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Symbolizes single qubit operations by indexed tags prefixed by symbolize_tag.prefix.
 
     Example:
@@ -72,7 +74,7 @@ def symbolize_single_qubit_gates_by_indexed_tags(
         Copy of the transformed input circuit.
     """
 
-    def _map_func(op: 'cirq.Operation', _):
+    def _map_func(op: cirq.Operation, _):
         """Maps an op with tag `{tag_prefix}_i` to a symbolzied `PhasedXZGate(xi,zi,ai)`."""
         tags: set[Hashable] = set(op.tags)
         tag_id: None | int = None

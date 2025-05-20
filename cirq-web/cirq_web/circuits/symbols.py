@@ -14,6 +14,9 @@
 
 # This is more of a placeholder for now, we can add
 # official color schemes in follow-ups.
+
+from __future__ import annotations
+
 import abc
 import dataclasses
 from typing import Iterable, List, Optional
@@ -30,7 +33,7 @@ class SymbolInfo:
     colors: List[str]
 
     @staticmethod
-    def unknown_operation(num_qubits: int) -> 'SymbolInfo':
+    def unknown_operation(num_qubits: int) -> SymbolInfo:
         """Generates a SymbolInfo object for an unknown operation.
 
         Args:

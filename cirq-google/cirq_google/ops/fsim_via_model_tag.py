@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A class that can be used to denote FSim gate implementation using polynomial model."""
+
+from __future__ import annotations
+
 from typing import Any, Dict, Optional
 
 import cirq
@@ -51,7 +55,7 @@ class FSimViaModelTag:
         return msg
 
     @staticmethod
-    def from_proto(msg: program_pb2.Tag) -> 'FSimViaModelTag':
+    def from_proto(msg: program_pb2.Tag) -> FSimViaModelTag:
         if msg.WhichOneof("tag") != "fsim_via_model":
             raise ValueError(f"Message is not a FSimViaModelTag, {msg}")
         return FSimViaModelTag()

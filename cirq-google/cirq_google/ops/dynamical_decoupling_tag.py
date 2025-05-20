@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Optional
 
 import attrs
@@ -49,7 +51,7 @@ class DynamicalDecouplingTag:
         return msg
 
     @staticmethod
-    def from_proto(msg: program_pb2.Tag) -> 'DynamicalDecouplingTag':
+    def from_proto(msg: program_pb2.Tag) -> DynamicalDecouplingTag:
         if msg.WhichOneof("tag") != "dynamical_decoupling":
             raise ValueError(f"Message is not a DynamicalDecouplingTag, {msg}")
         return DynamicalDecouplingTag(protocol=msg.dynamical_decoupling.protocol)

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Dict, List, Tuple, TYPE_CHECKING
 
 import cirq
@@ -72,7 +74,7 @@ def right_of(qubit: cirq.GridQubit) -> cirq.GridQubit:
 
 
 def chip_as_adjacency_list(
-    device: 'cirq_google.GridDevice',
+    device: cirq_google.GridDevice,
 ) -> Dict[cirq.GridQubit, List[cirq.GridQubit]]:
     """Gives adjacency list representation of a chip.
 

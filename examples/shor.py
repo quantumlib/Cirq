@@ -47,6 +47,8 @@ Estimation algorithm is retried.
 [1]: https://arxiv.org/abs/quant-ph/9508027
 """
 
+from __future__ import annotations
+
 import argparse
 import fractions
 import math
@@ -142,7 +144,7 @@ class ModularExp(cirq.ArithmeticGate):
     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
         return self.target, self.exponent, self.base, self.modulus
 
-    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> 'ModularExp':
+    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> ModularExp:
         if len(new_registers) != 4:
             raise ValueError(
                 f'Expected 4 registers (target, exponent, base, '

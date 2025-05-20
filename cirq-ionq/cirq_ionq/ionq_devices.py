@@ -13,6 +13,8 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
+from __future__ import annotations
+
 from typing import Sequence, Union
 
 import cirq

@@ -24,6 +24,8 @@
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 
+from __future__ import annotations
+
 import os
 import re
 import shutil

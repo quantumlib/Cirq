@@ -14,6 +14,8 @@
 
 """Tests for the simulator benchmarker."""
 
+from __future__ import annotations
+
 from dev_tools.profiling import benchmark_serializers
 
 

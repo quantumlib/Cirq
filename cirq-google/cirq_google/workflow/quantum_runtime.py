@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Runtime information dataclasses and execution of executables."""
+
+from __future__ import annotations
+
 import contextlib
 import dataclasses
 import datetime
@@ -27,15 +30,15 @@ from cirq import _compat
 from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow.io import _FilesystemSaver
 from cirq_google.workflow.progress import _PrintLogger
-from cirq_google.workflow.quantum_executable import (
-    ExecutableSpec,
-    QuantumExecutable,
-    QuantumExecutableGroup,
-)
 from cirq_google.workflow.qubit_placement import NaiveQubitPlacer, QubitPlacer
 
 if TYPE_CHECKING:
     import cirq_google as cg
+    from cirq_google.workflow.quantum_executable import (
+        ExecutableSpec,
+        QuantumExecutable,
+        QuantumExecutableGroup,
+    )
 
 
 @dataclasses.dataclass
@@ -105,7 +108,7 @@ class RuntimeInfo:
         return d
 
     @classmethod
-    def _from_json_dict_(cls, **kwargs) -> 'RuntimeInfo':
+    def _from_json_dict_(cls, **kwargs) -> RuntimeInfo:
         kwargs.pop('cirq_type')
         if kwargs.get('qubit_placement', None):
             kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
@@ -157,7 +160,7 @@ class ExecutableGroupResult:
             for an individual `cg.QuantumExecutable`.
     """
 
-    runtime_configuration: 'QuantumRuntimeConfiguration'
+    runtime_configuration: QuantumRuntimeConfiguration
     shared_runtime_info: SharedRuntimeInfo
     executable_results: List[ExecutableResult]
 
@@ -191,7 +194,7 @@ class QuantumRuntimeConfiguration:
             execution with `cirq.optimize_for_target_gateset`.
     """
 
-    processor_record: 'cg.ProcessorRecord'
+    processor_record: cg.ProcessorRecord
     run_id: Optional[str] = None
     random_seed: Optional[int] = None
     qubit_placer: QubitPlacer = NaiveQubitPlacer()

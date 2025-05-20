@@ -13,6 +13,8 @@
 # limitations under the License.
 """Result types for the IonQ API."""
 
+from __future__ import annotations
+
 import collections
 from typing import Counter, Dict, List, Optional, Sequence
 

@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import os
 import sys
-from typing import Callable, cast, Iterable, Optional
+from typing import Callable, cast, Iterable, Optional, TYPE_CHECKING
 
 from dev_tools import git_env_tools, shell_tools
-from dev_tools.github_repository import GithubRepository
 from dev_tools.prepared_env import PreparedEnv
+
+if TYPE_CHECKING:
+    from dev_tools.github_repository import GithubRepository
 
 
 def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:

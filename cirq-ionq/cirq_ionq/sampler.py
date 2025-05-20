@@ -13,6 +13,8 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
+from __future__ import annotations
+
 import itertools
 from typing import Optional, Sequence, TYPE_CHECKING
 
@@ -43,7 +45,7 @@ class Sampler(cirq.Sampler):
 
     def __init__(
         self,
-        service: 'cirq_ionq.Service',
+        service: cirq_ionq.Service,
         target: Optional[str],
         timeout_seconds: Optional[int] = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,

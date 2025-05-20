@@ -14,6 +14,8 @@
 
 """Define FSimGateFamily used to convert/accept `cirq.FSimGate` and other related gate types"""
 
+from __future__ import annotations
+
 from typing import Any, Callable, cast, Dict, Iterable, Optional, Sequence, Type, TypeVar, Union
 
 import numpy as np

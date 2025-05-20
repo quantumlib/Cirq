@@ -14,6 +14,8 @@
 
 """Tests for Common Gate Families used in cirq-google"""
 
+from __future__ import annotations
+
 from typing import List, Union
 
 import numpy as np

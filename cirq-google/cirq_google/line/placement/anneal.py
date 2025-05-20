@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any, Callable, List, Optional, Set, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -30,7 +32,7 @@ _STATE = Tuple[List[List[cirq.GridQubit]], Set[EDGE]]
 class AnnealSequenceSearch:
     """Simulated annealing search heuristic."""
 
-    def __init__(self, device: 'cirq_google.GridDevice', seed=None) -> None:
+    def __init__(self, device: cirq_google.GridDevice, seed=None) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -355,7 +357,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: 'cirq_google.GridDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: cirq_google.GridDevice, length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:
