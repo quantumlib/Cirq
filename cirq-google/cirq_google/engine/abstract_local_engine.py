@@ -11,15 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import datetime
-from typing import Sequence
+from __future__ import annotations
 
-import cirq
-from cirq_google.cloud import quantum
+import datetime
+from typing import Sequence, TYPE_CHECKING
+
 from cirq_google.engine.abstract_engine import AbstractEngine
-from cirq_google.engine.abstract_job import AbstractJob
-from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
-from cirq_google.engine.abstract_program import AbstractProgram
+
+if TYPE_CHECKING:
+    import cirq
+    import cirq_google.cloud.quantum as quantum
+    from cirq_google.engine.abstract_job import AbstractJob
+    from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
+    from cirq_google.engine.abstract_program import AbstractProgram
 
 
 class AbstractLocalEngine(AbstractEngine):

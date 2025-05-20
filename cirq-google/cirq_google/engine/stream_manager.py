@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
-from typing import AsyncIterator
+from __future__ import annotations
 
-import duet
+import asyncio
+from typing import AsyncIterator, TYPE_CHECKING
+
 import google.api_core.exceptions as google_exceptions
 
 from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
+
+if TYPE_CHECKING:
+    import duet
 
 Code = quantum.StreamError.Code
 

@@ -20,13 +20,13 @@ from functools import cached_property
 from types import NotImplementedType
 from typing import AbstractSet, Hashable, Iterable, Iterator, Sequence, TYPE_CHECKING
 
-import numpy as np
-
 from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

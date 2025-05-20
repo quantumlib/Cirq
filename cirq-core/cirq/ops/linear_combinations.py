@@ -19,9 +19,7 @@ from collections import defaultdict
 from typing import AbstractSet, Any, Iterable, Mapping, TYPE_CHECKING, Union
 
 import numpy as np
-from scipy.sparse import csr_matrix
-from sympy.core.expr import Expr
-from sympy.core.symbol import Symbol
+import sympy
 from sympy.logic.boolalg import And, Not, Or, Xor
 
 from cirq import linalg, protocols, qis, value
@@ -33,6 +31,8 @@ from cirq.ops.projector import ProjectorString
 from cirq.value.linear_dict import _format_terms
 
 if TYPE_CHECKING:
+    from scipy.sparse import csr_matrix
+
     import cirq
 
 UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli]]
@@ -473,7 +473,7 @@ class PauliSum:
 
     @classmethod
     def from_boolean_expression(
-        cls, boolean_expr: Expr, qubit_map: dict[str, cirq.Qid]
+        cls, boolean_expr: sympy.Expr, qubit_map: dict[str, cirq.Qid]
     ) -> PauliSum:
         """Builds the Hamiltonian representation of a Boolean expression.
 
@@ -490,7 +490,7 @@ class PauliSum:
         Raises:
             ValueError: If `boolean_expr` is of an unsupported type.
         """
-        if isinstance(boolean_expr, Symbol):
+        if isinstance(boolean_expr, sympy.Symbol):
             # In table 1, the entry for 'x' is '1/2.I - 1/2.Z'
             return cls.from_pauli_strings(
                 [

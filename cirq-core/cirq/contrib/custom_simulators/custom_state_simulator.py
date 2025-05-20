@@ -16,12 +16,12 @@ from __future__ import annotations
 
 from typing import Any, Generic, Sequence, TYPE_CHECKING
 
-import numpy as np
-
 from cirq import sim
 from cirq.sim.simulation_state import TSimulationState
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

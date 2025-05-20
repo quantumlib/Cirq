@@ -30,6 +30,8 @@ Model was then fitted by hand, correcting for anomalies and outliers
 when possible.
 """
 
+from __future__ import annotations
+
 from typing import Sequence
 
 import cirq

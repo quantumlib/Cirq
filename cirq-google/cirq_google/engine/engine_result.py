@@ -17,11 +17,11 @@ from __future__ import annotations
 import datetime
 from typing import Any, Mapping, TYPE_CHECKING
 
-import numpy as np
-
 from cirq import study
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

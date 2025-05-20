@@ -18,6 +18,8 @@ requests.  Inheritors of this interface should implement all
 methods.
 """
 
+from __future__ import annotations
+
 import abc
 import datetime
 from typing import Optional, TYPE_CHECKING
@@ -25,14 +27,15 @@ from typing import Optional, TYPE_CHECKING
 import duet
 
 import cirq
-from cirq_google.api import v2
-from cirq_google.cloud import quantum
-from cirq_google.engine import calibration
 
 if TYPE_CHECKING:
     import cirq_google as cg
+    import cirq_google.api.v2 as v2
+    import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
+    import cirq_google.engine.calibration as calibration
+    import cirq_google.serialization.serializer as serializer
 
 
 class AbstractProcessor(abc.ABC):
@@ -137,7 +140,7 @@ class AbstractProcessor(abc.ABC):
         program_labels: dict[str, str] | None = None,
         job_description: str | None = None,
         job_labels: dict[str, str] | None = None,
-    ) -> 'abstract_job.AbstractJob':
+    ) -> abstract_job.AbstractJob:
         """Runs the supplied Circuit on this processor.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -178,9 +181,7 @@ class AbstractProcessor(abc.ABC):
     run_sweep = duet.sync(run_sweep_async)
 
     @abc.abstractmethod
-    def get_sampler(
-        self, run_name: str = "", device_config_name: str = ""
-    ) -> 'cg.ProcessorSampler':
+    def get_sampler(self, run_name: str = "", device_config_name: str = "") -> cg.ProcessorSampler:
         """Returns a sampler backed by the processor.
 
         Args:
@@ -193,7 +194,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def engine(self) -> Optional['abstract_engine.AbstractEngine']:
+    def engine(self) -> Optional[abstract_engine.AbstractEngine]:
         """Returns the parent Engine object.
 
         Returns:
@@ -205,12 +206,12 @@ class AbstractProcessor(abc.ABC):
         """Returns the current health of processor."""
 
     @abc.abstractmethod
-    def expected_down_time(self) -> 'datetime.datetime | None':
+    def expected_down_time(self) -> datetime.datetime | None:
         """Returns the start of the next expected down time of the processor, if
         set."""
 
     @abc.abstractmethod
-    def expected_recovery_time(self) -> 'datetime.datetime | None':
+    def expected_recovery_time(self) -> datetime.datetime | None:
         """Returns the expected the processor should be available, if set."""
 
     @abc.abstractmethod

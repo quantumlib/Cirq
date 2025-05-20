@@ -23,7 +23,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
-from mpl_toolkits import mplot3d
 from scipy.optimize import curve_fit
 
 import cirq.vis.heatmap as cirq_heatmap
@@ -32,6 +31,8 @@ from cirq import circuits, ops, protocols
 from cirq.devices import grid_qubit
 
 if TYPE_CHECKING:
+    from mpl_toolkits import mplot3d
+
     import cirq
 
 

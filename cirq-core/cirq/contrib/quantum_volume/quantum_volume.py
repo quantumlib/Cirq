@@ -6,14 +6,16 @@ https://arxiv.org/abs/1811.12926.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
 
-import networkx as nx
 import numpy as np
-import pandas as pd
 
 import cirq
 import cirq.contrib.routing as ccr
+
+if TYPE_CHECKING:
+    import networkx as nx
+    import pandas as pd
 
 
 def generate_model_circuit(

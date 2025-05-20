@@ -19,13 +19,14 @@ import dataclasses
 import itertools
 from typing import Any, Callable, cast, Container, Iterable, Iterator, Sequence, TYPE_CHECKING
 
-import networkx as nx
 import numpy as np
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
+    import networkx as nx
+
     import cirq
 
 QidPairT = tuple['cirq.Qid', 'cirq.Qid']

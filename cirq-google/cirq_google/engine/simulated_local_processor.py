@@ -11,19 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import datetime
+from typing import TYPE_CHECKING
 
 import cirq
-from cirq_google.api import v2
 from cirq_google.engine import calibration, engine_validator, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
-from cirq_google.engine.abstract_local_program import AbstractLocalProgram
-from cirq_google.engine.abstract_program import AbstractProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.processor_sampler import ProcessorSampler
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
+
+if TYPE_CHECKING:
+    from cirq_google.api import v2
+    from cirq_google.engine.abstract_local_program import AbstractLocalProgram
+    from cirq_google.engine.abstract_program import AbstractProgram
 
 VALID_LANGUAGES = ['type.googleapis.com/cirq.google.api.v2.Program']
 

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Classes for running against Google's Quantum Cloud Service.
 
 As an example, to run a circuit against the xmon simulator on the cloud,
@@ -23,9 +24,14 @@ In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
-from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
+
+if TYPE_CHECKING:
+    from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 
 
 class SimulatedLocalEngine(AbstractLocalEngine):

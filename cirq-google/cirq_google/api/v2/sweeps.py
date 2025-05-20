@@ -12,15 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, cast
+from __future__ import annotations
+
+from typing import Any, Callable, cast, TYPE_CHECKING
 
 import sympy
 import tunits
 
 import cirq
-from cirq.study import sweeps
 from cirq_google.api.v2 import run_context_pb2
 from cirq_google.study.device_parameter import DeviceParameter, Metadata
+
+if TYPE_CHECKING:
+    from cirq.study import sweeps
 
 
 def _build_sweep_const(value: Any) -> run_context_pb2.ConstValue:

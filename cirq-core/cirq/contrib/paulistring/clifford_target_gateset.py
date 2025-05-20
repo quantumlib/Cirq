@@ -18,11 +18,11 @@ from enum import Enum
 from types import NotImplementedType
 from typing import cast, TYPE_CHECKING
 
-import numpy as np
-
 from cirq import linalg, ops, protocols, transformers
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

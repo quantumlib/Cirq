@@ -14,12 +14,14 @@
 
 """Creates the abstraction for gauge compiling as a cirq transformer."""
 
+from __future__ import annotations
+
 import abc
 import functools
 import itertools
 from dataclasses import dataclass
 from numbers import Real
-from typing import Callable, Sequence
+from typing import Callable, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -28,10 +30,12 @@ from attrs import field, frozen
 from cirq import circuits, ops
 from cirq.protocols import unitary_protocol
 from cirq.protocols.has_unitary_protocol import has_unitary
-from cirq.study import sweepable
 from cirq.study.sweeps import Points, Zip
 from cirq.transformers import transformer_api
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Gauge(abc.ABC):
@@ -49,7 +53,7 @@ class Gauge(abc.ABC):
         return 1.0
 
     @abc.abstractmethod
-    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> "ConstantGauge":
+    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         """Returns a ConstantGauge sampled from a family of gauges.
 
         Args:
@@ -80,7 +84,7 @@ class ConstantGauge(Gauge):
     )
     swap_qubits: bool = False
 
-    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> "ConstantGauge":
+    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         return self
 
     @property

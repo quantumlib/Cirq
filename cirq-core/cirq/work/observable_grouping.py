@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, cast, Iterable, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Callable, cast, Iterable
 
 from cirq import ops, value
 from cirq.work.observable_settings import _max_weight_observable, _max_weight_state, InitObsSetting
-
-if TYPE_CHECKING:
-    pass
 
 GROUPER_T = Callable[[Iterable[InitObsSetting]], dict[InitObsSetting, list[InitObsSetting]]]
 

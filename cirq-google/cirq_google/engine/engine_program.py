@@ -12,19 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
 from typing import Sequence, TYPE_CHECKING
 
 import duet
-from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.cloud import quantum
 from cirq_google.engine import abstract_program, engine_client, engine_job
 from cirq_google.serialization import circuit_serializer
 
 if TYPE_CHECKING:
+    from google.protobuf import any_pb2
+
+    import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.engine as engine_base
 
 
@@ -43,7 +46,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         self,
         project_id: str,
         program_id: str,
-        context: 'engine_base.EngineContext',
+        context: engine_base.EngineContext,
         _program: quantum.QuantumProgram | None = None,
     ) -> None:
         """A job submitted to the engine.
@@ -191,7 +194,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     run = duet.sync(run_async)
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object.
 
         Returns:
@@ -267,11 +270,11 @@ class EngineProgram(abstract_program.AbstractProgram):
             self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program
 
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the program was created."""
         return self._inner_program().create_time
 
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the program was last updated."""
         self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program.update_time
@@ -280,7 +283,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         """Returns the description of the program."""
         return self._inner_program().description
 
-    async def set_description_async(self, description: str) -> 'EngineProgram':
+    async def set_description_async(self, description: str) -> EngineProgram:
         """Sets the description of the program.
 
         Params:
@@ -300,7 +303,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         """Returns the labels of the program."""
         return self._inner_program().labels
 
-    async def set_labels_async(self, labels: dict[str, str]) -> 'EngineProgram':
+    async def set_labels_async(self, labels: dict[str, str]) -> EngineProgram:
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
@@ -317,7 +320,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     set_labels = duet.sync(set_labels_async)
 
-    async def add_labels_async(self, labels: dict[str, str]) -> 'EngineProgram':
+    async def add_labels_async(self, labels: dict[str, str]) -> EngineProgram:
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -333,7 +336,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     add_labels = duet.sync(add_labels_async)
 
-    async def remove_labels_async(self, keys: list[str]) -> 'EngineProgram':
+    async def remove_labels_async(self, keys: list[str]) -> EngineProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 

@@ -21,13 +21,14 @@ import warnings
 from types import NotImplementedType
 from typing import AbstractSet, Any, cast, Collection, Mapping, Sequence, TYPE_CHECKING, TypeVar
 
-import numpy as np
 from typing_extensions import Self
 
 from cirq import ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

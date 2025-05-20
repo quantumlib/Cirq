@@ -20,6 +20,8 @@ group are all equal to each other, but that items between each group are never
 equal to each other. It will also check that a==b implies hash(a)==hash(b).
 """
 
+from __future__ import annotations
+
 import collections
 import itertools
 from typing import Any, Callable

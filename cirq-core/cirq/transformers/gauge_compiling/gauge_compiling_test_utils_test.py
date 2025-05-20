@@ -13,11 +13,16 @@
 # limitations under the License.
 
 
-import numpy as np
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import cirq
 from cirq.transformers import ConstantGauge, GaugeSelector, GaugeTransformer
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class ExampleGate(cirq.testing.TwoQubitGate):

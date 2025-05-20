@@ -14,6 +14,8 @@
 
 """The spin inversion gauge transformer."""
 
+from __future__ import annotations
+
 from cirq import ops
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     GaugeSelector,

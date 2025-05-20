@@ -20,12 +20,13 @@ import abc
 from types import NotImplementedType
 from typing import Any, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
 
-import numpy as np
 from typing_extensions import Self
 
 from cirq import protocols, value
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

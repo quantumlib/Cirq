@@ -33,7 +33,6 @@ from typing import (
 )
 
 import numpy as np
-import sympy
 from typing_extensions import Self
 
 from cirq import protocols, value
@@ -46,6 +45,8 @@ line_qubit = LazyLoader("line_qubit", globals(), "cirq.devices.line_qubit")
 
 
 if TYPE_CHECKING:
+    import sympy
+
     import cirq
     from cirq.ops import control_values as cv
 

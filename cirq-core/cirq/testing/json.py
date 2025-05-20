@@ -12,19 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 import inspect
 import io
 import pathlib
 from dataclasses import dataclass
 from types import ModuleType
-from typing import Iterator
+from typing import Iterator, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
 import cirq
-from cirq.protocols.json_serialization import ObjectFactory
+
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
 
 # This is the testing framework for json serialization
 # The actual tests live in cirq.protocols.json_serialization_test.py.

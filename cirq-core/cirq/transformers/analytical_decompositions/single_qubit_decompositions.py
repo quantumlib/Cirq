@@ -14,6 +14,8 @@
 
 """Utility methods related to optimizing quantum circuits."""
 
+from __future__ import annotations
+
 import math
 
 import numpy as np
