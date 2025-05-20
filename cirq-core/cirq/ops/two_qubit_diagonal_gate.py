@@ -18,7 +18,9 @@ The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import AbstractSet, Any, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -62,10 +64,10 @@ class TwoQubitDiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_3)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_3})$.
         """
-        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
 
     @property
-    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+    def diag_angles_radians(self) -> tuple[value.TParamVal, ...]:
         return self._diag_angles_radians
 
     def _num_qubits_(self) -> int:
@@ -80,8 +82,8 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         }
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'TwoQubitDiagonalGate':
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> TwoQubitDiagonalGate:
         return TwoQubitDiagonalGate(
             protocols.resolve_parameters(self._diag_angles_radians, resolver, recursive)
         )
@@ -89,12 +91,12 @@ class TwoQubitDiagonalGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if self._is_parameterized_():
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         x0, x1, x2, x3 = self._diag_angles_radians
         q0, q1 = qubits
         yield common_gates.ZPowGate(exponent=x2 / np.pi).on(q0)
@@ -104,7 +106,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         yield common_gates.CZPowGate(exponent=x0 / np.pi).on(q0, q1)
         yield common_gates.XPowGate().on_each(q0, q1)
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if self._is_parameterized_():
             return NotImplemented
         for index, angle in enumerate(self._diag_angles_radians):
@@ -112,16 +114,14 @@ class TwoQubitDiagonalGate(raw_types.Gate):
             args.target_tensor[subspace_index] *= np.exp(1j * angle)
         return args.target_tensor
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
         diag_str = f"diag({', '.join(proper_repr(angle) for angle in rounded_angles)})"
         return protocols.CircuitDiagramInfo((diag_str, '#2'))
 
-    def __pow__(self, exponent: Any) -> 'TwoQubitDiagonalGate':
+    def __pow__(self, exponent: Any) -> TwoQubitDiagonalGate:
         if not isinstance(exponent, (int, float, sympy.Basic)):
             return NotImplemented
         angles = []
@@ -139,5 +139,5 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
         return f'cirq.TwoQubitDiagonalGate([{angles}])'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])

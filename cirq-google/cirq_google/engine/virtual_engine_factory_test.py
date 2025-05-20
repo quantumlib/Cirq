@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import google.protobuf.text_format as text_format
 import numpy as np
 import pytest
@@ -208,3 +211,20 @@ def test_create_default_noisy_quantum_virtual_machine():
         expected = factory.create_device_spec_from_processor_id(processor_id)
         assert device_specification is not None
         assert device_specification == expected
+
+
+def test_extract_gate_times_ns_from_device():
+    device = factory.create_device_from_processor_id('rainbow')
+    gate_times_ns = factory.extract_gate_times_ns_from_device(device)
+    assert gate_times_ns[cirq.MeasurementGate] == 4_000_000
+    assert gate_times_ns[cg.SycamoreGate] == 12
+    assert cirq.IdentityGate not in gate_times_ns
+    assert cirq.WaitGate not in gate_times_ns
+
+
+def test_extract_gate_times_ns_from_device_without_durations():
+    metadata_without_durations = cirq.GridDeviceMetadata(
+        qubit_pairs=[tuple(cirq.GridQubit.rect(2, 1))], gateset=cirq.Gateset(cirq.XPowGate)
+    )
+    device_without_durations = cg.GridDevice(metadata_without_durations)
+    assert factory.extract_gate_times_ns_from_device(device_without_durations) == {}

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import pytest
 
 import cirq
@@ -54,7 +57,7 @@ class BasicCb(BasicC):
     pass
 
 
-def test_value_equality_basic():
+def test_value_equality_basic() -> None:
 
     # Lookup works across equivalent types.
     v = {BasicC(1): 4, BasicCa(2): 5}
@@ -69,7 +72,7 @@ def test_value_equality_basic():
     eq.add_equality_group(BasicCa(3))
 
 
-def test_value_equality_manual():
+def test_value_equality_manual() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(MasqueradePositiveD(3), BasicD(3))
     eq.add_equality_group(MasqueradePositiveD(4), MasqueradePositiveD(4), BasicD(4))
@@ -105,7 +108,7 @@ class UnhashableCb(UnhashableC):
     pass
 
 
-def test_value_equality_unhashable():
+def test_value_equality_unhashable() -> None:
     # Not possible to use as a dictionary key.
     with pytest.raises(TypeError, match='unhashable'):
         _ = {UnhashableC(1): 4}
@@ -143,7 +146,7 @@ class DistinctCb(DistinctC):
     pass
 
 
-def test_value_equality_distinct_child_types():
+def test_value_equality_distinct_child_types() -> None:
     # Lookup is distinct across child types.
     v = {DistinctC(1): 4, DistinctCa(1): 5, DistinctCb(1): 6}
     assert v[DistinctC(1)] == 4
@@ -168,7 +171,7 @@ class ApproxE:
         return self.x
 
 
-def test_value_equality_approximate():
+def test_value_equality_approximate() -> None:
     assert cirq.approx_eq(ApproxE(0.0), ApproxE(0.0), atol=0.1)
     assert cirq.approx_eq(ApproxE(0.0), ApproxE(0.2), atol=0.3)
     assert not cirq.approx_eq(ApproxE(0.0), ApproxE(0.2), atol=0.1)
@@ -187,13 +190,13 @@ class PeriodicF:
         return self.x % self.n
 
 
-def test_value_equality_approximate_specialized():
+def test_value_equality_approximate_specialized() -> None:
     assert PeriodicF(1, 4) != PeriodicF(5, 4)
     assert cirq.approx_eq(PeriodicF(1, 4), PeriodicF(5, 4), atol=0.1)
     assert not cirq.approx_eq(PeriodicF(1, 4), PeriodicF(6, 4), atol=0.1)
 
 
-def test_value_equality_approximate_not_supported():
+def test_value_equality_approximate_not_supported() -> None:
     assert not cirq.approx_eq(BasicC(0.0), BasicC(0.1), atol=0.2)
 
 
@@ -222,7 +225,7 @@ class ApproxGb(ApproxG):
     pass
 
 
-def test_value_equality_approximate_typing():
+def test_value_equality_approximate_typing() -> None:
     assert not cirq.approx_eq(ApproxE(0.0), PeriodicF(0.0, 1.0), atol=0.1)
     assert cirq.approx_eq(ApproxEa(0.0), ApproxEb(0.0), atol=0.1)
     assert cirq.approx_eq(ApproxG(0.0), ApproxG(0.0), atol=0.1)
@@ -230,7 +233,7 @@ def test_value_equality_approximate_typing():
     assert not cirq.approx_eq(ApproxG(0.0), ApproxGb(0.0), atol=0.1)
 
 
-def test_value_equality_forgot_method():
+def test_value_equality_forgot_method() -> None:
     with pytest.raises(TypeError, match='_value_equality_values_'):
 
         @cirq.value_equality
@@ -238,7 +241,7 @@ def test_value_equality_forgot_method():
             pass
 
 
-def test_bad_manual_cls_incompatible_args():
+def test_bad_manual_cls_incompatible_args() -> None:
     with pytest.raises(ValueError, match='incompatible'):
 
         @cirq.value_equality(manual_cls=True, distinct_child_types=True)
@@ -246,7 +249,7 @@ def test_bad_manual_cls_incompatible_args():
             pass
 
 
-def test_bad_manual_cls_forgot_method():
+def test_bad_manual_cls_forgot_method() -> None:
     with pytest.raises(TypeError, match='_value_equality_values_cls_'):
 
         @cirq.value_equality(manual_cls=True)

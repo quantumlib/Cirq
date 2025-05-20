@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import re
 
 import pytest
@@ -22,7 +25,7 @@ mkey_c = cirq.MeasurementKey('c')
 two_qubits = tuple(cirq.LineQubit.range(2))
 
 
-def test_init():
+def test_init() -> None:
     cd = cirq.ClassicalDataDictionaryStore()
     assert cd.records == {}
     assert cd.keys() == ()
@@ -44,7 +47,7 @@ def test_init():
     }
 
 
-def test_record_measurement():
+def test_record_measurement() -> None:
     cd = cirq.ClassicalDataDictionaryStore()
     cd.record_measurement(mkey_m, (0, 1), two_qubits)
     assert cd.records == {mkey_m: [(0, 1)]}
@@ -52,7 +55,7 @@ def test_record_measurement():
     assert cd.measured_qubits == {mkey_m: [two_qubits]}
 
 
-def test_record_measurement_errors():
+def test_record_measurement_errors() -> None:
     cd = cirq.ClassicalDataDictionaryStore()
     with pytest.raises(ValueError, match='3 measurements but 2 qubits'):
         cd.record_measurement(mkey_m, (0, 1, 2), two_qubits)
@@ -68,14 +71,14 @@ def test_record_measurement_errors():
         cd.record_measurement(mkey_m, (1, 0), tuple(cirq.LineQid.range(2, dimension=3)))
 
 
-def test_record_channel_measurement():
+def test_record_channel_measurement() -> None:
     cd = cirq.ClassicalDataDictionaryStore()
     cd.record_channel_measurement(mkey_m, 1)
     assert cd.channel_records == {mkey_m: [1]}
     assert cd.keys() == (mkey_m,)
 
 
-def test_record_channel_measurement_errors():
+def test_record_channel_measurement_errors() -> None:
     cd = cirq.ClassicalDataDictionaryStore()
     cd.record_channel_measurement(mkey_m, 1)
     cd.record_channel_measurement(mkey_m, 1)
@@ -88,7 +91,7 @@ def test_record_channel_measurement_errors():
         cd.record_channel_measurement(mkey_m, 1)
 
 
-def test_get_int():
+def test_get_int() -> None:
     cd = cirq.ClassicalDataDictionaryStore()
     cd.record_measurement(mkey_m, (0, 1), two_qubits)
     assert cd.get_int(mkey_m) == 1
@@ -106,7 +109,7 @@ def test_get_int():
         cd.get_int(mkey_m)
 
 
-def test_copy():
+def test_copy() -> None:
     cd = cirq.ClassicalDataDictionaryStore(
         _records={mkey_m: [(0, 1)]},
         _measured_qubits={mkey_m: [two_qubits]},
@@ -129,7 +132,7 @@ def test_copy():
     assert cd1.measurement_types == cd.measurement_types
 
 
-def test_repr():
+def test_repr() -> None:
     cd = cirq.ClassicalDataDictionaryStore(
         _records={mkey_m: [(0, 1)]},
         _measured_qubits={mkey_m: [two_qubits]},

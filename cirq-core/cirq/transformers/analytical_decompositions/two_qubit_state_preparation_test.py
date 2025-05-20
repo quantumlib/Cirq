@@ -14,6 +14,8 @@
 
 """Tests for efficient two qubit state preparation methods."""
 
+from __future__ import annotations
+
 import copy
 
 import numpy as np

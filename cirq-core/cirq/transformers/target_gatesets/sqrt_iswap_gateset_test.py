@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Optional
 
 import numpy as np
@@ -60,7 +62,7 @@ def assert_optimization_not_broken(
     )
 
 
-def test_convert_to_sqrt_iswap_preserving_moment_structure():
+def test_convert_to_sqrt_iswap_preserving_moment_structure() -> None:
     q = cirq.LineQubit.range(5)
     op = lambda q0, q1: cirq.H(q1).controlled_by(q0)
     c_orig = cirq.Circuit(
@@ -112,7 +114,7 @@ def test_convert_to_sqrt_iswap_preserving_moment_structure():
     ],
 )
 @pytest.mark.parametrize('use_sqrt_iswap_inv', [True, False])
-def test_two_qubit_gates_with_symbols(gate: cirq.Gate, use_sqrt_iswap_inv: bool):
+def test_two_qubit_gates_with_symbols(gate: cirq.Gate, use_sqrt_iswap_inv: bool) -> None:
     # Note that even though these gates are not natively supported by
     # `cirq.parameterized_2q_op_to_sqrt_iswap_operations`, the transformation succeeds because
     # `cirq.optimize_for_target_gateset` also relies on `cirq.decompose` as a fallback.
@@ -142,12 +144,12 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, use_sqrt_iswap_inv: bool)
         )
 
 
-def test_sqrt_iswap_gateset_raises():
+def test_sqrt_iswap_gateset_raises() -> None:
     with pytest.raises(ValueError, match="`required_sqrt_iswap_count` must be 0, 1, 2, or 3"):
         _ = cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=4)
 
 
-def test_sqrt_iswap_gateset_eq():
+def test_sqrt_iswap_gateset_eq() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         cirq.SqrtIswapTargetGateset(), cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=False)
@@ -179,11 +181,11 @@ def test_sqrt_iswap_gateset_eq():
         cirq.SqrtIswapTargetGateset(additional_gates=()),
     ],
 )
-def test_sqrt_iswap_gateset_repr(gateset):
+def test_sqrt_iswap_gateset_repr(gateset) -> None:
     cirq.testing.assert_equivalent_repr(gateset)
 
 
-def test_simplifies_sqrt_iswap():
+def test_simplifies_sqrt_iswap() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimizes(
         before=cirq.Circuit(
@@ -204,7 +206,7 @@ def test_simplifies_sqrt_iswap():
     )
 
 
-def test_simplifies_sqrt_iswap_inv():
+def test_simplifies_sqrt_iswap_inv() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimizes(
         use_sqrt_iswap_inv=True,
@@ -226,7 +228,7 @@ def test_simplifies_sqrt_iswap_inv():
     )
 
 
-def test_works_with_tags():
+def test_works_with_tags() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimizes(
         before=cirq.Circuit(
@@ -240,7 +242,7 @@ def test_works_with_tags():
     )
 
 
-def test_no_touch_single_sqrt_iswap():
+def test_no_touch_single_sqrt_iswap() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         [
@@ -252,7 +254,7 @@ def test_no_touch_single_sqrt_iswap():
     assert_optimizes(before=circuit, expected=circuit)
 
 
-def test_no_touch_single_sqrt_iswap_inv():
+def test_no_touch_single_sqrt_iswap_inv() -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         [
@@ -264,19 +266,19 @@ def test_no_touch_single_sqrt_iswap_inv():
     assert_optimizes(before=circuit, expected=circuit, use_sqrt_iswap_inv=True)
 
 
-def test_cnots_separated_by_single_gates_correct():
+def test_cnots_separated_by_single_gates_correct() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(cirq.Circuit(cirq.CNOT(a, b), cirq.H(b), cirq.CNOT(a, b)))
 
 
-def test_czs_separated_by_single_gates_correct():
+def test_czs_separated_by_single_gates_correct() -> None:
     a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(
         cirq.Circuit(cirq.CZ(a, b), cirq.X(b), cirq.X(b), cirq.X(b), cirq.CZ(a, b))
     )
 
 
-def test_inefficient_circuit_correct():
+def test_inefficient_circuit_correct() -> None:
     t = 0.1
     v = 0.11
     a, b = cirq.LineQubit.range(2)
@@ -301,7 +303,7 @@ def test_inefficient_circuit_correct():
     )
 
 
-def test_optimizes_single_iswap():
+def test_optimizes_single_iswap() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.ISWAP(a, b))
     assert_optimization_not_broken(c)
@@ -311,7 +313,7 @@ def test_optimizes_single_iswap():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
-def test_optimizes_single_inv_sqrt_iswap():
+def test_optimizes_single_inv_sqrt_iswap() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))
     assert_optimization_not_broken(c)
@@ -321,7 +323,7 @@ def test_optimizes_single_inv_sqrt_iswap():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
 
 
-def test_optimizes_single_iswap_require0():
+def test_optimizes_single_iswap_require0() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(a, b))  # Minimum 0 sqrt-iSWAP
     assert_optimization_not_broken(c, required_sqrt_iswap_count=0)
@@ -331,7 +333,7 @@ def test_optimizes_single_iswap_require0():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 0
 
 
-def test_optimizes_single_iswap_require0_raises():
+def test_optimizes_single_iswap_require0_raises() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CNOT(a, b))  # Minimum 2 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 0 sqrt-iSWAP gates'):
@@ -342,7 +344,7 @@ def test_optimizes_single_iswap_require0_raises():
         )
 
 
-def test_optimizes_single_iswap_require1():
+def test_optimizes_single_iswap_require1() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))  # Minimum 1 sqrt-iSWAP
     assert_optimization_not_broken(c, required_sqrt_iswap_count=1)
@@ -352,7 +354,7 @@ def test_optimizes_single_iswap_require1():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
 
 
-def test_optimizes_single_iswap_require1_raises():
+def test_optimizes_single_iswap_require1_raises() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CNOT(a, b))  # Minimum 2 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 1 sqrt-iSWAP gates'):
@@ -363,7 +365,7 @@ def test_optimizes_single_iswap_require1_raises():
         )
 
 
-def test_optimizes_single_iswap_require2():
+def test_optimizes_single_iswap_require2() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))  # Minimum 1 sqrt-iSWAP but 2 possible
     assert_optimization_not_broken(c, required_sqrt_iswap_count=2)
@@ -373,7 +375,7 @@ def test_optimizes_single_iswap_require2():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
-def test_optimizes_single_iswap_require2_raises():
+def test_optimizes_single_iswap_require2_raises() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SWAP(a, b))  # Minimum 3 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 2 sqrt-iSWAP gates'):
@@ -384,7 +386,7 @@ def test_optimizes_single_iswap_require2_raises():
         )
 
 
-def test_optimizes_single_iswap_require3():
+def test_optimizes_single_iswap_require3() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.ISWAP(a, b))  # Minimum 2 sqrt-iSWAP but 3 possible
     assert_optimization_not_broken(c, required_sqrt_iswap_count=3)
@@ -394,7 +396,7 @@ def test_optimizes_single_iswap_require3():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 3
 
 
-def test_optimizes_single_inv_sqrt_iswap_require3():
+def test_optimizes_single_inv_sqrt_iswap_require3() -> None:
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))
     assert_optimization_not_broken(c, required_sqrt_iswap_count=3)

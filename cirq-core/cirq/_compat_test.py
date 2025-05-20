@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import collections
 import dataclasses
 import importlib.metadata
@@ -24,7 +27,7 @@ import types
 import warnings
 from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable
 from unittest import mock
 
 import duet
@@ -635,7 +638,7 @@ _repeated_child_deprecation_msg = [
 ] + _deprecation_origin
 
 
-def _trace_unhandled_exceptions(*args, queue: 'multiprocessing.Queue', func: Callable):
+def _trace_unhandled_exceptions(*args, queue: multiprocessing.Queue, func: Callable):
     try:
         func(*args)
         queue.put(None)
@@ -761,7 +764,6 @@ def test_metadata_search_path():
 def _test_metadata_search_path_inner():  # pragma: no cover
     # initialize the DeprecatedModuleFinders
     # pylint: disable=unused-import
-    import cirq.testing._compat_test_data.module_a
 
     assert importlib.metadata.metadata('numpy')
 
@@ -879,8 +881,6 @@ def _test_new_module_is_top_level_inner():
     # imports a top level module that was also deprecated
     from freezegun import api
 
-    import cirq.testing._compat_test_data
-
     assert api.real_time == time.time
 
 
@@ -922,7 +922,7 @@ def test_loader_create_module():
     fake_mod = ModuleType('hello')
 
     class CreateModuleLoader(importlib.abc.Loader):
-        def create_module(self, spec: ModuleSpec) -> Optional[ModuleType]:
+        def create_module(self, spec: ModuleSpec) -> ModuleType | None:
             return fake_mod
 
     assert (
@@ -1014,16 +1014,16 @@ def test_block_overlapping_deprecation():
 
 class Bar:
     def __init__(self) -> None:
-        self.foo_calls: Dict[int, int] = collections.Counter()
-        self.bar_calls: Dict[int, int] = collections.Counter()
+        self.foo_calls: dict[int, int] = collections.Counter()
+        self.bar_calls: dict[int, int] = collections.Counter()
 
     @cached_method
-    def foo(self, n: int) -> Tuple[int, int]:
+    def foo(self, n: int) -> tuple[int, int]:
         self.foo_calls[n] += 1
         return (id(self), n)
 
     @cached_method(maxsize=1)
-    def bar(self, n: int) -> Tuple[int, int]:
+    def bar(self, n: int) -> tuple[int, int]:
         self.bar_calls[n] += 1
         return (id(self), 2 * n)
 

@@ -63,6 +63,8 @@ from cirq_google.ops import (
     PhysicalZTag as PhysicalZTag,
     SYC as SYC,
     SycamoreGate as SycamoreGate,
+    WILLOW as WILLOW,
+    WillowGate as WillowGate,
 )
 
 from cirq_google.transformers import (

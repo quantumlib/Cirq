@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import duet
 
 import cirq
 
 
 @duet.sync
-async def test_pauli_string_sample_collector():
+async def test_pauli_string_sample_collector() -> None:
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(
         circuit=cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.X(a), cirq.Z(b)),
@@ -28,26 +30,24 @@ async def test_pauli_string_sample_collector():
         + (1 - 0j),
         samples_per_term=100,
     )
-    result = await p.collect_async(sampler=cirq.Simulator())
-    assert result is None
+    await p.collect_async(sampler=cirq.Simulator())
     energy = p.estimated_energy()
     assert isinstance(energy, float) and energy == 12
 
 
 @duet.sync
-async def test_pauli_string_sample_single():
+async def test_pauli_string_sample_single() -> None:
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(
         circuit=cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.X(a), cirq.Z(b)),
         observable=cirq.X(a) * cirq.X(b),
         samples_per_term=100,
     )
-    result = await p.collect_async(sampler=cirq.Simulator())
-    assert result is None
+    await p.collect_async(sampler=cirq.Simulator())
     assert p.estimated_energy() == -1
 
 
-def test_pauli_string_sample_collector_identity():
+def test_pauli_string_sample_collector_identity() -> None:
     p = cirq.PauliSumCollector(
         circuit=cirq.Circuit(), observable=cirq.PauliSum() + 2j, samples_per_term=100
     )
@@ -55,7 +55,7 @@ def test_pauli_string_sample_collector_identity():
     assert p.estimated_energy() == 2j
 
 
-def test_pauli_string_sample_collector_extra_qubit_z():
+def test_pauli_string_sample_collector_extra_qubit_z() -> None:
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(
         circuit=cirq.Circuit(cirq.H(a)), observable=3 * cirq.Z(b), samples_per_term=100
@@ -64,7 +64,7 @@ def test_pauli_string_sample_collector_extra_qubit_z():
     assert p.estimated_energy() == 3
 
 
-def test_pauli_string_sample_collector_extra_qubit_x():
+def test_pauli_string_sample_collector_extra_qubit_x() -> None:
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(
         circuit=cirq.Circuit(cirq.H(a)), observable=3 * cirq.X(b), samples_per_term=10000

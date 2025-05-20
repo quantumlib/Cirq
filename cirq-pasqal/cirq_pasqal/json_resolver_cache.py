@@ -13,14 +13,13 @@
 # limitations under the License.
 
 import functools
-from typing import Dict
 
 import cirq_pasqal
 from cirq.protocols.json_serialization import ObjectFactory
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     return {
         'PasqalDevice': cirq_pasqal.PasqalDevice,
         'PasqalGateset': cirq_pasqal.PasqalGateset,

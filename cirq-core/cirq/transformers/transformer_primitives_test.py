@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterator, List, Optional
+from __future__ import annotations
+
+from typing import Iterator
 
 import pytest
 
@@ -501,7 +503,7 @@ def test_map_moments_drop_empty_moments_deep():
     cirq.testing.assert_same_circuits(c_mapped, c_expected)
 
 
-def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
+def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> cirq.Moment | None:
     if any(op.gate != cirq.Z for m in [m1, m2] for op in m):
         return None
     return cirq.Moment(
@@ -721,7 +723,7 @@ def test_merge_operations_to_circuit_op_merges_connected_component():
 ''',
     )
 
-    def can_merge(ops1: List['cirq.Operation'], ops2: List['cirq.Operation']) -> bool:
+    def can_merge(ops1: list[cirq.Operation], ops2: list[cirq.Operation]) -> bool:
         """Artificial example where a CZ will absorb any merge-able operation."""
         return any(o.gate == cirq.CZ for op_list in [ops1, ops2] for o in op_list)
 

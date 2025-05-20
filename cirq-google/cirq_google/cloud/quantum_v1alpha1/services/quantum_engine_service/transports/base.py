@@ -13,18 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from __future__ import annotations
+
 import abc
 import importlib.metadata
-from typing import Awaitable, Callable, Dict, Optional, Sequence, Union
+from typing import Awaitable, Callable, Dict, Optional, Sequence, TYPE_CHECKING, Union
 
 import google.api_core
 import google.auth
 from google.api_core import exceptions as core_exceptions, gapic_v1
-from google.auth import credentials as ga_credentials
 from google.oauth2 import service_account
-from google.protobuf import empty_pb2
 
-from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
+if TYPE_CHECKING:
+    from google.auth import credentials as ga_credentials
+    from google.protobuf import empty_pb2
+
+    from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(

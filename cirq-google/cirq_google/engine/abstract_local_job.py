@@ -11,16 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """A helper for jobs that have been created on the Quantum Engine."""
+
+from __future__ import annotations
+
 import copy
 import datetime
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-import cirq
-from cirq_google.engine import calibration
 from cirq_google.engine.abstract_job import AbstractJob
 
 if TYPE_CHECKING:
+    import cirq
+    import cirq_google.engine.calibration as calibration
     from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
     from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
     from cirq_google.engine.abstract_local_program import AbstractLocalProgram
@@ -51,9 +55,9 @@ class AbstractLocalJob(AbstractJob):
         self,
         *,
         job_id: str,
-        parent_program: 'AbstractLocalProgram',
+        parent_program: AbstractLocalProgram,
         repetitions: int,
-        sweeps: List[cirq.Sweep],
+        sweeps: list[cirq.Sweep],
         processor_id: str = '',
     ):
         self._id = job_id
@@ -64,9 +68,9 @@ class AbstractLocalJob(AbstractJob):
         self._create_time = datetime.datetime.now()
         self._update_time = datetime.datetime.now()
         self._description = ''
-        self._labels: Dict[str, str] = {}
+        self._labels: dict[str, str] = {}
 
-    def engine(self) -> 'AbstractLocalEngine':
+    def engine(self) -> AbstractLocalEngine:
         """Returns the parent program's `AbstractEngine` object."""
         return self._parent_program.engine()
 
@@ -74,15 +78,15 @@ class AbstractLocalJob(AbstractJob):
         """Returns the identifier of this job."""
         return self._id
 
-    def program(self) -> 'AbstractLocalProgram':
+    def program(self) -> AbstractLocalProgram:
         """Returns the parent `AbstractLocalProgram` object."""
         return self._parent_program
 
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the job was created."""
         return self._create_time
 
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the job was last updated."""
         return self._update_time
 
@@ -90,7 +94,7 @@ class AbstractLocalJob(AbstractJob):
         """Returns the description of the job."""
         return self._description
 
-    def set_description(self, description: str) -> 'AbstractJob':
+    def set_description(self, description: str) -> AbstractJob:
         """Sets the description of the job.
 
         Params:
@@ -103,11 +107,11 @@ class AbstractLocalJob(AbstractJob):
         self._update_time = datetime.datetime.now()
         return self
 
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
         return copy.copy(self._labels)
 
-    def set_labels(self, labels: Dict[str, str]) -> 'AbstractJob':
+    def set_labels(self, labels: dict[str, str]) -> AbstractJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
         Params:
@@ -120,7 +124,7 @@ class AbstractLocalJob(AbstractJob):
         self._update_time = datetime.datetime.now()
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> 'AbstractJob':
+    def add_labels(self, labels: dict[str, str]) -> AbstractJob:
         """Adds new labels to a previously created quantum job.
 
         Params:
@@ -134,7 +138,7 @@ class AbstractLocalJob(AbstractJob):
             self._labels[key] = labels[key]
         return self
 
-    def remove_labels(self, keys: List[str]) -> 'AbstractJob':
+    def remove_labels(self, keys: list[str]) -> AbstractJob:
         """Removes labels with given keys from the labels of a previously
         created quantum job.
 
@@ -149,11 +153,11 @@ class AbstractLocalJob(AbstractJob):
             del self._labels[key]
         return self
 
-    def processor_ids(self) -> List[str]:
+    def processor_ids(self) -> list[str]:
         """Returns the processor ids provided when the job was created."""
         return [self._processor_id]
 
-    def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the job.
 
         Returns:
@@ -161,12 +165,12 @@ class AbstractLocalJob(AbstractJob):
         """
         return (self._repetitions, self._sweeps)
 
-    def get_processor(self) -> 'AbstractLocalProcessor':
+    def get_processor(self) -> AbstractLocalProcessor:
         """Returns the AbstractProcessor for the processor the job is/was run on,
         if available, else None."""
         return self.engine().get_processor(self._processor_id)
 
-    def get_calibration(self) -> Optional[calibration.Calibration]:
+    def get_calibration(self) -> calibration.Calibration | None:
         """Returns the recorded calibration at the time when the job was created,
         from the parent Engine object."""
         return self.get_processor().get_latest_calibration(int(self._create_time.timestamp()))

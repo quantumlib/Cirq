@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Sequence, TYPE_CHECKING, Union
+from __future__ import annotations
 
-import numpy as np
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq._compat import proper_repr
 from cirq.sim.clifford import stabilizer_state_ch_form
 from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -33,9 +35,9 @@ class StabilizerChFormSimulationState(
         self,
         *,
         prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0,
-        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        qubits: Optional[Sequence[cirq.Qid]] = None,
+        initial_state: Union[int, cirq.StabilizerStateChForm] = 0,
+        classical_data: Optional[cirq.ClassicalDataStore] = None,
     ):
         """Initializes with the given state and the axes for the operation.
 

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from cirq.circuits._box_drawing_character_data import (
     BOLD_BOX_CHARS,
     box_draw_character,
@@ -21,7 +23,7 @@ from cirq.circuits._box_drawing_character_data import (
 )
 
 
-def test_chars():
+def test_chars() -> None:
     assert NORMAL_BOX_CHARS.char() is None
     assert NORMAL_BOX_CHARS.char(top=True, bottom=True) == '│'
     assert NORMAL_THEN_BOLD_MIXED_BOX_CHARS.char() is None

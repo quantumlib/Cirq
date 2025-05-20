@@ -61,6 +61,7 @@ permissions: read-all
 
 jobs:
   stale:
+    if: github.repository_owner == 'quantumlib'
     name: Label and/or close stale issues and PRs
     runs-on: ubuntu-22.04
     timeout-minutes: 10

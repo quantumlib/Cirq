@@ -12,7 +12,7 @@ If you want to create a development environment, see the [development page](../d
 
 ## Python version support
 
-Cirq currently supports Python 3.10 and later.
+Cirq currently supports Python 3.11 and later.
 We follow NumPy's schedule for Python version support defined in [NEP 29](https://numpy.org/neps/nep-0029-deprecation_policy.html),
 though we may deviate from that schedule by extending support for older Python
 versions if they are needed by [Colab](https://colab.research.google.com/)
@@ -20,7 +20,7 @@ or internal Google systems.
 
 ## Installing on Linux
 
-0. Make sure you have Python 3.10.0 or greater.
+0. Make sure you have Python 3.11.0 or greater.
 
     See [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/) in The Hitchhiker's Guide to Python.
 
@@ -87,7 +87,7 @@ or internal Google systems.
 
 ## Installing on MacOS
 
-0. Make sure you have Python 3.10.0 or greater.
+0. Make sure you have Python 3.11.0 or greater.
 
     See [Installing Python 3 on MacOS](https://docs.python-guide.org/starting/install3/osx/) .
 
@@ -154,7 +154,7 @@ or internal Google systems.
 
 0. If you are using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about), use the [Linux install instructions](#installing-on-linux) instead of these instructions.
 
-1. Make sure you have Python 3.10.0 or greater.
+1. Make sure you have Python 3.11.0 or greater.
 
     See [Installing Python 3 on Windows](https://docs.python-guide.org/starting/install3/win/) in The Hitchhiker's Guide to Python.
 

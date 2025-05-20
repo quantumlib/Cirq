@@ -14,7 +14,9 @@
 
 """Transformer pass that pushes 180° rotations around axes in the XY plane later in the circuit."""
 
-from typing import cast, Dict, Iterable, Iterator, Optional, Tuple, TYPE_CHECKING, Union
+from __future__ import annotations
+
+from typing import cast, Iterable, Iterator, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -29,12 +31,12 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer(add_deep_support=True)
 def eject_phased_paulis(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 1e-8,
     eject_parameterized: bool = False,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Transformer pass to push X, Y, PhasedX & (certain) PhasedXZ gates to the end of the circuit.
 
     As the gates get pushed, they may absorb Z gates, cancel against other
@@ -57,10 +59,10 @@ def eject_phased_paulis(
     Returns:
           Copy of the transformed input circuit.
     """
-    held_w_phases: Dict[ops.Qid, value.TParamVal] = {}
+    held_w_phases: dict[ops.Qid, value.TParamVal] = {}
     tags_to_ignore = set(context.tags_to_ignore) if context else set()
 
-    def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
+    def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
         # Dump if `op` marked with a no compile tag.
         if set(op.tags) & tags_to_ignore:
             return [_dump_held(op.qubits, held_w_phases, atol), op]
@@ -106,8 +108,8 @@ def eject_phased_paulis(
 
 
 def _absorb_z_into_w(
-    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal]
-) -> 'cirq.OP_TREE':
+    op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal]
+) -> cirq.OP_TREE:
     """Absorbs a Z^t gate into a W(a) flip.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -127,8 +129,8 @@ def _absorb_z_into_w(
 
 
 def _dump_held(
-    qubits: Iterable[ops.Qid], held_w_phases: Dict[ops.Qid, value.TParamVal], atol: float
-) -> Iterator['cirq.OP_TREE']:
+    qubits: Iterable[ops.Qid], held_w_phases: dict[ops.Qid, value.TParamVal], atol: float
+) -> Iterator[cirq.OP_TREE]:
     # Note: sorting is to avoid non-determinism in the insertion order.
     for q in sorted(qubits):
         p = held_w_phases.get(q)
@@ -139,8 +141,8 @@ def _dump_held(
 
 
 def _dump_into_measurement(
-    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal]
-) -> 'cirq.OP_TREE':
+    op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal]
+) -> cirq.OP_TREE:
     measurement = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
     new_measurement = measurement.with_bits_flipped(
         *[i for i, q in enumerate(op.qubits) if q in held_w_phases]
@@ -151,8 +153,8 @@ def _dump_into_measurement(
 
 
 def _potential_cross_whole_w(
-    op: ops.Operation, atol: float, held_w_phases: Dict[ops.Qid, value.TParamVal]
-) -> 'cirq.OP_TREE':
+    op: ops.Operation, atol: float, held_w_phases: dict[ops.Qid, value.TParamVal]
+) -> cirq.OP_TREE:
     """Grabs or cancels a held W gate against an existing W gate.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -165,7 +167,7 @@ def _potential_cross_whole_w(
         ≡ ───Z^2(b-a)───
     """
     _, phase_exponent = cast(
-        Tuple[value.TParamVal, value.TParamVal], _try_get_known_phased_pauli(op)
+        tuple[value.TParamVal, value.TParamVal], _try_get_known_phased_pauli(op)
     )
     q = op.qubits[0]
     a = held_w_phases.get(q, None)
@@ -184,8 +186,8 @@ def _potential_cross_whole_w(
 
 
 def _potential_cross_partial_w(
-    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal], atol: float
-) -> 'cirq.OP_TREE':
+    op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal], atol: float
+) -> cirq.OP_TREE:
     """Cross the held W over a partial W gate.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -202,7 +204,7 @@ def _potential_cross_partial_w(
     if a is None:
         return op
     exponent, phase_exponent = cast(
-        Tuple[value.TParamVal, value.TParamVal], _try_get_known_phased_pauli(op)
+        tuple[value.TParamVal, value.TParamVal], _try_get_known_phased_pauli(op)
     )
     gate = _phased_x_or_pauli_gate(
         exponent=exponent, phase_exponent=2 * a - phase_exponent, atol=atol
@@ -210,7 +212,7 @@ def _potential_cross_partial_w(
     return gate.on(op.qubits[0])
 
 
-def _single_cross_over_cz(op: ops.Operation, qubit_with_w: 'cirq.Qid') -> 'cirq.OP_TREE':
+def _single_cross_over_cz(op: ops.Operation, qubit_with_w: cirq.Qid) -> cirq.OP_TREE:
     """Crosses exactly one W flip over a partial CZ.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -250,8 +252,8 @@ def _single_cross_over_cz(op: ops.Operation, qubit_with_w: 'cirq.Qid') -> 'cirq.
 
 
 def _double_cross_over_cz(
-    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal]
-) -> 'cirq.OP_TREE':
+    op: ops.Operation, held_w_phases: dict[ops.Qid, value.TParamVal]
+) -> cirq.OP_TREE:
     """Crosses two W flips over a partial CZ.
 
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
@@ -294,7 +296,7 @@ def _double_cross_over_cz(
 
 def _try_get_known_cz_half_turns(
     op: ops.Operation, no_symbolic: bool = False
-) -> Optional[value.TParamVal]:
+) -> value.TParamVal | None:
     if not isinstance(op.gate, ops.CZPowGate):
         return None
     h = op.gate.exponent
@@ -305,7 +307,7 @@ def _try_get_known_cz_half_turns(
 
 def _try_get_known_phased_pauli(
     op: ops.Operation, no_symbolic: bool = False
-) -> Optional[Tuple[value.TParamVal, value.TParamVal]]:
+) -> tuple[value.TParamVal, value.TParamVal] | None:
     if no_symbolic and protocols.is_parameterized(op):
         return None
     gate = op.gate
@@ -333,7 +335,7 @@ def _try_get_known_phased_pauli(
 
 def _try_get_known_z_half_turns(
     op: ops.Operation, no_symbolic: bool = False
-) -> Optional[value.TParamVal]:
+) -> value.TParamVal | None:
     g = op.gate
     if (
         isinstance(g, ops.PhasedXZGate)
@@ -354,8 +356,8 @@ def _try_get_known_z_half_turns(
 
 
 def _phased_x_or_pauli_gate(
-    exponent: Union[float, sympy.Expr], phase_exponent: Union[float, sympy.Expr], atol: float
-) -> Union['cirq.PhasedXPowGate', 'cirq.XPowGate', 'cirq.YPowGate']:
+    exponent: float | sympy.Expr, phase_exponent: float | sympy.Expr, atol: float
+) -> cirq.PhasedXPowGate | cirq.XPowGate | cirq.YPowGate:
     """Return PhasedXPowGate or X or Y gate if equivalent within atol in z-axis turns."""
     if not isinstance(phase_exponent, sympy.Expr) or phase_exponent.is_constant():
         half_turns = value.canonicalize_half_turns(float(phase_exponent))

@@ -18,18 +18,9 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import (
-    AbstractSet,
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from __future__ import annotations
+
+from typing import AbstractSet, Any, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -42,7 +33,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _fast_walsh_hadamard_transform(a: Tuple[Any, ...]) -> np.ndarray:
+def _fast_walsh_hadamard_transform(a: tuple[Any, ...]) -> np.ndarray:
     """Fast Walsh–Hadamard Transform of an array."""
     h = 1
     a_ = np.array(a)
@@ -57,7 +48,7 @@ def _fast_walsh_hadamard_transform(a: Tuple[Any, ...]) -> np.ndarray:
     return a_
 
 
-def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
+def _gen_gray_code(n: int) -> Iterator[tuple[int, int]]:
     """Generate the Gray Code from 0 to 2^n-1.
 
     Each iteration yields a two-tuple, `(gray_code, bit_flip)`. `gray_code` is the decimal
@@ -81,7 +72,7 @@ class DiagonalGate(raw_types.Gate):
     all phases.
     """
 
-    def __init__(self, diag_angles_radians: Sequence['cirq.TParamVal']) -> None:
+    def __init__(self, diag_angles_radians: Sequence[cirq.TParamVal]) -> None:
         r"""A n-qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and its on-diagonal
@@ -92,10 +83,10 @@ class DiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_N)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_N})$.
         """
-        self._diag_angles_radians: Tuple['cirq.TParamVal', ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: tuple[cirq.TParamVal, ...] = tuple(diag_angles_radians)
 
     @property
-    def diag_angles_radians(self) -> Tuple['cirq.TParamVal', ...]:
+    def diag_angles_radians(self) -> tuple[cirq.TParamVal, ...]:
         return self._diag_angles_radians
 
     def _num_qubits_(self):
@@ -109,9 +100,7 @@ class DiagonalGate(raw_types.Gate):
             name for angle in self._diag_angles_radians for name in protocols.parameter_names(angle)
         }
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'DiagonalGate':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> DiagonalGate:
         return DiagonalGate(
             protocols.resolve_parameters(self._diag_angles_radians, resolver, recursive)
         )
@@ -119,12 +108,12 @@ class DiagonalGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if self._is_parameterized_():
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if self._is_parameterized_():
             return NotImplemented
         for index, angle in enumerate(self._diag_angles_radians):
@@ -132,9 +121,7 @@ class DiagonalGate(raw_types.Gate):
             args.target_tensor[subspace_index] *= np.exp(1j * angle)
         return args.target_tensor
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
@@ -150,7 +137,7 @@ class DiagonalGate(raw_types.Gate):
             [diag_str] + [f"#{i}" for i in range(2, self._num_qubits_() + 1)]
         )
 
-    def __pow__(self, exponent: Any) -> 'DiagonalGate':
+    def __pow__(self, exponent: Any) -> DiagonalGate:
         if not isinstance(exponent, (int, float, sympy.Basic)):
             return NotImplemented
         angles = []
@@ -163,8 +150,8 @@ class DiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def _decompose_for_basis(
-        self, index: int, bit_flip: int, theta: 'cirq.TParamVal', qubits: Sequence['cirq.Qid']
-    ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
+        self, index: int, bit_flip: int, theta: cirq.TParamVal, qubits: Sequence[cirq.Qid]
+    ) -> Iterator[cirq.ZPowGate | cirq.CXPowGate]:
         if index == 0:
             return
         largest_digit = self._num_qubits_() - (len(bin(index)) - 2)
@@ -175,7 +162,7 @@ class DiagonalGate(raw_types.Gate):
         elif _flip_bit > largest_digit:
             yield common_gates.CNOT(qubits[_flip_bit], qubits[largest_digit])
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         """Decompose the n-qubit diagonal gates into CNOT and Rz gates.
 
         A 3 qubits decomposition looks like
@@ -202,14 +189,14 @@ class DiagonalGate(raw_types.Gate):
         # decomposed gates. On its own it is not physically observable. However, if using this
         # diagonal gate for sub-system like controlled gate, it is no longer equivalent. Hence,
         # we add global phase.
-        decomposed_circ: List[Any] = [
+        decomposed_circ: list[Any] = [
             global_phase_op.global_phase_operation(1j ** (2 * hat_angles[0] / np.pi))
         ]
         for i, bit_flip in _gen_gray_code(n):
             decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
         return decomposed_circ
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:

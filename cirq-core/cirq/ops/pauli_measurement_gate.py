@@ -12,19 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any,
-    cast,
-    Dict,
-    FrozenSet,
-    Iterable,
-    Iterator,
-    Mapping,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from __future__ import annotations
+
+from typing import Any, cast, Iterable, Iterator, Mapping, Sequence, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import (
@@ -50,8 +40,8 @@ class PauliMeasurementGate(raw_types.Gate):
 
     def __init__(
         self,
-        observable: Union['cirq.BaseDensePauliString', Iterable['cirq.Pauli']],
-        key: Union[str, 'cirq.MeasurementKey'] = '',
+        observable: cirq.BaseDensePauliString | Iterable[cirq.Pauli],
+        key: str | cirq.MeasurementKey = '',
     ) -> None:
         """Inits PauliMeasurementGate.
 
@@ -89,38 +79,38 @@ class PauliMeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @property
-    def mkey(self) -> 'cirq.MeasurementKey':
+    def mkey(self) -> cirq.MeasurementKey:
         return self._mkey
 
-    def _qid_shape_(self) -> Tuple[int, ...]:
+    def _qid_shape_(self) -> tuple[int, ...]:
         return (2,) * len(self._observable)
 
     def _has_unitary_(self) -> bool:
         return False
 
-    def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'PauliMeasurementGate':
+    def with_key(self, key: str | cirq.MeasurementKey) -> PauliMeasurementGate:
         """Creates a pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
         return PauliMeasurementGate(self._observable, key=key)
 
-    def _with_key_path_(self, path: Tuple[str, ...]) -> 'PauliMeasurementGate':
+    def _with_key_path_(self, path: tuple[str, ...]) -> PauliMeasurementGate:
         return self.with_key(self.mkey._with_key_path_(path))
 
-    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]) -> 'PauliMeasurementGate':
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]) -> PauliMeasurementGate:
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
-    ) -> 'PauliMeasurementGate':
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
+    ) -> PauliMeasurementGate:
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
-    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'PauliMeasurementGate':
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> PauliMeasurementGate:
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
     def with_observable(
-        self, observable: Union['cirq.BaseDensePauliString', Iterable['cirq.Pauli']]
-    ) -> 'PauliMeasurementGate':
+        self, observable: cirq.BaseDensePauliString | Iterable[cirq.Pauli]
+    ) -> PauliMeasurementGate:
         """Creates a pauli measurement gate with the new observable and same key."""
         if (
             observable
@@ -136,16 +126,16 @@ class PauliMeasurementGate(raw_types.Gate):
     def _measurement_key_name_(self) -> str:
         return self.key
 
-    def _measurement_key_obj_(self) -> 'cirq.MeasurementKey':
+    def _measurement_key_obj_(self) -> cirq.MeasurementKey:
         return self.mkey
 
-    def observable(self) -> 'cirq.DensePauliString':
+    def observable(self) -> cirq.DensePauliString:
         """Pauli observable which should be measured by the gate."""
         return self._observable
 
     def _decompose_(
-        self, qubits: Tuple['cirq.Qid', ...]
-    ) -> Iterator['protocols.decompose_protocol.DecomposeResult']:
+        self, qubits: tuple[cirq.Qid, ...]
+    ) -> Iterator[protocols.decompose_protocol.DecomposeResult]:
         any_qubit = qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._observable.on(*qubits).to_z_basis_ops())
         xor_decomp = tuple(pauli_string_phasor.xor_nonlocal_decompose(qubits, any_qubit))
@@ -157,9 +147,7 @@ class PauliMeasurementGate(raw_types.Gate):
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         coefficient = '' if self._observable.coefficient == 1 else '-'
         symbols = [
             f'M({"" if i else coefficient}{self._observable[i]})'
@@ -176,7 +164,7 @@ class PauliMeasurementGate(raw_types.Gate):
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
-    def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
+    def _op_repr_(self, qubits: Sequence[cirq.Qid]) -> str:
         args = [repr(self._observable.on(*qubits))]
         if self.key != _default_measurement_key(qubits):
             args.append(f'key={self.mkey!r}')
@@ -189,11 +177,11 @@ class PauliMeasurementGate(raw_types.Gate):
     def _value_equality_values_(self) -> Any:
         return self.key, self._observable
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'observable': self._observable, 'key': self.key}
 
     @classmethod
-    def _from_json_dict_(cls, observable, key, **kwargs) -> 'PauliMeasurementGate':
+    def _from_json_dict_(cls, observable, key, **kwargs) -> PauliMeasurementGate:
         return cls(observable=observable, key=value.MeasurementKey.parse_serialized(key))
 
 

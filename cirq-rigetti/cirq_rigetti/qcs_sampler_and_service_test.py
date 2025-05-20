@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Any, List, Sequence, Tuple
+from typing import Any, Sequence
 
 import numpy as np
 import pytest
@@ -28,7 +28,7 @@ class _ResultBuilder(Protocol):
         *,
         executor: executors.CircuitSweepExecutor = _default_executor,
         transformer: transformers.CircuitTransformer = transformers.default,
-    ) -> Tuple[Sequence[cirq.Result], QuantumComputer, List[np.ndarray], List[cirq.ParamResolver]]:
+    ) -> tuple[Sequence[cirq.Result], QuantumComputer, list[np.ndarray], list[cirq.ParamResolver]]:
         pass
 
 
@@ -39,7 +39,7 @@ def _build_service_results(
     *,
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> Tuple[Sequence[cirq.Result], QuantumComputer, List[np.ndarray], List[cirq.ParamResolver]]:
+) -> tuple[Sequence[cirq.Result], QuantumComputer, list[np.ndarray], list[cirq.ParamResolver]]:
     repetitions = 2
     param_resolvers = [r for r in cirq.to_resolvers(sweepable)]
     param_resolver_index = min(1, len(param_resolvers) - 1)
@@ -67,7 +67,7 @@ def _build_sampler_results(
     *,
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> Tuple[Sequence[cirq.Result], QuantumComputer, List[np.ndarray], cirq.Sweepable]:
+) -> tuple[Sequence[cirq.Result], QuantumComputer, list[np.ndarray], cirq.Sweepable]:
     repetitions = 2
 
     param_resolvers = [r for r in cirq.to_resolvers(sweepable)]
@@ -92,7 +92,7 @@ def _build_sampler_results(
 @allow_deprecated_cirq_rigetti_use_in_tests
 def test_parametric_circuit(
     mock_qpu_implementer: Any,
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable],
+    parametric_circuit_with_params: tuple[cirq.Circuit, cirq.Sweepable],
     result_builder: _ResultBuilder,
 ) -> None:
     """test that RigettiQCSService and RigettiQCSSampler can run a parametric
@@ -216,7 +216,7 @@ def test_bell_circuit(
 @allow_deprecated_cirq_rigetti_use_in_tests
 def test_explicit_qubit_id_map(
     mock_qpu_implementer: Any,
-    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.LineQubit]],
+    bell_circuit_with_qids: tuple[cirq.Circuit, list[cirq.LineQubit]],
     result_builder: _ResultBuilder,
 ) -> None:
     """test that RigettiQCSService and RigettiQCSSampler accept explicit ``qubit_id_map``

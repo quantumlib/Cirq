@@ -1,7 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import collections
 import time
-from typing import List, Mapping, Sequence
+from typing import Mapping, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,9 +31,9 @@ class LivePlotCollector(cirq.Collector):
         self.reps = repetitions
 
         self.unstarted_xs = list(values)
-        self.started_xs: List[float] = []
-        self.result_xs: List[float] = []
-        self.result_ys: Mapping[str, List[float]] = collections.defaultdict(list)
+        self.started_xs: list[float] = []
+        self.result_xs: list[float] = []
+        self.result_ys: Mapping[str, list[float]] = collections.defaultdict(list)
 
         self.fig = plt.figure()
         self.last_redraw_time = time.monotonic()

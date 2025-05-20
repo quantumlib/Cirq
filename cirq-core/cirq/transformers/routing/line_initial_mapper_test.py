@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import networkx as nx
 import pytest
 
@@ -66,7 +68,7 @@ def construct_valid_circuit():
     )
 
 
-def test_valid_circuit():
+def test_valid_circuit() -> None:
     # Any circuit with a (full connectivity) graph of disjoint lines should be directly
     # executable after mapping a a supporting device topology without the need for inserting
     # any swaps.
@@ -79,7 +81,7 @@ def test_valid_circuit():
     device.validate_circuit(mapped_circuit)
 
 
-def test_long_line_on_grid_device():
+def test_long_line_on_grid_device() -> None:
     # tests
     #   -if strategy is able to map a single long line onto the device whenever the device topology
     #   supports it (i.e. is Hamiltonian)
@@ -106,7 +108,7 @@ def test_long_line_on_grid_device():
         mapper.initial_mapping(step_circuit)
 
 
-def test_small_circuit_on_grid_device():
+def test_small_circuit_on_grid_device() -> None:
     circuit = construct_small_circuit()
     device_graph = cirq.testing.construct_grid_device(7, 7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
@@ -126,7 +128,7 @@ def test_small_circuit_on_grid_device():
     cirq.testing.assert_same_circuits(circuit.transform_qubits(mapping), expected_circuit)
 
 
-def test_small_circuit_on_ring_device():
+def test_small_circuit_on_ring_device() -> None:
     circuit = construct_small_circuit()
     device_graph = cirq.testing.construct_ring_device(10, directed=True).metadata.nx_graph
 
@@ -159,7 +161,7 @@ glob_mapper = cirq.LineInitialMapper(glob_device_graph)
 )
 def test_random_circuits_grid_device(
     qubits: int, n_moments: int, op_density: float, random_state: int
-):
+) -> None:
     c_orig = cirq.testing.random_circuit(
         qubits=qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
     )
@@ -176,7 +178,7 @@ def test_random_circuits_grid_device(
 )
 def test_large_random_circuits_grid_device(
     qubits: int, n_moments: int, op_density: float, random_state: int
-):
+) -> None:
     c_orig = cirq.testing.random_circuit(
         qubits=qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
     )
@@ -187,7 +189,7 @@ def test_large_random_circuits_grid_device(
     assert nx.is_connected(nx.induced_subgraph(glob_device_graph, mapping.values()))
 
 
-def test_repr():
+def test_repr() -> None:
     device_graph = cirq.testing.construct_grid_device(7, 7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     cirq.testing.assert_equivalent_repr(mapper, setup_code='import cirq\nimport networkx as nx')

@@ -39,7 +39,7 @@ def test_modules():
             'author_email': 'cirq-dev@googlegroups.com',
             'maintainer': 'The Quantum AI open-source software maintainers',
             'maintainer_email': 'quantum-oss-maintainers@google.com',
-            'python_requires': '>=3.10.0',
+            'python_requires': '>=3.11.0',
             'install_requires': ['req1', 'req2'],
             'license': 'Apache 2',
             'packages': ['pack1', 'pack1.sub'],

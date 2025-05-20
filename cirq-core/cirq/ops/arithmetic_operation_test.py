@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Sequence, Union
 
 import numpy as np
@@ -32,11 +34,10 @@ def adder_matrix(target_width: int, source_width: int) -> np.ndarray:
     result = np.zeros((t, s, t, s))
     for k in range(s):
         result[:, k, :, k] = shift_matrix(t, k)
-    result.shape = (t * s, t * s)
-    return result
+    return result.reshape(t * s, t * s)
 
 
-def test_the_tests():
+def test_the_tests() -> None:
     # fmt: off
     np.testing.assert_allclose(
         shift_matrix(4, 1),
@@ -85,7 +86,7 @@ def test_the_tests():
     )
 
 
-def test_arithmetic_gate_apply_unitary():
+def test_arithmetic_gate_apply_unitary() -> None:
     class Add(cirq.ArithmeticGate):
         def __init__(
             self,

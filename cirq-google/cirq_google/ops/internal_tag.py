@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cirq import value
 from cirq_google.api.v2 import program_pb2
@@ -49,7 +49,7 @@ class InternalTag:
             tag_args = ', ' + tag_args
         return f"cirq_google.InternalTag(name='{self.name}', package='{self.package}'{tag_args})"
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dict(name=self.name, package=self.package, **self.tag_args)
 
     def _value_equality_values_(self):
@@ -59,7 +59,7 @@ class InternalTag:
             tag_args_eq_values = self.tag_args
         return (self.name, self.package, tag_args_eq_values)
 
-    def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
+    def to_proto(self, msg: program_pb2.Tag | None = None) -> program_pb2.Tag:
         # To avoid circular import
         from cirq_google.serialization import arg_func_langs
 

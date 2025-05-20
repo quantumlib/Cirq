@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 import sympy
 
@@ -20,7 +22,7 @@ from cirq.work import _MeasurementSpec, InitObsSetting, observables_to_settings
 from cirq.work.observable_settings import _hashable_param, _max_weight_observable, _max_weight_state
 
 
-def test_init_obs_setting():
+def test_init_obs_setting() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     setting = InitObsSetting(
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
@@ -32,7 +34,7 @@ def test_init_obs_setting():
         setting = InitObsSetting(init_state=cirq.KET_ZERO(q0), observable=cirq.X(q0) * cirq.Y(q1))
 
 
-def test_max_weight_observable():
+def test_max_weight_observable() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     observables = [cirq.X(q0), cirq.X(q1)]
     assert _max_weight_observable(observables) == cirq.X(q0) * cirq.X(q1)
@@ -41,7 +43,7 @@ def test_max_weight_observable():
     assert _max_weight_observable(observables) is None
 
 
-def test_max_weight_state():
+def test_max_weight_state() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     states = [cirq.KET_PLUS(q0), cirq.KET_PLUS(q1)]
     assert _max_weight_state(states) == cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
@@ -50,7 +52,7 @@ def test_max_weight_state():
     assert _max_weight_state(states) is None
 
 
-def test_observable_to_setting():
+def test_observable_to_setting() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     observables = [cirq.X(q0) * cirq.Y(q1), cirq.Z(q2) * 1]
 
@@ -62,7 +64,7 @@ def test_observable_to_setting():
     assert list(observables_to_settings(observables, qubits=[q0, q1, q2])) == settings_should_be
 
 
-def test_param_hash():
+def test_param_hash() -> None:
     params1 = [('beta', 1.23), ('gamma', 4.56)]
     params2 = [('beta', 1.23), ('gamma', 4.56)]
     params3 = [('beta', 1.24), ('gamma', 4.57)]
@@ -81,7 +83,7 @@ def test_param_hash():
     assert hash(_hashable_param(params4)) == hash(_hashable_param(params5))
 
 
-def test_measurement_spec():
+def test_measurement_spec() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     setting = InitObsSetting(
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
@@ -96,7 +98,7 @@ def test_measurement_spec():
     cirq.testing.assert_equivalent_repr(meas_spec)
 
 
-def test_measurement_spec_no_symbols():
+def test_measurement_spec_no_symbols() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     setting = InitObsSetting(
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)

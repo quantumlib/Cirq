@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.interop.quirk.cells.qubit_permutation_cells import QuirkQubitPermutationGate
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_equality():
+def test_equality() -> None:
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: QuirkQubitPermutationGate('a', 'b', [0, 1]))
     eq.add_equality_group(QuirkQubitPermutationGate('x', 'b', [0, 1]))
@@ -25,11 +27,11 @@ def test_equality():
     eq.add_equality_group(QuirkQubitPermutationGate('a', 'b', [1, 0]))
 
 
-def test_repr():
+def test_repr() -> None:
     cirq.testing.assert_equivalent_repr(QuirkQubitPermutationGate('a', 'b', [0, 1]))
 
 
-def test_right_rotate():
+def test_right_rotate() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["X",">>4",1,1,1,"X"]]}',
         diagram="""
@@ -57,7 +59,7 @@ def test_right_rotate():
     )
 
 
-def test_left_rotate():
+def test_left_rotate() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["<<4"]]}',
         maps={
@@ -72,7 +74,7 @@ def test_left_rotate():
     )
 
 
-def test_reverse():
+def test_reverse() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["rev4"]]}',
         maps={
@@ -98,7 +100,7 @@ def test_reverse():
     )
 
 
-def test_interleave():
+def test_interleave() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["weave5"]]}',
         maps={
@@ -128,7 +130,7 @@ def test_interleave():
     )
 
 
-def test_deinterleave():
+def test_deinterleave() -> None:
     assert_url_to_circuit_returns(
         '{"cols":[["split5"]]}',
         maps={
