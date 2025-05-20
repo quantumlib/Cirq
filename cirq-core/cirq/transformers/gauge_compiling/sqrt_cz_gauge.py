@@ -15,11 +15,10 @@
 """A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
 
+from __future__ import annotations
+
 from numbers import Real
 from typing import Dict, Sequence, Tuple, TYPE_CHECKING
-
-import numpy as np
-import sympy
 
 from cirq.ops import CZ, CZPowGate, Gate, Gateset, S, X
 from cirq.transformers.gauge_compiling.gauge_compiling import (
@@ -31,6 +30,9 @@ from cirq.transformers.gauge_compiling.gauge_compiling import (
 )
 
 if TYPE_CHECKING:
+    import numpy as np
+    import sympy
+
     import cirq
 
 _SQRT_CZ = CZ**0.5
@@ -42,7 +44,7 @@ class SqrtCZGauge(Gauge):
     def weight(self) -> float:
         return 3.0
 
-    def sample(self, gate: 'cirq.Gate', prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: cirq.Gate, prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
             return ConstantGauge(two_qubit_gate=gate)
         swap_qubits = prng.choice([True, False])

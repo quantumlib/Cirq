@@ -12,19 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 import numbers
-from typing import (
-    AbstractSet,
-    Dict,
-    FrozenSet,
-    Iterable,
-    Mapping,
-    Optional,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Dict, FrozenSet, Iterable, Mapping, Optional, Tuple, TYPE_CHECKING, Union
 
 import sympy
 
@@ -123,13 +115,13 @@ def _max_weight_state(states: Iterable[value.ProductState]) -> Optional[value.Pr
     return value.ProductState(qubit_state_map)
 
 
-def zeros_state(qubits: Iterable['cirq.Qid']):
+def zeros_state(qubits: Iterable[cirq.Qid]):
     """Return the ProductState that is |00..00> on all qubits."""
     return value.ProductState({q: value.KET_ZERO for q in qubits})
 
 
 def observables_to_settings(
-    observables: Iterable['cirq.PauliString'], qubits: Iterable['cirq.Qid']
+    observables: Iterable[cirq.PauliString], qubits: Iterable[cirq.Qid]
 ) -> Iterable[InitObsSetting]:
     """Transform an observable to an InitObsSetting initialized in the
     all-zeros state.
@@ -154,7 +146,7 @@ def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int
 
 
 def _hashable_param(
-    param_tuples: AbstractSet[Tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
+    param_tuples: Iterable[Tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
     precision=1e7,
 ) -> FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]]:
     """Hash circuit parameters using fixed precision.

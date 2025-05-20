@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
 
-from cirq_google.api import v2
+import abc
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cirq_google.api import v2
 
 
 class TagSerializer(abc.ABC):

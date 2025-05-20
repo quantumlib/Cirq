@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence, Tuple
+
+from __future__ import annotations
+
+from typing import Any, Sequence, Tuple
 
 import numpy as np
 
@@ -37,6 +40,7 @@ def state_probabilities_by_indices(
     Returns:
         State probabilities.
     """
+    probs: np.ndarray[Tuple[int, ...], Any]
     probs = state_probability.reshape((-1,))
     not_measured = [i for i in range(len(qid_shape)) if i not in indices]
     if linalg.can_numpy_support_shape(qid_shape):

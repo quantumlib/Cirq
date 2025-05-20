@@ -80,7 +80,7 @@ def matrix_from_basis_coefficients(
     some_element = next(iter(basis.values()))
     result = np.zeros_like(some_element, dtype=np.complex128)
     for name, coefficient in expansion.items():
-        result += coefficient * basis[name]
+        result += complex(coefficient) * basis[name]
     return result
 
 

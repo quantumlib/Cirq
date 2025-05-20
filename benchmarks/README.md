@@ -23,7 +23,7 @@ You can also pass arguments to the `asv_run` script, which will be forwarded to
 the `asv run` command. Here's an example:
 
 ```bash
-./check/asv_run --quick --bench bench_examples --python 3.10
+./check/asv_run --quick --bench bench_examples --python 3.11
 ```
 
 Please refer to [Running Benchmarks guide by

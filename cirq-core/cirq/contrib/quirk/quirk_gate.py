@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any, Callable, cast, Dict, Optional, Union
 
 import numpy as np
@@ -46,7 +48,7 @@ class QuirkOp:
         self.keys = keys
         self.can_merge = can_merge
 
-    def controlled(self, control_count: int = 1) -> 'QuirkOp':
+    def controlled(self, control_count: int = 1) -> QuirkOp:
         return QuirkOp(*['•'] * control_count, *self.keys, can_merge=False)
 
 

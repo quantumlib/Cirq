@@ -17,6 +17,8 @@
 Filename is a reference to multiplexing.
 """
 
+from __future__ import annotations
+
 from typing import List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
@@ -39,7 +41,7 @@ document(
 )
 
 
-def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
+def _is_clifford_circuit(program: cirq.Circuit) -> bool:
     return all(
         clifford_simulator.CliffordSimulator.is_supported_operation(op)
         for op in program.all_operations()
@@ -47,14 +49,14 @@ def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
 
 
 def sample(
-    program: 'cirq.Circuit',
+    program: cirq.Circuit,
     *,
-    noise: 'cirq.NOISE_MODEL_LIKE' = None,
-    param_resolver: Optional['cirq.ParamResolver'] = None,
+    noise: cirq.NOISE_MODEL_LIKE = None,
+    param_resolver: Optional[cirq.ParamResolver] = None,
     repetitions: int = 1,
     dtype: Type[np.complexfloating] = np.complex64,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> 'cirq.Result':
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+) -> cirq.Result:
     """Simulates sampling from the given circuit.
 
     Args:
@@ -90,7 +92,7 @@ def sample(
     ).run(program=program, param_resolver=param_resolver, repetitions=repetitions)
 
 
-def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
+def _to_circuit(program: cirq.CIRCUIT_LIKE) -> cirq.Circuit:
     if isinstance(program, circuits.Circuit):
         # No change needed.
         result = program
@@ -103,14 +105,14 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
 
 
 def final_state_vector(
-    program: 'cirq.CIRCUIT_LIKE',
+    program: cirq.CIRCUIT_LIKE,
     *,
-    initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    initial_state: cirq.STATE_VECTOR_LIKE = 0,
+    param_resolver: cirq.ParamResolverOrSimilarType = None,
+    qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ignore_terminal_measurements: bool = False,
     dtype: Type[np.complexfloating] = np.complex64,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
     """Returns the state vector resulting from acting operations on a state.
 
@@ -174,14 +176,14 @@ def final_state_vector(
 
 
 def sample_sweep(
-    program: 'cirq.Circuit',
-    params: 'cirq.Sweepable',
+    program: cirq.Circuit,
+    params: cirq.Sweepable,
     *,
-    noise: 'cirq.NOISE_MODEL_LIKE' = None,
+    noise: cirq.NOISE_MODEL_LIKE = None,
     repetitions: int = 1,
     dtype: Type[np.complexfloating] = np.complex64,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> Sequence['cirq.Result']:
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+) -> Sequence[cirq.Result]:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -219,16 +221,16 @@ def sample_sweep(
 
 
 def final_density_matrix(
-    program: 'cirq.CIRCUIT_LIKE',
+    program: cirq.CIRCUIT_LIKE,
     *,
-    noise: 'cirq.NOISE_MODEL_LIKE' = None,
-    initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    noise: cirq.NOISE_MODEL_LIKE = None,
+    initial_state: cirq.STATE_VECTOR_LIKE = 0,
+    param_resolver: cirq.ParamResolverOrSimilarType = None,
+    qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     dtype: Type[np.complexfloating] = np.complex64,
     seed: Optional[Union[int, np.random.RandomState]] = None,
     ignore_measurement_results: bool = True,
-) -> 'np.ndarray':
+) -> np.ndarray:
     """Returns the density matrix resulting from simulating the circuit.
 
     Note that, unlike `cirq.final_state_vector`, terminal measurements

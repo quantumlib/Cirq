@@ -12,19 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
 from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
-from google.protobuf import any_pb2
-
-import cirq
 from cirq_google.api import v2
-from cirq_google.cloud import quantum
 from cirq_google.devices import grid_device
 from cirq_google.engine import abstract_processor, calibration, processor_sampler, util
 
 if TYPE_CHECKING:
+    from google.protobuf import any_pb2
+
+    import cirq
     import cirq_google as cg
+    import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.engine as engine_base
 
@@ -53,7 +55,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         project_id: str,
         processor_id: str,
-        context: 'engine_base.EngineContext',
+        context: engine_base.EngineContext,
         _processor: Optional[quantum.QuantumProcessor] = None,
     ) -> None:
         """A processor available via the engine.
@@ -75,7 +77,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             f'project_id={self.project_id!r}>'
         )
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object.
 
         Returns:
@@ -91,7 +93,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         device_config_name: str = "",
         snapshot_id: str = "",
         max_concurrent_jobs: int = 10,
-    ) -> 'cg.engine.ProcessorSampler':
+    ) -> cg.engine.ProcessorSampler:
         """Returns a sampler backed by the engine.
         Args:
             run_name: A unique identifier representing an automation run for the
@@ -153,7 +155,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-    ) -> 'abstract_job.AbstractJob':
+    ) -> abstract_job.AbstractJob:
         """Runs the supplied Circuit on this processor.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -222,12 +224,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self._processor = self.context.client.get_processor(self.project_id, self.processor_id)
         return self._processor.health.name
 
-    def expected_down_time(self) -> 'Optional[datetime.datetime]':
+    def expected_down_time(self) -> Optional[datetime.datetime]:
         """Returns the start of the next expected down time of the processor, if
         set."""
         return self._inner_processor().expected_down_time
 
-    def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
+    def expected_recovery_time(self) -> Optional[datetime.datetime]:
         """Returns the expected the processor should be available, if set."""
         return self._inner_processor().expected_recovery_time
 

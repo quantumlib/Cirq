@@ -14,6 +14,8 @@
 
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 
+from __future__ import annotations
+
 from types import NotImplementedType
 from typing import Any, Sequence, Tuple, Union
 

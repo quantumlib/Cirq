@@ -173,7 +173,7 @@ class Heatmap:
             invalid_args = ", ".join([k for k in kwargs if k not in valid_kwargs])
             raise ValueError(f"Received invalid argument(s): {invalid_args}")
 
-    def update_config(self, **kwargs) -> 'Heatmap':
+    def update_config(self, **kwargs) -> Heatmap:
         """Add/Modify **kwargs args passed during initialisation."""
         self._validate_kwargs(kwargs)
         self._config.update(kwargs)

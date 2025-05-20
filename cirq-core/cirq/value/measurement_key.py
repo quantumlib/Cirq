@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 from typing import Any, Dict, FrozenSet, Mapping, Optional, Tuple
 
@@ -49,7 +51,7 @@ class MeasurementKey:
                 '`MeasurementKey.parse_serialized` for correct behavior.'
             )
 
-    def replace(self, **changes) -> 'MeasurementKey':
+    def replace(self, **changes) -> MeasurementKey:
         """Returns a copy of this MeasurementKey with the specified changes."""
         return dataclasses.replace(self, **changes)
 
@@ -102,7 +104,7 @@ class MeasurementKey:
         return cls(name=name, path=tuple(path))
 
     @classmethod
-    def parse_serialized(cls, key_str: str) -> 'MeasurementKey':
+    def parse_serialized(cls, key_str: str) -> MeasurementKey:
         """Parses the serialized string representation of `Measurementkey` into a `MeasurementKey`.
 
         This is the only way to construct a `MeasurementKey` from a nested string representation
@@ -124,9 +126,7 @@ class MeasurementKey:
         """
         return self.replace(path=path_component + self.path)
 
-    def _with_rescoped_keys_(
-        self, path: Tuple[str, ...], bindable_keys: FrozenSet['MeasurementKey']
-    ):
+    def _with_rescoped_keys_(self, path: Tuple[str, ...], bindable_keys: FrozenSet[MeasurementKey]):
         return self.replace(path=path + self.path)
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import string
 from types import NotImplementedType
 from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING, TypeVar, Union
@@ -36,7 +38,7 @@ class QasmArgs(string.Formatter):
         self,
         precision: int = 10,
         version: str = '2.0',
-        qubit_id_map: Optional[Dict['cirq.Qid', str]] = None,
+        qubit_id_map: Optional[Dict[cirq.Qid, str]] = None,
         meas_key_id_map: Optional[Dict[str, str]] = None,
         meas_key_bitcount: Optional[Dict[str, int]] = None,
     ) -> None:
@@ -124,7 +126,7 @@ class SupportsQasmWithArgsAndQubits(Protocol):
 
     @doc_private
     def _qasm_(
-        self, qubits: Tuple['cirq.Qid'], args: QasmArgs
+        self, qubits: Tuple[cirq.Qid], args: QasmArgs
     ) -> Union[None, NotImplementedType, str]:
         pass
 
@@ -134,7 +136,7 @@ def qasm(
     val: Any,
     *,
     args: Optional[QasmArgs] = None,
-    qubits: Optional[Iterable['cirq.Qid']] = None,
+    qubits: Optional[Iterable[cirq.Qid]] = None,
     default: TDefault = RaiseTypeErrorIfNotProvided,
 ) -> Union[str, TDefault]:
     """Returns QASM code for the given value, if possible.

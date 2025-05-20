@@ -14,6 +14,8 @@
 
 """Device object representing Google devices with a grid qubit layout."""
 
+from __future__ import annotations
+
 import re
 import warnings
 from dataclasses import dataclass
@@ -164,6 +166,9 @@ _GATES: List[_GateRepresentations] = [
     ),
     _GateRepresentations(
         gate_spec_name='internal_gate', supported_gates=[cirq.GateFamily(ops.InternalGate)]
+    ),
+    _GateRepresentations(
+        gate_spec_name='reset', supported_gates=[cirq.GateFamily(cirq.ResetChannel)]
     ),
 ]
 
@@ -444,7 +449,7 @@ class GridDevice(cirq.Device):
         self._metadata = metadata
 
     @classmethod
-    def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> 'GridDevice':
+    def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> GridDevice:
         """Deserializes the `DeviceSpecification` to a `GridDevice`.
 
         Args:
@@ -535,7 +540,7 @@ class GridDevice(cirq.Device):
         gateset: cirq.Gateset,
         gate_durations: Optional[Mapping[cirq.GateFamily, cirq.Duration]] = None,
         all_qubits: Optional[Collection[cirq.GridQubit]] = None,
-    ) -> 'GridDevice':
+    ) -> GridDevice:
         """Constructs a GridDevice using the device information provided.
 
         EXPERIMENTAL: this method may have changes which are not backward compatible in the future.

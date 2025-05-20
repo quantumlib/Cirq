@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
 
 from cirq import ops, protocols
@@ -28,7 +30,7 @@ class Coupler(ops.Qid):
     _hash: Optional[int] = None
     _comp_key: Optional[Tuple[Any, Any]] = None
 
-    def __new__(cls, qubit0: ops.Qid, qubit1: ops.Qid) -> 'Coupler':
+    def __new__(cls, qubit0: ops.Qid, qubit1: ops.Qid) -> Coupler:
         """Creates a grid coupler between two qubits.
 
         Note that the qubits will be implicitly sorted.
@@ -99,9 +101,7 @@ class Coupler(ops.Qid):
     def __str__(self) -> str:
         return f"c({self._qubit0},{self._qubit1})"
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(wire_symbols=(str(self),))
 
     def _json_dict_(self) -> Dict[str, Any]:

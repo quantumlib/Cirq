@@ -13,20 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from __future__ import annotations
+
 import warnings
-from typing import Awaitable, Callable, Dict, Optional, Sequence, Tuple, Union
+from typing import Awaitable, Callable, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import grpc  # type: ignore
 from google.api_core import gapic_v1, grpc_helpers_async
-from google.auth import credentials as ga_credentials
 from google.auth.transport.grpc import SslCredentials
 from google.protobuf import empty_pb2
-from grpc.experimental import aio  # type: ignore
 
 from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 from .base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
 from .grpc import QuantumEngineServiceGrpcTransport
+
+if TYPE_CHECKING:
+    from google.auth import credentials as ga_credentials
+    from grpc.experimental import aio  # type: ignore
 
 
 class QuantumEngineServiceGrpcAsyncIOTransport(QuantumEngineServiceTransport):

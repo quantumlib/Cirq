@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import dataclasses
 import datetime
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, TYPE_CHECKING, Union
@@ -33,7 +35,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
+def _check_and_get_real_coef(observable: cirq.PauliString, atol: float):
     """Assert that a PauliString has a real coefficient and return it."""
     coef = observable.coefficient
     if isinstance(coef, sympy.Expr) or not np.isclose(coef.imag, 0, atol=atol):
@@ -43,8 +45,8 @@ def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
 
 def _obs_vals_from_measurements(
     bitstrings: np.ndarray,
-    qubit_to_index: Dict['cirq.Qid', int],
-    observable: 'cirq.PauliString',
+    qubit_to_index: Mapping[cirq.Qid, int],
+    observable: cirq.PauliString,
     atol: float,
 ):
     """Multiply together bitstrings to get observed values of operators."""
@@ -61,8 +63,8 @@ def _obs_vals_from_measurements(
 
 def _stats_from_measurements(
     bitstrings: np.ndarray,
-    qubit_to_index: Dict['cirq.Qid', int],
-    observable: 'cirq.PauliString',
+    qubit_to_index: Mapping[cirq.Qid, int],
+    observable: cirq.PauliString,
     atol: float,
 ) -> Tuple[float, float]:
     """Return the mean and squared standard error of the mean for the given
@@ -214,28 +216,31 @@ class BitstringAccumulator:
         self,
         meas_spec: _MeasurementSpec,
         simul_settings: List[InitObsSetting],
-        qubit_to_index: Dict['cirq.Qid', int],
+        qubit_to_index: Mapping[cirq.Qid, int],
         bitstrings: Optional[np.ndarray] = None,
         chunksizes: Optional[np.ndarray] = None,
         timestamps: Optional[np.ndarray] = None,
-        readout_calibration: Optional['BitstringAccumulator'] = None,
+        readout_calibration: Optional[BitstringAccumulator] = None,
     ):
         self._meas_spec = meas_spec
         self._simul_settings = simul_settings
         self._qubit_to_index = qubit_to_index
         self._readout_calibration = readout_calibration
 
+        self.bitstrings: np.ndarray[Tuple[int, ...], np.dtype[np.uint8]]
         if bitstrings is None:
             n_bits = len(qubit_to_index)
             self.bitstrings = np.zeros((0, n_bits), dtype=np.uint8)
         else:
             self.bitstrings = np.asarray(bitstrings, dtype=np.uint8)
 
+        self.chunksizes: np.ndarray[Tuple[int, ...], np.dtype[np.int64]]
         if chunksizes is None:
             self.chunksizes = np.zeros((0,), dtype=np.int64)
         else:
             self.chunksizes = np.asarray(chunksizes, dtype=np.int64)
 
+        self.timestamps: np.ndarray[Tuple[int, ...], np.dtype[np.datetime64]]
         if timestamps is None:
             self.timestamps = np.zeros((0,), dtype='datetime64[us]')
         else:

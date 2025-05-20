@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import List, Tuple
 
 import cirq
@@ -35,7 +37,7 @@ class SampleNoiseProperties(NoiseProperties):
         return [add_h, add_iswap]
 
 
-def test_sample_model():
+def test_sample_model() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     props = SampleNoiseProperties([q0, q1], [(q0, q1), (q1, q0)])
     model = NoiseModelFromNoiseProperties(props)

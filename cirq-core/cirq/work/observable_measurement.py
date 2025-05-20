@@ -12,13 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import dataclasses
 import itertools
 import os
 import tempfile
 import warnings
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 import pandas as pd
@@ -50,8 +64,8 @@ document(
 
 
 def _with_parameterized_layers(
-    circuit: 'cirq.AbstractCircuit', qubits: Sequence['cirq.Qid'], needs_init_layer: bool
-) -> 'cirq.Circuit':
+    circuit: cirq.AbstractCircuit, qubits: Sequence[cirq.Qid], needs_init_layer: bool
+) -> cirq.Circuit:
     """Return a copy of the input circuit with parameterized single-qubit rotations.
 
     These rotations flank the circuit: the initial two layers of X and Y gates
@@ -136,7 +150,7 @@ class RepetitionsStoppingCriteria(StoppingCriteria):
         return protocols.dataclass_json_dict(self)
 
 
-_OBS_TO_PARAM_VAL: Dict[Tuple['cirq.Pauli', bool], Tuple[float, float]] = {
+_OBS_TO_PARAM_VAL: Dict[Tuple[cirq.Pauli, bool], Tuple[float, float]] = {
     (ops.X, False): (0, -1 / 2),
     (ops.X, True): (0, +1 / 2),
     (ops.Y, False): (1 / 2, 0),
@@ -148,7 +162,7 @@ _OBS_TO_PARAM_VAL: Dict[Tuple['cirq.Pauli', bool], Tuple[float, float]] = {
 second element in the key is whether to measure in the positive or negative (flipped) basis
 for readout symmetrization."""
 
-_STATE_TO_PARAM_VAL: Dict['_NamedOneQubitState', Tuple[float, float]] = {
+_STATE_TO_PARAM_VAL: Dict[_NamedOneQubitState, Tuple[float, float]] = {
     value.KET_PLUS: (0, +1 / 2),
     value.KET_MINUS: (0, -1 / 2),
     value.KET_IMAG: (-1 / 2, 0),
@@ -162,7 +176,7 @@ _STATE_TO_PARAM_VAL: Dict['_NamedOneQubitState', Tuple[float, float]] = {
 def _get_params_for_setting(
     setting: InitObsSetting,
     flips: Iterable[bool],
-    qubits: Sequence['cirq.Qid'],
+    qubits: Sequence[cirq.Qid],
     needs_init_layer: bool,
 ) -> Dict[str, float]:
     """Return the parameter dictionary for the given setting.
@@ -204,9 +218,9 @@ def _get_params_for_setting(
 
 def _pad_setting(
     max_setting: InitObsSetting,
-    qubits: Sequence['cirq.Qid'],
+    qubits: Sequence[cirq.Qid],
     pad_init_state_with=value.KET_ZERO,
-    pad_obs_with: 'cirq.Gate' = ops.Z,
+    pad_obs_with: cirq.Gate = ops.Z,
 ) -> InitObsSetting:
     """Pad `max_setting`'s `init_state` and `observable` with `pad_xx_with` operations
     (defaults:  |0> and Z) so each max_setting has the same qubits. We need this
@@ -244,7 +258,7 @@ def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
 
 def _check_meas_specs_still_todo(
     meas_specs: List[_MeasurementSpec],
-    accumulators: Dict[_MeasurementSpec, BitstringAccumulator],
+    accumulators: Mapping[_MeasurementSpec, BitstringAccumulator],
     stopping_criteria: StoppingCriteria,
 ) -> Tuple[List[_MeasurementSpec], int]:
     """Filter `meas_specs` in case some are done.
@@ -303,7 +317,7 @@ class _FlippyMeasSpec:
 
     meas_spec: _MeasurementSpec
     flips: np.ndarray
-    qubits: Sequence['cirq.Qid']
+    qubits: Sequence[cirq.Qid]
 
     def param_tuples(self, *, needs_init_layer=True):
         yield from _get_params_for_setting(
@@ -318,7 +332,7 @@ class _FlippyMeasSpec:
 def _subdivide_meas_specs(
     meas_specs: Iterable[_MeasurementSpec],
     repetitions: int,
-    qubits: Sequence['cirq.Qid'],
+    qubits: Sequence[cirq.Qid],
     readout_symmetrization: bool,
 ) -> Tuple[List[_FlippyMeasSpec], int]:
     """Split measurement specs into sub-jobs for readout symmetrization
@@ -468,13 +482,13 @@ def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting
 
 
 def measure_grouped_settings(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = False,
-    circuit_sweep: 'cirq.Sweepable' = None,
+    circuit_sweep: cirq.Sweepable = None,
     readout_calibrations: Optional[BitstringAccumulator] = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
 ) -> List[BitstringAccumulator]:
@@ -597,8 +611,8 @@ def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GR
 
 
 def _get_all_qubits(
-    circuit: 'cirq.AbstractCircuit', observables: Iterable['cirq.PauliString']
-) -> List['cirq.Qid']:
+    circuit: cirq.AbstractCircuit, observables: Iterable[cirq.PauliString]
+) -> List[cirq.Qid]:
     """Helper function for `measure_observables` to get all qubits from a circuit and a
     collection of observables."""
     qubit_set = set()
@@ -609,13 +623,13 @@ def _get_all_qubits(
 
 
 def measure_observables(
-    circuit: 'cirq.AbstractCircuit',
-    observables: Iterable['cirq.PauliString'],
-    sampler: Union['cirq.Simulator', 'cirq.Sampler'],
+    circuit: cirq.AbstractCircuit,
+    observables: Iterable[cirq.PauliString],
+    sampler: Union[cirq.Simulator, cirq.Sampler],
     stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = False,
-    circuit_sweep: Optional['cirq.Sweepable'] = None,
+    circuit_sweep: Optional[cirq.Sweepable] = None,
     grouper: Union[str, GROUPER_T] = group_settings_greedy,
     readout_calibrations: Optional[BitstringAccumulator] = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),
@@ -671,13 +685,13 @@ def measure_observables(
 
 
 def measure_observables_df(
-    circuit: 'cirq.AbstractCircuit',
-    observables: Iterable['cirq.PauliString'],
-    sampler: Union['cirq.Simulator', 'cirq.Sampler'],
+    circuit: cirq.AbstractCircuit,
+    observables: Iterable[cirq.PauliString],
+    sampler: Union[cirq.Simulator, cirq.Sampler],
     stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = False,
-    circuit_sweep: Optional['cirq.Sweepable'] = None,
+    circuit_sweep: Optional[cirq.Sweepable] = None,
     grouper: Union[str, GROUPER_T] = group_settings_greedy,
     readout_calibrations: Optional[BitstringAccumulator] = None,
     checkpoint: CheckpointFileOptions = CheckpointFileOptions(),

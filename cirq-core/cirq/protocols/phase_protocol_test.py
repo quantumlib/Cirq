@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 
 
-def test_phase_by():
+def test_phase_by() -> None:
     class NoMethod:
         pass
 

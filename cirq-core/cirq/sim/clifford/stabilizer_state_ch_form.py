@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any, Dict, List, Sequence
 
 import numpy as np
@@ -81,7 +83,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def _value_equality_values_(self) -> Any:
         return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.s, self.omega)
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.StabilizerStateChForm':
+    def copy(self, deep_copy_buffers: bool = True) -> cirq.StabilizerStateChForm:
         copy = StabilizerStateChForm(self.n)
 
         copy.G = self.G.copy()
@@ -267,7 +269,7 @@ class StabilizerStateChForm(qis.StabilizerState):
 
         self.update_sum(t, u, delta=delta)
 
-    def kron(self, other: 'cirq.StabilizerStateChForm') -> 'cirq.StabilizerStateChForm':
+    def kron(self, other: cirq.StabilizerStateChForm) -> cirq.StabilizerStateChForm:
         n = self.n + other.n
         copy = StabilizerStateChForm(n)
         copy.G[: self.n, : self.n] = self.G
@@ -282,14 +284,14 @@ class StabilizerStateChForm(qis.StabilizerState):
         copy.omega = self.omega * other.omega
         return copy
 
-    def reindex(self, axes: Sequence[int]) -> 'cirq.StabilizerStateChForm':
+    def reindex(self, axes: Sequence[int]) -> cirq.StabilizerStateChForm:
         copy = StabilizerStateChForm(self.n)
         copy.G = self.G[axes][:, axes]
         copy.F = self.F[axes][:, axes]
-        copy.M = self.M[axes][:, axes]
-        copy.gamma = self.gamma[axes]
-        copy.v = self.v[axes]
-        copy.s = self.s[axes]
+        copy.M = self.M[axes][:, axes]  # type: ignore[assignment]
+        copy.gamma = self.gamma[axes]  # type: ignore[assignment]
+        copy.v = self.v[axes]  # type: ignore[assignment]
+        copy.s = self.s[axes]  # type: ignore[assignment]
         copy.omega = self.omega
         return copy
 
@@ -387,7 +389,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         self.omega *= coefficient
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> List[int]:
         return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
 

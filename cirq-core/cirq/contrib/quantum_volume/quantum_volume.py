@@ -3,15 +3,19 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from __future__ import annotations
 
-import networkx as nx
+from dataclasses import dataclass
+from typing import Callable, Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+
 import numpy as np
-import pandas as pd
 
 import cirq
 import cirq.contrib.routing as ccr
+
+if TYPE_CHECKING:
+    import networkx as nx
+    import pandas as pd
 
 
 def generate_model_circuit(

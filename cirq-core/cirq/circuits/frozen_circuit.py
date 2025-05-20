@@ -30,13 +30,13 @@ from typing import (
     Union,
 )
 
-import numpy as np
-
 from cirq import _compat, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 

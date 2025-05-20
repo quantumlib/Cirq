@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from __future__ import annotations
+
 import cirq
 from cirq.transformers.gauge_compiling import ISWAPGaugeTransformer
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester

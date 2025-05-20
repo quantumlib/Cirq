@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-from typing import Any, Dict, List, Type, Union
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Type, TYPE_CHECKING, Union
 
 import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
+
+if TYPE_CHECKING:
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 class PasqalGateset(cirq.CompilationTargetGateset):
@@ -55,7 +59,7 @@ class PasqalGateset(cirq.CompilationTargetGateset):
         """Maximum number of qubits on which a gate from this gateset can act upon."""
         return 2
 
-    def decompose_to_target_gateset(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
+    def decompose_to_target_gateset(self, op: cirq.Operation, moment_idx: int) -> DecomposeResult:
         """Method to rewrite the given operation using gates from this gateset.
 
         Args:
@@ -79,11 +83,11 @@ class PasqalGateset(cirq.CompilationTargetGateset):
         return NotImplemented
 
     @property
-    def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         return []
 
     @property
-    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+    def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         return []
 
     def __repr__(self):

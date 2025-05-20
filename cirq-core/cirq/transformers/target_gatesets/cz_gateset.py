@@ -14,6 +14,8 @@
 
 """Target gateset used for compiling circuits to CZ + 1-q rotations + measurement gates."""
 
+from __future__ import annotations
+
 from typing import Any, Dict, Sequence, Type, TYPE_CHECKING, Union
 
 from cirq import ops, protocols
@@ -47,7 +49,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         *,
         atol: float = 1e-8,
         allow_partial_czs: bool = False,
-        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (),
+        additional_gates: Sequence[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = (),
         preserve_moment_structure: bool = True,
         reorder_operations: bool = False,
     ) -> None:
@@ -83,7 +85,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         self.atol = atol
         self.allow_partial_czs = allow_partial_czs
 
-    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+    def _decompose_two_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
         if not protocols.has_unitary(op):
             return NotImplemented
         return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(

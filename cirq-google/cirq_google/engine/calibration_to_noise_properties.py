@@ -26,21 +26,23 @@ calibration using the following pipeline:
     >>> result = simulator.simulate(circuit)
 """
 
+from __future__ import annotations
+
 from typing import Dict, Optional, Tuple, Type, TYPE_CHECKING
 
 from cirq import ops
 from cirq.devices import noise_utils
 from cirq_google import engine, ops as cg_ops
 from cirq_google.devices import google_noise_properties
-from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq
+    from cirq_google.engine import util
 
 
 # TODO: acquire this based on the target device.
 # Default map of gates to their durations.
-DEFAULT_GATE_NS: Dict[Type['cirq.Gate'], float] = {
+DEFAULT_GATE_NS: Dict[Type[cirq.Gate], float] = {
     ops.ZPowGate: 25.0,
     ops.MeasurementGate: 4000.0,
     ops.ResetChannel: 250.0,
@@ -51,12 +53,12 @@ DEFAULT_GATE_NS: Dict[Type['cirq.Gate'], float] = {
     cg_ops.SycamoreGate: 12.0,
     # ops.WaitGate is a special case.
 }
-GATE_PREFIX_PAIRS: Dict[Type['cirq.Gate'], str] = {
+GATE_PREFIX_PAIRS: Dict[Type[cirq.Gate], str] = {
     cg_ops.SycamoreGate: 'two_qubit_parallel_sycamore_gate',
     ops.CZPowGate: 'two_qubit_parallel_cz_gate',
     ops.ISwapPowGate: 'two_qubit_parallel_sqrt_iswap_gate',
 }
-GATE_ZPHASE_CODE_PAIRS: Dict[Type['cirq.Gate'], str] = {
+GATE_ZPHASE_CODE_PAIRS: Dict[Type[cirq.Gate], str] = {
     cg_ops.SycamoreGate: 'syc',
     ops.CZPowGate: 'cz',
     ops.ISwapPowGate: 'sqrt_iswap',
@@ -65,7 +67,7 @@ GATE_ZPHASE_CODE_PAIRS: Dict[Type['cirq.Gate'], str] = {
 
 def _unpack_1q_from_calibration(
     metric_name: str, calibration: engine.Calibration
-) -> Dict['cirq.Qid', float]:
+) -> Dict[cirq.Qid, float]:
     """Converts a single-qubit metric from Calibration to dict format."""
     if metric_name not in calibration:
         return {}
@@ -77,7 +79,7 @@ def _unpack_1q_from_calibration(
 
 def _unpack_2q_from_calibration(
     metric_name: str, calibration: engine.Calibration
-) -> Dict[Tuple['cirq.Qid', ...], float]:
+) -> Dict[Tuple[cirq.Qid, ...], float]:
     """Converts a two-qubit metric from Calibration to dict format."""
     if metric_name not in calibration:
         return {}
@@ -90,7 +92,7 @@ def _unpack_2q_from_calibration(
 def noise_properties_from_calibration(
     calibration: engine.Calibration,
     zphase_data: Optional[util.ZPhaseDataType] = None,
-    gate_times_ns: Optional[Dict[Type['cirq.Gate'], float]] = None,
+    gate_times_ns: Optional[Dict[Type[cirq.Gate], float]] = None,
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between `cirq_google.Calibration` and NoiseProperties.
 

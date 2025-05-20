@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import cast, Collection, Dict, List, Optional, Set, Tuple
 
 import cirq
@@ -56,7 +58,7 @@ def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.Grid
 def _create_grid_device_from_diagram(
     ascii_grid: str,
     gateset: cirq.Gateset,
-    gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+    gate_durations: Optional[Dict[cirq.GateFamily, cirq.Duration]] = None,
 ) -> grid_device.GridDevice:
     """Parse ASCIIart device layout into a GridDevice instance.
 

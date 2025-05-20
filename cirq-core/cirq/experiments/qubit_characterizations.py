@@ -34,7 +34,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
-from mpl_toolkits import mplot3d
 from scipy.optimize import curve_fit
 
 import cirq.vis.heatmap as cirq_heatmap
@@ -43,6 +42,8 @@ from cirq import circuits, ops, protocols
 from cirq.devices import grid_qubit
 
 if TYPE_CHECKING:
+    from mpl_toolkits import mplot3d
+
     import cirq
 
 
@@ -744,7 +745,7 @@ def _random_single_q_clifford(
 ) -> List[cirq.Operation]:
     clifford_group_size = 24
     operations = [[gate.to_phased_xz_gate()(qubit) for gate in gates] for gates in cfds]
-    gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
+    gate_ids = np.random.choice(clifford_group_size, num_cfds).tolist()
     adjoint = _reduce_gate_seq([gate for gate_id in gate_ids for gate in cfds[gate_id]]) ** -1
     return [op for gate_id in gate_ids for op in operations[gate_id]] + [
         adjoint.to_phased_xz_gate()(qubit)
@@ -755,7 +756,7 @@ def _random_two_q_clifford(
     q_0: cirq.Qid, q_1: cirq.Qid, num_cfds: int, cfd_matrices: np.ndarray, cliffords: Cliffords
 ) -> cirq.Circuit:
     clifford_group_size = 11520
-    idx_list = list(np.random.choice(clifford_group_size, num_cfds))
+    idx_list = np.random.choice(clifford_group_size, num_cfds).tolist()
     circuit = circuits.Circuit()
     for idx in idx_list:
         circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))

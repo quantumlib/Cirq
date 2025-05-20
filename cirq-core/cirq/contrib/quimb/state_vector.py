@@ -1,12 +1,17 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-import warnings
-from typing import cast, Dict, List, Optional, Sequence, Tuple, Union
 
-import numpy as np
+from __future__ import annotations
+
+import warnings
+from typing import cast, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
 import quimb
 import quimb.tensor as qtn
 
 import cirq
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def _get_quimb_version():
@@ -28,7 +33,7 @@ def circuit_to_tensors(
     circuit: cirq.Circuit,
     qubits: Optional[Sequence[cirq.Qid]] = None,
     initial_state: Union[int, None] = 0,
-) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], None]:
+) -> Tuple[List[qtn.Tensor], Dict[cirq.Qid, int], None]:
     """Given a circuit, construct a tensor network representation.
 
     Indices are named "i{i}_q{x}" where i is a time index and x is a

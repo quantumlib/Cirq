@@ -11,7 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Utility methods for checking properties of matrices."""
+
+from __future__ import annotations
+
+from types import EllipsisType
 from typing import cast, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -228,7 +233,7 @@ def slice_for_qubits_equal_to(
     big_endian_qureg_value: int = 0,
     num_qubits: Optional[int] = None,
     qid_shape: Optional[Tuple[int, ...]] = None,
-) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+) -> Tuple[Union[slice, int, EllipsisType], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -297,7 +302,7 @@ def slice_for_qubits_equal_to(
     out_size = (
         cast(int, num_qubits) if out_size_specified else max(target_qubit_axes, default=-1) + 1
     )
-    result = cast(List[Union[slice, int, 'ellipsis']], [slice(None)] * out_size)
+    result = cast(List[Union[slice, int, EllipsisType]], [slice(None)] * out_size)
     if not out_size_specified:
         result.append(Ellipsis)
     if qid_shape is None:

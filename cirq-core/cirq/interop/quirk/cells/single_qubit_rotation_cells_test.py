@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import sympy
 
 import cirq
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_fixed_single_qubit_rotations():
+def test_fixed_single_qubit_rotations() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
 
     assert_url_to_circuit_returns(
@@ -89,7 +91,7 @@ def test_fixed_single_qubit_rotations():
     )
 
 
-def test_dynamic_single_qubit_rotations():
+def test_dynamic_single_qubit_rotations() -> None:
     a, b, c = cirq.LineQubit.range(3)
     t = sympy.Symbol('t')
 
@@ -118,7 +120,7 @@ def test_dynamic_single_qubit_rotations():
     )
 
 
-def test_formulaic_gates():
+def test_formulaic_gates() -> None:
     a, b = cirq.LineQubit.range(2)
     t = sympy.Symbol('t')
 

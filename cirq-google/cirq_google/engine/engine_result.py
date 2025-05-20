@@ -11,14 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import datetime
 from typing import Any, Dict, Mapping, Optional, TYPE_CHECKING
-
-import numpy as np
 
 from cirq import study
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -57,9 +60,7 @@ class EngineResult(study.ResultDict):
         self.job_finished_time = job_finished_time
 
     @classmethod
-    def from_result(
-        cls, result: 'cirq.Result', *, job_id: str, job_finished_time: datetime.datetime
-    ):
+    def from_result(cls, result: cirq.Result, *, job_id: str, job_finished_time: datetime.datetime):
         if isinstance(result, study.ResultDict):
             # optimize by using private methods
             return cls(

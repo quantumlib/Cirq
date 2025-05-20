@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import Any, Callable, cast, Iterable, List, Sequence, Tuple, Union
 
 from cirq import circuits, ops, protocols
@@ -53,7 +55,7 @@ def _sorted_best_string_placements(
             ):
                 # This is as far through as this Pauli string can move
                 break
-            string_op = string_op.pass_operations_over([out_op], after_to_before=True)
+            string_op = string_op.conjugated_by(protocols.inverse(out_op))
             curr = (string_op, i + 1, possible_node)
             if sort_key(curr) > sort_key(node_max):
                 node_max = curr

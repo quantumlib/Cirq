@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import abc
 import collections
 import itertools
@@ -71,7 +74,7 @@ class Sweep(metaclass=abc.ABCMeta):
     see the Product and Zip documentation.
     """
 
-    def __mul__(self, other: 'Sweep') -> 'Sweep':
+    def __mul__(self, other: Sweep) -> Sweep:
         factors: List[Sweep] = []
         if isinstance(self, Product):
             factors.extend(self.factors)
@@ -85,7 +88,7 @@ class Sweep(metaclass=abc.ABCMeta):
             raise TypeError(f'cannot multiply sweep and {type(other)}')
         return Product(*factors)
 
-    def __add__(self, other: 'Sweep') -> 'Sweep':
+    def __add__(self, other: Sweep) -> Sweep:
         sweeps: List[Sweep] = []
         if isinstance(self, Zip):
             sweeps.extend(self.sweeps)
@@ -108,7 +111,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def keys(self) -> List['cirq.TParamKey']:
+    def keys(self) -> List[cirq.TParamKey]:
         """The keys for the all of the sympy.Symbols that are resolved."""
 
     @abc.abstractmethod
@@ -125,10 +128,10 @@ class Sweep(metaclass=abc.ABCMeta):
         pass
 
     @overload
-    def __getitem__(self, val: slice) -> 'Sweep':
+    def __getitem__(self, val: slice) -> Sweep:
         pass
 
-    def __getitem__(self, val: Union[int, slice]) -> Union[resolver.ParamResolver, 'Sweep']:
+    def __getitem__(self, val: Union[int, slice]) -> Union[resolver.ParamResolver, Sweep]:
         n = len(self)
         if isinstance(val, int):
             if val < -n or val >= n:
@@ -186,7 +189,7 @@ class _Unit(Sweep):
         return True
 
     @property
-    def keys(self) -> List['cirq.TParamKey']:
+    def keys(self) -> List[cirq.TParamKey]:
         return []
 
     def __len__(self) -> int:
@@ -233,8 +236,8 @@ class Product(Sweep):
         return hash(tuple(self.factors))
 
     @property
-    def keys(self) -> List['cirq.TParamKey']:
-        return sum((factor.keys for factor in self.factors), [])
+    def keys(self) -> List[cirq.TParamKey]:
+        return list(itertools.chain.from_iterable(factor.keys for factor in self.factors))
 
     def __len__(self) -> int:
         length = 1
@@ -308,7 +311,7 @@ class Concat(Sweep):
         return hash(tuple(self.sweeps))
 
     @property
-    def keys(self) -> List['cirq.TParamKey']:
+    def keys(self) -> List[cirq.TParamKey]:
         return self.sweeps[0].keys
 
     def __len__(self) -> int:
@@ -361,8 +364,8 @@ class Zip(Sweep):
         return hash(tuple(self.sweeps))
 
     @property
-    def keys(self) -> List['cirq.TParamKey']:
-        return sum((sweep.keys for sweep in self.sweeps), [])
+    def keys(self) -> List[cirq.TParamKey]:
+        return list(itertools.chain.from_iterable(sweep.keys for sweep in self.sweeps))
 
     def __len__(self) -> int:
         if not self.sweeps:
@@ -372,7 +375,7 @@ class Zip(Sweep):
     def param_tuples(self) -> Iterator[Params]:
         iters = [sweep.param_tuples() for sweep in self.sweeps]
         for values in zip(*iters):
-            yield sum(values, ())
+            yield tuple(itertools.chain.from_iterable(values))
 
     def __repr__(self) -> str:
         sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
@@ -449,7 +452,7 @@ class ZipLongest(Zip):
 class SingleSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
-    def __init__(self, key: 'cirq.TParamKey') -> None:
+    def __init__(self, key: cirq.TParamKey) -> None:
         if isinstance(key, sympy.Symbol):
             key = str(key)
         self.key = key
@@ -467,7 +470,7 @@ class SingleSweep(Sweep):
         pass
 
     @property
-    def keys(self) -> List['cirq.TParamKey']:
+    def keys(self) -> List[cirq.TParamKey]:
         return [self.key]
 
     def param_tuples(self) -> Iterator[Params]:
@@ -483,7 +486,7 @@ class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
     def __init__(
-        self, key: 'cirq.TParamKey', points: Sequence[float], metadata: Optional[Any] = None
+        self, key: cirq.TParamKey, points: Sequence[float], metadata: Optional[Any] = None
     ) -> None:
         """Creates a sweep on a variable with supplied values.
 
@@ -524,7 +527,7 @@ class Linspace(SingleSweep):
 
     def __init__(
         self,
-        key: 'cirq.TParamKey',
+        key: cirq.TParamKey,
         start: float,
         stop: float,
         length: int,
@@ -607,7 +610,7 @@ class ListSweep(Sweep):
         return not self == other
 
     @property
-    def keys(self) -> List['cirq.TParamKey']:
+    def keys(self) -> List[cirq.TParamKey]:
         if not self.resolver_list:
             return []
         return list(map(str, self.resolver_list[0].param_dict))

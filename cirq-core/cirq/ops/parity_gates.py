@@ -14,6 +14,8 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
+from __future__ import annotations
+
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
@@ -117,14 +119,14 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
 
-    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> Iterator[cirq.OP_TREE]:
         yield common_gates.YPowGate(exponent=-0.5).on_each(*qubits)
         yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
         yield common_gates.YPowGate(exponent=0.5).on_each(*qubits)
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, protocols.CircuitDiagramInfo]:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'), exponent=self._diagram_exponent(args)
         )
@@ -226,14 +228,12 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _has_stabilizer_effect_(self) -> bool:
         return self.exponent % 2 in (0, 0.5, 1, 1.5)
 
-    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> Iterator['cirq.OP_TREE']:
+    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> Iterator[cirq.OP_TREE]:
         yield common_gates.XPowGate(exponent=0.5).on_each(*qubits)
         yield ZZPowGate(exponent=self.exponent, global_shift=self.global_shift)(*qubits)
         yield common_gates.XPowGate(exponent=-0.5).on_each(*qubits)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('YY', 'YY'), exponent=self._diagram_exponent(args)
         )
@@ -281,8 +281,8 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )(qubits[0], qubits[1])
 
     def _decompose_into_clifford_with_qubits_(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> Sequence[Union['cirq.Operation', Sequence['cirq.Operation']]]:
+        self, qubits: Sequence[cirq.Qid]
+    ) -> Sequence[Union[cirq.Operation, Sequence[cirq.Operation]]]:
         if not self._has_stabilizer_effect_():
             return NotImplemented
         if self.exponent % 2 == 0:
@@ -319,14 +319,12 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('ZZ', 'ZZ'), exponent=self._diagram_exponent(args)
         )
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return None
 
@@ -342,7 +340,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
         return args.target_tensor
 
-    def _phase_by_(self, phase_turns: float, qubit_index: int) -> "ZZPowGate":
+    def _phase_by_(self, phase_turns: float, qubit_index: int) -> ZZPowGate:
         return self
 
     def __str__(self) -> str:
@@ -382,8 +380,8 @@ class MSGate(XXPowGate):
         return type(self)(rads=exponent * np.pi / 2)
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, protocols.CircuitDiagramInfo]:
         angle_str = self._format_exponent_as_angle(args, order=4)
         symbol = f'MS({angle_str})'
         return protocols.CircuitDiagramInfo(wire_symbols=(symbol, symbol))
@@ -407,7 +405,7 @@ class MSGate(XXPowGate):
         return protocols.obj_to_dict_helper(self, ["rads"])
 
     @classmethod
-    def _from_json_dict_(cls, rads: float, **kwargs: Any) -> 'MSGate':
+    def _from_json_dict_(cls, rads: float, **kwargs: Any) -> MSGate:
         return cls(rads=rads)
 
 

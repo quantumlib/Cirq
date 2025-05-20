@@ -18,6 +18,8 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
+from __future__ import annotations
+
 from typing import (
     AbstractSet,
     Any,
@@ -81,7 +83,7 @@ class DiagonalGate(raw_types.Gate):
     all phases.
     """
 
-    def __init__(self, diag_angles_radians: Sequence['cirq.TParamVal']) -> None:
+    def __init__(self, diag_angles_radians: Sequence[cirq.TParamVal]) -> None:
         r"""A n-qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and its on-diagonal
@@ -92,10 +94,10 @@ class DiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_N)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_N})$.
         """
-        self._diag_angles_radians: Tuple['cirq.TParamVal', ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: Tuple[cirq.TParamVal, ...] = tuple(diag_angles_radians)
 
     @property
-    def diag_angles_radians(self) -> Tuple['cirq.TParamVal', ...]:
+    def diag_angles_radians(self) -> Tuple[cirq.TParamVal, ...]:
         return self._diag_angles_radians
 
     def _num_qubits_(self):
@@ -109,9 +111,7 @@ class DiagonalGate(raw_types.Gate):
             name for angle in self._diag_angles_radians for name in protocols.parameter_names(angle)
         }
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'DiagonalGate':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> DiagonalGate:
         return DiagonalGate(
             protocols.resolve_parameters(self._diag_angles_radians, resolver, recursive)
         )
@@ -124,7 +124,7 @@ class DiagonalGate(raw_types.Gate):
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if self._is_parameterized_():
             return NotImplemented
         for index, angle in enumerate(self._diag_angles_radians):
@@ -132,9 +132,7 @@ class DiagonalGate(raw_types.Gate):
             args.target_tensor[subspace_index] *= np.exp(1j * angle)
         return args.target_tensor
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
@@ -150,7 +148,7 @@ class DiagonalGate(raw_types.Gate):
             [diag_str] + [f"#{i}" for i in range(2, self._num_qubits_() + 1)]
         )
 
-    def __pow__(self, exponent: Any) -> 'DiagonalGate':
+    def __pow__(self, exponent: Any) -> DiagonalGate:
         if not isinstance(exponent, (int, float, sympy.Basic)):
             return NotImplemented
         angles = []
@@ -163,8 +161,8 @@ class DiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def _decompose_for_basis(
-        self, index: int, bit_flip: int, theta: 'cirq.TParamVal', qubits: Sequence['cirq.Qid']
-    ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
+        self, index: int, bit_flip: int, theta: cirq.TParamVal, qubits: Sequence[cirq.Qid]
+    ) -> Iterator[Union[cirq.ZPowGate, cirq.CXPowGate]]:
         if index == 0:
             return
         largest_digit = self._num_qubits_() - (len(bin(index)) - 2)
@@ -175,7 +173,7 @@ class DiagonalGate(raw_types.Gate):
         elif _flip_bit > largest_digit:
             yield common_gates.CNOT(qubits[_flip_bit], qubits[largest_digit])
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         """Decompose the n-qubit diagonal gates into CNOT and Rz gates.
 
         A 3 qubits decomposition looks like

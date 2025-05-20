@@ -24,7 +24,6 @@ from typing import Any, cast, Dict, Mapping, Optional, Sequence, Tuple, TYPE_CHE
 
 import networkx as nx
 import numpy as np
-import pandas as pd
 from matplotlib import pyplot as plt
 
 from cirq import ops, value, vis
@@ -44,6 +43,8 @@ from cirq.qis import noise_utils
 
 if TYPE_CHECKING:
     import multiprocessing
+
+    import pandas as pd
 
     import cirq
 
@@ -107,6 +108,10 @@ class TwoQubitXEBResult:
 
     @functools.cached_property
     def _qubit_pair_map(self) -> Dict[Tuple[cirq.GridQubit, cirq.GridQubit], int]:
+        if isinstance(self.fidelities.index[0][0], ops.Qid):
+            return {
+                (min(q0, q1), max(q0, q1)): i for i, (q0, q1) in enumerate(self.fidelities.index)
+            }
         return {
             (min(q0, q1), max(q0, q1)): i
             for i, (_, _, (q0, q1)) in enumerate(self.fidelities.index)

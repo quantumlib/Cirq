@@ -14,7 +14,7 @@
 
 """Tests for AQTDeviceMetadata."""
 
-from typing import List
+from __future__ import annotations
 
 import pytest
 
@@ -24,7 +24,7 @@ from cirq_aqt.aqt_target_gateset import AQTTargetGateset
 
 
 @pytest.fixture
-def qubits() -> List[cirq.LineQubit]:
+def qubits() -> list[cirq.LineQubit]:
     return cirq.LineQubit.range(5)
 
 

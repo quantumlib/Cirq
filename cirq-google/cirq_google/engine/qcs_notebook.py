@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import dataclasses
-from typing import cast, Optional, Sequence, Union
+from __future__ import annotations
 
-import cirq
+import dataclasses
+from typing import cast, Optional, Sequence, TYPE_CHECKING, Union
+
 from cirq_google import get_engine, ProcessorSampler
 from cirq_google.engine import (
     AbstractEngine,
@@ -24,6 +25,9 @@ from cirq_google.engine import (
     create_noiseless_virtual_engine_from_latest_templates,
     EngineProcessor,
 )
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @dataclasses.dataclass

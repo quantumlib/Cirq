@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Support for serializing gates supported by IonQ's API."""
+
+from __future__ import annotations
+
 import dataclasses
 import json
 from typing import (
@@ -25,16 +29,19 @@ from typing import (
     Optional,
     Sequence,
     Type,
+    TYPE_CHECKING,
     Union,
 )
 
 import numpy as np
-import sympy
 
 import cirq
 from cirq.devices import line_qubit
 from cirq_ionq.ionq_exceptions import IonQSerializerMixedGatesetsException
 from cirq_ionq.ionq_native_gates import GPI2Gate, GPIGate, MSGate, ZZGate
+
+if TYPE_CHECKING:
+    import sympy
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, ZZGate, cirq.MeasurementGate, unroll_circuit_op=False
@@ -74,7 +81,7 @@ class Serializer:
                 should be serialized as a gate rounded to that parameter. Defaults to 1e-8.
         """
         self.atol = atol
-        self._dispatch: Dict[Type['cirq.Gate'], Callable] = {
+        self._dispatch: Dict[Type[cirq.Gate], Callable] = {
             cirq.XPowGate: self._serialize_x_pow_gate,
             cirq.YPowGate: self._serialize_y_pow_gate,
             cirq.ZPowGate: self._serialize_z_pow_gate,
@@ -190,7 +197,7 @@ class Serializer:
         if not circuit.are_all_measurements_terminal():
             raise ValueError('All measurements in circuit must be at end of circuit.')
 
-    def _validate_qubits(self, all_qubits: Collection['cirq.Qid']):
+    def _validate_qubits(self, all_qubits: Collection[cirq.Qid]):
         """Validates qubit types and values."""
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError(

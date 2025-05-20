@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 from typing import List, Sequence, Tuple, TYPE_CHECKING
 
@@ -38,7 +40,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> List[int]:
         """Measures the state.
 
@@ -50,10 +52,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         """
 
     def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> np.ndarray:
         """Samples the state. Subclasses can override with more performant method.
 

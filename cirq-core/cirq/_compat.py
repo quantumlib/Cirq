@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
+
+from __future__ import annotations
+
 import contextlib
 import contextvars
 import dataclasses
@@ -534,7 +537,7 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
                 sys.modules[self.old_module_name] = sys.modules[self.new_module_name]
                 return sys.modules[self.old_module_name]
             method(self.new_module_name)
-            # https://docs.python.org/3.5/library/importlib.html#importlib.abc.Loader.load_module
+            # https://docs.python.org/3.11/library/importlib.html#importlib.abc.Loader.load_module
             assert self.new_module_name in sys.modules, (
                 f"Wrapped loader {self.loader} was "
                 f"expected to insert "

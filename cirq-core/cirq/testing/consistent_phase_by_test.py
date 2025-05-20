@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -89,7 +91,7 @@ class SemiBadPhaser:
         return SemiBadPhaser([resolver.value_of(val, recursive) for val in self.e])
 
 
-def test_assert_phase_by_is_consistent_with_unitary():
+def test_assert_phase_by_is_consistent_with_unitary() -> None:
     cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodPhaser(0.5))
 
     cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodQuditPhaser(0.5))

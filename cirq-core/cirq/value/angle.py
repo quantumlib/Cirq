@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, overload
+from __future__ import annotations
+
+from typing import Optional, overload, TYPE_CHECKING
 
 import numpy as np
 import sympy
 
-from cirq.value import type_alias
+if TYPE_CHECKING:
+    from cirq.value import type_alias
 
 
 def chosen_angle_to_half_turns(

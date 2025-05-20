@@ -463,6 +463,42 @@ class ISwapPowGate(google.protobuf.message.Message):
 global___ISwapPowGate = ISwapPowGate
 
 @typing.final
+class ISwapLikeGate(google.protobuf.message.Message):
+    """Representation of an iswap-like gate
+    with theta=pi/2 and a non-zero hardware-dependent phi angle
+    """
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _OriginalCirqGate:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _OriginalCirqGateEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[ISwapLikeGate._OriginalCirqGate.ValueType], builtins.type):
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        UNSPECIFIED: ISwapLikeGate._OriginalCirqGate.ValueType  # 0
+        SYCAMORE: ISwapLikeGate._OriginalCirqGate.ValueType  # 1
+        WILLOW: ISwapLikeGate._OriginalCirqGate.ValueType  # 2
+
+    class OriginalCirqGate(_OriginalCirqGate, metaclass=_OriginalCirqGateEnumTypeWrapper):
+        """Original gate, for deserializing faithfully."""
+
+    UNSPECIFIED: ISwapLikeGate.OriginalCirqGate.ValueType  # 0
+    SYCAMORE: ISwapLikeGate.OriginalCirqGate.ValueType  # 1
+    WILLOW: ISwapLikeGate.OriginalCirqGate.ValueType  # 2
+
+    ORIGINAL_GATE_FIELD_NUMBER: builtins.int
+    original_gate: global___ISwapLikeGate.OriginalCirqGate.ValueType
+    def __init__(
+        self,
+        *,
+        original_gate: global___ISwapLikeGate.OriginalCirqGate.ValueType = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["original_gate", b"original_gate"]) -> None: ...
+
+global___ISwapLikeGate = ISwapLikeGate
+
+@typing.final
 class MeasurementGate(google.protobuf.message.Message):
     """Representation of cirq.MeasurementGate
     i.e. cirq.measure
@@ -489,7 +525,7 @@ global___MeasurementGate = MeasurementGate
 
 @typing.final
 class WaitGate(google.protobuf.message.Message):
-    """Representation of cirq.WAitGate"""
+    """Representation of cirq.WaitGate"""
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -512,7 +548,9 @@ global___WaitGate = WaitGate
 
 @typing.final
 class Operation(google.protobuf.message.Message):
-    """An operation acts on a set of qubits."""
+    """An operation acts on a set of qubits.
+    next available id = 27
+    """
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -532,6 +570,7 @@ class Operation(google.protobuf.message.Message):
     HPOWGATE_FIELD_NUMBER: builtins.int
     SINGLEQUBITCLIFFORDGATE_FIELD_NUMBER: builtins.int
     RESETGATE_FIELD_NUMBER: builtins.int
+    ISWAPLIKEGATE_FIELD_NUMBER: builtins.int
     QUBITS_FIELD_NUMBER: builtins.int
     QUBIT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
     TOKEN_VALUE_FIELD_NUMBER: builtins.int
@@ -573,6 +612,8 @@ class Operation(google.protobuf.message.Message):
     def singlequbitcliffordgate(self) -> global___SingleQubitCliffordGate: ...
     @property
     def resetgate(self) -> global___ResetGate: ...
+    @property
+    def iswaplikegate(self) -> global___ISwapLikeGate: ...
     @property
     def qubits(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Qubit]:
         """Which qubits the operation acts on.
@@ -619,6 +660,7 @@ class Operation(google.protobuf.message.Message):
         hpowgate: global___HPowGate | None = ...,
         singlequbitcliffordgate: global___SingleQubitCliffordGate | None = ...,
         resetgate: global___ResetGate | None = ...,
+        iswaplikegate: global___ISwapLikeGate | None = ...,
         qubits: collections.abc.Iterable[global___Qubit] | None = ...,
         qubit_constant_index: collections.abc.Iterable[builtins.int] | None = ...,
         token_value: builtins.str = ...,
@@ -627,10 +669,10 @@ class Operation(google.protobuf.message.Message):
         tag_indices: collections.abc.Iterable[builtins.int] | None = ...,
         conditioned_on: collections.abc.Iterable[global___Arg] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["conditioned_on", b"conditioned_on", "couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "tag_indices", b"tag_indices", "tags", b"tags", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswaplikegate", b"iswaplikegate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["conditioned_on", b"conditioned_on", "couplerpulsegate", b"couplerpulsegate", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate_value", b"gate_value", "hpowgate", b"hpowgate", "identitygate", b"identitygate", "internalgate", b"internalgate", "iswaplikegate", b"iswaplikegate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "resetgate", b"resetgate", "singlequbitcliffordgate", b"singlequbitcliffordgate", "tag_indices", b"tag_indices", "tags", b"tags", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing.Literal["gate_value", b"gate_value"]) -> typing.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "couplerpulsegate", "identitygate", "hpowgate", "singlequbitcliffordgate", "resetgate"] | None: ...
+    def WhichOneof(self, oneof_group: typing.Literal["gate_value", b"gate_value"]) -> typing.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate", "couplerpulsegate", "identitygate", "hpowgate", "singlequbitcliffordgate", "resetgate", "iswaplikegate"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing.Literal["token", b"token"]) -> typing.Literal["token_value", "token_constant_index"] | None: ...
 

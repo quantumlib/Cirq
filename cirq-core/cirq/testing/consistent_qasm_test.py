@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import warnings
 from typing import Tuple
 
@@ -51,7 +53,7 @@ class QuditGate(cirq.Gate):
         return NotImplemented
 
 
-def test_assert_qasm_is_consistent_with_unitary():
+def test_assert_qasm_is_consistent_with_unitary() -> None:
     try:
         import qiskit as _
     except ImportError:  # pragma: no cover

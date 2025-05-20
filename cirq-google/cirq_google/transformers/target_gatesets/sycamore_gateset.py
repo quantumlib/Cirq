@@ -14,24 +14,28 @@
 
 """Target gateset used for compiling circuits to Sycamore + 1-q rotations + measurement gates."""
 
+from __future__ import annotations
+
 import itertools
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq_google import ops
 from cirq_google.transformers.analytical_decompositions import two_qubit_to_sycamore
+
+if TYPE_CHECKING:
+    from cirq.protocols.decompose_protocol import DecomposeResult
 
 
 @cirq.transformer
 def merge_swap_rzz_and_2q_unitaries(
-    circuit: 'cirq.AbstractCircuit',
+    circuit: cirq.AbstractCircuit,
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: Optional[cirq.TransformerContext] = None,
     merged_swap_rzz_tag: str = "_merged_swap_rzz",
     merged_2q_component_tag: str = "_merged_2q_unitaries",
     intermediate_result_tag: Optional[str] = None,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Merges 2-qubit connected components and adjacent `cirq.SWAP` and `cirq.ZZPowGate` gates.
 
     Does the following two transformations, in that order:
@@ -60,9 +64,7 @@ def merge_swap_rzz_and_2q_unitaries(
     if merged_2q_component_tag == merged_swap_rzz_tag:
         raise ValueError("merged_swap_rzz_tag and merged_2q_component_tag should be different.")
 
-    def merge_func_swap_rzz(
-        ops1: Sequence['cirq.Operation'], ops2: Sequence['cirq.Operation']
-    ) -> bool:
+    def merge_func_swap_rzz(ops1: Sequence[cirq.Operation], ops2: Sequence[cirq.Operation]) -> bool:
         if not (len(ops1) == 1 and len(ops2) == 1):
             return False
         for op1, op2 in itertools.permutations([ops1[0], ops2[0]]):
