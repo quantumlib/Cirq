@@ -15,8 +15,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import requests
 
 
@@ -27,7 +25,7 @@ class IonQException(Exception):
         status_code: A http status code, if coming from an http response with a failing status.
     """
 
-    def __init__(self, message, status_code: Optional[int] = None):
+    def __init__(self, message, status_code: int | None = None):
         super().__init__(f'Status code: {status_code}, Message: \'{message}\'')
         self.status_code = status_code
 

@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence, Union
+from typing import Sequence
 
 import cirq
 from cirq_ionq import ionq_gateset
@@ -38,7 +38,7 @@ class IonQAPIDevice(cirq.Device):
         * `cirq.MeasurementGate`
     """
 
-    def __init__(self, qubits: Union[Sequence[cirq.LineQubit], int], atol=1e-8):
+    def __init__(self, qubits: Sequence[cirq.LineQubit] | int, atol=1e-8):
         """Construct the device.
 
         Args:

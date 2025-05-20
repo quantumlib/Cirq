@@ -14,16 +14,12 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import cirq
 from cirq_web import widget
 
 
 class BlochSphere(widget.Widget):
-    def __init__(
-        self, sphere_radius: int = 5, state_vector: Optional[cirq.STATE_VECTOR_LIKE] = None
-    ):
+    def __init__(self, sphere_radius: int = 5, state_vector: cirq.STATE_VECTOR_LIKE | None = None):
         """Initializes a BlochSphere.
 
         Also initializes it's parent class Widget with the bundle file provided.

@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
@@ -35,7 +35,7 @@ class Serializer(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def serialize(
-        self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
+        self, program: cirq.AbstractCircuit, msg: v2.program_pb2.Program | None = None
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 

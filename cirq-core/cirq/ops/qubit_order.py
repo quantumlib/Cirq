@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Iterable, Optional, TYPE_CHECKING, TypeVar
+from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     import cirq
@@ -40,7 +40,7 @@ class QubitOrder:
 
     @staticmethod
     def explicit(
-        fixed_qubits: Iterable[cirq.Qid], fallback: Optional[QubitOrder] = None
+        fixed_qubits: Iterable[cirq.Qid], fallback: QubitOrder | None = None
     ) -> QubitOrder:
         """A basis that contains exactly the given qubits in the given order.
 

@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import re
-from typing import Hashable, Optional, TYPE_CHECKING
+from typing import Hashable, TYPE_CHECKING
 
 import attrs
 import sympy
@@ -41,7 +41,7 @@ class SymbolizeTag:
 def symbolize_single_qubit_gates_by_indexed_tags(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     symbolize_tag: SymbolizeTag = SymbolizeTag(prefix="TO-PHXZ"),
 ) -> cirq.Circuit:
     """Symbolizes single qubit operations by indexed tags prefixed by symbolize_tag.prefix.

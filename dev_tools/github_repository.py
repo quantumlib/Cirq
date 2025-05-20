@@ -14,15 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import requests
 
 
 class GithubRepository:
     """Details how to access a repository on github."""
 
-    def __init__(self, organization: str, name: str, access_token: Optional[str]) -> None:
+    def __init__(self, organization: str, name: str, access_token: str | None) -> None:
         """Inits GithubRepository.
 
         Args:

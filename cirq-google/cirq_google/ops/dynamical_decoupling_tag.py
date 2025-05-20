@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import attrs
 
 from cirq_google.api.v2 import program_pb2
@@ -44,7 +42,7 @@ class DynamicalDecouplingTag:
     def _validate_protocol(self, attribute, value):
         assert value in SUPPORTED_DD_PROTOCOLS
 
-    def to_proto(self, msg: Optional[program_pb2.Tag] = None) -> program_pb2.Tag:
+    def to_proto(self, msg: program_pb2.Tag | None = None) -> program_pb2.Tag:
         if msg is None:
             msg = program_pb2.Tag()
         msg.dynamical_decoupling.protocol = self.protocol
