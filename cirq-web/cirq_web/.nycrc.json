@@ -1,0 +1,25 @@
+{
+    "cache": false,
+    "check-coverage": true,
+    "statements": 100,
+    "branches": 100,
+    "functions": 100,
+    "lines": 100,
+    "extension": [
+        ".ts"
+    ],
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "coverage/**",
+        "node_modules/**",
+        "**/*_test.ts",
+        "dist/**",
+        "build/**",
+        "utils/**",
+        "e2e/**"
+    ],
+    "all": true,
+    "instrument": true
+}

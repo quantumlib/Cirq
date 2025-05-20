@@ -1,0 +1,12 @@
+{
+  "extends": "./node_modules/gts/",
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "rules": {
+        "node/no-unpublished-import": "off",
+        "max-len": [2, 100]
+      }
+    }
+  ]
+}
