@@ -260,7 +260,7 @@ class GaugeTransformer:
         N: int,
         context: transformer_api.TransformerContext | None = None,
         prng: np.random.Generator | None = None,
-    ) -> tuple[circuits.AbstractCircuit, sweepable.Sweepable]:
+    ) -> tuple[circuits.AbstractCircuit, cirq.Sweepable]:
         """Generates a parameterized circuit with *N* sets of sweepable parameters.
 
         Args:
