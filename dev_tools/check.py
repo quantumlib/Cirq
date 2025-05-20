@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import abc
 import os.path
 from typing import cast
@@ -23,7 +25,7 @@ class CheckResult:
     """Output of a status check that passed, failed, or error'ed."""
 
     def __init__(
-        self, check: 'Check', success: bool, message: str, unexpected_error: Exception | None
+        self, check: Check, success: bool, message: str, unexpected_error: Exception | None
     ) -> None:
         self.check = check
         self.success = success
@@ -67,7 +69,7 @@ class Check(metaclass=abc.ABCMeta):
         return False
 
     def run(
-        self, env: env_tools.PreparedEnv, verbose: bool, previous_failures: set['Check']
+        self, env: env_tools.PreparedEnv, verbose: bool, previous_failures: set[Check]
     ) -> CheckResult:
         """Evaluates this check.
 
@@ -106,7 +108,7 @@ class Check(metaclass=abc.ABCMeta):
         return result
 
     def pick_env_and_run_and_report(
-        self, env: env_tools.PreparedEnv, verbose: bool, previous_failures: set['Check']
+        self, env: env_tools.PreparedEnv, verbose: bool, previous_failures: set[Check]
     ) -> CheckResult:
         """Evaluates this check in python 3 or 2.7, and reports to github.
 

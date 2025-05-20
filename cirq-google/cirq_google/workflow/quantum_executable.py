@@ -14,6 +14,8 @@
 
 """Data structures for programs executable on a quantum runtime."""
 
+from __future__ import annotations
+
 import abc
 import dataclasses
 from dataclasses import dataclass
@@ -65,7 +67,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
         return cirq.dataclass_json_dict(self)
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any], *, executable_family: str) -> 'KeyValueExecutableSpec':
+    def from_dict(cls, d: dict[str, Any], *, executable_family: str) -> KeyValueExecutableSpec:
         return cls(
             executable_family=executable_family, key_value_pairs=tuple((k, v) for k, v in d.items())
         )
@@ -73,7 +75,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
     @classmethod
     def _from_json_dict_(
         cls, executable_family: str, key_value_pairs: list[list[str | Any]], **kwargs
-    ) -> 'KeyValueExecutableSpec':
+    ) -> KeyValueExecutableSpec:
         return cls(
             executable_family=executable_family,
             key_value_pairs=tuple((k, v) for k, v in key_value_pairs),

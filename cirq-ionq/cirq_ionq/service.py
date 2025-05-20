@@ -13,6 +13,8 @@
 # limitations under the License.
 """Service to access IonQs API."""
 
+from __future__ import annotations
+
 import datetime
 import os
 from typing import Sequence

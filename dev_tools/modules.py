@@ -42,6 +42,8 @@ subcommands:
     replace_version     replace Cirq version in all modules
 """
 
+from __future__ import annotations
+
 import argparse
 import dataclasses
 import os

@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import functools
+from typing import TYPE_CHECKING
 
 import cirq_pasqal
-from cirq.protocols.json_serialization import ObjectFactory
+
+if TYPE_CHECKING:
+    from cirq.protocols.json_serialization import ObjectFactory
 
 
 @functools.lru_cache()
