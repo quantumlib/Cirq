@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from typing import Dict
-
 
 class VirtualTag:
     """A `cirq.TaggedOperation` tag indicating that the operation is virtual.
@@ -42,7 +40,7 @@ class VirtualTag:
     def __repr__(self) -> str:
         return 'cirq.VirtualTag()'
 
-    def _json_dict_(self) -> Dict[str, str]:
+    def _json_dict_(self) -> dict[str, str]:
         return {}
 
     def __hash__(self):
@@ -65,7 +63,7 @@ class RoutingSwapTag:
     def __repr__(self) -> str:
         return 'cirq.RoutingSwapTag()'
 
-    def _json_dict_(self) -> Dict[str, str]:
+    def _json_dict_(self) -> dict[str, str]:
         return {}
 
     def __hash__(self):

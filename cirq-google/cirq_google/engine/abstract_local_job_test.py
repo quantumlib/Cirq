@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import cirq
 from cirq_google.cloud import quantum
@@ -37,7 +37,7 @@ class NothingJob(AbstractLocalJob):
     def execution_status(self) -> quantum.ExecutionStatus.State:
         return self._status
 
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         return ('failed', 'failure code')  # pragma: no cover
 
     def cancel(self) -> None:

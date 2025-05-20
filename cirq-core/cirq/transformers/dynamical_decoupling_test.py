@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence, Tuple, Union
+from typing import Sequence
 
 import numpy as np
 import pytest
@@ -34,8 +34,8 @@ def assert_sim_eq(circuit1: cirq.AbstractCircuit, circuit2: cirq.AbstractCircuit
 
 def assert_dd(
     input_circuit: cirq.AbstractCircuit,
-    expected_circuit: Union[str, cirq.AbstractCircuit],
-    schema: Union[str, Tuple[cirq.Gate, ...]] = 'DEFAULT',
+    expected_circuit: str | cirq.AbstractCircuit,
+    schema: str | tuple[cirq.Gate, ...] = 'DEFAULT',
     single_qubit_gate_moments_only: bool = True,
 ):
     transformed_circuit = add_dynamical_decoupling(
@@ -254,7 +254,7 @@ def test_pull_through_h_gate_case2(single_qubit_gate_moments_only: bool):
         ),
     ],
 )
-def test_invalid_dd_schema(schema: Union[str, Tuple[cirq.Gate, ...]], error_msg_regex):
+def test_invalid_dd_schema(schema: str | tuple[cirq.Gate, ...], error_msg_regex):
     a = cirq.NamedQubit('a')
     input_circuit = cirq.Circuit(cirq.H(a))
     with pytest.raises(ValueError, match=error_msg_regex):

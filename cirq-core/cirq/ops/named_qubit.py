@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import functools
 import weakref
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -31,8 +31,8 @@ class _BaseNamedQid(raw_types.Qid):
 
     _name: str
     _dimension: int
-    _comp_key: Optional[str] = None
-    _hash: Optional[int] = None
+    _comp_key: str | None = None
+    _hash: int | None = None
 
     def __hash__(self) -> int:
         if self._hash is None:
@@ -112,7 +112,7 @@ class NamedQid(_BaseNamedQid):
 
     # Cache of existing NamedQid instances, returned by __new__ if available.
     # Holds weak references so instances can still be garbage collected.
-    _cache = weakref.WeakValueDictionary[Tuple[str, int], 'cirq.NamedQid']()
+    _cache = weakref.WeakValueDictionary[tuple[str, int], 'cirq.NamedQid']()
 
     def __new__(cls, name: str, dimension: int) -> cirq.NamedQid:
         """Initializes a `NamedQid` with a given name and dimension.
@@ -137,7 +137,7 @@ class NamedQid(_BaseNamedQid):
         return (self._name, self._dimension)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         return {}
 
     def __repr__(self) -> str:
@@ -147,7 +147,7 @@ class NamedQid(_BaseNamedQid):
         return f'{self._name} (d={self._dimension})'
 
     @staticmethod
-    def range(*args, prefix: str, dimension: int) -> List[NamedQid]:
+    def range(*args, prefix: str, dimension: int) -> list[NamedQid]:
         """Returns a range of ``NamedQid``\\s.
 
         The range returned starts with the prefix, and followed by a qid for
@@ -170,7 +170,7 @@ class NamedQid(_BaseNamedQid):
         """
         return [NamedQid(f"{prefix}{i}", dimension=dimension) for i in range(*args)]
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name', 'dimension'])
 
 
@@ -209,7 +209,7 @@ class NamedQubit(_BaseNamedQid):
         return (self._name,)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         return {}
 
     def __str__(self) -> str:
@@ -219,7 +219,7 @@ class NamedQubit(_BaseNamedQid):
         return f'cirq.NamedQubit({self._name!r})'
 
     @staticmethod
-    def range(*args, prefix: str) -> List[NamedQubit]:
+    def range(*args, prefix: str) -> list[NamedQubit]:
         r"""Returns a range of `cirq.NamedQubit`s.
 
         The range returned starts with the prefix, and followed by a qubit for
@@ -241,7 +241,7 @@ class NamedQubit(_BaseNamedQid):
         """
         return [NamedQubit(f"{prefix}{i}") for i in range(*args)]
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name'])
 
 

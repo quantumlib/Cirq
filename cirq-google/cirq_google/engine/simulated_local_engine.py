@@ -26,7 +26,7 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
 
@@ -47,5 +47,5 @@ class SimulatedLocalEngine(AbstractLocalEngine):
 
     """
 
-    def __init__(self, processors: List[AbstractLocalProcessor]):
+    def __init__(self, processors: list[AbstractLocalProcessor]):
         super().__init__(processors)

@@ -28,7 +28,7 @@ calibration using the following pipeline:
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import ops
 from cirq.devices import noise_utils
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 # TODO: acquire this based on the target device.
 # Default map of gates to their durations.
-DEFAULT_GATE_NS: Dict[Type[cirq.Gate], float] = {
+DEFAULT_GATE_NS: dict[type[cirq.Gate], float] = {
     ops.ZPowGate: 25.0,
     ops.MeasurementGate: 4000.0,
     ops.ResetChannel: 250.0,
@@ -53,12 +53,12 @@ DEFAULT_GATE_NS: Dict[Type[cirq.Gate], float] = {
     cg_ops.SycamoreGate: 12.0,
     # ops.WaitGate is a special case.
 }
-GATE_PREFIX_PAIRS: Dict[Type[cirq.Gate], str] = {
+GATE_PREFIX_PAIRS: dict[type[cirq.Gate], str] = {
     cg_ops.SycamoreGate: 'two_qubit_parallel_sycamore_gate',
     ops.CZPowGate: 'two_qubit_parallel_cz_gate',
     ops.ISwapPowGate: 'two_qubit_parallel_sqrt_iswap_gate',
 }
-GATE_ZPHASE_CODE_PAIRS: Dict[Type[cirq.Gate], str] = {
+GATE_ZPHASE_CODE_PAIRS: dict[type[cirq.Gate], str] = {
     cg_ops.SycamoreGate: 'syc',
     ops.CZPowGate: 'cz',
     ops.ISwapPowGate: 'sqrt_iswap',
@@ -67,7 +67,7 @@ GATE_ZPHASE_CODE_PAIRS: Dict[Type[cirq.Gate], str] = {
 
 def _unpack_1q_from_calibration(
     metric_name: str, calibration: engine.Calibration
-) -> Dict[cirq.Qid, float]:
+) -> dict[cirq.Qid, float]:
     """Converts a single-qubit metric from Calibration to dict format."""
     if metric_name not in calibration:
         return {}
@@ -79,7 +79,7 @@ def _unpack_1q_from_calibration(
 
 def _unpack_2q_from_calibration(
     metric_name: str, calibration: engine.Calibration
-) -> Dict[Tuple[cirq.Qid, ...], float]:
+) -> dict[tuple[cirq.Qid, ...], float]:
     """Converts a two-qubit metric from Calibration to dict format."""
     if metric_name not in calibration:
         return {}
@@ -91,8 +91,8 @@ def _unpack_2q_from_calibration(
 
 def noise_properties_from_calibration(
     calibration: engine.Calibration,
-    zphase_data: Optional[util.ZPhaseDataType] = None,
-    gate_times_ns: Optional[Dict[Type[cirq.Gate], float]] = None,
+    zphase_data: util.ZPhaseDataType | None = None,
+    gate_times_ns: dict[type[cirq.Gate], float] | None = None,
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between `cirq_google.Calibration` and NoiseProperties.
 

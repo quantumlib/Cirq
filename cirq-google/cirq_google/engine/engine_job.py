@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import duet
 
@@ -41,7 +41,7 @@ TERMINAL_STATES = [
 ]
 
 
-def _flatten(result: Sequence[Sequence[EngineResult]]) -> List[EngineResult]:
+def _flatten(result: Sequence[Sequence[EngineResult]]) -> list[EngineResult]:
     return [res for result_list in result for res in result_list]
 
 
@@ -68,10 +68,10 @@ class EngineJob(abstract_job.AbstractJob):
         program_id: str,
         job_id: str,
         context: engine_base.EngineContext,
-        _job: Optional[quantum.QuantumJob] = None,
-        job_result_future: Optional[
-            duet.AwaitableFuture[Union[quantum.QuantumResult, quantum.QuantumJob]]
-        ] = None,
+        _job: quantum.QuantumJob | None = None,
+        job_result_future: (
+            duet.AwaitableFuture[quantum.QuantumResult | quantum.QuantumJob] | None
+        ) = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -90,9 +90,9 @@ class EngineJob(abstract_job.AbstractJob):
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[Sequence[EngineResult]] = None
-        self._calibration_results: Optional[Sequence[CalibrationResult]] = None
-        self._batched_results: Optional[Sequence[Sequence[EngineResult]]] = None
+        self._results: Sequence[EngineResult] | None = None
+        self._calibration_results: Sequence[CalibrationResult] | None = None
+        self._batched_results: Sequence[Sequence[EngineResult]] | None = None
         self._job_result_future = job_result_future
 
     def id(self) -> str:
@@ -157,11 +157,11 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the job."""
         return self._inner_job().labels
 
-    def set_labels(self, labels: Dict[str, str]) -> EngineJob:
+    def set_labels(self, labels: dict[str, str]) -> EngineJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
         Params:
@@ -175,7 +175,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> EngineJob:
+    def add_labels(self, labels: dict[str, str]) -> EngineJob:
         """Adds new labels to a previously created quantum job.
 
         Params:
@@ -189,7 +189,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def remove_labels(self, keys: List[str]) -> EngineJob:
+    def remove_labels(self, keys: list[str]) -> EngineJob:
         """Removes labels with given keys from the labels of a previously
         created quantum job.
 
@@ -204,7 +204,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return self
 
-    def processor_ids(self) -> List[str]:
+    def processor_ids(self) -> list[str]:
         """Returns the processor ids provided when the job was created."""
         return [
             engine_client._ids_from_processor_name(p)[1]
@@ -219,14 +219,14 @@ class EngineJob(abstract_job.AbstractJob):
         """Return the execution status of the job."""
         return self._refresh_job().execution_status.state.name
 
-    def failure(self) -> Optional[Tuple[str, str]]:
+    def failure(self) -> tuple[str, str] | None:
         """Return failure code and message of the job if present."""
         if self._inner_job().execution_status.failure:
             failure = self._inner_job().execution_status.failure
             return (failure.error_code.name, failure.error_message)
         return None
 
-    def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the Quantum Engine job.
 
         Returns:
@@ -236,7 +236,7 @@ class EngineJob(abstract_job.AbstractJob):
             self._job = self._get_job(return_run_context=True)
         return _deserialize_run_context(self._job.run_context)
 
-    def get_processor(self) -> Optional[engine_processor.EngineProcessor]:
+    def get_processor(self) -> engine_processor.EngineProcessor | None:
         """Returns the EngineProcessor for the processor the job is/was run on,
         if available, else None."""
         status = self._inner_job().execution_status
@@ -247,7 +247,7 @@ class EngineJob(abstract_job.AbstractJob):
         ids = engine_client._ids_from_processor_name(status.processor_name)
         return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
 
-    def get_calibration(self) -> Optional[calibration.Calibration]:
+    def get_calibration(self) -> calibration.Calibration | None:
         """Returns the recorded calibration at the time when the job was run, if
         one was captured, else None."""
         status = self._inner_job().execution_status
@@ -356,7 +356,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
 
 
-def _deserialize_run_context(run_context: any_pb2.Any) -> Tuple[int, List[cirq.Sweep]]:
+def _deserialize_run_context(run_context: any_pb2.Any) -> tuple[int, list[cirq.Sweep]]:
     import cirq_google.engine.engine as engine_base
 
     run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]

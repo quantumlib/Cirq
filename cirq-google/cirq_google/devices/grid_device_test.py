@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import unittest.mock as mock
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 import pytest
 
@@ -33,11 +32,11 @@ GRID_HEIGHT = 5
 class _DeviceInfo:
     """Dataclass for device information relevant to GridDevice tests."""
 
-    grid_qubits: List[cirq.GridQubit]
-    qubit_pairs: List[Tuple[cirq.GridQubit, cirq.GridQubit]]
+    grid_qubits: list[cirq.GridQubit]
+    qubit_pairs: list[tuple[cirq.GridQubit, cirq.GridQubit]]
     expected_gateset: cirq.Gateset
-    expected_gate_durations: Dict[cirq.GateFamily, cirq.Duration]
-    expected_target_gatesets: Tuple[cirq.CompilationTargetGateset, ...]
+    expected_gate_durations: dict[cirq.GateFamily, cirq.Duration]
+    expected_target_gatesets: tuple[cirq.CompilationTargetGateset, ...]
 
 
 def _create_device_spec_with_horizontal_couplings():

@@ -17,18 +17,7 @@ from __future__ import annotations
 import abc
 import warnings
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Callable, Iterable, Sequence, TYPE_CHECKING, Union
 
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -59,12 +48,12 @@ class NamedTopology(metaclass=abc.ABCMeta):
     """A networkx graph representation of the topology."""
 
 
-_GRIDLIKE_NODE = Union['cirq.GridQubit', Tuple[int, int]]
+_GRIDLIKE_NODE = Union['cirq.GridQubit', tuple[int, int]]
 
 
 def _node_and_coordinates(
     nodes: Iterable[_GRIDLIKE_NODE],
-) -> Iterable[Tuple[_GRIDLIKE_NODE, Tuple[int, int]]]:
+) -> Iterable[tuple[_GRIDLIKE_NODE, tuple[int, int]]]:
     """Yield tuples whose first element is the input node and the second is guaranteed to be a tuple
     of two integers. The input node can be a tuple of ints or a GridQubit."""
     for node in nodes:
@@ -76,8 +65,8 @@ def _node_and_coordinates(
 
 
 def draw_gridlike(
-    graph: nx.Graph, ax: Optional[plt.Axes] = None, tilted: bool = True, **kwargs
-) -> Dict[Any, Tuple[int, int]]:
+    graph: nx.Graph, ax: plt.Axes | None = None, tilted: bool = True, **kwargs
+) -> dict[Any, tuple[int, int]]:
     """Draw a grid-like graph using Matplotlib.
 
     This wraps nx.draw_networkx to produce a matplotlib drawing of the graph. Nodes
@@ -129,11 +118,11 @@ class LineTopology(NamedTopology):
         )
         object.__setattr__(self, 'graph', graph)
 
-    def nodes_as_linequbits(self) -> List[cirq.LineQubit]:
+    def nodes_as_linequbits(self) -> list[cirq.LineQubit]:
         """Get the graph nodes as cirq.LineQubit"""
         return [LineQubit(x) for x in sorted(self.graph.nodes)]
 
-    def draw(self, ax=None, tilted: bool = True, **kwargs) -> Dict[Any, Tuple[int, int]]:
+    def draw(self, ax=None, tilted: bool = True, **kwargs) -> dict[Any, tuple[int, int]]:
         """Draw this graph using Matplotlib.
 
         Args:
@@ -144,7 +133,7 @@ class LineTopology(NamedTopology):
         g2 = nx.relabel_nodes(self.graph, {n: (n, 1) for n in self.graph.nodes})
         return draw_gridlike(g2, ax=ax, tilted=tilted, **kwargs)
 
-    def nodes_to_linequbits(self, offset: int = 0) -> Dict[int, cirq.LineQubit]:
+    def nodes_to_linequbits(self, offset: int = 0) -> dict[int, cirq.LineQubit]:
         """Return a mapping from graph nodes to `cirq.LineQubit`
 
         Args:
@@ -152,7 +141,7 @@ class LineTopology(NamedTopology):
         """
         return dict(enumerate(LineQubit.range(offset, offset + self.n_nodes)))
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -242,11 +231,11 @@ class TiltedSquareLattice(NamedTopology):
         """
         return draw_gridlike(self.graph, ax=ax, tilted=tilted, **kwargs)
 
-    def nodes_as_gridqubits(self) -> List[cirq.GridQubit]:
+    def nodes_as_gridqubits(self) -> list[cirq.GridQubit]:
         """Get the graph nodes as cirq.GridQubit"""
         return [GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
 
-    def nodes_to_gridqubits(self, offset=(0, 0)) -> Dict[Tuple[int, int], cirq.GridQubit]:
+    def nodes_to_gridqubits(self, offset=(0, 0)) -> dict[tuple[int, int], cirq.GridQubit]:
         """Return a mapping from graph nodes to `cirq.GridQubit`
 
         Args:
@@ -255,7 +244,7 @@ class TiltedSquareLattice(NamedTopology):
         """
         return {(r, c): GridQubit(r, c) + offset for r, c in self.graph.nodes}
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
@@ -264,7 +253,7 @@ class TiltedSquareLattice(NamedTopology):
 
 def get_placements(
     big_graph: nx.Graph, small_graph: nx.Graph, max_placements=100_000
-) -> List[Dict]:
+) -> list[dict]:
     """Get 'placements' mapping small_graph nodes onto those of `big_graph`.
 
     This function considers monomorphisms with a restriction: we restrict only to unique set
@@ -311,7 +300,7 @@ def get_placements(
 
 
 def _is_valid_placement_helper(
-    big_graph: nx.Graph, small_mapped: nx.Graph, small_to_big_mapping: Dict
+    big_graph: nx.Graph, small_mapped: nx.Graph, small_to_big_mapping: dict
 ):
     """Helper function for `is_valid_placement` that assumes the mapping of `small_graph` has
     already occurred.
@@ -322,7 +311,7 @@ def _is_valid_placement_helper(
     return (subgraph.nodes == small_mapped.nodes) and (subgraph.edges == small_mapped.edges)
 
 
-def is_valid_placement(big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_mapping: Dict):
+def is_valid_placement(big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_mapping: dict):
     """Return whether the given placement is a valid placement of small_graph onto big_graph.
 
     This is done by making sure all the nodes and edges on the mapped version of `small_graph`
@@ -344,11 +333,11 @@ def is_valid_placement(big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_
 def draw_placements(
     big_graph: nx.Graph,
     small_graph: nx.Graph,
-    small_to_big_mappings: Sequence[Dict],
+    small_to_big_mappings: Sequence[dict],
     max_plots: int = 20,
-    axes: Optional[Sequence[plt.Axes]] = None,
+    axes: Sequence[plt.Axes] | None = None,
     tilted: bool = True,
-    bad_placement_callback: Optional[Callable[[plt.Axes, int], None]] = None,
+    bad_placement_callback: Callable[[plt.Axes, int], None] | None = None,
 ):
     """Draw a visualization of placements from small_graph onto big_graph using Matplotlib.
 

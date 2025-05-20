@@ -17,7 +17,7 @@ from __future__ import annotations
 import itertools
 import re
 from types import EllipsisType, NotImplementedType
-from typing import cast, Tuple, Union
+from typing import cast, Union
 
 import numpy as np
 import pytest
@@ -28,7 +28,7 @@ from cirq import protocols
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
         return args.available_buffer
@@ -47,10 +47,10 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=1234)
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(Tuple[Union[int, slice, EllipsisType], ...], (slice(None),))
+        seed = cast(tuple[Union[int, slice, EllipsisType], ...], (slice(None),))
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
@@ -157,7 +157,7 @@ def test_str():
 
     class SingleQubitOp(cirq.Operation):
         @property
-        def qubits(self) -> Tuple[cirq.Qid, ...]:
+        def qubits(self) -> tuple[cirq.Qid, ...]:
             return ()
 
         def with_qubits(self, *new_qubits: cirq.Qid):

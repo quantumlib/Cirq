@@ -16,7 +16,6 @@
 
 import functools
 import warnings
-from typing import Dict
 
 from cirq.protocols.json_serialization import ObjectFactory
 from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
@@ -25,7 +24,7 @@ from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import
 
 
 @functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     def _old_xmon(*args, **kwargs):
         d_type = kwargs['constant']
         warnings.warn(
