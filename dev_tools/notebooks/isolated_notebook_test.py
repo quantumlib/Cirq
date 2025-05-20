@@ -29,7 +29,6 @@ import re
 import shutil
 import subprocess
 import warnings
-from typing import List, Set
 
 import pytest
 
@@ -41,7 +40,7 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_no
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -98,7 +97,7 @@ def _find_base_revision():
     raise ValueError("Can't find a base revision to compare the files with.")
 
 
-def _list_changed_notebooks() -> Set[str]:
+def _list_changed_notebooks() -> set[str]:
     try:
         rev = _find_base_revision()
         output = subprocess.check_output(f'git diff --diff-filter=d --name-only {rev}'.split())

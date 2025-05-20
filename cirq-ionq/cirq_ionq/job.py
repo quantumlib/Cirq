@@ -16,7 +16,7 @@
 import json
 import time
 import warnings
-from typing import Dict, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import cirq
 from cirq._doc import document
@@ -161,9 +161,9 @@ class Job:
         self._check_if_unsuccessful()
         return int(self._job['metadata']['shots'])
 
-    def measurement_dict(self, circuit_index=0) -> Dict[str, Sequence[int]]:
+    def measurement_dict(self, circuit_index=0) -> dict[str, Sequence[int]]:
         """Returns a dictionary of measurement keys to target qubit index."""
-        measurement_dict: Dict[str, Sequence[int]] = {}
+        measurement_dict: dict[str, Sequence[int]] = {}
         if 'metadata' in self._job:
             measurement_matadata = None
             if 'measurements' in self._job['metadata'].keys():
@@ -193,9 +193,9 @@ class Job:
         self,
         timeout_seconds: int = 7200,
         polling_seconds: int = 1,
-        sharpen: Optional[bool] = None,
-        extra_query_params: Optional[dict] = None,
-    ) -> Union[list[results.QPUResult], list[results.SimulatorResult]]:
+        sharpen: bool | None = None,
+        extra_query_params: dict | None = None,
+    ) -> list[results.QPUResult] | list[results.SimulatorResult]:
         """Polls the IonQ api for results.
 
         Args:

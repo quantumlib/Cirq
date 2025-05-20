@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
-from typing import Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -81,7 +81,7 @@ def _lindbladian(left_op: np.ndarray) -> np.ndarray:
 
 @functools.lru_cache(maxsize=256)
 def _kraus_ops_from_rates(
-    flat_rates: Tuple[float, ...], shape: Tuple[int, int]
+    flat_rates: tuple[float, ...], shape: tuple[int, int]
 ) -> Sequence[np.ndarray]:
     """Generate kraus operators from an array of rates.
 
@@ -131,8 +131,8 @@ def _decoherence_matrix(
 
 
 def _as_rate_dict(
-    rate_or_dict: Optional[Union[float, Dict[cirq.Qid, float]]], qubits: Set[cirq.Qid]
-) -> Dict[cirq.Qid, float]:
+    rate_or_dict: float | dict[cirq.Qid, float] | None, qubits: set[cirq.Qid]
+) -> dict[cirq.Qid, float]:
     """Convert float or None input into dictionary form.
 
     This method also ensures that no qubits are missing from dictionary keys.
@@ -145,7 +145,7 @@ def _as_rate_dict(
         return {q: rate_or_dict for q in qubits}
 
 
-def _validate_rates(qubits: Set[cirq.Qid], rates: Dict[cirq.Qid, np.ndarray]) -> None:
+def _validate_rates(qubits: set[cirq.Qid], rates: dict[cirq.Qid, np.ndarray]) -> None:
     """Check all rate matrices are square and of appropriate dimension.
 
     We check rates are positive in the class validator.
@@ -171,11 +171,11 @@ class ThermalNoiseModel(devices.NoiseModel):
 
     def __init__(
         self,
-        qubits: Set[cirq.Qid],
-        gate_durations_ns: Dict[type, float],
-        heat_rate_GHz: Union[float, Dict[cirq.Qid, float], None] = None,
-        cool_rate_GHz: Union[float, Dict[cirq.Qid, float], None] = None,
-        dephase_rate_GHz: Union[float, Dict[cirq.Qid, float], None] = None,
+        qubits: set[cirq.Qid],
+        gate_durations_ns: dict[type, float],
+        heat_rate_GHz: float | dict[cirq.Qid, float] | None = None,
+        cool_rate_GHz: float | dict[cirq.Qid, float] | None = None,
+        dephase_rate_GHz: float | dict[cirq.Qid, float] | None = None,
         require_physical_tag: bool = True,
         skip_measurements: bool = True,
         prepend: bool = False,
@@ -226,8 +226,8 @@ class ThermalNoiseModel(devices.NoiseModel):
             rate_dict[q] = _decoherence_matrix(gamma_c, gamma_phi, gamma_h, q.dimension)
 
         _validate_rates(qubits, rate_dict)
-        self.gate_durations_ns: Dict[type, float] = gate_durations_ns
-        self.rate_matrix_GHz: Dict[cirq.Qid, np.ndarray] = rate_dict
+        self.gate_durations_ns: dict[type, float] = gate_durations_ns
+        self.rate_matrix_GHz: dict[cirq.Qid, np.ndarray] = rate_dict
         self.require_physical_tag: bool = require_physical_tag
         self.skip_measurements: bool = skip_measurements
         self._prepend = prepend
@@ -247,13 +247,13 @@ class ThermalNoiseModel(devices.NoiseModel):
                 # Only moments with physical operations should have noise.
                 return [moment]
 
-        noise_ops: List[cirq.Operation] = []
+        noise_ops: list[cirq.Operation] = []
         # Some devices (including Google hardware) require that all gates have
         # the same duration, but this does not. Instead, each moment is assumed
         # to be as long as the longest gate it contains.
         moment_ns: float = 0
         for op in moment:
-            op_duration: Optional[float] = None
+            op_duration: float | None = None
             for key, duration in self.gate_durations_ns.items():
                 if not issubclass(type(op.gate), key):
                     continue  # gate type doesn't match

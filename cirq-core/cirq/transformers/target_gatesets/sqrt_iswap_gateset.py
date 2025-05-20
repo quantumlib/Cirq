@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING
 
 from cirq import ops, protocols
 from cirq.transformers.analytical_decompositions import two_qubit_to_sqrt_iswap
@@ -49,9 +49,9 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         self,
         *,
         atol: float = 1e-8,
-        required_sqrt_iswap_count: Optional[int] = None,
+        required_sqrt_iswap_count: int | None = None,
         use_sqrt_iswap_inv: bool = False,
-        additional_gates: Sequence[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = (),
+        additional_gates: Sequence[type[cirq.Gate] | cirq.Gate | cirq.GateFamily] = (),
     ):
         """Initializes `cirq.SqrtIswapTargetGateset`
 
@@ -125,8 +125,8 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             frozenset(self.additional_gates),
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
+    def _json_dict_(self) -> dict[str, Any]:
+        d: dict[str, Any] = {
             'atol': self.atol,
             'required_sqrt_iswap_count': self.required_sqrt_iswap_count,
             'use_sqrt_iswap_inv': self.use_sqrt_iswap_inv,

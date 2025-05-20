@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Iterator, Sequence, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types, swap_gates
@@ -63,7 +63,7 @@ class QubitPermutationGate(raw_types.Gate):
         self._permutation = tuple(permutation)
 
     @property
-    def permutation(self) -> Tuple[int, ...]:
+    def permutation(self) -> tuple[int, ...]:
         return self._permutation
 
     def _value_equality_values_(self):
@@ -106,13 +106,13 @@ class QubitPermutationGate(raw_types.Gate):
         args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
         return args.available_buffer
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         return tuple(f'[{i}>{self.permutation[i]}]' for i in range(len(self.permutation)))
 
     def __repr__(self) -> str:
         return f'cirq.QubitPermutationGate(permutation={self.permutation!r})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=['permutation'])
 
     @classmethod

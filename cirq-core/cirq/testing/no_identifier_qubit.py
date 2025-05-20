@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -38,5 +37,5 @@ class NoIdentifierQubit(raw_types.Qid):
     def __repr__(self) -> str:
         return 'cirq.testing.NoIdentifierQubit()'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])

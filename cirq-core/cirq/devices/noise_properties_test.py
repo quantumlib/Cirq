@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import List, Tuple
-
 import cirq
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
 from cirq.devices.noise_properties import NoiseModelFromNoiseProperties, NoiseProperties
@@ -25,7 +23,7 @@ from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 # These properties are for testing purposes only - they are not representative
 # of device behavior for any existing hardware.
 class SampleNoiseProperties(NoiseProperties):
-    def __init__(self, system_qubits: List[cirq.Qid], qubit_pairs: List[Tuple[cirq.Qid, cirq.Qid]]):
+    def __init__(self, system_qubits: list[cirq.Qid], qubit_pairs: list[tuple[cirq.Qid, cirq.Qid]]):
         self.qubits = system_qubits
         self.qubit_pairs = qubit_pairs
 

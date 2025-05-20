@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from types import EllipsisType, NotImplementedType
-from typing import Any, cast, Optional, Sequence, Tuple, Union
+from typing import Any, cast, Sequence, Union
 
 import numpy as np
 import pytest
@@ -25,7 +25,7 @@ import cirq
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
         return args.available_buffer
@@ -44,10 +44,10 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=4321)
 
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | NotImplementedType:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(Tuple[Union[int, slice, EllipsisType], ...], (slice(None),))
+        seed = cast(tuple[Union[int, slice, EllipsisType], ...], (slice(None),))
         zero = seed * a + (0, Ellipsis)
         one = seed * a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
@@ -475,7 +475,7 @@ def test_nontrivial_controlled_gate_is_consistent(
 def _test_controlled_gate_is_consistent(
     gate: cirq.Gate,
     should_decompose_to_target: bool,
-    control_qid_shape: Optional[Sequence[int]] = None,
+    control_qid_shape: Sequence[int] | None = None,
     control_values: Any = None,
 ):
     cgate = cirq.ControlledGate(
