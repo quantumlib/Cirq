@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import cirq
 from cirq_google import ops
@@ -31,10 +31,10 @@ if TYPE_CHECKING:
 def merge_swap_rzz_and_2q_unitaries(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     merged_swap_rzz_tag: str = "_merged_swap_rzz",
     merged_2q_component_tag: str = "_merged_2q_unitaries",
-    intermediate_result_tag: Optional[str] = None,
+    intermediate_result_tag: str | None = None,
 ) -> cirq.Circuit:
     """Merges 2-qubit connected components and adjacent `cirq.SWAP` and `cirq.ZZPowGate` gates.
 
@@ -107,7 +107,7 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     """Target gateset containing Sycamore + single qubit rotations + Measurement gates."""
 
     def __init__(
-        self, *, atol: float = 1e-8, tabulation: Optional[cirq.TwoQubitGateTabulation] = None
+        self, *, atol: float = 1e-8, tabulation: cirq.TwoQubitGateTabulation | None = None
     ) -> None:
         """Inits `cirq_google.SycamoreTargetGateset`.
 
@@ -134,7 +134,7 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         self.tabulation = tabulation
 
     @property
-    def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
+    def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         return [
             cirq.create_transformer_with_kwargs(
                 cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits
@@ -167,7 +167,7 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             f'tabulation={self.tabulation})'
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'atol': self.atol, 'tabulation': self.tabulation}
 
     @classmethod

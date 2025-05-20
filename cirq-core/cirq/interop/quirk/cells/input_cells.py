@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Iterator, List, Optional, TYPE_CHECKING
+from typing import Iterable, Iterator, TYPE_CHECKING
 
 from cirq.interop.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
 
@@ -32,10 +32,10 @@ class InputCell(Cell):
     def gate_count(self) -> int:
         return 0
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return InputCell(qubits=Cell._replace_qubits(self.qubits, qubits), letter=self.letter)
 
-    def modify_column(self, column: List[Optional[Cell]]):
+    def modify_column(self, column: list[Cell | None]):
         for i in range(len(column)):
             cell = column[i]
             if cell is not None:
@@ -52,7 +52,7 @@ class SetDefaultInputCell(Cell):
     def gate_count(self) -> int:
         return 0
 
-    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
+    def with_line_qubits_mapped_to(self, qubits: list[cirq.Qid]) -> Cell:
         return self
 
     def persistent_modifiers(self):

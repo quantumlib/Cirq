@@ -16,7 +16,7 @@
 # official color schemes in follow-ups.
 import abc
 import dataclasses
-from typing import Iterable, List, Optional
+from typing import Iterable
 
 import cirq
 from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
@@ -26,8 +26,8 @@ from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
 class SymbolInfo:
     """Organizes information about a symbol."""
 
-    labels: List[str]
-    colors: List[str]
+    labels: list[str]
+    colors: list[str]
 
     @staticmethod
     def unknown_operation(num_qubits: int) -> 'SymbolInfo':
@@ -48,11 +48,11 @@ class SymbolResolver(metaclass=abc.ABCMeta):
     about how a particular symbol should be displayed in the 3D circuit
     """
 
-    def __call__(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
+    def __call__(self, operation: cirq.Operation) -> SymbolInfo | None:
         return self.resolve(operation)
 
     @abc.abstractmethod
-    def resolve(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
+    def resolve(self, operation: cirq.Operation) -> SymbolInfo | None:
         """Converts cirq.Operation objects into SymbolInfo objects for serialization."""
 
 
@@ -73,7 +73,7 @@ class DefaultResolver(SymbolResolver):
         'T': '#CBC3E3',
     }
 
-    def resolve(self, operation: cirq.Operation) -> Optional[SymbolInfo]:
+    def resolve(self, operation: cirq.Operation) -> SymbolInfo | None:
         """Checks for the _circuit_diagram_info attribute of the operation,
         and if it exists, build the symbol information from it. Otherwise,
         builds symbol info for an unknown operation.

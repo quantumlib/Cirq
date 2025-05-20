@@ -16,7 +16,7 @@
 
 import functools
 import warnings
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import sympy
 
@@ -69,10 +69,10 @@ class CircuitSerializer(serializer.Serializer):
 
     def __init__(
         self,
-        op_serializer: Optional[op_serializer.OpSerializer] = None,
-        op_deserializer: Optional[op_deserializer.OpDeserializer] = None,
-        tag_serializer: Optional[tag_serializer.TagSerializer] = None,
-        tag_deserializer: Optional[tag_deserializer.TagDeserializer] = None,
+        op_serializer: op_serializer.OpSerializer | None = None,
+        op_deserializer: op_deserializer.OpDeserializer | None = None,
+        tag_serializer: tag_serializer.TagSerializer | None = None,
+        tag_deserializer: tag_deserializer.TagDeserializer | None = None,
         **kwargs,
     ):
         """Construct the circuit serializer object."""
@@ -85,7 +85,7 @@ class CircuitSerializer(serializer.Serializer):
         self.stimcirq_deserializer = stimcirq_deserializer.StimCirqDeserializer()
 
     def serialize(
-        self, program: cirq.AbstractCircuit, msg: Optional[v2.program_pb2.Program] = None
+        self, program: cirq.AbstractCircuit, msg: v2.program_pb2.Program | None = None
     ) -> v2.program_pb2.Program:
         """Serialize a Circuit to cirq_google.api.v2.Program proto.
 
@@ -99,7 +99,7 @@ class CircuitSerializer(serializer.Serializer):
         """
         if not isinstance(program, (cirq.Circuit, cirq.FrozenCircuit)):
             raise NotImplementedError(f'Unrecognized program type: {type(program)}')
-        raw_constants: Dict[Any, int] = {}
+        raw_constants: dict[Any, int] = {}
         if msg is None:
             msg = v2.program_pb2.Program()
         msg.language.gate_set = self.name
@@ -115,8 +115,8 @@ class CircuitSerializer(serializer.Serializer):
         circuit: cirq.AbstractCircuit,
         msg: v2.program_pb2.Circuit,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> None:
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
@@ -177,8 +177,8 @@ class CircuitSerializer(serializer.Serializer):
         op: cirq.Operation,
         msg: v2.program_pb2.Operation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
     ) -> v2.program_pb2.Operation:
         """Serialize an Operation to cirq_google.api.v2.Operation proto.
 
@@ -326,10 +326,10 @@ class CircuitSerializer(serializer.Serializer):
     def _serialize_circuit_op(
         self,
         op: cirq.CircuitOperation,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: v2.program_pb2.CircuitOperation | None = None,
         *,
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[Dict[Any, int]] = None,
+        constants: list[v2.program_pb2.Constant] | None = None,
+        raw_constants: dict[Any, int] | None = None,
     ) -> v2.program_pb2.CircuitOperation:
         """Serialize a CircuitOperation to cirq.google.api.v2.CircuitOperation proto.
 
@@ -381,7 +381,7 @@ class CircuitSerializer(serializer.Serializer):
         which = proto.WhichOneof('program')
 
         if which == 'circuit':
-            deserialized_constants: List[Any] = []
+            deserialized_constants: list[Any] = []
             for constant in proto.constants:
                 which_const = constant.WhichOneof('const_value')
                 if which_const == 'string_value':
@@ -457,8 +457,8 @@ class CircuitSerializer(serializer.Serializer):
         self,
         circuit_proto: v2.program_pb2.Circuit,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Circuit:
         moments = []
         if circuit_proto.moments and circuit_proto.moment_indices:
@@ -480,8 +480,8 @@ class CircuitSerializer(serializer.Serializer):
         self,
         moment_proto: v2.program_pb2.Moment,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Moment:
         moment_ops = []
         for op in moment_proto.operations:
@@ -513,8 +513,8 @@ class CircuitSerializer(serializer.Serializer):
         self,
         operation_proto: v2.program_pb2.Operation,
         *,
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        deserialized_constants: Optional[List[Any]] = None,
+        constants: list[v2.program_pb2.Constant] | None = None,
+        deserialized_constants: list[Any] | None = None,
     ) -> cirq.Operation:
         """Deserialize an Operation from a cirq_google.api.v2.Operation.
 
@@ -784,8 +784,8 @@ class CircuitSerializer(serializer.Serializer):
         self,
         operation_proto: v2.program_pb2.CircuitOperation,
         *,
-        constants: List[v2.program_pb2.Constant],
-        deserialized_constants: List[Any],
+        constants: list[v2.program_pb2.Constant],
+        deserialized_constants: list[Any],
     ) -> cirq.Operation:
         """Deserialize a CircuitOperation from a
             cirq.google.api.v2.CircuitOperation.

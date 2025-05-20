@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -31,7 +31,7 @@ def sample_density_matrix(
     density_matrix: np.ndarray,
     indices: Sequence[int],
     *,  # Force keyword arguments
-    qid_shape: Optional[Tuple[int, ...]] = None,
+    qid_shape: tuple[int, ...] | None = None,
     repetitions: int = 1,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
@@ -96,10 +96,10 @@ def sample_density_matrix(
 def measure_density_matrix(
     density_matrix: np.ndarray,
     indices: Sequence[int],
-    qid_shape: Optional[Tuple[int, ...]] = None,
-    out: Optional[np.ndarray] = None,
+    qid_shape: tuple[int, ...] | None = None,
+    out: np.ndarray | None = None,
     seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-) -> Tuple[List[int], np.ndarray]:
+) -> tuple[list[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 
     This does not modify `density_matrix` unless the optional `out` is
@@ -187,7 +187,7 @@ def measure_density_matrix(
 
 
 def _probs(
-    density_matrix: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
+    density_matrix: np.ndarray, indices: Sequence[int], qid_shape: tuple[int, ...]
 ) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
@@ -197,8 +197,8 @@ def _probs(
 
 
 def _validate_density_matrix_qid_shape(
-    density_matrix: np.ndarray, qid_shape: Tuple[int, ...]
-) -> Tuple[int, ...]:
+    density_matrix: np.ndarray, qid_shape: tuple[int, ...]
+) -> tuple[int, ...]:
     """Validates that a tensor's shape is a valid shape for qids and returns the
     qid shape.
     """
@@ -244,7 +244,7 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     return int(row_size).bit_length() - 1
 
 
-def _indices_shape(qid_shape: Tuple[int, ...], indices: Sequence[int]) -> Tuple[int, ...]:
+def _indices_shape(qid_shape: tuple[int, ...], indices: Sequence[int]) -> tuple[int, ...]:
     """Validates that the indices have values within range of `len(qid_shape)`."""
     if any(index < 0 for index in indices):
         raise IndexError(f'Negative index in indices: {indices}')

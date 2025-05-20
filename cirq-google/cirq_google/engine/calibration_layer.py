@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Dict, Union
+from typing import Any
 
 import cirq
 
@@ -29,7 +29,7 @@ class CalibrationLayer:
 
     calibration_type: str
     program: cirq.Circuit
-    args: Dict[str, Union[str, float]]
+    args: dict[str, str | float]
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['calibration_type', 'program', 'args'])

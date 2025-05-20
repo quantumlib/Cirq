@@ -23,7 +23,6 @@ import json
 import os
 import pathlib
 import warnings
-from typing import Dict, List, Optional, Tuple, Type
 from unittest import mock
 
 import attrs
@@ -48,7 +47,7 @@ class _ModuleDeprecation:
 
 
 # tested modules and their deprecation settings
-TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
+TESTED_MODULES: dict[str, _ModuleDeprecation | None] = {
     'cirq_aqt': None,
     'cirq_ionq': None,
     'cirq_google': None,
@@ -66,7 +65,7 @@ if np.__version__.startswith("2."):  # pragma: no cover
     del TESTED_MODULES["cirq_rigetti"]
 
 
-def _get_testspecs_for_modules() -> List[ModuleJsonTestSpec]:
+def _get_testspecs_for_modules() -> list[ModuleJsonTestSpec]:
     modules = []
     for m in TESTED_MODULES.keys():
         try:
@@ -359,9 +358,9 @@ class SBKImpl(cirq.SerializableByKey):
     def __init__(
         self,
         name: str,
-        data_list: Optional[List] = None,
-        data_tuple: Optional[Tuple] = None,
-        data_dict: Optional[Dict] = None,
+        data_list: list | None = None,
+        data_tuple: tuple | None = None,
+        data_dict: dict | None = None,
     ):
         self.name = name
         self.data_list = data_list or []
@@ -526,7 +525,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
 
 @dataclasses.dataclass
 class SerializableTypeObject:
-    test_type: Type
+    test_type: type
 
     def _json_dict_(self):
         return {'test_type': json_serialization.json_cirq_type(self.test_type)}
@@ -607,9 +606,9 @@ def test_to_from_json_gzip():
         _ = cirq.read_json_gzip()
 
 
-def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
+def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
     content = path.read_text()
-    ctx_managers: List[contextlib.AbstractContextManager] = [contextlib.suppress()]
+    ctx_managers: list[contextlib.AbstractContextManager] = [contextlib.suppress()]
     if deprecation_deadline:  # pragma: no cover
         # we ignore coverage here, because sometimes there are no deprecations at all in any of the
         # modules
@@ -639,7 +638,7 @@ def assert_repr_and_json_test_data_agree(
     repr_path: pathlib.Path,
     json_path: pathlib.Path,
     inward_only: bool,
-    deprecation_deadline: Optional[str],
+    deprecation_deadline: str | None,
 ):
     if not repr_path.exists() and not json_path.exists():
         return
