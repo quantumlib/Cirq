@@ -37,7 +37,6 @@ requirements += [f'cirq-core=={__version__}']
 packs = (
     ['cirq_web']
     + ['cirq_web.' + package for package in find_packages(where='cirq_web')]
-    + ['cirq_ts']
 )
 
 setup(
@@ -55,7 +54,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=packs,
-    package_data={'cirq_web': ['dist/*'], 'cirq_ts': ['dist/*.bundle.js']},
+    package_data={'cirq_web': ['dist/*', 'dist/*.bundle.js']},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
