@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Facilities for dealing with data input and output for the quantum runtime."""
+
+from __future__ import annotations
+
 import abc
 import dataclasses
 import os
@@ -47,7 +50,7 @@ class ExecutableGroupResultFilesystemRecord:
     @classmethod
     def from_json(
         cls, *, run_id: str, base_data_dir: str = "."
-    ) -> 'ExecutableGroupResultFilesystemRecord':
+    ) -> ExecutableGroupResultFilesystemRecord:
         fn = f'{base_data_dir}/{run_id}/ExecutableGroupResultFilesystemRecord.json.gz'
         egr_record = cirq.read_json_gzip(fn)
         if not isinstance(egr_record, cls):
@@ -61,7 +64,7 @@ class ExecutableGroupResultFilesystemRecord:
 
         return egr_record
 
-    def load(self, *, base_data_dir: str = ".") -> 'cg.ExecutableGroupResult':
+    def load(self, *, base_data_dir: str = ".") -> cg.ExecutableGroupResult:
         """Using the filename references in this dataclass, load a `cg.ExecutableGroupResult`
         from its constituent parts.
 
@@ -110,7 +113,7 @@ def _safe_to_json(obj: Any, *, part_path: str, nominal_path: str, bak_path: str)
 
 def _update_updatable_files(
     egr_record: ExecutableGroupResultFilesystemRecord,
-    shared_rt_info: 'cg.SharedRuntimeInfo',
+    shared_rt_info: cg.SharedRuntimeInfo,
     data_dir: str,
 ):
     """Safely update ExecutableGroupResultFilesystemRecord.json.gz and SharedRuntimeInfo.json.gz
@@ -132,7 +135,7 @@ def _update_updatable_files(
 
 class _WorkflowSaver(abc.ABC):
     def initialize(
-        self, rt_config: 'cg.QuantumRuntimeConfiguration', shared_rt_info: 'cg.SharedRuntimeInfo'
+        self, rt_config: cg.QuantumRuntimeConfiguration, shared_rt_info: cg.SharedRuntimeInfo
     ):
         """Initialize a data saving for a workflow execution.
 
@@ -142,9 +145,7 @@ class _WorkflowSaver(abc.ABC):
             shared_rt_info: The current `cg.SharedRuntimeInfo` for saving.
         """
 
-    def consume_result(
-        self, exe_result: 'cg.ExecutableResult', shared_rt_info: 'cg.SharedRuntimeInfo'
-    ):
+    def consume_result(self, exe_result: cg.ExecutableResult, shared_rt_info: cg.SharedRuntimeInfo):
         """Consume an `cg.ExecutableResult` that has been completed.
 
         Args:
@@ -152,7 +153,7 @@ class _WorkflowSaver(abc.ABC):
             shared_rt_info: The current `cg.SharedRuntimeInfo` to be saved or updated.
         """
 
-    def finalize(self, shared_rt_info: 'cg.SharedRuntimeInfo'):
+    def finalize(self, shared_rt_info: cg.SharedRuntimeInfo):
         """Called at the end of a workflow execution to finalize data saving.
 
         Args:
@@ -197,7 +198,7 @@ class _FilesystemSaver(_WorkflowSaver):
         return self._egr_record
 
     def initialize(
-        self, rt_config: 'cg.QuantumRuntimeConfiguration', shared_rt_info: 'cg.SharedRuntimeInfo'
+        self, rt_config: cg.QuantumRuntimeConfiguration, shared_rt_info: cg.SharedRuntimeInfo
     ):
         """Initialize the filesystem for data saving
 
@@ -218,9 +219,7 @@ class _FilesystemSaver(_WorkflowSaver):
         )
         _update_updatable_files(self._egr_record, shared_rt_info, self._data_dir)
 
-    def consume_result(
-        self, exe_result: 'cg.ExecutableResult', shared_rt_info: 'cg.SharedRuntimeInfo'
-    ):
+    def consume_result(self, exe_result: cg.ExecutableResult, shared_rt_info: cg.SharedRuntimeInfo):
         """Save an `cg.ExecutableResult` that has been completed.
 
         Args:
@@ -235,7 +234,7 @@ class _FilesystemSaver(_WorkflowSaver):
 
         _update_updatable_files(self._egr_record, shared_rt_info, self._data_dir)
 
-    def finalize(self, shared_rt_info: 'cg.SharedRuntimeInfo'):
+    def finalize(self, shared_rt_info: cg.SharedRuntimeInfo):
         """Called at the end of a workflow execution to finalize data saving.
 
         Args:

@@ -228,24 +228,103 @@ class QasmParser:
     }
 
     qelib_gates = {
+        'ccx': QasmGateStatement(qasm_gate='ccx', num_params=0, num_args=3, cirq_gate=ops.CCX),
+        'ch': QasmGateStatement(
+            qasm_gate='ch', cirq_gate=ops.ControlledGate(ops.H), num_params=0, num_args=2
+        ),
+        'crx': QasmGateStatement(
+            qasm_gate='crx',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.rx(params[0]))),
+        ),
+        'cry': QasmGateStatement(
+            qasm_gate='cry',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.ry(params[0]))),
+        ),
+        'crz': QasmGateStatement(
+            qasm_gate='crz',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(ops.rz(params[0]))),
+        ),
+        'cswap': QasmGateStatement(
+            qasm_gate='cswap', num_params=0, num_args=3, cirq_gate=ops.CSWAP
+        ),
+        'cu1': QasmGateStatement(
+            qasm_gate='cu1',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(0, 0, params[0] / np.pi))),
+        ),
+        'cu3': QasmGateStatement(
+            qasm_gate='cu3',
+            num_params=3,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))),
+        ),
+        'cx': QasmGateStatement(qasm_gate='cx', cirq_gate=CX, num_params=0, num_args=2),
+        'cy': QasmGateStatement(
+            qasm_gate='cy', cirq_gate=ops.ControlledGate(ops.Y), num_params=0, num_args=2
+        ),
+        'cz': QasmGateStatement(qasm_gate='cz', cirq_gate=ops.CZ, num_params=0, num_args=2),
+        'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
+        'id': QasmGateStatement(
+            qasm_gate='id', cirq_gate=ops.IdentityGate(1), num_params=0, num_args=1
+        ),
+        'iswap': QasmGateStatement(
+            qasm_gate='iswap', cirq_gate=ops.ISwapPowGate(), num_params=0, num_args=2
+        ),
+        'r': QasmGateStatement(
+            qasm_gate='r',
+            num_params=2,
+            num_args=1,
+            cirq_gate=(
+                lambda params: QasmUGate(
+                    params[0] / np.pi, (params[1] / np.pi) - 0.5, (-params[1] / np.pi) + 0.5
+                )
+            ),
+        ),
         'rx': QasmGateStatement(
             qasm_gate='rx', cirq_gate=(lambda params: ops.rx(params[0])), num_params=1, num_args=1
         ),
+        'ry': QasmGateStatement(
+            qasm_gate='ry', cirq_gate=(lambda params: ops.ry(params[0])), num_params=1, num_args=1
+        ),
+        'ryy': QasmGateStatement(
+            qasm_gate='ryy',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.YYPowGate(exponent=params[0] / np.pi)),
+        ),
+        'rz': QasmGateStatement(
+            qasm_gate='rz', cirq_gate=(lambda params: ops.rz(params[0])), num_params=1, num_args=1
+        ),
+        'rxx': QasmGateStatement(
+            qasm_gate='rxx',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.XXPowGate(exponent=params[0] / np.pi)),
+        ),
+        'rzz': QasmGateStatement(
+            qasm_gate='rzz',
+            num_params=1,
+            num_args=2,
+            cirq_gate=(lambda params: ops.ZZPowGate(exponent=params[0] / np.pi)),
+        ),
+        's': QasmGateStatement(qasm_gate='s', num_params=0, num_args=1, cirq_gate=ops.S),
+        'sdg': QasmGateStatement(qasm_gate='sdg', num_params=0, num_args=1, cirq_gate=ops.S**-1),
+        'swap': QasmGateStatement(qasm_gate='swap', cirq_gate=ops.SWAP, num_params=0, num_args=2),
         'sx': QasmGateStatement(
             qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=0.5)
         ),
         'sxdg': QasmGateStatement(
             qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=-0.5)
         ),
-        'ry': QasmGateStatement(
-            qasm_gate='ry', cirq_gate=(lambda params: ops.ry(params[0])), num_params=1, num_args=1
-        ),
-        'rz': QasmGateStatement(
-            qasm_gate='rz', cirq_gate=(lambda params: ops.rz(params[0])), num_params=1, num_args=1
-        ),
-        'id': QasmGateStatement(
-            qasm_gate='id', cirq_gate=ops.IdentityGate(1), num_params=0, num_args=1
-        ),
+        't': QasmGateStatement(qasm_gate='t', num_params=0, num_args=1, cirq_gate=ops.T),
+        'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
         'u1': QasmGateStatement(
             qasm_gate='u1',
             cirq_gate=(lambda params: QasmUGate(0, 0, params[0] / np.pi)),
@@ -264,55 +343,9 @@ class QasmParser:
             num_args=1,
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])),
         ),
-        'r': QasmGateStatement(
-            qasm_gate='r',
-            num_params=2,
-            num_args=1,
-            cirq_gate=(
-                lambda params: QasmUGate(
-                    params[0] / np.pi, (params[1] / np.pi) - 0.5, (-params[1] / np.pi) + 0.5
-                )
-            ),
-        ),
         'x': QasmGateStatement(qasm_gate='x', num_params=0, num_args=1, cirq_gate=ops.X),
         'y': QasmGateStatement(qasm_gate='y', num_params=0, num_args=1, cirq_gate=ops.Y),
         'z': QasmGateStatement(qasm_gate='z', num_params=0, num_args=1, cirq_gate=ops.Z),
-        'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
-        's': QasmGateStatement(qasm_gate='s', num_params=0, num_args=1, cirq_gate=ops.S),
-        't': QasmGateStatement(qasm_gate='t', num_params=0, num_args=1, cirq_gate=ops.T),
-        'cx': QasmGateStatement(qasm_gate='cx', cirq_gate=CX, num_params=0, num_args=2),
-        'cy': QasmGateStatement(
-            qasm_gate='cy', cirq_gate=ops.ControlledGate(ops.Y), num_params=0, num_args=2
-        ),
-        'cz': QasmGateStatement(qasm_gate='cz', cirq_gate=ops.CZ, num_params=0, num_args=2),
-        'ch': QasmGateStatement(
-            qasm_gate='ch', cirq_gate=ops.ControlledGate(ops.H), num_params=0, num_args=2
-        ),
-        'cu1': QasmGateStatement(
-            qasm_gate='cu1',
-            num_params=1,
-            num_args=2,
-            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(0, 0, params[0] / np.pi))),
-        ),
-        'cu3': QasmGateStatement(
-            qasm_gate='cu3',
-            num_params=3,
-            num_args=2,
-            cirq_gate=(lambda params: ops.ControlledGate(QasmUGate(*[p / np.pi for p in params]))),
-        ),
-        'crz': QasmGateStatement(
-            qasm_gate='crz',
-            num_params=1,
-            num_args=2,
-            cirq_gate=(lambda params: ops.ControlledGate(ops.rz(params[0]))),
-        ),
-        'swap': QasmGateStatement(qasm_gate='swap', cirq_gate=ops.SWAP, num_params=0, num_args=2),
-        'cswap': QasmGateStatement(
-            qasm_gate='cswap', num_params=0, num_args=3, cirq_gate=ops.CSWAP
-        ),
-        'ccx': QasmGateStatement(qasm_gate='ccx', num_params=0, num_args=3, cirq_gate=ops.CCX),
-        'sdg': QasmGateStatement(qasm_gate='sdg', num_params=0, num_args=1, cirq_gate=ops.S**-1),
-        'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
     }
 
     tokens = QasmLexer.tokens

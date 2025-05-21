@@ -30,6 +30,8 @@ Usage:
                   imported
 """
 
+from __future__ import annotations
+
 import argparse
 import collections
 import os.path

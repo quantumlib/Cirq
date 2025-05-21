@@ -60,6 +60,8 @@ y: ____1__111_______1___11_111__1_111______111___11_11_11__1_1_1111_1111__1_11
 Win rate: 84.0%
 """
 
+from __future__ import annotations
+
 import numpy as np
 
 import cirq

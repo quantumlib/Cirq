@@ -15,16 +15,13 @@
 from __future__ import annotations
 
 import json
-from typing import Any, cast, Iterator, Sequence, TYPE_CHECKING
+from typing import Any, cast, Iterator, Sequence
 
 import numpy as np
 import sympy
 
 import cirq
 from cirq_google.api.v1 import operations_pb2
-
-if TYPE_CHECKING:
-    pass
 
 
 def _load_json_bool(b: Any):

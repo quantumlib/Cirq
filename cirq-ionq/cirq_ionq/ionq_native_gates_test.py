@@ -13,6 +13,8 @@
 # limitations under the License.
 """Tests for IonQ native gates"""
 
+from __future__ import annotations
+
 import numpy
 import pytest
 

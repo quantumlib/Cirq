@@ -19,6 +19,8 @@
 # main focus and it is executed in a shared virtual environment for the notebooks. Thus, these
 # tests ensure that notebooks are still working with the latest version of cirq.
 
+from __future__ import annotations
+
 import importlib.metadata
 import os
 import tempfile
