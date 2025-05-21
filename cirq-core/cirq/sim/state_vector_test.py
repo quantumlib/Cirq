@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Iterator, Optional
+from typing import Iterator
 from unittest import mock
 
 import numpy as np

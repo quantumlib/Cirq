@@ -17,7 +17,7 @@ tolerances."""
 
 from __future__ import annotations
 
-from typing import Iterable, TYPE_CHECKING, Union
+from typing import Iterable, TYPE_CHECKING
 
 import numpy as np
 

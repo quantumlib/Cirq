@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import EllipsisType
-from typing import cast, Sequence, Union
+from typing import cast, Sequence
 
 import numpy as np
 

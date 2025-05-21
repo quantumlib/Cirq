@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, overload, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Callable, overload, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     import cirq

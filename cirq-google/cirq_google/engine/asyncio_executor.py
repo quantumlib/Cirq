@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 import errno
 import threading
-from typing import Awaitable, Callable, Optional, TypeVar
+from typing import Awaitable, Callable, TypeVar
 
 import duet
 from typing_extensions import ParamSpec

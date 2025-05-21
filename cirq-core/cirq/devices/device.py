@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import FrozenSet, Iterable, Optional, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 
 import networkx as nx
 

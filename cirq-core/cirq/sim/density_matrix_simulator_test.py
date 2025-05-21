@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import itertools
 import random
-from typing import Type, Union
 from unittest import mock
 
 import numpy as np

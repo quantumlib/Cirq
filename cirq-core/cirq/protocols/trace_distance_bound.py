@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, TypeVar, Union
+from typing import Any, Sequence, TypeVar
 
 import numpy as np
 from typing_extensions import Protocol

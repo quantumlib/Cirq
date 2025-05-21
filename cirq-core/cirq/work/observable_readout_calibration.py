@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Iterable, TYPE_CHECKING, Union
+from typing import Iterable, TYPE_CHECKING
 
 from cirq import circuits, ops, study
 from cirq.work.observable_measurement import measure_grouped_settings, StoppingCriteria

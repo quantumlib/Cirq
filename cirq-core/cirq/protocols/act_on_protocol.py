@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Sequence, TYPE_CHECKING
 
 from typing_extensions import Protocol
 

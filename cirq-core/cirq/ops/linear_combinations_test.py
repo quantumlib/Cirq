@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import collections
-from typing import Union
 
 import numpy as np
 import pytest
@@ -230,7 +229,12 @@ def test_parameterized_linear_combination_of_gates(
 
 
 def get_matrix(
-    operator: cirq.Gate | cirq.GateOperation | cirq.LinearCombinationOfGates | cirq.LinearCombinationOfOperations,
+    operator: (
+        cirq.Gate |
+        cirq.GateOperation |
+        cirq.LinearCombinationOfGates |
+        cirq.LinearCombinationOfOperations
+    ),
 ) -> np.ndarray:
     if isinstance(operator, (cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations)):
         return operator.matrix()

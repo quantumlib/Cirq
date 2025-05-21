@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 
 from cirq import circuits, protocols
 from cirq.contrib.routing.greedy import route_circuit_greedily

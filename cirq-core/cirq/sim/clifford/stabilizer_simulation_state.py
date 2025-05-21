@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 from types import NotImplementedType
-from typing import Any, cast, Generic, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, Generic, Sequence, TYPE_CHECKING, TypeVar
 
 import sympy
 

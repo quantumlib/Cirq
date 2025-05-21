@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from types import EllipsisType, NotImplementedType
-from typing import Any, cast, Sequence, Union
+from typing import Any, cast, Sequence
 
 import numpy as np
 import pytest

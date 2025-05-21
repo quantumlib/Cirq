@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType

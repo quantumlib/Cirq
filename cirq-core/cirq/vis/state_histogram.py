@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, Sequence, SupportsFloat, Union
+from typing import Sequence, SupportsFloat
 
 import matplotlib.pyplot as plt
 import numpy as np

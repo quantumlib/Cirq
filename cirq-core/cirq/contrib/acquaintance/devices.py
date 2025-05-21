@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from cirq import circuits, devices, ops
 from cirq.contrib.acquaintance.bipartite import BipartiteSwapNetworkGate

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 import cirq.protocols.decompose_protocol as decompose_protocol
 import cirq.protocols.has_unitary_protocol as has_unitary_protocol

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Sequence, TYPE_CHECKING, Union
+from typing import Callable, Sequence, TYPE_CHECKING
 
 from google.protobuf import any_pb2
 

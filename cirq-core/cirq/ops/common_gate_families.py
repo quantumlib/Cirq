@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast, Optional, Type, Union
+from typing import Any, cast
 
 from cirq import protocols
 from cirq.ops import eigen_gate, gateset, parallel_gate, raw_types

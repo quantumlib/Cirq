@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, overload, TYPE_CHECKING
+from typing import overload, TYPE_CHECKING
 
 import numpy as np
 import sympy

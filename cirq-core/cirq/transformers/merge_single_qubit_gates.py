@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.transformers import merge_k_qubit_gates, transformer_api, transformer_primitives

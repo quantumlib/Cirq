@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, overload, TypeVar, Union
+from typing import Any, overload, TypeVar
 
 import numpy as np
 from typing_extensions import Protocol

@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.transformers import transformer_api

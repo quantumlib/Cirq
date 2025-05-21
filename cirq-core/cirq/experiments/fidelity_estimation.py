@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Mapping, Optional, Sequence, TYPE_CHECKING
+from typing import Callable, Mapping, Sequence, TYPE_CHECKING
 
 import numpy as np
 

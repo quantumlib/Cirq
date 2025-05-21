@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast, Optional, Type, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 

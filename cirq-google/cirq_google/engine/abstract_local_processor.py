@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import datetime
-from typing import Optional, overload, TYPE_CHECKING
+from typing import overload, TYPE_CHECKING
 
 from google.protobuf.timestamp_pb2 import Timestamp
 

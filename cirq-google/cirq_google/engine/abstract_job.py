@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Iterator, Optional, overload, Sequence, TYPE_CHECKING
+from typing import Iterator, overload, Sequence, TYPE_CHECKING
 
 import duet
 

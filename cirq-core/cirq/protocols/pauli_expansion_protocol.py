@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from typing_extensions import Protocol
 

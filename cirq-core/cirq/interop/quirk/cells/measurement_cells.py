@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, Iterator, Optional, TYPE_CHECKING
+from typing import cast, Iterable, Iterator, TYPE_CHECKING
 
 from cirq import ops
 from cirq.interop.quirk.cells.cell import CellMaker, ExplicitOperationsCell

@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 import pathlib
 import time
-from typing import cast, Type, TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 import google.protobuf.text_format as text_format
 

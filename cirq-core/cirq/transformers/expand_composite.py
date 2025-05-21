@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives

@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import abc
-from typing import NoReturn, Optional
+from typing import NoReturn
 
 import pytest
 

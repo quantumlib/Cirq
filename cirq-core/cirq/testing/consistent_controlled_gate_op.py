@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Collection, Optional, Sequence, Union
+from typing import Collection, Sequence
 
 import numpy as np
 

@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, FrozenSet, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING
 
 from typing_extensions import Protocol
 

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import FrozenSet, Iterator, Sequence, Set, TYPE_CHECKING
+from typing import Iterator, Sequence, TYPE_CHECKING
 
 from cirq import devices
 from cirq.contrib import circuitdag

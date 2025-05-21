@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from itertools import product
-from typing import Any, cast, Iterator, Optional
+from typing import Any, cast, Iterator
 
 import numpy as np
 import numpy.typing as npt

@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq import protocols
 from cirq.transformers import transformer_api, transformer_primitives

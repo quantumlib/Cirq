@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, Sequence, Union
+from typing import Callable, Sequence
 
 import duet
 
