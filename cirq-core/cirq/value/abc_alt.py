@@ -103,7 +103,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                 return False
             return True
 
-        def find_next_implementations(all_names: Set[str]) -> bool:
+        def find_next_implementations(all_names: set[str]) -> bool:
             next_implemented_by = {}
             for name in all_names:
                 if has_some_implementation(name):

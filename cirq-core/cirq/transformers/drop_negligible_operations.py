@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 def drop_negligible_operations(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 1e-8,
 ) -> cirq.Circuit:
     """Removes operations with tiny effects.

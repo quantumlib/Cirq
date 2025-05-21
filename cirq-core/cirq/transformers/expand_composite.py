@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 def expand_composite(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     no_decomp: Callable[[ops.Operation], bool] = (lambda _: False),
 ):
     """A transformer that expands composite operations via `cirq.decompose`.

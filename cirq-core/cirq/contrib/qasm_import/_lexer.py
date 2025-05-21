@@ -117,5 +117,5 @@ class QasmLexer:
     def input(self, qasm):
         self.lex.input(qasm)
 
-    def token(self) -> Optional[lex.Token]:
+    def token(self) -> lex.Token | None:
         return self.lex.token()

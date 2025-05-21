@@ -48,7 +48,7 @@ def _single_qubit_unitary(
 def random_qubit_unitary(
     shape: Sequence[int] = (),
     randomize_global_phase: bool = False,
-    rng: Optional[np.random.RandomState] = None,
+    rng: np.random.RandomState | None = None,
 ) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 

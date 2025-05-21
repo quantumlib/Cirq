@@ -31,8 +31,8 @@ def route_circuit(
     circuit: circuits.Circuit,
     device_graph: nx.Graph,
     *,
-    algo_name: Optional[str] = None,
-    router: Optional[Callable[..., SwapNetwork]] = None,
+    algo_name: str | None = None,
+    router: Callable[..., SwapNetwork] | None = None,
     **kwargs,
 ) -> SwapNetwork:
     """Routes a circuit on a given device.

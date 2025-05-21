@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer
 def drop_empty_moments(
-    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Removes empty moments from a circuit.
 

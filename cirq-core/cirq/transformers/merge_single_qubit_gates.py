@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 def merge_single_qubit_gates_to_phased_x_and_z(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 1e-8,
 ) -> cirq.Circuit:
     """Replaces runs of single qubit rotations with `cirq.PhasedXPowGate` and `cirq.ZPowGate`.
@@ -66,7 +66,7 @@ def merge_single_qubit_gates_to_phased_x_and_z(
 def merge_single_qubit_gates_to_phxz(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 1e-8,
 ) -> cirq.Circuit:
     """Replaces runs of single qubit rotations with a single optional `cirq.PhasedXZGate`.
@@ -100,7 +100,7 @@ def merge_single_qubit_gates_to_phxz(
 def merge_single_qubit_moments_to_phxz(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
+    context: cirq.TransformerContext | None = None,
     atol: float = 1e-8,
 ) -> cirq.Circuit:
     """Merges adjacent moments with only 1-qubit rotations to a single moment with PhasedXZ gates.
@@ -124,7 +124,7 @@ def merge_single_qubit_moments_to_phxz(
             for op in m
         )
 
-    def merge_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
+    def merge_func(m1: cirq.Moment, m2: cirq.Moment) -> cirq.Moment | None:
         if not (can_merge_moment(m1) and can_merge_moment(m2)):
             return None
         ret_ops = []

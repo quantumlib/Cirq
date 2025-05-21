@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 @transformer_api.transformer(add_deep_support=True)
 def align_left(
-    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Align gates to the left of the circuit.
 
@@ -60,7 +60,7 @@ def align_left(
 
 @transformer_api.transformer(add_deep_support=True)
 def align_right(
-    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
+    circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
 ) -> cirq.Circuit:
     """Align gates to the right of the circuit.
 

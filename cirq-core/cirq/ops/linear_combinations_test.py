@@ -230,12 +230,7 @@ def test_parameterized_linear_combination_of_gates(
 
 
 def get_matrix(
-    operator: Union[
-        cirq.Gate,
-        cirq.GateOperation,
-        cirq.LinearCombinationOfGates,
-        cirq.LinearCombinationOfOperations,
-    ],
+    operator: cirq.Gate | cirq.GateOperation | cirq.LinearCombinationOfGates | cirq.LinearCombinationOfOperations,
 ) -> np.ndarray:
     if isinstance(operator, (cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations)):
         return operator.matrix()
@@ -243,8 +238,8 @@ def get_matrix(
 
 
 def assert_linear_combinations_are_equal(
-    actual: Union[cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations],
-    expected: Union[cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations],
+    actual: cirq.LinearCombinationOfGates | cirq.LinearCombinationOfOperations,
+    expected: cirq.LinearCombinationOfGates | cirq.LinearCombinationOfOperations,
 ) -> None:
     if not actual and not expected:
         assert len(actual) == 0

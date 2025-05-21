@@ -42,7 +42,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
             )
 
 
-def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
+def get_acquaintance_size(obj: circuits.Circuit | ops.Operation) -> int:
     """The maximum number of qubits to be acquainted with each other."""
     if isinstance(obj, circuits.Circuit):
         return max(tuple(get_acquaintance_size(op) for op in obj.all_operations()) or (0,))

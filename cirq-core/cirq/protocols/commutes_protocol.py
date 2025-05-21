@@ -38,7 +38,7 @@ class SupportsCommutes(Protocol):
     """An object that can determine commutation relationships vs others."""
 
     @doc_private
-    def _commutes_(self, other: Any, *, atol: float) -> Union[None, bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float) -> None | bool | NotImplementedType:
         r"""Determines if this object commutes with the other object.
 
         Can return None to indicate the commutation relationship is
@@ -83,7 +83,7 @@ def commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool: ...
 @overload
 def commutes(
     v1: Any, v2: Any, *, atol: float = 1e-8, default: TDefault
-) -> Union[bool, TDefault]: ...
+) -> bool | TDefault: ...
 
 
 def commutes(
@@ -162,7 +162,7 @@ def definitely_commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool:
 
 def _strat_commutes_from_commutes(
     v1: Any, v2: Any, *, atol: float = 1e-8
-) -> Union[bool, NotImplementedType, None]:
+) -> bool | NotImplementedType | None:
     """Attempts to determine commutativity via the objects' _commutes_
     method."""
 
@@ -179,7 +179,7 @@ def _strat_commutes_from_commutes(
 
 def _strat_commutes_from_matrix(
     v1: Any, v2: Any, *, atol: float
-) -> Union[bool, NotImplementedType, None]:
+) -> bool | NotImplementedType | None:
     """Attempts to determine commutativity of matrices."""
     if not isinstance(v1, np.ndarray) or not isinstance(v2, np.ndarray):
         return NotImplemented

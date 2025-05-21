@@ -34,10 +34,10 @@ class StabilizerChFormSimulationState(
     def __init__(
         self,
         *,
-        prng: Optional[np.random.RandomState] = None,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        initial_state: Union[int, cirq.StabilizerStateChForm] = 0,
-        classical_data: Optional[cirq.ClassicalDataStore] = None,
+        prng: np.random.RandomState | None = None,
+        qubits: Sequence[cirq.Qid] | None = None,
+        initial_state: int | cirq.StabilizerStateChForm = 0,
+        classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Initializes with the given state and the axes for the operation.
 

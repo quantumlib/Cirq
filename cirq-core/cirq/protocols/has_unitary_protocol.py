@@ -110,7 +110,7 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
     return False
 
 
-def _strat_has_unitary_from_has_unitary(val: Any) -> Optional[bool]:
+def _strat_has_unitary_from_has_unitary(val: Any) -> bool | None:
     """Attempts to infer a value's unitary-ness via its _has_unitary_ method."""
     if hasattr(val, '_has_unitary_'):
         result = val._has_unitary_()
@@ -120,7 +120,7 @@ def _strat_has_unitary_from_has_unitary(val: Any) -> Optional[bool]:
     return None
 
 
-def _strat_has_unitary_from_unitary(val: Any) -> Optional[bool]:
+def _strat_has_unitary_from_unitary(val: Any) -> bool | None:
     """Attempts to infer a value's unitary-ness via its _unitary_ method."""
     getter = getattr(val, '_unitary_', None)
     if getter is None:
@@ -129,7 +129,7 @@ def _strat_has_unitary_from_unitary(val: Any) -> Optional[bool]:
     return result is not NotImplemented and result is not None
 
 
-def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
+def _strat_has_unitary_from_decompose(val: Any) -> bool | None:
     """Attempts to infer a value's unitary-ness via its _decompose_ method."""
     operations, _, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
@@ -137,7 +137,7 @@ def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
     return all(has_unitary(op) for op in operations)
 
 
-def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
+def _strat_has_unitary_from_apply_unitary(val: Any) -> bool | None:
     """Attempts to infer a value's unitary-ness via its _apply_unitary_ method."""
     method = getattr(val, '_apply_unitary_', None)
     if method is None:

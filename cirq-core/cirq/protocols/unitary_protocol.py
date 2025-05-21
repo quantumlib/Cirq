@@ -39,7 +39,7 @@ class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
     @doc_private
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+    def _unitary_(self) -> np.ndarray | NotImplementedType:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
         This method is used by the global `cirq.unitary` method. If this method
@@ -78,8 +78,8 @@ class SupportsUnitary(Protocol):
 
 
 def unitary(
-    val: Any, default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided
-) -> Union[np.ndarray, TDefault]:
+    val: Any, default: np.ndarray | TDefault = RaiseTypeErrorIfNotProvided
+) -> np.ndarray | TDefault:
     """Returns a unitary matrix describing the given value.
 
     The matrix is determined by any one of the following techniques:
@@ -142,7 +142,7 @@ def unitary(
     )
 
 
-def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
+def _strat_unitary_from_unitary(val: Any) -> np.ndarray | None:
     """Attempts to compute a value's unitary via its _unitary_ method."""
     getter = getattr(val, '_unitary_', None)
     if getter is None:
@@ -150,7 +150,7 @@ def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
     return getter()
 
 
-def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
+def _strat_unitary_from_apply_unitary(val: Any) -> np.ndarray | None:
     """Attempts to compute a value's unitary via its _apply_unitary_ method."""
     # Check for the magic method.
     method = getattr(val, '_apply_unitary_', None)
@@ -171,7 +171,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
     return result.reshape((state_len, state_len))
 
 
-def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
+def _strat_unitary_from_decompose(val: Any) -> np.ndarray | None:
     """Attempts to compute a value's unitary via its _decompose_ method."""
     # Check if there's a decomposition.
     operations, qubits, val_qid_shape = _try_decompose_into_operations_and_qubits(val)

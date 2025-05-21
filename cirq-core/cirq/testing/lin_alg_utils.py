@@ -120,7 +120,7 @@ def random_orthogonal(
 
 
 def random_special_unitary(
-    dim: int, *, random_state: Optional[np.random.RandomState] = None
+    dim: int, *, random_state: np.random.RandomState | None = None
 ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 

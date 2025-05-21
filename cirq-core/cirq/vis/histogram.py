@@ -21,18 +21,18 @@ from matplotlib import pyplot as plt
 
 
 def integrated_histogram(
-    data: Union[Sequence[SupportsFloat], Mapping[Any, SupportsFloat]],
-    ax: Optional[plt.Axes] = None,
+    data: Sequence[SupportsFloat] | Mapping[Any, SupportsFloat],
+    ax: plt.Axes | None = None,
     *,
     cdf_on_x: bool = False,
     axis_label: str = '',
     semilog: bool = True,
     median_line: bool = True,
-    median_label: Optional[str] = 'median',
+    median_label: str | None = 'median',
     mean_line: bool = False,
-    mean_label: Optional[str] = 'mean',
+    mean_label: str | None = 'mean',
     show_zero: bool = False,
-    title: Optional[str] = None,
+    title: str | None = None,
     **kwargs,
 ) -> plt.Axes:
     """Plot the integrated histogram for an array of data.

@@ -146,7 +146,7 @@ class T1DecayResult:
             return np.nan
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, include_fit: bool = False, **plot_kwargs: Any
+        self, ax: plt.Axes | None = None, include_fit: bool = False, **plot_kwargs: Any
     ) -> plt.Axes:
         """Plots the excited state probability vs the amount of delay.
 

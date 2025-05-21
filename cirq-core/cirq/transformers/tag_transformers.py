@@ -27,8 +27,8 @@ if TYPE_CHECKING:
 def index_tags(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
-    target_tags: Optional[set[Hashable]] = None,
+    context: cirq.TransformerContext | None = None,
+    target_tags: set[Hashable] | None = None,
 ) -> cirq.Circuit:
     """Indexes tags in target_tags as tag_0, tag_1, ... per tag.
 
@@ -64,8 +64,8 @@ def index_tags(
 def remove_tags(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
-    target_tags: Optional[set[Hashable]] = None,
+    context: cirq.TransformerContext | None = None,
+    target_tags: set[Hashable] | None = None,
     remove_if: Callable[[Hashable], bool] = lambda _: False,
 ) -> cirq.Circuit:
     """Removes tags from the operations based on the input args.

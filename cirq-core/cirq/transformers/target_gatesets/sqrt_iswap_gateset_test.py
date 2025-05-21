@@ -40,7 +40,7 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
 
 
 def assert_optimization_not_broken(
-    circuit: cirq.Circuit, required_sqrt_iswap_count: Optional[int] = None
+    circuit: cirq.Circuit, required_sqrt_iswap_count: int | None = None
 ):
     c_new = cirq.optimize_for_target_gateset(
         circuit,

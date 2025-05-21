@@ -33,7 +33,7 @@ def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):
 def assert_optimizes(
     before: cirq.Circuit,
     expected: cirq.Circuit,
-    additional_gates: Optional[Sequence[Type[cirq.Gate]]] = None,
+    additional_gates: Sequence[type[cirq.Gate]] | None = None,
 ):
     if additional_gates is None:
         gateset = cirq.CZTargetGateset()

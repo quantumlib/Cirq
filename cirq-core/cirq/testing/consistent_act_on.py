@@ -52,9 +52,9 @@ def state_vector_has_stabilizer(
     """
 
     qubits = LineQubit.range(protocols.num_qubits(stabilizer))
-    complex_dtype: Type[np.complexfloating] = np.complex64
+    complex_dtype: type[np.complexfloating] = np.complex64
     if np.issubdtype(state_vector.dtype, np.complexfloating):
-        complex_dtype = cast(Type[np.complexfloating], state_vector.dtype)
+        complex_dtype = cast(type[np.complexfloating], state_vector.dtype)
     args = state_vector_simulation_state.StateVectorSimulationState(
         available_buffer=np.empty_like(state_vector),
         qubits=qubits,
@@ -153,7 +153,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
 
 def _final_clifford_tableau(
     circuit: Circuit, qubit_map
-) -> Optional[clifford_tableau.CliffordTableau]:
+) -> clifford_tableau.CliffordTableau | None:
     """Evolves a default CliffordTableau through the input circuit.
 
     Initializes a CliffordTableau with default args for the given qubits and
@@ -181,7 +181,7 @@ def _final_clifford_tableau(
 
 def _final_stabilizer_state_ch_form(
     circuit: Circuit, qubit_map
-) -> Optional[stabilizer_state_ch_form.StabilizerStateChForm]:
+) -> stabilizer_state_ch_form.StabilizerStateChForm | None:
     """Evolves a default StabilizerStateChForm through the input circuit.
 
     Initializes a StabilizerStateChForm with default args for the given qubits

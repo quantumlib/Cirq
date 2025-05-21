@@ -30,7 +30,7 @@ def generate_all_measurement_cell_makers() -> Iterator[CellMaker]:
     yield _measurement("XDetector", basis_change=ops.Y**0.5)
 
 
-def _measurement(identifier: str, basis_change: Optional[cirq.Gate] = None) -> CellMaker:
+def _measurement(identifier: str, basis_change: cirq.Gate | None = None) -> CellMaker:
     return CellMaker(
         identifier=identifier,
         size=1,

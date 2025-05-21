@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 def calibrate_readout_error(
     qubits: Iterable[ops.Qid],
-    sampler: Union[cirq.Simulator, cirq.Sampler],
+    sampler: cirq.Simulator | cirq.Sampler,
     stopping_criteria: StoppingCriteria,
 ):
     # We know there won't be any fancy sweeps or observables so we can

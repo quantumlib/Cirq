@@ -231,7 +231,7 @@ def test_decompose_intercept() -> None:
 
     # Accepts a context, when provided.
     def _intercept_with_context(
-        op: cirq.Operation, context: Optional[cirq.DecompositionContext] = None
+        op: cirq.Operation, context: cirq.DecompositionContext | None = None
     ):
         assert context is not None
         if op.gate == cirq.SWAP:
