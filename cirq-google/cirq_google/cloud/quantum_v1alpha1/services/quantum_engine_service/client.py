@@ -55,9 +55,7 @@ class QuantumEngineServiceClientMeta(type):
     _transport_registry["grpc"] = QuantumEngineServiceGrpcTransport
     _transport_registry["grpc_asyncio"] = QuantumEngineServiceGrpcAsyncIOTransport
 
-    def get_transport_class(
-        cls, label: str | None = None
-    ) -> type[QuantumEngineServiceTransport]:
+    def get_transport_class(cls, label: str | None = None) -> type[QuantumEngineServiceTransport]:
         """Returns an appropriate transport class.
 
         Args:

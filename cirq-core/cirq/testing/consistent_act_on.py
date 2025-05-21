@@ -151,9 +151,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
         )
 
 
-def _final_clifford_tableau(
-    circuit: Circuit, qubit_map
-) -> clifford_tableau.CliffordTableau | None:
+def _final_clifford_tableau(circuit: Circuit, qubit_map) -> clifford_tableau.CliffordTableau | None:
     """Evolves a default CliffordTableau through the input circuit.
 
     Initializes a CliffordTableau with default args for the given qubits and

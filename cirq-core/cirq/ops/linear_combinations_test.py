@@ -230,10 +230,10 @@ def test_parameterized_linear_combination_of_gates(
 
 def get_matrix(
     operator: (
-        cirq.Gate |
-        cirq.GateOperation |
-        cirq.LinearCombinationOfGates |
-        cirq.LinearCombinationOfOperations
+        cirq.Gate
+        | cirq.GateOperation
+        | cirq.LinearCombinationOfGates
+        | cirq.LinearCombinationOfOperations
     ),
 ) -> np.ndarray:
     if isinstance(operator, (cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations)):

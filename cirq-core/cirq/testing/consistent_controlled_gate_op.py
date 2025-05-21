@@ -52,9 +52,7 @@ def assert_controlled_unitary_consistent(gate: ops.Gate):
 
 
 def _assert_gate_consistent(
-    gate: ops.Gate,
-    num_controls: int,
-    control_values: Sequence[int | Collection[int]] | None,
+    gate: ops.Gate, num_controls: int, control_values: Sequence[int | Collection[int]] | None
 ) -> None:
     gate_controlled = gate.controlled(num_controls, control_values)
     qubits = devices.LineQid.for_gate(gate_controlled)

@@ -81,9 +81,7 @@ def commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool: ...
 
 
 @overload
-def commutes(
-    v1: Any, v2: Any, *, atol: float = 1e-8, default: TDefault
-) -> bool | TDefault: ...
+def commutes(v1: Any, v2: Any, *, atol: float = 1e-8, default: TDefault) -> bool | TDefault: ...
 
 
 def commutes(

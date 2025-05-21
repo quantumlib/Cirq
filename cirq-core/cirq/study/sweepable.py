@@ -74,9 +74,7 @@ def to_sweeps(sweepable: Sweepable, metadata: dict | None = None) -> list[Sweep]
 
 def to_sweep(
     sweep_or_resolver_list: (
-        Sweep |
-        ParamResolverOrSimilarType |
-        Iterable[ParamResolverOrSimilarType]
+        Sweep | ParamResolverOrSimilarType | Iterable[ParamResolverOrSimilarType]
     ),
 ) -> Sweep:
     """Converts the argument into a ``cirq.Sweep``.
