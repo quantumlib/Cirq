@@ -143,7 +143,7 @@ def decompose_all_to_all_connect_ccz_gate(
     global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
     global_phase = (
         complex(global_phase)
-        if cirq.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
+        if cirq.is_parameterized(global_phase) and global_phase.is_complex
         else global_phase
     )
     global_phase_operation = (

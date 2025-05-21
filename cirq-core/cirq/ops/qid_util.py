@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import overload, TYPE_CHECKING, Union
+from typing import overload, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
@@ -32,7 +32,7 @@ def q(__row: int, __col: int) -> cirq.GridQubit: ...
 def q(__name: str) -> cirq.NamedQubit: ...
 
 
-def q(*args: Union[int, str]) -> Union[cirq.LineQubit, cirq.GridQubit, cirq.NamedQubit]:
+def q(*args: int | str) -> cirq.LineQubit | cirq.GridQubit | cirq.NamedQubit:
     """Constructs a qubit id of the appropriate type based on args.
 
     This is shorthand for constructing qubit ids of common types:

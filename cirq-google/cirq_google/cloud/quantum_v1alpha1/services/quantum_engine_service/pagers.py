@@ -45,7 +45,7 @@ class ListQuantumProgramsPager:
         request: engine.ListQuantumProgramsRequest,
         response: engine.ListQuantumProgramsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -107,7 +107,7 @@ class ListQuantumProgramsAsyncPager:
         request: engine.ListQuantumProgramsRequest,
         response: engine.ListQuantumProgramsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 
@@ -173,7 +173,7 @@ class ListQuantumJobsPager:
         request: engine.ListQuantumJobsRequest,
         response: engine.ListQuantumJobsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -235,7 +235,7 @@ class ListQuantumJobsAsyncPager:
         request: engine.ListQuantumJobsRequest,
         response: engine.ListQuantumJobsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 
@@ -301,7 +301,7 @@ class ListQuantumJobEventsPager:
         request: engine.ListQuantumJobEventsRequest,
         response: engine.ListQuantumJobEventsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -363,7 +363,7 @@ class ListQuantumJobEventsAsyncPager:
         request: engine.ListQuantumJobEventsRequest,
         response: engine.ListQuantumJobEventsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 
@@ -429,7 +429,7 @@ class ListQuantumProcessorsPager:
         request: engine.ListQuantumProcessorsRequest,
         response: engine.ListQuantumProcessorsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -491,7 +491,7 @@ class ListQuantumProcessorsAsyncPager:
         request: engine.ListQuantumProcessorsRequest,
         response: engine.ListQuantumProcessorsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 
@@ -557,7 +557,7 @@ class ListQuantumCalibrationsPager:
         request: engine.ListQuantumCalibrationsRequest,
         response: engine.ListQuantumCalibrationsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -619,7 +619,7 @@ class ListQuantumCalibrationsAsyncPager:
         request: engine.ListQuantumCalibrationsRequest,
         response: engine.ListQuantumCalibrationsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 
@@ -685,7 +685,7 @@ class ListQuantumReservationsPager:
         request: engine.ListQuantumReservationsRequest,
         response: engine.ListQuantumReservationsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -747,7 +747,7 @@ class ListQuantumReservationsAsyncPager:
         request: engine.ListQuantumReservationsRequest,
         response: engine.ListQuantumReservationsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 
@@ -813,7 +813,7 @@ class ListQuantumReservationGrantsPager:
         request: engine.ListQuantumReservationGrantsRequest,
         response: engine.ListQuantumReservationGrantsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -875,7 +875,7 @@ class ListQuantumReservationGrantsAsyncPager:
         request: engine.ListQuantumReservationGrantsRequest,
         response: engine.ListQuantumReservationGrantsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 
@@ -941,7 +941,7 @@ class ListQuantumReservationBudgetsPager:
         request: engine.ListQuantumReservationBudgetsRequest,
         response: engine.ListQuantumReservationBudgetsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -1003,7 +1003,7 @@ class ListQuantumReservationBudgetsAsyncPager:
         request: engine.ListQuantumReservationBudgetsRequest,
         response: engine.ListQuantumReservationBudgetsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 
@@ -1069,7 +1069,7 @@ class ListQuantumTimeSlotsPager:
         request: engine.ListQuantumTimeSlotsRequest,
         response: engine.ListQuantumTimeSlotsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiate the pager.
 
@@ -1131,7 +1131,7 @@ class ListQuantumTimeSlotsAsyncPager:
         request: engine.ListQuantumTimeSlotsRequest,
         response: engine.ListQuantumTimeSlotsResponse,
         *,
-        metadata: Sequence[Tuple[str, str]] = (),
+        metadata: Sequence[tuple[str, str]] = (),
     ):
         """Instantiates the pager.
 

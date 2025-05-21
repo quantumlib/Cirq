@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.local_simulation_type import LocalSimulationType
@@ -37,7 +37,7 @@ class SimulatedLocalProgram(AbstractLocalProgram):
         *args,
         program_id: str,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
-        processor: Optional[SimulatedLocalProcessor] = None,
+        processor: SimulatedLocalProcessor | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)

@@ -15,7 +15,7 @@
 import functools
 import os
 import unittest.mock
-from typing import Callable, Type
+from typing import Callable
 
 from cirq._compat import block_overlapping_deprecation, deprecated, deprecated_class
 
@@ -26,7 +26,7 @@ _DEPRECATION_FIX_MSG = (
 )
 
 
-def deprecated_cirq_rigetti_class() -> Callable[[Type], Type]:  # coverage: ignore
+def deprecated_cirq_rigetti_class() -> Callable[[type], type]:  # coverage: ignore
     """Decorator to mark a class in Cirq-Rigetti deprecated."""
     return deprecated_class(deadline=_DEPRECATION_DEADLINE, fix=_DEPRECATION_FIX_MSG)
 
