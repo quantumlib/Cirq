@@ -25,6 +25,8 @@ The -q argument suppresses all output except the final result line and any error
 messages.
 """
 
+from __future__ import annotations
+
 import doctest
 import glob
 import importlib.util

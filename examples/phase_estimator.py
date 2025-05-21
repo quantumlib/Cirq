@@ -16,6 +16,7 @@ target=0.9000, estimate=0.8984=230/256
 RMS Error: 0.0011
 """
 
+from __future__ import annotations
 
 import numpy as np
 
