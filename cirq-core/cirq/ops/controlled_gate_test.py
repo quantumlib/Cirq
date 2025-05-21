@@ -509,21 +509,25 @@ def _test_controlled_gate_is_consistent(
         (cirq.CZPowGate(), [cirq.CCZPowGate()]),
     ],
 )
-def test_controlled_gate_decomposition_uses_canonical_version(sub_gate, expected_decomposition):
+def test_controlled_gate_decomposition_uses_canonical_version(
+    sub_gate: cirq.Gate, expected_decomposition: list[cirq.Gate]
+):
     cgate = cirq.ControlledGate(sub_gate, num_controls=1)
     qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
     dec = cirq.decompose_once(cgate.on(*qubits))
-    assert [op.gate for op in dec] == expected_decomposition
+    assert dec == [gate.on(*qubits) for gate in expected_decomposition]
 
 
 @pytest.mark.parametrize(
     'sub_gate, expected_decomposition', [(cirq.Z, [cirq.CZ]), (cirq.ZPowGate(), [cirq.CZPowGate()])]
 )
-def test_controlled_gate_full_decomposition(sub_gate, expected_decomposition):
+def test_controlled_gate_full_decomposition(
+    sub_gate: cirq.Gate, expected_decomposition: list[cirq.Gate]
+):
     cgate = cirq.ControlledGate(sub_gate, num_controls=1)
     qubits = cirq.LineQubit.range(1 + sub_gate.num_qubits())
     dec = cirq.decompose(cgate.on(*qubits))
-    assert [op.gate for op in dec] == expected_decomposition
+    assert dec == [gate.on(*qubits) for gate in expected_decomposition]
 
 
 def test_pow_inverse():
