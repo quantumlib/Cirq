@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 import pytest
 
@@ -77,7 +75,7 @@ class FullyImplemented(cirq.Gate):
     def _has_unitary_(self) -> bool:
         return self.unitary_value
 
-    def _unitary_(self) -> Optional[np.ndarray]:
+    def _unitary_(self) -> np.ndarray | None:
         if not self.unitary_value:
             return None
         return m1

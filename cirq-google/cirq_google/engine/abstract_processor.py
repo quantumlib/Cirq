@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import abc
 import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import duet
 
@@ -194,7 +194,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def engine(self) -> Optional[abstract_engine.AbstractEngine]:
+    def engine(self) -> abstract_engine.AbstractEngine | None:
         """Returns the parent Engine object.
 
         Returns:

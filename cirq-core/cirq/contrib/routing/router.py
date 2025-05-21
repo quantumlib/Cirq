@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 
 from cirq import circuits, protocols
 from cirq.contrib.routing.greedy import route_circuit_greedily
@@ -31,8 +31,8 @@ def route_circuit(
     circuit: circuits.Circuit,
     device_graph: nx.Graph,
     *,
-    algo_name: Optional[str] = None,
-    router: Optional[Callable[..., SwapNetwork]] = None,
+    algo_name: str | None = None,
+    router: Callable[..., SwapNetwork] | None = None,
     **kwargs,
 ) -> SwapNetwork:
     """Routes a circuit on a given device.
