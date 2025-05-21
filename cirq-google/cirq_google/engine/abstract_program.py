@@ -11,18 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """An interface for quantum programs.
 
 The quantum program represents a circuit (or other execution) that,
 when combined with a run context, will become a quantum job.
 """
 
-
 from __future__ import annotations
 
 import abc
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing import Sequence, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
@@ -65,10 +65,10 @@ class AbstractProgram(abc.ABC):
     @abc.abstractmethod
     def list_jobs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
+        execution_states: set[quantum.ExecutionStatus.State] | None = None,
     ) -> Sequence[abstract_job.AbstractJob]:
         """Returns the list of jobs for this program.
 
@@ -119,11 +119,11 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def labels(self) -> Dict[str, str]:
+    def labels(self) -> dict[str, str]:
         """Returns the labels of the program."""
 
     @abc.abstractmethod
-    def set_labels(self, labels: Dict[str, str]) -> AbstractProgram:
+    def set_labels(self, labels: dict[str, str]) -> AbstractProgram:
         """Sets (overwriting) the labels for a previously created quantum program.
 
         Params:
@@ -134,7 +134,7 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def add_labels(self, labels: Dict[str, str]) -> AbstractProgram:
+    def add_labels(self, labels: dict[str, str]) -> AbstractProgram:
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -145,7 +145,7 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def remove_labels(self, keys: List[str]) -> AbstractProgram:
+    def remove_labels(self, keys: list[str]) -> AbstractProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 

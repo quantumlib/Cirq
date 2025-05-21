@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import cast, Iterable, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 def _remove_partial_czs_or_fail(
     operations: Iterable[cirq.Operation], atol: float
-) -> List[cirq.Operation]:
+) -> list[cirq.Operation]:
     result = []
     for op in operations:
         if isinstance(op.gate, ops.CZPowGate):
@@ -57,7 +57,7 @@ def two_qubit_matrix_to_cz_operations(
     allow_partial_czs: bool,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> List[ops.Operation]:
+) -> list[ops.Operation]:
     """Decomposes a two-qubit operation into Z/XY/CZ gates.
 
     Args:
@@ -93,7 +93,7 @@ def two_qubit_matrix_to_diagonal_and_cz_operations(
     allow_partial_czs: bool = False,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> Tuple[np.ndarray, List[cirq.Operation]]:
+) -> tuple[np.ndarray, list[cirq.Operation]]:
     """Decomposes a 2-qubit unitary to a diagonal and the remaining operations.
 
     For a 2-qubit unitary V, return ops, a list of operations and
@@ -197,7 +197,7 @@ def _kak_decomposition_to_operations(
     kak: linalg.KakDecomposition,
     allow_partial_czs: bool,
     atol: float = 1e-8,
-) -> List[ops.Operation]:
+) -> list[ops.Operation]:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, atol=atol), _do_single_on(b1, q1, atol=atol)]
@@ -232,7 +232,7 @@ def _is_trivial_angle(rad: float, atol: float) -> bool:
 
 
 def _parity_interaction(
-    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: Optional[ops.Gate] = None
+    q0: cirq.Qid, q1: cirq.Qid, rads: float, atol: float, gate: ops.Gate | None = None
 ):
     """Yields a ZZ interaction framed by the given operation."""
     if abs(rads) < atol:
@@ -263,7 +263,7 @@ def _do_single_on(u: np.ndarray, q: cirq.Qid, atol: float = 1e-8):
 def _non_local_part(
     q0: cirq.Qid,
     q1: cirq.Qid,
-    interaction_coefficients: Tuple[float, float, float],
+    interaction_coefficients: tuple[float, float, float],
     allow_partial_czs: bool,
     atol: float = 1e-8,
 ):

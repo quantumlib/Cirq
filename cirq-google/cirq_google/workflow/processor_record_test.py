@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from unittest import mock
 
 import pytest
@@ -21,7 +23,7 @@ import cirq_google as cg
 
 
 class _ExampleProcessorRecord(cg.ProcessorRecord):
-    def get_processor(self) -> 'cg.engine.AbstractProcessor':
+    def get_processor(self) -> cg.engine.AbstractProcessor:
         return cg.engine.SimulatedLocalProcessor(processor_id='example')
 
 

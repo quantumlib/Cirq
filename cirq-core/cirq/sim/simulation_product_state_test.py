@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Sequence
 
 import cirq
 
@@ -57,7 +57,7 @@ qs2 = cirq.LineQubit.range(2)
 def create_container(
     qubits: Sequence[cirq.Qid], split_untangled_states=True
 ) -> cirq.SimulationProductState[EmptySimulationState]:
-    state_map: Dict[Optional[cirq.Qid], EmptySimulationState] = {}
+    state_map: dict[cirq.Qid | None, EmptySimulationState] = {}
     log = cirq.ClassicalDataDictionaryStore()
     if split_untangled_states:
         for q in reversed(qubits):

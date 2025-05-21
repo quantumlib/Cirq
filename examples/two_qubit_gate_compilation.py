@@ -18,6 +18,8 @@ Finally, it displays statistics on the process fidelity between the compiled
 and desired gates.
 """
 
+from __future__ import annotations
+
 from time import time
 
 import numpy as np

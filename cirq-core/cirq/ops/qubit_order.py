@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from __future__ import annotations
 
-from typing import Any, Callable, Iterable, Optional, Tuple, TYPE_CHECKING, TypeVar
+from typing import Any, Callable, Iterable, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     import cirq
@@ -28,7 +27,7 @@ TExternalQubit = TypeVar('TExternalQubit')
 class QubitOrder:
     """Defines the kronecker product order of qubits."""
 
-    def __init__(self, explicit_func: Callable[[Iterable[cirq.Qid]], Tuple[cirq.Qid, ...]]) -> None:
+    def __init__(self, explicit_func: Callable[[Iterable[cirq.Qid]], tuple[cirq.Qid, ...]]) -> None:
         self._explicit_func = explicit_func
 
     DEFAULT: QubitOrder
@@ -41,7 +40,7 @@ class QubitOrder:
 
     @staticmethod
     def explicit(
-        fixed_qubits: Iterable[cirq.Qid], fallback: Optional[QubitOrder] = None
+        fixed_qubits: Iterable[cirq.Qid], fallback: QubitOrder | None = None
     ) -> QubitOrder:
         """A basis that contains exactly the given qubits in the given order.
 
@@ -87,7 +86,7 @@ class QubitOrder:
         """
         return QubitOrder(lambda qubits: tuple(sorted(qubits, key=key)))
 
-    def order_for(self, qubits: Iterable[cirq.Qid]) -> Tuple[cirq.Qid, ...]:
+    def order_for(self, qubits: Iterable[cirq.Qid]) -> tuple[cirq.Qid, ...]:
         """Returns a qubit tuple ordered corresponding to the basis.
 
         Args:

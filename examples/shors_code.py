@@ -24,6 +24,8 @@ at most one bit flip and one sign flip or their combination.
 reference: P. W. Shor, Phys. Rev. A, 52, R2493 (1995).
 """
 
+from __future__ import annotations
+
 import random
 
 import cirq

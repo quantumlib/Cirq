@@ -19,20 +19,7 @@ from __future__ import annotations
 import abc
 import collections
 import io
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, cast, Iterable, Mapping, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -48,7 +35,7 @@ T = TypeVar('T')
 TMeasurementKey = Union[str, 'cirq.Qid', Iterable['cirq.Qid']]
 
 
-def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
+def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> tuple[int, ...]:
     """Returns the big-endian integers specified by groups of bits.
 
     Args:
@@ -170,7 +157,7 @@ class Result(abc.ABC):
         self,
         *,  # Forces keyword args.
         keys: Iterable[TMeasurementKey],
-        fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T], _tuple_of_big_endian_int),
+        fold_func: Callable[[tuple], T] = cast(Callable[[tuple], T], _tuple_of_big_endian_int),
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
 
@@ -229,7 +216,7 @@ class Result(abc.ABC):
         self,
         *,  # Forces keyword args.
         key: TMeasurementKey,
-        fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T], value.big_endian_bits_to_int),
+        fold_func: Callable[[tuple], T] = cast(Callable[[tuple], T], value.big_endian_bits_to_int),
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
@@ -291,7 +278,7 @@ class Result(abc.ABC):
             raise ValueError(
                 f'Cannot add results with different measurement shapes: {shape} != {other_shape}'
             )
-        all_records: Dict[str, np.ndarray] = {}
+        all_records: dict[str, np.ndarray] = {}
         for key in other.records:
             all_records[key] = np.append(self.records[key], other.records[key], axis=0)
         return ResultDict(params=self.params, records=all_records)
@@ -312,9 +299,9 @@ class ResultDict(Result):
     def __init__(
         self,
         *,  # Forces keyword args.
-        params: Optional[resolver.ParamResolver] = None,
-        measurements: Optional[Mapping[str, np.ndarray]] = None,
-        records: Optional[Mapping[str, np.ndarray]] = None,
+        params: resolver.ParamResolver | None = None,
+        measurements: Mapping[str, np.ndarray] | None = None,
+        records: Mapping[str, np.ndarray] | None = None,
     ) -> None:
         """Inits Result.
 
@@ -341,7 +328,7 @@ class ResultDict(Result):
         self._params = params
         self._measurements = measurements
         self._records = records
-        self._data: Optional[pd.DataFrame] = None
+        self._data: pd.DataFrame | None = None
 
     @property
     def params(self) -> cirq.ParamResolver:
@@ -435,7 +422,7 @@ class ResultDict(Result):
         return cls._from_packed_records(params=params, records=kwargs['records'])
 
 
-def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:
+def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> tuple[str, bool]:
     """Returns a string of packed digits and a boolean indicating whether the
     digits were packed as binary values.
 
@@ -474,7 +461,7 @@ def _pack_bits(bits: np.ndarray) -> str:
 
 
 def _unpack_digits(
-    packed_digits: str, binary: bool, dtype: Union[None, str], shape: Union[None, Sequence[int]]
+    packed_digits: str, binary: bool, dtype: None | str, shape: None | Sequence[int]
 ) -> np.ndarray:
     """The opposite of `_pack_digits`.
 

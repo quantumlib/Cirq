@@ -14,11 +14,10 @@
 
 """A Gauge transformer for CZ**0.5 and CZ**-0.5 gates."""
 
-
 from __future__ import annotations
 
 from numbers import Real
-from typing import Dict, Sequence, Tuple, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 from cirq.ops import CZ, CZPowGate, Gate, Gateset, S, X
 from cirq.transformers.gauge_compiling.gauge_compiling import (
@@ -67,7 +66,7 @@ class SqrtCZGauge(Gauge):
 
 def _symbolize_as_cz_pow(
     two_qubit_gate: Gate, symbols: Sequence[sympy.Symbol]
-) -> Tuple[Gate, Dict[str, Real]]:
+) -> tuple[Gate, dict[str, Real]]:
     """Symbolizes a CZPowGate to a parameterized CZPowGate."""
 
     if not isinstance(two_qubit_gate, CZPowGate) or not isinstance(two_qubit_gate.exponent, Real):

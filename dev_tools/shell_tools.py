@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import subprocess
 import sys
-from typing import List, Tuple, Union
 
 BOLD = 1
 DIM = 2
@@ -37,7 +38,7 @@ def highlight(text: str, color_code: int, bold: bool = False) -> str:
     return '{}\033[{}m{}\033[0m'.format('\033[1m' if bold else '', color_code, text)
 
 
-def abbreviate_command_arguments_after_switches(cmd: Tuple[str, ...]) -> Tuple[str, ...]:
+def abbreviate_command_arguments_after_switches(cmd: tuple[str, ...]) -> tuple[str, ...]:
     result = [cmd[0]]
     for i in range(1, len(cmd)):
         if not cmd[i].startswith('-'):
@@ -48,7 +49,7 @@ def abbreviate_command_arguments_after_switches(cmd: Tuple[str, ...]) -> Tuple[s
 
 
 def run(
-    args: Union[str, List[str]],
+    args: str | list[str],
     *,
     log_run_to_stderr: bool = True,
     abbreviate_non_option_arguments: bool = False,
@@ -87,14 +88,14 @@ def run(
     # setup our default for subprocess.run flag arguments
     subprocess_run_kwargs.update(check=check, text=text)
     if log_run_to_stderr:
-        cmd_desc: Tuple[str, ...] = (args,) if isinstance(args, str) else tuple(args)
+        cmd_desc: tuple[str, ...] = (args,) if isinstance(args, str) else tuple(args)
         if abbreviate_non_option_arguments:
             cmd_desc = abbreviate_command_arguments_after_switches(cmd_desc)
         print('run:', cmd_desc, file=sys.stderr)
     return subprocess.run(args, **subprocess_run_kwargs)
 
 
-def output_of(args: Union[str, List[str]], **kwargs) -> str:
+def output_of(args: str | list[str], **kwargs) -> str:
     """Invokes a subprocess and returns its output as a string.
 
     Args:

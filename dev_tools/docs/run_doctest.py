@@ -25,13 +25,15 @@ The -q argument suppresses all output except the final result line and any error
 messages.
 """
 
+from __future__ import annotations
+
 import doctest
 import glob
 import importlib.util
 import sys
 import warnings
 from types import ModuleType
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Iterable
 
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
@@ -44,7 +46,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="cotengra.hyperop
 
 
 class Doctest:
-    def __init__(self, file_name: str, mod: ModuleType, test_globals: Dict[str, Any]):
+    def __init__(self, file_name: str, mod: ModuleType, test_globals: dict[str, Any]):
         self.file_name = file_name
         self.mod = mod
         self.test_globals = test_globals
@@ -102,7 +104,7 @@ def load_tests(
     include_modules: bool = True,
     include_local: bool = True,
     quiet: bool = True,
-) -> List[Doctest]:
+) -> list[Doctest]:
     """Prepares tests for code snippets from docstrings found in each file.
 
     Args:
@@ -146,7 +148,7 @@ def load_tests(
         glob = make_globals(mod)
         return Doctest(file_path, mod, glob)
 
-    def make_globals(mod: ModuleType) -> Dict[str, Any]:
+    def make_globals(mod: ModuleType) -> dict[str, Any]:
         if include_local:
             glob = dict(mod.__dict__)
             glob.update(base_globals)
@@ -161,7 +163,7 @@ def load_tests(
 
 def exec_tests(
     tests: Iterable[Doctest], quiet: bool = True
-) -> Tuple[doctest.TestResults, List[str]]:
+) -> tuple[doctest.TestResults, list[str]]:
     """Runs a list of `Doctest`s and collects and returns any error messages.
 
     Args:

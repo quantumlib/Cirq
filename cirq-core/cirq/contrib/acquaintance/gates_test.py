@@ -17,7 +17,7 @@ from __future__ import annotations
 from itertools import combinations, product
 from random import randint
 from string import ascii_lowercase as alphabet
-from typing import Optional, Sequence, Tuple
+from typing import Sequence
 
 import numpy
 import pytest
@@ -141,7 +141,7 @@ def test_acquaint_part_pairs(part_lens):
     assert expected_opps == actual_opps
 
 
-acquaintance_sizes: Tuple[Optional[int], ...] = (None,)
+acquaintance_sizes: tuple[int | None, ...] = (None,)
 acquaintance_sizes += tuple(range(5))
 
 
@@ -256,7 +256,7 @@ class OtherOperation(cirq.Operation):
         self._qubits = tuple(qubits)
 
     @property
-    def qubits(self) -> Tuple[cirq.Qid, ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
 
     def with_qubits(self, *new_qubits: cirq.Qid) -> OtherOperation:

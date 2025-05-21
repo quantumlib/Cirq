@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Dict, Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 class ProgramDictProcessor(AbstractLocalProcessor):
     """A processor that has a dictionary of programs for testing."""
 
-    def __init__(self, programs: Dict[str, AbstractProgram], **kwargs):
+    def __init__(self, programs: dict[str, AbstractProgram], **kwargs):
         super().__init__(**kwargs)
         self._programs = programs
 
@@ -73,9 +73,9 @@ class ProgramDictProcessor(AbstractLocalProcessor):
 
     def list_programs(
         self,
-        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-        has_labels: Optional[Dict[str, str]] = None,
+        created_before: datetime.datetime | datetime.date | None = None,
+        created_after: datetime.datetime | datetime.date | None = None,
+        has_labels: dict[str, str] | None = None,
     ):
         """Lists all programs regardless of filters.
 

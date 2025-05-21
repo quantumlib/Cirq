@@ -70,6 +70,8 @@ Note: QFT in the above diagram omits swaps, which are included implicitly by
 reversing qubit order for phase kickbacks.
 """
 
+from __future__ import annotations
+
 import math
 import random
 from collections.abc import Mapping

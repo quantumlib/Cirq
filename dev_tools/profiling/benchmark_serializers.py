@@ -30,6 +30,8 @@ WARNING: runtime increases exponentially with nesting_depth. Values much
 higher than nesting_depth=10 are not recommended.
 """
 
+from __future__ import annotations
+
 import argparse
 import sys
 import timeit
