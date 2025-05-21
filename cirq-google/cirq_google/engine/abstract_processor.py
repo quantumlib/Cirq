@@ -194,7 +194,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def engine(self) -> Optional[abstract_engine.AbstractEngine]:
+    def engine(self) -> abstract_engine.AbstractEngine | None:
         """Returns the parent Engine object.
 
         Returns:

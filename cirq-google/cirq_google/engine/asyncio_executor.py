@@ -69,7 +69,7 @@ class AsyncioExecutor:
         future = asyncio.run_coroutine_threadsafe(func(*args, **kwargs), self.loop)
         return duet.AwaitableFuture.wrap(future)
 
-    _instance: Optional[AsyncioExecutor] = None
+    _instance: AsyncioExecutor | None = None
 
     @classmethod
     def instance(cls) -> AsyncioExecutor:

@@ -47,13 +47,13 @@ class QCSObjectsForNotebook:
     device: cirq.Device
     sampler: ProcessorSampler
     signed_in: bool
-    processor_id: Optional[str]
-    project_id: Optional[str]
+    processor_id: str | None
+    project_id: str | None
     is_simulator: bool
 
 
 def get_qcs_objects_for_notebook(
-    project_id: Optional[str] = None, processor_id: Optional[str] = None, virtual=False
+    project_id: str | None = None, processor_id: str | None = None, virtual=False
 ) -> QCSObjectsForNotebook:
     """Authenticates on Google Cloud and returns Engine related objects.
 
@@ -115,7 +115,7 @@ def get_qcs_objects_for_notebook(
         # All of these are either local processors or engine processors
         # Either way, tell mypy they have a processor_id field.
         processors = cast(
-            Sequence[Union[EngineProcessor, AbstractLocalProcessor]], engine.list_processors()
+            Sequence[EngineProcessor | AbstractLocalProcessor], engine.list_processors()
         )
         if not processors:
             raise ValueError("No processors available.")

@@ -46,23 +46,23 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     top of HTTP/2); the ``grpcio`` package must be installed.
     """
 
-    _stubs: Dict[str, Callable]
+    _stubs: dict[str, Callable]
 
     def __init__(
         self,
         *,
         host: str = 'quantum.googleapis.com',
-        credentials: Optional[ga_credentials.Credentials] = None,
-        credentials_file: Optional[str] = None,
-        scopes: Optional[Sequence[str]] = None,
-        channel: Optional[grpc.Channel] = None,
-        api_mtls_endpoint: Optional[str] = None,
-        client_cert_source: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
-        ssl_channel_credentials: Optional[grpc.ChannelCredentials] = None,
-        client_cert_source_for_mtls: Optional[Callable[[], Tuple[bytes, bytes]]] = None,
-        quota_project_id: Optional[str] = None,
+        credentials: ga_credentials.Credentials | None = None,
+        credentials_file: str | None = None,
+        scopes: Sequence[str] | None = None,
+        channel: grpc.Channel | None = None,
+        api_mtls_endpoint: str | None = None,
+        client_cert_source: Callable[[], tuple[bytes, bytes]] | None = None,
+        ssl_channel_credentials: grpc.ChannelCredentials | None = None,
+        client_cert_source_for_mtls: Callable[[], tuple[bytes, bytes]] | None = None,
+        quota_project_id: str | None = None,
         client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
-        always_use_jwt_access: Optional[bool] = False,
+        always_use_jwt_access: bool | None = False,
     ) -> None:
         """Instantiate the transport.
 
@@ -114,7 +114,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
         """
         self._grpc_channel = None
         self._ssl_channel_credentials = ssl_channel_credentials
-        self._stubs: Dict[str, Callable] = {}
+        self._stubs: dict[str, Callable] = {}
 
         if api_mtls_endpoint:
             warnings.warn("api_mtls_endpoint is deprecated", DeprecationWarning)
@@ -185,10 +185,10 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     def create_channel(
         cls,
         host: str = 'quantum.googleapis.com',
-        credentials: Optional[ga_credentials.Credentials] = None,
-        credentials_file: Optional[str] = None,
-        scopes: Optional[Sequence[str]] = None,
-        quota_project_id: Optional[str] = None,
+        credentials: ga_credentials.Credentials | None = None,
+        credentials_file: str | None = None,
+        scopes: Sequence[str] | None = None,
+        quota_project_id: str | None = None,
         **kwargs,
     ) -> grpc.Channel:
         """Create and return a gRPC channel object.

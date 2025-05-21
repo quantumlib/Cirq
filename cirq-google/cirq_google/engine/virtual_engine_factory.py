@@ -435,7 +435,7 @@ def create_default_noisy_quantum_virtual_machine(
 
 def extract_gate_times_ns_from_device(
     device: cirq_google.GridDevice,
-) -> dict[Type[cirq.Gate], float]:
+) -> dict[type[cirq.Gate], float]:
     """Extract a dictionary of gate durations in nanoseconds from GridDevice object.
 
     The durations are obtained from `GridDevice.metadata` field which is
@@ -448,10 +448,10 @@ def extract_gate_times_ns_from_device(
         A dictionary of gate durations versus supported gate types.  Returns an
         empty dictionary when `device.metadata` do not provide gate durations.
     """
-    gate_times_ns: dict[Type[cirq.Gate], float] = {}
+    gate_times_ns: dict[type[cirq.Gate], float] = {}
     if not device.metadata.gate_durations:
         return gate_times_ns
-    gate_type: Type[cirq.Gate]  # pragma: no cover
+    gate_type: type[cirq.Gate]  # pragma: no cover
     for gate_family, duration in device.metadata.gate_durations.items():
         if isinstance(gate_family, fsim_gate_family.FSimGateFamily):
             for g in gate_family.gates_to_accept:

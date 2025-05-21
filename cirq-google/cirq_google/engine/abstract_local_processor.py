@@ -110,7 +110,7 @@ class AbstractLocalProcessor(AbstractProcessor):
         """Unique string id of the processor."""
         return self._processor_id
 
-    def engine(self) -> Optional[AbstractEngine]:
+    def engine(self) -> AbstractEngine | None:
         """Returns the parent Engine object.
 
         Returns:

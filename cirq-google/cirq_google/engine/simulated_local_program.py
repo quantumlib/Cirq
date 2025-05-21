@@ -37,7 +37,7 @@ class SimulatedLocalProgram(AbstractLocalProgram):
         *args,
         program_id: str,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
-        processor: Optional[SimulatedLocalProcessor] = None,
+        processor: SimulatedLocalProcessor | None = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
