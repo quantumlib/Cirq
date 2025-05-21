@@ -38,9 +38,9 @@ if TYPE_CHECKING:
     from google.auth import credentials as ga_credentials
 
 try:
-    OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
+    OptionalRetry = retries.Retry | gapic_v1.method._MethodDefault
 except AttributeError:  # pragma: NO COVER
-    OptionalRetry = Union[retries.Retry, object]  # type: ignore
+    OptionalRetry = retries.Retry | object  # type: ignore
 
 
 class QuantumEngineServiceClientMeta(type):

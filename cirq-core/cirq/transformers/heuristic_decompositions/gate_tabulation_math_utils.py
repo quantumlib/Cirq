@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import itertools
-from typing import Sequence, Union
+from typing import Sequence
 
 import numpy as np
 
 from cirq.value import random_state
 
-_RealArraylike = Union[np.ndarray, float]
+_RealArraylike = np.ndarray | float
 
 
 def _single_qubit_unitary(

@@ -43,9 +43,9 @@ if TYPE_CHECKING:
     from .transports.base import QuantumEngineServiceTransport
 
 try:
-    OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
+    OptionalRetry = retries.Retry | gapic_v1.method._MethodDefault
 except AttributeError:  # pragma: NO COVER
-    OptionalRetry = Union[retries.Retry, object]  # type: ignore
+    OptionalRetry = retries.Retry | object  # type: ignore
 
 
 class QuantumEngineServiceAsyncClient:
