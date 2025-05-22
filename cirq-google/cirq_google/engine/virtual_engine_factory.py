@@ -39,16 +39,19 @@ if TYPE_CHECKING:
 MOST_RECENT_TEMPLATES = {
     'rainbow': 'rainbow_2021_12_10_device_spec_for_grid_device.proto.txt',
     'weber': 'weber_2021_12_10_device_spec_for_grid_device.proto.txt',
+    'willow_pink': 'willow_pink_d7v1-2024_08_16_device_spec_for_grid_device.proto.txt',
 }
 
 MEDIAN_CALIBRATIONS = {
     'rainbow': 'rainbow_2021_11_16_calibration.json',
     'weber': 'weber_2021_11_03_calibration.json',
+    'willow_pink': 'willow_pink_d7v1-2024_08_16_calibration.json',
 }
 
 MEDIAN_CALIBRATION_TIMESTAMPS = {
     'rainbow': 1637058415838,  # 2021-11-16 10:26:55.838 UTC
     'weber': 1635923188204,  # 2021-11-03 07:06:28.204 UTC
+    'willow_pink': 1723795877630,  # 2024-08-16 08:11:17.630 UTC
 }
 
 ZPHASE_DATA = {'rainbow': 'rainbow_2021_08_26_zphase.json', 'weber': 'weber_2021_04_20_zphase.json'}
@@ -416,12 +419,15 @@ def create_default_noisy_quantum_virtual_machine(
             simulator_class = cirq.Simulator  # pragma: no cover
 
     calibration = load_median_device_calibration(processor_id)
-    noise_properties = noise_properties_from_calibration(calibration)
+    device = create_device_from_processor_id(processor_id)
+    gate_times_ns: dict[type[cirq.Gate], float] | None = None
+    if processor_id == "willow_pink":
+        gate_times_ns = extract_gate_times_ns_from_device(device)
+    noise_properties = noise_properties_from_calibration(calibration, gate_times_ns=gate_times_ns)
     noise_model = NoiseModelFromGoogleNoiseProperties(noise_properties)
     simulator = simulator_class(noise=noise_model, **kwargs)  # type: ignore
 
     device_specification = create_device_spec_from_processor_id(processor_id)
-    device = create_device_from_processor_id(processor_id)
     simulated_processor = SimulatedLocalProcessor(
         processor_id=processor_id,
         sampler=simulator,
