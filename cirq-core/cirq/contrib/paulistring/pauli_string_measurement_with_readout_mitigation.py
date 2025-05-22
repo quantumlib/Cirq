@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import itertools
 import time
-from typing import cast, Sequence, TYPE_CHECKING
+from typing import cast, Sequence, Union, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -204,10 +204,10 @@ def _validate_input(
 
 def _normalize_input_paulis(
     circuits_to_pauli: Union[
-        Dict[circuits.FrozenCircuit, list[ops.PauliString]],
-        Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
-    ]
-) -> Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]:
+        dict[circuits.FrozenCircuit, list[ops.PauliString]],
+        dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+    ],
+) -> dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]:
     first_value = next(iter(circuits_to_pauli.values()))
     if (
         first_value
@@ -240,7 +240,7 @@ def _pauli_strings_to_basis_change_ops(
 
 def _pauli_strings_to_basis_change_with_sweep(
     pauli_strings: list[ops.PauliString], qid_list: list[ops.Qid]
-) -> list[Dict[str, float]]:
+) -> list[dict[str, float]]:
     """Decide single-qubit rotation sweep parameters for basis change."""
     params_dict = {}
 
@@ -261,7 +261,7 @@ def _pauli_strings_to_basis_change_with_sweep(
 
 
 def _generate_basis_change_circuits(
-    normalized_circuits_to_pauli: Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]
+    normalized_circuits_to_pauli: dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
 ) -> list[circuits.Circuit]:
     """Generates basis change circuits for each group of Pauli strings."""
     pauli_measurement_circuits = list[circuits.Circuit]()
@@ -283,8 +283,8 @@ def _generate_basis_change_circuits(
 
 
 def _generate_basis_change_circuits_with_sweep(
-    normalized_circuits_to_pauli: Dict[circuits.FrozenCircuit, list[list[ops.PauliString]]]
-) -> Tuple[list[circuits.Circuit], list[study.Sweepable]]:
+    normalized_circuits_to_pauli: dict[circuits.FrozenCircuit, list[list[ops.PauliString]]],
+) -> tuple[list[circuits.Circuit], list[study.Sweepable]]:
     """Generates basis change circuits for each group of Pauli strings with sweep."""
     parameterized_circuits = list[circuits.Circuit]()
     sweep_params = list[study.Sweepable]()
@@ -454,7 +454,7 @@ def measure_pauli_strings(
     num_random_bitstrings: int,
     rng_or_seed: Union[np.random.Generator, int],
     use_sweep: bool = False,
-) -> List[CircuitToPauliStringsMeasurementResult]:
+) -> list[CircuitToPauliStringsMeasurementResult]:
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation.
 

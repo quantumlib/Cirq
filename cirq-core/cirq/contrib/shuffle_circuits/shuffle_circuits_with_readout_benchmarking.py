@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import time
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -255,7 +255,6 @@ def run_shuffled_with_readout_benchmarking(
     readout_repetitions: int = 1000,
     qubits: Optional[Union[Sequence[ops.Qid], Sequence[Sequence[ops.Qid]]]] = None,
 ) -> tuple[list[ResultDict], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
-
     """Run the circuits in a shuffled order with readout error benchmarking.
 
     Args:

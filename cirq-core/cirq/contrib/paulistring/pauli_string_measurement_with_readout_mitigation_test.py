@@ -20,7 +20,6 @@ from typing import Sequence
 
 import numpy as np
 import pytest
-import sympy
 
 import cirq
 from cirq.contrib.paulistring import measure_pauli_strings
@@ -34,26 +33,6 @@ def _create_ghz(number_of_qubits: int, qubits: Sequence[cirq.Qid]) -> cirq.Circu
         *[cirq.CNOT(qubits[i - 1], qubits[i]) for i in range(1, number_of_qubits)],
     )
     return ghz_circuit
-
-
-def _create_sweep_circuit(
-    number_of_qubits: int, qubits: Sequence[cirq.Qid], number_of_sweeps: int
-) -> tuple[cirq.Circuit, cirq.Sweepable]:
-    sweep_params = []
-
-    theta_symbols = sympy.symbols(f'theta:{number_of_qubits}')
-    single_qubit_gates = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.I]
-
-    circuit = _create_ghz(number_of_qubits, qubits)
-    for _ in range(number_of_sweeps):
-        for i in range(number_of_qubits):
-            gate = random.choice(single_qubit_gates)
-            circuit += gate(qubits[i]) ** theta_symbols[i]
-        sweep_params += [
-            {theta_symbols[i]: random.uniform(0, 2 * np.pi) for i in range(number_of_qubits)}
-        ]
-
-    return circuit, sweep_params
 
 
 def _generate_random_pauli_string(
