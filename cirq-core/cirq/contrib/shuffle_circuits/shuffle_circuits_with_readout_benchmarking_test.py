@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
+from typing import Sequence, Union
 
 import numpy as np
 import pytest
 import sympy
 
 import cirq
+from cirq.contrib.shuffle_circuits import (
+    run_shuffled_with_readout_benchmarking,
+    run_sweep_with_readout_benchmarking,
+)
 from cirq.experiments import (
     random_quantum_circuit_generation as rqcg,
     SingleQubitReadoutCalibrationResult,
@@ -26,7 +31,7 @@ from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQu
 from cirq.study import ResultDict
 
 
-def _create_test_circuits(qubits: list[cirq.Qid], n_circuits: int) -> list[cirq.Circuit]:
+def _create_test_circuits(qubits: Sequence[cirq.Qid], n_circuits: int) -> list[cirq.Circuit]:
     """Helper function to generate circuits for testing."""
     if len(qubits) < 2:
         raise ValueError(
@@ -48,7 +53,9 @@ def _create_test_circuits(qubits: list[cirq.Qid], n_circuits: int) -> list[cirq.
     return input_circuits
 
 
-def _create_test_circuits_with_sweep(qubits: list[cirq.Qid], n_circuits: int) -> list[cirq.Circuit]:
+def _create_test_circuits_with_sweep(
+    qubits: Sequence[cirq.Qid], n_circuits: int
+) -> tuple[list[cirq.Circuit], list[cirq.ParamResolver]]:
     """Helper function to generate sweep circuits for testing."""
     if len(qubits) < 2:
         raise ValueError(
@@ -60,7 +67,7 @@ def _create_test_circuits_with_sweep(qubits: list[cirq.Qid], n_circuits: int) ->
     two_qubit_gates = [cirq.ISWAP, cirq.CNOT]
 
     input_circuits = []
-    sweep_params = []
+    sweep_params: list[cirq.ParamResolver] = []
     qubit_pairs = list(itertools.combinations(qubits, 2))
     num_pairs = len(qubit_pairs)
     for i in range(n_circuits):
@@ -72,10 +79,9 @@ def _create_test_circuits_with_sweep(qubits: list[cirq.Qid], n_circuits: int) ->
         for circuit in circuits:
             circuit += cirq.Circuit(cirq.X(q0) ** theta_symbol, cirq.Y(q1) ** phi_symbol)
             circuit.append(cirq.measure(*qubits, key="m"))
-            sweep_params.append({'theta': 0, 'phi': 1})
+            sweep_params.append(cirq.ParamResolver({'theta': 0, 'phi': 1}))
         input_circuits.extend(circuits)
-    print(len(input_circuits))
-    print(len(sweep_params))
+
     return input_circuits, sweep_params
 
 
@@ -91,41 +97,35 @@ def test_circuits_with_readout_benchmarking_errors_no_noise(mode: str):
     readout_repetitions = 1000
     num_random_bitstrings = 100
 
-    readout_calibration_results = {}
-
     if mode == "shuffled":
         input_circuits = _create_test_circuits(qubits, 3)
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
-                input_circuits,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=num_random_bitstrings,
-                readout_repetitions=readout_repetitions,
-            )
+        sweep_measurements, readout_calibration_results = run_shuffled_with_readout_benchmarking(
+            input_circuits,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
         )
 
-        for measurement in measurements:
+        for measurement in sweep_measurements:
             assert isinstance(measurement, ResultDict)
     elif mode == "sweep":
         input_circuits, sweep_params = _create_test_circuits_with_sweep(qubits, 3)
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_sweep_with_readout_benchmarking(
-                input_circuits,
-                sweep_params,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=num_random_bitstrings,
-                readout_repetitions=readout_repetitions,
-            )
+        measurements, readout_calibration_results = run_sweep_with_readout_benchmarking(
+            input_circuits,
+            sweep_params,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
         )
 
-        for measurement in measurements:
-            for single_sweep_measurement in measurement:
+        for measurement_group in measurements:  # Treat as a list of lists
+            for single_sweep_measurement in measurement_group:
                 assert isinstance(single_sweep_measurement, ResultDict)
 
     for qlist, readout_calibration_result in readout_calibration_results.items():
@@ -149,20 +149,16 @@ def test_circuits_with_readout_benchmarking_errors_with_noise(mode: str):
     readout_repetitions = 1000
     num_random_bitstrings = 100
 
-    readout_calibration_results = {}
-
     if mode == "shuffled":
         input_circuits = _create_test_circuits(qubits, 6)
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
-                input_circuits,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=num_random_bitstrings,
-                readout_repetitions=readout_repetitions,
-            )
+        measurements, readout_calibration_results = run_shuffled_with_readout_benchmarking(
+            input_circuits,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
         )
 
         for measurement in measurements:
@@ -170,20 +166,18 @@ def test_circuits_with_readout_benchmarking_errors_with_noise(mode: str):
     elif mode == "sweep":
         input_circuits, sweep_params = _create_test_circuits_with_sweep(qubits, 6)
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_sweep_with_readout_benchmarking(
-                input_circuits,
-                sweep_params,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=num_random_bitstrings,
-                readout_repetitions=readout_repetitions,
-            )
+        sweep_measurements, readout_calibration_results = run_sweep_with_readout_benchmarking(
+            input_circuits,
+            sweep_params,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
         )
 
-        for measurement in measurements:
-            for single_sweep_measurement in measurement:
+        for measurement_group in sweep_measurements:  # Treat as a list of lists
+            for single_sweep_measurement in measurement_group:
                 assert isinstance(single_sweep_measurement, ResultDict)
 
     for qlist, readout_calibration_result in readout_calibration_results.items():
@@ -211,41 +205,35 @@ def test_circuits_with_readout_benchmarking_errors_with_noise_and_input_qubits(m
     readout_repetitions = 1000
     num_random_bitstrings = 100
 
-    readout_calibration_results = {}
-
     if mode == "shuffled":
         input_circuits = _create_test_circuits(qubits, 6)
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
-                input_circuits,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=num_random_bitstrings,
-                readout_repetitions=readout_repetitions,
-                qubits=readout_qubits,
-            )
+        measurements, readout_calibration_results = run_shuffled_with_readout_benchmarking(
+            input_circuits,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
+            qubits=readout_qubits,
         )
         for measurement in measurements:
             assert isinstance(measurement, ResultDict)
 
     elif mode == "sweep":
         input_circuits, sweep_params = _create_test_circuits_with_sweep(qubits, 6)
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_sweep_with_readout_benchmarking(
-                input_circuits,
-                sweep_params,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=num_random_bitstrings,
-                readout_repetitions=readout_repetitions,
-                qubits=readout_qubits,
-            )
+        sweep_measurements, readout_calibration_results = run_sweep_with_readout_benchmarking(
+            input_circuits,
+            sweep_params,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=num_random_bitstrings,
+            readout_repetitions=readout_repetitions,
+            qubits=readout_qubits,
         )
-        for measurement in measurements:
-            for single_sweep_measurement in measurement:
+        for measurement_group in sweep_measurements:  # Treat as a list of lists
+            for single_sweep_measurement in measurement_group:
                 assert isinstance(single_sweep_measurement, ResultDict)
 
     for qlist, readout_calibration_result in readout_calibration_results.items():
@@ -276,16 +264,14 @@ def test_circuits_with_readout_benchmarking_errors_with_noise_and_lists_input_qu
     if mode == "shuffled":
         input_circuits = _create_test_circuits(qubits_1, 6) + _create_test_circuits(qubits_2, 4)
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
-                input_circuits,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=100,
-                readout_repetitions=readout_repetitions,
-                qubits=readout_qubits,
-            )
+        measurements, readout_calibration_results = run_shuffled_with_readout_benchmarking(
+            input_circuits,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=100,
+            readout_repetitions=readout_repetitions,
+            qubits=readout_qubits,
         )
 
         for measurement in measurements:
@@ -297,21 +283,19 @@ def test_circuits_with_readout_benchmarking_errors_with_noise_and_lists_input_qu
         input_circuits += additional_circuits
         sweep_params += additional_sweep_params
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_sweep_with_readout_benchmarking(
-                input_circuits,
-                sweep_params,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=100,
-                readout_repetitions=readout_repetitions,
-                qubits=readout_qubits,
-            )
+        sweep_measurements, readout_calibration_results = run_sweep_with_readout_benchmarking(
+            input_circuits,
+            sweep_params,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=100,
+            readout_repetitions=readout_repetitions,
+            qubits=readout_qubits,
         )
 
-        for measurement in measurements:
-            for single_sweep_measurement in measurement:
+        for measurement_group in sweep_measurements:  # Treat as a list of lists
+            for single_sweep_measurement in measurement_group:
                 assert isinstance(single_sweep_measurement, ResultDict)
 
     for qlist, readout_calibration_result in readout_calibration_results.items():
@@ -338,21 +322,18 @@ def test_can_handle_zero_random_bitstring(mode: str):
     circuit_repetitions = 1
     rng = np.random.default_rng()
     readout_repetitions = 1000
-    readout_calibration_results = {}
 
     if mode == "shuffled":
         input_circuits = _create_test_circuits(qubits_1, 6) + _create_test_circuits(qubits_2, 4)
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
-                input_circuits,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=0,
-                readout_repetitions=readout_repetitions,
-                qubits=readout_qubits,
-            )
+        measurements, readout_calibration_results = run_shuffled_with_readout_benchmarking(
+            input_circuits,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=0,
+            readout_repetitions=readout_repetitions,
+            qubits=readout_qubits,
         )
 
         for measurement in measurements:
@@ -364,21 +345,19 @@ def test_can_handle_zero_random_bitstring(mode: str):
         input_circuits += additional_circuits
         sweep_params += additional_sweep_params
 
-        measurements, readout_calibration_results = (
-            cirq.contrib.shuffle_circuits.run_sweep_with_readout_benchmarking(
-                input_circuits,
-                sweep_params,
-                sampler,
-                circuit_repetitions,
-                rng,
-                num_random_bitstrings=0,
-                readout_repetitions=readout_repetitions,
-                qubits=readout_qubits,
-            )
+        sweep_measurements, readout_calibration_results = run_sweep_with_readout_benchmarking(
+            input_circuits,
+            sweep_params,
+            sampler,
+            circuit_repetitions,
+            rng,
+            num_random_bitstrings=0,
+            readout_repetitions=readout_repetitions,
+            qubits=readout_qubits,
         )
 
-        for measurement in measurements:
-            for single_sweep_measurement in measurement:
+        for sweep_measurement in sweep_measurements:
+            for single_sweep_measurement in sweep_measurement:
                 assert isinstance(single_sweep_measurement, ResultDict)
 
     # Check that the readout_calibration_results is empty
@@ -388,7 +367,7 @@ def test_can_handle_zero_random_bitstring(mode: str):
 def test_empty_input_circuits():
     """Test that the input circuits are empty."""
     with pytest.raises(ValueError, match="Input circuits must not be empty."):
-        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+        run_shuffled_with_readout_benchmarking(
             [],
             cirq.ZerosSampler(),
             circuit_repetitions=10,
@@ -402,7 +381,7 @@ def test_non_circuit_input():
     """Test that the input circuits are not of type cirq.Circuit."""
     q = cirq.LineQubit(0)
     with pytest.raises(ValueError, match="Input circuits must be of type cirq.Circuit."):
-        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+        run_shuffled_with_readout_benchmarking(
             [q],
             cirq.ZerosSampler(),
             circuit_repetitions=10,
@@ -417,7 +396,7 @@ def test_no_measurements():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q))
     with pytest.raises(ValueError, match="Input circuits must have measurements."):
-        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+        run_shuffled_with_readout_benchmarking(
             [circuit],
             cirq.ZerosSampler(),
             circuit_repetitions=10,
@@ -432,7 +411,7 @@ def test_zero_circuit_repetitions():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     with pytest.raises(ValueError, match="Must provide non-zero circuit_repetitions."):
-        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+        run_shuffled_with_readout_benchmarking(
             [circuit],
             cirq.ZerosSampler(),
             circuit_repetitions=0,
@@ -450,7 +429,7 @@ def test_mismatch_circuit_repetitions():
         ValueError,
         match="Number of circuit_repetitions must match the number of" + " input circuits.",
     ):
-        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+        run_shuffled_with_readout_benchmarking(
             [circuit],
             cirq.ZerosSampler(),
             circuit_repetitions=[10, 20],
@@ -465,7 +444,7 @@ def test_zero_num_random_bitstrings():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     with pytest.raises(ValueError, match="Must provide zero or more num_random_bitstrings."):
-        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+        run_shuffled_with_readout_benchmarking(
             [circuit],
             cirq.ZerosSampler(),
             circuit_repetitions=10,
@@ -482,7 +461,7 @@ def test_zero_readout_repetitions():
     with pytest.raises(
         ValueError, match="Must provide non-zero readout_repetitions for readout" + " calibration."
     ):
-        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+        run_shuffled_with_readout_benchmarking(
             [circuit],
             cirq.ZerosSampler(),
             circuit_repetitions=10,
@@ -497,11 +476,27 @@ def test_rng_type_mismatch():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
     with pytest.raises(ValueError, match="Must provide a numpy random generator or a seed"):
-        cirq.contrib.shuffle_circuits.run_shuffled_with_readout_benchmarking(
+        run_shuffled_with_readout_benchmarking(
             [circuit],
             cirq.ZerosSampler(),
             circuit_repetitions=10,
             rng_or_seed="not a random generator or seed",
+            num_random_bitstrings=5,
+            readout_repetitions=100,
+        )
+
+
+def test_empty_sweep_params():
+    """Test that the sweep params are empty."""
+    q = cirq.LineQubit(5)
+    circuit = cirq.Circuit(cirq.H(q))
+    with pytest.raises(ValueError, match="Sweep parameters must not be empty."):
+        run_sweep_with_readout_benchmarking(
+            [circuit],
+            [],
+            cirq.ZerosSampler(),
+            circuit_repetitions=10,
+            rng_or_seed=np.random.default_rng(456),
             num_random_bitstrings=5,
             readout_repetitions=100,
         )

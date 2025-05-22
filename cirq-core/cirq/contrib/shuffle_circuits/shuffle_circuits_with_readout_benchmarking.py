@@ -13,18 +13,18 @@
 # limitations under the License.
 """Tools for running circuits in a shuffled order with readout error benchmarking."""
 import time
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, protocols, work, study
+from cirq import circuits, ops, protocols, study, work
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.study import ResultDict
 
 
 def _validate_input(
-    input_circuits: list[circuits.Circuit],
+    input_circuits: Sequence[circuits.Circuit],
     circuit_repetitions: Union[int, list[int]],
     rng_or_seed: Union[np.random.Generator, int],
     num_random_bitstrings: int,
@@ -61,18 +61,16 @@ def _validate_input(
 
 
 def _validate_input_with_sweep(
-    input_circuits: list[circuits.Circuit],
-    sweep_params: list[study.Sweepable],
+    input_circuits: Sequence[circuits.Circuit],
+    sweep_params: Sequence[study.Sweepable],
     circuit_repetitions: Union[int, list[int]],
     rng_or_seed: Union[np.random.Generator, int],
     num_random_bitstrings: int,
     readout_repetitions: int,
 ):
     """Validates the input for the run_sweep_with_readout_benchmarking function."""
-    # if len(input_circuits) != len(sweep_params):
-    #     raise ValueError(
-    #         "Number of input parameterized circuits must match the number of sweep parameters."
-    #     )
+    if not sweep_params:
+        raise ValueError("Sweep parameters must not be empty.")
     return _validate_input(
         input_circuits, circuit_repetitions, rng_or_seed, num_random_bitstrings, readout_repetitions
     )
@@ -120,11 +118,11 @@ def _generate_all_readout_calibration_circuits(
     num_random_bitstrings: int,
     qubits_to_measure: List[List[ops.Qid]],
     is_sweep: bool,
-) -> Tuple[List[circuits.Circuit], List[List[List[int]]], List[List[study.Sweepable]]]:
+) -> Tuple[List[circuits.Circuit], List[np.ndarray], List[study.Sweepable]]:
     """Generates all readout calibration circuits and random bitstrings."""
-    all_readout_calibration_circuits = []
-    all_random_bitstrings = []
-    all_readout_sweep_params = []
+    all_readout_calibration_circuits: list[circuits.Circuit] = []
+    all_random_bitstrings: list[np.ndarray] = []
+    all_readout_sweep_params: list[study.Sweepable] = []
 
     if num_random_bitstrings <= 0:
         return all_readout_calibration_circuits, all_random_bitstrings, all_readout_sweep_params
@@ -151,8 +149,8 @@ def _generate_all_readout_calibration_circuits(
 
 
 def _determine_qubits_to_measure(
-    input_circuits: list[circuits.Circuit],
-    qubits: Optional[Union[List[ops.Qid], List[List[ops.Qid]]]],
+    input_circuits: Sequence[circuits.Circuit],
+    qubits: Optional[Union[Sequence[ops.Qid], Sequence[Sequence[ops.Qid]]]],
 ) -> List[List[ops.Qid]]:
     """Determine the qubits to measure based on the input circuits and provided qubits."""
     # If input qubits is None, extract qubits from input circuits
@@ -170,9 +168,6 @@ def _determine_qubits_to_measure(
     return qubits_to_measure
 
 
-# def _get_rng(rng_or_seed: Union[np.random.Generator, int]) -> np.random.Generator:
-
-
 def _shuffle_circuits(
     all_circuits: list[circuits.Circuit], all_repetitions: list[int], rng: np.random.Generator
 ) -> tuple[list[circuits.Circuit], list[int], np.ndarray]:
@@ -186,7 +181,7 @@ def _shuffle_circuits(
 
 
 def _analyze_readout_results(
-    unshuffled_readout_measurements: list[ResultDict],
+    unshuffled_readout_measurements: Union[Sequence[ResultDict], Sequence[study.Result]],
     random_bitstrings: np.ndarray,
     readout_repetitions: int,
     qubits: list[ops.Qid],
@@ -252,7 +247,7 @@ def run_shuffled_with_readout_benchmarking(
     rng_or_seed: Union[np.random.Generator, int],
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
-    qubits: Optional[Union[List[ops.Qid], List[List[ops.Qid]]]] = None,
+    qubits: Optional[Union[Sequence[ops.Qid], Sequence[Sequence[ops.Qid]]]] = None,
 ) -> tuple[list[ResultDict], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
     """Run the circuits in a shuffled order with readout error benchmarking.
 
@@ -333,14 +328,16 @@ def run_shuffled_with_readout_benchmarking(
 
 def run_sweep_with_readout_benchmarking(
     input_circuits: list[circuits.Circuit],
-    sweep_params: list[study.Sweepable],
+    sweep_params: Sequence[study.Sweepable],
     sampler: work.Sampler,
     circuit_repetitions: Union[int, list[int]],
     rng_or_seed: Union[np.random.Generator, int],
     num_random_bitstrings: int = 100,
     readout_repetitions: int = 1000,
-    qubits: Optional[Union[List[ops.Qid], List[List[ops.Qid]]]] = None,
-) -> tuple[list[list[ResultDict]], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]]:
+    qubits: Optional[Union[Sequence[ops.Qid], Sequence[Sequence[ops.Qid]]]] = None,
+) -> tuple[
+    list[list[study.Result]], Dict[Tuple[ops.Qid, ...], SingleQubitReadoutCalibrationResult]
+]:
     """Run the sweep circuits with readout error benchmarking (no shuffling).
     Args:
         input_circuits: The circuits to run.
@@ -396,7 +393,7 @@ def run_sweep_with_readout_benchmarking(
     # Run the sweep circuits and measure
     results = sampler.run_batch(
         input_circuits + all_readout_calibration_circuits,
-        sweep_params + all_readout_sweep_params,
+        list(sweep_params) + all_readout_sweep_params,
         repetitions=all_repetitions,
     )
 
