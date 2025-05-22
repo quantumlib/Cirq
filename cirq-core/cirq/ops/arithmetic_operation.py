@@ -44,21 +44,21 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     >>> class Add(cirq.ArithmeticGate):
     ...     def __init__(
     ...         self,
-    ...         target_register: '[int, Sequence[int]]',
-    ...         input_register: 'Union[int, Sequence[int]]',
+    ...         target_register: int | Sequence[int],
+    ...         input_register: int | Sequence[int],
     ...     ):
     ...         self.target_register = target_register
     ...         self.input_register = input_register
     ...
-    ...     def registers(self) -> 'Sequence[Union[int, Sequence[int]]]':
+    ...     def registers(self) -> Sequence[int | Sequence[int]]:
     ...         return self.target_register, self.input_register
     ...
     ...     def with_registers(
-    ...         self, *new_registers: 'Union[int, Sequence[int]]'
+    ...         self, *new_registers: int | Sequence[int]
     ...     ) -> 'Add':
     ...         return Add(*new_registers)
     ...
-    ...     def apply(self, *register_values: int) -> 'Union[int, Iterable[int]]':
+    ...     def apply(self, *register_values: int) -> int | Iterable[int]:
     ...         return sum(register_values)
     >>> cirq.unitary(
     ...     Add(target_register=[2, 2],
