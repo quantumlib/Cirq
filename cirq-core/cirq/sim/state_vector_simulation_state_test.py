@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import cast, Type
+from typing import cast
 from unittest import mock
 
 import numpy as np
@@ -173,7 +173,7 @@ def test_act_using_adaptive_two_qubit_channel() -> None:
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
             initial_state=np.copy(state),
-            dtype=cast(Type[np.complexfloating], state.dtype),
+            dtype=cast(type[np.complexfloating], state.dtype),
         )
         cirq.act_on(Decay11(), args, [cirq.LineQubit(1), cirq.LineQubit(3)])
         return args.target_tensor

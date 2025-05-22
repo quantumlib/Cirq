@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Hashable, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Callable, Hashable, Sequence, TYPE_CHECKING
 
 from cirq import circuits
 from cirq.protocols import decompose_protocol as dp
@@ -37,8 +37,8 @@ def _create_on_stuck_raise_error(gateset: cirq.Gateset):
 def _decompose_operations_to_target_gateset(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
-    gateset: Optional[cirq.Gateset] = None,
+    context: cirq.TransformerContext | None = None,
+    gateset: cirq.Gateset | None = None,
     decomposer: Callable[[cirq.Operation, int], dp.DecomposeResult] = lambda *_: NotImplemented,
     ignore_failures: bool = True,
     tags_to_decompose: Sequence[Hashable] = (),
@@ -101,10 +101,10 @@ def _decompose_operations_to_target_gateset(
 def optimize_for_target_gateset(
     circuit: cirq.AbstractCircuit,
     *,
-    context: Optional[cirq.TransformerContext] = None,
-    gateset: Optional[cirq.CompilationTargetGateset] = None,
+    context: cirq.TransformerContext | None = None,
+    gateset: cirq.CompilationTargetGateset | None = None,
     ignore_failures: bool = True,
-    max_num_passes: Union[int, None] = 1,
+    max_num_passes: int | None = 1,
 ) -> cirq.Circuit:
     """Transforms the given circuit into an equivalent circuit using gates accepted by `gateset`.
 
