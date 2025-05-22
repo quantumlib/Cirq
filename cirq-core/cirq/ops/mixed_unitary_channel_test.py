@@ -1,11 +1,14 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
 import cirq
 
 
-def test_matrix_mixture_from_mixture():
+def test_matrix_mixture_from_mixture() -> None:
     q0 = cirq.LineQubit(0)
     dp = cirq.depolarize(0.1)
     mm = cirq.MixedUnitaryChannel.from_mixture(dp, key='dp')
@@ -22,7 +25,7 @@ def test_matrix_mixture_from_mixture():
     assert results.measurements['dp'] in range(4)
 
 
-def test_matrix_mixture_equality():
+def test_matrix_mixture_equality() -> None:
     dp_pt1 = cirq.depolarize(0.1)
     dp_pt2 = cirq.depolarize(0.2)
     mm_a1 = cirq.MixedUnitaryChannel.from_mixture(dp_pt1, key='a')
@@ -45,7 +48,7 @@ def test_matrix_mixture_equality():
     assert half_flip != half_flip_inv
 
 
-def test_matrix_mixture_remap_keys():
+def test_matrix_mixture_remap_keys() -> None:
     dp = cirq.depolarize(0.1)
     mm = cirq.MixedUnitaryChannel.from_mixture(dp)
     with pytest.raises(TypeError):
@@ -63,7 +66,7 @@ def test_matrix_mixture_remap_keys():
     assert cirq.with_measurement_key_mapping(mm_a, {'a': 'b'}) == mm_b
 
 
-def test_matrix_mixture_from_unitaries():
+def test_matrix_mixture_from_unitaries() -> None:
     q0 = cirq.LineQubit(0)
     mix = [(0.5, np.array([[1, 0], [0, 1]])), (0.5, np.array([[0, 1], [1, 0]]))]
     half_flip = cirq.MixedUnitaryChannel(mix, key='flip')
@@ -77,7 +80,7 @@ def test_matrix_mixture_from_unitaries():
     assert results.measurements['flip'] == results.measurements['m']
 
 
-def test_matrix_mixture_str():
+def test_matrix_mixture_str() -> None:
     mix = [(0.5, np.array([[1, 0], [0, 1]])), (0.5, np.array([[0, 1], [1, 0]]))]
     half_flip = cirq.MixedUnitaryChannel(mix)
     assert (
@@ -95,7 +98,7 @@ def test_matrix_mixture_str():
     )
 
 
-def test_matrix_mixture_repr():
+def test_matrix_mixture_repr() -> None:
     mix = [
         (0.5, np.array([[1, 0], [0, 1]], dtype=np.dtype('complex64'))),
         (0.5, np.array([[0, 1], [1, 0]], dtype=np.dtype('complex64'))),
@@ -111,19 +114,19 @@ key='flip')"""
     )
 
 
-def test_mix_no_unitaries_fails():
+def test_mix_no_unitaries_fails() -> None:
     with pytest.raises(ValueError, match='must have at least one unitary'):
         _ = cirq.MixedUnitaryChannel(mixture=[], key='m')
 
 
-def test_mix_bad_prob_fails():
+def test_mix_bad_prob_fails() -> None:
     mix = [(0.5, np.array([[1, 0], [0, 0]]))]
 
     with pytest.raises(ValueError, match='Unitary probabilities must sum to 1'):
         _ = cirq.MixedUnitaryChannel(mixture=mix, key='m')
 
 
-def test_mix_mismatch_fails():
+def test_mix_mismatch_fails() -> None:
     op2 = np.zeros((4, 4))
     op2[1][1] = 1
     mix = [(0.5, np.array([[1, 0], [0, 0]])), (0.5, op2)]
@@ -132,14 +135,14 @@ def test_mix_mismatch_fails():
         _ = cirq.MixedUnitaryChannel(mixture=mix, key='m')
 
 
-def test_nonqubit_mixture_fails():
+def test_nonqubit_mixture_fails() -> None:
     mix = [(0.5, np.array([[1, 0, 0], [0, 1, 0]])), (0.5, np.array([[0, 1, 0], [1, 0, 0]]))]
 
     with pytest.raises(ValueError, match='Input mixture'):
         _ = cirq.MixedUnitaryChannel(mixture=mix, key='m')
 
 
-def test_validate():
+def test_validate() -> None:
     mix = [(0.5, np.array([[1, 0], [0, 0]])), (0.5, np.array([[0, 0], [0, 1]]))]
     with pytest.raises(ValueError, match='non-unitary'):
         _ = cirq.MixedUnitaryChannel(mixture=mix, key='m', validate=True)

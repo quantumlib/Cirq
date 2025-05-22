@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, Optional, Sequence, Union
+from __future__ import annotations
+
+from typing import Collection, Sequence
 
 import numpy as np
 
@@ -23,7 +25,7 @@ def assert_controlled_and_controlled_by_identical(
     gate: ops.Gate,
     *,
     num_controls: Sequence[int] = (2, 1, 3, 10),
-    control_values: Optional[Sequence[Optional[Sequence[Union[int, Collection[int]]]]]] = None,
+    control_values: Sequence[Sequence[int | Collection[int]] | None] | None = None,
 ) -> None:
     """Checks that gate.on().controlled_by() == gate.controlled().on()"""
     if control_values is not None:
@@ -50,9 +52,7 @@ def assert_controlled_unitary_consistent(gate: ops.Gate):
 
 
 def _assert_gate_consistent(
-    gate: ops.Gate,
-    num_controls: int,
-    control_values: Optional[Sequence[Union[int, Collection[int]]]],
+    gate: ops.Gate, num_controls: int, control_values: Sequence[int | Collection[int]] | None
 ) -> None:
     gate_controlled = gate.controlled(num_controls, control_values)
     qubits = devices.LineQid.for_gate(gate_controlled)

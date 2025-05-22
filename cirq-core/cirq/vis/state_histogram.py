@@ -14,8 +14,10 @@
 
 """Tool to visualize the results of a study."""
 
+from __future__ import annotations
+
 import collections
-from typing import Optional, Sequence, SupportsFloat, Union
+from typing import Sequence, SupportsFloat
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,7 +25,7 @@ import numpy as np
 import cirq.study.result as result
 
 
-def get_state_histogram(result: 'result.Result') -> np.ndarray:
+def get_state_histogram(result: result.Result) -> np.ndarray:
     """Computes a state histogram from a single result with repetitions.
 
     Args:
@@ -52,13 +54,13 @@ def get_state_histogram(result: 'result.Result') -> np.ndarray:
 
 
 def plot_state_histogram(
-    data: Union['result.Result', collections.Counter, Sequence[SupportsFloat]],
-    ax: Optional[plt.Axes] = None,
+    data: result.Result | collections.Counter | Sequence[SupportsFloat],
+    ax: plt.Axes | None = None,
     *,
-    tick_label: Optional[Sequence[str]] = None,
-    xlabel: Optional[str] = 'qubit state',
-    ylabel: Optional[str] = 'result count',
-    title: Optional[str] = 'Result State Histogram',
+    tick_label: Sequence[str] | None = None,
+    xlabel: str | None = 'qubit state',
+    ylabel: str | None = 'result count',
+    title: str | None = 'Result State Histogram',
 ) -> plt.Axes:
     """Plot the state histogram from either a single result with repetitions or
        a histogram computed using `result.histogram()` or a flattened histogram

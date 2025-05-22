@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
 
-from cirq_google.api import v2
+import abc
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cirq_google.api import v2
 
 
 class TagSerializer(abc.ABC):
@@ -31,9 +34,9 @@ class TagSerializer(abc.ABC):
         tag,
         msg=None,
         *,
-        constants: List[v2.program_pb2.Constant],
-        raw_constants: Dict[Any, int],
-    ) -> Optional[v2.program_pb2.Tag]:
+        constants: list[v2.program_pb2.Constant],
+        raw_constants: dict[Any, int],
+    ) -> v2.program_pb2.Tag | None:
         """Converts tag to proto using this serializer.
 
         If self.can_serialize_tag(tag) == False, this should return None.

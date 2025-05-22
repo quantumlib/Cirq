@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import re
-from typing import cast, List, Tuple
+from typing import cast
 
 import numpy as np
 import pytest
@@ -24,7 +26,7 @@ from cirq._compat import proper_repr
 
 
 class CustomXPowGate(cirq.EigenGate):
-    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+    def _eigen_components(self) -> list[tuple[float, np.ndarray]]:
         return [(0, np.array([[0.5, 0.5], [0.5, 0.5]])), (1, np.array([[0.5, -0.5], [-0.5, 0.5]]))]
 
     def __str__(self) -> str:

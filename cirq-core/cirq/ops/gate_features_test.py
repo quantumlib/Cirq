@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 import cirq
 
 
-def test_qasm_output_args_validate():
+def test_qasm_output_args_validate() -> None:
     args = cirq.QasmArgs(version='2.0')
     args.validate_version('2.0')
 
@@ -25,7 +27,7 @@ def test_qasm_output_args_validate():
         args.validate_version('2.1')
 
 
-def test_qasm_output_args_format():
+def test_qasm_output_args_format() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     m_a = cirq.measure(a, key='meas_a')
@@ -52,7 +54,7 @@ def test_qasm_output_args_format():
     assert args.format('_{0}_', 'other') == '_other_'
 
 
-def test_multi_qubit_gate_validate():
+def test_multi_qubit_gate_validate() -> None:
     class Example(cirq.Gate):
         def _num_qubits_(self) -> int:
             return self._num_qubits

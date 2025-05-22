@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_measurement_gates():
+def test_measurement_gates() -> None:
     a, b, c = cirq.LineQubit.range(3)
     assert_url_to_circuit_returns(
         '{"cols":[["Measure","Measure"],["Measure","Measure"]]}',

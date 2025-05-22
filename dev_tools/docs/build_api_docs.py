@@ -23,6 +23,8 @@ uses that to generate the "nightly diff".
 This script needs to cater for both of these cases.
 """
 
+from __future__ import annotations
+
 import os
 import types
 

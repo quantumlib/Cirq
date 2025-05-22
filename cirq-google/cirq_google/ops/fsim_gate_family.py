@@ -14,7 +14,9 @@
 
 """Define FSimGateFamily used to convert/accept `cirq.FSimGate` and other related gate types"""
 
-from typing import Any, Callable, cast, Dict, Iterable, Optional, Sequence, Type, TypeVar, Union
+from __future__ import annotations
+
+from typing import Any, Callable, cast, Iterable, Sequence, TypeVar
 
 import numpy as np
 import sympy
@@ -22,14 +24,15 @@ import sympy
 import cirq
 from cirq.ops.gateset import _gate_str
 
-POSSIBLE_FSIM_GATES = Union[
-    cirq.FSimGate,
-    cirq.PhasedFSimGate,
-    cirq.ISwapPowGate,
-    cirq.PhasedISwapPowGate,
-    cirq.CZPowGate,
-    cirq.IdentityGate,
-]
+POSSIBLE_FSIM_GATES = (
+    cirq.FSimGate
+    | cirq.PhasedFSimGate
+    | cirq.ISwapPowGate
+    | cirq.PhasedISwapPowGate
+    | cirq.CZPowGate
+    | cirq.IdentityGate
+)
+
 T = TypeVar(
     'T',
     cirq.FSimGate,
@@ -41,7 +44,7 @@ T = TypeVar(
 )
 
 
-def _exp(theta: Union[complex, sympy.Basic]):
+def _exp(theta: complex | sympy.Basic):
     """Utility method to return exp(theta) using numpy or sympy, depending on the type of theta."""
     return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(cast(complex, theta))
 
@@ -112,8 +115,8 @@ class FSimGateFamily(cirq.GateFamily):
     def __init__(
         self,
         *,
-        gates_to_accept: Sequence[Union[Type[POSSIBLE_FSIM_GATES], POSSIBLE_FSIM_GATES]] = (),
-        gate_types_to_check: Sequence[Type[POSSIBLE_FSIM_GATES]] = (),
+        gates_to_accept: Sequence[type[POSSIBLE_FSIM_GATES] | POSSIBLE_FSIM_GATES] = (),
+        gate_types_to_check: Sequence[type[POSSIBLE_FSIM_GATES]] = (),
         allow_symbols: bool = False,
         atol=DEFAULT_ATOL,
     ):
@@ -138,9 +141,8 @@ class FSimGateFamily(cirq.GateFamily):
             ValueError: If any gate type in `gate_types_to_check` is not one of
                 `POSSIBLE_FSIM_GATES`.
         """
-        self._supported_types: Dict[
-            Type[POSSIBLE_FSIM_GATES],
-            Callable[[POSSIBLE_FSIM_GATES], Optional[POSSIBLE_FSIM_GATES]],
+        self._supported_types: dict[
+            type[POSSIBLE_FSIM_GATES], Callable[[POSSIBLE_FSIM_GATES], POSSIBLE_FSIM_GATES | None]
         ] = {
             cirq.FSimGate: self._convert_to_fsim,
             cirq.PhasedFSimGate: self._convert_to_phased_fsim,
@@ -300,7 +302,7 @@ class FSimGateFamily(cirq.GateFamily):
                         break
         return False
 
-    def convert(self, gate: cirq.Gate, target_gate_type: Type[T]) -> Optional[T]:
+    def convert(self, gate: cirq.Gate, target_gate_type: type[T]) -> T | None:
         """Converts, if possible, the given `gate` to an equivalent instance of `target_gate_type`.
 
         This method can be used for converting instances of `POSSIBLE_FSIM_GATES` to other
@@ -337,7 +339,7 @@ class FSimGateFamily(cirq.GateFamily):
             return None
         return cast(T, self._supported_types[target_gate_type](cast(POSSIBLE_FSIM_GATES, gate)))
 
-    def _convert_to_fsim(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.FSimGate]:
+    def _convert_to_fsim(self, g: POSSIBLE_FSIM_GATES) -> cirq.FSimGate | None:
         theta = phi = None
         if isinstance(g, cirq.FSimGate) or (
             isinstance(g, cirq.PhasedFSimGate)
@@ -358,7 +360,7 @@ class FSimGateFamily(cirq.GateFamily):
             theta = phi = 0
         return None if (theta is None or phi is None) else cirq.FSimGate(theta, phi)
 
-    def _convert_to_phased_fsim(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.PhasedFSimGate]:
+    def _convert_to_phased_fsim(self, g: POSSIBLE_FSIM_GATES) -> cirq.PhasedFSimGate | None:
         if isinstance(g, cirq.PhasedFSimGate):
             return g
         chi = 0.0
@@ -368,7 +370,7 @@ class FSimGateFamily(cirq.GateFamily):
         fsim = self._convert_to_fsim(g)
         return None if fsim is None else cirq.PhasedFSimGate(fsim.theta, 0, chi, 0, fsim.phi)
 
-    def _convert_to_iswap(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.ISwapPowGate]:
+    def _convert_to_iswap(self, g: POSSIBLE_FSIM_GATES) -> cirq.ISwapPowGate | None:
         if isinstance(g, cirq.ISwapPowGate):
             return g
         if isinstance(g, cirq.PhasedISwapPowGate):
@@ -380,7 +382,7 @@ class FSimGateFamily(cirq.GateFamily):
             else cirq.ISwapPowGate(exponent=-2 * fsim.theta / np.pi)
         )
 
-    def _convert_to_phased_iswap(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.PhasedISwapPowGate]:
+    def _convert_to_phased_iswap(self, g: POSSIBLE_FSIM_GATES) -> cirq.PhasedISwapPowGate | None:
         if isinstance(g, cirq.PhasedISwapPowGate):
             return g
         if isinstance(g, cirq.PhasedFSimGate) and self._approx_eq_or_symbol(
@@ -394,7 +396,7 @@ class FSimGateFamily(cirq.GateFamily):
             None if cg is None else cirq.PhasedISwapPowGate(exponent=cg.exponent, phase_exponent=0)
         )
 
-    def _convert_to_cz(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.CZPowGate]:
+    def _convert_to_cz(self, g: POSSIBLE_FSIM_GATES) -> cirq.CZPowGate | None:
         if isinstance(g, cirq.CZPowGate):
             return g
         cg = self._convert_to_fsim(g)
@@ -404,7 +406,7 @@ class FSimGateFamily(cirq.GateFamily):
             else cirq.CZPowGate(exponent=-cg.phi / np.pi)
         )
 
-    def _convert_to_identity(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.IdentityGate]:
+    def _convert_to_identity(self, g: POSSIBLE_FSIM_GATES) -> cirq.IdentityGate | None:
         cg = self._convert_to_fsim(g)
         return (
             None

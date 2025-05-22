@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -35,7 +37,7 @@ class InternalGate(ops.Gate):
         gate_name: str,
         gate_module: str,
         num_qubits: int = 1,
-        custom_args: Optional[Mapping[str, program_pb2.CustomArg]] = None,
+        custom_args: Mapping[str, program_pb2.CustomArg] | None = None,
         **kwargs,
     ):
         """Instatiates an InternalGate.
@@ -78,7 +80,7 @@ class InternalGate(ops.Gate):
             f"{gate_args})"
         )
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if self.custom_args:
             raise ValueError('InternalGate with custom args are not json serializable')
         return dict(
@@ -105,9 +107,9 @@ class InternalGate(ops.Gate):
 
 
 def function_points_to_proto(
-    x: Union[Sequence[float], np.ndarray],
-    y: Union[Sequence[float], np.ndarray],
-    msg: Optional[program_pb2.CustomArg] = None,
+    x: Sequence[float] | np.ndarray,
+    y: Sequence[float] | np.ndarray,
+    msg: program_pb2.CustomArg | None = None,
 ) -> program_pb2.CustomArg:
     """Return CustomArg that expresses a function through its x and y values.
 

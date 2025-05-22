@@ -48,11 +48,13 @@ In addition to checking that the code executes:
       substitution is the replacement string.
 """
 
+from __future__ import annotations
+
 import inspect
 import os
 import pathlib
 import re
-from typing import Any, Dict, Iterator, List, Optional, Pattern, Tuple
+from typing import Any, Iterator, Pattern
 
 import pytest
 
@@ -79,7 +81,7 @@ def test_can_run_docs_code_snippets(path):
     assert_file_has_working_code_snippets(os.path.join(docs_folder, path), assume_import=True)
 
 
-def find_code_snippets(pattern: str, content: str) -> List[Tuple[str, int]]:
+def find_code_snippets(pattern: str, content: str) -> list[tuple[str, int]]:
     matches = re.finditer(pattern, content, re.MULTILINE | re.DOTALL)
     newlines = re.finditer("\n", content)
     snippets = []
@@ -93,17 +95,17 @@ def find_code_snippets(pattern: str, content: str) -> List[Tuple[str, int]]:
     return snippets
 
 
-def find_markdown_code_snippets(content: str) -> List[Tuple[str, int]]:
+def find_markdown_code_snippets(content: str) -> list[tuple[str, int]]:
     return find_code_snippets("\n```python(.*?)\n```\n", content)
 
 
-def find_markdown_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
+def find_markdown_test_overrides(content: str) -> list[tuple[Pattern, str]]:
     test_sub_text = find_code_snippets("<!---test_substitution\n(.*?)--->", content)
     substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
     return [(re.compile(match), sub) for match, sub in substitutions]
 
 
-def apply_overrides(content: str, overrides: List[Tuple[Pattern, str]]) -> str:
+def apply_overrides(content: str, overrides: list[tuple[Pattern, str]]) -> str:
     override_content = content
     for pattern, sub in overrides:
         override_content = re.sub(pattern, sub, override_content)
@@ -238,14 +240,14 @@ def assert_file_has_working_code_snippets(path: str, assume_import: bool):
     assert_code_snippets_run_in_sequence(snippets, assume_import)
 
 
-def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]], assume_import: bool):
+def assert_code_snippets_run_in_sequence(snippets: list[tuple[str, int]], assume_import: bool):
     """Checks that a sequence of code snippets actually run.
 
     State is kept between snippets. Imports and variables defined in one
     snippet will be visible in later snippets.
     """
 
-    state: Dict[str, Any] = {}
+    state: dict[str, Any] = {}
 
     if assume_import:
         exec('import cirq', state)
@@ -336,7 +338,7 @@ def test_canonicalize_printed_line():
 
 
 def assert_code_snippet_executes_correctly(
-    snippet: str, state: Dict, line_number: Optional[int] = None
+    snippet: str, state: dict, line_number: int | None = None
 ):
     """Executes a snippet and compares output / errors to annotations."""
 
@@ -359,10 +361,10 @@ def assert_code_snippet_executes_correctly(
 
 
 def assert_code_snippet_runs_and_prints_expected(
-    snippet: str, state: Dict, line_number: Optional[int] = None
+    snippet: str, state: dict, line_number: int | None = None
 ):
     """Executes a snippet and compares captured output to annotated output."""
-    output_lines: List[str] = []
+    output_lines: list[str] = []
     expected_outputs = find_expected_outputs(snippet)
 
     def print_capture(*values, sep=' '):
@@ -382,7 +384,7 @@ def assert_code_snippet_runs_and_prints_expected(
         raise
 
 
-def assert_code_snippet_fails(snippet: str, state: Dict, expected_failure_type: str):
+def assert_code_snippet_fails(snippet: str, state: dict, expected_failure_type: str):
     try:
         exec(snippet, state)
     except Exception as ex:
@@ -399,7 +401,7 @@ def assert_code_snippet_fails(snippet: str, state: Dict, expected_failure_type: 
     raise AssertionError('Expected snippet to fail, but it ran to completion.')
 
 
-def assert_expected_lines_present_in_order(expected_lines: List[str], actual_lines: List[str]):
+def assert_expected_lines_present_in_order(expected_lines: list[str], actual_lines: list[str]):
     """Checks that all expected lines are present.
 
     It is permitted for there to be extra actual lines between expected lines.
@@ -439,7 +441,7 @@ def assert_expected_lines_present_in_order(expected_lines: List[str], actual_lin
         i += 1
 
 
-def find_expected_outputs(snippet: str) -> List[str]:
+def find_expected_outputs(snippet: str) -> list[str]:
     """Finds expected output lines within a snippet.
 
     Expected output must be annotated with a leading '# prints'.
@@ -469,7 +471,7 @@ def find_expected_outputs(snippet: str) -> List[str]:
     return expected
 
 
-def _indent(lines: List[str]) -> str:
+def _indent(lines: list[str]) -> str:
     return '\t' + '\n'.join(lines).replace('\n', '\n\t')
 
 

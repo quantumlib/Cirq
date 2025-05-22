@@ -11,8 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Utility methods for checking properties of matrices."""
-from typing import cast, List, Optional, Sequence, Tuple, Union
+
+from __future__ import annotations
+
+from types import EllipsisType
+from typing import cast, Sequence
 
 import numpy as np
 
@@ -226,9 +231,9 @@ def slice_for_qubits_equal_to(
     little_endian_qureg_value: int = 0,
     *,  # Forces keyword args.
     big_endian_qureg_value: int = 0,
-    num_qubits: Optional[int] = None,
-    qid_shape: Optional[Tuple[int, ...]] = None,
-) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    num_qubits: int | None = None,
+    qid_shape: tuple[int, ...] | None = None,
+) -> tuple[slice | int | EllipsisType, ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -283,10 +288,10 @@ def slice_for_qubits_equal_to(
     qid_shape_specified = qid_shape is not None
     if qid_shape is not None or num_qubits is not None:
         if num_qubits is None:
-            num_qubits = len(cast(Tuple[int, ...], qid_shape))
+            num_qubits = len(cast(tuple[int, ...], qid_shape))
         elif qid_shape is None:
             qid_shape = (2,) * num_qubits
-        if num_qubits != len(cast(Tuple[int, ...], qid_shape)):
+        if num_qubits != len(cast(tuple[int, ...], qid_shape)):
             raise ValueError('len(qid_shape) != num_qubits')
     if little_endian_qureg_value and big_endian_qureg_value:
         raise ValueError(
@@ -297,7 +302,7 @@ def slice_for_qubits_equal_to(
     out_size = (
         cast(int, num_qubits) if out_size_specified else max(target_qubit_axes, default=-1) + 1
     )
-    result = cast(List[Union[slice, int, 'ellipsis']], [slice(None)] * out_size)
+    result = cast(list[slice | int | EllipsisType], [slice(None)] * out_size)
     if not out_size_specified:
         result.append(Ellipsis)
     if qid_shape is None:

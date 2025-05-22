@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Sequence
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -63,7 +63,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             if val:
                 self.apply_x(i)
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
 
     @classmethod
@@ -288,10 +288,10 @@ class StabilizerStateChForm(qis.StabilizerState):
         copy = StabilizerStateChForm(self.n)
         copy.G = self.G[axes][:, axes]
         copy.F = self.F[axes][:, axes]
-        copy.M = self.M[axes][:, axes]
-        copy.gamma = self.gamma[axes]
-        copy.v = self.v[axes]
-        copy.s = self.s[axes]
+        copy.M = self.M[axes][:, axes]  # type: ignore[assignment]
+        copy.gamma = self.gamma[axes]  # type: ignore[assignment]
+        copy.v = self.v[axes]  # type: ignore[assignment]
+        copy.s = self.s[axes]  # type: ignore[assignment]
         copy.omega = self.omega
         return copy
 
@@ -390,7 +390,7 @@ class StabilizerStateChForm(qis.StabilizerState):
 
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    ) -> List[int]:
+    ) -> list[int]:
         return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
 
 

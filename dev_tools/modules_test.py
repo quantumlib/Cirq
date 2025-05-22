@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import contextlib
 import os
 import shutil
@@ -19,7 +22,7 @@ import sys
 import tempfile
 from io import StringIO
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Iterator
 from unittest import mock
 
 import pytest
@@ -39,7 +42,7 @@ def test_modules():
             'author_email': 'cirq-dev@googlegroups.com',
             'maintainer': 'The Quantum AI open-source software maintainers',
             'maintainer_email': 'quantum-oss-maintainers@google.com',
-            'python_requires': '>=3.10.0',
+            'python_requires': '>=3.11.0',
             'install_requires': ['req1', 'req2'],
             'license': 'Apache 2',
             'packages': ['pack1', 'pack1.sub'],
@@ -83,7 +86,7 @@ def test_cli():
 
 
 @contextlib.contextmanager
-def chdir(*, target_dir: Optional[str] = None, clone_dir: Optional[str] = None) -> Iterator[None]:
+def chdir(*, target_dir: str | None = None, clone_dir: str | None = None) -> Iterator[None]:
     """Changes for the duration of the test the working directory.
 
     Args:

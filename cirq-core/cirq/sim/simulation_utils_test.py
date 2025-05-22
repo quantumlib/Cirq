@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -19,11 +22,11 @@ from cirq.sim import simulation_utils
 
 
 @pytest.mark.parametrize('n,m', [(n, m) for n in range(1, 4) for m in range(1, n + 1)])
-def test_state_probabilities_by_indices(n: int, m: int):
+def test_state_probabilities_by_indices(n: int, m: int) -> None:
     np.random.seed(0)
     state = testing.random_superposition(1 << n)
     d = (state.conj() * state).real
-    desired_axes = list(np.random.choice(n, m, replace=False))
+    desired_axes = np.random.choice(n, m, replace=False).tolist()
     not_wanted = [i for i in range(n) if i not in desired_axes]
     got = simulation_utils.state_probabilities_by_indices(d, desired_axes, (2,) * n)
     want = np.transpose(d.reshape((2,) * n), desired_axes + not_wanted)

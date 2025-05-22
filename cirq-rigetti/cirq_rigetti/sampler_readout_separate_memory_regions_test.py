@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import cast, Tuple
+from typing import cast
 
 import pytest
 import sympy
@@ -12,7 +12,7 @@ from cirq_rigetti.deprecation import allow_deprecated_cirq_rigetti_use_in_tests
 
 
 @pytest.fixture
-def circuit_with_separate_readout_keys() -> Tuple[cirq.Circuit, cirq.Linspace]:
+def circuit_with_separate_readout_keys() -> tuple[cirq.Circuit, cirq.Linspace]:
     circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(2)
     circuit.append(cirq.H(qubits[0]))
@@ -28,7 +28,7 @@ def circuit_with_separate_readout_keys() -> Tuple[cirq.Circuit, cirq.Linspace]:
 @pytest.mark.rigetti_integration
 @allow_deprecated_cirq_rigetti_use_in_tests
 def test_circuit_with_separate_readout_keys_through_sampler(
-    circuit_with_separate_readout_keys: Tuple[cirq.Circuit, cirq.Linspace],
+    circuit_with_separate_readout_keys: tuple[cirq.Circuit, cirq.Linspace],
 ) -> None:
     """test that RigettiQCSSampler can properly readout from separate memory
     regions.

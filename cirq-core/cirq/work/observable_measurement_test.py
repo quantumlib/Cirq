@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import tempfile
-from typing import Dict, Iterable, List
+from typing import Iterable
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 import cirq.work as cw
@@ -37,7 +41,7 @@ from cirq.work.observable_measurement import (
 )
 
 
-def test_with_parameterized_layers():
+def test_with_parameterized_layers() -> None:
     qs = cirq.LineQubit.range(3)
     circuit = cirq.Circuit([cirq.H.on_each(*qs), cirq.CZ(qs[0], qs[1]), cirq.CZ(qs[1], qs[2])])
     circuit2 = _with_parameterized_layers(circuit, qubits=qs, needs_init_layer=False)
@@ -46,9 +50,11 @@ def test_with_parameterized_layers():
     *_, xlayer, ylayer, measurelayer = circuit2.moments
     for op in xlayer.operations:
         assert isinstance(op.gate, cirq.XPowGate)
+        assert isinstance(op.gate.exponent, sympy.Symbol)
         assert op.gate.exponent.name.endswith('-Xf')
     for op in ylayer.operations:
         assert isinstance(op.gate, cirq.YPowGate)
+        assert isinstance(op.gate.exponent, sympy.Symbol)
         assert op.gate.exponent.name.endswith('-Yf')
     for op in measurelayer:
         assert isinstance(op.gate, cirq.MeasurementGate)
@@ -60,13 +66,15 @@ def test_with_parameterized_layers():
     xlayer, ylayer, *_ = circuit3.moments
     for op in xlayer.operations:
         assert isinstance(op.gate, cirq.XPowGate)
+        assert isinstance(op.gate.exponent, sympy.Symbol)
         assert op.gate.exponent.name.endswith('-Xi')
     for op in ylayer.operations:
         assert isinstance(op.gate, cirq.YPowGate)
+        assert isinstance(op.gate.exponent, sympy.Symbol)
         assert op.gate.exponent.name.endswith('-Yi')
 
 
-def test_get_params_for_setting():
+def test_get_params_for_setting() -> None:
     qubits = cirq.LineQubit.range(3)
     a, b, c = qubits
 
@@ -82,10 +90,10 @@ def test_get_params_for_setting():
     needs_init_layer = True
     with pytest.raises(ValueError):
         _get_params_for_setting(
-            padded_setting, flips=[0, 0], qubits=qubits, needs_init_layer=needs_init_layer
+            padded_setting, flips=[False, False], qubits=qubits, needs_init_layer=needs_init_layer
         )
     params = _get_params_for_setting(
-        padded_setting, flips=[0, 0, 1], qubits=qubits, needs_init_layer=needs_init_layer
+        padded_setting, flips=[False, False, True], qubits=qubits, needs_init_layer=needs_init_layer
     )
     assert all(
         x in params
@@ -116,7 +124,7 @@ def test_get_params_for_setting():
     np.testing.assert_allclose([ma, mb, mc], [1, 0, -1])
 
 
-def test_params_and_settings():
+def test_params_and_settings() -> None:
     qubits = cirq.LineQubit.range(1)
     (q,) = qubits
     tests = [
@@ -143,7 +151,7 @@ def test_params_and_settings():
         assert np.abs(coef - z) < 1e-2, f'{init} {obs} {coef}'
 
 
-def test_subdivide_meas_specs():
+def test_subdivide_meas_specs() -> None:
     qubits = cirq.LineQubit.range(2)
     q0, q1 = qubits
     setting = cw.InitObsSetting(
@@ -177,7 +185,7 @@ def test_subdivide_meas_specs():
     ]
 
 
-def test_aggregate_n_repetitions():
+def test_aggregate_n_repetitions() -> None:
     with pytest.warns(UserWarning):
         reps = _aggregate_n_repetitions({5, 6})
     assert reps == 6
@@ -197,7 +205,7 @@ class _MockBitstringAccumulator(BitstringAccumulator):
         return cov / len(self.bitstrings)
 
 
-def test_variance_stopping_criteria():
+def test_variance_stopping_criteria() -> None:
     stop = cw.VarianceStoppingCriteria(variance_bound=1e-6)
     acc = _MockBitstringAccumulator()
     assert stop.more_repetitions(acc) == 10_000
@@ -222,22 +230,30 @@ class _WildVarianceStoppingCriteria(StoppingCriteria):
         return [5, 6][self._state % 2]
 
 
-def test_variance_stopping_criteria_aggregate_n_repetitions():
+def test_variance_stopping_criteria_aggregate_n_repetitions() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
     stop = _WildVarianceStoppingCriteria()
     acc1 = _MockBitstringAccumulator()
     acc2 = _MockBitstringAccumulator()
-    accumulators = {'FakeMeasSpec1': acc1, 'FakeMeasSpec2': acc2}
+    setting = InitObsSetting(
+        init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
+    )
+    meas_spec = _MeasurementSpec(
+        max_setting=setting, circuit_params={'beta': 0.123, 'gamma': 0.456}
+    )
+    meas_spec2 = _MeasurementSpec(
+        max_setting=setting, circuit_params={'beta': 0.123, 'gamma': 0.456}
+    )
+    accumulators = {meas_spec: acc1, meas_spec2: acc2}
     with pytest.warns(UserWarning, match='the largest value will be used: 6.'):
         still_todo, reps = _check_meas_specs_still_todo(
-            meas_specs=sorted(accumulators.keys()),
-            accumulators=accumulators,
-            stopping_criteria=stop,
+            meas_specs=[meas_spec, meas_spec2], accumulators=accumulators, stopping_criteria=stop
         )
-    assert still_todo == ['FakeMeasSpec1', 'FakeMeasSpec2']
+    assert still_todo == [meas_spec, meas_spec2]
     assert reps == 6
 
 
-def test_repetitions_stopping_criteria():
+def test_repetitions_stopping_criteria() -> None:
     stop = cw.RepetitionsStoppingCriteria(total_repetitions=50_000)
     acc = _MockBitstringAccumulator()
 
@@ -248,7 +264,7 @@ def test_repetitions_stopping_criteria():
     assert todos == [10_000] * 5 + [0, 0]
 
 
-def test_repetitions_stopping_criteria_partial():
+def test_repetitions_stopping_criteria_partial() -> None:
     stop = cw.RepetitionsStoppingCriteria(total_repetitions=5_000, repetitions_per_chunk=1_000_000)
     acc = _MockBitstringAccumulator()
     assert stop.more_repetitions(acc) == 5_000
@@ -268,7 +284,7 @@ def _set_up_meas_specs_for_testing():
     return bsa, meas_spec
 
 
-def test_meas_specs_still_todo():
+def test_meas_specs_still_todo() -> None:
     bsa, meas_spec = _set_up_meas_specs_for_testing()
     stop = cw.RepetitionsStoppingCriteria(1_000)
 
@@ -296,7 +312,7 @@ def test_meas_specs_still_todo():
     assert reps == 0
 
 
-def test_meas_spec_still_todo_bad_spec():
+def test_meas_spec_still_todo_bad_spec() -> None:
     bsa, meas_spec = _set_up_meas_specs_for_testing()
 
     class BadStopping(StoppingCriteria):
@@ -310,7 +326,7 @@ def test_meas_spec_still_todo_bad_spec():
         )
 
 
-def test_meas_spec_still_todo_too_many_params(monkeypatch):
+def test_meas_spec_still_todo_too_many_params(monkeypatch) -> None:
     monkeypatch.setattr(cw.observable_measurement, 'MAX_REPETITIONS_PER_JOB', 30_000)
     bsa, meas_spec = _set_up_meas_specs_for_testing()
     lots_of_meas_spec = [meas_spec] * 3_001
@@ -321,7 +337,7 @@ def test_meas_spec_still_todo_too_many_params(monkeypatch):
         )
 
 
-def test_meas_spec_still_todo_lots_of_params(monkeypatch):
+def test_meas_spec_still_todo_lots_of_params(monkeypatch) -> None:
     monkeypatch.setattr(cw.observable_measurement, 'MAX_REPETITIONS_PER_JOB', 30_000)
     bsa, meas_spec = _set_up_meas_specs_for_testing()
     lots_of_meas_spec = [meas_spec] * 4
@@ -332,7 +348,7 @@ def test_meas_spec_still_todo_lots_of_params(monkeypatch):
         )
 
 
-def test_checkpoint_options():
+def test_checkpoint_options() -> None:
     # There are three ~binary options (the latter two can be either specified or `None`. We
     # test those 2^3 cases.
 
@@ -345,12 +361,15 @@ def test_checkpoint_options():
         _parse_checkpoint_options(False, 'test1', 'test2')
 
     chk, chkprev = _parse_checkpoint_options(True, None, None)
+    assert chk is not None
+    assert chkprev is not None
     assert chk.startswith(tempfile.gettempdir())
     assert chk.endswith('observables.json')
     assert chkprev.startswith(tempfile.gettempdir())
     assert chkprev.endswith('observables.prev.json')
 
     chk, chkprev = _parse_checkpoint_options(True, None, 'prev.json')
+    assert chk is not None
     assert chk.startswith(tempfile.gettempdir())
     assert chk.endswith('observables.json')
     assert chkprev == 'prev.json'
@@ -381,7 +400,7 @@ def test_checkpoint_options():
 
 
 @pytest.mark.parametrize(('with_circuit_sweep', 'checkpoint'), [(True, True), (False, False)])
-def test_measure_grouped_settings(with_circuit_sweep, checkpoint, tmpdir):
+def test_measure_grouped_settings(with_circuit_sweep, checkpoint, tmpdir) -> None:
     qubits = cirq.LineQubit.range(1)
     (q,) = qubits
     tests = [
@@ -431,7 +450,7 @@ def _get_some_grouped_settings():
     return grouped_settings, qubits
 
 
-def test_measure_grouped_settings_calibration_validation():
+def test_measure_grouped_settings_calibration_validation() -> None:
     mock_ro_calib = _MockBitstringAccumulator()
     grouped_settings, qubits = _get_some_grouped_settings()
 
@@ -448,7 +467,7 @@ def test_measure_grouped_settings_calibration_validation():
         )
 
 
-def test_measure_grouped_settings_read_checkpoint(tmpdir):
+def test_measure_grouped_settings_read_checkpoint(tmpdir) -> None:
     qubits = cirq.LineQubit.range(1)
     (q,) = qubits
 
@@ -495,7 +514,7 @@ Q = cirq.NamedQubit('q')
         (cirq.Circuit(cirq.Y(Q) ** 0.5, cirq.Z(Q) ** 0.2), cirq.X(Q)),
     ],
 )
-def test_XYZ_point8(circuit, observable):
+def test_XYZ_point8(circuit, observable) -> None:
     # each circuit, observable combination should result in the observable value of 0.8
     df = measure_observables_df(
         circuit,
@@ -510,14 +529,14 @@ def test_XYZ_point8(circuit, observable):
 
 def _each_in_its_own_group_grouper(
     settings: Iterable[InitObsSetting],
-) -> Dict[InitObsSetting, List[InitObsSetting]]:
+) -> dict[InitObsSetting, list[InitObsSetting]]:
     return {setting: [setting] for setting in settings}
 
 
 @pytest.mark.parametrize(
     'grouper', ['greedy', group_settings_greedy, _each_in_its_own_group_grouper]
 )
-def test_measure_observable_grouper(grouper):
+def test_measure_observable_grouper(grouper) -> None:
     circuit = cirq.Circuit(cirq.X(Q) ** 0.2)
     observables = [cirq.Z(Q), cirq.Z(cirq.NamedQubit('q2'))]
     results = measure_observables(
@@ -532,7 +551,7 @@ def test_measure_observable_grouper(grouper):
     np.testing.assert_allclose(1, results[1].mean, atol=1e-9)
 
 
-def test_measure_observable_bad_grouper():
+def test_measure_observable_bad_grouper() -> None:
     circuit = cirq.Circuit(cirq.X(Q) ** 0.2)
     observables = [cirq.Z(Q), cirq.Z(cirq.NamedQubit('q2'))]
     with pytest.raises(ValueError, match=r'Unknown grouping function'):

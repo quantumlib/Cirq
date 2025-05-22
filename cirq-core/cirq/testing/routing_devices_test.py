@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import networkx as nx
 import pytest
 
 import cirq
 
 
-def test_grid_device():
+def test_grid_device() -> None:
     rect_device = cirq.testing.construct_grid_device(5, 7)
     rect_device_graph = rect_device.metadata.nx_graph
     isomorphism_class = nx.Graph()
@@ -33,7 +36,7 @@ def test_grid_device():
     assert nx.is_isomorphic(isomorphism_class, rect_device_graph)
 
 
-def test_grid_op_validation():
+def test_grid_op_validation() -> None:
     device = cirq.testing.construct_grid_device(5, 7)
 
     with pytest.raises(ValueError, match="Qubits not on device"):
@@ -56,7 +59,7 @@ def test_grid_op_validation():
     device.validate_operation(cirq.CNOT(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)))
 
 
-def test_ring_device():
+def test_ring_device() -> None:
     undirected_device = cirq.testing.construct_ring_device(5)
     undirected_device_graph = undirected_device.metadata.nx_graph
     assert all(q in undirected_device_graph.nodes for q in cirq.LineQubit.range(5))
@@ -74,7 +77,7 @@ def test_ring_device():
     assert nx.is_isomorphic(isomorphism_class, directed_device_graph)
 
 
-def test_ring_op_validation():
+def test_ring_op_validation() -> None:
     directed_device = cirq.testing.construct_ring_device(5, directed=True)
     undirected_device = cirq.testing.construct_ring_device(5, directed=False)
 
@@ -93,7 +96,7 @@ def test_ring_op_validation():
     directed_device.validate_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
 
 
-def test_allowed_multi_qubit_gates():
+def test_allowed_multi_qubit_gates() -> None:
     device = cirq.testing.construct_ring_device(5)
 
     device.validate_operation(cirq.MeasurementGate(1).on(cirq.LineQubit(0)))
@@ -106,7 +109,7 @@ def test_allowed_multi_qubit_gates():
     device.validate_operation(cirq.CNOT(*cirq.LineQubit.range(2)))
 
 
-def test_namedqubit_device():
+def test_namedqubit_device() -> None:
     # 4-star graph
     nx_graph = nx.Graph([("a", "b"), ("a", "c"), ("a", "d")])
 

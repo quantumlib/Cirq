@@ -13,15 +13,17 @@
 # limitations under the License.
 
 """Functions to instantiate SimulatedLocalEngines to simulate various Google Devices."""
+
+from __future__ import annotations
+
 import json
 import pathlib
 import time
-from typing import cast, List, Optional, Type, Union
+from typing import cast, TYPE_CHECKING
 
 import google.protobuf.text_format as text_format
 
 import cirq
-from cirq.sim.simulator import SimulatesSamples
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
 from cirq_google.devices.google_noise_properties import NoiseModelFromGoogleNoiseProperties
@@ -29,6 +31,10 @@ from cirq_google.engine import calibration, engine_validator, simulated_local_pr
 from cirq_google.engine.calibration_to_noise_properties import noise_properties_from_calibration
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
+from cirq_google.ops import fsim_gate_family
+
+if TYPE_CHECKING:
+    import cirq_google
 
 MOST_RECENT_TEMPLATES = {
     'rainbow': 'rainbow_2021_12_10_device_spec_for_grid_device.proto.txt',
@@ -167,7 +173,7 @@ def load_sample_device_zphase(processor_id: str) -> util.ZPhaseDataType:
 def _create_virtual_processor_from_device(
     processor_id: str,
     device: cirq.Device,
-    device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
+    device_specification: v2.device_pb2.DeviceSpecification | None = None,
 ) -> simulated_local_processor.SimulatedLocalProcessor:
     """Creates a Processor object that is backed by a noiseless simulator.
 
@@ -196,7 +202,7 @@ def _create_virtual_processor_from_device(
 def create_noiseless_virtual_engine_from_device(
     processor_id: str,
     device: cirq.Device,
-    device_specification: Optional[v2.device_pb2.DeviceSpecification] = None,
+    device_specification: v2.device_pb2.DeviceSpecification | None = None,
 ) -> SimulatedLocalEngine:
     """Creates an Engine object with a single processor backed by a noiseless simulator.
 
@@ -239,10 +245,10 @@ def create_noiseless_virtual_processor_from_proto(
 
 
 def create_noiseless_virtual_engine_from_proto(
-    processor_ids: Union[str, List[str]],
-    device_specifications: Union[
-        v2.device_pb2.DeviceSpecification, List[v2.device_pb2.DeviceSpecification]
-    ],
+    processor_ids: str | list[str],
+    device_specifications: (
+        v2.device_pb2.DeviceSpecification | list[v2.device_pb2.DeviceSpecification]
+    ),
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification proto.
 
@@ -303,8 +309,8 @@ def create_device_spec_from_processor_id(processor_id: str) -> v2.device_pb2.Dev
     return _create_device_spec_from_template(template_name)
 
 
-def create_device_from_processor_id(processor_id: str) -> cirq.Device:
-    """Generates a `cirq.Device` for a given processor ID.
+def create_device_from_processor_id(processor_id: str) -> grid_device.GridDevice:
+    """Generates a `cirq_google.GridDevice` for a given processor ID.
 
     Args:
         processor_id: name of the processor to simulate.
@@ -335,7 +341,7 @@ def create_noiseless_virtual_processor_from_template(
 
 
 def create_noiseless_virtual_engine_from_templates(
-    processor_ids: Union[str, List[str]], template_names: Union[str, List[str]]
+    processor_ids: str | list[str], template_names: str | list[str]
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification template.
 
@@ -385,7 +391,7 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
 
 
 def create_default_noisy_quantum_virtual_machine(
-    processor_id: str, simulator_class: Optional[Type[SimulatesSamples]] = None, **kwargs
+    processor_id: str, simulator_class: type[cirq.SimulatesSamples] | None = None, **kwargs
 ) -> SimulatedLocalEngine:
     """Creates a virtual engine with a noisy simulator based on a processor id.
 
@@ -425,3 +431,40 @@ def create_default_noisy_quantum_virtual_machine(
     )
 
     return SimulatedLocalEngine([simulated_processor])
+
+
+def extract_gate_times_ns_from_device(
+    device: cirq_google.GridDevice,
+) -> dict[type[cirq.Gate], float]:
+    """Extract a dictionary of gate durations in nanoseconds from GridDevice object.
+
+    The durations are obtained from `GridDevice.metadata` field which is
+    provided for devices obtained with `create_device_from_processor_id`.
+
+    Args:
+        device: Object representing Google devices with a grid qubit layout.
+
+    Returns:
+        A dictionary of gate durations versus supported gate types.  Returns an
+        empty dictionary when `device.metadata` do not provide gate durations.
+    """
+    gate_times_ns: dict[type[cirq.Gate], float] = {}
+    if not device.metadata.gate_durations:
+        return gate_times_ns
+    gate_type: type[cirq.Gate]  # pragma: no cover
+    for gate_family, duration in device.metadata.gate_durations.items():
+        if isinstance(gate_family, fsim_gate_family.FSimGateFamily):
+            for g in gate_family.gates_to_accept:
+                gate_type = g if isinstance(g, type) else type(g)
+                gate_times_ns[gate_type] = duration.total_nanos()
+            continue
+        # ordinary GateFamily here
+        gate_type = (
+            gate_family.gate if isinstance(gate_family.gate, type) else type(gate_family.gate)
+        )
+        gate_times_ns[gate_type] = duration.total_nanos()
+    # cirq.IdentityGate can leak from FSimGateFamily.  Exclude to default to zero duration.
+    _ = gate_times_ns.pop(cirq.IdentityGate, None)
+    # cirq.WaitGate has variable duration and should not be included here.
+    _ = gate_times_ns.pop(cirq.WaitGate, None)
+    return gate_times_ns

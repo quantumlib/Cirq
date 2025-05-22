@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence, Tuple
+from __future__ import annotations
+
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -19,7 +21,7 @@ from cirq import linalg
 
 
 def state_probabilities_by_indices(
-    state_probability: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
+    state_probability: np.ndarray, indices: Sequence[int], qid_shape: tuple[int, ...]
 ) -> np.ndarray:
     """Returns the probabilities for a state/measurement on the given indices.
 
@@ -37,6 +39,7 @@ def state_probabilities_by_indices(
     Returns:
         State probabilities.
     """
+    probs: np.ndarray[tuple[int, ...], Any]
     probs = state_probability.reshape((-1,))
     not_measured = [i for i in range(len(qid_shape)) if i not in indices]
     if linalg.can_numpy_support_shape(qid_shape):

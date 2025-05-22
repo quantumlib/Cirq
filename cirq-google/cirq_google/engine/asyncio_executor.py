@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import asyncio
 import errno
 import threading
-from typing import Awaitable, Callable, Optional, TypeVar
+from typing import Awaitable, Callable, TypeVar
 
 import duet
 from typing_extensions import ParamSpec
@@ -67,10 +69,10 @@ class AsyncioExecutor:
         future = asyncio.run_coroutine_threadsafe(func(*args, **kwargs), self.loop)
         return duet.AwaitableFuture.wrap(future)
 
-    _instance: Optional['AsyncioExecutor'] = None
+    _instance: AsyncioExecutor | None = None
 
     @classmethod
-    def instance(cls) -> 'AsyncioExecutor':
+    def instance(cls) -> AsyncioExecutor:
         """Returns a singleton AsyncioExecutor shared globally."""
         if cls._instance is None:
             cls._instance = cls()

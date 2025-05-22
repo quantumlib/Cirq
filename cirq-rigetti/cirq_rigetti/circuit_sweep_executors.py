@@ -15,7 +15,7 @@
 `RigettiQCSSampler` as `executor`.
 """
 
-from typing import Any, cast, Dict, Optional, Sequence, Union
+from typing import Any, cast, Sequence
 
 import sympy
 from pyquil import Program
@@ -32,11 +32,9 @@ from cirq_rigetti.logging import logger
 def _execute_and_read_result(
     quantum_computer: QuantumComputer,
     executable: QuantumExecutable,
-    measurement_id_map: Dict[str, str],
+    measurement_id_map: dict[str, str],
     resolver: cirq.ParamResolverOrSimilarType,
-    memory_map: Optional[
-        Dict[Union[sympy.Expr, str], Union[int, float, Sequence[int], Sequence[float]]]
-    ] = None,
+    memory_map: dict[sympy.Expr | str, int | float | Sequence[int] | Sequence[float]] | None = None,
 ) -> cirq.Result:
     """Execute the `pyquil.api.QuantumExecutable` and parse the measurements into
     a `cirq.Result`.
@@ -90,7 +88,7 @@ def _execute_and_read_result(
     return result
 
 
-def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[Union[str, sympy.Expr], Any]:
+def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> dict[str | sympy.Expr, Any]:
     """Converts a `cirq.ParamResolverOrSimilarType` to a dictionary.
 
     Args:
@@ -99,7 +97,7 @@ def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[Union[str
     Returns:
         A dictionary representation of the `resolver`.
     """
-    param_dict: Dict[Union[str, sympy.Expr], Any] = {}
+    param_dict: dict[str | sympy.Expr, Any] = {}
     if isinstance(resolver, cirq.ParamResolver):
         param_dict = dict(resolver.param_dict)
     elif isinstance(resolver, dict):

@@ -13,6 +13,9 @@
 # limitations under the License.
 
 """Tests for engine."""
+
+from __future__ import annotations
+
 import datetime
 import time
 from unittest import mock

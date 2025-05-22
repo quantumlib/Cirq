@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -20,7 +22,7 @@ from cirq import quirk_url_to_circuit
 from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
 
-def test_input_rotation_cells():
+def test_input_rotation_cells() -> None:
     with pytest.raises(ValueError, match='classical constant'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[["Z^(A/2^n)",{"id":"setA","arg":3}]]}'
@@ -105,7 +107,7 @@ def test_input_rotation_cells():
     )
 
 
-def test_input_rotation_cells_repr():
+def test_input_rotation_cells_repr() -> None:
     circuit = quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["•","X^(-A/2^n)","inputA2"]]}'
     )
@@ -113,7 +115,7 @@ def test_input_rotation_cells_repr():
     cirq.testing.assert_equivalent_repr(op)
 
 
-def test_validation():
+def test_validation() -> None:
     with pytest.raises(ValueError, match='sign'):
         _ = cirq.interop.quirk.QuirkInputRotationOperation(
             identifier='xxx',
@@ -123,7 +125,7 @@ def test_validation():
         )
 
 
-def test_input_rotation_with_qubits():
+def test_input_rotation_with_qubits() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     x, y, z, t, w = cirq.LineQubit.range(10, 15)
     op = cirq.interop.quirk.QuirkInputRotationOperation(
@@ -143,7 +145,7 @@ def test_input_rotation_with_qubits():
     )
 
 
-def test_input_rotation_cell_with_qubits():
+def test_input_rotation_cell_with_qubits() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     x, y, z, t, w = cirq.LineQubit.range(10, 15)
     cell = cirq.interop.quirk.cells.input_rotation_cells.InputRotationCell(
@@ -162,7 +164,7 @@ def test_input_rotation_cell_with_qubits():
     )
 
 
-def test_input_rotation_cell_with_qubits_before_register_specified():
+def test_input_rotation_cell_with_qubits_before_register_specified() -> None:
     d, e = cirq.LineQubit.range(3, 5)
     x, y, z, t, w = cirq.LineQubit.range(10, 15)
     cell = cirq.interop.quirk.cells.input_rotation_cells.InputRotationCell(
@@ -181,7 +183,7 @@ def test_input_rotation_cell_with_qubits_before_register_specified():
     )
 
 
-def test_repr():
+def test_repr() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     cirq.testing.assert_equivalent_repr(
         cirq.interop.quirk.cells.input_rotation_cells.InputRotationCell(

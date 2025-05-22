@@ -23,6 +23,8 @@ added items or groups.
 It will also check that a==b implies hash(a)==hash(b).
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from cirq.testing.equals_tester import EqualsTester

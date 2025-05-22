@@ -12,14 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import networkx
 
 from cirq import circuits, linalg
-from cirq.contrib import circuitdag
 from cirq.contrib.paulistring.pauli_string_dag import pauli_string_dag_from_circuit
 from cirq.contrib.paulistring.recombine import move_pauli_strings_into_circuit
 from cirq.contrib.paulistring.separate import convert_and_separate_circuit
 from cirq.ops import PauliStringGateOperation
+
+if TYPE_CHECKING:
+    from cirq.contrib import circuitdag
 
 
 def pauli_string_optimized_circuit(

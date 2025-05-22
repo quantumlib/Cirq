@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterator
+from __future__ import annotations
 
-import networkx as nx
+from typing import Iterator, TYPE_CHECKING
 
 import cirq
+
+if TYPE_CHECKING:
+    import networkx as nx
 
 
 def get_grid_moments(

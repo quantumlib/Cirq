@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import cirq
 from cirq.contrib.paulistring import (
     convert_and_separate_circuit,
@@ -26,7 +28,7 @@ def _assert_no_multi_qubit_pauli_strings(circuit: cirq.Circuit) -> None:
             assert len(op.pauli_string) == 1  # pragma: no cover
 
 
-def test_move_non_clifford_into_clifford():
+def test_move_non_clifford_into_clifford() -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
 

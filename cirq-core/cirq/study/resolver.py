@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import Any, cast, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union
+from typing import Any, cast, Iterator, Mapping, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamValComplex']
+ParamDictType = dict['cirq.TParamKey', 'cirq.TParamValComplex']
 ParamMappingType = Mapping['cirq.TParamKey', 'cirq.TParamValComplex']
 document(ParamDictType, """Dictionary from symbols to values.""")
 document(ParamMappingType, """Immutable map from symbols to values.""")
@@ -73,7 +73,7 @@ class ParamResolver:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
-        self._param_hash: Optional[int] = None
+        self._param_hash: int | None = None
         self._param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
         for key in self._param_dict:
             if isinstance(key, sympy.Expr) and not isinstance(key, sympy.Symbol):
@@ -85,7 +85,7 @@ class ParamResolver:
         return self._param_dict
 
     def value_of(
-        self, value: Union[cirq.TParamKey, cirq.TParamValComplex], recursive: bool = True
+        self, value: cirq.TParamKey | cirq.TParamValComplex, recursive: bool = True
     ) -> cirq.TParamValComplex:
         """Attempt to resolve a parameter to its assigned value.
 
@@ -217,7 +217,7 @@ class ParamResolver:
         return self._deep_eval_map[value]
 
     def _resolve_parameters_(self, resolver: ParamResolver, recursive: bool) -> ParamResolver:
-        new_dict: Dict[cirq.TParamKey, Union[float, str, sympy.Symbol, sympy.Expr]] = {
+        new_dict: dict[cirq.TParamKey, float | str | sympy.Symbol | sympy.Expr] = {
             k: k for k in resolver
         }
         new_dict.update({k: self.value_of(k, recursive) for k in self})
@@ -228,15 +228,13 @@ class ParamResolver:
             return ParamResolver()._resolve_parameters_(new_resolver, recursive=True)
         return ParamResolver(cast(ParamDictType, new_dict))
 
-    def __iter__(self) -> Iterator[Union[str, sympy.Expr]]:
+    def __iter__(self) -> Iterator[str | sympy.Expr]:
         return iter(self._param_dict)
 
     def __bool__(self) -> bool:
         return bool(self._param_dict)
 
-    def __getitem__(
-        self, key: Union[cirq.TParamKey, cirq.TParamValComplex]
-    ) -> cirq.TParamValComplex:
+    def __getitem__(self, key: cirq.TParamKey | cirq.TParamValComplex) -> cirq.TParamValComplex:
         return self.value_of(key)
 
     def __hash__(self) -> int:
@@ -244,7 +242,7 @@ class ParamResolver:
             self._param_hash = hash(frozenset(self._param_dict.items()))
         return self._param_hash
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
         state = self.__dict__
         if state["_param_hash"] is not None:
@@ -268,7 +266,7 @@ class ParamResolver:
         )
         return f'cirq.ParamResolver({param_dict_repr})'
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             # JSON requires mappings to have keys of basic types.
             'param_dict': list(self._param_dict.items())

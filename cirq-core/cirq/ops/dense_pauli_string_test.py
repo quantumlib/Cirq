@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
 import numbers
-from typing import List
 
 import numpy as np
 import pytest
@@ -544,7 +546,7 @@ def test_copy():
 
 
 def test_gaussian_elimination():
-    def table(*rows: str) -> List[cirq.MutableDensePauliString]:
+    def table(*rows: str) -> list[cirq.MutableDensePauliString]:
         coefs = {'i': 1j, '-': -1, '+': 1}
         return [
             cirq.MutableDensePauliString(row[1:].replace('.', 'I'), coefficient=coefs[row[0]])
