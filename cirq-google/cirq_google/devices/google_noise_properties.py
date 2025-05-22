@@ -49,7 +49,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
     """Noise-defining properties for a Google device.
 
     Inherited args:
-        gate_times_ns: dict[Type[`cirq.Gate`], float] of gate types to their
+        gate_times_ns: dict[type[`cirq.Gate`], float] of gate types to their
             duration on quantum hardware. Used with t(1|phi)_ns to specify
             thermal noise.
         t1_ns: dict[`cirq.Qid`, float] of qubits to their T_1 time, in ns.
@@ -125,17 +125,17 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         the same as those used in the constructor.
 
         Args:
-        gate_times_ns: float or dict[Type[`cirq.Gate`], float].
+        gate_times_ns: float or dict[type[`cirq.Gate`], float].
         t1_ns: float or dict[`cirq.Qid`, float].
         tphi_ns: float or dict[`cirq.Qid`, float].
         readout_errors: Sequence or dict[`cirq.Qid`, Sequence]. Converted to
             np.ndarray if not provided in that format.
         gate_pauli_errors: float or dict[`cirq.OpIdentifier`, float].
-            Dict key can also be Type[`cirq.Gate`]; this will apply the given
+            Dict key can also be type[`cirq.Gate`]; this will apply the given
             error to all placements of that gate that appear in the original
             object.
         fsim_errors: `cirq.PhasedFSimGate` or dict[`cirq.OpIdentifier`,
-            `cirq.PhasedFSimGate`] Dict key can also be Type[`cirq.Gate`]; this
+            `cirq.PhasedFSimGate`] Dict key can also be type[`cirq.Gate`]; this
             will apply the given error to all placements of that gate that
             appear in the original object.
 

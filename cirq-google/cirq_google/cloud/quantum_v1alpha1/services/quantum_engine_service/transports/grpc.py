@@ -17,9 +17,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Callable, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Sequence, TYPE_CHECKING
 
-import google.auth
 import grpc  # type: ignore
 from google.api_core import gapic_v1, grpc_helpers
 from google.auth.transport.grpc import SslCredentials
@@ -86,13 +85,13 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
                 If provided, it overrides the ``host`` argument and tries to create
                 a mutual TLS channel with client SSL credentials from
                 ``client_cert_source`` or application default SSL credentials.
-            client_cert_source (Optional[Callable[[], Tuple[bytes, bytes]]]):
+            client_cert_source (Optional[Callable[[], tuple[bytes, bytes]]]):
                 Deprecated. A callback to provide client SSL certificate bytes and
                 private key bytes, both in PEM format. It is ignored if
                 ``api_mtls_endpoint`` is None.
             ssl_channel_credentials (grpc.ChannelCredentials): SSL credentials
                 for the grpc channel. It is ignored if ``channel`` is provided.
-            client_cert_source_for_mtls (Optional[Callable[[], Tuple[bytes, bytes]]]):
+            client_cert_source_for_mtls (Optional[Callable[[], tuple[bytes, bytes]]]):
                 A callback to provide client certificate bytes and private key bytes,
                 both in PEM format. It is used to configure a mutual TLS channel. It is
                 ignored if ``channel`` or ``ssl_channel_credentials`` is provided.
