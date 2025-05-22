@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Optional, Sequence, Tuple
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Sequence
 
 from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
@@ -56,7 +56,7 @@ class ListQuantumProgramsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -118,7 +118,7 @@ class ListQuantumProgramsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -184,7 +184,7 @@ class ListQuantumJobsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -246,7 +246,7 @@ class ListQuantumJobsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumJobsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -312,7 +312,7 @@ class ListQuantumJobEventsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -374,7 +374,7 @@ class ListQuantumJobEventsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -440,7 +440,7 @@ class ListQuantumProcessorsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -502,7 +502,7 @@ class ListQuantumProcessorsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -568,7 +568,7 @@ class ListQuantumCalibrationsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -630,7 +630,7 @@ class ListQuantumCalibrationsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -696,7 +696,7 @@ class ListQuantumReservationsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -758,7 +758,7 @@ class ListQuantumReservationsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -824,7 +824,7 @@ class ListQuantumReservationGrantsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -886,7 +886,7 @@ class ListQuantumReservationGrantsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -952,7 +952,7 @@ class ListQuantumReservationBudgetsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -1014,7 +1014,7 @@ class ListQuantumReservationBudgetsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -1080,7 +1080,7 @@ class ListQuantumTimeSlotsPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method
@@ -1142,7 +1142,7 @@ class ListQuantumTimeSlotsAsyncPager:
                 The initial request object.
             response (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsResponse):
                 The initial response object.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         self._method = method

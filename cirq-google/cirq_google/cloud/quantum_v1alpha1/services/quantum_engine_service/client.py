@@ -20,7 +20,7 @@ import importlib.metadata
 import os
 import re
 from collections import OrderedDict
-from typing import Dict, Iterable, Iterator, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
+from typing import Iterable, Iterator, Sequence, TYPE_CHECKING
 
 from google.api_core import client_options as client_options_lib, gapic_v1, retry as retries
 from google.auth.exceptions import MutualTLSChannelError
@@ -51,7 +51,7 @@ class QuantumEngineServiceClientMeta(type):
     objects.
     """
 
-    _transport_registry = OrderedDict()  # type: Dict[str, Type[QuantumEngineServiceTransport]]
+    _transport_registry = OrderedDict()  # type: dict[str, type[QuantumEngineServiceTransport]]
     _transport_registry["grpc"] = QuantumEngineServiceGrpcTransport
     _transport_registry["grpc_asyncio"] = QuantumEngineServiceGrpcAsyncIOTransport
 
@@ -287,7 +287,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 in this method.
 
         Returns:
-            Tuple[str, Callable[[], Tuple[bytes, bytes]]]: returns the API endpoint and the
+            tuple[str, Callable[[], tuple[bytes, bytes]]]: returns the API endpoint and the
                 client cert source to use.
 
         Raises:
@@ -340,7 +340,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 credentials identify the application to the service; if none
                 are specified, the client will attempt to ascertain the
                 credentials from the environment.
-            transport (Union[str, QuantumEngineServiceTransport]): The
+            transport (str | QuantumEngineServiceTransport): The
                 transport to use. If set to None, a transport is chosen
                 automatically.
             client_options (google.api_core.client_options.ClientOptions): Custom options for the
@@ -443,12 +443,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumProgramRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CreateQuantumProgramRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -508,12 +508,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumProgramRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumProgramRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -574,12 +574,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumProgramsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -646,12 +646,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 client.delete_quantum_program(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumProgramRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.DeleteQuantumProgramRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         # Create or coerce a protobuf request object.
@@ -704,12 +704,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumProgramRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.UpdateQuantumProgramRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -769,12 +769,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CreateQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -834,12 +834,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -900,12 +900,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -972,12 +972,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 client.delete_quantum_job(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.DeleteQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         # Create or coerce a protobuf request object.
@@ -1030,12 +1030,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.UpdateQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1092,12 +1092,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 client.cancel_quantum_job(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CancelQuantumJobRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CancelQuantumJobRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         # Create or coerce a protobuf request object.
@@ -1151,12 +1151,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumJobEventsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1226,12 +1226,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumResultRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1292,12 +1292,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumProcessorsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1367,12 +1367,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumProcessorRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumProcessorRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1433,12 +1433,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumCalibrationsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1508,12 +1508,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumCalibrationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumCalibrationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1573,12 +1573,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CreateQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CreateQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1638,12 +1638,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.CancelQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.CancelQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1700,12 +1700,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 client.delete_quantum_reservation(request=request)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.DeleteQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.DeleteQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
         """
         # Create or coerce a protobuf request object.
@@ -1758,12 +1758,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.GetQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.GetQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1824,12 +1824,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1899,12 +1899,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.UpdateQuantumReservationRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.UpdateQuantumReservationRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -1980,7 +1980,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -2028,12 +2028,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationGrantsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -2103,12 +2103,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                 print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ReallocateQuantumReservationGrantRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ReallocateQuantumReservationGrantRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -2169,12 +2169,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumReservationBudgetsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
@@ -2245,12 +2245,12 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
                     print(response)
 
         Args:
-            request (Union[google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest, dict]):
+            request (google.cloud.quantum_v1alpha1.types.ListQuantumTimeSlotsRequest | dict):
                 The request object. -
             retry (google.api_core.retry.Retry): Designation of what errors, if any,
                 should be retried.
             timeout (float): The timeout for this request.
-            metadata (Sequence[Tuple[str, str]]): Strings which should be
+            metadata (Sequence[tuple[str, str]]): Strings which should be
                 sent along with the request as metadata.
 
         Returns:
