@@ -786,20 +786,13 @@ def test_controlled_mixture():
         (4, -np.pi / 3, ((0,), (1,), (1,), (0,))),
     ],
 )
-def test_controlled_global_phase_matrix_gate_decomposition_consistency(
+def test_controlled_global_phase_matrix_gate_decomposes(
     num_controls, angle, control_values
 ):
     all_qubits = cirq.LineQubit.range(num_controls)
     control_values = cirq.ops.control_values.ProductOfSums(control_values)
     control_qid_shape = (2,) * num_controls
     phase_value = np.exp(1j * angle)
-
-    cg_global = cirq.ControlledGate(
-        sub_gate=cirq.GlobalPhaseGate(phase_value),
-        num_controls=num_controls,
-        control_values=control_values,
-        control_qid_shape=control_qid_shape,
-    )
 
     cg_matrix = cirq.ControlledGate(
         sub_gate=cirq.MatrixGate(np.array([[phase_value]])),
@@ -808,9 +801,6 @@ def test_controlled_global_phase_matrix_gate_decomposition_consistency(
         control_qid_shape=control_qid_shape,
     )
 
-    decomp_global = cirq.decompose_once(cg_global(*all_qubits))
-    decomp_matrix = cirq.decompose_once(cg_matrix(*all_qubits))
-
-    assert decomp_global is not None
-    assert decomp_matrix is not None
-    assert decomp_global == decomp_matrix
+    decomposed = cirq.decompose(cg_matrix(*all_qubits))
+    assert not any(isinstance(op.gate, cirq.MatrixGate) for op in decomposed)
+    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(decomposed)), cirq.unitary(cg_matrix))
