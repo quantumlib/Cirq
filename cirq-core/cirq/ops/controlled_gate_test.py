@@ -786,9 +786,7 @@ def test_controlled_mixture():
         (4, -np.pi / 3, ((0,), (1,), (1,), (0,))),
     ],
 )
-def test_controlled_global_phase_matrix_gate_decomposes(
-    num_controls, angle, control_values
-):
+def test_controlled_global_phase_matrix_gate_decomposes(num_controls, angle, control_values):
     all_qubits = cirq.LineQubit.range(num_controls)
     control_values = cirq.ops.control_values.ProductOfSums(control_values)
     control_qid_shape = (2,) * num_controls
